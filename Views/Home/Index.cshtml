@@ -1,0 +1,92 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="bg-light p-4 rounded mb-4">
+    <div class="row align-items-center">
+        <div class="col-md-8">
+            <h1 class="display-6 fw-bold">Selamat Datang, User!</h1>
+            <p class="lead mb-0 text-muted">Role: <span class="badge bg-primary">Pekerja (Engineer)</span> | Unit: SRU</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <p class="mb-0">@DateTime.Now.ToString("dd MMMM yyyy")</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100 border-primary shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-primary">My IDP Status</h5>
+                <h2 class="fw-bold">75%</h2>
+                <div class="progress mb-2" style="height: 10px;">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+                </div>
+                <p class="card-text small text-muted">3 Aktivitas selesai dari 4.</p>
+                <a asp-controller="CDP" asp-action="Index" class="btn btn-sm btn-outline-primary w-100">Update Progress</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 border-warning shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-warning">Pending Assessment</h5>
+                <div class="d-flex align-items-center">
+                    <h2 class="fw-bold me-2">2</h2>
+                    <span class="badge bg-danger">Urgent</span>
+                </div>
+                <p class="card-text small text-muted">Anda memiliki assessment yang belum disubmit.</p>
+                <a asp-controller="CMP" asp-action="Index" class="btn btn-sm btn-outline-warning w-100">Kerjakan Sekarang</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card h-100 border-success shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title text-success">Mandatory Training</h5>
+                <h2 class="fw-bold text-success">VALID</h2>
+                <p class="card-text small text-muted">Sertifikat HSSE berlaku sampai Des 2026.</p>
+                <button class="btn btn-sm btn-secondary w-100" disabled>Download Sertifikat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3">Quick Access</h4>
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <a asp-controller="CDP" asp-action="Index" class="card text-decoration-none text-dark h-100 hover-shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-2">📅</h3>
+                <h6>My IDP</h6>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a asp-controller="CMP" asp-action="Assessment" class="card text-decoration-none text-dark h-100 hover-shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-2">📝</h3>
+                <h6>Assessment</h6>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a asp-controller="BP" asp-action="Index" class="card text-decoration-none text-dark h-100 hover-shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-2">📈</h3>
+                <h6>Career Sim</h6>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3 mb-3">
+        <a asp-controller="CMP" asp-action="Index" class="card text-decoration-none text-dark h-100 hover-shadow">
+            <div class="card-body text-center">
+                <h3 class="mb-2">📚</h3>
+                <h6>Library KKJ</h6>
+            </div>
+        </a>
+    </div>
+</div>

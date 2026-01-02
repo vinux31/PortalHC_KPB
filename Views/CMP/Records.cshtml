@@ -1,0 +1,86 @@
+@model List<HcPortal.Models.TrainingRecord>
+
+@{
+    ViewData["Title"] = "Capability Records";
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold">Capability Building Records</h2>
+    <p class="text-muted">Rekam jejak pelatihan teknis, sertifikasi, dan pembelajaran mandiri.</p>
+</div>
+
+<ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="proton-tab" data-bs-toggle="tab" data-bs-target="#proton" type="button">PROTON & OTS</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="ojt-tab" data-bs-toggle="tab" data-bs-target="#ojt" type="button">OJT & IHT</button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="mandatory-tab" data-bs-toggle="tab" data-bs-target="#mandatory" type="button">Mandatory HSSE</button>
+    </li>
+</ul>
+
+<div class="tab-content" id="myTabContent">
+    
+    <div class="tab-pane fade show active" id="proton" role="tabpanel">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Catatan: Assessment PROTON dilakukan melalui NSO. Token diberikan oleh HC.
+        </div>
+        @{ RenderTable(Model.Where(x => x.Kategori == "PROTON").ToList()); }
+    </div>
+
+    <div class="tab-pane fade" id="ojt" role="tabpanel">
+        @{ RenderTable(Model.Where(x => x.Kategori == "OJT").ToList()); }
+    </div>
+
+    <div class="tab-pane fade" id="mandatory" role="tabpanel">
+        @{ RenderTable(Model.Where(x => x.Kategori == "MANDATORY").ToList()); }
+    </div>
+</div>
+
+@{
+    void RenderTable(List<HcPortal.Models.TrainingRecord> data)
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3">Judul Program</th>
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Penyelenggara</th>
+                            <th class="p-3">Status</th>
+                            <th class="p-3">Sertifikat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if(data.Count == 0) 
+                        {
+                            <tr><td colspan="5" class="text-center p-4 text-muted">Belum ada data di kategori ini.</td></tr>
+                        }
+                        
+                        @foreach (var item in data)
+                        {
+                            <tr>
+                                <td class="p-3 fw-bold">@item.Judul</td>
+                                <td class="p-3">@item.Tanggal.ToString("dd MMM yyyy")</td>
+                                <td class="p-3">@item.Penyelenggara</td>
+                                <td class="p-3">
+                                    @if(item.Status == "Passed" || item.Status == "Valid") {
+                                        <span class="badge bg-success">@item.Status</span>
+                                    } else {
+                                        <span class="badge bg-warning text-dark">@item.Status</span>
+                                    }
+                                </td>
+                                <td class="p-3">
+                                    <button class="btn btn-sm btn-outline-primary">Download</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

@@ -1,0 +1,127 @@
+@{
+    ViewData["Title"] = "Dashboard Monitoring";
+}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="mb-4">
+    <h2 class="fw-bold">Competency Development Dashboard</h2>
+    <p class="text-muted">Monitoring Kinerja Pengembangan Kompetensi - Periode 2025</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white shadow-sm">
+            <div class="card-body">
+                <h6>Total IDP Aktif</h6>
+                <h2 class="fw-bold">142</h2>
+                <small>+12 dari bulan lalu</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white shadow-sm">
+            <div class="card-body">
+                <h6>Completion Rate</h6>
+                <h2 class="fw-bold">68%</h2>
+                <small>Target: 80% (Q4)</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark shadow-sm">
+            <div class="card-body">
+                <h6>Pending Assessment</h6>
+                <h2 class="fw-bold">15</h2>
+                <small>Butuh tindak lanjut</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-danger text-white shadow-sm">
+            <div class="card-body">
+                <h6>Budget Terserap</h6>
+                <h2 class="fw-bold">45%</h2>
+                <small>Rp 450jt / 1M</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white fw-bold">Realisasi Jam Belajar (Learning Hours)</div>
+            <div class="card-body">
+                <canvas id="learningChart" height="120"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-header bg-white fw-bold">Top Unit Compliance</div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        SRU Unit
+                        <span class="badge bg-success rounded-pill">95%</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        RFCC Unit
+                        <span class="badge bg-success rounded-pill">92%</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Utilities
+                        <span class="badge bg-primary rounded-pill">88%</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Maintenance
+                        <span class="badge bg-warning text-dark rounded-pill">74%</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Procurement
+                        <span class="badge bg-danger rounded-pill">40%</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Tunggu halaman selesai dimuat
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('learningChart').getContext('2d');
+        
+        // Data Grafik (Hardcoded dulu)
+        const myChart = new Chart(ctx, {
+            type: 'bar', // Jenis grafik: Bar, Line, Pie
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Target Jam',
+                    data: [100, 100, 120, 120, 150, 150],
+                    backgroundColor: 'rgba(200, 200, 200, 0.5)',
+                    borderColor: 'rgba(200, 200, 200, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Realisasi',
+                    data: [95, 110, 115, 140, 145, 160],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    });
+</script>

@@ -1,0 +1,58 @@
+@model List<HcPortal.Models.IdpItem>
+
+@{
+    ViewData["Title"] = "My IDP";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">My Individual Development Plan</h2>
+        <p class="text-muted">Tahun Periode: 2025</p>
+    </div>
+    <button class="btn btn-primary">+ Tambah Rencana Baru</button>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover table-striped mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="p-3">Kompetensi</th>
+                    <th class="p-3">Aktivitas Pengembangan</th>
+                    <th class="p-3">Metode</th>
+                    <th class="p-3">Due Date</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="p-3 fw-bold">@item.Kompetensi</td>
+                        <td class="p-3">@item.Aktivitas</td>
+                        <td class="p-3"><span class="badge bg-secondary">@item.Metode</span></td>
+                        <td class="p-3">@item.DueDate.ToString("dd MMM yyyy")</td>
+                        <td class="p-3">
+                            @if(item.Status == "Done") {
+                                <span class="badge bg-success">Completed</span>
+                            } 
+                            else if(item.Status == "In Progress") {
+                                <span class="badge bg-warning text-dark">On Progress</span>
+                            }
+                            else {
+                                <span class="badge bg-light text-dark border">Not Started</span>
+                            }
+                        </td>
+                        <td class="p-3">
+                            <button class="btn btn-sm btn-outline-primary">Edit</button>
+                            @if(item.Status == "Done") {
+                                <button class="btn btn-sm btn-success">View Evidence</button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

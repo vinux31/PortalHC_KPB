@@ -1,0 +1,154 @@
+@model List<HcPortal.Models.AssessmentSession>
+
+@{
+    ViewData["Title"] = "Assessment Center";
+    
+    // Safety check: Mencegah error jika data null
+    var listData = Model ?? new List<HcPortal.Models.AssessmentSession>();
+    
+    // Pisahkan data Aktif dan History
+    var activeExams = listData.Where(x => x.Status == "Open" || x.Status == "Upcoming").ToList();
+    var historyExams = listData.Where(x => x.Status == "Completed").ToList();
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold">Assessment Center</h2>
+    <p class="text-muted">Pusat evaluasi kompetensi teknis dan manajerial.</p>
+</div>
+
+<h5 class="fw-bold mb-3"><i class="bi bi-play-circle-fill text-primary"></i> Assessment Tersedia</h5>
+
+@if (activeExams.Count == 0)
+{
+    <div class="alert alert-light border shadow-sm">
+        <i class="bi bi-info-circle me-2"></i> Tidak ada jadwal assessment aktif saat ini.
+    </div>
+}
+else
+{
+    <div class="row mb-5">
+        @foreach (var item in activeExams)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card h-100 shadow-sm border-start border-5 @(item.Status == "Open" ? "border-success" : "border-secondary")">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge @(item.Category == "PROTON" ? "bg-purple text-white" : "bg-light text-dark border")">
+                                @item.Category
+                            </span>
+                            @if(item.Status == "Open") {
+                                <span class="badge bg-success animate-pulse"><i class="bi bi-circle-fill small me-1"></i> Sedang Berlangsung</span>
+                            } else {
+                                <span class="badge bg-secondary">Jadwal: @item.Schedule.ToString("dd MMM")</span>
+                            }
+                        </div>
+                        
+                        <h5 class="card-title fw-bold mt-2">@item.Title</h5>
+                        <p class="card-text text-muted small mb-4">
+                            <i class="bi bi-clock me-1"></i> Durasi: @item.DurationMinutes Menit <br/>
+                            <i class="bi bi-calendar-event me-1"></i> Tanggal: @item.Schedule.ToString("dd MMMM yyyy")
+                        </p>
+
+                        @if (item.Status == "Open")
+                        {
+                            <button class="btn btn-primary w-100 fw-bold" data-bs-toggle="modal" data-bs-target="#tokenModal">
+                                <i class="bi bi-pencil-square me-2"></i> Mulai Mengerjakan
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-outline-secondary w-100" disabled>
+                                <i class="bi bi-lock me-2"></i> Belum Dibuka
+                            </button>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<h5 class="fw-bold mb-3"><i class="bi bi-clock-history"></i> Riwayat Assessment</h5>
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="p-3">Judul Assessment</th>
+                    <th class="p-3">Kategori</th>
+                    <th class="p-3">Tanggal Selesai</th>
+                    <th class="p-3 text-center">Nilai / Score</th>
+                    <th class="p-3 text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (historyExams.Count == 0)
+                {
+                    <tr><td colspan="5" class="text-center p-4 text-muted">Belum ada riwayat ujian.</td></tr>
+                }
+
+                @foreach (var item in historyExams)
+                {
+                    <tr>
+                        <td class="p-3 fw-bold">@item.Title</td>
+                        <td class="p-3"><span class="badge bg-light text-dark border">@item.Category</span></td>
+                        <td class="p-3">@item.Schedule.ToString("dd MMM yyyy")</td>
+                        <td class="p-3 text-center">
+                            @if(item.Score >= 80) {
+                                <span class="badge bg-success fs-6 rounded-pill px-3">@item.Score</span>
+                            } else {
+                                <span class="badge bg-warning text-dark fs-6 rounded-pill px-3">@item.Score</span>
+                            }
+                        </td>
+                        <td class="p-3 text-end">
+                            <button class="btn btn-sm btn-outline-dark">Lihat Detail</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="tokenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-shield-lock me-2"></i>Verifikasi Token</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center py-5">
+                <p class="mb-4 text-muted">Silakan masukkan 6 digit Token yang diberikan oleh Pengawas/HC.</p>
+                
+                <input type="text" class="form-control form-control-lg text-center fw-bold fs-2 mb-4 text-primary" 
+                       placeholder="X X X X X X" maxlength="6" style="letter-spacing: 0.5em; max-width: 300px; margin: 0 auto;">
+                
+                <div class="alert alert-info small text-start d-inline-block mx-auto" style="max-width: 90%;">
+                    <i class="bi bi-info-circle-fill me-1"></i> <strong>Catatan Teknis:</strong><br/>
+                    Untuk Assessment kategori <b>PROTON</b>, pastikan aplikasi Simulator sudah terbuka di background sebelum menekan tombol verifikasi.
+                </div>
+            </div>
+            <div class="modal-footer bg-light justify-content-center">
+                <button type="button" class="btn btn-link text-decoration-none text-muted me-3" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success px-5 fw-bold shadow-sm" onclick="alert('Token Valid! Sistem akan membuka aplikasi ujian...')">
+                    Verifikasi & Mulai <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-purple { background-color: #6f42c1; }
+    
+    /* Animasi Kedap Kedip untuk Status Open */
+    @@keyframes pulse {
+        0% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.8; transform: scale(1.05); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    
+    .animate-pulse {
+        animation: pulse 2s infinite;
+    }
+</style>

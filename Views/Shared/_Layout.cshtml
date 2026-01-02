@@ -1,0 +1,123 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HC Portal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <style>
+        /* Sedikit styling agar Navbar terlihat 'mahal' */
+        .navbar { box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .nav-link { font-weight: 500; }
+        .dropdown-item:active { background-color: #0d6efd; }
+    </style>
+</head>
+<body class="bg-light">
+
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4 sticky-top">
+            <div class="container-fluid px-4">
+                
+                <a class="navbar-brand fw-bold text-primary d-flex align-items-center" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-buildings-fill me-2 fs-4"></i> HC Portal
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" 
+                        aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="mainNav">
+                    
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                        
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Index">Homepage</a>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Mgt</a>
+                            <ul class="dropdown-menu shadow-sm border-0">
+                                <li><h6 class="dropdown-header text-uppercase small fw-bold">Standard & Assessment</h6></li>
+                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Kkj">Susunan KKJ</a></li>
+                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Assessment">Assessment</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header text-uppercase small fw-bold">Records</h6></li>
+                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Records">Capability Records</a></li>
+                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Mapping">KKJ-IDP Mapping</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Dev</a>
+                            <ul class="dropdown-menu shadow-sm border-0">
+                                <li><a class="dropdown-item" asp-controller="CDP" asp-action="Index">My IDP</a></li>
+                                <li><a class="dropdown-item" asp-controller="CDP" asp-action="Coaching">Coaching Report</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item fw-bold text-primary" asp-controller="CDP" asp-action="Dashboard">Dashboard Monitoring</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Business Partner</a>
+                            <ul class="dropdown-menu shadow-sm border-0">
+                                <li><a class="dropdown-item" asp-controller="BP" asp-action="Historical">Career Historical</a></li>
+                                <li><a class="dropdown-item" asp-controller="BP" asp-action="Simulation">Career Simulation</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">HR Services</a>
+                            <ul class="dropdown-menu shadow-sm border-0">
+                                <li><a class="dropdown-item" asp-controller="HR" asp-action="Absensi">Absensi & Overtime</a></li>
+                                <li><a class="dropdown-item" asp-controller="HR" asp-action="Payroll">Payroll</a></li>
+                                <li><a class="dropdown-item" asp-controller="HR" asp-action="Service">Employee Service</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <div class="d-flex align-items-center border-start ps-lg-4 ms-lg-2 mt-3 mt-lg-0">
+                        <div class="text-end me-3 d-none d-lg-block">
+                            <div class="fw-bold text-dark small">Budi Santoso</div>
+                            <div class="text-muted" style="font-size: 0.75rem;">759921 - Engineer</div>
+                        </div>
+                        <div class="dropdown">
+                            <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
+                                <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" 
+                                     style="width: 38px; height: 38px;">BS</div>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="min-width: 200px;">
+                                <li class="d-lg-none px-3 py-2 border-bottom">
+                                    <div class="fw-bold">Budi Santoso</div>
+                                    <div class="small text-muted">759921</div>
+                                </li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-person me-2"></i> My Profile</a></li>
+                                <li><a class="dropdown-item" href="#"><i class="bi bi-gear me-2"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger fw-bold" asp-controller="Account" asp-action="Logout">
+                                        <i class="bi bi-box-arrow-right me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container pb-5">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

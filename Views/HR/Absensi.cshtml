@@ -1,0 +1,72 @@
+@model List<HcPortal.Models.AttendanceLog>
+
+@{
+    ViewData["Title"] = "Absensi & Overtime";
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold">Time Management Record</h2>
+    <p class="text-muted">Monitoring kehadiran, absensi, dan jam lembur (Overtime).</p>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-light border-0 p-3">
+            <small class="text-muted">Total Kehadiran</small>
+            <h3 class="fw-bold">22 Hari</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light border-0 p-3">
+            <small class="text-muted">Total Overtime</small>
+            <h3 class="fw-bold text-primary">14 Jam</h3>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="p-3">Tanggal</th>
+                    <th class="p-3">Check In - Out</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Overtime</th>
+                    <th class="p-3">Keterangan</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="p-3 fw-bold">@item.Tanggal.ToString("dd dddd, MMM yyyy")</td>
+                        <td class="p-3">
+                            <div>IN : @item.JamMasuk</div>
+                            <div class="text-muted">OUT: @item.JamPulang</div>
+                        </td>
+                        <td class="p-3">
+                            @if(item.Status == "Present") {
+                                <span class="badge bg-success">Hadir</span>
+                            } else if (item.Status == "Sick") {
+                                <span class="badge bg-info text-dark">Sakit</span>
+                            } else if (item.Status == "Late") {
+                                <span class="badge bg-warning text-dark">Terlambat</span>
+                            } else {
+                                <span class="badge bg-danger">Alpha</span>
+                            }
+                        </td>
+                        <td class="p-3">
+                            @if(item.OvertimeHours > 0) {
+                                <span class="text-primary fw-bold">+@item.OvertimeHours Jam</span>
+                            } else {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td class="p-3 text-muted small">@item.Keterangan</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

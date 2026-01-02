@@ -1,0 +1,86 @@
+@model List<HcPortal.Models.CareerCandidate>
+
+@{
+    ViewData["Title"] = "Career Simulation";
+}
+
+<div class="mb-4">
+    <h2 class="fw-bold">Career & Succession Simulation</h2>
+    <p class="text-muted">Analisa kesiapan talenta untuk promosi dan rotasi jabatan.</p>
+</div>
+
+<div class="card p-3 mb-4 bg-light border-0">
+    <div class="row g-3">
+        <div class="col-md-3">
+            <select class="form-select">
+                <option>Semua Unit</option>
+                <option>SRU</option>
+                <option>RFCC</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select class="form-select">
+                <option>Filter Readiness</option>
+                <option>Ready Now</option>
+                <option>Ready Future</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100">Apply Filter</button>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="p-3">Nama Kandidat</th>
+                    <th class="p-3">Posisi Saat Ini -> Target</th>
+                    <th class="p-3">PRL</th>
+                    <th class="p-3">Assessment Score</th>
+                    <th class="p-3">Readiness Status</th>
+                    <th class="p-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="p-3 fw-bold">@item.Nama</td>
+                        <td class="p-3">
+                            <div class="small text-muted">From: @item.JabatanSaatIni</div>
+                            <div class="fw-bold text-primary">To: @item.TargetPosisi</div>
+                        </td>
+                        <td class="p-3"><span class="badge bg-secondary">Gr-@item.PRL</span></td>
+                        
+                        <td class="p-3" style="width: 15%">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span>Score</span>
+                                <span>@item.AssessmentScore</span>
+                            </div>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar @(item.AssessmentScore > 80 ? "bg-success" : "bg-warning")" 
+                                     role="progressbar" style="width: @item.AssessmentScore%"></div>
+                            </div>
+                        </td>
+
+                        <td class="p-3">
+                            @if(item.Readiness == "Ready Now") {
+                                <span class="badge bg-success rounded-pill px-3">Ready Now</span>
+                            } else if (item.Readiness != null && item.Readiness.Contains("Ready")) {                                <span class="badge bg-warning text-dark rounded-pill px-3">@item.Readiness</span>
+                            } else {
+                                <span class="badge bg-danger rounded-pill px-3">Not Ready</span>
+                            }
+                        </td>
+
+                        <td class="p-3">
+                            <button class="btn btn-sm btn-outline-dark">Simulate Move</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

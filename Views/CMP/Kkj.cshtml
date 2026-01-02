@@ -1,0 +1,141 @@
+@model List<HcPortal.Models.KkjMatrixItem>
+
+@{
+    ViewData["Title"] = "Susunan KKJ Matrix";
+}
+
+<style>
+    /* Agar tabel bisa di-scroll horizontal */
+    .table-responsive {
+        max-height: 80vh;
+        overflow-x: auto;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+    }
+
+    /* Style Header */
+    .matrix-header {
+        background-color: #0d6efd; /* Biru Primary */
+        color: white;
+        text-align: center;
+        vertical-align: middle;
+        font-size: 0.85rem;
+    }
+    
+    .matrix-subheader {
+        background-color: #e9ecef;
+        text-align: center;
+        font-weight: bold;
+        font-size: 0.8rem;
+    }
+
+    /* Agar Kolom Kiri (Kompetensi) Sticky/Diam saat discroll */
+    .sticky-col {
+        position: sticky;
+        left: 0;
+        background-color: white;
+        z-index: 10;
+        border-right: 2px solid #dee2e6;
+    }
+    
+    /* Header juga harus sticky */
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 20; /* Lebih tinggi dari kolom */
+    }
+    
+    /* Perbaiki z-index untuk sticky kolom di header */
+    thead th.sticky-col {
+        z-index: 30; /* Paling atas */
+    }
+
+    /* Ukuran Font Tabel */
+    .table-sm td, .table-sm th {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+    
+    .target-cell {
+        text-align: center;
+        background-color: #f8f9fa;
+    }
+</style>
+
+<div class="mb-3">
+    <h2 class="fw-bold">Matriks Kompetensi (KKJ)</h2>
+    <p class="text-muted mb-0">Unit: CSU Process - GSH, Alkylation & Sour Treating</p>
+</div>
+
+<div class="table-responsive shadow-sm">
+    <table class="table table-bordered table-sm table-hover mb-0" style="min-width: 2000px;">
+        <thead>
+            <tr>
+                <th rowspan="3" class="sticky-col bg-white" style="width: 50px;">No</th>
+                <th rowspan="3" class="sticky-col bg-white" style="width: 120px;">Skill Group</th>
+                <th rowspan="3" class="sticky-col bg-white" style="width: 150px;">Subskill Group</th>
+                <th rowspan="3" class="sticky-col bg-white" style="width: 80px;">Indeks</th>
+                <th rowspan="3" class="sticky-col bg-white" style="width: 250px; border-right: 2px solid #999;">Kompetensi Teknis</th>
+                
+                <th colspan="11" class="bg-primary text-white text-center py-2 fs-6">
+                    CSU Process - GSH, Alkylation & Sour Treating
+                </th>
+            </tr>
+
+            <tr class="matrix-header">
+                <th>Section Head<br>GSH, Alky & Sour</th>
+                <th>Sr Supervisor<br>GSH, Alky & Sour</th>
+                <th>Shift Spv<br>GSH & Alky</th>
+                <th>Panelman<br>GSH & Alky</th>
+                <th>Operator<br>GSH & Alky</th>
+                
+                <th>Shift Spv<br>ARU & Sour</th>
+                <th>Panelman<br>ARU & Sour</th>
+                <th>Operator<br>ARU & Sour</th>
+                
+                <th>Sr Spv<br>Facility & Quality</th>
+                <th>Jr Analyst<br>Material & Data</th>
+                <th>Officer<br>HSE Compliance</th>
+            </tr>
+
+            <tr class="matrix-subheader">
+                <td>18</td>
+                <td>16</td>
+                <td>15</td>
+                <td>12-13</td>
+                <td>14</td>
+                <td>8-11</td>
+                <td>12-13</td>
+                <td>15</td>
+                <td>12-13</td>
+                <td>14</td>
+                <td>8-11</td>
+            </tr>
+        </thead>
+        
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="sticky-col text-center">@item.No</td>
+                    <td class="sticky-col">@item.SkillGroup</td>
+                    <td class="sticky-col">@item.SubSkillGroup</td>
+                    <td class="sticky-col text-center fw-bold">@item.Indeks</td>
+                    <td class="sticky-col fw-bold text-primary" style="border-right: 2px solid #999;">@item.Kompetensi</td>
+                    
+                    <td class="target-cell fw-bold">@item.Target_SectionHead</td>
+                    <td class="target-cell">@item.Target_SrSpv_GSH</td>
+                    <td class="target-cell">@item.Target_ShiftSpv_GSH</td>
+                    <td class="target-cell">@item.Target_Panelman_GSH</td>
+                    <td class="target-cell">@item.Target_Operator_GSH</td>
+                    <td class="target-cell bg-light">@item.Target_ShiftSpv_ARU</td>
+                    <td class="target-cell bg-light">@item.Target_Panelman_ARU</td>
+                    <td class="target-cell bg-light">@item.Target_Operator_ARU</td>
+                    <td class="target-cell">@item.Target_SrSpv_Facility</td>
+                    <td class="target-cell">@item.Target_JrAnalyst</td>
+                    <td class="target-cell">@item.Target_HSE</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

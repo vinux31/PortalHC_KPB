@@ -1,0 +1,97 @@
+@model List<HcPortal.Models.CoachingLog>
+
+@{
+    ViewData["Title"] = "Coaching Report";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Coaching & Mentoring Record</h2>
+        <p class="text-muted">Catatan bimbingan teknis dan perilaku.</p>
+    </div>
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCoachingModal">
+        + Catat Sesi Baru
+    </button>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr>
+                    <th class="p-3">Tanggal</th>
+                    <th class="p-3">Coach</th>
+                    <th class="p-3">Topik Bahasan</th>
+                    <th class="p-3">Status</th>
+                    <th class="p-3">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="p-3">@item.Tanggal.ToString("dd MMM yyyy")</td>
+                        <td class="p-3 fw-bold">@item.CoachName</td>
+                        <td class="p-3">
+                            @item.Topik <br/>
+                            <small class="text-muted">Note: @item.Catatan</small>
+                        </td>
+                        <td class="p-3">
+                            @if(item.Status == "Verified") {
+                                <span class="badge bg-success">Verified</span>
+                            } else {
+                                <span class="badge bg-warning text-dark">@item.Status</span>
+                            }
+                        </td>
+                        <td class="p-3">
+                            <button class="btn btn-sm btn-outline-secondary">Detail</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="addCoachingModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg"> <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Form Coaching Baru</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Nama Coach / Mentor</label>
+                            <input type="text" class="form-control" placeholder="Contoh: Budi Santoso">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Tanggal Sesi</label>
+                            <input type="date" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Topik Pembahasan</label>
+                        <input type="text" class="form-control" placeholder="Contoh: Diskusi Kendala Operasional SRU">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Catatan Hasil / Feedback</label>
+                        <textarea class="form-control" rows="3" placeholder="Tulis poin-poin penting diskusi..."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Upload Evidence (Foto/Dokumen)</label>
+                        <input type="file" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="alert('Simulasi: Data berhasil disimpan!')">Simpan Data</button>
+            </div>
+        </div>
+    </div>
+</div>
