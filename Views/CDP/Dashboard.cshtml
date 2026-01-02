@@ -1,127 +1,187 @@
+@model HcPortal.Models.DashboardViewModel
+
 @{
     ViewData["Title"] = "Dashboard Monitoring";
 }
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="mb-4">
-    <h2 class="fw-bold">Competency Development Dashboard</h2>
-    <p class="text-muted">Monitoring Kinerja Pengembangan Kompetensi - Periode 2025</p>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-primary text-white shadow-sm">
-            <div class="card-body">
-                <h6>Total IDP Aktif</h6>
-                <h2 class="fw-bold">142</h2>
-                <small>+12 dari bulan lalu</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-success text-white shadow-sm">
-            <div class="card-body">
-                <h6>Completion Rate</h6>
-                <h2 class="fw-bold">68%</h2>
-                <small>Target: 80% (Q4)</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-warning text-dark shadow-sm">
-            <div class="card-body">
-                <h6>Pending Assessment</h6>
-                <h2 class="fw-bold">15</h2>
-                <small>Butuh tindak lanjut</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-danger text-white shadow-sm">
-            <div class="card-body">
-                <h6>Budget Terserap</h6>
-                <h2 class="fw-bold">45%</h2>
-                <small>Rp 450jt / 1M</small>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row">
-    <div class="col-md-8">
-        <div class="card shadow-sm mb-4">
-            <div class="card-header bg-white fw-bold">Realisasi Jam Belajar (Learning Hours)</div>
-            <div class="card-body">
-                <canvas id="learningChart" height="120"></canvas>
-            </div>
-        </div>
+<div class="container-fluid px-4 py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Competency Development Dashboard</h2>
+        <p class="text-muted">Monitoring Kinerja Pengembangan Kompetensi - Periode 2025</p>
     </div>
 
-    <div class="col-md-4">
-        <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-bold">Top Unit Compliance</div>
-            <div class="card-body p-0">
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        SRU Unit
-                        <span class="badge bg-success rounded-pill">95%</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        RFCC Unit
-                        <span class="badge bg-success rounded-pill">92%</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Utilities
-                        <span class="badge bg-primary rounded-pill">88%</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Maintenance
-                        <span class="badge bg-warning text-dark rounded-pill">74%</span>
-                    </li>
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        Procurement
-                        <span class="badge bg-danger rounded-pill">40%</span>
-                    </li>
-                </ul>
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white h-100 bg-gradient-blue hover-elevate">
+                <div class="card-body position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-person-video3" style="font-size: 4rem;"></i>
+                    </div>
+                    <h6 class="text-uppercase fw-bold text-white-50 small mb-2">Total IDP Aktif</h6>
+                    <h2 class="fw-bold display-5 mb-0">@Model.TotalIdp</h2>
+                    <small class="text-white-50"><i class="bi bi-arrow-up-short"></i> +@Model.IdpGrowth dari bulan lalu</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white h-100 bg-gradient-green hover-elevate">
+                <div class="card-body position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-check2-circle" style="font-size: 4rem;"></i>
+                    </div>
+                    <h6 class="text-uppercase fw-bold text-white-50 small mb-2">Completion Rate</h6>
+                    <h2 class="fw-bold display-5 mb-0">@Model.CompletionRate%</h2>
+                    <small class="text-white-50">Target: @Model.CompletionTarget</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-dark h-100 bg-gradient-yellow hover-elevate">
+                <div class="card-body position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-hourglass-split" style="font-size: 4rem;"></i>
+                    </div>
+                    <h6 class="text-uppercase fw-bold text-muted small mb-2">Pending Assessment</h6>
+                    <h2 class="fw-bold display-5 mb-0">@Model.PendingAssessments</h2>
+                    <small class="text-muted">Butuh tindak lanjut</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white h-100 bg-gradient-red hover-elevate">
+                <div class="card-body position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-wallet2" style="font-size: 4rem;"></i>
+                    </div>
+                    <h6 class="text-uppercase fw-bold text-white-50 small mb-2">Budget Terserap</h6>
+                    <h2 class="fw-bold display-5 mb-0">@Model.BudgetUsedPercent%</h2>
+                    <small class="text-white-50">@Model.BudgetUsedText</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts & Lists -->
+    <div class="row g-4">
+        <!-- Main Chart -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-bar-chart-fill me-2"></i>Realisasi Jam Belajar (Learning Hours)</h6>
+                    <button class="btn btn-sm btn-light border"><i class="bi bi-filter"></i> Filter</button>
+                </div>
+                <div class="card-body">
+                    <canvas id="learningChart" height="120"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Compliance List -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-trophy-fill me-2"></i>Top Unit Compliance</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        @foreach(var unit in Model.TopUnits)
+                        {
+                            <div class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center border-bottom-0 hover-bg-light">
+                                <div>
+                                    <span class="fw-bold d-block">@unit.UnitName</span>
+                                    <div class="progress mt-1" style="width: 100px; height: 4px;">
+                                        <div class="progress-bar @unit.ColorClass" role="progressbar" style="width: @unit.Percentage%"></div>
+                                    </div>
+                                </div>
+                                <span class="badge rounded-pill @unit.ColorClass.Replace("bg-", "text-bg-") shadow-sm">
+                                    @unit.Percentage%
+                                </span>
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-center py-3 border-0">
+                    <button class="btn btn-sm btn-link text-decoration-none fw-bold">View All Units</button>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Tunggu halaman selesai dimuat
     document.addEventListener("DOMContentLoaded", function() {
         const ctx = document.getElementById('learningChart').getContext('2d');
         
-        // Data Grafik (Hardcoded dulu)
+        // Data passed from Model
+        const labels = @Json.Serialize(Model.ChartLabels);
+        const targetData = @Json.Serialize(Model.ChartTarget);
+        const realizationData = @Json.Serialize(Model.ChartRealization);
+
         const myChart = new Chart(ctx, {
-            type: 'bar', // Jenis grafik: Bar, Line, Pie
+            type: 'bar',
             data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Target Jam',
-                    data: [100, 100, 120, 120, 150, 150],
-                    backgroundColor: 'rgba(200, 200, 200, 0.5)',
-                    borderColor: 'rgba(200, 200, 200, 1)',
-                    borderWidth: 1
-                },
-                {
-                    label: 'Realisasi',
-                    data: [95, 110, 115, 140, 145, 160],
-                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Target Jam',
+                        data: targetData,
+                        backgroundColor: 'rgba(224, 224, 224, 0.5)',
+                        borderColor: 'rgba(200, 200, 200, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Realisasi',
+                        data: realizationData,
+                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }
+                ]
             },
             options: {
                 responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        grid: {
+                            borderDash: [5, 5]
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
                     }
                 }
             }
         });
     });
 </script>
+
+<style>
+    /* Gradient Backgrounds */
+    .bg-gradient-blue { background: linear-gradient(45deg, #4e73df 0%, #224abe 100%); }
+    .bg-gradient-green { background: linear-gradient(45deg, #1cc88a 0%, #13855c 100%); }
+    .bg-gradient-red { background: linear-gradient(45deg, #e74a3b 0%, #be2617 100%); }
+    .bg-gradient-yellow { background: linear-gradient(45deg, #f6c23e 0%, #dda20a 100%); }
+
+    .hover-elevate {
+        transition: transform 0.2s;
+    }
+    .hover-elevate:hover {
+        transform: translateY(-5px);
+    }
+    .hover-bg-light:hover {
+        background-color: #f8f9fa;
+    }
+</style>

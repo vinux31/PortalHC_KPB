@@ -36,8 +36,18 @@ namespace HcPortal.Controllers
                     Status = "Late", OvertimeHours = 0, Keterangan = "Ban Bocor" 
                 }
             };
+            
+            // Calculate Summaries
+            var viewModel = new AttendanceViewModel
+            {
+                Logs = logs,
+                CurrentPeriod = "December 2025",
+                AvailablePeriods = new List<string> { "January 2026", "December 2025", "November 2025", "October 2025" },
+                TotalDays = logs.Count(x => x.Status == "Present" || x.Status == "Late"),
+                TotalOvertimeHours = logs.Sum(x => x.OvertimeHours)
+            };
 
-            return View(logs);
+            return View(viewModel);
         }
 
         // --- HALAMAN 3: PAYROLL (SLIP GAJI) ---

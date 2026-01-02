@@ -1,72 +1,133 @@
-@model List<HcPortal.Models.AttendanceLog>
+@model HcPortal.Models.AttendanceViewModel
 
 @{
-    ViewData["Title"] = "Absensi & Overtime";
+    ViewData["Title"] = "Time Management Record";
 }
 
-<div class="mb-4">
-    <h2 class="fw-bold">Time Management Record</h2>
-    <p class="text-muted">Monitoring kehadiran, absensi, dan jam lembur (Overtime).</p>
-</div>
-
-<div class="row mb-4">
-    <div class="col-md-3">
-        <div class="card bg-light border-0 p-3">
-            <small class="text-muted">Total Kehadiran</small>
-            <h3 class="fw-bold">22 Hari</h3>
+<div class="container-fluid px-4 py-4">
+    <!-- Header & Filter -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Time Management Record</h2>
+            <p class="text-muted mb-0">Monitoring kehadiran, absensi, dan jam lembur (Overtime).</p>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card bg-light border-0 p-3">
-            <small class="text-muted">Total Overtime</small>
-            <h3 class="fw-bold text-primary">14 Jam</h3>
-        </div>
-    </div>
-</div>
-
-<div class="card shadow-sm">
-    <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="bg-light">
-                <tr>
-                    <th class="p-3">Tanggal</th>
-                    <th class="p-3">Check In - Out</th>
-                    <th class="p-3">Status</th>
-                    <th class="p-3">Overtime</th>
-                    <th class="p-3">Keterangan</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var item in Model)
+        <div class="d-flex align-items-center">
+            <span class="text-muted fw-bold me-2 small">Period:</span>
+            <select class="form-select border-0 shadow-sm fw-bold text-primary" style="width: 200px;">
+                @foreach(var p in Model.AvailablePeriods)
                 {
-                    <tr>
-                        <td class="p-3 fw-bold">@item.Tanggal.ToString("dd dddd, MMM yyyy")</td>
-                        <td class="p-3">
-                            <div>IN : @item.JamMasuk</div>
-                            <div class="text-muted">OUT: @item.JamPulang</div>
-                        </td>
-                        <td class="p-3">
-                            @if(item.Status == "Present") {
-                                <span class="badge bg-success">Hadir</span>
-                            } else if (item.Status == "Sick") {
-                                <span class="badge bg-info text-dark">Sakit</span>
-                            } else if (item.Status == "Late") {
-                                <span class="badge bg-warning text-dark">Terlambat</span>
-                            } else {
-                                <span class="badge bg-danger">Alpha</span>
-                            }
-                        </td>
-                        <td class="p-3">
-                            @if(item.OvertimeHours > 0) {
-                                <span class="text-primary fw-bold">+@item.OvertimeHours Jam</span>
-                            } else {
-                                <span class="text-muted">-</span>
-                            }
-                        </td>
-                        <td class="p-3 text-muted small">@item.Keterangan</td>
-                    </tr>
+                    <option value="@p" selected="@(p == Model.CurrentPeriod)">@p</option>
                 }
-            </tbody>
-        </table>
+            </select>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-white bg-gradient-blue hover-elevate h-100">
+                <div class="card-body position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-calendar-check" style="font-size: 3rem;"></i>
+                    </div>
+                    <div class="mb-2 text-white-50 text-uppercase fw-bold small">Total Kehadiran</div>
+                    <h2 class="fw-bold mb-0 display-6">@Model.TotalDays <span class="fs-5 fw-normal">Hari</span></h2>
+                    <small class="text-white-50">Periode @Model.CurrentPeriod</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm text-white bg-gradient-purple hover-elevate h-100">
+                <div class="card-body position-relative overflow-hidden">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-clock-history" style="font-size: 3rem;"></i>
+                    </div>
+                    <div class="mb-2 text-white-50 text-uppercase fw-bold small">Total Overtime</div>
+                    <h2 class="fw-bold mb-0 display-6">@Model.TotalOvertimeHours <span class="fs-5 fw-normal">Jam</span></h2>
+                    <small class="text-white-50">Akumulasi Lembur</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="p-3 border-bottom-0 text-secondary small text-uppercase">Tanggal</th>
+                            <th class="p-3 border-bottom-0 text-secondary small text-uppercase">Check In - Out</th>
+                            <th class="p-3 border-bottom-0 text-secondary small text-uppercase">Status</th>
+                            <th class="p-3 border-bottom-0 text-secondary small text-uppercase">Overtime</th>
+                            <th class="p-3 border-bottom-0 text-secondary small text-uppercase">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Logs)
+                        {
+                            <tr>
+                                <td class="p-3">
+                                    <div class="fw-bold text-dark">@item.Tanggal.ToString("dd MMMM yyyy")</div>
+                                    <small class="text-muted">@item.Tanggal.ToString("dddd")</small>
+                                </td>
+                                <td class="p-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="bi bi-box-arrow-in-right text-success me-2"></i> 
+                                        <span class="fw-bold">@item.JamMasuk</span>
+                                    </div>
+                                    <div class="d-flex align-items-center text-muted">
+                                        <i class="bi bi-box-arrow-right text-secondary me-2"></i> 
+                                        <span>@item.JamPulang</span>
+                                    </div>
+                                </td>
+                                <td class="p-3">
+                                    @if(item.Status == "Present") {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3">Hadir</span>
+                                    } else if (item.Status == "Sick") {
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3">Sakit</span>
+                                    } else if (item.Status == "Late") {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3">Terlambat</span>
+                                    } else {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3">Alpha</span>
+                                    }
+                                </td>
+                                <td class="p-3">
+                                    @if(item.OvertimeHours > 0) {
+                                        <span class="badge bg-primary rounded-pill px-3">+@item.OvertimeHours Jam</span>
+                                    } else {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                </td>
+                                <td class="p-3 text-muted small">
+                                    @if(!string.IsNullOrEmpty(item.Keterangan))
+                                    {
+                                        <span><i class="bi bi-chat-left-text me-1"></i> @item.Keterangan</span>
+                                    }
+                                    else
+                                    {
+                                        <span>-</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    .bg-gradient-blue { background: linear-gradient(135deg, #4e73df 0%, #224abe 100%); }
+    .bg-gradient-purple { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    
+    .hover-elevate { transition: transform 0.2s; }
+    .hover-elevate:hover { transform: translateY(-3px); }
+    
+    .bg-success-subtle { background-color: #d1e7dd; }
+    .bg-info-subtle { background-color: #cff4fc; }
+    .bg-warning-subtle { background-color: #fff3cd; }
+    .bg-danger-subtle { background-color: #f8d7da; }
+</style>

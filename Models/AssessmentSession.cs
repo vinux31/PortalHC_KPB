@@ -4,11 +4,20 @@ namespace HcPortal.Models
     {
         public int Id { get; set; }
         public string Title { get; set; } = "";
-        public string Category { get; set; } = ""; // "Technical", "Soft Skill", "PROTON"
+        
+        // Kategori utama: "Assessment OJ", "IHT", "Licencor", "OTS", "Mandatory HSSE Training"
+        public string Category { get; set; } = ""; 
+        public string Type { get; set; } = ""; // Sama dengan Category, untuk filtering
+        
         public DateTime Schedule { get; set; }
         public int DurationMinutes { get; set; }
         public string Status { get; set; } = "";   // "Open", "Upcoming", "Completed"
-        public int? Score { get; set; }            // Nullable (bisa kosong kalau belum selesai)
-        public bool IsTokenRequired { get; set; }  // True jika butuh token NSO
+        
+        // New Visualization Props
+        public int Progress { get; set; } = 0; // 0 - 100
+        public string BannerColor { get; set; } = "bg-primary"; // Bootstrap color class or hex
+
+        public int? Score { get; set; }
+        public bool IsTokenRequired { get; set; }
     }
 }

@@ -117,17 +117,51 @@ namespace HcPortal.Controllers
             // 1. KITA BUAT LIST DATA (Pastikan variabel ini ada)
             var exams = new List<AssessmentSession>
             {
+                // 1. OJT (Ex Assessment OJ)
                 new AssessmentSession { 
-                    Id = 101, Title = "PROTON Simulation: Amine Unit", Category = "PROTON", 
-                    Schedule = DateTime.Now, DurationMinutes = 90, Status = "Open", IsTokenRequired = true 
+                    Id = 201, Title = "On Job Assessment: Field Operator", Category = "OJT", Type = "OJT",
+                    Schedule = DateTime.Now.AddDays(-2), DurationMinutes = 120, Status = "Open", 
+                    Progress = 25, BannerColor = "bg-primary", IsTokenRequired = false 
                 },
                 new AssessmentSession { 
-                    Id = 102, Title = "Technical GTK Level 2", Category = "Technical", 
-                    Schedule = DateTime.Now.AddDays(5), DurationMinutes = 60, Status = "Upcoming", IsTokenRequired = false 
+                    Id = 202, Title = "Panel Operator Competency", Category = "OJT", Type = "OJT",
+                    Schedule = DateTime.Now.AddDays(5), DurationMinutes = 90, Status = "Upcoming", 
+                    Progress = 0, BannerColor = "bg-primary", IsTokenRequired = false 
                 },
+
+                // 2. IHT
                 new AssessmentSession { 
-                    Id = 90, Title = "Basic Safety Awareness", Category = "HSE", 
-                    Schedule = DateTime.Now.AddMonths(-2), DurationMinutes = 45, Status = "Completed", Score = 88, IsTokenRequired = false 
+                    Id = 203, Title = "Internal Training: Pump Maintenance", Category = "IHT", Type = "IHT",
+                    Schedule = DateTime.Now.AddDays(-10), DurationMinutes = 60, Status = "Completed", 
+                    Progress = 100, Score = 85, BannerColor = "bg-success", IsTokenRequired = false 
+                },
+
+                // 3. Training Licencor (Ex Licencor)
+                new AssessmentSession { 
+                    Id = 204, Title = "Boiler Class 1 License", Category = "Training Licencor", Type = "Training Licencor",
+                    Schedule = DateTime.Now.AddDays(14), DurationMinutes = 180, Status = "Upcoming", 
+                    Progress = 0, BannerColor = "bg-danger", IsTokenRequired = true 
+                },
+
+                // 4. OTS
+                new AssessmentSession { 
+                    Id = 205, Title = "OTS Simulation: Blackout Recovery", Category = "OTS", Type = "OTS",
+                    Schedule = DateTime.Now, DurationMinutes = 120, Status = "Open", 
+                    Progress = 10, BannerColor = "bg-warning", IsTokenRequired = true 
+                },
+
+                // 5. Mandatory HSSE Training
+                new AssessmentSession { 
+                    Id = 206, Title = "Basic Fire Fighting", Category = "Mandatory HSSE Training", Type = "Mandatory HSSE Training",
+                    Schedule = DateTime.Now.AddMonths(-1), DurationMinutes = 45, Status = "Completed", 
+                    Progress = 100, Score = 92, BannerColor = "bg-info", IsTokenRequired = false 
+                },
+                
+                // 6. PROTON (New)
+                new AssessmentSession { 
+                    Id = 208, Title = "PROTON Simulation: Distillation Unit", Category = "Proton", Type = "Proton",
+                    Schedule = DateTime.Now, DurationMinutes = 90, Status = "Open", 
+                    Progress = 0, BannerColor = "bg-purple", IsTokenRequired = true // MUST HAVE TOKEN
                 }
             };
 

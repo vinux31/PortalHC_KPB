@@ -59,7 +59,34 @@ namespace HcPortal.Controllers
 
         public IActionResult Dashboard()
         {
-            return View();
+            // Simulate fetching data from service/database
+            var model = new DashboardViewModel
+            {
+                TotalIdp = 142,
+                IdpGrowth = 12,
+                CompletionRate = 68,
+                CompletionTarget = "80% (Q4)",
+                PendingAssessments = 15,
+                BudgetUsedPercent = 45,
+                BudgetUsedText = "Rp 450jt / 1M",
+                
+                // Chart Data (Jan - Jun)
+                ChartLabels = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun" },
+                ChartTarget = new List<int> { 100, 100, 120, 120, 150, 150 },
+                ChartRealization = new List<int> { 95, 110, 115, 140, 145, 160 },
+
+                // Compliance Data
+                TopUnits = new List<UnitCompliance>
+                {
+                    new UnitCompliance { UnitName = "SRU Unit", Percentage = 95, ColorClass = "bg-success" },
+                    new UnitCompliance { UnitName = "RFCC Unit", Percentage = 92, ColorClass = "bg-success" },
+                    new UnitCompliance { UnitName = "Utilities", Percentage = 88, ColorClass = "bg-primary" },
+                    new UnitCompliance { UnitName = "Maintenance", Percentage = 74, ColorClass = "bg-warning" },
+                    new UnitCompliance { UnitName = "Procurement", Percentage = 40, ColorClass = "bg-danger" }
+                }
+            };
+
+            return View(model);
         }
 
         public IActionResult Coaching()
