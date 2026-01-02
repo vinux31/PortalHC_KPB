@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Settings";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-gear-fill me-2 text-secondary"></i> Settings</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    <!-- Account Settings -->
+                    <div class="list-group-item bg-light fw-bold text-uppercase small text-muted px-4 py-3">
+                        Account Security
+                    </div>
+                    <div class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">Change Password</h6>
+                                <p class="mb-0 text-muted small">Update your password regularly for better security.</p>
+                            </div>
+                            <button class="btn btn-sm btn-outline-primary">Update</button>
+                        </div>
+                    </div>
+                    <div class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">Two-Factor Authentication</h6>
+                                <p class="mb-0 text-muted small">Add an extra layer of security to your account.</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="2faSwitch">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notification Settings -->
+                    <div class="list-group-item bg-light fw-bold text-uppercase small text-muted px-4 py-3">
+                        Notifications
+                    </div>
+                    <div class="list-group-item px-4 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">Email Notifications</h6>
+                                <p class="mb-0 text-muted small">Receive emails about your activity and recommendations.</p>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="emailNotif" checked>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Application Settings -->
+                    <div class="list-group-item bg-light fw-bold text-uppercase small text-muted px-4 py-3">
+                        Preferences
+                    </div>
+                    <div class="list-group-item px-4 py-3">
+                         <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">Language</h6>
+                                <p class="mb-0 text-muted small">Select your preferred language.</p>
+                            </div>
+                            <select class="form-select form-select-sm w-auto">
+                                <option selected>English</option>
+                                <option>Bahasa Indonesia</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-light text-end">
+                <button class="btn btn-primary" onclick="alert('Settings saved successfully (Simulation)')">
+                    <i class="bi bi-save me-1"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

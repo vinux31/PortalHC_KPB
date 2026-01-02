@@ -34,5 +34,17 @@ namespace HcPortal.Controllers
             // Kembali ke halaman login
             return RedirectToAction("Login");
         }
+
+        // 4. Halaman Profile User
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        // 5. Halaman Settings
+        public IActionResult Settings()
+        {
+            return View();
+        }
     }
 }

@@ -1,0 +1,57 @@
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i> My Profile</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center mb-4">
+                    <div class="col-auto">
+                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold fs-1" 
+                             style="width: 100px; height: 100px;">BS</div>
+                    </div>
+                    <div class="col">
+                        <h2 class="fw-bold mb-0">Budi Santoso</h2>
+                        <p class="text-muted mb-0">Engineer - Structural Reliability Unit (SRU)</p>
+                        <span class="badge bg-success mt-2">Active Employee</span>
+                    </div>
+                </div>
+
+                <hr />
+
+                <h5 class="fw-bold text-primary mb-3">Employee Information</h5>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Employee ID (NIP)</div>
+                    <div class="col-sm-8">759921</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Email</div>
+                    <div class="col-sm-8">budi.santoso@hcportal.com</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Phone</div>
+                    <div class="col-sm-8">+62 812 3456 7890</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Join Date</div>
+                    <div class="col-sm-8">15 August 2018</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4 fw-bold">Location</div>
+                    <div class="col-sm-8">Head Office, Jakarta</div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-4">
+                    <a asp-controller="Account" asp-action="Settings" class="btn btn-outline-secondary">
+                        <i class="bi bi-gear me-1"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
