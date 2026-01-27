@@ -86,67 +86,68 @@ namespace HcPortal.Controllers
     }
 
     // View Models (Inline for simplicity as requested)
+    // View Models (Inline for simplicity as requested)
     public class TalentProfileViewModel
     {
-        public string Name { get; set; }
-        public string NIO { get; set; }
-        public string Position { get; set; }
-        public string Unit { get; set; }
-        public string Directorate { get; set; }
+        public string? Name { get; set; }
+        public string? NIO { get; set; }
+        public string? Position { get; set; }
+        public string? Unit { get; set; }
+        public string? Directorate { get; set; }
         public int Age { get; set; }
-        public string Tenure { get; set; }
-        public string TalentClassification { get; set; }
-        public List<PerformanceRecord> PerformanceHistory { get; set; }
-        public List<CareerHistory> CareerHistory { get; set; }
+        public string? Tenure { get; set; }
+        public string? TalentClassification { get; set; }
+        public List<PerformanceRecord>? PerformanceHistory { get; set; }
+        public List<CareerHistory>? CareerHistory { get; set; }
     }
 
     public class PerformanceRecord
     {
         public int Year { get; set; }
-        public string Grade { get; set; }
-        public string Description { get; set; }
+        public string? Grade { get; set; }
+        public string? Description { get; set; }
     }
 
     // Re-model CareerHistory if it was separate, but assuming it matches what we need or redefining here for safety if separate file missing props
     public class CareerHistory
     {
         public int Tahun { get; set; }
-        public string Jabatan { get; set; }
-        public string Unit { get; set; }
-        public string Tipe { get; set; }
-        public string NoSK { get; set; }
-        public string Keterangan { get; set; }
+        public string? Jabatan { get; set; }
+        public string? Unit { get; set; }
+        public string? Tipe { get; set; }
+        public string? NoSK { get; set; }
+        public string? Keterangan { get; set; }
     }
 
     public class PointSystemViewModel
     {
         public int TotalPoints { get; set; }
-        public string Level { get; set; }
+        public string? Level { get; set; }
         public int NextLevelThreshold { get; set; }
-        public List<PointActivity> Activities { get; set; }
+        public List<PointActivity>? Activities { get; set; }
     }
 
     public class PointActivity
     {
-        public string Date { get; set; }
-        public string Description { get; set; }
+        public string? Date { get; set; }
+        public string? Description { get; set; }
         public int Points { get; set; }
-        public string Status { get; set; }
+        public string? Status { get; set; }
     }
 
     public class EligibilityViewModel
     {
-        public string CurrentPosition { get; set; }
-        public string TargetPosition { get; set; }
-        public string OverallStatus { get; set; }
-        public List<EligibilityCriteria> Criteria { get; set; }
+        public string? CurrentPosition { get; set; }
+        public string? TargetPosition { get; set; }
+        public string? OverallStatus { get; set; }
+        public List<EligibilityCriteria>? Criteria { get; set; }
     }
 
     public class EligibilityCriteria
     {
-        public string Name { get; set; }
-        public string Required { get; set; }
-        public string Actual { get; set; }
+        public string? Name { get; set; }
+        public string? Required { get; set; }
+        public string? Actual { get; set; }
         public bool IsMet { get; set; }
     }
 }
