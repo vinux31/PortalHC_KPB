@@ -35,11 +35,13 @@ namespace HcPortal.Models
     // 3. CLASS BARU UNTUK TABEL CPDP (MAPPING)
     public class CpdpItem
     {
-        public string Kompetensi { get; set; } = "";       // Contoh: Energy Management
-        public string Implementasi { get; set; } = "";     // Contoh: Tahun Kedua
-        public string KodeSub { get; set; } = "";          // Contoh: 2.1
-        public string SubOps { get; set; } = "";           // Sub Kompetensi Operator
-        public string SubPanel { get; set; } = "";         // Sub Kompetensi Panelman
+        public string No { get; set; } = "";
+        public string NamaKompetensi { get; set; } = "";
+        public string IndikatorPerilaku { get; set; } = "";
+        public string DetailIndikator { get; set; } = "";
+        public string Silabus { get; set; } = "";
+        public string Status { get; set; } = "";
+        // Removed old properties: Implementasi, KodeSub, SubOps, SubPanel
     }
 
 }

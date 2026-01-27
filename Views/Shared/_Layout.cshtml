@@ -36,7 +36,7 @@
 
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Mgt</a>
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Management Platform</a>
                             <ul class="dropdown-menu shadow-sm border-0">
                                 <li><h6 class="dropdown-header text-uppercase small fw-bold">Standard & Assessment</h6></li>
                                 <li><a class="dropdown-item" asp-controller="CMP" asp-action="Kkj">Susunan KKJ</a></li>
@@ -49,7 +49,7 @@
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Dev</a>
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Development Platform</a>
                             <ul class="dropdown-menu shadow-sm border-0">
                                 <li><a class="dropdown-item" asp-controller="CDP" asp-action="Index">My IDP</a></li>
                                 <li><a class="dropdown-item" asp-controller="CDP" asp-action="Coaching">Coaching Report</a></li>
@@ -59,10 +59,13 @@
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Business Partner</a>
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Business Partner Platform</a>
                             <ul class="dropdown-menu shadow-sm border-0">
-                                <li><a class="dropdown-item" asp-controller="BP" asp-action="Historical">Career Historical</a></li>
-                                <li><a class="dropdown-item" asp-controller="BP" asp-action="Simulation">Career Simulation</a></li>
+                                <li><a class="dropdown-item" asp-controller="BP" asp-action="TalentProfile">Talent Profile & Career Historical</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><h6 class="dropdown-header text-uppercase small fw-bold">Career Simulation & Acceleration</h6></li>
+                                <li><a class="dropdown-item" asp-controller="BP" asp-action="PointSystem">2.1 Point System Program</a></li>
+                                <li><a class="dropdown-item" asp-controller="BP" asp-action="EligibilityValidator">2.2 Eligibility Validator</a></li>
                             </ul>
                         </li>
 

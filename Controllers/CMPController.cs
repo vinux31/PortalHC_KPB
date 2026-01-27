@@ -64,48 +64,48 @@ namespace HcPortal.Controllers
         {
             var cpdpData = new List<CpdpItem>
             {
-                // 1. SAFE WORK PRACTICE (Tahun Pertama)
-                new CpdpItem { Kompetensi="Safe Work Practice & Lifesaving Rules", Implementasi="Tahun Pertama", KodeSub="1.1", SubOps="Safe Work Practice Regulation", SubPanel="Safe Work Practice Regulation" },
-                new CpdpItem { Kompetensi="Safe Work Practice & Lifesaving Rules", Implementasi="Tahun Pertama", KodeSub="1.2", SubOps="Supervision of Safe Work Practice", SubPanel="Supervision of Safe Work Practice" },
-                new CpdpItem { Kompetensi="Safe Work Practice & Lifesaving Rules", Implementasi="Tahun Pertama", KodeSub="1.3", SubOps="Monitoring Safety Equipment Readiness", SubPanel="Monitoring Safety Equipment Readiness" },
-                new CpdpItem { Kompetensi="Safe Work Practice & Lifesaving Rules", Implementasi="Tahun Pertama", KodeSub="1.4", SubOps="Intervention & Safety Awareness", SubPanel="Intervention & Safety Awareness" },
+                // 1. Safe Work Practice & Lifesaving Rules
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami dan mampu menerapkan cara kerja yang aman (safe work practice & lifesaving rules) sesuai dengan risiko keselamatan terkait aktivitasnya", Silabus="1.1. Safe Work Practice\n1.2. Lifesaving Rules", Status="Aligned" },
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami dan mampu menerapkan mitigasi yang harus dilaksanakan sesuai aturan, standar, dan instruksi keselamatan yang berlaku", Silabus="1.1. Safe Work Practice\n1.2. Lifesaving Rules", Status="Aligned" },
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami dan mampu menerapkan penanggulangan apabila terjadi kondisi darurat (pelaporan insiden, pertolongan pertama, penanganan lanjutan terhadap korban dan penanggulangan kebakaran atau spill yang terjadi, dll.)", Silabus="1.3. Emergency Response", Status="Aligned" },
 
-                // 2. ENERGY MANAGEMENT (Tahun Kedua)
-                new CpdpItem { Kompetensi="Energy Management", Implementasi="Tahun Kedua", KodeSub="2.1", SubOps="Karakteristik Energi", SubPanel="Integrasi & Konversi Energi" },
-                new CpdpItem { Kompetensi="Energy Management", Implementasi="Tahun Kedua", KodeSub="2.2", SubOps="Prinsip Dasar Peralatan Energi", SubPanel="Teknik – Teknik Konservasi Energi" },
-                new CpdpItem { Kompetensi="Energy Management", Implementasi="Tahun Kedua", KodeSub="2.3", SubOps="Data Collecting for Energy Evaluation", SubPanel="Monitoring & Evaluasi Pemakaian Energi" },
-                new CpdpItem { Kompetensi="Energy Management", Implementasi="Tahun Kedua", KodeSub="2.4", SubOps="Boiler & Furnace Optimization", SubPanel="-" },
+                // 2. Energy Management
+                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami karakteristik energi yang digunakan (listrik, steam, fuel oil, fuel gas, dll.)", Silabus="2.1. Karakteristik Energi", Status="Aligned" },
+                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami prinsip - prinsip dasar equipment yang menggunakan energi", Silabus="2.2. Prinsip – Prinsip Dasar Peralatan yang Menggunakan Energi", Status="Aligned" },
+                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Mampu mengumpulkan data - data yang diperlukan untuk evaluasi efisiensi penggunaan energi", Silabus="2.3. Data Collecting for Energy Consumption Evaluation", Status="Aligned" },
 
-                // 3. CATALYST & CHEMICAL (Tahun Kedua)
-                new CpdpItem { Kompetensi="Catalyst & Chemical Management", Implementasi="Tahun Kedua", KodeSub="3.1", SubOps="Jenis & Fungsi Catalyst & Chemical", SubPanel="Jenis & Fungsi Catalyst & Chemical" },
-                new CpdpItem { Kompetensi="Catalyst & Chemical Management", Implementasi="Tahun Kedua", KodeSub="3.2", SubOps="Karakteristik Catalyst & Chemical", SubPanel="Karakteristik Catalyst & Chemical" },
-                new CpdpItem { Kompetensi="Catalyst & Chemical Management", Implementasi="Tahun Kedua", KodeSub="3.3", SubOps="Pengaruh Impurities", SubPanel="Pengaruh Impurities" },
-                new CpdpItem { Kompetensi="Catalyst & Chemical Management", Implementasi="Tahun Kedua", KodeSub="3.4", SubOps="Catalyst Make Up Consumption", SubPanel="Catalyst Make Up Consumption" },
-                new CpdpItem { Kompetensi="Catalyst & Chemical Management", Implementasi="Tahun Kedua", KodeSub="3.5", SubOps="Chemical Make Up Consumption", SubPanel="Chemical Make Up Consumption" },
+                // 3. Catalyst & Chemical Management
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami jenis-jenis dan fungsi catalyst dan chemical", Silabus="3.1. Jenis & Fungsi Catalyst & Chemical", Status="Aligned" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami karakteristik/ performance catalyst dan chemical", Silabus="3.2. Karakteristik Catalyst & Chemical", Status="Aligned" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami impurities di feed yang dapat berpengaruh terhadap performance catalyst dan chemical", Silabus="3.3. Pengaruh Impurities pada Catalyst & Chemical Performance", Status="Aligned" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan perhitungan atas make up pemakaian catalyst sesuai kapasitas pengolahan atau kandungan impurities", Silabus="3.4. Catalyst Make Up Consumption", Status="Aligned" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan perhitungan kebutuhan chemical", Silabus="3.5. Chemical Make Up Consumption", Status="Aligned" },
 
-                // 4. PROCESS CONTROL (Tahun Ketiga)
-                new CpdpItem { Kompetensi="Process Control & Computer Ops", Implementasi="Tahun Ketiga", KodeSub="4.1", SubOps="Prinsip Dasar Pengendalian Variabel", SubPanel="Tunning Controller" },
-                new CpdpItem { Kompetensi="Process Control & Computer Ops", Implementasi="Tahun Ketiga", KodeSub="4.2", SubOps="Prinsip Kerja Peralatan Pengendalian", SubPanel="Process Control Analysis" },
-                new CpdpItem { Kompetensi="Process Control & Computer Ops", Implementasi="Tahun Ketiga", KodeSub="4.3", SubOps="Computer Operations", SubPanel="Computer Operations" },
+                // 4. Process Control & Computer Operations
+                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip-prinsip dasar pengendalian dan pengukuran variabel-variabel operasi seperti pengendalian tekanan, pengendalian temperatur, dll.", Silabus="4.1. Prinsip Dasar Pengendalian & Pengukuran Variabel Operasi", Status="Aligned" },
+                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip-prinsip kerja dari peralatan pengendalian proses, seperti Field Instrument, Control loop, PLC, DCS, dll.", Silabus="4.2. Prinsip Kerja Peralatan Pengendalian Proses", Status="Aligned" },
+                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="-", Silabus="4.3. Computer Operations (Sub Kompetensi ini penambahan oleh tim SME GAST)", Status="Aligned" },
 
-                // 5. REFINERY PROCESS (Tahun Pertama)
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Pertama", KodeSub="5.1", SubOps="BOC / BEC", SubPanel="Routine Activities for Operations" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Pertama", KodeSub="5.2", SubOps="Feed & Product Specification", SubPanel="Pengoperasian HMI" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Pertama", KodeSub="5.3", SubOps="P&ID, Line Up & Lay Out", SubPanel="Operating Windows" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Pertama", KodeSub="5.4", SubOps="Start up, Shutdown & Emergency", SubPanel="Refinery Operations Analysis" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Pertama", KodeSub="5.5", SubOps="Prinsip Dasar Fasilitas Kilang", SubPanel="Troubleshooting & Problem Solving" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Pertama", KodeSub="5.6", SubOps="Identifikasi Bahaya Fasilitas Kilang", SubPanel="Operational Risk Identification" },
+                // 5.1 Refinery Process Operations
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami prinsip-prinsip dasar dan mampu menjalankan prosedur pengoperasian fasilitas refinery process sesuai standar K3L dengan bimbingan", Silabus="5.5. Prinsip Dasar & Pengoperasian Fasilitas Kilang", Status="Aligned" },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami perkembangan informasi terkait pengoperasian fasilitas refinery process", Silabus="5.9. Equipment Operations", Status="Aligned" },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Mampu melakukan BOC/BEC dengan pengawasan ketat", Silabus="5.1. BOC / BEC", Status="Aligned" },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Mampu melakukan identifikasi bahaya dari permasalahan pada operasi fasilitas refinery process", Silabus="5.6. Identifikasi Bahaya pada Pengoperasian Fasilitas Kilang", Status="Aligned" },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="-", Silabus="5.2. Feed & Product Specification", Status="Aligned" },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="-", Silabus="5.3. P&ID, Line Up & Lay Out", Status="Aligned" },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="-", Silabus="5.4. Start Up, Shutdown & Emergency Unit", Status="Aligned" },
 
-                // 5. REFINERY PROCESS (Tahun Kedua)
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Kedua", KodeSub="5.7", SubOps="Prinsip Dasar & Pengoperasian Alat", SubPanel="Pengoperasian & Interaksi Sub Proses" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Kedua", KodeSub="5.8", SubOps="Pengoperasian Sub Proses", SubPanel="Start up, Shutdown & Emergency Unit" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Kedua", KodeSub="5.9", SubOps="Equipment Operations", SubPanel="-" },
-                
-                // 5. REFINERY PROCESS (Tahun Ketiga)
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Ketiga", KodeSub="5.10", SubOps="Karakteristik Unit Operasi", SubPanel="Process Optimization" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Ketiga", KodeSub="5.11", SubOps="Day to Day Monitoring", SubPanel="-" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Ketiga", KodeSub="5.12", SubOps="Data Collecting for Optimization", SubPanel="-" },
-                new CpdpItem { Kompetensi="Refinery Process Ops & Optimization", Implementasi="Tahun Ketiga", KodeSub="5.13", SubOps="Operating Windows", SubPanel="-" },
+                // 5.2 Oil Processing Operations
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip-prinsip dasar dan mampu menjalankan prosedur pengoperasian fasilitas oil processing secara aman, andal, dan optimal sesuai standar K3L dengan bimbingan", Silabus="5.7. Prinsip Dasar & Pengoperasian Peralatan", Status="Aligned" },
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami perkembangan informasi terkait pengoperasian fasilitas oil processing", Silabus="5.9. Equipment Operations", Status="Aligned" },
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan pengoperasian sub proses/area oil processing tertentu", Silabus="5.8. Pengoperasian Sub Proses", Status="Aligned" },
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan identifikasi bahaya dari permasalahan pada operasi fasilitas oil processing", Silabus="5.6. Identifikasi Bahaya pada Pengoperasian Fasilitas Kilang", Status="Aligned" },
+
+                // 5.3 Process Optimization
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip dasar parameter proses operasi yang harus dimonitor dan batasan design (limitasi/ operating windows)", Silabus="5.13. Operating Windows", Status="Aligned" },
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu memahami karakteristik unit operasi", Silabus="5.10. Karakteristik Unit Operasi", Status="Aligned" },
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu mengumpulkan data-data yang diperlukan untuk optimasi proses", Silabus="5.12. Data Collecting for Process Optimization", Status="Aligned" },
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan day to day monitoring berdasarkan hasil pengumpulan data dengan supervisi/ instruksi", Silabus="5.11. Day to Day Monitoring", Status="Aligned" }
             };
 
             return View(cpdpData);
