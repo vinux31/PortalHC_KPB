@@ -278,11 +278,135 @@ namespace HcPortal.Controllers
             return View(exams); 
         }
 
-        // (Biarkan fungsi Records/Capability yang lama tetap ada di bawah sini)
+        // HALAMAN 4: CAPABILITY BUILDING RECORDS
         public IActionResult Records()
         {
-             // ... kodingan capability records yg lama ...
-             return View(new List<TrainingRecord>()); // Placeholder biar tidak error
+            var records = new List<TrainingRecord>
+            {
+                // === PROTON (2 items) ===
+                new TrainingRecord 
+                { 
+                    Id = 1, 
+                    Judul = "PROTON Assessment: Distillation Unit Operations", 
+                    Kategori = "PROTON", 
+                    Tanggal = new DateTime(2024, 11, 15),
+                    Penyelenggara = "NSO",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/proton-distillation-2024.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 2, 
+                    Judul = "PROTON Assessment: Heat Exchanger Systems", 
+                    Kategori = "PROTON", 
+                    Tanggal = new DateTime(2025, 1, 10),
+                    Penyelenggara = "NSO",
+                    Status = "Wait Certificate",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = null
+                },
+
+                // === OTS (2 items) ===
+                new TrainingRecord 
+                { 
+                    Id = 3, 
+                    Judul = "OTS Simulation: Emergency Shutdown Procedures", 
+                    Kategori = "OTS", 
+                    Tanggal = new DateTime(2024, 10, 5),
+                    Penyelenggara = "Internal",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/ots-emergency-2024.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 4, 
+                    Judul = "OTS Simulation: Blackout Recovery", 
+                    Kategori = "OTS", 
+                    Tanggal = new DateTime(2024, 12, 20),
+                    Penyelenggara = "Internal",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/ots-blackout-2024.pdf"
+                },
+
+                // === OJT (2 items) ===
+                new TrainingRecord 
+                { 
+                    Id = 5, 
+                    Judul = "On Job Training: Panel Operator Competency", 
+                    Kategori = "OJT", 
+                    Tanggal = new DateTime(2024, 9, 12),
+                    Penyelenggara = "Internal",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/ojt-panel-2024.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 6, 
+                    Judul = "On Job Training: Field Operator Assessment", 
+                    Kategori = "OJT", 
+                    Tanggal = new DateTime(2024, 8, 25),
+                    Penyelenggara = "Internal",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/ojt-field-2024.pdf"
+                },
+
+                // === IHT (2 items) ===
+                new TrainingRecord 
+                { 
+                    Id = 7, 
+                    Judul = "Internal Training: Pump Maintenance & Troubleshooting", 
+                    Kategori = "IHT", 
+                    Tanggal = new DateTime(2024, 7, 18),
+                    Penyelenggara = "Internal",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/iht-pump-2024.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 8, 
+                    Judul = "Internal Training: Process Control Systems", 
+                    Kategori = "IHT", 
+                    Tanggal = new DateTime(2024, 6, 30),
+                    Penyelenggara = "Internal",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/iht-process-2024.pdf"
+                },
+
+                // === MANDATORY HSSE (2 items with expiry dates) ===
+                new TrainingRecord 
+                { 
+                    Id = 9, 
+                    Judul = "Basic Fire Fighting & Emergency Response", 
+                    Kategori = "MANDATORY", 
+                    Tanggal = new DateTime(2024, 2, 10),
+                    Penyelenggara = "External - HSSE Provider",
+                    Status = "Valid",
+                    CertificateType = "Annual",
+                    ValidUntil = new DateTime(2025, 2, 10), // Expires in ~13 days (WARNING!)
+                    SertifikatUrl = "/certificates/hsse-fire-2024.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 10, 
+                    Judul = "Working at Height Certification", 
+                    Kategori = "MANDATORY", 
+                    Tanggal = new DateTime(2023, 5, 15),
+                    Penyelenggara = "External - HSSE Provider",
+                    Status = "Valid",
+                    CertificateType = "3-Year",
+                    ValidUntil = new DateTime(2026, 5, 15), // Still valid for ~1.3 years
+                    SertifikatUrl = "/certificates/hsse-height-2023.pdf"
+                }
+            };
+
+            return View(records);
         }
     }
 }

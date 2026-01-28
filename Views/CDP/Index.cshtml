@@ -1,12 +1,49 @@
-@model List<HcPortal.Models.IdpItem>
+@model List<HcPortal.Models.IdpCompetency>
 
 @{
-    ViewData["Title"] = "My IDP";
+    ViewData["Title"] = "Plan IDP (Silabus)";
 }
+
+    <style>
+        /* Sticky Header */
+        .table-responsive {
+            max-height: 80vh; /* Allow scrolling if table is very long */
+            overflow-y: auto;
+        }
+        thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #f8f9fa !important; /* Ensure background is opaque */
+            box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Custom List Markers */
+        .custom-list li {
+            position: relative;
+            padding-left: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .custom-list li::before {
+            content: "\F285"; /* Bootstrap Icon: chevron-right */
+            font-family: "bootstrap-icons";
+            position: absolute;
+            left: 0;
+            top: 2px;
+            color: var(--bs-primary);
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        /* Stronger Separator */
+        .group-separator {
+            border-bottom: 3px solid #dee2e6 !important;
+        }
+    </style>
 
 <div class="d-flex justify-content-between align-items-end mb-4">
     <div>
-        <h2 class="fw-bold text-primary">My Individual Development Plan</h2>
+        <h2 class="fw-bold text-primary">Plan IDP (Silabus)</h2>
         <div class="d-flex gap-4 mt-2">
             <div>
                 <span class="text-muted small d-block">Coachee</span>
@@ -21,95 +58,69 @@
     
     <div class="text-end">
         <div class="mb-1">
-            <span class="badge bg-primary me-2">Progress Proton: 35%</span>
             <span class="fw-bold text-secondary">Penugasan Tahun 2025, Unit 22</span>
         </div>
-        <button class="btn btn-sm btn-primary mt-2"><i class="bi bi-plus-lg"></i> Tambah Rencana Baru</button>
     </div>
 </div>
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-light text-secondary small text-uppercase">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="bg-light text-secondary small text-uppercase text-center align-middle">
                     <tr>
-                        <th class="p-3 border-bottom-0" style="width: 15%">Kompetensi</th>
-                        <th class="p-3 border-bottom-0" style="width: 15%">Sub Kompetensi</th>
-                        <th class="p-3 border-bottom-0" style="width: 20%">Deliverable</th>
-                        <th class="p-3 border-bottom-0 text-center" style="width: 10%">Evidence</th>
-                        <th class="p-3 border-bottom-0 text-center" style="width: 13%">Sr. Supervisor</th>
-                        <th class="p-3 border-bottom-0 text-center" style="width: 13%">Section Head</th>
-                        <th class="p-3 border-bottom-0 text-center" style="width: 14%">HC</th>
+                        <th rowspan="2" class="p-3" style="width: 25%">Nama Kompetensi CPDP</th>
+                        <th rowspan="2" class="p-3" style="width: 15%">Implementasi Pembelajaran</th>
+                        <th colspan="2" class="p-3">Nama Sub Kompetensi CPDP</th>
+                    </tr>
+                    <tr>
+                        <th class="p-3" style="width: 30%">Operator</th>
+                        <th class="p-3" style="width: 30%">Panelman</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var comp in Model)
                     {
-                        <tr>
-                            <td class="p-3 fw-bold text-dark">@item.Kompetensi</td>
-                            <td class="p-3 text-muted">@item.SubKompetensi</td>
-                            <td class="p-3 text-muted">@item.Deliverable</td>
+                        var periods = comp.Periods;
+                        var rowCount = periods.Count;
+                        
+                        @for (int i = 0; i < rowCount; i++)
+                        {
+                            var period = periods[i];
+                            // Add separator class to the last row of the competency
+                            var trClass = (i == rowCount - 1) ? "group-separator" : "";
                             
-                            <!-- Column Evidence -->
-                            <td class="p-3 text-center">
-                                @if(item.Evidence != "-" && !string.IsNullOrEmpty(item.Evidence)) {
-                                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" data-bs-toggle="tooltip" title="View Evidence">
-                                        <i class="bi bi-file-earmark-check me-1"></i> Uploaded
-                                    </button>
-                                } else {
-                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 dashed-border" data-bs-toggle="tooltip" title="Upload Evidence">
-                                        <i class="bi bi-upload me-1"></i> Pending
-                                    </button>
+                            <tr class="@trClass">
+                                @if (i == 0)
+                                {
+                                    <td rowspan="@rowCount" class="p-3 fw-bold bg-white align-top">
+                                        @comp.Name
+                                    </td>
                                 }
-                            </td>
-
-                            <!-- Appr Sr. Supervisor -->
-                            <td class="p-3 text-center">
-                                @{ RenderStatusBadge(item.ApproveSrSpv); }
-                            </td>
-
-                            <!-- Appr Section Head -->
-                            <td class="p-3 text-center">
-                                @{ RenderStatusBadge(item.ApproveSectionHead); }
-                            </td>
-
-                            <!-- Appr HC -->
-                            <td class="p-3 text-center">
-                                @{ RenderStatusBadge(item.ApproveHC); }
-                            </td>
-                        </tr>
+                                <td class="p-3 text-center align-top bg-white">
+                                    @period.PeriodName
+                                </td>
+                                <td class="p-2 align-top bg-white">
+                                    <ul class="list-unstyled mb-0 small custom-list">
+                                        @foreach (var op in period.OperatorCompetencies)
+                                        {
+                                            <li>@op</li>
+                                        }
+                                    </ul>
+                                </td>
+                                <td class="p-2 align-top bg-white">
+                                     <ul class="list-unstyled mb-0 small custom-list">
+                                        @foreach (var pm in period.PanelmanCompetencies)
+                                        {
+                                            <li>@pm</li>
+                                        }
+                                    </ul>
+                                </td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
         </div>
     </div>
 </div>
-
-@functions {
-    void RenderStatusBadge(string? status)
-    {
-        if (status == "Approved")
-        {
-            <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 rounded-pill">
-                <i class="bi bi-check-circle-fill me-1"></i> Approved
-            </span>
-        }
-        else if (status == "Rejected")
-        {
-            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-3 py-2 rounded-pill">
-                <i class="bi bi-x-circle-fill me-1"></i> Rejected
-            </span>
-        }
-        else if (status == "Pending")
-        {
-             <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-3 py-2 rounded-pill">
-                <i class="bi bi-hourglass-split me-1"></i> Pending
-            </span>
-        }
-        else
-        {
-            <span class="text-muted small d-block py-2">-</span>
-        }
-    }
-}

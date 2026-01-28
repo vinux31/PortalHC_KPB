@@ -7,54 +7,168 @@ namespace HcPortal.Controllers
     {
         public IActionResult Index()
         {
-            // 1. KITA BUAT DATA PALSU (MOCK DATA)
-            // Nanti di masa depan, bagian ini diganti koneksi Database
-            var myIdpList = new List<IdpItem>
+            var data = new List<IdpCompetency>
             {
-                // 1. SAFE WORK PRACTICE
-                new IdpItem { Id=1, Kompetensi="Safe Work Practice & Lifesaving Rules", SubKompetensi="Safe Work Practice Regulation", Deliverable="Laporan Pemahaman Regulasi", Aktivitas="Self Learning", Metode="Self Learning", DueDate=new DateTime(2025,1,30), Status="Done", Evidence="Regulasi.pdf", ApproveSrSpv="Approved", ApproveSectionHead="Approved", ApproveHC="Approved" },
-                new IdpItem { Id=2, Kompetensi="Safe Work Practice & Lifesaving Rules", SubKompetensi="Supervision of Safe Work Practice", Deliverable="Logbook Supervisi", Aktivitas="OJT", Metode="Coaching", DueDate=new DateTime(2025,2,28), Status="In Progress", Evidence="-", ApproveSrSpv="Approved", ApproveSectionHead="Pending", ApproveHC="Pending" },
-                new IdpItem { Id=3, Kompetensi="Safe Work Practice & Lifesaving Rules", SubKompetensi="Monitoring Safety Equipment Readiness", Deliverable="Checklist Equipment", Aktivitas="Field Monitoring", Metode="OJT", DueDate=new DateTime(2025,3,30), Status="Open", Evidence="-", ApproveSrSpv="Pending", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=4, Kompetensi="Safe Work Practice & Lifesaving Rules", SubKompetensi="Intervention & Safety Awareness", Deliverable="Laporan Intervensi", Aktivitas="Safety Patrol", Metode="OJT", DueDate=new DateTime(2025,4,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-
-                // 2. ENERGY MANAGEMENT
-                new IdpItem { Id=5, Kompetensi="Energy Management", SubKompetensi="Karakteristik Energi", Deliverable="Review Karakteristik", Aktivitas="Classroom", Metode="Classroom", DueDate=new DateTime(2025,5,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=6, Kompetensi="Energy Management", SubKompetensi="Prinsip Dasar Peralatan Energi", Deliverable="Makalah Prinsip Dasar", Aktivitas="Self Learning", Metode="Virtual Learning", DueDate=new DateTime(2025,6,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=7, Kompetensi="Energy Management", SubKompetensi="Data Collecting for Energy Evaluation", Deliverable="Data Logsheet", Aktivitas="Data Collection", Metode="OJT", DueDate=new DateTime(2025,7,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=8, Kompetensi="Energy Management", SubKompetensi="Boiler & Furnace Optimization", Deliverable="Optimization Report", Aktivitas="Simulation", Metode="Simulator", DueDate=new DateTime(2025,8,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-
-                // 3. CATALYST & CHEMICAL
-                new IdpItem { Id=9, Kompetensi="Catalyst & Chemical Management", SubKompetensi="Jenis & Fungsi Catalyst & Chemical", Deliverable="Katalog Chemical", Aktivitas="Inventory Check", Metode="OJT", DueDate=new DateTime(2025,5,15), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=10, Kompetensi="Catalyst & Chemical Management", SubKompetensi="Karakteristik Catalyst & Chemical", Deliverable="Laporan Analisa", Aktivitas="Lab Visit", Metode="OJT", DueDate=new DateTime(2025,6,15), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=11, Kompetensi="Catalyst & Chemical Management", SubKompetensi="Pengaruh Impurities", Deliverable="Case Study Impurities", Aktivitas="Study Case", Metode="Mentoring", DueDate=new DateTime(2025,7,15), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=12, Kompetensi="Catalyst & Chemical Management", SubKompetensi="Catalyst Make Up Consumption", Deliverable="Calculation Sheet", Aktivitas="Calculation", Metode="Mentoring", DueDate=new DateTime(2025,8,15), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=13, Kompetensi="Catalyst & Chemical Management", SubKompetensi="Chemical Make Up Consumption", Deliverable="Calculation Sheet", Aktivitas="Calculation", Metode="Mentoring", DueDate=new DateTime(2025,9,15), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-
-                // 4. PROCESS CONTROL
-                new IdpItem { Id=14, Kompetensi="Process Control & Computer Ops", SubKompetensi="Prinsip Dasar Pengendalian Variabel", Deliverable="Control Loop Diagram", Aktivitas="DCS Observation", Metode="OJT", DueDate=new DateTime(2025,9,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=15, Kompetensi="Process Control & Computer Ops", SubKompetensi="Prinsip Kerja Peralatan Pengendalian", Deliverable="Equipment Spec Review", Aktivitas="Field Walk", Metode="OJT", DueDate=new DateTime(2025,10,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=16, Kompetensi="Process Control & Computer Ops", SubKompetensi="Computer Operations", Deliverable="System Log", Aktivitas="Daily Ops", Metode="OJT", DueDate=new DateTime(2025,11,30), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-
-                // 5. REFINERY PROCESS
-                new IdpItem { Id=17, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="BOC / BEC", Deliverable="BOC/BEC Report", Aktivitas="Reporting", Metode="OJT", DueDate=new DateTime(2025,1,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=18, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Feed & Product Specification", Deliverable="Spec Lab Analysis", Aktivitas="Sampling", Metode="OJT", DueDate=new DateTime(2025,2,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=19, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="P&ID, Line Up & Lay Out", Deliverable="Tracing Line Diagram", Aktivitas="Field Tracing", Metode="OJT", DueDate=new DateTime(2025,3,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=20, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Start up, Shutdown & Emergency", Deliverable="SOP Review", Aktivitas="SOP Reading", Metode="Self Learning", DueDate=new DateTime(2025,4,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=21, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Prinsip Dasar Fasilitas Kilang", Deliverable="Flow Presentation", Aktivitas="Presentation", Metode="Sharing Session", DueDate=new DateTime(2025,5,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=22, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Identifikasi Bahaya Fasilitas Kilang", Deliverable="Risk Register", Aktivitas="Risk Assessment", Metode="Workshop", DueDate=new DateTime(2025,6,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                // Tahun 2
-                new IdpItem { Id=23, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Prinsip Dasar & Pengoperasian Alat", Deliverable="Ops Manual", Aktivitas="Unit Operation", Metode="OJT", DueDate=new DateTime(2025,7,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=24, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Pengoperasian Sub Proses", Deliverable="Logsheet Record", Aktivitas="Unit Operation", Metode="OJT", DueDate=new DateTime(2025,8,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=25, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Equipment Operations", Deliverable="Equipment Log", Aktivitas="Unit Operation", Metode="OJT", DueDate=new DateTime(2025,9,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                // Tahun 3
-                new IdpItem { Id=26, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Karakteristik Unit Operasi", Deliverable="Performance Trend", Aktivitas="Monitoring", Metode="OJT", DueDate=new DateTime(2025,10,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=27, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Day to Day Monitoring", Deliverable="Daily Report", Aktivitas="Monitoring", Metode="OJT", DueDate=new DateTime(2025,11,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=28, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Data Collecting for Optimization", Deliverable="Optimization Data", Aktivitas="Optimization", Metode="Project", DueDate=new DateTime(2025,12,10), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
-                new IdpItem { Id=29, Kompetensi="Refinery Process Ops & Optimization", SubKompetensi="Operating Windows", Deliverable="Operating Window Chart", Aktivitas="Analysis", Metode="Project", DueDate=new DateTime(2025,12,20), Status="Open", Evidence="-", ApproveSrSpv="Not Started", ApproveSectionHead="Not Started", ApproveHC="Not Started" },
+                new IdpCompetency
+                {
+                    Name = "1. Safe Work Practice & Lifesaving Rules",
+                    Periods = new List<IdpImplementationPeriod>
+                    {
+                        new IdpImplementationPeriod
+                        {
+                            PeriodName = "Tahun Pertama",
+                            OperatorCompetencies = new List<string>
+                            {
+                                "1.1. Safe Work Practice",
+                                "1.2. Lifesaving Rules",
+                                "1.3. Emergency Response"
+                            },
+                            PanelmanCompetencies = new List<string>
+                            {
+                                "1.1. Safe Work Practice Regulation",
+                                "1.2. Supervision of Safe Work Practice and Lifesaving Rules",
+                                "1.3. Monitoring of Safety Equipment Readiness and Maintenance",
+                                "1.4. Intervention and Safety Awareness Development"
+                            }
+                        }
+                    }
+                },
+                new IdpCompetency
+                {
+                    Name = "2. Energy Management",
+                    Periods = new List<IdpImplementationPeriod>
+                    {
+                        new IdpImplementationPeriod
+                        {
+                            PeriodName = "Tahun Kedua",
+                            OperatorCompetencies = new List<string>
+                            {
+                                "2.1. Karakteristik Energi",
+                                "2.2. Prinsip – Prinsip Dasar Peralatan yang Menggunakan Energi",
+                                "2.3. Data Collecting for Energy Consumption Evaluation"
+                            },
+                            PanelmanCompetencies = new List<string>
+                            {
+                                "2.1. Integrasi & Konversi Energi",
+                                "2.2. Teknik – Teknik Konservasi Energi",
+                                "2.3. Monitoring & Evaluasi Pemakaian Energi untuk Kebutuhan Operasi",
+                                "2.4. Boiler & Furnace Optimization"
+                            }
+                        }
+                    }
+                },
+                new IdpCompetency
+                {
+                    Name = "3. Catalyst & Chemical Management",
+                    Periods = new List<IdpImplementationPeriod>
+                    {
+                        new IdpImplementationPeriod
+                        {
+                            PeriodName = "Tahun Kedua",
+                            OperatorCompetencies = new List<string>
+                            {
+                                "3.1. Jenis & Fungsi Catalyst & Chemical",
+                                "3.2. Karakteristik Catalyst & Chemical",
+                                "3.3. Pengaruh Impurities pada Catalyst & Chemical Performance",
+                                "3.4. Catalyst Make Up Consumption",
+                                "3.5. Chemical Make Up Consumption"
+                            },
+                            PanelmanCompetencies = new List<string>
+                            {
+                                "3.1. Jenis & Fungsi Catalyst & Chemical",
+                                "3.2. Karakteristik Catalyst & Chemical",
+                                "3.3. Pengaruh Impurities pada Catalyst & Chemical Performance",
+                                "3.4. Catalyst Make Up Consumption",
+                                "3.5. Chemical Make Up Consumption"
+                            }
+                        }
+                    }
+                },
+                new IdpCompetency
+                {
+                    Name = "4. Process Control & Computer Operations",
+                    Periods = new List<IdpImplementationPeriod>
+                    {
+                        new IdpImplementationPeriod
+                        {
+                            PeriodName = "Tahun Ketiga",
+                            OperatorCompetencies = new List<string>
+                            {
+                                "4.1. Prinsip Dasar Pengendalian & Pengukuran Variabel Oper",
+                                "4.2. Prinsip Kerja Peralatan Pengendalian Proses",
+                                "4.3. Computer Operations"
+                            },
+                            PanelmanCompetencies = new List<string>
+                            {
+                                "4.1. Tunning Controller",
+                                "4.2. Process Control Analysis",
+                                "4.3. Computer Operations"
+                            }
+                        }
+                    }
+                },
+                new IdpCompetency
+                {
+                    Name = "5. Refinery Process Operations & Optimization",
+                    Periods = new List<IdpImplementationPeriod>
+                    {
+                        new IdpImplementationPeriod
+                        {
+                            PeriodName = "Tahun Pertama",
+                            OperatorCompetencies = new List<string>
+                            {
+                                "5.1. BOC / BEC",
+                                "5.2. Feed & Product Specification",
+                                "5.3. P&ID, Line Up & Lay Out",
+                                "5.4. Start up, Shutdown & Emergency Unit",
+                                "5.5. Prinsip Dasar & Pengoperasian Fasilitas Kilang",
+                                "5.6. Identifikasi Bahaya pada Pengoperasian Fasilitas Kilang"
+                            },
+                            PanelmanCompetencies = new List<string>
+                            {
+                                "5.1. Routine Activities for Refinery Operations",
+                                "5.2. Pengoperasian HMI (Human Machine Interface)",
+                                "5.3. Operating Windows",
+                                "5.4. Refinery Operations Analysis",
+                                "5.5. Troubleshooting & Problem Solving",
+                                "5.6. Operational Risk Identification"
+                            }
+                        },
+                        new IdpImplementationPeriod
+                        {
+                            PeriodName = "Tahun Kedua",
+                            OperatorCompetencies = new List<string>
+                            {
+                                "5.7. Prinsip Dasar & Pengoperasian Peralatan",
+                                "5.8. Pengoperasian Sub Proses",
+                                "5.9. Equipment Operations"
+                            },
+                            PanelmanCompetencies = new List<string>
+                            {
+                                "5.7. Pengoperasian & Interaksi Sub Proses",
+                                "5.8. Startup, Shutdown & Emergency"
+                            }
+                        },
+                        new IdpImplementationPeriod
+                        {
+                            PeriodName = "Tahun Ketiga",
+                            OperatorCompetencies = new List<string>
+                            {
+                                "5.10. Karakteristik Unit Operasi",
+                                "5.11. Day to Day Monitoring",
+                                "5.12. Data Collecting for Process Optimization",
+                                "5.13. Operating Windows"
+                            },
+                            PanelmanCompetencies = new List<string>
+                            {
+                                "5.8. Process Optimization"
+                            }
+                        }
+                    }
+                }
             };
 
-            // 2. KIRIM DATA KE VIEW
-            return View(myIdpList);
+            return View(data);
         }
 
         public IActionResult Dashboard()
@@ -115,6 +229,36 @@ namespace HcPortal.Controllers
             };
 
             return View(history);
+        }
+
+        public IActionResult Progress()
+        {
+            // Flattened data from the IDP Plan for tracking purposes
+            var data = new List<TrackingItem>
+            {
+                // 1. Safe Work Practice
+                new TrackingItem { Id=1, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.1. Safe Work Practice (Op)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Approved", ApprovalHC="Approved" },
+                new TrackingItem { Id=2, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.2. Lifesaving Rules (Op)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Approved", ApprovalHC="Approved" },
+                new TrackingItem { Id=3, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.1. Safe Work Practice Regulation (Pnl)", EvidenceStatus="Pending", ApprovalSrSpv="Approved", ApprovalSectionHead="Pending", ApprovalHC="Pending", SupervisorComments="Mohon lampirkan sertifikat terbaru" },
+                new TrackingItem { Id=4, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.2. Supervision of Safe Work Practice (Pnl)", EvidenceStatus="Pending", ApprovalSrSpv="Pending", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
+                
+                // 2. Energy Management
+                new TrackingItem { Id=5, Kompetensi="Energy Management", Periode="Tahun Kedua", SubKompetensi="2.1. Karakteristik Energi (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
+                new TrackingItem { Id=6, Kompetensi="Energy Management", Periode="Tahun Kedua", SubKompetensi="2.1. Integrasi & Konversi Energi (Pnl)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
+
+                // 3. Catalyst
+                new TrackingItem { Id=7, Kompetensi="Catalyst & Chemical Management", Periode="Tahun Kedua", SubKompetensi="3.1. Jenis & Fungsi Catalyst (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
+                
+                // 4. Process Control
+                new TrackingItem { Id=8, Kompetensi="Process Control & Computer Ops", Periode="Tahun Ketiga", SubKompetensi="4.1. Prinsip Dasar Pengendalian (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
+
+                // 5. Refinery Process
+                new TrackingItem { Id=9, Kompetensi="Refinery Process Ops & Optimization", Periode="Tahun Pertama", SubKompetensi="5.1. BOC / BEC (Op)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Approved", ApprovalHC="Pending" },
+                new TrackingItem { Id=10, Kompetensi="Refinery Process Ops & Optimization", Periode="Tahun Pertama", SubKompetensi="5.1. Routine Activities (Pnl)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Pending", ApprovalHC="Pending", SupervisorComments="Video evidence kurang jelas audionya" },
+                new TrackingItem { Id=11, Kompetensi="Refinery Process Ops & Optimization", Periode="Tahun Kedua", SubKompetensi="5.7. Prinsip Dasar Peralatan (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
+            };
+
+            return View(data);
         }
 
     }

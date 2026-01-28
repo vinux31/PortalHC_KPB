@@ -2,104 +2,565 @@
 
 @{
     ViewData["Title"] = "Capability Records";
+    
+    // Calculate summary statistics
+    var totalRecords = Model.Count;
+    var validRecords = Model.Count(x => x.Status == "Passed" || x.Status == "Valid");
+    var pendingRecords = Model.Count(x => x.Status == "Wait Certificate");
+    var expiringRecords = Model.Count(x => x.IsExpiringSoon);
+    
+    // Get expiring certificates for alert
+    var expiringCerts = Model.Where(x => x.IsExpiringSoon).ToList();
 }
 
-<div class="mb-4">
-    <h2 class="fw-bold">Capability Building Records</h2>
-    <p class="text-muted">Rekam jejak pelatihan teknis, sertifikasi, dan pembelajaran mandiri.</p>
-</div>
-
-<ul class="nav nav-tabs mb-3" id="myTab" role="tablist">
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="proton-tab" data-bs-toggle="tab" data-bs-target="#proton" type="button">PROTON</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="ots-tab" data-bs-toggle="tab" data-bs-target="#ots" type="button">OTS</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="ojt-tab" data-bs-toggle="tab" data-bs-target="#ojt" type="button">OJT</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="iht-tab" data-bs-toggle="tab" data-bs-target="#iht" type="button">IHT</button>
-    </li>
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="mandatory-tab" data-bs-toggle="tab" data-bs-target="#mandatory" type="button">Mandatory HSSE</button>
-    </li>
-</ul>
-
-<div class="tab-content" id="myTabContent">
+<div class="container-fluid px-4 py-4">
     
-    <!-- Tab PROTON -->
-    <div class="tab-pane fade show active" id="proton" role="tabpanel">
-        <div class="alert alert-info">
-            <i class="bi bi-info-circle"></i> Catatan: Assessment PROTON dilakukan melalui NSO. Token diberikan oleh HC.
+    <!-- Expiry Alert Banner (if any certificates expiring soon) -->
+    @if (expiringCerts.Any())
+    {
+        <div class="alert alert-warning alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <div class="d-flex align-items-start">
+                <i class="bi bi-exclamation-triangle-fill fs-3 me-3"></i>
+                <div class="flex-grow-1">
+                    <h5 class="alert-heading fw-bold mb-2">⚠️ Certificate Expiry Warning</h5>
+                    <p class="mb-2">You have <strong>@expiringCerts.Count certificate(s)</strong> expiring within 30 days:</p>
+                    <ul class="mb-0">
+                        @foreach (var cert in expiringCerts)
+                        {
+                            <li><strong>@cert.Judul</strong> - Expires in <span class="badge bg-danger">@cert.DaysUntilExpiry days</span> (@cert.ValidUntil?.ToString("dd MMM yyyy"))</li>
+                        }
+                    </ul>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
         </div>
-        @{ RenderTable(Model.Where(x => x.Kategori == "PROTON").ToList()); }
+    }
+
+    <!-- Header Section -->
+    <div class="mb-4">
+        <h2 class="fw-bold mb-1">Capability Building Records</h2>
+        <p class="text-muted mb-0">Rekam jejak pelatihan teknis, sertifikasi, dan pembelajaran mandiri.</p>
     </div>
 
-    <!-- Tab OTS -->
-    <div class="tab-pane fade" id="ots" role="tabpanel">
-        @{ RenderTable(Model.Where(x => x.Kategori == "OTS").ToList()); }
+    <!-- Summary Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                            <i class="bi bi-journal-text fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 small">Total Training</h6>
+                            <h3 class="fw-bold mb-0">@totalRecords</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-success">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success rounded-3 p-3 me-3">
+                            <i class="bi bi-check-circle-fill fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 small">Valid/Passed</h6>
+                            <h3 class="fw-bold mb-0">@validRecords</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-warning">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning rounded-3 p-3 me-3">
+                            <i class="bi bi-hourglass-split fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 small">Pending</h6>
+                            <h3 class="fw-bold mb-0">@pendingRecords</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-danger">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-danger bg-opacity-10 text-danger rounded-3 p-3 me-3">
+                            <i class="bi bi-clock-history fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 small">Expiring Soon</h6>
+                            <h3 class="fw-bold mb-0">@expiringRecords</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Tab OJT -->
-    <div class="tab-pane fade" id="ojt" role="tabpanel">
-        @{ RenderTable(Model.Where(x => x.Kategori == "OJT").ToList()); }
+    <!-- Search & Filter Bar -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-12 col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="bi bi-search text-muted"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control border-start-0 ps-0" placeholder="Cari training berdasarkan judul...">
+                    </div>
+                </div>
+                <div class="col-12 col-md-2">
+                    <select id="yearFilter" class="form-select">
+                        <option value="">All Years</option>
+                        <option value="2025">2025</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="Passed">Passed</option>
+                        <option value="Valid">Valid</option>
+                        <option value="Wait Certificate">Wait Certificate</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <i class="bi bi-x-circle me-1"></i> Clear
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Tab IHT -->
-    <div class="tab-pane fade" id="iht" role="tabpanel">
-        @{ RenderTable(Model.Where(x => x.Kategori == "IHT").ToList()); }
-    </div>
+    <!-- Premium Tab Navigation -->
+    <ul class="nav nav-pills mb-4 premium-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="proton-tab" data-bs-toggle="tab" data-bs-target="#proton" type="button">
+                <i class="bi bi-bullseye me-2"></i>PROTON
+                <span class="badge bg-white bg-opacity-25 ms-2">@Model.Count(x => x.Kategori == "PROTON")</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ots-tab" data-bs-toggle="tab" data-bs-target="#ots" type="button">
+                <i class="bi bi-laptop me-2"></i>OTS
+                <span class="badge bg-white bg-opacity-25 ms-2">@Model.Count(x => x.Kategori == "OTS")</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="ojt-tab" data-bs-toggle="tab" data-bs-target="#ojt" type="button">
+                <i class="bi bi-tools me-2"></i>OJT
+                <span class="badge bg-white bg-opacity-25 ms-2">@Model.Count(x => x.Kategori == "OJT")</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="iht-tab" data-bs-toggle="tab" data-bs-target="#iht" type="button">
+                <i class="bi bi-book me-2"></i>IHT
+                <span class="badge bg-white bg-opacity-25 ms-2">@Model.Count(x => x.Kategori == "IHT")</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="mandatory-tab" data-bs-toggle="tab" data-bs-target="#mandatory" type="button">
+                <i class="bi bi-shield-fill-exclamation me-2"></i>Mandatory HSSE
+                <span class="badge bg-white bg-opacity-25 ms-2">@Model.Count(x => x.Kategori == "MANDATORY")</span>
+            </button>
+        </li>
+    </ul>
 
-    <!-- Tab Mandatory -->
-    <div class="tab-pane fade" id="mandatory" role="tabpanel">
-        @{ RenderTable(Model.Where(x => x.Kategori == "MANDATORY").ToList()); }
+    <!-- Tab Content -->
+    <div class="tab-content" id="myTabContent">
+        
+        <!-- Tab PROTON -->
+        <div class="tab-pane fade show active" id="proton" role="tabpanel">
+            <div class="alert alert-info border-0 shadow-sm">
+                <i class="bi bi-info-circle me-2"></i> <strong>Catatan:</strong> Assessment PROTON dilakukan melalui NSO. Token diberikan oleh HC.
+            </div>
+            @{ RenderTable(Model.Where(x => x.Kategori == "PROTON").ToList()); }
+        </div>
+
+        <!-- Tab OTS -->
+        <div class="tab-pane fade" id="ots" role="tabpanel">
+            @{ RenderTable(Model.Where(x => x.Kategori == "OTS").ToList()); }
+        </div>
+
+        <!-- Tab OJT -->
+        <div class="tab-pane fade" id="ojt" role="tabpanel">
+            @{ RenderTable(Model.Where(x => x.Kategori == "OJT").ToList()); }
+        </div>
+
+        <!-- Tab IHT -->
+        <div class="tab-pane fade" id="iht" role="tabpanel">
+            @{ RenderTable(Model.Where(x => x.Kategori == "IHT").ToList()); }
+        </div>
+
+        <!-- Tab Mandatory -->
+        <div class="tab-pane fade" id="mandatory" role="tabpanel">
+            @{ RenderTable(Model.Where(x => x.Kategori == "MANDATORY").ToList()); }
+        </div>
     </div>
 </div>
 
 @{
     void RenderTable(List<HcPortal.Models.TrainingRecord> data)
     {
-        <div class="card shadow-sm border-0">
+        <div class="card shadow-sm border-0 table-card">
             <div class="card-body p-0">
-                <table class="table table-hover mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="p-3">Judul Program</th>
-                            <th class="p-3">Tanggal</th>
-                            <th class="p-3">Penyelenggara</th>
-                            <th class="p-3">Status</th>
-                            <th class="p-3">Sertifikat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if(data.Count == 0) 
-                        {
-                            <tr><td colspan="5" class="text-center p-4 text-muted">Belum ada data di kategori ini.</td></tr>
-                        }
-                        
-                        @foreach (var item in data)
-                        {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 records-table">
+                        <thead class="sticky-header">
                             <tr>
-                                <td class="p-3 fw-bold">@item.Judul</td>
-                                <td class="p-3">@item.Tanggal.ToString("dd MMM yyyy")</td>
-                                <td class="p-3">@item.Penyelenggara</td>
-                                <td class="p-3">
-                                    @if(item.Status == "Passed" || item.Status == "Valid") {
-                                        <span class="badge bg-success">@item.Status</span>
-                                    } else {
-                                        <span class="badge bg-warning text-dark">@item.Status</span>
-                                    }
-                                </td>
-                                <td class="p-3">
-                                    <button class="btn btn-sm btn-outline-primary">Download</button>
-                                </td>
+                                <th class="p-3">Judul Program</th>
+                                <th class="p-3">Tanggal</th>
+                                <th class="p-3">Penyelenggara</th>
+                                <th class="p-3">Tipe Sertifikat</th>
+                                <th class="p-3">Berlaku Sampai</th>
+                                <th class="p-3">Status</th>
+                                <th class="p-3 text-center">Action</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @if(data.Count == 0) 
+                            {
+                                <tr>
+                                    <td colspan="7" class="text-center p-5">
+                                        <div class="empty-state">
+                                            <i class="bi bi-inbox text-muted mb-3" style="font-size: 3rem;"></i>
+                                            <h5 class="text-muted">Belum ada data di kategori ini</h5>
+                                            <p class="text-muted small">Training records akan muncul di sini setelah Anda menyelesaikan assessment.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            
+                            @foreach (var item in data)
+                            {
+                                <tr class="training-row" data-title="@item.Judul" data-year="@item.Tanggal.Year" data-status="@item.Status">
+                                    <td class="p-3">
+                                        <div class="fw-bold">@item.Judul</div>
+                                    </td>
+                                    <td class="p-3">
+                                        <span class="text-muted">@item.Tanggal.ToString("dd MMM yyyy")</span>
+                                    </td>
+                                    <td class="p-3">
+                                        <span class="badge bg-light text-dark border">@item.Penyelenggara</span>
+                                    </td>
+                                    <td class="p-3">
+                                        @if (!string.IsNullOrEmpty(item.CertificateType))
+                                        {
+                                            <span class="badge bg-secondary">@item.CertificateType</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="p-3">
+                                        @if (item.ValidUntil.HasValue)
+                                        {
+                                            <div>
+                                                <div class="fw-bold">@item.ValidUntil.Value.ToString("dd MMM yyyy")</div>
+                                                @if (item.IsExpiringSoon)
+                                                {
+                                                    <span class="badge bg-danger mt-1">
+                                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                                        Expires in @item.DaysUntilExpiry days!
+                                                    </span>
+                                                }
+                                                else if (item.DaysUntilExpiry > 0)
+                                                {
+                                                    <small class="text-success">
+                                                        <i class="bi bi-check-circle me-1"></i>
+                                                        @item.DaysUntilExpiry days remaining
+                                                    </small>
+                                                }
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Permanent</span>
+                                        }
+                                    </td>
+                                    <td class="p-3">
+                                        @if(item.Status == "Passed" || item.Status == "Valid") 
+                                        {
+                                            <span class="badge bg-success px-3 py-2">
+                                                <i class="bi bi-check-circle-fill me-1"></i>@item.Status
+                                            </span>
+                                        } 
+                                        else 
+                                        {
+                                            <span class="badge bg-warning text-dark px-3 py-2">
+                                                <i class="bi bi-hourglass-split me-1"></i>@item.Status
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        @if (!string.IsNullOrEmpty(item.SertifikatUrl))
+                                        {
+                                            <div class="btn-group">
+                                                <button class="btn btn-sm btn-primary" onclick="downloadCertificate('@item.Judul')">
+                                                    <i class="bi bi-download me-1"></i>Download
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-primary" onclick="viewCertificate('@item.Judul')">
+                                                    <i class="bi bi-eye"></i>
+                                                </button>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                <i class="bi bi-hourglass-split me-1"></i>Pending
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     }
 }
+
+<!-- Certificate Preview Modal -->
+<div class="modal fade" id="certificateModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-award me-2"></i>Certificate Preview
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-5">
+                <i class="bi bi-file-earmark-pdf text-primary mb-3" style="font-size: 4rem;"></i>
+                <h5 class="fw-bold mb-2" id="certTitle">Certificate Name</h5>
+                <p class="text-muted">Certificate preview will be displayed here</p>
+                <div class="mt-4">
+                    <button class="btn btn-primary px-4">
+                        <i class="bi bi-download me-2"></i>Download PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Premium Tab Styling */
+.premium-tabs {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 0.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.premium-tabs .nav-link {
+    color: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    margin: 0 0.25rem;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.premium-tabs .nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.premium-tabs .nav-link.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.premium-tabs .nav-link.active .badge {
+    background: #667eea !important;
+    color: white !important;
+}
+
+/* Stat Cards */
+.stat-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-card-primary::before { color: #0d6efd; }
+.stat-card-success::before { color: #198754; }
+.stat-card-warning::before { color: #ffc107; }
+.stat-card-danger::before { color: #dc3545; }
+
+.stat-icon {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Enhanced Table */
+.table-card {
+    overflow: hidden;
+}
+
+.records-table {
+    margin-bottom: 0;
+}
+
+.records-table thead {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.records-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.records-table tbody tr:hover {
+    background-color: #f8f9ff;
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
+}
+
+/* Empty State */
+.empty-state {
+    padding: 2rem;
+}
+
+/* Smooth Animations */
+.training-row {
+    animation: fadeIn 0.3s ease;
+}
+
+@@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive */
+@@media (max-width: 768px) {
+    .premium-tabs .nav-link {
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .premium-tabs .nav-link i {
+        display: none;
+    }
+}
+</style>
+
+<script>
+// Search functionality
+document.getElementById('searchInput')?.addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    filterTable();
+});
+
+// Year filter
+document.getElementById('yearFilter')?.addEventListener('change', function() {
+    filterTable();
+});
+
+// Status filter
+document.getElementById('statusFilter')?.addEventListener('change', function() {
+    filterTable();
+});
+
+// Filter table function
+function filterTable() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const yearFilter = document.getElementById('yearFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    const rows = document.querySelectorAll('.training-row');
+    
+    rows.forEach(row => {
+        const title = row.getAttribute('data-title').toLowerCase();
+        const year = row.getAttribute('data-year');
+        const status = row.getAttribute('data-status');
+        
+        const matchesSearch = title.includes(searchTerm);
+        const matchesYear = !yearFilter || year === yearFilter;
+        const matchesStatus = !statusFilter || status === statusFilter;
+        
+        if (matchesSearch && matchesYear && matchesStatus) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+
+// Clear filters
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('yearFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    filterTable();
+}
+
+// Download certificate
+function downloadCertificate(title) {
+    alert('Downloading certificate for: ' + title);
+    // In production: window.location.href = certificateUrl;
+}
+
+// View certificate
+function viewCertificate(title) {
+    document.getElementById('certTitle').textContent = title;
+    const modal = new bootstrap.Modal(document.getElementById('certificateModal'));
+    modal.show();
+}
+</script>

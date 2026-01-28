@@ -2,91 +2,261 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="bg-light p-4 rounded mb-4">
-    <div class="row align-items-center">
-        <div class="col-md-8">
-            <h1 class="display-6 fw-bold">Selamat Datang, User!</h1>
-            <p class="lead mb-0 text-muted">Role: <span class="badge bg-primary">Pekerja (Engineer)</span> | Unit: SRU</p>
-        </div>
-        <div class="col-md-4 text-end">
-            <p class="mb-0">@DateTime.Now.ToString("dd MMMM yyyy")</p>
-        </div>
-    </div>
-</div>
+<link rel="stylesheet" href="~/css/home.css" />
 
-<div class="row mb-4">
-    <div class="col-md-4">
-        <div class="card h-100 border-primary shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title text-primary">My IDP Status</h5>
-                <h2 class="fw-bold">75%</h2>
-                <div class="progress mb-2" style="height: 10px;">
-                    <div class="progress-bar bg-success" role="progressbar" style="width: 75%"></div>
+<!-- Hero Section -->
+<div class="hero-section" data-aos="fade-down">
+    <div class="hero-content">
+        <div class="row align-items-center">
+            <div class="col-md-9">
+                <div class="d-flex align-items-center gap-4">
+                    <div class="hero-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div>
+                        <h1 class="hero-greeting mb-2">
+                            @{
+                                var hour = DateTime.Now.Hour;
+                                var greeting = hour < 12 ? "Selamat Pagi" : hour < 15 ? "Selamat Siang" : hour < 18 ? "Selamat Sore" : "Selamat Malam";
+                            }
+                            @greeting, Budi!
+                        </h1>
+                        <p class="hero-subtitle mb-0">
+                            <span class="hero-badge">
+                                <i class="fas fa-briefcase"></i>
+                                Pekerja (Engineer)
+                            </span>
+                            <span class="hero-badge ms-2">
+                                <i class="fas fa-building"></i>
+                                Unit SRU
+                            </span>
+                        </p>
+                    </div>
                 </div>
-                <p class="card-text small text-muted">3 Aktivitas selesai dari 4.</p>
-                <a asp-controller="CDP" asp-action="Index" class="btn btn-sm btn-outline-primary w-100">Update Progress</a>
             </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card h-100 border-warning shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title text-warning">Pending Assessment</h5>
-                <div class="d-flex align-items-center">
-                    <h2 class="fw-bold me-2">2</h2>
-                    <span class="badge bg-danger">Urgent</span>
-                </div>
-                <p class="card-text small text-muted">Anda memiliki assessment yang belum disubmit.</p>
-                <a asp-controller="CMP" asp-action="Index" class="btn btn-sm btn-outline-warning w-100">Kerjakan Sekarang</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-4">
-        <div class="card h-100 border-success shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title text-success">Mandatory Training</h5>
-                <h2 class="fw-bold text-success">VALID</h2>
-                <p class="card-text small text-muted">Sertifikat HSSE berlaku sampai Des 2026.</p>
-                <button class="btn btn-sm btn-secondary w-100" disabled>Download Sertifikat</button>
+            <div class="col-md-3 text-end">
+                <p class="mb-0 fs-5 fw-semibold">@DateTime.Now.ToString("dddd")</p>
+                <p class="mb-0 fs-6 opacity-75">@DateTime.Now.ToString("dd MMMM yyyy")</p>
             </div>
         </div>
     </div>
 </div>
 
-<h4 class="mb-3">Quick Access</h4>
-<div class="row">
-    <div class="col-md-3 mb-3">
-        <a asp-controller="CDP" asp-action="Index" class="card text-decoration-none text-dark h-100 hover-shadow">
-            <div class="card-body text-center">
-                <h3 class="mb-2">📅</h3>
-                <h6>My IDP</h6>
+<!-- Dashboard Cards -->
+<div class="row mb-4 g-4">
+    <!-- IDP Status Card -->
+    <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+        <div class="glass-card card-primary h-100">
+            <div class="card-body p-4">
+                <div class="card-icon-wrapper icon-primary">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5 class="card-title fw-bold mb-3">My IDP Status</h5>
+                
+                <!-- Circular Progress -->
+                <div class="circular-progress">
+                    <svg width="120" height="120">
+                        <defs>
+                            <linearGradient id="gradient-progress" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="circle-bg" cx="60" cy="60" r="52"></circle>
+                        <circle class="circle-progress" cx="60" cy="60" r="52" 
+                                stroke-dasharray="326.73" 
+                                stroke-dashoffset="81.68"></circle>
+                    </svg>
+                    <div class="circular-progress-text">75%</div>
+                </div>
+                
+                <p class="text-center text-muted mb-3">3 Aktivitas selesai dari 4</p>
+                <a asp-controller="CDP" asp-action="Index" class="btn btn-outline-primary w-100 rounded-pill">
+                    <i class="fas fa-arrow-right me-2"></i>Update Progress
+                </a>
             </div>
+        </div>
+    </div>
+
+    <!-- Pending Assessment Card -->
+    <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+        <div class="glass-card card-warning h-100">
+            <div class="card-body p-4">
+                <div class="card-icon-wrapper icon-warning">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <h5 class="card-title fw-bold mb-3">Pending Assessment</h5>
+                
+                <div class="d-flex align-items-center justify-content-center mb-3">
+                    <h1 class="display-3 fw-bold gradient-text mb-0">2</h1>
+                    <span class="badge bg-danger ms-3">Urgent</span>
+                </div>
+                
+                <p class="text-center text-muted mb-3">Anda memiliki assessment yang belum disubmit</p>
+                <a asp-controller="CMP" asp-action="Index" class="btn btn-outline-danger w-100 rounded-pill">
+                    <i class="fas fa-play me-2"></i>Kerjakan Sekarang
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mandatory Training Card -->
+    <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+        <div class="glass-card card-success h-100">
+            <div class="card-body p-4">
+                <div class="card-icon-wrapper icon-success">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                <h5 class="card-title fw-bold mb-3">Mandatory Training</h5>
+                
+                <div class="text-center mb-3">
+                    <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    <h2 class="fw-bold text-success mt-2">VALID</h2>
+                </div>
+                
+                <p class="text-center text-muted mb-3">Sertifikat HSSE berlaku sampai Des 2026</p>
+                <button class="btn btn-outline-secondary w-100 rounded-pill" disabled>
+                    <i class="fas fa-download me-2"></i>Download Sertifikat
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Access Section -->
+<div class="section-header" data-aos="fade-right">
+    <div class="section-icon">
+        <i class="fas fa-bolt"></i>
+    </div>
+    <h4>Quick Access</h4>
+</div>
+
+<div class="row mb-5 g-4">
+    <div class="col-md-4 col-6" data-aos="zoom-in" data-aos-delay="100">
+        <a asp-controller="CDP" asp-action="Index" class="quick-access-card">
+            <div class="quick-access-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h6 class="quick-access-title">My IDP</h6>
         </a>
     </div>
-    <div class="col-md-3 mb-3">
-        <a asp-controller="CMP" asp-action="Assessment" class="card text-decoration-none text-dark h-100 hover-shadow">
-            <div class="card-body text-center">
-                <h3 class="mb-2">📝</h3>
-                <h6>Assessment</h6>
+    <div class="col-md-4 col-6" data-aos="zoom-in" data-aos-delay="200">
+        <a asp-controller="CMP" asp-action="Assessment" class="quick-access-card">
+            <div class="quick-access-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="fas fa-edit"></i>
             </div>
+            <h6 class="quick-access-title">Assessment</h6>
         </a>
     </div>
-    <div class="col-md-3 mb-3">
-        <a asp-controller="BP" asp-action="Index" class="card text-decoration-none text-dark h-100 hover-shadow">
-            <div class="card-body text-center">
-                <h3 class="mb-2">📈</h3>
-                <h6>Career Sim</h6>
+
+    <div class="col-md-4 col-6" data-aos="zoom-in" data-aos-delay="300">
+        <a asp-controller="CMP" asp-action="Index" class="quick-access-card">
+            <div class="quick-access-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="fas fa-book"></i>
             </div>
+            <h6 class="quick-access-title">Library KKJ</h6>
         </a>
     </div>
-    <div class="col-md-3 mb-3">
-        <a asp-controller="CMP" asp-action="Index" class="card text-decoration-none text-dark h-100 hover-shadow">
-            <div class="card-body text-center">
-                <h3 class="mb-2">📚</h3>
-                <h6>Library KKJ</h6>
+</div>
+
+<!-- Recent Activity & Upcoming Deadlines -->
+<div class="row g-4">
+    <!-- Recent Activity Timeline -->
+    <div class="col-md-6" data-aos="fade-right">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-history"></i>
             </div>
-        </a>
+            <h4>Recent Activity</h4>
+        </div>
+        
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Completed Assessment</div>
+                    <div class="timeline-description">Technical Competency Assessment - Level 3</div>
+                    <div class="timeline-time"><i class="far fa-clock me-1"></i>2 hours ago</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Updated IDP Progress</div>
+                    <div class="timeline-description">Marked "Process Safety Training" as completed</div>
+                    <div class="timeline-time"><i class="far fa-clock me-1"></i>1 day ago</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Coaching Session</div>
+                    <div class="timeline-description">Monthly coaching with Sr. Supervisor</div>
+                    <div class="timeline-time"><i class="far fa-clock me-1"></i>3 days ago</div>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Certificate Uploaded</div>
+                    <div class="timeline-description">HSSE Mandatory Training Certificate</div>
+                    <div class="timeline-time"><i class="far fa-clock me-1"></i>1 week ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Deadlines -->
+    <div class="col-md-6" data-aos="fade-left">
+        <div class="section-header">
+            <div class="section-icon">
+                <i class="fas fa-bell"></i>
+            </div>
+            <h4>Upcoming Deadlines</h4>
+        </div>
+        
+        <div class="deadline-card">
+            <div class="deadline-icon">
+                <i class="fas fa-exclamation"></i>
+            </div>
+            <div class="deadline-content">
+                <div class="deadline-title">Submit Proton Assessment</div>
+                <div class="deadline-date"><i class="far fa-calendar me-1"></i>Due: 30 January 2026</div>
+            </div>
+            <span class="deadline-badge urgent">2 days</span>
+        </div>
+
+        <div class="deadline-card">
+            <div class="deadline-icon">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div class="deadline-content">
+                <div class="deadline-title">Complete IDP Evidence Upload</div>
+                <div class="deadline-date"><i class="far fa-calendar me-1"></i>Due: 5 February 2026</div>
+            </div>
+            <span class="deadline-badge normal">8 days</span>
+        </div>
+
+        <div class="deadline-card">
+            <div class="deadline-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="deadline-content">
+                <div class="deadline-title">Coaching Session with Section Head</div>
+                <div class="deadline-date"><i class="far fa-calendar me-1"></i>Due: 10 February 2026</div>
+            </div>
+            <span class="deadline-badge normal">13 days</span>
+        </div>
+
+        <div class="deadline-card">
+            <div class="deadline-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div class="deadline-content">
+                <div class="deadline-title">Renew HSSE Certification</div>
+                <div class="deadline-date"><i class="far fa-calendar me-1"></i>Due: 15 December 2026</div>
+            </div>
+            <span class="deadline-badge normal">321 days</span>
+        </div>
     </div>
 </div>

@@ -6,6 +6,9 @@
     <title>@ViewData["Title"] - HC Portal</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     
     <style>
         /* Sedikit styling agar Navbar terlihat 'mahal' */
@@ -51,8 +54,9 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Development Platform</a>
                             <ul class="dropdown-menu shadow-sm border-0">
-                                <li><a class="dropdown-item" asp-controller="CDP" asp-action="Index">My IDP</a></li>
-                                <li><a class="dropdown-item" asp-controller="CDP" asp-action="Coaching">Coaching Report</a></li>
+                                <li><a class="dropdown-item" asp-controller="CDP" asp-action="Index">Plan IDP (Silabus)</a></li>
+                                <li><a class="dropdown-item" asp-controller="CDP" asp-action="Coaching">Laporan Coaching</a></li>
+                                <li><a class="dropdown-item" asp-controller="CDP" asp-action="Progress">Progress & Tracking</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item fw-bold text-primary" asp-controller="CDP" asp-action="Dashboard">Dashboard Monitoring</a></li>
                             </ul>
@@ -111,6 +115,14 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+    </script>
     
     @await RenderSectionAsync("Scripts", required: false)
 </body>
