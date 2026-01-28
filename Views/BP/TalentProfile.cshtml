@@ -74,10 +74,10 @@
             </div>
             <div class="card-body">
                 <div class="row g-3">
-                    @foreach (var perf in Model.PerformanceHistory)
+                    @foreach (var perf in Model.PerformanceHistory ?? [])
                     {
                         <div class="col-md-4">
-                            <div class="p-3 rounded-3 text-center border @(perf.Grade.StartsWith("A") ? "bg-primary text-white border-primary" : "bg-light border-light")">
+                            <div class="p-3 rounded-3 text-center border @((perf.Grade?.StartsWith("A") ?? false) ? "bg-primary text-white border-primary" : "bg-light border-light")">
                                 <div class="small opacity-75 mb-1">@perf.Year</div>
                                 <div class="display-6 fw-bold mb-1">@perf.Grade</div>
                                 <div class="small fw-light text-truncate">@perf.Description</div>
@@ -95,7 +95,7 @@
             </div>
             <div class="card-body">
                 <div class="timeline">
-                    @foreach (var history in Model.CareerHistory)
+                    @foreach (var history in Model.CareerHistory ?? [])
                     {
                         <div class="d-flex pb-4 position-relative item-timeline">
                             <div class="flex-shrink-0 me-3">

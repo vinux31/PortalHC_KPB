@@ -15,45 +15,153 @@ namespace HcPortal.Controllers
         {
             var matrixData = new List<KkjMatrixItem>
             {
-                // Baris 12
-                new KkjMatrixItem { No=12, SkillGroup="Engineering", SubSkillGroup="Production & Processing", Indeks="6.2.2", Kompetensi="Gas Processing Operations", 
-                    Target_SectionHead="2", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="-", Target_Panelman_GSH="2", Target_Operator_GSH="-", 
-                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU="2", Target_Operator_ARU="2", Target_SrSpv_Facility="2", Target_JrAnalyst="1", Target_HSE="2" },
+                // 1. Gas Processing Operations
+                // Data: - 2 2 - 2 - - 2 2 2 1 2 2 - 2
+                new KkjMatrixItem { No=1, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.2", Kompetensi="Gas Processing Operations", 
+                    Target_SectionHead="-", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="2", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="2", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU_12_13="2", Target_Panelman_ARU_14="2", Target_Operator_ARU_8_11="1", Target_Operator_ARU_12_13="2", 
+                    Target_SrSpv_Facility="2", Target_JrAnalyst="-", Target_HSE="2" },
 
-                // Baris 15
-                new KkjMatrixItem { No=15, SkillGroup="Engineering", SubSkillGroup="Production & Processing", Indeks="6.2.5", Kompetensi="Material & Chemical Blending", 
-                    Target_SectionHead="2", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="-", Target_Panelman_GSH="1", Target_Operator_GSH="-", 
-                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU="2", Target_Operator_ARU="-", Target_SrSpv_Facility="1", Target_JrAnalyst="-", Target_HSE="-" },
+                // 2. Material & Chemical Blending
+                // Data: - 2 2 - 1 - - 2 - 1 - - 2 - 1
+                new KkjMatrixItem { No=2, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.5", Kompetensi="Material & Chemical Blending", 
+                    Target_SectionHead="-", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="2", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="1", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="1", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="2", Target_JrAnalyst="-", Target_HSE="1" },
 
-                // Baris 16
-                new KkjMatrixItem { No=16, SkillGroup="Engineering", SubSkillGroup="Production & Processing", Indeks="6.2.6", Kompetensi="Oil Processing Operations", 
-                    Target_SectionHead="3", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="2", Target_Panelman_GSH="2", Target_Operator_GSH="2", 
-                    Target_ShiftSpv_ARU="1", Target_Panelman_ARU="2", Target_Operator_ARU="2", Target_SrSpv_Facility="-", Target_JrAnalyst="2", Target_HSE="-" },
+                // 3. Oil Processing Operations
+                // Data: 3 2 2 2 2 1 2 2 - 2 - - 2 - 2
+                new KkjMatrixItem { No=3, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.6", Kompetensi="Oil Processing Operations", 
+                    Target_SectionHead="3", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="2", 
+                    Target_Panelman_GSH_12_13="2", Target_Panelman_GSH_14="2", Target_Operator_GSH_8_11="1", Target_Operator_GSH_12_13="2",
+                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="2", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="2", Target_JrAnalyst="-", Target_HSE="2" },
 
-                // Baris 17
-                new KkjMatrixItem { No=17, SkillGroup="Engineering", SubSkillGroup="Production & Processing", Indeks="6.2.7", Kompetensi="Refinery Process Operations", 
-                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="3", Target_Panelman_GSH="2", Target_Operator_GSH="3", 
-                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU="2", Target_Operator_ARU="3", Target_SrSpv_Facility="2", Target_JrAnalyst="3", Target_HSE="2" },
+                // 4. Refinery Process Operations
+                // Data: 3 3 3 2 3 2 2 3 2 3 2 2 3 2 3
+                new KkjMatrixItem { No=4, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.7", Kompetensi="Refinery Process Operations", 
+                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="3", 
+                    Target_Panelman_GSH_12_13="2", Target_Panelman_GSH_14="3", Target_Operator_GSH_8_11="2", Target_Operator_GSH_12_13="2",
+                    Target_ShiftSpv_ARU="3", Target_Panelman_ARU_12_13="2", Target_Panelman_ARU_14="3", Target_Operator_ARU_8_11="2", Target_Operator_ARU_12_13="2", 
+                    Target_SrSpv_Facility="3", Target_JrAnalyst="2", Target_HSE="3" },
 
-                // Baris 26
-                new KkjMatrixItem { No=26, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.1", Kompetensi="Catalyst & Chemical Management", 
-                    Target_SectionHead="2", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="1", Target_Panelman_GSH="1", Target_Operator_GSH="1", 
-                    Target_ShiftSpv_ARU="1", Target_Panelman_ARU="1", Target_Operator_ARU="1", Target_SrSpv_Facility="1", Target_JrAnalyst="1", Target_HSE="1" },
+                // 5. Catalyst & Chemical Management
+                // Data: - 2 2 1 1 1 1 1 1 1 1 2 1 -
+                // Wait user text row 5: "Process Engineering 7.1.1 ... 2 2 1 1 1 1 1 1 1 1 1 2 1 -"
+                // Let's re-verify row 5 columns
+                // 1(SH):-, 2(SrG):2, 3(ShG):2, 4(Pn12):1, 5(Pn14):1, 6(Op8):1, 7(Op12):1, 8(ShARU):1, 9(PnA12):1, 10(PnA14):1, 11(OpA8):1, 12(OpA12):2, 13(Fac):1, 14(Jr):- ... wait user text length
+                // User text: 2 2 1 1 1 1 1 1 1 1 1 2 1 - (14 values)
+                // My columns: 15. The first column SH is empty. User text starts with empty field.
+                // So: SH:-, SrG:2, ShG:2, P12:1, P14:1, O8:1, O12:1, ShA:1, PA12:1, PA14:1, OA8:1, OA12:2, Fac:1, Jr:-, HSE:-?
+                // Text end: ... 1 2 1 - ...
+                // SrSpvFac:1, Jr:-, HSE:-? NO.
+                // Let's map backwards from end. HSE: - . Jr: -. Fac: 1.
+                // OpA12: 2. OpA8: 1. PA14: 1. PA12: 1. ShA: 1. ...
+                // Correct.
+                new KkjMatrixItem { No=5, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.1", Kompetensi="Catalyst & Chemical Management", 
+                    Target_SectionHead="-", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="2", 
+                    Target_Panelman_GSH_12_13="1", Target_Panelman_GSH_14="1", Target_Operator_GSH_8_11="1", Target_Operator_GSH_12_13="1",
+                    Target_ShiftSpv_ARU="1", Target_Panelman_ARU_12_13="1", Target_Panelman_ARU_14="1", Target_Operator_ARU_8_11="1", Target_Operator_ARU_12_13="2", 
+                    Target_SrSpv_Facility="1", Target_JrAnalyst="-", Target_HSE="-" },
 
-                // Baris 27
-                new KkjMatrixItem { No=27, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.2", Kompetensi="Energy Management", 
-                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="3", Target_Panelman_GSH="2", Target_Operator_GSH="3", 
-                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU="2", Target_Operator_ARU="1", Target_SrSpv_Facility="2", Target_JrAnalyst="3", Target_HSE="2" },
+                // 6. Energy Management
+                // Data: 3 3 3 2 3 2 2 1 2 3 2 2 - 2 -
+                new KkjMatrixItem { No=6, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.2", Kompetensi="Energy Management", 
+                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="3", 
+                    Target_Panelman_GSH_12_13="2", Target_Panelman_GSH_14="3", Target_Operator_GSH_8_11="2", Target_Operator_GSH_12_13="2",
+                    Target_ShiftSpv_ARU="1", Target_Panelman_ARU_12_13="2", Target_Panelman_ARU_14="3", Target_Operator_ARU_8_11="2", Target_Operator_ARU_12_13="2", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="2", Target_HSE="-" },
 
-                // Baris 50
-                new KkjMatrixItem { No=50, SkillGroup="HSSE", SubSkillGroup="Project Engineering", Indeks="7.7.1", Kompetensi="Commissioning & Operational Readiness", 
-                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="2", Target_Panelman_GSH="2", Target_Operator_GSH="2", 
-                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU="2", Target_Operator_ARU="2", Target_SrSpv_Facility="2", Target_JrAnalyst="2", Target_HSE="2" },
+                // 7. Process Control
+                // Data: - 2 1 2 1 1 2 1 2 1 1 - - -
+                // 1(SH):-, 2(Sr):-, 3(Sv):2, 4(P12):1, 5(P14):2, 6(O8):1, 7(O12):1, 8(SA):2, 9(PA12):1, 10(PA14):2, 11(OA8):1, 12(OA12):1, 13:- 14:- 15:-
+                new KkjMatrixItem { No=7, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.4", Kompetensi="Process Control", 
+                    Target_SectionHead="-", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="2", 
+                    Target_Panelman_GSH_12_13="1", Target_Panelman_GSH_14="2", Target_Operator_GSH_8_11="1", Target_Operator_GSH_12_13="1",
+                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU_12_13="1", Target_Panelman_ARU_14="2", Target_Operator_ARU_8_11="1", Target_Operator_ARU_12_13="1", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="-", Target_HSE="-" },
 
-                // Baris 64 (Safety)
-                new KkjMatrixItem { No=64, SkillGroup="O & M", SubSkillGroup="Safety", Indeks="12.2.14", Kompetensi="Safe Work Practice & Lifesaving Rules", 
-                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="3", Target_Panelman_GSH="2", Target_Operator_GSH="2", 
-                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU="2", Target_Operator_ARU="3", Target_SrSpv_Facility="2", Target_JrAnalyst="2", Target_HSE="2" }
+                // 8. Commissioning & Operational Readiness
+                // Data: 3 3 2 2 2 2 2 2 2 2 2 2 3 2 2
+                new KkjMatrixItem { No=8, SkillGroup="HSSE", SubSkillGroup="Project Engineering", Indeks="7.7.1", Kompetensi="Commissioning & Operational Readiness", 
+                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="2", 
+                    Target_Panelman_GSH_12_13="2", Target_Panelman_GSH_14="2", Target_Operator_GSH_8_11="2", Target_Operator_GSH_12_13="2",
+                    Target_ShiftSpv_ARU="2", Target_Panelman_ARU_12_13="2", Target_Panelman_ARU_14="2", Target_Operator_ARU_8_11="2", Target_Operator_ARU_12_13="2", 
+                    Target_SrSpv_Facility="3", Target_JrAnalyst="2", Target_HSE="2" },
+                
+                // 9. Cost Engineering
+                // Data: 2 - - - - - - - - - - - 2 1 -
+                new KkjMatrixItem { No=9, SkillGroup="HSSE", SubSkillGroup="Project Engineering", Indeks="7.7.2", Kompetensi="Cost Engineering", 
+                    Target_SectionHead="2", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="2", Target_JrAnalyst="1", Target_HSE="-" },
+
+                // 10. Sourcing Procurement
+                // Data: 2 - - - - - - - - - - - - - -
+                new KkjMatrixItem { No=10, SkillGroup="Operation & Maintenance", SubSkillGroup="Procurement", Indeks="9.2.3", Kompetensi="Sourcing Procurement", 
+                    Target_SectionHead="2", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="-", Target_HSE="-" },
+
+                // 11. Process Hazard Analysis
+                // Data: 2 - - - - - - - - - - - - - 2
+                new KkjMatrixItem { No=11, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.12", Kompetensi="Process Hazard Analysis", 
+                    Target_SectionHead="2", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="-", Target_HSE="2" },
+
+                // 12. Process Safety Management
+                // Data: - - - - - - - - - - - - - - 1
+                new KkjMatrixItem { No=12, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.13", Kompetensi="Process Safety Management", 
+                    Target_SectionHead="-", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="-", Target_HSE="1" },
+
+                // 13. Safe Work Practice
+                // Data: 3 3 3 2 2 2 2 3 2 2 2 2 3 2 3
+                new KkjMatrixItem { No=13, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.14", Kompetensi="Safe Work Practice & Lifesaving Rules", 
+                    Target_SectionHead="3", Target_SrSpv_GSH="3", Target_ShiftSpv_GSH="3", 
+                    Target_Panelman_GSH_12_13="2", Target_Panelman_GSH_14="2", Target_Operator_GSH_8_11="2", Target_Operator_GSH_12_13="2",
+                    Target_ShiftSpv_ARU="3", Target_Panelman_ARU_12_13="2", Target_Panelman_ARU_14="2", Target_Operator_ARU_8_11="2", Target_Operator_ARU_12_13="2", 
+                    Target_SrSpv_Facility="3", Target_JrAnalyst="2", Target_HSE="3" },
+
+                 // 14. Incident Investigation
+                 // Data: - - - - - - - - - - - - - - 1
+                new KkjMatrixItem { No=14, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.9", Kompetensi="Incident Investigation", 
+                    Target_SectionHead="-", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="-", Target_HSE="1" },
+
+                // 15. Individual Performance Management
+                // Data: 2 - - - - - - - - - - - - - -
+                new KkjMatrixItem { No=15, SkillGroup="Operation & Maintenance", SubSkillGroup="People Management", Indeks="13.2.6", Kompetensi="Individual Performance Management", 
+                    Target_SectionHead="2", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="-", Target_HSE="-" },
+
+                // 16. Manpower Planning
+                // Data: 2 2 - - - - - - - - - - - - -
+                new KkjMatrixItem { No=16, SkillGroup="Operation & Maintenance", SubSkillGroup="People Management", Indeks="13.2.8", Kompetensi="Manpower Planning", 
+                    Target_SectionHead="2", Target_SrSpv_GSH="2", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="-", Target_JrAnalyst="-", Target_HSE="-" },
+
+                // 17. Project Risk Management
+                // Data: 2 - - - - - - - - - - - - 2 1 -
+                new KkjMatrixItem { No=17, SkillGroup="Operation & Maintenance", SubSkillGroup="Risk Management", Indeks="15.1.3", Kompetensi="Project Risk Management", 
+                    Target_SectionHead="2", Target_SrSpv_GSH="-", Target_ShiftSpv_GSH="-", 
+                    Target_Panelman_GSH_12_13="-", Target_Panelman_GSH_14="-", Target_Operator_GSH_8_11="-", Target_Operator_GSH_12_13="-",
+                    Target_ShiftSpv_ARU="-", Target_Panelman_ARU_12_13="-", Target_Panelman_ARU_14="-", Target_Operator_ARU_8_11="-", Target_Operator_ARU_12_13="-", 
+                    Target_SrSpv_Facility="2", Target_JrAnalyst="1", Target_HSE="-" }
             };
 
             return View(matrixData);

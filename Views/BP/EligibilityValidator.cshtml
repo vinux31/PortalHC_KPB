@@ -2,7 +2,7 @@
 
 @{
     ViewData["Title"] = "Eligibility Validator";
-    var isEligible = Model.OverallStatus.Contains("Eligible");
+    var isEligible = Model.OverallStatus?.Contains("Eligible") ?? false;
     var statusColor = isEligible ? "success" : "danger";
     var statusIcon = isEligible ? "check-circle-fill" : "x-circle-fill";
 }
@@ -44,7 +44,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var criteria in Model.Criteria)
+                            @foreach (var criteria in Model.Criteria ?? [])
                             {
                                 <tr>
                                     <td class="ps-4 py-3">
