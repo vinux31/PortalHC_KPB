@@ -74,6 +74,7 @@ namespace HcPortal.Models
         public string IndikatorPerilaku { get; set; } = "";
         public string DetailIndikator { get; set; } = "";
         public string Silabus { get; set; } = "";
+        public string TargetDeliverable { get; set; } = "";
         public string Status { get; set; } = "";
         // Removed old properties: Implementasi, KodeSub, SubOps, SubPanel
     }

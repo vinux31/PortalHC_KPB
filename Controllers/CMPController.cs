@@ -1,18 +1,44 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using HcPortal.Models;
 
 namespace HcPortal.Controllers
 {
     public class CMPController : Controller
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+
+        public CMPController(
+            UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager)
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+        }
+
         public IActionResult Index()
         {
             return View();
         }
 
         // --- HALAMAN 1: SUSUNAN KKJ (MATRIX VIEW) ---
-        public IActionResult Kkj()
+        public async Task<IActionResult> Kkj(string? section)
         {
+            // Get current user role
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+            
+            ViewBag.UserRole = userRole;
+            ViewBag.SelectedSection = section;
+            
+            // If HC or Section Head and no section selected, show selection page
+            if ((userRole == "HC" || userRole == "Section Head") && string.IsNullOrEmpty(section))
+            {
+                return View("KkjSectionSelect");
+            }
+
             var matrixData = new List<KkjMatrixItem>
             {
                 // 1. Gas Processing Operations
@@ -173,47 +199,142 @@ namespace HcPortal.Controllers
             var cpdpData = new List<CpdpItem>
             {
                 // 1. Safe Work Practice & Lifesaving Rules
-                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami dan mampu menerapkan cara kerja yang aman (safe work practice & lifesaving rules) sesuai dengan risiko keselamatan terkait aktivitasnya", Silabus="1.1. Safe Work Practice\n1.2. Lifesaving Rules", Status="Aligned" },
-                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami dan mampu menerapkan mitigasi yang harus dilaksanakan sesuai aturan, standar, dan instruksi keselamatan yang berlaku", Silabus="1.1. Safe Work Practice\n1.2. Lifesaving Rules", Status="Aligned" },
-                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami dan mampu menerapkan penanggulangan apabila terjadi kondisi darurat (pelaporan insiden, pertolongan pertama, penanganan lanjutan terhadap korban dan penanggulangan kebakaran atau spill yang terjadi, dll.)", Silabus="1.3. Emergency Response", Status="Aligned" },
-
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami dan mampu menerapkan cara kerja yang aman (safe work practice & lifesaving rules) sesuai dengan risiko keselamatan terkait aktivitasnya", 
+                    Silabus="1.1. Safe Work Practice", 
+                    TargetDeliverable="Target 1.1\n1. Mampu memahami 5 Tingkatan Budaya HSSE.\n2. Mampu memahami Pengertian Bahaya menurut standar ISO & OSHA.\n3. Mampu memahami Lessons Learned.\n4. Mampu memahami 9 Perilaku Wajib.\n5. Mampu memahami Grafik Flammable Range, sumber dan jenis-jenis Rambatan Panas.\n6. Mampu memahami Pengamatan Keselamatan Kerja (PEKA)\n7. Mampu memahami Skill Champion SLP (Safety Leadership Program)\na. Skill 1 : Memberikan Perintah Kerja yang Aman\nb. Skill 2 : Memberikan Penghargaan terhadap Perilaku Aman\nc. Skill 3 : Membimbing Perilaku yang Kurang Aman\nd. Skill 4 : Menghentikan Pekerjaan yang Tidak Aman" },
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami dan mampu menerapkan cara kerja yang aman (safe work practice & lifesaving rules) sesuai dengan risiko keselamatan terkait aktivitasnya", 
+                    Silabus="1.2. Lifesaving Rules", 
+                    TargetDeliverable="Target 1.2\n1. Mengetahui Regulasi Pemerintah tentang HSSE:\na. Aturan Perundang-undangan tentang Keselamatan Kerja\nb. Aturan Perundang-undangan tentang Perlindungan dan Pengelolaan Lingkungan Hidup\nc. Peraturan Pemerintah tentang Keselamatan Kerja Pada Pemurnian dan Pengolahan Minyak dan Gas Bumi\nd. Peraturan Pemerintah tentang Pedoman Penerapan SMK3\n2. Mampu memahami HSSE Golden Rules\n3. Mampu memahami Safety Data Sheet\n4. Mampu memahami 10 Corporate Life Saving Rules (CLSR) 2024\n5. Mampu memahami Pembuatan Job Safety Analysis (JSA)\n6. Mampu memahami Prosedur & Pembuatan Surat Ijin Kerja Aman (SIKA)\n7. Mengetahui dan memahami hasil pengujian alat gas tester dalam SIKA panas & Ruang Terbatas (Hot Work Permit & Confined Space)\n8. Mampu memahami Prosedur Pengukuran Gas Mudah Terbakar\n9. Mampu memahami Fire & Gas Detector System (FGDS)" },
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami dan mampu menerapkan mitigasi yang harus dilaksanakan sesuai aturan, standar, dan instruksi keselamatan yang berlaku", 
+                    Silabus="1.1. Safe Work Practice", 
+                    TargetDeliverable="Target 1.1\n1. Mampu memahami 5 Tingkatan Budaya HSSE.\n2. Mampu memahami Pengertian Bahaya menurut standar ISO & OSHA.\n3. Mampu memahami Lessons Learned.\n4. Mampu memahami 9 Perilaku Wajib.\n5. Mampu memahami Grafik Flammable Range, sumber dan jenis-jenis Rambatan Panas.\n6. Mampu memahami Pengamatan Keselamatan Kerja (PEKA)\n7. Mampu memahami Skill Champion SLP (Safety Leadership Program)\na. Skill 1 : Memberikan Perintah Kerja yang Aman\nb. Skill 2 : Memberikan Penghargaan terhadap Perilaku Aman\nc. Skill 3 : Membimbing Perilaku yang Kurang Aman\nd. Skill 4 : Menghentikan Pekerjaan yang Tidak Aman" },
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami dan mampu menerapkan mitigasi yang harus dilaksanakan sesuai aturan, standar, dan instruksi keselamatan yang berlaku", 
+                    Silabus="1.2. Lifesaving Rules", 
+                    TargetDeliverable="Target 1.2\n1. Mengetahui Regulasi Pemerintah tentang HSSE:\na. Aturan Perundang-undangan tentang Keselamatan Kerja\nb. Aturan Perundang-undangan tentang Perlindungan dan Pengelolaan Lingkungan Hidup\nc. Peraturan Pemerintah tentang Keselamatan Kerja Pada Pemurnian dan Pengolahan Minyak dan Gas Bumi\nd. Peraturan Pemerintah tentang Pedoman Penerapan SMK3\n2. Mampu memahami HSSE Golden Rules\n3. Mampu memahami Safety Data Sheet\n4. Mampu memahami 10 Corporate Life Saving Rules (CLSR) 2024\n5. Mampu memahami Pembuatan Job Safety Analysis (JSA)\n6. Mampu memahami Prosedur & Pembuatan Surat Ijin Kerja Aman (SIKA)\n7. Mengetahui dan memahami hasil pengujian alat gas tester dalam SIKA panas & Ruang Terbatas (Hot Work Permit & Confined Space)\n8. Mampu memahami Prosedur Pengukuran Gas Mudah Terbakar\n9. Mampu memahami Fire & Gas Detector System (FGDS)" },
+                new CpdpItem { No="1", NamaKompetensi="Safe Work Practice & Lifesaving Rules", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami dan mampu menerapkan penanggulangan apabila terjadi kondisi darurat (pelaporan insiden, pertolongan pertama, penanganan lanjutan terhadap korban dan penanggulangan kebakaran atau spill yang terjadi, dll.)", 
+                    Silabus="1.3. Emergency Response", 
+                    TargetDeliverable="Target 1.3\n1. Mampu memahami Metode Pemadaman Kebakaran\n2. Mampu memahami Media Pemadam Kebakaran & lokasi alat pemadam kebakaran yang tersedia di masing-masing unit GAST\n3. Mampu memahami Prosedur Keadaan Darurat\n4. Mampu memahami Jenis-jenis Peralatan Proteksi Kebakaran" },
+                
                 // 2. Energy Management
-                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami karakteristik energi yang digunakan (listrik, steam, fuel oil, fuel gas, dll.)", Silabus="2.1. Karakteristik Energi", Status="Aligned" },
-                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami prinsip - prinsip dasar equipment yang menggunakan energi", Silabus="2.2. Prinsip – Prinsip Dasar Peralatan yang Menggunakan Energi", Status="Aligned" },
-                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Mampu mengumpulkan data - data yang diperlukan untuk evaluasi efisiensi penggunaan energi", Silabus="2.3. Data Collecting for Energy Consumption Evaluation", Status="Aligned" },
+                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami karakteristik energi yang digunakan (listrik, steam, fuel oil, fuel gas, dll.)", 
+                    Silabus="2.1. Karakteristik Energi", 
+                    TargetDeliverable="Target 2.1\n1. Mengetahui sumber fuel gas dan spesifikasinya.\n2. Mengetahui parameter kondisi operasi fuel gas.\n3. Mengetahui parameter kondisi operasi HDS Heater." },
+                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami prinsip - prinsip dasar equipment yang menggunakan energi", 
+                    Silabus="2.2. Prinsip – Prinsip Dasar Peralatan yang Menggunakan Energi", 
+                    TargetDeliverable="Target 2.2\n1. Mampu memahami fungsi dan prinsip kerja dari HDS Heater (F-053-01) & Splitter Reboiler (E-053-05) sebagai peralatan yang menggunakan energi.\n2. Mampu memahami sistem pengaman (Interlock, Alarm, dan Permissive) pada HDS Heater dan reboiler sistem." },
+                new CpdpItem { No="2", NamaKompetensi="Energy Management", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Mampu mengumpulkan data - data yang diperlukan untuk evaluasi efisiensi penggunaan energi", 
+                    Silabus="2.3. Data Collecting for Energy Consumption Evaluation", 
+                    TargetDeliverable="Target 2.3\n1. Mengetahui tag number dan instrumentasi untuk kebutuhan evaluasi penggunaan energi di Unit RFCC NHT" },
 
                 // 3. Catalyst & Chemical Management
-                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami jenis-jenis dan fungsi catalyst dan chemical", Silabus="3.1. Jenis & Fungsi Catalyst & Chemical", Status="Aligned" },
-                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami karakteristik/ performance catalyst dan chemical", Silabus="3.2. Karakteristik Catalyst & Chemical", Status="Aligned" },
-                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami impurities di feed yang dapat berpengaruh terhadap performance catalyst dan chemical", Silabus="3.3. Pengaruh Impurities pada Catalyst & Chemical Performance", Status="Aligned" },
-                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan perhitungan atas make up pemakaian catalyst sesuai kapasitas pengolahan atau kandungan impurities", Silabus="3.4. Catalyst Make Up Consumption", Status="Aligned" },
-                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan perhitungan kebutuhan chemical", Silabus="3.5. Chemical Make Up Consumption", Status="Aligned" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami jenis-jenis dan fungsi catalyst dan chemical", 
+                    Silabus="3.1. Jenis & Fungsi Catalyst & Chemical", 
+                    TargetDeliverable="Target 3.1\n1. Memahami fungsi catalyst dan chemical pada unit RFCC NHT" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami karakteristik/ performance catalyst dan chemical", 
+                    Silabus="3.2. Karakteristik Catalyst & Chemical", 
+                    TargetDeliverable="Target 3.2\n1. Mampu menjelaskan karakteristik catalyst dan chemical yang digunakan di unit RFCC NHT\n2. Mampu menjelaskan parameter teknis yang mempengaruhi performance catalyst pada unit RFCC NHT\n3. Mampu membaca, memahami, dan menggunakan data karakteristik chemical dari dokumen teknis seperti datasheet, MSDS / operating manual" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami impurities di feed yang dapat berpengaruh terhadap performance catalyst dan chemical", 
+                    Silabus="3.3. Pengaruh Impurities pada Catalyst & Chemical Performance", 
+                    TargetDeliverable="Target 3.3\n1. Mampu mengidentifikasi jenis-jenis impurities yang dapat memengaruhi performance pada catalyst dan chemical yang digunakan\n2. Mampu menjelaskan dampak impurities terhadap performance katalis dan chemical" },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Mampu melakukan perhitungan atas make up pemakaian catalyst sesuai kapasitas pengolahan atau kandungan impurities", 
+                    Silabus="3.4. Catalyst Make Up Consumption", 
+                    TargetDeliverable="Target 3.4\n1. Menjelaskan proses loading/unloading catalyst pada unit RFCC NHT.\n2. Mampu menjelaskan proses skimming pada catalyst.\n3. Mampu menjelaskan proses sulfiding pada catalyst SHU,Main HDS dan Finishing HDS reaktor." },
+                new CpdpItem { No="3", NamaKompetensi="Catalyst & Chemical Management", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Mampu melakukan perhitungan kebutuhan chemical", 
+                    Silabus="3.5. Chemical Make Up Consumption", 
+                    TargetDeliverable="Target 3.5\n1. Mampu menjelaskan Lokasi SC (Sampling Connection) untuk Chemical.\n2. Mampu menjelaskan langkah - langkah make up chemical." },
 
                 // 4. Process Control & Computer Operations
-                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip-prinsip dasar pengendalian dan pengukuran variabel-variabel operasi seperti pengendalian tekanan, pengendalian temperatur, dll.", Silabus="4.1. Prinsip Dasar Pengendalian & Pengukuran Variabel Operasi", Status="Aligned" },
-                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip-prinsip kerja dari peralatan pengendalian proses, seperti Field Instrument, Control loop, PLC, DCS, dll.", Silabus="4.2. Prinsip Kerja Peralatan Pengendalian Proses", Status="Aligned" },
-                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="-", Silabus="4.3. Computer Operations (Sub Kompetensi ini penambahan oleh tim SME GAST)", Status="Aligned" },
+                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami prinsip-prinsip dasar pengendalian dan pengukuran variabel-variabel operasi seperti pengendalian tekanan, pengendalian temperatur, dll.", 
+                    Silabus="4.1. Prinsip Dasar Pengendalian & Pengukuran Variabel Operasi", 
+                    TargetDeliverable="Target 4.1\n1. Mampu memahami Basic Process Control, Cascade Control, opposite range, Split Range Control dan ratio control\n2. Mampu memahami field instrument pada unit proses\n3. Mampu memahami istilah-istilah umum yang ada di HMI DCS\n4. Mampu membaca dan memahami proses flow suatu unit melalui display yang ada di HMI DCS\n5. Mampu mengoperasikan alat ukur bantu parameter operasi di GAST" },
+                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami prinsip-prinsip kerja dari peralatan pengendalian proses, seperti Field Instrument, Control loop, PLC, DCS, dll.", 
+                    Silabus="4.2. Prinsip Kerja Peralatan Pengendalian Proses", 
+                    TargetDeliverable="Target 4.2\n1. Mampu memahami konsep dasar loop instrument.\n2. Mampu memahami instrumen di lapangan.\n3. Mampu memahami prinsip kerja dan fungsi control valve." },
+                new CpdpItem { No="4", NamaKompetensi="Process Control & Computer Operations", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="-", 
+                    Silabus="4.3. Computer Operations (Sub Kompetensi ini penambahan oleh tim SME GAST)", 
+                    TargetDeliverable="Target 4.3\n1. Mampu mengoperasikan aplikasi - aplikasi penunjang proses yang disediakan perusahaan, seperti Web STK dan Virtual Intranet Access.\n2. Mampu mengoperasikan Autodesk Naviswork.\n3. Mampu mengoperasikan Microsoft Office/Microsoft 365 secara umum, seperti: Word, Excel, PowerPoint, Visio, Outlook, OneDrive, Teams." },
 
                 // 5.1 Refinery Process Operations
-                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami prinsip-prinsip dasar dan mampu menjalankan prosedur pengoperasian fasilitas refinery process sesuai standar K3L dengan bimbingan", Silabus="5.5. Prinsip Dasar & Pengoperasian Fasilitas Kilang", Status="Aligned" },
-                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Memahami perkembangan informasi terkait pengoperasian fasilitas refinery process", Silabus="5.9. Equipment Operations", Status="Aligned" },
-                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Mampu melakukan BOC/BEC dengan pengawasan ketat", Silabus="5.1. BOC / BEC", Status="Aligned" },
-                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="Mampu melakukan identifikasi bahaya dari permasalahan pada operasi fasilitas refinery process", Silabus="5.6. Identifikasi Bahaya pada Pengoperasian Fasilitas Kilang", Status="Aligned" },
-                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="-", Silabus="5.2. Feed & Product Specification", Status="Aligned" },
-                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="-", Silabus="5.3. P&ID, Line Up & Lay Out", Status="Aligned" },
-                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", DetailIndikator="-", Silabus="5.4. Start Up, Shutdown & Emergency Unit", Status="Aligned" },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami prinsip-prinsip dasar dan mampu menjalankan prosedur pengoperasian fasilitas refinery process sesuai standar K3L dengan bimbingan", 
+                    Silabus="5.5. Prinsip Dasar & Pengoperasian Fasilitas Kilang", 
+                    TargetDeliverable="Target 5.5\n1. Memahami distribusi dan fungsi utilitas yang digunakan untuk menunjang proses unit RFCC NHT.\n2. Mampu membuat block diagram dan process flow diagram unit RFCC NHT.\n3. Mampu memahami deskripsi proses RFCC NHT dari feed hingga menghasilkan produk akhir dengan PFD yang telah dibuat pada point No. 2." },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Memahami perkembangan informasi terkait pengoperasian fasilitas refinery process", 
+                    Silabus="5.9. Equipment Operations", 
+                    TargetDeliverable="Target 5.9\n1. Mampu membaca drawing equipment pada Process Data Sheet.\n2. Mampu memahami prinsip kerja dan fungsi equipment pada unit RFCC NHT.\n3. Mampu memahami persiapan yang dilakukan sebelum mengoperasikan equipment.\n4. Mampu memahami dampak yang terjadi jika terdapat kegagalan beroperasi pada equipment di RFCC NHT.\n5. Mampu memahami prosedur shutdown critical equipment di RFCC NHT." },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Mampu melakukan BOC/BEC dengan pengawasan ketat", 
+                    Silabus="5.1. BOC / BEC", 
+                    TargetDeliverable="Target 5.1\n1. Mampu memahami filosofi dari kegiatan plant monitoring (BOC+).\n2. Mampu menyebutkan batas-batas normal kondisi operasi pada critical equipment saat normal operasi mengacu pada plant monitoring (BOC+)." },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="Mampu melakukan identifikasi bahaya dari permasalahan pada operasi fasilitas refinery process", 
+                    Silabus="5.6. Identifikasi Bahaya pada Pengoperasian Fasilitas Kilang", 
+                    TargetDeliverable="Target 5.6\n1. Mampu mengidentifikasi potensi bahaya operasional pada masing-masing section dan peralatan di unit RFCC NHT.\n2. Mampu menjelaskan safeguard system, permissive to start dan pengoperasian serta berpengalaman mengoperasikan equipment di RFCC NHT\n3. Mampu memahami decontamination philosophy dan contohnya." },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="-", 
+                    Silabus="5.2. Feed & Product Specification", 
+                    TargetDeliverable="Target 5.2\n1. Mampu memahami karakteristik feed RFCC NHT (Hot Naphta ex. 052 RFCC).\n2. Mampu memahami root cause dan corrective action jika terdapat produk yang off spec.\n3. Mampu menyebutkan spesifikasi dari setiap produk unit RFCC NHT." },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="-", 
+                    Silabus="5.3. P&ID, Line Up & Lay Out", 
+                    TargetDeliverable="Target 5.3\n1. Mampu memahami dan membaca simbol-simbol P&ID.\n2. Mampu menghafal lokasi unit RFCC NHT pada Dokumen Overall Site Plan.\n3. Mampu menghafal Plot Plant area unit RFCC NHT untuk mengetahui lokasi equipment prosesnya.\n4. Mampu menghafal tag number dan nama yang digunakan untuk penamaan plant dan equipment di unit RFCC NHT.\n5. Mampu melakukan line up unit RFCC NHT dengan menggunakan 3D Navisworks." },
+                new CpdpItem { No="5.1", NamaKompetensi="Refinery Process Operations", IndikatorPerilaku="2 (Intermediate)", 
+                    DetailIndikator="-", 
+                    Silabus="5.4. Start Up, Shutdown & Emergency Unit", 
+                    TargetDeliverable="Target 5.4\n1. Mampu memahami tahapan kegiatan PSSR (Pre-Startup Safety Review) dan tanggung jawab PSSR sesuai dengan scope kegiatan Tim Operasi.\n2. Mampu menjelaskan tahapan startup RFCC NHT.\n3. Mampu menjelaskan safeguard system dan permissive to start critical equipment RFCC NHT.\n4. Mampu menjelaskan tahapan kegiatan shutdown RFCC NHT\n5. Mampu menjelaskan prosedur shutdown critical equipment di RFCC NHT\n6. Mampu menyebutkan dan menjelaskan kegagalan utilities yang dapat menyebabkan terjadinya emergency shutdown dan melakukan correction action untuk mengamankan unit\n7. Mampu menjelaskan dampak yang terjadi jika terjadi kegagalan beroperasi pada equipment di RFCC NHT dan tindakan yang dilakukan untuk mengatasi permasalahan" },
 
                 // 5.2 Oil Processing Operations
-                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip-prinsip dasar dan mampu menjalankan prosedur pengoperasian fasilitas oil processing secara aman, andal, dan optimal sesuai standar K3L dengan bimbingan", Silabus="5.7. Prinsip Dasar & Pengoperasian Peralatan", Status="Aligned" },
-                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami perkembangan informasi terkait pengoperasian fasilitas oil processing", Silabus="5.9. Equipment Operations", Status="Aligned" },
-                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan pengoperasian sub proses/area oil processing tertentu", Silabus="5.8. Pengoperasian Sub Proses", Status="Aligned" },
-                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan identifikasi bahaya dari permasalahan pada operasi fasilitas oil processing", Silabus="5.6. Identifikasi Bahaya pada Pengoperasian Fasilitas Kilang", Status="Aligned" },
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami prinsip-prinsip dasar dan mampu menjalankan prosedur pengoperasian fasilitas oil processing secara aman, andal, dan optimal sesuai standar K3L dengan bimbingan", 
+                    Silabus="5.7. Prinsip Dasar & Pengoperasian Peralatan", 
+                    TargetDeliverable="Target 5.7\n1. Mampu menjelaskan prinsip dasar kerja masing-masing peralatan pada unit RFCC NHT.\n2. Mampu menjelaskan troubleshooting equipment – equipment critical di unit RFCC NHT ketika terjadi trouble." },
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami perkembangan informasi terkait pengoperasian fasilitas oil processing", 
+                    Silabus="5.9. Equipment Operations", 
+                    TargetDeliverable="Target 5.9\n1. Mampu membaca drawing equipment pada Process Data Sheet.\n2. Mampu memahami prinsip kerja dan fungsi equipment pada unit RFCC NHT.\n3. Mampu memahami persiapan yang dilakukan sebelum mengoperasikan equipment.\n4. Mampu memahami dampak yang terjadi jika terdapat kegagalan beroperasi pada equipment di RFCC NHT.\n5. Mampu memahami prosedur shutdown critical equipment di RFCC NHT." },
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Mampu melakukan pengoperasian sub proses/area oil processing tertentu", 
+                    Silabus="5.8. Pengoperasian Sub Proses", 
+                    TargetDeliverable="Target 5.8\n1. Mampu memahami langkah-langkah pengoperasian pada seksi SHU Reactor.\n2. Mampu memahami langkah-langkah pengoperasian pada seksi Splitter.\n3. Mampu memahami langkah-langkah pengoperasian pada seksi HDS Reaction.\n4. Mampu memahami langkah-langkah pengoperasian pada seksi HDS Separation.\n5. Mampu memahami langkah-langkah pengoperasian pada seksi Stabilizer." },
+                new CpdpItem { No="5.2", NamaKompetensi="Oil Processing Operations", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Mampu melakukan identifikasi bahaya dari permasalahan pada operasi fasilitas oil processing", 
+                    Silabus="5.6. Identifikasi Bahaya pada Pengoperasian Fasilitas Kilang", 
+                    TargetDeliverable="Target 5.6\n1. Mampu mengidentifikasi potensi bahaya operasional pada masing-masing section dan peralatan di unit RFCC NHT.\n2. Mampu menjelaskan safeguard system, permissive to start dan pengoperasian serta berpengalaman mengoperasikan equipment di RFCC NHT\n3. Mampu memahami decontamination philosophy dan contohnya." },
 
                 // 5.3 Process Optimization
-                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Memahami prinsip dasar parameter proses operasi yang harus dimonitor dan batasan design (limitasi/ operating windows)", Silabus="5.13. Operating Windows", Status="Aligned" },
-                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu memahami karakteristik unit operasi", Silabus="5.10. Karakteristik Unit Operasi", Status="Aligned" },
-                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu mengumpulkan data-data yang diperlukan untuk optimasi proses", Silabus="5.12. Data Collecting for Process Optimization", Status="Aligned" },
-                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", DetailIndikator="Mampu melakukan day to day monitoring berdasarkan hasil pengumpulan data dengan supervisi/ instruksi", Silabus="5.11. Day to Day Monitoring", Status="Aligned" }
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Memahami prinsip dasar parameter proses operasi yang harus dimonitor dan batasan design (limitasi/ operating windows)", 
+                    Silabus="5.13. Operating Windows", 
+                    TargetDeliverable="Target 5.13\n1. Memahami langkah-langkah pengoperasian indicating controller.\n2. Mengidentifikasi dan menjelaskan batas atas/bawah dari variabel proses operasi." },
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Mampu memahami karakteristik unit operasi", 
+                    Silabus="5.10. Karakteristik Unit Operasi", 
+                    TargetDeliverable="Target 5.10\n1. Mampu memahami karakteristik operasi di unit RFCC NHT." },
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Mampu mengumpulkan data-data yang diperlukan untuk optimasi proses", 
+                    Silabus="5.12. Data Collecting for Process Optimization", 
+                    TargetDeliverable="Target 5.12\n1. Mampu mengoperasikan dan mengelola data dari PI." },
+                new CpdpItem { No="5.3", NamaKompetensi="Process Optimization", IndikatorPerilaku="1 (Basic)", 
+                    DetailIndikator="Mampu melakukan day to day monitoring berdasarkan hasil pengumpulan data dengan supervisi/ instruksi", 
+                    Silabus="5.11. Day to Day Monitoring", 
+                    TargetDeliverable="Target 5.11\n1. Mampu menjelaskan tata cara pengambilan sample di unit RFCC NHT serta lokasi sampling connection unit RFCC NHT\n2. Mengetahui bagian-bagian equipment yang menjadi visual daily check pada saat plant patrol untuk mengetahui lebih awal ketika terjadi bocoran/leak." }
             };
 
             return View(cpdpData);
@@ -279,9 +400,47 @@ namespace HcPortal.Controllers
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
-        public IActionResult Records()
+        public async Task<IActionResult> Records(string? section, string? unit)
         {
-            var records = new List<TrainingRecord>
+            // Get current user and role
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+            
+            ViewBag.UserRole = userRole;
+            ViewBag.SelectedSection = section;
+            ViewBag.SelectedUnit = unit;
+            
+            // Role: HC - Must select Section first, then show all workers in that section
+            if (userRole == UserRoles.HC && string.IsNullOrEmpty(section))
+            {
+                return View("RecordsSectionSelect");
+            }
+            
+            // Role: Section Head / Sr Supervisor - Auto-fill section from user profile
+            if ((userRole == UserRoles.SectionHead || userRole == UserRoles.SrSupervisor) && string.IsNullOrEmpty(section))
+            {
+                section = user?.Section ?? "GAST"; // Default to GAST if null
+                ViewBag.SelectedSection = section;
+            }
+            
+            // Role: Coach/Coachee - Show personal training records (existing behavior)
+            if (userRole == UserRoles.Coach || userRole == UserRoles.Coachee)
+            {
+                var personalRecords = GetPersonalTrainingRecords(user?.Id ?? "");
+                return View("Records", personalRecords);
+            }
+            
+            // Supervisor view: Show list of all workers in the selected section (with optional unit filter)
+            var workers = GetWorkersInSection(section, unit);
+            return View("RecordsWorkerList", workers);
+        }
+        
+        // Helper method: Get personal training records for Coach/Coachee
+        private List<TrainingRecord> GetPersonalTrainingRecords(string userId)
+        {
+            // Mock data - same as before
+            return new List<TrainingRecord>
             {
                 // === PROTON (2 items) ===
                 new TrainingRecord 
@@ -405,8 +564,165 @@ namespace HcPortal.Controllers
                     SertifikatUrl = "/certificates/hsse-height-2023.pdf"
                 }
             };
-
-            return View(records);
+        }
+        
+        // Helper method: Get all workers in a section (with optional unit filter)
+        private List<WorkerTrainingStatus> GetWorkersInSection(string? section, string? unitFilter = null)
+        {
+            // Mock data - All workers in GAST section
+            var allWorkers = new List<WorkerTrainingStatus>
+            {
+                // Alkylation Unit (065)
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "user-rustam",
+                    WorkerName = "Rustam Santiko",
+                    NIP = "123456",
+                    Position = "Coach",
+                    Section = "GAST",
+                    Unit = "Alkylation Unit (065)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 8,
+                    PendingTrainings = 1,
+                    ExpiringSoonTrainings = 1
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "user-iwan",
+                    WorkerName = "Iwan",
+                    NIP = "789012",
+                    Position = "Operator",
+                    Section = "GAST",
+                    Unit = "Alkylation Unit (065)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 6,
+                    PendingTrainings = 2,
+                    ExpiringSoonTrainings = 2
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "user-budi",
+                    WorkerName = "Budi Santoso",
+                    NIP = "345678",
+                    Position = "Operator",
+                    Section = "GAST",
+                    Unit = "Alkylation Unit (065)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 9,
+                    PendingTrainings = 1,
+                    ExpiringSoonTrainings = 0
+                },
+                // SWS RFCC & Non RFCC (067 & 167)
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "user-ahmad",
+                    WorkerName = "Ahmad Fauzi",
+                    NIP = "234567",
+                    Position = "Operator",
+                    Section = "GAST",
+                    Unit = "SWS RFCC & Non RFCC (067 & 167)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 7,
+                    PendingTrainings = 2,
+                    ExpiringSoonTrainings = 1
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "user-dedi",
+                    WorkerName = "Dedi Kurniawan",
+                    NIP = "456789",
+                    Position = "Sr Operator",
+                    Section = "GAST",
+                    Unit = "SWS RFCC & Non RFCC (067 & 167)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 10,
+                    PendingTrainings = 0,
+                    ExpiringSoonTrainings = 0
+                }
+            };
+            
+            // Filter by unit if specified
+            if (!string.IsNullOrEmpty(unitFilter))
+            {
+                return allWorkers.Where(w => w.Unit == unitFilter).ToList();
+            }
+            
+            return allWorkers;
+        }
+        
+        // HALAMAN 5: WORKER DETAIL PAGE
+        public async Task<IActionResult> RecordsWorkerDetail(string workerId)
+        {
+            // Get worker data
+            var worker = GetWorkerById(workerId);
+            if (worker == null)
+            {
+                return NotFound();
+            }
+            
+            // Get detailed training records for this worker
+            worker.TrainingRecords = GetPersonalTrainingRecords(workerId);
+            
+            return View(worker);
+        }
+        
+        // Helper method: Get worker by ID
+        private WorkerTrainingStatus? GetWorkerById(string workerId)
+        {
+            // Mock data - return specific worker
+            var workers = new Dictionary<string, WorkerTrainingStatus>
+            {
+                {
+                    "user-rustam",
+                    new WorkerTrainingStatus
+                    {
+                        WorkerId = "user-rustam",
+                        WorkerName = "Rustam Santiko",
+                        NIP = "123456",
+                        Position = "Coach",
+                        Section = "GAST",
+                        Unit = "Alkylation Unit (065)",
+                        TotalTrainings = 10,
+                        CompletedTrainings = 8,
+                        PendingTrainings = 1,
+                        ExpiringSoonTrainings = 1
+                    }
+                },
+                {
+                    "user-iwan",
+                    new WorkerTrainingStatus
+                    {
+                        WorkerId = "user-iwan",
+                        WorkerName = "Iwan",
+                        NIP = "789012",
+                        Position = "Operator",
+                        Section = "GAST",
+                        Unit = "Alkylation Unit (065)",
+                        TotalTrainings = 10,
+                        CompletedTrainings = 6,
+                        PendingTrainings = 2,
+                        ExpiringSoonTrainings = 2
+                    }
+                },
+                {
+                    "user-budi",
+                    new WorkerTrainingStatus
+                    {
+                        WorkerId = "user-budi",
+                        WorkerName = "Budi Santoso",
+                        NIP = "345678",
+                        Position = "Operator",
+                        Section = "GAST",
+                        Unit = "Alkylation Unit (065)",
+                        TotalTrainings = 10,
+                        CompletedTrainings = 9,
+                        PendingTrainings = 1,
+                        ExpiringSoonTrainings = 0
+                    }
+                }
+            };
+            
+            return workers.TryGetValue(workerId, out var worker) ? worker : null;
         }
     }
 }

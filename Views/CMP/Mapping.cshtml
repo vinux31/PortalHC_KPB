@@ -16,74 +16,70 @@
 
 <div class="card shadow-sm">
     <div class="card-body p-0">
-        <table class="table table-bordered align-middle mb-0">
-            <thead class="bg-secondary text-white text-center align-middle">
-                <tr>
-                    <th style="width: 5%">No</th>
-                    <th style="width: 20%">Nama Kompetensi</th>
-                    <th style="width: 15%">Indikator Perilaku (Level)</th>
-                    <th style="width: 30%">Detail Indikator Perilaku</th>
-                    <th style="width: 20%">Individual Development Plan / Silabus<br><small>(Judul Sub Kompetensi & Target)</small></th>
-                    <th style="width: 10%">Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                @for (int i = 0; i < Model.Count; i++)
-                {
-                    var item = Model[i];
-                    
-                    // Logic for RowSpan
-                    // Check if previous item has same 'No' to determine if we should render cells or skip
-                    // Actually simpler to count how many rows share this 'No' effectively
-                    
-                    int rowSpan = 1;
-                    bool isFirstInGroup = false;
-
-                    if (item.No != lastNo)
-                    {
-                        isFirstInGroup = true;
-                        lastNo = item.No; // Update tracker
-                        // Calculate rowspan
-                        for (int j = i + 1; j < Model.Count; j++)
-                        {
-                            if (Model[j].No == item.No)
-                            {
-                                rowSpan++;
-                            }
-                            else
-                            {
-                                break;
-                            }
-                        }
-                    }
-
-                    <tr class="@(isFirstInGroup ? "border-top-3" : "")">
-                        @if (isFirstInGroup)
-                        {
-                            <td rowspan="@rowSpan" class="text-center fw-bold bg-white">@item.No</td>
-                            <td rowspan="@rowSpan" class="fw-bold bg-white">@item.NamaKompetensi</td>
-                            <td rowspan="@rowSpan" class="text-center bg-white">@item.IndikatorPerilaku</td>
-                        }
-                        
-                        <td class="bg-soft-green @(item.DetailIndikator == "-" ? "text-center text-muted" : "")">@item.DetailIndikator</td>
-                        <td class="bg-soft-blue">
-                             @* Handle newlines in Silabus if any *@
-                             @Html.Raw(item.Silabus.Replace("\n", "<br>"))
-                        </td>
-                        <td class="text-center">
-                            @if(item.Status == "Aligned")
-                            {
-                                <span class="text-success fw-bold">Aligned</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">@item.Status</span>
-                            }
-                        </td>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="bg-secondary text-white text-center align-middle">
+                    <tr>
+                        <th style="width: 4%">No</th>
+                        <th style="width: 14%">Nama Kompetensi</th>
+                        <th style="width: 10%">Indikator Perilaku (Level)</th>
+                        <th style="width: 24%">Detail Indikator Perilaku</th>
+                        <th style="width: 14%">Individual Development Plan / Silabus<br><small>(Judul Sub Kompetensi & Target)</small></th>
+                        <th style="width: 34%">Target Deliverable</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        var item = Model[i];
+                        
+                        // Logic for RowSpan
+                        // Check if previous item has same 'No' to determine if we should render cells or skip
+                        // Actually simpler to count how many rows share this 'No' effectively
+                        
+                        int rowSpan = 1;
+                        bool isFirstInGroup = false;
+
+                        if (item.No != lastNo)
+                        {
+                            isFirstInGroup = true;
+                            lastNo = item.No; // Update tracker
+                            // Calculate rowspan
+                            for (int j = i + 1; j < Model.Count; j++)
+                            {
+                                if (Model[j].No == item.No)
+                                {
+                                    rowSpan++;
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+
+                        <tr class="@(isFirstInGroup ? "border-top-3" : "")">
+                            @if (isFirstInGroup)
+                            {
+                                <td rowspan="@rowSpan" class="text-center fw-bold bg-white">@item.No</td>
+                                <td rowspan="@rowSpan" class="fw-bold bg-white">@item.NamaKompetensi</td>
+                                <td rowspan="@rowSpan" class="text-center bg-white">@item.IndikatorPerilaku</td>
+                            }
+                            
+                            <td class="bg-soft-green @(item.DetailIndikator == "-" ? "text-center text-muted" : "")">@item.DetailIndikator</td>
+                            <td class="bg-soft-blue">
+                                 @* Handle newlines in Silabus if any *@
+                                 @Html.Raw(item.Silabus.Replace("\n", "<br>"))
+                            </td>
+                            <td class="bg-soft-yellow">
+                                 @* Handle newlines in TargetDeliverable *@
+                                 @Html.Raw(item.TargetDeliverable.Replace("\n", "<br>"))
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -93,8 +89,9 @@
     td[rowspan] { vertical-align: middle; }
 
     /* Custom Colors */
-    .bg-soft-green { background-color: #e8f5e9 !important; } /* Light Green for HC */
-    .bg-soft-blue { background-color: #e3f2fd !important; }  /* Light Blue for GAST */
+    .bg-soft-green { background-color: #e8f5e9 !important; } /* Light Green for Detail Indikator */
+    .bg-soft-blue { background-color: #e3f2fd !important; }  /* Light Blue for Silabus */
+    .bg-soft-yellow { background-color: #fff8e1 !important; } /* Light Yellow for Target Deliverable */
 
     /* Hover Effect */
     .table-hover tbody tr:hover td {
@@ -106,5 +103,12 @@
         cursor: pointer;
         filter: brightness(0.95); /* Slightly darken the cell being hovered */
         transition: all 0.2s ease;
+    }
+    
+    /* Make table cells have proper text alignment for long content */
+    .bg-soft-yellow {
+        vertical-align: top;
+        font-size: 0.9rem;
+        line-height: 1.5;
     }
 </style>

@@ -114,9 +114,23 @@
     <div>
         <h2 class="fw-bold text-primary mb-1">Matriks Kompetensi (KKJ)</h2>
         <p class="text-secondary mb-0 fw-medium">Unit: CSU Process - GSH, Alkylation & Sour Treating</p>
+        @if (!string.IsNullOrEmpty(ViewBag.SelectedSection))
+        {
+            <div class="mt-2">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                    <i class="bi bi-building me-2"></i>Bagian: @ViewBag.SelectedSection
+                </span>
+            </div>
+        }
     </div>
     
     <div class="d-flex flex-column align-items-end gap-2">
+        @if ((ViewBag.UserRole == "HC" || ViewBag.UserRole == "Section Head") && !string.IsNullOrEmpty(ViewBag.SelectedSection))
+        {
+            <a href="@Url.Action("Kkj", "CMP")" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-2"></i>Pilih Bagian Lain
+            </a>
+        }
 
         <!-- Search -->
         <div class="input-group" style="width: 300px;">

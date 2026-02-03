@@ -152,20 +152,28 @@
                 }
 
                 <form method="post" asp-controller="Account" asp-action="Login">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+                    
                     <div class="mb-4">
-                        <label class="custom-label">Nomor Pekerja (NIP)</label>
+                        <label class="custom-label">Email</label>
                         <div class="input-group input-group-lg border rounded">
-                            <span class="input-group-text"><i class="bi bi-person-badge"></i></span>
-                            <input type="text" name="nip" class="form-control" placeholder="759921" required>
+                            <span class="input-group-text"><i class="bi bi-envelope-fill"></i></span>
+                            <input type="email" name="email" class="form-control" placeholder="nama@pertamina.com" required>
                         </div>
                     </div>
 
-                    <div class="mb-5">
+                    <div class="mb-4">
                         <label class="custom-label">Kata Sandi</label>
                         <div class="input-group input-group-lg border rounded">
                             <span class="input-group-text"><i class="bi bi-lock-fill"></i></span>
                             <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                         </div>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe" name="rememberMe" value="true">
+                        <label class="form-check-label text-muted" for="rememberMe">Ingat saya di perangkat ini</label>
                     </div>
 
                     <div class="d-grid mb-4">
