@@ -23,12 +23,21 @@ namespace HcPortal.Models
         public List<TrainingRecord> TrainingRecords { get; set; } = new List<TrainingRecord>();
         
         // Computed property: Completion percentage
+        // Backing field for manual override
+        private int? _completionPercentage;
+        
+        // Computed property with manual override support
         public int CompletionPercentage
         {
             get
             {
+                if (_completionPercentage.HasValue) return _completionPercentage.Value;
                 if (TotalTrainings == 0) return 0;
                 return (int)((double)CompletedTrainings / TotalTrainings * 100);
+            }
+            set
+            {
+                _completionPercentage = value;
             }
         }
         

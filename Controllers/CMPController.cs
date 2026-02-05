@@ -400,30 +400,36 @@ namespace HcPortal.Controllers
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
-        public async Task<IActionResult> Records(string? section, string? unit)
+        public async Task<IActionResult> Records(string? section, string? category, string? subCategory, string? search, string? statusFilter, string? isFiltered)
         {
             // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
             
+            // Check if this is an initial load (no filter applied explicitly)
+            // We use the hidden input 'isFiltered' from the form to differentiate
+            bool isInitialState = string.IsNullOrEmpty(isFiltered);
+
+            // Default section to GAST if not specified, JUST for the dropdown display
+            // REMOVED: User wants "Semua Bagian" option
+            // if (string.IsNullOrEmpty(section))
+            // {
+            //     section = "GAST";
+            // }
+
             ViewBag.UserRole = userRole;
-            ViewBag.SelectedSection = section;
-            ViewBag.SelectedUnit = unit;
+            ViewBag.SelectedSection = section; // Can be null/empty for "Semua Bagian"
+            ViewBag.SelectedCategory = category;
+            ViewBag.SelectedSubCategory = subCategory;
+            ViewBag.SearchTerm = search;
+            ViewBag.SelectedStatus = statusFilter;
+            ViewBag.IsInitialState = isInitialState;
             
-            // Role: HC - Must select Section first, then show all workers in that section
-            if (userRole == UserRoles.HC && string.IsNullOrEmpty(section))
-            {
-                return View("RecordsSectionSelect");
-            }
-            
-            // Role: Section Head / Sr Supervisor - Auto-fill section from user profile
-            if ((userRole == UserRoles.SectionHead || userRole == UserRoles.SrSupervisor) && string.IsNullOrEmpty(section))
-            {
-                section = user?.Section ?? "GAST"; // Default to GAST if null
-                ViewBag.SelectedSection = section;
-            }
-            
+            // Determine if we should show Status column (Filter Mode) or Stats columns (Default Mode)
+            bool isFilterMode = !string.IsNullOrEmpty(category);
+            ViewBag.IsFilterMode = isFilterMode;
+
             // Role: Coach/Coachee - Show personal training records (existing behavior)
             if (userRole == UserRoles.Coach || userRole == UserRoles.Coachee)
             {
@@ -431,8 +437,20 @@ namespace HcPortal.Controllers
                 return View("Records", personalRecords);
             }
             
-            // Supervisor view: Show list of all workers in the selected section (with optional unit filter)
-            var workers = GetWorkersInSection(section, unit);
+            // Supervisor view: 
+            List<WorkerTrainingStatus> workers;
+
+            if (isInitialState)
+            {
+                // Return empty list on initial load
+                workers = new List<WorkerTrainingStatus>();
+            }
+            else
+            {
+                // Fetch filtered data
+                workers = GetWorkersInSection(section, null, category, subCategory, search, statusFilter);
+            }
+
             return View("RecordsWorkerList", workers);
         }
         
@@ -447,7 +465,7 @@ namespace HcPortal.Controllers
                 { 
                     Id = 1, 
                     Judul = "PROTON Assessment: Distillation Unit Operations", 
-                    Kategori = "PROTON", 
+                    Kategori = "Proton", // Fixed casing to match dropdown
                     Tanggal = new DateTime(2024, 11, 15),
                     Penyelenggara = "NSO",
                     Status = "Passed",
@@ -458,7 +476,7 @@ namespace HcPortal.Controllers
                 { 
                     Id = 2, 
                     Judul = "PROTON Assessment: Heat Exchanger Systems", 
-                    Kategori = "PROTON", 
+                    Kategori = "Proton", 
                     Tanggal = new DateTime(2025, 1, 10),
                     Penyelenggara = "NSO",
                     Status = "Wait Certificate",
@@ -562,12 +580,26 @@ namespace HcPortal.Controllers
                     CertificateType = "3-Year",
                     ValidUntil = new DateTime(2026, 5, 15), // Still valid for ~1.3 years
                     SertifikatUrl = "/certificates/hsse-height-2023.pdf"
+                },
+                
+                 // === ADDITIONAL MOCK FOR HSSE SPECIFIC FILTER ===
+                new TrainingRecord 
+                { 
+                    Id = 11, 
+                    Judul = "Gas Tester", 
+                    Kategori = "MANDATORY", 
+                    Tanggal = new DateTime(2024, 1, 20),
+                    Penyelenggara = "Internal",
+                    Status = "Valid",
+                    CertificateType = "2-Year",
+                    ValidUntil = new DateTime(2026, 1, 20),
+                    SertifikatUrl = "#"
                 }
             };
         }
         
-        // Helper method: Get all workers in a section (with optional unit filter)
-        private List<WorkerTrainingStatus> GetWorkersInSection(string? section, string? unitFilter = null)
+        // Helper method: Get all workers in a section (with optional filters)
+        private List<WorkerTrainingStatus> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? subCategory = null, string? search = null, string? statusFilter = null)
         {
             // Mock data - All workers in GAST section
             var allWorkers = new List<WorkerTrainingStatus>
@@ -580,7 +612,7 @@ namespace HcPortal.Controllers
                     NIP = "123456",
                     Position = "Coach",
                     Section = "GAST",
-                    Unit = "Alkylation Unit (065)",
+                    Unit = "Alkylation (065)",
                     TotalTrainings = 10,
                     CompletedTrainings = 8,
                     PendingTrainings = 1,
@@ -593,7 +625,7 @@ namespace HcPortal.Controllers
                     NIP = "789012",
                     Position = "Operator",
                     Section = "GAST",
-                    Unit = "Alkylation Unit (065)",
+                    Unit = "Alkylation (065)",
                     TotalTrainings = 10,
                     CompletedTrainings = 6,
                     PendingTrainings = 2,
@@ -606,7 +638,7 @@ namespace HcPortal.Controllers
                     NIP = "345678",
                     Position = "Operator",
                     Section = "GAST",
-                    Unit = "Alkylation Unit (065)",
+                    Unit = "Alkylation (065)",
                     TotalTrainings = 10,
                     CompletedTrainings = 9,
                     PendingTrainings = 1,
@@ -638,91 +670,188 @@ namespace HcPortal.Controllers
                     CompletedTrainings = 10,
                     PendingTrainings = 0,
                     ExpiringSoonTrainings = 0
+                },
+                
+                // === RFCC Section ===
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "rfcc-1",
+                    WorkerName = "Doni Setiawan",
+                    NIP = "556112",
+                    Position = "Operator",
+                    Section = "RFCC",
+                    Unit = "RFCC LPG Treating Unit (062)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 10,
+                    PendingTrainings = 0,
+                    ExpiringSoonTrainings = 0
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "rfcc-2",
+                    WorkerName = "Eko Prasetyo",
+                    NIP = "556113",
+                    Position = "Sr Operator",
+                    Section = "RFCC",
+                    Unit = "RFCC LPG Treating Unit (062)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 5,
+                    PendingTrainings = 5,
+                    ExpiringSoonTrainings = 0
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "rfcc-3",
+                    WorkerName = "Fajar Nugraha",
+                    NIP = "556114",
+                    Position = "Coach",
+                    Section = "RFCC",
+                    Unit = "Propylene Recovery Unit (063)",
+                    TotalTrainings = 12,
+                    CompletedTrainings = 12,
+                    PendingTrainings = 0,
+                    ExpiringSoonTrainings = 0
+                },
+
+                // === NGP Section ===
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "ngp-1",
+                    WorkerName = "Gilang Ramadhan",
+                    NIP = "667223",
+                    Position = "Operator",
+                    Section = "NGP",
+                    Unit = "Saturated Gas Concentration Unit (060)",
+                    TotalTrainings = 8,
+                    CompletedTrainings = 6,
+                    PendingTrainings = 2,
+                    ExpiringSoonTrainings = 0
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "ngp-2",
+                    WorkerName = "Hadi Kurniawan",
+                    NIP = "667224",
+                    Position = "Panel",
+                    Section = "NGP",
+                    Unit = "Saturated LPG Treating Unit (064)",
+                    TotalTrainings = 8,
+                    CompletedTrainings = 8,
+                    PendingTrainings = 0,
+                    ExpiringSoonTrainings = 0
+                },
+                 new WorkerTrainingStatus
+                {
+                    WorkerId = "ngp-3",
+                    WorkerName = "Indra Gunawan",
+                    NIP = "667225",
+                    Position = "Sr Operator",
+                    Section = "NGP",
+                    Unit = "Isomerization Unit (082)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 2,
+                    PendingTrainings = 8,
+                    ExpiringSoonTrainings = 0
+                },
+
+                // === DHT / HMU Section ===
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "dht-1",
+                    WorkerName = "Joko Susilo",
+                    NIP = "778334",
+                    Position = "Operator",
+                    Section = "DHT / HMU",
+                    Unit = "Diesel Hydrotreating Unit I & II (054 & 083)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 10,
+                    PendingTrainings = 0,
+                    ExpiringSoonTrainings = 0
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "dht-2",
+                    WorkerName = "Kiki Amalia",
+                    NIP = "778335",
+                    Position = "Operator",
+                    Section = "DHT / HMU",
+                    Unit = "Hydrogen Manufacturing Unit (068)",
+                    TotalTrainings = 10,
+                    CompletedTrainings = 9,
+                    PendingTrainings = 1,
+                    ExpiringSoonTrainings = 0
+                },
+                new WorkerTrainingStatus
+                {
+                    WorkerId = "dht-3",
+                    WorkerName = "Lukman Hakim",
+                    NIP = "778336",
+                    Position = "Coach",
+                    Section = "DHT / HMU",
+                    Unit = "Common DHT H2 Compressor (085)",
+                    TotalTrainings = 15,
+                    CompletedTrainings = 10,
+                    PendingTrainings = 5,
+                    ExpiringSoonTrainings = 0
                 }
             };
-            
-            // Filter by unit if specified
-            if (!string.IsNullOrEmpty(unitFilter))
+
+            // 0. FILTER BY SECTION
+            // If section is provided, filter by it. If empty/null ("Semua Bagian"), include ALL workers.
+            if (!string.IsNullOrEmpty(section))
             {
-                return allWorkers.Where(w => w.Unit == unitFilter).ToList();
+                allWorkers = allWorkers.Where(w => w.Section == section).ToList();
+            }
+
+            // 1. FILTER BY SEARCH (Name or NIP)
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower();
+                allWorkers = allWorkers.Where(w => 
+                    w.WorkerName.ToLower().Contains(search) || 
+                    w.NIP.Contains(search)
+                ).ToList();
+            }
+            
+            // 2. CALCULATE STATUS "SUDAH/BELUM"
+            foreach (var worker in allWorkers)
+            {
+                // Only calculate dynamic status if a Category is selected
+                if (!string.IsNullOrEmpty(category))
+                {
+                    // Load training records
+                    worker.TrainingRecords = GetPersonalTrainingRecords(worker.WorkerId);
+                    
+                    bool isCompleted = false;
+
+                    // Check if they have ANY passed/valid record in this Category
+                    isCompleted = worker.TrainingRecords.Any(r => 
+                        r.Kategori.Contains(category, StringComparison.OrdinalIgnoreCase) &&
+                        (r.Status == "Passed" || r.Status == "Valid" || r.Status == "Permanent")
+                    );
+                    
+                    // Update CompletionPercentage to reflect this binary status for the View (100 = SUDAH, 0 = BELUM)
+                    worker.CompletionPercentage = isCompleted ? 100 : 0;
+                }
+                // If no Category selected, we keep the Mock Data's default CompletionPercentage
+            }
+
+            // 4. FILTER BY STATUS (Sudah/Belum) - Applied AFTER status calculation
+            if (!string.IsNullOrEmpty(statusFilter) && !string.IsNullOrEmpty(category))
+            {
+                if (statusFilter == "Sudah")
+                {
+                    allWorkers = allWorkers.Where(w => w.CompletionPercentage == 100).ToList();
+                }
+                else if (statusFilter == "Belum")
+                {
+                    allWorkers = allWorkers.Where(w => w.CompletionPercentage != 100).ToList();
+                }
             }
             
             return allWorkers;
         }
         
-        // HALAMAN 5: WORKER DETAIL PAGE
-        public async Task<IActionResult> RecordsWorkerDetail(string workerId)
-        {
-            // Get worker data
-            var worker = GetWorkerById(workerId);
-            if (worker == null)
-            {
-                return NotFound();
-            }
-            
-            // Get detailed training records for this worker
-            worker.TrainingRecords = GetPersonalTrainingRecords(workerId);
-            
-            return View(worker);
-        }
-        
-        // Helper method: Get worker by ID
-        private WorkerTrainingStatus? GetWorkerById(string workerId)
-        {
-            // Mock data - return specific worker
-            var workers = new Dictionary<string, WorkerTrainingStatus>
-            {
-                {
-                    "user-rustam",
-                    new WorkerTrainingStatus
-                    {
-                        WorkerId = "user-rustam",
-                        WorkerName = "Rustam Santiko",
-                        NIP = "123456",
-                        Position = "Coach",
-                        Section = "GAST",
-                        Unit = "Alkylation Unit (065)",
-                        TotalTrainings = 10,
-                        CompletedTrainings = 8,
-                        PendingTrainings = 1,
-                        ExpiringSoonTrainings = 1
-                    }
-                },
-                {
-                    "user-iwan",
-                    new WorkerTrainingStatus
-                    {
-                        WorkerId = "user-iwan",
-                        WorkerName = "Iwan",
-                        NIP = "789012",
-                        Position = "Operator",
-                        Section = "GAST",
-                        Unit = "Alkylation Unit (065)",
-                        TotalTrainings = 10,
-                        CompletedTrainings = 6,
-                        PendingTrainings = 2,
-                        ExpiringSoonTrainings = 2
-                    }
-                },
-                {
-                    "user-budi",
-                    new WorkerTrainingStatus
-                    {
-                        WorkerId = "user-budi",
-                        WorkerName = "Budi Santoso",
-                        NIP = "345678",
-                        Position = "Operator",
-                        Section = "GAST",
-                        Unit = "Alkylation Unit (065)",
-                        TotalTrainings = 10,
-                        CompletedTrainings = 9,
-                        PendingTrainings = 1,
-                        ExpiringSoonTrainings = 0
-                    }
-                }
-            };
-            
-            return workers.TryGetValue(workerId, out var worker) ? worker : null;
-        }
+
     }
 }
