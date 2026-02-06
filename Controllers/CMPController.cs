@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using HcPortal.Models;
 
 namespace HcPortal.Controllers
 {
+    [Authorize]
     public class CMPController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;

@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using HcPortal.Models;
 using System.Collections.Generic;
 
 namespace HcPortal.Controllers
 {
+    [Authorize]
     public class BPController : Controller
     {
         public IActionResult Index()

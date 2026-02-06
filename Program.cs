@@ -8,9 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Tambahkan Service MVC
 builder.Services.AddControllersWithViews();
 
-// 2. Konfigurasi Database (SQLite)
+// 2. Konfigurasi Database (SQL Server untuk Development dan Production)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(connectionString));
 
 // 3. Konfigurasi Identity dengan password sederhana untuk development
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
