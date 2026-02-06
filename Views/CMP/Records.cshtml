@@ -151,7 +151,7 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="proton-tab" data-bs-toggle="tab" data-bs-target="#proton" type="button">
                 <i class="bi bi-bullseye me-2"></i>PROTON
-                <span class="badge bg-white bg-opacity-25 ms-2">@Model.Count(x => x.Kategori == "PROTON")</span>
+                <span class="badge bg-white bg-opacity-25 ms-2">@Model.Count(x => x.Kategori == "Proton")</span>
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -188,7 +188,7 @@
             <div class="alert alert-info border-0 shadow-sm">
                 <i class="bi bi-info-circle me-2"></i> <strong>Catatan:</strong> Assessment PROTON dilakukan melalui NSO. Token diberikan oleh HC.
             </div>
-            @{ RenderTable(Model.Where(x => x.Kategori == "PROTON").ToList()); }
+            @{ RenderTable(Model.Where(x => x.Kategori == "Proton").ToList()); }
         </div>
 
         <!-- Tab OTS -->

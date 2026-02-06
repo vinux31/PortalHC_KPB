@@ -20,11 +20,13 @@ namespace HcPortal.Controllers
             // Get current user and their role
             var user = await _userManager.GetUserAsync(User);
             string userRole = "Operator"; // Default
+            int userLevel = 6; // Default: Coachee
             
             if (user != null)
             {
                 var roles = await _userManager.GetRolesAsync(user);
                 userRole = roles.FirstOrDefault() ?? "Operator";
+                userLevel = user.RoleLevel;
             }
 
             // Check if HC user has selected a bagian
@@ -32,6 +34,7 @@ namespace HcPortal.Controllers
 
             // Pass role and selection to view
             ViewBag.UserRole = userRole;
+            ViewBag.UserLevel = userLevel;
             ViewBag.HasBagianSelected = hasBagianSelected;
             ViewBag.SelectedBagian = bagian ?? "GAST";
             ViewBag.SelectedUnit = unit ?? "RFCC NHT";
@@ -85,27 +88,69 @@ namespace HcPortal.Controllers
                     Id = 1, 
                     CoachName = "Budi Santoso (Mgr)", 
                     CoacheeName = "User (Anda)", 
-                    Topik = "Review Target Q1", 
+                    SubKompetensi = "Review Target Q1", 
                     Tanggal = new DateTime(2025, 01, 10),
-                    Status = "Verified",
-                    Catatan = "Progress memuaskan, pertahankan."
+                    Status = "Submitted",
+                    CatatanCoach = "Progress memuaskan, pertahankan."
                 },
                 new CoachingLog { 
                     Id = 2, 
                     CoachName = "Siti Aminah (Senior Eng)", 
                     CoacheeName = "User (Anda)", 
-                    Topik = "Teknis Troubleshooting Pompa", 
+                    SubKompetensi = "Teknis Troubleshooting Pompa", 
                     Tanggal = new DateTime(2025, 02, 05),
                     Status = "Submitted",
-                    Catatan = "Menunggu upload evidence foto lapangan."
+                    CatatanCoach = "Menunggu upload evidence foto lapangan."
                 }
             };
 
             return View(history);
         }
 
-        public IActionResult Progress()
+        public async Task<IActionResult> Progress(string? bagian = null, string? unit = null, string? coacheeId = null)
         {
+            // Get current user and their role
+            var user = await _userManager.GetUserAsync(User);
+            string userRole = "Coachee"; // Default
+            int userLevel = 6; // Default: Coachee
+            
+            if (user != null)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                userRole = roles.FirstOrDefault() ?? "Coachee";
+                userLevel = user.RoleLevel;
+            }
+
+            // For Level 4 (Section Head, Sr Supervisor): Bagian is auto-filled from user profile
+            if (userLevel == 4 && user != null && string.IsNullOrEmpty(bagian))
+            {
+                bagian = user.Section;
+            }
+
+            // Pass user context to view
+            ViewBag.UserRole = userRole;
+            ViewBag.UserLevel = userLevel;
+            ViewBag.UserSection = user?.Section;
+            ViewBag.UserUnit = user?.Unit;
+            ViewBag.UserFullName = user?.FullName;
+            ViewBag.UserPosition = user?.Position;
+            
+            ViewBag.SelectedBagian = bagian;
+            ViewBag.SelectedUnit = unit;
+            ViewBag.SelectedCoacheeId = coacheeId;
+
+            // Mock data: Coachees for Coach role
+            if (userRole == "Coach")
+            {
+                var mockCoachees = new List<ApplicationUser>
+                {
+                    new ApplicationUser { Id = "coachee1", FullName = "Ahmad Fauzi", Position = "Operator I" },
+                    new ApplicationUser { Id = "coachee2", FullName = "Siti Nurhaliza", Position = "Operator II" },
+                    new ApplicationUser { Id = "coachee3", FullName = "Bambang Wijaya", Position = "Panelman" }
+                };
+                ViewBag.Coachees = mockCoachees;
+            }
+
             // Flattened data from the IDP Plan for tracking purposes
             var data = new List<TrackingItem>
             {
@@ -133,6 +178,7 @@ namespace HcPortal.Controllers
 
             return View(data);
         }
+
 
     }
 }

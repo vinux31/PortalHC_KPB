@@ -3,6 +3,20 @@
 @{
     ViewData["Title"] = "Progress & Tracking";
     
+    // Get user context from ViewBag
+    var userRole = ViewBag.UserRole as string ?? "Coachee";
+    var userLevel = ViewBag.UserLevel as int? ?? 6;
+    var userSection = ViewBag.UserSection as string;
+    var userUnit = ViewBag.UserUnit as string;
+    var userFullName = ViewBag.UserFullName as string ?? "User";
+    var userPosition = ViewBag.UserPosition as string ?? "Operator";
+    
+    var selectedBagian = ViewBag.SelectedBagian as string;
+    var selectedUnit = ViewBag.SelectedUnit as string;
+    var selectedCoacheeId = ViewBag.SelectedCoacheeId as string;
+    
+    var coachees = ViewBag.Coachees as List<HcPortal.Models.ApplicationUser>;
+    
     // Calculate Summary Stats
     var totalItems = Model.Count();
     var completedItems = Model.Count(x => x.ApprovalHC == "Approved");
@@ -29,6 +43,33 @@
         transform: translateY(-2px);
         transition: transform 0.2s;
     }
+    
+    /* Signature Box Styling */
+    .signature-box {
+        border: 2px solid #667eea;
+        border-radius: 8px;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+        text-align: center;
+    }
+    
+    .signature-logo {
+        max-width: 150px;
+        margin-bottom: 1rem;
+    }
+    
+    .signature-position {
+        font-size: 0.9rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+    
+    .signature-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #333;
+    }
+
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -97,6 +138,81 @@
     </div>
 </div>
 
+<!-- Role-Based Filter Section -->
+@if (userLevel <= 4 || userRole == "Coach")
+{
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-funnel me-2"></i>Filter Data
+            </h6>
+            <form method="get" action="/CDP/Progress" id="filterForm">
+                <div class="row g-3">
+                    @if (userLevel <= 3)
+                    {
+                        <!-- Level 1-3: Dropdown Bagian + Unit -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Bagian</label>
+                            <select class="form-select" name="bagian" id="bagianSelect">
+                                <option value="">Semua Bagian</option>
+                                <option value="RFCC" selected="@(selectedBagian == "RFCC")">RFCC</option>
+                                <option value="DHT / HMU" selected="@(selectedBagian == "DHT / HMU")">DHT / HMU</option>
+                                <option value="NGP" selected="@(selectedBagian == "NGP")">NGP</option>
+                                <option value="GAST" selected="@(selectedBagian == "GAST")">GAST</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Unit</label>
+                            <select class="form-select" name="unit" id="unitSelect">
+                                <option value="">Semua Unit</option>
+                            </select>
+                        </div>
+                    }
+                    else if (userLevel == 4)
+                    {
+                        <!-- Level 4: Bagian read-only, Unit dropdown -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Bagian</label>
+                            <input type="text" class="form-control" value="@userSection" readonly />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Unit</label>
+                            <select class="form-select" name="unit" id="unitSelect">
+                                <option value="">Semua Unit</option>
+                            </select>
+                        </div>
+                    }
+                    
+                    @if (userRole == "Coach")
+                    {
+                        <!-- Coach: Dropdown Coachee -->
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Coachee</label>
+                            <select class="form-select" name="coacheeId" id="coacheeSelect">
+                                <option value="">Pilih Coachee</option>
+                                @if (coachees != null)
+                                {
+                                    foreach (var coachee in coachees)
+                                    {
+                                        <option value="@coachee.Id" selected="@(selectedCoacheeId == coachee.Id)">
+                                            @coachee.FullName (@coachee.Position)
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    }
+                </div>
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-2"></i>Tampilkan Data
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
 <!-- Filters and Table -->
 <div class="card shadow-sm border-0">
     <div class="card-header bg-white py-3 border-0 border-bottom">
@@ -152,26 +268,114 @@
                             
                             <!-- Evidence Status -->
                             <td class="p-3 text-center">
-                                @if(item.EvidenceStatus == "Uploaded") {
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">
-                                        <i class="bi bi-check-circle me-1"></i> Uploaded
-                                    </span>
-                                } else {
-                                     <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">
-                                        <i class="bi bi-dash-circle me-1"></i> Pending
-                                    </span>
+                                @if(userRole == "Coach")
+                                {
+                                    <button class="btn btn-primary btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#coachingReportModal"
+                                            data-item-id="@item.Id"
+                                            data-subkompetensi="@item.SubKompetensi"
+                                            data-kompetensi="@item.Kompetensi">
+                                        <i class="bi bi-pencil-square me-1"></i>Isi Laporan
+                                    </button>
+                                }
+                                else
+                                {
+                                    @if(item.EvidenceStatus == "Uploaded") {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-3">
+                                            <i class="bi bi-check-circle me-1"></i> Uploaded
+                                        </span>
+                                    } else {
+                                         <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary rounded-pill px-3">
+                                            <i class="bi bi-dash-circle me-1"></i> Pending
+                                        </span>
+                                    }
                                 }
                             </td>
 
                             <!-- Approvals -->
+                            <!-- Sr. Supervisor Column -->
                             <td class="p-3 text-center">
-                                @{ RenderStatusBadge(item.ApprovalSrSpv); }
+                                @if(userRole == "Sr Supervisor" && item.EvidenceStatus == "Uploaded" && item.ApprovalSrSpv != "Approved")
+                                {
+                                    <button class="btn btn-success btn-sm" onclick="approveItem(@item.Id, 'SrSpv')">
+                                        <i class="bi bi-check-circle me-1"></i>Approve
+                                    </button>
+                                }
+                                else
+                                {
+                                    @if(item.ApprovalSrSpv == "Approved") {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-check me-1"></i> Approved
+                                        </span>
+                                    } else if(item.ApprovalSrSpv == "Rejected") {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-x me-1"></i> Rejected
+                                        </span>
+                                    } else if(item.ApprovalSrSpv == "Pending") {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-hourglass me-1"></i> Pending
+                                        </span>
+                                    } else {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                }
                             </td>
+                            
+                            <!-- Section Head Column -->
                             <td class="p-3 text-center">
-                                @{ RenderStatusBadge(item.ApprovalSectionHead); }
+                                @if(userRole == "Section Head" && item.EvidenceStatus == "Uploaded" && item.ApprovalSrSpv == "Approved" && item.ApprovalSectionHead != "Approved")
+                                {
+                                    <button class="btn btn-success btn-sm" onclick="approveItem(@item.Id, 'SectionHead')">
+                                        <i class="bi bi-check-circle me-1"></i>Approve
+                                    </button>
+                                }
+                                else
+                                {
+                                    @if(item.ApprovalSectionHead == "Approved") {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-check me-1"></i> Approved
+                                        </span>
+                                    } else if(item.ApprovalSectionHead == "Rejected") {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-x me-1"></i> Rejected
+                                        </span>
+                                    } else if(item.ApprovalSectionHead == "Pending") {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-hourglass me-1"></i> Pending
+                                        </span>
+                                    } else {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                }
                             </td>
+                            
+                            <!-- HC Column -->
                             <td class="p-3 text-center">
-                                @{ RenderStatusBadge(item.ApprovalHC); }
+                                @if(userRole == "HC" && item.EvidenceStatus == "Uploaded" && item.ApprovalSectionHead == "Approved" && item.ApprovalHC != "Approved")
+                                {
+                                    <button class="btn btn-success btn-sm" onclick="approveItem(@item.Id, 'HC')">
+                                        <i class="bi bi-check-circle me-1"></i>Approve
+                                    </button>
+                                }
+                                else
+                                {
+                                    @if(item.ApprovalHC == "Approved") {
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-check me-1"></i> Approved
+                                        </span>
+                                    } else if(item.ApprovalHC == "Rejected") {
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-x me-1"></i> Rejected
+                                        </span>
+                                    } else if(item.ApprovalHC == "Pending") {
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1 rounded-pill small">
+                                            <i class="bi bi-hourglass me-1"></i> Pending
+                                        </span>
+                                    } else {
+                                        <span class="text-muted small">-</span>
+                                    }
+                                }
                             </td>
                             
                              <!-- Action -->
@@ -198,39 +402,256 @@
     </div>
 </div>
 
-@functions {
-    void RenderStatusBadge(string? status)
-    {
-        if (status == "Approved")
-        {
-            <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1 rounded-pill small">
-                <i class="bi bi-check me-1"></i> Approved
-            </span>
-        }
-        else if (status == "Rejected")
-        {
-            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger px-2 py-1 rounded-pill small">
-                <i class="bi bi-x me-1"></i> Rejected
-            </span>
-        }
-        else if (status == "Pending")
-        {
-             <span class="badge bg-warning bg-opacity-10 text-warning border border-warning px-2 py-1 rounded-pill small">
-                <i class="bi bi-hourglass me-1"></i> Pending
-            </span>
-        }
-        else
-        {
-            <span class="text-muted small">-</span>
-        }
-    }
-}
+
+<!-- Coaching Report Modal -->
+<div class="modal fade" id="coachingReportModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-clipboard-check me-2"></i>Laporan Coaching Proton
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="coachingReportForm">
+                    <input type="hidden" id="trackingItemId" name="trackingItemId" />
+                    
+                    <!-- Sub Kompetensi (Auto-fill) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Sub Kompetensi</label>
+                        <input type="text" class="form-control" id="subKompetensi" name="subKompetensi" readonly />
+                    </div>
+                    
+                    <!-- Deliverables (Auto-fill) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Deliverables</label>
+                        <input type="text" class="form-control" id="deliverables" name="deliverables" readonly />
+                    </div>
+                    
+                    <!-- Tanggal (Auto-fill) -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tanggal</label>
+                        <input type="date" class="form-control" id="tanggal" name="tanggal" readonly />
+                    </div>
+                    
+                    <!-- Coachee Competencies -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Coachee Competencies</label>
+                        <textarea class="form-control" id="coacheeCompetencies" name="coacheeCompetencies" rows="3" required></textarea>
+                    </div>
+                    
+                    <!-- Catatan Coach -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Catatan Coach</label>
+                        <textarea class="form-control" id="catatanCoach" name="catatanCoach" rows="3" required></textarea>
+                    </div>
+                    
+                    <!-- Kesimpulan Coach -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kesimpulan Coach</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="kesimpulan" id="kesimpulan1" value="Mandiri" required>
+                            <label class="form-check-label" for="kesimpulan1">
+                                Sudah bisa mengerjakan tugas secara mandiri
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="kesimpulan" id="kesimpulan2" value="PerluDikembangkan">
+                            <label class="form-check-label" for="kesimpulan2">
+                                Masih perlu dikembangkan
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Result -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Result</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="result" id="result1" value="NeedImprovement" required>
+                            <label class="form-check-label" for="result1">
+                                Need Improvement
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="result" id="result2" value="Suitable">
+                            <label class="form-check-label" for="result2">
+                                Suitable
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="result" id="result3" value="Good">
+                            <label class="form-check-label" for="result3">
+                                Good
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="result" id="result4" value="Excellence">
+                            <label class="form-check-label" for="result4">
+                                Excellence
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Signature Box -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tanda Tangan Coach</label>
+                        <div class="signature-box">
+                            <img src="/images/pertamina-logo.png" alt="Pertamina Logo" class="signature-logo" />
+                            <div class="signature-position">@userPosition</div>
+                            <div class="signature-name">@userFullName</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitCoachingReport()">
+                    <i class="bi bi-save me-2"></i>Simpan Laporan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
+        // Tooltip initialization
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl)
         })
+        
+        // Cascading dropdown data (same as CDP Index)
+        const unitsByBagian = {
+            "RFCC": [
+                "RFCC LPG Treating Unit (062)",
+                "Propylene Recovery Unit (063)"
+            ],
+            "DHT / HMU": [
+                "Diesel Hydrotreating Unit I & II (054 & 083)",
+                "Hydrogen Manufacturing Unit (068)",
+                "Common DHT H2 Compressor (085)"
+            ],
+            "NGP": [
+                "Saturated Gas Concentration Unit (060)",
+                "Saturated LPG Treating Unit (064)",
+                "Isomerization Unit (082)",
+                "Common Facilities For NLP (160)",
+                "Naphtha Hydrotreating Unit II (084)"
+            ],
+            "GAST": [
+                "RFCC NHT (053)",
+                "Alkylation Unit (065)",
+                "Wet Gas Sulfuric Acid Unit (066)",
+                "SWS RFCC & Non RFCC (067 & 167)",
+                "Amine Regeneration Unit I & II (069 & 079)",
+                "Flare System (319)",
+                "Sulfur Recovery Unit (169)"
+            ]
+        };
+        
+        // Initialize cascading dropdowns
+        document.addEventListener('DOMContentLoaded', function() {
+            const bagianSelect = document.getElementById('bagianSelect');
+            const unitSelect = document.getElementById('unitSelect');
+            
+            if (bagianSelect && unitSelect) {
+                const selectedBagian = '@selectedBagian';
+                const selectedUnit = '@selectedUnit';
+                
+                if (selectedBagian) {
+                    populateUnits(selectedBagian, selectedUnit);
+                }
+                
+                bagianSelect.addEventListener('change', function() {
+                    populateUnits(this.value);
+                });
+            }
+            
+            // For Level 4 users, populate units based on their section
+            @if (userLevel == 4 && !string.IsNullOrEmpty(userSection))
+            {
+                @:const userSection = '@userSection';
+                @:if (unitSelect) {
+                @:    populateUnits(userSection, '@selectedUnit');
+                @:}
+            }
+        });
+        
+        function populateUnits(bagian, selectedUnit = '') {
+            const unitSelect = document.getElementById('unitSelect');
+            if (!unitSelect) return;
+            
+            unitSelect.innerHTML = '<option value="">Semua Unit</option>';
+            
+            if (bagian && unitsByBagian[bagian]) {
+                unitsByBagian[bagian].forEach(unit => {
+                    const option = document.createElement('option');
+                    option.value = unit;
+                    option.textContent = unit;
+                    if (unit === selectedUnit) {
+                        option.selected = true;
+                    }
+                    unitSelect.appendChild(option);
+                });
+            }
+        }
+        
+        // Coaching Report Modal
+        const coachingModal = document.getElementById('coachingReportModal');
+        if (coachingModal) {
+            coachingModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const itemId = button.getAttribute('data-item-id');
+                const subKompetensi = button.getAttribute('data-subkompetensi');
+                const kompetensi = button.getAttribute('data-kompetensi');
+                
+                // Auto-fill form fields
+                document.getElementById('trackingItemId').value = itemId;
+                document.getElementById('subKompetensi').value = subKompetensi;
+                document.getElementById('deliverables').value = kompetensi; // Using Kompetensi as Deliverables
+                
+                // Set today's date
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('tanggal').value = today;
+            });
+        }
+        
+        function submitCoachingReport() {
+            const form = document.getElementById('coachingReportForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData);
+            
+            // TODO: Send to backend API
+            console.log('Coaching Report Data:', data);
+            
+            // Show success message
+            alert('Laporan coaching berhasil disimpan!');
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('coachingReportModal'));
+            modal.hide();
+            
+            // Reload page to show updated status
+            location.reload();
+        }
+        
+        function approveItem(itemId, approverRole) {
+            if (!confirm('Apakah Anda yakin ingin menyetujui item ini?')) {
+                return;
+            }
+            
+            // TODO: Send approval to backend API
+            console.log('Approving item:', itemId, 'by', approverRole);
+            
+            alert('Approval berhasil!');
+            location.reload();
+        }
     </script>
 }

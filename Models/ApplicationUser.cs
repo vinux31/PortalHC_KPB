@@ -41,5 +41,16 @@ namespace HcPortal.Models
         /// Tanggal bergabung
         /// </summary>
         public DateTime? JoinDate { get; set; }
+
+        /// <summary>
+        /// Role Level (1-6) untuk hierarki RBAC
+        /// Level 1: Admin
+        /// Level 2: HC
+        /// Level 3: Direktur, VP, Manager
+        /// Level 4: Section Head, Sr Supervisor
+        /// Level 5: Coach
+        /// Level 6: Coachee
+        /// </summary>
+        public int RoleLevel { get; set; } = 6; // Default: Coachee
     }
 }

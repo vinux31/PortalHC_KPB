@@ -45,7 +45,8 @@ namespace HcPortal.Data
                     FullName = "Rino",
                     Position = "System Administrator",
                     Section = null,
-                    Unit = null
+                    Unit = null,
+                    RoleLevel = 1
                 }, "123456", UserRoles.Admin),
 
                 (new ApplicationUser
@@ -56,8 +57,46 @@ namespace HcPortal.Data
                     FullName = "Meylisa",
                     Position = "HC Staff",
                     Section = null, // HC can access all sections
-                    Unit = null
+                    Unit = null,
+                    RoleLevel = 2
                 }, "123456", UserRoles.HC),
+
+                // Level 3 - Management (NEW)
+                (new ApplicationUser
+                {
+                    UserName = "direktur@pertamina.com",
+                    Email = "direktur@pertamina.com",
+                    EmailConfirmed = true,
+                    FullName = "Budi Hartono",
+                    Position = "Direktur Operasi",
+                    Section = null, // Full access
+                    Unit = null,
+                    RoleLevel = 3
+                }, "123456", UserRoles.Direktur),
+
+                (new ApplicationUser
+                {
+                    UserName = "vp@pertamina.com",
+                    Email = "vp@pertamina.com",
+                    EmailConfirmed = true,
+                    FullName = "Siti Nurhaliza",
+                    Position = "VP Refinery",
+                    Section = null, // Full access
+                    Unit = null,
+                    RoleLevel = 3
+                }, "123456", UserRoles.VP),
+
+                (new ApplicationUser
+                {
+                    UserName = "manager@pertamina.com",
+                    Email = "manager@pertamina.com",
+                    EmailConfirmed = true,
+                    FullName = "Ahmad Yani",
+                    Position = "Manager Process",
+                    Section = null, // Full access
+                    Unit = null,
+                    RoleLevel = 3
+                }, "123456", UserRoles.Manager),
 
                 (new ApplicationUser
                 {
@@ -67,7 +106,8 @@ namespace HcPortal.Data
                     FullName = "Taufik Basuki",
                     Position = "Section Head",
                     Section = "GAST",
-                    Unit = null // Section Head can access all units in their section
+                    Unit = null, // Section Head can access all units in their section
+                    RoleLevel = 4
                 }, "123456", UserRoles.SectionHead),
 
                 (new ApplicationUser
@@ -78,7 +118,8 @@ namespace HcPortal.Data
                     FullName = "Choirul Anam",
                     Position = "Sr Supervisor",
                     Section = "GAST",
-                    Unit = "Alkylation Unit (065)"
+                    Unit = "Alkylation Unit (065)",
+                    RoleLevel = 4
                 }, "123456", UserRoles.SrSupervisor),
 
                 (new ApplicationUser
@@ -89,7 +130,8 @@ namespace HcPortal.Data
                     FullName = "Rustam Santiko",
                     Position = "Coach",
                     Section = "GAST",
-                    Unit = "Alkylation Unit (065)"
+                    Unit = "Alkylation Unit (065)",
+                    RoleLevel = 5
                 }, "123456", UserRoles.Coach),
 
                 (new ApplicationUser
@@ -100,7 +142,8 @@ namespace HcPortal.Data
                     FullName = "Iwan",
                     Position = "Operator",
                     Section = "GAST",
-                    Unit = "Alkylation Unit (065)"
+                    Unit = "Alkylation Unit (065)",
+                    RoleLevel = 6
                 }, "123456", UserRoles.Coachee)
             };
 

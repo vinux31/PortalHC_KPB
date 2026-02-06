@@ -21,7 +21,7 @@
             <div>
                 <h2 class="fw-bold mb-1">Training Records - Worker List</h2>
                 <p class="text-muted mb-0">
-                    <i class="bi bi-building me-2"></i>Bagian: <strong>@ViewBag.SelectedSection</strong>
+                    <i class="bi bi-building me-2"></i>Bagian: <strong>@(string.IsNullOrEmpty(ViewBag.SelectedSection as string) ? "Semua Bagian" : ViewBag.SelectedSection)</strong>
                     @if (!string.IsNullOrEmpty(ViewBag.SelectedUnit as string))
                     {
                         <text><span class="mx-2">|</span></text>
@@ -54,7 +54,7 @@
                     
                     <div class="row g-3 align-items-end">
                         <!-- Dropdown 1: Section -->
-                        <div class="col-12 col-md">
+                        <div class="col-12 col-md-3">
                             <label class="form-label fw-bold small">Bagian</label>
                             <!-- Logic Fix: Reset subCategory when Section changes -->
                             <select class="form-select form-select-sm" name="section" id="filterSection" onchange="document.getElementById('filterSubCategory').value=''; this.form.submit()">
@@ -67,7 +67,7 @@
                         </div>
                         
                         <!-- Dropdown 2: Category -->
-                        <div class="col-12 col-md">
+                        <div class="col-12 col-md-3">
                             <label class="form-label fw-bold small">Kategori Training</label>
                             <select class="form-select form-select-sm" name="category" id="filterCategory" onchange="this.form.submit()">
                                 <option value="">-- Pilih Kategori --</option>
@@ -75,7 +75,7 @@
                                 <option value="IHT">IHT</option>
                                 <option value="Training Licencor">Training Licencor</option>
                                 <option value="OTS">OTS</option>
-                                <option value="Mandatory HSSE Training">Mandatory HSSE Training</option>
+                                <option value="MANDATORY">Mandatory HSSE Training</option>
                                 <option value="Proton">Proton</option>
                                 <option value="ISS">ISS</option>
                                 <option value="OSS">OSS</option>
@@ -85,7 +85,7 @@
 
 
                         <!-- Dropdown 4: Status -->
-                        <div class="col-12 col-md">
+                        <div class="col-12 col-md-2">
                             <label class="form-label fw-bold small">Status</label>
                             <select class="form-select form-select-sm" name="statusFilter" id="filterStatus" onchange="this.form.submit()">
                                 <option value="">Semua</option>
@@ -94,15 +94,14 @@
                             </select>
                         </div>
 
-                        <!-- Search & Reset -->
-                        <div class="col-12 col-md">
+                        <!-- Search -->
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-bold small">Cari Nama/Nopeg</label>
                             <div class="input-group input-group-sm">
-                                <input type="text" class="form-control" name="search" placeholder="Search..." value="@ViewBag.SearchTerm">
+                                <input type="text" class="form-control" name="search" placeholder="Cari nama atau nopeg..." value="@ViewBag.SearchTerm">
                                 <button class="btn btn-primary" type="submit" title="Cari">
                                     <i class="bi bi-search"></i>
                                 </button>
-                                <!-- Reset Button -->
                                 <a href="@Url.Action("Records", "CMP")" class="btn btn-secondary" title="Reset Filter">
                                     <i class="bi bi-arrow-counterclockwise"></i>
                                 </a>
@@ -154,12 +153,13 @@
                             <th class="p-3">Jabatan</th>
                              <th class="p-3 text-center">Unit</th>
                              <th class="p-3 text-center">Status</th>
+                             <th class="p-3 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var worker in Model)
                         {
-                            <tr class="worker-row">
+                            <tr class="worker-row clickable-row" style="cursor: pointer;" onclick="viewWorkerDetail('@worker.WorkerId', '@worker.WorkerName')">
                                 <td class="p-3">
                                     <div class="d-flex align-items-center">
                                         <div class="avatar-initial rounded-circle bg-primary text-white me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -192,6 +192,11 @@
                                         </span>
                                     }
                                 </td>
+                                <td class="p-3 text-center">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewWorkerDetail('@worker.WorkerId', '@worker.WorkerName')" title="Lihat Detail">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
                             </tr>
                         }
                     </tbody>
@@ -199,6 +204,23 @@
                 }
             </div>
         </div>
+        
+        <!-- Pagination Controls -->
+        @if (Model.Count > 0)
+        {
+            <div class="card-footer bg-white border-top">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        Showing <span id="showingStart">1</span> to <span id="showingEnd">10</span> of <span id="totalRecords">@Model.Count</span> entries
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0" id="paginationControls">
+                            <!-- Pagination buttons will be generated by JavaScript -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        }
     </div>
 
     <div class="d-flex justify-content-end mt-3">
@@ -280,6 +302,15 @@
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
 }
 
+/* Clickable row styling */
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: #e8f0fe !important;
+}
+
 /* Smooth Animations */
 .worker-row {
     animation: fadeIn 0.3s ease;
@@ -298,8 +329,10 @@
 </style>
 
 <script>
-    // --- Data Dictionaries ---
-    // --- Logic for Cascading Dropdowns ---
+    // --- Pagination Variables ---
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    let allRows = [];
 
     // Initialize on page load
     document.addEventListener("DOMContentLoaded", function() {
@@ -312,10 +345,131 @@
         if (selectedCategory) document.getElementById("filterCategory").value = selectedCategory;
         if (selectedStatus) document.getElementById("filterStatus").value = selectedStatus;
 
-        // Trigger update to populate subcategory correctly
+        // Initialize pagination
+        initializePagination();
     });
 
+    // Initialize pagination
+    function initializePagination() {
+        const table = document.querySelector('.workers-table tbody');
+        if (!table) return;
+        
+        allRows = Array.from(table.querySelectorAll('.worker-row'));
+        
+        if (allRows.length > 0) {
+            showPage(1);
+            renderPaginationControls();
+        }
+    }
+
+    // Show specific page
+    function showPage(page) {
+        currentPage = page;
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        // Hide all rows
+        allRows.forEach((row, index) => {
+            if (index >= start && index < end) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Update showing text
+        const actualEnd = Math.min(end, allRows.length);
+        document.getElementById('showingStart').textContent = allRows.length > 0 ? start + 1 : 0;
+        document.getElementById('showingEnd').textContent = actualEnd;
+        document.getElementById('totalRecords').textContent = allRows.length;
+
+        // Update pagination controls
+        renderPaginationControls();
+    }
+
+    // Render pagination controls
+    function renderPaginationControls() {
+        const totalPages = Math.ceil(allRows.length / rowsPerPage);
+        const paginationContainer = document.getElementById('paginationControls');
+        
+        if (!paginationContainer || totalPages <= 1) {
+            if (paginationContainer) paginationContainer.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+
+        // Previous button
+        html += `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); showPage(${currentPage - 1})">Previous</a>
+                 </li>`;
+
+        // Page numbers
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                html += `<li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="event.preventDefault(); showPage(${i})">${i}</a>
+                         </li>`;
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                html += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+            }
+        }
+
+        // Next button
+        html += `<li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="event.preventDefault(); showPage(${currentPage + 1})">Next</a>
+                 </li>`;
+
+        paginationContainer.innerHTML = html;
+    }
+
+    // View worker detail
+    function viewWorkerDetail(workerId, workerName) {
+        // Navigate to worker detail page (you can customize this URL)
+        window.location.href = `/CMP/WorkerDetail?workerId=${encodeURIComponent(workerId)}&name=${encodeURIComponent(workerName)}`;
+    }
+
+    // Export to Excel
     function exportToExcel() {
-        alert('Export to Excel feature - Coming soon!');
+        const table = document.querySelector('.workers-table');
+        if (!table) {
+            alert('No data to export');
+            return;
+        }
+
+        // Get all visible rows (respecting current filters)
+        const rows = Array.from(table.querySelectorAll('tbody .worker-row')).filter(row => row.style.display !== 'none');
+        
+        if (rows.length === 0) {
+            alert('No data to export');
+            return;
+        }
+
+        // Build CSV content
+        let csv = 'Nama,NIP,Jabatan,Unit,Status\n';
+        
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            const nama = cells[0].querySelector('.fw-bold').textContent.trim();
+            const nip = cells[1].textContent.trim();
+            const jabatan = cells[2].textContent.trim();
+            const unit = cells[3].textContent.trim();
+            const status = cells[4].textContent.trim();
+            
+            csv += `"${nama}","${nip}","${jabatan}","${unit}","${status}"\n`;
+        });
+
+        // Create download link
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', `Training_Records_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 </script>

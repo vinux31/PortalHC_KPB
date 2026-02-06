@@ -25,16 +25,18 @@ namespace HcPortal.Controllers
         // --- HALAMAN 1: SUSUNAN KKJ (MATRIX VIEW) ---
         public async Task<IActionResult> Kkj(string? section)
         {
-            // Get current user role
+            // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
+            int userLevel = user?.RoleLevel ?? 6;
             
             ViewBag.UserRole = userRole;
+            ViewBag.UserLevel = userLevel;
             ViewBag.SelectedSection = section;
             
-            // If HC or Section Head and no section selected, show selection page
-            if ((userRole == "HC" || userRole == "Section Head") && string.IsNullOrEmpty(section))
+            // If Level 1-3 (Admin, HC, Management) and no section selected, show selection page
+            if (UserRoles.HasFullAccess(userLevel) && string.IsNullOrEmpty(section))
             {
                 return View("KkjSectionSelect");
             }
@@ -400,12 +402,13 @@ namespace HcPortal.Controllers
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
-        public async Task<IActionResult> Records(string? section, string? category, string? subCategory, string? search, string? statusFilter, string? isFiltered)
+        public async Task<IActionResult> Records(string? section, string? category, string? search, string? statusFilter, string? isFiltered)
         {
             // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
+            int userLevel = user?.RoleLevel ?? 6;
             
             // Check if this is an initial load (no filter applied explicitly)
             // We use the hidden input 'isFiltered' from the form to differentiate
@@ -419,9 +422,9 @@ namespace HcPortal.Controllers
             // }
 
             ViewBag.UserRole = userRole;
+            ViewBag.UserLevel = userLevel;
             ViewBag.SelectedSection = section; // Can be null/empty for "Semua Bagian"
             ViewBag.SelectedCategory = category;
-            ViewBag.SelectedSubCategory = subCategory;
             ViewBag.SearchTerm = search;
             ViewBag.SelectedStatus = statusFilter;
             ViewBag.IsInitialState = isInitialState;
@@ -430,8 +433,8 @@ namespace HcPortal.Controllers
             bool isFilterMode = !string.IsNullOrEmpty(category);
             ViewBag.IsFilterMode = isFilterMode;
 
-            // Role: Coach/Coachee - Show personal training records (existing behavior)
-            if (userRole == UserRoles.Coach || userRole == UserRoles.Coachee)
+            // Role: Level 5-6 (Coach/Coachee) - Show personal training records
+            if (UserRoles.IsCoachingRole(userLevel))
             {
                 var personalRecords = GetPersonalTrainingRecords(user?.Id ?? "");
                 return View("Records", personalRecords);
@@ -448,10 +451,30 @@ namespace HcPortal.Controllers
             else
             {
                 // Fetch filtered data
-                workers = GetWorkersInSection(section, null, category, subCategory, search, statusFilter);
+                workers = GetWorkersInSection(section, null, category, search, statusFilter);
             }
 
             return View("RecordsWorkerList", workers);
+        }
+
+        // WORKER DETAIL PAGE - Show individual worker's training records
+        public async Task<IActionResult> WorkerDetail(string workerId, string name)
+        {
+            // Get current user info
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+            int userLevel = user?.RoleLevel ?? 6;
+
+            ViewBag.UserRole = userRole;
+            ViewBag.UserLevel = userLevel;
+            ViewBag.WorkerId = workerId;
+            ViewBag.WorkerName = name;
+
+            // Get worker's training records
+            var trainingRecords = GetPersonalTrainingRecords(workerId);
+
+            return View("WorkerDetail", trainingRecords);
         }
         
         // Helper method: Get personal training records for Coach/Coachee
@@ -594,12 +617,86 @@ namespace HcPortal.Controllers
                     CertificateType = "2-Year",
                     ValidUntil = new DateTime(2026, 1, 20),
                     SertifikatUrl = "#"
+                },
+                
+                // === TRAINING LICENCOR (2 items) ===
+                new TrainingRecord 
+                { 
+                    Id = 12, 
+                    Judul = "Boiler Class 1 License", 
+                    Kategori = "Training Licencor", 
+                    Tanggal = new DateTime(2023, 8, 15),
+                    Penyelenggara = "External - Licensor",
+                    Status = "Valid",
+                    CertificateType = "5-Year",
+                    ValidUntil = new DateTime(2028, 8, 15),
+                    SertifikatUrl = "/certificates/boiler-license-2023.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 13, 
+                    Judul = "Pressure Vessel Inspector Certification", 
+                    Kategori = "Training Licencor", 
+                    Tanggal = new DateTime(2024, 3, 20),
+                    Penyelenggara = "External - Licensor",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/pressure-vessel-2024.pdf"
+                },
+                
+                // === ISS (Internal Skill Standard) (2 items) ===
+                new TrainingRecord 
+                { 
+                    Id = 14, 
+                    Judul = "ISS Level 1: Basic Operations", 
+                    Kategori = "ISS", 
+                    Tanggal = new DateTime(2024, 5, 10),
+                    Penyelenggara = "Internal",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/iss-level1-2024.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 15, 
+                    Judul = "ISS Level 2: Advanced Process Control", 
+                    Kategori = "ISS", 
+                    Tanggal = new DateTime(2024, 11, 5),
+                    Penyelenggara = "Internal",
+                    Status = "Wait Certificate",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = null
+                },
+                
+                // === OSS (Occupational Skill Standard) (2 items) ===
+                new TrainingRecord 
+                { 
+                    Id = 16, 
+                    Judul = "OSS: Mechanical Maintenance Technician", 
+                    Kategori = "OSS", 
+                    Tanggal = new DateTime(2023, 12, 1),
+                    Penyelenggara = "External - BNSP",
+                    Status = "Valid",
+                    CertificateType = "3-Year",
+                    ValidUntil = new DateTime(2026, 12, 1),
+                    SertifikatUrl = "/certificates/oss-mechanical-2023.pdf"
+                },
+                new TrainingRecord 
+                { 
+                    Id = 17, 
+                    Judul = "OSS: Electrical Technician Level II", 
+                    Kategori = "OSS", 
+                    Tanggal = new DateTime(2024, 4, 18),
+                    Penyelenggara = "External - BNSP",
+                    Status = "Passed",
+                    CertificateType = "Permanent",
+                    SertifikatUrl = "/certificates/oss-electrical-2024.pdf"
                 }
             };
         }
         
         // Helper method: Get all workers in a section (with optional filters)
-        private List<WorkerTrainingStatus> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? subCategory = null, string? search = null, string? statusFilter = null)
+        private List<WorkerTrainingStatus> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null)
         {
             // Mock data - All workers in GAST section
             var allWorkers = new List<WorkerTrainingStatus>
