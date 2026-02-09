@@ -424,7 +424,7 @@ namespace HcPortal.Controllers
                 search = search.ToLower();
                 allWorkers = allWorkers.Where(w => 
                     w.WorkerName.ToLower().Contains(search) || 
-                    w.NIP.Contains(search)
+                    (w.NIP != null && w.NIP.Contains(search))
                 ).ToList();
             }
             
@@ -441,6 +441,7 @@ namespace HcPortal.Controllers
 
                     // Check if they have ANY passed/valid record in this Category
                     isCompleted = worker.TrainingRecords.Any(r => 
+                        !string.IsNullOrEmpty(r.Kategori) && 
                         r.Kategori.Contains(category, StringComparison.OrdinalIgnoreCase) &&
                         (r.Status == "Passed" || r.Status == "Valid" || r.Status == "Permanent")
                     );

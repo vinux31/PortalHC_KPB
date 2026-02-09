@@ -183,7 +183,7 @@
                             var isExpiringSoon = record.ValidUntil.HasValue && record.ValidUntil.Value <= DateTime.Now.AddMonths(3) && record.ValidUntil.Value > DateTime.Now;
                             var isExpired = record.ValidUntil.HasValue && record.ValidUntil.Value < DateTime.Now;
 
-                            <tr class="training-row" data-category="@record.Kategori" data-status="@record.Status" data-title="@record.Judul.ToLower()">
+                            <tr class="training-row" data-category="@record.Kategori" data-status="@record.Status" data-title="@(record.Judul?.ToLower() ?? "")">
                                 <td class="p-3 text-center">@rowNumber</td>
                                 <td class="p-3">
                                     <div class="fw-bold">@record.Judul</div>
