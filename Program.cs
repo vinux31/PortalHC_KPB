@@ -54,6 +54,11 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.Migrate(); // Apply migrations
         await SeedData.InitializeAsync(services); // Seed roles & users
+        
+        // Seed master data (KKJ Matrix, CPDP Items, Sample Training Records)
+        await SeedMasterData.SeedKkjMatrixAsync(context);
+        await SeedMasterData.SeedCpdpItemsAsync(context);
+        await SeedMasterData.SeedSampleTrainingRecordsAsync(context);
     }
     catch (Exception ex)
     {

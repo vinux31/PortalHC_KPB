@@ -3,7 +3,8 @@ namespace HcPortal.Models
     // 1. CLASS UNTUK HALAMAN SUSUNAN KKJ (MATRIX)
     public class KkjMatrixItem
     {
-        public int No { get; set; }
+        public int Id { get; set; }           // Primary Key for EF Core
+        public int No { get; set; }           // Display number
         public string SkillGroup { get; set; } = "";
         public string SubSkillGroup { get; set; } = "";
         public string Indeks { get; set; } = "";     
@@ -69,7 +70,8 @@ namespace HcPortal.Models
     // 3. CLASS BARU UNTUK TABEL CPDP (MAPPING)
     public class CpdpItem
     {
-        public string No { get; set; } = "";
+        public int Id { get; set; }           // Primary Key for EF Core
+        public string No { get; set; } = "";  // Display number (can be "5.1", "5.2", etc.)
         public string NamaKompetensi { get; set; } = "";
         public string IndikatorPerilaku { get; set; } = "";
         public string DetailIndikator { get; set; } = "";

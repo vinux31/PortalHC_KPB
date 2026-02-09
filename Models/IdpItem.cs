@@ -3,6 +3,11 @@ namespace HcPortal.Models
     public class IdpItem
     {
         public int Id { get; set; }
+        
+        // Foreign Key to User
+        public string UserId { get; set; } = "";
+        public ApplicationUser? User { get; set; }
+        
         // Tambahkan tanda tanya (?) setelah string
         public string? Kompetensi { get; set; } 
         public string? SubKompetensi { get; set; } // Baru

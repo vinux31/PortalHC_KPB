@@ -3,6 +3,11 @@ namespace HcPortal.Models
     public class AssessmentSession
     {
         public int Id { get; set; }
+        
+        // Foreign Key to User
+        public string UserId { get; set; } = "";
+        public ApplicationUser? User { get; set; }
+        
         public string Title { get; set; } = "";
         
         // Kategori utama: "Assessment OJ", "IHT", "Licencor", "OTS", "Mandatory HSSE Training"

@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
+using HcPortal.Data;
 
 namespace HcPortal.Controllers
 {
@@ -10,11 +12,13 @@ namespace HcPortal.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly ApplicationDbContext _context;
 
-        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         public async Task<IActionResult> Index(string? bagian = null, string? unit = null, string? level = null)
@@ -81,30 +85,17 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
-        public IActionResult Coaching()
+        public async Task<IActionResult> Coaching()
         {
-            // Data Dummy Riwayat Coaching
-            var history = new List<CoachingLog>
-            {
-                new CoachingLog { 
-                    Id = 1, 
-                    CoachName = "Budi Santoso (Mgr)", 
-                    CoacheeName = "User (Anda)", 
-                    SubKompetensi = "Review Target Q1", 
-                    Tanggal = new DateTime(2025, 01, 10),
-                    Status = "Submitted",
-                    CatatanCoach = "Progress memuaskan, pertahankan."
-                },
-                new CoachingLog { 
-                    Id = 2, 
-                    CoachName = "Siti Aminah (Senior Eng)", 
-                    CoacheeName = "User (Anda)", 
-                    SubKompetensi = "Teknis Troubleshooting Pompa", 
-                    Tanggal = new DateTime(2025, 02, 05),
-                    Status = "Submitted",
-                    CatatanCoach = "Menunggu upload evidence foto lapangan."
-                }
-            };
+            // Get current user
+            var user = await _userManager.GetUserAsync(User);
+            var userId = user?.Id ?? "";
+
+            // Query coaching logs from database where user is coach or coachee
+            var history = await _context.CoachingLogs
+                .Where(c => c.CoachId == userId || c.CoacheeId == userId)
+                .OrderByDescending(c => c.Tanggal)
+                .ToListAsync();
 
             return View(history);
         }

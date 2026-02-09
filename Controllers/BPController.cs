@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using HcPortal.Models;
+using HcPortal.Data;
 using System.Collections.Generic;
 
 namespace HcPortal.Controllers
@@ -8,24 +10,41 @@ namespace HcPortal.Controllers
     [Authorize]
     public class BPController : Controller
     {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
+
+        public BPController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        {
+            _userManager = userManager;
+            _context = context;
+        }
+
         public IActionResult Index()
         {
             return RedirectToAction("TalentProfile");
         }
 
         // 1. Talent Profile & Career Historical
-        public IActionResult TalentProfile()
+        public async Task<IActionResult> TalentProfile()
         {
-            // Dummy Data for Profile & History
+            // Get current user from database
+            var user = await _userManager.GetUserAsync(User);
+            
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Build profile from user data
             var model = new TalentProfileViewModel
             {
-                Name = "Budi Santoso",
-                NIO = "759921",
-                Position = "Section Head",
-                Unit = "SRU",
+                Name = user.FullName ?? "Unknown",
+                NIO = user.Id.Substring(0, 6).ToUpper(), // Generate NIO from user ID
+                Position = user.Position ?? "Staff",
+                Unit = user.Unit ?? user.Section ?? "General",
                 Directorate = "Technical",
-                Age = 34,
-                Tenure = "8 Years",
+                Age = 30, // TODO: Calculate from birthdate if available
+                Tenure = "N/A", // TODO: Calculate from hire date if available
                 TalentClassification = "Future Leader",
                 PerformanceHistory = new List<PerformanceRecord>
                 {
@@ -35,10 +54,14 @@ namespace HcPortal.Controllers
                 },
                 CareerHistory = new List<CareerHistory>
                 {
-                    new CareerHistory { Tahun = 2024, Jabatan = "Section Head SRU", Unit = "SRU Process", Tipe = "Promosi", NoSK = "SK-2024/HR/005", Keterangan = "Promosi jabatan setelah assessment Q3." },
-                    new CareerHistory { Tahun = 2021, Jabatan = "Senior Supervisor", Unit = "SRU Process", Tipe = "Mutasi", NoSK = "SK-2021/HR/112", Keterangan = "Rotasi internal." },
-                    new CareerHistory { Tahun = 2019, Jabatan = "Junior Engineer", Unit = "Utilities", Tipe = "Mutasi", NoSK = "SK-2019/HR/088", Keterangan = "Pindah unit." },
-                    new CareerHistory { Tahun = 2018, Jabatan = "Management Trainee", Unit = "RFCC", Tipe = "New Hire", NoSK = "SK-2018/REC/001", Keterangan = "Lulus program BPS." }
+                    new CareerHistory { 
+                        Tahun = 2024, 
+                        Jabatan = user.Position ?? "Staff", 
+                        Unit = user.Unit ?? user.Section ?? "General", 
+                        Tipe = "Current", 
+                        NoSK = "SK-2024/HR/001", 
+                        Keterangan = "Posisi saat ini" 
+                    }
                 }
             };
 

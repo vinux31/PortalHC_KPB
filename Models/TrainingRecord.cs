@@ -3,6 +3,11 @@ namespace HcPortal.Models
     public class TrainingRecord
     {
         public int Id { get; set; }
+        
+        // Foreign Key to User
+        public string UserId { get; set; } = "";
+        public ApplicationUser? User { get; set; }
+        
         public string? Judul { get; set; }      // Nama Training
         public string? Kategori { get; set; }   // "PROTON", "OJT", "MANDATORY"
         public DateTime Tanggal { get; set; }
