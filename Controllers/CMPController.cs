@@ -140,10 +140,11 @@ namespace HcPortal.Controllers
             // Get list of users for dropdown
             var users = await _context.Users
                 .OrderBy(u => u.FullName)
-                .Select(u => new { u.Id, FullName = u.FullName ?? "", NIP = u.NIP ?? "" })
+                .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "" })
                 .ToListAsync();
 
             ViewBag.Users = users;
+            ViewBag.SelectedUserIds = new List<string>();
 
             // Pass created assessment data to view if exists (for success modal)
             if (TempData["CreatedAssessment"] != null)
@@ -154,28 +155,38 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        // POST: Process form submission
+        // POST: Process form submission (multi-user)
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAssessment(AssessmentSession model)
+        public async Task<IActionResult> CreateAssessment(AssessmentSession model, List<string> UserIds)
         {
+            // Remove single UserId from validation since we use UserIds list
+            ModelState.Remove("UserId");
+
             // Custom Validation: Check Token
             if (model.IsTokenRequired && string.IsNullOrWhiteSpace(model.AccessToken))
             {
                 ModelState.AddModelError("AccessToken", "Access Token is required when token security is enabled.");
             }
 
+            // Validate at least 1 user selected
+            if (UserIds == null || UserIds.Count == 0)
+            {
+                ModelState.AddModelError("UserIds", "Please select at least one user.");
+            }
+
             // Validate model
             if (!ModelState.IsValid)
             {
-                // Reload users dropdown for validation error (must match GET structure)
+                // Reload users for validation error (must match GET structure)
                 var users = await _context.Users
                     .OrderBy(u => u.FullName)
-                    .Select(u => new { u.Id, FullName = u.FullName ?? "", NIP = u.NIP ?? "" })
+                    .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "" })
                     .ToListAsync();
 
                 ViewBag.Users = users;
+                ViewBag.SelectedUserIds = UserIds ?? new List<string>();
                 return View(model);
             }
 
@@ -186,7 +197,6 @@ namespace HcPortal.Controllers
             }
             else
             {
-                // Clear token if not required
                 model.AccessToken = "";
             }
 
@@ -198,32 +208,43 @@ namespace HcPortal.Controllers
             {
                 model.Status = "Open";
             }
-            model.Progress = 0;
 
-            // If UserId not provided, use current user
-            if (string.IsNullOrEmpty(model.UserId))
+            // Create one AssessmentSession per selected user
+            var createdSessions = new List<object>();
+
+            foreach (var userId in UserIds)
             {
-                model.UserId = currentUser?.Id ?? "";
+                var session = new AssessmentSession
+                {
+                    Title = model.Title,
+                    Category = model.Category,
+                    Type = model.Type,
+                    Schedule = model.Schedule,
+                    DurationMinutes = model.DurationMinutes,
+                    Status = model.Status,
+                    BannerColor = model.BannerColor,
+                    IsTokenRequired = model.IsTokenRequired,
+                    AccessToken = model.AccessToken,
+                    Progress = 0,
+                    UserId = userId
+                };
+
+                _context.AssessmentSessions.Add(session);
+                await _context.SaveChangesAsync();
+
+                var assignedUser = await _context.Users.FindAsync(userId);
+                createdSessions.Add(new
+                {
+                    Id = session.Id,
+                    UserName = assignedUser?.FullName ?? userId,
+                    UserEmail = assignedUser?.Email ?? ""
+                });
             }
 
-            // Add to database
-            _context.AssessmentSessions.Add(model);
-            await _context.SaveChangesAsync();
-
-            // Get assigned user info for the success modal
-            var assignedUserName = currentUser?.FullName ?? "";
-            var assignedUserNIP = currentUser?.NIP ?? "";
-            if (model.UserId != currentUser?.Id)
-            {
-                var assignedUser = await _context.Users.FindAsync(model.UserId);
-                assignedUserName = assignedUser?.FullName ?? model.UserId;
-                assignedUserNIP = assignedUser?.NIP ?? "";
-            }
-
-            // Serialize assessment data for success popup
+            // Serialize batch data for success popup
             TempData["CreatedAssessment"] = System.Text.Json.JsonSerializer.Serialize(new
             {
-                Id = model.Id,
+                Count = createdSessions.Count,
                 Title = model.Title,
                 Category = model.Category,
                 Schedule = model.Schedule.ToString("dd MMMM yyyy"),
@@ -231,7 +252,7 @@ namespace HcPortal.Controllers
                 Status = model.Status,
                 IsTokenRequired = model.IsTokenRequired,
                 AccessToken = model.AccessToken,
-                AssignedTo = $"{assignedUserName} ({assignedUserNIP})"
+                Sessions = createdSessions
             });
 
             return RedirectToAction(nameof(CreateAssessment));
