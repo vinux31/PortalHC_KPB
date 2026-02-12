@@ -422,6 +422,17 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Assessment not found." });
             }
 
+            // Authorization: only owner, Admin, or HC can verify
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return Json(new { success = false, message = "Session expired. Please login again." });
+            }
+            if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
+            {
+                return Json(new { success = false, message = "You are not authorized to access this assessment." });
+            }
+
             if (!assessment.IsTokenRequired)
             {
                 // If token not required, just success
@@ -454,6 +465,13 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
+            // Prevent re-taking completed assessments
+            if (assessment.Status == "Completed")
+            {
+                TempData["Error"] = "This assessment has already been completed.";
+                return RedirectToAction("Assessment");
+            }
+
             return View(assessment);
         }
 
@@ -461,6 +479,7 @@ namespace HcPortal.Controllers
 
         #region Question Management
         [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ManageQuestions(int id)
         {
             var assessment = await _context.AssessmentSessions
@@ -474,6 +493,8 @@ namespace HcPortal.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddQuestion(int has_id, string question_text, List<string> options, int correct_option_index)
         {
             var assessment = await _context.AssessmentSessions.FindAsync(has_id);
@@ -510,6 +531,8 @@ namespace HcPortal.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteQuestion(int id)
         {
             var question = await _context.AssessmentQuestions.FindAsync(id);
@@ -530,6 +553,21 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (assessment == null) return NotFound();
+
+            // Authorization: only owner or Admin can submit
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            if (assessment.UserId != user.Id && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            // Prevent re-submission of completed assessments
+            if (assessment.Status == "Completed")
+            {
+                TempData["Error"] = "This assessment has already been completed.";
+                return RedirectToAction("Assessment");
+            }
 
             int totalScore = 0;
             int maxScore = 0;
