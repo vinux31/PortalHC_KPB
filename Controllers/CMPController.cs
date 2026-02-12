@@ -69,17 +69,110 @@ namespace HcPortal.Controllers
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
         public async Task<IActionResult> Assessment()
         {
-            // Get current user
+            // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userId = user?.Id ?? "";
-            
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+
             // ✅ QUERY FROM DATABASE instead of hardcoded data
             var exams = await _context.AssessmentSessions
                 .Where(a => a.UserId == userId)
                 .OrderBy(a => a.Schedule)
                 .ToListAsync();
 
-            return View(exams); 
+            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            {
+                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
+                {
+                    // Show personal assessments only
+                    return View(exams);
+                }
+                else if (user.SelectedView == "Atasan" && !string.IsNullOrEmpty(user.Section))
+                {
+                    // Show assessments from user's section
+                    var section = user.Section;
+
+                    // Get all user IDs in the section
+                    var teamUserIds = await _context.Users
+                        .Where(u => u.Section == section)
+                        .Select(u => u.Id)
+                        .ToListAsync();
+
+                    var teamExams = await _context.AssessmentSessions
+                        .Include(a => a.User)
+                        .Where(a => teamUserIds.Contains(a.UserId))
+                        .OrderBy(a => a.Schedule)
+                        .ToListAsync();
+                    return View(teamExams);
+                }
+                else if (user.SelectedView == "HC")
+                {
+                    // Show all assessments - already queried above
+                    return View(exams);
+                }
+            }
+
+            return View(exams);
+        }
+
+        // --- HALAMAN 5: CREATE ASSESSMENT (NEW) ---
+        // GET: Tampilkan form create assessment
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult CreateAssessment()
+        {
+            // Get list of users for dropdown
+            var users = _context.Users
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, u.FullName })
+                .ToList();
+
+            ViewBag.Users = users;
+            return View();
+        }
+
+        // POST: Process form submission
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateAssessment(AssessmentSession model)
+        {
+            // Validate model
+            if (!ModelState.IsValid)
+            {
+                // Reload users dropdown for validation error
+                var users = await _context.Users
+                    .OrderBy(u => u.FullName)
+                    .Select(u => new { u.Id, u.FullName })
+                    .ToListAsync();
+
+                ViewBag.Users = users;
+                return View(model);
+            }
+
+            // Get current user for audit trail
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            // Set default values
+            model.Status = "Open";
+            model.Progress = 0;
+
+            // If UserId not provided, use current user
+            if (string.IsNullOrEmpty(model.UserId))
+            {
+                model.UserId = currentUser?.Id ?? "";
+            }
+
+            // Add to database
+            _context.AssessmentSessions.Add(model);
+            await _context.SaveChangesAsync();
+
+            // Log action
+            TempData["SuccessMessage"] = $"Assessment '{model.Title}' successfully created for {currentUser?.FullName ?? model.UserId}";
+
+            return RedirectToAction(nameof(Assessment));
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
@@ -113,6 +206,18 @@ namespace HcPortal.Controllers
             // Determine if we should show Status column (Filter Mode) or Stats columns (Default Mode)
             bool isFilterMode = !string.IsNullOrEmpty(category);
             ViewBag.IsFilterMode = isFilterMode;
+
+            // Admin (Level 1) dengan SelectedView override - Gunakan view preference
+            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            {
+                // Jika Admin memilih view Coach/Coachee, tampilkan personal records
+                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
+                {
+                    var personalRecords = await GetPersonalTrainingRecords(user.Id);
+                    return View("Records", personalRecords);
+                }
+                // Untuk HC/Atasan view, lanjut ke worker list (existing logic)
+            }
 
             // Role: Level 5-6 (Coach/Coachee) - Show personal training records
             if (UserRoles.IsCoachingRole(userLevel))

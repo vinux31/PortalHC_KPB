@@ -1,0 +1,261 @@
+@model HcPortal.Models.AssessmentSession
+
+@{
+    ViewData["Title"] = "Create Assessment";
+    // Get list of categories for dropdown
+    var categories = new List<string>
+    {
+        "OJT",
+        "IHT",
+        "Training Licencor",
+        "OTS",
+        "Mandatory HSSE Training",
+        "Proton"
+    };
+
+    // Status options
+    var statuses = new List<string> { "Open", "Upcoming", "Completed" };
+
+    // Banner color options
+    var bannerColors = new List<string>
+    {
+        new { Value = "bg-primary", Name = "Blue" },
+        new { Value = "bg-success", Name = "Green" },
+        new { Value = "bg-danger", Name = "Red" },
+        new { Value = "bg-warning", Name = "Yellow" },
+        new { Value = "bg-info", Name = "Cyan" },
+        new { Value = "bg-purple text-white", Name = "Purple" }
+    };
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">Create New Assessment</h2>
+                <p class="text-muted mb-0">Create a new competency assessment for employees</p>
+            </div>
+            <a asp-action="Assessment" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Assessments
+            </a>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Create Assessment Form -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form asp-action="CreateAssessment" method="post" class="needs-validation">
+
+                <!-- User Selection -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="UserId" class="form-label fw-semibold">
+                            Assign to User <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="UserId" class="form-select" required>
+                            <option value="">-- Select User --</option>
+                            @if (ViewBag.Users != null)
+                            {
+                                @foreach (var user in ViewBag.Users)
+                                {
+                                    <option value="@user.Id">@user.FullName (@user.NIP)</option>
+                                }
+                            }
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger"></span>
+                        <div class="form-text">Leave empty to create for yourself</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Title -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">
+                            Assessment Title <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Title" class="form-control" placeholder="Enter assessment title" required maxlength="255" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Category" class="form-label fw-semibold">
+                            Category <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Category" class="form-select" asp-items="categories" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Type -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Type" class="form-label fw-semibold">Type</label>
+                        <input asp-for="Type" class="form-control" readonly value="@Model?.Category" />
+                        <div class="form-text text-muted">Auto-populated from Category</div>
+                    </div>
+
+                    <!-- Schedule -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Schedule" class="form-label fw-semibold">
+                            Schedule Date <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Schedule" type="date" class="form-control" required />
+                        <span asp-validation-for="Schedule" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Duration Minutes -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DurationMinutes" class="form-label fw-semibold">
+                            Duration (Minutes) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DurationMinutes" type="number" class="form-control" min="1" max="480" required />
+                        <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+                        <div class="form-text text-muted">Duration in minutes (1-480 minutes / max 8 hours)</div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Status" class="form-label fw-semibold">Initial Status</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Open">Open</option>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <div class="form-text text-muted">Default: Open (available immediately)</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Banner Color -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="BannerColor" class="form-label fw-semibold">Card Banner Color</label>
+                        <select asp-for="BannerColor" class="form-select">
+                            @foreach (var color in bannerColors)
+                            {
+                                <option value="@color.Value">@color.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Token Required -->
+                    <div class="col-md-6 mb-3">
+                        <div class="form-check form-switch mt-4">
+                            <input class="form-check-input" type="checkbox" asp-for="IsTokenRequired">
+                            <label class="form-check-label fw-semibold" for="IsTokenRequired">
+                                <i class="bi bi-shield-lock text-primary me-1"></i>
+                                Requires Security Token
+                            </label>
+                        </div>
+                        <div class="form-text text-muted">If checked, user must enter 6-digit token to start</div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="bi bi-plus-circle me-1"></i> Create Assessment
+                            </button>
+                            <a asp-action="Assessment" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Help Section -->
+    <div class="card mt-4 border-0 bg-light">
+        <div class="card-body">
+            <h5 class="fw-bold mb-3">
+                <i class="bi bi-info-circle text-primary me-2"></i> Assessment Creation Guide
+            </h5>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <h6 class="fw-semibold">Category Types</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li><span class="badge bg-primary me-1">OJT</span> - On Job Training</li>
+                        <li><span class="badge bg-success me-1">IHT</span> - Internal Training</li>
+                        <li><span class="badge bg-danger me-1">Training Licencor</span> - Licensed Training</li>
+                        <li><span class="badge bg-warning text-dark me-1">OTS</span> - Operator Training Simulator</li>
+                        <li><span class="badge bg-info me-1">Mandatory HSSE</span> - Health & Safety Training</li>
+                        <li><span class="badge bg-purple text-white me-1">Proton</span> - Specialized Assessment</li>
+                    </ul>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <h6 class="fw-semibold">Status Options</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li><span class="badge bg-success me-1">Open</span> - Available immediately for users</li>
+                        <li><span class="badge bg-warning text-dark me-1">Upcoming</span> - Scheduled for future, not yet available</li>
+                        <li><span class="badge bg-primary me-1">Completed</span> - Finished, shows score</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <h6 class="fw-semibold">Best Practices</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li><i class="bi bi-check2 text-success me-1"></i> Set schedule date in the future</li>
+                        <li><i class="bi bi-check2 text-success me-1"></i> Duration: 15-480 minutes (max 8 hours)</li>
+                        <li><i class="bi bi-check2 text-success me-1"></i> Use clear, descriptive titles</li>
+                    </ul>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <h6 class="fw-semibold">Token Security</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li><i class="bi bi-shield-lock text-primary me-1"></i> Enable for sensitive assessments (Proton)</li>
+                        <li><i class="bi bi-shield-lock text-primary me-1"></i> User must enter 6-digit token</li>
+                        <li><i class="bi bi-info-circle text-info me-1"></i> NSO Room restriction for Proton</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-check-input {
+        width: 3em;
+        height: 1.5em;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+    }
+
+    .form-switch {
+        padding-left: 0;
+    }
+
+    .card {
+        border-radius: 8px;
+    }
+
+    .alert {
+        border-radius: 8px;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
