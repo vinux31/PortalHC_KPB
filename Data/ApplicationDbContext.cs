@@ -60,7 +60,7 @@ namespace HcPortal.Data
                 entity.HasIndex(a => a.UserId);
                 entity.HasIndex(a => new { a.UserId, a.Status });
                 entity.HasIndex(a => a.Schedule);
-                entity.HasIndex(a => a.AccessToken).IsUnique();
+                entity.HasIndex(a => a.AccessToken); // Removed .IsUnique() to allow shared tokens
 
                 // Check constraints for data integrity
                 entity.HasCheckConstraint("CK_AssessmentSession_Progress", "[Progress] >= 0 AND [Progress] <= 100");
