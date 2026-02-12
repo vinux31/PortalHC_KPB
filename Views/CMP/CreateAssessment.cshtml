@@ -57,10 +57,36 @@
         </div>
     }
 
+    <!-- Error Alert -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <!-- Create Assessment Form -->
     <div class="card shadow-sm border-0">
         <div class="card-body">
-            <form asp-action="CreateAssessment" method="post" class="needs-validation">
+            <form id="createAssessmentForm" asp-action="CreateAssessment" method="post" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+
+                @* Server-side validation summary *@
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>Please fix the following errors:</strong>
+                        <ul class="mb-0 mt-2">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
 
                 <!-- User Selection (Multi-Select Checkboxes) -->
                 <div class="row mb-3">
@@ -215,7 +241,7 @@
                 <div class="row mt-4">
                     <div class="col-12">
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary px-4">
+                            <button type="submit" class="btn btn-primary px-4" id="submitBtn">
                                 <i class="bi bi-plus-circle me-1"></i> Create Assessment
                             </button>
                             <a asp-action="Assessment" class="btn btn-outline-secondary px-4">
@@ -389,20 +415,33 @@
 </style>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // === Category → Type auto-sync ===
-            var categorySelect = document.getElementById('Category');
-            var typeField = document.getElementById('TypeField');
+        // Global variables for form validation
+        var categorySelect, typeField;
 
-            categorySelect.addEventListener('change', function() {
-                typeField.value = this.value;
-            });
-
-            if (categorySelect.value) {
+        function syncCategoryToType() {
+            if (categorySelect && typeField) {
                 typeField.value = categorySelect.value;
+                console.log('Type field synced:', typeField.value);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== Page loaded - Pure JavaScript validation ===');
+
+            // Get the correct form (not the logout form in header!)
+            var form = document.getElementById('createAssessmentForm');
+            console.log('Target form:', form);
+
+            // === Category → Type auto-sync ===
+            categorySelect = document.getElementById('Category');
+            typeField = document.getElementById('TypeField');
+
+            categorySelect.addEventListener('change', syncCategoryToType);
+
+            // Force sync on page load
+            if (categorySelect.value) {
+                syncCategoryToType();
             }
 
             // === Token toggle ===
@@ -484,17 +523,114 @@
             }
 
             // === Client-side validation: at least 1 user ===
-            var form = document.querySelector('form');
+            // Form already declared at top of DOMContentLoaded
+            if (!form) {
+                console.error('Form not found!');
+                return;
+            }
             form.addEventListener('submit', function(e) {
-                var count = document.querySelectorAll('.user-checkbox:checked').length;
-                var validationSpan = document.getElementById('userIdsValidation');
-                if (count === 0) {
-                    e.preventDefault();
-                    validationSpan.textContent = 'Please select at least one user.';
-                } else {
-                    validationSpan.textContent = '';
+                try {
+                    console.log('=== Form Submit Triggered ===');
+
+                    var count = document.querySelectorAll('.user-checkbox:checked').length;
+                    var validationSpan = document.getElementById('userIdsValidation');
+
+                    // Check user selection
+                    if (count === 0) {
+                        e.preventDefault();
+                        validationSpan.textContent = 'Please select at least one user.';
+                        console.error('Validation failed: No users selected');
+                        alert('Please select at least one user.');
+                        return false;
+                    } else {
+                        validationSpan.textContent = '';
+                    }
+
+                    // Ensure Type field is synced before validation
+                    syncCategoryToType();
+
+                    // Check required fields (use name attribute for ASP.NET compatibility)
+                    var titleField = document.querySelector('input[name="Title"]') || document.getElementById('Title');
+                    var title = titleField ? titleField.value.trim() : '';
+                    var category = categorySelect ? categorySelect.value : '';
+                    var scheduleField = document.querySelector('input[name="Schedule"]');
+                    var schedule = scheduleField ? scheduleField.value : '';
+                    var durationField = document.querySelector('input[name="DurationMinutes"]');
+                    var duration = durationField ? durationField.value : '';
+
+                    console.log('Form data:', {
+                        title: title,
+                        category: category,
+                        type: typeField ? typeField.value : 'N/A',
+                        schedule: schedule,
+                        duration: duration,
+                        usersCount: count
+                    });
+
+                    // Validate required fields
+                    if (!title) {
+                        e.preventDefault();
+                        alert('Please enter an Assessment Title');
+                        console.error('Validation failed: Title is empty');
+                        return false;
+                    }
+
+                    if (!category) {
+                        e.preventDefault();
+                        alert('Please select a Category');
+                        console.error('Validation failed: Category not selected');
+                        return false;
+                    }
+
+                    if (!schedule) {
+                        e.preventDefault();
+                        alert('Please select a Schedule Date');
+                        console.error('Validation failed: Schedule date is empty');
+                        return false;
+                    }
+
+                    if (!duration || duration <= 0) {
+                        e.preventDefault();
+                        alert('Please enter a valid Duration (1-480 minutes)');
+                        console.error('Validation failed: Invalid duration');
+                        return false;
+                    }
+
+                    // Check token if required
+                    var tokenCheckbox = document.getElementById('IsTokenRequired');
+                    if (tokenCheckbox && tokenCheckbox.checked) {
+                        var tokenInput = document.getElementById('AccessToken');
+                        var token = tokenInput ? tokenInput.value.trim() : '';
+                        if (!token || token.length !== 6) {
+                            e.preventDefault();
+                            alert('Please enter a valid 6-digit Access Token');
+                            console.error('Validation failed: Invalid token');
+                            return false;
+                        }
+                    }
+
+                    console.log('✅ All validations passed. Submitting form...');
+                    // Form will submit normally
+                    return true;
+                } catch (error) {
+                    console.error('Validation error caught:', error);
+                    // Allow form to submit even if validation fails
+                    console.warn('Allowing form submit despite validation error');
+                    return true;
                 }
             });
+
+            // Add button click handler for additional debugging
+            var submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    console.log('Submit button clicked');
+                });
+            }
+
+            console.log('=== Form initialization complete ===');
+            console.log('Form element:', form);
+            console.log('Submit button:', submitBtn);
         });
 
         function generateToken() {

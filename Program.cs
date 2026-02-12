@@ -8,6 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Tambahkan Service MVC
 builder.Services.AddControllersWithViews();
 
+// Session configuration for TempData
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 // 2. Konfigurasi Database (SQL Server untuk Development dan Production)
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -93,6 +102,8 @@ var staticFileOptions = new StaticFileOptions
 app.UseStaticFiles(staticFileOptions); // Ini wajib ada untuk memuat CSS/JS dan PDF
 
 app.UseRouting();
+
+app.UseSession();
 
 // 8. PENTING: Authentication harus sebelum Authorization
 app.UseAuthentication();

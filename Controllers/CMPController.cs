@@ -214,33 +214,55 @@ namespace HcPortal.Controllers
             // Create one AssessmentSession per selected user
             var createdSessions = new List<object>();
 
-            foreach (var userId in UserIds)
+            try
             {
-                var session = new AssessmentSession
+                foreach (var userId in UserIds)
                 {
-                    Title = model.Title,
-                    Category = model.Category,
-                    Type = model.Type,
-                    Schedule = model.Schedule,
-                    DurationMinutes = model.DurationMinutes,
-                    Status = model.Status,
-                    BannerColor = model.BannerColor,
-                    IsTokenRequired = model.IsTokenRequired,
-                    AccessToken = model.AccessToken,
-                    Progress = 0,
-                    UserId = userId
-                };
+                    var session = new AssessmentSession
+                    {
+                        Title = model.Title,
+                        Category = model.Category,
+                        Type = model.Type,
+                        Schedule = model.Schedule,
+                        DurationMinutes = model.DurationMinutes,
+                        Status = model.Status,
+                        BannerColor = model.BannerColor,
+                        IsTokenRequired = model.IsTokenRequired,
+                        AccessToken = model.AccessToken,
+                        Progress = 0,
+                        UserId = userId
+                    };
 
-                _context.AssessmentSessions.Add(session);
-                await _context.SaveChangesAsync();
+                    _context.AssessmentSessions.Add(session);
+                    await _context.SaveChangesAsync();
 
-                var assignedUser = await _context.Users.FindAsync(userId);
-                createdSessions.Add(new
-                {
-                    Id = session.Id,
-                    UserName = assignedUser?.FullName ?? userId,
-                    UserEmail = assignedUser?.Email ?? ""
-                });
+                    var assignedUser = await _context.Users.FindAsync(userId);
+                    createdSessions.Add(new
+                    {
+                        Id = session.Id,
+                        UserName = assignedUser?.FullName ?? userId,
+                        UserEmail = assignedUser?.Email ?? ""
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log error
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+                logger.LogError(ex, "Error creating assessment sessions");
+
+                // Show error to user
+                TempData["Error"] = $"Failed to create assessments: {ex.Message}";
+
+                // Reload form
+                var users = await _context.Users
+                    .OrderBy(u => u.FullName)
+                    .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
+                    .ToListAsync();
+                ViewBag.Users = users;
+                ViewBag.SelectedUserIds = UserIds ?? new List<string>();
+                ViewBag.Sections = OrganizationStructure.GetAllSections();
+                return View(model);
             }
 
             // Serialize batch data for success popup
