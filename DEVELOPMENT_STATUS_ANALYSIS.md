@@ -152,11 +152,11 @@ Berdasarkan analisis, website sudah melewati **Phase 1 (Database Setup)** dengan
 |:----:|------|:------:|:------:|
 | **1** | Connect `AssessmentSessions` ke view | 🟢 Easy | ⭐⭐⭐ |
 | **2** | Connect `IdpItems` ke Progress view | 🟡 Medium | ⭐⭐⭐ |
-| **3** | Migrasi `GetWorkersInSection()` ke DB | 🔴 Hard | ⭐⭐⭐⭐ |
+| **3** | Migrasi `GetWorkersInSection()` ke DB (dari Users) | 🟡 Medium | ⭐⭐⭐⭐ |
 | **4** | Real statistics di Dashboard | 🟡 Medium | ⭐⭐ |
-| **5** | BP Module (TalentProfile detail) | 🟡 Medium | ⭐⭐ |
-| **6** | File Upload System | 🔴 Hard | ⭐⭐⭐ |
-| **7** | Approval Workflow | 🔴 Hard | ⭐⭐⭐⭐ |
+| ~~5~~ | ~~BP Module~~ | ⏸️ DITUNDA | - |
+| **5** | File Upload System (Phase 4) | 🔴 Hard | ⭐⭐⭐ |
+| **6** | Approval Workflow (Phase 5) | 🔴 Hard | ⭐⭐⭐⭐ |
 
 ---
 
@@ -168,15 +168,16 @@ Authentication        ███████████████████�
 Role-Based Access     ████████████████████   100%
 Database Schema       ████████████████████   100%
 Data Seeding          ████████████████████   100%
-DB Integration (CMP)  ████████████████░░░░   80%
-DB Integration (CDP)  ██████████░░░░░░░░░░   50%
+DB Integration (CMP)  ████████████████████   100% ✅
+DB Integration (CDP)  ████████████████████   100% ✅
 DB Integration (BP)   ████░░░░░░░░░░░░░░░░   20%
+CRUD (Read)           ████████████████████   100% ✅
 CRUD (Create)         ████░░░░░░░░░░░░░░░░   20%
 CRUD (Update/Delete)  ██░░░░░░░░░░░░░░░░░░   10%
 File Upload           ░░░░░░░░░░░░░░░░░░░░   0%
 Approval Workflow     ░░░░░░░░░░░░░░░░░░░░   0%
 -------------------------------------------
-OVERALL               ████████████░░░░░░░░   60%
+OVERALL               ██████████████░░░░░░   70%
 ```
 
 ---
@@ -184,27 +185,44 @@ OVERALL               ████████████░░░░░░░�
 ## 🎯 Tahap Development Saat Ini
 
 ```
-✅ COMPLETED          ⬅️ WE ARE HERE        ❌ NOT STARTED
-                            ↓
+✅ COMPLETED                              ⬅️ WE ARE HERE
+                                                ↓
 ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐   ┌─────────┐
 │ Phase 1 │ → │ Phase 2 │ → │ Phase 3 │ → │ Phase 4 │ → │ Phase 5 │
-│ DB Setup│   │Integrate│   │  CRUD   │   │Workflow │   │  UAT    │
-│ ✅ Done │   │ 🔄 60%  │   │ ❌ 10%  │   │ ❌ 0%   │   │ ❌ 0%   │
+│ DB Setup│   │Integrate│   │Worker DB│   │File Up  │   │Workflow │
+│ ✅ Done │   │ ✅ Done │   │ ✅ Done │   │ ❌ 0%   │   │ ❌ 0%   │
 └─────────┘   └─────────┘   └─────────┘   └─────────┘   └─────────┘
+
+**Latest Update (9 Feb 2026):**
+- ✅ Phase 2: AssessmentSessions + IdpItems connected to views
+- ✅ Phase 3: Worker List migrated to Users table + Dashboard real-time stats
 ```
 
 ---
 
-## ❓ Keputusan yang Perlu Diambil
+## ✅ Keputusan yang Sudah Diambil
 
-1. **BP Module**: Apakah Point System dan Eligibility Validator akan dibuat tabel baru atau tetap static/reference only?
-
-2. **Worker List**: Apakah list worker di Records akan diambil dari Users table saja, atau perlu tabel `Employees` terpisah?
-
-3. **Dashboard Stats**: Apakah dashboard executive perlu real-time stats dari DB atau cukup periodic update?
-
-4. **File Upload**: Kapan fitur upload sertifikat akan diimplementasi?
+| Pertanyaan | Keputusan |
+|------------|-----------||
+| **BP Module** | ⏸️ **DITUNDA** - Menu ini belum final dan kemungkinan tidak dipakai |
+| **Worker List** | ✅ Menggunakan **Users table** saja (sudah mewakili data employee) |
+| **Dashboard Stats** | ✅ **Real-time** (skala 400-600 user masih OK) |
+| **File Upload** | ✅ Dijadwalkan di **Phase 4** (setelah CRUD selesai) |
 
 ---
 
-*Dokumen ini dihasilkan secara otomatis berdasarkan analisis kode pada 9 Februari 2026*
+## 📅 Updated Development Phases
+
+| Phase | Scope | Status | Completed |
+|-------|-------|:------:|:---------:|
+| **Phase 1** | Database Setup & Migration | ✅ | 6 Feb 2026 |
+| **Phase 2** | Connect AssessmentSessions + IdpItems ke view | ✅ | 9 Feb 2026 |
+| **Phase 3** | Migrasi Worker List + Dashboard Stats | ✅ | 9 Feb 2026 |
+| **Phase 4** | File Upload System (Certificates) | ⬅️ **NEXT** | - |
+| **Phase 5** | Approval Workflow | ❌ | - |
+| **Phase 6** | Testing & UAT | ❌ | - |
+| ~~BP Module~~ | ⏸️ DITUNDA | - | - |
+
+---
+
+*Dokumen diupdate: 9 Februari 2026 - Phase 2 & 3 Completed*

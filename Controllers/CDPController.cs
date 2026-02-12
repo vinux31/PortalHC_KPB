@@ -53,25 +53,39 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            // Simulate fetching data from service/database
+            // ✅ CALCULATE REAL STATISTICS FROM DATABASE
+            var totalIdp = await _context.IdpItems.CountAsync();
+            
+            var completedIdp = await _context.IdpItems
+                .CountAsync(i => i.ApproveSrSpv == "Approved" && 
+                                 i.ApproveSectionHead == "Approved" && 
+                                 i.ApproveHC == "Approved");
+            
+            var completionRate = totalIdp > 0 
+                ? (int)((double)completedIdp / totalIdp * 100) 
+                : 0;
+            
+            var pendingAssessments = await _context.AssessmentSessions
+                .CountAsync(a => a.Status == "Open" || a.Status == "Upcoming");
+            
             var model = new DashboardViewModel
             {
-                TotalIdp = 142,
-                IdpGrowth = 12,
-                CompletionRate = 68,
+                TotalIdp = totalIdp,
+                IdpGrowth = 12, // Keep mock for now (needs historical data)
+                CompletionRate = completionRate,
                 CompletionTarget = "80% (Q4)",
-                PendingAssessments = 15,
-                BudgetUsedPercent = 45,
+                PendingAssessments = pendingAssessments,
+                BudgetUsedPercent = 45, // Keep mock (no budget table yet)
                 BudgetUsedText = "Rp 450jt / 1M",
                 
-                // Chart Data (Jan - Jun)
+                // Chart Data (Jan - Jun) - keep mock for now (needs time-series data)
                 ChartLabels = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun" },
                 ChartTarget = new List<int> { 100, 100, 120, 120, 150, 150 },
                 ChartRealization = new List<int> { 95, 110, 115, 140, 145, 160 },
 
-                // Compliance Data
+                // Compliance Data - keep mock for now (needs unit-level aggregation)
                 TopUnits = new List<UnitCompliance>
                 {
                     new UnitCompliance { UnitName = "SRU Unit", Percentage = 95, ColorClass = "bg-success" },
@@ -144,30 +158,28 @@ namespace HcPortal.Controllers
                 ViewBag.Coachees = mockCoachees;
             }
 
-            // Flattened data from the IDP Plan for tracking purposes
-            var data = new List<TrackingItem>
+            // ✅ QUERY FROM DATABASE instead of hardcoded data
+            var targetUserId = coacheeId ?? user?.Id ?? "";
+            
+            var idpItems = await _context.IdpItems
+                .Where(i => i.UserId == targetUserId)
+                .OrderBy(i => i.Kompetensi)
+                .ThenBy(i => i.SubKompetensi)
+                .ToListAsync();
+            
+            // Map IdpItem to TrackingItem for view compatibility
+            var data = idpItems.Select(idp => new TrackingItem
             {
-                // 1. Safe Work Practice
-                new TrackingItem { Id=1, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.1. Safe Work Practice (Op)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Approved", ApprovalHC="Approved" },
-                new TrackingItem { Id=2, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.2. Lifesaving Rules (Op)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Approved", ApprovalHC="Approved" },
-                new TrackingItem { Id=3, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.1. Safe Work Practice Regulation (Pnl)", EvidenceStatus="Pending", ApprovalSrSpv="Approved", ApprovalSectionHead="Pending", ApprovalHC="Pending", SupervisorComments="Mohon lampirkan sertifikat terbaru" },
-                new TrackingItem { Id=4, Kompetensi="Safe Work Practice & Lifesaving Rules", Periode="Tahun Pertama", SubKompetensi="1.2. Supervision of Safe Work Practice (Pnl)", EvidenceStatus="Pending", ApprovalSrSpv="Pending", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
-                
-                // 2. Energy Management
-                new TrackingItem { Id=5, Kompetensi="Energy Management", Periode="Tahun Kedua", SubKompetensi="2.1. Karakteristik Energi (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
-                new TrackingItem { Id=6, Kompetensi="Energy Management", Periode="Tahun Kedua", SubKompetensi="2.1. Integrasi & Konversi Energi (Pnl)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
-
-                // 3. Catalyst
-                new TrackingItem { Id=7, Kompetensi="Catalyst & Chemical Management", Periode="Tahun Kedua", SubKompetensi="3.1. Jenis & Fungsi Catalyst (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
-                
-                // 4. Process Control
-                new TrackingItem { Id=8, Kompetensi="Process Control & Computer Ops", Periode="Tahun Ketiga", SubKompetensi="4.1. Prinsip Dasar Pengendalian (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
-
-                // 5. Refinery Process
-                new TrackingItem { Id=9, Kompetensi="Refinery Process Ops & Optimization", Periode="Tahun Pertama", SubKompetensi="5.1. BOC / BEC (Op)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Approved", ApprovalHC="Pending" },
-                new TrackingItem { Id=10, Kompetensi="Refinery Process Ops & Optimization", Periode="Tahun Pertama", SubKompetensi="5.1. Routine Activities (Pnl)", EvidenceStatus="Uploaded", ApprovalSrSpv="Approved", ApprovalSectionHead="Pending", ApprovalHC="Pending", SupervisorComments="Video evidence kurang jelas audionya" },
-                new TrackingItem { Id=11, Kompetensi="Refinery Process Ops & Optimization", Periode="Tahun Kedua", SubKompetensi="5.7. Prinsip Dasar Peralatan (Op)", EvidenceStatus="Pending", ApprovalSrSpv="Not Started", ApprovalSectionHead="Not Started", ApprovalHC="Not Started" },
-            };
+                Id = idp.Id,
+                Kompetensi = idp.Kompetensi ?? "",
+                SubKompetensi = idp.SubKompetensi ?? "",
+                Periode = "", // Not in IdpItem schema, can be added later if needed
+                EvidenceStatus = string.IsNullOrEmpty(idp.Evidence) ? "Pending" : "Uploaded",
+                ApprovalSrSpv = idp.ApproveSrSpv ?? "Not Started",
+                ApprovalSectionHead = idp.ApproveSectionHead ?? "Not Started",
+                ApprovalHC = idp.ApproveHC ?? "Not Started",
+                SupervisorComments = "" // Not in IdpItem schema
+            }).ToList();
 
             return View(data);
         }
