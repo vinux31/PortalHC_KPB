@@ -41,7 +41,7 @@ namespace HcPortal.Controllers
             // ========== DETERMINE WHICH PROFILE TO SHOW ==========
             ApplicationUser targetUser;
 
-            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            if (userRole == UserRoles.Admin)
             {
                 // Admin with view override
                 if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
@@ -91,7 +91,7 @@ namespace HcPortal.Controllers
                 Name = targetUser.FullName ?? "Unknown",
                 NIO = targetUser.Id.Substring(0, 6).ToUpper(), // Generate NIO from target user ID
                 Position = targetUser.Position ?? "Staff",
-                Unit = user.Unit ?? user.Section ?? "General",
+                Unit = targetUser.Unit ?? targetUser.Section ?? "General",
                 Directorate = "Technical",
                 Age = 30, // TODO: Calculate from birthdate if available
                 Tenure = "N/A", // TODO: Calculate from hire date if available
@@ -104,13 +104,13 @@ namespace HcPortal.Controllers
                 },
                 CareerHistory = new List<CareerHistory>
                 {
-                    new CareerHistory { 
-                        Tahun = 2024, 
-                        Jabatan = user.Position ?? "Staff", 
-                        Unit = user.Unit ?? user.Section ?? "General", 
-                        Tipe = "Current", 
-                        NoSK = "SK-2024/HR/001", 
-                        Keterangan = "Posisi saat ini" 
+                    new CareerHistory {
+                        Tahun = 2024,
+                        Jabatan = targetUser.Position ?? "Staff",
+                        Unit = targetUser.Unit ?? targetUser.Section ?? "General",
+                        Tipe = "Current",
+                        NoSK = "SK-2024/HR/001",
+                        Keterangan = "Posisi saat ini"
                     }
                 }
             };

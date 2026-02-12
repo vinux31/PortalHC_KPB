@@ -36,7 +36,7 @@ namespace HcPortal.Controllers
             }
 
             // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            if (userRole == UserRoles.Admin)
             {
                 if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
                 {
@@ -84,7 +84,7 @@ namespace HcPortal.Controllers
             var baseQuery = _context.IdpItems.AsQueryable();
 
             // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            if (userRole == UserRoles.Admin)
             {
                 if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
                 {
@@ -159,7 +159,7 @@ namespace HcPortal.Controllers
             var userId = user?.Id ?? "";
 
             // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            if (userRole == UserRoles.Admin)
             {
                 if (user.SelectedView == "Coach")
                 {
@@ -229,7 +229,7 @@ namespace HcPortal.Controllers
             }
 
             // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            if (userRole == UserRoles.Admin)
             {
                 if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
                 {

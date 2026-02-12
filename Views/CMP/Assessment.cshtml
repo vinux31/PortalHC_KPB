@@ -66,8 +66,27 @@
             <div class="col-12">
                 <div class="text-center py-5">
                     <i class="bi bi-inbox text-muted mb-3" style="font-size: 4rem;"></i>
-                    <h5 class="text-muted">No assessments available</h5>
-                    <p class="text-muted small">Your assessments will appear here.</p>
+                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                    {
+                        <h5 class="text-muted">No results found for "@ViewBag.SearchTerm"</h5>
+                        <p class="text-muted small">Try adjusting your search criteria or browse all assessments.</p>
+                        <a href="@Url.Action("Assessment")" class="btn btn-sm btn-outline-primary mt-2">
+                            <i class="bi bi-arrow-left me-1"></i> Clear Search
+                        </a>
+                    }
+                    else if (User.IsInRole("Admin") || User.IsInRole("HC"))
+                    {
+                        <h5 class="text-muted">No assessments created yet</h5>
+                        <p class="text-muted small">Create your first assessment to get started.</p>
+                        <a asp-action="CreateAssessment" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle me-1"></i> Create Assessment
+                        </a>
+                    }
+                    else
+                    {
+                        <h5 class="text-muted">No assessments assigned to you</h5>
+                        <p class="text-muted small">Your assessments will appear here when assigned by your administrator.</p>
+                    }
                 </div>
             </div>
         }
@@ -166,6 +185,60 @@
         <h5 class="text-muted">No assessments found</h5>
         <p class="text-muted small">There are no assessments in this category.</p>
     </div>
+
+    <!-- Pagination -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <nav aria-label="Assessment pagination" class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="text-muted small">
+                    Showing @((ViewBag.CurrentPage - 1) * ViewBag.PageSize + 1) to @(Math.Min(ViewBag.CurrentPage * ViewBag.PageSize, ViewBag.TotalCount)) of @ViewBag.TotalCount assessments
+                </div>
+                <ul class="pagination pagination-sm mb-0">
+                    @* First Page *@
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=1@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+
+                    @* Previous Page *@
+                    <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    @* Page Numbers *@
+                    @{
+                        var startPage = Math.Max(1, ViewBag.CurrentPage - 2);
+                        var endPage = Math.Min(ViewBag.TotalPages, ViewBag.CurrentPage + 2);
+
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">@i</a>
+                            </li>
+                        }
+                    }
+
+                    @* Next Page *@
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+
+                    @* Last Page *@
+                    <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@ViewBag.TotalPages@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    }
 
 </div>
 

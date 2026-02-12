@@ -9,15 +9,14 @@ namespace HcPortal.Models
         public ApplicationUser? User { get; set; }
         
         public string Title { get; set; } = "";
-        
+
         // Kategori utama: "Assessment OJ", "IHT", "Licencor", "OTS", "Mandatory HSSE Training"
-        public string Category { get; set; } = ""; 
-        public string Type { get; set; } = ""; // Sama dengan Category, untuk filtering
-        
+        public string Category { get; set; } = "";
+
         public DateTime Schedule { get; set; }
         public int DurationMinutes { get; set; }
         public string Status { get; set; } = "";   // "Open", "Upcoming", "Completed"
-        
+
         // New Visualization Props
         public int Progress { get; set; } = 0; // 0 - 100
         public string BannerColor { get; set; } = "bg-primary"; // Bootstrap color class or hex
@@ -25,6 +24,11 @@ namespace HcPortal.Models
         public int? Score { get; set; }
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
+
+        // Audit fields
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
+        public string? CreatedBy { get; set; }
 
         // Navigation Properties for Exam Engine
         public virtual ICollection<AssessmentQuestion> Questions { get; set; } = new List<AssessmentQuestion>();

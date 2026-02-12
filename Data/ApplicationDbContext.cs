@@ -38,12 +38,12 @@ namespace HcPortal.Data
             });
 
             // ========== Configure relationships ==========
-            
+
             // TrainingRecord -> User
             builder.Entity<TrainingRecord>(entity =>
             {
                 entity.HasOne(t => t.User)
-                    .WithMany()
+                    .WithMany(u => u.TrainingRecords)
                     .HasForeignKey(t => t.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -56,7 +56,18 @@ namespace HcPortal.Data
                     .HasForeignKey(a => a.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                // Indexes for performance
+                entity.HasIndex(a => a.UserId);
+                entity.HasIndex(a => new { a.UserId, a.Status });
                 entity.HasIndex(a => a.Schedule);
+                entity.HasIndex(a => a.AccessToken).IsUnique();
+
+                // Check constraints for data integrity
+                entity.HasCheckConstraint("CK_AssessmentSession_Progress", "[Progress] >= 0 AND [Progress] <= 100");
+                entity.HasCheckConstraint("CK_AssessmentSession_DurationMinutes", "[DurationMinutes] > 0");
+
+                // Default value for audit field
+                entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
 
             // UserResponse -> AssessmentSession (Restrict Delete to avoid Cycles)
@@ -71,6 +82,21 @@ namespace HcPortal.Data
                     .WithMany()
                     .HasForeignKey(r => r.AssessmentQuestionId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.SelectedOption)
+                    .WithMany()
+                    .HasForeignKey(r => r.SelectedOptionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes for performance
+                entity.HasIndex(r => new { r.AssessmentSessionId, r.AssessmentQuestionId });
+            });
+
+            // AssessmentQuestion indexes and constraints
+            builder.Entity<AssessmentQuestion>(entity =>
+            {
+                entity.HasIndex(q => q.Order);
+                entity.HasCheckConstraint("CK_AssessmentQuestion_ScoreValue", "[ScoreValue] > 0");
             });
 
             // IdpItem -> User

@@ -141,6 +141,12 @@ namespace HcPortal.Controllers
                 return BadRequest("Invalid view");
             }
 
+            // Validate Atasan view requires Section
+            if (view == "Atasan" && string.IsNullOrEmpty(user.Section))
+            {
+                TempData["Warning"] = "Atasan View requires a Section to be set in your profile. Showing personal data instead.";
+            }
+
             // Update user's selected view
             user.SelectedView = view;
             await _userManager.UpdateAsync(user);

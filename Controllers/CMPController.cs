@@ -69,21 +69,26 @@ namespace HcPortal.Controllers
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
-        public async Task<IActionResult> Assessment(string? search)
+        public async Task<IActionResult> Assessment(string? search, int page = 1, int pageSize = 20)
         {
+            // Validate pagination parameters
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 20;
+            if (pageSize > 100) pageSize = 100;  // Max 100 per page
+
             // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userId = user?.Id ?? "";
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
-            
+
             // Base Query
             var query = _context.AssessmentSessions
                 .Include(a => a.User)
                 .AsQueryable();
 
-            // ========== VIEW-BASED FILTERING FOR ADMIN & HC ==========
-            if (userRole == UserRoles.Admin || userRole == "HC")
+            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+            if (userRole == UserRoles.Admin)
             {
                 if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
                 {
@@ -101,11 +106,15 @@ namespace HcPortal.Controllers
 
                     query = query.Where(a => teamUserIds.Contains(a.UserId));
                 }
-                // Else: HC or Default (Show ALL) - No extra filter needed on base query
+                // Else: HC View (Show ALL) - No extra filter needed on base query
+            }
+            else if (userRole == "HC")
+            {
+                // HC Role: Show all assessments (no filter)
             }
             else
             {
-                // Default: Personal assessments for Non-Admin
+                // Default: Personal assessments for other roles (Coach, Coachee, Atasan)
                 query = query.Where(a => a.UserId == userId);
             }
 
@@ -113,20 +122,34 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(search))
             {
                 var lowerSearch = search.ToLower();
-                query = query.Where(a => 
+                query = query.Where(a =>
                     a.Title.ToLower().Contains(lowerSearch) ||
                     a.Category.ToLower().Contains(lowerSearch) ||
-                    (a.User != null && (a.User.FullName.ToLower().Contains(lowerSearch) || a.User.NIP.Contains(lowerSearch)))
+                    (a.User != null && (
+                        a.User.FullName.ToLower().Contains(lowerSearch) ||
+                        (a.User.NIP != null && a.User.NIP.Contains(lowerSearch))
+                    ))
                 );
             }
 
             ViewBag.SearchTerm = search;
 
-            // Execute Query
+            // Get total count for pagination
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            // Execute Query with pagination
             var exams = await query
                 .OrderByDescending(a => a.Schedule)
-                .Take(100)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            // Pagination info for view
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.PageSize = pageSize;
 
             return View(exams);
         }
@@ -153,7 +176,14 @@ namespace HcPortal.Controllers
                 ViewBag.CreatedAssessment = TempData["CreatedAssessment"];
             }
 
-            return View();
+            // Pre-populate model with secure token
+            var model = new AssessmentSession
+            {
+                AccessToken = GenerateSecureToken(),
+                Schedule = DateTime.Today.AddDays(1)  // Default to tomorrow
+            };
+
+            return View(model);
         }
 
         // POST: Process form submission (multi-user)
@@ -177,6 +207,34 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("UserIds", "Please select at least one user.");
             }
 
+            // Rate limiting: max 50 users per request
+            if (UserIds != null && UserIds.Count > 50)
+            {
+                ModelState.AddModelError("UserIds", "Cannot assign to more than 50 users at once. Please split into multiple batches.");
+            }
+
+            // Validate schedule date
+            if (model.Schedule < DateTime.Today)
+            {
+                ModelState.AddModelError("Schedule", "Schedule date cannot be in the past.");
+            }
+
+            if (model.Schedule > DateTime.Today.AddYears(2))
+            {
+                ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
+            }
+
+            // Validate duration
+            if (model.DurationMinutes <= 0)
+            {
+                ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
+            }
+
+            if (model.DurationMinutes > 480)
+            {
+                ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+            }
+
             // Validate model
             if (!ModelState.IsValid)
             {
@@ -190,6 +248,24 @@ namespace HcPortal.Controllers
                 ViewBag.SelectedUserIds = UserIds ?? new List<string>();
                 ViewBag.Sections = OrganizationStructure.GetAllSections();
                 return View(model);
+            }
+
+            // Check for duplicates (warning, not error)
+            if (UserIds != null && UserIds.Any())
+            {
+                var existingAssessments = await _context.AssessmentSessions
+                    .Where(a => UserIds.Contains(a.UserId)
+                             && a.Title == model.Title
+                             && a.Category == model.Category
+                             && a.Schedule.Date == model.Schedule.Date)
+                    .Include(a => a.User)
+                    .Select(a => a.User.FullName)
+                    .ToListAsync();
+
+                if (existingAssessments.Any())
+                {
+                    TempData["Warning"] = $"Similar assessments already exist for: {string.Join(", ", existingAssessments.Take(5))}. Proceeding will create duplicates.";
+                }
             }
 
             // Ensure Token is uppercase
@@ -216,13 +292,36 @@ namespace HcPortal.Controllers
 
             try
             {
+                // Prefetch all users at once (fix N+1 query)
+                var userDictionary = await _context.Users
+                    .Where(u => UserIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id);
+
+                // Validate all UserIds exist
+                var missingUsers = UserIds.Except(userDictionary.Keys).ToList();
+                if (missingUsers.Any())
+                {
+                    TempData["Error"] = $"Invalid user IDs: {string.Join(", ", missingUsers)}";
+                    // Reload form
+                    var users = await _context.Users
+                        .OrderBy(u => u.FullName)
+                        .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
+                        .ToListAsync();
+                    ViewBag.Users = users;
+                    ViewBag.SelectedUserIds = UserIds ?? new List<string>();
+                    ViewBag.Sections = OrganizationStructure.GetAllSections();
+                    return View(model);
+                }
+
+                // Create all sessions in memory first
+                var sessions = new List<AssessmentSession>();
+
                 foreach (var userId in UserIds)
                 {
                     var session = new AssessmentSession
                     {
                         Title = model.Title,
                         Category = model.Category,
-                        Type = model.Type,
                         Schedule = model.Schedule,
                         DurationMinutes = model.DurationMinutes,
                         Status = model.Status,
@@ -230,19 +329,41 @@ namespace HcPortal.Controllers
                         IsTokenRequired = model.IsTokenRequired,
                         AccessToken = model.AccessToken,
                         Progress = 0,
-                        UserId = userId
+                        UserId = userId,
+                        CreatedBy = currentUser?.Id
                     };
 
-                    _context.AssessmentSessions.Add(session);
-                    await _context.SaveChangesAsync();
+                    sessions.Add(session);
+                }
 
-                    var assignedUser = await _context.Users.FindAsync(userId);
-                    createdSessions.Add(new
+                // Add all sessions
+                _context.AssessmentSessions.AddRange(sessions);
+
+                // Single SaveChanges with transaction (atomicity)
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    // Populate createdSessions with IDs after save
+                    for (int i = 0; i < sessions.Count; i++)
                     {
-                        Id = session.Id,
-                        UserName = assignedUser?.FullName ?? userId,
-                        UserEmail = assignedUser?.Email ?? ""
-                    });
+                        var session = sessions[i];
+                        var assignedUser = userDictionary[session.UserId];
+                        createdSessions.Add(new
+                        {
+                            Id = session.Id,
+                            UserId = session.UserId,
+                            UserName = assignedUser.FullName ?? session.UserId,
+                            UserEmail = assignedUser.Email ?? ""
+                        });
+                    }
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    throw;
                 }
             }
             catch (Exception ex)
@@ -315,7 +436,7 @@ namespace HcPortal.Controllers
             ViewBag.IsFilterMode = isFilterMode;
 
             // Admin (Level 1) dengan SelectedView override - Gunakan view preference
-            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            if (userRole == UserRoles.Admin)
             {
                 // Jika Admin memilih view Coach/Coachee, tampilkan personal records
                 if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
@@ -385,36 +506,36 @@ namespace HcPortal.Controllers
         // Helper method: Get all workers in a section (with optional filters)
         private async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null)
         {
-            // ✅ QUERY USERS FROM DATABASE
-            var usersQuery = _context.Users.AsQueryable();
-            
+            // ✅ QUERY USERS FROM DATABASE WITH TRAINING RECORDS (Fix N+1)
+            var usersQuery = _context.Users
+                .Include(u => u.TrainingRecords)  // Load related data in single query
+                .AsQueryable();
+
             // 0. FILTER BY SECTION
             if (!string.IsNullOrEmpty(section))
             {
                 usersQuery = usersQuery.Where(u => u.Section == section);
             }
-            
+
             // 1. FILTER BY SEARCH (Name or NIP)
             if (!string.IsNullOrEmpty(search))
             {
                 search = search.ToLower();
-                usersQuery = usersQuery.Where(u => 
-                    u.FullName.ToLower().Contains(search) || 
+                usersQuery = usersQuery.Where(u =>
+                    u.FullName.ToLower().Contains(search) ||
                     (u.NIP != null && u.NIP.Contains(search))
                 );
             }
-            
+
             var users = await usersQuery.ToListAsync();
-            
+
             // 2. BUILD WORKER STATUS LIST WITH TRAINING STATISTICS
             var workerList = new List<WorkerTrainingStatus>();
-            
+
             foreach (var user in users)
             {
-                // Get all training records for this user
-                var trainingRecords = await _context.TrainingRecords
-                    .Where(tr => tr.UserId == user.Id)
-                    .ToListAsync();
+                // Training records already loaded via Include
+                var trainingRecords = user.TrainingRecords.ToList();
                 
                 // Calculate statistics
                 var totalTrainings = trainingRecords.Count;
@@ -525,9 +646,9 @@ namespace HcPortal.Controllers
             
             if (assessment == null) return NotFound();
 
-            // Verification: Ensure User is the owner (or Admin)
+            // Verification: Ensure User is the owner (or Admin/HC)
             var user = await _userManager.GetUserAsync(User);
-            if (assessment.UserId != user.Id && !User.IsInRole("Admin"))
+            if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
             {
                 return Forbid();
             }
@@ -709,6 +830,27 @@ namespace HcPortal.Controllers
             }
 
             return View(assessment);
+        }
+        #endregion
+
+        #region Helper Methods
+        /// <summary>
+        /// Generate cryptographically secure random token
+        /// </summary>
+        private string GenerateSecureToken(int length = 6)
+        {
+            const string chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclude ambiguous characters (0, O, 1, I, L)
+            var random = new byte[length];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(random);
+            }
+            var result = new char[length];
+            for (int i = 0; i < length; i++)
+            {
+                result[i] = chars[random[i] % chars.Length];
+            }
+            return new string(result);
         }
         #endregion
     }

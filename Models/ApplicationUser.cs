@@ -59,5 +59,10 @@ namespace HcPortal.Models
         /// Only Admin (Level 1) can change this setting
         /// </summary>
         public string SelectedView { get; set; } = "Coachee";
+
+        /// <summary>
+        /// Navigation property for TrainingRecords
+        /// </summary>
+        public virtual ICollection<TrainingRecord> TrainingRecords { get; set; } = new List<TrainingRecord>();
     }
 }

@@ -161,13 +161,6 @@
                 </div>
 
                 <div class="row">
-                    <!-- Type -->
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Type" class="form-label fw-semibold">Type</label>
-                        <input asp-for="Type" class="form-control" readonly id="TypeField" />
-                        <div class="form-text text-muted">Auto-populated from Category</div>
-                    </div>
-
                     <!-- Schedule -->
                     <div class="col-md-6 mb-3">
                         <label asp-for="Schedule" class="form-label fw-semibold">
@@ -417,14 +410,7 @@
 @section Scripts {
     <script>
         // Global variables for form validation
-        var categorySelect, typeField;
-
-        function syncCategoryToType() {
-            if (categorySelect && typeField) {
-                typeField.value = categorySelect.value;
-                console.log('Type field synced:', typeField.value);
-            }
-        }
+        var categorySelect;
 
         document.addEventListener('DOMContentLoaded', function() {
             console.log('=== Page loaded - Pure JavaScript validation ===');
@@ -433,16 +419,8 @@
             var form = document.getElementById('createAssessmentForm');
             console.log('Target form:', form);
 
-            // === Category → Type auto-sync ===
+            // === Get category select ===
             categorySelect = document.getElementById('Category');
-            typeField = document.getElementById('TypeField');
-
-            categorySelect.addEventListener('change', syncCategoryToType);
-
-            // Force sync on page load
-            if (categorySelect.value) {
-                syncCategoryToType();
-            }
 
             // === Token toggle ===
             var tokenCheckbox = document.getElementById('IsTokenRequired');
@@ -653,32 +631,74 @@
                     var headerText = a.Count + ' assessment(s) created successfully';
                     document.getElementById('modal-header-text').textContent = headerText;
 
-                    // Populate info fields
+                    // Populate info fields (use textContent to prevent XSS)
                     document.getElementById('modal-title').textContent = a.Title;
-                    document.getElementById('modal-category').innerHTML = '<span class="badge bg-primary">' + a.Category + '</span>';
+
+                    var categoryBadge = document.createElement('span');
+                    categoryBadge.className = 'badge bg-primary';
+                    categoryBadge.textContent = a.Category;
+                    var categoryEl = document.getElementById('modal-category');
+                    categoryEl.textContent = '';
+                    categoryEl.appendChild(categoryBadge);
+
                     document.getElementById('modal-schedule').textContent = a.Schedule;
                     document.getElementById('modal-duration').textContent = a.DurationMinutes + ' minutes';
-                    document.getElementById('modal-status').innerHTML = '<span class="badge bg-success">' + a.Status + '</span>';
+
+                    var statusBadge = document.createElement('span');
+                    statusBadge.className = 'badge bg-success';
+                    statusBadge.textContent = a.Status;
+                    var statusEl = document.getElementById('modal-status');
+                    statusEl.textContent = '';
+                    statusEl.appendChild(statusBadge);
 
                     if (a.IsTokenRequired && a.AccessToken) {
-                        document.getElementById('modal-token').innerHTML =
-                            '<i class="bi bi-shield-lock-fill text-primary me-1"></i> <code class="fs-6">' + a.AccessToken + '</code>';
+                        var tokenEl = document.getElementById('modal-token');
+                        tokenEl.textContent = '';
+                        var icon = document.createElement('i');
+                        icon.className = 'bi bi-shield-lock-fill text-primary me-1';
+                        var code = document.createElement('code');
+                        code.className = 'fs-6';
+                        code.textContent = a.AccessToken;
+                        tokenEl.appendChild(icon);
+                        tokenEl.appendChild(document.createTextNode(' '));
+                        tokenEl.appendChild(code);
                     } else {
-                        document.getElementById('modal-token').innerHTML =
-                            '<span class="text-muted">Not Required</span>';
+                        var tokenEl = document.getElementById('modal-token');
+                        tokenEl.textContent = '';
+                        var span = document.createElement('span');
+                        span.className = 'text-muted';
+                        span.textContent = 'Not Required';
+                        tokenEl.appendChild(span);
                     }
 
-                    // Populate users table
+                    // Populate users table (create elements to prevent XSS)
                     var tbody = document.getElementById('modal-users-tbody');
-                    tbody.innerHTML = '';
+                    tbody.textContent = '';
                     if (a.Sessions && a.Sessions.length > 0) {
                         a.Sessions.forEach(function(s, idx) {
                             var tr = document.createElement('tr');
-                            tr.innerHTML =
-                                '<td>' + (idx + 1) + '</td>' +
-                                '<td>' + s.UserName + '</td>' +
-                                '<td class="text-muted">' + s.UserEmail + '</td>' +
-                                '<td><a href="/CMP/ManageQuestions?id=' + s.Id + '" class="btn btn-sm btn-outline-primary">Manage Questions</a></td>';
+
+                            var tdNum = document.createElement('td');
+                            tdNum.textContent = idx + 1;
+                            tr.appendChild(tdNum);
+
+                            var tdName = document.createElement('td');
+                            tdName.textContent = s.UserName;
+                            tr.appendChild(tdName);
+
+                            var tdEmail = document.createElement('td');
+                            tdEmail.className = 'text-muted';
+                            tdEmail.textContent = s.UserEmail;
+                            tr.appendChild(tdEmail);
+
+                            var tdAction = document.createElement('td');
+                            var link = document.createElement('a');
+                            link.href = '/CMP/ManageQuestions?id=' + s.Id;
+                            link.className = 'btn btn-sm btn-outline-primary';
+                            link.textContent = 'Manage Questions';
+                            tdAction.appendChild(link);
+                            tr.appendChild(tdAction);
+
                             tbody.appendChild(tr);
                         });
 
@@ -703,7 +723,6 @@
                     document.getElementById('modal-create-another-btn').addEventListener('click', function() {
                         var form = document.querySelector('form');
                         if (form) form.reset();
-                        document.getElementById('TypeField').value = '';
                         document.getElementById('tokenInputContainer').classList.add('d-none');
                         // Uncheck all user checkboxes and reset count
                         document.querySelectorAll('.user-checkbox').forEach(function(cb) { cb.checked = false; });

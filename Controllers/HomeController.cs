@@ -25,34 +25,63 @@ public class HomeController : Controller
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return Challenge();
 
+        // Determine target user(s) based on Admin view selection
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var userRole = userRoles.FirstOrDefault();
+        var targetUserIds = new List<string> { user.Id }; // Default: current user only
+
+        // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+        if (userRole == UserRoles.Admin)
+        {
+            if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
+            {
+                // Personal view: use current user only (already set as default)
+            }
+            else if (user.SelectedView == "Atasan" && !string.IsNullOrEmpty(user.Section))
+            {
+                // Section view: get all users in section
+                targetUserIds = await _context.Users
+                    .Where(u => u.Section == user.Section)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+            }
+            else if (user.SelectedView == "HC")
+            {
+                // HC view: get all users
+                targetUserIds = await _context.Users
+                    .Select(u => u.Id)
+                    .ToListAsync();
+            }
+        }
+
         var viewModel = new DashboardHomeViewModel
         {
             CurrentUser = user,
             Greeting = GetTimeBasedGreeting(),
 
-            // IDP Stats
+            // IDP Stats (filtered by target users)
             IdpTotalCount = await _context.IdpItems
-                .Where(i => i.UserId == user.Id)
+                .Where(i => targetUserIds.Contains(i.UserId))
                 .CountAsync(),
             IdpCompletedCount = await _context.IdpItems
-                .Where(i => i.UserId == user.Id &&
+                .Where(i => targetUserIds.Contains(i.UserId) &&
                        (i.Status == "Completed" || i.Status == "Approved"))
                 .CountAsync(),
 
-            // Pending Assessments
+            // Pending Assessments (filtered by target users)
             PendingAssessmentCount = await _context.AssessmentSessions
-                .Where(a => a.UserId == user.Id &&
+                .Where(a => targetUserIds.Contains(a.UserId) &&
                        a.Status != "Completed")
                 .CountAsync(),
 
-            // Mandatory Training
+            // Mandatory Training (personal only - always current user)
             MandatoryTrainingStatus = await GetMandatoryTrainingStatus(user.Id),
 
-            // Recent Activities
-            RecentActivities = await GetRecentActivities(user.Id),
+            // Recent Activities (filtered by target users)
+            RecentActivities = await GetRecentActivities(targetUserIds),
 
-            // Upcoming Deadlines
-            UpcomingDeadlines = await GetUpcomingDeadlines(user.Id)
+            // Upcoming Deadlines (filtered by target users)
+            UpcomingDeadlines = await GetUpcomingDeadlines(targetUserIds)
         };
 
         // Calculate IDP percentage
@@ -111,13 +140,13 @@ public class HomeController : Controller
         };
     }
 
-    private async Task<List<RecentActivityItem>> GetRecentActivities(string userId)
+    private async Task<List<RecentActivityItem>> GetRecentActivities(List<string> userIds)
     {
         var activities = new List<RecentActivityItem>();
 
         // Recent Assessment Completions
         var completedAssessments = await _context.AssessmentSessions
-            .Where(a => a.UserId == userId && a.Status == "Completed")
+            .Where(a => userIds.Contains(a.UserId) && a.Status == "Completed")
             .OrderByDescending(a => a.Schedule)
             .Take(2)
             .ToListAsync();
@@ -133,7 +162,7 @@ public class HomeController : Controller
 
         // Recent IDP Updates (use DueDate as proxy for completion date)
         var recentIdp = await _context.IdpItems
-            .Where(i => i.UserId == userId &&
+            .Where(i => userIds.Contains(i.UserId) &&
                    (i.Status == "Completed" || i.Status == "Approved"))
             .OrderByDescending(i => i.DueDate)
             .Take(2)
@@ -150,7 +179,7 @@ public class HomeController : Controller
 
         // Recent Coaching Sessions
         var recentCoaching = await _context.CoachingLogs
-            .Where(c => c.CoacheeId == userId && c.Status == "Submitted")
+            .Where(c => userIds.Contains(c.CoacheeId) && c.Status == "Submitted")
             .OrderByDescending(c => c.Tanggal)
             .Take(2)
             .ToListAsync();
@@ -171,14 +200,14 @@ public class HomeController : Controller
             .ToList();
     }
 
-    private async Task<List<DeadlineItem>> GetUpcomingDeadlines(string userId)
+    private async Task<List<DeadlineItem>> GetUpcomingDeadlines(List<string> userIds)
     {
         var deadlines = new List<DeadlineItem>();
         var now = DateTime.Now;
 
         // Open Assessments
         var openAssessments = await _context.AssessmentSessions
-            .Where(a => a.UserId == userId &&
+            .Where(a => userIds.Contains(a.UserId) &&
                    a.Status != "Completed" &&
                    a.Schedule >= now)
             .OrderBy(a => a.Schedule)
@@ -198,7 +227,7 @@ public class HomeController : Controller
 
         // Pending IDP Items
         var pendingIdp = await _context.IdpItems
-            .Where(i => i.UserId == userId &&
+            .Where(i => userIds.Contains(i.UserId) &&
                    i.Status != "Completed" &&
                    i.DueDate >= now)
             .OrderBy(i => i.DueDate)
@@ -216,26 +245,29 @@ public class HomeController : Controller
             ActionUrl = "/CDP/Index"
         }));
 
-        // Expiring Certifications
-        var expiringCerts = await _context.TrainingRecords
-            .Where(t => t.UserId == userId &&
-                   t.ValidUntil.HasValue &&
-                   t.ValidUntil.Value >= now &&
-                   t.Status == "Valid")
-            .OrderBy(t => t.ValidUntil)
-            .Take(2)
-            .ToListAsync();
-
-        deadlines.AddRange(expiringCerts.Select(t => new DeadlineItem
+        // Expiring Certifications (Personal only - single user from first ID)
+        if (userIds.Count == 1)
         {
-            Title = $"Renew {t.Judul} Certification",
-            DueDate = t.ValidUntil!.Value,
-            DueDateFormatted = t.ValidUntil.Value.ToString("dd MMMM yyyy"),
-            DaysRemaining = (t.ValidUntil.Value - now).Days,
-            UrgencyClass = (t.ValidUntil.Value - now).Days <= 30 ? "urgent" : "normal",
-            IconClass = "fas fa-graduation-cap",
-            ActionUrl = "/CMP/Records"
-        }));
+            var expiringCerts = await _context.TrainingRecords
+                .Where(t => t.UserId == userIds[0] &&
+                       t.ValidUntil.HasValue &&
+                       t.ValidUntil.Value >= now &&
+                       t.Status == "Valid")
+                .OrderBy(t => t.ValidUntil)
+                .Take(2)
+                .ToListAsync();
+
+            deadlines.AddRange(expiringCerts.Select(t => new DeadlineItem
+            {
+                Title = $"Renew {t.Judul} Certification",
+                DueDate = t.ValidUntil!.Value,
+                DueDateFormatted = t.ValidUntil.Value.ToString("dd MMMM yyyy"),
+                DaysRemaining = (t.ValidUntil.Value - now).Days,
+                UrgencyClass = (t.ValidUntil.Value - now).Days <= 30 ? "urgent" : "normal",
+                IconClass = "fas fa-graduation-cap",
+                ActionUrl = "/CMP/Records"
+            }));
+        }
 
         // Sort by urgency then date, return top 4
         return deadlines
