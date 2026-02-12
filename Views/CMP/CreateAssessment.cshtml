@@ -3,28 +3,33 @@
 @{
     ViewData["Title"] = "Create Assessment";
     // Get list of categories for dropdown
-    var categories = new List<string>
+    var categories = new List<SelectListItem>
     {
-        "OJT",
-        "IHT",
-        "Training Licencor",
-        "OTS",
-        "Mandatory HSSE Training",
-        "Proton"
+        new SelectListItem { Value = "OJT", Text = "OJT" },
+        new SelectListItem { Value = "IHT", Text = "IHT" },
+        new SelectListItem { Value = "Training Licencor", Text = "Training Licencor" },
+        new SelectListItem { Value = "OTS", Text = "OTS" },
+        new SelectListItem { Value = "Mandatory HSSE Training", Text = "Mandatory HSSE Training" },
+        new SelectListItem { Value = "Proton", Text = "Proton" }
     };
 
     // Status options
-    var statuses = new List<string> { "Open", "Upcoming", "Completed" };
+    var statuses = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Open", Text = "Open" },
+        new SelectListItem { Value = "Upcoming", Text = "Upcoming" },
+        new SelectListItem { Value = "Completed", Text = "Completed" }
+    };
 
     // Banner color options
-    var bannerColors = new List<string>
+    var bannerColors = new List<SelectListItem>
     {
-        new { Value = "bg-primary", Name = "Blue" },
-        new { Value = "bg-success", Name = "Green" },
-        new { Value = "bg-danger", Name = "Red" },
-        new { Value = "bg-warning", Name = "Yellow" },
-        new { Value = "bg-info", Name = "Cyan" },
-        new { Value = "bg-purple text-white", Name = "Purple" }
+        new SelectListItem { Value = "bg-primary", Text = "Blue" },
+        new SelectListItem { Value = "bg-success", Text = "Green" },
+        new SelectListItem { Value = "bg-danger", Text = "Red" },
+        new SelectListItem { Value = "bg-warning", Text = "Yellow" },
+        new SelectListItem { Value = "bg-info", Text = "Cyan" },
+        new SelectListItem { Value = "bg-purple text-white", Text = "Purple" }
     };
 }
 
@@ -148,7 +153,7 @@
                         <select asp-for="BannerColor" class="form-select">
                             @foreach (var color in bannerColors)
                             {
-                                <option value="@color.Value">@color.Name</option>
+                                <option value="@color.Value">@color.Text</option>
                             }
                         </select>
                     </div>
