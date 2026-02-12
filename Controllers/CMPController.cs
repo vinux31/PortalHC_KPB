@@ -144,6 +144,13 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             ViewBag.Users = users;
+
+            // Pass created assessment data to view if exists (for success modal)
+            if (TempData["CreatedAssessment"] != null)
+            {
+                ViewBag.CreatedAssessment = TempData["CreatedAssessment"];
+            }
+
             return View();
         }
 
@@ -203,16 +210,31 @@ namespace HcPortal.Controllers
             _context.AssessmentSessions.Add(model);
             await _context.SaveChangesAsync();
 
-            // Log action - show the assigned user's name, not the creator's
+            // Get assigned user info for the success modal
             var assignedUserName = currentUser?.FullName ?? "";
+            var assignedUserNIP = currentUser?.NIP ?? "";
             if (model.UserId != currentUser?.Id)
             {
                 var assignedUser = await _context.Users.FindAsync(model.UserId);
                 assignedUserName = assignedUser?.FullName ?? model.UserId;
+                assignedUserNIP = assignedUser?.NIP ?? "";
             }
-            TempData["SuccessMessage"] = $"Assessment '{model.Title}' successfully created for {assignedUserName}";
 
-            return RedirectToAction(nameof(Assessment));
+            // Serialize assessment data for success popup
+            TempData["CreatedAssessment"] = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                Id = model.Id,
+                Title = model.Title,
+                Category = model.Category,
+                Schedule = model.Schedule.ToString("dd MMMM yyyy"),
+                DurationMinutes = model.DurationMinutes,
+                Status = model.Status,
+                IsTokenRequired = model.IsTokenRequired,
+                AccessToken = model.AccessToken,
+                AssignedTo = $"{assignedUserName} ({assignedUserNIP})"
+            });
+
+            return RedirectToAction(nameof(CreateAssessment));
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS

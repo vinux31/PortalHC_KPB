@@ -200,6 +200,81 @@
         </div>
     </div>
 
+    <!-- Success Modal -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="successModalLabel">
+                        <i class="bi bi-check-circle-fill me-2"></i> Assessment Created Successfully
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <table class="table table-borderless mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold text-muted" style="width:140px;">Title</td>
+                                <td id="modal-title"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Category</td>
+                                <td id="modal-category"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Assigned To</td>
+                                <td id="modal-assigned"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Schedule</td>
+                                <td id="modal-schedule"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Duration</td>
+                                <td id="modal-duration"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Status</td>
+                                <td id="modal-status"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Token</td>
+                                <td id="modal-token"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <div>
+                        <a id="modal-manage-btn" href="#" class="btn btn-primary">
+                            <i class="bi bi-list-check me-1"></i> Manage Questions
+                        </a>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="modal-create-another-btn">
+                            <i class="bi bi-plus-circle me-1"></i> Create Another
+                        </button>
+                        <a asp-action="Assessment" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle-fill me-1"></i> Assessment created successfully!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Help Section -->
     <div class="card mt-4 border-0 bg-light">
         <div class="card-body">
@@ -320,5 +395,54 @@
             }
             document.getElementById('AccessToken').value = token;
         }
+
+        // Auto-show success modal if assessment was just created
+        (function() {
+            var createdData = '@Html.Raw(ViewBag.CreatedAssessment ?? "")';
+            if (createdData) {
+                try {
+                    var a = JSON.parse(createdData);
+
+                    // Populate modal fields
+                    document.getElementById('modal-title').textContent = a.Title;
+                    document.getElementById('modal-category').innerHTML = '<span class="badge bg-primary">' + a.Category + '</span>';
+                    document.getElementById('modal-assigned').textContent = a.AssignedTo;
+                    document.getElementById('modal-schedule').textContent = a.Schedule;
+                    document.getElementById('modal-duration').textContent = a.DurationMinutes + ' minutes';
+                    document.getElementById('modal-status').innerHTML = '<span class="badge bg-success">' + a.Status + '</span>';
+
+                    if (a.IsTokenRequired && a.AccessToken) {
+                        document.getElementById('modal-token').innerHTML =
+                            '<i class="bi bi-shield-lock-fill text-primary me-1"></i> <code class="fs-6">' + a.AccessToken + '</code>';
+                    } else {
+                        document.getElementById('modal-token').innerHTML =
+                            '<span class="text-muted">Not Required</span>';
+                    }
+
+                    // Set Manage Questions link
+                    document.getElementById('modal-manage-btn').href = '/CMP/ManageQuestions?id=' + a.Id;
+
+                    // Show modal
+                    var modal = new bootstrap.Modal(document.getElementById('successModal'));
+                    modal.show();
+
+                    // Show toast
+                    var toast = new bootstrap.Toast(document.getElementById('successToast'), { delay: 4000 });
+                    toast.show();
+
+                    // Reset form on "Create Another"
+                    document.getElementById('modal-create-another-btn').addEventListener('click', function() {
+                        var form = document.querySelector('form');
+                        if (form) form.reset();
+                        // Reset Type field since it's readonly
+                        document.getElementById('TypeField').value = '';
+                        // Hide token input
+                        document.getElementById('tokenInputContainer').classList.add('d-none');
+                    });
+                } catch(e) {
+                    console.error('Error parsing created assessment data:', e);
+                }
+            }
+        })();
     </script>
 }
