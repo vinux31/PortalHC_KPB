@@ -58,11 +58,11 @@
                                 <li><h6 class="dropdown-header text-uppercase small fw-bold">Standard & Assessment</h6></li>
                                 <li><a class="dropdown-item" asp-controller="CMP" asp-action="Kkj">Susunan KKJ</a></li>
                                 <li><a class="dropdown-item" asp-controller="CMP" asp-action="Assessment">Assessment</a></li>
-                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="CreateAssessment">
-                                    @if (User.IsInRole("Admin") || User.IsInRole("HC") || User.IsInRole("Supervisor") || User.IsInRole("Coachee"))
-                                    {
+                                @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+                                {
+                                    <li><a class="dropdown-item" asp-controller="CMP" asp-action="CreateAssessment">
                                         <i class="bi bi-plus-circle me-1"></i>Create Assessment
-                                    </a>
+                                    </a></li>
                                 }
                                 <li><hr class="dropdown-divider"></li>
                                 <li><h6 class="dropdown-header text-uppercase small fw-bold">Records</h6></li>

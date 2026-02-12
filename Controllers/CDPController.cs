@@ -35,6 +35,25 @@ namespace HcPortal.Controllers
                 userLevel = user.RoleLevel;
             }
 
+            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            {
+                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
+                {
+                    // Show only user's documents
+                    bagian = null; // Override: user's section
+                    unit = null; // Override: user's unit
+                    level = null; // Override: user's level
+                }
+                else if (user.SelectedView == "HC")
+                {
+                    // Show all documents (keep filters as-is)
+                    // bagian, unit, level remain from parameters
+                }
+                // For Atasan view, use existing logic (filter by bagian)
+            }
+            // For non-admin or admin without specific view, use existing logic
+
             // Check if HC user has selected a bagian
             bool hasBagianSelected = !string.IsNullOrEmpty(bagian);
 
@@ -55,12 +74,44 @@ namespace HcPortal.Controllers
 
         public async Task<IActionResult> Dashboard()
         {
-            // ✅ CALCULATE REAL STATISTICS FROM DATABASE
-            var totalIdp = await _context.IdpItems.CountAsync();
-            
-            var completedIdp = await _context.IdpItems
-                .CountAsync(i => i.ApproveSrSpv == "Approved" && 
-                                 i.ApproveSectionHead == "Approved" && 
+            // Get current user and role
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+            var userId = user?.Id ?? "";
+
+            // Base query
+            var baseQuery = _context.IdpItems.AsQueryable();
+
+            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            {
+                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
+                {
+                    // Show personal stats only
+                    baseQuery = baseQuery.Where(i => i.UserId == userId);
+                }
+                else if (user.SelectedView == "Atasan" && !string.IsNullOrEmpty(user.Section))
+                {
+                    // Show stats from user's section
+                    var section = user.Section;
+
+                    // Get all user IDs in the section
+                    var userIdsInSection = await _context.Users
+                        .Where(u => u.Section == section)
+                        .Select(u => u.Id)
+                        .ToListAsync();
+                    baseQuery = baseQuery.Where(i => userIdsInSection.Contains(i.UserId));
+                }
+                // HC view: no filter (show all)
+            }
+            // For non-admin or admin without specific view, use existing logic (calculate from baseQuery if filtered, otherwise use global stats)
+
+            // ========== CALCULATE STATISTICS ==========
+            var totalIdp = await baseQuery.CountAsync();
+
+            var completedIdp = await baseQuery.CountAsync(i => i.ApproveSrSpv == "Approved" &&
+                                 i.ApproveSectionHead == "Approved" &&
                                  i.ApproveHC == "Approved");
             
             var completionRate = totalIdp > 0 
@@ -103,7 +154,26 @@ namespace HcPortal.Controllers
         {
             // Get current user
             var user = await _userManager.GetUserAsync(User);
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
             var userId = user?.Id ?? "";
+
+            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            {
+                if (user.SelectedView == "Coach")
+                {
+                    // Show coachee selector for Coach view
+                    ViewBag.ShowCoacheeSelector = true;
+
+                    // Get list of coachees in user's section
+                    var coacheeList = await _context.Users
+                        .Where(u => u.Section == user.Section)
+                        .ToListAsync();
+                    ViewBag.CoacheeList = coacheeList;
+                }
+            }
+            // For non-admin or admin without specific view, use existing logic
 
             // Query coaching logs from database where user is coach or coachee
             var history = await _context.CoachingLogs
@@ -157,6 +227,27 @@ namespace HcPortal.Controllers
                 };
                 ViewBag.Coachees = mockCoachees;
             }
+
+            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            {
+                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
+                {
+                    // Force coacheeId to current user
+                    coacheeId = user.Id;
+                }
+                else if (user.SelectedView == "HC")
+                {
+                    // Leave coacheeId empty (user can select from dropdown)
+                    coacheeId = null;
+                }
+                // For Atasan view, let existing logic work (filter by bagian)
+            }
+
+            // For non-admin or admin without specific view, use existing logic
+
+            // Check if HC user has selected a bagian
+            bool hasBagianSelected = !string.IsNullOrEmpty(bagian);
 
             // ✅ QUERY FROM DATABASE instead of hardcoded data
             var targetUserId = coacheeId ?? user?.Id ?? "";

@@ -52,5 +52,12 @@ namespace HcPortal.Models
         /// Level 6: Coachee
         /// </summary>
         public int RoleLevel { get; set; } = 6; // Default: Coachee
+
+        /// <summary>
+        /// User's preferred portal view (HC, Atasan, Coach, Coachee)
+        /// Default is determined by RoleLevel
+        /// Only Admin (Level 1) can change this setting
+        /// </summary>
+        public string SelectedView { get; set; } = "Coachee";
     }
 }

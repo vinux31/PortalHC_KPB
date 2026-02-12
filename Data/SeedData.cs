@@ -46,7 +46,8 @@ namespace HcPortal.Data
                     Position = "System Administrator",
                     Section = null,
                     Unit = null,
-                    RoleLevel = 1
+                    RoleLevel = 1,
+                    SelectedView = "HC"  // Admin default view
                 }, "123456", UserRoles.Admin),
 
                 (new ApplicationUser
@@ -58,7 +59,8 @@ namespace HcPortal.Data
                     Position = "HC Staff",
                     Section = null, // HC can access all sections
                     Unit = null,
-                    RoleLevel = 2
+                    RoleLevel = 2,
+                    SelectedView = "HC"  // HC view
                 }, "123456", UserRoles.HC),
 
                 // Level 3 - Management (NEW)
@@ -71,7 +73,8 @@ namespace HcPortal.Data
                     Position = "Direktur Operasi",
                     Section = null, // Full access
                     Unit = null,
-                    RoleLevel = 3
+                    RoleLevel = 3,
+                    SelectedView = "Atasan"  // Atasan view
                 }, "123456", UserRoles.Direktur),
 
                 (new ApplicationUser
@@ -83,7 +86,8 @@ namespace HcPortal.Data
                     Position = "VP Refinery",
                     Section = null, // Full access
                     Unit = null,
-                    RoleLevel = 3
+                    RoleLevel = 3,
+                    SelectedView = "Atasan"  // Atasan view
                 }, "123456", UserRoles.VP),
 
                 (new ApplicationUser
@@ -95,7 +99,8 @@ namespace HcPortal.Data
                     Position = "Manager Process",
                     Section = null, // Full access
                     Unit = null,
-                    RoleLevel = 3
+                    RoleLevel = 3,
+                    SelectedView = "Atasan"  // Atasan view
                 }, "123456", UserRoles.Manager),
 
                 (new ApplicationUser
@@ -107,7 +112,8 @@ namespace HcPortal.Data
                     Position = "Section Head",
                     Section = "GAST",
                     Unit = null, // Section Head can access all units in their section
-                    RoleLevel = 4
+                    RoleLevel = 4,
+                    SelectedView = "Atasan"  // Atasan view
                 }, "123456", UserRoles.SectionHead),
 
                 (new ApplicationUser
@@ -119,7 +125,8 @@ namespace HcPortal.Data
                     Position = "Sr Supervisor",
                     Section = "GAST",
                     Unit = "Alkylation Unit (065)",
-                    RoleLevel = 4
+                    RoleLevel = 4,
+                    SelectedView = "Atasan"  // Atasan view
                 }, "123456", UserRoles.SrSupervisor),
 
                 (new ApplicationUser
@@ -131,7 +138,8 @@ namespace HcPortal.Data
                     Position = "Coach",
                     Section = "GAST",
                     Unit = "Alkylation Unit (065)",
-                    RoleLevel = 5
+                    RoleLevel = 5,
+                    SelectedView = "Coach"  // Coach view
                 }, "123456", UserRoles.Coach),
 
                 (new ApplicationUser
@@ -143,7 +151,8 @@ namespace HcPortal.Data
                     Position = "Operator",
                     Section = "GAST",
                     Unit = "Alkylation Unit (065)",
-                    RoleLevel = 6
+                    RoleLevel = 6,
+                    SelectedView = "Coachee"  // Coachee view
                 }, "123456", UserRoles.Coachee)
             };
 

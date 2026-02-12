@@ -1,0 +1,116 @@
+@model HcPortal.Models.AssessmentSession
+
+@{
+    ViewData["Title"] = "Exam In Progress";
+}
+
+<div class="container py-4">
+    <!-- Header: Timer & Progress -->
+    <div class="d-flex justify-content-between align-items-center mb-4 sticky-top bg-white py-3 shadow-sm px-3 rounded">
+        <div>
+            <h5 class="mb-0 text-primary fw-bold">@Model.Title</h5>
+            <small class="text-muted">@Model.Questions.Count Questions</small>
+        </div>
+        <div class="text-end">
+             <h3 class="mb-0 fw-bold text-danger" id="examTimer">00:00</h3>
+             <small>Time Remaining</small>
+        </div>
+    </div>
+
+    <form asp-action="SubmitExam" method="post" id="examForm">
+        <input type="hidden" name="id" value="@Model.Id" />
+        
+        <div class="row">
+            <div class="col-md-9 mx-auto">
+                @if (!Model.Questions.Any())
+                {
+                    <div class="alert alert-warning text-center">
+                        <h4>No Questions Found</h4>
+                        <p>This assessment has no questions configured yet.</p>
+                        <a asp-action="Assessment" class="btn btn-outline-dark">Return to List</a>
+                    </div>
+                }
+                else
+                {
+                    int index = 1;
+                    foreach (var question in Model.Questions.OrderBy(q => q.Order))
+                    {
+                        <div class="card shadow-sm mb-4 border-0">
+                            <div class="card-body p-4">
+                                <h5 class="card-title fw-bold mb-3">
+                                    <span class="badge bg-primary me-2">Q @index</span> 
+                                    @question.QuestionText
+                                </h5>
+                                
+                                <div class="list-group">
+                                    @foreach (var opt in question.Options)
+                                    {
+                                        <label class="list-group-item list-group-item-action d-flex align-items-center gap-3" style="cursor: pointer;">
+                                            <input class="form-check-input flex-shrink-0" type="radio" name="answers[@question.Id]" value="@opt.Id" style="transform: scale(1.2);">
+                                            <span class="fs-5">@opt.OptionText</span>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        index++;
+                    }
+
+                    <div class="d-grid gap-2 mt-5 mb-5">
+                        <button type="submit" class="btn btn-success btn-lg py-3 fw-bold shadow" onclick="return confirm('Are you sure you want to submit?');">
+                            <i class="bi bi-check-circle-fill me-2"></i>SUBMIT EXAM
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Simple Timer Logic
+    var durationMinutes = @Model.DurationMinutes;
+    var timeRemaining = durationMinutes * 60; // seconds
+
+    function updateTimer() {
+        var minutes = Math.floor(timeRemaining / 60);
+        var seconds = timeRemaining % 60;
+        
+        // Format with leading zeros
+        var displayTime = 
+            (minutes < 10 ? "0" + minutes : minutes) + ":" + 
+            (seconds < 10 ? "0" + seconds : seconds);
+            
+        var timerEl = document.getElementById('examTimer');
+        timerEl.innerText = displayTime;
+        
+        if (timeRemaining <= 300) { // Red alert on last 5 mins
+            timerEl.classList.add('text-danger', 'blink');
+        }
+
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            alert("Time is up! Submitting your exam automatically.");
+            document.getElementById('examForm').submit();
+        }
+        
+        timeRemaining--;
+    }
+
+    var timerInterval = setInterval(updateTimer, 1000);
+    
+    // Warn on tab switch/refresh
+    window.onbeforeunload = function() {
+        return "Are you sure you want to leave? Your progress may be lost.";
+    };
+    
+    // Remove warning on submit
+    document.getElementById('examForm').onsubmit = function() {
+        window.onbeforeunload = null;
+    };
+</script>
+
+<style>
+    .blink { animation: blinker 1s linear infinite; }
+    @@keyframes blinker { 50% { opacity: 0; } }
+</style>

@@ -4,6 +4,7 @@ using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HcPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260212014343_AddSelectedViewToUser")]
+    partial class AddSelectedViewToUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -116,63 +119,6 @@ namespace HcPortal.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("HcPortal.Models.AssessmentOption", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AssessmentQuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsCorrect")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("OptionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssessmentQuestionId");
-
-                    b.ToTable("AssessmentOptions");
-                });
-
-            modelBuilder.Entity("HcPortal.Models.AssessmentQuestion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AssessmentSessionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
-                    b.Property<string>("QuestionText")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("QuestionType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ScoreValue")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssessmentSessionId");
-
-                    b.ToTable("AssessmentQuestions");
-                });
-
             modelBuilder.Entity("HcPortal.Models.AssessmentSession", b =>
                 {
                     b.Property<int>("Id")
@@ -180,10 +126,6 @@ namespace HcPortal.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AccessToken")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BannerColor")
                         .IsRequired()
@@ -225,8 +167,6 @@ namespace HcPortal.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Schedule");
 
                     b.HasIndex("UserId");
 
@@ -538,37 +478,6 @@ namespace HcPortal.Migrations
                     b.ToTable("TrainingRecords");
                 });
 
-            modelBuilder.Entity("HcPortal.Models.UserResponse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AssessmentQuestionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("AssessmentSessionId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("SelectedOptionId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TextAnswer")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssessmentQuestionId");
-
-                    b.HasIndex("AssessmentSessionId");
-
-                    b.HasIndex("SelectedOptionId");
-
-                    b.ToTable("UserResponses");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
                     b.Property<string>("Id")
@@ -702,28 +611,6 @@ namespace HcPortal.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("HcPortal.Models.AssessmentOption", b =>
-                {
-                    b.HasOne("HcPortal.Models.AssessmentQuestion", "Question")
-                        .WithMany("Options")
-                        .HasForeignKey("AssessmentQuestionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Question");
-                });
-
-            modelBuilder.Entity("HcPortal.Models.AssessmentQuestion", b =>
-                {
-                    b.HasOne("HcPortal.Models.AssessmentSession", "AssessmentSession")
-                        .WithMany("Questions")
-                        .HasForeignKey("AssessmentSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AssessmentSession");
-                });
-
             modelBuilder.Entity("HcPortal.Models.AssessmentSession", b =>
                 {
                     b.HasOne("HcPortal.Models.ApplicationUser", "User")
@@ -755,31 +642,6 @@ namespace HcPortal.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("HcPortal.Models.UserResponse", b =>
-                {
-                    b.HasOne("HcPortal.Models.AssessmentQuestion", "Question")
-                        .WithMany()
-                        .HasForeignKey("AssessmentQuestionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("HcPortal.Models.AssessmentSession", "AssessmentSession")
-                        .WithMany("Responses")
-                        .HasForeignKey("AssessmentSessionId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("HcPortal.Models.AssessmentOption", "SelectedOption")
-                        .WithMany()
-                        .HasForeignKey("SelectedOptionId");
-
-                    b.Navigation("AssessmentSession");
-
-                    b.Navigation("Question");
-
-                    b.Navigation("SelectedOption");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -831,18 +693,6 @@ namespace HcPortal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("HcPortal.Models.AssessmentQuestion", b =>
-                {
-                    b.Navigation("Options");
-                });
-
-            modelBuilder.Entity("HcPortal.Models.AssessmentSession", b =>
-                {
-                    b.Navigation("Questions");
-
-                    b.Navigation("Responses");
                 });
 #pragma warning restore 612, 618
         }

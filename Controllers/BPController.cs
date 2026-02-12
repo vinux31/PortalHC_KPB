@@ -25,22 +25,72 @@ namespace HcPortal.Controllers
         }
 
         // 1. Talent Profile & Career Historical
-        public async Task<IActionResult> TalentProfile()
+        public async Task<IActionResult> TalentProfile(string? workerId = null)
         {
             // Get current user from database
             var user = await _userManager.GetUserAsync(User);
-            
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+            int userLevel = user?.RoleLevel ?? 6;
+
             if (user == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            // Build profile from user data
+            // ========== DETERMINE WHICH PROFILE TO SHOW ==========
+            ApplicationUser targetUser;
+
+            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            {
+                // Admin with view override
+                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
+                {
+                    // Show own profile
+                    targetUser = user;
+                }
+                else if ((user.SelectedView == "Atasan" || user.SelectedView == "HC") && !string.IsNullOrEmpty(workerId))
+                {
+                    // HC/Atasan view: Show requested worker's profile
+                    targetUser = await _userManager.FindByIdAsync(workerId);
+                    if (targetUser == null)
+                        return NotFound();
+                }
+                else
+                {
+                    // Default: show own profile
+                    targetUser = user;
+                }
+            }
+            else if (UserRoles.IsCoachingRole(userLevel))
+            {
+                // Coach/Coachee: Always show own profile
+                targetUser = user;
+            }
+            else
+            {
+                // HC/Atasan (Level 2-4): Can view others' profiles
+                targetUser = !string.IsNullOrEmpty(workerId)
+                    ? await _userManager.FindByIdAsync(workerId)
+                    : user;
+
+                if (targetUser == null)
+                    return NotFound();
+            }
+
+            // ========== BUILD PROFILE FROM TARGET USER DATA ==========
+            // Add view data to ViewBag
+            ViewBag.UserRole = userRole;
+            ViewBag.UserLevel = userLevel;
+            ViewBag.SelectedView = user?.SelectedView;
+            ViewBag.ViewingOtherProfile = (workerId != null && workerId != user.Id);
+
+            // Build profile from target user data
             var model = new TalentProfileViewModel
             {
-                Name = user.FullName ?? "Unknown",
-                NIO = user.Id.Substring(0, 6).ToUpper(), // Generate NIO from user ID
-                Position = user.Position ?? "Staff",
+                Name = targetUser.FullName ?? "Unknown",
+                NIO = targetUser.Id.Substring(0, 6).ToUpper(), // Generate NIO from target user ID
+                Position = targetUser.Position ?? "Staff",
                 Unit = user.Unit ?? user.Section ?? "General",
                 Directorate = "Technical",
                 Age = 30, // TODO: Calculate from birthdate if available

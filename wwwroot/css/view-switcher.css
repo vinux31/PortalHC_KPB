@@ -1,0 +1,65 @@
+/* ============================================
+   View-Specific Styling for HC Portal
+   ============================================ */
+
+/* HC View - Blue theme */
+body.view-hc .navbar {
+    border-bottom: 3px solid #0d6efd;
+}
+
+body.view-hc .navbar-brand {
+    color: #0d6efd !important;
+}
+
+body.view-hc .hero-section {
+    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+/* Atasan View - Purple theme */
+body.view-atasan .navbar {
+    border-bottom: 3px solid #6f42c1;
+}
+
+body.view-atasan .navbar-brand {
+    color: #6f42c1 !important;
+}
+
+body.view-atasan .hero-section {
+    background: linear-gradient(135deg, #6f42c1 0%, #59359a 100%);
+}
+
+/* Coach View - Green theme */
+body.view-coach .navbar {
+    border-bottom: 3px solid #198754;
+}
+
+body.view-coach .navbar-brand {
+    color: #198754 !important;
+}
+
+body.view-coach .hero-section {
+    background: linear-gradient(135deg, #198754 0%, #146c43 100%);
+}
+
+/* Coachee View - Orange theme (default) */
+body.view-coachee .navbar {
+    border-bottom: 3px solid #fd7e14;
+}
+
+body.view-coachee .navbar-brand {
+    color: #fd7e14 !important;
+}
+
+body.view-coachee .hero-section {
+    background: linear-gradient(135deg, #fd7e14 0%, #e66a00 100%);
+}
+
+/* View indicator styling */
+#currentViewText {
+    transition: all 0.3s ease;
+}
+
+/* Smooth transition for view changes */
+body {
+    transition: all 0.3s ease;
+}

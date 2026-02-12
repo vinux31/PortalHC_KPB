@@ -24,5 +24,10 @@ namespace HcPortal.Models
 
         public int? Score { get; set; }
         public bool IsTokenRequired { get; set; }
+        public string AccessToken { get; set; } = "";
+
+        // Navigation Properties for Exam Engine
+        public virtual ICollection<AssessmentQuestion> Questions { get; set; } = new List<AssessmentQuestion>();
+        public virtual ICollection<UserResponse> Responses { get; set; } = new List<UserResponse>();
     }
 }

@@ -18,6 +18,9 @@ namespace HcPortal.Data
         public DbSet<TrainingRecord> TrainingRecords { get; set; }
         public DbSet<CoachingLog> CoachingLogs { get; set; }
         public DbSet<AssessmentSession> AssessmentSessions { get; set; }
+        public DbSet<AssessmentQuestion> AssessmentQuestions { get; set; }
+        public DbSet<AssessmentOption> AssessmentOptions { get; set; }
+        public DbSet<UserResponse> UserResponses { get; set; }
         public DbSet<IdpItem> IdpItems { get; set; }
         
         // Master Data (KKJ & CPDP)
@@ -52,6 +55,22 @@ namespace HcPortal.Data
                     .WithMany()
                     .HasForeignKey(a => a.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(a => a.Schedule);
+            });
+
+            // UserResponse -> AssessmentSession (Restrict Delete to avoid Cycles)
+            builder.Entity<UserResponse>(entity =>
+            {
+                entity.HasOne(r => r.AssessmentSession)
+                    .WithMany(s => s.Responses)
+                    .HasForeignKey(r => r.AssessmentSessionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.Question)
+                    .WithMany()
+                    .HasForeignKey(r => r.AssessmentQuestionId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
             // IdpItem -> User
