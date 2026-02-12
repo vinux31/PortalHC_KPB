@@ -109,7 +109,7 @@
                     <!-- Type -->
                     <div class="col-md-6 mb-3">
                         <label asp-for="Type" class="form-label fw-semibold">Type</label>
-                        <input asp-for="Type" class="form-control" readonly value="@Model?.Category" />
+                        <input asp-for="Type" class="form-control" readonly id="TypeField" />
                         <div class="form-text text-muted">Auto-populated from Category</div>
                     </div>
 
@@ -158,16 +158,27 @@
                         </select>
                     </div>
 
-                    <!-- Token Required -->
                     <div class="col-md-6 mb-3">
                         <div class="form-check form-switch mt-4">
-                            <input class="form-check-input" type="checkbox" asp-for="IsTokenRequired">
+                            <input class="form-check-input" type="checkbox" asp-for="IsTokenRequired" id="IsTokenRequired">
                             <label class="form-check-label fw-semibold" for="IsTokenRequired">
                                 <i class="bi bi-shield-lock text-primary me-1"></i>
                                 Requires Security Token
                             </label>
                         </div>
-                        <div class="form-text text-muted">If checked, user must enter 6-digit token to start</div>
+                        <div class="form-text text-muted mb-2">If checked, user must enter 6-digit token to start</div>
+                        
+                        <!-- Token Input (Hidden by default) -->
+                        <div class="d-none" id="tokenInputContainer">
+                            <label asp-for="AccessToken" class="form-label fw-semibold">Access Token</label>
+                            <div class="input-group">
+                                <input asp-for="AccessToken" class="form-control font-monospace" placeholder="e.g. A1B2C3" maxlength="6" id="AccessToken" style="text-transform: uppercase;" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="generateToken()">
+                                    <i class="bi bi-shuffle"></i> Generate
+                                </button>
+                            </div>
+                            <span asp-validation-for="AccessToken" class="text-danger"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -263,4 +274,51 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Auto-sync Type field from Category dropdown
+            var categorySelect = document.getElementById('Category');
+            var typeField = document.getElementById('TypeField');
+
+            categorySelect.addEventListener('change', function() {
+                typeField.value = this.value;
+            });
+
+            // Set initial value on load
+            if (categorySelect.value) {
+                typeField.value = categorySelect.value;
+            }
+
+            var tokenCheckbox = document.getElementById('IsTokenRequired');
+            var tokenContainer = document.getElementById('tokenInputContainer');
+            var tokenInput = document.getElementById('AccessToken');
+
+            // Toggle visibility on load
+            toggleTokenInput();
+
+            // Toggle visibility on change
+            tokenCheckbox.addEventListener('change', toggleTokenInput);
+
+            function toggleTokenInput() {
+                if (tokenCheckbox.checked) {
+                    tokenContainer.classList.remove('d-none');
+                    tokenInput.setAttribute('required', 'required');
+                } else {
+                    tokenContainer.classList.add('d-none');
+                    tokenInput.removeAttribute('required');
+                    tokenInput.value = ''; // Clear value if unchecked
+                }
+            }
+        });
+
+        function generateToken() {
+            var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclude I, O, 0, 1 for clarity
+            var token = "";
+            for (var i = 0; i < 6; i++) {
+                token += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('AccessToken').value = token;
+        }
+    </script>
 }

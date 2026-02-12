@@ -12,6 +12,28 @@
         <p class="text-muted mb-0">Track and manage your competency assessments</p>
     </div>
 
+    <!-- Search Section -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" asp-action="Assessment" asp-controller="CMP">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" class="form-control border-start-0 ps-0" name="search" 
+                           placeholder="Search by title, user, or category..." value="@ViewBag.SearchTerm">
+                    <button class="btn btn-primary" type="submit">Search</button>
+                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                    {
+                        <a asp-action="Assessment" class="btn btn-outline-secondary" title="Clear Search">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Tab Navigation -->
     <ul class="nav nav-tabs mb-4" id="assessmentTabs" role="tablist">
         <li class="nav-item" role="presentation">
@@ -22,6 +44,11 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="open-tab" data-bs-toggle="tab" data-bs-target="#open-tab-pane" type="button" role="tab" data-status="open">
                 Open
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="upcoming-tab" data-bs-toggle="tab" data-bs-target="#upcoming-tab-pane" type="button" role="tab" data-status="upcoming">
+                Upcoming
             </button>
         </li>
         <li class="nav-item" role="presentation">
@@ -48,7 +75,7 @@
         {
             @foreach (var item in Model)
             {
-                var badgeClass = item.Category switch
+                var defaultBadgeClass = item.Category switch
                 {
                     "OJT" => "bg-primary",
                     "IHT" => "bg-success",
@@ -58,6 +85,11 @@
                     "Proton" => "bg-purple",
                     _ => "bg-secondary"
                 };
+
+                // Use BannerColor if set, otherwise fall back to category default
+                var badgeClass = !string.IsNullOrEmpty(item.BannerColor) && item.BannerColor != "bg-primary"
+                    ? item.BannerColor
+                    : defaultBadgeClass;
 
                 var statusBadgeClass = item.Status switch
                 {
@@ -91,13 +123,13 @@
                                 {
                                     if (item.IsTokenRequired)
                                     {
-                                        <button class="btn btn-primary w-100" onclick="openTokenModal('@item.Title', '@item.Category')">
+                                        <button class="btn btn-primary w-100" onclick="openTokenModal(@item.Id, '@item.Title', '@item.Category')">
                                             <i class="bi bi-shield-lock me-1"></i>Start Assessment <i class="bi bi-arrow-right ms-1"></i>
                                         </button>
                                     }
                                     else
                                     {
-                                        <button class="btn btn-primary w-100" onclick="startStandardAssessment('@item.Title')">
+                                        <button class="btn btn-primary w-100" onclick="startStandardAssessment(@item.Id, '@item.Title')">
                                             Start Assessment <i class="bi bi-arrow-right ms-1"></i>
                                         </button>
                                     }
@@ -116,9 +148,9 @@
                                 else if (item.Status == "Completed")
                                 {
                                     var scoreText = item.Score.HasValue ? $" (Score: {item.Score})" : "";
-                                    <button class="btn btn-outline-primary w-100" onclick="viewCertificate('@item.Title')">
-                                        <i class="bi bi-file-earmark-text me-1"></i>View Certificate@scoreText
-                                    </button>
+                                    <a href="@Url.Action("Certificate", "CMP", new { id = item.Id })" class="btn btn-outline-primary w-100" target="_blank">
+                                        <i class="bi bi-award me-1"></i>View Certificate@scoreText
+                                    </a>
                                 }
                             </div>
                         </div>
@@ -158,13 +190,17 @@
                     <b>PROTON Restricted:</b> This assessment can ONLY be accessed from the <b>NSO Room</b>.
                 </div>
 
+                <div class="alert alert-danger small d-none mb-3" id="tokenError">
+                    Invalid Token. Please try again.
+                </div>
+
                 <input type="text" id="tokenInput" class="form-control form-control-lg text-center fw-bold fs-2 mb-4 text-primary"
                        placeholder="• • • • • •" maxlength="6" style="letter-spacing: 0.5em; max-width: 300px; margin: 0 auto;">
 
             </div>
             <div class="modal-footer bg-light justify-content-center">
                 <button type="button" class="btn btn-link text-decoration-none text-muted me-3" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary px-5 fw-bold shadow-sm" onclick="verifyToken()">
+                <button type="button" id="btnVerify" class="btn btn-primary px-5 fw-bold shadow-sm" onclick="verifyToken()">
                     Verify & Launch <i class="bi bi-arrow-right ms-2"></i>
                 </button>
             </div>
@@ -281,13 +317,16 @@
 
     // Token modal
     var tokenModalObj;
+    var currentAssessmentId = 0;
 
-    function openTokenModal(title, category) {
+    function openTokenModal(id, title, category) {
+        currentAssessmentId = id;
         var modalEl = document.getElementById('tokenModal');
         tokenModalObj = new bootstrap.Modal(modalEl);
 
         document.getElementById('tokenModalTitle').innerText = title;
         document.getElementById('tokenInput').value = '';
+        document.getElementById('tokenError').classList.add('d-none'); // Reset error
 
         var protonAlert = document.getElementById('protonWarning');
         if (category === "Proton") {
@@ -301,17 +340,52 @@
 
     function verifyToken() {
         var token = document.getElementById('tokenInput').value;
-        if (token.length === 6) {
-            tokenModalObj.hide();
-            alert("Token Verified! Launching Assessment Environment...");
-        } else {
-            alert("Please enter a valid 6-digit token.");
+        var errorEl = document.getElementById('tokenError');
+        var verifyBtn = document.getElementById('btnVerify');
+        
+        // Basic Client Side Check
+        if (token.length < 1) {
+            errorEl.innerText = "Please enter a token.";
+            errorEl.classList.remove('d-none');
+            return;
         }
+
+        // Loading State
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
+        errorEl.classList.add('d-none');
+
+        // Server Side Verification
+        $.post('/CMP/VerifyToken', { id: currentAssessmentId, token: token })
+            .done(function(response) {
+                if (response.success) {
+                    window.location.href = response.redirectUrl;
+                } else {
+                    errorEl.innerText = response.message;
+                    errorEl.classList.remove('d-none');
+                    verifyBtn.disabled = false;
+                    verifyBtn.innerHTML = 'Verify & Launch <i class="bi bi-arrow-right ms-2"></i>';
+                }
+            })
+            .fail(function() {
+                errorEl.innerText = "Server error. Please try again.";
+                errorEl.classList.remove('d-none');
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = 'Verify & Launch <i class="bi bi-arrow-right ms-2"></i>';
+            });
     }
 
-    function startStandardAssessment(title) {
+    function startStandardAssessment(id, title) {
         if(confirm("Start " + title + " now?")) {
-            alert("Assessment Started!");
+            // No token required, just hit the verify endpoint to get redirect
+             $.post('/CMP/VerifyToken', { id: id, token: "" })
+                .done(function(response) {
+                    if (response.success) {
+                        window.location.href = response.redirectUrl;
+                    } else {
+                        alert(response.message);
+                    }
+                });
         }
     }
 

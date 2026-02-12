@@ -67,52 +67,66 @@ namespace HcPortal.Controllers
             return View(cpdpData);
         }
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
-        public async Task<IActionResult> Assessment()
+        // --- HALAMAN 3: ASSESSMENT LOBBY ---
+        // --- HALAMAN 3: ASSESSMENT LOBBY ---
+        public async Task<IActionResult> Assessment(string? search)
         {
             // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userId = user?.Id ?? "";
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
+            
+            // Base Query
+            var query = _context.AssessmentSessions
+                .Include(a => a.User)
+                .AsQueryable();
 
-            // ✅ QUERY FROM DATABASE instead of hardcoded data
-            var exams = await _context.AssessmentSessions
-                .Where(a => a.UserId == userId)
-                .OrderBy(a => a.Schedule)
-                .ToListAsync();
-
-            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin && !string.IsNullOrEmpty(user?.SelectedView))
+            // ========== VIEW-BASED FILTERING FOR ADMIN & HC ==========
+            if (userRole == UserRoles.Admin || userRole == "HC")
             {
                 if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
                 {
-                    // Show personal assessments only
-                    return View(exams);
+                    // View: Personal
+                    query = query.Where(a => a.UserId == userId);
                 }
                 else if (user.SelectedView == "Atasan" && !string.IsNullOrEmpty(user.Section))
                 {
-                    // Show assessments from user's section
+                    // View: Team (Section)
                     var section = user.Section;
-
-                    // Get all user IDs in the section
                     var teamUserIds = await _context.Users
                         .Where(u => u.Section == section)
                         .Select(u => u.Id)
                         .ToListAsync();
 
-                    var teamExams = await _context.AssessmentSessions
-                        .Include(a => a.User)
-                        .Where(a => teamUserIds.Contains(a.UserId))
-                        .OrderBy(a => a.Schedule)
-                        .ToListAsync();
-                    return View(teamExams);
+                    query = query.Where(a => teamUserIds.Contains(a.UserId));
                 }
-                else if (user.SelectedView == "HC")
-                {
-                    // Show all assessments - already queried above
-                    return View(exams);
-                }
+                // Else: HC or Default (Show ALL) - No extra filter needed on base query
             }
+            else
+            {
+                // Default: Personal assessments for Non-Admin
+                query = query.Where(a => a.UserId == userId);
+            }
+
+            // ========== SEARCH FILTER ==========
+            if (!string.IsNullOrEmpty(search))
+            {
+                var lowerSearch = search.ToLower();
+                query = query.Where(a => 
+                    a.Title.ToLower().Contains(lowerSearch) ||
+                    a.Category.ToLower().Contains(lowerSearch) ||
+                    (a.User != null && (a.User.FullName.ToLower().Contains(lowerSearch) || a.User.NIP.Contains(lowerSearch)))
+                );
+            }
+
+            ViewBag.SearchTerm = search;
+
+            // Execute Query
+            var exams = await query
+                .OrderByDescending(a => a.Schedule)
+                .Take(100)
+                .ToListAsync();
 
             return View(exams);
         }
@@ -121,13 +135,13 @@ namespace HcPortal.Controllers
         // GET: Tampilkan form create assessment
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public IActionResult CreateAssessment()
+        public async Task<IActionResult> CreateAssessment()
         {
             // Get list of users for dropdown
-            var users = _context.Users
+            var users = await _context.Users
                 .OrderBy(u => u.FullName)
                 .Select(u => new { u.Id, FullName = u.FullName ?? "", NIP = u.NIP ?? "" })
-                .ToList();
+                .ToListAsync();
 
             ViewBag.Users = users;
             return View();
@@ -139,24 +153,44 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAssessment(AssessmentSession model)
         {
+            // Custom Validation: Check Token
+            if (model.IsTokenRequired && string.IsNullOrWhiteSpace(model.AccessToken))
+            {
+                ModelState.AddModelError("AccessToken", "Access Token is required when token security is enabled.");
+            }
+
             // Validate model
             if (!ModelState.IsValid)
             {
-                // Reload users dropdown for validation error
+                // Reload users dropdown for validation error (must match GET structure)
                 var users = await _context.Users
                     .OrderBy(u => u.FullName)
-                    .Select(u => new { u.Id, u.FullName })
+                    .Select(u => new { u.Id, FullName = u.FullName ?? "", NIP = u.NIP ?? "" })
                     .ToListAsync();
 
                 ViewBag.Users = users;
                 return View(model);
             }
 
+            // Ensure Token is uppercase
+            if (model.IsTokenRequired && !string.IsNullOrEmpty(model.AccessToken))
+            {
+                model.AccessToken = model.AccessToken.ToUpper();
+            }
+            else
+            {
+                // Clear token if not required
+                model.AccessToken = "";
+            }
+
             // Get current user for audit trail
             var currentUser = await _userManager.GetUserAsync(User);
 
             // Set default values
-            model.Status = "Open";
+            if (string.IsNullOrEmpty(model.Status))
+            {
+                model.Status = "Open";
+            }
             model.Progress = 0;
 
             // If UserId not provided, use current user
@@ -169,8 +203,14 @@ namespace HcPortal.Controllers
             _context.AssessmentSessions.Add(model);
             await _context.SaveChangesAsync();
 
-            // Log action
-            TempData["SuccessMessage"] = $"Assessment '{model.Title}' successfully created for {currentUser?.FullName ?? model.UserId}";
+            // Log action - show the assigned user's name, not the creator's
+            var assignedUserName = currentUser?.FullName ?? "";
+            if (model.UserId != currentUser?.Id)
+            {
+                var assignedUser = await _context.Users.FindAsync(model.UserId);
+                assignedUserName = assignedUser?.FullName ?? model.UserId;
+            }
+            TempData["SuccessMessage"] = $"Assessment '{model.Title}' successfully created for {assignedUserName}";
 
             return RedirectToAction(nameof(Assessment));
         }
@@ -372,5 +412,199 @@ namespace HcPortal.Controllers
         }
         
 
+        // API: Verify Token for Assessment
+        [HttpPost]
+        public async Task<IActionResult> VerifyToken(int id, string token)
+        {
+            var assessment = await _context.AssessmentSessions.FindAsync(id);
+            if (assessment == null)
+            {
+                return Json(new { success = false, message = "Assessment not found." });
+            }
+
+            if (!assessment.IsTokenRequired)
+            {
+                // If token not required, just success
+                return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
+            }
+
+            if (string.IsNullOrEmpty(token) || assessment.AccessToken != token.ToUpper())
+            {
+                return Json(new { success = false, message = "Invalid Token. Please check and try again." });
+            }
+
+            // Token Valid -> Redirect to Exam
+            return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
+        }
+
+        // --- HALAMAN EXAM SKELETON ---
+        public async Task<IActionResult> StartExam(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(a => a.Id == id);
+            
+            if (assessment == null) return NotFound();
+
+            // Verification: Ensure User is the owner (or Admin)
+            var user = await _userManager.GetUserAsync(User);
+            if (assessment.UserId != user.Id && !User.IsInRole("Admin"))
+            {
+                return Forbid();
+            }
+
+            return View(assessment);
+        }
+
+        // ... existing code ...
+
+        #region Question Management
+        [HttpGet]
+        public async Task<IActionResult> ManageQuestions(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            return View(assessment);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddQuestion(int has_id, string question_text, List<string> options, int correct_option_index)
+        {
+            var assessment = await _context.AssessmentSessions.FindAsync(has_id);
+            if (assessment == null) return NotFound();
+
+            var newQuestion = new AssessmentQuestion
+            {
+                AssessmentSessionId = has_id,
+                QuestionText = question_text,
+                QuestionType = "MultipleChoice",
+                ScoreValue = 10,
+                Order = await _context.AssessmentQuestions.CountAsync(q => q.AssessmentSessionId == has_id) + 1
+            };
+
+            _context.AssessmentQuestions.Add(newQuestion);
+            await _context.SaveChangesAsync(); // Save to get ID
+
+            // Add Options
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(options[i]))
+                {
+                    _context.AssessmentOptions.Add(new AssessmentOption
+                    {
+                        AssessmentQuestionId = newQuestion.Id,
+                        OptionText = options[i],
+                        IsCorrect = (i == correct_option_index)
+                    });
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ManageQuestions", new { id = has_id });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteQuestion(int id)
+        {
+            var question = await _context.AssessmentQuestions.FindAsync(id);
+            if (question == null) return NotFound();
+
+            int assessmentId = question.AssessmentSessionId;
+            _context.AssessmentQuestions.Remove(question);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ManageQuestions", new { id = assessmentId });
+        }
+        [HttpPost]
+        public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            int totalScore = 0;
+            int maxScore = 0;
+
+            // Process Answers
+            foreach (var question in assessment.Questions)
+            {
+                maxScore += question.ScoreValue;
+                int? selectedOptionId = null;
+
+                if (answers.ContainsKey(question.Id))
+                {
+                    selectedOptionId = answers[question.Id];
+                    var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId);
+                    
+                    // Check if correct
+                    if (selectedOption != null && selectedOption.IsCorrect)
+                    {
+                        totalScore += question.ScoreValue;
+                    }
+                }
+
+                // Save User Response
+                _context.UserResponses.Add(new UserResponse
+                {
+                    AssessmentSessionId = id,
+                    AssessmentQuestionId = question.Id,
+                    SelectedOptionId = selectedOptionId
+                });
+            }
+
+            // Calculate Grade (0-100 scale if needed, or raw score)
+            // For now, let's store the raw score sum or percentage? 
+            // Model.Score is int, usually 0-100 logic is preferred.
+            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+            assessment.Score = finalPercentage;
+            assessment.Status = "Completed";
+            assessment.Progress = 100;
+
+            _context.AssessmentSessions.Update(assessment);
+            await _context.SaveChangesAsync();
+
+            // Redirect to Results Page (or back to list for now)
+            return RedirectToAction("Assessment");
+        }
+        [HttpGet]
+        public async Task<IActionResult> Certificate(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            // Security: Owner, Admin, HC
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge(); // Force login if session expired
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            bool isAuthorized = assessment.UserId == user.Id || 
+                              userRoles.Contains("Admin") || 
+                              userRoles.Contains("HC");
+
+            if (!isAuthorized) return Forbid();
+
+            // Only generate if Completed
+            if (assessment.Status != "Completed")
+            {
+                TempData["Error"] = "Assessment not completed yet.";
+                return RedirectToAction("Assessment");
+            }
+
+            return View(assessment);
+        }
+        #endregion
     }
 }
