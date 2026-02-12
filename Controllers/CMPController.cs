@@ -126,7 +126,7 @@ namespace HcPortal.Controllers
             // Get list of users for dropdown
             var users = _context.Users
                 .OrderBy(u => u.FullName)
-                .Select(u => new { u.Id, u.FullName })
+                .Select(u => new { u.Id, FullName = u.FullName ?? "", NIP = u.NIP ?? "" })
                 .ToList();
 
             ViewBag.Users = users;
