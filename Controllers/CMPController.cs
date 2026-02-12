@@ -140,11 +140,12 @@ namespace HcPortal.Controllers
             // Get list of users for dropdown
             var users = await _context.Users
                 .OrderBy(u => u.FullName)
-                .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "" })
+                .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                 .ToListAsync();
 
             ViewBag.Users = users;
             ViewBag.SelectedUserIds = new List<string>();
+            ViewBag.Sections = OrganizationStructure.GetAllSections();
 
             // Pass created assessment data to view if exists (for success modal)
             if (TempData["CreatedAssessment"] != null)
@@ -182,11 +183,12 @@ namespace HcPortal.Controllers
                 // Reload users for validation error (must match GET structure)
                 var users = await _context.Users
                     .OrderBy(u => u.FullName)
-                    .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "" })
+                    .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                     .ToListAsync();
 
                 ViewBag.Users = users;
                 ViewBag.SelectedUserIds = UserIds ?? new List<string>();
+                ViewBag.Sections = OrganizationStructure.GetAllSections();
                 return View(model);
             }
 

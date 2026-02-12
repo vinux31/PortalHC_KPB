@@ -68,8 +68,19 @@
                         <label class="form-label fw-semibold">
                             Assign to Users <span class="text-danger">*</span>
                         </label>
-                        <!-- Search + Controls -->
-                        <div class="d-flex gap-2 mb-2 align-items-center">
+                        <!-- Section Filter + Search + Controls -->
+                        <div class="d-flex gap-2 mb-2 align-items-center flex-wrap">
+                            <select id="sectionFilter" class="form-select form-select-sm" style="max-width: 220px;">
+                                <option value="">Semua Bagian</option>
+                                @if (ViewBag.Sections != null)
+                                {
+                                    foreach (var sec in (List<string>)ViewBag.Sections)
+                                    {
+                                        <option value="@sec">@sec</option>
+                                    }
+                                }
+                                <option value="__none__">Lainnya (Tanpa Bagian)</option>
+                            </select>
                             <input type="text" id="userSearchInput" class="form-control form-control-sm" placeholder="Search by name or email..." style="max-width: 300px;" />
                             <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllBtn">Select All</button>
                             <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAllBtn">Deselect All</button>
@@ -83,7 +94,7 @@
                                 @foreach (var user in ViewBag.Users)
                                 {
                                     var isChecked = selectedIds != null && selectedIds.Contains((string)user.Id);
-                                    <div class="form-check user-check-item mb-1" data-name="@user.FullName" data-email="@user.Email">
+                                    <div class="form-check user-check-item mb-1" data-name="@user.FullName" data-email="@user.Email" data-section="@user.Section">
                                         <input class="form-check-input user-checkbox" type="checkbox" name="UserIds" value="@user.Id" id="user_@user.Id" @(isChecked ? "checked" : "") />
                                         <label class="form-check-label" for="user_@user.Id">
                                             <strong>@user.FullName</strong> <span class="text-muted">(@user.Email)</span>
@@ -413,18 +424,38 @@
                 }
             }
 
-            // === User checkbox: search filter ===
+            // === Combined filter: section dropdown + text search ===
             var searchInput = document.getElementById('userSearchInput');
-            searchInput.addEventListener('input', function() {
-                var query = this.value.toLowerCase();
+            var sectionFilter = document.getElementById('sectionFilter');
+
+            function applyFilters() {
+                var query = searchInput.value.toLowerCase();
+                var selectedSection = sectionFilter.value;
+
                 document.querySelectorAll('.user-check-item').forEach(function(item) {
                     var name = (item.dataset.name || '').toLowerCase();
                     var email = (item.dataset.email || '').toLowerCase();
-                    item.style.display = (name.includes(query) || email.includes(query)) ? '' : 'none';
-                });
-            });
+                    var section = item.dataset.section || '';
 
-            // === Select All / Deselect All ===
+                    // Section filter
+                    var sectionMatch = true;
+                    if (selectedSection === '__none__') {
+                        sectionMatch = (section === '');
+                    } else if (selectedSection !== '') {
+                        sectionMatch = (section === selectedSection);
+                    }
+
+                    // Text search filter
+                    var textMatch = (query === '') || name.includes(query) || email.includes(query);
+
+                    item.style.display = (sectionMatch && textMatch) ? '' : 'none';
+                });
+            }
+
+            searchInput.addEventListener('input', applyFilters);
+            sectionFilter.addEventListener('change', applyFilters);
+
+            // === Select All / Deselect All (only visible items) ===
             document.getElementById('selectAllBtn').addEventListener('click', function() {
                 document.querySelectorAll('.user-check-item').forEach(function(item) {
                     if (item.style.display !== 'none') {
@@ -435,8 +466,10 @@
             });
 
             document.getElementById('deselectAllBtn').addEventListener('click', function() {
-                document.querySelectorAll('.user-checkbox').forEach(function(cb) {
-                    cb.checked = false;
+                document.querySelectorAll('.user-check-item').forEach(function(item) {
+                    if (item.style.display !== 'none') {
+                        item.querySelector('.user-checkbox').checked = false;
+                    }
                 });
                 updateSelectedCount();
             });
@@ -540,6 +573,8 @@
                         document.querySelectorAll('.user-checkbox').forEach(function(cb) { cb.checked = false; });
                         document.getElementById('selectedCountBadge').textContent = '0 selected';
                         document.getElementById('userSearchInput').value = '';
+                        // Reset section filter to "Semua Bagian"
+                        document.getElementById('sectionFilter').value = '';
                         // Show all items again
                         document.querySelectorAll('.user-check-item').forEach(function(item) { item.style.display = ''; });
                     });
