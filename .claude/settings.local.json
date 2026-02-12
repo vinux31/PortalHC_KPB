@@ -6,7 +6,15 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(dotnet build:*)",
-      "WebFetch(domain:localhost)"
+      "WebFetch(domain:localhost)",
+      "Bash(git restore:*)",
+      "Bash(ls:*)",
+      "Bash(dotnet ef database update:*)",
+      "Bash(dotnet run:*)",
+      "Bash(netstat:*)",
+      "Bash(tasklist:*)",
+      "Bash(curl:*)",
+      "Bash(test_database_schema.sql << 'EOF'\n-- Test 1: Check indexes exist\nSELECT \n    OBJECT_NAME\\(object_id\\) AS TableName,\n    name AS IndexName,\n    type_desc AS IndexType,\n    is_unique AS IsUnique\nFROM sys.indexes \nWHERE object_id = OBJECT_ID\\('AssessmentSessions'\\)\nORDER BY name;\n\n-- Test 2: Check audit fields exist\nSELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE\nFROM INFORMATION_SCHEMA.COLUMNS \nWHERE TABLE_NAME = 'AssessmentSessions' \nAND COLUMN_NAME IN \\('CreatedAt', 'UpdatedAt', 'CreatedBy', 'Type'\\)\nORDER BY COLUMN_NAME;\n\n-- Test 3: Check check constraints exist\nSELECT name AS ConstraintName, definition\nFROM sys.check_constraints \nWHERE parent_object_id = OBJECT_ID\\('AssessmentSessions'\\);\nEOF)"
     ],
     "deny": [],
     "ask": []
