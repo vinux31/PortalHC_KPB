@@ -78,13 +78,13 @@ namespace HcPortal.Migrations
                         column: x => x.AssessmentQuestionId,
                         principalTable: "AssessmentQuestions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_UserResponses_AssessmentSessions_AssessmentSessionId",
                         column: x => x.AssessmentSessionId,
                         principalTable: "AssessmentSessions",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(

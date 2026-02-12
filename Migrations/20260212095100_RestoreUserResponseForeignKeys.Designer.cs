@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HcPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260212063848_AddExamQuestionModels")]
-    partial class AddExamQuestionModels
+    [Migration("20260212095100_RestoreUserResponseForeignKeys")]
+    partial class RestoreUserResponseForeignKeys
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -228,6 +228,8 @@ namespace HcPortal.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Schedule");
 
                     b.HasIndex("UserId");
 
