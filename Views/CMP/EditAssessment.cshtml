@@ -21,16 +21,6 @@
         new SelectListItem { Value = "Completed", Text = "Completed" }
     };
 
-    // Banner color options
-    var bannerColors = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "bg-primary", Text = "Blue" },
-        new SelectListItem { Value = "bg-success", Text = "Green" },
-        new SelectListItem { Value = "bg-danger", Text = "Red" },
-        new SelectListItem { Value = "bg-warning", Text = "Yellow" },
-        new SelectListItem { Value = "bg-info", Text = "Cyan" },
-        new SelectListItem { Value = "bg-purple text-white", Text = "Purple" }
-    };
 }
 
 <div class="container-fluid px-4 py-4">
@@ -151,15 +141,6 @@
                         <input asp-for="DurationMinutes" type="number" class="form-control" placeholder="e.g., 60" min="1" max="480" required />
                         <span asp-validation-for="DurationMinutes" class="text-danger"></span>
                     </div>
-                </div>
-
-                <!-- Banner Color -->
-                <div class="mb-3">
-                    <label asp-for="BannerColor" class="form-label fw-semibold">Banner Color</label>
-                    <select asp-for="BannerColor" asp-items="bannerColors" class="form-select">
-                        <option value="">-- Default (Category Color) --</option>
-                    </select>
-                    <small class="text-muted">Optional: Override the default category color</small>
                 </div>
 
                 <!-- Security Token Section -->

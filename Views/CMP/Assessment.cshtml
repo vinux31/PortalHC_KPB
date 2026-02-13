@@ -78,12 +78,7 @@
     <!-- Tab Navigation -->
     <ul class="nav nav-tabs mb-4" id="assessmentTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-tab-pane" type="button" role="tab" data-status="all">
-                All
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="open-tab" data-bs-toggle="tab" data-bs-target="#open-tab-pane" type="button" role="tab" data-status="open">
+            <button class="nav-link active" id="open-tab" data-bs-toggle="tab" data-bs-target="#open-tab-pane" type="button" role="tab" data-status="open">
                 Open
             </button>
         </li>
@@ -146,10 +141,8 @@
                     _ => "bg-secondary"
                 };
 
-                // Use BannerColor if set, otherwise fall back to category default
-                var badgeClass = !string.IsNullOrEmpty(item.BannerColor) && item.BannerColor != "bg-primary"
-                    ? item.BannerColor
-                    : defaultBadgeClass;
+                // Use category default color
+                var badgeClass = defaultBadgeClass;
 
                 var statusBadgeClass = item.Status switch
                 {
@@ -162,20 +155,70 @@
                 <div class="col-12 col-md-6 col-lg-4 assessment-card" data-status="@item.Status.ToLower()">
                     <div class="card h-100 border-0 shadow-sm assessment-card-item">
                         <div class="card-body d-flex flex-column p-4">
-                            <!-- Header: Category & Status -->
-                            <div class="d-flex justify-content-between align-items-center mb-3">
+                            <!-- Header: Category Badge -->
+                            <div class="mb-3">
                                 <span class="badge @badgeClass">@item.Category</span>
-                                <span class="badge @statusBadgeClass">@item.Status</span>
                             </div>
 
                             <!-- Title -->
-                            <h5 class="card-title fw-bold mb-3 flex-grow-1">
-                                @if (item.IsTokenRequired)
-                                {
-                                    <i class="bi bi-shield-lock text-primary me-1" title="Token Required"></i>
-                                }
+                            <h5 class="card-title fw-bold mb-3">
                                 @item.Title
                             </h5>
+
+                            <!-- Assessment Info - Minimalist Clean -->
+                            <div class="assessment-meta mb-3">
+                                <!-- Date -->
+                                <div class="meta-item">
+                                    <i class="bi bi-calendar3"></i>
+                                    <span>@item.Schedule.ToString("dd MMM yyyy")</span>
+                                </div>
+
+                                <!-- Duration -->
+                                <div class="meta-item">
+                                    <i class="bi bi-clock"></i>
+                                    <span>
+                                        @{
+                                            var hours = item.DurationMinutes / 60;
+                                            var minutes = item.DurationMinutes % 60;
+                                            var durationText = hours > 0
+                                                ? (minutes > 0 ? $"{hours}h {minutes}m" : $"{hours} hour{(hours > 1 ? "s" : "")}")
+                                                : $"{minutes} minute{(minutes > 1 ? "s" : "")}";
+                                        }
+                                        @durationText
+                                    </span>
+                                </div>
+
+                                <!-- Status with Icon -->
+                                <div class="meta-item">
+                                    @{
+                                        var statusIcon = item.Status switch
+                                        {
+                                            "Open" => "bi-check-circle-fill text-success",
+                                            "Upcoming" => "bi-clock-fill text-warning",
+                                            "Completed" => "bi-check-circle text-primary",
+                                            _ => "bi-circle"
+                                        };
+                                    }
+                                    <i class="bi @statusIcon"></i>
+                                    <span>Status: @item.Status</span>
+                                </div>
+
+                                <!-- Token Requirement -->
+                                @if (item.IsTokenRequired)
+                                {
+                                    <div class="meta-item">
+                                        <i class="bi bi-shield-lock text-danger"></i>
+                                        <span>Token Required</span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="meta-item">
+                                        <i class="bi bi-unlock text-success"></i>
+                                        <span>Open Access</span>
+                                    </div>
+                                }
+                            </div>
 
                             @if (viewMode == "manage")
                             {
@@ -382,13 +425,44 @@
     /* Assessment Cards */
     .assessment-card-item {
         transition: all 0.3s ease;
-        border-radius: 8px;
-        min-height: 180px;
+        border-radius: 12px;
+        min-height: 280px;
+        border: 1px solid #e9ecef;
     }
 
     .assessment-card-item:hover {
-        transform: scale(1.02);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1) !important;
+        border-color: #dee2e6;
+    }
+
+    /* Assessment Meta - Minimalist Clean */
+    .assessment-meta {
+        flex-grow: 1;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f1f3f5;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+
+    .meta-item:last-child {
+        border-bottom: none;
+    }
+
+    .meta-item i {
+        width: 20px;
+        margin-right: 0.75rem;
+        font-size: 1rem;
+        opacity: 0.8;
+    }
+
+    .meta-item span {
+        flex: 1;
     }
 
     /* Tab Styling */
@@ -441,41 +515,60 @@
         }
 
         .assessment-card-item {
-            min-height: 160px;
+            min-height: 240px;
+        }
+
+        .meta-item {
+            padding: 0.4rem 0;
+            font-size: 0.85rem;
+        }
+
+        .meta-item i {
+            width: 18px;
+            margin-right: 0.5rem;
         }
     }
 </style>
 
 @section Scripts {
 <script>
-    // Tab filtering
+    // Tab filtering - Updated for Open as default
     document.addEventListener('DOMContentLoaded', function() {
         const tabs = document.querySelectorAll('#assessmentTabs .nav-link');
         const cards = document.querySelectorAll('.assessment-card');
         const emptyState = document.getElementById('emptyTabState');
 
-        tabs.forEach(tab => {
-            tab.addEventListener('shown.bs.Tab', function(event) {
-                const status = this.getAttribute('data-status');
-                let visibleCount = 0;
+        // Function to filter cards
+        function filterCards(status) {
+            let visibleCount = 0;
 
-                cards.forEach(card => {
-                    const cardStatus = card.getAttribute('data-status');
+            cards.forEach(card => {
+                const cardStatus = card.getAttribute('data-status');
 
-                    if (status === 'all' || cardStatus === status) {
-                        card.classList.remove('hidden');
-                        visibleCount++;
-                    } else {
-                        card.classList.add('hidden');
-                    }
-                });
-
-                // Show/hide empty state
-                if (visibleCount === 0) {
-                    emptyState.classList.remove('d-none');
+                if (cardStatus === status) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
                 } else {
-                    emptyState.classList.add('d-none');
+                    card.classList.add('hidden');
                 }
+            });
+
+            // Show/hide empty state
+            if (visibleCount === 0) {
+                emptyState.classList.remove('d-none');
+            } else {
+                emptyState.classList.add('d-none');
+            }
+        }
+
+        // Initial load - show only "Open" assessments
+        filterCards('open');
+
+        // Tab click events
+        tabs.forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(event) {
+                const status = this.getAttribute('data-status');
+                filterCards(status);
             });
         });
     });
