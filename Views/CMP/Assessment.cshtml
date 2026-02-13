@@ -1,31 +1,72 @@
 @model List<HcPortal.Models.AssessmentSession>
 
 @{
-    ViewData["Title"] = "My Assessments";
+    var viewMode = ViewBag.ViewMode as string ?? "personal";
+    var canManage = ViewBag.CanManage as bool? ?? false;
+    ViewData["Title"] = viewMode == "manage" ? "Manage Assessments" : "My Assessments";
 }
 
 <div class="container-fluid px-4 py-4">
 
-    <!-- Header Section -->
-    <div class="mb-4">
-        <h2 class="fw-bold mb-1">My Assessments</h2>
-        <p class="text-muted mb-0">Track and manage your competency assessments</p>
+    <!-- Header Section with Toggle -->
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold mb-1">
+                @if (viewMode == "manage")
+                {
+                    <i class="bi bi-sliders me-2 text-primary"></i>@:Manage Assessments
+                }
+                else
+                {
+                    @:My Assessments
+                }
+            </h2>
+            <p class="text-muted mb-0">
+                @if (viewMode == "manage")
+                {
+                    @:Manage all assessments, tokens, and configurations
+                }
+                else
+                {
+                    @:Track and manage your competency assessments
+                }
+            </p>
+        </div>
+
+        @if (canManage)
+        {
+            <div>
+                @if (viewMode == "manage")
+                {
+                    <a asp-action="Assessment" asp-route-view="personal" class="btn btn-outline-primary">
+                        <i class="bi bi-person-circle me-1"></i> Personal View
+                    </a>
+                }
+                else
+                {
+                    <a asp-action="Assessment" asp-route-view="manage" class="btn btn-primary">
+                        <i class="bi bi-sliders me-1"></i> Manage View
+                    </a>
+                }
+            </div>
+        }
     </div>
 
     <!-- Search Section -->
     <div class="row mb-4">
         <div class="col-md-6">
             <form method="get" asp-action="Assessment" asp-controller="CMP">
+                <input type="hidden" name="view" value="@viewMode" />
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0">
                         <i class="bi bi-search text-muted"></i>
                     </span>
-                    <input type="text" class="form-control border-start-0 ps-0" name="search" 
+                    <input type="text" class="form-control border-start-0 ps-0" name="search"
                            placeholder="Search by title, user, or category..." value="@ViewBag.SearchTerm">
                     <button class="btn btn-primary" type="submit">Search</button>
                     @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
                     {
-                        <a asp-action="Assessment" class="btn btn-outline-secondary" title="Clear Search">
+                        <a asp-action="Assessment" asp-route-view="@viewMode" class="btn btn-outline-secondary" title="Clear Search">
                             <i class="bi bi-x-lg"></i>
                         </a>
                     }
@@ -128,7 +169,7 @@
                             </div>
 
                             <!-- Title -->
-                            <h5 class="card-title fw-bold mb-4 flex-grow-1">
+                            <h5 class="card-title fw-bold mb-3 flex-grow-1">
                                 @if (item.IsTokenRequired)
                                 {
                                     <i class="bi bi-shield-lock text-primary me-1" title="Token Required"></i>
@@ -136,42 +177,92 @@
                                 @item.Title
                             </h5>
 
-                            <!-- Action Button -->
-                            <div class="mt-auto">
-                                @if (item.Status == "Open")
-                                {
-                                    if (item.IsTokenRequired)
+                            @if (viewMode == "manage")
+                            {
+                                <!-- Manage View: Show management info -->
+                                <div class="manage-info mb-3">
+                                    <div class="d-flex align-items-center text-muted small mb-2">
+                                        <i class="bi bi-person me-2"></i>
+                                        <span><strong>Assigned to:</strong> @(item.User?.FullName ?? "Unknown")</span>
+                                    </div>
+                                    @if (item.IsTokenRequired && !string.IsNullOrEmpty(item.AccessToken))
                                     {
-                                        <button class="btn btn-primary w-100" onclick="openTokenModal(@item.Id, '@item.Title', '@item.Category')">
-                                            <i class="bi bi-shield-lock me-1"></i>Start Assessment <i class="bi bi-arrow-right ms-1"></i>
-                                        </button>
+                                        <div class="d-flex align-items-center text-muted small mb-2">
+                                            <i class="bi bi-key me-2"></i>
+                                            <span><strong>Token:</strong> <code id="token-@item.Id" class="text-primary">@item.AccessToken</code></span>
+                                            <button class="btn btn-sm btn-link p-0 ms-2" onclick="copyToken('@item.AccessToken', @item.Id, event)" title="Copy Token">
+                                                <i class="bi bi-clipboard"></i>
+                                            </button>
+                                        </div>
                                     }
-                                    else
-                                    {
-                                        <button class="btn btn-primary w-100" onclick="startStandardAssessment(@item.Id, '@item.Title')">
-                                            Start Assessment <i class="bi bi-arrow-right ms-1"></i>
-                                        </button>
-                                    }
-                                }
-                                else if (item.Status == "Upcoming")
-                                {
-                                    var daysUntil = (item.Schedule - DateTime.Now).Days;
-                                    var daysText = daysUntil > 0
-                                        ? $"Available in {daysUntil} day{(daysUntil != 1 ? "s" : "")}"
-                                        : "Coming soon";
+                                    <div class="d-flex align-items-center text-muted small">
+                                        <i class="bi bi-calendar3 me-2"></i>
+                                        <span><strong>Schedule:</strong> @item.Schedule.ToString("dd MMM yyyy")</span>
+                                    </div>
+                                </div>
 
-                                    <button class="btn btn-outline-secondary w-100" disabled>
-                                        <i class="bi bi-lock-fill me-1"></i>@daysText
-                                    </button>
-                                }
-                                else if (item.Status == "Completed")
-                                {
-                                    var scoreText = item.Score.HasValue ? $" (Score: {item.Score})" : "";
-                                    <a href="@Url.Action("Certificate", "CMP", new { id = item.Id })" class="btn btn-outline-primary w-100" target="_blank">
-                                        <i class="bi bi-award me-1"></i>View Certificate@scoreText
-                                    </a>
-                                }
-                            </div>
+                                <!-- Management Actions -->
+                                <div class="mt-auto">
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <a asp-action="EditAssessment" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary flex-fill">
+                                            <i class="bi bi-pencil"></i> Edit
+                                        </a>
+                                        <a asp-action="ManageQuestions" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info flex-fill">
+                                            <i class="bi bi-list-check"></i> Questions
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2 flex-wrap mt-2">
+                                        @if (item.IsTokenRequired)
+                                        {
+                                            <button class="btn btn-sm btn-outline-warning flex-fill" onclick="regenerateToken(@item.Id)">
+                                                <i class="bi bi-arrow-clockwise"></i> Regen Token
+                                            </button>
+                                        }
+                                        <button class="btn btn-sm btn-outline-danger flex-fill" onclick="confirmDelete(@item.Id, '@item.Title')">
+                                            <i class="bi bi-trash"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <!-- Personal View: Show action buttons -->
+                                <div class="mt-auto">
+                                    @if (item.Status == "Open")
+                                    {
+                                        if (item.IsTokenRequired)
+                                        {
+                                            <button class="btn btn-primary w-100" onclick="openTokenModal(@item.Id, '@item.Title', '@item.Category')">
+                                                <i class="bi bi-shield-lock me-1"></i>Start Assessment <i class="bi bi-arrow-right ms-1"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-primary w-100" onclick="startStandardAssessment(@item.Id, '@item.Title')">
+                                                Start Assessment <i class="bi bi-arrow-right ms-1"></i>
+                                            </button>
+                                        }
+                                    }
+                                    else if (item.Status == "Upcoming")
+                                    {
+                                        var daysUntil = (item.Schedule - DateTime.Now).Days;
+                                        var daysText = daysUntil > 0
+                                            ? $"Available in {daysUntil} day{(daysUntil != 1 ? "s" : "")}"
+                                            : "Coming soon";
+
+                                        <button class="btn btn-outline-secondary w-100" disabled>
+                                            <i class="bi bi-lock-fill me-1"></i>@daysText
+                                        </button>
+                                    }
+                                    else if (item.Status == "Completed")
+                                    {
+                                        var scoreText = item.Score.HasValue ? $" (Score: {item.Score})" : "";
+                                        <a href="@Url.Action("Certificate", "CMP", new { id = item.Id })" class="btn btn-outline-primary w-100" target="_blank">
+                                            <i class="bi bi-award me-1"></i>View Certificate@scoreText
+                                        </a>
+                                    }
+                                </div>
+                            }
                         </div>
                     </div>
                 </div>
@@ -197,14 +288,14 @@
                 <ul class="pagination pagination-sm mb-0">
                     @* First Page *@
                     <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                        <a class="page-link" href="?page=1@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                        <a class="page-link" href="?view=@viewMode&page=1@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
                             <i class="bi bi-chevron-double-left"></i>
                         </a>
                     </li>
 
                     @* Previous Page *@
                     <li class="page-item @(ViewBag.CurrentPage == 1 ? "disabled" : "")">
-                        <a class="page-link" href="?page=@(ViewBag.CurrentPage - 1)@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                        <a class="page-link" href="?view=@viewMode&page=@(ViewBag.CurrentPage - 1)@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
                             <i class="bi bi-chevron-left"></i>
                         </a>
                     </li>
@@ -217,21 +308,21 @@
                         for (int i = startPage; i <= endPage; i++)
                         {
                             <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
-                                <a class="page-link" href="?page=@i@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">@i</a>
+                                <a class="page-link" href="?view=@viewMode&page=@i@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">@i</a>
                             </li>
                         }
                     }
 
                     @* Next Page *@
                     <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                        <a class="page-link" href="?page=@(ViewBag.CurrentPage + 1)@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                        <a class="page-link" href="?view=@viewMode&page=@(ViewBag.CurrentPage + 1)@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
                             <i class="bi bi-chevron-right"></i>
                         </a>
                     </li>
 
                     @* Last Page *@
                     <li class="page-item @(ViewBag.CurrentPage == ViewBag.TotalPages ? "disabled" : "")">
-                        <a class="page-link" href="?page=@ViewBag.TotalPages@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
+                        <a class="page-link" href="?view=@viewMode&page=@ViewBag.TotalPages@(string.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : "&search=" + ViewBag.SearchTerm)">
                             <i class="bi bi-chevron-double-right"></i>
                         </a>
                     </li>
@@ -355,6 +446,7 @@
     }
 </style>
 
+@section Scripts {
 <script>
     // Tab filtering
     document.addEventListener('DOMContentLoaded', function() {
@@ -415,7 +507,7 @@
         var token = document.getElementById('tokenInput').value;
         var errorEl = document.getElementById('tokenError');
         var verifyBtn = document.getElementById('btnVerify');
-        
+
         // Basic Client Side Check
         if (token.length < 1) {
             errorEl.innerText = "Please enter a token.";
@@ -428,41 +520,195 @@
         verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
         errorEl.classList.add('d-none');
 
-        // Server Side Verification
-        $.post('/CMP/VerifyToken', { id: currentAssessmentId, token: token })
-            .done(function(response) {
+        console.log('Verifying token for assessment:', currentAssessmentId, 'with token:', token);
+
+        // Server Side Verification with better error handling
+        $.ajax({
+            url: '/CMP/VerifyToken',
+            type: 'POST',
+            data: {
+                id: currentAssessmentId,
+                token: token
+            },
+            success: function(response) {
+                console.log('VerifyToken response:', response);
                 if (response.success) {
+                    // Redirect to exam
                     window.location.href = response.redirectUrl;
                 } else {
-                    errorEl.innerText = response.message;
+                    errorEl.innerText = response.message || "Invalid token";
                     errorEl.classList.remove('d-none');
                     verifyBtn.disabled = false;
                     verifyBtn.innerHTML = 'Verify & Launch <i class="bi bi-arrow-right ms-2"></i>';
                 }
-            })
-            .fail(function() {
-                errorEl.innerText = "Server error. Please try again.";
+            },
+            error: function(xhr, status, error) {
+                console.error('VerifyToken failed:', xhr, status, error);
+                var errorMessage = "Server error: " + (xhr.responseText || error);
+                if (xhr.status === 401) {
+                    errorMessage = "Session expired. Please refresh the page and login again.";
+                } else if (xhr.status === 403) {
+                    errorMessage = "You are not authorized to access this assessment.";
+                } else if (xhr.status === 404) {
+                    errorMessage = "Assessment not found.";
+                }
+                errorEl.innerText = errorMessage;
                 errorEl.classList.remove('d-none');
                 verifyBtn.disabled = false;
                 verifyBtn.innerHTML = 'Verify & Launch <i class="bi bi-arrow-right ms-2"></i>';
-            });
+            }
+        });
     }
 
     function startStandardAssessment(id, title) {
         if(confirm("Start " + title + " now?")) {
+            console.log('Starting standard assessment:', id);
+
             // No token required, just hit the verify endpoint to get redirect
-             $.post('/CMP/VerifyToken', { id: id, token: "" })
-                .done(function(response) {
+            $.ajax({
+                url: '/CMP/VerifyToken',
+                type: 'POST',
+                data: {
+                    id: id,
+                    token: ""
+                },
+                success: function(response) {
+                    console.log('StartAssessment response:', response);
                     if (response.success) {
                         window.location.href = response.redirectUrl;
                     } else {
-                        alert(response.message);
+                        alert('Error: ' + (response.message || 'Failed to start assessment'));
                     }
-                });
+                },
+                error: function(xhr, status, error) {
+                    console.error('StartAssessment failed:', xhr, status, error);
+                    var errorMessage = "Failed to start assessment: " + (xhr.responseText || error);
+                    if (xhr.status === 401) {
+                        errorMessage = "Session expired. Please refresh the page and login again.";
+                    }
+                    alert(errorMessage);
+                }
+            });
         }
     }
 
     function viewCertificate(title) {
         alert("Viewing certificate for: " + title);
     }
+
+    // ========== MANAGE VIEW FUNCTIONS ==========
+
+    // Copy token to clipboard
+    function copyToken(token, assessmentId, event) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        navigator.clipboard.writeText(token).then(function() {
+            // Show success feedback
+            var btn = event.target.closest('button');
+            var originalIcon = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check-lg text-success"></i>';
+            setTimeout(function() {
+                btn.innerHTML = originalIcon;
+            }, 2000);
+        }).catch(function(err) {
+            console.error('Copy failed:', err);
+            alert('Failed to copy token: ' + err.message);
+        });
+    }
+
+    // Regenerate token
+    function regenerateToken(assessmentId) {
+        if (!confirm('Are you sure you want to regenerate the token? The old token will no longer work.')) {
+            return;
+        }
+
+        $.post('/CMP/RegenerateToken', {
+            id: assessmentId,
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        })
+        .done(function(response) {
+            if (response.success) {
+                alert('Token regenerated successfully!\n\nNew Token: ' + response.token);
+                // Update token display
+                $('#token-' + assessmentId).text(response.token);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        })
+        .fail(function() {
+            alert('Server error. Please try again.');
+        });
+    }
+
+    // Confirm and delete assessment
+    function confirmDelete(assessmentId, title) {
+        // Enhanced confirmation with warning
+        var confirmMessage = '⚠️ WARNING: DELETE ASSESSMENT\n\n';
+        confirmMessage += 'Assessment: "' + title + '"\n\n';
+        confirmMessage += 'This will permanently delete:\n';
+        confirmMessage += '• The assessment\n';
+        confirmMessage += '• All questions\n';
+        confirmMessage += '• All user responses\n\n';
+        confirmMessage += 'This action CANNOT be undone!\n\n';
+        confirmMessage += 'Are you absolutely sure?';
+
+        if (!confirm(confirmMessage)) {
+            return;
+        }
+
+        // Second confirmation for safety
+        if (!confirm('Final confirmation: Delete "' + title + '"?')) {
+            return;
+        }
+
+        // Get anti-forgery token
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        if (!token) {
+            console.error('Anti-forgery token not found');
+            alert('Security token not found. Please refresh the page and try again.');
+            return;
+        }
+
+        // Show loading indicator
+        var originalButton = event.target.closest('button');
+        if (originalButton) {
+            originalButton.disabled = true;
+            originalButton.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
+        }
+
+        $.ajax({
+            url: '/CMP/DeleteAssessment',
+            type: 'POST',
+            data: {
+                id: assessmentId,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert('✅ ' + response.message);
+                    location.reload(); // Reload to show updated list
+                } else {
+                    alert('❌ Error: ' + response.message);
+                    if (originalButton) {
+                        originalButton.disabled = false;
+                        originalButton.innerHTML = '<i class="bi bi-trash"></i> Delete';
+                    }
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Delete failed:', xhr, status, error);
+                alert('❌ Server error: ' + (xhr.responseText || error) + '\nPlease try again or contact administrator.');
+                if (originalButton) {
+                    originalButton.disabled = false;
+                    originalButton.innerHTML = '<i class="bi bi-trash"></i> Delete';
+                }
+            }
+        });
+    }
 </script>
+}
+
+@* Anti-forgery token for AJAX requests *@
+@Html.AntiForgeryToken()

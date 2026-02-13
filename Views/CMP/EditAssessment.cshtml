@@ -1,0 +1,250 @@
+@model HcPortal.Models.AssessmentSession
+
+@{
+    ViewData["Title"] = "Edit Assessment";
+    // Get list of categories for dropdown
+    var categories = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "OJT", Text = "OJT" },
+        new SelectListItem { Value = "IHT", Text = "IHT" },
+        new SelectListItem { Value = "Training Licencor", Text = "Training Licencor" },
+        new SelectListItem { Value = "OTS", Text = "OTS" },
+        new SelectListItem { Value = "Mandatory HSSE Training", Text = "Mandatory HSSE Training" },
+        new SelectListItem { Value = "Proton", Text = "Proton" }
+    };
+
+    // Status options
+    var statuses = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Open", Text = "Open" },
+        new SelectListItem { Value = "Upcoming", Text = "Upcoming" },
+        new SelectListItem { Value = "Completed", Text = "Completed" }
+    };
+
+    // Banner color options
+    var bannerColors = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "bg-primary", Text = "Blue" },
+        new SelectListItem { Value = "bg-success", Text = "Green" },
+        new SelectListItem { Value = "bg-danger", Text = "Red" },
+        new SelectListItem { Value = "bg-warning", Text = "Yellow" },
+        new SelectListItem { Value = "bg-info", Text = "Cyan" },
+        new SelectListItem { Value = "bg-purple text-white", Text = "Purple" }
+    };
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Page Header -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">Edit Assessment</h2>
+                <p class="text-muted mb-0">Update assessment details and configuration</p>
+            </div>
+            <a asp-action="Assessment" asp-route-view="manage" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Manage View
+            </a>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Edit Assessment Form -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form asp-action="EditAssessment" asp-route-id="@Model.Id" method="post" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+
+                @* Server-side validation summary *@
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>Please fix the following errors:</strong>
+                        <ul class="mb-0 mt-2">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Assessment Info (Read-Only) -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">Assessment Information</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted">Assigned to:</small>
+                                    <div class="fw-semibold">@(Model.User?.FullName ?? "Unknown")</div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">Created:</small>
+                                    <div>@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                                </div>
+                                @if (Model.UpdatedAt.HasValue)
+                                {
+                                    <div>
+                                        <small class="text-muted">Last Updated:</small>
+                                        <div>@Model.UpdatedAt.Value.ToString("dd MMM yyyy HH:mm")</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label fw-semibold">
+                        Assessment Title <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Title" class="form-control" placeholder="e.g., OJT Basic Operator Training" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <!-- Category & Status -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Category" class="form-label fw-semibold">
+                            Category <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Category" asp-items="categories" class="form-select" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label fw-semibold">
+                            Status <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Status" asp-items="statuses" class="form-select" required>
+                            <option value="">-- Select Status --</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Schedule & Duration -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Schedule" class="form-label fw-semibold">
+                            Schedule Date <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Schedule" type="date" class="form-control" required />
+                        <span asp-validation-for="Schedule" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DurationMinutes" class="form-label fw-semibold">
+                            Duration (minutes) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DurationMinutes" type="number" class="form-control" placeholder="e.g., 60" min="1" max="480" required />
+                        <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Banner Color -->
+                <div class="mb-3">
+                    <label asp-for="BannerColor" class="form-label fw-semibold">Banner Color</label>
+                    <select asp-for="BannerColor" asp-items="bannerColors" class="form-select">
+                        <option value="">-- Default (Category Color) --</option>
+                    </select>
+                    <small class="text-muted">Optional: Override the default category color</small>
+                </div>
+
+                <!-- Security Token Section -->
+                <div class="card border-primary mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Security Token Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="IsTokenRequired" class="form-check-input" type="checkbox" id="tokenToggle" />
+                            <label class="form-check-label fw-semibold" for="tokenToggle">
+                                Require Access Token
+                            </label>
+                            <div class="text-muted small">Enable this if assessment should be protected with a 6-digit access token</div>
+                        </div>
+
+                        <div id="tokenInputGroup" style="display: @(Model.IsTokenRequired ? "block" : "none");">
+                            <label asp-for="AccessToken" class="form-label fw-semibold">
+                                Access Token (6 characters) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="AccessToken" class="form-control text-uppercase fw-bold"
+                                       placeholder="e.g., ABC123" maxlength="6"
+                                       style="letter-spacing: 0.2em;" />
+                                <button type="button" class="btn btn-outline-secondary" onclick="generateRandomToken()">
+                                    <i class="bi bi-arrow-clockwise"></i> Generate
+                                </button>
+                            </div>
+                            <span asp-validation-for="AccessToken" class="text-danger"></span>
+                            <small class="text-muted">Only alphanumeric characters. Leave blank to keep current token.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex gap-2 justify-content-end">
+                    <a asp-action="Assessment" asp-route-view="manage" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Toggle token input visibility
+        document.getElementById('tokenToggle').addEventListener('change', function() {
+            var tokenGroup = document.getElementById('tokenInputGroup');
+            if (this.checked) {
+                tokenGroup.style.display = 'block';
+            } else {
+                tokenGroup.style.display = 'none';
+            }
+        });
+
+        // Generate random token
+        function generateRandomToken() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let token = '';
+            for (let i = 0; i < 6; i++) {
+                token += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('AccessToken').value = token;
+        }
+
+        // Bootstrap form validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+    </script>
+}

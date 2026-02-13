@@ -69,7 +69,7 @@ namespace HcPortal.Controllers
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
         // --- HALAMAN 3: ASSESSMENT LOBBY ---
-        public async Task<IActionResult> Assessment(string? search, int page = 1, int pageSize = 20)
+        public async Task<IActionResult> Assessment(string? search, string? view, int page = 1, int pageSize = 20)
         {
             // Validate pagination parameters
             if (page < 1) page = 1;
@@ -82,39 +82,33 @@ namespace HcPortal.Controllers
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
 
+            // Default view mode
+            if (string.IsNullOrEmpty(view))
+            {
+                view = "personal";
+            }
+
+            // Authorization check for manage view
+            if (view == "manage" && userRole != UserRoles.Admin && userRole != "HC")
+            {
+                // Non-admin/HC trying to access manage view - redirect to personal
+                return RedirectToAction("Assessment", new { view = "personal" });
+            }
+
             // Base Query
             var query = _context.AssessmentSessions
                 .Include(a => a.User)
                 .AsQueryable();
 
-            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin)
+            // ========== VIEW-BASED FILTERING ==========
+            if (view == "manage")
             {
-                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
-                {
-                    // View: Personal
-                    query = query.Where(a => a.UserId == userId);
-                }
-                else if (user.SelectedView == "Atasan" && !string.IsNullOrEmpty(user.Section))
-                {
-                    // View: Team (Section)
-                    var section = user.Section;
-                    var teamUserIds = await _context.Users
-                        .Where(u => u.Section == section)
-                        .Select(u => u.Id)
-                        .ToListAsync();
-
-                    query = query.Where(a => teamUserIds.Contains(a.UserId));
-                }
-                // Else: HC View (Show ALL) - No extra filter needed on base query
+                // Manage View: Show ALL assessments (HC/Admin only)
+                // No filtering needed - show everything
             }
-            else if (userRole == "HC")
+            else // view == "personal"
             {
-                // HC Role: Show all assessments (no filter)
-            }
-            else
-            {
-                // Default: Personal assessments for other roles (Coach, Coachee, Atasan)
+                // Personal View: Show only user's own assessments
                 query = query.Where(a => a.UserId == userId);
             }
 
@@ -151,7 +145,193 @@ namespace HcPortal.Controllers
             ViewBag.TotalCount = totalCount;
             ViewBag.PageSize = pageSize;
 
+            // View mode info
+            ViewBag.ViewMode = view;
+            ViewBag.UserRole = userRole;
+            ViewBag.CanManage = (userRole == UserRoles.Admin || userRole == "HC");
+
             return View(exams);
+        }
+
+        // --- EDIT ASSESSMENT ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditAssessment(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null)
+            {
+                TempData["Error"] = "Assessment not found.";
+                return RedirectToAction("Assessment", new { view = "manage" });
+            }
+
+            // Get list of users for potential reassignment (optional feature)
+            var users = await _context.Users
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
+                .ToListAsync();
+
+            ViewBag.Users = users;
+
+            return View(assessment);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAssessment(int id, AssessmentSession model)
+        {
+            var assessment = await _context.AssessmentSessions.FindAsync(id);
+            if (assessment == null)
+            {
+                TempData["Error"] = "Assessment not found.";
+                return RedirectToAction("Assessment", new { view = "manage" });
+            }
+
+            // Prevent editing completed assessments (optional - you can remove this if needed)
+            if (assessment.Status == "Completed")
+            {
+                TempData["Error"] = "Cannot edit completed assessments.";
+                return RedirectToAction("Assessment", new { view = "manage" });
+            }
+
+            // Update only allowed fields
+            assessment.Title = model.Title;
+            assessment.Category = model.Category;
+            assessment.Schedule = model.Schedule;
+            assessment.DurationMinutes = model.DurationMinutes;
+            assessment.Status = model.Status;
+            assessment.BannerColor = model.BannerColor;
+            assessment.IsTokenRequired = model.IsTokenRequired;
+
+            // Update token if token is required
+            if (model.IsTokenRequired && !string.IsNullOrWhiteSpace(model.AccessToken))
+            {
+                assessment.AccessToken = model.AccessToken.ToUpper();
+            }
+            else if (!model.IsTokenRequired)
+            {
+                assessment.AccessToken = "";
+            }
+
+            assessment.UpdatedAt = DateTime.UtcNow;
+
+            try
+            {
+                _context.AssessmentSessions.Update(assessment);
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Assessment '{assessment.Title}' has been updated successfully.";
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+                logger.LogError(ex, "Error updating assessment");
+                TempData["Error"] = $"Failed to update assessment: {ex.Message}";
+            }
+
+            return RedirectToAction("Assessment", new { view = "manage" });
+        }
+
+        // --- DELETE ASSESSMENT ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssessment(int id)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+
+            try
+            {
+                var assessment = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Include(a => a.Responses)
+                    .FirstOrDefaultAsync(a => a.Id == id);
+
+                if (assessment == null)
+                {
+                    logger.LogWarning($"Delete attempt failed: Assessment {id} not found");
+                    return Json(new { success = false, message = "Assessment not found." });
+                }
+
+                var assessmentTitle = assessment.Title;
+                logger.LogInformation($"Attempting to delete assessment {id}: {assessmentTitle}");
+
+                // Delete in correct order to avoid FK constraint violations
+                // 1. Delete UserResponses first
+                if (assessment.Responses.Any())
+                {
+                    logger.LogInformation($"Deleting {assessment.Responses.Count} user responses");
+                    _context.UserResponses.RemoveRange(assessment.Responses);
+                }
+
+                // 2. Delete Options (child of Questions)
+                if (assessment.Questions.Any())
+                {
+                    var allOptions = assessment.Questions.SelectMany(q => q.Options).ToList();
+                    if (allOptions.Any())
+                    {
+                        logger.LogInformation($"Deleting {allOptions.Count} question options");
+                        _context.AssessmentOptions.RemoveRange(allOptions);
+                    }
+
+                    // 3. Delete Questions
+                    logger.LogInformation($"Deleting {assessment.Questions.Count} questions");
+                    _context.AssessmentQuestions.RemoveRange(assessment.Questions);
+                }
+
+                // 4. Finally delete the assessment itself
+                _context.AssessmentSessions.Remove(assessment);
+
+                await _context.SaveChangesAsync();
+
+                logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle}");
+                return Json(new { success = true, message = $"Assessment '{assessmentTitle}' has been deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error deleting assessment {id}: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to delete assessment: {ex.Message}" });
+            }
+        }
+
+        // --- REGENERATE TOKEN ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegenerateToken(int id)
+        {
+            var assessment = await _context.AssessmentSessions.FindAsync(id);
+            if (assessment == null)
+            {
+                return Json(new { success = false, message = "Assessment not found." });
+            }
+
+            if (!assessment.IsTokenRequired)
+            {
+                return Json(new { success = false, message = "This assessment does not require a token." });
+            }
+
+            try
+            {
+                // Generate new token
+                assessment.AccessToken = GenerateSecureToken();
+                assessment.UpdatedAt = DateTime.UtcNow;
+
+                _context.AssessmentSessions.Update(assessment);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, token = assessment.AccessToken, message = "Token regenerated successfully." });
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+                logger.LogError(ex, "Error regenerating token");
+                return Json(new { success = false, message = $"Failed to regenerate token: {ex.Message}" });
+            }
         }
 
         // --- HALAMAN 5: CREATE ASSESSMENT (NEW) ---
@@ -195,10 +375,20 @@ namespace HcPortal.Controllers
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
 
-            // Custom Validation: Check Token
-            if (model.IsTokenRequired && string.IsNullOrWhiteSpace(model.AccessToken))
+            // Handle Token Validation
+            if (model.IsTokenRequired)
             {
-                ModelState.AddModelError("AccessToken", "Access Token is required when token security is enabled.");
+                // Token is required - validate it
+                if (string.IsNullOrWhiteSpace(model.AccessToken))
+                {
+                    ModelState.AddModelError("AccessToken", "Access Token is required when token security is enabled.");
+                }
+            }
+            else
+            {
+                // Token is NOT required - remove from validation and clear value
+                ModelState.Remove("AccessToken");
+                model.AccessToken = "";
             }
 
             // Validate at least 1 user selected
