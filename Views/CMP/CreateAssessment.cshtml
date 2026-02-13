@@ -190,19 +190,21 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-12 mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" asp-for="IsTokenRequired" id="IsTokenRequired">
-                            <label class="form-check-label fw-semibold" for="IsTokenRequired">
+                <!-- Security Token Section -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center gap-5 mb-2">
+                            <label class="form-label fw-semibold mb-0">
                                 <i class="bi bi-shield-lock text-primary me-1"></i>
                                 Requires Security Token
                             </label>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" asp-for="IsTokenRequired" id="IsTokenRequired">
+                            </div>
                         </div>
                         <div class="form-text text-muted mb-2">If checked, user must enter 6-digit token to start</div>
-                        
                         <!-- Token Input (Hidden by default) -->
-                        <div class="d-none" id="tokenInputContainer">
+                        <div class="col-md-6 d-none" id="tokenInputContainer">
                             <label asp-for="AccessToken" class="form-label fw-semibold">Access Token</label>
                             <div class="input-group">
                                 <input asp-for="AccessToken" class="form-control font-monospace" placeholder="e.g. A1B2C3" maxlength="6" id="AccessToken" style="text-transform: uppercase;" />
