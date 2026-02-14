@@ -1033,6 +1033,103 @@ namespace HcPortal.Controllers
 
             return View(assessment);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Results(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Include(a => a.Questions.OrderBy(q => q.Order))
+                    .ThenInclude(q => q.Options)
+                .Include(a => a.Responses)
+                    .ThenInclude(r => r.SelectedOption)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            // Authorization: owner, Admin, or HC
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var userRoles = await _userManager.GetRolesAsync(user);
+            bool isAuthorized = assessment.UserId == user.Id ||
+                                userRoles.Contains("Admin") ||
+                                userRoles.Contains("HC");
+            if (!isAuthorized) return Forbid();
+
+            // Must be completed
+            if (assessment.Status != "Completed")
+            {
+                TempData["Error"] = "Assessment not completed yet.";
+                return RedirectToAction("Assessment");
+            }
+
+            // Build ViewModel
+            var correctCount = 0;
+            List<QuestionReviewItem>? questionReviews = null;
+
+            if (assessment.AllowAnswerReview)
+            {
+                questionReviews = new List<QuestionReviewItem>();
+                int questionNum = 0;
+                foreach (var question in assessment.Questions)
+                {
+                    questionNum++;
+                    var userResponse = assessment.Responses
+                        .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
+                    var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                    var selectedOption = userResponse?.SelectedOption;
+                    bool isCorrect = selectedOption != null && selectedOption.IsCorrect;
+                    if (isCorrect) correctCount++;
+
+                    questionReviews.Add(new QuestionReviewItem
+                    {
+                        QuestionNumber = questionNum,
+                        QuestionText = question.QuestionText,
+                        UserAnswer = selectedOption?.OptionText,
+                        CorrectAnswer = correctOption?.OptionText ?? "N/A",
+                        IsCorrect = isCorrect,
+                        Options = question.Options.Select(o => new OptionReviewItem
+                        {
+                            OptionText = o.OptionText,
+                            IsCorrect = o.IsCorrect,
+                            IsSelected = userResponse?.SelectedOptionId == o.Id
+                        }).ToList()
+                    });
+                }
+            }
+            else
+            {
+                // Still count correct for summary even when review disabled
+                foreach (var question in assessment.Questions)
+                {
+                    var userResponse = assessment.Responses
+                        .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
+                    if (userResponse?.SelectedOption != null && userResponse.SelectedOption.IsCorrect)
+                        correctCount++;
+                }
+            }
+
+            var passPercentage = assessment.PassPercentage;
+            var score = assessment.Score ?? 0;
+
+            var viewModel = new AssessmentResultsViewModel
+            {
+                AssessmentId = assessment.Id,
+                Title = assessment.Title,
+                Category = assessment.Category,
+                UserFullName = assessment.User?.FullName ?? "Unknown",
+                Score = score,
+                PassPercentage = passPercentage,
+                IsPassed = score >= passPercentage,
+                AllowAnswerReview = assessment.AllowAnswerReview,
+                CompletedAt = assessment.CompletedAt,
+                TotalQuestions = assessment.Questions.Count,
+                CorrectAnswers = correctCount,
+                QuestionReviews = questionReviews
+            };
+
+            return View(viewModel);
+        }
         #endregion
 
         #region Helper Methods
