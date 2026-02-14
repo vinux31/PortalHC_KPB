@@ -64,6 +64,47 @@
         </div>
     </div>
 
+    <!-- Assessment Reports Quick Link -->
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm hover-elevate">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-3 bg-primary bg-opacity-10 p-3 me-3">
+                                    <i class="bi bi-clipboard-data text-primary" style="font-size: 1.8rem;"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">Assessment Reports</h6>
+                                    <p class="text-muted mb-0 small">View detailed assessment analytics, filter results, and export data</p>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-4">
+                                <div class="text-center">
+                                    <div class="fw-bold text-primary fs-5">@Model.TotalCompletedAssessments</div>
+                                    <small class="text-muted">Completed</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="fw-bold text-success fs-5">@Model.OverallPassRate%</div>
+                                    <small class="text-muted">Pass Rate</small>
+                                </div>
+                                <div class="text-center">
+                                    <div class="fw-bold text-info fs-5">@Model.TotalUsersAssessed</div>
+                                    <small class="text-muted">Users</small>
+                                </div>
+                                <a asp-controller="CMP" asp-action="ReportsIndex" class="btn btn-primary ms-3">
+                                    <i class="bi bi-arrow-right-circle me-1"></i>Open Reports
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <!-- Charts & Lists -->
     <div class="row g-4">
         <!-- Main Chart -->

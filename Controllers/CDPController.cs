@@ -120,7 +120,24 @@ namespace HcPortal.Controllers
             
             var pendingAssessments = await _context.AssessmentSessions
                 .CountAsync(a => a.Status == "Open" || a.Status == "Upcoming");
-            
+
+            // Assessment summary for quick link widget
+            var completedAssessments = await _context.AssessmentSessions
+                .Where(a => a.Status == "Completed")
+                .CountAsync();
+
+            var assessmentPassRate = completedAssessments > 0
+                ? await _context.AssessmentSessions
+                    .Where(a => a.Status == "Completed")
+                    .CountAsync(a => a.IsPassed == true) * 100.0 / completedAssessments
+                : 0;
+
+            var totalUsersAssessed = await _context.AssessmentSessions
+                .Where(a => a.Status == "Completed")
+                .Select(a => a.UserId)
+                .Distinct()
+                .CountAsync();
+
             var model = new DashboardViewModel
             {
                 TotalIdp = totalIdp,
@@ -130,7 +147,12 @@ namespace HcPortal.Controllers
                 PendingAssessments = pendingAssessments,
                 BudgetUsedPercent = 45, // Keep mock (no budget table yet)
                 BudgetUsedText = "Rp 450jt / 1M",
-                
+
+                // Assessment summary
+                TotalCompletedAssessments = completedAssessments,
+                OverallPassRate = Math.Round(assessmentPassRate, 1),
+                TotalUsersAssessed = totalUsersAssessed,
+
                 // Chart Data (Jan - Jun) - keep mock for now (needs time-series data)
                 ChartLabels = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun" },
                 ChartTarget = new List<int> { 100, 100, 120, 120, 150, 150 },

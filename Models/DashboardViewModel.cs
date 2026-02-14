@@ -17,6 +17,11 @@ namespace HcPortal.Models
 
         // Compliance List
         public List<UnitCompliance> TopUnits { get; set; } = new List<UnitCompliance>();
+
+        // Assessment Reports Quick Link Summary
+        public int TotalCompletedAssessments { get; set; }
+        public double OverallPassRate { get; set; }
+        public int TotalUsersAssessed { get; set; }
     }
 
     public class UnitCompliance
