@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
+using HcPortal.Models.Competency;
 
 namespace HcPortal.Data
 {
@@ -26,6 +27,10 @@ namespace HcPortal.Data
         // Master Data (KKJ & CPDP)
         public DbSet<KkjMatrixItem> KkjMatrices { get; set; }
         public DbSet<CpdpItem> CpdpItems { get; set; }
+
+        // Competency Tracking
+        public DbSet<AssessmentCompetencyMap> AssessmentCompetencyMaps { get; set; }
+        public DbSet<UserCompetencyLevel> UserCompetencyLevels { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -127,6 +132,52 @@ namespace HcPortal.Data
             builder.Entity<CpdpItem>(entity =>
             {
                 entity.ToTable("CpdpItems");
+            });
+
+            // Competency Tracking configuration
+            builder.Entity<AssessmentCompetencyMap>(entity =>
+            {
+                entity.ToTable("AssessmentCompetencyMaps");
+
+                entity.HasOne(c => c.KkjMatrixItem)
+                    .WithMany()
+                    .HasForeignKey(c => c.KkjMatrixItemId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Indexes for performance
+                entity.HasIndex(c => c.AssessmentCategory);
+                entity.HasIndex(c => new { c.AssessmentCategory, c.TitlePattern });
+            });
+
+            builder.Entity<UserCompetencyLevel>(entity =>
+            {
+                entity.ToTable("UserCompetencyLevels");
+
+                entity.HasOne(c => c.User)
+                    .WithMany()
+                    .HasForeignKey(c => c.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.KkjMatrixItem)
+                    .WithMany()
+                    .HasForeignKey(c => c.KkjMatrixItemId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.AssessmentSession)
+                    .WithMany()
+                    .HasForeignKey(c => c.AssessmentSessionId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                // Unique index: one level per user per competency
+                entity.HasIndex(c => new { c.UserId, c.KkjMatrixItemId })
+                    .IsUnique();
+
+                // Check constraints for level ranges
+                entity.HasCheckConstraint("CK_UserCompetencyLevel_CurrentLevel", "[CurrentLevel] >= 0 AND [CurrentLevel] <= 5");
+                entity.HasCheckConstraint("CK_UserCompetencyLevel_TargetLevel", "[TargetLevel] >= 0 AND [TargetLevel] <= 5");
+
+                // Ignore computed property Gap
+                entity.Ignore(c => c.Gap);
             });
         }
     }
