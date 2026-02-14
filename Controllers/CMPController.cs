@@ -5,6 +5,8 @@ using HcPortal.Models;
 using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
+using HcPortal.Models.Competency;
+using HcPortal.Helpers;
 
 namespace HcPortal.Controllers
 {
@@ -1000,6 +1002,59 @@ namespace HcPortal.Controllers
             assessment.Progress = 100;
             assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
             assessment.CompletedAt = DateTime.UtcNow;
+
+            // ========== AUTO-UPDATE COMPETENCY LEVELS ==========
+            if (assessment.IsPassed == true)
+            {
+                // Find competencies mapped to this assessment's category
+                var mappedCompetencies = await _context.AssessmentCompetencyMaps
+                    .Include(m => m.KkjMatrixItem)
+                    .Where(m => m.AssessmentCategory == assessment.Category &&
+                                (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
+                    .ToListAsync();
+
+                if (mappedCompetencies.Any())
+                {
+                    // Get user's position for target level resolution
+                    var assessmentUser = await _context.Users.FindAsync(assessment.UserId);
+
+                    foreach (var mapping in mappedCompetencies)
+                    {
+                        // Check minimum score if specified, otherwise use pass status
+                        if (mapping.MinimumScoreRequired.HasValue && assessment.Score < mapping.MinimumScoreRequired.Value)
+                            continue;
+
+                        // Check if user already has a level for this competency
+                        var existingLevel = await _context.UserCompetencyLevels
+                            .FirstOrDefaultAsync(c => c.UserId == assessment.UserId &&
+                                                     c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+
+                        if (existingLevel == null)
+                        {
+                            // Create new competency level record
+                            int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, assessmentUser?.Position);
+                            _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                            {
+                                UserId = assessment.UserId,
+                                KkjMatrixItemId = mapping.KkjMatrixItemId,
+                                CurrentLevel = mapping.LevelGranted,
+                                TargetLevel = targetLevel,
+                                Source = "Assessment",
+                                AssessmentSessionId = assessment.Id,
+                                AchievedAt = DateTime.UtcNow
+                            });
+                        }
+                        else if (mapping.LevelGranted > existingLevel.CurrentLevel)
+                        {
+                            // Only upgrade, never downgrade (monotonic progression)
+                            existingLevel.CurrentLevel = mapping.LevelGranted;
+                            existingLevel.Source = "Assessment";
+                            existingLevel.AssessmentSessionId = assessment.Id;
+                            existingLevel.UpdatedAt = DateTime.UtcNow;
+                        }
+                    }
+                }
+            }
 
             _context.AssessmentSessions.Update(assessment);
             await _context.SaveChangesAsync();
