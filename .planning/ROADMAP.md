@@ -53,8 +53,8 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 02-01-PLAN.md -- Reports dashboard foundation (ViewModels, controller, view with filters, stats, and paginated table)
-- [ ] 02-02-PLAN.md -- Excel export with ClosedXML and individual user assessment history
+- [x] 02-01-PLAN.md -- Reports dashboard foundation (ViewModels, controller, view with filters, stats, and paginated table)
+- [x] 02-02-PLAN.md -- Excel export with ClosedXML and individual user assessment history
 - [ ] 02-03-PLAN.md -- Performance analytics charts (Chart.js pass rate by category, score distribution)
 
 ---
@@ -88,5 +88,5 @@ Phases execute in numeric order: 1 -> 2 -> 3
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Assessment Results & Configuration | 3/3 | ✓ Complete | 2026-02-14 |
-| 2. HC Reports Dashboard | 0/3 | Planned | - |
+| 2. HC Reports Dashboard | 2/3 | In Progress | - |
 | 3. KKJ/CPDP Integration | 0/TBD | Not started | - |
