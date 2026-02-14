@@ -65,8 +65,11 @@ namespace HcPortal.Data
                 // Check constraints for data integrity
                 entity.HasCheckConstraint("CK_AssessmentSession_Progress", "[Progress] >= 0 AND [Progress] <= 100");
                 entity.HasCheckConstraint("CK_AssessmentSession_DurationMinutes", "[DurationMinutes] > 0");
+                entity.HasCheckConstraint("CK_AssessmentSession_PassPercentage", "[PassPercentage] >= 0 AND [PassPercentage] <= 100");
 
-                // Default value for audit field
+                // Default values
+                entity.Property(a => a.PassPercentage).HasDefaultValue(70);
+                entity.Property(a => a.AllowAnswerReview).HasDefaultValue(true);
                 entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
 
