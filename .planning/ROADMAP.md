@@ -73,10 +73,13 @@ Plans:
   4. CPDP progress tracking reflects assessment completions and scores as evidence of competency development
   5. Assessment results are linked to specific CPDP competencies so HC can track which assessments validate which skills
 
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] TBD (to be planned)
+- [ ] 03-01-PLAN.md -- Data foundation (competency models, DbContext, position helper, migration)
+- [ ] 03-02-PLAN.md -- Auto-update competency on assessment completion + seed data
+- [ ] 03-03-PLAN.md -- Gap analysis dashboard with radar chart and IDP suggestions
+- [ ] 03-04-PLAN.md -- CPDP progress tracking with assessment evidence + visual verification
 
 ---
 
@@ -89,4 +92,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Assessment Results & Configuration | 3/3 | ✓ Complete | 2026-02-14 |
 | 2. HC Reports Dashboard | 3/3 | ✓ Complete | 2026-02-14 |
-| 3. KKJ/CPDP Integration | 0/TBD | Not started | - |
+| 3. KKJ/CPDP Integration | 0/4 | Not started | - |
