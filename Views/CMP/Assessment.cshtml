@@ -299,10 +299,15 @@
                                     }
                                     else if (item.Status == "Completed")
                                     {
-                                        var scoreText = item.Score.HasValue ? $" (Score: {item.Score})" : "";
-                                        <a href="@Url.Action("Certificate", "CMP", new { id = item.Id })" class="btn btn-outline-primary w-100" target="_blank">
-                                            <i class="bi bi-award me-1"></i>View Certificate@scoreText
-                                        </a>
+                                        var scoreText = item.Score.HasValue ? $" ({item.Score}%)" : "";
+                                        <div class="d-flex flex-column gap-2">
+                                            <a href="@Url.Action("Results", "CMP", new { id = item.Id })" class="btn btn-primary w-100">
+                                                <i class="bi bi-bar-chart-line me-1"></i>View Results@scoreText
+                                            </a>
+                                            <a href="@Url.Action("Certificate", "CMP", new { id = item.Id })" class="btn btn-outline-secondary btn-sm w-100" target="_blank">
+                                                <i class="bi bi-award me-1"></i>Certificate
+                                            </a>
+                                        </div>
                                     }
                                 </div>
                             }
