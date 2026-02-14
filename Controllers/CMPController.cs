@@ -360,7 +360,9 @@ namespace HcPortal.Controllers
             var model = new AssessmentSession
             {
                 AccessToken = GenerateSecureToken(),
-                Schedule = DateTime.Today.AddDays(1)  // Default to tomorrow
+                Schedule = DateTime.Today.AddDays(1),  // Default to tomorrow
+                PassPercentage = 70,
+                AllowAnswerReview = true
             };
 
             return View(model);
@@ -423,6 +425,12 @@ namespace HcPortal.Controllers
             if (model.DurationMinutes > 480)
             {
                 ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+            }
+
+            // Validate PassPercentage
+            if (model.PassPercentage < 0 || model.PassPercentage > 100)
+            {
+                ModelState.AddModelError("PassPercentage", "Pass Percentage must be between 0 and 100.");
             }
 
             // Validate model
@@ -518,6 +526,8 @@ namespace HcPortal.Controllers
                         BannerColor = model.BannerColor,
                         IsTokenRequired = model.IsTokenRequired,
                         AccessToken = model.AccessToken,
+                        PassPercentage = model.PassPercentage,
+                        AllowAnswerReview = model.AllowAnswerReview,
                         Progress = 0,
                         UserId = userId,
                         CreatedBy = currentUser?.Id
@@ -978,19 +988,21 @@ namespace HcPortal.Controllers
             }
 
             // Calculate Grade (0-100 scale if needed, or raw score)
-            // For now, let's store the raw score sum or percentage? 
+            // For now, let's store the raw score sum or percentage?
             // Model.Score is int, usually 0-100 logic is preferred.
             int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
             assessment.Score = finalPercentage;
             assessment.Status = "Completed";
             assessment.Progress = 100;
+            assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
+            assessment.CompletedAt = DateTime.UtcNow;
 
             _context.AssessmentSessions.Update(assessment);
             await _context.SaveChangesAsync();
 
-            // Redirect to Results Page (or back to list for now)
-            return RedirectToAction("Assessment");
+            // Redirect to Results Page
+            return RedirectToAction("Results", new { id = id });
         }
         [HttpGet]
         public async Task<IActionResult> Certificate(int id)
