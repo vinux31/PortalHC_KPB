@@ -117,10 +117,11 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 1 | Implement Phase 2 follow-up improvements: (1) Fix section filter to show all sections (GAST, RFCC, NGP, DHT/HMU), (2) Add autocomplete/typeahead to user search field in reports, (3) Add quick link widget in CDP Dashboard that shows assessment summary and links to CMP Reports | 2026-02-14 | d477bb7 | [1-implement-phase-2-follow-up-improvements](./quick/1-implement-phase-2-follow-up-improvements/) |
+| 2 | Add CDP/Index hub page (card-based layout with 4 feature cards), delete all BP feature pages, replace BP/Index with "under development" placeholder, update navbar to use direct links (no dropdowns) for CDP and BP | 2026-02-14 | e4fb05d | [2-add-cdp-index-page-delete-bp-pages-creat](./quick/2-add-cdp-index-page-delete-bp-pages-creat/) |
 
 ## Session Continuity
 
 Last session: 2026-02-14T08:45:00Z
-Stopped at: Completed 03-04-PLAN.md (CPDP Progress Tracking) - Phase 3 Complete
+Stopped at: Completed quick-2 (CDP Hub Page & BP Cleanup)
 Resume file: All phases complete - project ready for deployment/next iteration
 
