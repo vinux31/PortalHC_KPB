@@ -1631,6 +1631,167 @@ namespace HcPortal.Controllers
             return View(viewModel);
         }
 
+        // --- CPDP PROGRESS TRACKING ---
+        public async Task<IActionResult> CpdpProgress(string? userId = null)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Challenge();
+
+            var userRoles = await _userManager.GetRolesAsync(currentUser);
+            var isHcOrAdmin = userRoles.Contains("Admin") || userRoles.Contains("HC");
+
+            var targetUserId = (isHcOrAdmin && !string.IsNullOrEmpty(userId)) ? userId : currentUser.Id;
+            var targetUser = await _userManager.FindByIdAsync(targetUserId);
+
+            if (targetUser == null) return NotFound();
+
+            // Load all CPDP items
+            var cpdpItems = await _context.CpdpItems.OrderBy(c => c.No).ToListAsync();
+
+            // Load user's competency levels
+            var userLevels = await _context.UserCompetencyLevels
+                .Include(c => c.KkjMatrixItem)
+                .Include(c => c.AssessmentSession)
+                .Where(c => c.UserId == targetUserId)
+                .ToListAsync();
+
+            // Load all assessment-competency mappings to find linked assessments
+            var competencyMaps = await _context.AssessmentCompetencyMaps
+                .Include(m => m.KkjMatrixItem)
+                .ToListAsync();
+
+            // Load user's completed assessments for evidence
+            var userAssessments = await _context.AssessmentSessions
+                .Where(a => a.UserId == targetUserId && a.Status == "Completed")
+                .OrderByDescending(a => a.CompletedAt)
+                .ToListAsync();
+
+            // Load user's IDP items for cross-referencing
+            var userIdpItems = await _context.IdpItems
+                .Where(i => i.UserId == targetUserId)
+                .ToListAsync();
+
+            // Load KKJ items for target level resolution
+            var kkjItems = await _context.KkjMatrices.ToListAsync();
+
+            // Build progress items
+            var progressItems = cpdpItems.Select(cpdp =>
+            {
+                // Find matching KKJ competency by name
+                var matchingKkj = kkjItems.FirstOrDefault(k =>
+                    k.Kompetensi.Contains(cpdp.NamaKompetensi, StringComparison.OrdinalIgnoreCase) ||
+                    cpdp.NamaKompetensi.Contains(k.Kompetensi, StringComparison.OrdinalIgnoreCase));
+
+                // Get user's competency level for this KKJ item
+                var userLevel = matchingKkj != null
+                    ? userLevels.FirstOrDefault(ul => ul.KkjMatrixItemId == matchingKkj.Id)
+                    : null;
+
+                int? currentLevel = userLevel?.CurrentLevel;
+                int? targetLevel = matchingKkj != null
+                    ? PositionTargetHelper.GetTargetLevel(matchingKkj, targetUser.Position)
+                    : null;
+
+                // Determine competency status
+                string compStatus = "Not Tracked";
+                if (targetLevel.HasValue && targetLevel.Value > 0)
+                {
+                    if (currentLevel.HasValue && currentLevel.Value >= targetLevel.Value)
+                        compStatus = "Met";
+                    else if (currentLevel.HasValue && currentLevel.Value > 0)
+                        compStatus = "Gap";
+                    else
+                        compStatus = "Not Started";
+                }
+
+                // Find assessment evidence: assessments mapped to this competency's KKJ item
+                var evidences = new List<AssessmentEvidence>();
+                if (matchingKkj != null)
+                {
+                    var mappingsForCompetency = competencyMaps
+                        .Where(m => m.KkjMatrixItemId == matchingKkj.Id)
+                        .ToList();
+
+                    foreach (var mapping in mappingsForCompetency)
+                    {
+                        var matchingAssessments = userAssessments
+                            .Where(a => a.Category == mapping.AssessmentCategory &&
+                                       (mapping.TitlePattern == null || a.Title.Contains(mapping.TitlePattern)))
+                            .ToList();
+
+                        foreach (var assessment in matchingAssessments)
+                        {
+                            // Avoid duplicate evidence entries
+                            if (!evidences.Any(e => e.AssessmentSessionId == assessment.Id))
+                            {
+                                evidences.Add(new AssessmentEvidence
+                                {
+                                    AssessmentSessionId = assessment.Id,
+                                    Title = assessment.Title,
+                                    Category = assessment.Category,
+                                    Score = assessment.Score,
+                                    IsPassed = assessment.IsPassed,
+                                    CompletedAt = assessment.CompletedAt,
+                                    LevelGranted = mapping.LevelGranted
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Check IDP activity
+                var idpMatch = userIdpItems.FirstOrDefault(i =>
+                    i.Kompetensi != null && (
+                        cpdp.NamaKompetensi.Contains(i.Kompetensi, StringComparison.OrdinalIgnoreCase) ||
+                        i.Kompetensi.Contains(cpdp.NamaKompetensi, StringComparison.OrdinalIgnoreCase)));
+
+                return new CpdpProgressItem
+                {
+                    CpdpItemId = cpdp.Id,
+                    No = cpdp.No,
+                    NamaKompetensi = cpdp.NamaKompetensi,
+                    IndikatorPerilaku = cpdp.IndikatorPerilaku,
+                    Silabus = cpdp.Silabus,
+                    TargetDeliverable = cpdp.TargetDeliverable,
+                    CpdpStatus = cpdp.Status,
+                    CurrentLevel = currentLevel,
+                    TargetLevel = targetLevel > 0 ? targetLevel : null,
+                    CompetencyStatus = compStatus,
+                    Evidences = evidences.OrderByDescending(e => e.CompletedAt).ToList(),
+                    HasIdpActivity = idpMatch != null,
+                    IdpStatus = idpMatch?.Status
+                };
+            }).ToList();
+
+            var viewModel = new CpdpProgressViewModel
+            {
+                UserId = targetUserId,
+                UserName = targetUser.FullName,
+                Position = targetUser.Position,
+                Section = targetUser.Section,
+                Items = progressItems,
+                TotalCpdpItems = progressItems.Count,
+                ItemsWithEvidence = progressItems.Count(i => i.Evidences.Any()),
+                EvidenceCoverage = progressItems.Count > 0
+                    ? Math.Round(progressItems.Count(i => i.Evidences.Any()) * 100.0 / progressItems.Count, 1)
+                    : 0
+            };
+
+            if (isHcOrAdmin)
+            {
+                var allUsers = await _userManager.Users
+                    .OrderBy(u => u.FullName)
+                    .Select(u => new { u.Id, u.FullName, u.Position, u.Section })
+                    .ToListAsync();
+                ViewBag.AllUsers = allUsers;
+                ViewBag.SelectedUserId = targetUserId;
+            }
+
+            ViewBag.IsHcOrAdmin = isHcOrAdmin;
+
+            return View(viewModel);
+        }
+
         #region Helper Methods
         /// <summary>
         /// Generate cryptographically secure random token
