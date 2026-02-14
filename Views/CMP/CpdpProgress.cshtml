@@ -1,0 +1,278 @@
+@model HcPortal.Models.Competency.CpdpProgressViewModel
+@{
+    ViewData["Title"] = "CPDP Progress Tracking";
+}
+
+<div class="container-fluid py-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-0">
+                <i class="bi bi-journal-check me-2"></i>CPDP Progress Tracking
+            </h2>
+            <p class="text-muted mb-0">Track CPDP competency development with assessment evidence</p>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="mb-3">
+        <a href="@Url.Action("CompetencyGap", "CMP", new { userId = Model.UserId })" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-bar-chart-steps me-1"></i>Gap Analysis
+        </a>
+        <a href="@Url.Action("CpdpProgress", "CMP", new { userId = Model.UserId })" class="btn btn-primary btn-sm active">
+            <i class="bi bi-journal-check me-1"></i>CPDP Progress
+        </a>
+    </div>
+
+    <!-- HC/Admin User Selector -->
+    @if (ViewBag.IsHcOrAdmin)
+    {
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <label for="userSelect" class="form-label fw-bold">Select User to View</label>
+                <select id="userSelect" class="form-select" onchange="window.location.href='/CMP/CpdpProgress?userId=' + this.value">
+                    <option value="">-- Select a user --</option>
+                    @foreach (var user in ViewBag.AllUsers)
+                    {
+                        <option value="@user.Id" selected="@(user.Id == ViewBag.SelectedUserId)">
+                            @user.FullName (@user.Position ?? "No Position") - @user.Section
+                        </option>
+                    }
+                </select>
+            </div>
+        </div>
+    }
+
+    <!-- User Info Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">User Information</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Name:</strong> @Model.UserName
+                </div>
+                <div class="col-md-4">
+                    <strong>Position:</strong> @(Model.Position ?? "Not Set")
+                </div>
+                <div class="col-md-4">
+                    <strong>Section:</strong> @(Model.Section ?? "Not Set")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Total CPDP Items</h6>
+                    <h2 class="text-primary mb-0">@Model.TotalCpdpItems</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 bg-success text-white">
+                <div class="card-body text-center">
+                    <h6 class="mb-2">Items with Assessment Evidence</h6>
+                    <h2 class="mb-0">@Model.ItemsWithEvidence</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-2">Evidence Coverage</h6>
+                    <h2 class="mb-2">@Model.EvidenceCoverage%</h2>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: @Model.EvidenceCoverage%" aria-valuenow="@Model.EvidenceCoverage" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CPDP Items Accordion -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="bi bi-list-check me-2"></i>CPDP Items with Assessment Evidence
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Items.Any())
+            {
+                <div class="accordion" id="cpdpAccordion">
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        var item = Model.Items[i];
+                        var accordionId = $"cpdp-{item.CpdpItemId}";
+                        var headingId = $"heading-{item.CpdpItemId}";
+                        var collapseId = $"collapse-{item.CpdpItemId}";
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="@headingId">
+                                <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="@(i == 0 ? "true" : "false")" aria-controls="@collapseId">
+                                    <div class="d-flex w-100 align-items-center">
+                                        <strong class="me-2">@item.No</strong>
+                                        <span class="me-auto">@item.NamaKompetensi</span>
+                                        @if (item.CompetencyStatus == "Met")
+                                        {
+                                            <span class="badge bg-success me-2">Met</span>
+                                        }
+                                        else if (item.CompetencyStatus == "Gap")
+                                        {
+                                            <span class="badge bg-warning text-dark me-2">Gap</span>
+                                        }
+                                        else if (item.CompetencyStatus == "Not Started")
+                                        {
+                                            <span class="badge bg-secondary me-2">Not Started</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-light text-dark me-2">Not Tracked</span>
+                                        }
+                                        @if (item.Evidences.Any())
+                                        {
+                                            <span class="badge bg-primary me-2">@item.Evidences.Count Evidence(s)</span>
+                                        }
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")" aria-labelledby="@headingId" data-bs-parent="#cpdpAccordion">
+                                <div class="accordion-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <strong>Indikator Perilaku:</strong>
+                                            <p class="text-muted mb-0">@item.IndikatorPerilaku</p>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Silabus:</strong>
+                                            <p class="text-muted mb-0">@item.Silabus</p>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <strong>Target Deliverable:</strong>
+                                            <p class="text-muted mb-0">@item.TargetDeliverable</p>
+                                        </div>
+                                    </div>
+
+                                    @if (item.TargetLevel.HasValue && item.TargetLevel.Value > 0)
+                                    {
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <strong>Competency Level Progress:</strong>
+                                                <div class="d-flex align-items-center mt-2">
+                                                    <span class="me-2">@(item.CurrentLevel ?? 0) / @item.TargetLevel</span>
+                                                    <div class="progress flex-grow-1" style="height: 20px;">
+                                                        @{
+                                                            var progressPercent = item.TargetLevel.Value > 0
+                                                                ? ((item.CurrentLevel ?? 0) * 100.0 / item.TargetLevel.Value)
+                                                                : 0;
+                                                            var progressColor = item.CompetencyStatus == "Met" ? "bg-success" : "bg-warning";
+                                                        }
+                                                        <div class="progress-bar @progressColor" role="progressbar" style="width: @progressPercent%" aria-valuenow="@(item.CurrentLevel ?? 0)" aria-valuemin="0" aria-valuemax="@item.TargetLevel"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
+                                            <strong>Assessment Evidence:</strong>
+                                            @if (item.Evidences.Any())
+                                            {
+                                                <div class="table-responsive mt-2">
+                                                    <table class="table table-sm table-bordered">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th>Title</th>
+                                                                <th>Category</th>
+                                                                <th class="text-center">Score</th>
+                                                                <th class="text-center">Pass/Fail</th>
+                                                                <th>Date</th>
+                                                                <th class="text-center">Level Granted</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var evidence in item.Evidences)
+                                                            {
+                                                                <tr>
+                                                                    <td>
+                                                                        <a href="@Url.Action("Results", "CMP", new { id = evidence.AssessmentSessionId })">
+                                                                            @evidence.Title
+                                                                        </a>
+                                                                    </td>
+                                                                    <td>@evidence.Category</td>
+                                                                    <td class="text-center">
+                                                                        @if (evidence.IsPassed == true)
+                                                                        {
+                                                                            <span class="badge bg-success">@evidence.Score</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span class="badge bg-danger">@evidence.Score</span>
+                                                                        }
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        @if (evidence.IsPassed == true)
+                                                                        {
+                                                                            <span class="badge bg-success">Pass</span>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <span class="badge bg-danger">Fail</span>
+                                                                        }
+                                                                    </td>
+                                                                    <td>
+                                                                        @if (evidence.CompletedAt.HasValue)
+                                                                        {
+                                                                            @evidence.CompletedAt.Value.ToString("dd MMM yyyy HH:mm")
+                                                                        }
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <span class="badge bg-info">Level @evidence.LevelGranted</span>
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <p class="text-muted mt-2 mb-0">No assessment evidence yet. Complete related assessments to track progress.</p>
+                                            }
+                                        </div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <strong>IDP Activity:</strong>
+                                            @if (item.HasIdpActivity)
+                                            {
+                                                <span class="badge bg-primary ms-2">IDP Active: @item.IdpStatus</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted ms-2">No IDP activity for this competency</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="p-4 text-center text-muted">
+                    No CPDP items found. Please contact HC.
+                </div>
+            }
+        </div>
+    </div>
+</div>
