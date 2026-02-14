@@ -1198,6 +1198,33 @@ namespace HcPortal.Controllers
                 ? passedCount * 100.0 / totalCompleted
                 : 0;
 
+            // Category statistics using filtered query
+            var categoryStats = await query
+                .GroupBy(a => a.Category)
+                .Select(g => new CategoryStatistic
+                {
+                    CategoryName = g.Key,
+                    TotalAssessments = g.Count(),
+                    PassedCount = g.Count(a => a.IsPassed == true),
+                    PassRate = g.Count() > 0
+                        ? Math.Round(g.Count(a => a.IsPassed == true) * 100.0 / g.Count(), 1)
+                        : 0,
+                    AverageScore = Math.Round(g.Average(a => (double?)a.Score) ?? 0, 1)
+                })
+                .OrderBy(c => c.CategoryName)
+                .ToListAsync();
+
+            // Score distribution - calculate histogram buckets from filtered query
+            var allScores = await query.Select(a => a.Score ?? 0).ToListAsync();
+            var scoreDistribution = new List<int>
+            {
+                allScores.Count(s => s >= 0 && s <= 20),
+                allScores.Count(s => s >= 21 && s <= 40),
+                allScores.Count(s => s >= 41 && s <= 60),
+                allScores.Count(s => s >= 61 && s <= 80),
+                allScores.Count(s => s >= 81 && s <= 100)
+            };
+
             // Pagination
             var totalPages = (int)Math.Ceiling(totalCompleted / (double)pageSize);
 
@@ -1235,6 +1262,10 @@ namespace HcPortal.Controllers
                 .Distinct()
                 .OrderBy(s => s)
                 .ToListAsync();
+
+            // Pass chart data to view via ViewBag
+            ViewBag.CategoryStats = categoryStats;
+            ViewBag.ScoreDistribution = scoreDistribution;
 
             // Build ViewModel
             var viewModel = new ReportsDashboardViewModel

@@ -3,6 +3,8 @@
     ViewData["Title"] = "Assessment Reports";
 }
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="container-fluid px-4 py-4">
 
     <!-- Page Header -->
@@ -315,4 +317,152 @@
         }
     </div>
 
+    <!-- Performance Analytics Charts -->
+    <div class="row g-4 mt-4">
+        <!-- Pass Rate by Category Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0">
+                        <i class="bi bi-bar-chart-fill me-2 text-primary"></i>Pass Rate by Category
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="categoryChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Distribution Chart -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h6 class="fw-bold mb-0">
+                        <i class="bi bi-graph-up me-2 text-info"></i>Score Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="scoreChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+@section Scripts {
+<script>
+    // Category Pass Rate Chart
+    var categoryStats = @Html.Raw(Json.Serialize(ViewBag.CategoryStats));
+
+    if (categoryStats && categoryStats.length > 0) {
+        var ctxCategory = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctxCategory, {
+            type: 'bar',
+            data: {
+                labels: categoryStats.map(c => c.categoryName),
+                datasets: [
+                    {
+                        label: 'Pass Rate (%)',
+                        data: categoryStats.map(c => c.passRate),
+                        backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                        borderColor: 'rgba(13, 110, 253, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Avg Score',
+                        data: categoryStats.map(c => c.averageScore),
+                        backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                        borderColor: 'rgba(25, 135, 84, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function(value) { return value + '%'; }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('categoryChart').parentElement.innerHTML =
+            '<div class="text-center text-muted py-5"><i class="bi bi-bar-chart text-muted" style="font-size:3rem;"></i><p class="mt-2">No data available for chart</p></div>';
+    }
+
+    // Score Distribution Chart
+    var scoreDistribution = @Html.Raw(Json.Serialize(ViewBag.ScoreDistribution));
+    var scoreLabels = ['0-20', '21-40', '41-60', '61-80', '81-100'];
+    var scoreColors = [
+        'rgba(220, 53, 69, 0.7)',   // red (very low)
+        'rgba(255, 193, 7, 0.7)',    // yellow (low)
+        'rgba(13, 202, 240, 0.7)',   // cyan (medium)
+        'rgba(13, 110, 253, 0.7)',   // blue (good)
+        'rgba(25, 135, 84, 0.7)'     // green (excellent)
+    ];
+
+    if (scoreDistribution && scoreDistribution.some(v => v > 0)) {
+        var ctxScore = document.getElementById('scoreChart').getContext('2d');
+        new Chart(ctxScore, {
+            type: 'bar',
+            data: {
+                labels: scoreLabels,
+                datasets: [{
+                    label: 'Number of Assessments',
+                    data: scoreDistribution,
+                    backgroundColor: scoreColors,
+                    borderColor: scoreColors.map(c => c.replace('0.7', '1')),
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1,
+                            precision: 0
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Score Range'
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + ' assessment(s)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    } else {
+        document.getElementById('scoreChart').parentElement.innerHTML =
+            '<div class="text-center text-muted py-5"><i class="bi bi-graph-up text-muted" style="font-size:3rem;"></i><p class="mt-2">No data available for chart</p></div>';
+    }
+</script>
+}
