@@ -115,14 +115,3 @@ Last session: 2026-02-14T07:12:18Z
 Stopped at: Completed 03-03-PLAN.md (Gap Analysis Dashboard)
 Resume file: .planning/phases/03-kkj-cpdp-integration/03-04-PLAN.md
 
-**From 03-02:**
-- Monotonic progression: competency levels only increase, never decrease on assessment retakes
-- TitlePattern uses Contains() instead of regex for pattern matching simplicity
-- MinimumScoreRequired is optional; if null, uses assessment PassPercentage
-- TargetLevel denormalized at UserCompetencyLevel creation time for performance
-
-**From 03-03:**
-- Radar chart displays top 8 gaps only to prevent visual clutter
-- Gap badges color-coded by severity: red (>=3), orange (2), yellow (1), green (0)
-- IDP suggestions matched to CPDP items via bidirectional case-insensitive Contains check
-- HC/Admin can view any user's gaps via dropdown selector
