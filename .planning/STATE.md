@@ -91,6 +91,12 @@ No pending todos.
 
 None yet.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 1 | Implement Phase 2 follow-up improvements: (1) Fix section filter to show all sections (GAST, RFCC, NGP, DHT/HMU), (2) Add autocomplete/typeahead to user search field in reports, (3) Add quick link widget in CDP Dashboard that shows assessment summary and links to CMP Reports | 2026-02-14 | d477bb7 | [1-implement-phase-2-follow-up-improvements](./quick/1-implement-phase-2-follow-up-improvements/) |
+
 ## Session Continuity
 
 Last session: 2026-02-14T06:27:19Z
