@@ -27,10 +27,12 @@ Complete the CMP assessment workflow by adding results display, pass/fail logic,
   5. HC can toggle "Allow Answer Review" checkbox when creating or editing assessments to control whether users see correct answers
   6. Pass/fail status is calculated automatically on exam submission and stored in the database
 
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (to be planned)
+- [ ] 01-01-PLAN.md -- Database schema changes (PassPercentage, AllowAnswerReview, IsPassed, CompletedAt)
+- [ ] 01-02-PLAN.md -- Assessment configuration UI (Create/Edit form enhancements)
+- [ ] 01-03-PLAN.md -- Results page, SubmitExam redirect, and lobby links
 
 ---
 
@@ -79,10 +81,10 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 -> 2 -> 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Assessment Results & Configuration | 0/TBD | Not started | - |
+| 1. Assessment Results & Configuration | 0/3 | Planning complete | - |
 | 2. HC Reports Dashboard | 0/TBD | Not started | - |
 | 3. KKJ/CPDP Integration | 0/TBD | Not started | - |
