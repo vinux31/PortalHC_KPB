@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace HcPortal.Models
 {
     public class AssessmentSession
@@ -22,6 +24,17 @@ namespace HcPortal.Models
         public string BannerColor { get; set; } = "bg-primary"; // Bootstrap color class or hex
 
         public int? Score { get; set; }
+
+        [Range(0, 100)]
+        [Display(Name = "Pass Percentage (%)")]
+        public int PassPercentage { get; set; } = 70;
+
+        [Display(Name = "Allow Answer Review")]
+        public bool AllowAnswerReview { get; set; } = true;
+
+        public bool? IsPassed { get; set; }
+        public DateTime? CompletedAt { get; set; }
+
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
 
