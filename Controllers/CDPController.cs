@@ -21,13 +21,18 @@ namespace HcPortal.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string? bagian = null, string? unit = null, string? level = null)
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        public async Task<IActionResult> PlanIdp(string? bagian = null, string? unit = null, string? level = null)
         {
             // Get current user and their role
             var user = await _userManager.GetUserAsync(User);
             string userRole = "Operator"; // Default
             int userLevel = 6; // Default: Coachee
-            
+
             if (user != null)
             {
                 var roles = await _userManager.GetRolesAsync(user);

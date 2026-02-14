@@ -1,424 +1,119 @@
 @{
-    ViewData["Title"] = "IDP Proton - Individual Development Plan";
-    var userRole = ViewBag.UserRole as string ?? "Operator";
-    var selectedBagian = ViewBag.SelectedBagian as string ?? "GAST";
-    var selectedUnit = ViewBag.SelectedUnit as string ?? "RFCC NHT";
-    var selectedLevel = ViewBag.SelectedLevel as string ?? "Operator";
-    var pdfFileName = ViewBag.PdfFileName as string ?? "GAST_RFCCNHT_Operator_Kompetensi_02022026.pdf";
-    var pdfPath = $"/documents/{pdfFileName}";
-    
-    // Check user roles
-    var isHC = userRole == "HC";
-    var hasBagianSelected = ViewBag.HasBagianSelected as bool? ?? false;
-    // HC can see filters after selecting bagian, Section Head and Sr. Supervisor always see filters
-    var canSeeFilters = userRole == "Section Head" || userRole == "Sr. Supervisor" || (isHC && hasBagianSelected);
+    ViewData["Title"] = "CDP - Career Development Portal";
 }
 
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h2 class="mb-1">
+                <i class="bi bi-person-workspace me-2"></i>Career Development Portal
+            </h2>
+            <p class="text-muted">Manage individual development plans, coaching, and progress tracking</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Plan IDP (Silabus) -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                            <i class="bi bi-file-earmark-pdf fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Plan IDP (Silabus)</h5>
+                            <small class="text-muted">Curriculum Documents</small>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-3">View IDP Proton curriculum and development plan documents</p>
+                    <a href="@Url.Action("PlanIdp", "CDP")" class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-right-circle me-2"></i>View Documents
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Laporan Coaching -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-success bg-opacity-10 text-success rounded-3 p-3 me-3">
+                            <i class="bi bi-chat-dots fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Laporan Coaching</h5>
+                            <small class="text-muted">Session Logs</small>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-3">View and manage coaching session logs and records</p>
+                    <a href="@Url.Action("Coaching", "CDP")" class="btn btn-success w-100">
+                        <i class="bi bi-arrow-right-circle me-2"></i>View Coaching
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress & Tracking -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-warning bg-opacity-10 text-warning rounded-3 p-3 me-3">
+                            <i class="bi bi-graph-up-arrow fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Progress & Tracking</h5>
+                            <small class="text-muted">IDP Status</small>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-3">Track IDP completion progress and approval status</p>
+                    <a href="@Url.Action("Progress", "CDP")" class="btn btn-warning w-100">
+                        <i class="bi bi-arrow-right-circle me-2"></i>View Progress
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Monitoring -->
+        <div class="col-12 col-md-6 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-info bg-opacity-10 text-info rounded-3 p-3 me-3">
+                            <i class="bi bi-speedometer2 fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Dashboard Monitoring</h5>
+                            <small class="text-muted">Analytics & Reports</small>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-3">View CDP analytics, completion rates, and unit compliance</p>
+                    <a href="@Url.Action("Dashboard", "CDP")" class="btn btn-info w-100">
+                        <i class="bi bi-arrow-right-circle me-2"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
-    .pdf-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 10px;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .pdf-info {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .download-btn {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        padding: 0.75rem 2rem;
-        font-size: 1rem;
-        font-weight: 600;
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
-    }
-
-    .download-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(102, 126, 234, 0.4);
-    }
-
-    .file-info-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: rgba(255, 255, 255, 0.2);
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-size: 0.9rem;
-    }
-
-    .info-card {
-        background: #f8f9fa;
-        border-left: 4px solid #667eea;
-        padding: 1rem;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-    }
-
-    .action-card {
-        background: white;
-        border-radius: 12px;
-        padding: 2.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        text-align: center;
-    }
-
-    .action-icon {
-        font-size: 4rem;
-        color: #667eea;
-        margin-bottom: 1.5rem;
-    }
-
-    .action-btn {
-        padding: 1rem 2.5rem;
-        font-size: 1.1rem;
-        font-weight: 600;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-    }
-
-    .action-btn:hover {
-        transform: translateY(-3px);
-    }
-
-    .btn-download {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border: none;
-        color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .btn-download:hover {
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
-        color: white;
-    }
-
-    .btn-open {
-        background: white;
-        border: 2px solid #667eea;
-        color: #667eea;
-    }
-
-    .btn-open:hover {
-        background: #667eea;
-        color: white;
-    }
-
-    /* Section Selection Grid for HC Role */
-    .section-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
-
-    .section-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        text-decoration: none;
-        color: inherit;
-        border: 2px solid transparent;
-    }
-
-    .section-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
-        border-color: #667eea;
-    }
-
-    .section-icon {
+    .icon-box {
         width: 60px;
         height: 60px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 1rem;
     }
 
-    .section-icon i {
-        font-size: 1.75rem;
-        color: white;
+    .card {
+        transition: transform 0.2s, box-shadow 0.2s;
     }
 
-    .section-title {
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: #333;
-        margin-bottom: 0.5rem;
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     }
-
-    .section-subtitle {
-        font-size: 0.875rem;
-        color: #666;
 </style>
-
-<div class="container-fluid px-4 py-4">
-
-    @if (isHC && !hasBagianSelected)
-    {
-        <!-- HC Section Selection Grid -->
-        <div class="mb-4">
-            <h2 class="fw-bold mb-1">
-                <i class="bi bi-file-earmark-pdf-fill me-2 text-primary"></i>
-                IDP Proton - Pilih Bagian
-            </h2>
-            <p class="text-muted mb-4">Silakan pilih bagian untuk melihat dokumen IDP Proton</p>
-        </div>
-
-        <div class="section-grid">
-            <!-- RFCC Card -->
-            <a href="/CDP/Index?bagian=RFCC" class="section-card">
-                <div class="section-icon">
-                    <i class="bi bi-gear-wide-connected"></i>
-                </div>
-                <div class="section-title">RFCC</div>
-                <div class="section-subtitle">RFCC LPG Treating Unit, Propylene Recovery Unit</div>
-            </a>
-
-            <!-- DHT / HMU Card -->
-            <a href="/CDP/Index?bagian=DHT / HMU" class="section-card">
-                <div class="section-icon">
-                    <i class="bi bi-droplet-half"></i>
-                </div>
-                <div class="section-title">DHT / HMU</div>
-                <div class="section-subtitle">Diesel Hydrotreating, Hydrogen Manufacturing Unit</div>
-            </a>
-
-            <!-- NGP Card -->
-            <a href="/CDP/Index?bagian=NGP" class="section-card">
-                <div class="section-icon">
-                    <i class="bi bi-fuel-pump"></i>
-                </div>
-                <div class="section-title">NGP</div>
-                <div class="section-subtitle">Saturated Gas Concentration, Isomerization, Naphtha Hydrotreating</div>
-            </a>
-
-            <!-- GAST Card -->
-            <a href="/CDP/Index?bagian=GAST" class="section-card">
-                <div class="section-icon">
-                    <i class="bi bi-wind"></i>
-                </div>
-                <div class="section-title">GAST</div>
-                <div class="section-subtitle">RFCC NHT, Alkylation Unit, SWS, Amine Regeneration, Sulfur Recovery</div>
-            </a>
-        </div>
-    }
-    else
-    {
-    <!-- Header Section -->
-    <div class="pdf-header">
-        <div class="d-flex justify-content-between align-items-start">
-            <div>
-                <h2 class="fw-bold mb-2">
-                    <i class="bi bi-file-earmark-pdf-fill me-2"></i>
-                    IDP Proton - Individual Development Plan
-                </h2>
-                <p class="mb-3 opacity-90">
-                    Kurikulum Pengembangan Kompetensi @selectedBagian @selectedUnit - Level @selectedLevel
-                </p>
-
-            </div>
-        </div>
-
-        <!-- Additional Info -->
-        <div class="pdf-info">
-            <div class="row g-4 justify-content-center text-center">
-                <div class="col-md-3 col-4">
-                    <div class="d-flex flex-column align-items-center text-dark">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3 mb-2">
-                            <i class="bi bi-diagram-3 text-primary fs-3"></i>
-                        </div>
-                        <small class="text-muted mb-1">Bagian</small>
-                        <strong class="fs-5">@selectedBagian</strong>
-                    </div>
-                </div>
-                <div class="col-md-3 col-4">
-                    <div class="d-flex flex-column align-items-center text-dark">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3 mb-2">
-                            <i class="bi bi-building text-primary fs-3"></i>
-                        </div>
-                        <small class="text-muted mb-1">Unit</small>
-                        <strong class="fs-5">@selectedUnit</strong>
-                    </div>
-                </div>
-                <div class="col-md-3 col-4">
-                    <div class="d-flex flex-column align-items-center text-dark">
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3 mb-2">
-                            <i class="bi bi-person-badge text-primary fs-3"></i>
-                        </div>
-                        <small class="text-muted mb-1">Level</small>
-                        <strong class="fs-5">@selectedLevel</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Information Alert -->
-    <div class="info-card">
-        <div class="d-flex align-items-start">
-            <i class="bi bi-info-circle-fill text-primary me-3 fs-4"></i>
-            <div>
-                <h6 class="fw-bold mb-1">Tentang Dokumen IDP Proton</h6>
-                <p class="mb-0 small text-muted">
-                    Dokumen ini berisi rencana pengembangan kompetensi individual (Individual Development Plan) 
-                    untuk operator unit @selectedBagian @selectedUnit. Dokumen mencakup kompetensi yang harus dikuasai, 
-                    target pembelajaran, dan timeline implementasi.
-                </p>
-            </div>
-        </div>
-    </div>
-
-    @if (canSeeFilters)
-    {
-        <!-- Filter Section for Section Head / Sr. Supervisor -->
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-body">
-                <h6 class="fw-bold mb-3">
-                    <i class="bi bi-funnel me-2"></i>Filter Dokumen IDP
-                </h6>
-                <form method="get" action="/CDP/Index" id="filterForm">
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Bagian</label>
-                            <select class="form-select" name="bagian" id="bagianSelect" required>
-                                <option value="">Pilih Bagian</option>
-                                <option value="RFCC" selected="@(selectedBagian == "RFCC")">RFCC</option>
-                                <option value="DHT / HMU" selected="@(selectedBagian == "DHT / HMU")">DHT / HMU</option>
-                                <option value="NGP" selected="@(selectedBagian == "NGP")">NGP</option>
-                                <option value="GAST" selected="@(selectedBagian == "GAST")">GAST</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Unit</label>
-                            <select class="form-select" name="unit" id="unitSelect" required>
-                                <option value="">Pilih Unit</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Level</label>
-                            <select class="form-select" name="level" id="levelSelect" required>
-                                <option value="Operator" selected="@(selectedLevel == "Operator")">Operator</option>
-                                <option value="Panelman" selected="@(selectedLevel == "Panelman")">Panelman</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-search me-2"></i>Tampilkan Dokumen
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    }
-
-    <!-- Action Buttons Section -->
-    <div class="action-card">
-        <div class="action-icon">
-            <i class="bi bi-file-earmark-pdf"></i>
-        </div>
-        <h4 class="fw-bold mb-2">Dokumen IDP Proton</h4>
-        <p class="text-muted mb-4">Pilih aksi untuk dokumen PDF di bawah ini</p>
-        
-        <div class="d-flex justify-content-center gap-3 flex-wrap">
-            <a href="@pdfPath" download class="btn action-btn btn-download">
-                <i class="bi bi-download me-2"></i>
-                Download PDF
-            </a>
-            <a href="@pdfPath" target="_blank" class="btn action-btn btn-open">
-                <i class="bi bi-box-arrow-up-right me-2"></i>
-                Buka di Tab Baru
-            </a>
-        </div>
-    </div>
-    }
-</div>
-
-<script>
-    // Cascading dropdown data
-    const unitsByBagian = {
-        "RFCC": [
-            "RFCC LPG Treating Unit (062)",
-            "Propylene Recovery Unit (063)"
-        ],
-        "DHT / HMU": [
-            "Diesel Hydrotreating Unit I (054)",
-            "Diesel Hydrotreating Unit II (083)",
-            "Hydrogen Manufacturing Unit (068)",
-            "Common DHT H2 Compressor (085)"
-        ],
-        "NGP": [
-            "Saturated Gas Concentration Unit (060)",
-            "Saturated LPG Treating Unit (064)",
-            "Isomerization Unit (082)",
-            "Common Facilities For NLP (160)",
-            "Naphtha Hydrotreating Unit II (084)"
-        ],
-        "GAST": [
-            "RFCC NHT (053)",
-            "Alkylation Unit (065)",
-            "Wet Gas Sulfuric Acid Unit (066)",
-            "SWS RFCC (067)",
-            "SWS Non RFCC (167)",
-            "Amine Regeneration Unit I (069)",
-            "Amine Regeneration Unit II (079)",
-            "Flare System (319)",
-            "Sulfur Recovery Unit (169)"
-        ]
-    };
-
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        const bagianSelect = document.getElementById('bagianSelect');
-        const unitSelect = document.getElementById('unitSelect');
-        
-        if (bagianSelect && unitSelect) {
-            // Populate units based on current selection
-            const selectedBagian = '@selectedBagian';
-            const selectedUnit = '@selectedUnit';
-            
-            if (selectedBagian) {
-                populateUnits(selectedBagian, selectedUnit);
-            }
-            
-            // Add change event listener
-            bagianSelect.addEventListener('change', function() {
-                populateUnits(this.value);
-            });
-        }
-    });
-
-    function populateUnits(bagian, selectedUnit = '') {
-        const unitSelect = document.getElementById('unitSelect');
-        unitSelect.innerHTML = '<option value="">Pilih Unit</option>';
-        
-        if (bagian && unitsByBagian[bagian]) {
-            unitsByBagian[bagian].forEach(unit => {
-                const option = document.createElement('option');
-                option.value = unit;
-                option.textContent = unit;
-                if (unit === selectedUnit) {
-                    option.selected = true;
-                }
-                unitSelect.appendChild(option);
-            });
-        }
-    }
-</script>
