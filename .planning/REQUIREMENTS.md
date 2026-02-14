@@ -303,9 +303,9 @@ ALTER TABLE AssessmentSessions ADD CompletedAt DATETIME NULL;
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FR1 | Phase 1 | Pending |
-| FR2 | Phase 1 | Pending |
-| FR3 | Phase 1 | Pending |
-| FR4 | Phase 1 | Pending |
-| FR5 | Phase 1 | Pending |
+| FR1 | Phase 1 | ✓ Complete |
+| FR2 | Phase 1 | ✓ Complete |
+| FR3 | Phase 1 | ✓ Complete |
+| FR4 | Phase 1 | ✓ Complete |
+| FR5 | Phase 1 | ✓ Complete |
 | FR6 | Phase 2 | Pending |
