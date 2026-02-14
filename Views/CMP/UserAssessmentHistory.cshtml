@@ -1,0 +1,206 @@
+@model HcPortal.Models.UserAssessmentHistoryViewModel
+@{
+    ViewData["Title"] = $"{Model.UserFullName} - Assessment History";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Breadcrumb Navigation -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("ReportsIndex")">Assessment Reports</a></li>
+            <li class="breadcrumb-item active">@Model.UserFullName</li>
+        </ol>
+    </nav>
+
+    <!-- User Info Header Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <!-- Left Side: User Icon and Name -->
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="bi bi-person-circle text-primary" style="font-size: 4rem;"></i>
+                        </div>
+                        <div>
+                            <h4 class="mb-1 fw-bold">@Model.UserFullName</h4>
+                            @if (!string.IsNullOrEmpty(Model.UserPosition))
+                            {
+                                <p class="text-muted mb-0">@Model.UserPosition</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side: Mini Stats -->
+                <div class="col-md-6">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <div class="d-flex flex-column">
+                                <small class="text-muted text-uppercase fw-semibold">NIP</small>
+                                <span class="fw-bold">@(Model.UserNIP ?? "-")</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex flex-column">
+                                <small class="text-muted text-uppercase fw-semibold">Section</small>
+                                <span class="fw-bold">@(Model.UserSection ?? "-")</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex flex-column">
+                                <small class="text-muted text-uppercase fw-semibold">Total Assessments</small>
+                                <span class="fw-bold text-primary">@Model.TotalAssessments</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="d-flex flex-column">
+                                <small class="text-muted text-uppercase fw-semibold">Pass Rate</small>
+                                <span class="fw-bold text-success">@Model.PassRate.ToString("F1")%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Assessments Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-primary text-white h-100 position-relative">
+                <div class="card-body">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-clipboard-check" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="text-uppercase small mb-2 fw-semibold opacity-75">Total Assessments</h6>
+                    <h2 class="fw-bold mb-0">@Model.TotalAssessments</h2>
+                    <small class="opacity-75">Completed</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pass Rate Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-success text-white h-100 position-relative">
+                <div class="card-body">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="text-uppercase small mb-2 fw-semibold opacity-75">Pass Rate</h6>
+                    <h2 class="fw-bold mb-0">@Model.PassRate.ToString("F1")%</h2>
+                    <small class="opacity-75">@Model.PassedCount passed</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Score Card -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-info text-white h-100 position-relative">
+                <div class="card-body">
+                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
+                        <i class="bi bi-star-fill" style="font-size: 3rem;"></i>
+                    </div>
+                    <h6 class="text-uppercase small mb-2 fw-semibold opacity-75">Average Score</h6>
+                    <h2 class="fw-bold mb-0">@Model.AverageScore.ToString("F1")</h2>
+                    <small class="opacity-75">Out of 100</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assessment History Table -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white border-0 py-3">
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-clock-history me-2"></i>Assessment History
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4">#</th>
+                            <th>Assessment</th>
+                            <th>Category</th>
+                            <th>Score</th>
+                            <th>Pass %</th>
+                            <th>Status</th>
+                            <th>Completed</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Assessments.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                                    <p class="text-muted mt-2 mb-0">No assessment history found</p>
+                                    <small class="text-muted">This user has not completed any assessments yet</small>
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @for (int i = 0; i < Model.Assessments.Count; i++)
+                            {
+                                var item = Model.Assessments[i];
+                                var rowNum = i + 1;
+                                <tr>
+                                    <td class="px-4">@rowNum</td>
+                                    <td>
+                                        <div class="fw-semibold">@item.Title</div>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@item.Category</span>
+                                    </td>
+                                    <td class="fw-bold">@item.Score</td>
+                                    <td>@item.PassPercentage%</td>
+                                    <td>
+                                        @if (item.IsPassed)
+                                        {
+                                            <span class="badge bg-success">Pass</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Fail</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (item.CompletedAt.HasValue)
+                                        {
+                                            @item.CompletedAt.Value.ToString("dd MMM yyyy HH:mm")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("Results", new { id = item.Id })"
+                                           class="btn btn-sm btn-outline-info"
+                                           title="View results">
+                                            <i class="bi bi-eye me-1"></i>View Results
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back Button -->
+    <div class="mb-4">
+        <a href="@Url.Action("ReportsIndex")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Reports
+        </a>
+    </div>
+
+</div>

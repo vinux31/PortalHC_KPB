@@ -1371,6 +1371,61 @@ namespace HcPortal.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> UserAssessmentHistory(string userId)
+        {
+            // Load the target user
+            var targetUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (targetUser == null)
+            {
+                return NotFound();
+            }
+
+            // Query completed assessments for this user
+            var assessments = await _context.AssessmentSessions
+                .Where(a => a.UserId == userId && a.Status == "Completed")
+                .OrderByDescending(a => a.CompletedAt)
+                .Select(a => new AssessmentReportItem
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Category = a.Category,
+                    UserId = userId,
+                    UserName = targetUser.FullName,
+                    UserNIP = targetUser.NIP,
+                    UserSection = targetUser.Section,
+                    Score = a.Score ?? 0,
+                    PassPercentage = a.PassPercentage,
+                    IsPassed = a.IsPassed ?? false,
+                    CompletedAt = a.CompletedAt
+                })
+                .ToListAsync();
+
+            // Calculate statistics
+            var totalAssessments = assessments.Count;
+            var passedCount = assessments.Count(a => a.IsPassed);
+            var passRate = totalAssessments > 0 ? passedCount * 100.0 / totalAssessments : 0;
+            var averageScore = totalAssessments > 0 ? assessments.Average(a => (double)a.Score) : 0;
+
+            // Build ViewModel
+            var viewModel = new UserAssessmentHistoryViewModel
+            {
+                UserId = userId,
+                UserFullName = targetUser.FullName,
+                UserNIP = targetUser.NIP,
+                UserSection = targetUser.Section,
+                UserPosition = targetUser.Position,
+                TotalAssessments = totalAssessments,
+                PassedCount = passedCount,
+                PassRate = passRate,
+                AverageScore = averageScore,
+                Assessments = assessments
+            };
+
+            return View(viewModel);
+        }
+
         #region Helper Methods
         /// <summary>
         /// Generate cryptographically secure random token
