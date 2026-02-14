@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using HcPortal.Models;
 using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
+using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
@@ -1209,6 +1210,7 @@ namespace HcPortal.Controllers
                     Id = a.Id,
                     Title = a.Title,
                     Category = a.Category,
+                    UserId = a.UserId,
                     UserName = a.User != null ? a.User.FullName : "Unknown",
                     UserNIP = a.User != null ? a.User.NIP : null,
                     UserSection = a.User != null ? a.User.Section : null,
@@ -1259,6 +1261,114 @@ namespace HcPortal.Controllers
             };
 
             return View(viewModel);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportResults(
+            string? category,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? section,
+            string? userSearch)
+        {
+            // Base query: only completed assessments
+            var query = _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Status == "Completed");
+
+            // Apply filters (same logic as ReportsIndex)
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(a => a.Category == category);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(a => a.CompletedAt >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                // Include full end day
+                var endOfDay = endDate.Value.Date.AddDays(1);
+                query = query.Where(a => a.CompletedAt < endOfDay);
+            }
+
+            if (!string.IsNullOrEmpty(section))
+            {
+                query = query.Where(a => a.User != null && a.User.Section == section);
+            }
+
+            if (!string.IsNullOrEmpty(userSearch))
+            {
+                query = query.Where(a => a.User != null &&
+                    (a.User.FullName.Contains(userSearch) ||
+                     (a.User.NIP != null && a.User.NIP.Contains(userSearch))));
+            }
+
+            // Get all matching results (capped at 10,000 for performance)
+            var maxExportRows = 10000;
+            var results = await query
+                .OrderByDescending(a => a.CompletedAt)
+                .Take(maxExportRows)
+                .Select(a => new {
+                    AssessmentTitle = a.Title,
+                    Category = a.Category,
+                    UserName = a.User != null ? a.User.FullName : "",
+                    NIP = a.User != null ? a.User.NIP ?? "" : "",
+                    Section = a.User != null ? a.User.Section ?? "" : "",
+                    Score = a.Score ?? 0,
+                    PassPercentage = a.PassPercentage,
+                    Status = a.IsPassed == true ? "Pass" : "Fail",
+                    CompletedAt = a.CompletedAt
+                })
+                .ToListAsync();
+
+            // Generate Excel using ClosedXML
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Assessment Results");
+
+            // Header row
+            worksheet.Cell(1, 1).Value = "Assessment Title";
+            worksheet.Cell(1, 2).Value = "Category";
+            worksheet.Cell(1, 3).Value = "User Name";
+            worksheet.Cell(1, 4).Value = "NIP";
+            worksheet.Cell(1, 5).Value = "Section";
+            worksheet.Cell(1, 6).Value = "Score";
+            worksheet.Cell(1, 7).Value = "Pass Percentage";
+            worksheet.Cell(1, 8).Value = "Status";
+            worksheet.Cell(1, 9).Value = "Completed At";
+
+            // Style header
+            var headerRange = worksheet.Range(1, 1, 1, 9);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            // Data rows
+            for (int i = 0; i < results.Count; i++)
+            {
+                var r = results[i];
+                var row = i + 2;
+                worksheet.Cell(row, 1).Value = r.AssessmentTitle;
+                worksheet.Cell(row, 2).Value = r.Category;
+                worksheet.Cell(row, 3).Value = r.UserName;
+                worksheet.Cell(row, 4).Value = r.NIP;
+                worksheet.Cell(row, 5).Value = r.Section;
+                worksheet.Cell(row, 6).Value = r.Score;
+                worksheet.Cell(row, 7).Value = r.PassPercentage;
+                worksheet.Cell(row, 8).Value = r.Status;
+                worksheet.Cell(row, 9).Value = r.CompletedAt?.ToString("yyyy-MM-dd HH:mm");
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            // Return as file download
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+            var fileName = $"AssessmentResults_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         #region Helper Methods
