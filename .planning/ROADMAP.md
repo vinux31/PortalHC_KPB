@@ -76,10 +76,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Data foundation (competency models, DbContext, position helper, migration)
-- [ ] 03-02-PLAN.md -- Auto-update competency on assessment completion + seed data
-- [ ] 03-03-PLAN.md -- Gap analysis dashboard with radar chart and IDP suggestions
-- [ ] 03-04-PLAN.md -- CPDP progress tracking with assessment evidence + visual verification
+- [x] 03-01-PLAN.md -- Data foundation (competency models, DbContext, position helper, migration)
+- [x] 03-02-PLAN.md -- Auto-update competency on assessment completion + seed data
+- [x] 03-03-PLAN.md -- Gap analysis dashboard with radar chart and IDP suggestions
+- [x] 03-04-PLAN.md -- CPDP progress tracking with assessment evidence + visual verification
 
 ---
 
@@ -92,4 +92,4 @@ Phases execute in numeric order: 1 -> 2 -> 3
 |-------|----------------|--------|-----------|
 | 1. Assessment Results & Configuration | 3/3 | ✓ Complete | 2026-02-14 |
 | 2. HC Reports Dashboard | 3/3 | ✓ Complete | 2026-02-14 |
-| 3. KKJ/CPDP Integration | 0/4 | Not started | - |
+| 3. KKJ/CPDP Integration | 4/4 | ✓ Complete | 2026-02-14 |
