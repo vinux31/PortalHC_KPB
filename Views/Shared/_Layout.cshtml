@@ -52,32 +52,12 @@
                         
 
 
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Management Platform</a>
-                            <ul class="dropdown-menu shadow-sm border-0">
-                                <li><h6 class="dropdown-header text-uppercase small fw-bold">Standard & Assessment</h6></li>
-                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Kkj">Susunan KKJ</a></li>
-                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Assessment">Assessment</a></li>
-                                @if (User.IsInRole("Admin") || User.IsInRole("HC"))
-                                {
-                                    <li><a class="dropdown-item" asp-controller="CMP" asp-action="CreateAssessment">
-                                        <i class="bi bi-plus-circle me-1"></i>Create Assessment
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header text-uppercase small fw-bold">Reports</h6></li>
-                                    <li><a class="dropdown-item" asp-controller="CMP" asp-action="ReportsIndex">
-                                        <i class="bi bi-clipboard-data me-1"></i>Assessment Reports
-                                    </a></li>
-                                }
-                                <li><hr class="dropdown-divider"></li>
-                                <li><h6 class="dropdown-header text-uppercase small fw-bold">Records</h6></li>
-                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Records">Capability Records</a></li>
-                                <li><a class="dropdown-item" asp-controller="CMP" asp-action="Mapping">KKJ-IDP Mapping</a></li>
-                            </ul>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="CMP" asp-action="Index">CMP</a>
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Competency Development Platform</a>
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">CDP</a>
                             <ul class="dropdown-menu shadow-sm border-0">
                                 <li><a class="dropdown-item" asp-controller="CDP" asp-action="Index">Plan IDP (Silabus)</a></li>
                                 <li><a class="dropdown-item" asp-controller="CDP" asp-action="Coaching">Laporan Coaching</a></li>
@@ -88,7 +68,7 @@
                         </li>
 
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">Business Partner Platform</a>
+                            <a class="nav-link dropdown-toggle text-dark" href="#" data-bs-toggle="dropdown">BP</a>
                             <ul class="dropdown-menu shadow-sm border-0">
                                 <li><a class="dropdown-item" asp-controller="BP" asp-action="TalentProfile">Talent Profile & Career Historical</a></li>
                                 <li><hr class="dropdown-divider"></li>
