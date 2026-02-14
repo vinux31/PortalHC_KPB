@@ -143,6 +143,40 @@
                     </div>
                 </div>
 
+                <!-- Assessment Settings Section -->
+                <div class="card border-info mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Assessment Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Pass Percentage -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PassPercentage" class="form-label fw-semibold">
+                                    Pass Percentage (%) <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="PassPercentage" type="number" class="form-control" min="0" max="100" required />
+                                <span asp-validation-for="PassPercentage" class="text-danger"></span>
+                                <div class="form-text text-muted">Minimum score required to pass (0-100)</div>
+                            </div>
+
+                            <!-- Allow Answer Review Toggle -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Allow Answer Review
+                                </label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="AllowAnswerReview" class="form-check-input" type="checkbox" id="AllowAnswerReviewToggle">
+                                    <label class="form-check-label" for="AllowAnswerReviewToggle">
+                                        Enable answer review
+                                    </label>
+                                </div>
+                                <div class="form-text text-muted">Allow users to review correct/incorrect answers after completion</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Security Token Section -->
                 <div class="card border-primary mb-4">
                     <div class="card-header bg-primary text-white">

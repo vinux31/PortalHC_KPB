@@ -206,6 +206,8 @@ namespace HcPortal.Controllers
             assessment.Status = model.Status;
             assessment.BannerColor = model.BannerColor;
             assessment.IsTokenRequired = model.IsTokenRequired;
+            assessment.PassPercentage = model.PassPercentage;
+            assessment.AllowAnswerReview = model.AllowAnswerReview;
 
             // Update token if token is required
             if (model.IsTokenRequired && !string.IsNullOrWhiteSpace(model.AccessToken))
