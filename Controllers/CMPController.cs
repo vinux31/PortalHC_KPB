@@ -1134,6 +1134,133 @@ namespace HcPortal.Controllers
         }
         #endregion
 
+        // ========== HC REPORTS ==========
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ReportsIndex(
+            string? category,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? section,
+            string? userSearch,
+            int page = 1,
+            int pageSize = 20)
+        {
+            // Get current user
+            var currentUser = await _userManager.GetUserAsync(User);
+
+            // Base query: only completed assessments
+            var query = _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Status == "Completed");
+
+            // Apply filters conditionally
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(a => a.Category == category);
+            }
+
+            if (startDate.HasValue)
+            {
+                query = query.Where(a => a.CompletedAt >= startDate.Value);
+            }
+
+            if (endDate.HasValue)
+            {
+                // Include full end day
+                var endOfDay = endDate.Value.Date.AddDays(1);
+                query = query.Where(a => a.CompletedAt < endOfDay);
+            }
+
+            if (!string.IsNullOrEmpty(section))
+            {
+                query = query.Where(a => a.User != null && a.User.Section == section);
+            }
+
+            if (!string.IsNullOrEmpty(userSearch))
+            {
+                query = query.Where(a => a.User != null &&
+                    (a.User.FullName.Contains(userSearch) ||
+                     (a.User.NIP != null && a.User.NIP.Contains(userSearch))));
+            }
+
+            // Calculate summary stats using the filtered query
+            var totalCompleted = await query.CountAsync();
+            var passedCount = await query.CountAsync(a => a.IsPassed == true);
+            var avgScore = totalCompleted > 0
+                ? await query.AverageAsync(a => (double?)a.Score) ?? 0
+                : 0;
+            var totalAssigned = await _context.AssessmentSessions.CountAsync();
+
+            // Calculate pass rate
+            var passRate = totalCompleted > 0
+                ? passedCount * 100.0 / totalCompleted
+                : 0;
+
+            // Pagination
+            var totalPages = (int)Math.Ceiling(totalCompleted / (double)pageSize);
+
+            var assessments = await query
+                .OrderByDescending(a => a.CompletedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(a => new AssessmentReportItem
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Category = a.Category,
+                    UserName = a.User != null ? a.User.FullName : "Unknown",
+                    UserNIP = a.User != null ? a.User.NIP : null,
+                    UserSection = a.User != null ? a.User.Section : null,
+                    Score = a.Score ?? 0,
+                    PassPercentage = a.PassPercentage,
+                    IsPassed = a.IsPassed ?? false,
+                    CompletedAt = a.CompletedAt
+                })
+                .ToListAsync();
+
+            // Load filter dropdown options
+            var categories = await _context.AssessmentSessions
+                .Where(a => a.Status == "Completed")
+                .Select(a => a.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            var sections = await _context.Users
+                .Where(u => u.Section != null && u.Section != "")
+                .Select(u => u.Section!)
+                .Distinct()
+                .OrderBy(s => s)
+                .ToListAsync();
+
+            // Build ViewModel
+            var viewModel = new ReportsDashboardViewModel
+            {
+                Assessments = assessments,
+                TotalAssessments = totalCompleted,
+                PassedCount = passedCount,
+                PassRate = passRate,
+                AverageScore = avgScore,
+                TotalAssigned = totalAssigned,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                CurrentFilters = new ReportFilters
+                {
+                    Category = category,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Section = section,
+                    UserSearch = userSearch
+                },
+                AvailableCategories = categories,
+                AvailableSections = sections
+            };
+
+            return View(viewModel);
+        }
+
         #region Helper Methods
         /// <summary>
         /// Generate cryptographically secure random token
