@@ -1256,12 +1256,7 @@ namespace HcPortal.Controllers
                 .OrderBy(c => c)
                 .ToListAsync();
 
-            var sections = await _context.Users
-                .Where(u => u.Section != null && u.Section != "")
-                .Select(u => u.Section!)
-                .Distinct()
-                .OrderBy(s => s)
-                .ToListAsync();
+            var sections = OrganizationStructure.GetAllSections();
 
             // Pass chart data to view via ViewBag
             ViewBag.CategoryStats = categoryStats;
@@ -1292,6 +1287,28 @@ namespace HcPortal.Controllers
             };
 
             return View(viewModel);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> SearchUsers(string term)
+        {
+            if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+                return Json(new List<object>());
+
+            var users = await _context.Users
+                .Where(u => u.FullName.Contains(term) ||
+                             (u.NIP != null && u.NIP.Contains(term)))
+                .OrderBy(u => u.FullName)
+                .Take(10)
+                .Select(u => new {
+                    fullName = u.FullName,
+                    nip = u.NIP ?? "",
+                    section = u.Section ?? ""
+                })
+                .ToListAsync();
+
+            return Json(users);
         }
 
         [HttpGet]

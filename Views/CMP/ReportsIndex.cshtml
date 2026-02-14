@@ -109,11 +109,14 @@
                     </div>
 
                     <!-- User Search -->
-                    <div class="col-md-4">
+                    <div class="col-md-4 position-relative">
                         <label class="form-label small text-muted fw-semibold">User Search</label>
-                        <input type="text" name="userSearch" class="form-control"
+                        <input type="text" id="userSearchInput" name="userSearch" class="form-control"
                                placeholder="Search by name or NIP..."
-                               value="@Model.CurrentFilters.UserSearch" />
+                               value="@Model.CurrentFilters.UserSearch" autocomplete="off" />
+                        <div id="userSearchSuggestions" class="list-group position-absolute w-100 shadow-sm"
+                             style="z-index: 1050; display: none; max-height: 250px; overflow-y: auto;">
+                        </div>
                     </div>
                 </div>
 
@@ -352,6 +355,58 @@
 
 @section Scripts {
 <script>
+    // User Search Autocomplete
+    (function() {
+        var input = document.getElementById('userSearchInput');
+        var suggestions = document.getElementById('userSearchSuggestions');
+        var debounceTimer;
+
+        input.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            var term = this.value.trim();
+            if (term.length < 2) {
+                suggestions.style.display = 'none';
+                return;
+            }
+            debounceTimer = setTimeout(function() {
+                fetch('@Url.Action("SearchUsers")' + '?term=' + encodeURIComponent(term))
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.length === 0) {
+                            suggestions.style.display = 'none';
+                            return;
+                        }
+                        suggestions.innerHTML = '';
+                        data.forEach(function(user) {
+                            var item = document.createElement('a');
+                            item.href = '#';
+                            item.className = 'list-group-item list-group-item-action py-2 px-3';
+                            item.innerHTML = '<div class="fw-semibold small">' + user.fullName + '</div>' +
+                                '<small class="text-muted">' + (user.nip ? 'NIP: ' + user.nip : '') +
+                                (user.section ? ' | ' + user.section : '') + '</small>';
+                            item.addEventListener('mousedown', function(e) {
+                                e.preventDefault();
+                                input.value = user.fullName;
+                                suggestions.style.display = 'none';
+                            });
+                            suggestions.appendChild(item);
+                        });
+                        suggestions.style.display = 'block';
+                    });
+            }, 300); // 300ms debounce
+        });
+
+        input.addEventListener('blur', function() {
+            setTimeout(function() { suggestions.style.display = 'none'; }, 200);
+        });
+
+        input.addEventListener('focus', function() {
+            if (suggestions.children.length > 0) {
+                suggestions.style.display = 'block';
+            }
+        });
+    })();
+
     // Category Pass Rate Chart
     var categoryStats = @Html.Raw(Json.Serialize(ViewBag.CategoryStats));
 
