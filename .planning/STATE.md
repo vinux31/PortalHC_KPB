@@ -6,17 +6,17 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Latest milestone:** v1.1 CDP Coaching Management (started 2026-02-17)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 4 — Foundation & Coaching Sessions
+**Current focus:** Phase 5 — Proton Deliverable Tracking
 
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** 4 of 7 (Foundation & Coaching Sessions) — In Progress
-**Plan:** 04-02 complete (coaching controller and view)
-**Status:** Executing
-**Last activity:** 2026-02-17 — Completed 04-02: coaching GET/POST actions and Coaching.cshtml replaced with CoachingHistoryViewModel view
+**Phase:** 5 of 7 (Proton Deliverable Tracking) — Ready to plan
+**Plan:** —
+**Status:** Ready to plan
+**Last activity:** 2026-02-17 — Phase 4 complete (coaching sessions: models, migration, controller, view — COACH-01/02/03 satisfied)
 
-Progress: [█░░░░░░░░░] ~5% milestone v1.1
+Progress: [██░░░░░░░░] ~25% milestone v1.1
 
 ## Performance Metrics
 
@@ -78,8 +78,10 @@ None.
 - CoachCoacheeMapping: Table now registered in DbContext and created in DB via AddCoachingFoundation migration
 - CoachingLog.TrackingItemId: Removed from model and dropped from DB in AddCoachingFoundation migration
 
-**Phase 4 — Remaining investigation:**
-- Master deliverable data: Does Kompetensi > Sub Kompetensi > Deliverable hierarchy exist in DB? Affects whether data import or UI management is needed (Phase 5 concern)
+**Phase 5 — Investigate before planning:**
+- Master deliverable hierarchy (Kompetensi → Sub Kompetensi → Deliverable): confirmed does NOT exist in DB — Phase 5 must create table structure and seed/import data
+- Proton track data (Panelman/Operator, Tahun 1/2/3): determine if seed data or UI management is needed
+- File upload approach for deliverable evidence: confirm storage strategy (disk vs DB)
 
 ### Quick Tasks Completed
 
