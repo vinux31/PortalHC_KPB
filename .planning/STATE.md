@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** 5 of 7 (Proton Deliverable Tracking) — Ready to plan
-**Plan:** —
-**Status:** Ready to plan
-**Last activity:** 2026-02-17 — Phase 4 gap closure complete (04-03: replaced Topic/Notes with 7 domain coaching fields — COACH-01/02/03 fully satisfied)
+**Phase:** 5 of 7 (Proton Deliverable Tracking) — In Progress
+**Plan:** 2 of 3 (next: 05-02)
+**Status:** In progress
+**Last activity:** 2026-02-17 — 05-01 complete: Proton data foundation (5 entity models, 5 DB tables via migration, seed data, ViewModels)
 
-Progress: [██░░░░░░░░] ~25% milestone v1.1
+Progress: [███░░░░░░░] ~30% milestone v1.1
 
 ## Performance Metrics
 
@@ -41,6 +41,7 @@ Progress: [██░░░░░░░░] ~25% milestone v1.1
 | Phase 04-foundation-coaching-sessions P01 | 4 | 2 tasks | 6 files |
 | Phase 04-foundation-coaching-sessions P02 | 3 | 3 tasks | 2 files |
 | Phase 04-foundation-coaching-sessions P03 | 3 | 3 tasks | 7 files |
+| Phase 05-proton-deliverable-tracking P01 | 3 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,14 @@ Recent decisions affecting current work:
 - [Phase 04-foundation-coaching-sessions]: Razor tag helper option element requires if/else blocks for conditional selected attribute (RZ1031 prevents C# in attribute declaration)
 - [Phase 04-03]: EF Core used RenameColumn(Topic->SubKompetensi) instead of DropColumn+AddColumn — acceptable optimization, same net schema result
 
+**From 05-01:**
+- String IDs (no FK) for CoacheeId/AssignedById in ProtonTrackAssignment — matches CoachingLog/CoachCoacheeMapping pattern
+- DeleteBehavior.Restrict on all Proton FK relationships — avoids SQL Server multiple cascade path
+- Unique index on (CoacheeId, ProtonDeliverableId) in ProtonDeliverableProgress — one record per user per deliverable
+- ProtonDeliverableProgress.Status values: "Locked", "Active", "Submitted", "Approved", "Rejected"
+- ProtonKompetensi.TrackType values: "Panelman" or "Operator"; TahunKe: "Tahun 1", "Tahun 2", "Tahun 3"
+- Seed: Operator Tahun 1 with real CPDP data (3K/6SK/13D), Panelman+Tahun2/3 as TODO placeholders
+
 ### Pending Todos
 
 None.
@@ -80,10 +89,10 @@ None.
 - CoachCoacheeMapping: Table now registered in DbContext and created in DB via AddCoachingFoundation migration
 - CoachingLog.TrackingItemId: Removed from model and dropped from DB in AddCoachingFoundation migration
 
-**Phase 5 — Investigate before planning:**
-- Master deliverable hierarchy (Kompetensi → Sub Kompetensi → Deliverable): confirmed does NOT exist in DB — Phase 5 must create table structure and seed/import data
-- Proton track data (Panelman/Operator, Tahun 1/2/3): determine if seed data or UI management is needed
-- File upload approach for deliverable evidence: confirm storage strategy (disk vs DB)
+**Phase 5 — RESOLVED in 05-01:**
+- Master deliverable hierarchy: 5 tables created via AddProtonDeliverableTracking migration with seeded data
+- Proton track data: seeded with real Operator Tahun 1 data + placeholders for Panelman/Tahun2/Tahun3
+- File upload: EvidencePath (web path) + EvidenceFileName (display name) in ProtonDeliverableProgress — disk storage confirmed
 
 ### Quick Tasks Completed
 
@@ -95,5 +104,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 04-03-PLAN.md — domain coaching fields (7 new fields replacing Topic/Notes in model, viewmodel, controller, view, and DB schema)
+Stopped at: Completed 05-01-PLAN.md — Proton data foundation (5 entity models, 5 DB tables via AddProtonDeliverableTracking migration, seed data, ViewModels)
 Resume file: None
