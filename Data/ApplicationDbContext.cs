@@ -32,6 +32,11 @@ namespace HcPortal.Data
         public DbSet<AssessmentCompetencyMap> AssessmentCompetencyMaps { get; set; }
         public DbSet<UserCompetencyLevel> UserCompetencyLevels { get; set; }
 
+        // Coaching Sessions (Phase 4)
+        public DbSet<CoachingSession> CoachingSessions { get; set; }
+        public DbSet<ActionItem> ActionItems { get; set; }
+        public DbSet<CoachCoacheeMapping> CoachCoacheeMappings { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -178,6 +183,35 @@ namespace HcPortal.Data
 
                 // Ignore computed property Gap
                 entity.Ignore(c => c.Gap);
+            });
+
+            // CoachingSession configuration
+            builder.Entity<CoachingSession>(entity =>
+            {
+                entity.HasIndex(s => s.CoachId);
+                entity.HasIndex(s => s.CoacheeId);
+                entity.HasIndex(s => new { s.CoacheeId, s.Date });
+                entity.Property(s => s.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // ActionItem configuration
+            builder.Entity<ActionItem>(entity =>
+            {
+                entity.HasOne(a => a.CoachingSession)
+                    .WithMany(s => s.ActionItems)
+                    .HasForeignKey(a => a.CoachingSessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(a => a.CoachingSessionId);
+                entity.HasIndex(a => a.Status);
+                entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // CoachCoacheeMapping configuration
+            builder.Entity<CoachCoacheeMapping>(entity =>
+            {
+                entity.HasIndex(m => m.CoachId);
+                entity.HasIndex(m => m.CoacheeId);
+                entity.HasIndex(m => new { m.CoachId, m.CoacheeId });
             });
         }
     }
