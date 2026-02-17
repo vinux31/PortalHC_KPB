@@ -1,0 +1,179 @@
+@model HcPortal.Models.ProtonMainViewModel
+
+@{
+    ViewData["Title"] = "Proton Main — Track Assignment";
+}
+
+@* TempData Alerts *@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* Page Header *@
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">
+            <i class="bi bi-clipboard-check me-2 text-primary"></i>Proton Main — Track Assignment
+        </h2>
+        <p class="text-muted">Kelola track Proton dan deliverable coachee di bagian Anda.</p>
+    </div>
+</div>
+
+@* Coachee List Card *@
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom">
+        <h5 class="mb-0 fw-semibold">
+            <i class="bi bi-people me-2 text-primary"></i>Daftar Coachee
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        @if (!Model.Coachees.Any())
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-people fs-1 mb-3 d-block"></i>
+                <p>Tidak ada coachee ditemukan di bagian Anda.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3" style="width:50px">No</th>
+                            <th>Nama</th>
+                            <th>NIP</th>
+                            <th>Track Saat Ini</th>
+                            <th class="text-end pe-3">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            int rowNo = 1;
+                        }
+                        @foreach (var coachee in Model.Coachees)
+                        {
+                            var assignment = Model.Assignments.FirstOrDefault(a => a.CoacheeId == coachee.Id);
+                            var activeProgress = Model.ActiveProgresses.FirstOrDefault(p => p.CoacheeId == coachee.Id);
+                            <tr>
+                                <td class="ps-3 align-middle">@rowNo</td>
+                                <td class="align-middle fw-semibold">@coachee.FullName</td>
+                                <td class="align-middle text-muted">@(coachee.UserName ?? "-")</td>
+                                <td class="align-middle">
+                                    @if (assignment != null)
+                                    {
+                                        <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                                            @assignment.TrackType - @assignment.TahunKe
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fst-italic">-</span>
+                                    }
+                                </td>
+                                <td class="text-end pe-3 align-middle">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#assignTrackModal"
+                                            data-coacheeid="@coachee.Id"
+                                            data-coacheename="@coachee.FullName">
+                                        <i class="bi bi-pencil-square me-1"></i>Assign Track
+                                    </button>
+                                    @if (activeProgress != null)
+                                    {
+                                        <a href="/CDP/Deliverable/@activeProgress.Id" class="btn btn-sm btn-outline-info ms-1">
+                                            <i class="bi bi-eye me-1"></i>Lihat Deliverable
+                                        </a>
+                                    }
+                                </td>
+                            </tr>
+                            rowNo++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@* Assign Track Modal *@
+<div class="modal fade" id="assignTrackModal" tabindex="-1" aria-labelledby="assignTrackModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignTrackModalLabel">
+                    <i class="bi bi-clipboard-check me-2 text-primary"></i>Assign Track Proton
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" asp-action="AssignTrack">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <p class="text-muted mb-3">
+                        Menetapkan track untuk: <strong id="coacheeNameDisplay">-</strong>
+                    </p>
+                    <input type="hidden" id="coacheeIdInput" name="coacheeId" value="" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Track Type</label>
+                        <select class="form-select" name="trackType" required>
+                            <option value="">Pilih Track</option>
+                            <option value="Panelman">Panelman</option>
+                            <option value="Operator">Operator</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Tahun Ke</label>
+                        <select class="form-select" name="tahunKe" required>
+                            <option value="">Pilih Tahun</option>
+                            <option value="Tahun 1">Tahun 1</option>
+                            <option value="Tahun 2">Tahun 2</option>
+                            <option value="Tahun 3">Tahun 3</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-warning small mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Mengassign track baru akan menghapus semua progress deliverable sebelumnya.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-lg me-1"></i>Tetapkan Track
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Set coachee data in modal when Assign Track button is clicked
+        document.addEventListener('DOMContentLoaded', function () {
+            const assignTrackModal = document.getElementById('assignTrackModal');
+            assignTrackModal.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+                const coacheeId = button.getAttribute('data-coacheeid');
+                const coacheeName = button.getAttribute('data-coacheename');
+
+                document.getElementById('coacheeIdInput').value = coacheeId;
+                document.getElementById('coacheeNameDisplay').textContent = coacheeName;
+            });
+        });
+    </script>
+}

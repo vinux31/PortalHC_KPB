@@ -13,12 +13,14 @@ namespace HcPortal.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context)
+        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
+            _env = env;
         }
 
         public IActionResult Index()
@@ -372,6 +374,122 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Action item berhasil ditambahkan.";
             return RedirectToAction("Coaching");
+        }
+
+        public async Task<IActionResult> ProtonMain()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only RoleLevel <= 5 or SrSupervisor can access
+            if (user.RoleLevel > 5 && userRole != UserRoles.SrSupervisor)
+            {
+                return Forbid();
+            }
+
+            var coachees = await _context.Users
+                .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            var coacheeIds = coachees.Select(c => c.Id).ToList();
+
+            var assignments = await _context.ProtonTrackAssignments
+                .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                .ToListAsync();
+
+            var activeProgresses = await _context.ProtonDeliverableProgresses
+                .Where(p => coacheeIds.Contains(p.CoacheeId) && p.Status == "Active")
+                .ToListAsync();
+
+            var viewModel = new ProtonMainViewModel
+            {
+                Coachees = coachees,
+                Assignments = assignments,
+                ActiveProgresses = activeProgresses
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignTrack(string coacheeId, string trackType, string tahunKe)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only RoleLevel <= 5 or SrSupervisor can access
+            if (user.RoleLevel > 5 && userRole != UserRoles.SrSupervisor)
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrEmpty(coacheeId) || string.IsNullOrEmpty(trackType) || string.IsNullOrEmpty(tahunKe))
+            {
+                TempData["Error"] = "Data tidak lengkap.";
+                return RedirectToAction("ProtonMain");
+            }
+
+            // Deactivate existing assignments
+            var existingAssignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == coacheeId && a.IsActive)
+                .ToListAsync();
+            foreach (var assignment in existingAssignments)
+            {
+                assignment.IsActive = false;
+            }
+
+            // Delete existing progress records for this coachee
+            var existingProgresses = await _context.ProtonDeliverableProgresses
+                .Where(p => p.CoacheeId == coacheeId)
+                .ToListAsync();
+            _context.ProtonDeliverableProgresses.RemoveRange(existingProgresses);
+
+            // Create new assignment
+            var newAssignment = new ProtonTrackAssignment
+            {
+                CoacheeId = coacheeId,
+                AssignedById = user.Id,
+                TrackType = trackType,
+                TahunKe = tahunKe,
+                IsActive = true,
+                AssignedAt = DateTime.UtcNow
+            };
+            _context.ProtonTrackAssignments.Add(newAssignment);
+            await _context.SaveChangesAsync();
+
+            // Query all deliverables for the track
+            var deliverables = await _context.ProtonDeliverableList
+                .Include(d => d.ProtonSubKompetensi)
+                    .ThenInclude(s => s.ProtonKompetensi)
+                .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.TrackType == trackType &&
+                            d.ProtonSubKompetensi.ProtonKompetensi.TahunKe == tahunKe)
+                .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
+                    .ThenBy(d => d.ProtonSubKompetensi.Urutan)
+                    .ThenBy(d => d.Urutan)
+                .ToListAsync();
+
+            // Create progress records — first Active, rest Locked
+            var progressList = deliverables.Select((d, index) => new ProtonDeliverableProgress
+            {
+                CoacheeId = coacheeId,
+                ProtonDeliverableId = d.Id,
+                Status = index == 0 ? "Active" : "Locked",
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+
+            _context.ProtonDeliverableProgresses.AddRange(progressList);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Track Proton berhasil ditetapkan.";
+            return RedirectToAction("ProtonMain");
         }
 
         public async Task<IActionResult> Progress(string? bagian = null, string? unit = null, string? coacheeId = null)
