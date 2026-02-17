@@ -4,24 +4,19 @@
 
 See: .planning/PROJECT.md (updated 2026-02-17)
 
-**Latest milestone:** v1.0 CMP Assessment Completion (shipped 2026-02-17)
+**Latest milestone:** v1.1 CDP Coaching Management (started 2026-02-17)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Milestone v1.0 complete - Ready for next milestone planning
+**Current focus:** Defining requirements for v1.1
 
 ## Current Position
 
-**Milestone:** v1.0 CMP Assessment Completion — SHIPPED 2026-02-17
-**Status:** All 3 phases complete (10/10 plans executed)
-**Last activity:** 2026-02-17 — Milestone v1.0 archived and tagged
+**Milestone:** v1.1 CDP Coaching Management
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-02-17 — Milestone v1.1 started
 
-**v1.0 Summary:**
-- Phase 1: Assessment Results & Configuration (3 plans) ✅
-- Phase 2: HC Reports Dashboard (3 plans) ✅
-- Phase 3: KKJ/CPDP Integration (4 plans) ✅
-
-**Archives:** See `.planning/milestones/v1.0-ROADMAP.md` for full details
-
-Progress: [██████████] 100% milestone v1.0 complete
+Progress: [░░░░░░░░░░] 0% milestone v1.1
 
 ## Performance Metrics
 

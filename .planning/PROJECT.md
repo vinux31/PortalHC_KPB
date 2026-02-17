@@ -12,6 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v1.1 CDP Coaching Management
+
+**Goal:** Build functional coaching session management system with development tracking
+
+**Target features:**
+- Coaching session logging (meetings, action items, approval workflow)
+- Development dashboard (competency progress, goals tracking, team overview)
+- CMP integration (gap-based coaching, progress visualization)
+
+---
+
 ## Shipped Milestones
 
 ### ✅ v1.0 - CMP Assessment Completion (2026-02-17)
@@ -275,4 +286,4 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ---
 
-*Last updated: 2026-02-17 after v1.0 milestone completion*
+*Last updated: 2026-02-17 after starting v1.1 milestone*
