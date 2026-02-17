@@ -2,19 +2,26 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-14)
+See: .planning/PROJECT.md (updated 2026-02-17)
 
-**Core value:** Complete CMP assessment workflow so users can see their results and HC can analyze performance data
-**Current focus:** Phase 3 Planned - Ready for execution (4 plans across 3 waves)
+**Latest milestone:** v1.0 CMP Assessment Completion (shipped 2026-02-17)
+**Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
+**Current focus:** Milestone v1.0 complete - Ready for next milestone planning
 
 ## Current Position
 
-Phase: 3 of 3 (KKJ/CPDP Integration) - COMPLETE
-Plan: 4 of 4 (all complete: 03-01, 03-02, 03-03, 03-04)
-Status: Phase 3 complete - CPDP progress tracking with assessment evidence and cross-navigation
-Last activity: 2026-02-14 — Completed 03-04 (CPDP Progress Tracking)
+**Milestone:** v1.0 CMP Assessment Completion — SHIPPED 2026-02-17
+**Status:** All 3 phases complete (10/10 plans executed)
+**Last activity:** 2026-02-17 — Milestone v1.0 archived and tagged
 
-Progress: [██████████] 100% (3/3 phases complete, all plans executed)
+**v1.0 Summary:**
+- Phase 1: Assessment Results & Configuration (3 plans) ✅
+- Phase 2: HC Reports Dashboard (3 plans) ✅
+- Phase 3: KKJ/CPDP Integration (4 plans) ✅
+
+**Archives:** See `.planning/milestones/v1.0-ROADMAP.md` for full details
+
+Progress: [██████████] 100% milestone v1.0 complete
 
 ## Performance Metrics
 

@@ -1,95 +1,64 @@
-# Roadmap: Portal HC KPB - CMP Assessment Completion
+# Roadmap: Portal HC KPB
 
-## Overview
+## Milestones
 
-Complete the CMP assessment workflow by adding results display, pass/fail logic, and answer review capabilities. This enables users to see their performance immediately after completing assessments, and provides HC staff with the configuration controls needed to tailor assessment experiences. Future phases extend this with analytics dashboards and competency tracking integration.
+- ✅ **v1.0 CMP Assessment Completion** — Phases 1-3 (shipped 2026-02-17)
 
 ## Phases
 
-- [x] **Phase 1: Assessment Results & Configuration** - Complete assessment workflow with results page, pass/fail logic, and HC configuration controls
-- [x] **Phase 2: HC Reports Dashboard** - Analytics and reporting tools for HC staff to view all assessment results and export data
-- [ ] **Phase 3: KKJ/CPDP Integration** - Connect assessment results to competency tracking and development planning
-
-## Phase Details
+<details>
+<summary>✅ v1.0 CMP Assessment Completion (Phases 1-3) — SHIPPED 2026-02-17</summary>
 
 ### Phase 1: Assessment Results & Configuration
-**Goal**: Users can see their assessment results with pass/fail status and review answers, HC can configure pass thresholds and answer review visibility per assessment
+**Goal:** Users can see their assessment results with pass/fail status and review answers, HC can configure pass thresholds and answer review visibility per assessment
 
-**Depends on**: Nothing (first phase, builds on existing assessment system)
+- [x] 01-01: Database schema changes (PassPercentage, AllowAnswerReview, IsPassed, CompletedAt)
+- [x] 01-02: Assessment configuration UI (Create/Edit form enhancements)
+- [x] 01-03: Results page, SubmitExam redirect, and lobby links
 
-**Requirements**: FR1, FR2, FR3, FR4, FR5
-
-**Success Criteria** (what must be TRUE):
-  1. User completes an assessment and is immediately redirected to a results page showing score, pass/fail status, and passing threshold
-  2. User can review which questions they answered correctly or incorrectly (if HC enabled answer review for that assessment)
-  3. User can access past assessment results from the assessment lobby by clicking "View Results" on completed assessments
-  4. HC can set pass percentage (0-100) when creating or editing assessments, with category-based defaults
-  5. HC can toggle "Allow Answer Review" checkbox when creating or editing assessments to control whether users see correct answers
-  6. Pass/fail status is calculated automatically on exam submission and stored in the database
-
-**Plans:** 3 plans
-
-Plans:
-- [x] 01-01-PLAN.md -- Database schema changes (PassPercentage, AllowAnswerReview, IsPassed, CompletedAt)
-- [x] 01-02-PLAN.md -- Assessment configuration UI (Create/Edit form enhancements)
-- [x] 01-03-PLAN.md -- Results page, SubmitExam redirect, and lobby links
+**Completed:** 2026-02-14
 
 ---
 
 ### Phase 2: HC Reports Dashboard
-**Goal**: HC staff can view, analyze, and export assessment results across all users with filtering and performance analytics
+**Goal:** HC staff can view, analyze, and export assessment results across all users with filtering and performance analytics
 
-**Depends on**: Phase 1 (requires assessment results data structure)
+- [x] 02-01: Reports dashboard foundation (ViewModels, controller, view with filters, stats, and paginated table)
+- [x] 02-02: Excel export with ClosedXML and individual user assessment history
+- [x] 02-03: Performance analytics charts (Chart.js pass rate by category, score distribution)
 
-**Requirements**: FR6
-
-**Success Criteria** (what must be TRUE):
-  1. HC can view a dashboard listing all assessments with summary statistics (total assigned, completed, pass rate)
-  2. HC can filter assessment results by category, date range, section, or specific user
-  3. HC can export assessment results to Excel format for external analysis
-  4. HC can view individual user's complete assessment history showing all past results
-  5. HC can see performance analytics including charts for pass rate trends, score distributions, and category comparisons
-
-**Plans:** 3 plans
-
-Plans:
-- [x] 02-01-PLAN.md -- Reports dashboard foundation (ViewModels, controller, view with filters, stats, and paginated table)
-- [x] 02-02-PLAN.md -- Excel export with ClosedXML and individual user assessment history
-- [x] 02-03-PLAN.md -- Performance analytics charts (Chart.js pass rate by category, score distribution)
+**Completed:** 2026-02-14
 
 ---
 
 ### Phase 3: KKJ/CPDP Integration
-**Goal**: Assessment results automatically inform competency tracking and generate personalized development recommendations
+**Goal:** Assessment results automatically inform competency tracking and generate personalized development recommendations
 
-**Depends on**: Phase 2 (requires assessment results and analytics foundation)
+- [x] 03-01: Data foundation (competency models, DbContext, position helper, migration)
+- [x] 03-02: Auto-update competency on assessment completion + seed data
+- [x] 03-03: Gap analysis dashboard with radar chart and IDP suggestions
+- [x] 03-04: CPDP progress tracking with assessment evidence + visual verification
 
-**Requirements**: None defined yet (future scope)
-
-**Success Criteria** (what must be TRUE):
-  1. User can view their current competency level vs target level for each KKJ skill, with levels updated based on assessment results
-  2. System displays gap analysis visualization showing which competencies need development based on assessment performance
-  3. System generates automatic IDP suggestions when competency gaps are detected from assessment results
-  4. CPDP progress tracking reflects assessment completions and scores as evidence of competency development
-  5. Assessment results are linked to specific CPDP competencies so HC can track which assessments validate which skills
-
-**Plans:** 4 plans
-
-Plans:
-- [x] 03-01-PLAN.md -- Data foundation (competency models, DbContext, position helper, migration)
-- [x] 03-02-PLAN.md -- Auto-update competency on assessment completion + seed data
-- [x] 03-03-PLAN.md -- Gap analysis dashboard with radar chart and IDP suggestions
-- [x] 03-04-PLAN.md -- CPDP progress tracking with assessment evidence + visual verification
+**Completed:** 2026-02-14
 
 ---
 
+**Milestone Summary:**
+- 3 phases, 10 plans completed
+- 6/6 functional requirements satisfied
+- Full assessment workflow with results, analytics, and competency integration
+- See `.planning/milestones/v1.0-ROADMAP.md` for full details
+
+</details>
+
 ## Progress
 
-**Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Assessment Results & Configuration | v1.0 | 3/3 | Complete | 2026-02-14 |
+| 2. HC Reports Dashboard | v1.0 | 3/3 | Complete | 2026-02-14 |
+| 3. KKJ/CPDP Integration | v1.0 | 4/4 | Complete | 2026-02-14 |
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Assessment Results & Configuration | 3/3 | ✓ Complete | 2026-02-14 |
-| 2. HC Reports Dashboard | 3/3 | ✓ Complete | 2026-02-14 |
-| 3. KKJ/CPDP Integration | 4/4 | ✓ Complete | 2026-02-14 |
+---
+
+**Next milestone:** Use `/gsd:new-milestone` to plan next iteration
