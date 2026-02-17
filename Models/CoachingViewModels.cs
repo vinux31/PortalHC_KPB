@@ -19,8 +19,13 @@ namespace HcPortal.Models
     {
         public string CoacheeId { get; set; } = "";
         public DateTime Date { get; set; }
-        public string Topic { get; set; } = "";
-        public string? Notes { get; set; }
+        public string Kompetensi { get; set; } = "";
+        public string SubKompetensi { get; set; } = "";
+        public string Deliverable { get; set; } = "";
+        public string CoacheeCompetencies { get; set; } = "";
+        public string CatatanCoach { get; set; } = "";
+        public string Kesimpulan { get; set; } = "";
+        public string Result { get; set; } = "";
     }
 
     public class AddActionItemViewModel

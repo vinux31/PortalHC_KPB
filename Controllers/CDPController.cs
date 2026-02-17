@@ -282,6 +282,13 @@ namespace HcPortal.Controllers
                 Sessions = sessions
             };
 
+            var kompetensiList = await _context.KkjMatrices
+                .Select(k => k.Kompetensi)
+                .Distinct()
+                .OrderBy(k => k)
+                .ToListAsync();
+            ViewBag.KompetensiList = kompetensiList;
+
             ViewBag.CoacheeList = coacheeList;
             ViewBag.UserRole = userRole;
             ViewBag.IsCoach = isCoach;
@@ -315,8 +322,13 @@ namespace HcPortal.Controllers
                 CoachId = user.Id,
                 CoacheeId = model.CoacheeId,
                 Date = model.Date,
-                Topic = model.Topic,
-                Notes = model.Notes,
+                Kompetensi = model.Kompetensi,
+                SubKompetensi = model.SubKompetensi,
+                Deliverable = model.Deliverable,
+                CoacheeCompetencies = model.CoacheeCompetencies,
+                CatatanCoach = model.CatatanCoach,
+                Kesimpulan = model.Kesimpulan,
+                Result = model.Result,
                 Status = "Draft",
                 CreatedAt = DateTime.UtcNow
             };

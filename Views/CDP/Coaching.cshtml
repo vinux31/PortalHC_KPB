@@ -185,7 +185,7 @@ else
                             <i class="bi bi-calendar3 me-1"></i>@session.Date.ToString("dd MMM yyyy")
                         </span>
                         <span class="badge @statusBadgeClass rounded-pill me-2">@session.Status</span>
-                        <h6 class="fw-bold d-inline mb-0">@session.Topic</h6>
+                        <h6 class="fw-bold d-inline mb-0">@session.Kompetensi</h6>
                     </div>
                     <div class="text-muted small">
                         <i class="bi bi-person-fill me-1 text-primary"></i>@coachName
@@ -195,10 +195,46 @@ else
                 </div>
             </div>
             <div class="card-body">
-                @if (!string.IsNullOrEmpty(session.Notes))
+                <div class="row mb-2">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Sub Kompetensi</small>
+                        <span class="fw-semibold small">@session.SubKompetensi</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Deliverable</small>
+                        <span class="fw-semibold small">@session.Deliverable</span>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted d-block">Kesimpulan</small>
+                        @{
+                            var kesimpulanClass = session.Kesimpulan == "Kompeten" ? "text-success" : "text-warning";
+                        }
+                        <span class="fw-semibold small @kesimpulanClass">@session.Kesimpulan</span>
+                    </div>
+                    <div class="col-md-2">
+                        <small class="text-muted d-block">Result</small>
+                        @{
+                            var resultClass = session.Result switch
+                            {
+                                "Excellence" => "text-success",
+                                "Good" => "text-primary",
+                                "Suitable" => "text-info",
+                                _ => "text-warning"
+                            };
+                        }
+                        <span class="fw-semibold small @resultClass">@session.Result</span>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(session.CoacheeCompetencies))
                 {
-                    <p class="text-muted mb-3">
-                        <i class="bi bi-chat-left-quote me-1"></i>@session.Notes
+                    <p class="text-muted small mb-1">
+                        <i class="bi bi-person-check me-1"></i><strong>Coachee Competencies:</strong> @session.CoacheeCompetencies
+                    </p>
+                }
+                @if (!string.IsNullOrEmpty(session.CatatanCoach))
+                {
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-chat-left-quote me-1"></i><strong>Catatan Coach:</strong> @session.CatatanCoach
                     </p>
                 }
 
@@ -309,15 +345,55 @@ else
                                        value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Topik <span class="text-danger">*</span></label>
-                            <input type="text" name="Topic" class="form-control"
-                                   placeholder="Contoh: Review Progress Bulanan" required />
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Kompetensi <span class="text-danger">*</span></label>
+                                <select name="Kompetensi" class="form-select" required>
+                                    <option value="">-- Pilih Kompetensi --</option>
+                                    @foreach (var k in (List<string>)(ViewBag.KompetensiList ?? new List<string>()))
+                                    {
+                                        <option value="@k">@k</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Sub Kompetensi <span class="text-danger">*</span></label>
+                                <input type="text" name="SubKompetensi" class="form-control" placeholder="Sub kompetensi" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Deliverable <span class="text-danger">*</span></label>
+                                <input type="text" name="Deliverable" class="form-control" placeholder="Target deliverable" required />
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Catatan</label>
-                            <textarea name="Notes" class="form-control" rows="3"
-                                      placeholder="Tulis poin-poin penting diskusi..."></textarea>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Coachee Competencies <span class="text-danger">*</span></label>
+                                <textarea name="CoacheeCompetencies" class="form-control" rows="3" placeholder="Kompetensi yang ditunjukkan coachee..." required></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Catatan Coach <span class="text-danger">*</span></label>
+                                <textarea name="CatatanCoach" class="form-control" rows="3" placeholder="Catatan dan observasi coach..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Kesimpulan <span class="text-danger">*</span></label>
+                                <select name="Kesimpulan" class="form-select" required>
+                                    <option value="">-- Pilih Kesimpulan --</option>
+                                    <option value="Kompeten">Kompeten</option>
+                                    <option value="Perlu Pengembangan">Perlu Pengembangan</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Result <span class="text-danger">*</span></label>
+                                <select name="Result" class="form-select" required>
+                                    <option value="">-- Pilih Result --</option>
+                                    <option value="Need Improvement">Need Improvement</option>
+                                    <option value="Suitable">Suitable</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Excellence">Excellence</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer">
