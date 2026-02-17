@@ -42,6 +42,47 @@ namespace HcPortal.Controllers
                 userLevel = user.RoleLevel;
             }
 
+            // ========== COACHEE ROLE PATH (Proton DB view) ==========
+            bool isCoacheeView = userRole == UserRoles.Coachee ||
+                                 (userRole == UserRoles.Admin && user != null && user.SelectedView == "Coachee");
+
+            if (isCoacheeView && user != null)
+            {
+                var assignment = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId == user.Id && a.IsActive)
+                    .FirstOrDefaultAsync();
+
+                if (assignment == null)
+                {
+                    ViewBag.UserRole = userRole;
+                    ViewBag.NoAssignment = true;
+                    return View();
+                }
+
+                var kompetensiList = await _context.ProtonKompetensiList
+                    .Include(k => k.SubKompetensiList)
+                        .ThenInclude(s => s.Deliverables)
+                    .Where(k => k.TrackType == assignment.TrackType && k.TahunKe == assignment.TahunKe)
+                    .OrderBy(k => k.Urutan)
+                    .ToListAsync();
+
+                var activeProgress = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.CoacheeId == user.Id && p.Status == "Active")
+                    .FirstOrDefaultAsync();
+
+                var protonViewModel = new ProtonPlanViewModel
+                {
+                    TrackType = assignment.TrackType,
+                    TahunKe = assignment.TahunKe,
+                    KompetensiList = kompetensiList,
+                    ActiveProgress = activeProgress
+                };
+
+                ViewBag.UserRole = userRole;
+                ViewBag.IsProtonView = true;
+                return View(protonViewModel);
+            }
+
             // ========== VIEW-BASED FILTERING FOR ADMIN ==========
             if (userRole == UserRoles.Admin)
             {
