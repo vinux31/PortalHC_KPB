@@ -101,12 +101,12 @@ Plans:
   3. Approver can reject with a written reason; both coach and coachee can see rejection status and reason
   4. HC receives notification when a coachee completes all deliverables; HC approval is non-blocking per deliverable but HC must complete all pending approvals before creating a final Proton Assessment
   5. Coachee's Proton view shows final assessment status and resulting competency level update
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01: TBD
-- [ ] 06-02: TBD
-- [ ] 06-03: TBD
+- [ ] 06-01-PLAN.md — Data foundation: extend models, add ProtonNotification/ProtonFinalAssessment, migration
+- [ ] 06-02-PLAN.md — Approve/Reject actions with sequential unlock and Deliverable UI
+- [ ] 06-03-PLAN.md — HC workflow: HCApprovals queue, final assessment, PlanIdp completion card
 
 #### Phase 7: Development Dashboard
 **Goal:** Supervisors and HC can monitor team competency progress, deliverable status, and pending approvals from a role-scoped dashboard with trend charts
@@ -132,5 +132,5 @@ Plans:
 | 3. KKJ/CPDP Integration | v1.0 | 4/4 | Complete | 2026-02-14 |
 | 4. Foundation & Coaching Sessions | v1.1 | 3/3 | Complete | 2026-02-17 |
 | 5. Proton Deliverable Tracking | v1.1 | 3/3 | Complete | 2026-02-17 |
-| 6. Approval Workflow & Completion | v1.1 | 0/TBD | Not started | - |
+| 6. Approval Workflow & Completion | v1.1 | 0/3 | Planned | - |
 | 7. Development Dashboard | v1.1 | 0/TBD | Not started | - |
