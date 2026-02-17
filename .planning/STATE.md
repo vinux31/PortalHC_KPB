@@ -12,11 +12,11 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Milestone:** v1.1 CDP Coaching Management
 **Phase:** 5 of 7 (Proton Deliverable Tracking) — In Progress
-**Plan:** 3 of 3 (next: 05-03)
-**Status:** In progress
-**Last activity:** 2026-02-17 — 05-02 complete: ProtonMain coach UI + AssignTrack POST + hybrid PlanIdp Coachee view
+**Plan:** 3 of 3 (complete)
+**Status:** Phase complete
+**Last activity:** 2026-02-17 — 05-03 complete: Deliverable detail page with sequential lock (PROTN-03), evidence upload (PROTN-04), resubmit (PROTN-05)
 
-Progress: [████░░░░░░] ~40% milestone v1.1
+Progress: [█████░░░░░] ~50% milestone v1.1
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [████░░░░░░] ~40% milestone v1.1
 | Phase 04-foundation-coaching-sessions P03 | 3 | 3 tasks | 7 files |
 | Phase 05-proton-deliverable-tracking P01 | 3 | 2 tasks | 6 files |
 | Phase 05-proton-deliverable-tracking P02 | 4 | 2 tasks | 4 files |
+| Phase 05-proton-deliverable-tracking P03 | 7 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,12 @@ Recent decisions affecting current work:
 - ProtonKompetensi.TrackType values: "Panelman" or "Operator"; TahunKe: "Tahun 1", "Tahun 2", "Tahun 3"
 - Seed: Operator Tahun 1 with real CPDP data (3K/6SK/13D), Panelman+Tahun2/3 as TODO placeholders
 
+**From 05-03:**
+- UploadEvidence POST handles both Active and Rejected status — single action covers PROTN-04 and PROTN-05
+- Old evidence files kept on disk on resubmit (audit trail) — new filename stored in EvidencePath only
+- CanUpload requires RoleLevel <= 5 (coach/supervisor) — coachees do not self-upload evidence
+- Path.GetFileName strips directory separators — prevents path traversal in file upload
+
 **From 05-02:**
 - @model object? in PlanIdp.cshtml for hybrid rendering (Coachee=DB view, others=PDF view) — cast with Model as ProtonPlanViewModel
 - IWebHostEnvironment added to CDPController constructor now (for Plan 03 file upload) — avoids double modification
@@ -111,5 +118,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 05-02-PLAN.md — ProtonMain coach UI, AssignTrack POST with eager progress creation, hybrid PlanIdp Coachee DB view
+Stopped at: Completed 05-03-PLAN.md — Deliverable detail page, sequential lock (PROTN-03), evidence upload (PROTN-04), resubmit (PROTN-05). Phase 05 complete.
 Resume file: None
