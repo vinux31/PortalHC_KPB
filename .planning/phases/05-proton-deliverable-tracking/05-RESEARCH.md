@@ -1,6 +1,6 @@
 # Phase 5: Proton Deliverable Tracking - Research
 
-**Researched:** 2026-02-17
+**Researched:** 2026-02-17 (fresh pass — overwrites previous)
 **Domain:** ASP.NET Core MVC — new master data tables, sequential deliverable workflow, first file upload feature, Proton track assignment
 **Confidence:** HIGH (based entirely on direct codebase inspection)
 
@@ -42,7 +42,7 @@ Phase 5 does not need any new NuGet packages. `IFormFile` is part of `Microsoft.
 ### New Models Overview
 ```
 Models/
-├── ProtonModels.cs            # NEW — 4 master/tracking models in one file
+├── ProtonModels.cs            # NEW — 5 master/tracking entities in one file
 │   ├── ProtonKompetensi       # Master: Kompetensi (top level)
 │   ├── ProtonSubKompetensi    # Master: Sub Kompetensi (FK to Kompetensi)
 │   ├── ProtonDeliverable      # Master: per-deliverable item (FK to SubKompetensi)
@@ -53,17 +53,18 @@ Models/
 
 ### New DB Tables (one migration)
 ```
-ProtonKompetensi        — master: Id, NamaKompetensi, TrackType, Urutan
+ProtonKompetensi        — master: Id, NamaKompetensi, TrackType, TahunKe, Urutan
 ProtonSubKompetensi     — master: Id, ProtonKompetensiId (FK), NamaSubKompetensi, Urutan
 ProtonDeliverable       — master: Id, ProtonSubKompetensiId (FK), NamaDeliverable, Urutan
-ProtonTrackAssignment   — per-user: Id, CoacheeId, AssignedById, TrackType, TahunKe, AssignedAt
-ProtonDeliverableProgress — per-user: Id, CoacheeId, ProtonDeliverableId (FK), Status, EvidencePath, SubmittedAt, ...
+ProtonTrackAssignment   — per-user: Id, CoacheeId, AssignedById, TrackType, TahunKe, IsActive, AssignedAt
+ProtonDeliverableProgress — per-user: Id, CoacheeId, ProtonDeliverableId (FK), Status, EvidencePath, EvidenceFileName, SubmittedAt, ApprovedAt, RejectedAt, CreatedAt
 ```
 
 ### Recommended Project Structure (Phase 5 additions)
 ```
 Controllers/
-└── CDPController.cs         # Add ProtonMain(), AssignTrack(), PlanIdpProton(), Deliverable(), UploadEvidence()
+└── CDPController.cs         # Add IWebHostEnvironment injection, ProtonMain(), AssignTrack(),
+                             # update PlanIdp(), add Deliverable(), UploadEvidence()
 
 Data/
 └── ApplicationDbContext.cs  # Add 5 new DbSets + OnModelCreating config
@@ -76,9 +77,12 @@ Migrations/
 └── YYYYMMDDHHMMSS_AddProtonDeliverableTracking.cs  # NEW — one migration
 
 Views/CDP/
-├── PlanIdp.cshtml           # EXTEND — add DB-driven view for Coachee role (hybrid: PDF for HC/SH, table for Coachee)
-├── ProtonMain.cshtml        # NEW — Proton main page with track assignment
-└── Deliverable.cshtml       # NEW — Deliverable detail page with evidence upload
+├── PlanIdp.cshtml           # EXTEND — add @model object? directive + hybrid rendering block
+│                            # (CURRENT: no @model directive, ViewBag-only, PDF download)
+│                            # (NEW: @model object? + if/else for Coachee vs PDF path)
+├── ProtonMain.cshtml        # NEW — Proton main page with track assignment modal
+├── Deliverable.cshtml       # NEW — Deliverable detail page with evidence upload
+└── Index.cshtml             # EXTEND — add Proton Main navigation card
 
 Data/
 └── SeedProtonData.cs        # NEW — seed ProtonKompetensi/SubKompetensi/Deliverable hierarchy
@@ -142,7 +146,7 @@ public class ProtonTrackAssignment
 ```
 
 ### Pattern 3: Per-User Deliverable Progress Entity
-**What:** Tracks the completion state of each deliverable for a specific coachee. Created on first access (lazy) or when track is assigned.
+**What:** Tracks the completion state of each deliverable for a specific coachee. Created eagerly when a track is assigned (bulk insert — first deliverable Active, rest Locked).
 **When to use:** PROTN-03 (sequential lock), PROTN-04 (evidence upload), PROTN-05 (resubmit).
 ```csharp
 // Source: pattern from Models/IdpItem.cs (Evidence path, approval status) + Models/CoachCoacheeMapping.cs
@@ -171,36 +175,39 @@ public class ProtonDeliverableProgress
 ### Pattern 4: Sequential Lock Logic
 **What:** A deliverable is "Active" only if the previous deliverable in the ordered list (by Urutan) is "Approved". The first deliverable of a track assignment starts as "Active".
 **When to use:** PROTN-03 enforcement — prevents access to next deliverable until current is approved.
+**Critical:** Must be enforced server-side in the `Deliverable()` GET action, not just in the view.
 ```csharp
 // Source: same sequential validation pattern used in IdpItem status progression
-// Called when loading a Deliverable page or the PlanIdp list
-public static bool IsDeliverableAccessible(
-    IEnumerable<ProtonDeliverableProgress> allProgress,
-    ProtonDeliverableProgress targetProgress,
-    IEnumerable<ProtonDeliverable> orderedDeliverables)
-{
-    // Find the index of the target deliverable in the ordered list
-    var orderedList = orderedDeliverables.OrderBy(d => d.ProtonSubKompetensi?.ProtonKompetensi?.Urutan)
-                                          .ThenBy(d => d.ProtonSubKompetensi?.Urutan)
-                                          .ThenBy(d => d.Urutan).ToList();
-    var targetIndex = orderedList.FindIndex(d => d.Id == targetProgress.ProtonDeliverableId);
-    if (targetIndex == 0) return true;  // First deliverable is always accessible
+// Called when loading a Deliverable page
+// Load ALL progress records in ONE query (avoids N+1):
+var allProgress = await _context.ProtonDeliverableProgresses
+    .Include(p => p.ProtonDeliverable)
+        .ThenInclude(d => d.ProtonSubKompetensi)
+        .ThenInclude(s => s.ProtonKompetensi)
+    .Where(p => p.CoacheeId == progress.CoacheeId)
+    .ToListAsync();
 
-    // Check if previous deliverable is Approved
-    var previousDeliverable = orderedList[targetIndex - 1];
-    var previousProgress = allProgress.FirstOrDefault(p => p.ProtonDeliverableId == previousDeliverable.Id);
-    return previousProgress?.Status == "Approved";
-}
+// Find ordered list of all deliverables in the track
+var orderedDeliverables = allProgress
+    .Select(p => p.ProtonDeliverable)
+    .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
+    .ThenBy(d => d.ProtonSubKompetensi.Urutan)
+    .ThenBy(d => d.Urutan)
+    .ToList();
+
+var targetIndex = orderedDeliverables.FindIndex(d => d.Id == progress.ProtonDeliverableId);
+bool isAccessible = targetIndex == 0 ||
+    allProgress.First(p => p.ProtonDeliverableId == orderedDeliverables[targetIndex - 1].Id).Status == "Approved";
 ```
 
 ### Pattern 5: File Upload (First Use in Codebase)
-**What:** ASP.NET Core `IFormFile` binding with `IWebHostEnvironment` to resolve `wwwroot` path. Files stored as `wwwroot/uploads/evidence/{progressId}/{originalName}`.
+**What:** ASP.NET Core `IFormFile` binding with `IWebHostEnvironment` to resolve `wwwroot` path. Files stored as `wwwroot/uploads/evidence/{progressId}/{timestamped-filename}`.
 **When to use:** PROTN-04 (upload evidence), PROTN-05 (resubmit with new evidence).
 ```csharp
 // Source: ASP.NET Core built-in IFormFile — new for this codebase
 // IWebHostEnvironment injected in constructor alongside ApplicationDbContext
 
-// In CDPController constructor:
+// In CDPController constructor (add alongside existing fields):
 private readonly IWebHostEnvironment _env;
 public CDPController(..., IWebHostEnvironment env)
 {
@@ -238,11 +245,18 @@ public async Task<IActionResult> UploadEvidence(int progressId, IFormFile eviden
         .FirstOrDefaultAsync(p => p.Id == progressId);
     if (progress == null) return NotFound();
 
+    // Status check: only Active or Rejected can be uploaded
+    if (progress.Status != "Active" && progress.Status != "Rejected")
+    {
+        TempData["Error"] = "Deliverable ini tidak dapat diupload.";
+        return RedirectToAction("Deliverable", new { id = progressId });
+    }
+
     // Build file path: wwwroot/uploads/evidence/{progressId}/
     var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "evidence", progressId.ToString());
-    Directory.CreateDirectory(uploadDir);
+    Directory.CreateDirectory(uploadDir);  // idempotent
 
-    // Sanitize filename — keep original name but prepend timestamp to avoid collisions
+    // Sanitize filename — Path.GetFileName strips directory traversal components
     var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(evidenceFile.FileName)}";
     var filePath = Path.Combine(uploadDir, safeFileName);
 
@@ -256,6 +270,7 @@ public async Task<IActionResult> UploadEvidence(int progressId, IFormFile eviden
     progress.EvidenceFileName = evidenceFile.FileName;
     progress.Status = "Submitted";
     progress.SubmittedAt = DateTime.UtcNow;
+    if (progress.RejectedAt != null) progress.RejectedAt = null;  // Clear on resubmit
 
     await _context.SaveChangesAsync();
 
@@ -275,11 +290,11 @@ public static class SeedProtonData
     {
         if (await context.ProtonKompetensiList.AnyAsync())
         {
-            Console.WriteLine("ℹ️ Proton deliverable hierarchy already seeded, skipping...");
+            Console.WriteLine("Proton deliverable hierarchy already seeded, skipping...");
             return;
         }
 
-        // Seed Panelman Tahun 1 sample hierarchy
+        // Seed Operator Tahun 1 — real domain data
         var k1 = new ProtonKompetensi
         {
             NamaKompetensi = "Safe Work Practice & Lifesaving Rules",
@@ -299,34 +314,69 @@ public static class SeedProtonData
         context.ProtonSubKompetensiList.Add(sk1);
         await context.SaveChangesAsync();
 
-        var deliverables = new List<ProtonDeliverable>
+        context.ProtonDeliverableList.AddRange(new List<ProtonDeliverable>
         {
             new() { ProtonSubKompetensiId = sk1.Id, NamaDeliverable = "Mampu memahami 5 Tingkatan Budaya HSSE", Urutan = 1 },
             new() { ProtonSubKompetensiId = sk1.Id, NamaDeliverable = "Mampu memahami Pengertian Bahaya", Urutan = 2 },
             new() { ProtonSubKompetensiId = sk1.Id, NamaDeliverable = "Mampu memahami 9 Perilaku Wajib", Urutan = 3 }
-        };
-        context.ProtonDeliverableList.AddRange(deliverables);
+        });
         await context.SaveChangesAsync();
+
+        // ... additional Kompetensi seeded similarly
+        // Placeholder for Panelman Tahun 1, Operator Tahun 2, Operator Tahun 3
+        // TODO: Replace placeholder tracks with actual data when source material is available
+
+        Console.WriteLine("Proton deliverable hierarchy seeded successfully.");
     }
 }
 ```
 
-### Pattern 7: PlanIdp View — Hybrid (PDF for HC, DB-table for Coachee)
-**What:** The existing `PlanIdp.cshtml` shows a static PDF. Phase 5 adds a DB-driven read-only table for Coachee role users that shows their full deliverable list grouped by Kompetensi > SubKompetensi > Deliverable.
+### Pattern 7: PlanIdp View — Hybrid Rendering (Important: no @model currently)
+**What:** The CURRENT `PlanIdp.cshtml` has NO `@model` directive at all — it uses only `ViewBag` (ViewBag.UserRole, ViewBag.PdfFileName, etc.). Phase 5 adds `@model object?` as the FIRST directive and a conditional block at the top.
 **When to use:** PROTN-02 — Coachee views their deliverable list without status or links.
-**Approach:** The controller detects role. For Coachee with an active `ProtonTrackAssignment`, it queries `ProtonKompetensi.Include(...SubKompetensiList.Include(...Deliverables))` filtered by the assigned `TrackType` + `TahunKe`. The view gets a `ProtonPlanViewModel`. For all other roles, the existing PDF logic remains untouched.
+**Approach:**
+1. Add `@model object?` directive at the top (first `@model` ever in this file)
+2. At the start of the HTML section, add if/else blocks:
+   - `@if (ViewBag.IsProtonView == true)` → render DB-driven deliverable table from `Model as ProtonPlanViewModel`
+   - `@else if (ViewBag.NoAssignment == true)` → render "no track assigned" alert
+   - `@else` → render EXISTING PDF content (completely unchanged)
+3. The controller detects Coachee role, sets `ViewBag.IsProtonView = true`, passes a `ProtonPlanViewModel` as the model
+4. For all other roles, the existing PDF path sets no IsProtonView flag and passes no model — the `@model object?` is backward-compatible
+
+**PROTN-02 requirement for Coachee view:** Read-only table only. No status column. No navigation links on table rows. The ONLY navigation is an "active deliverable" button ABOVE the table (linking to `/CDP/Deliverable/{progressId}`). If `protonModel.ActiveProgress != null`, show the button; if null (all done or none active), show a completion message.
 
 ### Pattern 8: ProtonMain Page — Track Assignment (PROTN-01)
-**What:** A new `ProtonMain.cshtml` page showing the list of coachees (from the coach's section) and their current track assignment. Coach/SrSpv can assign or change a coachee's track via a dropdown + POST.
+**What:** A new `ProtonMain.cshtml` page showing the list of coachees (from the coach's section) and their current track assignment. Coach/SrSpv can assign or change a coachee's track via a dropdown + POST modal.
 **When to use:** PROTN-01 — the "Proton Main page" mentioned in the requirement.
 **URL:** `/CDP/ProtonMain`
+**Role check:** `user.RoleLevel > 5` returns Forbid() — consistent with existing `CreateSession` pattern in the same controller (line 308: `if (user.RoleLevel > 5) return Forbid()`).
+**Coachee list source:** Section-based query `_context.Users.Where(u => u.Section == user.Section && u.RoleLevel == 6)` — same as the existing `Coaching()` action (lines 252-256).
+**Navigation:** Each coachee row with an active progress record (Status == "Active") shows a "Lihat Deliverable" link to `/CDP/Deliverable/{progressId}`. This requires loading `ActiveProgresses` in the ProtonMain GET action.
+
+### Pattern 9: AssignTrack — Eager Progress Creation
+**What:** When a track is assigned, ProtonDeliverableProgress records are bulk-inserted for ALL deliverables in the track immediately. First = "Active", rest = "Locked". Previous progress for the coachee is deleted first.
+**Why eager:** Avoids handling "progress doesn't exist yet" case in downstream code (sequential lock check, Deliverable GET). Simpler throughout.
+**Implementation:** Query deliverables ordered by `(Kompetensi.Urutan, SubKompetensi.Urutan, Deliverable.Urutan)`, create progress list, `AddRange`, `SaveChanges`. Also delete previous ProtonDeliverableProgress records before inserting new ones (reassignment resets progress).
+
+### Pattern 10: Role Constant Values (Important for String Comparison)
+**What:** When checking roles by string value (not RoleLevel), use the constants from `UserRoles.cs` exactly.
+**Why it matters:** `UserRoles.SrSupervisor = "Sr Supervisor"` (space, no period). Direct string comparison against "SrSupervisor" fails.
+```csharp
+// From Models/UserRoles.cs (confirmed by inspection):
+UserRoles.Coach          = "Coach"
+UserRoles.SrSupervisor   = "Sr Supervisor"   // NOTE: space between "Sr" and "Supervisor"
+UserRoles.SectionHead    = "Section Head"    // NOTE: space
+UserRoles.Coachee        = "Coachee"
+UserRoles.HC             = "HC"
+UserRoles.Admin          = "Admin"
+```
 
 ### Anti-Patterns to Avoid
 - **Storing evidence files in the database as binary (VARBINARY):** SQL Server stores them as large blobs; this makes backups huge, queries slow, and prevents direct browser download. Store file paths only, files to `wwwroot/uploads/`.
 - **Using `CpdpItem` directly for the deliverable list:** `CpdpItem.TargetDeliverable` is a multi-line text blob, not per-deliverable rows. It cannot support per-row sequential locking. Create the new hierarchy tables.
-- **Locking the entire track on first upload instead of per-deliverable:** The sequential lock should allow viewing all deliverables in the list but only accessing the Deliverable detail page for the current active one.
-- **Confusing `IdpItem` with `ProtonDeliverableProgress`:** `IdpItem` is the old flat IDP planning item, not the Proton deliverable. They should remain separate.
-- **Querying ProtonDeliverableProgress in a loop (N+1):** Load all progress records for the coachee in one query, then match in-memory.
+- **Locking the entire track on first upload instead of per-deliverable:** The sequential lock allows viewing the full read-only list but only allows uploading/accessing the Deliverable detail for the current active one.
+- **Querying ProtonDeliverableProgress in a loop (N+1):** Load ALL progress records for the coachee in ONE query, then match in-memory.
+- **Sequential lock enforced only in the view (not server-side):** The `Deliverable()` GET action must check the sequential lock and return a locked view if not accessible. UI-only enforcement is bypassed by direct URL navigation.
 - **Not sanitizing uploaded filenames:** An attacker could craft a filename with `../../../` path traversal. Always use `Path.GetFileName()` (not the full path from `IFormFile.FileName`) and prepend a timestamp.
 
 ---
@@ -337,10 +387,11 @@ public static class SeedProtonData
 |---------|-------------|-------------|-----|
 | Anti-forgery on file upload form | Custom CSRF | `[ValidateAntiForgeryToken]` + tag helper forms | Already used on all POST actions in this codebase |
 | File extension validation | Regex on Content-Type | Check `Path.GetExtension()` against allowlist + check `Length > 0` | Content-Type can be spoofed; extension + server-side check is sufficient for internal portal |
-| File size limit | Custom JS check | ASP.NET Core `MultipartBodyLengthLimit` attribute OR check `Length > limit` in controller | Both work; controller check is simpler and matches codebase style |
+| File size limit | Custom JS check | Check `evidenceFile.Length > 10 * 1024 * 1024` in controller | Controller check is simpler and matches codebase style |
 | Sequential ordering | Custom sort logic | Order by composite key `(Kompetensi.Urutan, SubKompetensi.Urutan, Deliverable.Urutan)` via LINQ | Int columns guarantee stable ordering |
 | Track assignment UI | Custom modal/JS | Bootstrap modal with a simple POST form (same pattern as CreateSession in Coaching.cshtml) | Matches existing coaching assignment modal pattern |
 | Master data management UI | Admin CRUD screens | Seed data only — no admin UI for Phase 5 | Deliverable hierarchy is defined per domain, not user-managed; Phase 5 scope is tracking, not authoring |
+| IWebHostEnvironment registration | `services.AddX()` in Program.cs | Nothing — DI resolves it automatically | IWebHostEnvironment is a built-in service already registered by the ASP.NET Core host |
 
 **Key insight:** The IFormFile pattern is a built-in ASP.NET Core mechanism. No library is needed for basic file upload — just inject `IWebHostEnvironment` to get the `wwwroot` path.
 
@@ -350,8 +401,8 @@ public static class SeedProtonData
 
 ### Pitfall 1: IWebHostEnvironment Not Injected in CDPController
 **What goes wrong:** `_env.WebRootPath` throws a NullReferenceException because `IWebHostEnvironment` was not added to the CDPController constructor.
-**Why it happens:** `IWebHostEnvironment` is not currently used anywhere in the codebase. No existing controller demonstrates the pattern.
-**How to avoid:** Add `private readonly IWebHostEnvironment _env;` to CDPController fields and inject in the constructor: `public CDPController(..., IWebHostEnvironment env)`. ASP.NET Core DI resolves it automatically — no registration needed in `Program.cs`.
+**Why it happens:** `IWebHostEnvironment` is currently NOT used anywhere in the codebase. No existing controller demonstrates the pattern. The existing CDPController constructor (lines 17-22) only takes `UserManager`, `SignInManager`, and `ApplicationDbContext`.
+**How to avoid:** Add `private readonly IWebHostEnvironment _env;` to CDPController fields and inject `IWebHostEnvironment env` in the constructor. ASP.NET Core DI resolves it automatically — no registration needed in `Program.cs`.
 **Warning signs:** `NullReferenceException` on `_env.WebRootPath` at runtime, or `CS0103` compile error referencing `_env`.
 
 ### Pitfall 2: File Upload Form Missing `enctype="multipart/form-data"`
@@ -368,69 +419,79 @@ public static class SeedProtonData
 
 ### Pitfall 4: Sequential Lock Checked at View Layer Only
 **What goes wrong:** A determined user bypasses the UI lock by directly navigating to `/CDP/Deliverable/{id}` for a deliverable they should not have access to.
-**Why it happens:** If the sequential lock is only enforced in the view (e.g., hiding the link), the controller action does not check it.
-**How to avoid:** The `Deliverable()` GET action must check `IsDeliverableAccessible()` and return `Forbid()` or a locked page if the previous deliverable is not Approved. Never rely on UI-only enforcement for access control.
+**Why it happens:** If the sequential lock is only enforced in the view (e.g., not showing the link), the controller action does not check it.
+**How to avoid:** The `Deliverable()` GET action must check whether the previous deliverable is Approved and return a "locked" view (not Forbid() — the user IS authorized, the deliverable is just locked) if not accessible. Never rely on UI-only enforcement for access control.
 **Warning signs:** Coachee can access locked deliverables by guessing or copying URLs.
 
-### Pitfall 5: ProtonTrackAssignment Not Validated for Active Assignment
-**What goes wrong:** A coachee has two active assignments (e.g., Operator Tahun 1 and Panelman Tahun 2). The PlanIdp view queries by CoacheeId and gets both tracks, causing duplicate or incorrect deliverable lists.
-**Why it happens:** No unique constraint prevents two active assignments per coachee.
-**How to avoid:** Enforce at the DB level with a filtered unique index: unique on `(CoacheeId, IsActive = true)`. In the controller, when assigning, deactivate any existing active assignment first. Use `.Where(a => a.CoacheeId == coacheeId && a.IsActive).FirstOrDefault()` for lookups.
-**Warning signs:** `ProtonPlanViewModel` shows deliverables from two tracks mixed together; `PlanIdp` page appears empty (zero-join if wrong track queried).
+### Pitfall 5: ProtonTrackAssignment Not Deactivated on Reassignment
+**What goes wrong:** A coachee accumulates multiple active assignments. `ProtonTrackAssignments.Where(a => a.CoacheeId == x && a.IsActive)` returns multiple rows, causing `.FirstOrDefault()` to silently pick an arbitrary one.
+**Why it happens:** AssignTrack POST forgot to deactivate the previous active assignment before creating a new one.
+**How to avoid:** In AssignTrack POST, before creating the new assignment: query all active assignments for the coachee, set `IsActive = false` for each, call SaveChanges. Also delete (or archive) all existing ProtonDeliverableProgress records for the coachee since the track is being reset.
+**Warning signs:** PlanIdp page for a coachee shows a different track than what was assigned most recently.
 
 ### Pitfall 6: CpdpItem TrackType Mismatch
-**What goes wrong:** The `CpdpItem` seeded data does not distinguish Panelman vs Operator tracks. The new `ProtonDeliverable` hierarchy must tag each Kompetensi with `TrackType`. If seed data has mismatched track types, coachees assigned to "Panelman" track see zero deliverables.
-**Why it happens:** `CpdpItem` has no `TrackType` column — it represents a single unit's CPDP data (GAST RFCC NHT, Operator level per the seeded PDF context). The Panelman track deliverable data may differ entirely from the Operator data.
-**How to avoid:** Seed the `ProtonDeliverable` hierarchy with explicit `TrackType = "Operator"` (from the CPDP seed data) and create a separate seed pass for `TrackType = "Panelman"` with different deliverables. If actual Panelman deliverable data is not available, seed Panelman as an empty track with a placeholder and note it as an open item.
-**Warning signs:** Coachee assigned Panelman track sees zero deliverables in their IDP Plan.
+**What goes wrong:** Coachees assigned to the "Panelman" track see zero deliverables because no Panelman deliverables were seeded.
+**Why it happens:** The existing `CpdpItem` seeded data only covers the Operator track (GAST RFCC NHT). No Panelman deliverable data is available.
+**How to avoid:** Seed the Panelman track as placeholder data (1 Kompetensi, 1 SubKompetensi, 3 Deliverables) with `// TODO: Replace with actual Panelman data`. Also seed Tahun 2 and Tahun 3 as placeholders. This ensures the UI shows something for all valid track combinations and the TODO is visible in source code.
+**Warning signs:** Coachee assigned Panelman track sees zero deliverables in their IDP Plan. `PlanIdp.cshtml` shows the "no assignment" fallback incorrectly if the hierarchy is empty.
 
 ### Pitfall 7: File Path Traversal if Using IFormFile.FileName Directly
 **What goes wrong:** An attacker uploads a file named `../../appsettings.json` which overwrites the application config file.
 **Why it happens:** `IFormFile.FileName` can contain path separators on some clients.
-**How to avoid:** Always use `Path.GetFileName(evidenceFile.FileName)` which strips directory components and keeps only the base filename. Prepend a timestamp: `$"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(...)}`.
+**How to avoid:** Always use `Path.GetFileName(evidenceFile.FileName)` which strips directory components and keeps only the base filename. Prepend a timestamp: `$"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(...)}"`.
 **Warning signs:** Files not appearing in the expected directory; unexpected files appearing in parent directories.
 
 ### Pitfall 8: Multiple CASCADE Paths on ProtonDeliverableProgress
-**What goes wrong:** EF Core migration fails with `SqlException: Introducing FOREIGN KEY constraint may cause cycles or multiple cascade paths`.
-**Why it happens:** `ProtonDeliverableProgress` has no FK to `Users` (string ID, same as CoachCoacheeMapping), so no cascade cycle from User side. However, `ProtonDeliverable → ProtonSubKompetensi → ProtonKompetensi` — if any of these use Cascade delete, deleting a `ProtonKompetensi` cascades through to `ProtonDeliverableProgress` via the FK chain. SQL Server restricts this.
-**How to avoid:** Use `DeleteBehavior.Restrict` on the master hierarchy FK relationships (`ProtonDeliverableProgress → ProtonDeliverable`, `ProtonDeliverable → ProtonSubKompetensi`, `ProtonSubKompetensi → ProtonKompetensi`). Master data is never deleted operationally anyway.
-**Warning signs:** Migration generates but `dotnet ef database update` fails with FOREIGN KEY constraint error.
+**What goes wrong:** EF Core migration generates but `dotnet ef database update` fails with `SqlException: Introducing FOREIGN KEY constraint may cause cycles or multiple cascade paths`.
+**Why it happens:** `ProtonDeliverableProgress → ProtonDeliverable → ProtonSubKompetensi → ProtonKompetensi` — if any FK uses Cascade delete, deleting a `ProtonKompetensi` cascades through to `ProtonDeliverableProgress`. SQL Server restricts this.
+**How to avoid:** Use `DeleteBehavior.Restrict` on ALL FK relationships in the Proton hierarchy (`ProtonSubKompetensi → ProtonKompetensi`, `ProtonDeliverable → ProtonSubKompetensi`, `ProtonDeliverableProgress → ProtonDeliverable`). Master data is never deleted operationally anyway.
+**Warning signs:** Migration generates successfully but `dotnet ef database update` fails with FOREIGN KEY constraint error.
+
+### Pitfall 9: PlanIdp @model Directive Breaks Existing PDF Logic
+**What goes wrong:** After adding `@model ProtonPlanViewModel` to PlanIdp.cshtml, the existing PDF path throws a compile error because the view expects a ProtonPlanViewModel but the controller returns `View()` with no model for non-Coachee roles.
+**Why it happens:** Changing the `@model` to a specific type means all paths through the controller must pass a compatible model.
+**How to avoid:** Use `@model object?` (nullable object) so the Razor view can accept any model type (or null). Cast inside the conditional block: `@{ var protonModel = Model as HcPortal.Models.ProtonPlanViewModel; }`. The existing PDF path in the controller continues to call `return View()` with no model argument — which is `null` for `@model object?` — and the `@else` branch renders the PDF content using `ViewBag` only as before.
+**Warning signs:** Build error "The model item passed into the ViewDataDictionary is of type..." or NullReferenceException in the PDF rendering section.
 
 ---
 
 ## Code Examples
 
+Verified patterns from official sources and codebase inspection:
+
 ### CDPController — ProtonMain GET (PROTN-01 assignment page)
 ```csharp
-// Source: CDPController.cs Coaching() GET pattern + existing coachee list query
+// Source: CDPController.cs Coaching() GET pattern (lines 181-297) + section-based coachee query
 public async Task<IActionResult> ProtonMain()
 {
     var user = await _userManager.GetUserAsync(User);
     if (user == null) return Challenge();
 
-    var roles = await _userManager.GetRolesAsync(user);
-    var userRole = roles.FirstOrDefault();
+    // Access check: only coaching/supervisory roles (RoleLevel <= 5) — same as CreateSession
+    if (user.RoleLevel > 5) return Forbid();
 
-    // Only Coach, SrSpv, Admin can access this page
-    if (user.RoleLevel > 5 && userRole != UserRoles.SrSupervisor)
-        return Forbid();
-
-    // Get coachees in the same section
+    // Coachees in same section — same pattern as Coaching() (lines 252-257)
     var coachees = await _context.Users
         .Where(u => u.Section == user.Section && u.RoleLevel == 6)
         .OrderBy(u => u.FullName)
         .ToListAsync();
 
-    // Get existing track assignments for those coachees
     var coacheeIds = coachees.Select(c => c.Id).ToList();
+
     var assignments = await _context.ProtonTrackAssignments
         .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
+        .ToListAsync();
+
+    // Load active progress records — needed for "Lihat Deliverable" links per coachee row
+    var activeProgresses = await _context.ProtonDeliverableProgresses
+        .Where(p => coacheeIds.Contains(p.CoacheeId) && p.Status == "Active")
         .ToListAsync();
 
     var viewModel = new ProtonMainViewModel
     {
         Coachees = coachees,
-        Assignments = assignments
+        Assignments = assignments,
+        ActiveProgresses = activeProgresses
     };
 
     return View(viewModel);
@@ -439,22 +500,31 @@ public async Task<IActionResult> ProtonMain()
 
 ### CDPController — AssignTrack POST (PROTN-01)
 ```csharp
-// Source: CDPController.cs CreateSession POST pattern
+// Source: CDPController.cs CreateSession POST pattern (lines 300-341)
 [HttpPost]
 [ValidateAntiForgeryToken]
 public async Task<IActionResult> AssignTrack(string coacheeId, string trackType, string tahunKe)
 {
     var user = await _userManager.GetUserAsync(User);
     if (user == null) return Challenge();
+    if (user.RoleLevel > 5) return Forbid();
 
-    if (user.RoleLevel > 5 && (await _userManager.GetRolesAsync(user)).FirstOrDefault() != UserRoles.SrSupervisor)
-        return Forbid();
+    if (string.IsNullOrEmpty(coacheeId) || string.IsNullOrEmpty(trackType) || string.IsNullOrEmpty(tahunKe))
+    {
+        TempData["Error"] = "Data tidak lengkap.";
+        return RedirectToAction("ProtonMain");
+    }
 
     // Deactivate existing active assignment for this coachee
     var existing = await _context.ProtonTrackAssignments
         .Where(a => a.CoacheeId == coacheeId && a.IsActive)
         .ToListAsync();
     foreach (var a in existing) a.IsActive = false;
+
+    // Delete previous progress records (reassignment resets progress)
+    var prevProgress = _context.ProtonDeliverableProgresses
+        .Where(p => p.CoacheeId == coacheeId);
+    _context.ProtonDeliverableProgresses.RemoveRange(prevProgress);
 
     // Create new assignment
     var assignment = new ProtonTrackAssignment
@@ -467,10 +537,9 @@ public async Task<IActionResult> AssignTrack(string coacheeId, string trackType,
         AssignedAt = DateTime.UtcNow
     };
     _context.ProtonTrackAssignments.Add(assignment);
-    await _context.SaveChangesAsync();
+    await _context.SaveChangesAsync();  // Save first to get assignment.Id
 
-    // Initialize progress records for all deliverables in the track
-    // First deliverable = Active, rest = Locked
+    // Bulk-create progress records — first = Active, rest = Locked
     var deliverables = await _context.ProtonDeliverableList
         .Include(d => d.ProtonSubKompetensi)
             .ThenInclude(s => s.ProtonKompetensi)
@@ -481,16 +550,15 @@ public async Task<IActionResult> AssignTrack(string coacheeId, string trackType,
         .ThenBy(d => d.Urutan)
         .ToListAsync();
 
-    for (int i = 0; i < deliverables.Count; i++)
+    var progressList = deliverables.Select((d, i) => new ProtonDeliverableProgress
     {
-        _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
-        {
-            CoacheeId = coacheeId,
-            ProtonDeliverableId = deliverables[i].Id,
-            Status = i == 0 ? "Active" : "Locked",
-            CreatedAt = DateTime.UtcNow
-        });
-    }
+        CoacheeId = coacheeId,
+        ProtonDeliverableId = d.Id,
+        Status = i == 0 ? "Active" : "Locked",
+        CreatedAt = DateTime.UtcNow
+    }).ToList();
+
+    _context.ProtonDeliverableProgresses.AddRange(progressList);
     await _context.SaveChangesAsync();
 
     TempData["Success"] = "Track Proton berhasil ditetapkan.";
@@ -500,28 +568,33 @@ public async Task<IActionResult> AssignTrack(string coacheeId, string trackType,
 
 ### CDPController — PlanIdp Updated (PROTN-02 Coachee view)
 ```csharp
-// Source: CDPController.cs PlanIdp() existing + new DB query path
+// Source: CDPController.cs PlanIdp() existing (lines 29-78) + new DB query path prepended
 public async Task<IActionResult> PlanIdp(string? bagian = null, string? unit = null, string? level = null)
 {
     var user = await _userManager.GetUserAsync(User);
-    var roles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
-    var userRole = roles.FirstOrDefault() ?? "Coachee";
+    string userRole = "Operator";
+    int userLevel = 6;
 
-    // For Coachee role: show DB-driven deliverable list
+    if (user != null)
+    {
+        var roles = await _userManager.GetRolesAsync(user);
+        userRole = roles.FirstOrDefault() ?? "Operator";
+        userLevel = user.RoleLevel;
+    }
+
+    // PROTN-02: Coachee role gets DB-driven deliverable list BEFORE existing PDF logic
     if (user != null && (userRole == UserRoles.Coachee ||
         (userRole == UserRoles.Admin && user.SelectedView == "Coachee")))
     {
-        var targetUserId = user.Id;
-
         var assignment = await _context.ProtonTrackAssignments
-            .Where(a => a.CoacheeId == targetUserId && a.IsActive)
+            .Where(a => a.CoacheeId == user.Id && a.IsActive)
             .FirstOrDefaultAsync();
 
         if (assignment == null)
         {
             ViewBag.UserRole = userRole;
             ViewBag.NoAssignment = true;
-            return View(new ProtonPlanViewModel());
+            return View();  // View will render "no assignment" alert in @else if block
         }
 
         var kompetensiList = await _context.ProtonKompetensiList
@@ -531,41 +604,47 @@ public async Task<IActionResult> PlanIdp(string? bagian = null, string? unit = n
             .OrderBy(k => k.Urutan)
             .ToListAsync();
 
+        // Load the coachee's current active deliverable (for navigation button above table)
+        var activeProgress = await _context.ProtonDeliverableProgresses
+            .Where(p => p.CoacheeId == user.Id && p.Status == "Active")
+            .FirstOrDefaultAsync();
+
         var planViewModel = new ProtonPlanViewModel
         {
             TrackType = assignment.TrackType,
             TahunKe = assignment.TahunKe,
-            KompetensiList = kompetensiList
+            KompetensiList = kompetensiList,
+            ActiveProgress = activeProgress
         };
 
         ViewBag.UserRole = userRole;
+        ViewBag.IsProtonView = true;
         return View(planViewModel);
     }
 
-    // For all other roles: existing PDF logic (unchanged)
-    // ... existing PlanIdp logic ...
-    return View();  // existing path unchanged
+    // EXISTING PDF LOGIC (unchanged) — continues below for all other roles
+    // ... (rest of existing PlanIdp implementation unchanged)
 }
 ```
 
 ### DbContext — 5 New DbSets and Config
 ```csharp
-// Source: Data/ApplicationDbContext.cs existing pattern
+// Source: Data/ApplicationDbContext.cs existing pattern (lines 19-38 for DbSets, lines 40-216 for OnModelCreating)
 
-// In DbSets section:
+// In DbSets section (after line 38, after CoachCoacheeMappings):
 public DbSet<ProtonKompetensi> ProtonKompetensiList { get; set; }
 public DbSet<ProtonSubKompetensi> ProtonSubKompetensiList { get; set; }
 public DbSet<ProtonDeliverable> ProtonDeliverableList { get; set; }
 public DbSet<ProtonTrackAssignment> ProtonTrackAssignments { get; set; }
 public DbSet<ProtonDeliverableProgress> ProtonDeliverableProgresses { get; set; }
 
-// In OnModelCreating:
+// In OnModelCreating (add at end of method, before closing brace):
 builder.Entity<ProtonSubKompetensi>(entity =>
 {
     entity.HasOne(s => s.ProtonKompetensi)
         .WithMany(k => k.SubKompetensiList)
         .HasForeignKey(s => s.ProtonKompetensiId)
-        .OnDelete(DeleteBehavior.Restrict);
+        .OnDelete(DeleteBehavior.Restrict);  // Avoid cascade cycle
     entity.HasIndex(s => s.ProtonKompetensiId);
 });
 
@@ -598,13 +677,85 @@ builder.Entity<ProtonTrackAssignment>(entity =>
 
 ### Program.cs — Add SeedProtonData call
 ```csharp
-// Source: Program.cs existing seeding pattern
+// Source: Program.cs existing seeding pattern (lines 65-71)
+// Add after existing SeedCompetencyMappings.SeedAsync call:
 await SeedData.InitializeAsync(services);
 await SeedMasterData.SeedKkjMatrixAsync(context);
 await SeedMasterData.SeedCpdpItemsAsync(context);
 await SeedMasterData.SeedSampleTrainingRecordsAsync(context);
 await SeedCompetencyMappings.SeedAsync(context);
 await SeedProtonData.SeedAsync(context);   // NEW — Phase 5
+```
+
+### Views/CDP/PlanIdp.cshtml — Model Directive Change
+```razor
+@* CURRENT (no @model directive — add this as first line): *@
+@model object?
+@{
+    ViewData["Title"] = "IDP Proton - Individual Development Plan";
+    var userRole = ViewBag.UserRole as string ?? "Operator";
+    // ... existing ViewBag reads unchanged ...
+}
+
+@* Add BEFORE existing HTML, using conditional blocks: *@
+@if (ViewBag.IsProtonView == true)
+{
+    @{ var protonModel = Model as HcPortal.Models.ProtonPlanViewModel; }
+    @* Active deliverable navigation button above table *@
+    @if (protonModel?.ActiveProgress != null)
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-arrow-right-circle me-2"></i>
+            Anda memiliki deliverable aktif.
+            <a href="/CDP/Deliverable/@protonModel.ActiveProgress.Id" class="btn btn-primary btn-sm ms-2">
+                Lanjut ke Deliverable Aktif
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle me-2"></i>Semua deliverable telah selesai diproses.
+        </div>
+    }
+    @* Read-only deliverable table: Kompetensi > SubKompetensi > Deliverable *@
+    @* PROTN-02: NO status column, NO navigation links on rows *@
+}
+else if (ViewBag.NoAssignment == true)
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>
+        Belum ada track Proton yang ditetapkan. Hubungi coach Anda untuk penetapan track.
+    </div>
+}
+else
+{
+    @* EXISTING PDF content — completely unchanged *@
+    @if (isHC && !hasBagianSelected)
+    { ... }
+    else
+    { ... }
+}
+```
+
+### Views/CDP/Deliverable.cshtml — Upload Form Critical Attribute
+```razor
+@* CRITICAL: enctype="multipart/form-data" is required for IFormFile to work *@
+@* Without this, IFormFile parameter in UploadEvidence POST will always be null *@
+@if (Model.CanUpload)
+{
+    <form method="post" asp-action="UploadEvidence" enctype="multipart/form-data">
+        <input type="hidden" name="progressId" value="@Model.Progress.Id" />
+        <div class="mb-3">
+            <label class="form-label">Upload Evidence</label>
+            <input type="file" name="evidenceFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+            <div class="form-text">Format: PDF, JPG, PNG. Maksimal 10MB.</div>
+        </div>
+        <button type="submit" class="btn btn-primary">
+            @(Model.Progress.Status == "Rejected" ? "Upload Ulang Evidence" : "Upload Evidence")
+        </button>
+    </form>
+}
 ```
 
 ---
@@ -614,73 +765,69 @@ await SeedProtonData.SeedAsync(context);   // NEW — Phase 5
 | Current State | Phase 5 Target | Notes |
 |---------------|----------------|-------|
 | `CpdpItem` has flat hierarchy with `NamaKompetensi` + `Silabus` + `TargetDeliverable` (text blob) | New `ProtonKompetensi` → `ProtonSubKompetensi` → `ProtonDeliverable` 3-table hierarchy | Flat CpdpItem is for CPDP gap analysis. New hierarchy is for Proton sequential tracking. |
-| `PlanIdp.cshtml` shows static PDF by filename | `PlanIdp.cshtml` shows DB-driven table for Coachee role; PDF path retained for HC/SrSpv | Hybrid view — Coachee role gets new path; all other roles use existing PDF path |
-| No file upload anywhere in codebase | `CDPController.UploadEvidence` POST with `IFormFile` + `IWebHostEnvironment` | First IFormFile usage — `IWebHostEnvironment` injection is the new pattern to introduce |
-| `CoachCoacheeMapping` exists but has no data (assignment UI not built) | `ProtonTrackAssignment` is the assignment entity for Proton; `CoachCoacheeMapping` is for general coaching mapping (Phase 4) | These are separate entities serving different purposes |
-| No `ProtonDeliverableProgress` records exist | Created in bulk when `AssignTrack` POST runs (one record per deliverable in the track) | First record starts as "Active", rest "Locked" |
-| `CDPController` has no `IWebHostEnvironment` constructor parameter | Add `IWebHostEnvironment env` to constructor | ASP.NET Core DI resolves this automatically; no `Program.cs` registration needed |
+| `PlanIdp.cshtml` has NO `@model` directive — uses ViewBag only, shows PDF download | `PlanIdp.cshtml` gains `@model object?` + if/else blocks — Coachee role gets DB table; all other roles unchanged | First `@model` directive in this file. `@model object?` preserves backward compat. |
+| `CDPController` constructor: `(UserManager, SignInManager, ApplicationDbContext)` — 3 params | Add 4th param: `IWebHostEnvironment env` for `_env.WebRootPath` in UploadEvidence | ASP.NET Core DI resolves IWebHostEnvironment automatically — no Program.cs registration |
+| No file upload anywhere in codebase | `CDPController.UploadEvidence` POST with `IFormFile` + `IWebHostEnvironment` | First IFormFile usage — establishes pattern for future upload features |
+| `CoachCoacheeMapping` exists, registered in DbContext in Phase 4, but has no data | `ProtonTrackAssignment` is the assignment entity for Proton — separate concept | CoachCoacheeMapping is for general coaching mapping; ProtonTrackAssignment is Proton-specific |
+| No `ProtonDeliverableProgress` records exist | Created eagerly in bulk when `AssignTrack` POST runs | First = "Active", rest = "Locked"; deleted and recreated on reassignment |
+| `Program.cs` calls SeedCompetencyMappings.SeedAsync — last seed call | Add `SeedProtonData.SeedAsync(context)` after the existing last seed call | New SeedProtonData.cs file following exact SeedMasterData.cs pattern |
+| `Views/CDP/Index.cshtml` has 4 navigation cards | Add 5th card: "Proton Main" linking to `/CDP/ProtonMain`, icon `bi bi-clipboard-check` | Matches existing 4-card grid layout and Bootstrap card style |
 
 **Deprecated/unchanged:**
 - `CpdpItem`: Remains as-is for the existing CPDP gap analysis. Not removed or altered in Phase 5.
 - `IdpItem`: Remains as-is. Not the same as Proton deliverables.
 - `CoachCoacheeMapping`: Remains as the general coach-coachee relationship table. Phase 5's `ProtonTrackAssignment` is a separate concept.
+- `CDPController` existing actions (Index, PlanIdp PDF path, Dashboard, Coaching, Progress): All unchanged except PlanIdp which gains a Coachee-specific block at the top.
 
 ---
 
 ## Open Questions
 
 1. **What are the actual deliverable contents for Panelman vs Operator tracks?**
-   - What we know: The seeded `CpdpItem` data represents a single unit (GAST RFCC NHT, Operator level) per the PDF filename `GAST_RFCCNHT_Operator_Kompetensi_02022026.pdf`. The existing PDF covers Operator track content.
+   - What we know: The seeded `CpdpItem` data represents the Operator track (GAST RFCC NHT). The `GAST_RFCCNHT_Operator_Kompetensi_02022026.pdf` covers Operator track content.
    - What's unclear: The Panelman track deliverables are unknown and not in any seeded data or PDF. "Tahun 2" and "Tahun 3" content is also not seeded.
-   - Recommendation: Seed Tahun 1 Operator track from the existing `CpdpItem`-inspired data. For Panelman and Tahun 2/3 tracks, seed placeholder data (1 Kompetensi, 1 SubKompetensi, 3 Deliverables) marked with `// TODO: Replace with actual Panelman/Tahun2/3 data`. The planner should include a note that real data import is deferred pending source material.
+   - Recommendation: Seed Tahun 1 Operator track with real data from CpdpItem-inspired content. For Panelman and Tahun 2/3 tracks, seed placeholder data (1 Kompetensi, 1 SubKompetensi, 2-3 Deliverables) marked with `// TODO: Replace with actual data`. The planner should note that real data import is deferred pending source material.
 
-2. **Should ProtonDeliverableProgress be created eagerly (on track assignment) or lazily (on first page access)?**
-   - What we know: Eager creation (bulk insert on AssignTrack) simplifies the Deliverable access check — no need to handle "progress doesn't exist yet" case.
-   - What's unclear: If a track has 200+ deliverables, eager creation inserts 200+ rows at once. This is fine for SQL Server but needs a short transaction.
-   - Recommendation: Eager creation on `AssignTrack` POST. Simpler logic throughout. SQL Server handles batch inserts well.
+2. **Should uploading evidence replace the previous file or add a new revision?**
+   - What we know: PROTN-05 says "Coach can revise evidence and resubmit a rejected deliverable." Single active evidence file per deliverable.
+   - Recommendation: For Phase 5, overwrite `EvidencePath` in `ProtonDeliverableProgress` with the new file path. Store new file in the same `uploads/evidence/{progressId}/` folder with a new timestamped name. Do NOT delete old files — let them accumulate (audit trail) and defer cleanup to a future phase.
 
-3. **Should uploading evidence replace the previous file or add a new revision?**
-   - What we know: PROTN-05 says "Coach can revise evidence and resubmit a rejected deliverable." The requirement implies only one active evidence file per deliverable. PROTN-04 is the initial upload.
-   - What's unclear: Whether old evidence files should be deleted (disk cleanup) or retained (audit trail).
-   - Recommendation: For Phase 5, overwrite `EvidencePath` in `ProtonDeliverableProgress` with the new file path. Store new file in the same `uploads/evidence/{progressId}/` folder. Do NOT delete old files — let them accumulate (audit trail) and defer cleanup to Phase 6 or Phase 7.
-
-4. **What URL structure for the Deliverable detail page?**
-   - What we know: The requirement says "Deliverable page" (PROTN-04). The `ProtonDeliverableProgress.Id` is the most natural route key since it ties together the coachee + deliverable uniquely.
-   - What's unclear: Whether the URL should be `/CDP/Deliverable/{progressId}` or `/CDP/Deliverable/{deliverableId}` with coacheeId from current user.
-   - Recommendation: `/CDP/Deliverable/{progressId}` — `progressId` uniquely identifies the coachee+deliverable pair, simplifies auth check (just verify `progress.CoacheeId == currentUser.Id` or `currentUser.RoleLevel <= 5`).
-
-5. **Is `CoachCoacheeMapping` needed for the ProtonMain page coachee list, or can the section-based query be used?**
-   - What we know: `CDPController.Coaching()` uses `_context.Users.Where(u => u.Section == user.Section && u.RoleLevel == 6)` for the coachee list. `CoachCoacheeMapping` exists but has no data.
-   - What's unclear: Whether PROTN-01 should be constrained to coachees officially mapped to the coach (via `CoachCoacheeMapping`) or any coachee in the section.
+3. **Is `CoachCoacheeMapping` needed for the ProtonMain coachee list, or is section-based query sufficient?**
+   - What we know: `CoachCoacheeMapping` has no data. `CDPController.Coaching()` uses `_context.Users.Where(u => u.Section == user.Section && u.RoleLevel == 6)` for the coachee list successfully.
    - Recommendation: Use the section-based query (same as Coaching page pattern). `CoachCoacheeMapping` can be used in a future phase when coach-coachee relationships are explicitly managed.
+
+4. **CanUpload logic for the Deliverable page — who can upload?**
+   - What we know: PROTN-04 says "Coach can upload evidence files for a deliverable." PROTN-05 says "Coach can revise evidence and resubmit a rejected deliverable."
+   - Recommendation: `CanUpload = (progress.Status == "Active" || progress.Status == "Rejected") AND current user RoleLevel <= 5` (coach/supervisor/HC role). The coachee cannot upload their own evidence — the coach uploads on their behalf.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence — direct codebase inspection)
-- `Models/CoachingLog.cs` — confirmed Proton form structure (SubKompetensi, Deliverables, Kesimpulan, Result)
-- `Models/CoachingSession.cs` — confirmed Phase 4 final schema (7 domain fields, no Topic/Notes)
-- `Models/CoachCoacheeMapping.cs` — confirmed structure, confirmed in DbContext but no data
-- `Models/ApplicationUser.cs` — confirmed RoleLevel, Section fields used for access control
-- `Models/UserRoles.cs` — confirmed role constants: Coach (5), SrSupervisor (4), SectionHead (4), Coachee (6)
-- `Models/IdpItem.cs` — confirmed Evidence is a string path, approval fields are strings
-- `Models/TrackingModels.cs` — confirmed TrackingItem is display-only DTO, not a DB entity
-- `Data/ApplicationDbContext.cs` — confirmed Phase 4 entities registered; no ProtonDeliverable tables exist
-- `Data/SeedMasterData.cs` — confirmed CpdpItem seeded data structure (NamaKompetensi + Silabus + TargetDeliverable as text blob); confirmed only Operator GAST RFCC NHT track data present
-- `Controllers/CDPController.cs` — confirmed no `IFormFile`/`IWebHostEnvironment` usage; confirmed PlanIdp returns static PDF; confirmed Progress() queries IdpItems mapped to TrackingItem DTO
-- `Views/CDP/PlanIdp.cshtml` — confirmed PDF-only implementation, role-based filter exists for HC/SH/SrSpv
-- `Views/CDP/Progress.cshtml` — confirmed table structure with approval columns; modal is non-functional stub (console.log only)
-- `Views/CDP/Index.cshtml` — confirmed 4 navigation cards; Proton Main page not yet linked
+- `Controllers/CDPController.cs` — confirmed constructor has no IWebHostEnvironment; confirmed PlanIdp returns View() with no model argument; confirmed Coaching() section-based coachee query; confirmed CreateSession uses RoleLevel > 5 check; confirmed no ProtonMain/AssignTrack/Deliverable actions
+- `Views/CDP/PlanIdp.cshtml` — confirmed NO `@model` directive (all ViewBag); confirmed PDF-only rendering; confirmed role checks use ViewBag.UserRole; confirmed existing `isHC && !hasBagianSelected` branching structure
+- `Views/CDP/Index.cshtml` — confirmed 4 navigation cards; no Proton Main card; confirmed Bootstrap card styling pattern with icon-box divs
+- `Views/CDP/Coaching.cshtml` — confirmed Bootstrap modal pattern for form submission (data-bs-toggle/data-bs-target); confirmed TempData alert pattern (alert-success, alert-danger dismissible)
+- `Data/ApplicationDbContext.cs` — confirmed no ProtonDeliverable tables; confirmed CoachCoacheeMapping registered; confirmed DeleteBehavior.Restrict used on UserCompetencyLevel; confirmed existing OnModelCreating structure
+- `Models/ProtonModels.cs` — DOES NOT EXIST (confirmed: `ls Models/` shows no ProtonModels.cs or ProtonViewModels.cs)
+- `Models/ApplicationUser.cs` — confirmed RoleLevel, Section, SelectedView fields
+- `Models/UserRoles.cs` — confirmed exact string values: Coach="Coach", SrSupervisor="Sr Supervisor" (with space), SectionHead="Section Head" (with space), Coachee="Coachee"
+- `Models/CoachingSession.cs` — confirmed string IDs for CoachId/CoacheeId with no FK, `Deliverable` field is a free-text string
+- `Models/CoachCoacheeMapping.cs` — confirmed string CoachId/CoacheeId pattern (no FK)
+- `Models/CoachingViewModels.cs` — confirmed ViewModels pattern in separate file
+- `Program.cs` — confirmed `app.UseStaticFiles()` with custom options handles `wwwroot/` serving; confirmed seed call order; confirmed IWebHostEnvironment is NOT explicitly registered (built-in)
 - `HcPortal.csproj` — confirmed .NET 8.0, EF Core 8.0.0; `IFormFile` is built-in, no extra package
-- `Program.cs` — confirmed `app.UseStaticFiles()` handles `wwwroot/` serving; seed pattern confirmed
-- `Migrations/20260217053753_UpdateCoachingSessionFields.cs` — confirmed Phase 4 complete; current DB state known
-- `.planning/phases/04-foundation-coaching-sessions/04-VERIFICATION.md` — confirmed Phase 4 fully verified (4/4 truths)
+- `Migrations/20260217053753_UpdateCoachingSessionFields.cs` — confirmed Phase 4 complete; current DB state: 5 Proton tables DO NOT EXIST
+- `.planning/phases/04-foundation-coaching-sessions/04-VERIFICATION.md` — confirmed Phase 4 fully verified (4/4 truths); confirmed CoachCoacheeMapping registered in DB via AddCoachingFoundation migration
 
 ### Secondary (HIGH confidence — planning docs)
 - `.planning/REQUIREMENTS.md` — PROTN-01 through PROTN-05 definitions
 - `.planning/ROADMAP.md` — Phase 5 success criteria, dependency on Phase 4
-- `.planning/codebase/CONVENTIONS.md` — naming patterns, error handling, logging
+- `.planning/STATE.md` — confirmed Phase 5 "Ready to plan"; confirmed decisions from v1.1 roadmap
+- `05-01-PLAN.md` — reviewed for detail alignment with research
+- `05-02-PLAN.md` — reviewed; confirmed PlanIdp hybrid approach, ActiveProgresses loading pattern
+- `05-03-PLAN.md` — reviewed; confirmed sequential lock implementation, CanUpload=Active||Rejected logic, enctype requirement
 
 ---
 
@@ -688,11 +835,12 @@ await SeedProtonData.SeedAsync(context);   // NEW — Phase 5
 
 **Confidence breakdown:**
 - Standard stack: HIGH — all packages already in csproj; IFormFile is built-in; confirmed by csproj inspection
-- New entity design (5 tables): HIGH — pattern follows existing CoachCoacheeMapping/IdpItem models directly; no new design patterns
+- New entity design (5 tables): HIGH — pattern follows existing CoachCoacheeMapping/IdpItem models; no new design patterns
 - Sequential lock logic: HIGH — derived directly from the stated requirements and existing status-field patterns in IdpItem/CoachingSession
 - File upload pattern: HIGH — IFormFile + IWebHostEnvironment is standard ASP.NET Core 8.0; confirmed no existing usage to conflict with
-- Seed data content: MEDIUM — Operator track data derivable from CpdpItem seed; Panelman/Tahun 2/3 data unknown (placeholder recommended)
-- PlanIdp hybrid view: HIGH — view currently does role checks; adding Coachee-specific path follows existing if/else branching pattern
+- PlanIdp hybrid rendering: HIGH — confirmed current view has no @model directive; @model object? approach is backward-compatible
+- Role check pattern: HIGH — confirmed `user.RoleLevel > 5` is the standard in this codebase (CreateSession at line 308)
+- Seed data content: MEDIUM — Operator Tahun 1 data derivable from CpdpItem seed; Panelman/Tahun 2/3 unknown (placeholder recommended)
 - Common pitfalls: HIGH — confirmed by reading actual controller/view code and absence of IFormFile patterns
 
 **Research date:** 2026-02-17
