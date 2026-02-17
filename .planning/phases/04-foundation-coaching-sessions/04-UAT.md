@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-foundation-coaching-sessions
 source: [04-01-SUMMARY.md, 04-02-SUMMARY.md]
 started: 2026-02-17T05:00:00Z
@@ -54,7 +54,17 @@ skipped: 0
   reason: "User reported: in the modal evidence coaching: add 1. Kompetensi, sub kompetensi, deliverable. choice 2. Coachee Competencies, catatan coach. multiple line of text 3. Kesimpulan dari coach, choice (Kompeten, Perlu Pengembangan) 4. Result, choice (Need Improvement, Suitable, Good, Excellence) Remove: 1. Topik and Catatan"
   severity: major
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "CoachingSession model and CreateSessionViewModel were built with generic Topic/Notes fields instead of the domain-specific fields used in CoachingLog pattern. 5 files need changes: CoachingSession.cs (remove Topic/Notes, add 7 props), CoachingViewModels.cs (same), CDPController.cs CreateSession POST mapping, Coaching.cshtml modal form fields + card display, and a new EF Core migration (DropColumn Topic/Notes, AddColumn for 7 new fields). Kompetensi/SubKompetensi/Deliverable are free-text strings (matching CoachingLog pattern) populated via cascade dropdowns from KkjMatrices master table in ViewBag."
+  artifacts:
+    - path: "Models/CoachingSession.cs"
+      issue: "Has Topic and Notes properties; missing Kompetensi, SubKompetensi, Deliverable, CoacheeCompetencies, CatatanCoach, Kesimpulan, Result"
+    - path: "Models/CoachingViewModels.cs"
+      issue: "CreateSessionViewModel has Topic and Notes; missing 7 new fields"
+    - path: "Controllers/CDPController.cs"
+      issue: "CreateSession POST maps Topic/Notes to entity; needs to map 7 new fields instead"
+    - path: "Views/CDP/Coaching.cshtml"
+      issue: "Modal has Topik/Catatan form fields; card display shows session.Topic — both need updating"
+  missing:
+    - "New EF Core migration: DropColumn Topic + Notes, AddColumn 7 new fields on CoachingSessions table"
+    - "Cascade dropdown logic: Kompetensi options from KkjMatrices via ViewBag, SubKompetensi/Deliverable filtered client-side"
   debug_session: ""
