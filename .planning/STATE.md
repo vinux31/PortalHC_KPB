@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Milestone:** v1.1 CDP Coaching Management
 **Phase:** 4 of 7 (Foundation & Coaching Sessions) — In Progress
-**Plan:** 04-01 complete (data foundation)
+**Plan:** 04-02 complete (coaching controller and view)
 **Status:** Executing
-**Last activity:** 2026-02-17 — Completed 04-01: coaching data foundation (models, DbContext, migration)
+**Last activity:** 2026-02-17 — Completed 04-02: coaching GET/POST actions and Coaching.cshtml replaced with CoachingHistoryViewModel view
 
 Progress: [█░░░░░░░░░] ~5% milestone v1.1
 
@@ -39,6 +39,7 @@ Progress: [█░░░░░░░░░] ~5% milestone v1.1
 
 *Updated after each plan completion*
 | Phase 04-foundation-coaching-sessions P01 | 4 | 2 tasks | 6 files |
+| Phase 04-foundation-coaching-sessions P02 | 3 | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,9 @@ Recent decisions affecting current work:
 - IDP Plan page is read-only structure view (no status, no navigation links)
 - [Phase 04-01]: String IDs for CoachId/CoacheeId in CoachingSession — no FK constraint, matches existing CoachingLog pattern
 - [Phase 04-01]: CoachCoacheeMapping registered in DbContext in Phase 4 to fix orphaned model (used in Phase 5)
+- [Phase 04-foundation-coaching-sessions]: User name dictionary built via batch query in controller (ToDictionaryAsync) to avoid N+1 reads per session card
+- [Phase 04-foundation-coaching-sessions]: CreateSession role check uses RoleLevel > 5 (Forbid if Coachee-only) — consistent with existing CDPController pattern
+- [Phase 04-foundation-coaching-sessions]: Razor tag helper option element requires if/else blocks for conditional selected attribute (RZ1031 prevents C# in attribute declaration)
 
 ### Pending Todos
 
@@ -87,5 +91,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 04-01-PLAN.md — coaching data foundation (models, DbContext, migration applied)
+Stopped at: Completed 04-02-PLAN.md — coaching controller actions (Coaching GET with filters, CreateSession POST, AddActionItem POST) and Coaching.cshtml real view
 Resume file: None
