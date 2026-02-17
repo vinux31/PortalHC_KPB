@@ -37,6 +37,13 @@ namespace HcPortal.Data
         public DbSet<ActionItem> ActionItems { get; set; }
         public DbSet<CoachCoacheeMapping> CoachCoacheeMappings { get; set; }
 
+        // Proton Deliverable Tracking (Phase 5)
+        public DbSet<ProtonKompetensi> ProtonKompetensiList { get; set; }
+        public DbSet<ProtonSubKompetensi> ProtonSubKompetensiList { get; set; }
+        public DbSet<ProtonDeliverable> ProtonDeliverableList { get; set; }
+        public DbSet<ProtonTrackAssignment> ProtonTrackAssignments { get; set; }
+        public DbSet<ProtonDeliverableProgress> ProtonDeliverableProgresses { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -212,6 +219,47 @@ namespace HcPortal.Data
                 entity.HasIndex(m => m.CoachId);
                 entity.HasIndex(m => m.CoacheeId);
                 entity.HasIndex(m => new { m.CoachId, m.CoacheeId });
+            });
+
+            // Proton Deliverable Tracking configuration (Phase 5)
+
+            // ProtonSubKompetensi -> ProtonKompetensi
+            builder.Entity<ProtonSubKompetensi>(entity =>
+            {
+                entity.HasOne(s => s.ProtonKompetensi)
+                    .WithMany(k => k.SubKompetensiList)
+                    .HasForeignKey(s => s.ProtonKompetensiId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(s => s.ProtonKompetensiId);
+            });
+
+            // ProtonDeliverable -> ProtonSubKompetensi
+            builder.Entity<ProtonDeliverable>(entity =>
+            {
+                entity.HasOne(d => d.ProtonSubKompetensi)
+                    .WithMany(s => s.Deliverables)
+                    .HasForeignKey(d => d.ProtonSubKompetensiId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(d => d.ProtonSubKompetensiId);
+            });
+
+            // ProtonDeliverableProgress -> ProtonDeliverable
+            builder.Entity<ProtonDeliverableProgress>(entity =>
+            {
+                entity.HasOne(p => p.ProtonDeliverable)
+                    .WithMany()
+                    .HasForeignKey(p => p.ProtonDeliverableId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(p => p.CoacheeId);
+                entity.HasIndex(p => new { p.CoacheeId, p.ProtonDeliverableId }).IsUnique();
+                entity.HasIndex(p => p.Status);
+            });
+
+            // ProtonTrackAssignment indexes
+            builder.Entity<ProtonTrackAssignment>(entity =>
+            {
+                entity.HasIndex(a => a.CoacheeId);
+                entity.HasIndex(a => new { a.CoacheeId, a.IsActive });
             });
         }
     }

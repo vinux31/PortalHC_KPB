@@ -69,6 +69,7 @@ using (var scope = app.Services.CreateScope())
         await SeedMasterData.SeedCpdpItemsAsync(context);
         await SeedMasterData.SeedSampleTrainingRecordsAsync(context);
         await SeedCompetencyMappings.SeedAsync(context);
+        await SeedProtonData.SeedAsync(context);
     }
     catch (Exception ex)
     {
