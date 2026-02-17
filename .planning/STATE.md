@@ -6,14 +6,14 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Latest milestone:** v1.1 CDP Coaching Management (started 2026-02-17)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 5 — Proton Deliverable Tracking
+**Current focus:** Phase 6 — Approval Workflow & Completion
 
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** 5 of 7 (Proton Deliverable Tracking) — In Progress
-**Plan:** 3 of 3 (complete)
-**Status:** Phase complete
+**Phase:** 6 of 7 (Approval Workflow & Completion) — Ready to plan
+**Plan:** —
+**Status:** Ready to plan
 **Last activity:** 2026-02-17 — 05-03 complete: Deliverable detail page with sequential lock (PROTN-03), evidence upload (PROTN-04), resubmit (PROTN-05)
 
 Progress: [█████░░░░░] ~50% milestone v1.1
