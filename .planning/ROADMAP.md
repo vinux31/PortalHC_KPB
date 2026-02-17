@@ -63,17 +63,16 @@
 **Depends on:** Phase 3 (v1.0 complete)
 **Requirements:** COACH-01, COACH-02, COACH-03
 **Success Criteria** (what must be TRUE):
-  1. Coach can create a coaching session with date, topic, and notes for a coachee
+  1. Coach can create a coaching session with domain-specific fields (Kompetensi, SubKompetensi, Deliverable, CoacheeCompetencies, CatatanCoach, Kesimpulan, Result) for a coachee
   2. Coach can add action items with due dates to a coaching session
   3. User can view their coaching session history with date and status filtering
   4. All existing v1.0 features remain functional after schema migration (broken CoachingLog FK fixed)
-**Plans:** 2 plans
+**Plans:** 3 plans
 
 Plans:
 - [x] 04-01-PLAN.md — Data foundation: models, DbContext, CoachingLog cleanup, migration
 - [x] 04-02-PLAN.md — Controller actions and view: coaching CRUD with filtering
-
-**Completed:** 2026-02-17
+- [ ] 04-03-PLAN.md — Gap closure: replace Topic/Notes with domain-specific coaching fields
 
 #### Phase 5: Proton Deliverable Tracking
 **Goal:** Coachee can track assigned deliverables in a structured Kompetensi hierarchy, with coaches able to upload and revise evidence files sequentially
@@ -130,7 +129,7 @@ Plans:
 | 1. Assessment Results & Configuration | v1.0 | 3/3 | Complete | 2026-02-14 |
 | 2. HC Reports Dashboard | v1.0 | 3/3 | Complete | 2026-02-14 |
 | 3. KKJ/CPDP Integration | v1.0 | 4/4 | Complete | 2026-02-14 |
-| 4. Foundation & Coaching Sessions | v1.1 | 2/2 | Complete | 2026-02-17 |
+| 4. Foundation & Coaching Sessions | v1.1 | 2/3 | Gap closure | 2026-02-17 |
 | 5. Proton Deliverable Tracking | v1.1 | 0/TBD | Not started | - |
 | 6. Approval Workflow & Completion | v1.1 | 0/TBD | Not started | - |
 | 7. Development Dashboard | v1.1 | 0/TBD | Not started | - |
