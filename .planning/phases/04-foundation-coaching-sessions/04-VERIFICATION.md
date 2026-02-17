@@ -1,17 +1,29 @@
 ---
 phase: 04-foundation-coaching-sessions
-verified: 2026-02-17T04:57:15Z
+verified: 2026-02-17T06:15:00Z
 status: passed
-score: 8/8 must-haves verified
-re_verification: false
+score: 4/4 must-haves verified
+re_verification:
+  previous_status: passed
+  previous_score: 8/8
+  gaps_closed:
+    - "Coach can create coaching session with all 7 domain-specific fields"
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 4: Foundation & Coaching Sessions Verification Report
 
 **Phase Goal:** Coaches can log sessions and action items against a stable data model, with users able to view their full coaching history
-**Verified:** 2026-02-17T04:57:15Z
+**Verified:** 2026-02-17T06:15:00Z
 **Status:** passed
-**Re-verification:** No - initial verification
+**Re-verification:** Yes - after UAT-identified gap closure (04-03: domain coaching fields)
+
+---
+
+## Context
+
+The initial VERIFICATION.md (2026-02-17T04:57:15Z) passed 8/8 checks. UAT then identified one major gap: the create-session modal used generic Topic/Notes fields instead of the 7 domain-specific fields required by the coaching specification. Gap closure was executed in plan 04-03 (commits 4b2f98a and b781a8c), replacing Topic/Notes across all 5 affected layers. This re-verification confirms the gap is closed and no regressions were introduced.
 
 ---
 
@@ -21,16 +33,12 @@ re_verification: false
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | CoachingSession and ActionItem models exist with correct properties and relationships | VERIFIED | Models/CoachingSession.cs and Models/ActionItem.cs fully match plan spec - all properties, string IDs, status defaults, cascade nav property |
-| 2 | CoachCoacheeMapping is registered in DbContext and has a table in the database | VERIFIED | DbSet CoachCoacheeMappings at line 38 of ApplicationDbContext.cs; migration creates CoachCoacheeMappings table with all indexes |
-| 3 | TrackingItemId column is removed from CoachingLogs table and CoachingLog model | VERIFIED | Models/CoachingLog.cs has no TrackingItemId property; migration Up() calls DropColumn on TrackingItemId from CoachingLogs |
-| 4 | Application builds and migration applies without errors | VERIFIED | 4 commits exist in repo (b049fd8, b9bb330, 8c00072, c34bea7); Summary confirms dotnet build -c Release: 0 errors |
-| 5 | Coach can create a coaching session with date, topic, and notes for a coachee | VERIFIED | CreateSession POST at line 295 of CDPController.cs - validates role (RoleLevel > 5 returns Forbid), sets CoachId server-side, persists to CoachingSessions, TempData success |
-| 6 | Coach can add action items with due dates to a coaching session | VERIFIED | AddActionItem POST at line 333 - verifies session ownership (CoachId == user.Id), creates ActionItem with FK to session, TempData success |
-| 7 | User can view their coaching session history with date and status filtering | VERIFIED | Coaching() GET at line 180 accepts fromDate, toDate, status params; applies LINQ filters; returns CoachingHistoryViewModel; view renders filter bar wired to GET form |
-| 8 | All existing v1.0 features remain functional (no regression) | VERIFIED | Index, PlanIdp, Dashboard, Progress methods in CDPController unchanged - none reference CoachingSession/ActionItem |
+| 1 | Coach can create a coaching session with domain-specific fields (Kompetensi, SubKompetensi, Deliverable, CoacheeCompetencies, CatatanCoach, Kesimpulan, Result) for a coachee | VERIFIED | CoachingSession.cs has all 7 props, no Topic/Notes. CreateSessionViewModel identical. CDPController CreateSession POST maps all 7 fields (lines 325-331). Coaching.cshtml modal has Kompetensi dropdown (from KkjMatrices ViewBag), SubKompetensi/Deliverable text inputs, CoacheeCompetencies/CatatanCoach textareas, Kesimpulan select (Kompeten/Perlu Pengembangan), Result select (Need Improvement/Suitable/Good/Excellence). Migration 20260217053753 drops Notes, renames Topic->SubKompetensi, adds 6 columns. |
+| 2 | Coach can add action items with due dates to a coaching session | VERIFIED | ActionItem.cs unchanged. AddActionItem POST at CDPController line 345 verifies session ownership, creates ActionItem with DueDate, persists. Coaching.cshtml inline collapse form wired to AddActionItem action. |
+| 3 | User can view coaching session history with date and status filtering | VERIFIED | Coaching() GET at line 180 accepts fromDate/toDate/status query params, applies LINQ filters, populates CoachingHistoryViewModel. View renders filter bar and session cards showing Kompetensi as heading with color-coded status badges. |
+| 4 | All existing v1.0 features remain functional after schema migration | VERIFIED | CDPController methods Index (line 24), PlanIdp (line 29), Dashboard (line 80), Progress (line 377) unchanged. ApplicationDbContextModelSnapshot updated with new CoachingSessions schema. No Topic/Notes references remain. CoachingLog TrackingItemId FK fix from initial migration intact. |
 
-**Score:** 8/8 truths verified
+**Score:** 4/4 truths verified
 
 ---
 
@@ -38,13 +46,12 @@ re_verification: false
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `Models/CoachingSession.cs` | CoachingSession entity with date, topic, notes, status, coach/coachee IDs | VERIFIED | 16 lines - Id, CoachId, CoacheeId, Date, Topic, Notes, Status, CreatedAt, UpdatedAt, ActionItems navigation. Exact match to plan spec. |
-| `Models/ActionItem.cs` | ActionItem entity with description, due date, status, FK to CoachingSession | VERIFIED | 13 lines - Id, CoachingSessionId, CoachingSession nav, Description, DueDate, Status, CreatedAt. FK property present. |
-| `Models/CoachingViewModels.cs` | CoachingHistoryViewModel, CreateSessionViewModel, AddActionItemViewModel | VERIFIED | All 3 classes present with correct properties and computed properties (TotalSessions, OpenActionItems, etc.) |
-| `Data/ApplicationDbContext.cs` | DbSets for CoachingSessions, ActionItems, CoachCoacheeMappings with relationship config | VERIFIED | Lines 36-38: 3 DbSets. Lines 188-215: full OnModelCreating config with indexes, Cascade delete, GETUTCDATE() defaults. |
-| `Controllers/CDPController.cs` | Coaching GET with filters, CreateSession POST, AddActionItem POST | VERIFIED | Coaching() GET at line 180, CreateSession POST at line 295, AddActionItem POST at line 333. All substantive - real DB queries, role checks, TempData messages. |
-| `Views/CDP/Coaching.cshtml` | Coaching history view with create form, filter controls, session list with action items | VERIFIED | 334 lines - full CoachingHistoryViewModel-backed view. Model directive, summary cards, filter bar, session cards with action item tables, create modal, inline add-item forms, TempData alerts, empty state. |
-| `Migrations/20260217044811_AddCoachingFoundation.cs` | Migration with 3 CreateTable + 1 DropColumn | VERIFIED | Up() method: DropColumn TrackingItemId, CreateTable CoachCoacheeMappings, CreateTable CoachingSessions, CreateTable ActionItems with FK cascade. All indexes present. |
+| `Models/CoachingSession.cs` | 7 domain fields, no Topic/Notes | VERIFIED | 20 lines. Id, CoachId, CoacheeId, Date, Kompetensi, SubKompetensi, Deliverable, CoacheeCompetencies, CatatanCoach, Kesimpulan, Result, Status="Draft", CreatedAt, UpdatedAt, ActionItems nav. Zero Topic/Notes properties. |
+| `Models/CoachingViewModels.cs` | CreateSessionViewModel with 7 domain fields | VERIFIED | CreateSessionViewModel: CoacheeId, Date, Kompetensi, SubKompetensi, Deliverable, CoacheeCompetencies, CatatanCoach, Kesimpulan, Result. CoachingHistoryViewModel and AddActionItemViewModel unchanged. |
+| `Controllers/CDPController.cs` | Coaching GET loads KompetensiList from KkjMatrices; CreateSession POST maps 7 fields | VERIFIED | Lines 285-290: KkjMatrices distinct Kompetensi query stored in ViewBag.KompetensiList. Lines 325-331: all 7 field mappings from viewmodel to entity. |
+| `Views/CDP/Coaching.cshtml` | Modal with 7 domain form fields; cards display domain fields | VERIFIED | Modal: Kompetensi select (KompetensiList), SubKompetensi text, Deliverable text, CoacheeCompetencies textarea, CatatanCoach textarea, Kesimpulan select (2 options), Result select (4 options). Cards: session.Kompetensi heading, SubKompetensi/Deliverable/Kesimpulan/Result summary row, CoacheeCompetencies/CatatanCoach detail blocks. |
+| `Migrations/20260217053753_UpdateCoachingSessionFields.cs` | DropColumn Notes, RenameColumn Topic->SubKompetensi, AddColumn x6 | VERIFIED | Up(): DropColumn Notes, RenameColumn Topic->SubKompetensi, AddColumn CatatanCoach/CoacheeCompetencies/Deliverable/Kesimpulan/Kompetensi/Result (all nvarchar(max) NOT NULL defaultValue ""). Down() reverses correctly. |
+| `Migrations/ApplicationDbContextModelSnapshot.cs` | CoachingSessions table reflects 7 new columns, no Topic/Notes | VERIFIED | Snapshot shows b.Property<string>("Kompetensi"), SubKompetensi, Deliverable etc on CoachingSessions entity. No Topic or Notes properties present. |
 
 ---
 
@@ -52,11 +59,11 @@ re_verification: false
 
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
-| `Models/ActionItem.cs` | `Models/CoachingSession.cs` | FK CoachingSessionId with Cascade delete | WIRED | Line 6: public int CoachingSessionId. DbContext OnModelCreating line 200-203: HasForeignKey(CoachingSessionId).OnDelete(DeleteBehavior.Cascade). Migration confirms FK with ReferentialAction.Cascade. |
-| `Data/ApplicationDbContext.cs` | `Models/CoachingSession.cs` | DbSet registration and OnModelCreating config | WIRED | Line 36: DbSet CoachingSessions. OnModelCreating lines 188-195 configure indexes and GETUTCDATE() default. |
-| `Views/CDP/Coaching.cshtml` | `Controllers/CDPController.cs` | Form POST to CreateSession and AddActionItem | WIRED | Line 292: form asp-action=CreateSession with AntiForgeryToken. Line 258: form asp-action=AddActionItem with AntiForgeryToken. |
-| `Controllers/CDPController.cs` | `Data/ApplicationDbContext.cs` | LINQ queries on CoachingSessions and ActionItems DbSets | WIRED | Line 192: _context.CoachingSessions.Include(s =\> s.ActionItems). Line 324: _context.CoachingSessions.Add(session). Line 358: _context.ActionItems.Add(item). |
-| `Views/CDP/Coaching.cshtml` | `Models/CoachingViewModels.cs` | @model directive | WIRED | Line 1: @model HcPortal.Models.CoachingHistoryViewModel. Model properties used throughout view (Model.TotalSessions, Model.Sessions, etc.). |
+| `CDPController.cs` CreateSession POST | `CoachingSession.cs` domain fields | Property assignment model.X to entity.X | WIRED | Lines 325-331 assign all 7 fields from CreateSessionViewModel to CoachingSession entity before _context.CoachingSessions.Add(). |
+| `CDPController.cs` Coaching GET | `KkjMatrix` model | _context.KkjMatrices select distinct Kompetensi -> ViewBag | WIRED | Lines 285-290: distinct Kompetensi values from KkjMatrices stored in ViewBag.KompetensiList and passed to view. |
+| `Coaching.cshtml` modal form | `CDPController.cs` CreateSession | asp-action=CreateSession POST; form field names match viewmodel | WIRED | Form names Kompetensi/SubKompetensi/Deliverable/CoacheeCompetencies/CatatanCoach/Kesimpulan/Result match CreateSessionViewModel properties exactly. |
+| `Coaching.cshtml` session cards | `CoachingSession.cs` domain fields | session.Kompetensi etc. Razor expressions | WIRED | Session cards render all 7 domain properties from the CoachingSession model in card heading and summary row. |
+| `Migration 20260217053753` | `CoachingSession.cs` | Schema matches model definition | WIRED | Migration adds exactly the columns present in the updated model. ApplicationDbContextModelSnapshot confirms alignment between migration and EF model. |
 
 All 5 key links: WIRED
 
@@ -66,9 +73,10 @@ All 5 key links: WIRED
 
 | Requirement | Status | Notes |
 |-------------|--------|-------|
-| COACH-01: Coach can log a coaching session | SATISFIED | CreateSession POST creates CoachingSession with CoachId, CoacheeId, Date, Topic, Notes. Role check (RoleLevel > 5 = Forbid) enforces coach-only access. |
-| COACH-02: Coach can add action items to a session | SATISFIED | AddActionItem POST creates ActionItem linked to session. Session ownership verified (CoachId == user.Id) before allowing add. |
-| COACH-03: User can view coaching history with filtering | SATISFIED | Coaching GET with fromDate/toDate/status filters. Role-based visibility: coach sees coached sessions, coachee sees their sessions. View renders filterable history. |
+| COACH-01: Coach can log a coaching session with domain-specific fields | SATISFIED | All 7 fields present in model, viewmodel, controller mapping, view form, and database schema. |
+| COACH-02: Coach can add action items to a session | SATISFIED | ActionItem model intact. AddActionItem POST verified with ownership check and DueDate. |
+| COACH-03: User can view coaching history with filtering | SATISFIED | Coaching GET with date/status filters. Session cards display domain fields. |
+| SCHEMA-01: No regression on v1.0 features | SATISFIED | Index/PlanIdp/Dashboard/Progress methods unchanged. CoachingLog fix intact. No regressions from 04-03. |
 
 ---
 
@@ -76,7 +84,7 @@ All 5 key links: WIRED
 
 | File | Pattern | Severity | Impact |
 |------|---------|----------|--------|
-| Views/CDP/Coaching.cshtml lines 264, 315, 320 | placeholder attribute in HTML inputs | INFO | Standard HTML form input placeholder text for UX. Not a code stub. |
+| `Views/CDP/Coaching.cshtml` (multiple form inputs) | placeholder attribute in HTML inputs/textareas | INFO | Standard HTML UX placeholder text. Not a code stub. |
 
 No blocker or warning anti-patterns found.
 
@@ -86,49 +94,33 @@ No blocker or warning anti-patterns found.
 
 The following items cannot be verified programmatically and should be confirmed manually:
 
-#### 1. Role-based session visibility (coach vs coachee view)
+#### 1. Kompetensi dropdown populates from KkjMatrices master data
 
-**Test:** Log in as a Coach user, create a session for a coachee. Then log in as that coachee.
-**Expected:** Coach sees the session in their coached-sessions list. Coachee sees the same session in their about-me list.
-**Why human:** Role resolution depends on runtime _userManager.GetRolesAsync() and user.RoleLevel values in the live database.
+**Test:** Log in as a Coach user, open Catat Sesi Baru modal.
+**Expected:** Kompetensi dropdown shows distinct competency names from the KkjMatrices table. Not empty, not a static hardcoded list.
+**Why human:** Depends on KkjMatrices table having data seeded in the runtime database.
 
-#### 2. Create session modal and form submission
+#### 2. Create session with all 7 domain fields end-to-end
 
-**Test:** Log in as a Coach, click Catat Sesi Baru, fill in coachee/date/topic/notes, click Simpan Sesi.
-**Expected:** Modal closes, success alert appears, new session card appears in the history list.
-**Why human:** Bootstrap modal behavior and POST redirect flow require browser interaction.
+**Test:** Fill all 7 fields in the create modal (select Kompetensi, type SubKompetensi and Deliverable, fill CoacheeCompetencies and CatatanCoach textareas, select Kesimpulan and Result), submit.
+**Expected:** Success alert appears. New session card shows Kompetensi as heading, SubKompetensi/Deliverable/Kesimpulan/Result in summary row, CoacheeCompetencies/CatatanCoach as text blocks below.
+**Why human:** Full form POST and Bootstrap modal redirect behavior requires browser interaction.
 
-#### 3. Add action item inline form
+#### 3. Kesimpulan and Result display color coding
 
-**Test:** On an existing session card, click Tambah Action Item, fill in description and due date, click Tambah.
-**Expected:** Success alert appears, action item appears in the session table on next page load.
-**Why human:** Bootstrap collapse toggle and form POST require browser.
-
-#### 4. Date range and status filter combination
-
-**Test:** Create sessions with different dates and statuses. Apply fromDate/toDate and status=Draft filter.
-**Expected:** Only matching sessions appear. Clicking reset link restores all sessions.
-**Why human:** Datetime filter accuracy depends on actual data in the database.
-
-#### 5. Coachee list dropdown population
-
-**Test:** Log in as a Coach in a section that has RoleLevel 6 users. Open Catat Sesi Baru modal.
-**Expected:** Coachee dropdown shows users from the coach section with RoleLevel == 6, ordered by FullName.
-**Why human:** Depends on seeded user data having correct Section and RoleLevel values.
+**Test:** Create sessions with Kesimpulan=Kompeten and Kesimpulan=Perlu Pengembangan. Check card display.
+**Expected:** Kompeten displays in green (text-success), Perlu Pengembangan in yellow/warning (text-warning). Result badge shows correct color per switch expression.
+**Why human:** CSS class application and color rendering is visual/runtime.
 
 ---
 
-### Gaps Summary
+### Re-verification Summary
 
-No gaps. All 8 must-haves verified.
+**Gap closed (from UAT):** The create-session modal previously used generic Topic and Catatan (Notes) fields. Plan 04-03 replaced these with 7 domain-specific fields across all 5 affected layers: model, viewmodel, controller POST mapping, view modal form, and view session cards. A second EF Core migration (20260217053753_UpdateCoachingSessionFields) handles the schema transition via DropColumn Notes, RenameColumn Topic->SubKompetensi, and 6 AddColumn operations. All changes verified against the actual codebase - no stubs, no orphaned artifacts, all links wired.
 
-The data foundation (Phase 4 Plan 01) is fully in place: CoachingSession and ActionItem models exist with correct properties, the EF migration creates all 3 new tables and drops the broken TrackingItemId column, and ApplicationDbContext has DbSets and relationship configuration for all entities.
-
-The controller and view layer (Phase 4 Plan 02) are fully implemented: Coaching GET returns a real CoachingHistoryViewModel with role-based filtering, CreateSession POST persists sessions with proper role checks, AddActionItem POST verifies session ownership before adding items, and Coaching.cshtml is a complete form-backed view with summary cards, filter bar, session history, create modal, and inline action item forms.
-
-No stubs, no orphaned artifacts, no placeholder implementations found.
+**No regressions found.** All v1.0 controller methods and the initial coaching foundation (ActionItem model, AddActionItem POST, Coaching GET filters, CoachCoacheeMappings, TrackingItemId FK fix) remain intact and unchanged.
 
 ---
 
-_Verified: 2026-02-17T04:57:15Z_
+_Verified: 2026-02-17T06:15:00Z_
 _Verifier: Claude (gsd-verifier)_
