@@ -1,0 +1,165 @@
+@model HcPortal.Models.DeliverableViewModel
+
+@{
+    ViewData["Title"] = $"Deliverable — {Model.Deliverable?.NamaDeliverable}";
+}
+
+@* Breadcrumb *@
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="PlanIdp">Proton</a></li>
+        <li class="breadcrumb-item">@Model.TrackType @Model.TahunKe</li>
+        <li class="breadcrumb-item">@(Model.Deliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "-")</li>
+        <li class="breadcrumb-item">@(Model.Deliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "-")</li>
+        <li class="breadcrumb-item active" aria-current="page">@(Model.Deliverable?.NamaDeliverable ?? "-")</li>
+    </ol>
+</nav>
+
+@* TempData Alerts *@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@* Sequential lock: not accessible *@
+@if (!Model.IsAccessible)
+{
+    <div class="alert alert-warning">
+        <i class="bi bi-lock me-2"></i>
+        <strong>Deliverable ini belum dapat diakses.</strong> Selesaikan deliverable sebelumnya terlebih dahulu.
+    </div>
+    <a asp-action="PlanIdp" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Kembali
+    </a>
+}
+else
+{
+    @* Determine status badge color *@
+    string badgeClass;
+    if (Model.Progress?.Status == "Active") { badgeClass = "bg-primary"; }
+    else if (Model.Progress?.Status == "Submitted") { badgeClass = "bg-warning text-dark"; }
+    else if (Model.Progress?.Status == "Approved") { badgeClass = "bg-success"; }
+    else if (Model.Progress?.Status == "Rejected") { badgeClass = "bg-danger"; }
+    else { badgeClass = "bg-secondary"; }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-semibold">
+                <i class="bi bi-file-earmark-check me-2 text-primary"></i>@(Model.Deliverable?.NamaDeliverable ?? "-")
+            </h5>
+            <span class="badge @badgeClass px-3 py-2">@Model.Progress?.Status</span>
+        </div>
+        <div class="card-body">
+
+            @* Info row *@
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <small class="text-muted">Coachee</small>
+                    <div class="fw-semibold">@Model.CoacheeName</div>
+                </div>
+                <div class="col-md-6">
+                    <small class="text-muted">Track</small>
+                    <div class="fw-semibold">@Model.TrackType @Model.TahunKe</div>
+                </div>
+            </div>
+
+            @* Evidence display *@
+            @if (!string.IsNullOrEmpty(Model.Progress?.EvidencePath))
+            {
+                <div class="mb-3 p-3 bg-light rounded">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <i class="bi bi-file-earmark me-2 text-primary"></i>
+                            <strong>Evidence:</strong> @Model.Progress.EvidenceFileName
+                        </div>
+                        <a href="@Model.Progress.EvidencePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-download me-1"></i>Download
+                        </a>
+                    </div>
+                    @if (Model.Progress.SubmittedAt.HasValue)
+                    {
+                        <div class="mt-1">
+                            <small class="text-muted">Diupload: @Model.Progress.SubmittedAt.Value.ToString("dd MMM yyyy HH:mm")</small>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* Rejected notice *@
+            @if (Model.Progress?.Status == "Rejected")
+            {
+                <div class="alert alert-danger">
+                    <i class="bi bi-x-circle me-2"></i>
+                    <strong>Deliverable ini ditolak.</strong> Silakan upload ulang evidence.
+                    @if (Model.Progress.RejectedAt.HasValue)
+                    {
+                        <div class="mt-1">
+                            <small>Ditolak pada: @Model.Progress.RejectedAt.Value.ToString("dd MMM yyyy HH:mm")</small>
+                        </div>
+                    }
+                </div>
+            }
+
+            @* Submitted notice *@
+            @if (Model.Progress?.Status == "Submitted")
+            {
+                <div class="alert alert-info">
+                    <i class="bi bi-hourglass-split me-2"></i>
+                    Evidence telah diupload dan menunggu review approver.
+                </div>
+            }
+
+            @* Approved notice *@
+            @if (Model.Progress?.Status == "Approved")
+            {
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Deliverable ini telah disetujui
+                    @if (Model.Progress.ApprovedAt.HasValue)
+                    {
+                        <span>pada @Model.Progress.ApprovedAt.Value.ToString("dd MMM yyyy")</span>
+                    }
+                    .
+                </div>
+            }
+
+            @* Upload form — only if CanUpload *@
+            @if (Model.CanUpload)
+            {
+                <hr class="my-3" />
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-upload me-2"></i>
+                    @(Model.Progress?.Status == "Rejected" ? "Upload Ulang Evidence" : "Upload Evidence")
+                </h6>
+                <form method="post" asp-action="UploadEvidence" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">File Evidence</label>
+                        <input type="file" name="evidenceFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required />
+                        <div class="form-text">Format: PDF, JPG, PNG. Maksimal 10MB.</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-upload me-1"></i>
+                        @(Model.Progress?.Status == "Rejected" ? "Upload Ulang Evidence" : "Upload Evidence")
+                    </button>
+                </form>
+            }
+
+        </div>
+    </div>
+
+    <a asp-action="PlanIdp" class="btn btn-outline-secondary mt-3">
+        <i class="bi bi-arrow-left me-1"></i>Kembali ke IDP Plan
+    </a>
+}
