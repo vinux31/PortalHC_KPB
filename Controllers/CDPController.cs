@@ -177,38 +177,189 @@ namespace HcPortal.Controllers
             return View(model);
         }
 
-        public async Task<IActionResult> Coaching()
+        public async Task<IActionResult> Coaching(
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            string? status = null)
         {
-            // Get current user
             var user = await _userManager.GetUserAsync(User);
-            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
-            var userRole = userRoles.FirstOrDefault();
-            var userId = user?.Id ?? "";
+            if (user == null) return Challenge();
+            var userId = user.Id;
 
-            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            var query = _context.CoachingSessions
+                .Include(s => s.ActionItems)
+                .AsQueryable();
+
+            // ========== ROLE-BASED FILTERING ==========
             if (userRole == UserRoles.Admin)
             {
-                if (user.SelectedView == "Coach")
+                if (user.SelectedView == "Coachee")
                 {
-                    // Show coachee selector for Coach view
-                    ViewBag.ShowCoacheeSelector = true;
-
-                    // Get list of coachees in user's section
-                    var coacheeList = await _context.Users
-                        .Where(u => u.Section == user.Section)
-                        .ToListAsync();
-                    ViewBag.CoacheeList = coacheeList;
+                    // Admin acting as Coachee: see sessions about them
+                    query = query.Where(s => s.CoacheeId == userId);
                 }
+                else if (user.SelectedView == "Coach")
+                {
+                    // Admin acting as Coach: see sessions they coach
+                    query = query.Where(s => s.CoachId == userId);
+                }
+                else if (user.SelectedView == "Atasan")
+                {
+                    // Admin acting as Atasan: see sessions they coach
+                    query = query.Where(s => s.CoachId == userId);
+                }
+                // HC view: no filter — see all sessions
             }
-            // For non-admin or admin without specific view, use existing logic
+            else if (userRole == UserRoles.Coach ||
+                     userRole == UserRoles.SrSupervisor ||
+                     userRole == UserRoles.SectionHead ||
+                     userRole == UserRoles.HC ||
+                     userRole == UserRoles.Manager ||
+                     userRole == UserRoles.VP ||
+                     userRole == UserRoles.Direktur)
+            {
+                // Coach and management roles see sessions they conduct
+                query = query.Where(s => s.CoachId == userId);
+            }
+            else
+            {
+                // Coachee and others see sessions about them
+                query = query.Where(s => s.CoacheeId == userId);
+            }
 
-            // Query coaching logs from database where user is coach or coachee
-            var history = await _context.CoachingLogs
-                .Where(c => c.CoachId == userId || c.CoacheeId == userId)
-                .OrderByDescending(c => c.Tanggal)
-                .ToListAsync();
+            // Apply date range and status filters
+            if (fromDate.HasValue) query = query.Where(s => s.Date >= fromDate.Value);
+            if (toDate.HasValue) query = query.Where(s => s.Date <= toDate.Value);
+            if (!string.IsNullOrEmpty(status)) query = query.Where(s => s.Status == status);
 
-            return View(history);
+            var sessions = await query.OrderByDescending(s => s.Date).ToListAsync();
+
+            // Build coachee list for create form dropdown (Coach and Admin non-Coachee views only)
+            List<ApplicationUser> coacheeList = new();
+            bool isCoach = false;
+
+            if (userRole == UserRoles.Coach ||
+                userRole == UserRoles.SrSupervisor ||
+                userRole == UserRoles.SectionHead ||
+                userRole == UserRoles.HC ||
+                userRole == UserRoles.Manager ||
+                userRole == UserRoles.VP ||
+                userRole == UserRoles.Direktur)
+            {
+                isCoach = true;
+                coacheeList = await _context.Users
+                    .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                    .OrderBy(u => u.FullName)
+                    .ToListAsync();
+            }
+            else if (userRole == UserRoles.Admin && user.SelectedView != "Coachee")
+            {
+                isCoach = true;
+                coacheeList = await _context.Users
+                    .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                    .OrderBy(u => u.FullName)
+                    .ToListAsync();
+            }
+
+            // Collect all unique user IDs from sessions for name display (batch query — avoids N+1)
+            var allUserIds = sessions.SelectMany(s => new[] { s.CoachId, s.CoacheeId })
+                .Where(id => !string.IsNullOrEmpty(id))
+                .Distinct()
+                .ToList();
+
+            var userNames = await _context.Users
+                .Where(u => allUserIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
+
+            var viewModel = new CoachingHistoryViewModel
+            {
+                FromDate = fromDate,
+                ToDate = toDate,
+                StatusFilter = status,
+                Sessions = sessions
+            };
+
+            ViewBag.CoacheeList = coacheeList;
+            ViewBag.UserRole = userRole;
+            ViewBag.IsCoach = isCoach;
+            ViewBag.UserNames = userNames;
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateSession(CreateSessionViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Only coaching roles can create sessions
+            if (user.RoleLevel > 5)
+            {
+                return Forbid();
+            }
+
+            ModelState.Remove("CoachId"); // Set server-side
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Form tidak valid. Periksa kembali isian Anda.";
+                return RedirectToAction("Coaching");
+            }
+
+            var session = new CoachingSession
+            {
+                CoachId = user.Id,
+                CoacheeId = model.CoacheeId,
+                Date = model.Date,
+                Topic = model.Topic,
+                Notes = model.Notes,
+                Status = "Draft",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.CoachingSessions.Add(session);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Sesi coaching berhasil dicatat.";
+            return RedirectToAction("Coaching");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddActionItem(int sessionId, AddActionItemViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Verify the session belongs to this coach
+            var session = await _context.CoachingSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId && s.CoachId == user.Id);
+            if (session == null) return NotFound();
+
+            if (!ModelState.IsValid)
+            {
+                TempData["Error"] = "Form tidak valid. Periksa kembali isian Anda.";
+                return RedirectToAction("Coaching");
+            }
+
+            var item = new ActionItem
+            {
+                CoachingSessionId = sessionId,
+                Description = model.Description,
+                DueDate = model.DueDate,
+                Status = "Open",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.ActionItems.Add(item);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Action item berhasil ditambahkan.";
+            return RedirectToAction("Coaching");
         }
 
         public async Task<IActionResult> Progress(string? bagian = null, string? unit = null, string? coacheeId = null)
