@@ -533,6 +533,180 @@ namespace HcPortal.Controllers
             return RedirectToAction("ProtonMain");
         }
 
+        public async Task<IActionResult> Deliverable(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Load progress with full hierarchy
+            var progress = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d.ProtonSubKompetensi)
+                        .ThenInclude(s => s.ProtonKompetensi)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (progress == null) return NotFound();
+
+            // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5)
+            bool isCoachee = progress.CoacheeId == user.Id;
+            bool isCoach = user.RoleLevel <= 5;
+
+            // For coach: must be in same section as coachee
+            if (!isCoachee && isCoach)
+            {
+                var coachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.Section })
+                    .FirstOrDefaultAsync();
+                if (coachee == null || coachee.Section != user.Section)
+                {
+                    return Forbid();
+                }
+            }
+            else if (!isCoachee && !isCoach)
+            {
+                return Forbid();
+            }
+
+            // Load ALL progress records for this coachee in one query (avoid N+1)
+            var allProgresses = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d.ProtonSubKompetensi)
+                        .ThenInclude(s => s.ProtonKompetensi)
+                .Where(p => p.CoacheeId == progress.CoacheeId)
+                .ToListAsync();
+
+            // Get track info from current deliverable's hierarchy
+            var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
+            string trackType = kompetensi?.TrackType ?? "";
+            string tahunKe = kompetensi?.TahunKe ?? "";
+
+            // Order all deliverables for this track by Kompetensi.Urutan, SubKompetensi.Urutan, Deliverable.Urutan
+            var orderedProgresses = allProgresses
+                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TrackType == trackType
+                         && p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TahunKe == tahunKe)
+                .OrderBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0)
+                .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
+                .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
+                .ToList();
+
+            // Sequential lock check
+            int currentIndex = orderedProgresses.FindIndex(p => p.Id == progress.Id);
+            bool isAccessible;
+            if (currentIndex <= 0)
+            {
+                // First deliverable — always accessible
+                isAccessible = true;
+            }
+            else
+            {
+                // Check if previous deliverable is Approved
+                var previousProgress = orderedProgresses[currentIndex - 1];
+                isAccessible = previousProgress.Status == "Approved";
+            }
+
+            // Get coachee name
+            string coacheeName = await _context.Users
+                .Where(u => u.Id == progress.CoacheeId)
+                .Select(u => u.FullName ?? u.UserName ?? u.Id)
+                .FirstOrDefaultAsync() ?? progress.CoacheeId;
+
+            // CanUpload: status is Active or Rejected AND current user is coach/supervisor
+            bool canUpload = (progress.Status == "Active" || progress.Status == "Rejected") && user.RoleLevel <= 5;
+
+            var viewModel = new DeliverableViewModel
+            {
+                Progress = progress,
+                Deliverable = progress.ProtonDeliverable,
+                CoacheeName = coacheeName,
+                TrackType = trackType,
+                TahunKe = tahunKe,
+                IsAccessible = isAccessible,
+                CanUpload = canUpload
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadEvidence(int progressId, IFormFile? evidenceFile)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Validate file not null/empty
+            if (evidenceFile == null || evidenceFile.Length == 0)
+            {
+                TempData["Error"] = "File tidak boleh kosong.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Validate file extension
+            var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+            var ext = Path.GetExtension(evidenceFile.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(ext))
+            {
+                TempData["Error"] = "Hanya PDF, JPG, dan PNG yang diperbolehkan.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Validate file size (max 10MB)
+            if (evidenceFile.Length > 10 * 1024 * 1024)
+            {
+                TempData["Error"] = "Ukuran file maksimal 10MB.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Load progress record
+            var progress = await _context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+            if (progress == null) return NotFound();
+
+            // Authorization: only coach/supervisor (RoleLevel <= 5) can upload
+            if (user.RoleLevel > 5)
+            {
+                return Forbid();
+            }
+
+            // Status check: must be Active or Rejected
+            if (progress.Status != "Active" && progress.Status != "Rejected")
+            {
+                TempData["Error"] = "Deliverable ini tidak dapat diupload.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Build upload directory
+            var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "evidence", progressId.ToString());
+            Directory.CreateDirectory(uploadDir);
+
+            // Sanitize filename: timestamp prefix + original filename (Path.GetFileName prevents path traversal)
+            var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(evidenceFile.FileName)}";
+            var filePath = Path.Combine(uploadDir, safeFileName);
+
+            // Write file to disk
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await evidenceFile.CopyToAsync(stream);
+            }
+
+            // Update progress record
+            bool wasRejected = progress.Status == "Rejected";
+            progress.EvidencePath = $"/uploads/evidence/{progressId}/{safeFileName}";
+            progress.EvidenceFileName = evidenceFile.FileName;
+            progress.Status = "Submitted";
+            progress.SubmittedAt = DateTime.UtcNow;
+            if (wasRejected)
+            {
+                progress.RejectedAt = null;
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Evidence berhasil diupload. Menunggu review approver.";
+            return RedirectToAction("Deliverable", new { id = progressId });
+        }
+
         public async Task<IActionResult> Progress(string? bagian = null, string? unit = null, string? coacheeId = null)
         {
             // Get current user and their role
