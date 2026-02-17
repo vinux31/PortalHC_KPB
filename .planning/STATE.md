@@ -6,26 +6,26 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Latest milestone:** v1.1 CDP Coaching Management (started 2026-02-17)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Defining requirements for v1.1
+**Current focus:** Phase 4 — Foundation & Coaching Sessions
 
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** Not started (defining requirements)
+**Phase:** 4 of 7 (Foundation & Coaching Sessions) — Ready to plan
 **Plan:** —
-**Status:** Defining requirements
-**Last activity:** 2026-02-17 — Milestone v1.1 started
+**Status:** Ready to plan
+**Last activity:** 2026-02-17 — Roadmap created for v1.1 (4 phases, 21 requirements mapped)
 
 Progress: [░░░░░░░░░░] 0% milestone v1.1
 
 ## Performance Metrics
 
-**Velocity:**
+**Velocity (v1.0):**
 - Total plans completed: 10
 - Average duration: 3.3 minutes
 - Total execution time: 0.55 hours
 
-**By Phase:**
+**By Phase (v1.0):**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
@@ -38,9 +38,6 @@ Progress: [░░░░░░░░░░] 0% milestone v1.1
 - Trend: Consistent excellent velocity across all phases
 
 *Updated after each plan completion*
-| Phase 03-kkj-cpdp-integration P02 | 206 | 2 tasks | 3 files |
-| Phase 03-kkj-cpdp-integration P03 | 3 | 2 tasks | 3 files |
-| Phase 03-kkj-cpdp-integration P04 | 4 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -49,81 +46,41 @@ Progress: [░░░░░░░░░░] 0% milestone v1.1
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-**From 01-01:**
-- PassPercentage default: 70% (standard passing grade, configurable per session)
-- AllowAnswerReview default: true (enable review for better learning outcomes)
-- IsPassed/CompletedAt nullable: only set when assessment submitted
-
-**From 01-02:**
-- Assessment Settings card uses secondary color in Create, info color in Edit
-- PassPercentage auto-update on category change only if not manually edited
-- Server-side validation added as safety net for bypassed client validation
-
-**From 01-03:**
-- Results page header color changes based on pass/fail (green for pass, red for fail)
-- View Results shown as primary action, Certificate as secondary in Assessment lobby
-- Answer review includes all options with visual indicators for correct/selected/incorrect
-- Authorization enforced at controller level before rendering Results view
-
-**From 02-01:**
-- PassRate calculation: percentage formula (PassedCount * 100.0 / TotalAssessments) with zero-safe fallback
-- EndDate filtering: inclusive full-day logic (endDate.AddDays(1) to include end day 23:59:59)
-- TotalAssigned metric: counts ALL sessions regardless of filters (shows full system scope)
-- Pagination: 20 items per page default, filter parameters preserved in all pagination links
-
-**From 02-02:**
-- Excel export capped at 10,000 rows for performance safety
-- Export respects all current filter selections from reports page
-- User history shows complete assessment record with summary statistics
-- Navigation pattern: Reports → User History → Individual Results and back via breadcrumbs
-
-**From 02-03:**
-- Chart.js used for dashboard analytics (consistent with CDP Dashboard)
-- Score distribution buckets: 0-20, 21-40, 41-60, 61-80, 81-100 (standard grading ranges)
-- Color-coded score ranges: red→yellow→cyan→blue→green (poor to excellent)
-- In-memory score bucketing preferred over EF GroupBy for complex expressions
-- Charts reflect filtered data (same query as results table)
-
 **From 03-01:**
 - User FK uses Restrict instead of Cascade to avoid SQL Server multiple cascade path limitation
-- Position mapping uses reflection for flexibility with 15 KKJ matrix target columns
 - Unique index enforces one UserCompetencyLevel record per user per competency
-- Gap property computed (not stored) for real-time gap calculation
-
-**From 03-03:**
-- Display top 8 gaps in radar chart for readability
-- Gap color coding: red (>=3), orange (2), yellow (1), green (0) for severity visualization
-- IDP suggestion matches CPDP via case-insensitive string contains for flexible competency mapping
 
 **From 03-04:**
-- Assessment evidence shown per CPDP competency via KKJ mapping for traceability
-- Evidence coverage metric shows percentage of CPDP items with assessment evidence
-- CPDP items displayed in accordion for detailed evidence viewing with clean UI
-- Cross-navigation tabs between Gap Analysis and CPDP Progress for seamless context switching
+- Assessment evidence linked per CPDP competency via KKJ mapping for traceability
+- CPDP items displayed in accordion with cross-navigation tabs (Gap Analysis / CPDP Progress)
+
+**v1.1 Roadmap:**
+- PROTN-05 (revise and resubmit rejected deliverable) assigned to Phase 5, not Phase 6
+- PROTN-08 (final assessment status and competency update) assigned to Phase 6
+- DASH-04 (competency progress charts) confirmed as Phase 7 requirement (21 total, not 19)
+- HC approval is non-blocking per deliverable; blocks only final Proton Assessment creation
+- IDP Plan page is read-only structure view (no status, no navigation links)
 
 ### Pending Todos
 
-**Post-Phase 2 Follow-up:** ~~Completed 2026-02-14~~
-1. ~~Section filter verification: Ensure all sections (GAST, RFCC, NGP, DHT/HMU) appear in dropdown~~ DONE (quick-1)
-2. ~~User search enhancement: Add autocomplete/typeahead feature (e.g., typing "iw" suggests "Iwan")~~ DONE (quick-1)
-3. ~~CDP Dashboard integration: Add quick link widget from CDP/Dashboard to CMP/ReportsIndex for easier HC navigation~~ DONE (quick-1)
-
-No pending todos.
+None.
 
 ### Blockers/Concerns
 
-None yet.
+**Phase 4 — Investigate before planning:**
+- Master deliverable data: Does Kompetensi > Sub Kompetensi > Deliverable hierarchy exist in DB? Affects whether data import or UI management is needed
+- CoachCoacheeMapping: Is there an existing table linking coaches to coachees? Relevant for Proton assignment
+- Existing CoachingLog migration: CoachingLog.TrackingItemId references non-existent table — must be fixed in Phase 4 migration before building
 
 ### Quick Tasks Completed
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 1 | Implement Phase 2 follow-up improvements: (1) Fix section filter to show all sections (GAST, RFCC, NGP, DHT/HMU), (2) Add autocomplete/typeahead to user search field in reports, (3) Add quick link widget in CDP Dashboard that shows assessment summary and links to CMP Reports | 2026-02-14 | d477bb7 | [1-implement-phase-2-follow-up-improvements](./quick/1-implement-phase-2-follow-up-improvements/) |
-| 2 | Add CDP/Index hub page (card-based layout with 4 feature cards), delete all BP feature pages, replace BP/Index with "under development" placeholder, update navbar to use direct links (no dropdowns) for CDP and BP | 2026-02-14 | e4fb05d | [2-add-cdp-index-page-delete-bp-pages-creat](./quick/2-add-cdp-index-page-delete-bp-pages-creat/) |
+| 1 | Implement Phase 2 follow-up improvements: Fix section filter, add autocomplete to user search, add CDP Dashboard quick link widget | 2026-02-14 | d477bb7 | [1-implement-phase-2-follow-up-improvements](./quick/1-implement-phase-2-follow-up-improvements/) |
+| 2 | Add CDP/Index hub page, delete all BP feature pages, replace BP/Index with placeholder, update navbar | 2026-02-14 | e4fb05d | [2-add-cdp-index-page-delete-bp-pages-creat](./quick/2-add-cdp-index-page-delete-bp-pages-creat/) |
 
 ## Session Continuity
 
-Last session: 2026-02-14T08:45:00Z
-Stopped at: Completed quick-2 (CDP Hub Page & BP Cleanup)
-Resume file: All phases complete - project ready for deployment/next iteration
-
+Last session: 2026-02-17
+Stopped at: Roadmap revised for v1.1 milestone (21 requirements, 4 phases) — ready to plan Phase 4
+Resume file: None
