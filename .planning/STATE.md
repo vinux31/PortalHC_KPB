@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** 4 of 7 (Foundation & Coaching Sessions) — Ready to plan
-**Plan:** —
-**Status:** Ready to plan
-**Last activity:** 2026-02-17 — Roadmap created for v1.1 (4 phases, 21 requirements mapped)
+**Phase:** 4 of 7 (Foundation & Coaching Sessions) — In Progress
+**Plan:** 04-01 complete (data foundation)
+**Status:** Executing
+**Last activity:** 2026-02-17 — Completed 04-01: coaching data foundation (models, DbContext, migration)
 
-Progress: [░░░░░░░░░░] 0% milestone v1.1
+Progress: [█░░░░░░░░░] ~5% milestone v1.1
 
 ## Performance Metrics
 
@@ -38,6 +38,7 @@ Progress: [░░░░░░░░░░] 0% milestone v1.1
 - Trend: Consistent excellent velocity across all phases
 
 *Updated after each plan completion*
+| Phase 04-foundation-coaching-sessions P01 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,8 @@ Recent decisions affecting current work:
 - DASH-04 (competency progress charts) confirmed as Phase 7 requirement (21 total, not 19)
 - HC approval is non-blocking per deliverable; blocks only final Proton Assessment creation
 - IDP Plan page is read-only structure view (no status, no navigation links)
+- [Phase 04-01]: String IDs for CoachId/CoacheeId in CoachingSession — no FK constraint, matches existing CoachingLog pattern
+- [Phase 04-01]: CoachCoacheeMapping registered in DbContext in Phase 4 to fix orphaned model (used in Phase 5)
 
 ### Pending Todos
 
@@ -67,10 +70,12 @@ None.
 
 ### Blockers/Concerns
 
-**Phase 4 — Investigate before planning:**
-- Master deliverable data: Does Kompetensi > Sub Kompetensi > Deliverable hierarchy exist in DB? Affects whether data import or UI management is needed
-- CoachCoacheeMapping: Is there an existing table linking coaches to coachees? Relevant for Proton assignment
-- Existing CoachingLog migration: CoachingLog.TrackingItemId references non-existent table — must be fixed in Phase 4 migration before building
+**Phase 4 — RESOLVED in 04-01:**
+- CoachCoacheeMapping: Table now registered in DbContext and created in DB via AddCoachingFoundation migration
+- CoachingLog.TrackingItemId: Removed from model and dropped from DB in AddCoachingFoundation migration
+
+**Phase 4 — Remaining investigation:**
+- Master deliverable data: Does Kompetensi > Sub Kompetensi > Deliverable hierarchy exist in DB? Affects whether data import or UI management is needed (Phase 5 concern)
 
 ### Quick Tasks Completed
 
@@ -82,5 +87,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Roadmap revised for v1.1 milestone (21 requirements, 4 phases) — ready to plan Phase 4
+Stopped at: Completed 04-01-PLAN.md — coaching data foundation (models, DbContext, migration applied)
 Resume file: None
