@@ -84,11 +84,12 @@ Plans:
   3. Coachee can only access the next deliverable after the current one is approved — sequential lock is enforced
   4. Coach can upload evidence files for an active deliverable on the Deliverable page
   5. Coach can revise evidence and resubmit a rejected deliverable
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Data foundation: Proton models, DbContext, migration, seed data
+- [ ] 05-02-PLAN.md — ProtonMain track assignment page and PlanIdp hybrid Coachee view
+- [ ] 05-03-PLAN.md — Deliverable page with sequential lock, evidence upload, and resubmit
 
 #### Phase 6: Approval Workflow & Completion
 **Goal:** Deliverables move through the SrSpv/SectionHead approval chain to completion, with HC completing final approvals before creating a final Proton Assessment that updates competency levels
@@ -130,6 +131,6 @@ Plans:
 | 2. HC Reports Dashboard | v1.0 | 3/3 | Complete | 2026-02-14 |
 | 3. KKJ/CPDP Integration | v1.0 | 4/4 | Complete | 2026-02-14 |
 | 4. Foundation & Coaching Sessions | v1.1 | 3/3 | Complete | 2026-02-17 |
-| 5. Proton Deliverable Tracking | v1.1 | 0/TBD | Not started | - |
+| 5. Proton Deliverable Tracking | v1.1 | 0/3 | Planning complete | - |
 | 6. Approval Workflow & Completion | v1.1 | 0/TBD | Not started | - |
 | 7. Development Dashboard | v1.1 | 0/TBD | Not started | - |
