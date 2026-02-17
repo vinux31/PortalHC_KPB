@@ -6,10 +6,7 @@ namespace HcPortal.Models
     public class CoachingLog
     {
         public int Id { get; set; }
-        
-        // Relasi
-        public int TrackingItemId { get; set; }      // Relasi ke TrackingItem
-        
+
         // Coach Information
         public string CoachId { get; set; } = "";
         public string CoachName { get; set; } = "";
