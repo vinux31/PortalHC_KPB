@@ -14,7 +14,7 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 **Phase:** 5 of 7 (Proton Deliverable Tracking) — Ready to plan
 **Plan:** —
 **Status:** Ready to plan
-**Last activity:** 2026-02-17 — Phase 4 complete (coaching sessions: models, migration, controller, view — COACH-01/02/03 satisfied)
+**Last activity:** 2026-02-17 — Phase 4 gap closure complete (04-03: replaced Topic/Notes with 7 domain coaching fields — COACH-01/02/03 fully satisfied)
 
 Progress: [██░░░░░░░░] ~25% milestone v1.1
 
@@ -40,6 +40,7 @@ Progress: [██░░░░░░░░] ~25% milestone v1.1
 *Updated after each plan completion*
 | Phase 04-foundation-coaching-sessions P01 | 4 | 2 tasks | 6 files |
 | Phase 04-foundation-coaching-sessions P02 | 3 | 3 tasks | 2 files |
+| Phase 04-foundation-coaching-sessions P03 | 3 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,7 @@ Recent decisions affecting current work:
 - [Phase 04-foundation-coaching-sessions]: User name dictionary built via batch query in controller (ToDictionaryAsync) to avoid N+1 reads per session card
 - [Phase 04-foundation-coaching-sessions]: CreateSession role check uses RoleLevel > 5 (Forbid if Coachee-only) — consistent with existing CDPController pattern
 - [Phase 04-foundation-coaching-sessions]: Razor tag helper option element requires if/else blocks for conditional selected attribute (RZ1031 prevents C# in attribute declaration)
+- [Phase 04-03]: EF Core used RenameColumn(Topic->SubKompetensi) instead of DropColumn+AddColumn — acceptable optimization, same net schema result
 
 ### Pending Todos
 
@@ -93,5 +95,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed 04-02-PLAN.md — coaching controller actions (Coaching GET with filters, CreateSession POST, AddActionItem POST) and Coaching.cshtml real view
+Stopped at: Completed 04-03-PLAN.md — domain coaching fields (7 new fields replacing Topic/Notes in model, viewmodel, controller, view, and DB schema)
 Resume file: None
