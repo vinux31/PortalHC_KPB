@@ -186,11 +186,11 @@ Plans:
   3. HC or Admin visiting the Assessment page sees a Management tab (assessment CRUD and question management) as a distinct tab
   4. HC or Admin visiting the Assessment page sees a Monitoring tab showing all active and upcoming assessments across the system
   5. Empty states are shown per tab when no assessments match the tab's criteria
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — CMPController Assessment action: status filter for workers, monitor branch for HC/Admin
-- [ ] 11-02-PLAN.md — Assessment.cshtml: tab restructure, worker callout to Training Records, empty states
+- [ ] 11-01-PLAN.md — CMPController Assessment action: status filter for workers, dual ViewBag data sets for HC/Admin
+- [ ] 11-02-PLAN.md — Assessment.cshtml: tab restructure, worker callout to Training Records, Management+Monitoring tabs, empty states
 
 ---
 
