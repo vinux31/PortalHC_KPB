@@ -104,9 +104,11 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Data foundation: extend models, add ProtonNotification/ProtonFinalAssessment, migration
-- [ ] 06-02-PLAN.md — Approve/Reject actions with sequential unlock and Deliverable UI
-- [ ] 06-03-PLAN.md — HC workflow: HCApprovals queue, final assessment, PlanIdp completion card
+- [x] 06-01-PLAN.md — Data foundation: extend models, add ProtonNotification/ProtonFinalAssessment, migration
+- [x] 06-02-PLAN.md — Approve/Reject actions with sequential unlock and Deliverable UI
+- [x] 06-03-PLAN.md — HC workflow: HCApprovals queue, final assessment, PlanIdp completion card
+
+**Completed:** 2026-02-18
 
 #### Phase 7: Development Dashboard
 **Goal:** Supervisors and HC can monitor team competency progress, deliverable status, and pending approvals from a role-scoped dashboard with trend charts
@@ -132,5 +134,5 @@ Plans:
 | 3. KKJ/CPDP Integration | v1.0 | 4/4 | Complete | 2026-02-14 |
 | 4. Foundation & Coaching Sessions | v1.1 | 3/3 | Complete | 2026-02-17 |
 | 5. Proton Deliverable Tracking | v1.1 | 3/3 | Complete | 2026-02-17 |
-| 6. Approval Workflow & Completion | v1.1 | 0/3 | Planned | - |
+| 6. Approval Workflow & Completion | v1.1 | 3/3 | Complete | 2026-02-18 |
 | 7. Development Dashboard | v1.1 | 0/TBD | Not started | - |
