@@ -5,6 +5,7 @@
 - ✅ **v1.0 CMP Assessment Completion** — Phases 1-3 (shipped 2026-02-17)
 - ✅ **v1.1 CDP Coaching Management** — Phases 4-7 (shipped 2026-02-18)
 - ✅ **Post-v1.1 Fix: Admin Role Switcher** — Phase 8 (shipped 2026-02-18)
+- 🚧 **v1.2 UX Consolidation** — Phases 9-12 (in progress)
 
 ## Phases
 
@@ -53,25 +54,10 @@
 
 </details>
 
-### Phase 8: Fix admin role switcher and add Admin to supported roles
+<details>
+<summary>✅ v1.1 CDP Coaching Management (Phases 4-8) — SHIPPED 2026-02-18</summary>
 
-**Goal:** Admin can switch between all role views (HC, Atasan, Coach, Coachee, Admin) with each simulated view granting the correct access to controller actions and showing accurate data
-**Depends on:** Phase 7
-**Plans:** 2 plans
-
-Plans:
-- [x] 08-01-PLAN.md — Enable Admin view: add "Admin" to allowedViews, _Layout dropdown, and SeedData default
-- [x] 08-02-PLAN.md — Fix CDPController gates: HC-gated actions, Atasan-gated actions, null-Section coachee lists, CreateSession Coachee block
-
-**Completed:** 2026-02-18
-
----
-
-### 🚧 v1.1 CDP Coaching Management (In Progress)
-
-**Milestone Goal:** Build functional coaching session management with Proton deliverable tracking, multi-level approval workflow, and development dashboards that close the CDP loop — from coaching sessions through structured deliverable completion to competency level updates.
-
-#### Phase 4: Foundation & Coaching Sessions
+### Phase 4: Foundation & Coaching Sessions
 **Goal:** Coaches can log sessions and action items against a stable data model, with users able to view their full coaching history
 **Depends on:** Phase 3 (v1.0 complete)
 **Requirements:** COACH-01, COACH-02, COACH-03
@@ -135,8 +121,96 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — ViewModel + CDPController.DevDashboard GET action with role-scoped queries and chart data
-- [ ] 07-02-PLAN.md — DevDashboard.cshtml view with charts and coachee table, plus _Layout.cshtml nav link
+- [x] 07-01-PLAN.md — ViewModel + CDPController.DevDashboard GET action with role-scoped queries and chart data
+- [x] 07-02-PLAN.md — DevDashboard.cshtml view with charts and coachee table, plus _Layout.cshtml nav link
+
+### Phase 8: Fix Admin Role Switcher
+**Goal:** Admin can switch between all role views (HC, Atasan, Coach, Coachee, Admin) with each simulated view granting the correct access to controller actions and showing accurate data
+**Depends on:** Phase 7
+**Plans:** 2 plans
+
+Plans:
+- [x] 08-01-PLAN.md — Enable Admin view: add "Admin" to allowedViews, _Layout dropdown, and SeedData default
+- [x] 08-02-PLAN.md — Fix CDPController gates: HC-gated actions, Atasan-gated actions, null-Section coachee lists, CreateSession Coachee block
+
+**Completed:** 2026-02-18
+
+</details>
+
+---
+
+### 🚧 v1.2 UX Consolidation (In Progress)
+
+**Milestone Goal:** Refocus core pages to their intended purpose and consolidate overlapping dashboards into a coherent, role-aware experience. Assessment page shows only actionable items per role. Training Records becomes the single unified development history. Gap Analysis page is removed. Three dashboards are merged into one tabbed CDP Dashboard.
+
+#### Phase 9: Gap Analysis Removal
+**Goal:** The Gap Analysis page, its nav entry points, and associated controller action are fully removed so the CMP hub and CPDP Progress pages no longer reference a dead route
+**Depends on:** Phase 8
+**Requirements:** GAPS-01
+**Success Criteria** (what must be TRUE):
+  1. The Gap Analysis nav card is absent from CMP Index — no link renders for any role
+  2. The Gap Analysis cross-link is absent from CPDP Progress — no link renders for any role
+  3. Navigating directly to the former Gap Analysis URL returns a redirect or 404, not a working page
+  4. The application builds and loads without errors after the removal
+**Plans:** TBD
+
+Plans:
+- [ ] 09-01-PLAN.md — Remove CompetencyGap action, view, and nav links (CMP/Index.cshtml + CMP/CpdpProgress.cshtml) in one atomic commit
+
+---
+
+#### Phase 10: Unified Training Records
+**Goal:** Users can view their complete development history — completed assessments and manual training records — in a single merged table with type-differentiated columns, and HC can see a worker list with completion rates drawn from both sources
+**Depends on:** Phase 9
+**Requirements:** TREC-01, TREC-02, TREC-03
+**Success Criteria** (what must be TRUE):
+  1. A worker visiting Training Records sees one merged table containing both completed assessment sessions and manual training records, sorted most-recent-first
+  2. Each row is visually distinguishable by type: Assessment Online rows show Score and Pass/Fail; Training Manual rows show Penyelenggara, Tipe Sertifikat, and Berlaku Sampai
+  3. Certificate expiry warnings are preserved for Training Manual rows that have a Berlaku Sampai date
+  4. HC or Admin visiting Training Records sees a worker list with completion rate calculated from both data sources (completed assessments + valid training records)
+**Plans:** TBD
+
+Plans:
+- [ ] 10-01-PLAN.md — UnifiedCapabilityRecord ViewModel + BuildUnifiedRecords() helper in CMPController
+- [ ] 10-02-PLAN.md — Updated Records.cshtml with merged table, type badge, conditional columns, and HC worker list completion rate
+
+---
+
+#### Phase 11: Assessment Page Role Filter
+**Goal:** Workers see only Open and Upcoming assessments on the Assessment page; HC and Admin see a restructured page with dedicated Management and Monitoring tabs
+**Depends on:** Phase 10 (Training Records must exist as the history destination before Completed items are filtered out)
+**Requirements:** ASMT-01, ASMT-02, ASMT-03
+**Success Criteria** (what must be TRUE):
+  1. A worker (Spv or below) visiting the Assessment page sees only Open and Upcoming assessments — Completed assessments do not appear in the list
+  2. The Assessment page includes a visible link or callout directing workers to Training Records for their completion history
+  3. HC or Admin visiting the Assessment page sees a Management tab (assessment CRUD and question management) as a distinct tab
+  4. HC or Admin visiting the Assessment page sees a Monitoring tab showing all active and upcoming assessments across the system
+  5. Empty states are shown per tab when no assessments match the tab's criteria
+**Plans:** TBD
+
+Plans:
+- [ ] 11-01-PLAN.md — CMPController Assessment action: status filter for workers, monitor branch for HC/Admin
+- [ ] 11-02-PLAN.md — Assessment.cshtml: tab restructure, worker callout to Training Records, empty states
+
+---
+
+#### Phase 12: Dashboard Consolidation
+**Goal:** The CDP Dashboard becomes the single unified entry point for all development-related views — HC Reports and the Dev Dashboard are absorbed into role-scoped tabs, and standalone pages are retired after the tabs are verified
+**Depends on:** Phase 11
+**Requirements:** DASH-01, DASH-02, DASH-03, DASH-04
+**Success Criteria** (what must be TRUE):
+  1. The CDP Dashboard has two visible tabs: "Proton Progress" (accessible to all roles) and "Assessment Analytics" (visible only to HC and Admin — tab is absent from the DOM for other roles)
+  2. The Proton Progress tab shows role-scoped data: Coachee sees their own summary; Spv sees their unit; SrSpv/SectionHead see their section; HC/Admin see all — matching the former Dev Dashboard scope rules
+  3. The Assessment Analytics tab displays KPI cards, assessment result filters, and an export-to-Excel action — replacing the standalone HC Reports page for HC and Admin users
+  4. The standalone Dev Dashboard nav item is removed from the layout after tab content is verified
+**Plans:** TBD
+
+Plans:
+- [ ] 12-01-PLAN.md — CDPDashboardViewModel + CDPController.Dashboard() rewrite with role-gated sub-model population
+- [ ] 12-02-PLAN.md — Dashboard.cshtml tab structure with _HCReportsPartial and _DevDashboardPartial, plus authorization re-declaration audit
+- [ ] 12-03-PLAN.md — Retire standalone Dev Dashboard nav item and audit cross-controller Url.Action references
+
+---
 
 ## Progress
 
@@ -150,3 +224,7 @@ Plans:
 | 6. Approval Workflow & Completion | v1.1 | 3/3 | Complete | 2026-02-18 |
 | 7. Development Dashboard | v1.1 | 2/2 | Complete | 2026-02-18 |
 | 8. Fix Admin Role Switcher | post-v1.1 | 2/2 | Complete | 2026-02-18 |
+| 9. Gap Analysis Removal | v1.2 | 0/1 | Not started | - |
+| 10. Unified Training Records | v1.2 | 0/2 | Not started | - |
+| 11. Assessment Page Role Filter | v1.2 | 0/2 | Not started | - |
+| 12. Dashboard Consolidation | v1.2 | 0/3 | Not started | - |

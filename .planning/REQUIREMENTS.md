@@ -56,7 +56,7 @@
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Requirements mapped to roadmap phases. Set during roadmap creation (2026-02-18).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
@@ -75,8 +75,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 **Coverage:**
 - v1.2 requirements: 11 total
 - Mapped to phases: 11
-- Unmapped: 0 ✓
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-18*
-*Last updated: 2026-02-18 after initial definition*
+*Traceability set: 2026-02-18 during roadmap creation*
