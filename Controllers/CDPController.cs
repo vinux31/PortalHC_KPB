@@ -728,7 +728,8 @@ namespace HcPortal.Controllers
             // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC
             bool isCoachee = progress.CoacheeId == user.Id;
             bool isCoach = user.RoleLevel <= 5;
-            bool isHC = userRole == UserRoles.HC;
+            bool isHC = userRole == UserRoles.HC ||
+                        (userRole == UserRoles.Admin && user?.SelectedView == "HC");
 
             // HC has full access — no section check required
             if (!isCoachee && !isHC && isCoach)
@@ -794,9 +795,12 @@ namespace HcPortal.Controllers
             bool canUpload = (progress.Status == "Active" || progress.Status == "Rejected") && user.RoleLevel <= 5;
 
             // Phase 6: approval context
-            bool canApprove = (userRole == UserRoles.SrSupervisor || userRole == UserRoles.SectionHead)
-                              && progress.Status == "Submitted";
-            bool canHCReview = userRole == UserRoles.HC && progress.HCApprovalStatus == "Pending";
+            bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
+                                  userRole == UserRoles.SectionHead ||
+                                  (userRole == UserRoles.Admin &&
+                                   (user.SelectedView == "Atasan" || user.SelectedView == "HC"));
+            bool canApprove = isAtasanAccess && progress.Status == "Submitted";
+            bool canHCReview = isHC && progress.HCApprovalStatus == "Pending";
 
             var viewModel = new DeliverableViewModel
             {
@@ -1007,8 +1011,10 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // Only HC can review
-            if (userRole != UserRoles.HC) return Forbid();
+            // HC or Admin simulating HC view can review
+            bool isHCAccess = userRole == UserRoles.HC ||
+                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            if (!isHCAccess) return Forbid();
 
             var progress = await _context.ProtonDeliverableProgresses
                 .FirstOrDefaultAsync(p => p.Id == progressId);
@@ -1039,8 +1045,10 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // Only HC can access
-            if (userRole != UserRoles.HC) return Forbid();
+            // HC or Admin simulating HC view can access
+            bool isHCAccess = userRole == UserRoles.HC ||
+                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            if (!isHCAccess) return Forbid();
 
             // Query pending HC reviews (any deliverable that HC hasn't reviewed yet)
             var pendingReviews = await _context.ProtonDeliverableProgresses
@@ -1133,8 +1141,10 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // Only HC can access
-            if (userRole != UserRoles.HC) return Forbid();
+            // HC or Admin simulating HC view can access
+            bool isHCAccess = userRole == UserRoles.HC ||
+                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            if (!isHCAccess) return Forbid();
 
             // Load the track assignment
             var assignment = await _context.ProtonTrackAssignments
@@ -1195,8 +1205,10 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // Only HC can create
-            if (userRole != UserRoles.HC) return Forbid();
+            // HC or Admin simulating HC view can create
+            bool isHCAccess = userRole == UserRoles.HC ||
+                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            if (!isHCAccess) return Forbid();
 
             // Load assignment
             var assignment = await _context.ProtonTrackAssignments
