@@ -6,17 +6,17 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Latest milestone:** v1.1 CDP Coaching Management (started 2026-02-17)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 6 — Approval Workflow & Completion
+**Current focus:** Phase 7 — Development Dashboard
 
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** 6 of 7 (Approval Workflow & Completion) — Complete
-**Plan:** 3 of 3 (06-03 complete)
-**Status:** Phase 6 complete — ready for Phase 7
-**Last activity:** 2026-02-18 — 06-03 complete: HCReviewDeliverable POST, HCApprovals queue page, CreateFinalAssessment GET+POST with UserCompetencyLevel upsert, PlanIdp final assessment card (PROTN-08)
+**Phase:** 7 of 7 (Development Dashboard) — In Progress
+**Plan:** 1 of 2 (07-01 complete)
+**Status:** 07-01 complete — DevDashboardViewModel and DevDashboard GET action
+**Last activity:** 2026-02-18 — 07-01 complete: DevDashboardViewModel, CoacheeProgressRow, CDPController.DevDashboard GET with role-scoped data loading, trend chart data, doughnut chart data (DASH-01/02/04)
 
-Progress: [████████░░] ~85% milestone v1.1
+Progress: [█████████░] ~90% milestone v1.1
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [████████░░] ~85% milestone v1.1
 | Phase 06-approval-workflow-completion P01 | 4 | 2 tasks | 5 files |
 | Phase 06-approval-workflow-completion P02 | 7 | 2 tasks | 2 files |
 | Phase 06-approval-workflow-completion P03 | 4 | 2 tasks | 4 files |
+| Phase 07-development-dashboard P01 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,11 @@ Recent decisions affecting current work:
 - Notifications marked read after viewModel built — HC sees unread notifications on first visit then they clear on subsequent visits
 - readyForAssessment loop extends batch-built userNames dict to avoid N+1 when candidate not already fetched
 
+**From 07-01:**
+- Coach (Spv) with null Unit falls back to Section scope with "(Unit not set)" label annotation — addresses open question from RESEARCH.md
+- Trend data uses ProtonFinalAssessment.CompletedAt grouped by year-month — UserCompetencyLevel has no history table
+- DevDashboard is a separate action from Dashboard — Dashboard() action remains IDP-focused and unmodified
+
 **From 05-03:**
 - UploadEvidence POST handles both Active and Rejected status — single action covers PROTN-04 and PROTN-05
 - Old evidence files kept on disk on resubmit (audit trail) — new filename stored in EvidencePath only
@@ -139,5 +145,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 06-03-PLAN.md — HCReviewDeliverable POST, HCApprovals queue page, CreateFinalAssessment GET+POST with UserCompetencyLevel upsert, PlanIdp Coachee final assessment card. Phase 6 complete. Ready for Phase 7 (DASH-04 competency progress charts).
+Stopped at: Completed 07-01-PLAN.md — DevDashboardViewModel, CoacheeProgressRow, CDPController.DevDashboard GET with role-scoped data, trend chart arrays, doughnut chart arrays. Ready for 07-02 (DevDashboard.cshtml view).
 Resume file: None
