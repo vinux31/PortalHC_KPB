@@ -100,11 +100,24 @@ else
             {
                 <div class="alert alert-danger">
                     <i class="bi bi-x-circle me-2"></i>
-                    <strong>Deliverable ini ditolak.</strong> Silakan upload ulang evidence.
+                    <strong>Deliverable ini ditolak.</strong>
+                    @if (!string.IsNullOrEmpty(Model.Progress.RejectionReason))
+                    {
+                        <div class="mt-2 p-2 bg-white rounded border">
+                            <small class="text-muted d-block mb-1">Alasan Penolakan:</small>
+                            <span>@Model.Progress.RejectionReason</span>
+                        </div>
+                    }
                     @if (Model.Progress.RejectedAt.HasValue)
                     {
                         <div class="mt-1">
-                            <small>Ditolak pada: @Model.Progress.RejectedAt.Value.ToString("dd MMM yyyy HH:mm")</small>
+                            <small class="text-muted">Ditolak pada: @Model.Progress.RejectedAt.Value.ToString("dd MMM yyyy HH:mm")</small>
+                        </div>
+                    }
+                    @if (Model.CanUpload)
+                    {
+                        <div class="mt-1">
+                            <small>Silakan upload ulang evidence.</small>
                         </div>
                     }
                 </div>
@@ -130,7 +143,69 @@ else
                         <span>pada @Model.Progress.ApprovedAt.Value.ToString("dd MMM yyyy")</span>
                     }
                     .
+                    @if (Model.Progress?.HCApprovalStatus == "Reviewed")
+                    {
+                        <div class="mt-1">
+                            <small class="text-success"><i class="bi bi-check2-circle me-1"></i>Sudah diperiksa HC</small>
+                        </div>
+                    }
                 </div>
+            }
+
+            @* Approval actions — SrSpv/SectionHead only, Status==Submitted *@
+            @if (Model.CanApprove)
+            {
+                <hr class="my-3" />
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-clipboard-check me-2"></i>Tindakan Approval
+                </h6>
+                <div class="d-flex gap-2 mb-3">
+                    <form method="post" asp-action="ApproveDeliverable" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
+                        <button type="submit" class="btn btn-success"
+                                onclick="return confirm('Yakin ingin menyetujui deliverable ini?')">
+                            <i class="bi bi-check-circle me-1"></i>Setujui
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#rejectForm">
+                        <i class="bi bi-x-circle me-1"></i>Tolak
+                    </button>
+                </div>
+                <div class="collapse" id="rejectForm">
+                    <div class="card card-body border-danger mb-3">
+                        <form method="post" asp-action="RejectDeliverable">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
+                                <textarea name="rejectionReason" class="form-control" rows="3"
+                                          placeholder="Tuliskan alasan penolakan..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger"
+                                    onclick="return confirm('Yakin ingin menolak deliverable ini?')">
+                                <i class="bi bi-x-circle me-1"></i>Tolak Deliverable
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            @* HC Review — HC only, HCApprovalStatus==Pending *@
+            @if (Model.CanHCReview)
+            {
+                <hr class="my-3" />
+                <h6 class="fw-semibold mb-3">
+                    <i class="bi bi-person-check me-2"></i>Review HC
+                </h6>
+                <form method="post" asp-action="HCReviewDeliverable">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
+                    <button type="submit" class="btn btn-info text-white"
+                            onclick="return confirm('Tandai deliverable ini sebagai sudah diperiksa HC?')">
+                        <i class="bi bi-check2-square me-1"></i>Tandai Sudah Diperiksa
+                    </button>
+                </form>
             }
 
             @* Upload form — only if CanUpload *@
