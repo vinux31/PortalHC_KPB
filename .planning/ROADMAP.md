@@ -155,7 +155,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — Remove Gap Analysis nav links, controller action, view, and ViewModel
+- [x] 09-01-PLAN.md — Remove Gap Analysis nav links, controller action, view, and ViewModel
 
 ---
 
@@ -168,11 +168,11 @@ Plans:
   2. Each row is visually distinguishable by type: Assessment Online rows show Score and Pass/Fail; Training Manual rows show Penyelenggara, Tipe Sertifikat, and Berlaku Sampai
   3. Certificate expiry warnings are preserved for Training Manual rows that have a Berlaku Sampai date
   4. HC or Admin visiting Training Records sees a worker list with completion rate calculated from both data sources (completed assessments + valid training records)
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — UnifiedCapabilityRecord ViewModel + BuildUnifiedRecords() helper in CMPController
-- [ ] 10-02-PLAN.md — Updated Records.cshtml with merged table, type badge, conditional columns, and HC worker list completion rate
+- [ ] 10-01-PLAN.md — UnifiedTrainingRecord ViewModel, extended WorkerTrainingStatus, and CMPController data layer rewrite
+- [ ] 10-02-PLAN.md — Records.cshtml unified table, RecordsWorkerList.cshtml completion count, WorkerDetail.cshtml unified columns
 
 ---
 
@@ -224,7 +224,7 @@ Plans:
 | 6. Approval Workflow & Completion | v1.1 | 3/3 | Complete | 2026-02-18 |
 | 7. Development Dashboard | v1.1 | 2/2 | Complete | 2026-02-18 |
 | 8. Fix Admin Role Switcher | post-v1.1 | 2/2 | Complete | 2026-02-18 |
-| 9. Gap Analysis Removal | v1.2 | 0/1 | Planned | - |
+| 9. Gap Analysis Removal | v1.2 | 1/1 | Complete | 2026-02-18 |
 | 10. Unified Training Records | v1.2 | 0/2 | Not started | - |
 | 11. Assessment Page Role Filter | v1.2 | 0/2 | Not started | - |
 | 12. Dashboard Consolidation | v1.2 | 0/3 | Not started | - |
