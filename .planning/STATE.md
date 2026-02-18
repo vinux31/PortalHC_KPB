@@ -49,6 +49,7 @@ Progress: [████████░░] 80% phase 8
 | Phase 06-approval-workflow-completion P03 | 4 | 2 tasks | 4 files |
 | Phase 07-development-dashboard P01 | 2 | 2 tasks | 2 files |
 | Phase 07-development-dashboard P02 | 2 | 2 tasks | 2 files |
+| Phase 08-fix-admin-role-switcher P01 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,10 @@ Recent decisions affecting current work:
 - IWebHostEnvironment added to CDPController constructor now (for Plan 03 file upload) — avoids double modification
 - Razor: @{} blocks inside @if{} are invalid (RZ1010) — inside a code block, statements don't need @ prefix
 - Coachee role path in PlanIdp: checks UserRoles.Coachee OR (Admin with SelectedView="Coachee") before existing PDF path
+
+**From 08-01:**
+- Admin View separated from role-simulation views (HC, Atasan, Coach, Coachee) by dropdown-divider — Admin View is "return to real Admin mode" not a simulated role
+- SeedData Admin default changed to SelectedView="Admin" — only affects fresh seeds; existing DB users unaffected
 
 ### Roadmap Evolution
 
