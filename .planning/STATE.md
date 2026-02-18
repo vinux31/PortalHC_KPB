@@ -12,11 +12,11 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Milestone:** v1.1 CDP Coaching Management
 **Phase:** 6 of 7 (Approval Workflow & Completion) — In progress
-**Plan:** 2 of 3 (06-01 complete)
+**Plan:** 3 of 3 (06-02 complete)
 **Status:** In progress
-**Last activity:** 2026-02-18 — 06-01 complete: Approval workflow data foundation — 5 new columns on ProtonDeliverableProgresses, ProtonNotifications and ProtonFinalAssessments tables, 5 new ViewModels
+**Last activity:** 2026-02-18 — 06-02 complete: ApproveDeliverable/RejectDeliverable POSTs with sequential unlock and HC notification, Deliverable.cshtml approval/rejection UI
 
-Progress: [██████░░░░] ~60% milestone v1.1
+Progress: [███████░░░] ~70% milestone v1.1
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Progress: [██████░░░░] ~60% milestone v1.1
 | Phase 05-proton-deliverable-tracking P02 | 4 | 2 tasks | 4 files |
 | Phase 05-proton-deliverable-tracking P03 | 7 | 2 tasks | 2 files |
 | Phase 06-approval-workflow-completion P01 | 4 | 2 tasks | 5 files |
+| Phase 06-approval-workflow-completion P02 | 7 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +89,12 @@ Recent decisions affecting current work:
 - No KkjMatrixItem nav property on ProtonFinalAssessment — dropdown queries KkjMatrices DbSet separately to avoid cascade path conflicts
 - DeleteBehavior.Restrict on ProtonFinalAssessment -> ProtonTrackAssignment FK — consistent with all Proton FK relationships
 
+**From 06-02:**
+- CreateHCNotificationAsync implemented fully in Plan 02 (not a stub) — colocates cleanly with ApproveDeliverable; Plan 03 does not need to revisit it
+- HC role exempted from section check in Deliverable GET — HC reviews deliverables across all sections
+- In-memory all-approved check before SaveChangesAsync — orderedProgresses contains current record already mutated to "Approved" in memory; correct without a second DB round-trip
+- RejectDeliverable clears ApprovedById and ApprovedAt — prevents stale approval metadata if record was previously approved then re-submitted and rejected
+
 **From 05-03:**
 - UploadEvidence POST handles both Active and Rejected status — single action covers PROTN-04 and PROTN-05
 - Old evidence files kept on disk on resubmit (audit trail) — new filename stored in EvidencePath only
@@ -125,5 +132,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 06-01-PLAN.md — Approval workflow data foundation: 5 new columns on ProtonDeliverableProgresses, ProtonNotifications and ProtonFinalAssessments tables, 5 new ViewModels. Ready for Plan 02 (controller actions).
+Stopped at: Completed 06-02-PLAN.md — ApproveDeliverable/RejectDeliverable POSTs with sequential unlock and HC notification fan-out, Deliverable.cshtml approval/rejection/HC-review UI. Ready for Plan 03 (HCReviewDeliverable POST, HC Approval Queue, Final Assessment).
 Resume file: None
