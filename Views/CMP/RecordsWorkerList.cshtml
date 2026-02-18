@@ -2,13 +2,9 @@
 
 @{
     ViewData["Title"] = "Training Records - Worker List";
-    
-    // Calculate summary statistics
+
     var totalWorkers = Model.Count;
-    var avgCompletionRate = Model.Any() ? (int)Model.Average(w => w.CompletionPercentage) : 0;
-    var totalExpiring = Model.Sum(w => w.ExpiringSoonTrainings);
-    var workersWithExpiring = Model.Count(w => w.HasExpiringCertificates);
-    
+
     // Get unique units for filter
     var availableUnits = Model.Select(w => w.Unit).Distinct().OrderBy(u => u).ToList();
 }
@@ -152,7 +148,7 @@
                             <th class="p-3">Nopeg</th>
                             <th class="p-3">Jabatan</th>
                              <th class="p-3 text-center">Unit</th>
-                             <th class="p-3 text-center">Status</th>
+                             <th class="p-3">Completion</th>
                              <th class="p-3 text-center">Action</th>
                         </tr>
                     </thead>
@@ -178,19 +174,8 @@
                                 <td class="p-3">
                                     <small class="text-muted">@worker.Unit</small>
                                 </td>
-                                <td class="p-3 text-center">
-                                    @if (worker.CompletionPercentage == 100)
-                                    {
-                                        <span class="badge bg-success px-4 py-2 rounded-pill">
-                                            <i class="bi bi-check-circle-fill me-2"></i>SUDAH
-                                        </span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger px-4 py-2 rounded-pill">
-                                            <i class="bi bi-x-circle-fill me-2"></i>BELUM
-                                        </span>
-                                    }
+                                <td class="p-3">
+                                    <small class="text-muted">@worker.CompletionDisplayText</small>
                                 </td>
                                 <td class="p-3 text-center">
                                     <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewWorkerDetail('@worker.WorkerId', '@worker.WorkerName')" title="Lihat Detail">

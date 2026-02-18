@@ -1,4 +1,4 @@
-@model List<HcPortal.Models.TrainingRecord>
+@model List<HcPortal.Models.UnifiedTrainingRecord>
 
 @{
     ViewData["Title"] = "Worker Training Detail";
@@ -37,12 +37,12 @@
 
     <!-- Summary Cards -->
     <div class="row g-3 mb-4">
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-white-50 mb-2">Total Training</h6>
+                            <h6 class="text-white-50 mb-2">Total Records</h6>
                             <h2 class="fw-bold mb-0">@Model.Count</h2>
                         </div>
                         <div class="bg-white bg-opacity-25 rounded-circle p-3">
@@ -52,13 +52,13 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="text-white-50 mb-2">Completed</h6>
-                            <h2 class="fw-bold mb-0">@Model.Count(x => x.Status == "Passed" || x.Status == "Valid")</h2>
+                            <h6 class="text-white-50 mb-2">Selesai</h6>
+                            <h2 class="fw-bold mb-0">@Model.Count(x => (x.RecordType == "Assessment Online" && x.IsPassed == true) || (x.RecordType == "Training Manual" && (x.Status == "Passed" || x.Status == "Valid")))</h2>
                         </div>
                         <div class="bg-white bg-opacity-25 rounded-circle p-3">
                             <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
@@ -67,7 +67,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
             <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-center">
@@ -82,53 +82,15 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-2">Expiring Soon</h6>
-                            <h2 class="fw-bold mb-0">@Model.Count(x => x.ValidUntil.HasValue && x.ValidUntil.Value <= DateTime.Now.AddMonths(3))</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="bi bi-exclamation-triangle-fill" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Filter and Search Section -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
             <div class="row g-3 align-items-end">
-                <div class="col-md-4">
-                    <label class="form-label fw-bold small">Filter by Category</label>
-                    <select class="form-select" id="categoryFilter" onchange="filterRecords()">
-                        <option value="">All Categories</option>
-                        <option value="Proton">PROTON</option>
-                        <option value="OTS">OTS</option>
-                        <option value="OJT">OJT</option>
-                        <option value="IHT">IHT</option>
-                        <option value="MANDATORY">Mandatory HSSE</option>
-                        <option value="Training Licencor">Training Licencor</option>
-                        <option value="ISS">ISS</option>
-                        <option value="OSS">OSS</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold small">Filter by Status</label>
-                    <select class="form-select" id="statusFilter" onchange="filterRecords()">
-                        <option value="">All Status</option>
-                        <option value="Passed">Passed</option>
-                        <option value="Valid">Valid</option>
-                        <option value="Wait Certificate">Wait Certificate</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-bold small">Search Training</label>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search by training name..." onkeyup="filterRecords()">
+                <div class="col-md-8">
+                    <label class="form-label fw-bold small">Cari Judul</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Cari berdasarkan judul..." onkeyup="filterRecords()">
                 </div>
             </div>
         </div>
@@ -146,96 +108,66 @@
                 <table class="table table-hover align-middle mb-0" id="trainingTable">
                     <thead class="table-light">
                         <tr>
-                            <th class="p-3" style="width: 5%;">No</th>
-                            <th class="p-3" style="width: 30%;">Nama Training</th>
-                            <th class="p-3" style="width: 12%;">Kategori</th>
+                            <th class="p-3" style="width: 4%;">No</th>
                             <th class="p-3" style="width: 10%;">Tanggal</th>
-                            <th class="p-3" style="width: 15%;">Penyelenggara</th>
-                            <th class="p-3" style="width: 10%;">Status</th>
-                            <th class="p-3" style="width: 10%;">Valid Until</th>
-                            <th class="p-3 text-center" style="width: 8%;">Certificate</th>
+                            <th class="p-3" style="width: 14%;">Tipe</th>
+                            <th class="p-3" style="width: 22%;">Nama / Judul</th>
+                            <th class="p-3 text-center" style="width: 6%;">Score</th>
+                            <th class="p-3 text-center" style="width: 8%;">Pass/Fail</th>
+                            <th class="p-3" style="width: 12%;">Penyelenggara</th>
+                            <th class="p-3" style="width: 10%;">Tipe Sertifikat</th>
+                            <th class="p-3" style="width: 10%;">Berlaku Sampai</th>
+                            <th class="p-3" style="width: 8%;">Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         @{
                             int rowNumber = 1;
                         }
-                        @foreach (var record in Model.OrderByDescending(x => x.Tanggal))
+                        @foreach (var item in Model.OrderByDescending(x => x.Date).ThenBy(x => x.SortPriority))
                         {
-                            var statusBadge = record.Status switch
-                            {
-                                "Passed" => "bg-success",
-                                "Valid" => "bg-success",
-                                "Wait Certificate" => "bg-warning text-dark",
-                                _ => "bg-secondary"
-                            };
-
-                            var categoryBadge = record.Kategori switch
-                            {
-                                "Proton" => "bg-primary",
-                                "OTS" => "bg-info",
-                                "OJT" => "bg-warning text-dark",
-                                "IHT" => "bg-secondary",
-                                "MANDATORY" => "bg-danger",
-                                _ => "bg-dark"
-                            };
-
-                            var isExpiringSoon = record.ValidUntil.HasValue && record.ValidUntil.Value <= DateTime.Now.AddMonths(3) && record.ValidUntil.Value > DateTime.Now;
-                            var isExpired = record.ValidUntil.HasValue && record.ValidUntil.Value < DateTime.Now;
-
-                            <tr class="training-row" data-category="@record.Kategori" data-status="@record.Status" data-title="@(record.Judul?.ToLower() ?? "")">
+                            <tr class="training-row" data-title="@(item.Title.ToLower())">
                                 <td class="p-3 text-center">@rowNumber</td>
+                                <td class="p-3"><small>@item.Date.ToString("dd MMM yyyy")</small></td>
                                 <td class="p-3">
-                                    <div class="fw-bold">@record.Judul</div>
-                                </td>
-                                <td class="p-3">
-                                    <span class="badge @categoryBadge">@record.Kategori</span>
-                                </td>
-                                <td class="p-3">
-                                    <small>@record.Tanggal.ToString("dd MMM yyyy")</small>
-                                </td>
-                                <td class="p-3">
-                                    <small class="text-muted">@record.Penyelenggara</small>
-                                </td>
-                                <td class="p-3">
-                                    <span class="badge @statusBadge">@record.Status</span>
-                                </td>
-                                <td class="p-3">
-                                    @if (record.ValidUntil.HasValue)
-                                    {
-                                        if (isExpired)
-                                        {
-                                            <span class="badge bg-danger">
-                                                <i class="bi bi-x-circle me-1"></i>Expired
-                                            </span>
-                                        }
-                                        else if (isExpiringSoon)
-                                        {
-                                            <span class="badge bg-warning text-dark">
-                                                <i class="bi bi-exclamation-triangle me-1"></i>@record.ValidUntil.Value.ToString("dd MMM yyyy")
-                                            </span>
-                                        }
-                                        else
-                                        {
-                                            <small class="text-success">@record.ValidUntil.Value.ToString("dd MMM yyyy")</small>
-                                        }
-                                    }
+                                    @if (item.RecordType == "Assessment Online")
+                                    { <span class="badge rounded-pill bg-primary">Assessment Online</span> }
                                     else
-                                    {
-                                        <small class="text-muted">-</small>
-                                    }
+                                    { <span class="badge rounded-pill bg-success">Training Manual</span> }
                                 </td>
+                                <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
+                                <td class="p-3 text-center">@(item.Score.HasValue ? item.Score.ToString() : "—")</td>
                                 <td class="p-3 text-center">
-                                    @if (!string.IsNullOrEmpty(record.SertifikatUrl))
+                                    @if (item.IsPassed.HasValue)
                                     {
-                                        <a href="@record.SertifikatUrl" class="btn btn-sm btn-outline-primary" target="_blank" title="View Certificate">
-                                            <i class="bi bi-file-earmark-pdf"></i>
-                                        </a>
+                                        if (item.IsPassed == true) { <span class="badge bg-success">Pass</span> }
+                                        else { <span class="badge bg-danger">Fail</span> }
                                     }
-                                    else
+                                    else { <span class="text-muted">—</span> }
+                                </td>
+                                <td class="p-3"><small class="text-muted">@(item.Penyelenggara ?? "—")</small></td>
+                                <td class="p-3">@(item.CertificateType ?? "—")</td>
+                                <td class="p-3">
+                                    @if (item.ValidUntil.HasValue)
                                     {
-                                        <span class="text-muted">-</span>
+                                        <div>@item.ValidUntil.Value.ToString("dd MMM yyyy")</div>
+                                        @if (item.IsExpired)
+                                        { <span class="badge bg-danger mt-1">Expired</span> }
                                     }
+                                    else { <span class="text-muted">—</span> }
+                                </td>
+                                <td class="p-3">
+                                    @{
+                                        var sc = item.Status switch {
+                                            "Passed" => "bg-success", "Valid" => "bg-success",
+                                            "Failed" => "bg-danger",
+                                            "Wait Certificate" => "bg-warning text-dark",
+                                            _ => "bg-secondary"
+                                        };
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Status))
+                                    { <span class="badge @sc">@item.Status</span> }
+                                    else { <span class="text-muted">—</span> }
                                 </td>
                             </tr>
                             rowNumber++;
@@ -272,25 +204,13 @@
 
 <script>
     function filterRecords() {
-        const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
-        const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
         const searchInput = document.getElementById('searchInput').value.toLowerCase();
         const rows = document.querySelectorAll('.training-row');
 
         rows.forEach(row => {
-            const category = row.getAttribute('data-category').toLowerCase();
-            const status = row.getAttribute('data-status').toLowerCase();
             const title = row.getAttribute('data-title');
-
-            const categoryMatch = !categoryFilter || category === categoryFilter;
-            const statusMatch = !statusFilter || status === statusFilter;
             const searchMatch = !searchInput || title.includes(searchInput);
-
-            if (categoryMatch && statusMatch && searchMatch) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
-            }
+            row.style.display = searchMatch ? '' : 'none';
         });
 
         // Update row numbers
@@ -311,19 +231,22 @@
             return;
         }
 
-        let csv = 'No,Nama Training,Kategori,Tanggal,Penyelenggara,Status,Valid Until\n';
+        let csv = 'No,Tanggal,Tipe,Nama/Judul,Score,Pass/Fail,Penyelenggara,Tipe Sertifikat,Berlaku Sampai,Status\n';
 
         rows.forEach((row, index) => {
             const cells = row.querySelectorAll('td');
             const no = index + 1;
-            const nama = cells[1].querySelector('.fw-bold').textContent.trim();
-            const kategori = cells[2].textContent.trim();
-            const tanggal = cells[3].textContent.trim();
-            const penyelenggara = cells[4].textContent.trim();
-            const status = cells[5].textContent.trim();
-            const validUntil = cells[6].textContent.trim();
+            const tanggal = cells[1].textContent.trim();
+            const tipe = cells[2].textContent.trim();
+            const nama = cells[3].textContent.trim();
+            const score = cells[4].textContent.trim();
+            const passFail = cells[5].textContent.trim();
+            const penyelenggara = cells[6].textContent.trim();
+            const tipeSertifikat = cells[7].textContent.trim();
+            const berlakuSampai = cells[8].textContent.trim();
+            const status = cells[9].textContent.trim();
 
-            csv += `${no},"${nama}","${kategori}","${tanggal}","${penyelenggara}","${status}","${validUntil}"\n`;
+            csv += `${no},"${tanggal}","${tipe}","${nama}","${score}","${passFail}","${penyelenggara}","${tipeSertifikat}","${berlakuSampai}","${status}"\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
