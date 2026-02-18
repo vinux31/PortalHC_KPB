@@ -1,8 +1,23 @@
-# Feature Research: CDP Coaching Management
+# Feature Research: v1.2 UX Consolidation
 
-**Domain:** HR Coaching Session Management & Development Dashboard
-**Researched:** 2026-02-17
-**Confidence:** HIGH
+**Domain:** HR Portal UX consolidation — role-filtered views, merged heterogeneous history tables, role-scoped dashboard tabs, clean feature removal
+**Researched:** 2026-02-18
+**Confidence:** HIGH (grounded in existing codebase; UX patterns verified against codebase behavior)
+
+---
+
+## Context: What Already Exists
+
+This milestone refactors four areas of an already-shipped product. The data models, controller logic, and authorization are in place. Work is pure UX restructuring — no new data, no new migrations.
+
+| Already Exists | What Changes in v1.2 |
+|---|---|
+| `AssessmentSession` with Status: Open / Upcoming / Completed | Page splits by role: workers see only Open+Upcoming; HC/Admin get Management + Monitoring tabs |
+| `TrainingRecord` (manual entries, category tabs) | Merged with `AssessmentSession` completed records into one unified table, type-differentiated columns |
+| `DevDashboard` (Proton Progress, Spv-scoped) | Becomes tab 1 of a Unified Dashboard; Assessment Analytics becomes tab 2 (HC/Admin only) |
+| `CompetencyGap` radar chart page at CMP/CompetencyGap | Removed. Entry point and nav links deleted. No data model changes. |
+
+---
 
 ## Feature Landscape
 
@@ -10,280 +25,213 @@
 
 Features users assume exist. Missing these = product feels incomplete.
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| **Log coaching sessions** | Core functionality - supervisors must record 1-on-1 meetings with date, topic, and notes | LOW | Industry standard per [UC Berkeley HR](https://hr.berkeley.edu/hr-network/central-guide-managing-hr/managing-hr/managing-successfully/performance-management/check-in/coaching). Already has CoachingLog model with TrackingItem relation. |
-| **Document session notes** | HR compliance requires factual, objective session documentation | MEDIUM | Must follow best practices: objective/factual language, concise summaries, essential elements documented per [HR Certification](https://hrcertification.com/blog/hr-documentation-best-practices-biid1000103). |
-| **Track action items from sessions** | Every coaching session produces actionable follow-ups that need tracking | MEDIUM | 97% of users rate task management as important per [GetApp coaching software analysis](https://www.getapp.com/hr-employee-management-software/coaching/f/session-notes/). AI-powered action item extraction becoming standard in 2026. |
-| **Schedule/calendar integration** | Users expect two-way calendar sync to avoid double-booking | MEDIUM | 97% of reviewers rated calendar sync as important per [GetApp](https://www.getapp.com/hr-employee-management-software/coaching/f/session-notes/). Essential for supervisor workflow. |
-| **Session history view** | Both coach and coachee need access to past sessions for continuity | LOW | Standard chronological list with filtering. Part of coaching continuity best practices. |
-| **Approval workflow for action items** | Corporate hierarchy requires multi-level approval (SrSpv → SectionHead → HC) | HIGH | Already implemented in IdpItem model (ApproveSrSpv, ApproveSectionHead, ApproveHC). Must extend to coaching action items. Critical for Pertamina governance. |
-| **Competency progress visualization** | Users expect to see how competency levels change over time | HIGH | Radar charts and skill matrices are standard per [TalentGuard](https://www.talentguard.com/competency-management-system). Already using Chart.js in v1.0 (CompetencyGap radar). |
-| **Development dashboard (personal)** | Coachees need a single view showing their goals, progress, gaps, and recent activity | MEDIUM | Employee dashboards showing skills, gaps, and learning resources are table stakes per [iMocha](https://www.imocha.io/blog/skills-tracking-software). |
-| **Supervisor team view** | Supervisors need aggregated view of their team's development status | MEDIUM | Skills matrix dashboards filtered by team/department/role are standard per [Weever](https://weeverapps.com/reporting-dashboard/training-dashboards/skills-matrix-report/). |
-| **Progress tracking with metrics** | Both parties expect quantifiable progress indicators (completion %, competency levels, assessment scores) | LOW | Industry standard: track performance metrics, skill assessments, retention/promotion rates per [AIHR IDP guide](https://www.aihr.com/blog/individual-development-plan-examples/). |
-| **Link sessions to competency gaps** | Sessions should reference which competency gaps are being addressed | MEDIUM | Depends on existing AssessmentCompetencyMap and UserCompetencyLevel from v1.0. Integration pattern already established. |
-| **Export/reporting capability** | HC needs to generate reports on coaching activity and development trends | MEDIUM | Excel export already implemented in v1.0 (ClosedXML). Extend to coaching sessions. Standard HR workflow automation per [Aelum](https://aelumconsulting.com/blogs/hr-workflow-automation-chro-guide/). |
+| Feature | Why Expected | Complexity | Data Dependency |
+|---------|--------------|------------|-----------------|
+| **Workers see only actionable assessments** | Showing completed items to Coachee/Coach is noise — they have nothing to act on. Standard list-page UX: filter to items requiring attention. | LOW | `AssessmentSession.Status` already exists. Controller already separates personal vs manage view. Gate needs to filter to "Open" + "Upcoming" only for RoleLevel >= 5. |
+| **HC/Admin get separate Management tab** | HC needs to create, edit, delete, and assign assessments. Personal view conflates this with taking exams. Two intents = two tabs. | MEDIUM | `canManage` ViewBag already signals HC/Admin. Currently a toggle button; needs to become named tabs. |
+| **HC/Admin get Monitoring tab (all users' assessments)** | HC oversight: see every user's status across Open/Upcoming/Completed. Currently implemented as "manage view" but visually undifferentiated. | MEDIUM | Controller already fetches all sessions for manage view. Tab label and content scope need separation from Management (CRUD) intent. |
+| **Completed assessments preserved in Training Records** | When an assessment completes, users expect their history somewhere. Removing from Assessment page requires it appear in Training Records. | MEDIUM | `AssessmentSession` with `Status == "Completed"` + `CompletedAt` exists. Training Records query must `UNION` TrainingRecord rows + completed AssessmentSession rows. No new migration needed. |
+| **Unified history table shows type-differentiated columns** | Heterogeneous rows (manual TrainingRecord vs system-generated AssessmentSession) have different metadata. Users expect columns relevant to each type to render, with graceful empty-column handling for the other type. | MEDIUM | `TrainingRecord` has: Judul, Kategori, Tanggal, Penyelenggara, Status, SertifikatUrl, ValidUntil, CertificateType. `AssessmentSession` has: Title, Category, Schedule, Score, IsPassed, PassPercentage, CompletedAt. These overlap partially (title, category, date) and diverge (certificate fields vs score fields). |
+| **Source badge distinguishes record types in merged table** | When two different data sources merge into one table, users need to know which rows are from which source to understand what actions are available. | LOW | New "Type" column with badge: "Assessment" vs "Training" badges. No DB change. |
+| **Empty state per tab** | If a worker has no Open assessments, the tab must show a meaningful empty state — not just a blank card grid. | LOW | Pattern already exists in Assessment.cshtml (bi-inbox icon + contextual message). Replicate for new tab structure. |
+| **Proton Progress dashboard scoped by role** | All roles should see Proton progress, but scoped: Coachee sees own, Coach sees team, SectionHead sees section, HC sees all. | LOW | `DevDashboard` already implements scope via `ScopeLabel` and `CoacheeRows`. Controller already scopes by role. This tab is a lift-and-shift. |
+| **Assessment Analytics tab (HC/Admin only)** | HC/Admin need assessment-level aggregates (pass rates, category breakdowns) in the same dashboard surface as Proton progress. Currently it is a separate Reports page (CMP/ReportsIndex). | MEDIUM | `ReportsIndex` logic, `ReportsDashboardViewModel`, and Chart.js analytics already exist. Consolidation: embed summary cards + link to full reports, OR replicate the cards inline. |
+| **Role gate on Assessment Analytics tab** | Non-HC/Admin users must not see the Analytics tab, not even as a disabled tab. Hiding the tab entirely (not disabling it) is the correct pattern for role-exclusive content. | LOW | ASP.NET Identity `User.IsInRole()` check in Razor already used throughout. Apply same pattern to tab rendering. |
+| **Gap Analysis removed cleanly from navigation** | If a feature is removed, all entry points (nav links, index page cards, breadcrumbs) must be removed. Orphaned links that 404 destroy trust. | LOW | Entry points: `Views/CMP/Index.cshtml` card link, `Views/Shared/_Layout.cshtml` nav items. No route deletion needed — action method can remain (defensive), but all links removed. |
 
-### Differentiators (Competitive Advantage)
+### Differentiators (Design Quality, Not Functional)
 
-Features that set the product apart. Not required, but valuable.
+These make the consolidation feel polished rather than bolted together.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Auto-suggest IDP actions from gaps** | AI-driven recommendations based on competency gap analysis save time and improve development quality | MEDIUM | v1.0 already has IDP suggestions from CPDP framework. Extend to coaching context. GrowthSpace model: AI analytics + 1-on-1 coaching per [AIHR](https://www.aihr.com/blog/coaching-plan-template/). |
-| **Coaching effectiveness metrics** | Show correlation between coaching frequency and competency improvement (e.g., "5 sessions → +2 competency levels") | HIGH | Advanced analytics: coaching session count vs competency level progression. Differentiator for data-driven HC teams. |
-| **Session templates/frameworks** | Pre-built templates for common coaching scenarios (performance issue, skill development, career planning) | LOW | Structured pathways while allowing personalization per [Thrive Partners 2026 trends](https://thrivepartners.co.uk/content/coaching-in-2026-7-trends-hr-and-ld-leaders-cant-ignore/). Templates standardize quality. |
-| **Cross-functional competency tracking** | Track both technical (KKJ) and behavioral (CPDP) competencies in unified view | MEDIUM | Portal HC KPB advantage: already has KKJ + CPDP integration. Leverage existing dual-framework approach. |
-| **Goal cascading visualization** | Show how individual development goals align with section/unit/directorate objectives | HIGH | Strategic alignment visualization. Requires organizational goal data (not currently in system). High value for HC reporting. |
-| **Development timeline/roadmap** | Visual timeline showing past assessments, coaching sessions, milestones, and future goals | MEDIUM | Gantt-style view of development journey. Helps coachees see long-term progress and plan ahead. |
-| **Peer comparison (anonymized)** | Show how user's competency levels compare to section/position averages | MEDIUM | Motivational when anonymized. Requires aggregate queries on UserCompetencyLevel. Privacy-sensitive - needs careful UX. |
-| **Coaching notes AI summary** | Automatically summarize key points from session notes using AI | HIGH | 2026 trend: AI-enabled platforms with automatic note-taking per [Thrive Partners](https://thrivepartners.co.uk/content/coaching-in-2026-7-trends-hr-and-ld-leaders-cant-ignore/). Requires LLM integration (out of current tech stack). |
-| **Mobile-friendly responsive design** | Coaching logs and dashboards accessible on mobile devices for field workers | MEDIUM | Portal HC KPB is web-only but Razor views can be made responsive. High value for Pertamina field operations. |
-| **Group coaching session support** | Log group coaching sessions with multiple participants | LOW | 2026 trend: group coaching gaining traction per [Thrive Partners](https://thrivepartners.co.uk/content/coaching-in-2026-7-trends-hr-and-ld-leaders-cant-ignore/). Shared learning and accountability without sacrificing depth. |
+| **Count badges on Assessment tabs** | "Open (3) / Upcoming (1)" badges on tabs let users see their load without clicking. Standard tab-badge pattern in HR portals. | LOW | Data is already fetched server-side. Pass counts to ViewBag. Render in tab `<span class="badge">` element. |
+| **Persistent tab state via URL query param** | When HC navigates away from "Monitoring" tab and returns, they should land back on Monitoring. Use `?tab=monitoring` query param to restore. | LOW | Assessment.cshtml already uses `?view=manage` parameter. Extend same pattern to tabs. |
+| **Merged table sorted with most recent first** | When TrainingRecords and AssessmentSessions are unioned, sort order must be consistent. Most-recent-first is the universal expectation. | LOW | `OrderByDescending(x => x.Date)` on unified result list. Need common date property across both types. |
+| **Score column shown only for Assessment rows** | The merged table should render Score/Pass badge only on Assessment-type rows. Manual TrainingRecord rows show certificate columns only. | LOW | Conditional rendering in Razor based on row type. No data change. Pattern: `@if (row.SourceType == "Assessment") { ... }`. |
+| **Expiry warning preserved in merged table** | `TrainingRecord.IsExpiringSoon` and `DaysUntilExpiry` logic must survive the merge. The existing alert banner on the old Records page should migrate. | LOW | Properties already on `TrainingRecord` model. Unified ViewModel must expose these for TrainingRecord-type rows. |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-Features (Explicitly Avoid)
 
-Features that seem good but create problems.
+| Anti-Feature | Why Avoid | What to Do Instead |
+|---|---|---|
+| **Soft-hiding Assessment Analytics for workers** | Rendering a grayed-out or disabled Analytics tab for Coachees creates confusion about why it's unavailable. They have no context for what the tab would do. | Conditional `@if (User.IsInRole("HC") or "Admin")` in Razor. If condition is false, tab is not rendered at all. Workers see a single-tab dashboard (Proton Progress) with no indication of hidden content. |
+| **Deleting `CompetencyGap` controller action** | Removing the route entirely risks 404s from bookmarks, external links, or cached navigation. | Keep the controller action. Remove all navigation entry points. Optionally redirect the route to the Training Records page with a notice. |
+| **Merging Training Records into AssessmentSession model** | The two types have fundamentally different schemas, approval workflows, and lifecycle states. A DB schema merge would require a migration and create nullable nulls everywhere. | Unified display ViewModel in the controller. Pull both types, project to a shared DTO with `SourceType`, union in memory, sort, pass to view. Zero schema change. |
+| **Real-time tab badge refresh** | Dynamically updating "Open (3)" badge counts via polling adds complexity and server load. | Server-side counts on page load. Refresh on tab click (which triggers a full tab reload in server-rendered MVC anyway). |
+| **Separate URLs per dashboard tab** | Using `/CDP/Dashboard/Proton` and `/CDP/Dashboard/Analytics` as separate URLs doubles controller actions and breaks back navigation. | Single URL `/CDP/Dashboard?tab=analytics`. Bootstrap tab state driven by query param on page load. |
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| **Real-time collaboration** | Teams want simultaneous editing of coaching notes | Adds significant technical complexity (WebSockets, conflict resolution) for minimal value. Coaching notes are typically private supervisor-coachee documents. | Use simple edit timestamps and "last updated by" indicator. Coaching is inherently asynchronous. |
-| **Unlimited custom fields** | Users want to track "everything" about coaching sessions | Creates data sprawl, inconsistent reporting, and poor UX. HC can't analyze data when every team uses different fields. | Provide 2-3 optional custom text fields maximum. Enforce standard structure for reportable data. |
-| **Gamification (points/badges)** | Make development "fun" and "engaging" | Development is serious professional growth. Gamification can trivialize competency gaps and create wrong incentives (gaming the system vs actual skill improvement). | Use clear progress metrics and competency level advancement. Intrinsic motivation > extrinsic rewards. |
-| **Public coaching notes** | "Transparency" advocates want all notes visible to team | Violates psychological safety of coaching relationship. Supervisors won't document honestly if notes are public. HR compliance requires confidentiality per [HR Acuity](https://www.hracuity.com/blog/workplace-documentation-best-practices/). | Keep notes private to coach/coachee/HC. Share action items and outcomes (not process notes). |
-| **Automatic scheduling** | AI automatically books coaching sessions | Removes human agency and can create resentment. Coaching timing matters - auto-scheduling can't judge readiness or urgency. Calendar integration already handles 97% of value. | Provide scheduling suggestions based on past patterns. Let supervisor/coachee agree on timing. |
-| **Video call integration** | Embed Zoom/Teams directly in portal | Pertamina likely already has corporate video solution. Duplicating video infrastructure adds complexity and cost. Single sign-on integration is fragile. | Use calendar integration. Let video platform link appear in session notes. Focus on session documentation, not hosting. |
-| **Blockchain-verified credentials** | "Immutable" record of coaching sessions | Massive over-engineering. No HR compliance need for blockchain. Traditional audit logging sufficient for legal defensibility. | Use standard database audit fields (CreatedAt, UpdatedAt, CreatedBy). Rely on SQL Server transaction logs. |
-| **Anonymous coaching feedback** | Coachees rate supervisors anonymously | Damages trust in coaching relationship. Coaching is developmental (not evaluative). Anonymous feedback creates defensiveness vs growth mindset. | Use upward feedback in separate performance management process. Keep coaching developmental and non-evaluative. |
+---
 
 ## Feature Dependencies
 
 ```
-[Coaching Session Logging]
-    └──requires──> [ApplicationUser] (existing)
-    └──requires──> [CoachingLog model] (existing, needs extension)
+[Feature 1: Assessment Page Split by Role]
+    └──reads──> AssessmentSession.Status (existing)
+    └──reads──> ApplicationUser.RoleLevel (existing)
+    └──reads──> canManage flag (existing ViewBag pattern)
+    └──replaces──> current personal/manage toggle button
 
-[Action Items from Sessions]
-    └──requires──> [Coaching Session Logging]
-    └──requires──> [Approval Workflow] (existing in IdpItem)
+[Feature 2: Unified Training Records Table]
+    └──reads──> TrainingRecord (existing — all fields)
+    └──reads──> AssessmentSession WHERE Status == "Completed" (existing)
+    └──requires──> new ViewModel: UnifiedTrainingHistoryRow (no migration)
+    └──replaces──> current category-tab Records.cshtml layout
 
-[Development Dashboard (Personal)]
-    └──requires──> [UserCompetencyLevel] (existing from v1.0)
-    └──requires──> [AssessmentSession history] (existing from v1.0)
-    └──requires──> [Coaching Session history]
-    └──requires──> [Action Items tracking]
+[Feature 3: Unified Dashboard with Role-Scoped Tabs]
+    └──requires──> DevDashboard (existing — lift-and-shift as Tab 1)
+    └──requires──> ReportsIndex summary data (existing — embed in Tab 2)
+    └──reads──> User.IsInRole("HC") or User.IsInRole("Admin") for tab 2 gate
+    └──replaces──> CDP/Dashboard.cshtml (static mock data) and CDP/DevDashboard.cshtml (separate page)
 
-[Development Dashboard (Supervisor)]
-    └──requires──> [Development Dashboard (Personal)]
-    └──requires──> [Section filtering] (existing in User model)
-    └──enhances──> [Team competency visualization]
-
-[Session Notes Documentation]
-    └──requires──> [Coaching Session Logging]
-    └──enhances──> [HR Compliance] (best practices)
-
-[Calendar Integration]
-    └──requires──> [Coaching Session Logging]
-    └──optional──> External calendar API (Google/Outlook)
-
-[Link Sessions to Competency Gaps]
-    └──requires──> [Coaching Session Logging]
-    └──requires──> [UserCompetencyLevel] (existing from v1.0)
-    └──requires──> [AssessmentCompetencyMap] (existing from v1.0)
-
-[Progress Visualization]
-    └──requires──> [UserCompetencyLevel history]
-    └──requires──> [AssessmentSession completion dates] (existing)
-    └──requires──> [Chart.js] (already integrated in v1.0)
-
-[Export Coaching Reports]
-    └──requires──> [Coaching Session Logging]
-    └──requires──> [ClosedXML] (already integrated in v1.0)
-
-[Auto-suggest IDP actions]
-    └──requires──> [UserCompetencyLevel] (gaps)
-    └──requires──> [CPDP mapping] (existing from v1.0)
-    └──enhances──> [Action Items from Sessions]
-
-[Coaching Effectiveness Metrics]
-    └──requires──> [Coaching Session history]
-    └──requires──> [UserCompetencyLevel history]
-    └──requires──> Advanced analytics queries
+[Feature 4: Gap Analysis Removal]
+    └──removes──> nav link in _Layout.cshtml
+    └──removes──> card in CMP/Index.cshtml
+    └──keeps──> CMPController.CompetencyGap() action (defensive preservation)
+    └──no DB change, no migration
 ```
 
 ### Dependency Notes
 
-- **CoachingLog model exists but is incomplete:** Current model links to TrackingItem (undefined relationship). Needs action items collection, better status tracking, and competency gap linkage.
-- **Approval workflow proven pattern:** IdpItem already implements 3-level approval (SrSpv → SectionHead → HC). Reuse for coaching action items.
-- **Chart.js already integrated:** v1.0 uses Chart.js for radar charts (CompetencyGap) and analytics (ReportsIndex). Extend for progress timelines.
-- **ClosedXML already integrated:** v1.0 uses ClosedXML for Excel export. Extend to coaching session reports.
-- **CMP integration established:** v1.0 built full integration loop (Assessments → KKJ → CPDP → IDP). CDP coaching should leverage this infrastructure.
+- **Features 1 and 2 are independent.** Either can ship alone without the other. They touch different pages (Assessment vs Records).
+- **Feature 3 depends on DevDashboard being stable.** DevDashboard (Phase 07) is complete and verified. Tab wrapping is safe.
+- **Feature 4 is zero-risk.** No data, no model, no migration. Pure Razor deletion. Can be done in minutes and should be first.
+- **Feature 2 requires a new ViewModel.** The `UnifiedTrainingHistoryRow` DTO is the only new code artifact of substance in this milestone.
 
-## MVP Definition
+---
 
-### Launch With (v1.1)
+## Detailed Behavior Specification per Feature
 
-Minimum viable product for coaching session management.
+### Feature 1: Assessment Page Split (Role-Filtered List)
 
-- [x] **Log coaching sessions** — Date, topic, notes, coach/coachee identification. Core CoachingLog model enhancement.
-- [x] **Document action items** — Each session can have 0-N action items with description, due date, status.
-- [x] **Approval workflow for action items** — Reuse IdpItem approval pattern (SrSpv → SectionHead → HC).
-- [x] **Session history view** — Chronological list of sessions for coach and coachee. Filter by date range, status.
-- [x] **Link sessions to competency gaps** — Reference UserCompetencyLevel gaps when creating session. Shows which competencies session addresses.
-- [x] **Personal development dashboard** — Single view showing: current competency levels (radar), recent assessments, coaching sessions, active action items, IDP status.
-- [x] **Supervisor team view** — Aggregated view: list of team members, their competency gaps, last coaching session date, pending action items count.
-- [x] **Progress visualization** — Line chart showing competency level changes over time. Use existing Chart.js integration.
-- [x] **Export coaching reports** — Excel export for coaching sessions (HC/SectionHead). Use existing ClosedXML pattern.
-- [x] **Integration with CMP gap data** — Pre-fill competency gaps in coaching session creation. Show assessment results that created gaps.
+**Worker view (RoleLevel >= 5: Coach, Coachee, SrSpv when in Coach view):**
+- Shows: Open tab (default active) + Upcoming tab
+- Does NOT show: Completed tab, Manage tab, Monitoring tab
+- Empty state on Open tab: "No assessments available right now. Your HC will assign assessments as needed." (not a create button)
+- Empty state on Upcoming tab: "No upcoming assessments scheduled."
+- No count badges needed — workers rarely have many assessments
 
-**Rationale:** These features deliver core value (coaching documentation + development tracking) while leveraging v1.0 infrastructure (Chart.js, ClosedXML, approval workflow, CMP integration). Focused on HC workflow compliance and supervisor-coachee collaboration.
+**HC/Admin view:**
+- Tab 1: "Management" — create, edit, delete, regen token. Existing manage-view cards.
+- Tab 2: "Monitoring" — all users' sessions visible with Open/Upcoming/Completed sub-filter. Existing personal-view cards but showing all users.
+- Tab 3 (optional, if Admin SelectedView is personal): "My Assessments" — own Open + Upcoming only
+- Count badges on Management tab: total count of all sessions
 
-### Add After Validation (v1.2+)
+**Controller impact:** `Assessment()` action already receives `view` param. Extend to `tab` param. Logic stays the same; view layer changes.
 
-Features to add once core is working and users provide feedback.
+**Key constraint:** Completed items never shown to workers on the Assessment page. They appear only in Training Records (Feature 2).
 
-- [ ] **Calendar integration** — Two-way sync with Google/Outlook calendars. Requires external API integration (complexity).
-- [ ] **Session templates** — Pre-built templates for common coaching scenarios. Wait to see what patterns emerge organically.
-- [ ] **Auto-suggest IDP actions** — AI-driven recommendations from gaps. Validate that manual action item creation works first.
-- [ ] **Development timeline** — Visual roadmap of past/future development activities. Nice visualization but not critical for v1.1.
-- [ ] **Mobile-responsive design** — Optimize dashboards for mobile. Current Razor views work but aren't optimized. Add if field users request.
-- [ ] **Peer comparison (anonymized)** — Compare competency levels to section averages. Wait for sufficient data volume.
-- [ ] **Group coaching support** — Log sessions with multiple participants. Validate demand first (may not be Pertamina pattern).
+---
 
-**Trigger for adding:** User feedback indicating demand, sufficient data volume (for comparisons/timelines), or HC requesting advanced analytics.
+### Feature 2: Unified Training Records Table
 
-### Future Consideration (v2+)
+**Expected columns (unified row):**
 
-Features to defer until product-market fit is established.
+| Column | TrainingRecord source | AssessmentSession source |
+|---|---|---|
+| Type | "Training" badge | "Assessment" badge |
+| Title / Judul | `TrainingRecord.Judul` | `AssessmentSession.Title` |
+| Category | `TrainingRecord.Kategori` | `AssessmentSession.Category` |
+| Date | `TrainingRecord.Tanggal` | `AssessmentSession.CompletedAt` |
+| Provider / Source | `TrainingRecord.Penyelenggara` | "System Assessment" (hardcoded) |
+| Score | — (empty) | `AssessmentSession.Score` + Pass/Fail badge |
+| Certificate Type | `TrainingRecord.CertificateType` | — (empty) |
+| Valid Until | `TrainingRecord.ValidUntil` | — (empty) |
+| Status | `TrainingRecord.Status` | "Passed" / "Failed" derived from `IsPassed` |
+| Actions | Download/View certificate if `SertifikatUrl` set | View Results link to `/CMP/Results/{id}` |
 
-- [ ] **Coaching effectiveness metrics** — Correlation analysis between coaching frequency and competency improvement. Requires statistical analysis capability and long-term data.
-- [ ] **Goal cascading visualization** — Align individual goals to organizational objectives. Requires organizational goal data not currently in system.
-- [ ] **AI session note summary** — Automatically summarize session notes. Requires LLM integration (significant tech stack change).
-- [ ] **Real-time collaboration** — Simultaneous editing (anti-feature for most use cases, but may have niche value).
-- [ ] **Video call integration** — Embed video platform. Likely not needed if calendar integration works.
+**What replaces the old category tabs:** Category tabs (PROTON, OTS, OJT, IHT, MANDATORY) are replaced by a single "All History" view with a Category dropdown filter. Filtering now works across both record types.
 
-**Why defer:** These require significant new infrastructure (AI/LLM, organizational goal data, WebSockets), statistical analysis capabilities, or address edge cases. Focus on core coaching workflow first.
+**Expiry warning:** The existing `IsExpiringSoon` / `DaysUntilExpiry` alert banner is retained. It applies only to TrainingRecord rows. AssessmentSession rows never have certificate expiry.
+
+**Summary stat cards (top of page):** Retain the 4-card row (Total Training, Valid/Passed, Pending, Expiring Soon). Count TrainingRecord rows only for cert-specific stats; count AssessmentSession completed rows in Total.
+
+**Controller change:** `Records()` action builds `List<UnifiedTrainingHistoryRow>`. For workers: union own TrainingRecords + completed AssessmentSessions, order by date desc. For HC/Admin: same but for any `workerId` parameter (existing WorkerDetail path preserved).
+
+---
+
+### Feature 3: Unified Dashboard with Role-Scoped Tabs
+
+**Tab 1: "Proton Progress" (all authenticated roles)**
+- Content: exact `DevDashboard.cshtml` content
+- Scoped by role exactly as DevDashboard currently works
+- Coachee sees own progress; Coach sees team; SectionHead sees section; HC sees all
+
+**Tab 2: "Assessment Analytics" (HC and Admin only)**
+- Tab not rendered at all for other roles (not hidden, not disabled — absent)
+- Content: summary cards from `ReportsIndex` + Chart.js pass-rate chart + link "View Full Reports" → CMP/ReportsIndex
+- Does not duplicate the full paginated table — just the KPI cards (Total Completed, Pass Rate, Avg Score) and the category breakdown chart
+
+**Default tab:**
+- HC/Admin: Assessment Analytics (they arrive for oversight)
+- All other roles: Proton Progress (their primary task-oriented view)
+- Controlled by `?tab=analytics` / `?tab=proton` query param, defaulting by role if param absent
+
+**Replaces:**
+- `Views/CDP/Dashboard.cshtml` — the current static-data IDP monitoring page (confusing, unused data)
+- `Views/CDP/DevDashboard.cshtml` — currently a standalone page, becomes Tab 1
+
+---
+
+### Feature 4: Gap Analysis Clean Removal
+
+**What is removed (exhaustive list):**
+1. Card in `Views/CMP/Index.cshtml` linking to CompetencyGap
+2. Any nav sidebar/menu entry in `Views/Shared/_Layout.cshtml` pointing to CMP/CompetencyGap
+3. Any breadcrumb or "back" link referencing CompetencyGap from related pages (CpdpProgress, WorkerDetail)
+
+**What is NOT removed:**
+- `CMPController.CompetencyGap()` action — kept for safety (zero cost)
+- `CompetencyGapViewModel`, `CompetencyGapItem` models — kept (no harm)
+- `Views/CMP/CompetencyGap.cshtml` — kept (no harm; inaccessible without nav entry)
+- The underlying `UserCompetencyLevel` data — unchanged
+
+**Why removed:** The Gap Analysis page duplicates information available in CPDP Progress (`CpdpProgress.cshtml`) and is redundant once the Proton workflow covers development tracking. No user-facing loss since gap data remains visible via CpdpProgress.
+
+---
+
+## MVP Definition for v1.2
+
+### Ship in v1.2 (all four features)
+
+- [x] **Assessment page: worker view restricted to Open + Upcoming** — Removes noise, eliminates irrelevant completed-item cards from the worker's assessment lobby.
+- [x] **Assessment page: HC/Admin tabs (Management + Monitoring)** — Separates CRUD intent from oversight intent. Currently conflated in a single toggle.
+- [x] **Unified Training Records table** — Merges AssessmentSession completed rows into TrainingRecord view. Workers get full history in one place.
+- [x] **Unified Dashboard: Proton Progress + Assessment Analytics tabs** — Consolidates two separate pages into one contextual surface.
+- [x] **Gap Analysis entry points removed** — Clean up. Zero risk. First thing to do.
+
+### Defer to v1.3+
+
+- [ ] **Inline Assessment Analytics (full table in dashboard)** — Embedding the full paginated ReportsIndex in a dashboard tab is complex. Show KPI cards + link instead.
+- [ ] **Training Records: pagination for unified table** — When rows from both sources grow large, pagination needed. Not required at current data volume.
+- [ ] **Assessment page: "My Assessments" personal tab for Admin** — Admin using SelectedView=Coachee needs personal assessment view. Deferred until Admin SelectedView is fully verified post-08.
+
+---
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Log coaching sessions | HIGH | LOW | P1 |
-| Action items tracking | HIGH | MEDIUM | P1 |
-| Approval workflow (action items) | HIGH | LOW (reuse existing) | P1 |
-| Session history view | HIGH | LOW | P1 |
-| Link to competency gaps | HIGH | MEDIUM | P1 |
-| Personal development dashboard | HIGH | MEDIUM | P1 |
-| Supervisor team view | HIGH | MEDIUM | P1 |
-| Progress visualization (chart) | HIGH | MEDIUM (reuse Chart.js) | P1 |
-| Export coaching reports | MEDIUM | LOW (reuse ClosedXML) | P1 |
-| Document session notes (compliance) | HIGH | LOW | P1 |
-| Calendar integration | MEDIUM | MEDIUM | P2 |
-| Session templates | MEDIUM | LOW | P2 |
-| Auto-suggest IDP actions | MEDIUM | MEDIUM | P2 |
-| Development timeline | MEDIUM | MEDIUM | P2 |
-| Mobile-responsive design | MEDIUM | MEDIUM | P2 |
-| Peer comparison | LOW | MEDIUM | P2 |
-| Group coaching | LOW | LOW | P2 |
-| Coaching effectiveness metrics | MEDIUM | HIGH | P3 |
-| Goal cascading | LOW | HIGH | P3 |
-| AI note summary | LOW | HIGH | P3 |
+| Gap Analysis removal | LOW (cleanup only) | LOW (nav deletions) | P1 — do first, zero risk |
+| Assessment page worker filter | HIGH | LOW | P1 |
+| Assessment page HC/Admin tabs | HIGH | LOW | P1 |
+| Unified Training Records table | HIGH | MEDIUM | P1 |
+| Unified Dashboard tabs | MEDIUM | MEDIUM | P1 |
+| Count badges on Assessment tabs | LOW | LOW | P2 |
+| Persistent tab state via URL | LOW | LOW | P2 |
+| Pagination for unified history table | LOW | MEDIUM | P3 |
 
-**Priority key:**
-- P1: Must have for v1.1 launch (table stakes + core differentiators)
-- P2: Should have when possible (v1.2+ based on feedback)
-- P3: Nice to have, future consideration (v2+ strategic features)
-
-## Integration with Existing v1.0 Features
-
-| v1.0 Feature | How v1.1 Integrates | Value |
-|--------------|---------------------|-------|
-| **UserCompetencyLevel** | Coaching sessions reference competency gaps. Action items target specific competencies. Progress dashboard shows level changes over time. | Core integration - coaching addresses gaps identified by assessments. |
-| **AssessmentCompetencyMap** | Links assessment results to coaching context. "You scored low in X category (maps to Y competency) - let's coach on that." | Evidence-based coaching topics. |
-| **CompetencyGap radar chart** | Embedded in development dashboard. Shows current state. Coaching sessions aim to close visible gaps. | Visual focus for coaching conversations. |
-| **CPDP Progress** | Action items from coaching link to CPDP deliverables. IDP items and coaching actions unified view. | Connects coaching (CDP) to formal development (IDP). |
-| **ReportsIndex (HC dashboard)** | Add coaching activity summary: sessions logged this month, pending action items, team engagement. | HC visibility into coaching program health. |
-| **Excel export (ClosedXML)** | Extend pattern to coaching sessions and action items. HC can export for external analysis. | Consistent export capability across modules. |
-| **Approval workflow (IdpItem)** | Reuse exact pattern for coaching action items. Same 3-level chain (SrSpv → SectionHead → HC). | Governance consistency. Users already understand workflow. |
-| **Chart.js integration** | Add line charts for competency progression. Extend existing radar charts. | Consistent visualization library. |
-| **Multi-role authorization** | Coaching sessions: Coachee (view own), Supervisor (view team + log sessions), HC (view all). | Reuse existing role hierarchy (RoleLevel property). |
-| **Section-based filtering** | Supervisor team view filters by user.Section. HC reports filter by section. | Organizational structure already modeled. |
-
-## User Flows for v1.1
-
-### Flow A: Supervisor Logs Coaching Session
-1. Navigate to "CDP" > "Coaching Sessions"
-2. Click "Log New Session"
-3. Select coachee from team dropdown (pre-filtered by section)
-4. System pre-fills: coach info, date (today), coachee's current competency gaps
-5. Supervisor enters: session topic, notes, coaching observations
-6. Supervisor adds 0-N action items (description, due date, linked competency)
-7. Submit → Session saved, action items created with "Pending" status
-8. Coachee receives notification (if implemented) or sees in dashboard
-
-### Flow B: Coachee Views Development Dashboard
-1. Navigate to "CDP" > "My Development"
-2. Dashboard shows 4 sections:
-   - **Competency Status:** Radar chart (current vs target levels) from v1.0
-   - **Recent Activity:** Last 5 coaching sessions + last 3 assessment results
-   - **Active Goals:** Action items from coaching (pending/in-progress) + IDP items
-   - **Progress Over Time:** Line chart showing competency level changes by month
-3. Click coaching session → view session notes and action items
-4. Click action item → mark progress, upload evidence, request approval
-5. Click competency gap → see related assessments and IDP suggestions
-
-### Flow C: HC Analyzes Coaching Effectiveness
-1. Navigate to "CDP" > "Coaching Reports"
-2. View summary cards: total sessions this month, active action items, approval queue
-3. Filter by: date range, section, supervisor, competency
-4. View table: session date, coach, coachee, competencies addressed, action items count, approval status
-5. Click "Export to Excel" → ClosedXML generates report with filters applied
-6. Drill down: click session → view full notes and action items
-7. Analytics tab: Chart showing coaching frequency by section, competency improvement correlation
-
-### Flow D: Action Item Approval Workflow
-1. Coachee completes action item → marks "Complete" and uploads evidence
-2. System triggers approval chain:
-   - SrSpv receives notification → reviews → approves/rejects
-   - If approved → SectionHead receives → reviews → approves/rejects
-   - If approved → HC receives → final approval
-3. If rejected at any stage → returns to coachee with feedback
-4. If fully approved → action item status = "Approved", competency evidence recorded
-5. Dashboard reflects approval status at each stage
+---
 
 ## Sources
 
-**Industry Best Practices:**
-- [HR Coaching Documentation Best Practices](https://hrcertification.com/blog/hr-documentation-best-practices-biid1000103)
-- [UC Berkeley Coaching as Effective Feedback Tool](https://hr.berkeley.edu/hr-network/central-guide-managing-hr/managing-hr/managing-successfully/performance-management/check-in/coaching)
-- [HR Acuity Workplace Documentation Best Practices](https://www.hracuity.com/blog/workplace-documentation-best-practices/)
-
-**Coaching Software Features (2026):**
-- [GetApp Coaching Software with Session Notes](https://www.getapp.com/hr-employee-management-software/coaching/f/session-notes/)
-- [Thrive Partners: Coaching in 2026 - 7 Trends HR Leaders Can't Ignore](https://thrivepartners.co.uk/content/coaching-in-2026-7-trends-hr-and-ld-leaders-cant-ignore/)
-
-**Competency Management & Development Dashboards:**
-- [iMocha: Best Competency Management Software 2026](https://blog.imocha.io/competency-management-software)
-- [iMocha: Top Skills Tracking Software 2026](https://www.imocha.io/blog/skills-tracking-software)
-- [TalentGuard: Best Competency Management System](https://www.talentguard.com/competency-management-system)
-- [Weever: Skills Matrix Dashboard](https://weeverapps.com/reporting-dashboard/training-dashboards/skills-matrix-report/)
-
-**IDP & Development Planning:**
-- [AIHR: Individual Development Plan Examples](https://www.aihr.com/blog/individual-development-plan-examples/)
-- [AIHR: Coaching Plan Template 2026](https://www.aihr.com/blog/coaching-plan-template/)
-- [TeamGPS: Individual Development Plan Guide](https://teamgps.com/blog/employee-engagement/individual-development-plan-idp-guide/)
-
-**HR Workflow Automation:**
-- [Aelum: HR Workflow Automation CHRO Guide](https://aelumconsulting.com/blogs/hr-workflow-automation-chro-guide/)
-- [People Managing People: Best HR Workflow Software](https://peoplemanagingpeople.com/tools/best-hr-workflow-software/)
-- [Fellow: Managing Meeting Action Items](https://fellow.ai/blog/how-to-manage-meeting-tasks-and-action-items/)
-
-**Skills Gap Analysis:**
-- [iMocha: Bridging the Skills Gap 2026](https://www.imocha.io/blog/bridging-the-skills-gap)
-- [AG5: Conducting Competency Gap Analysis](https://www.ag5.com/conducting-a-competency-gap-analysis/)
+- Codebase audit (2026-02-18): `Views/CMP/Assessment.cshtml`, `Views/CMP/Records.cshtml`, `Views/CDP/DevDashboard.cshtml`, `Views/CDP/Dashboard.cshtml`, `Controllers/CMPController.cs`, `Models/AssessmentSession.cs`, `Models/TrainingRecord.cs`, `Models/ApplicationUser.cs`, `Models/UserRoles.cs`, `Models/DevDashboardViewModel.cs`
+- Existing pattern reference: role-gating via `User.IsInRole()` / `ViewBag.CanManage` in Assessment.cshtml (lines 36–52, 113–128)
+- Existing pattern reference: category-tab Records layout in Records.cshtml (lines 150–213)
+- Existing pattern reference: DevDashboard scope-by-role in DevDashboard.cshtml + `ScopeLabel` in `DevDashboardViewModel`
 
 ---
-*Feature research for: Portal HC KPB CDP v1.1 Coaching Management*
-*Researched: 2026-02-17*
-*Confidence: HIGH (verified with Context7 best practices, official HR documentation, 2026 industry trends)*
+
+*Feature research for: Portal HC KPB v1.2 UX Consolidation*
+*Researched: 2026-02-18*
+*Confidence: HIGH — all behaviors grounded in existing codebase inspection. No external library research required.*

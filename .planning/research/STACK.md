@@ -1,396 +1,374 @@
-# Stack Research — CDP Coaching Management Additions
+# Stack Research
 
-**Domain:** Coaching Session Management & Development Dashboard
-**Researched:** 2026-02-17
-**Confidence:** HIGH
+**Domain:** ASP.NET Core 8 MVC — UX Consolidation (v1.2)
+**Researched:** 2026-02-18
+**Confidence:** HIGH — all patterns verified against existing codebase; no new dependencies required
 
-## Context
+---
 
-Portal HC KPB v1.0 has complete CMP (assessment) functionality. Version 1.1 adds CDP coaching session management and development dashboards. This research covers ONLY what's needed for the new features, not the existing validated stack.
+## Context: What This Milestone Is
 
-**Existing Stack (DO NOT change):**
-- ASP.NET Core 8.0 MVC with Razor Views
-- Entity Framework Core 8.0.24 (latest patch, supported until Nov 2026)
-- SQL Server/SQLite database
-- ASP.NET Identity for authentication
-- Chart.js 4.5.1 for CMP visualizations (already used)
-- ClosedXML 0.105.0 for Excel export (already used)
+This is a restructuring milestone, not a greenfield build. The existing stack (ASP.NET Core 8 MVC, EF Core 8, Razor Views, Bootstrap 5.3, ASP.NET Identity, Chart.js, ClosedXML) already handles every requirement. No new NuGet packages are needed.
 
-## Recommended Stack Additions
+The three goals are:
 
-### New Packages Required
+1. Merge `AssessmentSession` + `TrainingRecord` into a unified Razor table with role-based filtering
+2. Tab-based role visibility — show/hide tabs per server-side role check, no full page reload
+3. Remove the Gap Analysis page cleanly — controller action, view, nav links, cross-links
 
-| Package | Version | Purpose | Why Recommended |
-|---------|---------|---------|-----------------|
-| **NONE** | - | All features buildable with existing stack | Coaching sessions are basic CRUD (no new packages needed), action item workflow uses existing database patterns (status enum), development dashboard reuses Chart.js already in project |
+---
 
-### Client-Side Libraries (CDN/wwwroot)
+## Recommended Stack
+
+### Core Technologies (All Already in Use — No Changes)
+
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| ASP.NET Core 8 MVC | 8.0.x | Request routing, controller actions, server-side rendering | `Records()` and `Assessment()` actions in `CMPController` are the merge targets. No framework change needed. |
+| Razor Views (.cshtml) | ASP.NET Core 8 | Templating for unified table and tab visibility | Tab visibility via `@if (userRole == ...)` blocks is idiomatic Razor and is already the pattern used in this codebase. |
+| EF Core 8 | 8.0.0 | Database queries for merging heterogeneous data | Merge pattern: query both `AssessmentSessions` and `TrainingRecords` in one controller action, project to a shared ViewModel, sort in-memory via LINQ. |
+| ASP.NET Identity | 8.0.0 | Role-based tab visibility decisions | `UserManager.GetRolesAsync()` is the established pattern (see `CDPController`, `CMPController`). Resolved server-side before the view renders. |
+| Bootstrap 5.3 | 5.3.0 (CDN) | Tab UI component (`nav-tabs` + `tab-pane`) | Already loaded in `_Layout.cshtml`. Bootstrap's native tab component handles show/hide without any page reload. No additional JS library needed. |
+
+### Supporting Libraries (Already Present — No New Additions)
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| Flatpickr | 4.6.x (latest) | Date/time picker for coaching session logging | Better UX than native HTML5 date input, lightweight (no dependencies), works with server-side forms |
-| TinyMCE 7 (Community) | 7.x | Rich text editor for coaching notes and action items | Free, actively maintained, simple integration via CDN, familiar Word-like interface |
+| ClosedXML | 0.105.0 | Excel export from unified table | Only needed if the merged view adds an Export Excel button — reuse existing Records view pattern |
+| Chart.js | CDN | Charts in the merged view if needed | Already used in `CompetencyGap.cshtml` and `DevDashboard`. Reuse existing CDN script tag pattern. |
+| jQuery 3.7.1 | CDN | Tab state persistence via `localStorage` | Already loaded in `_Layout.cshtml`. Use only if tab selection needs to survive a page reload. |
 
-**Installation:**
-```html
-<!-- In _Layout.cshtml or specific views -->
+### Development Tools (No Change)
 
-<!-- Flatpickr for date pickers -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| EF Core Tools | Migrations | Not needed for this milestone — no schema changes. `TrainingRecord` and `AssessmentSession` tables already exist. |
+| .NET 8 SDK | Build | No change. |
 
-<!-- TinyMCE for rich text editing -->
-<script src="https://cdn.tiny.cloud/1/YOUR-API-KEY/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
-<!-- OR self-hosted if no API key wanted -->
-<script src="~/lib/tinymce/tinymce.min.js"></script>
+---
+
+## Installation
+
+No new packages required. All patterns use what is already in `HcPortal.csproj`.
+
+---
+
+## Patterns for Each Goal
+
+### Goal 1: Merging Heterogeneous Data Sources (AssessmentSession + TrainingRecord)
+
+**Pattern: Project both sources to a shared ViewModel in the controller, merge in-memory, sort unified.**
+
+The codebase already does this for `CoacheeProgressRow` in `DevDashboard` and `TrackingItem` in the `Progress` view. Apply the same approach:
+
+**Shared ViewModel:**
+```csharp
+// New file: Models/CapabilityRowViewModel.cs
+public class CapabilityRowViewModel
+{
+    public DateTime Date { get; set; }
+    public string Title { get; set; } = "";
+    public string Category { get; set; } = "";   // Common field, different vocabulary
+    public string SourceType { get; set; } = ""; // "Assessment" | "Training"
+    public string Status { get; set; } = "";
+    public string? Score { get; set; }           // Assessment-only
+    public string? CertificateUrl { get; set; }  // Training-only
+    public DateTime? ValidUntil { get; set; }    // Training-only (cert expiry)
+}
 ```
 
-### No New NuGet Packages Needed
+**Controller action:**
+```csharp
+// In CMPController — new or updated unified action
+public async Task<IActionResult> CapabilityRecords(string? userId = null)
+{
+    var currentUser = await _userManager.GetUserAsync(User);
+    var roles = await _userManager.GetRolesAsync(currentUser!);
+    var userRole = roles.FirstOrDefault();
 
-**Coaching Session Management** can be built with:
-- Entity Framework Core (existing) - CRUD operations, relationships
-- Razor Views (existing) - Forms, display views
-- ASP.NET Identity (existing) - User associations, authorization
+    // Role-based target user resolution (matches DevDashboard pattern)
+    string targetUserId = ResolveTargetUserId(currentUser, userRole, userId);
 
-**Action Item Workflow** can be built with:
-- Database enum for status (Pending, Approved, Rejected, InProgress, Completed)
-- Foreign keys to track approver chain (SrSpv → SectionHead → HC)
-- DateTime stamps for state transitions
-- No external workflow engine needed (simple linear approval, not complex branching)
+    // Source 1: AssessmentSession
+    var sessions = await _context.AssessmentSessions
+        .Where(a => a.UserId == targetUserId && a.Status == "Completed")
+        .OrderByDescending(a => a.Schedule)
+        .ToListAsync();
 
-**Development Dashboard** can be built with:
-- Chart.js (existing) - Competency progress over time (line charts), goal completion (donut charts), team overview (bar charts)
-- Entity Framework Core (existing) - Aggregate queries for dashboard statistics
-- Existing CMP integration - UserCompetencyLevel history tracking
+    // Source 2: TrainingRecord
+    var trainings = await _context.TrainingRecords
+        .Where(t => t.UserId == targetUserId)
+        .OrderByDescending(t => t.Tanggal)
+        .ToListAsync();
+
+    // Project both to unified shape, then merge and sort
+    var unified = sessions
+        .Select(a => new CapabilityRowViewModel
+        {
+            Date = a.Schedule,
+            Title = a.Title,
+            Category = a.Category,       // "Assessment OJ", "IHT", etc.
+            SourceType = "Assessment",
+            Status = a.IsPassed == true ? "Passed" : "Failed",
+            Score = a.Score?.ToString()
+        })
+        .Concat(trainings.Select(t => new CapabilityRowViewModel
+        {
+            Date = t.Tanggal,
+            Title = t.Judul ?? "",
+            Category = t.Kategori ?? "",  // "PROTON", "OJT", "MANDATORY"
+            SourceType = "Training",
+            Status = t.Status ?? "",
+            CertificateUrl = t.SertifikatUrl,
+            ValidUntil = t.ValidUntil
+        }))
+        .OrderByDescending(r => r.Date)   // Unified chronological sort
+        .ToList();
+
+    ViewBag.UserRole = userRole;
+    return View(unified);
+}
+```
+
+**Why in-memory merge, not SQL UNION:**
+- `AssessmentSession` and `TrainingRecord` have incompatible schemas. EF Core does not support UNION across unrelated `DbSet` entities without raw SQL.
+- In-memory LINQ `.Concat().OrderBy()` after two separate queries is the established pattern in this codebase and is correct at these data volumes (per-user sets, not org-wide aggregations across all records).
+- Avoids raw SQL and keeps EF type safety.
+
+**Role-based target user resolution (matches existing codebase):**
+```csharp
+// HC/Admin: show user selector dropdown; Coachee: locked to self
+if (userRole == UserRoles.HC || userRole == UserRoles.Admin)
+{
+    // userId from query param, falls back to currentUser.Id if null
+    targetUserId = userId ?? currentUser.Id;
+}
+else if (userRole is UserRoles.Coach or UserRoles.SrSupervisor or UserRoles.SectionHead)
+{
+    // Scoped to section — Coach can view any coachee in same section
+    targetUserId = userId ?? currentUser.Id;
+    // Validate userId is in same section before accepting
+}
+else // Coachee
+{
+    targetUserId = currentUser.Id; // Always locked to self
+}
+```
+
+---
+
+### Goal 2: Tab-Based Role Visibility in Razor (No Page Reload)
+
+**Pattern: Bootstrap 5 native `nav-tabs` + server-side `@if` blocks in Razor.**
+
+No AJAX. No JavaScript framework. Tabs switch client-side via Bootstrap's built-in `data-bs-toggle="tab"`. The role check is resolved server-side before render — restricted tabs are never emitted into the HTML response.
+
+**View structure:**
+```cshtml
+@{
+    var userRole = ViewBag.UserRole as string;
+    bool isHcOrAdmin = userRole == "HC" || userRole == "Admin";
+    bool isCoachOrAbove = userRole is "Coach" or "Sr Supervisor" or "Section Head";
+}
+
+<ul class="nav nav-tabs mb-3" id="capabilityTabs" role="tablist">
+
+    <!-- Tab visible to all roles -->
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="training-tab"
+                data-bs-toggle="tab" data-bs-target="#training-pane"
+                type="button" role="tab" aria-selected="true">
+            Training Records
+        </button>
+    </li>
+
+    <!-- Tab visible to all roles -->
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="assessment-tab"
+                data-bs-toggle="tab" data-bs-target="#assessment-pane"
+                type="button" role="tab" aria-selected="false">
+            Assessments
+        </button>
+    </li>
+
+    <!-- Tab restricted to HC and Admin only -->
+    @if (isHcOrAdmin)
+    {
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="org-tab"
+                    data-bs-toggle="tab" data-bs-target="#org-pane"
+                    type="button" role="tab" aria-selected="false">
+                Org Summary
+            </button>
+        </li>
+    }
+
+</ul>
+
+<div class="tab-content" id="capabilityTabContent">
+
+    <div class="tab-pane fade show active" id="training-pane" role="tabpanel">
+        @* Training records table *@
+    </div>
+
+    <div class="tab-pane fade" id="assessment-pane" role="tabpanel">
+        @* Assessment table *@
+    </div>
+
+    @if (isHcOrAdmin)
+    {
+        <div class="tab-pane fade" id="org-pane" role="tabpanel">
+            @* HC-only org content — not in DOM for other roles *@
+        </div>
+    }
+
+</div>
+```
+
+**Why this approach:**
+- Bootstrap 5.3 is already loaded in `_Layout.cshtml`. `data-bs-toggle="tab"` works with zero additional JS.
+- The existing codebase consistently uses `@if (userRole == ...)` for role gating in Razor (see `Progress.cshtml`, `_Layout.cshtml` nav items, `Coaching.cshtml`). This matches the established pattern — do not deviate.
+- Do NOT use `display:none` CSS toggling for role-gated tabs. Hidden CSS content is still sent in the HTML response and is visible via browser DevTools. Use server-side `@if` so restricted content is never in the DOM for unauthorized users.
+
+**Optional: Tab state persistence across page reloads (use existing jQuery):**
+```javascript
+// Save active tab on switch
+document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
+    tab.addEventListener('shown.bs.tab', e => {
+        localStorage.setItem('capabilityActiveTab', e.target.id);
+    });
+});
+
+// Restore active tab on load
+const saved = localStorage.getItem('capabilityActiveTab');
+if (saved) {
+    const tab = document.getElementById(saved);
+    if (tab) bootstrap.Tab.getOrCreateInstance(tab).show();
+}
+```
+This is ~10 lines in `@section Scripts`. No library needed — jQuery is already loaded.
+
+---
+
+### Goal 3: Removing the Gap Analysis Page Cleanly
+
+**Surface area confirmed by codebase audit:**
+
+| Location | What to Remove |
+|----------|---------------|
+| `Controllers/CMPController.cs` (line ~1533) | `CompetencyGap(string? userId)` action method |
+| `Views/CMP/CompetencyGap.cshtml` | Delete the file |
+| `Views/CMP/Index.cshtml` (line 72) | Remove the "Gap Analysis" card block (the entire `col-12 col-md-6 col-lg-4` div containing the card) |
+| `Views/CMP/CpdpProgress.cshtml` (line 19) | Remove the `<a href="CompetencyGap">Gap Analysis</a>` sibling nav link |
+| `Views/Shared/_Layout.cshtml` | No direct link to CompetencyGap — already absent from top nav (confirmed) |
+| `Models/Competency/CompetencyGapViewModel.cs` | Delete or retain — only referenced by the CompetencyGap action and view |
+
+**Safe removal order:**
+1. Remove the `CompetencyGap` controller action first. This immediately breaks compilation or produces runtime 404s for any remaining `Url.Action("CompetencyGap", ...)` calls — surfaces all cross-links.
+2. Delete `Views/CMP/CompetencyGap.cshtml`.
+3. Remove `Url.Action("CompetencyGap", ...)` reference from `Views/CMP/CpdpProgress.cshtml` (line 19).
+4. Remove the Gap Analysis card from `Views/CMP/Index.cshtml` (line 72 — the entire card `div`).
+5. Delete `Models/Competency/CompetencyGapViewModel.cs` after verifying no other references.
+
+**Pre-removal grep to find all references:**
+```
+Search pattern: CompetencyGap
+File scope: **/*.cshtml, **/*.cs
+```
+
+Current confirmed references (from codebase audit — complete list):
+- `CMPController.cs` — the action method itself
+- `Views/CMP/CompetencyGap.cshtml` — the view file
+- `Views/CMP/Index.cshtml` — card link (line 72)
+- `Views/CMP/CpdpProgress.cshtml` — sibling tab link (line 19)
+- `Models/Competency/CompetencyGapViewModel.cs` — ViewModel class used only by this feature
+
+**What NOT to do:**
+- Do not add a redirect from `/CMP/CompetencyGap` to another URL. A 404 is semantically correct for removed content. A redirect implies the content moved; it did not.
+- Do not leave the `CompetencyGapViewModel.cs` file orphaned — delete it to avoid confusion about dead code.
+
+---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| **Flatpickr (CDN)** | Tempusdominus Bootstrap 4 DatePicker | If already using Bootstrap 4 DatePicker elsewhere, but project doesn't currently use it |
-| **Flatpickr (CDN)** | Syncfusion/Telerik DatePicker | If willing to pay for commercial components (not needed for this use case) |
-| **TinyMCE 7 (Free)** | Quill.js | If need simpler API and don't need advanced features, but TinyMCE has better Word-like UX |
-| **TinyMCE 7 (Free)** | CKEditor 5 | If need open source without any commercial restrictions, but TinyMCE free tier sufficient |
-| **Database-based workflow** | ELSA Workflows | If need complex branching workflows with external task management (overkill for simple 3-step approval) |
-| **Database-based workflow** | Workflow Core | If need long-running processes with persistence (unnecessary for synchronous approval actions) |
-| **Chart.js (existing)** | Syncfusion/DevExpress Charts | If need advanced interactivity beyond basic charts (not required for MVP dashboard) |
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| In-memory LINQ `.Concat()` for data merge | `FromSqlRaw` UNION query | More complex, bypasses EF type safety, harder to maintain. Not justified at per-user data volumes. |
+| Bootstrap 5 `nav-tabs` for tab UI | Custom CSS toggle + JavaScript | Duplicates functionality already loaded in `_Layout.cshtml`. Bootstrap tabs have accessible ARIA roles built in. |
+| Server-side `@if` for role-gated tabs | `display:none` CSS toggling | Security flaw — hidden content is still in the HTML response and visible via browser DevTools. |
+| Server-side `@if (userRole == ...)` in Razor | `[Authorize(Policy=...)]` on tab content | Policy attributes apply to controller actions (full routes), not Razor blocks within a single action. Wrong abstraction level. |
+| Hard 404 on CompetencyGap removal | 301 redirect to CpdpProgress | Semantically wrong — the content was removed, not moved. |
+| Separate API endpoint per tab | Render all tab content on initial page load | Adds network round-trips per tab switch. Unnecessary for this data size. Server-side render on load is the correct pattern for MVC. |
+
+---
 
 ## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| **SignalR** | Real-time notifications not in v1.1 scope (future enhancement), adds complexity without user demand | Email notifications (future) or simple database status checks |
-| **Stateless/Workflow Engine libraries** | 3-step linear approval (Pending → SrSpv → SectionHead → HC) doesn't need state machine framework, adds dependency bloat | Simple status enum + approver foreign keys + authorization checks |
-| **Commercial chart libraries** | Already have Chart.js working in CMP module, consistent UX important, no advanced features needed | Chart.js (existing) |
-| **Custom rich text editor** | Reinventing the wheel, accessibility/security concerns, time-consuming | TinyMCE or similar battle-tested library |
-| **jQuery UI DatePicker** | jQuery UI development stopped in 2021, outdated UX patterns | Flatpickr (modern, actively maintained) |
-
-## Integration Patterns
-
-### Rich Text Editor Integration (TinyMCE)
-
-**View (Razor):**
-```html
-<div class="form-group">
-    <label asp-for="CoachingNotes">Coaching Notes</label>
-    <textarea asp-for="CoachingNotes" class="form-control tinymce-editor"></textarea>
-    <span asp-validation-for="CoachingNotes" class="text-danger"></span>
-</div>
-
-<script>
-    tinymce.init({
-        selector: '.tinymce-editor',
-        height: 300,
-        menubar: false,
-        plugins: 'lists link',
-        toolbar: 'undo redo | bold italic | bullist numlist | link'
-    });
-</script>
-```
-
-**Controller (receive HTML):**
-```csharp
-public async Task<IActionResult> CreateSession(CoachingSessionViewModel model)
-{
-    // model.CoachingNotes already contains HTML from TinyMCE
-    // Sanitization handled by TinyMCE config (limited toolbar = limited tags)
-    // Store as-is, display with @Html.Raw() in views
-}
-```
-
-### Date Picker Integration (Flatpickr)
-
-**View (Razor):**
-```html
-<div class="form-group">
-    <label asp-for="SessionDate">Session Date</label>
-    <input asp-for="SessionDate" class="form-control flatpickr-date" />
-    <span asp-validation-for="SessionDate" class="text-danger"></span>
-</div>
-
-<script>
-    flatpickr(".flatpickr-date", {
-        enableTime: true,
-        dateFormat: "Y-m-d H:i",
-        time_24hr: true
-    });
-</script>
-```
-
-**Model:**
-```csharp
-public class CoachingSessionViewModel
-{
-    [Required]
-    [Display(Name = "Session Date")]
-    public DateTime SessionDate { get; set; }
-}
-```
-
-### Action Item Workflow (Database Only)
-
-**Enum (no package needed):**
-```csharp
-public enum ActionItemStatus
-{
-    Pending = 0,        // Created, awaiting SrSpv
-    SrSpvApproved = 1,  // SrSpv approved, awaiting SectionHead
-    SectionHeadApproved = 2, // SectionHead approved, awaiting HC
-    HCApproved = 3,     // Final approval
-    Rejected = 4,       // Rejected at any stage
-    InProgress = 5,     // Approved and being worked on
-    Completed = 6       // Finished
-}
-```
-
-**Entity:**
-```csharp
-public class ActionItem
-{
-    public int Id { get; set; }
-    public int CoachingSessionId { get; set; }
-    public string Description { get; set; }
-    public DateTime DueDate { get; set; }
-    public ActionItemStatus Status { get; set; }
-
-    // Approval tracking
-    public string? SrSpvApproverId { get; set; }
-    public DateTime? SrSpvApprovedDate { get; set; }
-    public string? SectionHeadApproverId { get; set; }
-    public DateTime? SectionHeadApprovedDate { get; set; }
-    public string? HCApproverId { get; set; }
-    public DateTime? HCApprovedDate { get; set; }
-
-    // Navigation
-    public CoachingSession CoachingSession { get; set; }
-    public ApplicationUser? SrSpvApprover { get; set; }
-    public ApplicationUser? SectionHeadApprover { get; set; }
-    public ApplicationUser? HCApprover { get; set; }
-}
-```
-
-**Authorization (in controller):**
-```csharp
-public async Task<IActionResult> Approve(int id)
-{
-    var item = await _context.ActionItems
-        .Include(a => a.CoachingSession)
-        .FirstOrDefaultAsync(a => a.Id == id);
-
-    if (User.IsInRole("SrSpv") && item.Status == ActionItemStatus.Pending)
-    {
-        item.Status = ActionItemStatus.SrSpvApproved;
-        item.SrSpvApproverId = _userManager.GetUserId(User);
-        item.SrSpvApprovedDate = DateTime.Now;
-    }
-    else if (User.IsInRole("SectionHead") && item.Status == ActionItemStatus.SrSpvApproved)
-    {
-        item.Status = ActionItemStatus.SectionHeadApproved;
-        item.SectionHeadApproverId = _userManager.GetUserId(User);
-        item.SectionHeadApprovedDate = DateTime.Now;
-    }
-    else if (User.IsInRole("HC") && item.Status == ActionItemStatus.SectionHeadApproved)
-    {
-        item.Status = ActionItemStatus.HCApproved;
-        item.HCApproverId = _userManager.GetUserId(User);
-        item.HCApprovedDate = DateTime.Now;
-    }
-    else
-    {
-        return Forbid();
-    }
-
-    await _context.SaveChangesAsync();
-    return RedirectToAction(nameof(Details), new { id });
-}
-```
-
-### Development Dashboard Charts (Chart.js existing)
-
-**Reuse existing Chart.js from CMP module** for consistency:
-
-**Competency Progress Over Time (Line Chart):**
-```javascript
-// In view: fetch user's competency level history from controller
-const ctx = document.getElementById('competencyProgressChart');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: @Html.Raw(Json.Serialize(Model.Dates)),
-        datasets: [{
-            label: 'Competency Level',
-            data: @Html.Raw(Json.Serialize(Model.Levels)),
-            borderColor: 'rgb(75, 192, 192)',
-            tension: 0.1
-        }]
-    }
-});
-```
-
-**Goal Completion (Donut Chart):**
-```javascript
-const ctx = document.getElementById('goalCompletionChart');
-new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-        labels: ['Completed', 'In Progress', 'Not Started'],
-        datasets: [{
-            data: [@Model.CompletedCount, @Model.InProgressCount, @Model.NotStartedCount]
-        }]
-    }
-});
-```
-
-**Team Overview (Bar Chart):**
-```javascript
-const ctx = document.getElementById('teamOverviewChart');
-new Chart(ctx, {
-    type: 'bar',
-    data: {
-        labels: @Html.Raw(Json.Serialize(Model.TeamMemberNames)),
-        datasets: [{
-            label: 'Average Competency Level',
-            data: @Html.Raw(Json.Serialize(Model.TeamAverageLevels))
-        }]
-    }
-});
-```
-
-## Version Compatibility
-
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| Entity Framework Core 8.0.24 | .NET 8.0 | Latest patch (Feb 10, 2026), support until Nov 2026 |
-| Chart.js 4.5.1 | All modern browsers | Already in use for CMP module |
-| ClosedXML 0.105.0 | .NET Standard 2.0+ (.NET 8 compatible) | Already in use for Excel export |
-| Flatpickr 4.6.x | IE11+ (legacy), all modern browsers | No dependencies, works with Razor forms |
-| TinyMCE 7.x | Modern browsers (Chrome, Firefox, Safari, Edge) | IE11 not supported (acceptable in 2026) |
-
-## Migration Notes
-
-### From v1.0 (CMP only) to v1.1 (CMP + CDP Coaching)
-
-**Database migrations needed:**
-1. Create `CoachingSessions` table (Id, CoacheeId, CoachId, SessionDate, Topic, Notes)
-2. Create `ActionItems` table (Id, SessionId, Description, DueDate, Status, Approver FKs)
-3. Add indexes on foreign keys (SessionId, CoacheeId, CoachId, ApproverIds)
-4. Add `UserCompetencyLevelHistory` table to track changes over time for dashboard (or modify existing table to not overwrite)
-
-**No package upgrades needed** unless critical security updates released.
-
-**EF Core 8 support timeline warning:**
-- Current version: 8.0.24 (Feb 2026)
-- Support ends: November 2026
-- EF Core 11 releases: November 2026
-- Action: Plan upgrade to EF Core 11 in Q4 2026 or early 2027
-
-## Stack Patterns for CDP Features
-
-### Pattern 1: Coaching Session CRUD
-**Stack:** EF Core + Razor Views + Flatpickr + TinyMCE
-**When:** Creating/editing coaching session records
-**Example entities:** `CoachingSession`, `ActionItem`
-
-### Pattern 2: Action Item Workflow
-**Stack:** Database enums + EF Core + Authorization attributes
-**When:** Multi-step approval (SrSpv → SectionHead → HC)
-**No external library:** Simple linear flow, authorization-based state transitions
-
-### Pattern 3: Development Dashboard
-**Stack:** EF Core aggregation queries + Chart.js (existing) + Razor Views
-**When:** Visualizing competency progress, goal completion, team overview
-**Reuse:** Same Chart.js patterns from CMP Reports Dashboard
-
-### Pattern 4: CMP Integration
-**Stack:** Existing `UserCompetencyLevel` table + new history tracking
-**When:** Showing competency improvements from assessments over time
-**Enhancement:** Add `UserCompetencyLevelHistory` for point-in-time snapshots
-
-## Security Considerations
-
-**TinyMCE Output Sanitization:**
-- TinyMCE config limits available tags via toolbar restrictions
-- Consider adding server-side HTML sanitization if users can escalate privileges
-- For MVP: Limited toolbar (bold, italic, lists, links only) = limited XSS surface
-- For production: Use HtmlSanitizer NuGet package if security review flags concerns
-
-**Flatpickr:**
-- Client-side only (cosmetic)
-- Always validate DateTime server-side (already done by model validation)
-- No security concerns beyond standard input validation
-
-**Workflow Authorization:**
-- Enforce role checks in controller actions
-- Database-level approver tracking (audit trail)
-- Use `[Authorize(Roles = "...")]` attributes on approval actions
-
-## Performance Considerations
-
-**Chart.js:**
-- Already proven in CMP module (no performance issues reported)
-- Keep datasets under 1000 points for smooth rendering
-- For team overview, limit to section-level (not org-wide) initially
-
-**Rich Text Storage:**
-- Store HTML in `nvarchar(max)` column
-- Index not needed (full-text search not in scope)
-- Display with `@Html.Raw()` in views (sanitized input = safe output)
-
-**Action Item Queries:**
-- Add indexes on `Status`, `CoacheeId`, `DueDate` for filtering
-- Use `.Include()` carefully (don't load entire approval chain unless needed)
-
-## Sources
-
-**Official Documentation:**
-- [Entity Framework Core Releases](https://learn.microsoft.com/en-us/ef/core/what-is-new/) — EF Core 8.0.24 version and support timeline
-- [Chart.js Documentation](https://www.chartjs.org/docs/latest/) — Verified v4.5.1 as latest
-- [Flatpickr Official Site](https://flatpickr.js.org/) — Lightweight date picker, no dependencies
-- [TinyMCE Documentation](https://www.tiny.cloud/tinymce-vs-quill/) — Comparison and integration guidance
-- [ASP.NET Core Identity](https://learn.microsoft.com/en-us/aspnet/core/security/authentication/identity?view=aspnetcore-9.0) — Email confirmation patterns
-
-**Version Verification:**
-- [NuGet: Entity Framework Core 8.0.24](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore/8.0.24) — Latest patch release
-- [NuGet: ClosedXML 0.105.0](https://www.nuget.org/packages/closedxml/) — .NET 8 compatibility confirmed
-- [Chart.js Releases](https://github.com/chartjs/Chart.js/releases) — v4.5.1 latest stable
-- [npm: chart.js](https://www.npmjs.com/package/chart.js?activeTab=readme) — Package details
-
-**Research (MEDIUM confidence):**
-- [Which rich text editor framework should you choose in 2025](https://liveblocks.io/blog/which-rich-text-editor-framework-should-you-choose-in-2025) — TinyMCE vs Quill vs CKEditor comparison
-- [ASP.NET Core MVC action item workflow approval tracking](https://github.com/elsa-workflows/elsa-core/discussions/1002) — ELSA Workflows discussion (confirmed overkill for simple approval)
-- [Stateless state machine library](https://github.com/dotnet-state-machine/stateless) — Evaluated but unnecessary for linear workflow
-- [Matteo's Blog - Flatpickr with ASP.NET Core MVC](https://ml-software.ch/posts/adding-a-third-party-datetimepicker-to-your-asp-net-core-mvc-application) — Integration example
-
-**Date Pickers Research:**
-- [Syncfusion ASP.NET Core DatePicker](https://www.syncfusion.com/aspnet-core-ui-controls/datepicker) — Commercial alternative (not needed)
-- [Telerik DatePicker](https://www.telerik.com/aspnet-core-ui/datepicker) — Commercial alternative (not needed)
-
-**Workflow Research:**
-- [Building workflow system with ASP.NET Core](https://www.tomware.ch/2018/04/30/building-a-simple-workflow-system-with-asp-net-core/) — Custom implementation patterns
-- [ASP.NET Core SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/introduction?view=aspnetcore-10.0) — Real-time notifications (future scope)
+| Any new NuGet package | No new dependency is warranted — Bootstrap, jQuery, EF Core already cover all requirements | Existing stack |
+| Blazor or any SPA component | Mixing Blazor into an MVC app creates two rendering pipelines; tab visibility requires zero JS framework | Bootstrap `nav-tabs` with `data-bs-toggle="tab"` |
+| `display:none` for role-gated tab content | Sends restricted HTML to the browser; inspectable via DevTools | Server-side `@if` blocks in Razor |
+| Raw SQL / `FromSqlRaw` for data merge | Schema mismatch between `AssessmentSession` and `TrainingRecord`; bypasses EF type safety | In-memory LINQ `.Concat().OrderByDescending()` after two separate queries |
+| AJAX partial views per tab | Adds network latency per tab switch; unnecessary for this data size | Render all tab content server-side in one response |
+| DataTables.js | Adds an external dependency for features that Bootstrap + LINQ pagination already cover | Server-side pagination (existing `CMPController.Assessment` pattern) |
 
 ---
 
-*Stack research for: CDP Coaching Management (v1.1)*
-*Researched: 2026-02-17*
-*Confidence: HIGH (official docs + existing project validation)*
+## Stack Patterns by Variant
+
+**If the unified table has more than 50 rows per user:**
+- Add server-side pagination using the existing `page`/`pageSize` pattern from `CMPController.Assessment` (lines 78-80)
+- Do not add client-side pagination libraries
+
+**If tab state must persist across page reloads:**
+- Use `localStorage` with the existing jQuery already in `_Layout.cshtml`
+- ~10 lines of script in `@section Scripts` — no library needed
+
+**If HC role needs to select any user for the unified view:**
+- Apply the `userId` query parameter + dropdown selector pattern from `CMPController.Assessment` (`view == "manage"`) and `CMPController.CompetencyGap` (before removal)
+- Render the user-selector dropdown only when `isHcOrAdmin == true`
+
+**If the merged view needs column filtering by SourceType (Assessment vs Training):**
+- Pass filter as a query parameter (`?sourceType=Assessment`)
+- Apply `.Where(r => r.SourceType == sourceType)` before building the ViewModel
+- Render filter buttons as regular `<a>` links (not JavaScript) — consistent with existing filter patterns in `CMPController.Records`
+
+---
+
+## Version Compatibility
+
+| Package | Version in Use | Notes |
+|---------|---------------|-------|
+| ASP.NET Core | net8.0 TFM | All patterns target .NET 8 APIs |
+| EF Core | 8.0.0 | `ToListAsync()`, `FirstOrDefaultAsync()`, `Concat()` — all in use throughout codebase |
+| Bootstrap | 5.3.0 (CDN) | `data-bs-toggle="tab"` requires Bootstrap 5.x; confirmed loaded in `_Layout.cshtml` |
+| jQuery | 3.7.1 (CDN) | Available for `localStorage` tab persistence if needed; already in `_Layout.cshtml` |
+| ClosedXML | 0.105.0 | No change; only relevant if Export Excel is added to unified view |
+
+---
+
+## Sources
+
+- Direct codebase audit (file reads, 2026-02-18) — HIGH confidence:
+  - `Controllers/CMPController.cs` — `Records()`, `Assessment()`, `CompetencyGap()` actions
+  - `Controllers/CDPController.cs` — `DevDashboard()`, `Coaching()` role patterns
+  - `Views/CMP/CompetencyGap.cshtml` — cross-links confirmed
+  - `Views/CMP/CpdpProgress.cshtml` — cross-link at line 19 confirmed
+  - `Views/CMP/Index.cshtml` — card link at line 72 confirmed
+  - `Views/CMP/Records.cshtml` — TrainingRecord table pattern
+  - `Views/CDP/Progress.cshtml` — Razor role-gating pattern via `@if`
+  - `Views/Shared/_Layout.cshtml` — Bootstrap 5.3 and jQuery CDN confirmed, no CompetencyGap nav link
+  - `Models/AssessmentSession.cs` — field inventory for ViewModel projection
+  - `Models/TrainingRecord.cs` — field inventory for ViewModel projection
+  - `Models/ApplicationUser.cs` — `RoleLevel`, `SelectedView` fields
+  - `Models/UserRoles.cs` — role constants
+  - `HcPortal.csproj` — package versions
+
+- Bootstrap 5 tab component documentation (`data-bs-toggle="tab"`) — HIGH confidence (stable API, no version-specific gotchas in 5.3.x)
+- ASP.NET Core 8 Razor `@if` role gating — HIGH confidence (established pattern, already in use in multiple views in this codebase)
+
+---
+
+*Stack research for: Portal HC KPB v1.2 UX Consolidation*
+*Researched: 2026-02-18*

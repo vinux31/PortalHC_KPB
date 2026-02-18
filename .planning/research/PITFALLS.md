@@ -1,476 +1,289 @@
 # Pitfalls Research
 
-**Domain:** HR Coaching Session Management Integration with Existing Competency System
-**Researched:** 2026-02-17
-**Confidence:** HIGH
+**Domain:** ASP.NET Core MVC — UX Consolidation / Refactoring (v1.2)
+**Researched:** 2026-02-18
+**Confidence:** HIGH — based on direct codebase analysis of Controllers, Views, and Models
+
+---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Orphaned Coaching Sessions After Coach Role Changes
+### Pitfall 1: History Disappears When Completed Is Filtered From Worker View
 
 **What goes wrong:**
-Coaching sessions reference CoachId and CoacheeId as string identifiers, but when users change roles (promotion, transfer, role reassignment), existing coaching sessions lose context. Coach-coachee mappings become stale, and historical coaching logs display incorrect organizational relationships. Active coaching relationships don't get automatically reassigned, leaving coachees without guidance mid-development cycle.
+The Assessment page currently delivers all statuses (Open, Upcoming, Completed) in one server query with client-side tab switching in JavaScript. If Completed is filtered out of the server query without first building a history destination, users lose access to their completed assessments and all links to Results and Certificate pages. The transition creates a window — possibly permanently if the history page is never built — where passing scores and certificates are simply unreachable.
 
 **Why it happens:**
-The CoachCoacheeMapping model uses IsActive flag but lacks automated deactivation triggers when organizational changes occur. The system doesn't track "why" a coaching relationship ended (promotion vs. termination vs. section transfer). Controllers likely check current user roles without validating historical coaching permissions.
+The current `Assessment.cshtml` renders all statuses server-side; the "Completed" tab is pure client-side JavaScript filtering over the full model. Removing Completed from the controller query is one line of code and feels complete immediately. The links to `/CMP/Results` and `/CMP/Certificate` only exist inside the Completed card block in the view. If that block goes away, both entry points vanish in the same commit.
 
 **How to avoid:**
-1. Add `EndReason` enum field to CoachCoacheeMapping: `Completed`, `CoachRoleChanged`, `CoacheeTransferred`, `ManuallyEnded`
-2. Create database trigger or service layer logic to auto-deactivate mappings when ApplicationUser.Position or Section changes
-3. Implement "transfer coaching relationship" workflow that preserves history while assigning new coach
-4. Add `EffectiveDate` timestamp to coaching logs separate from CreatedAt for historical accuracy
-5. Query coaching permissions using mapping table, not just current role hierarchy
+Build or verify the history destination exists first, deploy it, then remove Completed from the main list. The Results and Certificate actions in `CMPController` must remain accessible by direct URL even after the list card is removed — they are already ownership-checked so no security gap, but users need a UI path to reach them. Any "History" page must have a visible link from the Assessment list page before the Completed tab removal ships.
 
 **Warning signs:**
-- Coaching dashboard shows coaches who are no longer in coaching roles
-- Users can access coaching logs for people no longer in their section
-- Historical reports show incorrect coach names after organizational changes
-- "Coach not found" errors appear when loading old coaching sessions
+- Users report they cannot find past exam results after the page update
+- `Certificate` and `Results` pages return HTTP 200 but there is no navigation path to them from the Assessment list
+- Completed count in any dashboard stat card drops to zero with no corresponding history-page link visible
 
-**Phase to address:**
-Phase 1 (Foundation) - Build coach-coachee validation and relationship lifecycle management from the start. Retrofitting permission checks after building coaching UI causes security gaps and data inconsistencies.
+**Phase to address:** Assessment page refactor phase. Must complete in order: (1) confirm/build history destination, (2) update navigation, (3) remove Completed from main query. Do not merge steps 1 and 3 into the same commit.
 
 ---
 
-### Pitfall 2: CoachingLog to IDP Integration Without Data Consistency Validation
+### Pitfall 2: Admin SelectedView Not Checked in New or Modified Actions
 
 **What goes wrong:**
-CoachingLog references TrackingItemId but IdpItem table has no matching TrackingItemId column (uses Id as primary key). When creating coaching log entries, the system either hard-crashes with foreign key violations or silently creates orphaned records. Development progress tracked in coaching sessions doesn't sync with IDP deliverables, creating conflicting "sources of truth" for competency development status. Users complete coaching sessions but IDP shows no progress; HC reports show mismatched completion data.
+Authorization in `CMPController.Assessment` checks `userRole == "Admin" || userRole == "HC"` to grant manage view. If a history action is added without the SelectedView branch, an Admin simulating Coachee view could see all users' history (missing the personal filter) or an Admin simulating HC view may see a filtered personal view instead of all users. The same risk applies to any modified action during the consolidation.
 
 **Why it happens:**
-Database schema mismatch between CoachingLog and IdpItem models. CoachingLog was designed for TrackingItem integration (possibly a planned but unimplemented model), but current implementation uses IdpItem. No referential integrity constraints exist to prevent orphaned coaching logs. Controllers likely use string matching on SubKompetensi and Deliverables instead of foreign key relationships, causing drift when IDP items are edited.
+The codebase has two orthogonal auth layers: `[Authorize(Roles = "...")]` attributes handle coarse access, and runtime `user.SelectedView` checks in the controller body handle view-scoped filtering. Any new or copied action that omits the SelectedView branch silently produces wrong data — the page renders without error, so the bug is only caught by manual role-switching testing.
 
 **How to avoid:**
-1. **Fix schema immediately:** Change CoachingLog.TrackingItemId to CoachingLog.IdpItemId with foreign key to IdpItem.Id
-2. Add navigation property: `public IdpItem? IdpItem { get; set; }` to CoachingLog model
-3. Configure cascade behavior in ApplicationDbContext.OnModelCreating:
-   ```csharp
-   modelBuilder.Entity<CoachingLog>()
-       .HasOne(c => c.IdpItem)
-       .WithMany()
-       .HasForeignKey(c => c.IdpItemId)
-       .OnDelete(DeleteBehavior.Restrict); // Prevent cascade delete of coaching history
-   ```
-4. Add validation in controller: verify IdpItem exists and belongs to coachee before creating CoachingLog
-5. Use transactions when updating IDP status based on coaching conclusion to maintain consistency
-6. Display warning in UI if coaching log exists for deleted IDP item
+Treat SelectedView as a mandatory second auth dimension on every new or modified action. The five SelectedView values in production are HC, Atasan, Coach, Coachee, Admin. Test each after any action change. When copying an existing action to a new controller, copy the full SelectedView block, not just the DB query.
 
 **Warning signs:**
-- CoachingLog records with TrackingItemId that don't match any IdpItem.Id
-- Foreign key constraint errors when saving coaching logs
-- Coaching sessions display "IDP item not found"
-- SubKompetensi/Deliverables in coaching logs don't match IDP records after edits
-- Duplicate coaching sessions for same IDP deliverable due to ID mismatch
+- Admin simulating Coachee sees all users' history rather than only their own
+- Admin simulating HC cannot see cross-user history after a query is narrowed
+- No error is thrown; the page just shows wrong data silently
 
-**Phase to address:**
-Phase 1 (Foundation) - This is a schema-level issue that MUST be fixed before building any coaching UI. Building on broken foreign key relationships creates unfixable data integrity issues and requires migration scripts that may lose historical data.
+**Phase to address:** Every phase that adds or modifies controller actions. Add "five-SelectedView test" as an explicit checklist item before marking any action done.
 
 ---
 
-### Pitfall 3: Approval Workflow State Transitions Without Validation
+### Pitfall 3: Merging TrainingRecord and AssessmentSession Into One Razor Table Breaks Column Rendering
 
 **What goes wrong:**
-IdpItem approval fields (ApproveSrSpv, ApproveSectionHead, ApproveHC) are nullable strings without state machine validation. Users can set approvals out of sequence: HC approval granted before SrSpv review, rejected items marked as "Approved", status changes without proper authorization checks. CoachingLog.Status follows same pattern ("Draft", "Submitted") as freeform strings. The system allows impossible state transitions: coaching marked "Submitted" without required fields, IDP marked all-approved while still "Pending" status, status updates without audit trail of who approved when.
+`TrainingRecord` and `AssessmentSession` have structurally different schemas. `TrainingRecord` has `Judul`, `Kategori`, `Tanggal`, `Penyelenggara`, `Status` (Passed/Valid/Wait Certificate), `ValidUntil`, `CertificateType`. `AssessmentSession` has `Title`, `Category`, `Schedule`, `DurationMinutes`, `Status` (Open/Upcoming/Completed), `Score`, `IsPassed`, `CompletedAt`. When merged into one ViewModel and rendered in a shared table, nullable columns from one source render as blank or throw null reference exceptions in the other. The pass/fail badge logic is entirely different between the two: TrainingRecord uses `Status == "Passed" || Status == "Valid"`, AssessmentSession uses `IsPassed == true`.
 
 **Why it happens:**
-String-based status fields instead of enums with defined transitions. No validation layer between controller and database to enforce approval hierarchy (SrSpv → SectionHead → HC). Controllers check current user role but don't verify previous approval steps completed. Similar issue already exists in AssessmentSession.Status (from CONCERNS.md) creating pattern of unvalidated state transitions across the codebase.
+The merge feels simple because both represent things a user completed. Developers create a flattened union ViewModel, map the shared-looking fields (Title maps to Judul, Schedule maps to Tanggal), and ship it. The divergence in nullable fields only surfaces in production with real data: a TrainingRecord row tries to display `Score` (which does not exist on it) or an AssessmentSession row tries to display `ValidUntil` (which does not exist on it).
 
 **How to avoid:**
-1. **Create enums immediately:**
-   ```csharp
-   public enum ApprovalStatus { NotStarted, Pending, Approved, Rejected }
-   public enum CoachingStatus { Draft, PendingReview, Approved, Rejected, Archived }
-   ```
-2. Implement state machine validator service:
-   ```csharp
-   public class ApprovalWorkflowValidator
-   {
-       public bool CanTransition(ApprovalStatus current, ApprovalStatus next, string userRole);
-       public bool CanApprove(IdpItem item, string approverRole);
-   }
-   ```
-3. Add validation in controller actions before state changes:
-   ```csharp
-   if (!_workflowValidator.CanApprove(idpItem, currentUserRole))
-       return Forbid("Approval workflow violation: previous approvals incomplete");
-   ```
-4. Add timestamp fields: ApprovedSrSpvAt, ApprovedSectionHeadAt, ApprovedHCAt to track approval sequence
-5. Create check constraint in migration: `[ApproveHC] cannot be 'Approved' if [ApproveSrSpv] is NULL or 'Rejected'` (database-level enforcement)
-6. Log all state transitions in audit table (addresses existing "No Audit Trail" concern from CONCERNS.md)
+Use a discriminated union ViewModel with a `SourceType` enum field (TrainingRecord vs AssessmentSession). In Razor, switch on `SourceType` to render the correct column template per row. Do not map fields that do not exist — conditionally render or skip. The existing `Records.cshtml` uses a client-side JS tab filter over categories (PROTON, OTS, IHT, etc.); the least-risk migration path is adding an "Assessment Results" tab that renders assessment rows independently, rather than trying to unify all rows into one column layout.
 
 **Warning signs:**
-- IDP items show HC approval but SrSpv field is null
-- Coaching logs marked "Submitted" but required fields empty
-- Users can re-submit rejected items without HC noticing previous rejection
-- Approval counts don't match status ("3 approved" but status still "Pending")
-- Same user can approve at multiple levels (SrSpv also acting as HC)
+- Null reference exceptions in Razor when rendering merged table
+- Score column empty for all TrainingRecord rows; ValidUntil column empty for all AssessmentSession rows
+- The certificate expiry alert banner (which reads `TrainingRecord.IsExpiringSoon`) silently breaks if AssessmentSession rows are in the same model list
 
-**Phase to address:**
-Phase 1 (Foundation) - Workflow validation must exist before building approval UI. Adding validation after approval features ship requires data cleanup migrations to fix invalid state combinations already in production database.
+**Phase to address:** Training Records merge phase. Define the ViewModel contract before writing any Razor. The `IsExpiringSoon` computed property on `TrainingRecord` must remain intact — do not lift it into the merged ViewModel without preserving the calculation logic.
 
 ---
 
-### Pitfall 4: N+1 Query Explosion in Coaching Dashboards
+### Pitfall 4: Broken Pagination When Two EF Core Sources Are Combined
 
 **What goes wrong:**
-Development dashboard needs to show coaching progress across team members. Controller loads list of coachees, then for each coachee makes separate queries for: coaching logs count, latest coaching session, IDP items linked to coaching, competency gap data, approval status. For a Section Head with 50 employees, this creates 250+ database queries (already happening in HomeController per CONCERNS.md). Dashboard load time exceeds 10 seconds; SQL Server CPU spikes to 100%; users get timeout errors during peak hours.
+The current `Records` action returns `List<TrainingRecord>` from a single server query. AssessmentSessions are paginated server-side in the `Assessment` action with `.Skip().Take()`. If the merged Training Records view combines both sources with server-side pagination, and the EF queries run separately then are concatenated in C#, the pagination breaks: page 1 might show 20 TrainingRecord rows and 0 AssessmentSession rows because in-memory sorting places all AssessmentSessions on later pages. The pagination count (TotalCount in ViewBag) is also wrong if it comes from only one source.
 
 **Why it happens:**
-Similar pattern to existing N+1 issues in GetRecentActivities and GetUpcomingDeadlines (CONCERNS.md lines 93-102). Loading navigation properties without `.Include()` triggers lazy loading for each item in loop. Dashboard needs aggregated data (counts, latest dates, status summary) but controllers iterate collections instead of using database aggregation. Coaching data adds new dimension to existing performance problem.
+EF Core cannot UNION across two different DbSets into a single ordered paginated SQL query without raw SQL or a shared base table. Developers often load both lists completely, concatenate in memory, sort, then apply `.Skip().Take()` — which defeats pagination performance and loads all rows before discarding most.
 
 **How to avoid:**
-1. **Use eager loading with Include for all navigation properties:**
-   ```csharp
-   var coachees = await _context.CoachCoacheeMappings
-       .Include(m => m.Coachee)
-       .Include(m => m.CoachingLogs.OrderByDescending(l => l.Tanggal).Take(1))
-       .Where(m => m.CoachId == currentUserId && m.IsActive)
-       .ToListAsync();
-   ```
-2. **Use projection to load only needed fields:**
-   ```csharp
-   var summary = await _context.CoachingLogs
-       .Where(l => l.CoachId == currentUserId)
-       .GroupBy(l => l.CoacheeId)
-       .Select(g => new {
-           CoacheeId = g.Key,
-           SessionCount = g.Count(),
-           LatestSession = g.Max(l => l.Tanggal),
-           PendingCount = g.Count(l => l.Status == "Draft")
-       })
-       .ToListAsync();
-   ```
-3. **Create database view for common dashboard queries** (avoids repeated complex joins)
-4. **Add indexes identified in CONCERNS.md:** `CoachingLogs(CoachId, Status, Tanggal)`, `CoachCoacheeMapping(CoachId, IsActive)`
-5. **Implement caching** for dashboard data with 5-minute expiration (follows recommendation from CONCERNS.md)
-6. **Profile queries** with SQL Server Profiler before shipping dashboard features
+For this portal's scale (single company, bounded user counts), full in-memory load then paginate is acceptable if total records per user are bounded. Document that assumption explicitly. The existing JS filter tab pattern — an "Assessment Results" tab alongside existing training category tabs — avoids the pagination problem entirely by keeping the two sources in separate display contexts. If a unified table is required, calculate TotalCount as the sum of both source counts and apply a combined sort before `.Skip().Take()`.
 
 **Warning signs:**
-- Development dashboard takes >3 seconds to load with 10 team members
-- Database query logs show repeated identical queries with different IDs
-- SQL Server Profiler shows 100+ queries for single page load
-- Dashboard load time increases linearly with team size
-- Timeout errors during business hours when HC views organization-wide dashboard
+- Combined pagination count in the UI does not match visible row count
+- Page 2 is empty when page 1 is not full
+- Response time spikes when a user has more than 50 records of either type
 
-**Phase to address:**
-Phase 2 (Dashboard Development) - Must address during dashboard implementation, not after. Performance issues discovered after launch require emergency hotfix deployments and user complaints. Use CONCERNS.md existing N+1 patterns as anti-examples when building coaching queries.
+**Phase to address:** Training Records merge phase. The decision between unified table and tab extension must be made before writing any ViewModel code. Tab extension is recommended as it eliminates this pitfall class entirely.
 
 ---
 
-### Pitfall 5: Coaching Data Privacy Without Access Control Audit
+### Pitfall 5: Cross-Controller Links Break Silently When ReportsIndex Moves
 
 **What goes wrong:**
-Coaching logs contain sensitive performance feedback (CatatanCoach, CoacheeCompetencies, Result ratings). Current codebase has "Unrestricted User Access via workerId Parameter" vulnerability (CONCERNS.md lines 43-51). If same pattern applied to coaching: any authenticated user crafts URL `/CDP/ViewCoachingLog?coacheeId=other_user` to read coaching feedback for employees outside their authorization scope. Coaching notes expose performance issues, competency gaps, and subjective assessments. GDPR Article 88 requires special protection for employee development data; unauthorized access violates data privacy regulations and creates legal liability.
+`CMPController.ReportsIndex` is linked from three locations in the current codebase:
+
+1. `Views/CDP/Dashboard.cshtml` line 97: `asp-controller="CMP" asp-action="ReportsIndex"` — the quick-link "Open Reports" button
+2. `Views/CMP/Index.cshtml` line 137: `@Url.Action("ReportsIndex", "CMP")` — the HC Reports hub card
+3. `Views/CMP/UserAssessmentHistory.cshtml` lines 11 and 201: breadcrumb and back-button both use `@Url.Action("ReportsIndex")` with no controller argument
+
+If `ReportsIndex` moves to CDPController, links 1 and 2 produce 404 immediately on first navigation. Link 3 breaks silently: `@Url.Action("ReportsIndex")` without a controller argument resolves against the current controller context (CMP), so it generates a URL that points to the old location. No compile-time or startup error occurs.
 
 **Why it happens:**
-Controllers check `[Authorize]` but don't validate specific resource ownership before displaying data. BPController already allows profile viewing across sections without cryptographic permission enforcement (CONCERNS.md). Coaching features inherit same insecure authorization pattern. Developers assume "user is authenticated" equals "user can access this data" without validating coach-coachee relationship. No audit logging to detect unauthorized access attempts.
+Tag helpers with explicit `asp-controller` are easy to audit by grep. `@Url.Action` calls without a controller argument are context-dependent and invisible to a simple search for the action name alone. They appear syntactically correct in the editor and generate a URL at render time that is wrong only because the action moved.
 
 **How to avoid:**
-1. **Implement resource-based authorization for every coaching action:**
-   ```csharp
-   var authResult = await _authorizationService.AuthorizeAsync(
-       User, coachingLog, "CanViewCoachingLog");
-   if (!authResult.Succeeded) return Forbid();
-   ```
-2. **Create authorization handler that validates:**
-   - User is the coach assigned to this coachee (via CoachCoacheeMapping)
-   - OR user is the coachee viewing their own logs
-   - OR user is HC/Admin with section-level access
-   - OR user is in approval chain (SrSpv, SectionHead) for linked IDP item
-3. **Add authorization policy in Program.cs:**
-   ```csharp
-   builder.Services.AddAuthorization(options => {
-       options.AddPolicy("CanViewCoachingLog", policy =>
-           policy.Requirements.Add(new CoachingLogAccessRequirement()));
-   });
-   ```
-4. **Log all coaching data access** to audit table with UserId, ResourceId, Timestamp, ActionType
-5. **Filter query by authorization before loading data** (never load then filter - prevents timing attacks)
-6. **Add GDPR-compliant retention policy** for coaching logs (7 years per GDPR recommendations, then auto-anonymize)
-7. **Implement "Forgot Me" workflow** that anonymizes coaching data while preserving statistical reports
+Before moving any action: grep for both `asp-action="ReportsIndex"` AND the literal string `"ReportsIndex"` across all `.cshtml` files. When found without an explicit controller argument, add the controller name. Either add a redirect stub in CMPController (`return RedirectToAction("ReportsIndex", "CDP")`) or update all links before deleting the original. `UserAssessmentHistory.cshtml` must be updated to include `"CDP"` (or wherever it moves) as the explicit controller argument in both `Url.Action` calls.
 
 **Warning signs:**
-- Users can view coaching logs by guessing coacheeId parameters
-- No "Access Denied" errors when testing cross-section coaching access
-- Audit logs missing or empty (no record of who viewed what data)
-- Coaching dashboard shows employees from other sections without authorization
-- HR receives data privacy complaint about unauthorized coaching data access
+- The CDP Dashboard "Open Reports" button returns 404 after the move
+- Breadcrumb in UserAssessmentHistory points to a dead URL
+- Admin loses the HC Reports shortcut and finds no alternative navigation path
 
-**Phase to address:**
-Phase 1 (Foundation) - Security vulnerabilities must be prevented from day one. Adding authorization after features ship requires security audit, penetration testing, and potential GDPR breach disclosure if unauthorized access already occurred.
+**Phase to address:** Dashboard consolidation phase (moving HC Reports). Run the link audit before writing the move code, not after.
 
 ---
 
-### Pitfall 6: Coaching Status Out of Sync with IDP Progress
+### Pitfall 6: Authorization Drift When ReportsIndex Moves to a Different Controller
 
 **What goes wrong:**
-Coach marks competency as "Mandiri" (independent) in CoachingLog.Kesimpulan, but linked IdpItem.Status still shows "Pending". User completes IDP deliverable through training, but coaching dashboard shows "PerluDikembangkan" (needs development). Two parallel status tracking systems diverge: coaching records say competency achieved, IDP records say still in progress, HR reports show conflicting completion percentages. Manager approval on IDP doesn't trigger coaching status update; coaching session marked "Submitted" doesn't auto-update IDP progress field.
+`CMPController.ReportsIndex` carries `[Authorize(Roles = "Admin, HC")]` explicitly. `CDPController` has only class-level `[Authorize]`, which enforces any authenticated user. If the action is copied to CDPController without re-declaring the role attribute, any logged-in user can access the HC Reports page — seeing all completed assessment data, scores, and section-level analytics.
 
 **Why it happens:**
-No automatic synchronization logic between CoachingLog.Kesimpulan/Result and IdpItem.Status. Controllers update one entity without checking or updating related entity. Business logic missing for "what happens when coaching concludes competency is achieved?" Status fields use different vocabularies: coaching uses "Mandiri/PerluDikembangkan", IDP uses "Approved/Pending/Rejected", creating semantic mismatch. No single source of truth for "is this competency completed?"
+Moving an action between controllers is a copy-paste operation. Developers copy the method body and sometimes the action-level attributes, but miss that the original action's tighter authorization came from its own `[Authorize(Roles)]` attribute, not from an inherited controller-level attribute. The application compiles and runs; the authorization hole is only caught by logging in as a lower-privilege user and visiting the URL directly.
 
 **How to avoid:**
-1. **Define clear status synchronization rules:**
-   - Coaching marked "Mandiri" + Result "Good/Excellence" → trigger IDP Status suggestion to "Completed"
-   - IDP approved by all three levels → coaching session auto-archived
-   - If coaching conclusion is "PerluDikembangkan" → IDP cannot be marked completed without override
-2. **Implement domain events or service layer to coordinate updates:**
-   ```csharp
-   public async Task CompleteCoachingSession(CoachingLog log)
-   {
-       log.Status = "Submitted";
-       if (log.Kesimpulan == "Mandiri" && log.IdpItemId.HasValue)
-       {
-           var idpItem = await _context.IdpItems.FindAsync(log.IdpItemId.Value);
-           idpItem.Status = "Completed";
-           idpItem.Evidence = $"Coaching session {log.Id} - {log.Tanggal:yyyy-MM-dd}";
-       }
-       await _context.SaveChangesAsync();
-   }
-   ```
-3. **Add UI warnings for status conflicts:**
-   - Display alert: "IDP marked complete but latest coaching session shows 'needs development' - verify competency achievement"
-   - Require coach confirmation before IDP final approval if recent coaching indicates issues
-4. **Create unified progress calculation** that considers both IDP approval status AND latest coaching assessment
-5. **Display status provenance** in UI: "Status: Completed (approved by HC on 2026-01-15, validated by coaching session on 2026-01-10)"
+Re-declare `[Authorize(Roles = "Admin, HC")]` explicitly on the moved action. Additionally, verify whether Admin in Coachee SelectedView should be blocked from the reports page — currently `ReportsIndex` does not check `SelectedView`, so this is a design decision. Test access as a Coachee-role user and as an Admin in Coachee view after any move.
 
 **Warning signs:**
-- Dashboard shows "80% complete" in IDP view but "60% complete" in coaching view for same employee
-- Coaching sessions marked successful but IDP items remain in "Pending" indefinitely
-- HC approves IDP without seeing recent coaching feedback indicating competency gaps
-- Reports export different completion numbers depending on data source (coaching vs. IDP tables)
+- A Coach or Coachee-role user can access the HC Reports URL directly after the move
+- No 403 is returned; the page renders with full data
+- No automated tests catch this because the project has no automated tests
 
-**Phase to address:**
-Phase 2 (Dashboard & Integration) - Define integration rules during dashboard phase when both data sources display together. Easier to build consistent status logic from start than reconcile divergent systems later. However, can defer complex automation to Phase 3 if Phase 2 includes manual reconciliation UI.
+**Phase to address:** Dashboard consolidation phase. Authorization verification is the first checklist item after any cross-controller move, not the last.
 
 ---
 
-### Pitfall 7: Coaching Session Data Without Required Field Validation
+### Pitfall 7: Orphaned Links After CompetencyGap Deletion
 
 **What goes wrong:**
-CoachingLog model has required fields (CoacheeCompetencies, CatatanCoach, Kesimpulan, Result) as empty string defaults. Controller allows saving coaching session with all textareas blank. User clicks "Submit" on empty form → record created with Status="Submitted" but no actual coaching notes. HC dashboard shows "coaching session completed" but opening it reveals completely empty feedback. IDP progress counts meaningless coaching sessions. Approval workflow processes empty coaching logs because validation only checks Status field, not content completeness.
+`CMP/CompetencyGap` is linked from three locations in the current codebase:
+
+1. `Views/CMP/Index.cshtml` line 72: the "Gap Analysis" hub card button
+2. `Views/CMP/CpdpProgress.cshtml` line 19: a "View Gap Analysis" navigation button
+3. `Views/CMP/CompetencyGap.cshtml` line 36: a hardcoded JavaScript string `window.location.href='/CMP/CompetencyGap?userId=' + this.value` in an `onchange` handler — this is a string literal, not a tag helper, so it produces no compile-time error when the route is removed
+
+After deletion without updating these links, clicking items 1 and 2 returns 404. Item 3 is inside the deleted view file itself, so it is moot. However, items 1 and 2 remain live in their respective views and will break for every user who visits the CMP hub or the CpdpProgress page.
 
 **Why it happens:**
-Model uses string properties with empty string defaults (`= ""`) instead of nullable strings with Required attributes. No ModelState validation in controller Create/Edit actions. Frontend form might have HTML5 required attributes but users bypass with browser dev tools or API calls. Similar to existing "Missing Input Validation" issue on AssessmentSession (CONCERNS.md lines 73-81). Database accepts empty strings as valid data because no CHECK constraints exist.
+Tag helper references are found by searching `asp-action`. Hardcoded URL strings in JavaScript and in `Url.Action` calls require searching for the action name as a plain string. Developers run the tag helper audit and declare the link audit complete, missing the JavaScript literals.
 
 **How to avoid:**
-1. **Add validation attributes to model:**
-   ```csharp
-   [Required(ErrorMessage = "Coaching notes are required")]
-   [MinLength(50, ErrorMessage = "Please provide substantive coaching feedback")]
-   public string CatatanCoach { get; set; } = "";
-
-   [Required(ErrorMessage = "Coachee competencies assessment required")]
-   [MinLength(20, ErrorMessage = "Please describe observed competencies")]
-   public string CoacheeCompetencies { get; set; } = "";
-
-   [Required]
-   public string Kesimpulan { get; set; } = "";
-
-   [Required]
-   public string Result { get; set; } = "";
-   ```
-2. **Validate ModelState in controller before save:**
-   ```csharp
-   if (!ModelState.IsValid)
-       return View(coachingLog); // Redisplay form with validation errors
-   ```
-3. **Add business rule validation beyond data annotations:**
-   - Cannot submit coaching log if Tanggal is in future
-   - Cannot mark Kesimpulan="Mandiri" if Result="NeedImprovement" (logical contradiction)
-   - Cannot create coaching log for IdpItem that's already approved by all levels
-4. **Add database check constraints in migration:**
-   ```sql
-   ALTER TABLE CoachingLogs ADD CONSTRAINT CHK_CatatanCoach_NotEmpty
-   CHECK (LEN(CatatanCoach) >= 50);
-   ```
-5. **Prevent status change to "Submitted" if validation fails:**
-   ```csharp
-   if (model.Status == "Submitted" && !IsCoachingLogComplete(model))
-       ModelState.AddModelError("Status", "Cannot submit incomplete coaching log");
-   ```
+Before deleting any controller action: search for the action name as a string literal in all `.cshtml` files, not only as an `asp-action` attribute value. The specific search for this case: grep for `CompetencyGap` across all Views. Update `CMP/Index.cshtml` line 72 and `CMP/CpdpProgress.cshtml` line 19 before or in the same commit as the deletion. If a replacement page exists (e.g., CpdpProgress covers similar ground), add a temporary redirect in CMPController for at least one release.
 
 **Warning signs:**
-- Coaching logs in database with empty CatatanCoach or CoacheeCompetencies fields
-- Dashboard shows "5 coaching sessions completed" but 3 have no actual content
-- Users can submit form by disabling browser validation
-- Database accepts coaching records that fail business logic (future dates, contradictory ratings)
-- Quality reports show coaches submitting 20+ sessions per day (likely spam clicking submit)
+- The CMP Index hub page loads but the Gap Analysis card button returns 404
+- CpdpProgress view has a broken "View Gap Analysis" navigation button
+- Users who bookmarked the CompetencyGap URL see an unhandled error page
 
-**Phase to address:**
-Phase 1 (Foundation) - Input validation must exist before building any CRUD operations. Invalid data entered in Phase 1 becomes "legacy data" that breaks reports and analytics in later phases. Database constraints prevent bad data even if controller validation is bypassed.
+**Phase to address:** Gap Analysis removal phase. The two hub-page links (CMP Index and CpdpProgress) must be updated in the same commit that removes the action and view.
+
+---
+
+### Pitfall 8: Client-Side JS Tab Filter Breaks When Records View Receives Mixed Model Types
+
+**What goes wrong:**
+The existing `Records.cshtml` filters rows by tab via JavaScript: `data-kategori` HTML attributes on rows match tab button values (PROTON, OTS, IHT, etc.). The filter script assumes the model is a flat `List<TrainingRecord>` where every item has a `Kategori` property rendered as the `data-kategori` attribute. If AssessmentSession rows are injected into the same view via a merged ViewModel, those rows have no `Kategori` value (`AssessmentSession` uses `Category`, not `Kategori`). The JS filter either hides all assessment rows always (they never match any tab) or shows them always (if the filter falls back to show-unmatched).
+
+**Why it happens:**
+The JS tab filter is data-driven from a Razor attribute rendered server-side. When the model type changes, the attribute-rendering logic must also change, but the JS filter code stays the same. The disconnect is invisible until the merged data is tested against the actual filter UI with real records of both types.
+
+**How to avoid:**
+When merging sources, ensure the Razor template emits the correct `data-kategori` (or `data-source-type`) attribute for both row types. For AssessmentSession rows, either map `Category` to one of the existing tab values where it overlaps (e.g., "OJT" maps to the OJT tab) or add a dedicated "Assessments" tab with value "Assessment" and emit that attribute on all AssessmentSession rows. Define this mapping before writing Razor, not during debugging.
+
+**Warning signs:**
+- After merge, individual category tabs show 0 rows for assessment items even when assessment records exist
+- Assessment rows appear on every tab simultaneously if the `data-kategori` attribute is empty and the filter treats empty as "always show"
+- Row count mismatch between the "All" implicit view and tab-filtered views
+
+**Phase to address:** Training Records merge phase. Tab filter logic must be reviewed and updated in the same PR as the ViewModel change, not separately.
 
 ---
 
 ## Technical Debt Patterns
 
-Shortcuts that seem reasonable but create long-term problems.
-
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| String-based foreign keys (CoachId, CoacheeId) instead of navigation properties | Simpler initial model | No referential integrity, orphaned records after user deletions, manual JOIN queries everywhere | Never - EF Core navigation properties are standard practice |
-| Freeform status strings ("Draft", "Submitted") | Easy to add new statuses | Typos create invalid states, no transition validation, impossible to query reliably, migration hell | Never - Use enums with migrations to add new values |
-| CoachingLog auto-fills from "tabel" (table) using string matching on SubKompetensi | Avoids foreign key complexity | Data drift when IDP items edited, orphaned coaching logs, cannot enforce referential integrity | Never - Fix TrackingItemId → IdpItemId relationship immediately |
-| Copy-paste authorization logic from BPController | Fast to implement | Inherits existing security vulnerabilities, inconsistent access control, no centralized policy | Never - Extract to authorization handler to fix systemic issue |
-| Manual approval checking with if-else chains | Simple to understand | Missed edge cases, approval bypass bugs, cannot enforce hierarchy, no audit trail | Only for prototype/MVP if Phase 2 includes refactor to policy-based auth |
-| Loading all coaching logs then filtering in memory | Works for small datasets | N+1 queries, memory exhaustion with large teams, 10+ second page loads | Never - Use database filtering with indexes |
-| Nullable approval fields without default values | Allows "not started" state | Cannot distinguish "not started" vs "pending" vs "skipped", breaks workflow logic | Never - Use enum with explicit NotStarted value |
-| Storing coach name/position as denormalized strings | Displays correctly if user data unchanged | Stale data after promotions, manual sync required, breaks org chart reports | Only for reports/exports if snapshot of historical state needed; use JOIN for live data |
+| Remove Completed from Assessment query before history page exists | Faster to ship the filter | Users lose access to all past results and certificates with no recovery path | Never — history destination must precede source removal |
+| Use `@Url.Action("ReportsIndex")` without explicit controller after moving action | Less typing | Silent 404 after controller changes; caught only in manual testing | Never during cross-controller moves — always specify controller |
+| In-memory concat + sort + Skip/Take for merged Training Records | Simple code | Loads all records per user into memory before pagination; acceptable at current scale | Acceptable at this portal's scale (single company, bounded users); must be documented |
+| Delete CompetencyGap action without updating hub-page links | Fast deletion | Two broken buttons on visited pages; one is a high-traffic hub | Never — link audit must precede deletion |
+| Copy ReportsIndex to CDPController without re-declaring `[Authorize(Roles)]` | Fast move | Any authenticated user sees HC-level analytics | Never |
+
+---
 
 ## Integration Gotchas
 
-Common mistakes when connecting coaching features to existing CMP components.
-
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| CoachingLog → IdpItem | Using TrackingItemId that doesn't exist, or string matching on SubKompetensi field | Change to IdpItemId foreign key with navigation property, add to ApplicationDbContext relationships |
-| CoachingLog → UserCompetencyLevel | Ignoring existing competency tracking from assessments, creating parallel competency status | Query UserCompetencyLevel to show current vs target in coaching UI, update competency levels based on coaching conclusions |
-| Approval workflow | Building separate approval logic from existing IDP approval pattern | Reuse IDP approval hierarchy (SrSpv → SectionHead → HC), potentially extract to shared service |
-| Dashboard metrics | Creating separate coaching dashboard that doesn't show IDP/assessment context | Integrate coaching metrics into existing DashboardHomeViewModel, show cross-module progress |
-| Role-based access | Checking user.Role directly without using UserRoles.GetRoleLevel() helper | Use existing RoleLevel system and SelectedView pattern from HomeController/BPController |
-| Authentication | Building custom coach permission checks | Leverage existing authorization attributes and extend with resource-based policies |
-| Database migrations | Creating coaching tables in isolation without considering cascade delete impact | Review ApplicationDbContext cascade behavior (CONCERNS.md lines 142-147), use DeleteBehavior.Restrict for audit data |
-| Calendar/scheduling | Implementing custom date handling | Follow existing pattern from AssessmentSession.Schedule, validate against business hours/holidays |
+| Admin SelectedView + role-based `[Authorize]` attributes | Relying only on `[Authorize(Roles = "Admin, HC")]` without checking `SelectedView` at runtime | Check both: attribute for coarse auth, `user.SelectedView` in action body for view-scoped filtering |
+| EF Core multi-source merge for Razor table | Running two separate queries and concatenating in C# with server-side pagination | Concatenate in memory at this scale OR use independent tabs per source; never calculate pagination count from only one source |
+| `asp-controller` tag helpers vs `Url.Action` vs hardcoded JS strings | Assuming tag helpers catch all broken links | Grep for the action name as a plain string in all `.cshtml` files before deleting any action |
+| Cross-controller `Url.Action` without controller argument | View generates correct URL in current controller context; breaks silently when called from a different controller | Always specify controller name in `Url.Action` calls that cross controller boundaries |
+| `[Authorize(Roles)]` inheritance after action moves to new controller | Assume class-level `[Authorize]` provides the same protection | Re-declare all action-level role restrictions explicitly on the moved action |
+
+---
 
 ## Performance Traps
 
-Patterns that work at small scale but fail as usage grows.
-
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Loading all coachee coaching sessions in dashboard loop | Page load >3s with 10 employees, SQL query count in hundreds | Use `.Include()` for navigation properties, project to summary DTOs, add composite indexes on CoachId+Status+Tanggal | >15 active coachees per coach |
-| Querying IDP items for each coaching log individually | Dashboard timeout with 50+ coaching sessions | Single query with JOIN to IdpItems, load related data in batch | >30 coaching sessions per user |
-| Full table scan on Status filtering | Slow dashboard filtering by draft/submitted | Add index on CoachingLogs(Status, CoachId), consider filtered index for Status='Draft' only | >500 total coaching logs in database |
-| Calculating coaching completion percentage in C# code | High CPU usage on dashboard load | Use SQL aggregation with COUNT/SUM, cache results for 5 minutes, consider database view | >100 coachees in organization |
-| Loading full coaching log text for list views | Memory usage spikes, slow scrolling | Project to summary model with Id, CoacheeId, Tanggal, Status only - load full text only in detail view | >200 coaching logs loaded in list |
-| No pagination on coaching history | Browser freeze with 2+ years of logs | Implement pagination with 20 records per page, add "show more" infinite scroll | >100 logs per employee |
-| Synchronous approval notification (if added later) | Request timeout when approving IDP with 50 coaching logs | Use background job (Hangfire/similar) for notification sending | N/A if notifications not implemented |
-| Denormalized coach names without caching | Repeated ApplicationUser lookups for same coach in list | Cache coach/coachee user info in memory for session duration, or project from single LINQ query with Include | >50 unique coaches in system |
+| Full in-memory load of merged TrainingRecord + AssessmentSession before pagination | Slow page load when users have many records | Accept at current scale; add a safety cap (e.g., `.Take(500)` per source) | Noticeable when any user exceeds roughly 500 combined records |
+| Loading `AssessmentSessions.Include(a => a.Questions).Include(a => a.Responses)` for a history/list page | Extremely slow list load; massive result sets | History list must NOT include Questions or Responses — only summary fields (Title, Category, Score, IsPassed, CompletedAt) | Breaks immediately for any assessment with a question bank |
+| Re-running the full ReportsIndex aggregate queries (CategoryStats, ScoreDistribution, AverageScore) after moving the action | Slow report pagination, no caching added during move | Preserve the existing query structure when moving; do not add eager-loading that was not there before | Already slow at over 100 completed assessments; adding unnecessary Include makes it worse |
+
+---
 
 ## Security Mistakes
 
-Domain-specific security issues beyond general web security.
-
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Displaying all coachees in dropdown without section filtering | Cross-section data leakage, users see employees outside their scope | Filter coachee selection by coach's section/unit access, validate on POST that coachee assignment is authorized |
-| Allowing workerId/coacheeId URL parameter manipulation | Any authenticated user reads any employee's coaching feedback (similar to BPController vulnerability) | Implement resource-based authorization handler that validates coach-coachee relationship before loading data |
-| No authorization check before editing coaching log | Users can modify coaching logs they didn't create | Validate User.Id == CoachingLog.CoachId before allowing edit, check IsActive mapping, prevent edits after IDP approval |
-| Exposing coaching result ratings in assessment reports | Cross-module data leakage reveals performance issues to unauthorized users | Separate authorization policies for assessment vs coaching data, HC can view both but section heads only see their scope |
-| No rate limiting on coaching log creation | Spam/abuse - user creates hundreds of fake coaching sessions | Implement business rule: max 5 coaching sessions per coachee per week, require minimum time between sessions |
-| Soft delete without access revocation | Deactivated coach can still access old coaching logs | Check IsActive on CoachCoacheeMapping in authorization handler, implement hard delete or anonymization after retention period |
-| Missing HTTPS/encryption for coaching data in transit | Sensitive performance data exposed in network traffic | Enforce HTTPS in production (currently disabled per CONCERNS.md), add [RequireHttps] attribute to coaching controllers |
-| Coaching log IDs are sequential integers | Attackers enumerate all coaching logs via /ViewLog?id=1, id=2, id=3... | Use GUIDs for CoachingLog.Id, or validate authorization regardless of ID enumeration risk |
-| No CSRF protection on coaching form submission | Attacker tricks coach into submitting malicious coaching feedback | Verify [ValidateAntiForgeryToken] on all POST actions (should be default in ASP.NET Core but verify explicitly) |
+| Moving ReportsIndex without `[Authorize(Roles = "Admin, HC")]` | Any authenticated user sees all completed assessment data, scores, and section breakdowns | Explicitly re-declare the role attribute on the moved action; verify with a Coachee-role test user |
+| Adding a History action that accepts a `userId` parameter without ownership check | Any user views any other user's completed assessment history by guessing IDs | The existing `UserAssessmentHistory` action correctly checks ownership; replicate the same pattern in any new history action |
+| Merged Training Records + Assessment view that exposes `AccessToken` in a coachee-facing row | Token visible to the coachee who owns the assessment | `AccessToken` must never appear in coachee-facing views; it is currently guarded behind `viewMode == "manage"` — preserve that guard in any merged view |
+
+---
 
 ## UX Pitfalls
 
-Common user experience mistakes in coaching management systems.
-
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Coaching form auto-fills SubKompetensi from "tabel" but doesn't show which IDP item | User confused which deliverable this coaching session addresses | Display linked IDP item context: "Coaching for: [Kompetensi] > [SubKompetensi] > [Deliverable] (Due: 2026-03-15)" at top of form |
-| No "save draft" vs "submit for approval" distinction | Users lose work if they can't finish session notes in one sitting | Add explicit "Save Draft" button that saves without triggering notifications/approval, separate "Submit" action for finalization |
-| Dropdown for Kesimpulan/Result but no guidance on when to use each | Inconsistent ratings across coaches, no inter-rater reliability | Add tooltip explanations, show examples: "Mandiri: Can perform task without guidance", provide coaching rubric reference |
-| Coaching history shows flat chronological list | Cannot see progress over time, hard to identify patterns | Group by IDP item/competency, show timeline visualization, highlight status changes (Draft→Submitted→Approved) |
-| No coachee visibility into coaching logs about them | Coachee unaware of coach's assessments until IDP approval | Allow coachee to view submitted (not draft) coaching logs, add comment/acknowledgment feature for two-way dialogue |
-| Form fields in Indonesian but no consistent terminology | Confusion between "SubKompetensi" vs "Sub-competency" in different screens | Use bilingual labels `SubKompetensi (Sub-Competency)` consistently, or allow language toggle if organization is multilingual |
-| No reminder for overdue coaching sessions | Coaching relationships become inactive, coachees miss development milestones | Add dashboard widget: "Coaching sessions overdue: [Coachee Name] - last session 45 days ago", email reminders (if email system added) |
-| Cannot see IDP context while writing coaching notes | Coach must open IDP in separate tab, loses context when switching windows | Split-screen UI: left panel shows IDP deliverable details, right panel is coaching form; or modal overlay with IDP summary |
-| Approval workflow not visible to coach | Coach doesn't know if coaching log was reviewed by managers, no feedback loop | Show approval status timeline in coaching log detail view: "Submitted on 2026-01-10 → Reviewed by SrSpv on 2026-01-12 → Approved by SectionHead on 2026-01-15" |
+| Removing Completed from Assessment list with no replacement page | Users who return to check their score find nothing and conclude their data was lost | Add a visible "History" link before removing the Completed tab; verify the link is prominent, not buried |
+| Merging Training Records and Assessments with identical column headers but different field semantics | "Status" means Passed/Valid/Wait Certificate for TrainingRecords but Open/Upcoming/Completed for AssessmentSessions; users see confusing mixed values in the same column | Render separate status badge styling per row type, or use different column headers per tab; never display both status vocabularies under the same label |
+| Moving HC Reports into CDP Dashboard without updating the CMP Index hub card | Users who navigate via CMP hub find the Reports card broken; users who navigate via CDP Dashboard find it; two user populations have completely different outcomes | Update the CMP Index hub card link in the same release as the move, or add a redirect from the old route |
+| Deleting Gap Analysis page without a redirect or in-page message | Users who bookmarked the URL or follow an old email link see an error page with no context or alternative | Add a temporary `RedirectToAction("CpdpProgress", "CMP")` stub for at least one release cycle before full removal |
+
+---
 
 ## "Looks Done But Isn't" Checklist
 
-Things that appear complete but are missing critical pieces.
+- [ ] **Assessment filter (remove Completed):** Verify the Results and Certificate pages are still reachable from at least one UI location after removing the Completed card block. Check the back-link from Results still points to the Assessment list.
+- [ ] **Admin SelectedView in every changed action:** Manually test all five SelectedView values (HC, Atasan, Coach, Coachee, Admin) for every action that was added or modified. Do this before marking the phase done.
+- [ ] **Training Records merge:** Verify the certificate expiry alert banner (`IsExpiringSoon`) still renders correctly — it reads from `TrainingRecord` properties that must survive in the merged ViewModel.
+- [ ] **ReportsIndex move:** Grep for `Url.Action("ReportsIndex"` without a controller argument before and after the move. `UserAssessmentHistory.cshtml` has two such calls; both must be updated.
+- [ ] **CompetencyGap deletion:** Search for the literal string `CompetencyGap` in all `.cshtml` files. `CpdpProgress.cshtml` line 19 and `CMP/Index.cshtml` line 72 must be updated in the same commit as the deletion.
+- [ ] **Authorization after cross-controller move:** Access the new Reports URL as a Coachee-role user; expect HTTP 403. Then access as Admin in Coachee SelectedView; verify intended behavior.
+- [ ] **JS tab filter after merge:** Click every tab in the merged Training Records view with a mixed dataset; verify AssessmentSession rows appear in the correct tab or the dedicated "Assessment" tab.
+- [ ] **Pagination count after merge:** If server-side pagination is used on merged data, verify the displayed page count matches the actual total of combined rows from both sources.
 
-- [ ] **Coaching Log CRUD:** Often missing authorization checks - verify coach can only edit their own logs, cannot modify after IDP approval, cannot create logs for employees outside their section
-- [ ] **Coach-Coachee Assignment:** Often missing validation - verify one coachee cannot have multiple active coaches without business justification, coach cannot assign themselves as coachee, assignment respects organizational hierarchy
-- [ ] **IDP Integration:** Often missing foreign key - verify CoachingLog.IdpItemId actually links to existing IdpItem.Id, cascade delete behavior defined, orphaned coaching logs cannot be created
-- [ ] **Approval Workflow:** Often missing state machine - verify cannot skip approval levels, rejected items cannot be auto-approved, approval timestamps are immutable, approver is authorized for that role level
-- [ ] **Dashboard Metrics:** Often missing N+1 prevention - verify uses `.Include()` for navigation properties, indexes exist on filtered columns, pagination implemented, query plan reviewed
-- [ ] **Status Synchronization:** Often missing business logic - verify coaching conclusion updates IDP status appropriately, conflicting statuses flagged in UI, single source of truth defined
-- [ ] **Access Control:** Often missing resource authorization - verify URL parameter manipulation blocked, cross-section access denied, audit log records access attempts, GDPR compliance for sensitive feedback
-- [ ] **Data Validation:** Often missing server-side checks - verify required fields enforced, date logic validated (not future dates), contradictory ratings prevented, database constraints match model validation
-- [ ] **Historical Accuracy:** Often missing change tracking - verify coaching logs immutable after submission, coach/coachee names preserved even after role changes, organizational structure at time of session recorded
-- [ ] **Edge Cases:** Often missing null handling - verify behavior when coach is deactivated, coachee transfers to another section, IDP item is deleted, all approval levels reject
+---
 
 ## Recovery Strategies
 
-When pitfalls occur despite prevention, how to recover.
-
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Orphaned coaching sessions after role changes | MEDIUM | 1. Add EndReason field via migration 2. Create script to identify orphaned sessions (coach no longer in CoachCoacheeMapping) 3. Set IsActive=false and EndReason='CoachRoleChanged' 4. Provide admin UI to reassign active coaching relationships 5. Add trigger to prevent future occurrences |
-| CoachingLog to IDP schema mismatch | HIGH | 1. Create migration to add IdpItemId column 2. Attempt to match existing TrackingItemId to IdpItem.Id via SubKompetensi/Deliverables string matching 3. Flag unmatched records for manual review 4. Add foreign key constraint 5. Update all controllers to use new relationship |
-| Invalid approval state combinations | MEDIUM | 1. Query database for invalid combinations (HC approved but SrSpv null) 2. Generate report for HR to manually review each case 3. Backfill missing approvals or reset to valid state 4. Add check constraints to prevent recurrence 5. Enable enum-based validation |
-| N+1 query performance degradation | LOW | 1. Add database indexes immediately (can be done online) 2. Refactor queries to use Include/projection 3. Add output caching to dashboard actions 4. Monitor query performance going forward 5. Set performance budget alerts |
-| Unauthorized coaching data access | HIGH | 1. Audit database logs to identify unauthorized access (if audit logging exists) 2. Notify affected employees per GDPR requirements 3. Implement resource-based authorization immediately 4. Add access logging for all coaching data views 5. Conduct security review of all controllers |
-| Status divergence between coaching and IDP | MEDIUM | 1. Generate report of mismatched statuses 2. Create admin reconciliation UI to review and fix each case 3. Implement synchronization logic going forward 4. Add UI warnings for conflicting data 5. Define and document source of truth |
-| Empty/invalid coaching logs | LOW | 1. Add database check constraints to prevent new invalid records 2. Query existing invalid records 3. Mark as "Invalid - Ignored" or allow coaches to complete 4. Add ModelState validation to controllers 5. Client-side validation as additional layer |
-| Performance issues at scale | MEDIUM | 1. Add indexes immediately 2. Implement pagination on list views 3. Add database view for complex dashboard queries 4. Enable response caching 5. Consider read replica for reporting if >1000 employees |
+| Completed sessions disappear with no history page | MEDIUM | Revert the one-line filter removal; deploy; build history page; re-attempt removal after history page ships |
+| ReportsIndex 404 after cross-controller move | LOW | Add redirect stub `return RedirectToAction("ReportsIndex", "CDP")` in CMPController; deploy immediately |
+| CompetencyGap 404 from orphaned hub-page links | LOW | Add redirect stub in CMPController pointing to CpdpProgress; update two view files in the same hotfix |
+| Auth hole on moved ReportsIndex | LOW | Add `[Authorize(Roles = "Admin, HC")]` to the action in CDPController; redeploy |
+| Merged table null reference exception in production | HIGH | Roll back to separate views; redesign merged ViewModel with discriminated union before re-attempting |
+| JS tab filter hides all assessment rows in merged view | MEDIUM | Add `data-kategori="Assessment"` attribute emission for AssessmentSession rows and a matching "Assessment" tab button; or roll back to separate views |
+
+---
 
 ## Pitfall-to-Phase Mapping
 
-How roadmap phases should address these pitfalls.
-
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Orphaned coaching sessions | Phase 1 | Create test user, assign as coach, change their role to non-coaching role, verify mapping auto-deactivates; query database for orphaned mappings |
-| CoachingLog-IDP schema mismatch | Phase 1 | Inspect migration file for foreign key definition; attempt to create coaching log with invalid IdpItemId and verify constraint error |
-| Approval workflow violations | Phase 1 | Test sequence: try to set HC approval before SrSpv approval, verify blocked; attempt invalid state transition via direct database update |
-| N+1 query explosion | Phase 2 | Use SQL Profiler during dashboard load, count queries, verify <10 queries for team of 20 employees; load dashboard with 50 employees and verify <3 second page load |
-| Privacy/access control gaps | Phase 1 | Attempt to access coaching log URL with different user's coacheeId, verify authorization denied; test cross-section access blocked |
-| Coaching-IDP status sync | Phase 2 | Complete coaching session with "Mandiri" conclusion, verify IDP status updated; approve IDP, verify coaching session reflects approval |
-| Required field validation | Phase 1 | Submit coaching form with empty fields, verify server-side validation blocks save; test status transition to Submitted with incomplete data |
+| History disappears when Completed filtered out | Assessment page refactor phase | Navigate to Results and Certificate from every remaining UI entry point after removing the Completed card block |
+| Admin SelectedView ignored in new or modified actions | Any phase that touches controller actions | Five-SelectedView manual test for every changed action before the phase is marked complete |
+| Merged table column mismatch (TrainingRecord vs AssessmentSession) | Training Records merge phase | Render merged table with real data from both sources; inspect every column for null or semantically incorrect values |
+| Broken pagination from two sources | Training Records merge phase | Load a user with 20+ TrainingRecords and 10+ AssessmentSessions; verify page 1 and page 2 counts are correct |
+| Cross-controller links break when ReportsIndex moves | Dashboard consolidation phase | Click every link to ReportsIndex from CMP Index, CDP Dashboard, and UserAssessmentHistory before and after the move |
+| Authorization drift on moved action | Dashboard consolidation phase | Access the new Reports URL as a Coachee-role user; expect 403 |
+| Orphaned links after CompetencyGap deletion | Gap Analysis removal phase | Load CMP Index hub and CpdpProgress view; click all navigation elements that previously referenced the deleted page |
+| JS tab filter breaks with mixed model types | Training Records merge phase | Click every tab in the merged view with mixed data; verify row counts match expected values per tab |
 
 ---
 
 ## Sources
 
-### Coaching Integration and Common Mistakes
-- [Global Coaching Trends 2026](https://virahumantraining.com/professional-coaching-worldwide/global-coaching-trends-2026/)
-- [Coaching Trends from 2025 and What They Signal for 2026](https://www.bmsprogress.com/coaching/coaching-trends-from-2025-and-what-they-signal-for-2026)
-- [How to Conduct Coaching Session Effectively in 2026](https://enthu.ai/blog/coaching-sessions/)
-- [Coaching in 2026: 7 Trends HR and L&D Leaders Can't Ignore](https://thrivepartners.co.uk/content/coaching-in-2026-7-trends-hr-and-ld-leaders-cant-ignore/)
-- [What are the common challenges and pitfalls of competency-based feedback and coaching?](https://www.linkedin.com/advice/1/what-common-challenges-pitfalls-competency-based-1e)
-
-### HR Portal Implementation Best Practices
-- [Best Practices for Launching Your HR Self-Service Portal](https://www.applaudhr.com/blog/digital-transformation/best-practices-for-launching-your-hr-self-service-portal)
-- [HR Process Improvement: 9 Tips To Optimize Human Resource Processes](https://www.aihr.com/blog/hr-process-improvement/)
-- [HR Workflows: How to Create Effective Processes (+Examples)](https://whatfix.com/blog/hr-workflows/)
-
-### IDP and Competency Development Integration
-- [Competency Development: A Detailed Guide for 2026](https://www.edstellar.com/blog/competency-development)
-- [Leadership Coaching in Modern Performance Management Systems: A Data-Driven Approach for 2026](https://performance.eleapsoftware.com/leadership-coaching-in-modern-performance-management-systems-a-data-driven-approach-for-2026/)
-- [Individual Development Plan (IDP) Templates](https://sprad.io/blog/individual-development-plan-idp-templates-free-docs-sheets-skill-based-examples-by-role)
-
-### Workflow and Database Design
-- [Workflow Management Database Design](https://budibase.com/blog/data/workflow-management-database-design/)
-- [Database Design for Workflow Management Systems](https://www.geeksforgeeks.org/dbms/database-design-for-workflow-management-systems/)
-- [Designing a Workflow Engine Database](https://exceptionnotfound.net/designing-a-workflow-engine-database-part-1-introduction-and-purpose/)
-
-### ASP.NET Core Security and Audit Trail
-- [How to Implement Audit Trail in ASP.NET Core with EF Core](https://antondevtips.com/blog/how-to-implement-audit-trail-in-asp-net-core-with-ef-core)
-- [How to Implement Audit Trail in ASP.NET Core Web API](https://code-maze.com/aspnetcore-audit-trail/)
-- [Audit Trail Implementation in ASP.NET Core with Entity Framework Core](https://codewithmukesh.com/blog/audit-trail-implementation-in-aspnet-core/)
-
-### Privacy and Compliance
-- [GDPR employee data retention: what HR needs to know](https://www.ciphr.com/blog/gdpr-employee-data-retention-what-hr-needs-to-know)
-- [GDPR HR Guide: What to Know About Employee Data](https://www.redactable.com/blog/gdpr-for-human-resources-what-to-know-for-employee-data)
-- [Navigating the GDPR: The Impact on Employee Data Retention](https://www.ags-recordsmanagement.com/news/gdpr-affects-employee-data/)
-
-### Dashboard Performance
-- [HR Dashboard: 7 Key Examples and Best Practices](https://www.qlik.com/us/dashboard-examples/hr-dashboard)
-- [HR Dashboard: 5 Examples, Metrics and a How-To](https://www.aihr.com/blog/hr-dashboard/)
-- [7 Best HR Metrics Dashboard Examples 2026](https://hr.university/analytics/hr-metrics-dashboard/)
-
-### Workflow Automation Mistakes
-- [Top 6 workflow automation mistakes and how to get it right](https://www.zoho.com/creator/decode/top-6-workflow-automation-mistakes-and-how-to-get-it-right)
-- [The Executive Guide for HR Workflow Automation Success](https://quixy.com/blog/hr-workflow-automation/)
-- [HR Automation: Tools, Examples, And Templates to Start Today](https://invgate.com/itsm/enterprise-service-management/hr-automation)
+- Direct codebase analysis: `Controllers/CMPController.cs`, `Controllers/CDPController.cs`
+- Cross-link audit: `Views/Shared/_Layout.cshtml`, `Views/CMP/Index.cshtml`, `Views/CDP/Dashboard.cshtml`, `Views/CMP/UserAssessmentHistory.cshtml`, `Views/CMP/CpdpProgress.cshtml`, `Views/CMP/CompetencyGap.cshtml`
+- Model schema: `Models/TrainingRecord.cs`, `Models/AssessmentSession.cs`, `Models/ApplicationUser.cs`
+- Authorization pattern: `[Authorize(Roles = "Admin, HC")]` on `CMPController.ReportsIndex`, `CMPController.EditAssessment`, `CMPController.DeleteAssessment`; runtime SelectedView checks in `CDPController.Dashboard`, `CDPController.Coaching`, `CMPController.Records`
+- Client-side filter pattern: `Views/CMP/Records.cshtml` (JS category tab filter), `Views/CMP/Assessment.cshtml` (JS status tab filter)
 
 ---
-
-*Pitfalls research for: CDP Coaching Management Integration with Portal HC KPB*
-*Researched: 2026-02-17*
-*Based on: Existing codebase analysis (CONCERNS.md, ARCHITECTURE.md), web research on HR coaching best practices, GDPR compliance requirements, ASP.NET Core security patterns, and database design standards*
+*Pitfalls research for: Portal HC KPB — v1.2 UX Consolidation (ASP.NET Core MVC refactoring)*
+*Researched: 2026-02-18*

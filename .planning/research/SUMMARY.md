@@ -1,316 +1,224 @@
 # Project Research Summary
 
-**Project:** Portal HC KPB v1.1 - CDP Coaching Management & Development Dashboard
-**Domain:** HR Coaching Session Management integrated with existing Competency Management Platform
-**Researched:** 2026-02-17
-**Confidence:** HIGH
+**Project:** Portal HC KPB — v1.2 UX Consolidation
+**Domain:** ASP.NET Core 8 MVC — role-filtered views, heterogeneous data merge, dashboard tab consolidation, clean feature removal
+**Researched:** 2026-02-18
+**Confidence:** HIGH — all four research areas grounded in direct codebase inspection; no external dependencies or speculative patterns
+
+---
 
 ## Executive Summary
 
-Portal HC KPB v1.1 extends the validated v1.0 competency assessment platform with CDP (Competency Development Plan) coaching session management and development dashboards. This research confirms that all new features can be built within the existing ASP.NET Core MVC stack without additional NuGet packages. The existing infrastructure (Entity Framework Core, Chart.js, ClosedXML, role-based authorization) provides all necessary capabilities for coaching CRUD operations, multi-level approval workflows, and progress visualization.
+This is a restructuring milestone against an already-shipped ASP.NET Core 8 MVC portal. The four goals — (1) restricting the Assessment page to actionable items per role, (2) merging completed AssessmentSession history into the Training Records view, (3) consolidating DevDashboard and HC Reports into a single tabbed Dashboard, and (4) removing the Gap Analysis page — require no new packages, no schema migrations, and no new frameworks. Every pattern needed already exists in the codebase. The recommended approach is to apply established codebase patterns (Bootstrap 5 `nav-tabs`, server-side `@if` role gating, in-memory LINQ union ViewModel projection) to new integration points, following the build order the architecture research derives from inter-feature dependencies.
 
-The recommended approach leverages proven patterns from the v1.0 CMP module: extend the existing CDPController rather than creating separate controllers, reuse the established 3-tier approval workflow (SrSpv → SectionHead → HC), and integrate Chart.js for development dashboards. Two lightweight client-side libraries (Flatpickr for date picking, TinyMCE for rich text editing) will be added via CDN to enhance UX without introducing dependency bloat.
+The primary architectural decision is the `UnifiedCapabilityRecord` ViewModel: rather than attempting a SQL UNION across incompatible schemas or performing the merge in Razor, both data sources are queried separately in the controller, projected to a shared DTO with a `RecordType` discriminator, merged and sorted in memory, then passed as a single typed model to the view. This is the pattern already used for `CoacheeProgressRow` and `TrackingItem` in the existing codebase. The Dashboard consolidation follows the same principle — a composite `CDPDashboardViewModel` absorbs `ReportsDashboardViewModel` and `DevDashboardViewModel` as sub-models, with role-gated population so only authorized users incur the cost of those queries.
 
-Critical risks center on data integrity and security: the existing CoachingLog model has a broken foreign key relationship (TrackingItemId references a non-existent table), role-based access control vulnerabilities identified in the codebase could expose sensitive coaching feedback if replicated, and N+1 query performance issues already present in the dashboard must be prevented from scaling. All three risks can be mitigated in Phase 1 (Foundation) by fixing the schema, implementing resource-based authorization from day one, and using eager loading patterns with proper indexing.
+The critical risks all share a common root cause: changes that are individually safe become breaking if sequencing is violated. Specifically — removing Completed assessments from the worker view before the history destination exists, deleting the CompetencyGap route before its hub-page links are updated, and moving `ReportsIndex` to CDPController before all cross-controller `Url.Action` calls are audited. The research is unambiguous: deletion and removal must come last, never first. A secondary risk unique to this codebase is the Admin `SelectedView` two-layer auth system, which must be verified across all five view values for every modified controller action.
+
+---
 
 ## Key Findings
 
 ### Recommended Stack
 
-**No new backend packages required.** All coaching features can be built with the existing validated stack (EF Core 8.0.24, ASP.NET Core MVC, SQL Server/SQLite, ASP.NET Identity). This minimizes risk, maintains consistency, and leverages infrastructure already proven in the CMP module.
+The existing stack handles every requirement without modification. No new NuGet packages are warranted. All patterns (Bootstrap tab component, server-side role gating, EF Core in-memory projection) are already loaded and in active use throughout the codebase. The only new code artifacts are ViewModels: `UnifiedCapabilityRecord.cs`, `CDPDashboardViewModel.cs`, and two partial views (`_HCReportsPartial.cshtml`, `_DevDashboardPartial.cshtml`).
 
 **Core technologies:**
-- **Entity Framework Core 8.0.24** (existing): CRUD operations, relationships, approval workflow tracking — already handling complex CMP assessment data successfully
-- **Chart.js 4.5.1** (existing): Progress visualization (line charts for competency progression, donut charts for goal completion) — reuse existing integration from CMP radar charts
-- **ClosedXML 0.105.0** (existing): Excel export for coaching session reports — extend existing HC reporting pattern
-- **Flatpickr 4.6.x** (CDN): Date/time picker for session logging — lightweight, no dependencies, better UX than native HTML5 controls
-- **TinyMCE 7** (CDN, free tier): Rich text editor for coaching notes and action items — familiar Word-like interface, simple integration, no commercial license needed for this use case
-
-**Critical version note:** EF Core 8.0.24 support ends November 2026. Plan migration to EF Core 11 in Q4 2026 or early 2027.
+- ASP.NET Core 8 MVC: request routing and server-side rendering — all changes are controller action modifications and view refactors; no framework change
+- EF Core 8: data access — in-memory LINQ `.Concat().OrderByDescending()` across two separate queries is the established merge pattern; SQL UNION is not viable due to schema incompatibility between `AssessmentSession` and `TrainingRecord`
+- Razor Views (.cshtml): all role gating done via server-side `@if (userRole == ...)` blocks — restricted content is never emitted to the DOM, consistent with existing patterns in `Progress.cshtml`, `_Layout.cshtml`, `Coaching.cshtml`
+- Bootstrap 5.3 (CDN): `data-bs-toggle="tab"` for all tab UIs — already loaded in `_Layout.cshtml`; zero additional JavaScript required
+- ASP.NET Identity: `UserManager.GetRolesAsync()` for role resolution — established pattern already used in both `CDPController` and `CMPController`
 
 ### Expected Features
 
-**Must have (table stakes) — v1.1:**
-- **Log coaching sessions** — date, topic, notes, coach/coachee identification with rich text support
-- **Document action items** — each session can have 0-N action items with description, due date, status tracking
-- **Approval workflow for action items** — reuse IdpItem 3-tier approval pattern (SrSpv → SectionHead → HC)
-- **Session history view** — chronological list with filtering by date range and status
-- **Link sessions to competency gaps** — reference UserCompetencyLevel gaps from CMP assessments
-- **Personal development dashboard** — single view: competency radar, recent assessments, coaching sessions, active action items
-- **Supervisor team view** — aggregated team competency gaps, last coaching date, pending action items
-- **Progress visualization** — line chart showing competency level changes over time using existing Chart.js
-- **Export coaching reports** — Excel export for HC/SectionHead using existing ClosedXML pattern
-- **CMP integration** — pre-fill competency gaps in session creation from assessment results
+All features restructure existing data and logic; no new capabilities are introduced. The distinction between must-have and should-have is well-established by the codebase audit.
 
-**Should have (competitive) — v1.2+:**
-- **Calendar integration** — two-way sync with Google/Outlook (97% of users rate as important, but adds complexity)
-- **Session templates** — pre-built frameworks for common coaching scenarios
-- **Auto-suggest IDP actions** — AI-driven recommendations from competency gaps (leverages existing CPDP framework)
-- **Development timeline** — visual roadmap of past/future development activities
-- **Mobile-responsive design** — optimize dashboards for field workers (high value for Pertamina operations)
+**Must have (table stakes):**
+- Worker Assessment view restricted to Open + Upcoming — completed items are noise for workers who cannot act on them
+- HC/Admin Assessment: Management tab (CRUD) and Monitoring tab (oversight) — two separate intents currently conflated in a single toggle
+- Unified Training Records table merging completed AssessmentSession rows with TrainingRecord rows — workers expect their full history in one place
+- Source type badge (`Assessment` vs `Training`) on unified table rows — heterogeneous rows require differentiation for users to understand available actions
+- Unified Dashboard: Proton Progress tab (all roles) + Assessment Analytics tab (HC/Admin only) — consolidates two currently separate pages
+- Gap Analysis entry points removed — CMP Index card and CpdpProgress nav link; all other CompetencyGap assets may remain intact
+- Empty states per tab where applicable
+- Certificate expiry warning preserved in merged Training Records view
 
-**Defer (v2+):**
-- **Coaching effectiveness metrics** — correlation analysis between coaching frequency and competency improvement (requires statistical analysis capability)
-- **Goal cascading visualization** — align individual goals to organizational objectives (requires org goal data not in system)
-- **AI session note summary** — automatic summarization (requires LLM integration, significant stack change)
+**Should have (differentiators — polish, not blocking):**
+- Count badges on Assessment tabs (e.g., "Open (3) / Upcoming (1)")
+- Persistent tab state via URL query param (`?tab=monitoring`)
+- Unified table sorted most-recent-first using common `Date` field across both record types
+- Conditional column rendering per row type (Score only for Assessment rows; ValidUntil only for Training rows)
+
+**Defer (v1.3+):**
+- Full paginated inline Assessment Analytics table in Dashboard — show KPI cards + "View Full Reports" link instead
+- Server-side pagination for the unified history table — current data volume does not warrant it
+- Admin personal assessment tab — deferred until Admin SelectedView behavior is fully verified post-Phase 08
 
 ### Architecture Approach
 
-**Extend existing ASP.NET Core MVC monolith** following established codebase patterns. Add new domain models (CoachingSession, ActionItem, CoachingApproval) to existing ApplicationDbContext, add actions to existing CDPController organized in sections, and reuse role-based authorization pattern with view-switching for Admin users. This maintains consistency with v1.0 architecture and avoids introducing complexity until proven necessary.
+The system is a monolithic ASP.NET Core MVC portal with two large controllers (`CMPController` ~1840 lines, `CDPController` ~1475 lines) and EF Core direct data access. No service layer exists at current scale, and none is warranted for this milestone. All v1.2 changes are scoped to controller action modifications and view refactors — no schema migrations, no new DbSets, no new routes requiring authorization policy changes.
 
-**Major components:**
-1. **Data Models** — CoachingSession (coach/coachee FKs, session details, CMP competency link, approval status), ActionItem (child of CoachingSession, progress tracking), CoachingApproval (workflow tracking with approver chain)
-2. **CDPController Extensions** — new action sections for session CRUD, action item management, approval workflow, development dashboard (keep all CDP features in one controller per existing pattern)
-3. **ViewModels** — CoachingDashboardViewModel (aggregate metrics, chart data, team progress), SessionFormViewModel (complex forms with dropdowns and related entities)
-4. **Integration Points** — CMP → CDP flow (create coaching plan from competency gap), CDP → CMP flow (update competency level after successful coaching), shared Chart.js visualization library
-
-**Critical pattern: Resource-based authorization.** Every coaching action must validate coach-coachee relationship via CoachCoacheeMapping table, not just check user role. Prevents security vulnerability similar to existing BPController issue where URL parameter manipulation exposes cross-section data.
+**Major components and their v1.2 changes:**
+1. `CMPController` — Assessment action gains status filter and monitor branch; Records action gains `BuildUnifiedRecords()` helper; CompetencyGap action and GenerateIdpSuggestion helper deleted
+2. `CDPController.Dashboard()` — absorbs ReportsIndex query logic and DevDashboard query logic; builds `CDPDashboardViewModel` with role-gated sub-model population
+3. `UnifiedCapabilityRecord` ViewModel (new) — discriminated union DTO projecting both `AssessmentSession` (completed+passed) and `TrainingRecord` rows to a common shape with `RecordType` discriminator field
+4. `CDPDashboardViewModel` (new) — composite model with `HcReports` and `DevDashboard` as typed sub-models; populated conditionally per role
+5. `_HCReportsPartial.cshtml` + `_DevDashboardPartial.cshtml` (new) — partials extracted from existing standalone views for embedding in Dashboard tabs
+6. `Views/CMP/Records.cshtml` and `Views/CMP/Assessment.cshtml` — updated model signatures, tab structure, and JS filter attribute mappings
+7. `Views/CDP/Dashboard.cshtml` — gains Bootstrap tab nav; renders partials for HC Reports and Dev Dashboard tabs
 
 ### Critical Pitfalls
 
-1. **Orphaned Coaching Sessions After Role Changes** — Coach promoted or transferred leaves coaching relationships in limbo. **Avoid:** Add EndReason enum to CoachCoacheeMapping, implement relationship lifecycle management with auto-deactivation triggers, build "transfer coaching relationship" workflow from Phase 1.
+Eight pitfalls were identified across the four research areas. The five highest-severity are:
 
-2. **CoachingLog to IDP Schema Mismatch** — Existing CoachingLog.TrackingItemId references non-existent table, should link to IdpItem.Id. **Avoid:** Fix schema immediately in Phase 1 migration (TrackingItemId → IdpItemId with proper foreign key), add referential integrity constraints, validate IDP ownership before creating coaching logs.
+1. **History disappears when Completed is filtered from worker Assessment view** — The history destination (unified Training Records) must exist and be navigable before the Completed status filter is removed from the Assessment query. These two steps must never be in the same commit. Recovery if violated: revert the filter removal, deploy, build history page, re-attempt.
 
-3. **Approval Workflow State Violations** — String-based status fields allow impossible transitions (HC approval before SrSpv review). **Avoid:** Implement status enums with state machine validator from Phase 1, add timestamp audit fields for approval sequence, database check constraints to enforce hierarchy.
+2. **Admin SelectedView ignored in new or modified actions** — The codebase has two orthogonal auth layers: `[Authorize(Roles)]` for coarse access and runtime `user.SelectedView` for view-scoped filtering. Every modified or new controller action must be manually tested across all five SelectedView values (HC, Atasan, Coach, Coachee, Admin) before the phase is marked complete. Violations are silent — wrong data renders with no error.
 
-4. **N+1 Query Explosion in Dashboards** — Loading coachee list then querying coaching logs/IDP items individually creates 250+ queries for 50-employee section. **Avoid:** Use `.Include()` eager loading, database aggregation with GROUP BY, projection to summary DTOs, composite indexes on CoachId+Status+Tanggal.
+3. **Authorization drift when ReportsIndex moves to CDPController** — `CDPController` has only class-level `[Authorize]` (any authenticated user). The `[Authorize(Roles = "Admin, HC")]` attribute from `CMPController.ReportsIndex` must be explicitly re-declared on the destination action. Missing this exposes HC-level analytics to all authenticated users with no error or log entry.
 
-5. **Coaching Data Privacy Without Access Control Audit** — Sensitive performance feedback exposed via URL parameter manipulation. **Avoid:** Implement resource-based authorization handlers validating coach-coachee mapping, log all coaching data access to audit table, filter queries by authorization before loading data (never load then filter).
+4. **Orphaned links after CompetencyGap deletion** — Two live nav links remain after route removal: `CMP/Index.cshtml` line 72 and `CMP/CpdpProgress.cshtml` line 19. One is a hardcoded JavaScript string literal (not a tag helper), invisible to a tag-helper-only audit. Both must be updated in the same commit as the deletion.
 
-6. **Coaching Status Out of Sync with IDP Progress** — Coaching marked "Mandiri" but IDP still "Pending" creates conflicting sources of truth. **Avoid:** Define status synchronization rules in Phase 2, implement coordination logic when coaching conclusion affects IDP status, display warnings for status conflicts in UI.
+5. **Cross-controller `Url.Action` calls break silently after ReportsIndex moves** — `Views/CMP/UserAssessmentHistory.cshtml` contains two `@Url.Action("ReportsIndex")` calls without an explicit controller argument. These silently produce 404 after the move. Must grep for the literal string `"ReportsIndex"` across all `.cshtml` files (not just tag-helper audit) before the move.
 
-7. **Empty Coaching Sessions Marked Submitted** — Missing server-side validation allows blank forms to be saved with Status="Submitted". **Avoid:** Add Required/MinLength validation attributes to model, validate ModelState before save, add database check constraints for content quality enforcement.
+---
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure prioritizes foundation (data integrity + security) before features to prevent technical debt:
+Based on the combined research, the architecture's recommended build order maps directly to four implementation phases plus a cleanup pass. The ordering is strictly dependency-driven.
 
-### Phase 1: Foundation — Data Models & Authorization
-**Rationale:** Fix existing schema issues and security gaps before building new features. The CoachingLog → IdpItem foreign key mismatch and authorization vulnerabilities must be resolved at the data layer before any UI is built. Building on broken foundations creates unfixable data integrity issues.
+### Phase 1: Gap Analysis Removal
 
-**Delivers:**
-- Fixed schema: CoachingSession, ActionItem, CoachingApproval models with proper foreign keys to IdpItem
-- Database migration with indexes on foreign keys and status fields
-- Resource-based authorization handlers for coaching data access
-- Approval workflow state machine with enum-based validation
-- CoachCoacheeMapping lifecycle management (EndReason, auto-deactivation)
+**Rationale:** Zero dependencies on any other phase. Pure nav link deletion and optional controller/view cleanup. Creates a clean compile baseline before other changes begin. Eliminates dead code that would create noise during Phases 2-4. The architecture research explicitly states this as the mandatory first step.
 
-**Addresses:**
-- Pitfall #1 (Orphaned Sessions), #2 (Schema Mismatch), #3 (Approval Violations), #5 (Privacy), #7 (Validation)
-- Foundation for all table stakes features from FEATURES.md
+**Delivers:** CMP hub page and CpdpProgress view with no orphaned navigation elements; codebase free of CompetencyGap dead code; confirmed clean build baseline.
 
-**Avoids:** Building UI on broken foreign keys, inheriting BPController security vulnerabilities, allowing invalid approval states in database
+**Addresses:** Feature 4 (Gap Analysis clean removal). P1 priority from features prioritization matrix.
 
-### Phase 2: Core Coaching CRUD
-**Rationale:** With solid foundation in place, implement basic coaching session management. This delivers immediate user value (coaches can log sessions and document action items) while proving the data model and authorization patterns work correctly.
+**Avoids:** Pitfall 7 (orphaned links after deletion). Requires same-commit update of `CMP/Index.cshtml` line 72 and `CMP/CpdpProgress.cshtml` line 19. Grep for literal string `CompetencyGap` across all `.cshtml` files before committing.
 
-**Delivers:**
-- CDPController extensions: Sessions(), SessionDetails(), CreateSession(), EditSession()
-- SessionFormViewModel with coachee selection and competency gap pre-fill
-- Razor views: Sessions.cshtml, SessionDetails.cshtml, CreateSession.cshtml
-- Action item creation and tracking within coaching sessions
-- Rich text editor (TinyMCE) and date picker (Flatpickr) integration
+**Research flag:** No further research needed — full deletion surface area mapped in ARCHITECTURE.md with exact file locations and line numbers.
 
-**Uses:**
-- Existing EF Core patterns for CRUD operations
-- Existing role-based filtering from HomeController/BPController (but with fixed authorization)
-- Flatpickr (CDN) for date/time picking
-- TinyMCE (CDN) for coaching notes rich text
+---
 
-**Implements:**
-- SessionFormViewModel pattern for complex forms
-- Eager loading with `.Include()` to prevent N+1 queries
-- Audit timestamps (CreatedAt, UpdatedAt) on all coaching records
+### Phase 2: Unified Training Records (UnifiedCapabilityRecord ViewModel)
 
-**Addresses:**
-- Table stakes: Log coaching sessions, Document action items, Session history view, Link to competency gaps
-- Pitfall #4 (N+1 queries) — prevented via eager loading from start
+**Rationale:** Must be completed and verified before Phase 3 ships. The unified Training Records view is the history destination that workers rely on once Completed items are removed from the Assessment page. This is a hard sequencing constraint: destination before source filter.
 
-### Phase 3: Approval Workflow
-**Rationale:** With session CRUD validated, add governance layer. The 3-tier approval workflow is critical for Pertamina compliance and already proven in IdpItem implementation. Reusing this pattern reduces risk.
+**Delivers:** `UnifiedCapabilityRecord.cs` ViewModel, `BuildUnifiedRecords()` helper in `CMPController`, updated `Records.cshtml` with type-differentiated column rendering, preserved certificate expiry warning, source badge per row, correct JS filter attribute mapping for both row types.
 
-**Delivers:**
-- SubmitForApproval, ApproveSession, RejectSession controller actions
-- CoachingApproval workflow tracking with approver chain
-- Pending approvals queue for Section Head/HC dashboards
-- Status transition validation using state machine from Phase 1
-- Approval timeline display in session detail view
+**Addresses:** Feature 2 (unified history table), must-have list items for merged data, conditional Score/certificate columns, expiry warning preservation.
 
-**Addresses:**
-- Table stakes: Approval workflow for action items
-- Pitfall #3 (Approval violations) — enforced via state machine validator
+**Avoids:** Pitfall 3 (column rendering null breaks — use `RecordType` discriminator, switch on type in Razor, never map fields that don't exist on the source type); Pitfall 4 (broken pagination — in-memory sort acceptable at this scale, document assumption with `.Take(500)` safety cap per source); Pitfall 8 (JS tab filter breaks with mixed model — define `data-kategori` attribute mapping for AssessmentSession rows before writing any Razor).
 
-**Implements:**
-- SessionWorkflow helper class for state transition validation
-- Approval timestamp audit trail (ApprovedSrSpvAt, ApprovedSectionHeadAt, ApprovedHCAt)
-- Approval status filtering for role-based views
+**Research flag:** No further research needed — `UnifiedCapabilityRecord` shape, query patterns, and column rendering matrix are fully specified in ARCHITECTURE.md Integration Point 2.
 
-### Phase 4: Development Dashboard
-**Rationale:** With coaching data being captured and approved, surface insights via dashboards. This phase delivers the "competency progress over time" and "team overview" features that differentiate CDP from simple coaching logs.
+---
 
-**Delivers:**
-- CoachingDashboardViewModel with aggregate metrics
-- DevelopmentDashboard.cshtml with Chart.js visualizations
-- Progress over time line chart (competency level progression)
-- Goal completion donut chart (action item status breakdown)
-- Team overview bar chart (supervisor view of team competency gaps)
-- Summary statistics: sessions count, action item completion rate, pending approvals
+### Phase 3: Assessment Page Role Filter
 
-**Uses:**
-- Chart.js (existing) — reuse patterns from CMP CompetencyGap radar charts
-- Database aggregation queries (COUNT, SUM, GROUP BY) for metrics
-- Response caching (5-minute expiration) to prevent dashboard query overload
+**Rationale:** Ships only after Phase 2 is verified. Workers must be able to reach completed assessment history via Training Records before Completed is removed from the Assessment list. Independent of Phase 4 — can run in parallel with two developers since they touch different controllers and views with no shared integration points.
 
-**Addresses:**
-- Table stakes: Personal development dashboard, Supervisor team view, Progress visualization
-- Pitfall #4 (N+1 queries) — use projection to summary DTOs, indexed queries
+**Delivers:** Assessment page filtered to Open + Upcoming only for workers (RoleLevel >= 5); HC/Admin gains `?view=monitor` as a third view alongside existing Management view; callout/info link on worker personal view pointing to Training Records for history; empty states per tab.
 
-**Implements:**
-- CoachingDashboardViewModel with chart data arrays
-- Database view for complex dashboard queries (if performance testing shows need)
-- Pagination for coaching history (20 records per page)
+**Addresses:** Feature 1 (Assessment page split by role), all Assessment table-stakes items, HC/Admin Management + Monitoring tabs, empty states.
 
-### Phase 5: CMP Integration & Reports
-**Rationale:** Connect coaching back to assessment system, closing the CMP → CDP → CMP feedback loop. This phase makes coaching actionable by linking gaps identified in assessments to coaching plans and allowing coaching outcomes to update competency levels.
+**Avoids:** Pitfall 1 (history must exist first — Phase 2 must be verified before this phase ships); Pitfall 2 (Admin SelectedView — five-SelectedView manual test mandatory before phase completion); Anti-Pattern 3 from ARCHITECTURE.md (add `monitor` as third value to existing `view` param, not a new bool flag, to preserve existing bookmarks and hard-coded links).
 
-**Delivers:**
-- "Create Coaching Plan" button in CMP AssessmentResults view (links to CDP CreateSession)
-- Pre-fill coaching session from competency gap query parameter
-- Competency level update modal in SessionDetails (HC can update UserCompetencyLevel after successful coaching)
-- Excel export for coaching session reports using ClosedXML
-- Status synchronization logic (coaching "Mandiri" conclusion suggests IDP "Completed" status)
+**Research flag:** No further research needed — query changes and view structure are fully specified in ARCHITECTURE.md Integration Point 1.
 
-**Addresses:**
-- Table stakes: CMP integration, Export coaching reports
-- Pitfall #6 (Status sync) — implement coordination logic with UI warnings for conflicts
+---
 
-**Implements:**
-- CMP → CDP flow: CreateSession?gap={KkjMatrixItemId} with pre-filled objectives
-- CDP → CMP flow: Update UserCompetencyLevel.CurrentLevel from coaching conclusion
-- Excel export extending existing ClosedXML pattern from v1.0
-- Status provenance display: show why status was set (coaching vs. IDP vs. HC override)
+### Phase 4: Dashboard Consolidation (CDPDashboardViewModel)
 
-### Phase 6: UX Enhancements (Optional for v1.1)
-**Rationale:** After core functionality validated, improve user experience based on feedback. These features are valuable but not essential for launch. Can be deferred to v1.2 if timeline is constrained.
+**Rationale:** Most complex phase; runs after Phases 1-3 are verified. Absorbs two standalone pages into a tabbed unified Dashboard. The architecture recommends keeping standalone pages (`ReportsIndex`, `DevDashboard`) alive until tabs are verified, then redirecting or removing them in a subsequent cleanup step.
 
-**Delivers:**
-- Session templates for common coaching scenarios (performance issue, skill development, career planning)
-- Auto-suggest IDP actions from competency gaps (leverage existing CPDP framework)
-- Development timeline visualization (Gantt-style roadmap of development journey)
-- Mobile-responsive design optimizations for dashboards
-- Peer comparison (anonymized section/position averages)
+**Delivers:** `CDPDashboardViewModel.cs`, `_HCReportsPartial.cshtml`, `_DevDashboardPartial.cshtml`, rewritten `CDPController.Dashboard()` with role-gated sub-model population, updated `Views/CDP/Dashboard.cshtml` with Bootstrap tab nav and partial rendering, removal of standalone Dev Dashboard nav item from `_Layout.cshtml` (post-verification only).
 
-**Addresses:**
-- Competitive features from FEATURES.md (session templates, auto-suggest, timeline)
-- v1.2+ features that enhance but don't block core workflows
+**Addresses:** Feature 3 (Unified Dashboard with role-scoped tabs), Assessment Analytics tab (HC/Admin only — absent from DOM for other roles), Proton Progress tab (all roles, exact DevDashboard content).
+
+**Avoids:** Pitfall 5 (cross-controller links — audit all `asp-action="ReportsIndex"` and literal `"ReportsIndex"` strings before moving; fix both `Url.Action` calls in `UserAssessmentHistory.cshtml`); Pitfall 6 (authorization drift — explicitly re-declare `[Authorize(Roles = "Admin, HC")]` on HC Reports content; test as Coachee-role user expecting 403); Pitfall 2 (Admin SelectedView — five-SelectedView test on modified Dashboard action); Anti-Pattern 4 from ARCHITECTURE.md (gate sub-model population behind role checks — do not run ReportsIndex aggregate queries for Coachee/Coach roles).
+
+**Research flag:** No further research needed — `CDPDashboardViewModel` shape, partial view structure, role-gating conditions, and tab HTML structure are fully specified in ARCHITECTURE.md Integration Point 3.
+
+---
+
+### Phase 5: Cleanup and Verification Pass
+
+**Rationale:** After Phase 4 tabs are verified, superseded standalone pages can be removed or redirected. This is a low-risk cleanup pass, not a feature phase. Intentionally deferred to avoid removing navigation during verification windows.
+
+**Delivers:** Optional redirect stubs from `CMPController.ReportsIndex` and `CDPController.DevDashboard` to their new Dashboard tab URLs; deletion of `DashboardViewModel.cs` if no references remain; removal of `GetPersonalTrainingRecords()` private method from CMPController if fully replaced by `BuildUnifiedRecords()`.
+
+**Addresses:** Technical debt noted in ARCHITECTURE.md Anti-Pattern 2 — mark duplicated query logic with `// TODO(v1.3): extract to shared service` comment during Phase 4; execute extract in v1.3.
+
+**Research flag:** No research needed — pure cleanup with bounded, documented scope.
+
+---
 
 ### Phase Ordering Rationale
 
-- **Phase 1 before 2:** Cannot build coaching CRUD on broken foreign keys and insecure authorization. Schema and security must be fixed at foundation level.
-- **Phase 2 before 3:** Approval workflow needs coaching sessions to exist. Prove basic CRUD works before adding governance complexity.
-- **Phase 3 before 4:** Dashboard needs approved coaching data to display meaningful metrics. Approval status is key dimension in dashboards.
-- **Phase 4 before 5:** Dashboard validates that coaching data is being captured correctly before integrating with CMP. Easier to debug dashboard issues when data flow is one-way.
-- **Phase 5 after 4:** CMP integration creates bidirectional data flow. Requires both systems (CMP assessments and CDP coaching) to be stable first.
-- **Phase 6 optional:** UX enhancements add polish but don't change data model or business logic. Safe to defer without blocking other phases.
-
-**Dependencies:**
-```
-Phase 1 (Foundation)
-    ↓
-Phase 2 (CRUD) ← [Required for all later phases]
-    ↓
-Phase 3 (Approval) ← [Can parallel with Phase 4 if resources allow]
-    ↓
-Phase 4 (Dashboard)
-    ↓
-Phase 5 (CMP Integration)
-    ↓
-Phase 6 (UX) ← [Optional for v1.1]
-```
+- Phase 1 is unconditionally first — zero dependencies, creates clean baseline, fastest to verify.
+- Phase 2 must precede Phase 3 — the sequencing constraint between history destination and source filter is non-negotiable per Pitfall 1.
+- Phase 3 and Phase 4 are independent and can run in parallel with sufficient developer capacity.
+- Phase 4 is last among feature phases because it is the most cross-cutting and benefits from the clean compile state established by Phases 1-3.
+- Phase 5 is explicitly deferred post-verification to protect navigation paths during the stabilization window.
 
 ### Research Flags
 
-**Phases needing deeper research during planning:**
-- **Phase 5 (CMP Integration):** Status synchronization logic requires business rule validation with HC stakeholders. Research identified multiple possible sync strategies (auto-update vs. suggestion vs. manual override) — need user input on preferred workflow.
-- **Phase 6 (Auto-suggest IDP actions):** If included, requires research into existing CPDP framework mapping logic. Research confirmed pattern exists in v1.0 but implementation details need codebase review.
+Phases needing deeper research during planning:
+- None. All four active phases have fully specified implementation paths grounded in direct codebase inspection. The patterns are established; the surface area is mapped; the ViewModel contracts are defined at field level.
 
-**Phases with standard patterns (skip research-phase):**
-- **Phase 1 (Foundation):** EF Core migrations, authorization handlers, state machine validation — all well-documented ASP.NET Core patterns
-- **Phase 2 (CRUD):** Standard MVC controller actions with ViewModels — established patterns in existing codebase
-- **Phase 3 (Approval):** Reuses existing IdpItem approval workflow pattern — already proven in v1.0
-- **Phase 4 (Dashboard):** Chart.js integration already validated in CMP module — extend existing pattern
-- **Phase 5 (Excel Export):** ClosedXML pattern already implemented in v1.0 — copy and adapt
+Phases with standard/established patterns (skip research-phase):
+- All phases. Bootstrap nav-tabs, server-side `@if` role gating, in-memory LINQ union, EF Core async queries are all in active use throughout the portal. No third-party API integration, no new framework, no niche domain requiring external research.
+
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | **HIGH** | No new packages needed. Existing stack (EF Core, Chart.js, ClosedXML) validated in v1.0. Client libraries (Flatpickr, TinyMCE) are industry standard with extensive documentation. |
-| Features | **HIGH** | Table stakes features verified against industry best practices (UC Berkeley HR, HR Certification, GetApp coaching software analysis). Feature priorities validated by v1.0 existing CoachingLog and IdpItem models showing original intent. |
-| Architecture | **HIGH** | ASP.NET Core MVC patterns from official Microsoft docs. Existing codebase analysis (ARCHITECTURE.md, CONCERNS.md) provides concrete examples of current patterns to extend/fix. Resource-based authorization pattern well-documented. |
-| Pitfalls | **HIGH** | Critical pitfalls (schema mismatch, security gaps, N+1 queries) identified via codebase analysis in CONCERNS.md. Solutions validated against official ASP.NET Core security docs and EF Core performance guidance. GDPR compliance requirements from official sources. |
+| Stack | HIGH | All technologies verified against `HcPortal.csproj` and `_Layout.cshtml`; no speculative recommendations; no new packages required |
+| Features | HIGH | All features grounded in direct view and controller inspection; existing data models verified to support every requirement without migration |
+| Architecture | HIGH | Component boundaries, ViewModel shapes, build order, and anti-patterns derived from direct inspection of 1840-line CMPController and 1475-line CDPController; nothing theoretical |
+| Pitfalls | HIGH | All 8 pitfalls traced to specific file locations and line numbers; recovery strategies confirmed against codebase structure; no generic warnings |
 
 **Overall confidence:** HIGH
 
-Research is based on official Microsoft documentation, verified industry best practices, and direct codebase analysis of Portal HC KPB v1.0. The existing system provides concrete implementation patterns to follow (CMP module) and anti-patterns to avoid (BPController security issues, HomeController N+1 queries).
-
 ### Gaps to Address
 
-**Business rule validation needed during Phase 5 planning:**
-- **Coaching-IDP status synchronization rules:** Research identified the problem (status divergence) and possible solutions (auto-update, suggestion, manual override), but which approach fits Pertamina workflow requires stakeholder input. Recommendation: Start with "suggestion + warning UI" in v1.1, add automation in v1.2 after user feedback.
+- **Admin SelectedView behavior on unified Training Records:** The correct behavior when Admin is in Coachee SelectedView and accesses unified Training Records is not explicitly specified in the research. Audit the current `Records()` action behavior for this case before Phase 2 implementation and define the contract (own records only vs all records regardless of SelectedView).
 
-**Technical investigation needed before Phase 1 implementation:**
-- **CoachingLog legacy data migration:** Existing CoachingLogs table may contain production data. Research recommends keeping both tables initially and migrating in separate phase, but production database must be inspected to determine actual migration complexity. If CoachingLogs is empty (which is likely given v1.0 just launched), safe to deprecate immediately.
+- **Assessment Analytics tab inline scope:** FEATURES.md specifies KPI cards + chart + "View Full Reports" link (not the full paginated table). ARCHITECTURE.md specifies `ReportsDashboardViewModel` as the sub-model (which includes the full paginated data). These are compatible but the exact inline content scope should be confirmed before Phase 4 implementation to avoid over-building the Dashboard tab.
 
-**Validation needed during Phase 6 (if included in v1.1):**
-- **Mobile responsiveness scope:** Research confirms mobile optimization is valuable for Pertamina field operations, but existing Razor views' mobile compatibility unknown. Requires device testing to determine if full responsive redesign needed or just CSS tweaks. Recommendation: Test current coaching views on mobile in Phase 2 alpha, decide Phase 6 scope based on actual pain points.
-
-**Indonesian HR compliance (MEDIUM priority gap):**
-- Research focused on international HR best practices (US/UK sources). Specific Indonesian labor law requirements for coaching documentation not verified. Pertamina may have internal governance policies beyond general HR standards. Recommendation: Consult with Pertamina HC staff during Phase 1 to validate documentation requirements (retention periods, audit requirements, employee access rights, data privacy under Indonesian law).
-
-## Sources
-
-### Primary (HIGH confidence)
-
-**Official Documentation:**
-- [Entity Framework Core Releases](https://learn.microsoft.com/en-us/ef/core/what-is-new/) — EF Core 8.0.24 version and support timeline
-- [ASP.NET Core Security Documentation](https://learn.microsoft.com/en-us/aspnet/core/security/?view=aspnetcore-10.0) — Resource-based authorization patterns
-- [Chart.js Official Documentation](https://www.chartjs.org/docs/latest/) — Verified v4.5.1 as latest stable
-- [Flatpickr Official Site](https://flatpickr.js.org/) — Date picker integration
-- [TinyMCE Documentation](https://www.tiny.cloud/docs/) — Rich text editor setup
-
-**Codebase Analysis:**
-- Portal HC KPB v1.0 codebase (ARCHITECTURE.md, CONCERNS.md) — Existing patterns, identified security/performance issues
-- ApplicationDbContext relationships — Current data model and cascade behaviors
-- IdpItem approval workflow — Proven 3-tier approval pattern to reuse
-- HomeController/BPController — Anti-patterns to avoid (N+1 queries, authorization gaps)
-
-### Secondary (MEDIUM confidence)
-
-**Industry Best Practices:**
-- [UC Berkeley HR: Coaching as Effective Feedback Tool](https://hr.berkeley.edu/hr-network/central-guide-managing-hr/managing-hr/managing-successfully/performance-management/check-in/coaching) — Coaching session documentation standards
-- [HR Certification: HR Documentation Best Practices](https://hrcertification.com/blog/hr-documentation-best-practices-biid1000103) — Compliance requirements for coaching records
-- [GetApp Coaching Software Analysis](https://www.getapp.com/hr-employee-management-software/coaching/f/session-notes/) — User expectations (97% rate calendar sync, task management as important)
-- [AIHR: Individual Development Plan Examples](https://www.aihr.com/blog/individual-development-plan-examples/) — IDP-coaching integration patterns
-- [TalentGuard: Competency Management Systems](https://www.talentguard.com/competency-management-system) — Competency visualization standards (radar charts, skill matrices)
-
-**HR Workflow Automation:**
-- [Aelum: HR Workflow Automation Guide](https://aelumconsulting.com/blogs/hr-workflow-automation-chro-guide/) — Multi-level approval workflows in HR systems
-- [iMocha: Skills Tracking Software 2026](https://www.imocha.io/blog/skills-tracking-software) — Development dashboard feature expectations
-
-**GDPR Compliance:**
-- [CIPHR: GDPR Employee Data Retention](https://www.ciphr.com/blog/gdpr-employee-data-retention-what-hr-needs-to-know) — 7-year retention requirement for development records
-- [Redactable: GDPR for HR](https://www.redactable.com/blog/gdpr-for-human-resources-what-to-know-for-employee-data) — Article 88 special protection for employee performance data
-
-### Tertiary (LOW confidence — informative only)
-
-**Coaching Trends:**
-- [Thrive Partners: Coaching in 2026](https://thrivepartners.co.uk/content/coaching-in-2026-7-trends-hr-and-ld-leaders-cant-ignore/) — AI-enabled platforms, group coaching trends (informative but not prescriptive for v1.1)
-- [GrowthSpace Coaching Model](https://www.aihr.com/blog/coaching-plan-template/) — AI analytics + 1-on-1 coaching (v2+ feature, not v1.1)
+- **CompetencyGap action retention vs deletion:** FEATURES.md recommends retaining the `CompetencyGap()` action as a safety measure; ARCHITECTURE.md lists it for explicit deletion. Resolution: delete the action per ARCHITECTURE.md and add a temporary `RedirectToAction("CpdpProgress", "CMP")` stub for one release cycle to handle bookmarked URLs, satisfying both concerns.
 
 ---
 
-**Research completed:** 2026-02-17
-**Ready for roadmap:** Yes
-**Recommended next step:** Create roadmap based on suggested 6-phase structure, validating phase scope with stakeholders during requirements definition.
+## Sources
+
+### Primary (HIGH confidence — direct codebase inspection, 2026-02-18)
+
+- `Controllers/CMPController.cs` (1840 lines) — Assessment, Records, ReportsIndex, CompetencyGap, CpdpProgress action patterns and query logic
+- `Controllers/CDPController.cs` (1475 lines) — Dashboard, DevDashboard, Coaching role-gating patterns
+- `Views/CMP/Assessment.cshtml` — existing tab structure, canManage pattern, JS status filter
+- `Views/CMP/Records.cshtml` — existing JS category tab filter, TrainingRecord model usage
+- `Views/CDP/Dashboard.cshtml`, `Views/CDP/DevDashboard.cshtml` — current standalone page structure
+- `Views/Shared/_Layout.cshtml` — Bootstrap 5.3 CDN load, jQuery 3.7.1 CDN, nav item locations confirmed
+- `Views/CMP/Index.cshtml` line 72, `Views/CMP/CpdpProgress.cshtml` line 19 — CompetencyGap cross-links confirmed
+- `Views/CMP/UserAssessmentHistory.cshtml` lines 11 and 201 — implicit-controller `Url.Action` calls confirmed
+- `Models/AssessmentSession.cs`, `Models/TrainingRecord.cs` — full field inventory for ViewModel projection design
+- `Models/ApplicationUser.cs` — SelectedView, RoleLevel fields
+- `Models/UserRoles.cs` — role constants
+- `Models/DashboardViewModel.cs`, `Models/ReportsDashboardViewModel.cs`, `Models/DevDashboardViewModel.cs` — sub-model shapes for CDPDashboardViewModel
+- `HcPortal.csproj` — package versions confirmed
+
+### Secondary (HIGH confidence — stable public API documentation)
+
+- Bootstrap 5.3 tab component (`data-bs-toggle="tab"`) — stable API, no version-specific gotchas in 5.3.x
+- ASP.NET Core 8 Razor `@if` role gating — established pattern, in active use in multiple views throughout the portal
+
+---
+
+*Research completed: 2026-02-18*
+*Ready for roadmap: yes*
