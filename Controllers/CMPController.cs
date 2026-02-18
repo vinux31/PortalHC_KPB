@@ -1529,108 +1529,6 @@ namespace HcPortal.Controllers
             return View(viewModel);
         }
 
-        // --- COMPETENCY GAP ANALYSIS ---
-        public async Task<IActionResult> CompetencyGap(string? userId = null)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Challenge();
-
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isHcOrAdmin = userRoles.Contains("Admin") || userRoles.Contains("HC");
-
-            // Determine target user: HC/Admin can view any user, others view themselves
-            var targetUserId = (isHcOrAdmin && !string.IsNullOrEmpty(userId)) ? userId : currentUser.Id;
-            var targetUser = await _userManager.FindByIdAsync(targetUserId);
-
-            if (targetUser == null) return NotFound();
-
-            // Get all KKJ competencies relevant to user's position
-            var allCompetencies = await _context.KkjMatrices
-                .OrderBy(k => k.No)
-                .ToListAsync();
-
-            // Filter to competencies that have a non-zero target for this position
-            var relevantCompetencies = allCompetencies
-                .Where(k => PositionTargetHelper.GetTargetLevel(k, targetUser.Position) > 0)
-                .ToList();
-
-            // Get user's current competency levels
-            var userLevels = await _context.UserCompetencyLevels
-                .Include(c => c.KkjMatrixItem)
-                .Include(c => c.AssessmentSession)
-                .Where(c => c.UserId == targetUserId)
-                .ToListAsync();
-
-            // Check existing IDP activities for gap items
-            var userIdpItems = await _context.IdpItems
-                .Where(i => i.UserId == targetUserId)
-                .ToListAsync();
-
-            // Load CPDP items for IDP suggestion generation
-            var cpdpItems = await _context.CpdpItems.ToListAsync();
-
-            // Build gap items
-            var gapItems = relevantCompetencies.Select(comp =>
-            {
-                var userLevel = userLevels.FirstOrDefault(ul => ul.KkjMatrixItemId == comp.Id);
-                int current = userLevel?.CurrentLevel ?? 0;
-                int target = PositionTargetHelper.GetTargetLevel(comp, targetUser.Position);
-                int gap = target - current;
-
-                // Check for existing IDP activity matching this competency
-                bool hasIdp = userIdpItems.Any(i =>
-                    i.Kompetensi != null && comp.Kompetensi.Contains(i.Kompetensi, StringComparison.OrdinalIgnoreCase));
-
-                return new CompetencyGapItem
-                {
-                    KkjMatrixItemId = comp.Id,
-                    Kompetensi = comp.Kompetensi,
-                    SkillGroup = comp.SkillGroup,
-                    CurrentLevel = current,
-                    TargetLevel = target,
-                    Gap = gap,
-                    Status = gap <= 0 ? "Met" : (current == 0 ? "Not Started" : "Gap"),
-                    LastUpdated = userLevel?.UpdatedAt ?? userLevel?.AchievedAt,
-                    LastAssessmentTitle = userLevel?.AssessmentSession?.Title,
-                    HasIdpActivity = hasIdp,
-                    SuggestedAction = gap > 0 ? GenerateIdpSuggestion(comp, gap, cpdpItems) : null
-                };
-            })
-            .OrderByDescending(g => g.Gap)
-            .ThenBy(g => g.Kompetensi)
-            .ToList();
-
-            var viewModel = new CompetencyGapViewModel
-            {
-                UserId = targetUserId,
-                UserName = targetUser.FullName,
-                Position = targetUser.Position,
-                Section = targetUser.Section,
-                Competencies = gapItems,
-                TotalCompetencies = gapItems.Count,
-                CompetenciesMet = gapItems.Count(c => c.Status == "Met"),
-                CompetenciesGapped = gapItems.Count(c => c.Status != "Met"),
-                OverallProgress = gapItems.Count > 0
-                    ? Math.Round(gapItems.Count(c => c.Status == "Met") * 100.0 / gapItems.Count, 1)
-                    : 0
-            };
-
-            // For HC/Admin: provide user list for dropdown
-            if (isHcOrAdmin)
-            {
-                var allUsers = await _userManager.Users
-                    .OrderBy(u => u.FullName)
-                    .Select(u => new { u.Id, u.FullName, u.Position, u.Section })
-                    .ToListAsync();
-                ViewBag.AllUsers = allUsers;
-                ViewBag.SelectedUserId = targetUserId;
-            }
-
-            ViewBag.IsHcOrAdmin = isHcOrAdmin;
-
-            return View(viewModel);
-        }
-
         // --- CPDP PROGRESS TRACKING ---
         public async Task<IActionResult> CpdpProgress(string? userId = null)
         {
@@ -1812,29 +1710,6 @@ namespace HcPortal.Controllers
             return new string(result);
         }
 
-        private string GenerateIdpSuggestion(KkjMatrixItem competency, int gap, List<CpdpItem> cpdpItems)
-        {
-            // Try to find matching CPDP item for specific suggestion
-            var matchingCpdp = cpdpItems.FirstOrDefault(c =>
-                c.NamaKompetensi.Contains(competency.Kompetensi, StringComparison.OrdinalIgnoreCase) ||
-                competency.Kompetensi.Contains(c.NamaKompetensi, StringComparison.OrdinalIgnoreCase));
-
-            if (matchingCpdp != null && !string.IsNullOrEmpty(matchingCpdp.Silabus))
-            {
-                var target = !string.IsNullOrEmpty(matchingCpdp.TargetDeliverable)
-                    ? $" Target: {matchingCpdp.TargetDeliverable}"
-                    : "";
-                return $"Complete training: {matchingCpdp.Silabus}.{target}";
-            }
-
-            // Fallback: generate based on gap size
-            return gap switch
-            {
-                >= 3 => $"Large gap detected. Recommend structured training program for {competency.Kompetensi}.",
-                2 => $"Consider intermediate-level assessment or on-the-job training for {competency.Kompetensi}.",
-                _ => $"Schedule next-level assessment to advance in {competency.Kompetensi}."
-            };
-        }
         #endregion
     }
 }
