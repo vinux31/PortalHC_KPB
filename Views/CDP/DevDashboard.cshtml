@@ -1,0 +1,295 @@
+@model HcPortal.Models.DevDashboardViewModel
+@{
+    ViewData["Title"] = "Development Dashboard";
+}
+
+<div class="container-fluid px-4">
+    <!-- Page header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">Development Dashboard</h2>
+            <small class="text-muted">@Model.ScopeLabel &mdash; @Model.CurrentUserRole</small>
+        </div>
+    </div>
+
+    <!-- Summary Cards Row -->
+    <div class="row g-3 mb-4">
+        <!-- Total Coachees -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-people-fill fs-3 text-primary mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.TotalCoachees</h3>
+                    <small class="text-muted">Total Coachees</small>
+                </div>
+            </div>
+        </div>
+        <!-- Total Deliverables -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-file-earmark-check-fill fs-3 text-success mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.ApprovedDeliverables</h3>
+                    <small class="text-muted">Approved / @Model.TotalDeliverables Total</small>
+                </div>
+            </div>
+        </div>
+        <!-- Pending Spv Approvals -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-hourglass-split fs-3 text-warning mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.PendingSpvApprovals</h3>
+                    <small class="text-muted">Pending Spv Approval</small>
+                </div>
+            </div>
+        </div>
+        <!-- Pending HC Reviews -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-eye-fill fs-3 text-info mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.PendingHCReviews</h3>
+                    <small class="text-muted">Pending HC Review</small>
+                </div>
+            </div>
+        </div>
+        <!-- Completed (with Final Assessment) -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-award-fill fs-3 text-success mb-2"></i>
+                    <h3 class="fw-bold mb-0">@Model.CompletedCoachees</h3>
+                    <small class="text-muted">Completed Track</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <!-- Competency Trend Chart (line) -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 fw-semibold pt-3">
+                    <i class="bi bi-graph-up me-2 text-primary"></i>Competency Level Granted Over Time
+                </div>
+                <div class="card-body">
+                    @if (Model.TrendLabels.Any())
+                    {
+                        <canvas id="trendChart" style="max-height: 260px;"></canvas>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0">
+                            <i class="bi bi-info-circle me-2"></i>No Proton final assessments completed yet in this scope.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+        <!-- Deliverable Status Distribution (doughnut) -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-0 fw-semibold pt-3">
+                    <i class="bi bi-pie-chart-fill me-2 text-primary"></i>Deliverable Status
+                </div>
+                <div class="card-body d-flex align-items-center justify-content-center">
+                    @if (Model.StatusData.Any(d => d > 0))
+                    {
+                        <canvas id="statusChart" style="max-height: 260px;"></canvas>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info mb-0 w-100">
+                            <i class="bi bi-info-circle me-2"></i>No deliverable data yet in this scope.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Per-coachee progress table -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 fw-semibold pt-3">
+            <i class="bi bi-table me-2 text-primary"></i>Team Deliverable Progress
+        </div>
+        <div class="card-body p-0">
+            @if (Model.CoacheeRows.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Coachee</th>
+                                <th>Track</th>
+                                <th>Progress</th>
+                                <th class="text-center">Approved</th>
+                                <th class="text-center">Pending</th>
+                                <th class="text-center">Rejected</th>
+                                <th class="text-center">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var row in Model.CoacheeRows)
+                            {
+                                <tr>
+                                    <td class="fw-semibold">@row.CoacheeName</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(row.TrackType))
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary">@row.TrackType</span>
+                                            <small class="text-muted ms-1">@row.TahunKe</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">Not assigned</span>
+                                        }
+                                    </td>
+                                    <td style="min-width: 160px;">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 8px;">
+                                                <div class="progress-bar bg-success"
+                                                     role="progressbar"
+                                                     style="width: @row.ProgressPercent"
+                                                     aria-valuenow="@(row.TotalDeliverables > 0 ? row.Approved * 100 / row.TotalDeliverables : 0)"
+                                                     aria-valuemin="0"
+                                                     aria-valuemax="100"></div>
+                                            </div>
+                                            <small class="text-muted text-nowrap">@row.ProgressPercent</small>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success bg-opacity-10 text-success">@row.Approved</span>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (row.Submitted > 0)
+                                        {
+                                            <span class="badge bg-warning bg-opacity-10 text-warning">@row.Submitted</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (row.Rejected > 0)
+                                        {
+                                            <span class="badge bg-danger bg-opacity-10 text-danger">@row.Rejected</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (row.HasFinalAssessment)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-award-fill me-1"></i>Level @row.CompetencyLevelGranted
+                                            </span>
+                                        }
+                                        else if (row.TotalDeliverables == 0)
+                                        {
+                                            <span class="badge bg-light text-muted">No track</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary bg-opacity-25 text-secondary">In Progress</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-people fs-1 d-block mb-2"></i>
+                    No coachees found in your scope.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // --- Trend Line Chart ---
+            @if (Model.TrendLabels.Any())
+            {
+                <text>
+                const trendLabels = @Json.Serialize(Model.TrendLabels);
+                const trendValues = @Json.Serialize(Model.TrendValues);
+                const trendCtx = document.getElementById('trendChart').getContext('2d');
+                new Chart(trendCtx, {
+                    type: 'line',
+                    data: {
+                        labels: trendLabels,
+                        datasets: [{
+                            label: 'Avg Competency Level Granted',
+                            data: trendValues,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'top' } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 5,
+                                title: { display: true, text: 'Level (0-5)' },
+                                grid: { borderDash: [5, 5] }
+                            },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+                </text>
+            }
+
+            // --- Status Doughnut Chart ---
+            @if (Model.StatusData.Any(d => d > 0))
+            {
+                <text>
+                const statusLabels = @Json.Serialize(Model.StatusLabels);
+                const statusData   = @Json.Serialize(Model.StatusData);
+                const statusCtx = document.getElementById('statusChart').getContext('2d');
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: statusLabels,
+                        datasets: [{
+                            data: statusData,
+                            backgroundColor: [
+                                'rgba(40, 167, 69, 0.8)',
+                                'rgba(23, 162, 184, 0.8)',
+                                'rgba(255, 193, 7, 0.8)',
+                                'rgba(220, 53, 69, 0.8)',
+                                'rgba(173, 181, 189, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+                </text>
+            }
+
+        });
+    </script>
+}
