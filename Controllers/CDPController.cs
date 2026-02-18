@@ -538,6 +538,10 @@ namespace HcPortal.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
+            // Get user role for approval context
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
             // Load progress with full hierarchy
             var progress = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
@@ -547,12 +551,13 @@ namespace HcPortal.Controllers
 
             if (progress == null) return NotFound();
 
-            // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5)
+            // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC
             bool isCoachee = progress.CoacheeId == user.Id;
             bool isCoach = user.RoleLevel <= 5;
+            bool isHC = userRole == UserRoles.HC;
 
-            // For coach: must be in same section as coachee
-            if (!isCoachee && isCoach)
+            // HC has full access — no section check required
+            if (!isCoachee && !isHC && isCoach)
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
@@ -563,7 +568,7 @@ namespace HcPortal.Controllers
                     return Forbid();
                 }
             }
-            else if (!isCoachee && !isCoach)
+            else if (!isCoachee && !isHC && !isCoach)
             {
                 return Forbid();
             }
@@ -614,6 +619,11 @@ namespace HcPortal.Controllers
             // CanUpload: status is Active or Rejected AND current user is coach/supervisor
             bool canUpload = (progress.Status == "Active" || progress.Status == "Rejected") && user.RoleLevel <= 5;
 
+            // Phase 6: approval context
+            bool canApprove = (userRole == UserRoles.SrSupervisor || userRole == UserRoles.SectionHead)
+                              && progress.Status == "Submitted";
+            bool canHCReview = userRole == UserRoles.HC && progress.HCApprovalStatus == "Pending";
+
             var viewModel = new DeliverableViewModel
             {
                 Progress = progress,
@@ -622,10 +632,195 @@ namespace HcPortal.Controllers
                 TrackType = trackType,
                 TahunKe = tahunKe,
                 IsAccessible = isAccessible,
-                CanUpload = canUpload
+                CanUpload = canUpload,
+                CanApprove = canApprove,
+                CanHCReview = canHCReview,
+                CurrentUserRole = userRole ?? ""
             };
 
             return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveDeliverable(int progressId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only SrSupervisor or SectionHead can approve
+            if (userRole != UserRoles.SrSupervisor && userRole != UserRoles.SectionHead)
+            {
+                return Forbid();
+            }
+
+            // Load progress with full Include chain
+            var progress = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d.ProtonSubKompetensi)
+                        .ThenInclude(s => s.ProtonKompetensi)
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+
+            if (progress == null) return NotFound();
+
+            // Guard: only Submitted status can be approved
+            if (progress.Status != "Submitted")
+            {
+                TempData["Error"] = "Hanya deliverable dengan status Submitted yang dapat disetujui.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Section check: coachee must be in same section as approver
+            var coacheeUser = await _context.Users
+                .Where(u => u.Id == progress.CoacheeId)
+                .Select(u => new { u.Section })
+                .FirstOrDefaultAsync();
+            if (coacheeUser == null || coacheeUser.Section != user.Section)
+            {
+                return Forbid();
+            }
+
+            // Get track info for ordering
+            var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
+            string trackType = kompetensi?.TrackType ?? "";
+            string tahunKe = kompetensi?.TahunKe ?? "";
+
+            // Set approval fields (in memory, before SaveChangesAsync)
+            progress.Status = "Approved";
+            progress.ApprovedAt = DateTime.UtcNow;
+            progress.ApprovedById = user.Id;
+
+            // Load ALL progress records for this coachee's track to unlock next deliverable
+            var allProgresses = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d.ProtonSubKompetensi)
+                        .ThenInclude(s => s.ProtonKompetensi)
+                .Where(p => p.CoacheeId == progress.CoacheeId)
+                .ToListAsync();
+
+            var orderedProgresses = allProgresses
+                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TrackType == trackType
+                         && p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TahunKe == tahunKe)
+                .OrderBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0)
+                .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
+                .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
+                .ToList();
+
+            // Unlock next deliverable: find index of just-approved record and set next to Active
+            int currentIndex = orderedProgresses.FindIndex(p => p.Id == progress.Id);
+            if (currentIndex >= 0 && currentIndex < orderedProgresses.Count - 1)
+            {
+                var nextProgress = orderedProgresses[currentIndex + 1];
+                if (nextProgress.Status == "Locked")
+                {
+                    nextProgress.Status = "Active";
+                }
+            }
+
+            // Check all-approved: use in-memory state (current record already set to "Approved" above)
+            bool allApproved = orderedProgresses.All(p => p.Status == "Approved");
+
+            await _context.SaveChangesAsync();
+
+            if (allApproved)
+            {
+                await CreateHCNotificationAsync(progress.CoacheeId);
+            }
+
+            TempData["Success"] = "Deliverable berhasil disetujui.";
+            return RedirectToAction("Deliverable", new { id = progressId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectDeliverable(int progressId, string rejectionReason)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only SrSupervisor or SectionHead can reject
+            if (userRole != UserRoles.SrSupervisor && userRole != UserRoles.SectionHead)
+            {
+                return Forbid();
+            }
+
+            // Validate rejection reason
+            if (string.IsNullOrWhiteSpace(rejectionReason))
+            {
+                TempData["Error"] = "Alasan penolakan tidak boleh kosong.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Load progress record
+            var progress = await _context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+
+            if (progress == null) return NotFound();
+
+            // Guard: only Submitted status can be rejected
+            if (progress.Status != "Submitted")
+            {
+                TempData["Error"] = "Hanya deliverable dengan status Submitted yang dapat ditolak.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // Section check: coachee must be in same section as rejector
+            var coacheeUser = await _context.Users
+                .Where(u => u.Id == progress.CoacheeId)
+                .Select(u => new { u.Section })
+                .FirstOrDefaultAsync();
+            if (coacheeUser == null || coacheeUser.Section != user.Section)
+            {
+                return Forbid();
+            }
+
+            // Set rejection fields
+            progress.Status = "Rejected";
+            progress.RejectedAt = DateTime.UtcNow;
+            progress.RejectionReason = rejectionReason;
+            progress.ApprovedById = null;
+            progress.ApprovedAt = null;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Deliverable berhasil ditolak.";
+            return RedirectToAction("Deliverable", new { id = progressId });
+        }
+
+        private async Task CreateHCNotificationAsync(string coacheeId)
+        {
+            // Deduplication: check if notification already exists for this coachee
+            bool alreadyNotified = await _context.ProtonNotifications
+                .AnyAsync(n => n.CoacheeId == coacheeId && n.Type == "AllDeliverablesComplete");
+            if (alreadyNotified) return;
+
+            var coachee = await _context.Users
+                .Where(u => u.Id == coacheeId)
+                .Select(u => new { u.FullName, u.UserName })
+                .FirstOrDefaultAsync();
+            var coacheeName = coachee?.FullName ?? coachee?.UserName ?? coacheeId;
+
+            var hcUsers = await _userManager.GetUsersInRoleAsync(UserRoles.HC);
+
+            var notifications = hcUsers.Select(hc => new ProtonNotification
+            {
+                RecipientId = hc.Id,
+                CoacheeId = coacheeId,
+                CoacheeName = coacheeName,
+                Message = $"{coacheeName} telah menyelesaikan semua deliverable Proton.",
+                Type = "AllDeliverablesComplete",
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+
+            _context.ProtonNotifications.AddRange(notifications);
+            await _context.SaveChangesAsync();
         }
 
         [HttpPost]
