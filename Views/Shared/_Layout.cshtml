@@ -142,6 +142,17 @@
                                                 }
                                             </a>
                                         </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="SwitchView" asp-route-view="Admin" asp-route-returnUrl="@Context.Request.Path">
+                                                <i class="bi bi-shield-fill"></i>
+                                                <span>Admin View</span>
+                                                @if (currentUser.SelectedView == "Admin")
+                                                {
+                                                    <i class="bi bi-check2 ms-auto text-primary"></i>
+                                                }
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
                             }
