@@ -640,24 +640,15 @@ namespace HcPortal.Controllers
             bool isFilterMode = !string.IsNullOrEmpty(category);
             ViewBag.IsFilterMode = isFilterMode;
 
-            // Admin (Level 1) dengan SelectedView override - Gunakan view preference
-            if (userRole == UserRoles.Admin)
+            // Phase 10: Admin always gets HC worker list (elevated access, not personal view)
+            // Only literal Coach/Coachee roles see personal unified records
+            bool isCoacheeView = userRole == UserRoles.Coach || userRole == UserRoles.Coachee;
+            if (isCoacheeView)
             {
-                // Jika Admin memilih view Coach/Coachee, tampilkan personal records
-                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
-                {
-                    var personalRecords = await GetPersonalTrainingRecords(user.Id);
-                    return View("Records", personalRecords);
-                }
-                // Untuk HC/Atasan view, lanjut ke worker list (existing logic)
+                var unified = await GetUnifiedRecords(user!.Id);
+                return View("Records", unified);
             }
-
-            // Role: Level 5-6 (Coach/Coachee) - Show personal training records
-            if (UserRoles.IsCoachingRole(userLevel))
-            {
-                var personalRecords = await GetPersonalTrainingRecords(user?.Id ?? "");
-                return View("Records", personalRecords);
-            }
+            // HC, Admin (all SelectedView values), Management, Supervisor -> worker list
             
             // Supervisor view: 
             List<WorkerTrainingStatus> workers;
@@ -690,10 +681,10 @@ namespace HcPortal.Controllers
             ViewBag.WorkerId = workerId;
             ViewBag.WorkerName = name;
 
-            // Get worker's training records
-            var trainingRecords = await GetPersonalTrainingRecords(workerId);
+            // Phase 10: Get worker's unified records (assessments + trainings)
+            var unified = await GetUnifiedRecords(workerId);
 
-            return View("WorkerDetail", trainingRecords);
+            return View("WorkerDetail", unified);
         }
         
         // Helper method: Get personal training records for Coach/Coachee
@@ -706,6 +697,50 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             return trainingRecords;
+        }
+
+        // Phase 10: unified records helper — merges AssessmentSessions + TrainingRecords
+        private async Task<List<UnifiedTrainingRecord>> GetUnifiedRecords(string userId)
+        {
+            // Query 1: Completed assessments only
+            var assessments = await _context.AssessmentSessions
+                .Where(a => a.UserId == userId && a.Status == "Completed")
+                .ToListAsync();
+
+            // Query 2: All training records
+            var trainings = await _context.TrainingRecords
+                .Where(t => t.UserId == userId)
+                .ToListAsync();
+
+            var unified = new List<UnifiedTrainingRecord>();
+
+            unified.AddRange(assessments.Select(a => new UnifiedTrainingRecord
+            {
+                Date = a.CompletedAt ?? a.Schedule,
+                RecordType = "Assessment Online",
+                Title = a.Title,
+                Score = a.Score,
+                IsPassed = a.IsPassed,
+                Status = a.IsPassed == true ? "Passed" : "Failed",
+                SortPriority = 0
+            }));
+
+            unified.AddRange(trainings.Select(t => new UnifiedTrainingRecord
+            {
+                Date = t.Tanggal,
+                RecordType = "Training Manual",
+                Title = t.Judul ?? "",
+                Penyelenggara = t.Penyelenggara,
+                CertificateType = t.CertificateType,
+                ValidUntil = t.ValidUntil,
+                Status = t.Status,
+                SortPriority = 1
+            }));
+
+            return unified
+                .OrderByDescending(r => r.Date)
+                .ThenBy(r => r.SortPriority)
+                .ToList();
         }
 
         // Helper method: Get all workers in a section (with optional filters)
@@ -734,6 +769,16 @@ namespace HcPortal.Controllers
 
             var users = await usersQuery.ToListAsync();
 
+            // Phase 10: Batch query — passed assessments per user (avoids N+1)
+            var userIds = users.Select(u => u.Id).ToList();
+            var passedAssessmentsByUser = await _context.AssessmentSessions
+                .Where(a => userIds.Contains(a.UserId) && a.IsPassed == true)
+                .GroupBy(a => a.UserId)
+                .Select(g => new { UserId = g.Key, Count = g.Count() })
+                .ToListAsync();
+            var passedAssessmentLookup = passedAssessmentsByUser
+                .ToDictionary(x => x.UserId, x => x.Count);
+
             // 2. BUILD WORKER STATUS LIST WITH TRAINING STATISTICS
             var workerList = new List<WorkerTrainingStatus>();
 
@@ -741,11 +786,15 @@ namespace HcPortal.Controllers
             {
                 // Training records already loaded via Include
                 var trainingRecords = user.TrainingRecords.ToList();
-                
+
+                // Phase 10: assessments counted from batch lookup
+                int completedAssessments = passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0;
+
                 // Calculate statistics
                 var totalTrainings = trainingRecords.Count;
-                var completedTrainings = trainingRecords.Count(tr => 
-                    tr.Status == "Passed" || tr.Status == "Valid" || tr.Status == "Permanent"
+                // Phase 10: only Passed|Valid count — "Permanent" removed per phase decision
+                var completedTrainings = trainingRecords.Count(tr =>
+                    tr.Status == "Passed" || tr.Status == "Valid"
                 );
                 var pendingTrainings = trainingRecords.Count(tr => 
                     tr.Status == "Wait Certificate" || tr.Status == "Pending"
@@ -764,7 +813,9 @@ namespace HcPortal.Controllers
                     CompletedTrainings = completedTrainings,
                     PendingTrainings = pendingTrainings,
                     ExpiringSoonTrainings = expiringTrainings,
-                    TrainingRecords = trainingRecords
+                    TrainingRecords = trainingRecords,
+                    // Phase 10: combined completion count
+                    CompletedAssessments = completedAssessments
                 };
                 
                 // Calculate category-specific status if category filter is applied

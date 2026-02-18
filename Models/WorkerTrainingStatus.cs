@@ -43,5 +43,14 @@ namespace HcPortal.Models
         
         // Computed property: Has expiring certificates
         public bool HasExpiringCertificates => ExpiringSoonTrainings > 0;
+
+        // Phase 10: assessment completion count (CompletedTrainings already exists above)
+        public int CompletedAssessments { get; set; }  // IsPassed == true count
+
+        // Computed display string: "5 completed (3 assessments + 2 trainings)"
+        // CompletedTrainings counts Status == "Passed" || Status == "Valid" (set in GetWorkersInSection)
+        public string CompletionDisplayText =>
+            $"{CompletedAssessments + CompletedTrainings} completed " +
+            $"({CompletedAssessments} assessments + {CompletedTrainings} trainings)";
     }
 }
