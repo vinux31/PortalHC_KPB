@@ -189,8 +189,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 11-01-PLAN.md — CMPController Assessment action: status filter for workers, dual ViewBag data sets for HC/Admin
-- [ ] 11-02-PLAN.md — Assessment.cshtml: tab restructure, worker callout to Training Records, Management+Monitoring tabs, empty states
+- [x] 11-01-PLAN.md — CMPController Assessment action: status filter for workers, dual ViewBag data sets for HC/Admin
+- [x] 11-02-PLAN.md — Assessment.cshtml: tab restructure, worker callout to Training Records, Management+Monitoring tabs, empty states
 
 ---
 
@@ -226,5 +226,5 @@ Plans:
 | 8. Fix Admin Role Switcher | post-v1.1 | 2/2 | Complete | 2026-02-18 |
 | 9. Gap Analysis Removal | v1.2 | 1/1 | Complete | 2026-02-18 |
 | 10. Unified Training Records | v1.2 | 2/2 | Complete | 2026-02-18 |
-| 11. Assessment Page Role Filter | v1.2 | 0/2 | Not started | - |
+| 11. Assessment Page Role Filter | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 12. Dashboard Consolidation | v1.2 | 0/3 | Not started | - |
