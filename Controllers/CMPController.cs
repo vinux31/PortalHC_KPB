@@ -91,29 +91,76 @@ namespace HcPortal.Controllers
                 view = "personal";
             }
 
+            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
+
             // Authorization check for manage view
-            if (view == "manage" && userRole != UserRoles.Admin && userRole != "HC")
+            if (view == "manage" && !isHCAccess)
             {
                 // Non-admin/HC trying to access manage view - redirect to personal
                 return RedirectToAction("Assessment", new { view = "personal" });
             }
 
-            // Base Query
+            // ========== HC/ADMIN BRANCH: Dual ViewBag data sets ==========
+            if (view == "manage" && isHCAccess)
+            {
+                // Management tab: ALL assessments (CRUD operations)
+                var managementQuery = _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(search))
+                {
+                    var lowerSearch = search.ToLower();
+                    managementQuery = managementQuery.Where(a =>
+                        a.Title.ToLower().Contains(lowerSearch) ||
+                        a.Category.ToLower().Contains(lowerSearch) ||
+                        (a.User != null && (
+                            a.User.FullName.ToLower().Contains(lowerSearch) ||
+                            (a.User.NIP != null && a.User.NIP.Contains(lowerSearch))
+                        ))
+                    );
+                }
+
+                ViewBag.SearchTerm = search;
+
+                var totalCount = await managementQuery.CountAsync();
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+                var managementData = await managementQuery
+                    .OrderByDescending(a => a.Schedule)
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                ViewBag.CurrentPage = page;
+                ViewBag.TotalPages = totalPages;
+                ViewBag.TotalCount = totalCount;
+                ViewBag.PageSize = pageSize;
+                ViewBag.ManagementData = managementData;
+
+                // Monitoring tab: Open + Upcoming only, sorted by schedule (soonest first)
+                var monitorData = await _context.AssessmentSessions
+                    .Include(a => a.User)
+                    .Where(a => a.Status == "Open" || a.Status == "Upcoming")
+                    .OrderBy(a => a.Schedule)
+                    .ToListAsync();
+
+                ViewBag.MonitorData = monitorData;
+
+                ViewBag.ViewMode = view;
+                ViewBag.UserRole = userRole;
+                ViewBag.CanManage = isHCAccess;
+
+                return View(managementData); // Model is Management data; Monitoring is in ViewBag
+            }
+
+            // ========== WORKER PERSONAL BRANCH ==========
             var query = _context.AssessmentSessions
                 .Include(a => a.User)
-                .AsQueryable();
+                .Where(a => a.UserId == userId);
 
-            // ========== VIEW-BASED FILTERING ==========
-            if (view == "manage")
-            {
-                // Manage View: Show ALL assessments (HC/Admin only)
-                // No filtering needed - show everything
-            }
-            else // view == "personal"
-            {
-                // Personal View: Show only user's own assessments
-                query = query.Where(a => a.UserId == userId);
-            }
+            // Workers see only actionable assessments — Completed lives in Training Records (/CMP/Records)
+            query = query.Where(a => a.Status == "Open" || a.Status == "Upcoming");
 
             // ========== SEARCH FILTER ==========
             if (!string.IsNullOrEmpty(search))
@@ -132,8 +179,8 @@ namespace HcPortal.Controllers
             ViewBag.SearchTerm = search;
 
             // Get total count for pagination
-            var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var totalCount2 = await query.CountAsync();
+            var totalPages2 = (int)Math.Ceiling(totalCount2 / (double)pageSize);
 
             // Execute Query with pagination
             var exams = await query
@@ -144,14 +191,14 @@ namespace HcPortal.Controllers
 
             // Pagination info for view
             ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalCount = totalCount;
+            ViewBag.TotalPages = totalPages2;
+            ViewBag.TotalCount = totalCount2;
             ViewBag.PageSize = pageSize;
 
             // View mode info
             ViewBag.ViewMode = view;
             ViewBag.UserRole = userRole;
-            ViewBag.CanManage = (userRole == UserRoles.Admin || userRole == "HC");
+            ViewBag.CanManage = isHCAccess;
 
             return View(exams);
         }
