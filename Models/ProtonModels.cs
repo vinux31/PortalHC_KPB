@@ -80,4 +80,63 @@ public class ProtonDeliverableProgress
     public DateTime? ApprovedAt { get; set; }
     public DateTime? RejectedAt { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    // ===== Phase 6: Approval Workflow =====
+    /// <summary>Written rejection reason (APPRV-05). Set by SrSpv or SectionHead.</summary>
+    public string? RejectionReason { get; set; }
+
+    /// <summary>User ID of the approver who approved. No FK — matches pattern.</summary>
+    public string? ApprovedById { get; set; }
+
+    /// <summary>HC review channel — independent of main Status. "Pending" or "Reviewed". (APPRV-04)</summary>
+    public string HCApprovalStatus { get; set; } = "Pending";
+
+    /// <summary>When HC marked as reviewed.</summary>
+    public DateTime? HCReviewedAt { get; set; }
+
+    /// <summary>HC user ID who reviewed. No FK — matches pattern.</summary>
+    public string? HCReviewedById { get; set; }
+}
+
+/// <summary>
+/// In-app notification for HC when coachee completes all deliverables (PROTN-06)
+/// </summary>
+public class ProtonNotification
+{
+    public int Id { get; set; }
+    /// <summary>HC user ID who receives the notification. No FK — matches CoachingLog pattern.</summary>
+    public string RecipientId { get; set; } = "";
+    /// <summary>Coachee user ID who triggered the notification. No FK.</summary>
+    public string CoacheeId { get; set; } = "";
+    /// <summary>Denormalized coachee display name for display without extra query.</summary>
+    public string CoacheeName { get; set; } = "";
+    public string Message { get; set; } = "";
+    /// <summary>Values: "AllDeliverablesComplete"</summary>
+    public string Type { get; set; } = "AllDeliverablesComplete";
+    public bool IsRead { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ReadAt { get; set; }
+}
+
+/// <summary>
+/// Final Proton Assessment record created by HC after all deliverables reviewed (PROTN-07)
+/// </summary>
+public class ProtonFinalAssessment
+{
+    public int Id { get; set; }
+    /// <summary>No FK constraint — matches pattern.</summary>
+    public string CoacheeId { get; set; } = "";
+    /// <summary>HC user ID who created the assessment. No FK.</summary>
+    public string CreatedById { get; set; } = "";
+    public int ProtonTrackAssignmentId { get; set; }
+    public ProtonTrackAssignment? ProtonTrackAssignment { get; set; }
+    /// <summary>Values: "Completed"</summary>
+    public string Status { get; set; } = "Completed";
+    /// <summary>Competency level granted by HC (0-5)</summary>
+    public int CompetencyLevelGranted { get; set; }
+    /// <summary>Nullable — HC selects competency from KKJ dropdown. No nav property to avoid cascade conflicts.</summary>
+    public int? KkjMatrixItemId { get; set; }
+    public string? Notes { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? CompletedAt { get; set; }
 }
