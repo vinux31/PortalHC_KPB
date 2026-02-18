@@ -6,17 +6,17 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Latest milestone:** v1.2 UX Consolidation (started 2026-02-18)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 9 — Gap Analysis Removal
+**Current focus:** Phase 10 — Unified Training Records
 
 ## Current Position
 
 **Milestone:** v1.2 UX Consolidation
 **Phase:** 10 of 12 (Unified Training Records)
-**Plan:** — (not yet planned)
-**Status:** Ready to plan
-**Last activity:** 2026-02-18 — Phase 9 (Gap Analysis Removal) complete
+**Plan:** 01 complete — Plan 02 (Razor views) next
+**Status:** In progress
+**Last activity:** 2026-02-18 — Phase 10 Plan 01 (data layer) complete
 
-Progress: [█████████░] 75% (9/12 phases complete — phases 1-9 shipped)
+Progress: [█████████░] 75% (9/12 phases complete — phases 1-9 shipped; phase 10 in progress)
 
 ## Performance Metrics
 
@@ -34,6 +34,12 @@ Progress: [█████████░] 75% (9/12 phases complete — phases 
 | 06-approval-workflow-completion | 3 | ~15 min | 5.0 min |
 | 07-development-dashboard | 2 | ~4 min | 2.0 min |
 | 08-fix-admin-role-switcher | 2 | ~43 min | 21.5 min |
+
+**Phase 10 (in progress):**
+
+| Plan | Duration | Tasks | Notes |
+|------|----------|-------|-------|
+| 10-01 (data layer) | ~12 min | 2 | ViewModel + controller rewrite |
 
 **Recent Trend:**
 - Phase 08 required extended human-verify cycles (complex auth logic)
@@ -61,18 +67,22 @@ Recent decisions affecting current work:
 - Assessment Analytics tab in Dashboard: KPI cards + filter + table + export (full ReportsDashboardViewModel), not a summary link
 - Admin SelectedView must be manually verified (five SelectedView values) on every modified controller action
 
+**From 10-01:**
+- Admin always gets HC worker list regardless of SelectedView — SelectedView personal-records branch removed from Records() action
+- Assessment Status column shows Passed/Failed derived from IsPassed, not literal Completed string from AssessmentSession.Status
+- completedTrainings count uses Passed|Valid only — Permanent status removed per phase decision (was incorrect in existing code)
+- Records() isCoacheeView: userRole == UserRoles.Coach || userRole == UserRoles.Coachee — Admin explicitly excluded
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-**Phase 9 — pre-implementation checklist:**
-- Grep for literal string `CompetencyGap` across all .cshtml files before committing (includes hardcoded JS string at CMP/Index.cshtml line ~72)
-- Update CMP/Index.cshtml and CMP/CpdpProgress.cshtml in same commit as action deletion
-
-**Phase 10 — open question:**
-- Admin SelectedView="Coachee" behavior on unified Training Records not specified — audit current Records() action behavior before implementation and define contract
+**Phase 10 Plan 02 — critical model type update:**
+- Records.cshtml @model must be changed from List<TrainingRecord> to List<UnifiedTrainingRecord> as the first edit (runtime error if skipped)
+- WorkerDetail.cshtml @model requires the same update — same error risk
+- See Pitfall 4 and 5 in 10-RESEARCH.md
 
 **Phase 11 — sequencing gate:**
 - Phase 10 must be verified complete before Phase 11 ships (Pitfall 1 from research)
@@ -89,5 +99,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Session resumed — Phase 9 complete, Phase 10 (Unified Training Records) ready to plan.
+Stopped at: Completed 10-01-PLAN.md — Phase 10 Plan 01 (data layer) done. Plan 02 (Razor views) is next.
 Resume file: None.
