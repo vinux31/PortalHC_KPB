@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
+using HcPortal.Models.Competency;
 using HcPortal.Data;
 
 namespace HcPortal.Controllers
@@ -70,12 +71,19 @@ namespace HcPortal.Controllers
                     .Where(p => p.CoacheeId == user.Id && p.Status == "Active")
                     .FirstOrDefaultAsync();
 
+                // Phase 6: load final assessment for PROTN-08
+                var finalAssessment = await _context.ProtonFinalAssessments
+                    .Where(fa => fa.CoacheeId == user.Id)
+                    .OrderByDescending(fa => fa.CreatedAt)
+                    .FirstOrDefaultAsync();
+
                 var protonViewModel = new ProtonPlanViewModel
                 {
                     TrackType = assignment.TrackType,
                     TahunKe = assignment.TahunKe,
                     KompetensiList = kompetensiList,
-                    ActiveProgress = activeProgress
+                    ActiveProgress = activeProgress,
+                    FinalAssessment = finalAssessment
                 };
 
                 ViewBag.UserRole = userRole;
@@ -821,6 +829,288 @@ namespace HcPortal.Controllers
 
             _context.ProtonNotifications.AddRange(notifications);
             await _context.SaveChangesAsync();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> HCReviewDeliverable(int progressId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only HC can review
+            if (userRole != UserRoles.HC) return Forbid();
+
+            var progress = await _context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+            if (progress == null) return NotFound();
+
+            // Guard: must be Pending
+            if (progress.HCApprovalStatus != "Pending")
+            {
+                TempData["Error"] = "Deliverable ini sudah diperiksa HC sebelumnya.";
+                return RedirectToAction("HCApprovals");
+            }
+
+            progress.HCApprovalStatus = "Reviewed";
+            progress.HCReviewedAt = DateTime.UtcNow;
+            progress.HCReviewedById = user.Id;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Deliverable telah ditandai sebagai sudah diperiksa HC.";
+            return RedirectToAction("HCApprovals");
+        }
+
+        public async Task<IActionResult> HCApprovals()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only HC can access
+            if (userRole != UserRoles.HC) return Forbid();
+
+            // Query pending HC reviews (any deliverable that HC hasn't reviewed yet)
+            var pendingReviews = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d.ProtonSubKompetensi)
+                        .ThenInclude(s => s.ProtonKompetensi)
+                .Where(p => p.HCApprovalStatus == "Pending"
+                         && (p.Status == "Submitted" || p.Status == "Approved" || p.Status == "Rejected"))
+                .OrderBy(p => p.SubmittedAt)
+                .ToListAsync();
+
+            // Unread notifications for this HC user
+            var notifications = await _context.ProtonNotifications
+                .Where(n => n.RecipientId == user.Id && !n.IsRead)
+                .OrderByDescending(n => n.CreatedAt)
+                .ToListAsync();
+
+            // Batch-query coachee names to avoid N+1
+            var coacheeIds = pendingReviews.Select(p => p.CoacheeId).Distinct().ToList();
+            var userNames = await _context.Users
+                .Where(u => coacheeIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
+
+            // Build "Ready for Final Assessment" list
+            var allAssignments = await _context.ProtonTrackAssignments
+                .Where(a => a.IsActive)
+                .ToListAsync();
+
+            var existingAssessmentCoacheeIds = await _context.ProtonFinalAssessments
+                .Select(fa => fa.CoacheeId)
+                .Distinct()
+                .ToListAsync();
+
+            var readyForAssessment = new List<FinalAssessmentCandidate>();
+            foreach (var assignment in allAssignments)
+            {
+                if (existingAssessmentCoacheeIds.Contains(assignment.CoacheeId)) continue;
+
+                var progresses = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.CoacheeId == assignment.CoacheeId)
+                    .ToListAsync();
+
+                if (progresses.Any() &&
+                    progresses.All(p => p.Status == "Approved") &&
+                    progresses.All(p => p.HCApprovalStatus == "Reviewed"))
+                {
+                    // Add coachee name if not already in dictionary
+                    if (!userNames.ContainsKey(assignment.CoacheeId))
+                    {
+                        var coacheeUser = await _context.Users.FindAsync(assignment.CoacheeId);
+                        userNames[assignment.CoacheeId] = coacheeUser?.FullName ?? coacheeUser?.UserName ?? assignment.CoacheeId;
+                    }
+
+                    readyForAssessment.Add(new FinalAssessmentCandidate
+                    {
+                        CoacheeId = assignment.CoacheeId,
+                        CoacheeName = userNames[assignment.CoacheeId],
+                        TrackAssignmentId = assignment.Id,
+                        TrackType = assignment.TrackType,
+                        TahunKe = assignment.TahunKe
+                    });
+                }
+            }
+
+            // Build viewModel before marking notifications as read
+            var viewModel = new HCApprovalQueueViewModel
+            {
+                PendingReviews = pendingReviews,
+                Notifications = notifications,
+                UserNames = userNames,
+                ReadyForFinalAssessment = readyForAssessment
+            };
+
+            // Mark notifications as read (after building viewModel so they still appear as "new")
+            foreach (var n in notifications)
+            {
+                n.IsRead = true;
+                n.ReadAt = DateTime.UtcNow;
+            }
+            if (notifications.Any()) await _context.SaveChangesAsync();
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> CreateFinalAssessment(int trackAssignmentId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only HC can access
+            if (userRole != UserRoles.HC) return Forbid();
+
+            // Load the track assignment
+            var assignment = await _context.ProtonTrackAssignments
+                .FirstOrDefaultAsync(a => a.Id == trackAssignmentId && a.IsActive);
+            if (assignment == null) return NotFound();
+
+            // Check if assessment already exists for this coachee
+            var existingAssessment = await _context.ProtonFinalAssessments
+                .Where(fa => fa.CoacheeId == assignment.CoacheeId)
+                .OrderByDescending(fa => fa.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            // Count deliverables
+            int totalDeliverables = await _context.ProtonDeliverableProgresses
+                .CountAsync(p => p.CoacheeId == assignment.CoacheeId);
+
+            int approvedDeliverables = await _context.ProtonDeliverableProgresses
+                .CountAsync(p => p.CoacheeId == assignment.CoacheeId && p.Status == "Approved");
+
+            // Check if all HC reviews are done
+            bool allHCReviewed = totalDeliverables > 0 &&
+                !await _context.ProtonDeliverableProgresses
+                    .AnyAsync(p => p.CoacheeId == assignment.CoacheeId && p.HCApprovalStatus == "Pending");
+
+            // Load available KKJ competencies for dropdown
+            var availableCompetencies = await _context.KkjMatrices
+                .OrderBy(k => k.SkillGroup)
+                .ThenBy(k => k.Kompetensi)
+                .ToListAsync();
+
+            // Get coachee name
+            var coacheeName = await _context.Users
+                .Where(u => u.Id == assignment.CoacheeId)
+                .Select(u => u.FullName ?? u.UserName ?? u.Id)
+                .FirstOrDefaultAsync() ?? assignment.CoacheeId;
+
+            var viewModel = new FinalAssessmentViewModel
+            {
+                Assignment = assignment,
+                CoacheeName = coacheeName,
+                TotalDeliverables = totalDeliverables,
+                ApprovedDeliverables = approvedDeliverables,
+                AllHCReviewed = allHCReviewed,
+                AvailableCompetencies = availableCompetencies,
+                ExistingAssessment = existingAssessment
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateFinalAssessment(int trackAssignmentId, int competencyLevelGranted, int? kkjMatrixItemId, string? notes)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+
+            // Only HC can create
+            if (userRole != UserRoles.HC) return Forbid();
+
+            // Load assignment
+            var assignment = await _context.ProtonTrackAssignments
+                .FirstOrDefaultAsync(a => a.Id == trackAssignmentId && a.IsActive);
+            if (assignment == null) return NotFound();
+
+            // Guard: no pending HC reviews for this coachee
+            bool hasPendingHCReviews = await _context.ProtonDeliverableProgresses
+                .AnyAsync(p => p.CoacheeId == assignment.CoacheeId
+                            && p.HCApprovalStatus == "Pending"
+                            && (p.Status == "Submitted" || p.Status == "Approved"));
+            if (hasPendingHCReviews)
+            {
+                TempData["Error"] = "Selesaikan semua review HC sebelum membuat final assessment.";
+                return RedirectToAction("CreateFinalAssessment", new { trackAssignmentId });
+            }
+
+            // Guard: no duplicate assessment
+            bool alreadyExists = await _context.ProtonFinalAssessments
+                .AnyAsync(fa => fa.CoacheeId == assignment.CoacheeId);
+            if (alreadyExists)
+            {
+                TempData["Error"] = "Final assessment sudah dibuat untuk coachee ini.";
+                return RedirectToAction("HCApprovals");
+            }
+
+            // Validate competency level
+            if (competencyLevelGranted < 0 || competencyLevelGranted > 5)
+            {
+                TempData["Error"] = "Level kompetensi harus antara 0 dan 5.";
+                return RedirectToAction("CreateFinalAssessment", new { trackAssignmentId });
+            }
+
+            // Create final assessment
+            var finalAssessment = new ProtonFinalAssessment
+            {
+                CoacheeId = assignment.CoacheeId,
+                CreatedById = user.Id,
+                ProtonTrackAssignmentId = trackAssignmentId,
+                Status = "Completed",
+                CompetencyLevelGranted = competencyLevelGranted,
+                KkjMatrixItemId = kkjMatrixItemId,
+                Notes = notes,
+                CreatedAt = DateTime.UtcNow,
+                CompletedAt = DateTime.UtcNow
+            };
+            _context.ProtonFinalAssessments.Add(finalAssessment);
+
+            // Upsert UserCompetencyLevel if kkjMatrixItemId provided
+            if (kkjMatrixItemId.HasValue)
+            {
+                var existingLevel = await _context.UserCompetencyLevels
+                    .FirstOrDefaultAsync(l => l.UserId == assignment.CoacheeId
+                                           && l.KkjMatrixItemId == kkjMatrixItemId.Value);
+                if (existingLevel != null)
+                {
+                    existingLevel.CurrentLevel = competencyLevelGranted;
+                    existingLevel.Source = "Proton";
+                    existingLevel.UpdatedAt = DateTime.UtcNow;
+                    existingLevel.UpdatedBy = user.Id;
+                }
+                else
+                {
+                    _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                    {
+                        UserId = assignment.CoacheeId,
+                        KkjMatrixItemId = kkjMatrixItemId.Value,
+                        CurrentLevel = competencyLevelGranted,
+                        TargetLevel = competencyLevelGranted, // Set TargetLevel = granted level (Proton is targeted certification)
+                        Source = "Proton",
+                        AchievedAt = DateTime.UtcNow,
+                        UpdatedBy = user.Id
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Final Proton Assessment berhasil dibuat.";
+            return RedirectToAction("HCApprovals");
         }
 
         [HttpPost]
