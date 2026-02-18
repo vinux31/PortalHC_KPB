@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** 6 of 7 (Approval Workflow & Completion) — Ready to plan
-**Plan:** —
-**Status:** Ready to plan
-**Last activity:** 2026-02-17 — 05-03 complete: Deliverable detail page with sequential lock (PROTN-03), evidence upload (PROTN-04), resubmit (PROTN-05)
+**Phase:** 6 of 7 (Approval Workflow & Completion) — In progress
+**Plan:** 2 of 3 (06-01 complete)
+**Status:** In progress
+**Last activity:** 2026-02-18 — 06-01 complete: Approval workflow data foundation — 5 new columns on ProtonDeliverableProgresses, ProtonNotifications and ProtonFinalAssessments tables, 5 new ViewModels
 
-Progress: [█████░░░░░] ~50% milestone v1.1
+Progress: [██████░░░░] ~60% milestone v1.1
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Progress: [█████░░░░░] ~50% milestone v1.1
 | Phase 05-proton-deliverable-tracking P01 | 3 | 2 tasks | 6 files |
 | Phase 05-proton-deliverable-tracking P02 | 4 | 2 tasks | 4 files |
 | Phase 05-proton-deliverable-tracking P03 | 7 | 2 tasks | 2 files |
+| Phase 06-approval-workflow-completion P01 | 4 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,12 @@ Recent decisions affecting current work:
 - ProtonKompetensi.TrackType values: "Panelman" or "Operator"; TahunKe: "Tahun 1", "Tahun 2", "Tahun 3"
 - Seed: Operator Tahun 1 with real CPDP data (3K/6SK/13D), Panelman+Tahun2/3 as TODO placeholders
 
+**From 06-01:**
+- String IDs (no FK) for ApprovedById, HCReviewedById, RecipientId, CreatedById — consistent with all prior Proton entity patterns
+- HCApprovalStatus is independent of main Status — HC review is non-blocking per deliverable (APPRV-04); "Pending" default on both C# initializer and EF HasDefaultValue
+- No KkjMatrixItem nav property on ProtonFinalAssessment — dropdown queries KkjMatrices DbSet separately to avoid cascade path conflicts
+- DeleteBehavior.Restrict on ProtonFinalAssessment -> ProtonTrackAssignment FK — consistent with all Proton FK relationships
+
 **From 05-03:**
 - UploadEvidence POST handles both Active and Rejected status — single action covers PROTN-04 and PROTN-05
 - Old evidence files kept on disk on resubmit (audit trail) — new filename stored in EvidencePath only
@@ -117,6 +124,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-17
-Stopped at: Completed 05-03-PLAN.md — Deliverable detail page, sequential lock (PROTN-03), evidence upload (PROTN-04), resubmit (PROTN-05). Phase 05 complete.
+Last session: 2026-02-18
+Stopped at: Completed 06-01-PLAN.md — Approval workflow data foundation: 5 new columns on ProtonDeliverableProgresses, ProtonNotifications and ProtonFinalAssessments tables, 5 new ViewModels. Ready for Plan 02 (controller actions).
 Resume file: None
