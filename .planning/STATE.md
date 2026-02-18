@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management
-**Phase:** 6 of 7 (Approval Workflow & Completion) — In progress
-**Plan:** 3 of 3 (06-02 complete)
-**Status:** In progress
-**Last activity:** 2026-02-18 — 06-02 complete: ApproveDeliverable/RejectDeliverable POSTs with sequential unlock and HC notification, Deliverable.cshtml approval/rejection UI
+**Phase:** 6 of 7 (Approval Workflow & Completion) — Complete
+**Plan:** 3 of 3 (06-03 complete)
+**Status:** Phase 6 complete — ready for Phase 7
+**Last activity:** 2026-02-18 — 06-03 complete: HCReviewDeliverable POST, HCApprovals queue page, CreateFinalAssessment GET+POST with UserCompetencyLevel upsert, PlanIdp final assessment card (PROTN-08)
 
-Progress: [███████░░░] ~70% milestone v1.1
+Progress: [████████░░] ~85% milestone v1.1
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Progress: [███████░░░] ~70% milestone v1.1
 | Phase 05-proton-deliverable-tracking P03 | 7 | 2 tasks | 2 files |
 | Phase 06-approval-workflow-completion P01 | 4 | 2 tasks | 5 files |
 | Phase 06-approval-workflow-completion P02 | 7 | 2 tasks | 2 files |
+| Phase 06-approval-workflow-completion P03 | 4 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,12 @@ Recent decisions affecting current work:
 - In-memory all-approved check before SaveChangesAsync — orderedProgresses contains current record already mutated to "Approved" in memory; correct without a second DB round-trip
 - RejectDeliverable clears ApprovedById and ApprovedAt — prevents stale approval metadata if record was previously approved then re-submitted and rejected
 
+**From 06-03:**
+- TargetLevel on new UserCompetencyLevel set to competencyLevelGranted — KkjMatrixItem has no TargetLevel property (only string columns per position type); Proton is targeted certification so achieved = target
+- HCApprovals.cshtml link from Index skipped — CDPController.Index returns View() with no ViewBag.UserRole; HC navigates via URL
+- Notifications marked read after viewModel built — HC sees unread notifications on first visit then they clear on subsequent visits
+- readyForAssessment loop extends batch-built userNames dict to avoid N+1 when candidate not already fetched
+
 **From 05-03:**
 - UploadEvidence POST handles both Active and Rejected status — single action covers PROTN-04 and PROTN-05
 - Old evidence files kept on disk on resubmit (audit trail) — new filename stored in EvidencePath only
@@ -132,5 +139,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 06-02-PLAN.md — ApproveDeliverable/RejectDeliverable POSTs with sequential unlock and HC notification fan-out, Deliverable.cshtml approval/rejection/HC-review UI. Ready for Plan 03 (HCReviewDeliverable POST, HC Approval Queue, Final Assessment).
+Stopped at: Completed 06-03-PLAN.md — HCReviewDeliverable POST, HCApprovals queue page, CreateFinalAssessment GET+POST with UserCompetencyLevel upsert, PlanIdp Coachee final assessment card. Phase 6 complete. Ready for Phase 7 (DASH-04 competency progress charts).
 Resume file: None
