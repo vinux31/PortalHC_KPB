@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Latest milestone:** v1.2 UX Consolidation (started 2026-02-18)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 11 — Assessment Filter (next after Phase 10 complete)
+**Current focus:** Phase 11 — Assessment Filter (Plan 01 complete, Plan 02 next)
 
 ## Current Position
 
 **Milestone:** v1.2 UX Consolidation
-**Phase:** 11 of 12 (Assessment Filter — next phase)
-**Plan:** Phase 10 complete (both plans shipped) — Phase 11 is next
+**Phase:** 11 of 12 (Assessment Filter — in progress)
+**Plan:** 11-01 complete — Plan 02 (Assessment Razor view two-tab) is next
 **Status:** In progress
-**Last activity:** 2026-02-18 — Phase 10 Plan 02 (Razor views) complete; Phase 10 fully done
+**Last activity:** 2026-02-18 — Phase 11 Plan 01 (controller role filter) complete
 
 Progress: [█████████░] 83% (10/12 phases complete — phases 1-10 shipped; phase 11 next)
 
@@ -41,6 +41,12 @@ Progress: [█████████░] 83% (10/12 phases complete — phases
 |------|----------|-------|-------|
 | 10-01 (data layer) | ~12 min | 2 | ViewModel + controller rewrite |
 | 10-02 (Razor views) | ~5 min | 2 | Three CMP views rewritten |
+
+**Phase 11 (in progress):**
+
+| Plan | Duration | Tasks | Notes |
+|------|----------|-------|-------|
+| 11-01 (controller) | ~6 min | 2 | Assessment() role-filter rewrite |
 
 **Recent Trend:**
 - Phase 08 required extended human-verify cycles (complex auth logic)
@@ -79,6 +85,11 @@ Recent decisions affecting current work:
 - Expiring Soon stat card removed from both Records.cshtml and WorkerDetail.cshtml — IsExpired-only (past-date), no lookahead
 - WorkerDetail filter simplified to title-only search — category and status dropdowns removed with unified model
 
+**From 11-01:**
+- Admin always gets HC branch in Assessment() regardless of SelectedView — consistent with Phase 10 decision
+- Worker status filter in Assessment() applied at DB query level — Completed excluded from IQueryable before .ToListAsync()
+- Dual ViewBag pattern for Assessment manage view: ViewBag.ManagementData (paginated all) + ViewBag.MonitorData (flat Open+Upcoming, schedule-asc)
+
 ### Pending Todos
 
 None.
@@ -100,5 +111,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 10-02-PLAN.md — Phase 10 fully done (data layer + Razor views). Phase 11 (Assessment Filter) is next.
+Stopped at: Completed 11-01-PLAN.md — Assessment() controller role filter done. Plan 02 (Assessment Razor view two-tab) is next.
 Resume file: None.
