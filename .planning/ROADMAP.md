@@ -3,7 +3,8 @@
 ## Milestones
 
 - ✅ **v1.0 CMP Assessment Completion** — Phases 1-3 (shipped 2026-02-17)
-- 🚧 **v1.1 CDP Coaching Management** — Phases 4-7 (in progress)
+- ✅ **v1.1 CDP Coaching Management** — Phases 4-7 (shipped 2026-02-18)
+- ✅ **Post-v1.1 Fix: Admin Role Switcher** — Phase 8 (shipped 2026-02-18)
 
 ## Phases
 
@@ -59,8 +60,10 @@
 **Plans:** 2 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Enable Admin view: add "Admin" to allowedViews, _Layout dropdown, and SeedData default
-- [ ] 08-02-PLAN.md — Fix CDPController gates: HC-gated actions, Atasan-gated actions, null-Section coachee lists, CreateSession Coachee block
+- [x] 08-01-PLAN.md — Enable Admin view: add "Admin" to allowedViews, _Layout dropdown, and SeedData default
+- [x] 08-02-PLAN.md — Fix CDPController gates: HC-gated actions, Atasan-gated actions, null-Section coachee lists, CreateSession Coachee block
+
+**Completed:** 2026-02-18
 
 ---
 
@@ -145,4 +148,5 @@ Plans:
 | 4. Foundation & Coaching Sessions | v1.1 | 3/3 | Complete | 2026-02-17 |
 | 5. Proton Deliverable Tracking | v1.1 | 3/3 | Complete | 2026-02-17 |
 | 6. Approval Workflow & Completion | v1.1 | 3/3 | Complete | 2026-02-18 |
-| 7. Development Dashboard | v1.1 | 0/TBD | Not started | - |
+| 7. Development Dashboard | v1.1 | 2/2 | Complete | 2026-02-18 |
+| 8. Fix Admin Role Switcher | post-v1.1 | 2/2 | Complete | 2026-02-18 |

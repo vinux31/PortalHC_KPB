@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 **Milestone:** v1.1 CDP Coaching Management — COMPLETE (Phase 8 is a post-milestone fix)
-**Phase:** 8 of 8 (Fix Admin Role Switcher) — IN PROGRESS
-**Plan:** 2 of 2 — AWAITING HUMAN VERIFY (08-02 Tasks 1+2 committed, checkpoint Task 3 pending)
-**Status:** 08-02 Tasks 1 and 2 complete. Paused at human-verify checkpoint. Awaiting user approval.
-**Last activity:** 2026-02-18 — 08-02 Tasks 1+2 executed: 10 fixes applied to CDPController.cs, build passes 0 errors. Checkpoint reached.
+**Phase:** 8 of 8 (Fix Admin Role Switcher) — COMPLETE
+**Plan:** 2 of 2 — COMPLETE
+**Status:** All plans complete. Phase 8 done. Admin role-switcher feature fully functional end-to-end.
+**Last activity:** 2026-02-18 — 08-02 human verification approved. All 6 role-switcher scenarios passed. SUMMARY.md created.
 
-Progress: [████████░░] 80% phase 8
+Progress: [██████████] 100% phase 8
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [████████░░] 80% phase 8
 | Phase 07-development-dashboard P01 | 2 | 2 tasks | 2 files |
 | Phase 07-development-dashboard P02 | 2 | 2 tasks | 2 files |
 | Phase 08-fix-admin-role-switcher P01 | 8 | 2 tasks | 3 files |
+| Phase 08-fix-admin-role-switcher P02 | 35 | 3 tasks | 1 file |
 
 ## Accumulated Context
 
@@ -131,6 +132,12 @@ Recent decisions affecting current work:
 - Admin View separated from role-simulation views (HC, Atasan, Coach, Coachee) by dropdown-divider — Admin View is "return to real Admin mode" not a simulated role
 - SeedData Admin default changed to SelectedView="Admin" — only affects fresh seeds; existing DB users unaffected
 
+**From 08-02:**
+- isHCAccess pattern (named bool) used for HC gates — more readable than inline ternary; each gate is self-documenting
+- Admin section check skipped in ApproveDeliverable/RejectDeliverable — Admin.Section is null by design; cross-section approval is intentional
+- CreateSession uses fresh GetRolesAsync with local variable userRoleForCreate — userRole not in scope at POST entry point; minimal change avoids refactoring scope
+- isCoacheeView flag replaces RoleLevel > 5 — original check not Admin-aware; new flag uses role name + SelectedView for explicit Admin simulation check
+
 ### Roadmap Evolution
 
 - Phase 8 added: Fix admin role switcher and add Admin to supported roles
@@ -160,5 +167,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: 08-02 Task 3 checkpoint (human-verify) — Tasks 1+2 committed as fc3b68c and ad49f5f.
-Resume file: None — resume by running 08-02 continuation after human approves verification.
+Stopped at: Phase 8 complete — 08-02 human verification approved, SUMMARY.md created, STATE.md updated.
+Resume file: None — all planned work complete.
