@@ -44,6 +44,10 @@ namespace HcPortal.Data
         public DbSet<ProtonTrackAssignment> ProtonTrackAssignments { get; set; }
         public DbSet<ProtonDeliverableProgress> ProtonDeliverableProgresses { get; set; }
 
+        // Approval Workflow & Completion (Phase 6)
+        public DbSet<ProtonNotification> ProtonNotifications { get; set; }
+        public DbSet<ProtonFinalAssessment> ProtonFinalAssessments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -261,6 +265,30 @@ namespace HcPortal.Data
                 entity.HasIndex(a => a.CoacheeId);
                 entity.HasIndex(a => new { a.CoacheeId, a.IsActive });
             });
+
+            // ProtonFinalAssessment -> ProtonTrackAssignment (Phase 6)
+            builder.Entity<ProtonFinalAssessment>(entity =>
+            {
+                entity.HasOne(fa => fa.ProtonTrackAssignment)
+                    .WithMany()
+                    .HasForeignKey(fa => fa.ProtonTrackAssignmentId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(fa => fa.CoacheeId);
+                entity.HasIndex(fa => new { fa.CoacheeId, fa.Status });
+            });
+
+            // ProtonNotification indexes (Phase 6)
+            builder.Entity<ProtonNotification>(entity =>
+            {
+                entity.HasIndex(n => n.RecipientId);
+                entity.HasIndex(n => new { n.RecipientId, n.IsRead });
+                entity.HasIndex(n => n.CoacheeId);
+            });
+
+            // ProtonDeliverableProgress HCApprovalStatus default (Phase 6)
+            builder.Entity<ProtonDeliverableProgress>()
+                .Property(p => p.HCApprovalStatus)
+                .HasDefaultValue("Pending");
         }
     }
 }
