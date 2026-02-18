@@ -6,17 +6,17 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Latest milestone:** v1.2 UX Consolidation (started 2026-02-18)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 11 — Assessment Filter (Plan 01 complete, Plan 02 next)
+**Current focus:** Phase 12 — Dashboard Consolidation (Phase 11 complete)
 
 ## Current Position
 
 **Milestone:** v1.2 UX Consolidation
-**Phase:** 11 of 12 (Assessment Filter — in progress)
-**Plan:** 11-01 complete — Plan 02 (Assessment Razor view two-tab) is next
+**Phase:** 12 of 12 (Dashboard Consolidation — next)
+**Plan:** 11-02 complete — Phase 11 done. Phase 12 (Dashboard consolidation) is next.
 **Status:** In progress
-**Last activity:** 2026-02-18 — Phase 11 Plan 01 (controller role filter) complete
+**Last activity:** 2026-02-18 — Phase 11 Plan 02 (Assessment Razor view role-branched layout) complete
 
-Progress: [█████████░] 83% (10/12 phases complete — phases 1-10 shipped; phase 11 next)
+Progress: [█████████░] 92% (11/12 phases complete — phases 1-11 shipped; phase 12 next)
 
 ## Performance Metrics
 
@@ -42,11 +42,12 @@ Progress: [█████████░] 83% (10/12 phases complete — phases
 | 10-01 (data layer) | ~12 min | 2 | ViewModel + controller rewrite |
 | 10-02 (Razor views) | ~5 min | 2 | Three CMP views rewritten |
 
-**Phase 11 (in progress):**
+**Phase 11 (complete):**
 
 | Plan | Duration | Tasks | Notes |
 |------|----------|-------|-------|
 | 11-01 (controller) | ~6 min | 2 | Assessment() role-filter rewrite |
+| 11-02 (Razor view) | ~8 min | 2 | Assessment.cshtml role-branched layout |
 
 **Recent Trend:**
 - Phase 08 required extended human-verify cycles (complex auth logic)
@@ -90,14 +91,20 @@ Recent decisions affecting current work:
 - Worker status filter in Assessment() applied at DB query level — Completed excluded from IQueryable before .ToListAsync()
 - Dual ViewBag pattern for Assessment manage view: ViewBag.ManagementData (paginated all) + ViewBag.MonitorData (flat Open+Upcoming, schedule-asc)
 
+**From 11-02:**
+- Razor @{} inside @if block is invalid (RZ1010) — bare var declarations work directly inside @if {} code context
+- Worker callout placed in else branch — HC/Admin in personal mode also sees it correctly
+- Completed tab <li> removed from DOM entirely (not hidden) — matches controller-level filter from 11-01
+- filterCards() JS guarded with getElementById null check — prevents console errors on HC/Admin manage view
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-**Phase 11 — sequencing gate: CLEARED**
-- Phase 10 is fully complete (data layer + views) — Phase 11 can proceed
+**Phase 11 — COMPLETE**
+- Both plans (controller role filter + Razor view role-branched layout) shipped
 
 **Phase 12 — pre-implementation checklist:**
 - Grep for literal string `"ReportsIndex"` across all .cshtml files — two implicit-controller Url.Action calls in UserAssessmentHistory.cshtml will silently 404 after move
@@ -111,5 +118,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 11-01-PLAN.md — Assessment() controller role filter done. Plan 02 (Assessment Razor view two-tab) is next.
+Stopped at: Completed 11-02-PLAN.md — Assessment.cshtml role-branched layout done. Phase 11 complete. Phase 12 (Dashboard consolidation) is next.
 Resume file: None.
