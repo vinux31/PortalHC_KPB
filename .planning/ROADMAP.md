@@ -171,8 +171,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 10-01-PLAN.md — UnifiedTrainingRecord ViewModel, extended WorkerTrainingStatus, and CMPController data layer rewrite
-- [ ] 10-02-PLAN.md — Records.cshtml unified table, RecordsWorkerList.cshtml completion count, WorkerDetail.cshtml unified columns
+- [x] 10-01-PLAN.md — UnifiedTrainingRecord ViewModel, extended WorkerTrainingStatus, and CMPController data layer rewrite
+- [x] 10-02-PLAN.md — Records.cshtml unified table, RecordsWorkerList.cshtml completion count, WorkerDetail.cshtml unified columns
 
 ---
 
@@ -225,6 +225,6 @@ Plans:
 | 7. Development Dashboard | v1.1 | 2/2 | Complete | 2026-02-18 |
 | 8. Fix Admin Role Switcher | post-v1.1 | 2/2 | Complete | 2026-02-18 |
 | 9. Gap Analysis Removal | v1.2 | 1/1 | Complete | 2026-02-18 |
-| 10. Unified Training Records | v1.2 | 0/2 | Not started | - |
+| 10. Unified Training Records | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 11. Assessment Page Role Filter | v1.2 | 0/2 | Not started | - |
 | 12. Dashboard Consolidation | v1.2 | 0/3 | Not started | - |
