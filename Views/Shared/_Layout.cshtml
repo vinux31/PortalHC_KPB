@@ -60,6 +60,19 @@
                             <a class="nav-link text-dark" asp-controller="CDP" asp-action="Index">CDP</a>
                         </li>
 
+                        @if (userRole == UserRoles.Coach ||
+                             userRole == UserRoles.SrSupervisor ||
+                             userRole == UserRoles.SectionHead ||
+                             userRole == UserRoles.HC ||
+                             userRole == UserRoles.Admin)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="CDP" asp-action="DevDashboard">
+                                    <i class="bi bi-speedometer2 me-1"></i>Dev Dashboard
+                                </a>
+                            </li>
+                        }
+
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="BP" asp-action="Index">BP</a>
                         </li>
