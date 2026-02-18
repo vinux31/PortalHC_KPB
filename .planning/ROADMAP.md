@@ -152,10 +152,10 @@ Plans:
   2. The Gap Analysis cross-link is absent from CPDP Progress — no link renders for any role
   3. Navigating directly to the former Gap Analysis URL returns a redirect or 404, not a working page
   4. The application builds and loads without errors after the removal
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — Remove CompetencyGap action, view, and nav links (CMP/Index.cshtml + CMP/CpdpProgress.cshtml) in one atomic commit
+- [ ] 09-01-PLAN.md — Remove Gap Analysis nav links, controller action, view, and ViewModel
 
 ---
 
@@ -224,7 +224,7 @@ Plans:
 | 6. Approval Workflow & Completion | v1.1 | 3/3 | Complete | 2026-02-18 |
 | 7. Development Dashboard | v1.1 | 2/2 | Complete | 2026-02-18 |
 | 8. Fix Admin Role Switcher | post-v1.1 | 2/2 | Complete | 2026-02-18 |
-| 9. Gap Analysis Removal | v1.2 | 0/1 | Not started | - |
+| 9. Gap Analysis Removal | v1.2 | 0/1 | Planned | - |
 | 10. Unified Training Records | v1.2 | 0/2 | Not started | - |
 | 11. Assessment Page Role Filter | v1.2 | 0/2 | Not started | - |
 | 12. Dashboard Consolidation | v1.2 | 0/3 | Not started | - |
