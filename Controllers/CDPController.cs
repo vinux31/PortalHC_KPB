@@ -476,7 +476,8 @@ namespace HcPortal.Controllers
             {
                 isCoach = true;
                 coacheeList = await _context.Users
-                    .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                    .Where(u => (string.IsNullOrEmpty(user.Section) || u.Section == user.Section)
+                                && u.RoleLevel == 6)
                     .OrderBy(u => u.FullName)
                     .ToListAsync();
             }
@@ -521,8 +522,12 @@ namespace HcPortal.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            // Only coaching roles can create sessions
-            if (user.RoleLevel > 5)
+            // Only coaching roles can create sessions — block Coachee role and Admin in Coachee view
+            var rolesForCreate = await _userManager.GetRolesAsync(user);
+            var userRoleForCreate = rolesForCreate.FirstOrDefault();
+            bool isCoacheeView = userRoleForCreate == UserRoles.Coachee ||
+                                 (userRoleForCreate == UserRoles.Admin && user.SelectedView == "Coachee");
+            if (isCoacheeView)
             {
                 return Forbid();
             }
@@ -606,7 +611,8 @@ namespace HcPortal.Controllers
             }
 
             var coachees = await _context.Users
-                .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                .Where(u => (string.IsNullOrEmpty(user.Section) || u.Section == user.Section)
+                            && u.RoleLevel == 6)
                 .OrderBy(u => u.FullName)
                 .ToListAsync();
 
@@ -829,11 +835,12 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // Only SrSupervisor or SectionHead can approve
-            if (userRole != UserRoles.SrSupervisor && userRole != UserRoles.SectionHead)
-            {
-                return Forbid();
-            }
+            // SrSupervisor, SectionHead, or Admin simulating Atasan/HC view can approve
+            bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
+                                  userRole == UserRoles.SectionHead ||
+                                  (userRole == UserRoles.Admin &&
+                                   (user.SelectedView == "Atasan" || user.SelectedView == "HC"));
+            if (!isAtasanAccess) return Forbid();
 
             // Load progress with full Include chain
             var progress = await _context.ProtonDeliverableProgresses
@@ -851,12 +858,13 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Deliverable", new { id = progressId });
             }
 
-            // Section check: coachee must be in same section as approver
+            // Section check: coachee must be in same section as approver (Admin can approve cross-section)
             var coacheeUser = await _context.Users
                 .Where(u => u.Id == progress.CoacheeId)
                 .Select(u => new { u.Section })
                 .FirstOrDefaultAsync();
-            if (coacheeUser == null || coacheeUser.Section != user.Section)
+            if (userRole != UserRoles.Admin &&
+                (coacheeUser == null || coacheeUser.Section != user.Section))
             {
                 return Forbid();
             }
@@ -922,11 +930,12 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // Only SrSupervisor or SectionHead can reject
-            if (userRole != UserRoles.SrSupervisor && userRole != UserRoles.SectionHead)
-            {
-                return Forbid();
-            }
+            // SrSupervisor, SectionHead, or Admin simulating Atasan/HC view can reject
+            bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
+                                  userRole == UserRoles.SectionHead ||
+                                  (userRole == UserRoles.Admin &&
+                                   (user.SelectedView == "Atasan" || user.SelectedView == "HC"));
+            if (!isAtasanAccess) return Forbid();
 
             // Validate rejection reason
             if (string.IsNullOrWhiteSpace(rejectionReason))
@@ -948,12 +957,13 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Deliverable", new { id = progressId });
             }
 
-            // Section check: coachee must be in same section as rejector
+            // Section check: coachee must be in same section as rejector (Admin can reject cross-section)
             var coacheeUser = await _context.Users
                 .Where(u => u.Id == progress.CoacheeId)
                 .Select(u => new { u.Section })
                 .FirstOrDefaultAsync();
-            if (coacheeUser == null || coacheeUser.Section != user.Section)
+            if (userRole != UserRoles.Admin &&
+                (coacheeUser == null || coacheeUser.Section != user.Section))
             {
                 return Forbid();
             }
