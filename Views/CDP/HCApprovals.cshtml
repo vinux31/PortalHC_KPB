@@ -1,0 +1,207 @@
+@model HcPortal.Models.HCApprovalQueueViewModel
+
+@{
+    ViewData["Title"] = "HC Approvals — Proton";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    @* Page Header *@
+    <div class="mb-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="fw-bold">
+                <i class="bi bi-clipboard-check me-2 text-primary"></i>HC Approvals — Proton
+            </h2>
+            <p class="text-muted mb-0">Review deliverable dan buat final assessment untuk coachee.</p>
+        </div>
+        <a href="/CDP/Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Kembali
+        </a>
+    </div>
+
+    @* TempData Alerts *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* Section A: Notifications *@
+    @if (Model.Notifications.Any())
+    {
+        <div class="mb-4">
+            <h5 class="fw-semibold mb-3">
+                <i class="bi bi-bell-fill text-warning me-2"></i>Notifikasi Baru
+                <span class="badge bg-warning text-dark ms-2">@Model.Notifications.Count</span>
+            </h5>
+            @foreach (var notification in Model.Notifications)
+            {
+                <div class="alert alert-info alert-dismissible fade show d-flex align-items-start" role="alert">
+                    <i class="bi bi-person-check-fill me-3 fs-5 mt-1"></i>
+                    <div>
+                        <strong>@notification.CoacheeName</strong>
+                        <div class="mt-1">@notification.Message</div>
+                        <small class="text-muted">@notification.CreatedAt.ToString("dd MMM yyyy, HH:mm") UTC</small>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+        </div>
+    }
+
+    @* Section B: Pending HC Reviews *@
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-hourglass-split me-2"></i>Deliverable Menunggu Review HC
+            </h5>
+            @if (Model.PendingReviews.Any())
+            {
+                <span class="badge bg-light text-primary">@Model.PendingReviews.Count pending</span>
+            }
+        </div>
+        <div class="card-body p-0">
+            @if (!Model.PendingReviews.Any())
+            {
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-check2-circle fs-3 mb-2 d-block"></i>
+                    Tidak ada deliverable yang menunggu review HC.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">#</th>
+                                <th>Coachee</th>
+                                <th>Kompetensi</th>
+                                <th>Sub Kompetensi</th>
+                                <th>Deliverable</th>
+                                <th>Status</th>
+                                <th>Submitted At</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int rowNo = 1;
+                            }
+                            @foreach (var progress in Model.PendingReviews)
+                            {
+                                var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
+                                var subKompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi;
+                                var deliverable = progress.ProtonDeliverable;
+                                var coacheeName = Model.UserNames.ContainsKey(progress.CoacheeId)
+                                    ? Model.UserNames[progress.CoacheeId]
+                                    : progress.CoacheeId;
+
+                                <tr>
+                                    <td class="ps-3 align-middle text-muted">@rowNo</td>
+                                    <td class="align-middle fw-semibold">@coacheeName</td>
+                                    <td class="align-middle">@(kompetensi?.NamaKompetensi ?? "-")</td>
+                                    <td class="align-middle">@(subKompetensi?.NamaSubKompetensi ?? "-")</td>
+                                    <td class="align-middle">@(deliverable?.NamaDeliverable ?? "-")</td>
+                                    <td class="align-middle">
+                                        @{
+                                            var badgeClass = progress.Status switch
+                                            {
+                                                "Approved" => "bg-success",
+                                                "Rejected" => "bg-danger",
+                                                "Submitted" => "bg-warning text-dark",
+                                                _ => "bg-secondary"
+                                            };
+                                        }
+                                        <span class="badge @badgeClass">@progress.Status</span>
+                                    </td>
+                                    <td class="align-middle">
+                                        @if (progress.SubmittedAt.HasValue)
+                                        {
+                                            <small>@progress.SubmittedAt.Value.ToString("dd MMM yyyy")</small>
+                                        }
+                                        else
+                                        {
+                                            <small class="text-muted">-</small>
+                                        }
+                                    </td>
+                                    <td class="align-middle">
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <a href="/CDP/Deliverable/@progress.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye me-1"></i>Periksa
+                                            </a>
+                                            <form method="post" asp-action="HCReviewDeliverable" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="progressId" value="@progress.Id" />
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Tandai Sudah Diperiksa
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                rowNo++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    @* Section C: Ready for Final Assessment *@
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                <i class="bi bi-award me-2"></i>Siap untuk Final Assessment
+            </h5>
+            @if (Model.ReadyForFinalAssessment.Any())
+            {
+                <span class="badge bg-light text-success">@Model.ReadyForFinalAssessment.Count coachee</span>
+            }
+        </div>
+        <div class="card-body">
+            @if (!Model.ReadyForFinalAssessment.Any())
+            {
+                <div class="text-center text-muted py-3">
+                    <i class="bi bi-person-x fs-3 mb-2 d-block"></i>
+                    Belum ada coachee yang siap untuk final assessment.
+                </div>
+            }
+            else
+            {
+                <div class="row g-3">
+                    @foreach (var candidate in Model.ReadyForFinalAssessment)
+                    {
+                        <div class="col-md-4">
+                            <div class="card border-success h-100">
+                                <div class="card-body">
+                                    <h6 class="card-title fw-bold">
+                                        <i class="bi bi-person-fill me-2 text-success"></i>@candidate.CoacheeName
+                                    </h6>
+                                    <p class="card-text text-muted small mb-3">
+                                        Track: <strong>@candidate.TrackType</strong> — @candidate.TahunKe
+                                    </p>
+                                    <a href="/CDP/CreateFinalAssessment?trackAssignmentId=@candidate.TrackAssignmentId"
+                                       class="btn btn-success btn-sm w-100">
+                                        <i class="bi bi-plus-circle me-1"></i>Buat Final Assessment
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+</div>

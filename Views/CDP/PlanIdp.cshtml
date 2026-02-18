@@ -89,6 +89,47 @@
             </div>
         </div>
 
+        @* Final Assessment result (PROTN-08) *@
+        @if (protonModel.FinalAssessment != null)
+        {
+            var assessment = protonModel.FinalAssessment;
+            <div class="card border-success shadow-sm mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-award me-2"></i>Hasil Penilaian Akhir Proton
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 text-center">
+                            <div class="display-4 text-success fw-bold">@assessment.CompetencyLevelGranted</div>
+                            <div class="text-muted">Level Kompetensi</div>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="mb-2">
+                                <small class="text-muted">Status</small>
+                                <div><span class="badge bg-success px-3 py-2">@assessment.Status</span></div>
+                            </div>
+                            @if (assessment.CompletedAt.HasValue)
+                            {
+                                <div class="mb-2">
+                                    <small class="text-muted">Tanggal Penilaian</small>
+                                    <div>@assessment.CompletedAt.Value.ToString("dd MMM yyyy")</div>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(assessment.Notes))
+                            {
+                                <div class="mb-2">
+                                    <small class="text-muted">Catatan</small>
+                                    <div>@assessment.Notes</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
     </div>
 }
 else if (ViewBag.NoAssignment == true)

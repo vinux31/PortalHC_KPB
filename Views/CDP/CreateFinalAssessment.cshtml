@@ -1,0 +1,211 @@
+@model HcPortal.Models.FinalAssessmentViewModel
+
+@{
+    ViewData["Title"] = "Final Proton Assessment";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    @* Breadcrumb *@
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+                <a href="/CDP/HCApprovals">HC Approvals</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Final Assessment</li>
+        </ol>
+    </nav>
+
+    @* TempData Alerts *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @* Page Header *@
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            <i class="bi bi-award me-2 text-success"></i>Final Proton Assessment
+        </h2>
+        <p class="text-muted">Buat penilaian akhir Proton untuk coachee yang telah menyelesaikan semua deliverable.</p>
+    </div>
+
+    @if (Model.ExistingAssessment != null)
+    {
+        @* READ-ONLY view: assessment already exists *@
+        var assessment = Model.ExistingAssessment;
+        <div class="card border-success shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-check-circle-fill me-2"></i>Final Assessment Sudah Dibuat
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted fw-bold">Coachee</label>
+                        <div class="fw-semibold">@Model.CoacheeName</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted fw-bold">Track</label>
+                        <div>@(Model.Assignment?.TrackType) — @(Model.Assignment?.TahunKe)</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted fw-bold">Level Kompetensi Diberikan</label>
+                        <div class="display-5 fw-bold text-success">@assessment.CompetencyLevelGranted</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small text-muted fw-bold">Status</label>
+                        <div><span class="badge bg-success px-3 py-2">@assessment.Status</span></div>
+                    </div>
+                    @if (assessment.CompletedAt.HasValue)
+                    {
+                        <div class="col-md-4">
+                            <label class="form-label small text-muted fw-bold">Tanggal Penilaian</label>
+                            <div>@assessment.CompletedAt.Value.ToString("dd MMM yyyy")</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(assessment.Notes))
+                    {
+                        <div class="col-12">
+                            <label class="form-label small text-muted fw-bold">Catatan</label>
+                            <div class="p-3 bg-light rounded">@assessment.Notes</div>
+                        </div>
+                    }
+                </div>
+                <div class="mt-4">
+                    <a href="/CDP/HCApprovals" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-left me-1"></i>Kembali
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    else if (!Model.AllHCReviewed)
+    {
+        @* Warning: HC reviews not complete *@
+        <div class="alert alert-warning" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Belum semua deliverable diperiksa HC.</strong>
+            Selesaikan review semua deliverable terlebih dahulu sebelum membuat final assessment.
+        </div>
+        <div class="card border-0 shadow-sm p-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small text-muted fw-bold">Coachee</label>
+                    <div class="fw-semibold">@Model.CoacheeName</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small text-muted fw-bold">Track</label>
+                    <div>@(Model.Assignment?.TrackType) — @(Model.Assignment?.TahunKe)</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-muted fw-bold">Total Deliverable</label>
+                    <div class="fw-bold">@Model.TotalDeliverables</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small text-muted fw-bold">Deliverable Disetujui</label>
+                    <div class="fw-bold text-success">@Model.ApprovedDeliverables</div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="/CDP/HCApprovals" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Kembali ke HC Approvals
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        @* CREATE FORM *@
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Buat Final Assessment — @Model.CoacheeName
+                </h5>
+            </div>
+            <div class="card-body">
+
+                @* Info section *@
+                <div class="row g-3 mb-4 p-3 bg-light rounded">
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Track</small>
+                        <span class="fw-semibold">@(Model.Assignment?.TrackType) — @(Model.Assignment?.TahunKe)</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Total Deliverable</small>
+                        <span class="fw-semibold">@Model.TotalDeliverables</span>
+                    </div>
+                    <div class="col-md-4">
+                        <small class="text-muted d-block">Deliverable Disetujui</small>
+                        <span class="fw-semibold text-success">@Model.ApprovedDeliverables / @Model.TotalDeliverables</span>
+                    </div>
+                </div>
+
+                @* Assessment form *@
+                <form method="post" asp-action="CreateFinalAssessment">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="trackAssignmentId" value="@(Model.Assignment?.Id)" />
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" for="competencyLevelGranted">
+                                Level Kompetensi Diberikan <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="competencyLevelGranted" name="competencyLevelGranted" required>
+                                <option value="">-- Pilih Level --</option>
+                                <option value="1">Level 1</option>
+                                <option value="2">Level 2</option>
+                                <option value="3">Level 3</option>
+                                <option value="4">Level 4</option>
+                                <option value="5">Level 5</option>
+                            </select>
+                            <div class="form-text">Level kompetensi yang diberikan kepada coachee (1-5)</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold" for="kkjMatrixItemId">
+                                Kompetensi KKJ (Opsional)
+                            </label>
+                            <select class="form-select" id="kkjMatrixItemId" name="kkjMatrixItemId">
+                                <option value="">-- Pilih Kompetensi (opsional) --</option>
+                                @foreach (var competency in Model.AvailableCompetencies)
+                                {
+                                    <option value="@competency.Id">@competency.SkillGroup — @competency.Kompetensi</option>
+                                }
+                            </select>
+                            <div class="form-text">Pilih kompetensi KKJ yang akan diperbarui level-nya</div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold" for="notes">Catatan Assessment</label>
+                            <textarea class="form-control" id="notes" name="notes" rows="4"
+                                      placeholder="Catatan tambahan dari HC mengenai penilaian ini..."></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-3">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle me-2"></i>Buat Final Assessment
+                        </button>
+                        <a href="/CDP/HCApprovals" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>Kembali
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+    }
+
+</div>
