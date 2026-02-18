@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 ## Current Position
 
-**Milestone:** v1.1 CDP Coaching Management — COMPLETE
-**Phase:** 7 of 7 (Development Dashboard) — COMPLETE
-**Plan:** 2 of 2 — COMPLETE (all tasks done, human verification approved)
-**Status:** Phase 7 fully complete. Milestone v1.1 fully implemented and verified. All 7 phases and 14 plans done.
-**Last activity:** 2026-02-18 — 07-02 complete: user approved development dashboard. Phase 7 and milestone v1.1 done.
+**Milestone:** v1.1 CDP Coaching Management — COMPLETE (Phase 8 is a post-milestone fix)
+**Phase:** 8 of 8 (Fix Admin Role Switcher) — PLANNED, ready to execute
+**Plan:** 0 of 2 — PENDING
+**Status:** Phase 8 has 2 plans created and verified. Ready to execute.
+**Last activity:** 2026-02-18 — Phase 8 planned: 08-01 (AccountController + Layout + SeedData) and 08-02 (CDPController fixes, checkpoint).
 
-Progress: [██████████] 100% milestone v1.1 COMPLETE
+Progress: [░░░░░░░░░░] 0% phase 8
 
 ## Performance Metrics
 
@@ -126,6 +126,10 @@ Recent decisions affecting current work:
 - Razor: @{} blocks inside @if{} are invalid (RZ1010) — inside a code block, statements don't need @ prefix
 - Coachee role path in PlanIdp: checks UserRoles.Coachee OR (Admin with SelectedView="Coachee") before existing PDF path
 
+### Roadmap Evolution
+
+- Phase 8 added: Fix admin role switcher and add Admin to supported roles
+
 ### Pending Todos
 
 None.
@@ -151,5 +155,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 07-02-PLAN.md — Phase 7 and milestone v1.1 fully complete. User approved development dashboard. No further plans in roadmap.
+Stopped at: Phase 8 planning complete — 08-01 and 08-02 PLAN.md created and verified. Ready to execute.
 Resume file: None
