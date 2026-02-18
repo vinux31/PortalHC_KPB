@@ -4,19 +4,19 @@
 
 See: .planning/PROJECT.md (updated 2026-02-17)
 
-**Latest milestone:** v1.1 CDP Coaching Management (started 2026-02-17)
+**Latest milestone:** v1.2 UX Consolidation (started 2026-02-18)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Milestone v1.1 CDP Coaching Management — COMPLETE
+**Current focus:** Milestone v1.2 UX Consolidation — defining requirements
 
 ## Current Position
 
-**Milestone:** v1.1 CDP Coaching Management — COMPLETE (Phase 8 is a post-milestone fix)
-**Phase:** 8 of 8 (Fix Admin Role Switcher) — COMPLETE
-**Plan:** 2 of 2 — COMPLETE
-**Status:** All plans complete. Phase 8 done. Admin role-switcher feature fully functional end-to-end.
-**Last activity:** 2026-02-18 — 08-02 human verification approved. All 6 role-switcher scenarios passed. SUMMARY.md created.
+**Milestone:** v1.2 UX Consolidation
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-02-18 — Milestone v1.2 started
 
-Progress: [██████████] 100% phase 8
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -167,5 +167,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Phase 8 complete — 08-02 human verification approved, SUMMARY.md created, STATE.md updated.
-Resume file: None — all planned work complete.
+Stopped at: Milestone v1.2 started — requirements definition in progress.
+Resume file: None.

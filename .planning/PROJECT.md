@@ -12,14 +12,15 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v1.1 CDP Coaching Management
+## Current Milestone: v1.2 UX Consolidation
 
-**Goal:** Build functional coaching session management system with development tracking
+**Goal:** Refocus core pages to their intended purpose and consolidate overlapping dashboards into a coherent, role-aware experience
 
 **Target features:**
-- Coaching session logging (meetings, action items, approval workflow)
-- Development dashboard (competency progress, goals tracking, team overview)
-- CMP integration (gap-based coaching, progress visualization)
+- Assessment page refocused: workers see Open/Upcoming only; HC/Admin get Management + Monitoring tabs
+- Training Records as universal history: completed assessments + training manual in one merged table
+- Gap Analysis page removed (data no longer surfaced as standalone page)
+- Three dashboards consolidated into one unified CDP Dashboard with two tabs: Proton Progress (all roles, scoped) and Assessment Analytics (HC/Admin only)
 
 ---
 
@@ -286,4 +287,4 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ---
 
-*Last updated: 2026-02-17 after starting v1.1 milestone*
+*Last updated: 2026-02-18 after starting v1.2 milestone*
