@@ -6,17 +6,17 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Latest milestone:** v1.2 UX Consolidation (started 2026-02-18)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 10 — Unified Training Records
+**Current focus:** Phase 11 — Assessment Filter (next after Phase 10 complete)
 
 ## Current Position
 
 **Milestone:** v1.2 UX Consolidation
-**Phase:** 10 of 12 (Unified Training Records)
-**Plan:** 01 complete — Plan 02 (Razor views) next
+**Phase:** 11 of 12 (Assessment Filter — next phase)
+**Plan:** Phase 10 complete (both plans shipped) — Phase 11 is next
 **Status:** In progress
-**Last activity:** 2026-02-18 — Phase 10 Plan 01 (data layer) complete
+**Last activity:** 2026-02-18 — Phase 10 Plan 02 (Razor views) complete; Phase 10 fully done
 
-Progress: [█████████░] 75% (9/12 phases complete — phases 1-9 shipped; phase 10 in progress)
+Progress: [█████████░] 83% (10/12 phases complete — phases 1-10 shipped; phase 11 next)
 
 ## Performance Metrics
 
@@ -35,11 +35,12 @@ Progress: [█████████░] 75% (9/12 phases complete — phases 
 | 07-development-dashboard | 2 | ~4 min | 2.0 min |
 | 08-fix-admin-role-switcher | 2 | ~43 min | 21.5 min |
 
-**Phase 10 (in progress):**
+**Phase 10 (complete):**
 
 | Plan | Duration | Tasks | Notes |
 |------|----------|-------|-------|
 | 10-01 (data layer) | ~12 min | 2 | ViewModel + controller rewrite |
+| 10-02 (Razor views) | ~5 min | 2 | Three CMP views rewritten |
 
 **Recent Trend:**
 - Phase 08 required extended human-verify cycles (complex auth logic)
@@ -73,19 +74,19 @@ Recent decisions affecting current work:
 - completedTrainings count uses Passed|Valid only — Permanent status removed per phase decision (was incorrect in existing code)
 - Records() isCoacheeView: userRole == UserRoles.Coach || userRole == UserRoles.Coachee — Admin explicitly excluded
 
+**From 10-02:**
+- Empty state in Records.cshtml is plain text only — no icon, no call to action ("Belum ada riwayat pelatihan")
+- Expiring Soon stat card removed from both Records.cshtml and WorkerDetail.cshtml — IsExpired-only (past-date), no lookahead
+- WorkerDetail filter simplified to title-only search — category and status dropdowns removed with unified model
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-**Phase 10 Plan 02 — critical model type update:**
-- Records.cshtml @model must be changed from List<TrainingRecord> to List<UnifiedTrainingRecord> as the first edit (runtime error if skipped)
-- WorkerDetail.cshtml @model requires the same update — same error risk
-- See Pitfall 4 and 5 in 10-RESEARCH.md
-
-**Phase 11 — sequencing gate:**
-- Phase 10 must be verified complete before Phase 11 ships (Pitfall 1 from research)
+**Phase 11 — sequencing gate: CLEARED**
+- Phase 10 is fully complete (data layer + views) — Phase 11 can proceed
 
 **Phase 12 — pre-implementation checklist:**
 - Grep for literal string `"ReportsIndex"` across all .cshtml files — two implicit-controller Url.Action calls in UserAssessmentHistory.cshtml will silently 404 after move
@@ -99,5 +100,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-18
-Stopped at: Completed 10-01-PLAN.md — Phase 10 Plan 01 (data layer) done. Plan 02 (Razor views) is next.
+Stopped at: Completed 10-02-PLAN.md — Phase 10 fully done (data layer + Razor views). Phase 11 (Assessment Filter) is next.
 Resume file: None.
