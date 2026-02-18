@@ -119,11 +119,11 @@ Plans:
   2. Dashboard data is scoped by role: Spv sees their unit only; SrSpv and SectionHead see their section; HC and Admin see all sections
   3. Dashboard shows each team member's deliverable progress, pending approvals, and competency status
   4. Dashboard includes Chart.js charts showing competency level changes over time
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 07-01: TBD
-- [ ] 07-02: TBD
+- [ ] 07-01-PLAN.md — ViewModel + CDPController.DevDashboard GET action with role-scoped queries and chart data
+- [ ] 07-02-PLAN.md — DevDashboard.cshtml view with charts and coachee table, plus _Layout.cshtml nav link
 
 ## Progress
 
