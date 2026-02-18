@@ -135,7 +135,7 @@ namespace HcPortal.Controllers
             }
 
             // Validate view is one of the allowed values
-            var allowedViews = new[] { "HC", "Atasan", "Coach", "Coachee" };
+            var allowedViews = new[] { "HC", "Atasan", "Coach", "Coachee", "Admin" };
             if (!allowedViews.Contains(view))
             {
                 return BadRequest("Invalid view");

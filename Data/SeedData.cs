@@ -47,7 +47,7 @@ namespace HcPortal.Data
                     Section = null,
                     Unit = null,
                     RoleLevel = 1,
-                    SelectedView = "HC"  // Admin default view
+                    SelectedView = "Admin"  // Admin default view
                 }, "123456", UserRoles.Admin),
 
                 (new ApplicationUser
