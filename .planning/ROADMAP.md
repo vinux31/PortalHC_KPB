@@ -52,6 +52,16 @@
 
 </details>
 
+### Phase 8: Fix admin role switcher and add Admin to supported roles
+
+**Goal:** Admin can switch between all role views (HC, Atasan, Coach, Coachee, Admin) with each simulated view granting the correct access to controller actions and showing accurate data
+**Depends on:** Phase 7
+**Plans:** 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Enable Admin view: add "Admin" to allowedViews, _Layout dropdown, and SeedData default
+- [ ] 08-02-PLAN.md — Fix CDPController gates: HC-gated actions, Atasan-gated actions, null-Section coachee lists, CreateSession Coachee block
+
 ---
 
 ### 🚧 v1.1 CDP Coaching Management (In Progress)
