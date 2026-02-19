@@ -14,7 +14,7 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 **Phase:** 13 of 15 (Navigation & Creation Flow)
 **Plan:** Not started
 **Status:** Ready to plan
-**Last activity:** 2026-02-19 — Roadmap created for v1.3 (3 phases, 9 requirements mapped)
+**Last activity:** 2026-02-19 — Roadmap re-created for v1.3 with updated BLK scope (EditAssessment page, not separate view)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.3)
 
@@ -53,7 +53,7 @@ Recent decisions affecting current work:
 
 **v1.3 Roadmap decisions:**
 - Phase 13 bundles NAV + CRT — removing the embedded form and fixing the create flow are the same Index restructuring effort
-- Phase 14 (Bulk Assign) is a new CMPController action (AssignUsers); shows existing users + multi-select add
+- Phase 14 (Bulk Assign) modifies the EXISTING EditAssessment page (`/CMP/EditAssessment`) — no separate view; shows existing users + picker for additional users; new AssessmentSessions created on save
 - Phase 15 (Quick Edit) is a new CMPController action (QuickEdit); inline modal on manage view for status + schedule only
 - Phase 13 must ship before 14 and 15 — manage view baseline must be clean first
 
@@ -63,7 +63,7 @@ None.
 
 ### Blockers/Concerns
 
-None at roadmap stage. CMPController is 1047 lines — bulk assign and quick edit add 2 more actions; acceptable within current milestone scope.
+None at roadmap stage. CMPController is 1047 lines — EditAssessment extension and quick edit add complexity to existing actions; acceptable within current milestone scope.
 
 ### Quick Tasks Completed
 
@@ -79,9 +79,10 @@ None at roadmap stage. CMPController is 1047 lines — bulk assign and quick edi
 - Phase 8 added (post-v1.1 fix): Fix admin role switcher and add Admin to supported roles
 - Phases 9-12 defined for v1.2 UX Consolidation (2026-02-18)
 - Phases 13-15 defined for v1.3 Assessment Management UX (2026-02-19)
+- Phase 14 BLK scope updated: EditAssessment page extension, not a separate bulk assign view (2026-02-19)
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Roadmap created for v1.3 — 3 phases (13-15), 9 requirements mapped, ready to plan Phase 13.
+Stopped at: Roadmap re-created for v1.3 — updated Phase 14 BLK scope to EditAssessment page modification. 3 phases (13-15), 9/9 requirements mapped. Ready to plan Phase 13.
 Resume file: None.

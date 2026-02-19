@@ -154,7 +154,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 
 ### 🚧 v1.3 Assessment Management UX (In Progress)
 
-**Milestone Goal:** Clean up HC/Admin assessment navigation on CMP Index, restore the dedicated create assessment flow, and add bulk assign + quick-edit capabilities from the manage view.
+**Milestone Goal:** Clean up HC/Admin assessment navigation on CMP Index, restore the dedicated create assessment flow, and add bulk assign (user picker on Edit Assessment page) + quick-edit capabilities from the manage view.
 
 #### Phase 13: Navigation & Creation Flow
 **Goal:** HC and Admin see a clean CMP Index with a dedicated Manage Assessments card and no embedded form, and the create assessment flow routes correctly through the dedicated page with proper post-redirect
@@ -172,17 +172,17 @@ Plans:
 - [ ] 13-02: Create Assessment flow — fix button link and post-creation redirect
 
 #### Phase 14: Bulk Assign
-**Goal:** HC can add users to an existing assessment from the manage view, seeing who is already assigned before selecting additional users
+**Goal:** HC can see who is already assigned to an assessment and add more users directly from the existing Edit Assessment page, with new AssessmentSessions created on save
 **Depends on:** Phase 13
 **Requirements:** BLK-01, BLK-02
 **Success Criteria** (what must be TRUE):
-  1. HC can open a bulk assign view/modal from an assessment card on the manage view
-  2. The bulk assign form shows currently assigned users and lets HC select additional ones to add
-  3. After submitting, newly selected users are added to the assessment without removing existing assignees
+  1. The Edit Assessment page (`/CMP/EditAssessment`) includes a section showing currently assigned users
+  2. HC can select additional users from a picker on the same Edit Assessment page and save
+  3. Saving the user additions creates new AssessmentSessions for the newly selected users without removing or altering existing assignees
 **Plans:** TBD
 
 Plans:
-- [ ] 14-01: AssignUsers action on CMPController + bulk assign view (existing users display + multi-select add)
+- [ ] 14-01: Extend EditAssessment view and CMPController POST action — add currently-assigned user list + multi-select picker; create AssessmentSessions on save
 
 #### Phase 15: Quick Edit
 **Goal:** HC can change an assessment's status and reschedule it directly from the manage view card without navigating to the full Edit page

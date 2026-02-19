@@ -20,8 +20,8 @@ Requirements for Assessment Management UX milestone. Phases continue from 12 →
 
 ### Bulk Assign (BLK)
 
-- [ ] **BLK-01**: HC can add more users to an existing assessment from the manage view
-- [ ] **BLK-02**: Bulk assign shows current assigned users and lets HC select additional ones
+- [ ] **BLK-01**: Edit Assessment form includes a section to add more users to an existing assessment
+- [ ] **BLK-02**: Edit Assessment form shows currently assigned users alongside a picker for selecting additional ones; saving creates new AssessmentSessions with the same settings
 
 ### Quick Edit (QED)
 
@@ -61,4 +61,4 @@ Requirements for Assessment Management UX milestone. Phases continue from 12 →
 
 ---
 *Requirements defined: 2026-02-19*
-*Last updated: 2026-02-19 — traceability populated during roadmap creation*
+*Last updated: 2026-02-19 — traceability updated; BLK scope clarified (EditAssessment page, not separate view)*
