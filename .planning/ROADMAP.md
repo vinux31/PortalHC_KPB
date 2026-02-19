@@ -181,7 +181,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 14-01-PLAN.md — Extend EditAssessment view and controller: add assigned user list, multi-select picker, bulk AssessmentSession creation on save
+- [x] 14-01-PLAN.md — Extend EditAssessment view and controller: add assigned user list, multi-select picker, bulk AssessmentSession creation on save
 
 #### Phase 15: Quick Edit
 **Goal:** HC can change an assessment's status and reschedule it directly from the manage view card without navigating to the full Edit page
@@ -215,5 +215,5 @@ Plans:
 | 11. Assessment Page Role Filter | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 12. Dashboard Consolidation | v1.2 | 3/3 | Complete | 2026-02-19 |
 | 13. Navigation & Creation Flow | v1.3 | 1/1 | Complete | 2026-02-19 |
-| 14. Bulk Assign | v1.3 | 0/1 | Not started | - |
+| 14. Bulk Assign | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 15. Quick Edit | v1.3 | 0/1 | Not started | - |

@@ -6,7 +6,7 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Latest milestone:** v1.3 Assessment Management UX — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 14 — Bulk Assign
+**Current focus:** Phase 15 — Quick Edit
 
 ## Current Position
 
