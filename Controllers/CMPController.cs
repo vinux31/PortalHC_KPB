@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 using HcPortal.Models.Competency;
 using HcPortal.Helpers;
+using System.Text.Json;
 
 namespace HcPortal.Controllers
 {
@@ -1256,30 +1257,171 @@ namespace HcPortal.Controllers
         }
 
         // --- HALAMAN EXAM SKELETON ---
+        [HttpGet]
         public async Task<IActionResult> StartExam(int id)
         {
             var assessment = await _context.AssessmentSessions
-                .Include(a => a.Questions)
-                .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(a => a.Id == id);
-            
+
             if (assessment == null) return NotFound();
 
-            // Verification: Ensure User is the owner (or Admin/HC)
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
-            {
                 return Forbid();
-            }
 
-            // Prevent re-taking completed assessments
             if (assessment.Status == "Completed")
             {
                 TempData["Error"] = "This assessment has already been completed.";
                 return RedirectToAction("Assessment");
             }
 
-            return View(assessment);
+            // Check if this assessment has packages
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .Where(p => p.AssessmentSessionId == id)
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            PackageExamViewModel vm;
+
+            if (packages.Any())
+            {
+                // ---- PACKAGE PATH ----
+
+                // Check for existing assignment (idempotent — resume)
+                var assignment = await _context.UserPackageAssignments
+                    .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+
+                if (assignment == null)
+                {
+                    // Randomly assign a package
+                    var rng = new Random();
+                    var selectedPackage = packages[rng.Next(packages.Count)];
+
+                    // Shuffle question order
+                    var questionIds = selectedPackage.Questions
+                        .OrderBy(q => q.Order)
+                        .Select(q => q.Id)
+                        .ToList();
+                    Shuffle(questionIds, rng);
+
+                    // Shuffle options per question
+                    var optionOrderDict = new Dictionary<int, List<int>>();
+                    foreach (var q in selectedPackage.Questions)
+                    {
+                        var optIds = q.Options.Select(o => o.Id).ToList();
+                        Shuffle(optIds, rng);
+                        optionOrderDict[q.Id] = optIds;
+                    }
+
+                    assignment = new UserPackageAssignment
+                    {
+                        AssessmentSessionId = id,
+                        AssessmentPackageId = selectedPackage.Id,
+                        UserId = user.Id,
+                        ShuffledQuestionIds = JsonSerializer.Serialize(questionIds),
+                        ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(
+                            optionOrderDict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value))
+                    };
+                    _context.UserPackageAssignments.Add(assignment);
+                    await _context.SaveChangesAsync();
+                }
+
+                // Load the assigned package
+                var assignedPackage = packages.First(p => p.Id == assignment.AssessmentPackageId);
+
+                // Build ViewModel in shuffled order
+                var shuffledQuestionIds = assignment.GetShuffledQuestionIds();
+                var shuffledOptionIds = assignment.GetShuffledOptionIds();
+
+                var questionLookup = assignedPackage.Questions.ToDictionary(q => q.Id);
+                var optionLookup = assignedPackage.Questions
+                    .SelectMany(q => q.Options)
+                    .ToDictionary(o => o.Id);
+
+                var examQuestions = new List<ExamQuestionItem>();
+                int displayNum = 1;
+                foreach (var qId in shuffledQuestionIds)
+                {
+                    if (!questionLookup.TryGetValue(qId, out var q)) continue;
+
+                    var orderedOptIds = shuffledOptionIds.TryGetValue(qId, out var optIds)
+                        ? optIds
+                        : q.Options.Select(o => o.Id).ToList();
+
+                    var opts = orderedOptIds
+                        .Where(oid => optionLookup.ContainsKey(oid))
+                        .Select(oid => new ExamOptionItem
+                        {
+                            OptionId = optionLookup[oid].Id,
+                            OptionText = optionLookup[oid].OptionText
+                        }).ToList();
+
+                    examQuestions.Add(new ExamQuestionItem
+                    {
+                        QuestionId = q.Id,
+                        QuestionText = q.QuestionText,
+                        DisplayNumber = displayNum++,
+                        Options = opts
+                    });
+                }
+
+                vm = new PackageExamViewModel
+                {
+                    AssessmentSessionId = id,
+                    Title = assessment.Title,
+                    DurationMinutes = assessment.DurationMinutes,
+                    HasPackages = true,
+                    AssignmentId = assignment.Id,
+                    Questions = examQuestions
+                };
+            }
+            else
+            {
+                // ---- LEGACY PATH: no packages, use old AssessmentQuestion/Option ----
+                var assessmentWithQuestions = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .FirstOrDefaultAsync(a => a.Id == id);
+
+                var legacyQuestions = assessmentWithQuestions?.Questions
+                    .OrderBy(q => q.Order)
+                    .Select((q, i) => new ExamQuestionItem
+                    {
+                        QuestionId = q.Id,
+                        QuestionText = q.QuestionText,
+                        DisplayNumber = i + 1,
+                        Options = q.Options.Select(o => new ExamOptionItem
+                        {
+                            OptionId = o.Id,
+                            OptionText = o.OptionText
+                        }).ToList()
+                    }).ToList() ?? new List<ExamQuestionItem>();
+
+                vm = new PackageExamViewModel
+                {
+                    AssessmentSessionId = id,
+                    Title = assessment.Title,
+                    DurationMinutes = assessment.DurationMinutes,
+                    HasPackages = false,
+                    AssignmentId = null,
+                    Questions = legacyQuestions
+                };
+            }
+
+            return View(vm);
+        }
+
+        // Helper: Fisher-Yates shuffle
+        private static void Shuffle<T>(List<T> list, Random rng)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
         }
 
         // ... existing code ...
