@@ -42,25 +42,23 @@ Requirements for Assessment Management UX milestone. Phases continue from 12 →
 
 ## Traceability
 
-*(Populated during roadmap creation)*
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| CRT-01 | — | Pending |
-| CRT-02 | — | Pending |
-| BLK-01 | — | Pending |
-| BLK-02 | — | Pending |
-| QED-01 | — | Pending |
-| QED-02 | — | Pending |
+| NAV-01 | Phase 13 | Pending |
+| NAV-02 | Phase 13 | Pending |
+| NAV-03 | Phase 13 | Pending |
+| CRT-01 | Phase 13 | Pending |
+| CRT-02 | Phase 13 | Pending |
+| BLK-01 | Phase 14 | Pending |
+| BLK-02 | Phase 14 | Pending |
+| QED-01 | Phase 15 | Pending |
+| QED-02 | Phase 15 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9 ⚠️
+- Mapped to phases: 9
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-19*
-*Last updated: 2026-02-19 after initial definition*
+*Last updated: 2026-02-19 — traceability populated during roadmap creation*

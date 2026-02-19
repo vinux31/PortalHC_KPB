@@ -6,58 +6,35 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Latest milestone:** v1.3 Assessment Management UX — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.3 — Assessment Management UX
+**Current focus:** Phase 13 — Navigation & Creation Flow
 
 ## Current Position
 
-**Milestone:** v1.3 Assessment Management UX — IN PROGRESS
-**Phase:** Not started (defining requirements)
-**Plan:** —
-**Status:** Defining requirements
-**Last activity:** 2026-02-19 — Milestone v1.3 started
+**Milestone:** v1.3 Assessment Management UX
+**Phase:** 13 of 15 (Navigation & Creation Flow)
+**Plan:** Not started
+**Status:** Ready to plan
+**Last activity:** 2026-02-19 — Roadmap created for v1.3 (3 phases, 9 requirements mapped)
+
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.3)
 
 ## Performance Metrics
 
-**Velocity (v1.0 + v1.1):**
-- Total plans completed: 22
-- Average duration: ~4 min/plan
-- Total execution time: ~1.5 hours
+**Velocity (v1.0–v1.2):**
+- Total plans completed: 30
+- Average duration: ~5 min/plan
+- Total execution time: ~2.5 hours
 
-**By Phase (v1.1):**
+**v1.2 Phase Summary:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 04-foundation-coaching-sessions | 3 | ~13 min | 4.3 min |
-| 05-proton-deliverable-tracking | 3 | ~14 min | 4.7 min |
-| 06-approval-workflow-completion | 3 | ~15 min | 5.0 min |
-| 07-development-dashboard | 2 | ~4 min | 2.0 min |
-| 08-fix-admin-role-switcher | 2 | ~43 min | 21.5 min |
+| Phase | Plans | Avg/Plan |
+|-------|-------|----------|
+| 09-gap-analysis-removal | 1 | ~8 min |
+| 10-unified-training-records | 2 | ~8.5 min |
+| 11-assessment-page-role-filter | 2 | ~7 min |
+| 12-dashboard-consolidation | 3 | ~12.7 min |
 
-**Phase 10 (complete):**
-
-| Plan | Duration | Tasks | Notes |
-|------|----------|-------|-------|
-| 10-01 (data layer) | ~12 min | 2 | ViewModel + controller rewrite |
-| 10-02 (Razor views) | ~5 min | 2 | Three CMP views rewritten |
-
-**Phase 11 (complete):**
-
-| Plan | Duration | Tasks | Notes |
-|------|----------|-------|-------|
-| 11-01 (controller) | ~6 min | 2 | Assessment() role-filter rewrite |
-| 11-02 (Razor view) | ~8 min | 2 | Assessment.cshtml role-branched layout |
-
-**Phase 12 (in progress):**
-
-| Plan | Duration | Tasks | Notes |
-|------|----------|-------|-------|
-| 12-01 (ViewModel + controller) | ~4 min | 2 | CDPDashboardViewModel + Dashboard() rewrite |
-| 12-02 (Razor views) | ~4 min | 2 | Dashboard.cshtml two-tab layout + three partial views |
-| 12-03 (cleanup) | ~30 min | 3 + fix | Retirement + cleanup + analytics tab state fix |
-
-**Recent Trend:**
-- Phase 08 required extended human-verify cycles (complex auth logic)
-- Trend: Stable for new feature work; elevated for auth-sensitive changes
+**Recent Trend:** Stable. Phase 12 cleanup plan was longer due to post-human-verify analytics fix.
 
 *Updated after each plan completion*
 
@@ -68,59 +45,17 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-**From 08-02:**
-- isHCAccess pattern (named bool) used for HC gates — more readable than inline ternary
-- Admin section check skipped in ApproveDeliverable/RejectDeliverable — Admin.Section is null by design
-- isCoacheeView flag uses role name + SelectedView for explicit Admin simulation check
+**From v1.2 (relevant to v1.3):**
+- Admin always gets HC branch in Assessment() and Records() — SelectedView only affects personal-records branch
+- Dual ViewBag pattern for Assessment manage view: ViewBag.ManagementData (paginated all) + ViewBag.MonitorData (flat Open+Upcoming)
+- Assessment filter at DB level, not view — IQueryable filter before .ToListAsync()
+- filterCards() JS guarded with getElementById null check
 
-**v1.2 Roadmap decisions:**
-- Gap Analysis removal is Phase 9 (first) — zero dependencies, creates clean baseline
-- Training Records unified history (Phase 10) must ship before Assessment filter (Phase 11) — hard sequencing constraint: history destination before source filter removed
-- Dashboard consolidation (Phase 12) is last — most cross-cutting, absorbs HC Reports + Dev Dashboard
-- CompetencyGap action: delete with RedirectToAction("CpdpProgress") stub for one release cycle
-- Assessment Analytics tab in Dashboard: KPI cards + filter + table + export (full ReportsDashboardViewModel), not a summary link
-- Admin SelectedView must be manually verified (five SelectedView values) on every modified controller action
-
-**From 10-01:**
-- Admin always gets HC worker list regardless of SelectedView — SelectedView personal-records branch removed from Records() action
-- Assessment Status column shows Passed/Failed derived from IsPassed, not literal Completed string from AssessmentSession.Status
-- completedTrainings count uses Passed|Valid only — Permanent status removed per phase decision (was incorrect in existing code)
-- Records() isCoacheeView: userRole == UserRoles.Coach || userRole == UserRoles.Coachee — Admin explicitly excluded
-
-**From 10-02:**
-- Empty state in Records.cshtml is plain text only — no icon, no call to action ("Belum ada riwayat pelatihan")
-- Expiring Soon stat card removed from both Records.cshtml and WorkerDetail.cshtml — IsExpired-only (past-date), no lookahead
-- WorkerDetail filter simplified to title-only search — category and status dropdowns removed with unified model
-
-**From 11-01:**
-- Admin always gets HC branch in Assessment() regardless of SelectedView — consistent with Phase 10 decision
-- Worker status filter in Assessment() applied at DB query level — Completed excluded from IQueryable before .ToListAsync()
-- Dual ViewBag pattern for Assessment manage view: ViewBag.ManagementData (paginated all) + ViewBag.MonitorData (flat Open+Upcoming, schedule-asc)
-
-**From 11-02:**
-- Razor @{} inside @if block is invalid (RZ1010) — bare var declarations work directly inside @if {} code context
-- Worker callout placed in else branch — HC/Admin in personal mode also sees it correctly
-- Completed tab <li> removed from DOM entirely (not hidden) — matches controller-level filter from 11-01
-- filterCards() JS guarded with getElementById null check — prevents console errors on HC/Admin manage view
-
-**From 12-01:**
-- isHCAccess for Analytics tab: userRole == HC || Admin — SelectedView NOT checked (Admin simulating Coachee still sees Analytics per Phase 12 Context.md locked decision)
-- isLiteralCoachee: userRole == Coachee only — Admin simulating Coachee goes through ProtonProgress path
-- Supporting classes (CoacheeProgressRow, AssessmentReportItem, ReportFilters, CategoryStatistic) now canonical in CDPDashboardViewModel.cs — removed from DevDashboardViewModel.cs and ReportsDashboardViewModel.cs
-
-**From 12-02:**
-- Chart.js CDN added to _Layout.cshtml globally — partials cannot use @section Scripts; layout-level loading is the required pattern
-- CoacheeProgressRow has no NIP/Section fields — _ProtonProgressPartial table uses available fields only (Name, Track, Tahun, Progress, Approved, Pending, Rejected, Status)
-- Analytics partial uses Model.CategoryStats/ScoreDistribution (not ViewBag) — model-bound, consistent with CDPDashboardViewModel
-- UserAssessmentHistory and Results drill-down links retain CMP controller — not moved in Phase 12
-- JS tab auto-activation via URLSearchParams added in Dashboard.cshtml for analytics filter params
-
-**From 12-03:**
-- activeTab hidden input pattern: filter form submits activeTab=analytics to guarantee tab re-activation even when all filter fields are empty/default
-- URLSearchParams tab activation checks activeTab param first, then analytics filter params as fallback
-- Dashboard nav link has no role gate — all authenticated users including Coachees see it
-- UserAssessmentHistory ReportsIndex links removed entirely (no replacement) per locked decision
-- CMP/Index HC Reports card updated to link to CDP/Dashboard (Analytics tab replacement)
+**v1.3 Roadmap decisions:**
+- Phase 13 bundles NAV + CRT — removing the embedded form and fixing the create flow are the same Index restructuring effort
+- Phase 14 (Bulk Assign) is a new CMPController action (AssignUsers); shows existing users + multi-select add
+- Phase 15 (Quick Edit) is a new CMPController action (QuickEdit); inline modal on manage view for status + schedule only
+- Phase 13 must ship before 14 and 15 — manage view baseline must be clean first
 
 ### Pending Todos
 
@@ -128,12 +63,7 @@ None.
 
 ### Blockers/Concerns
 
-**Phase 11 — COMPLETE**
-- Both plans (controller role filter + Razor view role-branched layout) shipped
-
-**Phase 12 — COMPLETE**
-- All three plans shipped (ViewModel/controller, Razor views, cleanup)
-- Analytics tab state fix applied post-human-verify
+None at roadmap stage. CMPController is 1047 lines — bulk assign and quick edit add 2 more actions; acceptable within current milestone scope.
 
 ### Quick Tasks Completed
 
@@ -148,9 +78,10 @@ None.
 
 - Phase 8 added (post-v1.1 fix): Fix admin role switcher and add Admin to supported roles
 - Phases 9-12 defined for v1.2 UX Consolidation (2026-02-18)
+- Phases 13-15 defined for v1.3 Assessment Management UX (2026-02-19)
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed quick-004 — persistent Create Assessment button added to Assessment manage view header.
+Stopped at: Roadmap created for v1.3 — 3 phases (13-15), 9 requirements mapped, ready to plan Phase 13.
 Resume file: None.

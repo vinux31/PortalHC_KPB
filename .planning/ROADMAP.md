@@ -6,6 +6,7 @@
 - ✅ **v1.1 CDP Coaching Management** — Phases 4-7 (shipped 2026-02-18)
 - ✅ **Post-v1.1 Fix: Admin Role Switcher** — Phase 8 (shipped 2026-02-18)
 - ✅ **v1.2 UX Consolidation** — Phases 9-12 (shipped 2026-02-19)
+- 🚧 **v1.3 Assessment Management UX** — Phases 13-15 (in progress)
 
 ## Phases
 
@@ -151,6 +152,53 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 
 ---
 
+### 🚧 v1.3 Assessment Management UX (In Progress)
+
+**Milestone Goal:** Clean up HC/Admin assessment navigation on CMP Index, restore the dedicated create assessment flow, and add bulk assign + quick-edit capabilities from the manage view.
+
+#### Phase 13: Navigation & Creation Flow
+**Goal:** HC and Admin see a clean CMP Index with a dedicated Manage Assessments card and no embedded form, and the create assessment flow routes correctly through the dedicated page with proper post-redirect
+**Depends on:** Phase 12
+**Requirements:** NAV-01, NAV-02, NAV-03, CRT-01, CRT-02
+**Success Criteria** (what must be TRUE):
+  1. HC/Admin visiting CMP Index sees a "Manage Assessments" card that links to `/CMP/Assessment?view=manage`; workers do not see this card
+  2. CMP Index no longer contains an embedded Create Assessment form — the page is clean for all roles
+  3. The "Create Assessment" button on the manage view links to `/CMP/CreateAssessment` (the dedicated page)
+  4. After HC submits a new assessment, they are redirected to the manage view (`/CMP/Assessment?view=manage`), not CMP Index
+**Plans:** TBD
+
+Plans:
+- [ ] 13-01: CMP Index — remove embedded form, add role-gated Manage Assessments card
+- [ ] 13-02: Create Assessment flow — fix button link and post-creation redirect
+
+#### Phase 14: Bulk Assign
+**Goal:** HC can add users to an existing assessment from the manage view, seeing who is already assigned before selecting additional users
+**Depends on:** Phase 13
+**Requirements:** BLK-01, BLK-02
+**Success Criteria** (what must be TRUE):
+  1. HC can open a bulk assign view/modal from an assessment card on the manage view
+  2. The bulk assign form shows currently assigned users and lets HC select additional ones to add
+  3. After submitting, newly selected users are added to the assessment without removing existing assignees
+**Plans:** TBD
+
+Plans:
+- [ ] 14-01: AssignUsers action on CMPController + bulk assign view (existing users display + multi-select add)
+
+#### Phase 15: Quick Edit
+**Goal:** HC can change an assessment's status and reschedule it directly from the manage view card without navigating to the full Edit page
+**Depends on:** Phase 14
+**Requirements:** QED-01, QED-02
+**Success Criteria** (what must be TRUE):
+  1. HC can change an assessment's status (e.g., Open, Upcoming, Closed) directly from the manage view card
+  2. HC can change an assessment's scheduled date/time directly from the manage view card
+  3. Both edits take effect immediately without visiting the full Edit page
+**Plans:** TBD
+
+Plans:
+- [ ] 15-01: QuickEdit action on CMPController + inline modal on manage view for status + schedule fields
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -167,3 +215,6 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 | 10. Unified Training Records | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 11. Assessment Page Role Filter | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 12. Dashboard Consolidation | v1.2 | 3/3 | Complete | 2026-02-19 |
+| 13. Navigation & Creation Flow | v1.3 | 0/2 | Not started | - |
+| 14. Bulk Assign | v1.3 | 0/1 | Not started | - |
+| 15. Quick Edit | v1.3 | 0/1 | Not started | - |
