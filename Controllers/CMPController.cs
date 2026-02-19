@@ -167,14 +167,61 @@ namespace HcPortal.Controllers
                 ViewBag.PageSize    = pageSize;
                 ViewBag.ManagementData = managementData;
 
-                // Monitoring tab: Open + Upcoming only, sorted by schedule (soonest first)
-                var monitorData = await _context.AssessmentSessions
+                // Monitoring tab: Open, Upcoming, and Completed within last 30 days — grouped by assessment
+                var cutoff = DateTime.UtcNow.AddDays(-30);
+                var monitorSessions = await _context.AssessmentSessions
                     .Include(a => a.User)
-                    .Where(a => a.Status == "Open" || a.Status == "Upcoming")
-                    .OrderBy(a => a.Schedule)
+                    .Where(a => a.Status == "Open"
+                             || a.Status == "Upcoming"
+                             || (a.Status == "Completed" && a.CompletedAt != null && a.CompletedAt >= cutoff))
                     .ToListAsync();
 
-                ViewBag.MonitorData = monitorData;
+                var monitorGroups = monitorSessions
+                    .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
+                    .Select(g =>
+                    {
+                        var sessions = g.Select(a =>
+                        {
+                            bool isCompleted = a.Score != null || a.CompletedAt != null;
+                            return new MonitoringSessionViewModel
+                            {
+                                Id           = a.Id,
+                                UserFullName = a.User?.FullName ?? "Unknown",
+                                UserNIP      = a.User?.NIP ?? "",
+                                UserStatus   = isCompleted ? "Completed" : "Not started",
+                                Score        = a.Score,
+                                IsPassed     = a.IsPassed,
+                                CompletedAt  = a.CompletedAt
+                            };
+                        }).ToList();
+
+                        // GroupStatus: Open > Upcoming > Closed (priority order)
+                        bool hasOpen     = g.Any(a => a.Status == "Open");
+                        bool hasUpcoming = g.Any(a => a.Status == "Upcoming");
+                        string groupStatus = hasOpen ? "Open" : hasUpcoming ? "Upcoming" : "Closed";
+
+                        int completedCount = sessions.Count(s => s.UserStatus == "Completed");
+                        int passedCount    = sessions.Count(s => s.IsPassed == true);
+
+                        return new MonitoringGroupViewModel
+                        {
+                            Title          = g.Key.Title,
+                            Category       = g.Key.Category,
+                            Schedule       = g.First().Schedule,
+                            GroupStatus    = groupStatus,
+                            TotalCount     = sessions.Count,
+                            CompletedCount = completedCount,
+                            PassedCount    = passedCount,
+                            Sessions       = sessions
+                        };
+                    })
+                    // Sort: Open/Upcoming soonest-first; Closed most-recent-first
+                    .OrderBy(g => g.GroupStatus == "Closed" ? 1 : 0)
+                    .ThenBy(g => g.GroupStatus != "Closed" ? g.Schedule : DateTime.MaxValue)
+                    .ThenByDescending(g => g.GroupStatus == "Closed" ? g.Schedule : DateTime.MinValue)
+                    .ToList();
+
+                ViewBag.MonitorData = monitorGroups;
 
                 ViewBag.ViewMode = view;
                 ViewBag.UserRole = userRole;
@@ -230,6 +277,59 @@ namespace HcPortal.Controllers
             ViewBag.CanManage = isHCAccess;
 
             return View(exams);
+        }
+
+        // --- ASSESSMENT MONITORING DETAIL ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate)
+        {
+            var sessions = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!sessions.Any())
+            {
+                TempData["Error"] = "Assessment group not found.";
+                return RedirectToAction("Assessment", new { view = "manage" });
+            }
+
+            var sessionViewModels = sessions.Select(a =>
+            {
+                bool isCompleted = a.Score != null || a.CompletedAt != null;
+                return new MonitoringSessionViewModel
+                {
+                    Id           = a.Id,
+                    UserFullName = a.User?.FullName ?? "Unknown",
+                    UserNIP      = a.User?.NIP ?? "",
+                    UserStatus   = isCompleted ? "Completed" : "Not started",
+                    Score        = a.Score,
+                    IsPassed     = a.IsPassed,
+                    CompletedAt  = a.CompletedAt
+                };
+            })
+            .OrderBy(s => s.UserStatus)   // Not started before Completed
+            .ThenBy(s => s.UserFullName)
+            .ToList();
+
+            var model = new MonitoringGroupViewModel
+            {
+                Title    = title,
+                Category = category,
+                Schedule = sessions.First().Schedule,
+                Sessions = sessionViewModels,
+                TotalCount     = sessionViewModels.Count,
+                CompletedCount = sessionViewModels.Count(s => s.UserStatus == "Completed"),
+                PassedCount    = sessionViewModels.Count(s => s.IsPassed == true),
+                GroupStatus    = sessions.Any(a => a.Status == "Open") ? "Open"
+                               : sessions.Any(a => a.Status == "Upcoming") ? "Upcoming" : "Closed"
+            };
+
+            ViewBag.BackUrl = Url.Action("Assessment", "CMP", new { view = "manage" });
+            return View(model);
         }
 
         // --- EDIT ASSESSMENT ---
