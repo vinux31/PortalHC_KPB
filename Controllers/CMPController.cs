@@ -1424,6 +1424,22 @@ namespace HcPortal.Controllers
             }
         }
 
+        // Helper: extract A/B/C/D from common Correct-column formats
+        // Accepts: "A", "B.", "C. some text", "OPTION D", "d" (case-insensitive after ToUpper())
+        private static string ExtractCorrectLetter(string raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return raw;
+            // Already a single valid letter
+            if (raw.Length == 1) return raw;
+            // Starts with A/B/C/D followed by a non-letter: "A.", "B. text", "D. SOME ANSWER"
+            if ("ABCD".Contains(raw[0]) && !char.IsLetterOrDigit(raw[1]))
+                return raw[0].ToString();
+            // "OPTION A" format (case already uppercased by caller)
+            if (raw.StartsWith("OPTION ") && raw.Length > 7 && "ABCD".Contains(raw[7]))
+                return raw[7].ToString();
+            return raw; // unchanged — will fail validation and show error
+        }
+
         // --- EXAM SUMMARY (PRE-SUBMIT REVIEW) ---
 
         [HttpPost]
@@ -2180,6 +2196,8 @@ namespace HcPortal.Controllers
             for (int i = 0; i < rows.Count; i++)
             {
                 var (q, a, b, c, d, cor) = rows[i];
+                // Normalize Correct column: accept "A", "B. text", "OPTION C", etc. — extract the letter
+                var normalizedCor = ExtractCorrectLetter(cor);
                 if (string.IsNullOrWhiteSpace(q))
                 {
                     errors.Add($"Row {i + 1}: Question text is empty. Skipped.");
@@ -2191,7 +2209,7 @@ namespace HcPortal.Controllers
                     errors.Add($"Row {i + 1}: One or more options are empty. Skipped.");
                     continue;
                 }
-                if (!new[] { "A", "B", "C", "D" }.Contains(cor))
+                if (!new[] { "A", "B", "C", "D" }.Contains(normalizedCor))
                 {
                     errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
                     continue;
@@ -2208,7 +2226,7 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync(); // flush to get ID
 
                 // Correct index: A=0, B=1, C=2, D=3
-                int correctIndex = cor == "A" ? 0 : cor == "B" ? 1 : cor == "C" ? 2 : 3;
+                int correctIndex = normalizedCor == "A" ? 0 : normalizedCor == "B" ? 1 : normalizedCor == "C" ? 2 : 3;
                 var opts = new[] { a, b, c, d };
                 for (int oi = 0; oi < opts.Length; oi++)
                 {
