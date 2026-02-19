@@ -566,6 +566,62 @@ namespace HcPortal.Controllers
             }
         }
 
+        // --- QUICK EDIT ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> QuickEdit(int representativeId, string status, DateTime schedule)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+
+            try
+            {
+                // Load representative session
+                var rep = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(a => a.Id == representativeId);
+
+                if (rep == null)
+                {
+                    return Json(new { success = false, message = "Assessment not found." });
+                }
+
+                // Validate status value
+                if (status != "Open" && status != "Upcoming" && status != "Completed")
+                {
+                    return Json(new { success = false, message = "Invalid status value." });
+                }
+
+                // Store original schedule date BEFORE any changes (used for sibling lookup)
+                var originalScheduleDate = rep.Schedule.Date;
+
+                // Find all siblings: same Title + Category + original Schedule.Date
+                var siblings = await _context.AssessmentSessions
+                    .Where(a => a.Title == rep.Title &&
+                                a.Category == rep.Category &&
+                                a.Schedule.Date == originalScheduleDate)
+                    .ToListAsync();
+
+                // Update all siblings
+                foreach (var a in siblings)
+                {
+                    a.Status = status;
+                    a.Schedule = schedule;
+                    a.UpdatedAt = DateTime.UtcNow;
+                }
+
+                await _context.SaveChangesAsync();
+
+                logger.LogInformation($"QuickEdit: updated {siblings.Count} session(s) for '{rep.Title}' — Status={status}, Schedule={schedule:dd MMM yyyy}");
+
+                return Json(new { success = true, message = $"Assessment '{rep.Title}' updated: Status = {status}, Schedule = {schedule:dd MMM yyyy}. {siblings.Count} session(s) affected." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"QuickEdit error for representative {representativeId}: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to update assessment: {ex.Message}" });
+            }
+        }
+
         // --- REGENERATE TOKEN ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
