@@ -4,37 +4,34 @@
 
 See: .planning/PROJECT.md (updated 2026-02-19)
 
-**Latest milestone:** v1.3 Assessment Management UX — IN PROGRESS
+**Latest milestone:** v1.3 Assessment Management UX — SHIPPED 2026-02-19
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 15 — Quick Edit (removed; Edit page used instead)
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-**Milestone:** v1.3 Assessment Management UX
-**Phase:** 15 of 15 (Quick Edit) — Phase 14 complete; Phase 15 cancelled
-**Plan:** 0 of 1 complete (Phase 15 cancelled — Quick Edit removed from codebase)
-**Status:** In progress
-**Last activity:** 2026-02-19 — Removed Quick Edit feature (CMPController.QuickEdit action + modal + JS); EditAssessment page is the replacement; commit e4b84d7
+**Milestone:** v1.3 — COMPLETE (shipped 2026-02-19)
+**Phase:** All phases done (13 ✅, 14 ✅, 15 cancelled)
+**Status:** Milestone archived — ready for next milestone
+**Last activity:** 2026-02-19 — Completed v1.3 milestone archival; ROADMAP.md collapsed, PROJECT.md evolved, REQUIREMENTS.md archived to milestones/v1.3-REQUIREMENTS.md
 
-Progress: [========░░░░░░░░░░░░] ~22% (v1.3, 2/9 plans)
+Progress: [====================] 100% (v1.3 complete)
 
 ## Performance Metrics
 
-**Velocity (v1.0–v1.2):**
-- Total plans completed: 30
+**Velocity (v1.0–v1.3):**
+- Total plans completed: 32
 - Average duration: ~5 min/plan
 - Total execution time: ~2.5 hours
 
-**v1.2 Phase Summary:**
+**v1.3 Phase Summary:**
 
-| Phase | Plans | Avg/Plan |
+| Phase | Plans | Duration |
 |-------|-------|----------|
-| 09-gap-analysis-removal | 1 | ~8 min |
-| 10-unified-training-records | 2 | ~8.5 min |
-| 11-assessment-page-role-filter | 2 | ~7 min |
-| 12-dashboard-consolidation | 3 | ~12.7 min |
+| 13-navigation-and-creation-flow | 1 | ~3 min |
+| 14-bulk-assign | 1 | ~25 min |
 
-**Recent Trend:** Stable. Phase 12 cleanup plan was longer due to post-human-verify analytics fix.
+**Recent Trend:** Phase 14 was longer due to multi-task complexity (sibling query, picker UI, JS, transaction).
 
 *Updated after each plan completion*
 
@@ -43,29 +40,12 @@ Progress: [========░░░░░░░░░░░░] ~22% (v1.3, 2/9 plans)
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-Recent decisions affecting current work:
 
-**From v1.2 (relevant to v1.3):**
-- Admin always gets HC branch in Assessment() and Records() — SelectedView only affects personal-records branch
-- Dual ViewBag pattern for Assessment manage view: ViewBag.ManagementData (paginated all) + ViewBag.MonitorData (flat Open+Upcoming)
-- Assessment filter at DB level, not view — IQueryable filter before .ToListAsync()
-- filterCards() JS guarded with getElementById null check
-
-**v1.3 Roadmap decisions:**
-- Phase 13 bundles NAV + CRT — removing the embedded form and fixing the create flow are the same Index restructuring effort
-- Phase 14 (Bulk Assign) modifies the EXISTING EditAssessment page (`/CMP/EditAssessment`) — no separate view; shows existing users + picker for additional users; new AssessmentSessions created on save
-- Phase 15 (Quick Edit) was planned as inline modal but removed — EditAssessment page covers the same need without extra surface area (2026-02-19)
-- Phase 13 must ship before 14 and 15 — manage view baseline must be clean first
-
-**From Phase 13-01 (Navigation & Creation Flow):**
-- Assessment Lobby card is universal (all roles); Manage Assessments is a separate HC/Admin-only card — separate cards per concern rather than branching button sets inside one card
-- TempData["CreatedAssessment"] kept in CreateAssessment POST even though Index no longer reads it — harmless and may be useful for future manage view enhancement
-
-**From Phase 14-01 (Bulk Assign):**
-- Sibling session matching uses Title+Category+Schedule.Date — consistent with CreateAssessment duplicate-check query
-- NewUserIds is optional on EditAssessment POST; bulk assign block only runs when list is non-empty — backward compatible
-- Already-assigned users excluded at Razor render time via ViewBag.AssignedUserIds, not JS — simpler and avoids client-side state issues
-- Bulk assign runs after existing field-update SaveChangesAsync; each operation has its own rollback scope
+**v1.3 decisions (now in PROJECT.md):**
+- Separate cards per concern on CMP Index — Assessment Lobby (all roles) + Manage Assessments (HC/Admin) as independent cards
+- Sibling session matching uses Title+Category+Schedule.Date for bulk assign
+- Already-assigned users excluded at Razor render time, not JS
+- Phase 15 Quick Edit cancelled — EditAssessment page covers the need without extra controller surface area
 
 ### Pending Todos
 
@@ -92,9 +72,10 @@ None.
 - Phases 13-15 defined for v1.3 Assessment Management UX (2026-02-19)
 - Phase 14 BLK scope updated: EditAssessment page extension, not a separate bulk assign view (2026-02-19)
 - Phase 15 Quick Edit removed: feature reverted before shipping — Edit page is sufficient, reduces controller surface area (2026-02-19)
+- v1.3 milestone archived (2026-02-19)
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Removed Quick Edit feature (revert 15-01) — QuickEdit action, modal, and JS deleted; build clean at 0 errors.
+Stopped at: v1.3 milestone complete — archived to milestones/, ROADMAP.md collapsed, PROJECT.md updated, REQUIREMENTS.md deleted.
 Resume file: None.

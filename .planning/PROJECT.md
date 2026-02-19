@@ -12,17 +12,27 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v1.3 Assessment Management UX
-
-**Goal:** Clean up HC/Admin assessment management navigation and add bulk assign + quick-edit capabilities
-
-**Target features:**
-- Remove embedded Create Assessment form from CMP Index; restore dedicated page flow
-- Dedicated "Manage Assessments" card on CMP Index for HC/Admin (workers unchanged)
-- Bulk assign — add users to an existing assessment from manage view
-- Quick status/schedule edit from manage view without full Edit page
-
 ## Shipped Milestones
+
+### ✅ v1.3 - Assessment Management UX (2026-02-19)
+
+**Delivered:** Clean assessment management for HC — dedicated navigation cards, restored creation flow, and bulk user assignment directly on the Edit Assessment page
+
+**What Shipped:**
+1. **Navigation & Creation Flow** — CMP Index redesigned with separate Assessment Lobby card (all roles) and Manage Assessments card (HC/Admin only); embedded Create Assessment form removed; CreateAssessment POST redirects to manage view on success
+2. **Bulk Assign** — EditAssessment page extended with currently-assigned-users table, section-filtered user picker, and transaction-backed bulk AssessmentSession creation on save; existing sessions untouched
+
+**What Was Cancelled:**
+- **Quick Edit (Phase 15)** — Inline modal for status/schedule edit reverted; the existing Edit Assessment page covers the need without extra surface area
+
+**Metrics:**
+- 2 shipped phases (13-14), 2 plans, 7/9 requirements shipped
+- 15 files changed, 1,731 insertions / 606 deletions
+- 1 day (2026-02-19)
+
+See `.planning/milestones/v1.3-ROADMAP.md` for full details.
+
+---
 
 ### ✅ v1.2 - UX Consolidation (2026-02-19)
 
@@ -87,7 +97,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ---
 
-## Current State (v1.2)
+## Current State (v1.3)
 
 **Tech Stack:**
 - ASP.NET Core 8.0 MVC (C#)
@@ -108,8 +118,8 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ### CMP Module (Competency Management)
 - ✅ **Assessment Engine:**
-  - Create assessments with multiple users assignment
-  - Edit/delete assessments (HC/Admin only)
+  - Create assessments with multiple users assignment (dedicated CreateAssessment page; HC redirected to manage view on success)
+  - Edit/delete assessments (HC/Admin only); Edit page extended with bulk assign capability
   - Assessment lobby: role-filtered (workers see Open/Upcoming only; HC/Admin get Management + Monitoring tabs)
   - Token-based access control (optional per assessment)
   - Question management (add/delete questions with multiple choice options)
@@ -117,6 +127,11 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Auto-scoring, pass/fail with configurable thresholds, conditional answer review
   - Certificate view (after completion)
   - Training Records callout for workers to find their completion history
+
+- ✅ **Assessment Management (HC/Admin — CMP):**
+  - Dedicated Manage Assessments card on CMP Index (HC/Admin only; workers see Assessment Lobby only)
+  - Manage view: grouped assessment cards (1 card per unique Title+Category+Date assessment, compact user list, group delete)
+  - Bulk Assign: EditAssessment page shows currently-assigned users + section-filtered picker to add more; new AssessmentSessions created on save without altering existing ones
 
 - ✅ **Assessment Analytics (HC/Admin — in CDP Dashboard):**
   - KPI cards, multi-parameter filtering, paginated results table
@@ -169,6 +184,10 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | Admin simulating Coachee still sees Analytics tab | SelectedView NOT checked for Analytics gate — Admin sees it regardless of simulated view | v1.2 ✓ |
 | Chart.js CDN moved to _Layout.cshtml globally | Partials cannot use @section Scripts; layout-level CDN is the only pattern | v1.2 ✓ |
 | activeTab hidden input for analytics filter | Filter form submits `activeTab=analytics` to re-activate correct tab on GET reload | v1.2 ✓ |
+| Separate cards per concern (CMP Index) | Assessment Lobby (all roles) and Manage Assessments (HC/Admin) as independent cards — no branching inside a single card | v1.3 ✓ |
+| Sibling session matching uses Title+Category+Schedule.Date | Consistent with existing CreateAssessment duplicate-check query; identifies all users on the same batch assessment | v1.3 ✓ |
+| Bulk assign excluded users at Razor render time | Already-assigned users excluded via ViewBag.AssignedUserIds at Razor render, not JS — simpler and avoids client-side state issues | v1.3 ✓ |
+| Quick Edit cancelled — Edit page sufficient | Phase 15 inline modal reverted before shipping; EditAssessment page covers status+schedule changes without extra controller surface area | v1.3 ✓ |
 
 ## Technical Constraints
 
@@ -191,9 +210,10 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ## Shipped Requirements
 
-All requirements from v1.0–v1.2 are satisfied. See milestone archives for traceability:
+All requirements from v1.0–v1.3 are satisfied (7/9 in v1.3; QED-01 and QED-02 cancelled). See milestone archives for traceability:
 - `milestones/v1.0-REQUIREMENTS.md` — 6 requirements (Phases 1-3)
 - `milestones/v1.2-REQUIREMENTS.md` — 11 requirements (Phases 9-12, all ✅ Shipped)
+- `milestones/v1.3-REQUIREMENTS.md` — 9 requirements (Phases 13-15; 7 shipped, 2 cancelled)
 
 ## Users & Roles
 
@@ -246,7 +266,7 @@ All requirements from v1.0–v1.2 are satisfied. See milestone archives for trac
 
 ## Technical Debt
 
-- Large monolithic controllers (CMPController and CDPController approaching 1000+ lines)
+- Large monolithic controllers (CMPController ~1180 lines post-bulk-assign, CDPController 1000+ lines)
 - No automated testing — manual QA only
 - No audit logging — all changes untracked
 - `GetPersonalTrainingRecords()` in CMPController is dead code (not called) — retained to avoid scope risk
@@ -261,4 +281,4 @@ All requirements from v1.0–v1.2 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-19 after completing v1.2 milestone*
+*Last updated: 2026-02-19 after completing v1.3 milestone*
