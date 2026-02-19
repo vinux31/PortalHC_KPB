@@ -6,16 +6,16 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Latest milestone:** v1.4 Assessment Monitoring — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 16 — Assessment Monitoring Enhancement
+**Current focus:** Phase 16 — Grouped Monitoring View
 
 ## Current Position
 
 **Milestone:** v1.4 Assessment Monitoring
-**Phase:** Not started (defining requirements)
-**Status:** Defining requirements
-**Last activity:** 2026-02-19 — Milestone v1.4 started
+**Phase:** 16 of 16 (Grouped Monitoring View)
+**Status:** In progress (1/3 plans complete)
+**Last activity:** 2026-02-19 — Completed 16-01: server-side monitoring foundation
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.4, 0 plans)
+Progress: [███░░░░░░░░░░░░░░░░░] 33% (v1.4, 1/3 plans)
 
 ## Performance Metrics
 
@@ -40,6 +40,11 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**v1.4 decisions:**
+- In-memory grouping after ToListAsync() for monitor query — consistent with existing manage view pattern
+- MonitoringGroupViewModel is the canonical shape for all monitoring data (Plans 02 and 03 depend on this)
+- DateTime.UtcNow.AddDays(-30) cutoff for recently-closed sessions — UTC matches CompletedAt storage
 
 **v1.3 decisions (now in PROJECT.md):**
 - Separate cards per concern on CMP Index — Assessment Lobby (all roles) + Manage Assessments (HC/Admin) as independent cards
@@ -73,9 +78,10 @@ None.
 - Phase 14 BLK scope updated: EditAssessment page extension, not a separate bulk assign view (2026-02-19)
 - Phase 15 Quick Edit removed: feature reverted before shipping — Edit page is sufficient, reduces controller surface area (2026-02-19)
 - v1.3 milestone archived (2026-02-19)
+- Phase 16 defined for v1.4 Assessment Monitoring (2026-02-19)
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: v1.3 milestone complete — archived to milestones/, ROADMAP.md collapsed, PROJECT.md updated, REQUIREMENTS.md deleted.
+Stopped at: Completed 16-01-PLAN.md — MonitoringGroupViewModel created, Assessment() monitor query updated, AssessmentMonitoringDetail action added. Ready for 16-02 (monitoring tab view).
 Resume file: None.

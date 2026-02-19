@@ -181,7 +181,7 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 **Plans:** 3 plans
 
 Plans:
-- [ ] 16-01: Server-side — MonitoringGroupViewModel for tab + AssessmentMonitoringDetail GET action for detail page; CMPController.Assessment() extended to include recently closed sessions (last 30 days), grouping + sorting logic
+- [x] 16-01: Server-side — MonitoringGroupViewModel for tab + AssessmentMonitoringDetail GET action for detail page; CMPController.Assessment() extended to include recently closed sessions (last 30 days), grouping + sorting logic
 - [ ] 16-02: Monitoring tab view — replace flat session list with grouped summary rows (progress bar, pass rate, "View Details" link per group)
 - [ ] 16-03: Detail page view — AssessmentMonitoringDetail.cshtml with per-user table (name, status, score, pass/fail) and back link to monitoring tab
 
@@ -206,4 +206,4 @@ Plans:
 | 13. Navigation & Creation Flow | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 14. Bulk Assign | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 15. Quick Edit | v1.3 | 0/1 | Cancelled | 2026-02-19 |
-| 16. Grouped Monitoring View | v1.4 | 0/3 | Not started | - |
+| 16. Grouped Monitoring View | v1.4 | 1/3 | In progress | - |
