@@ -191,10 +191,10 @@ Plans:
   1. HC can change an assessment's status (e.g., Open, Upcoming, Closed) directly from the manage view card
   2. HC can change an assessment's scheduled date/time directly from the manage view card
   3. Both edits take effect immediately without visiting the full Edit page
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 15-01: QuickEdit action on CMPController + inline modal on manage view for status + schedule fields
+- [ ] 15-01-PLAN.md — QuickEdit POST action on CMPController + inline modal on manage view for status + schedule fields
 
 ---
 
