@@ -241,6 +241,10 @@
                                                 <a asp-action="EditAssessment" asp-route-id="@group.RepresentativeId" class="btn btn-sm btn-outline-primary flex-fill">
                                                     <i class="bi bi-pencil"></i> Edit
                                                 </a>
+                                                <button class="btn btn-sm btn-outline-success flex-fill"
+                                                        onclick="openQuickEditModal(@group.RepresentativeId, '@Html.Raw(((string)group.Title).Replace("'", "\\'"))', '@group.Status', '@((DateTime)group.Schedule).ToString("yyyy-MM-dd")')">
+                                                    <i class="bi bi-lightning"></i> Quick Edit
+                                                </button>
                                                 <a asp-action="ManageQuestions" asp-route-id="@group.RepresentativeId" class="btn btn-sm btn-outline-info flex-fill">
                                                     <i class="bi bi-list-check"></i> Questions
                                                 </a>
@@ -610,6 +614,44 @@
                 <button type="button" class="btn btn-link text-decoration-none text-muted me-3" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" id="btnVerify" class="btn btn-primary px-5 fw-bold shadow-sm" onclick="verifyToken()">
                     Verify & Launch <i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Edit Modal -->
+<div class="modal fade" id="quickEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-lightning me-2"></i>Quick Edit</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <h6 class="fw-bold mb-3" id="quickEditTitle"></h6>
+                <input type="hidden" id="quickEditRepId" />
+
+                <div class="alert alert-danger small d-none mb-3" id="quickEditError"></div>
+
+                <div class="mb-3">
+                    <label for="quickEditStatus" class="form-label fw-semibold">Status</label>
+                    <select id="quickEditStatus" class="form-select">
+                        <option value="Open">Open</option>
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Completed">Completed</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="quickEditSchedule" class="form-label fw-semibold">Schedule</label>
+                    <input type="date" id="quickEditSchedule" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-link text-decoration-none text-muted" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" id="btnQuickEditSave" class="btn btn-success px-4 fw-bold" onclick="submitQuickEdit()">
+                    <i class="bi bi-check-lg me-1"></i> Save Changes
                 </button>
             </div>
         </div>
@@ -993,6 +1035,71 @@
                     originalButton.disabled = false;
                     originalButton.innerHTML = '<i class="bi bi-trash"></i> Delete';
                 }
+            }
+        });
+    }
+
+    // ========== QUICK EDIT FUNCTIONS ==========
+
+    var quickEditModalObj;
+
+    function openQuickEditModal(representativeId, title, currentStatus, currentSchedule) {
+        document.getElementById('quickEditRepId').value = representativeId;
+        document.getElementById('quickEditTitle').innerText = title;
+        document.getElementById('quickEditStatus').value = currentStatus;
+        document.getElementById('quickEditSchedule').value = currentSchedule;
+        document.getElementById('quickEditError').classList.add('d-none');
+
+        var modalEl = document.getElementById('quickEditModal');
+        quickEditModalObj = new bootstrap.Modal(modalEl);
+        quickEditModalObj.show();
+    }
+
+    function submitQuickEdit() {
+        var repId = document.getElementById('quickEditRepId').value;
+        var status = document.getElementById('quickEditStatus').value;
+        var schedule = document.getElementById('quickEditSchedule').value;
+        var errorEl = document.getElementById('quickEditError');
+        var saveBtn = document.getElementById('btnQuickEditSave');
+
+        // Basic validation
+        if (!schedule) {
+            errorEl.innerText = 'Please select a schedule date.';
+            errorEl.classList.remove('d-none');
+            return;
+        }
+
+        // Loading state
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+        errorEl.classList.add('d-none');
+
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '/CMP/QuickEdit',
+            type: 'POST',
+            data: {
+                representativeId: repId,
+                status: status,
+                schedule: schedule,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    errorEl.innerText = response.message || 'Update failed.';
+                    errorEl.classList.remove('d-none');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Save Changes';
+                }
+            },
+            error: function(xhr, status, error) {
+                errorEl.innerText = 'Server error: ' + (xhr.responseText || error);
+                errorEl.classList.remove('d-none');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Save Changes';
             }
         });
     }
