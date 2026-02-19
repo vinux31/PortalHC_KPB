@@ -1,0 +1,106 @@
+@model HcPortal.Models.CoacheeDashboardSubModel
+
+@{
+    var progressPercent = Model.TotalDeliverables > 0
+        ? (int)((double)Model.ApprovedDeliverables / Model.TotalDeliverables * 100)
+        : 0;
+    var statusBadgeClass = Model.CurrentStatus == "Completed" ? "bg-success" : "bg-primary";
+}
+
+<!-- Stat Cards -->
+<div class="row g-3 mb-4">
+    <!-- Deliverables Completed -->
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-file-earmark-check-fill fs-3 text-success mb-2"></i>
+                <h3 class="fw-bold mb-0">@Model.ApprovedDeliverables / @Model.TotalDeliverables</h3>
+                <small class="text-muted">Deliverables Completed</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Current Status -->
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-activity fs-3 text-info mb-2"></i>
+                <div class="mt-1">
+                    <span class="badge @statusBadgeClass fs-6">@Model.CurrentStatus</span>
+                </div>
+                <small class="text-muted d-block mt-1">Current Status</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Competency Level -->
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-award-fill fs-3 text-warning mb-2"></i>
+                <h3 class="fw-bold mb-0">
+                    @(Model.CompetencyLevelGranted.HasValue ? $"Level {Model.CompetencyLevelGranted}" : "Pending")
+                </h3>
+                <small class="text-muted">Competency Level</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Deliverables -->
+    <div class="col-6 col-md-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-pencil-square fs-3 text-primary mb-2"></i>
+                <h3 class="fw-bold mb-0">@Model.ActiveDeliverables</h3>
+                <small class="text-muted">Active Deliverables</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Track Info -->
+@if (!string.IsNullOrEmpty(Model.TrackType))
+{
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+                <i class="bi bi-signpost-2-fill fs-4 text-primary"></i>
+                <div>
+                    <div class="fw-semibold">Proton Track: @Model.TrackType</div>
+                    <small class="text-muted">Tahun @Model.TahunKe</small>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<!-- Progress Bar -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-transparent border-0 fw-semibold pt-3">
+        <i class="bi bi-bar-chart-steps me-2 text-primary"></i>Overall Progress
+    </div>
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-1">
+            <small class="text-muted">@Model.ApprovedDeliverables of @Model.TotalDeliverables deliverables approved</small>
+            <small class="fw-bold text-primary">@progressPercent%</small>
+        </div>
+        <div class="progress" style="height: 12px;">
+            <div class="progress-bar bg-success" role="progressbar"
+                 style="width: @progressPercent%"
+                 aria-valuenow="@progressPercent"
+                 aria-valuemin="0"
+                 aria-valuemax="100"></div>
+        </div>
+        @if (progressPercent == 100)
+        {
+            <div class="alert alert-success mt-3 mb-0">
+                <i class="bi bi-trophy-fill me-2"></i>
+                <strong>Congratulations!</strong> All deliverables have been approved.
+                @if (Model.CompetencyLevelGranted.HasValue)
+                {
+                    <span>Competency Level @Model.CompetencyLevelGranted has been granted.</span>
+                }
+            </div>
+        }
+    </div>
+</div>

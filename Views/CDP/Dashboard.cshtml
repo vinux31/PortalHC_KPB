@@ -1,228 +1,70 @@
-@model HcPortal.Models.DashboardViewModel
+@model HcPortal.Models.CDPDashboardViewModel
 
 @{
-    ViewData["Title"] = "Dashboard Monitoring";
+    ViewData["Title"] = "Dashboard";
 }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<div class="container-fluid px-4">
 
-<div class="container-fluid px-4 py-4">
     <div class="mb-4">
-        <h2 class="fw-bold mb-1">Competency Development Dashboard</h2>
-        <p class="text-muted">Monitoring Kinerja Pengembangan Kompetensi - Periode 2025</p>
+        <h2><i class="bi bi-speedometer2 me-2"></i>Dashboard</h2>
+        <p class="text-muted">@Model.ScopeLabel</p>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="row g-4 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-white h-100 bg-gradient-blue hover-elevate">
-                <div class="card-body position-relative overflow-hidden">
-                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
-                        <i class="bi bi-person-video3" style="font-size: 4rem;"></i>
-                    </div>
-                    <h6 class="text-uppercase fw-bold text-white-50 small mb-2">Total IDP Aktif</h6>
-                    <h2 class="fw-bold display-5 mb-0">@Model.TotalIdp</h2>
-                    <small class="text-white-50"><i class="bi bi-arrow-up-short"></i> +@Model.IdpGrowth dari bulan lalu</small>
-                </div>
-            </div>
+    <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="proton-tab" data-bs-toggle="tab"
+                    data-bs-target="#proton-pane" type="button" role="tab"
+                    aria-controls="proton-pane" aria-selected="true">
+                <i class="bi bi-graph-up me-1"></i>Proton Progress
+            </button>
+        </li>
+        @if (Model.AssessmentAnalyticsData != null)
+        {
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab"
+                        data-bs-target="#analytics-pane" type="button" role="tab"
+                        aria-controls="analytics-pane" aria-selected="false">
+                    <i class="bi bi-clipboard-data me-1"></i>Assessment Analytics
+                </button>
+            </li>
+        }
+    </ul>
+
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="proton-pane" role="tabpanel" aria-labelledby="proton-tab">
+            @if (Model.CoacheeData != null)
+            {
+                <partial name="Shared/_CoacheeDashboardPartial" model="Model.CoacheeData" />
+            }
+            else if (Model.ProtonProgressData != null)
+            {
+                <partial name="Shared/_ProtonProgressPartial" model="Model.ProtonProgressData" />
+            }
         </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-white h-100 bg-gradient-green hover-elevate">
-                <div class="card-body position-relative overflow-hidden">
-                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
-                        <i class="bi bi-check2-circle" style="font-size: 4rem;"></i>
-                    </div>
-                    <h6 class="text-uppercase fw-bold text-white-50 small mb-2">Completion Rate</h6>
-                    <h2 class="fw-bold display-5 mb-0">@Model.CompletionRate%</h2>
-                    <small class="text-white-50">Target: @Model.CompletionTarget</small>
-                </div>
+        @if (Model.AssessmentAnalyticsData != null)
+        {
+            <div class="tab-pane fade" id="analytics-pane" role="tabpanel" aria-labelledby="analytics-tab">
+                <partial name="Shared/_AssessmentAnalyticsPartial" model="Model.AssessmentAnalyticsData" />
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-dark h-100 bg-gradient-yellow hover-elevate">
-                <div class="card-body position-relative overflow-hidden">
-                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
-                        <i class="bi bi-hourglass-split" style="font-size: 4rem;"></i>
-                    </div>
-                    <h6 class="text-uppercase fw-bold text-muted small mb-2">Pending Assessment</h6>
-                    <h2 class="fw-bold display-5 mb-0">@Model.PendingAssessments</h2>
-                    <small class="text-muted">Butuh tindak lanjut</small>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm text-white h-100 bg-gradient-red hover-elevate">
-                <div class="card-body position-relative overflow-hidden">
-                    <div class="position-absolute end-0 top-0 p-3 opacity-25">
-                        <i class="bi bi-wallet2" style="font-size: 4rem;"></i>
-                    </div>
-                    <h6 class="text-uppercase fw-bold text-white-50 small mb-2">Budget Terserap</h6>
-                    <h2 class="fw-bold display-5 mb-0">@Model.BudgetUsedPercent%</h2>
-                    <small class="text-white-50">@Model.BudgetUsedText</small>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 
-    <!-- Assessment Reports Quick Link -->
-    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
-    {
-        <div class="row g-4 mb-4">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm hover-elevate">
-                    <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-3 bg-primary bg-opacity-10 p-3 me-3">
-                                    <i class="bi bi-clipboard-data text-primary" style="font-size: 1.8rem;"></i>
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">Assessment Reports</h6>
-                                    <p class="text-muted mb-0 small">View detailed assessment analytics, filter results, and export data</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center gap-4">
-                                <div class="text-center">
-                                    <div class="fw-bold text-primary fs-5">@Model.TotalCompletedAssessments</div>
-                                    <small class="text-muted">Completed</small>
-                                </div>
-                                <div class="text-center">
-                                    <div class="fw-bold text-success fs-5">@Model.OverallPassRate%</div>
-                                    <small class="text-muted">Pass Rate</small>
-                                </div>
-                                <div class="text-center">
-                                    <div class="fw-bold text-info fs-5">@Model.TotalUsersAssessed</div>
-                                    <small class="text-muted">Users</small>
-                                </div>
-                                <a asp-controller="CMP" asp-action="ReportsIndex" class="btn btn-primary ms-3">
-                                    <i class="bi bi-arrow-right-circle me-1"></i>Open Reports
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <!-- Charts & Lists -->
-    <div class="row g-4">
-        <!-- Main Chart -->
-        <div class="col-lg-8">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-bar-chart-fill me-2"></i>Realisasi Jam Belajar (Learning Hours)</h6>
-                    <button class="btn btn-sm btn-light border"><i class="bi bi-filter"></i> Filter</button>
-                </div>
-                <div class="card-body">
-                    <canvas id="learningChart" height="120"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Compliance List -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white py-3">
-                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-trophy-fill me-2"></i>Top Unit Compliance</h6>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush">
-                        @foreach(var unit in Model.TopUnits)
-                        {
-                            <div class="list-group-item px-4 py-3 d-flex justify-content-between align-items-center border-bottom-0 hover-bg-light">
-                                <div>
-                                    <span class="fw-bold d-block">@unit.UnitName</span>
-                                    <div class="progress mt-1" style="width: 100px; height: 4px;">
-                                        <div class="progress-bar @unit.ColorClass" role="progressbar" style="width: @unit.Percentage%"></div>
-                                    </div>
-                                </div>
-                                <span class="badge rounded-pill @unit.ColorClass.Replace("bg-", "text-bg-") shadow-sm">
-                                    @unit.Percentage%
-                                </span>
-                            </div>
-                        }
-                    </div>
-                </div>
-                <div class="card-footer bg-white text-center py-3 border-0">
-                    <button class="btn btn-sm btn-link text-decoration-none fw-bold">View All Units</button>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById('learningChart').getContext('2d');
-        
-        // Data passed from Model
-        const labels = @Json.Serialize(Model.ChartLabels);
-        const targetData = @Json.Serialize(Model.ChartTarget);
-        const realizationData = @Json.Serialize(Model.ChartRealization);
-
-        const myChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Target Jam',
-                        data: targetData,
-                        backgroundColor: 'rgba(224, 224, 224, 0.5)',
-                        borderColor: 'rgba(200, 200, 200, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    },
-                    {
-                        label: 'Realisasi',
-                        data: realizationData,
-                        backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1,
-                        borderRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            borderDash: [5, 5]
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
-                }
+    // Activate analytics tab if analytics filter params are present in URL
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        var analyticsParams = ['analyticsCategory', 'analyticsStartDate', 'analyticsEndDate',
+                               'analyticsSection', 'analyticsUserSearch', 'analyticsPage'];
+        var hasAnalyticsParams = analyticsParams.some(function (p) { return params.has(p) && params.get(p); });
+        if (hasAnalyticsParams) {
+            var analyticsTabEl = document.getElementById('analytics-tab');
+            if (analyticsTabEl) {
+                var tab = new bootstrap.Tab(analyticsTabEl);
+                tab.show();
             }
-        });
-    });
+        }
+    })();
 </script>
-
-<style>
-    /* Gradient Backgrounds */
-    .bg-gradient-blue { background: linear-gradient(45deg, #4e73df 0%, #224abe 100%); }
-    .bg-gradient-green { background: linear-gradient(45deg, #1cc88a 0%, #13855c 100%); }
-    .bg-gradient-red { background: linear-gradient(45deg, #e74a3b 0%, #be2617 100%); }
-    .bg-gradient-yellow { background: linear-gradient(45deg, #f6c23e 0%, #dda20a 100%); }
-
-    .hover-elevate {
-        transition: transform 0.2s;
-    }
-    .hover-elevate:hover {
-        transform: translateY(-5px);
-    }
-    .hover-bg-light:hover {
-        background-color: #f8f9fa;
-    }
-</style>
