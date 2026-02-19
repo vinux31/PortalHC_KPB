@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Milestone:** v1.3 Assessment Management UX
 **Phase:** 14 of 15 (Bulk Assign)
-**Plan:** 1 of 1 complete (Phase 13 done)
-**Status:** In progress
-**Last activity:** 2026-02-19 — Completed 13-01: CMP Index cleanup, embedded form removed, Manage Assessments card added, CreateAssessment POST redirect fixed
+**Plan:** 1 of 1 in progress (Tasks 1-2 complete, awaiting human-verify at Task 3)
+**Status:** In progress — paused at checkpoint
+**Last activity:** 2026-02-19 — 14-01 Tasks 1+2 complete: EditAssessment controller extended (sibling query, ViewBag.AssignedUsers, NewUserIds POST bulk assign), view updated (assigned users table + multi-select picker with JS filtering)
 
 Progress: [====░░░░░░░░░░░░░░░░] ~11% (v1.3, 1/9 plans)
 
@@ -88,5 +88,5 @@ None at roadmap stage. CMPController is 1047 lines — EditAssessment extension 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 13-01-PLAN.md — CMP Index cleanup complete, Phase 13 done. Ready for Phase 14 (Bulk Assign via EditAssessment).
+Stopped at: 14-01-PLAN.md Task 3 checkpoint (human-verify) — Tasks 1+2 done (a0490e7, f0a2932). Awaiting verification of bulk assign flow on EditAssessment page.
 Resume file: None.
