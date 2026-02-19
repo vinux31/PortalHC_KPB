@@ -12,10 +12,10 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Milestone:** v1.4 Assessment Monitoring
 **Phase:** 16 of 16 (Grouped Monitoring View)
-**Status:** In progress (1/3 plans complete)
-**Last activity:** 2026-02-19 — Completed 16-01: server-side monitoring foundation
+**Status:** In progress (2/3 plans complete)
+**Last activity:** 2026-02-19 — Completed 16-02: grouped monitoring tab view
 
-Progress: [███░░░░░░░░░░░░░░░░░] 33% (v1.4, 1/3 plans)
+Progress: [██████░░░░░░░░░░░░░░] 67% (v1.4, 2/3 plans)
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - In-memory grouping after ToListAsync() for monitor query — consistent with existing manage view pattern
 - MonitoringGroupViewModel is the canonical shape for all monitoring data (Plans 02 and 03 depend on this)
 - DateTime.UtcNow.AddDays(-30) cutoff for recently-closed sessions — UTC matches CompletedAt storage
+- 70% pass rate threshold for green/red display in monitoring tab — matches default PassPercentage config; display heuristic only
 
 **v1.3 decisions (now in PROJECT.md):**
 - Separate cards per concern on CMP Index — Assessment Lobby (all roles) + Manage Assessments (HC/Admin) as independent cards
@@ -83,5 +84,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 16-01-PLAN.md — MonitoringGroupViewModel created, Assessment() monitor query updated, AssessmentMonitoringDetail action added. Ready for 16-02 (monitoring tab view).
+Stopped at: Completed 16-02-PLAN.md — Monitoring tab replaced with grouped summary table (progress bar, pass rate, View Details). Ready for 16-03 (AssessmentMonitoringDetail view).
 Resume file: None.
