@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
 using HcPortal.Models.Competency;
 using HcPortal.Data;
+using HcPortal.Helpers;
+using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
@@ -128,104 +130,503 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Dashboard()
+        public async Task<IActionResult> Dashboard(
+            string? analyticsCategory = null,
+            DateTime? analyticsStartDate = null,
+            DateTime? analyticsEndDate = null,
+            string? analyticsSection = null,
+            string? analyticsUserSearch = null,
+            int analyticsPage = 1,
+            int analyticsPageSize = 20)
         {
-            // Get current user and role
             var user = await _userManager.GetUserAsync(User);
-            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
-            var userRole = userRoles.FirstOrDefault();
-            var userId = user?.Id ?? "";
+            if (user == null) return Challenge();
 
-            // Base query
-            var baseQuery = _context.IdpItems.AsQueryable();
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
 
-            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin)
+            var model = new CDPDashboardViewModel { CurrentUserRole = userRole };
+
+            // === COACHEE BRANCH: literal Coachee role only (Admin simulating Coachee is NOT a literal Coachee) ===
+            bool isLiteralCoachee = userRole == UserRoles.Coachee;
+            if (isLiteralCoachee)
             {
-                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
-                {
-                    // Show personal stats only
-                    baseQuery = baseQuery.Where(i => i.UserId == userId);
-                }
-                else if (user.SelectedView == "Atasan" && !string.IsNullOrEmpty(user.Section))
-                {
-                    // Show stats from user's section
-                    var section = user.Section;
-
-                    // Get all user IDs in the section
-                    var userIdsInSection = await _context.Users
-                        .Where(u => u.Section == section)
-                        .Select(u => u.Id)
-                        .ToListAsync();
-                    baseQuery = baseQuery.Where(i => userIdsInSection.Contains(i.UserId));
-                }
-                // HC view: no filter (show all)
+                model.CoacheeData = await BuildCoacheeSubModelAsync(user.Id);
+                return View(model);
             }
-            // For non-admin or admin without specific view, use existing logic (calculate from baseQuery if filtered, otherwise use global stats)
 
-            // ========== CALCULATE STATISTICS ==========
-            var totalIdp = await baseQuery.CountAsync();
+            // === PROTON PROGRESS: all non-Coachee roles ===
+            model.ProtonProgressData = await BuildProtonProgressSubModelAsync(user, userRole);
+            model.ScopeLabel = _lastScopeLabel;
 
-            var completedIdp = await baseQuery.CountAsync(i => i.ApproveSrSpv == "Approved" &&
-                                 i.ApproveSectionHead == "Approved" &&
-                                 i.ApproveHC == "Approved");
-            
-            var completionRate = totalIdp > 0 
-                ? (int)((double)completedIdp / totalIdp * 100) 
-                : 0;
-            
-            var pendingAssessments = await _context.AssessmentSessions
-                .CountAsync(a => a.Status == "Open" || a.Status == "Upcoming");
-
-            // Assessment summary for quick link widget
-            var completedAssessments = await _context.AssessmentSessions
-                .Where(a => a.Status == "Completed")
-                .CountAsync();
-
-            var assessmentPassRate = completedAssessments > 0
-                ? await _context.AssessmentSessions
-                    .Where(a => a.Status == "Completed")
-                    .CountAsync(a => a.IsPassed == true) * 100.0 / completedAssessments
-                : 0;
-
-            var totalUsersAssessed = await _context.AssessmentSessions
-                .Where(a => a.Status == "Completed")
-                .Select(a => a.UserId)
-                .Distinct()
-                .CountAsync();
-
-            var model = new DashboardViewModel
+            // === ANALYTICS: HC/Admin regardless of SelectedView (per Phase 12 locked decision) ===
+            bool isHCAccess = userRole == UserRoles.HC || userRole == UserRoles.Admin;
+            if (isHCAccess)
             {
-                TotalIdp = totalIdp,
-                IdpGrowth = 12, // Keep mock for now (needs historical data)
-                CompletionRate = completionRate,
-                CompletionTarget = "80% (Q4)",
-                PendingAssessments = pendingAssessments,
-                BudgetUsedPercent = 45, // Keep mock (no budget table yet)
-                BudgetUsedText = "Rp 450jt / 1M",
-
-                // Assessment summary
-                TotalCompletedAssessments = completedAssessments,
-                OverallPassRate = Math.Round(assessmentPassRate, 1),
-                TotalUsersAssessed = totalUsersAssessed,
-
-                // Chart Data (Jan - Jun) - keep mock for now (needs time-series data)
-                ChartLabels = new List<string> { "Jan", "Feb", "Mar", "Apr", "May", "Jun" },
-                ChartTarget = new List<int> { 100, 100, 120, 120, 150, 150 },
-                ChartRealization = new List<int> { 95, 110, 115, 140, 145, 160 },
-
-                // Compliance Data - keep mock for now (needs unit-level aggregation)
-                TopUnits = new List<UnitCompliance>
-                {
-                    new UnitCompliance { UnitName = "SRU Unit", Percentage = 95, ColorClass = "bg-success" },
-                    new UnitCompliance { UnitName = "RFCC Unit", Percentage = 92, ColorClass = "bg-success" },
-                    new UnitCompliance { UnitName = "Utilities", Percentage = 88, ColorClass = "bg-primary" },
-                    new UnitCompliance { UnitName = "Maintenance", Percentage = 74, ColorClass = "bg-warning" },
-                    new UnitCompliance { UnitName = "Procurement", Percentage = 40, ColorClass = "bg-danger" }
-                }
-            };
+                model.AssessmentAnalyticsData = await BuildAnalyticsSubModelAsync(
+                    analyticsCategory, analyticsStartDate, analyticsEndDate,
+                    analyticsSection, analyticsUserSearch, analyticsPage, analyticsPageSize);
+            }
 
             return View(model);
+        }
+
+        // ============================================================
+        // Helper: Coachee personal deliverable sub-model
+        // ============================================================
+        private async Task<CoacheeDashboardSubModel> BuildCoacheeSubModelAsync(string userId)
+        {
+            var subModel = new CoacheeDashboardSubModel();
+
+            var assignment = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == userId && a.IsActive)
+                .FirstOrDefaultAsync();
+
+            if (assignment == null)
+                return subModel;
+
+            subModel.TrackType = assignment.TrackType;
+            subModel.TahunKe = assignment.TahunKe;
+
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Where(p => p.CoacheeId == userId)
+                .ToListAsync();
+
+            subModel.TotalDeliverables = progresses.Count;
+            subModel.ApprovedDeliverables = progresses.Count(p => p.Status == "Approved");
+            subModel.ActiveDeliverables = progresses.Count(p => p.Status == "Active");
+
+            var finalAssessment = await _context.ProtonFinalAssessments
+                .Where(fa => fa.CoacheeId == userId)
+                .OrderByDescending(fa => fa.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            subModel.CompetencyLevelGranted = finalAssessment?.CompetencyLevelGranted;
+            subModel.CurrentStatus = finalAssessment != null ? "Completed" : "In Progress";
+
+            return subModel;
+        }
+
+        // ============================================================
+        // Helper: Proton Progress sub-model (supervisor / HC view)
+        // Scoping: HC/Admin=all, SrSpv/SectionHead=section, Coach=unit
+        // ============================================================
+        private async Task<ProtonProgressSubModel> BuildProtonProgressSubModelAsync(ApplicationUser user, string userRole)
+        {
+            // DASH-02: Build scoped coachee ID list
+            List<string> scopedCoacheeIds;
+            string scopeLabel;
+
+            if (userRole == UserRoles.HC || userRole == UserRoles.Admin)
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => u.RoleLevel == 6)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+                scopeLabel = "All Sections";
+            }
+            else if (userRole == UserRoles.SrSupervisor || userRole == UserRoles.SectionHead)
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+                scopeLabel = $"Section: {user.Section ?? "(unknown)"}";
+            }
+            else // Coach
+            {
+                // Null-guard: fall back to Section if Unit is unset
+                if (!string.IsNullOrEmpty(user.Unit))
+                {
+                    scopedCoacheeIds = await _context.Users
+                        .Where(u => u.Unit == user.Unit && u.RoleLevel == 6)
+                        .Select(u => u.Id)
+                        .ToListAsync();
+                    scopeLabel = $"Unit: {user.Unit}";
+                }
+                else
+                {
+                    scopedCoacheeIds = await _context.Users
+                        .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                        .Select(u => u.Id)
+                        .ToListAsync();
+                    scopeLabel = $"Section: {user.Section ?? "(unknown)"} (Unit not set)";
+                }
+            }
+
+            // Batch load data (avoid N+1)
+            var coacheeUsers = await _context.Users
+                .Where(u => scopedCoacheeIds.Contains(u.Id))
+                .ToListAsync();
+            var userNames = coacheeUsers.ToDictionary(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
+
+            var allProgresses = await _context.ProtonDeliverableProgresses
+                .Where(p => scopedCoacheeIds.Contains(p.CoacheeId))
+                .ToListAsync();
+
+            var assignments = await _context.ProtonTrackAssignments
+                .Where(a => scopedCoacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                .ToListAsync();
+            var assignmentDict = assignments.ToDictionary(a => a.CoacheeId, a => a);
+
+            var finalAssessments = await _context.ProtonFinalAssessments
+                .Where(fa => scopedCoacheeIds.Contains(fa.CoacheeId))
+                .ToListAsync();
+            var finalAssessmentDict = finalAssessments
+                .GroupBy(fa => fa.CoacheeId)
+                .ToDictionary(g => g.Key, g => g.OrderByDescending(fa => fa.CreatedAt).First());
+
+            // Build per-coachee rows (flat table sorted by name)
+            var progressByCoachee = allProgresses.GroupBy(p => p.CoacheeId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var coacheeRows = new List<CoacheeProgressRow>();
+            foreach (var coacheeId in scopedCoacheeIds)
+            {
+                var progresses = progressByCoachee.GetValueOrDefault(coacheeId) ?? new List<ProtonDeliverableProgress>();
+                var assignment = assignmentDict.GetValueOrDefault(coacheeId);
+                finalAssessmentDict.TryGetValue(coacheeId, out var finalAssessment);
+
+                coacheeRows.Add(new CoacheeProgressRow
+                {
+                    CoacheeId = coacheeId,
+                    CoacheeName = userNames.GetValueOrDefault(coacheeId, coacheeId),
+                    TrackType = assignment?.TrackType ?? "",
+                    TahunKe = assignment?.TahunKe ?? "",
+                    TotalDeliverables = progresses.Count,
+                    Approved = progresses.Count(p => p.Status == "Approved"),
+                    Submitted = progresses.Count(p => p.Status == "Submitted"),
+                    Rejected = progresses.Count(p => p.Status == "Rejected"),
+                    Active = progresses.Count(p => p.Status == "Active"),
+                    Locked = progresses.Count(p => p.Status == "Locked"),
+                    HasFinalAssessment = finalAssessment != null,
+                    CompetencyLevelGranted = finalAssessment?.CompetencyLevelGranted
+                });
+            }
+            coacheeRows = coacheeRows.OrderBy(r => r.CoacheeName).ToList();
+
+            // Stat card totals
+            int pendingSpv = allProgresses.Count(p => p.Status == "Submitted");
+            int pendingHC  = allProgresses.Count(p => p.HCApprovalStatus == "Pending" && p.Status == "Approved");
+
+            // Trend chart: competency level granted grouped by month
+            var scopedCompletedAssessments = finalAssessments
+                .Where(fa => fa.CompletedAt.HasValue)
+                .OrderBy(fa => fa.CompletedAt)
+                .ToList();
+
+            List<string> trendLabels = new();
+            List<double> trendValues = new();
+
+            if (scopedCompletedAssessments.Any())
+            {
+                var grouped = scopedCompletedAssessments
+                    .GroupBy(fa => new { fa.CompletedAt!.Value.Year, fa.CompletedAt!.Value.Month })
+                    .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month);
+
+                foreach (var g in grouped)
+                {
+                    trendLabels.Add($"{g.Key.Year}-{g.Key.Month:D2}");
+                    trendValues.Add(Math.Round(g.Average(fa => (double)fa.CompetencyLevelGranted), 2));
+                }
+            }
+
+            // Doughnut chart: status distribution
+            var statusLabels = new List<string> { "Approved", "Submitted", "Active", "Rejected", "Locked" };
+            var statusData = new List<int>
+            {
+                allProgresses.Count(p => p.Status == "Approved"),
+                allProgresses.Count(p => p.Status == "Submitted"),
+                allProgresses.Count(p => p.Status == "Active"),
+                allProgresses.Count(p => p.Status == "Rejected"),
+                allProgresses.Count(p => p.Status == "Locked")
+            };
+
+            var subModel = new ProtonProgressSubModel
+            {
+                TotalCoachees = scopedCoacheeIds.Count,
+                TotalDeliverables = allProgresses.Count,
+                ApprovedDeliverables = allProgresses.Count(p => p.Status == "Approved"),
+                PendingSpvApprovals = pendingSpv,
+                PendingHCReviews = pendingHC,
+                CompletedCoachees = finalAssessmentDict.Count,
+                CoacheeRows = coacheeRows,
+                TrendLabels = trendLabels,
+                TrendValues = trendValues,
+                StatusLabels = statusLabels,
+                StatusData = statusData
+            };
+
+            // Propagate scope label to wrapper model via a field that helper sets on ProtonProgressSubModel is not wired
+            // ScopeLabel is on CDPDashboardViewModel — set it via caller after this method returns
+            // We store it temporarily in a thread-local-safe way: use a private field approach isn't clean
+            // Better: pass out via a tuple or set it inline in Dashboard()
+            // Since C# doesn't have ref returns cleanly here, we call SetScopeLabel after return
+            _lastScopeLabel = scopeLabel;
+
+            return subModel;
+        }
+
+        // Stores scope label from BuildProtonProgressSubModelAsync for Dashboard() to retrieve
+        private string _lastScopeLabel = "";
+
+        // ============================================================
+        // Helper: Assessment Analytics sub-model (HC/Admin only)
+        // Logic copied from CMPController.ReportsIndex()
+        // ============================================================
+        private async Task<AssessmentAnalyticsSubModel> BuildAnalyticsSubModelAsync(
+            string? category,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? section,
+            string? userSearch,
+            int page,
+            int pageSize)
+        {
+            // Base query: only completed assessments
+            var query = _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Status == "Completed");
+
+            if (!string.IsNullOrEmpty(category))
+                query = query.Where(a => a.Category == category);
+
+            if (startDate.HasValue)
+                query = query.Where(a => a.CompletedAt >= startDate.Value);
+
+            if (endDate.HasValue)
+            {
+                var endOfDay = endDate.Value.Date.AddDays(1);
+                query = query.Where(a => a.CompletedAt < endOfDay);
+            }
+
+            if (!string.IsNullOrEmpty(section))
+                query = query.Where(a => a.User != null && a.User.Section == section);
+
+            if (!string.IsNullOrEmpty(userSearch))
+                query = query.Where(a => a.User != null &&
+                    (a.User.FullName.Contains(userSearch) ||
+                     (a.User.NIP != null && a.User.NIP.Contains(userSearch))));
+
+            // Summary stats
+            var totalCompleted = await query.CountAsync();
+            var passedCount = await query.CountAsync(a => a.IsPassed == true);
+            var avgScore = totalCompleted > 0
+                ? await query.AverageAsync(a => (double?)a.Score) ?? 0
+                : 0;
+            var totalAssigned = await _context.AssessmentSessions.CountAsync();
+            var passRate = totalCompleted > 0 ? passedCount * 100.0 / totalCompleted : 0;
+
+            // Category statistics
+            var categoryStats = await query
+                .GroupBy(a => a.Category)
+                .Select(g => new CategoryStatistic
+                {
+                    CategoryName = g.Key,
+                    TotalAssessments = g.Count(),
+                    PassedCount = g.Count(a => a.IsPassed == true),
+                    PassRate = g.Count() > 0
+                        ? Math.Round(g.Count(a => a.IsPassed == true) * 100.0 / g.Count(), 1)
+                        : 0,
+                    AverageScore = Math.Round(g.Average(a => (double?)a.Score) ?? 0, 1)
+                })
+                .OrderBy(c => c.CategoryName)
+                .ToListAsync();
+
+            // Score distribution histogram
+            var allScores = await query.Select(a => a.Score ?? 0).ToListAsync();
+            var scoreDistribution = new List<int>
+            {
+                allScores.Count(s => s >= 0 && s <= 20),
+                allScores.Count(s => s >= 21 && s <= 40),
+                allScores.Count(s => s >= 41 && s <= 60),
+                allScores.Count(s => s >= 61 && s <= 80),
+                allScores.Count(s => s >= 81 && s <= 100)
+            };
+
+            // Pagination
+            var totalPages = (int)Math.Ceiling(totalCompleted / (double)pageSize);
+
+            var assessments = await query
+                .OrderByDescending(a => a.CompletedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(a => new AssessmentReportItem
+                {
+                    Id = a.Id,
+                    Title = a.Title,
+                    Category = a.Category,
+                    UserId = a.UserId,
+                    UserName = a.User != null ? a.User.FullName : "Unknown",
+                    UserNIP = a.User != null ? a.User.NIP : null,
+                    UserSection = a.User != null ? a.User.Section : null,
+                    Score = a.Score ?? 0,
+                    PassPercentage = a.PassPercentage,
+                    IsPassed = a.IsPassed ?? false,
+                    CompletedAt = a.CompletedAt
+                })
+                .ToListAsync();
+
+            // Filter dropdowns
+            var categories = await _context.AssessmentSessions
+                .Where(a => a.Status == "Completed")
+                .Select(a => a.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+
+            var sections = OrganizationStructure.GetAllSections();
+
+            return new AssessmentAnalyticsSubModel
+            {
+                TotalAssigned = totalAssigned,
+                TotalCompleted = totalCompleted,
+                PassedCount = passedCount,
+                PassRate = passRate,
+                AverageScore = avgScore,
+                Assessments = assessments,
+                CurrentPage = page,
+                TotalPages = totalPages,
+                PageSize = pageSize,
+                CurrentFilters = new ReportFilters
+                {
+                    Category = category,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Section = section,
+                    UserSearch = userSearch
+                },
+                AvailableCategories = categories,
+                AvailableSections = sections,
+                CategoryStats = categoryStats,
+                ScoreDistribution = scoreDistribution
+            };
+        }
+
+        // ============================================================
+        // ExportAnalyticsResults: moved from CMPController.ExportResults()
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportAnalyticsResults(
+            string? category,
+            DateTime? startDate,
+            DateTime? endDate,
+            string? section,
+            string? userSearch)
+        {
+            // Base query: only completed assessments
+            var query = _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Status == "Completed");
+
+            if (!string.IsNullOrEmpty(category))
+                query = query.Where(a => a.Category == category);
+
+            if (startDate.HasValue)
+                query = query.Where(a => a.CompletedAt >= startDate.Value);
+
+            if (endDate.HasValue)
+            {
+                var endOfDay = endDate.Value.Date.AddDays(1);
+                query = query.Where(a => a.CompletedAt < endOfDay);
+            }
+
+            if (!string.IsNullOrEmpty(section))
+                query = query.Where(a => a.User != null && a.User.Section == section);
+
+            if (!string.IsNullOrEmpty(userSearch))
+                query = query.Where(a => a.User != null &&
+                    (a.User.FullName.Contains(userSearch) ||
+                     (a.User.NIP != null && a.User.NIP.Contains(userSearch))));
+
+            // Get all matching results (capped at 10,000 for performance)
+            var maxExportRows = 10000;
+            var results = await query
+                .OrderByDescending(a => a.CompletedAt)
+                .Take(maxExportRows)
+                .Select(a => new {
+                    AssessmentTitle = a.Title,
+                    Category = a.Category,
+                    UserName = a.User != null ? a.User.FullName : "",
+                    NIP = a.User != null ? a.User.NIP ?? "" : "",
+                    Section = a.User != null ? a.User.Section ?? "" : "",
+                    Score = a.Score ?? 0,
+                    PassPercentage = a.PassPercentage,
+                    Status = a.IsPassed == true ? "Pass" : "Fail",
+                    CompletedAt = a.CompletedAt
+                })
+                .ToListAsync();
+
+            // Generate Excel using ClosedXML
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Assessment Results");
+
+            // Header row
+            worksheet.Cell(1, 1).Value = "Assessment Title";
+            worksheet.Cell(1, 2).Value = "Category";
+            worksheet.Cell(1, 3).Value = "User Name";
+            worksheet.Cell(1, 4).Value = "NIP";
+            worksheet.Cell(1, 5).Value = "Section";
+            worksheet.Cell(1, 6).Value = "Score";
+            worksheet.Cell(1, 7).Value = "Pass Percentage";
+            worksheet.Cell(1, 8).Value = "Status";
+            worksheet.Cell(1, 9).Value = "Completed At";
+
+            // Style header
+            var headerRange = worksheet.Range(1, 1, 1, 9);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            // Data rows
+            for (int i = 0; i < results.Count; i++)
+            {
+                var r = results[i];
+                var row = i + 2;
+                worksheet.Cell(row, 1).Value = r.AssessmentTitle;
+                worksheet.Cell(row, 2).Value = r.Category;
+                worksheet.Cell(row, 3).Value = r.UserName;
+                worksheet.Cell(row, 4).Value = r.NIP;
+                worksheet.Cell(row, 5).Value = r.Section;
+                worksheet.Cell(row, 6).Value = r.Score;
+                worksheet.Cell(row, 7).Value = r.PassPercentage;
+                worksheet.Cell(row, 8).Value = r.Status;
+                worksheet.Cell(row, 9).Value = r.CompletedAt?.ToString("yyyy-MM-dd HH:mm");
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            // Return as file download
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+            var fileName = $"AssessmentResults_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        // ============================================================
+        // SearchUsers: moved from CMPController (only used by ReportsIndex autocomplete)
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> SearchUsers(string term)
+        {
+            if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+                return Json(new List<object>());
+
+            var users = await _context.Users
+                .Where(u => u.FullName.Contains(term) ||
+                             (u.NIP != null && u.NIP.Contains(term)))
+                .OrderBy(u => u.FullName)
+                .Take(10)
+                .Select(u => new {
+                    fullName = u.FullName,
+                    nip = u.NIP ?? "",
+                    section = u.Section ?? ""
+                })
+                .ToListAsync();
+
+            return Json(users);
         }
 
         public async Task<IActionResult> DevDashboard()
