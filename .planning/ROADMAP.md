@@ -194,7 +194,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 15-01-PLAN.md — QuickEdit POST action on CMPController + inline modal on manage view for status + schedule fields
+- [~] 15-01-PLAN.md — QuickEdit POST action on CMPController + inline modal on manage view for status + schedule fields (CANCELLED — use Edit page instead)
 
 ---
 
@@ -216,4 +216,4 @@ Plans:
 | 12. Dashboard Consolidation | v1.2 | 3/3 | Complete | 2026-02-19 |
 | 13. Navigation & Creation Flow | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 14. Bulk Assign | v1.3 | 1/1 | Complete | 2026-02-19 |
-| 15. Quick Edit | v1.3 | 0/1 | Not started | - |
+| 15. Quick Edit | v1.3 | 0/1 | Cancelled | 2026-02-19 |
