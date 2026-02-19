@@ -4,18 +4,18 @@
 
 See: .planning/PROJECT.md (updated 2026-02-19)
 
-**Latest milestone:** v1.4 Assessment Monitoring — COMPLETE
+**Latest milestone:** v1.5 Question and Exam UX — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 16 — Grouped Monitoring View (complete)
+**Current focus:** Phase 17 — Question and Exam UX Improvements (1/7 plans complete)
 
 ## Current Position
 
-**Milestone:** v1.4 Assessment Monitoring
-**Phase:** 16 of 16 (Grouped Monitoring View)
-**Status:** Complete (3/3 plans — human verified)
-**Last activity:** 2026-02-19 — Phase 16 complete: grouped monitoring view + detail page (human approved)
+**Milestone:** v1.5 Question and Exam UX
+**Phase:** 17 of 17 (Question and Exam UX Improvements)
+**Status:** In Progress (1/7 plans complete)
+**Last activity:** 2026-02-19 — Phase 17 Plan 01 complete: package system data layer (4 entities, AddPackageSystem migration applied)
 
-Progress: [████████████████████] 100% (v1.4, 3/3 plans)
+Progress: [██░░░░░░░░░░░░░░░░░░] 14% (v1.5, 1/7 plans)
 
 ## Performance Metrics
 
@@ -40,6 +40,12 @@ Progress: [████████████████████] 100% (v
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**v1.5 decisions (Phase 17):**
+- No Letter field on PackageOption — letters (A/B/C/D) are display-only at render time; grading uses PackageOption.Id
+- UserPackageAssignment -> AssessmentPackage FK uses Restrict (not Cascade) — assignments must survive package deletion post-exam
+- Shuffle data stored as JSON strings on UserPackageAssignment, not as join table rows
+- Unique index on UserPackageAssignment(AssessmentSessionId, UserId) — one assignment per session per user
 
 **v1.4 decisions:**
 - In-memory grouping after ToListAsync() for monitor query — consistent with existing manage view pattern
@@ -80,9 +86,10 @@ None.
 - Phase 15 Quick Edit removed: feature reverted before shipping — Edit page is sufficient, reduces controller surface area (2026-02-19)
 - v1.3 milestone archived (2026-02-19)
 - Phase 16 defined for v1.4 Assessment Monitoring (2026-02-19)
+- Phase 17 added: Question and Exam UX improvements (2026-02-19)
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Phase 16 complete — all 3 plans executed and human-verified. v1.4 Assessment Monitoring milestone is done.
+Stopped at: Phase 17 Plan 01 complete — package system data layer (AssessmentPackage, PackageQuestion, PackageOption, UserPackageAssignment) + AddPackageSystem migration applied.
 Resume file: None.
