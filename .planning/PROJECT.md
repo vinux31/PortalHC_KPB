@@ -12,6 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v1.3 Assessment Management UX
+
+**Goal:** Clean up HC/Admin assessment management navigation and add bulk assign + quick-edit capabilities
+
+**Target features:**
+- Remove embedded Create Assessment form from CMP Index; restore dedicated page flow
+- Dedicated "Manage Assessments" card on CMP Index for HC/Admin (workers unchanged)
+- Bulk assign — add users to an existing assessment from manage view
+- Quick status/schedule edit from manage view without full Edit page
+
 ## Shipped Milestones
 
 ### ✅ v1.2 - UX Consolidation (2026-02-19)

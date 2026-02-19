@@ -4,19 +4,17 @@
 
 See: .planning/PROJECT.md (updated 2026-02-19)
 
-**Latest milestone:** v1.2 UX Consolidation — ARCHIVED 2026-02-19
+**Latest milestone:** v1.3 Assessment Management UX — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning next milestone (v1.3)
+**Current focus:** v1.3 — Assessment Management UX
 
 ## Current Position
 
-**Milestone:** v1.2 UX Consolidation — COMPLETE & ARCHIVED
-**Phase:** 12 of 12 (all phases shipped and archived)
-**Plan:** Complete
-**Status:** Between milestones — v1.2 archived, v1.3 not yet defined
-**Last activity:** 2026-02-19 — v1.2 milestone archived (git tag v1.2)
-
-Progress: [██████████] 100% — v1.2 archived. Ready for /gsd:new-milestone.
+**Milestone:** v1.3 Assessment Management UX — IN PROGRESS
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-02-19 — Milestone v1.3 started
 
 ## Performance Metrics
 
