@@ -4,18 +4,18 @@
 
 See: .planning/PROJECT.md (updated 2026-02-19)
 
-**Latest milestone:** v1.5 Question and Exam UX — IN PROGRESS
+**Latest milestone:** v1.5 Question and Exam UX — COMPLETE
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 17 — Question and Exam UX Improvements (6/7 plans complete)
+**Current focus:** v1.5 complete — awaiting next milestone
 
 ## Current Position
 
 **Milestone:** v1.5 Question and Exam UX
 **Phase:** 17 of 17 (Question and Exam UX Improvements)
-**Status:** In Progress (6/7 plans complete)
-**Last activity:** 2026-02-19 — Phase 17 Plan 06 complete: ExamSummary page (POST/GET/view) with unanswered warning, SubmitExam updated for ID-based PackageOption.IsCorrect grading, legacy path preserved in else branch
+**Status:** COMPLETE (7/7 plans — human verified)
+**Last activity:** 2026-02-19 — Phase 17 complete: full exam flow verified (HC package management, Excel import, paged exam, shuffle, summary, ID-based grading, Results page)
 
-Progress: [████████████░░░░░░░░] 79% (v1.5, 6/7 plans)
+Progress: [████████████████████] 100% (v1.5, 7/7 plans)
 
 ## Performance Metrics
 
@@ -102,5 +102,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 17-question-and-exam-ux-improvements 17-06-PLAN.md
+Stopped at: v1.5 milestone complete — Phase 17 all 7 plans done, human verified.
 Resume file: None.
