@@ -6,12 +6,12 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Latest milestone:** v1.3 Assessment Management UX — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 13 — Navigation & Creation Flow
+**Current focus:** Phase 14 — Bulk Assign
 
 ## Current Position
 
 **Milestone:** v1.3 Assessment Management UX
-**Phase:** 13 of 15 (Navigation & Creation Flow)
+**Phase:** 14 of 15 (Bulk Assign)
 **Plan:** 1 of 1 complete (Phase 13 done)
 **Status:** In progress
 **Last activity:** 2026-02-19 — Completed 13-01: CMP Index cleanup, embedded form removed, Manage Assessments card added, CreateAssessment POST redirect fixed

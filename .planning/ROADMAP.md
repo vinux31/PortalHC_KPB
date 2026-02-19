@@ -168,7 +168,7 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
 **Plans:** 1 plan
 
 Plans:
-- [ ] 13-01-PLAN.md — Remove embedded form from Index, add Manage Assessments card, revert Index() controller, fix CreateAssessment redirect
+- [x] 13-01-PLAN.md — Remove embedded form from Index, add Manage Assessments card, revert Index() controller, fix CreateAssessment redirect
 
 #### Phase 14: Bulk Assign
 **Goal:** HC can see who is already assigned to an assessment and add more users directly from the existing Edit Assessment page, with new AssessmentSessions created on save
@@ -214,6 +214,6 @@ Plans:
 | 10. Unified Training Records | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 11. Assessment Page Role Filter | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 12. Dashboard Consolidation | v1.2 | 3/3 | Complete | 2026-02-19 |
-| 13. Navigation & Creation Flow | v1.3 | 0/1 | Not started | - |
+| 13. Navigation & Creation Flow | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 14. Bulk Assign | v1.3 | 0/1 | Not started | - |
 | 15. Quick Edit | v1.3 | 0/1 | Not started | - |
