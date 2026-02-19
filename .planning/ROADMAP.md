@@ -185,6 +185,21 @@ Plans:
 - [x] 16-02: Monitoring tab view — replace flat session list with grouped summary rows (progress bar, pass rate, "View Details" link per group)
 - [x] 16-03: Detail page view — AssessmentMonitoringDetail.cshtml with per-user table (name, status, score, pass/fail) and back link to monitoring tab
 
+### Phase 17: Question and Exam UX improvements
+
+**Goal:** HC can manage multi-package test sets (with Excel import) and workers take exams in a paged layout with per-user question/option randomization, pre-submit review, and ID-based grading
+**Depends on:** Phase 16
+**Plans:** 7 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — Data foundation: AssessmentPackage, PackageQuestion, PackageOption, UserPackageAssignment models + EF migration
+- [ ] 17-02-PLAN.md — Package management UI: ManagePackages page (create/delete), Packages button on manage view
+- [ ] 17-03-PLAN.md — Excel import: ImportPackageQuestions page with file upload and paste tabs (ClosedXML parser)
+- [ ] 17-04-PLAN.md — Package assignment engine: StartExam GET extended with random package assignment + Fisher-Yates shuffle persistence
+- [ ] 17-05-PLAN.md — Paged exam view: StartExam.cshtml redesigned with 10/page, Prev/Next, timer, collapsible panel, progress header
+- [ ] 17-06-PLAN.md — Summary page + grading: ExamSummary view + SubmitExam updated for ID-based PackageOption grading
+- [ ] 17-07-PLAN.md — Human verification: full HC + worker exam flow end-to-end
+
 ---
 
 ## Progress
@@ -207,3 +222,4 @@ Plans:
 | 14. Bulk Assign | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 15. Quick Edit | v1.3 | 0/1 | Cancelled | 2026-02-19 |
 | 16. Grouped Monitoring View | v1.4 | 3/3 | Complete | 2026-02-19 |
+| 17. Question and Exam UX | v1.5 | 0/7 | Planned | — |
