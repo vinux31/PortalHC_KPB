@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 ## Current Position
 
 **Milestone:** v1.2 UX Consolidation
-**Phase:** 12 of 12 (Dashboard Consolidation — next)
-**Plan:** 11-02 complete — Phase 11 done. Phase 12 (Dashboard consolidation) is next.
+**Phase:** 12 of 12 (Dashboard Consolidation — in progress)
+**Plan:** 12-01 complete — CDPDashboardViewModel and Dashboard() controller rewrite done. Phase 12 Plan 02 (view layer) is next.
 **Status:** In progress
-**Last activity:** 2026-02-18 — Phase 11 Plan 02 (Assessment Razor view role-branched layout) complete
+**Last activity:** 2026-02-19 — Phase 12 Plan 01 (CDPDashboardViewModel + Dashboard() rewrite) complete
 
 Progress: [█████████░] 92% (11/12 phases complete — phases 1-11 shipped; phase 12 next)
 
@@ -48,6 +48,12 @@ Progress: [█████████░] 92% (11/12 phases complete — phases
 |------|----------|-------|-------|
 | 11-01 (controller) | ~6 min | 2 | Assessment() role-filter rewrite |
 | 11-02 (Razor view) | ~8 min | 2 | Assessment.cshtml role-branched layout |
+
+**Phase 12 (in progress):**
+
+| Plan | Duration | Tasks | Notes |
+|------|----------|-------|-------|
+| 12-01 (ViewModel + controller) | ~4 min | 2 | CDPDashboardViewModel + Dashboard() rewrite |
 
 **Recent Trend:**
 - Phase 08 required extended human-verify cycles (complex auth logic)
@@ -97,6 +103,11 @@ Recent decisions affecting current work:
 - Completed tab <li> removed from DOM entirely (not hidden) — matches controller-level filter from 11-01
 - filterCards() JS guarded with getElementById null check — prevents console errors on HC/Admin manage view
 
+**From 12-01:**
+- isHCAccess for Analytics tab: userRole == HC || Admin — SelectedView NOT checked (Admin simulating Coachee still sees Analytics per Phase 12 Context.md locked decision)
+- isLiteralCoachee: userRole == Coachee only — Admin simulating Coachee goes through ProtonProgress path
+- Supporting classes (CoacheeProgressRow, AssessmentReportItem, ReportFilters, CategoryStatistic) now canonical in CDPDashboardViewModel.cs — removed from DevDashboardViewModel.cs and ReportsDashboardViewModel.cs
+
 ### Pending Todos
 
 None.
@@ -117,6 +128,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-18
-Stopped at: Completed 11-02-PLAN.md — Assessment.cshtml role-branched layout done. Phase 11 complete. Phase 12 (Dashboard consolidation) is next.
+Last session: 2026-02-19
+Stopped at: Completed 12-01-PLAN.md — CDPDashboardViewModel + Dashboard() rewrite done. Phase 12 Plan 02 (view layer) is next.
 Resume file: None.
