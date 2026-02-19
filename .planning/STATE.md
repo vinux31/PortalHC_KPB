@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 ## Current Position
 
 **Milestone:** v1.3 Assessment Management UX
-**Phase:** 14 of 15 (Bulk Assign)
-**Plan:** 1 of 1 in progress (Tasks 1-2 complete, awaiting human-verify at Task 3)
-**Status:** In progress — paused at checkpoint
-**Last activity:** 2026-02-19 — 14-01 Tasks 1+2 complete: EditAssessment controller extended (sibling query, ViewBag.AssignedUsers, NewUserIds POST bulk assign), view updated (assigned users table + multi-select picker with JS filtering)
+**Phase:** 15 of 15 (Quick Edit) — Phase 14 complete
+**Plan:** 0 of 1 complete (Phase 15 not started)
+**Status:** In progress
+**Last activity:** 2026-02-19 — Completed 14-01: Bulk assign on EditAssessment — sibling session display, multi-select picker, transaction-backed session creation; BLK-01 + BLK-02 satisfied
 
-Progress: [====░░░░░░░░░░░░░░░░] ~11% (v1.3, 1/9 plans)
+Progress: [========░░░░░░░░░░░░] ~22% (v1.3, 2/9 plans)
 
 ## Performance Metrics
 
@@ -61,6 +61,12 @@ Recent decisions affecting current work:
 - Assessment Lobby card is universal (all roles); Manage Assessments is a separate HC/Admin-only card — separate cards per concern rather than branching button sets inside one card
 - TempData["CreatedAssessment"] kept in CreateAssessment POST even though Index no longer reads it — harmless and may be useful for future manage view enhancement
 
+**From Phase 14-01 (Bulk Assign):**
+- Sibling session matching uses Title+Category+Schedule.Date — consistent with CreateAssessment duplicate-check query
+- NewUserIds is optional on EditAssessment POST; bulk assign block only runs when list is non-empty — backward compatible
+- Already-assigned users excluded at Razor render time via ViewBag.AssignedUserIds, not JS — simpler and avoids client-side state issues
+- Bulk assign runs after existing field-update SaveChangesAsync; each operation has its own rollback scope
+
 ### Pending Todos
 
 None.
@@ -88,5 +94,5 @@ None at roadmap stage. CMPController is 1047 lines — EditAssessment extension 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: 14-01-PLAN.md Task 3 checkpoint (human-verify) — Tasks 1+2 done (a0490e7, f0a2932). Awaiting verification of bulk assign flow on EditAssessment page.
+Stopped at: Completed 14-01-PLAN.md — Bulk assign feature on EditAssessment complete. Ready for Phase 15 (Quick Edit).
 Resume file: None.
