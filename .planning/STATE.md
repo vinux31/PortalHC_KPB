@@ -83,6 +83,7 @@ None at roadmap stage. CMPController is 1047 lines — EditAssessment extension 
 | 002 | (prior) | — | — | — |
 | 003 | Verify and clean all remaining Assessment Analytics access points in CMP after card removal | 2026-02-19 | 8e364df | [3-verify-and-clean-all-remaining-assessmen](.planning/quick/3-verify-and-clean-all-remaining-assessmen/) |
 | 004 | Add persistent Create Assessment button to Assessment manage view header for HC users | 2026-02-19 | b9518d6 | [4-when-hc-want-to-make-new-assessment-wher](.planning/quick/4-when-hc-want-to-make-new-assessment-wher/) |
+| 005 | Group manage view cards by assessment (Title+Category+Schedule.Date) — 1 card per assessment, compact user list, group delete | 2026-02-19 | 8d0b76a | [5-group-manage-view-cards-by-assessment](.planning/quick/5-group-manage-view-cards-by-assessment/) |
 
 ### Roadmap Evolution
 
@@ -94,5 +95,5 @@ None at roadmap stage. CMPController is 1047 lines — EditAssessment extension 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 14-01-PLAN.md — Bulk assign feature on EditAssessment complete. Ready for Phase 15 (Quick Edit).
+Stopped at: Completed quick-5 (group-manage-view-cards-by-assessment) — manage tab now shows 1 card per assessment group with compact user list and group delete.
 Resume file: None.
