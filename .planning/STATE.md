@@ -2,21 +2,21 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-18)
+See: .planning/PROJECT.md (updated 2026-02-19)
 
-**Latest milestone:** v1.2 UX Consolidation (started 2026-02-18)
+**Latest milestone:** v1.2 UX Consolidation — ARCHIVED 2026-02-19
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 12 — Dashboard Consolidation (ALL PHASES COMPLETE — v1.2 milestone done)
+**Current focus:** Planning next milestone (v1.3)
 
 ## Current Position
 
-**Milestone:** v1.2 UX Consolidation
-**Phase:** 12 of 12 (Dashboard Consolidation — COMPLETE)
-**Plan:** 12-03 complete — Retirement and cleanup done. All 12 phases shipped.
-**Status:** Complete
-**Last activity:** 2026-02-19 — Phase 12 Plan 03 (retirement and cleanup) complete
+**Milestone:** v1.2 UX Consolidation — COMPLETE & ARCHIVED
+**Phase:** 12 of 12 (all phases shipped and archived)
+**Plan:** Complete
+**Status:** Between milestones — v1.2 archived, v1.3 not yet defined
+**Last activity:** 2026-02-19 — v1.2 milestone archived (git tag v1.2)
 
-Progress: [██████████] 100% (12/12 phases complete — all phases shipped; v1.2 milestone done)
+Progress: [██████████] 100% — v1.2 archived. Ready for /gsd:new-milestone.
 
 ## Performance Metrics
 
@@ -153,5 +153,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed quick-003 — Assessment Analytics card removed from CMP/Index, orphaned ReportsDashboardViewModel deleted, stale comments cleaned. Pausing session.
+Stopped at: v1.2 milestone archived — PROJECT.md evolved, ROADMAP.md collapsed, REQUIREMENTS.md deleted, git tag v1.2 created. Ready to /gsd:new-milestone.
 Resume file: None.
