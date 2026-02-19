@@ -12,6 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v1.4 Assessment Monitoring
+
+**Goal:** Replace the passive monitoring tab with grouped progress view — completion rate, pass rate, and per-user expandable detail
+
+**Target features:**
+- Group monitoring by assessment (Title + Category + Schedule.Date)
+- Each group shows completion count + pass rate with progress bar
+- Expandable rows showing per-user: name, status, score, pass/fail
+- Include recently closed assessments (last 30 days) alongside Open + Upcoming
+- Sort by schedule date
+
 ## Shipped Milestones
 
 ### ✅ v1.3 - Assessment Management UX (2026-02-19)

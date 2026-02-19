@@ -4,18 +4,18 @@
 
 See: .planning/PROJECT.md (updated 2026-02-19)
 
-**Latest milestone:** v1.3 Assessment Management UX — SHIPPED 2026-02-19
+**Latest milestone:** v1.4 Assessment Monitoring — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning next milestone
+**Current focus:** Phase 16 — Assessment Monitoring Enhancement
 
 ## Current Position
 
-**Milestone:** v1.3 — COMPLETE (shipped 2026-02-19)
-**Phase:** All phases done (13 ✅, 14 ✅, 15 cancelled)
-**Status:** Milestone archived — ready for next milestone
-**Last activity:** 2026-02-19 — Completed v1.3 milestone archival; ROADMAP.md collapsed, PROJECT.md evolved, REQUIREMENTS.md archived to milestones/v1.3-REQUIREMENTS.md
+**Milestone:** v1.4 Assessment Monitoring
+**Phase:** Not started (defining requirements)
+**Status:** Defining requirements
+**Last activity:** 2026-02-19 — Milestone v1.4 started
 
-Progress: [====================] 100% (v1.3 complete)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.4, 0 plans)
 
 ## Performance Metrics
 
