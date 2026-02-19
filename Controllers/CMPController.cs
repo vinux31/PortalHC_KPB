@@ -1276,11 +1276,19 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment");
             }
 
-            // Check if this assessment has packages
+            // Packages are attached to the representative session (the one HC used when clicking "Packages"),
+            // so search across all sibling sessions (same Title + Category + Schedule.Date).
+            var siblingSessionIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title &&
+                            s.Category == assessment.Category &&
+                            s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id)
+                .ToListAsync();
+
             var packages = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
-                .Where(p => p.AssessmentSessionId == id)
+                .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
                 .OrderBy(p => p.PackageNumber)
                 .ToListAsync();
 
