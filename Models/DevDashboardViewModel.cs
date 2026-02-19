@@ -10,7 +10,7 @@ public class DevDashboardViewModel
     public int PendingHCReviews { get; set; }       // HCApprovalStatus == "Pending" && Status == "Approved"
     public int CompletedCoachees { get; set; }      // coachees with a ProtonFinalAssessment
 
-    // Per-coachee rows
+    // Per-coachee rows — CoacheeProgressRow now lives in CDPDashboardViewModel.cs
     public List<CoacheeProgressRow> CoacheeRows { get; set; } = new();
 
     // Chart: competency level granted trend (line chart)
@@ -25,24 +25,4 @@ public class DevDashboardViewModel
     // Context display
     public string CurrentUserRole { get; set; } = "";
     public string ScopeLabel { get; set; } = "";   // "Unit: RFCC NHT" / "Section: GAST" / "All Sections"
-}
-
-public class CoacheeProgressRow
-{
-    public string CoacheeId { get; set; } = "";
-    public string CoacheeName { get; set; } = "";
-    public string TrackType { get; set; } = "";     // "Operator" or "Panelman"; "" if not assigned
-    public string TahunKe { get; set; } = "";       // "Tahun 1" / "Tahun 2" / "Tahun 3"; "" if not assigned
-    public int TotalDeliverables { get; set; }
-    public int Approved { get; set; }
-    public int Submitted { get; set; }
-    public int Rejected { get; set; }
-    public int Active { get; set; }
-    public int Locked { get; set; }
-    public bool HasFinalAssessment { get; set; }
-    public int? CompetencyLevelGranted { get; set; }
-
-    public string ProgressPercent => TotalDeliverables > 0
-        ? $"{(int)((double)Approved / TotalDeliverables * 100)}%"
-        : "0%";
 }
