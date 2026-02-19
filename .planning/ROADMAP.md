@@ -193,7 +193,7 @@ Plans:
 
 Plans:
 - [ ] 17-01-PLAN.md — Data foundation: AssessmentPackage, PackageQuestion, PackageOption, UserPackageAssignment models + EF migration
-- [ ] 17-02-PLAN.md — Package management UI: ManagePackages page (create/delete), Packages button on manage view
+- [ ] 17-02-PLAN.md — Package management UI: ManagePackages page (create/delete/preview), Packages button on manage view, HC preview of exam content
 - [ ] 17-03-PLAN.md — Excel import: ImportPackageQuestions page with file upload and paste tabs (ClosedXML parser)
 - [ ] 17-04-PLAN.md — Package assignment engine: StartExam GET extended with random package assignment + Fisher-Yates shuffle persistence
 - [ ] 17-05-PLAN.md — Paged exam view: StartExam.cshtml redesigned with 10/page, Prev/Next, timer, collapsible panel, progress header
