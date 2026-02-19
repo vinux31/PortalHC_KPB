@@ -203,12 +203,12 @@ Plans:
   2. The Proton Progress tab shows role-scoped data: Coachee sees their own summary; Spv sees their unit; SrSpv/SectionHead see their section; HC/Admin see all — matching the former Dev Dashboard scope rules
   3. The Assessment Analytics tab displays KPI cards, assessment result filters, and an export-to-Excel action — replacing the standalone HC Reports page for HC and Admin users
   4. The standalone Dev Dashboard nav item is removed from the layout after tab content is verified
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — CDPDashboardViewModel + CDPController.Dashboard() rewrite with role-gated sub-model population
-- [ ] 12-02-PLAN.md — Dashboard.cshtml tab structure with _HCReportsPartial and _DevDashboardPartial, plus authorization re-declaration audit
-- [ ] 12-03-PLAN.md — Retire standalone Dev Dashboard nav item and audit cross-controller Url.Action references
+- [ ] 12-01-PLAN.md — CDPDashboardViewModel + CDPController.Dashboard() rewrite with role-gated sub-model population and ExportAnalyticsResults/SearchUsers migration
+- [ ] 12-02-PLAN.md — Dashboard.cshtml two-tab layout with _CoacheeDashboardPartial, _ProtonProgressPartial, and _AssessmentAnalyticsPartial
+- [ ] 12-03-PLAN.md — Retire Dev Dashboard + HC Reports: delete standalone pages, update nav links, clean all cross-references
 
 ---
 
