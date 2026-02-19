@@ -86,9 +86,8 @@ public class AssessmentAnalyticsSubModel
 }
 
 // ============================================================
-// Supporting classes (copied from DevDashboardViewModel + ReportsDashboardViewModel)
-// These classes are self-contained here; DevDashboardViewModel and
-// ReportsDashboardViewModel will be deleted in Plan 12-03.
+// Supporting classes for CDP Dashboard
+// (These classes are now canonical here; legacy ViewModel files have been retired)
 // ============================================================
 
 public class CoacheeProgressRow
