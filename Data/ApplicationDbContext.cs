@@ -48,6 +48,12 @@ namespace HcPortal.Data
         public DbSet<ProtonNotification> ProtonNotifications { get; set; }
         public DbSet<ProtonFinalAssessment> ProtonFinalAssessments { get; set; }
 
+        // Test Packages — Phase 17
+        public DbSet<AssessmentPackage> AssessmentPackages { get; set; }
+        public DbSet<PackageQuestion> PackageQuestions { get; set; }
+        public DbSet<PackageOption> PackageOptions { get; set; }
+        public DbSet<UserPackageAssignment> UserPackageAssignments { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -289,6 +295,63 @@ namespace HcPortal.Data
             builder.Entity<ProtonDeliverableProgress>()
                 .Property(p => p.HCApprovalStatus)
                 .HasDefaultValue("Pending");
+
+            // ========== Test Package System (Phase 17) ==========
+
+            // AssessmentPackage -> AssessmentSession (Cascade)
+            builder.Entity<AssessmentPackage>(entity =>
+            {
+                entity.HasOne(p => p.AssessmentSession)
+                    .WithMany()
+                    .HasForeignKey(p => p.AssessmentSessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(p => p.AssessmentSessionId);
+            });
+
+            // PackageQuestion -> AssessmentPackage (Cascade)
+            builder.Entity<PackageQuestion>(entity =>
+            {
+                entity.HasOne(q => q.AssessmentPackage)
+                    .WithMany(p => p.Questions)
+                    .HasForeignKey(q => q.AssessmentPackageId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(q => q.AssessmentPackageId);
+                entity.HasIndex(q => q.Order);
+            });
+
+            // PackageOption -> PackageQuestion (Cascade)
+            builder.Entity<PackageOption>(entity =>
+            {
+                entity.HasOne(o => o.PackageQuestion)
+                    .WithMany(q => q.Options)
+                    .HasForeignKey(o => o.PackageQuestionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(o => o.PackageQuestionId);
+            });
+
+            // UserPackageAssignment -> AssessmentSession (Cascade)
+            // UserPackageAssignment -> AssessmentPackage (Restrict — don't cascade-delete assignments on package delete)
+            builder.Entity<UserPackageAssignment>(entity =>
+            {
+                entity.HasOne(a => a.AssessmentSession)
+                    .WithMany()
+                    .HasForeignKey(a => a.AssessmentSessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(a => a.AssessmentPackage)
+                    .WithMany()
+                    .HasForeignKey(a => a.AssessmentPackageId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Unique index: one assignment per (AssessmentSession, UserId) pair
+                entity.HasIndex(a => new { a.AssessmentSessionId, a.UserId })
+                    .IsUnique();
+
+                entity.HasIndex(a => a.UserId);
+            });
         }
     }
 }
