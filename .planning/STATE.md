@@ -6,17 +6,17 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Latest milestone:** v1.2 UX Consolidation (started 2026-02-18)
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 12 — Dashboard Consolidation (Phase 11 complete)
+**Current focus:** Phase 12 — Dashboard Consolidation (ALL PHASES COMPLETE — v1.2 milestone done)
 
 ## Current Position
 
 **Milestone:** v1.2 UX Consolidation
-**Phase:** 12 of 12 (Dashboard Consolidation — in progress)
-**Plan:** 12-02 complete — Dashboard.cshtml two-tab layout + three partial views done. Phase 12 Plan 03 (cleanup) is next.
-**Status:** In progress
-**Last activity:** 2026-02-19 — Phase 12 Plan 02 (Dashboard view layer) complete
+**Phase:** 12 of 12 (Dashboard Consolidation — COMPLETE)
+**Plan:** 12-03 complete — Retirement and cleanup done. All 12 phases shipped.
+**Status:** Complete
+**Last activity:** 2026-02-19 — Phase 12 Plan 03 (retirement and cleanup) complete
 
-Progress: [█████████░] 92% (11/12 phases complete — phases 1-11 shipped; phase 12 next)
+Progress: [██████████] 100% (12/12 phases complete — all phases shipped; v1.2 milestone done)
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [█████████░] 92% (11/12 phases complete — phases
 |------|----------|-------|-------|
 | 12-01 (ViewModel + controller) | ~4 min | 2 | CDPDashboardViewModel + Dashboard() rewrite |
 | 12-02 (Razor views) | ~4 min | 2 | Dashboard.cshtml two-tab layout + three partial views |
+| 12-03 (cleanup) | ~30 min | 3 + fix | Retirement + cleanup + analytics tab state fix |
 
 **Recent Trend:**
 - Phase 08 required extended human-verify cycles (complex auth logic)
@@ -116,6 +117,13 @@ Recent decisions affecting current work:
 - UserAssessmentHistory and Results drill-down links retain CMP controller — not moved in Phase 12
 - JS tab auto-activation via URLSearchParams added in Dashboard.cshtml for analytics filter params
 
+**From 12-03:**
+- activeTab hidden input pattern: filter form submits activeTab=analytics to guarantee tab re-activation even when all filter fields are empty/default
+- URLSearchParams tab activation checks activeTab param first, then analytics filter params as fallback
+- Dashboard nav link has no role gate — all authenticated users including Coachees see it
+- UserAssessmentHistory ReportsIndex links removed entirely (no replacement) per locked decision
+- CMP/Index HC Reports card updated to link to CDP/Dashboard (Analytics tab replacement)
+
 ### Pending Todos
 
 None.
@@ -125,9 +133,9 @@ None.
 **Phase 11 — COMPLETE**
 - Both plans (controller role filter + Razor view role-branched layout) shipped
 
-**Phase 12 — pre-implementation checklist:**
-- Grep for literal string `"ReportsIndex"` across all .cshtml files — two implicit-controller Url.Action calls in UserAssessmentHistory.cshtml will silently 404 after move
-- Re-declare [Authorize(Roles = "Admin, HC")] explicitly on Assessment Analytics content in CDPController
+**Phase 12 — COMPLETE**
+- All three plans shipped (ViewModel/controller, Razor views, cleanup)
+- Analytics tab state fix applied post-human-verify
 
 ### Roadmap Evolution
 
@@ -137,5 +145,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 12-02-PLAN.md — Dashboard.cshtml two-tab layout + three partial views complete. Phase 12 Plan 03 (cleanup) is next.
+Stopped at: Completed 12-03-PLAN.md — Retirement and cleanup complete. All 12 phases shipped. v1.2 UX Consolidation milestone done.
 Resume file: None.
