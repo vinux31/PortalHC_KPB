@@ -212,9 +212,9 @@ else
             updateAnsweredCount();
             // Visual: highlight selected label
             document.querySelectorAll('[id^="lbl_' + qId + '_"]').forEach(function(lbl) {
-                lbl.classList.remove('active', 'list-group-item-primary');
+                lbl.classList.remove('option-selected');
             });
-            document.getElementById('lbl_' + qId + '_' + optId).classList.add('active', 'list-group-item-primary');
+            document.getElementById('lbl_' + qId + '_' + optId).classList.add('option-selected');
         });
     });
 
@@ -267,7 +267,12 @@ else
 
 <style>
     #examHeader { z-index: 1020; }
-    .list-group-item-primary { background-color: #cfe2ff !important; border-color: #9ec5fe !important; }
+    .option-selected {
+        background-color: #cfe2ff !important;
+        border-color: #9ec5fe !important;
+        color: #212529 !important;  /* keep text dark — Bootstrap .active overrides to white */
+    }
+    .option-selected .text-secondary { color: #0a58ca !important; }
     @@media (max-width: 991px) {
         #questionPanelWrapper { order: -1; margin-bottom: 1rem; }
     }
