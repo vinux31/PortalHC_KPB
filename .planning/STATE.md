@@ -12,11 +12,11 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Milestone:** v1.3 Assessment Management UX
 **Phase:** 13 of 15 (Navigation & Creation Flow)
-**Plan:** Not started
-**Status:** Ready to plan
-**Last activity:** 2026-02-19 — Roadmap re-created for v1.3 with updated BLK scope (EditAssessment page, not separate view)
+**Plan:** 1 of 1 complete (Phase 13 done)
+**Status:** In progress
+**Last activity:** 2026-02-19 — Completed 13-01: CMP Index cleanup, embedded form removed, Manage Assessments card added, CreateAssessment POST redirect fixed
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.3)
+Progress: [====░░░░░░░░░░░░░░░░] ~11% (v1.3, 1/9 plans)
 
 ## Performance Metrics
 
@@ -57,6 +57,10 @@ Recent decisions affecting current work:
 - Phase 15 (Quick Edit) is a new CMPController action (QuickEdit); inline modal on manage view for status + schedule only
 - Phase 13 must ship before 14 and 15 — manage view baseline must be clean first
 
+**From Phase 13-01 (Navigation & Creation Flow):**
+- Assessment Lobby card is universal (all roles); Manage Assessments is a separate HC/Admin-only card — separate cards per concern rather than branching button sets inside one card
+- TempData["CreatedAssessment"] kept in CreateAssessment POST even though Index no longer reads it — harmless and may be useful for future manage view enhancement
+
 ### Pending Todos
 
 None.
@@ -84,5 +88,5 @@ None at roadmap stage. CMPController is 1047 lines — EditAssessment extension 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Roadmap re-created for v1.3 — updated Phase 14 BLK scope to EditAssessment page modification. 3 phases (13-15), 9/9 requirements mapped. Ready to plan Phase 13.
+Stopped at: Completed 13-01-PLAN.md — CMP Index cleanup complete, Phase 13 done. Ready for Phase 14 (Bulk Assign via EditAssessment).
 Resume file: None.
