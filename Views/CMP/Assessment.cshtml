@@ -83,7 +83,7 @@
     @if (viewMode == "manage" && canManage)
     {
         var managementData = ViewBag.ManagementData as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
-        var monitorData = ViewBag.MonitorData as List<HcPortal.Models.AssessmentSession> ?? new List<HcPortal.Models.AssessmentSession>();
+        var monitorGroups = ViewBag.MonitorData as List<HcPortal.Models.MonitoringGroupViewModel> ?? new List<HcPortal.Models.MonitoringGroupViewModel>();
 
         <!-- HC/Admin tabs: Management and Monitoring -->
         <ul class="nav nav-tabs mb-4" id="hcAssessmentTabs" role="tablist">
@@ -98,7 +98,7 @@
                 <button class="nav-link" id="monitor-tab" data-bs-toggle="tab"
                         data-bs-target="#monitor-tab-pane" type="button" role="tab">
                     <i class="bi bi-binoculars me-1"></i> Monitoring
-                    <span class="badge bg-secondary ms-1">@monitorData.Count</span>
+                    <span class="badge bg-secondary ms-1">@monitorGroups.Count</span>
                 </button>
             </li>
         </ul>
@@ -322,12 +322,12 @@
 
             <!-- Monitoring Tab Pane -->
             <div class="tab-pane fade" id="monitor-tab-pane" role="tabpanel">
-                @if (monitorData.Count == 0)
+                @if (monitorGroups.Count == 0)
                 {
                     <div class="text-center py-5">
                         <i class="bi bi-binoculars text-muted mb-3" style="font-size: 4rem;"></i>
-                        <h5 class="text-muted">No active or upcoming assessments</h5>
-                        <p class="text-muted small">All assessments are currently completed.</p>
+                        <h5 class="text-muted">No active, upcoming, or recently closed assessments</h5>
+                        <p class="text-muted small">Closed assessments older than 30 days are not shown.</p>
                     </div>
                 }
                 else
@@ -336,41 +336,84 @@
                         <table class="table table-hover align-middle">
                             <thead class="table-light">
                                 <tr>
-                                    <th>Title</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
+                                    <th>Assessment</th>
                                     <th>Schedule</th>
-                                    <th>Assigned To</th>
-                                    <th>Duration</th>
+                                    <th>Status</th>
+                                    <th>Completion</th>
+                                    <th>Pass Rate</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in monitorData)
+                                @foreach (var group in monitorGroups)
                                 {
-                                    var statusBadgeClass = item.Status == "Open" ? "bg-success" : "bg-warning text-dark";
-                                    var categoryBadgeClass = item.Category switch
+                                    var catBadgeClass = (string)group.Category switch
                                     {
-                                        "OJT" => "bg-primary",
-                                        "IHT" => "bg-success",
-                                        "Training Licencor" => "bg-danger",
-                                        "OTS" => "bg-warning text-dark",
-                                        "Mandatory HSSE Training" => "bg-info",
-                                        "Proton" => "bg-purple",
-                                        _ => "bg-secondary"
+                                        "OJT"                     => "bg-primary",
+                                        "IHT"                     => "bg-success",
+                                        "Training Licencor"        => "bg-danger",
+                                        "OTS"                     => "bg-warning text-dark",
+                                        "Mandatory HSSE Training"  => "bg-info",
+                                        "Proton"                  => "bg-purple",
+                                        _                         => "bg-secondary"
+                                    };
+                                    var statusBadgeClass = group.GroupStatus switch
+                                    {
+                                        "Open"     => "bg-success",
+                                        "Upcoming" => "bg-warning text-dark",
+                                        "Closed"   => "bg-secondary",
+                                        _          => "bg-secondary"
                                     };
 
+                                    int completedPct = group.TotalCount > 0
+                                        ? (int)Math.Round(group.CompletedCount * 100.0 / group.TotalCount)
+                                        : 0;
+
+                                    int passRatePct = group.CompletedCount > 0
+                                        ? (int)Math.Round(group.PassedCount * 100.0 / group.CompletedCount)
+                                        : 0;
+
                                     <tr>
-                                        <td class="fw-semibold">@item.Title</td>
-                                        <td><span class="badge @categoryBadgeClass">@item.Category</span></td>
-                                        <td><span class="badge @statusBadgeClass">@item.Status</span></td>
-                                        <td>@item.Schedule.ToString("dd MMM yyyy")</td>
-                                        <td>@(item.User?.FullName ?? "Unknown")</td>
                                         <td>
-                                            @{
-                                                var hrs = item.DurationMinutes / 60;
-                                                var mins = item.DurationMinutes % 60;
+                                            <div class="fw-semibold">@group.Title</div>
+                                            <div class="mt-1">
+                                                <span class="badge @catBadgeClass small">@group.Category</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-nowrap">@group.Schedule.ToString("dd MMM yyyy")</td>
+                                        <td>
+                                            <span class="badge @statusBadgeClass">@group.GroupStatus</span>
+                                        </td>
+                                        <td style="min-width: 160px;">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div class="progress flex-grow-1" style="height: 8px;" title="@group.CompletedCount of @group.TotalCount completed">
+                                                    <div class="progress-bar @(completedPct == 100 ? "bg-success" : "bg-primary")"
+                                                         role="progressbar"
+                                                         style="width: @completedPct%"
+                                                         aria-valuenow="@completedPct"
+                                                         aria-valuemin="0"
+                                                         aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                                <span class="text-muted small text-nowrap">@group.CompletedCount/@group.TotalCount</span>
+                                            </div>
+                                        </td>
+                                        <td class="text-nowrap">
+                                            @if (group.CompletedCount == 0)
+                                            {
+                                                <span class="text-muted small">—</span>
                                             }
-                                            @(hrs > 0 ? $"{hrs}h {mins}m" : $"{mins}m")
+                                            else
+                                            {
+                                                var passRateBadge = passRatePct >= 70 ? "text-success" : "text-danger";
+                                                <span class="@passRateBadge fw-semibold small">@group.PassedCount passed (@passRatePct%)</span>
+                                            }
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="@Url.Action("AssessmentMonitoringDetail", "CMP", new { title = group.Title, category = group.Category, scheduleDate = group.Schedule.Date })"
+                                               class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye me-1"></i>View Details
+                                            </a>
                                         </td>
                                     </tr>
                                 }
