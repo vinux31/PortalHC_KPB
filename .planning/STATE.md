@@ -4,9 +4,9 @@
 
 See: .planning/PROJECT.md (updated 2026-02-19)
 
-**Latest milestone:** v1.5 Question and Exam UX — COMPLETE
+**Latest milestone:** v1.5 Question and Exam UX — SHIPPED 2026-02-19
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.5 complete — awaiting next milestone
+**Current focus:** Awaiting next milestone — run /gsd:new-milestone to begin
 
 ## Current Position
 
@@ -102,5 +102,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: v1.5 milestone complete — Phase 17 all 7 plans done, human verified.
+Stopped at: v1.5 milestone archived — ROADMAP.md collapsed, REQUIREMENTS.md deleted, PROJECT.md evolved, git tag v1.5 created.
 Resume file: None.

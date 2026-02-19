@@ -8,6 +8,7 @@
 - ✅ **v1.2 UX Consolidation** — Phases 9-12 (shipped 2026-02-19)
 - ✅ **v1.3 Assessment Management UX** — Phases 13-15 (shipped 2026-02-19)
 - ✅ **v1.4 Assessment Monitoring** — Phase 16 (shipped 2026-02-19)
+- ✅ **v1.5 Question and Exam UX** — Phase 17 (shipped 2026-02-19)
 
 ## Phases
 
@@ -162,45 +163,23 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 
 </details>
 
----
+<details>
+<summary>✅ v1.4 Assessment Monitoring (Phase 16) — SHIPPED 2026-02-19</summary>
 
-### ✅ v1.4 Assessment Monitoring (Shipped 2026-02-19)
+- [x] Phase 16: Grouped Monitoring View (3/3 plans) — completed 2026-02-19
 
-**Milestone Goal:** Replace the passive monitoring tab with a grouped progress view — completion rate, pass rate, and a dedicated detail page for per-user breakdown
+See `.planning/milestones/v1.5-REQUIREMENTS.md` for MON requirement traceability.
 
-#### Phase 16: Grouped Monitoring View
-**Goal:** HC can see all active and recently closed assessments grouped by assessment identity, with completion progress, pass rate, and a dedicated detail page showing per-user status — replacing the flat per-session list
-**Depends on:** Phase 14 (v1.3 complete — grouped manage view pattern established)
-**Requirements:** MON-01, MON-02, MON-03, MON-04, MON-05, MON-06
-**Success Criteria** (what must be TRUE):
-  1. Monitoring tab shows one row per assessment group (Title + Category + Schedule.Date) instead of one row per user session — groups include Open, Upcoming, and sessions closed within the last 30 days
-  2. Each group row displays a completion progress bar with "X/Y completed" count
-  3. Each group row displays a pass rate indicator with "Z passed (N%)" based on completed sessions only
-  4. HC can click "View Details" on a group row to navigate to a dedicated detail page showing each user's name, status (Not started / In progress / Completed), score, and pass/fail result
-  5. Groups are sorted by schedule date — soonest first for Open/Upcoming, most recent first for closed assessments
-**Plans:** 3 plans
+</details>
 
-Plans:
-- [x] 16-01: Server-side — MonitoringGroupViewModel for tab + AssessmentMonitoringDetail GET action for detail page; CMPController.Assessment() extended to include recently closed sessions (last 30 days), grouping + sorting logic
-- [x] 16-02: Monitoring tab view — replace flat session list with grouped summary rows (progress bar, pass rate, "View Details" link per group)
-- [x] 16-03: Detail page view — AssessmentMonitoringDetail.cshtml with per-user table (name, status, score, pass/fail) and back link to monitoring tab
+<details>
+<summary>✅ v1.5 Question and Exam UX (Phase 17) — SHIPPED 2026-02-19</summary>
 
-### ✅ Phase 17: Question and Exam UX improvements — COMPLETE
+- [x] Phase 17: Question and Exam UX improvements (7/7 plans) — completed 2026-02-19
 
-**Goal:** HC can manage multi-package test sets (with Excel import) and workers take exams in a paged layout with per-user question/option randomization, pre-submit review, and ID-based grading
-**Depends on:** Phase 16
-**Plans:** 7 plans
+See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
-Plans:
-- [x] 17-01-PLAN.md — Data foundation: AssessmentPackage, PackageQuestion, PackageOption, UserPackageAssignment models + EF migration
-- [x] 17-02-PLAN.md — Package management UI: ManagePackages page (create/delete/preview), Packages button on manage view, HC preview of exam content
-- [x] 17-03-PLAN.md — Excel import: ImportPackageQuestions page with file upload and paste tabs (ClosedXML parser)
-- [x] 17-04-PLAN.md — Package assignment engine: StartExam GET extended with random package assignment + Fisher-Yates shuffle persistence
-- [x] 17-05-PLAN.md — Paged exam view: StartExam.cshtml redesigned with 10/page, Prev/Next, timer, collapsible panel, progress header
-- [x] 17-06-PLAN.md — Summary page + grading: ExamSummary view + SubmitExam updated for ID-based PackageOption grading
-- [x] 17-07-PLAN.md — Human verification: full HC + worker exam flow end-to-end
-
-**Completed:** 2026-02-19
+</details>
 
 ---
 

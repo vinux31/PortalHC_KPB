@@ -12,18 +12,48 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v1.4 Assessment Monitoring
+## Current State (v1.5)
 
-**Goal:** Replace the passive monitoring tab with grouped progress view — completion rate, pass rate, and per-user expandable detail
-
-**Target features:**
-- Group monitoring by assessment (Title + Category + Schedule.Date)
-- Each group shows completion count + pass rate with progress bar
-- Expandable rows showing per-user: name, status, score, pass/fail
-- Include recently closed assessments (last 30 days) alongside Open + Upcoming
-- Sort by schedule date
+**Status:** v1.5 shipped 2026-02-19. Awaiting next milestone planning.
 
 ## Shipped Milestones
+
+### ✅ v1.5 - Question and Exam UX (2026-02-19)
+
+**Delivered:** HC can manage multi-package test sets with Excel import; workers take paged exams with per-user randomization, pre-submit review, and ID-based grading
+
+**What Shipped:**
+1. **Package Data Model** — AssessmentPackage, PackageQuestion, PackageOption, UserPackageAssignment entities + AddPackageSystem EF migration
+2. **HC Package Management** — ManagePackages page (create/delete), ImportPackageQuestions (Excel upload + paste with flexible Correct-column parser), PREVIEW MODE for HC review
+3. **Per-User Randomization** — Random package assignment on exam start; Fisher-Yates shuffle for question order and option order per user; shuffled order persisted as JSON in UserPackageAssignment
+4. **Paged Exam View** — 10 questions/page, Prev/Next, countdown timer (red at 5 min, auto-submit at 0), collapsible question number panel, "X/N answered" header counter
+5. **Pre-Submit Review + Grading** — ExamSummary page with unanswered warning; SubmitExam updated with if/else package-path (ID-based PackageOption.IsCorrect grading) and legacy-path (unchanged)
+
+**Metrics:**
+- 1 phase (17), 7 plans
+- 31 files changed, 6,951 insertions / 169 deletions
+- 2026-02-19
+
+See `.planning/milestones/v1.5-ROADMAP.md` for full details.
+
+---
+
+### ✅ v1.4 - Assessment Monitoring (2026-02-19)
+
+**Delivered:** Grouped monitoring tab replacing flat per-session list — completion rate, pass rate, and dedicated per-user detail page
+
+**What Shipped:**
+1. **Grouped Monitoring Tab** — One row per assessment group (Title+Category+Date); completion progress bar; pass rate indicator
+2. **Monitoring Detail Page** — AssessmentMonitoringDetail view with per-user table (Name, NIP, Status, Score, Pass/Fail, Completed At)
+3. **Recently Closed Sessions** — Monitoring includes sessions closed within last 30 days alongside Open + Upcoming; sorted by schedule date
+
+**Metrics:**
+- 1 phase (16), 3 plans
+- 2026-02-19
+
+See `.planning/milestones/v1.5-REQUIREMENTS.md` for MON requirement traceability.
+
+---
 
 ### ✅ v1.3 - Assessment Management UX (2026-02-19)
 
@@ -108,7 +138,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ---
 
-## Current State (v1.3)
+## Current State (v1.5)
 
 **Tech Stack:**
 - ASP.NET Core 8.0 MVC (C#)
@@ -134,8 +164,10 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Assessment lobby: role-filtered (workers see Open/Upcoming only; HC/Admin get Management + Monitoring tabs)
   - Token-based access control (optional per assessment)
   - Question management (add/delete questions with multiple choice options)
-  - Take exam interface (StartExam view)
+  - Take exam interface: paged (10/page), countdown timer, collapsible panel, answered counter
+  - Pre-submit review (ExamSummary page with unanswered warning)
   - Auto-scoring, pass/fail with configurable thresholds, conditional answer review
+  - ID-based grading for package exams (PackageOption.IsCorrect — never letter-based)
   - Certificate view (after completion)
   - Training Records callout for workers to find their completion history
 
@@ -143,6 +175,9 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Dedicated Manage Assessments card on CMP Index (HC/Admin only; workers see Assessment Lobby only)
   - Manage view: grouped assessment cards (1 card per unique Title+Category+Date assessment, compact user list, group delete)
   - Bulk Assign: EditAssessment page shows currently-assigned users + section-filtered picker to add more; new AssessmentSessions created on save without altering existing ones
+  - **Test Packages (v1.5):** HC creates packages per assessment; imports questions via Excel/paste; each user assigned random package with Fisher-Yates shuffled question + option order
+  - **Package Management (v1.5):** ManagePackages page (create/delete), ImportPackageQuestions (Excel upload + paste), PREVIEW MODE for HC
+  - **Grouped Monitoring (v1.4):** Monitoring tab shows one row per assessment group with completion bar + pass rate; "View Details" links to per-user detail page
 
 - ✅ **Assessment Analytics (HC/Admin — in CDP Dashboard):**
   - KPI cards, multi-parameter filtering, paginated results table
@@ -199,6 +234,12 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | Sibling session matching uses Title+Category+Schedule.Date | Consistent with existing CreateAssessment duplicate-check query; identifies all users on the same batch assessment | v1.3 ✓ |
 | Bulk assign excluded users at Razor render time | Already-assigned users excluded via ViewBag.AssignedUserIds at Razor render, not JS — simpler and avoids client-side state issues | v1.3 ✓ |
 | Quick Edit cancelled — Edit page sufficient | Phase 15 inline modal reverted before shipping; EditAssessment page covers status+schedule changes without extra controller surface area | v1.3 ✓ |
+| Grouped monitoring tab (one row per assessment identity) | In-memory grouping after ToListAsync(); MonitoringGroupViewModel canonical shape for all monitoring data | v1.4 ✓ |
+| No Letter field on PackageOption | Letters (A/B/C/D) are display-only at render time by position index; grading uses PackageOption.Id | v1.5 ✓ |
+| UserPackageAssignment shuffle stored as JSON strings | ShuffledQuestionIds + ShuffledOptionIdsPerQuestion as JSON on the assignment row — no join tables needed | v1.5 ✓ |
+| Package path and legacy path mutually exclusive in SubmitExam | if (packageAssignment != null) → package path; else → legacy loop — UserResponse not inserted for package exams (FK constraint incompatibility) | v1.5 ✓ |
+| Packages found via sibling session query | StartExam GET searches siblings (same Title+Category+Date) — packages attached to representative session ID, not worker session ID | v1.5 ✓ |
+| TempData int/long unboxing switch pattern | CookieTempDataProvider deserializes JSON integers as long in .NET; switch { int i => i, long l => (int)l, _ => null } | v1.5 ✓ |
 
 ## Technical Constraints
 
@@ -277,11 +318,13 @@ All requirements from v1.0–v1.3 are satisfied (7/9 in v1.3; QED-01 and QED-02 
 
 ## Technical Debt
 
-- Large monolithic controllers (CMPController ~1180 lines post-bulk-assign, CDPController 1000+ lines)
+- Large monolithic controllers (CMPController ~2100+ lines post-v1.5, CDPController 1000+ lines)
 - No automated testing — manual QA only
 - No audit logging — all changes untracked
 - `GetPersonalTrainingRecords()` in CMPController is dead code (not called) — retained to avoid scope risk
 - N+1 queries addressed in batch where identified (GetWorkersInSection batch GroupBy) but not systematically audited
+- AllowAnswerReview silently non-functional for package-based exams — UserResponse rows not created (FK constraint); no PackageUserResponse table exists yet
+- No UI to re-assign packages or manually override shuffle — edge case with no workaround
 
 ## References
 
@@ -292,4 +335,4 @@ All requirements from v1.0–v1.3 are satisfied (7/9 in v1.3; QED-01 and QED-02 
 
 ---
 
-*Last updated: 2026-02-19 after completing v1.3 milestone*
+*Last updated: 2026-02-19 after v1.5 milestone*
