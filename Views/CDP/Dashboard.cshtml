@@ -53,13 +53,16 @@
 </div>
 
 <script>
-    // Activate analytics tab if analytics filter params are present in URL
+    // Activate analytics tab if activeTab param or analytics filter params are present in URL
     (function () {
         var params = new URLSearchParams(window.location.search);
-        var analyticsParams = ['analyticsCategory', 'analyticsStartDate', 'analyticsEndDate',
-                               'analyticsSection', 'analyticsUserSearch', 'analyticsPage'];
-        var hasAnalyticsParams = analyticsParams.some(function (p) { return params.has(p) && params.get(p); });
-        if (hasAnalyticsParams) {
+        var shouldActivateAnalytics = params.get('activeTab') === 'analytics';
+        if (!shouldActivateAnalytics) {
+            var analyticsParams = ['analyticsCategory', 'analyticsStartDate', 'analyticsEndDate',
+                                   'analyticsSection', 'analyticsUserSearch', 'analyticsPage'];
+            shouldActivateAnalytics = analyticsParams.some(function (p) { return params.has(p) && params.get(p); });
+        }
+        if (shouldActivateAnalytics) {
             var analyticsTabEl = document.getElementById('analytics-tab');
             if (analyticsTabEl) {
                 var tab = new bootstrap.Tab(analyticsTabEl);
