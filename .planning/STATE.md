@@ -6,15 +6,15 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Latest milestone:** v1.3 Assessment Management UX — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 15 — Quick Edit
+**Current focus:** Phase 15 — Quick Edit (removed; Edit page used instead)
 
 ## Current Position
 
 **Milestone:** v1.3 Assessment Management UX
-**Phase:** 15 of 15 (Quick Edit) — Phase 14 complete
-**Plan:** 0 of 1 complete (Phase 15 not started)
+**Phase:** 15 of 15 (Quick Edit) — Phase 14 complete; Phase 15 cancelled
+**Plan:** 0 of 1 complete (Phase 15 cancelled — Quick Edit removed from codebase)
 **Status:** In progress
-**Last activity:** 2026-02-19 — Completed 14-01: Bulk assign on EditAssessment — sibling session display, multi-select picker, transaction-backed session creation; BLK-01 + BLK-02 satisfied
+**Last activity:** 2026-02-19 — Removed Quick Edit feature (CMPController.QuickEdit action + modal + JS); EditAssessment page is the replacement; commit e4b84d7
 
 Progress: [========░░░░░░░░░░░░] ~22% (v1.3, 2/9 plans)
 
@@ -54,7 +54,7 @@ Recent decisions affecting current work:
 **v1.3 Roadmap decisions:**
 - Phase 13 bundles NAV + CRT — removing the embedded form and fixing the create flow are the same Index restructuring effort
 - Phase 14 (Bulk Assign) modifies the EXISTING EditAssessment page (`/CMP/EditAssessment`) — no separate view; shows existing users + picker for additional users; new AssessmentSessions created on save
-- Phase 15 (Quick Edit) is a new CMPController action (QuickEdit); inline modal on manage view for status + schedule only
+- Phase 15 (Quick Edit) was planned as inline modal but removed — EditAssessment page covers the same need without extra surface area (2026-02-19)
 - Phase 13 must ship before 14 and 15 — manage view baseline must be clean first
 
 **From Phase 13-01 (Navigation & Creation Flow):**
@@ -73,7 +73,7 @@ None.
 
 ### Blockers/Concerns
 
-None at roadmap stage. CMPController is 1047 lines — EditAssessment extension and quick edit add complexity to existing actions; acceptable within current milestone scope.
+None.
 
 ### Quick Tasks Completed
 
@@ -91,9 +91,10 @@ None at roadmap stage. CMPController is 1047 lines — EditAssessment extension 
 - Phases 9-12 defined for v1.2 UX Consolidation (2026-02-18)
 - Phases 13-15 defined for v1.3 Assessment Management UX (2026-02-19)
 - Phase 14 BLK scope updated: EditAssessment page extension, not a separate bulk assign view (2026-02-19)
+- Phase 15 Quick Edit removed: feature reverted before shipping — Edit page is sufficient, reduces controller surface area (2026-02-19)
 
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed quick-5 (group-manage-view-cards-by-assessment) — manage tab now shows 1 card per assessment group with compact user list and group delete.
+Stopped at: Removed Quick Edit feature (revert 15-01) — QuickEdit action, modal, and JS deleted; build clean at 0 errors.
 Resume file: None.
