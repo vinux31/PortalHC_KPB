@@ -209,6 +209,119 @@
                     </div>
                 </div>
 
+                <!-- Currently Assigned Users (Read-Only) -->
+                <div class="card border-success mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>Currently Assigned Users</h6>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var assignedUsers = ViewBag.AssignedUsers as IEnumerable<dynamic>;
+                            var assignedCount = assignedUsers != null ? System.Linq.Enumerable.Count(assignedUsers) : 0;
+                        }
+                        @if (assignedUsers != null && assignedCount > 0)
+                        {
+                            <div style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-sm table-hover mb-2">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Section</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{int rowNum = 0;}
+                                        @foreach (var au in assignedUsers)
+                                        {
+                                            rowNum++;
+                                            <tr>
+                                                <td>@rowNum</td>
+                                                <td>@au.FullName</td>
+                                                <td>@au.Email</td>
+                                                <td>@(string.IsNullOrEmpty((string)au.Section) ? "-" : au.Section)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <span class="badge bg-success">@assignedCount user(s) currently assigned</span>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">No users currently assigned to this assessment.</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Add More Users (Multi-Select Picker) -->
+                <div class="card border-warning mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Add More Users</h6>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var assignedUserIds = ViewBag.AssignedUserIds as List<string> ?? new List<string>();
+                        }
+
+                        <!-- Section Filter + Search + Controls -->
+                        <div class="d-flex gap-2 mb-2 align-items-center flex-wrap">
+                            <select id="newSectionFilter" class="form-select form-select-sm" style="max-width: 220px;">
+                                <option value="">Semua Bagian</option>
+                                @if (ViewBag.Sections != null)
+                                {
+                                    foreach (var sec in (List<string>)ViewBag.Sections)
+                                    {
+                                        <option value="@sec">@sec</option>
+                                    }
+                                }
+                                <option value="__none__">Lainnya (Tanpa Bagian)</option>
+                            </select>
+                            <div class="input-group input-group-sm" style="max-width: 300px;">
+                                <input type="text" id="newUserSearchInput" class="form-control" placeholder="Search by name or email..." />
+                                <button type="button" class="btn btn-outline-secondary" id="newClearSearchBtn" title="Clear search">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-outline-warning btn-sm" id="newSelectAllBtn">Select All</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="newDeselectAllBtn">Deselect All</button>
+                            <span class="badge bg-warning text-dark ms-auto" id="newSelectedCountBadge">0 selected</span>
+                        </div>
+
+                        <!-- Scrollable Checkbox Container -->
+                        <div id="newUserCheckboxContainer" class="border rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                            @if (ViewBag.Users != null)
+                            {
+                                @foreach (var user in ViewBag.Users)
+                                {
+                                    // Skip users already assigned
+                                    if (assignedUserIds.Contains((string)user.Id))
+                                    {
+                                        continue;
+                                    }
+                                    <div class="form-check new-user-check-item mb-1" data-name="@user.FullName" data-email="@user.Email" data-section="@user.Section">
+                                        <input class="form-check-input new-user-checkbox" type="checkbox" name="NewUserIds" value="@user.Id" id="newuser_@user.Id" />
+                                        <label class="form-check-label" for="newuser_@user.Id">
+                                            <strong>@user.FullName</strong>
+                                            @if (!string.IsNullOrEmpty((string)user.Email))
+                                            {
+                                                <span class="text-muted small ms-1">@user.Email</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty((string)user.Section))
+                                            {
+                                                <span class="badge bg-light text-secondary ms-1" style="font-size: 0.7em;">@user.Section</span>
+                                            }
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <small class="text-muted mt-2 d-block">Select users to add to this assessment. Already-assigned users are excluded.</small>
+                    </div>
+                </div>
+
                 <!-- Form Actions -->
                 <div class="d-flex gap-2 justify-content-end">
                     <a asp-action="Assessment" asp-route-view="manage" class="btn btn-outline-secondary">
@@ -261,5 +374,73 @@
                 }, false)
             })
         })()
+
+        // === Add More Users picker: section filter + text search ===
+        (function () {
+            var newSearchInput = document.getElementById('newUserSearchInput');
+            var newSectionFilter = document.getElementById('newSectionFilter');
+            var newContainer = document.getElementById('newUserCheckboxContainer');
+
+            if (!newSearchInput || !newSectionFilter || !newContainer) return;
+
+            function applyNewFilters() {
+                var query = newSearchInput.value.toLowerCase();
+                var selectedSection = newSectionFilter.value;
+
+                newContainer.querySelectorAll('.new-user-check-item').forEach(function(item) {
+                    var name = (item.dataset.name || '').toLowerCase();
+                    var email = (item.dataset.email || '').toLowerCase();
+                    var section = item.dataset.section || '';
+
+                    var sectionMatch = true;
+                    if (selectedSection === '__none__') {
+                        sectionMatch = (section === '');
+                    } else if (selectedSection !== '') {
+                        sectionMatch = (section === selectedSection);
+                    }
+
+                    var textMatch = (query === '') || name.includes(query) || email.includes(query);
+
+                    item.style.display = (sectionMatch && textMatch) ? '' : 'none';
+                });
+            }
+
+            newSearchInput.addEventListener('input', applyNewFilters);
+            newSectionFilter.addEventListener('change', applyNewFilters);
+
+            document.getElementById('newClearSearchBtn').addEventListener('click', function() {
+                newSearchInput.value = '';
+                applyNewFilters();
+            });
+
+            // === Select All / Deselect All (visible items only) ===
+            document.getElementById('newSelectAllBtn').addEventListener('click', function() {
+                newContainer.querySelectorAll('.new-user-check-item').forEach(function(item) {
+                    if (item.style.display !== 'none') {
+                        item.querySelector('.new-user-checkbox').checked = true;
+                    }
+                });
+                updateNewSelectedCount();
+            });
+
+            document.getElementById('newDeselectAllBtn').addEventListener('click', function() {
+                newContainer.querySelectorAll('.new-user-check-item').forEach(function(item) {
+                    if (item.style.display !== 'none') {
+                        item.querySelector('.new-user-checkbox').checked = false;
+                    }
+                });
+                updateNewSelectedCount();
+            });
+
+            // === Selected count badge ===
+            newContainer.addEventListener('change', updateNewSelectedCount);
+
+            function updateNewSelectedCount() {
+                var count = newContainer.querySelectorAll('.new-user-checkbox:checked').length;
+                document.getElementById('newSelectedCountBadge').textContent = count + ' selected';
+            }
+
+            updateNewSelectedCount(); // init on load
+        })();
     </script>
 }
