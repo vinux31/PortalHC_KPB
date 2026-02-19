@@ -218,13 +218,43 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment", new { view = "manage" });
             }
 
-            // Get list of users for potential reassignment (optional feature)
+            // Query sibling sessions: same Title + Category + Schedule.Date (includes the current session)
+            var siblings = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Title == assessment.Title
+                         && a.Category == assessment.Category
+                         && a.Schedule.Date == assessment.Schedule.Date)
+                .ToListAsync();
+
+            var siblingUserIds = siblings
+                .Where(a => a.User != null)
+                .Select(a => a.UserId)
+                .Distinct()
+                .ToList();
+
+            // Build assigned users list for display (read-only)
+            ViewBag.AssignedUsers = siblings
+                .Where(a => a.User != null)
+                .Select(a => new
+                {
+                    Id = a.Id,
+                    FullName = a.User!.FullName ?? "",
+                    Email = a.User!.Email ?? "",
+                    Section = a.User!.Section ?? ""
+                })
+                .ToList();
+
+            // Store assigned user IDs so the picker can exclude them
+            ViewBag.AssignedUserIds = siblingUserIds;
+
+            // Get list of all users for the picker
             var users = await _context.Users
                 .OrderBy(u => u.FullName)
                 .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                 .ToListAsync();
 
             ViewBag.Users = users;
+            ViewBag.Sections = OrganizationStructure.GetAllSections();
 
             return View(assessment);
         }
@@ -232,7 +262,7 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditAssessment(int id, AssessmentSession model)
+        public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds)
         {
             var assessment = await _context.AssessmentSessions.FindAsync(id);
             if (assessment == null)
@@ -245,6 +275,13 @@ namespace HcPortal.Controllers
             if (assessment.Status == "Completed")
             {
                 TempData["Error"] = "Cannot edit completed assessments.";
+                return RedirectToAction("Assessment", new { view = "manage" });
+            }
+
+            // Rate limit: guard before any DB work
+            if (NewUserIds != null && NewUserIds.Count > 50)
+            {
+                TempData["Error"] = "Cannot assign more than 50 users at once. Please split into multiple batches.";
                 return RedirectToAction("Assessment", new { view = "manage" });
             }
 
@@ -282,6 +319,94 @@ namespace HcPortal.Controllers
                 var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
                 logger.LogError(ex, "Error updating assessment");
                 TempData["Error"] = $"Failed to update assessment: {ex.Message}";
+                return RedirectToAction("Assessment", new { view = "manage" });
+            }
+
+            // ===== BULK ASSIGN: create new sessions for selected users =====
+            if (NewUserIds != null && NewUserIds.Count > 0)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+                try
+                {
+                    // Re-load the saved assessment to get current field values
+                    var savedAssessment = await _context.AssessmentSessions.FindAsync(id);
+                    if (savedAssessment != null)
+                    {
+                        // Query already-assigned sibling user IDs (Title+Category+Schedule.Date match)
+                        var existingSiblingUserIds = await _context.AssessmentSessions
+                            .Where(a => a.Title == savedAssessment.Title
+                                     && a.Category == savedAssessment.Category
+                                     && a.Schedule.Date == savedAssessment.Schedule.Date)
+                            .Select(a => a.UserId)
+                            .Distinct()
+                            .ToListAsync();
+
+                        // Filter out already-assigned users to prevent duplicates
+                        var filteredNewUserIds = NewUserIds
+                            .Where(uid => !existingSiblingUserIds.Contains(uid))
+                            .Distinct()
+                            .ToList();
+
+                        if (filteredNewUserIds.Count > 0)
+                        {
+                            // Validate all provided user IDs exist
+                            var userDictionary = await _context.Users
+                                .Where(u => filteredNewUserIds.Contains(u.Id))
+                                .ToDictionaryAsync(u => u.Id);
+
+                            var missingUsers = filteredNewUserIds.Except(userDictionary.Keys).ToList();
+                            if (missingUsers.Any())
+                            {
+                                logger.LogWarning("Bulk assign: invalid user IDs: {Ids}", string.Join(", ", missingUsers));
+                                TempData["Error"] = $"Invalid user IDs detected: {string.Join(", ", missingUsers)}";
+                                return RedirectToAction("Assessment", new { view = "manage" });
+                            }
+
+                            // Get current user for audit
+                            var currentUser = await _userManager.GetUserAsync(User);
+
+                            // Build new sessions
+                            var newSessions = filteredNewUserIds.Select(uid => new AssessmentSession
+                            {
+                                Title = savedAssessment.Title,
+                                Category = savedAssessment.Category,
+                                Schedule = savedAssessment.Schedule,
+                                DurationMinutes = savedAssessment.DurationMinutes,
+                                Status = savedAssessment.Status,
+                                BannerColor = savedAssessment.BannerColor,
+                                IsTokenRequired = savedAssessment.IsTokenRequired,
+                                AccessToken = savedAssessment.AccessToken,
+                                PassPercentage = savedAssessment.PassPercentage,
+                                AllowAnswerReview = savedAssessment.AllowAnswerReview,
+                                Progress = 0,
+                                UserId = uid,
+                                CreatedBy = currentUser?.Id
+                            }).ToList();
+
+                            _context.AssessmentSessions.AddRange(newSessions);
+
+                            using var transaction = await _context.Database.BeginTransactionAsync();
+                            try
+                            {
+                                await _context.SaveChangesAsync();
+                                await transaction.CommitAsync();
+                                TempData["Success"] = $"Assessment '{savedAssessment.Title}' has been updated. {newSessions.Count} new user(s) assigned.";
+                            }
+                            catch
+                            {
+                                await transaction.RollbackAsync();
+                                throw;
+                            }
+                        }
+                        // If filteredNewUserIds is empty (all were already assigned), no error needed — existing success message stands
+                    }
+                }
+                catch (Exception ex)
+                {
+                    var logger2 = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+                    logger2.LogError(ex, "Error bulk-assigning users to assessment {Id}", id);
+                    TempData["Error"] = $"Assessment updated but bulk assign failed: {ex.Message}";
+                }
             }
 
             return RedirectToAction("Assessment", new { view = "manage" });
