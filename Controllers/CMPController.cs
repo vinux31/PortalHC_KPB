@@ -123,19 +123,48 @@ namespace HcPortal.Controllers
 
                 ViewBag.SearchTerm = search;
 
-                var totalCount = await managementQuery.CountAsync();
-                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-
-                var managementData = await managementQuery
+                // Fetch all matching sessions (include User for grouping)
+                var allSessions = await managementQuery
                     .OrderByDescending(a => a.Schedule)
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
                     .ToListAsync();
 
+                // Group by (Title, Category, Schedule.Date)
+                var grouped = allSessions
+                    .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
+                    .Select(g =>
+                    {
+                        var rep = g.OrderBy(a => a.CreatedAt).First(); // representative session
+                        return new
+                        {
+                            Title           = rep.Title,
+                            Category        = rep.Category,
+                            Schedule        = rep.Schedule,
+                            DurationMinutes = rep.DurationMinutes,
+                            Status          = rep.Status,
+                            IsTokenRequired = rep.IsTokenRequired,
+                            AccessToken     = rep.AccessToken,
+                            PassPercentage  = rep.PassPercentage,
+                            AllowAnswerReview = rep.AllowAnswerReview,
+                            RepresentativeId  = rep.Id,
+                            Users = g.Select(a => new { FullName = a.User?.FullName ?? "Unknown", Email = a.User?.Email ?? "" }).ToList(),
+                            AllIds = g.Select(a => a.Id).ToList()
+                        };
+                    })
+                    .OrderByDescending(g => g.Schedule)
+                    .ToList();
+
+                var totalCount = grouped.Count;
+                var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+                var managementData = grouped
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
                 ViewBag.CurrentPage = page;
-                ViewBag.TotalPages = totalPages;
-                ViewBag.TotalCount = totalCount;
-                ViewBag.PageSize = pageSize;
+                ViewBag.TotalPages  = totalPages;
+                ViewBag.TotalCount  = totalCount;
+                ViewBag.PageSize    = pageSize;
                 ViewBag.ManagementData = managementData;
 
                 // Monitoring tab: Open + Upcoming only, sorted by schedule (soonest first)
@@ -151,7 +180,7 @@ namespace HcPortal.Controllers
                 ViewBag.UserRole = userRole;
                 ViewBag.CanManage = isHCAccess;
 
-                return View(managementData); // Model is Management data; Monitoring is in ViewBag
+                return View(); // ManagementData is in ViewBag; no typed model needed
             }
 
             // ========== WORKER PERSONAL BRANCH ==========
@@ -472,6 +501,68 @@ namespace HcPortal.Controllers
             {
                 logger.LogError(ex, $"Error deleting assessment {id}: {ex.Message}");
                 return Json(new { success = false, message = $"Failed to delete assessment: {ex.Message}" });
+            }
+        }
+
+        // --- DELETE ASSESSMENT GROUP ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssessmentGroup(int representativeId)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+
+            try
+            {
+                // Load representative to get grouping key
+                var rep = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(a => a.Id == representativeId);
+
+                if (rep == null)
+                {
+                    logger.LogWarning($"DeleteAssessmentGroup: representative session {representativeId} not found");
+                    return Json(new { success = false, message = "Assessment not found." });
+                }
+
+                var scheduleDate = rep.Schedule.Date;
+
+                // Find all siblings (same Title + Category + Schedule.Date)
+                var siblings = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Include(a => a.Responses)
+                    .Where(a =>
+                        a.Title == rep.Title &&
+                        a.Category == rep.Category &&
+                        a.Schedule.Date == scheduleDate)
+                    .ToListAsync();
+
+                logger.LogInformation($"DeleteAssessmentGroup: deleting {siblings.Count} sessions for '{rep.Title}'");
+
+                foreach (var session in siblings)
+                {
+                    if (session.Responses.Any())
+                        _context.UserResponses.RemoveRange(session.Responses);
+
+                    if (session.Questions.Any())
+                    {
+                        var opts = session.Questions.SelectMany(q => q.Options).ToList();
+                        if (opts.Any()) _context.AssessmentOptions.RemoveRange(opts);
+                        _context.AssessmentQuestions.RemoveRange(session.Questions);
+                    }
+
+                    _context.AssessmentSessions.Remove(session);
+                }
+
+                await _context.SaveChangesAsync();
+
+                logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}'");
+                return Json(new { success = true, message = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"DeleteAssessmentGroup error for representative {representativeId}: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to delete assessment group: {ex.Message}" });
             }
         }
 
