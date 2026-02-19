@@ -652,7 +652,7 @@ namespace HcPortal.Controllers
                 Sessions = createdSessions
             });
 
-            return RedirectToAction("Index");
+            return RedirectToAction("Assessment", new { view = "manage" });
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
