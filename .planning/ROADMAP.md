@@ -7,6 +7,7 @@
 - ✅ **Post-v1.1 Fix: Admin Role Switcher** — Phase 8 (shipped 2026-02-18)
 - ✅ **v1.2 UX Consolidation** — Phases 9-12 (shipped 2026-02-19)
 - ✅ **v1.3 Assessment Management UX** — Phases 13-15 (shipped 2026-02-19)
+- 🚧 **v1.4 Assessment Monitoring** — Phase 16 (in progress)
 
 ## Phases
 
@@ -163,6 +164,29 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 
 ---
 
+### 🚧 v1.4 Assessment Monitoring (In Progress)
+
+**Milestone Goal:** Replace the passive monitoring tab with a grouped progress view — completion rate, pass rate, and a dedicated detail page for per-user breakdown
+
+#### Phase 16: Grouped Monitoring View
+**Goal:** HC can see all active and recently closed assessments grouped by assessment identity, with completion progress, pass rate, and a dedicated detail page showing per-user status — replacing the flat per-session list
+**Depends on:** Phase 14 (v1.3 complete — grouped manage view pattern established)
+**Requirements:** MON-01, MON-02, MON-03, MON-04, MON-05, MON-06
+**Success Criteria** (what must be TRUE):
+  1. Monitoring tab shows one row per assessment group (Title + Category + Schedule.Date) instead of one row per user session — groups include Open, Upcoming, and sessions closed within the last 30 days
+  2. Each group row displays a completion progress bar with "X/Y completed" count
+  3. Each group row displays a pass rate indicator with "Z passed (N%)" based on completed sessions only
+  4. HC can click "View Details" on a group row to navigate to a dedicated detail page showing each user's name, status (Not started / In progress / Completed), score, and pass/fail result
+  5. Groups are sorted by schedule date — soonest first for Open/Upcoming, most recent first for closed assessments
+**Plans:** 3 plans
+
+Plans:
+- [ ] 16-01: Server-side — MonitoringGroupViewModel for tab + AssessmentMonitoringDetail GET action for detail page; CMPController.Assessment() extended to include recently closed sessions (last 30 days), grouping + sorting logic
+- [ ] 16-02: Monitoring tab view — replace flat session list with grouped summary rows (progress bar, pass rate, "View Details" link per group)
+- [ ] 16-03: Detail page view — AssessmentMonitoringDetail.cshtml with per-user table (name, status, score, pass/fail) and back link to monitoring tab
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -182,3 +206,4 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 | 13. Navigation & Creation Flow | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 14. Bulk Assign | v1.3 | 1/1 | Complete | 2026-02-19 |
 | 15. Quick Edit | v1.3 | 0/1 | Cancelled | 2026-02-19 |
+| 16. Grouped Monitoring View | v1.4 | 0/3 | Not started | - |

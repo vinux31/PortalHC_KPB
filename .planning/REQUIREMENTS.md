@@ -12,7 +12,7 @@ Requirements for Assessment Monitoring milestone. Phases continue from 15 → st
 - [ ] **MON-01**: Monitoring tab groups sessions by assessment (Title + Category + Schedule.Date) — one row per group instead of one row per user
 - [ ] **MON-02**: Each group row shows completion progress — "X/Y completed" with a visual progress bar
 - [ ] **MON-03**: Each group row shows pass rate — "Z passed (N%)" based on completed sessions
-- [ ] **MON-04**: HC can expand a group row to see per-user detail: user name, status (Not started / In progress / Completed), score, pass/fail
+- [ ] **MON-04**: HC can click "View Details" on a group row to navigate to a dedicated detail page showing each user's name, status (Not started / In progress / Completed), score, and pass/fail result
 - [ ] **MON-05**: Monitoring includes recently closed assessments (closed within last 30 days) in addition to Open + Upcoming
 - [ ] **MON-06**: Groups are sorted by schedule date (soonest first for Open/Upcoming, most recent first for closed)
 
