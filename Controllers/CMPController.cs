@@ -27,8 +27,26 @@ namespace HcPortal.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
+
+            if (isHCAccess)
+            {
+                ViewBag.Users = await _context.Users
+                    .OrderBy(u => u.FullName)
+                    .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
+                    .ToListAsync();
+                ViewBag.Sections = OrganizationStructure.GetAllSections();
+                ViewBag.SelectedUserIds = new List<string>();
+
+                if (TempData["CreatedAssessment"] != null)
+                    ViewBag.CreatedAssessment = TempData["CreatedAssessment"];
+            }
+
             return View();
         }
 
@@ -652,7 +670,7 @@ namespace HcPortal.Controllers
                 Sessions = createdSessions
             });
 
-            return RedirectToAction(nameof(CreateAssessment));
+            return RedirectToAction("Index");
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
