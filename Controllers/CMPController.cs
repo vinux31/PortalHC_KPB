@@ -1604,6 +1604,109 @@ namespace HcPortal.Controllers
         }
         #endregion
 
+        #region Package Management
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ManagePackages(int assessmentId)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == assessmentId);
+            if (assessment == null) return NotFound();
+
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                .Where(p => p.AssessmentSessionId == assessmentId)
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            ViewBag.Packages = packages;
+            ViewBag.AssessmentTitle = assessment.Title;
+            ViewBag.AssessmentId = assessmentId;
+
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreatePackage(int assessmentId, string packageName)
+        {
+            if (string.IsNullOrWhiteSpace(packageName))
+            {
+                TempData["Error"] = "Package name is required.";
+                return RedirectToAction("ManagePackages", new { assessmentId });
+            }
+
+            var assessment = await _context.AssessmentSessions.FindAsync(assessmentId);
+            if (assessment == null) return NotFound();
+
+            // Determine next package number
+            var existingCount = await _context.AssessmentPackages
+                .CountAsync(p => p.AssessmentSessionId == assessmentId);
+
+            var pkg = new AssessmentPackage
+            {
+                AssessmentSessionId = assessmentId,
+                PackageName = packageName.Trim(),
+                PackageNumber = existingCount + 1
+            };
+            _context.AssessmentPackages.Add(pkg);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"Package '{packageName}' created.";
+            return RedirectToAction("ManagePackages", new { assessmentId });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeletePackage(int packageId)
+        {
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+
+            if (pkg == null) return NotFound();
+
+            int assessmentId = pkg.AssessmentSessionId;
+
+            // Cascade: options -> questions -> package
+            foreach (var q in pkg.Questions)
+                _context.PackageOptions.RemoveRange(q.Options);
+            _context.PackageQuestions.RemoveRange(pkg.Questions);
+            _context.AssessmentPackages.Remove(pkg);
+
+            await _context.SaveChangesAsync();
+            TempData["Success"] = $"Package '{pkg.PackageName}' deleted.";
+            return RedirectToAction("ManagePackages", new { assessmentId });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> PreviewPackage(int packageId)
+        {
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions.OrderBy(q => q.Order))
+                    .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+
+            if (pkg == null) return NotFound();
+
+            var assessment = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (assessment == null) return NotFound();
+
+            ViewBag.PackageName = pkg.PackageName;
+            ViewBag.AssessmentTitle = assessment?.Title ?? "";
+            ViewBag.AssessmentId = pkg.AssessmentSessionId;
+
+            return View(pkg.Questions.OrderBy(q => q.Order).ToList());
+        }
+
+        #endregion
+
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> UserAssessmentHistory(string userId)
