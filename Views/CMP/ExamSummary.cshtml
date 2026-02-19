@@ -1,0 +1,93 @@
+@model List<HcPortal.Models.ExamSummaryItem>
+
+@{
+    ViewData["Title"] = "Review Your Answers";
+    int unanswered = (int)ViewBag.UnansweredCount;
+    int assessmentId = (int)ViewBag.AssessmentId;
+    int? assignmentId = ViewBag.AssignmentId as int?;
+    var answers = ViewBag.Answers as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<!-- Minimal header — no sticky needed here -->
+<div class="container py-4" style="max-width: 860px;">
+    <div class="text-center mb-4">
+        <h4 class="fw-bold">Review Your Answers</h4>
+        <p class="text-muted">@ViewBag.AssessmentTitle</p>
+    </div>
+
+    @if (unanswered > 0)
+    {
+        <div class="alert alert-warning d-flex align-items-center mb-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            You have <strong class="mx-1">@unanswered</strong> unanswered question(s). You can still submit.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-success d-flex align-items-center mb-4">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            All @Model.Count questions answered. Ready to submit.
+        </div>
+    }
+
+    <!-- Summary table -->
+    <div class="card shadow mb-4">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:60px">#</th>
+                        <th>Question</th>
+                        <th>Your Answer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr class="@(item.IsAnswered ? "" : "table-warning")">
+                            <td class="fw-bold">@item.DisplayNumber</td>
+                            <td>
+                                <span class="text-truncate d-inline-block" style="max-width: 420px;"
+                                      title="@item.QuestionText">
+                                    @item.QuestionText
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.IsAnswered)
+                                {
+                                    <span class="text-success">@item.SelectedOptionText</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted fst-italic">Not answered</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Final submit form -->
+    <form asp-action="SubmitExam" method="post">
+        <input type="hidden" name="id" value="@assessmentId" />
+        @foreach (var kvp in answers)
+        {
+            <input type="hidden" name="answers[@kvp.Key]" value="@kvp.Value" />
+        }
+
+        <div class="d-flex justify-content-between align-items-center">
+            <a asp-action="StartExam" asp-route-id="@assessmentId" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Back to Exam
+            </a>
+
+            <button type="submit" class="btn btn-success btn-lg fw-bold"
+                    onclick="return confirm('@(unanswered > 0
+                        ? $"You have {unanswered} unanswered question(s). Submit anyway?"
+                        : "Submit your exam? This cannot be undone.")')">
+                <i class="bi bi-check-circle-fill me-2"></i>Submit Exam
+            </button>
+        </div>
+    </form>
+</div>

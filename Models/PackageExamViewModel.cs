@@ -36,4 +36,14 @@ namespace HcPortal.Models
         public string OptionText { get; set; } = "";
         // Display letter (A/B/C/D) is assigned at render time by position index, NOT stored here
     }
+
+    public class ExamSummaryItem
+    {
+        public int DisplayNumber { get; set; }
+        public int QuestionId { get; set; }
+        public string QuestionText { get; set; } = "";
+        public int? SelectedOptionId { get; set; }
+        public string? SelectedOptionText { get; set; }
+        public bool IsAnswered => SelectedOptionId.HasValue;
+    }
 }

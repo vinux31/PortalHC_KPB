@@ -1424,6 +1424,140 @@ namespace HcPortal.Controllers
             }
         }
 
+        // --- EXAM SUMMARY (PRE-SUBMIT REVIEW) ---
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ExamSummary(int id, int? assignmentId, Dictionary<int, int> answers)
+        {
+            // Validate ownership
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var assessment = await _context.AssessmentSessions.FindAsync(id);
+            if (assessment == null) return NotFound();
+            if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
+                return Forbid();
+            if (assessment.Status == "Completed")
+            {
+                TempData["Error"] = "This assessment has already been completed.";
+                return RedirectToAction("Assessment");
+            }
+
+            // Store answers in TempData (dictionary key=questionId, value=selectedOptionId)
+            TempData["PendingAnswers"] = System.Text.Json.JsonSerializer.Serialize(answers);
+            TempData["PendingAssessmentId"] = id;
+            TempData["PendingAssignmentId"] = assignmentId;
+
+            return RedirectToAction("ExamSummary", new { id });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExamSummary(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var assessment = await _context.AssessmentSessions.FindAsync(id);
+            if (assessment == null) return NotFound();
+            if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
+                return Forbid();
+
+            // Retrieve pending answers from TempData
+            var answersJson = TempData["PendingAnswers"] as string ?? "{}";
+            var answers = System.Text.Json.JsonSerializer.Deserialize<Dictionary<int, int>>(answersJson)
+                          ?? new Dictionary<int, int>();
+
+            // Preserve for the final submit form
+            TempData.Keep("PendingAnswers");
+            TempData.Keep("PendingAssessmentId");
+            TempData.Keep("PendingAssignmentId");
+
+            // CookieTempDataProvider serializes through JSON, which deserializes integers as long — handle both int and long
+            int? assignmentId = TempData["PendingAssignmentId"] switch {
+                int i => i,
+                long l => (int)l,
+                _ => (int?)null
+            };
+
+            // Build summary items
+            var summaryItems = new List<ExamSummaryItem>();
+
+            // Check for package path
+            var assignment = assignmentId.HasValue
+                ? await _context.UserPackageAssignments.FindAsync(assignmentId.Value)
+                : null;
+
+            if (assignment != null)
+            {
+                var shuffledQIds = assignment.GetShuffledQuestionIds();
+                var questions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => q.AssessmentPackageId == assignment.AssessmentPackageId)
+                    .ToListAsync();
+
+                var qLookup = questions.ToDictionary(q => q.Id);
+                var optLookup = questions.SelectMany(q => q.Options).ToDictionary(o => o.Id);
+
+                int num = 1;
+                foreach (var qId in shuffledQIds)
+                {
+                    if (!qLookup.TryGetValue(qId, out var q)) continue;
+                    int? selectedOptId = answers.TryGetValue(qId, out var v) ? v : (int?)null;
+                    string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
+                        ? opt.OptionText
+                        : null;
+
+                    summaryItems.Add(new ExamSummaryItem
+                    {
+                        DisplayNumber = num++,
+                        QuestionId = qId,
+                        QuestionText = q.QuestionText,
+                        SelectedOptionId = selectedOptId,
+                        SelectedOptionText = selectedText
+                    });
+                }
+            }
+            else
+            {
+                // Legacy path: AssessmentQuestion
+                var legacyQuestions = await _context.AssessmentQuestions
+                    .Include(q => q.Options)
+                    .Where(q => q.AssessmentSessionId == id)
+                    .OrderBy(q => q.Order)
+                    .ToListAsync();
+
+                var optLookup = legacyQuestions.SelectMany(q => q.Options).ToDictionary(o => o.Id);
+
+                int num = 1;
+                foreach (var q in legacyQuestions)
+                {
+                    int? selectedOptId = answers.TryGetValue(q.Id, out var v) ? v : (int?)null;
+                    string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
+                        ? opt.OptionText
+                        : null;
+
+                    summaryItems.Add(new ExamSummaryItem
+                    {
+                        DisplayNumber = num++,
+                        QuestionId = q.Id,
+                        QuestionText = q.QuestionText,
+                        SelectedOptionId = selectedOptId,
+                        SelectedOptionText = selectedText
+                    });
+                }
+            }
+
+            int unansweredCount = summaryItems.Count(s => !s.SelectedOptionId.HasValue);
+
+            ViewBag.AssessmentTitle = assessment.Title;
+            ViewBag.AssessmentId = id;
+            ViewBag.AssignmentId = assignmentId;
+            ViewBag.UnansweredCount = unansweredCount;
+            ViewBag.Answers = answers; // passed to the hidden final-submit form
+            return View(summaryItems);
+        }
+
         // ... existing code ...
 
         #region Question Management
@@ -1494,6 +1628,7 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageQuestions", new { id = assessmentId });
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers)
         {
             var assessment = await _context.AssessmentSessions
@@ -1518,105 +1653,201 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment");
             }
 
-            int totalScore = 0;
-            int maxScore = 0;
+            // Check for package path — must happen before any grading logic
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
 
-            // Process Answers
-            foreach (var question in assessment.Questions)
+            if (packageAssignment != null)
             {
-                maxScore += question.ScoreValue;
-                int? selectedOptionId = null;
-
-                if (answers.ContainsKey(question.Id))
-                {
-                    selectedOptionId = answers[question.Id];
-                    var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId);
-                    
-                    // Check if correct
-                    if (selectedOption != null && selectedOption.IsCorrect)
-                    {
-                        totalScore += question.ScoreValue;
-                    }
-                }
-
-                // Save User Response
-                _context.UserResponses.Add(new UserResponse
-                {
-                    AssessmentSessionId = id,
-                    AssessmentQuestionId = question.Id,
-                    SelectedOptionId = selectedOptionId
-                });
-            }
-
-            // Calculate Grade (0-100 scale if needed, or raw score)
-            // For now, let's store the raw score sum or percentage?
-            // Model.Score is int, usually 0-100 logic is preferred.
-            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-
-            assessment.Score = finalPercentage;
-            assessment.Status = "Completed";
-            assessment.Progress = 100;
-            assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
-            assessment.CompletedAt = DateTime.UtcNow;
-
-            // ========== AUTO-UPDATE COMPETENCY LEVELS ==========
-            if (assessment.IsPassed == true)
-            {
-                // Find competencies mapped to this assessment's category
-                var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                    .Include(m => m.KkjMatrixItem)
-                    .Where(m => m.AssessmentCategory == assessment.Category &&
-                                (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
+                // ---- PACKAGE PATH: ID-based grading via PackageOption.IsCorrect ----
+                var packageQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => q.AssessmentPackageId == packageAssignment.AssessmentPackageId)
                     .ToListAsync();
 
-                if (mappedCompetencies.Any())
+                int totalScore = 0;
+                int maxScore = packageQuestions.Count * 10; // each question = 10 points
+
+                foreach (var q in packageQuestions)
                 {
-                    // Get user's position for target level resolution
-                    var assessmentUser = await _context.Users.FindAsync(assessment.UserId);
+                    int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
 
-                    foreach (var mapping in mappedCompetencies)
+                    if (selectedOptId.HasValue)
                     {
-                        // Check minimum score if specified, otherwise use pass status
-                        if (mapping.MinimumScoreRequired.HasValue && assessment.Score < mapping.MinimumScoreRequired.Value)
-                            continue;
+                        var selectedOption = q.Options.FirstOrDefault(o => o.Id == selectedOptId.Value);
+                        if (selectedOption != null && selectedOption.IsCorrect)
+                            totalScore += q.ScoreValue;
+                    }
 
-                        // Check if user already has a level for this competency
-                        var existingLevel = await _context.UserCompetencyLevels
-                            .FirstOrDefaultAsync(c => c.UserId == assessment.UserId &&
-                                                     c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+                    // Note: UserResponse records not created for package exams — AllowAnswerReview is not supported
+                    // for package-based exams in this phase. UserResponse.AssessmentQuestionId and
+                    // UserResponse.SelectedOptionId have hard FK constraints to AssessmentQuestions and
+                    // AssessmentOptions tables; PackageQuestion/PackageOption IDs do not exist in those tables.
+                }
 
-                        if (existingLevel == null)
+                int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+                assessment.Score = finalPercentage;
+                assessment.Status = "Completed";
+                assessment.Progress = 100;
+                assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
+                assessment.CompletedAt = DateTime.UtcNow;
+
+                packageAssignment.IsCompleted = true;
+
+                // Auto-update competency levels (same logic as legacy path)
+                if (assessment.IsPassed == true)
+                {
+                    var mappedCompetencies = await _context.AssessmentCompetencyMaps
+                        .Include(m => m.KkjMatrixItem)
+                        .Where(m => m.AssessmentCategory == assessment.Category &&
+                                    (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
+                        .ToListAsync();
+
+                    if (mappedCompetencies.Any())
+                    {
+                        var assessmentUser = await _context.Users.FindAsync(assessment.UserId);
+                        foreach (var mapping in mappedCompetencies)
                         {
-                            // Create new competency level record
-                            int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, assessmentUser?.Position);
-                            _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                            if (mapping.MinimumScoreRequired.HasValue && assessment.Score < mapping.MinimumScoreRequired.Value)
+                                continue;
+
+                            var existingLevel = await _context.UserCompetencyLevels
+                                .FirstOrDefaultAsync(c => c.UserId == assessment.UserId &&
+                                                         c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+                            if (existingLevel == null)
                             {
-                                UserId = assessment.UserId,
-                                KkjMatrixItemId = mapping.KkjMatrixItemId,
-                                CurrentLevel = mapping.LevelGranted,
-                                TargetLevel = targetLevel,
-                                Source = "Assessment",
-                                AssessmentSessionId = assessment.Id,
-                                AchievedAt = DateTime.UtcNow
-                            });
-                        }
-                        else if (mapping.LevelGranted > existingLevel.CurrentLevel)
-                        {
-                            // Only upgrade, never downgrade (monotonic progression)
-                            existingLevel.CurrentLevel = mapping.LevelGranted;
-                            existingLevel.Source = "Assessment";
-                            existingLevel.AssessmentSessionId = assessment.Id;
-                            existingLevel.UpdatedAt = DateTime.UtcNow;
+                                int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, assessmentUser?.Position);
+                                _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                                {
+                                    UserId = assessment.UserId,
+                                    KkjMatrixItemId = mapping.KkjMatrixItemId,
+                                    CurrentLevel = mapping.LevelGranted,
+                                    TargetLevel = targetLevel,
+                                    Source = "Assessment",
+                                    AssessmentSessionId = assessment.Id,
+                                    AchievedAt = DateTime.UtcNow
+                                });
+                            }
+                            else if (mapping.LevelGranted > existingLevel.CurrentLevel)
+                            {
+                                existingLevel.CurrentLevel = mapping.LevelGranted;
+                                existingLevel.Source = "Assessment";
+                                existingLevel.AssessmentSessionId = assessment.Id;
+                                existingLevel.UpdatedAt = DateTime.UtcNow;
+                            }
                         }
                     }
                 }
+
+                _context.AssessmentSessions.Update(assessment);
+                await _context.SaveChangesAsync();
+
+                return RedirectToAction("Results", new { id });
             }
+            else
+            {
+                // ---- LEGACY PATH: existing AssessmentQuestion + AssessmentOption grading ----
+                int totalScore = 0;
+                int maxScore = 0;
 
-            _context.AssessmentSessions.Update(assessment);
-            await _context.SaveChangesAsync();
+                // Process Answers
+                foreach (var question in assessment.Questions)
+                {
+                    maxScore += question.ScoreValue;
+                    int? selectedOptionId = null;
 
-            // Redirect to Results Page
-            return RedirectToAction("Results", new { id = id });
+                    if (answers.ContainsKey(question.Id))
+                    {
+                        selectedOptionId = answers[question.Id];
+                        var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId);
+
+                        // Check if correct
+                        if (selectedOption != null && selectedOption.IsCorrect)
+                        {
+                            totalScore += question.ScoreValue;
+                        }
+                    }
+
+                    // Save User Response
+                    _context.UserResponses.Add(new UserResponse
+                    {
+                        AssessmentSessionId = id,
+                        AssessmentQuestionId = question.Id,
+                        SelectedOptionId = selectedOptionId
+                    });
+                }
+
+                // Calculate Grade (0-100 scale if needed, or raw score)
+                // For now, let's store the raw score sum or percentage?
+                // Model.Score is int, usually 0-100 logic is preferred.
+                int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+                assessment.Score = finalPercentage;
+                assessment.Status = "Completed";
+                assessment.Progress = 100;
+                assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
+                assessment.CompletedAt = DateTime.UtcNow;
+
+                // ========== AUTO-UPDATE COMPETENCY LEVELS ==========
+                if (assessment.IsPassed == true)
+                {
+                    // Find competencies mapped to this assessment's category
+                    var mappedCompetencies = await _context.AssessmentCompetencyMaps
+                        .Include(m => m.KkjMatrixItem)
+                        .Where(m => m.AssessmentCategory == assessment.Category &&
+                                    (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
+                        .ToListAsync();
+
+                    if (mappedCompetencies.Any())
+                    {
+                        // Get user's position for target level resolution
+                        var assessmentUser = await _context.Users.FindAsync(assessment.UserId);
+
+                        foreach (var mapping in mappedCompetencies)
+                        {
+                            // Check minimum score if specified, otherwise use pass status
+                            if (mapping.MinimumScoreRequired.HasValue && assessment.Score < mapping.MinimumScoreRequired.Value)
+                                continue;
+
+                            // Check if user already has a level for this competency
+                            var existingLevel = await _context.UserCompetencyLevels
+                                .FirstOrDefaultAsync(c => c.UserId == assessment.UserId &&
+                                                         c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+
+                            if (existingLevel == null)
+                            {
+                                // Create new competency level record
+                                int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, assessmentUser?.Position);
+                                _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                                {
+                                    UserId = assessment.UserId,
+                                    KkjMatrixItemId = mapping.KkjMatrixItemId,
+                                    CurrentLevel = mapping.LevelGranted,
+                                    TargetLevel = targetLevel,
+                                    Source = "Assessment",
+                                    AssessmentSessionId = assessment.Id,
+                                    AchievedAt = DateTime.UtcNow
+                                });
+                            }
+                            else if (mapping.LevelGranted > existingLevel.CurrentLevel)
+                            {
+                                // Only upgrade, never downgrade (monotonic progression)
+                                existingLevel.CurrentLevel = mapping.LevelGranted;
+                                existingLevel.Source = "Assessment";
+                                existingLevel.AssessmentSessionId = assessment.Id;
+                                existingLevel.UpdatedAt = DateTime.UtcNow;
+                            }
+                        }
+                    }
+                }
+
+                _context.AssessmentSessions.Update(assessment);
+                await _context.SaveChangesAsync();
+
+                // Redirect to Results Page
+                return RedirectToAction("Results", new { id = id });
+            }
         }
         [HttpGet]
         public async Task<IActionResult> Certificate(int id)
