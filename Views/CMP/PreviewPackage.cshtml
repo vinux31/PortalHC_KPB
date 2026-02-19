@@ -1,0 +1,77 @@
+@model List<HcPortal.Models.PackageQuestion>
+@using System.Collections.Generic
+
+@{
+    ViewData["Title"] = "Preview Package";
+    string[] letters = { "A", "B", "C", "D", "E" };
+}
+
+<!-- PREVIEW MODE banner -->
+<div class="alert alert-warning alert-dismissible text-center fw-bold fs-6 mb-0 rounded-0 border-0"
+     style="background-color: #fff3cd; border-bottom: 3px solid #ffc107 !important;">
+    <i class="bi bi-eye-fill me-2"></i>
+    PREVIEW MODE — This is how the exam will appear to workers. Questions are shown in import order. Randomization is NOT applied.
+</div>
+
+<div class="container py-4" style="max-width: 860px;">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0">@ViewBag.PackageName</h4>
+            <p class="text-muted mb-0">@ViewBag.AssessmentTitle — @Model.Count questions</p>
+        </div>
+        <a asp-action="ManagePackages" asp-route-assessmentId="@ViewBag.AssessmentId"
+           class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Packages
+        </a>
+    </div>
+
+    <!-- Question list (read-only) -->
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No questions in this package yet. Import questions first.</div>
+    }
+    else
+    {
+        int displayNum = 1;
+        foreach (var question in Model)
+        {
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <p class="fw-semibold mb-3">
+                        <span class="text-primary me-2">@(displayNum++).</span>
+                        @question.QuestionText
+                    </p>
+                    <div class="ps-3">
+                        @{ int optIdx = 0; }
+                        @foreach (var option in question.Options)
+                        {
+                            <div class="form-check mb-1">
+                                <input class="form-check-input" type="radio"
+                                       disabled
+                                       @(option.IsCorrect ? "checked" : "") />
+                                <label class="form-check-label @(option.IsCorrect ? "text-success fw-semibold" : "")">
+                                    <span class="me-1">@letters[optIdx % letters.Length].</span>
+                                    @option.OptionText
+                                    @if (option.IsCorrect)
+                                    {
+                                        <span class="badge bg-success ms-2">Correct</span>
+                                    }
+                                </label>
+                            </div>
+                            optIdx++;
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Bottom back link -->
+    <div class="mt-4 text-center">
+        <a asp-action="ManagePackages" asp-route-assessmentId="@ViewBag.AssessmentId"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Manage Packages
+        </a>
+    </div>
+</div>

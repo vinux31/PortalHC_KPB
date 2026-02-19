@@ -244,6 +244,9 @@
                                                 <a asp-action="ManageQuestions" asp-route-id="@group.RepresentativeId" class="btn btn-sm btn-outline-info flex-fill">
                                                     <i class="bi bi-list-check"></i> Questions
                                                 </a>
+                                                <a asp-action="ManagePackages" asp-route-assessmentId="@group.RepresentativeId" class="btn btn-sm btn-outline-info flex-fill">
+                                                    <i class="bi bi-collection me-1"></i>Packages
+                                                </a>
                                             </div>
                                             <div class="d-flex gap-2 flex-wrap mt-2">
                                                 @if ((bool)group.IsTokenRequired)
