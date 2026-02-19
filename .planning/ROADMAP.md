@@ -165,11 +165,10 @@ See `.planning/milestones/v1.2-ROADMAP.md` for full details.
   2. CMP Index no longer contains an embedded Create Assessment form — the page is clean for all roles
   3. The "Create Assessment" button on the manage view links to `/CMP/CreateAssessment` (the dedicated page)
   4. After HC submits a new assessment, they are redirected to the manage view (`/CMP/Assessment?view=manage`), not CMP Index
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 13-01: CMP Index — remove embedded form, add role-gated Manage Assessments card
-- [ ] 13-02: Create Assessment flow — fix button link and post-creation redirect
+- [ ] 13-01-PLAN.md — Remove embedded form from Index, add Manage Assessments card, revert Index() controller, fix CreateAssessment redirect
 
 #### Phase 14: Bulk Assign
 **Goal:** HC can see who is already assigned to an assessment and add more users directly from the existing Edit Assessment page, with new AssessmentSessions created on save
@@ -215,6 +214,6 @@ Plans:
 | 10. Unified Training Records | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 11. Assessment Page Role Filter | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 12. Dashboard Consolidation | v1.2 | 3/3 | Complete | 2026-02-19 |
-| 13. Navigation & Creation Flow | v1.3 | 0/2 | Not started | - |
+| 13. Navigation & Creation Flow | v1.3 | 0/1 | Not started | - |
 | 14. Bulk Assign | v1.3 | 0/1 | Not started | - |
 | 15. Quick Edit | v1.3 | 0/1 | Not started | - |
