@@ -1705,6 +1705,160 @@ namespace HcPortal.Controllers
             return View(pkg.Questions.OrderBy(q => q.Order).ToList());
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ImportPackageQuestions(int packageId)
+        {
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
+            ViewBag.PackageId = packageId;
+            ViewBag.PackageName = pkg.PackageName;
+            ViewBag.AssessmentId = pkg.AssessmentSessionId;
+            ViewBag.CurrentQuestionCount = pkg.Questions.Count;
+            return View();
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportPackageQuestions(
+            int packageId, IFormFile? excelFile, string? pasteText)
+        {
+            var pkg = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                .FirstOrDefaultAsync(p => p.Id == packageId);
+            if (pkg == null) return NotFound();
+
+            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct)> rows;
+            var errors = new List<string>();
+
+            if (excelFile != null && excelFile.Length > 0)
+            {
+                // Parse xlsx with ClosedXML
+                rows = new List<(string, string, string, string, string, string)>();
+                try
+                {
+                    using var stream = excelFile.OpenReadStream();
+                    using var workbook = new XLWorkbook(stream);
+                    var ws = workbook.Worksheets.First();
+                    int rowNum = 1;
+                    foreach (var row in ws.RowsUsed().Skip(1)) // skip header row
+                    {
+                        rowNum++;
+                        var q   = row.Cell(1).GetString().Trim();
+                        var a   = row.Cell(2).GetString().Trim();
+                        var b   = row.Cell(3).GetString().Trim();
+                        var c   = row.Cell(4).GetString().Trim();
+                        var d   = row.Cell(5).GetString().Trim();
+                        var cor = row.Cell(6).GetString().Trim().ToUpper();
+                        rows.Add((q, a, b, c, d, cor));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"Could not read Excel file: {ex.Message}";
+                    return RedirectToAction("ImportPackageQuestions", new { packageId });
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(pasteText))
+            {
+                // Parse tab-separated paste (skip first line if it looks like a header)
+                rows = new List<(string, string, string, string, string, string)>();
+                var lines = pasteText.Split('\n')
+                    .Select(l => l.TrimEnd('\r'))
+                    .Where(l => !string.IsNullOrWhiteSpace(l))
+                    .ToList();
+
+                // Detect and skip header: if first row's last cell is "Correct" (case-insensitive)
+                int startIndex = 0;
+                if (lines.Count > 0)
+                {
+                    var firstCells = lines[0].Split('\t');
+                    if (firstCells.Length >= 6 && firstCells[5].Trim().ToLower() == "correct")
+                        startIndex = 1;
+                }
+
+                for (int i = startIndex; i < lines.Count; i++)
+                {
+                    var cells = lines[i].Split('\t');
+                    if (cells.Length < 6)
+                    {
+                        errors.Add($"Row {i + 1}: expected 6 columns (Question|OptA|OptB|OptC|OptD|Correct), got {cells.Length}.");
+                        continue;
+                    }
+                    rows.Add((
+                        cells[0].Trim(), cells[1].Trim(), cells[2].Trim(),
+                        cells[3].Trim(), cells[4].Trim(), cells[5].Trim().ToUpper()
+                    ));
+                }
+            }
+            else
+            {
+                TempData["Error"] = "Please upload an Excel file or paste question data.";
+                return RedirectToAction("ImportPackageQuestions", new { packageId });
+            }
+
+            // Validate and persist rows
+            int order = pkg.Questions.Count + 1;
+            int added = 0;
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var (q, a, b, c, d, cor) = rows[i];
+                if (string.IsNullOrWhiteSpace(q))
+                {
+                    errors.Add($"Row {i + 1}: Question text is empty. Skipped.");
+                    continue;
+                }
+                if (string.IsNullOrWhiteSpace(a) || string.IsNullOrWhiteSpace(b) ||
+                    string.IsNullOrWhiteSpace(c) || string.IsNullOrWhiteSpace(d))
+                {
+                    errors.Add($"Row {i + 1}: One or more options are empty. Skipped.");
+                    continue;
+                }
+                if (!new[] { "A", "B", "C", "D" }.Contains(cor))
+                {
+                    errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
+                    continue;
+                }
+
+                var newQ = new PackageQuestion
+                {
+                    AssessmentPackageId = packageId,
+                    QuestionText = q,
+                    Order = order++,
+                    ScoreValue = 10
+                };
+                _context.PackageQuestions.Add(newQ);
+                await _context.SaveChangesAsync(); // flush to get ID
+
+                // Correct index: A=0, B=1, C=2, D=3
+                int correctIndex = cor == "A" ? 0 : cor == "B" ? 1 : cor == "C" ? 2 : 3;
+                var opts = new[] { a, b, c, d };
+                for (int oi = 0; oi < opts.Length; oi++)
+                {
+                    _context.PackageOptions.Add(new PackageOption
+                    {
+                        PackageQuestionId = newQ.Id,
+                        OptionText = opts[oi],
+                        IsCorrect = (oi == correctIndex)
+                    });
+                }
+                await _context.SaveChangesAsync();
+                added++;
+            }
+
+            if (errors.Any())
+                TempData["Warning"] = $"Imported {added} question(s) with {errors.Count} error(s): " +
+                                      string.Join(" | ", errors.Take(5));
+            else
+                TempData["Success"] = $"Successfully imported {added} question(s) into {pkg.PackageName}.";
+
+            return RedirectToAction("ManagePackages", new { assessmentId = pkg.AssessmentSessionId });
+        }
+
         #endregion
 
         [HttpGet]

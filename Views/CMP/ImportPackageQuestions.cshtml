@@ -1,0 +1,93 @@
+@{
+    ViewData["Title"] = "Import Questions";
+    int packageId = (int)ViewBag.PackageId;
+}
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0">Import Questions</h1>
+            <p class="text-muted">Package: <strong>@ViewBag.PackageName</strong> — @ViewBag.CurrentQuestionCount existing question(s)</p>
+        </div>
+        <a asp-action="ManagePackages" asp-route-assessmentId="@ViewBag.AssessmentId" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Back to Packages
+        </a>
+    </div>
+
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show">@TempData["Warning"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+    }
+
+    <!-- Format reference card -->
+    <div class="card border-info mb-4">
+        <div class="card-body py-2">
+            <strong class="text-info">Required column format:</strong>
+            <code class="ms-2">Question | Option A | Option B | Option C | Option D | Correct</code>
+            <span class="ms-2 text-muted">— "Correct" must be A, B, C, or D (case insensitive)</span>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-3" id="importTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="file-tab" data-bs-toggle="tab"
+                    data-bs-target="#file-pane" type="button" role="tab">
+                <i class="bi bi-file-earmark-excel me-1"></i>Upload Excel File
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="paste-tab" data-bs-toggle="tab"
+                    data-bs-target="#paste-pane" type="button" role="tab">
+                <i class="bi bi-clipboard me-1"></i>Paste from Excel
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- File Upload Tab -->
+        <div class="tab-pane fade show active" id="file-pane" role="tabpanel">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form asp-action="ImportPackageQuestions" method="post"
+                          enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="packageId" value="@packageId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Excel File (.xlsx)</label>
+                            <input type="file" name="excelFile" class="form-control"
+                                   accept=".xlsx" required />
+                            <div class="form-text">First row is treated as header and skipped automatically.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-2"></i>Import from File
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Paste Tab -->
+        <div class="tab-pane fade" id="paste-pane" role="tabpanel">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form asp-action="ImportPackageQuestions" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="packageId" value="@packageId" />
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Paste rows from Excel</label>
+                            <textarea name="pasteText" class="form-control font-monospace"
+                                      rows="12"
+                                      placeholder="Paste rows here (Ctrl+V after copying from Excel)..."
+                                      required></textarea>
+                            <div class="form-text">Select and copy rows from Excel (including or excluding header), then paste here. Columns must match the format above.</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-clipboard-check me-2"></i>Import from Paste
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
