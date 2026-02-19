@@ -178,10 +178,10 @@ Plans:
   1. The Edit Assessment page (`/CMP/EditAssessment`) includes a section showing currently assigned users
   2. HC can select additional users from a picker on the same Edit Assessment page and save
   3. Saving the user additions creates new AssessmentSessions for the newly selected users without removing or altering existing assignees
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 14-01: Extend EditAssessment view and CMPController POST action — add currently-assigned user list + multi-select picker; create AssessmentSessions on save
+- [ ] 14-01-PLAN.md — Extend EditAssessment view and controller: add assigned user list, multi-select picker, bulk AssessmentSession creation on save
 
 #### Phase 15: Quick Edit
 **Goal:** HC can change an assessment's status and reschedule it directly from the manage view card without navigating to the full Edit page
