@@ -38,9 +38,14 @@
             <div>
                 @if (viewMode == "manage")
                 {
-                    <a asp-action="Assessment" asp-route-view="personal" class="btn btn-outline-primary">
-                        <i class="bi bi-person-circle me-1"></i> Personal View
-                    </a>
+                    <div class="d-flex gap-2">
+                        <a asp-action="CreateAssessment" class="btn btn-success">
+                            <i class="bi bi-plus-circle me-1"></i> Create Assessment
+                        </a>
+                        <a asp-action="Assessment" asp-route-view="personal" class="btn btn-outline-primary">
+                            <i class="bi bi-person-circle me-1"></i> Personal View
+                        </a>
+                    </div>
                 }
                 else
                 {
