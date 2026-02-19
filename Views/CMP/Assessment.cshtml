@@ -242,7 +242,7 @@
                                                     <i class="bi bi-pencil"></i> Edit
                                                 </a>
                                                 <button class="btn btn-sm btn-outline-success flex-fill"
-                                                        onclick="openQuickEditModal(@group.RepresentativeId, '@Html.Raw(((string)group.Title).Replace("'", "\\'"))', '@group.Status', '@((DateTime)group.Schedule).ToString("yyyy-MM-dd")')">
+                                                        onclick="openQuickEditModal(@group.RepresentativeId, @Json.Serialize((string)group.Title), '@group.Status', '@((DateTime)group.Schedule).ToString("yyyy-MM-dd")')">
                                                     <i class="bi bi-lightning"></i> Quick Edit
                                                 </button>
                                                 <a asp-action="ManageQuestions" asp-route-id="@group.RepresentativeId" class="btn btn-sm btn-outline-info flex-fill">
@@ -580,6 +580,9 @@
     }
 
 </div>
+
+@* Anti-forgery token for AJAX requests *@
+@Html.AntiForgeryToken()
 
 <!-- Token Verification Modal -->
 <div class="modal fade" id="tokenModal" tabindex="-1" aria-hidden="true">
@@ -1051,7 +1054,7 @@
         document.getElementById('quickEditError').classList.add('d-none');
 
         var modalEl = document.getElementById('quickEditModal');
-        quickEditModalObj = new bootstrap.Modal(modalEl);
+        quickEditModalObj = bootstrap.Modal.getOrCreateInstance(modalEl);
         quickEditModalObj.show();
     }
 
@@ -1069,12 +1072,17 @@
             return;
         }
 
+        var token = $('input[name="__RequestVerificationToken"]').val();
+        if (!token) {
+            errorEl.innerText = 'Security token not found. Please refresh the page and try again.';
+            errorEl.classList.remove('d-none');
+            return;
+        }
+
         // Loading state
         saveBtn.disabled = true;
         saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
         errorEl.classList.add('d-none');
-
-        var token = $('input[name="__RequestVerificationToken"]').val();
 
         $.ajax({
             url: '/CMP/QuickEdit',
@@ -1172,6 +1180,3 @@
     }
 </script>
 }
-
-@* Anti-forgery token for AJAX requests *@
-@Html.AntiForgeryToken()
