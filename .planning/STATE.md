@@ -6,16 +6,16 @@ See: .planning/PROJECT.md (updated 2026-02-19)
 
 **Latest milestone:** v1.5 Question and Exam UX — IN PROGRESS
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 17 — Question and Exam UX Improvements (3/7 plans complete)
+**Current focus:** Phase 17 — Question and Exam UX Improvements (4/7 plans complete)
 
 ## Current Position
 
 **Milestone:** v1.5 Question and Exam UX
 **Phase:** 17 of 17 (Question and Exam UX Improvements)
-**Status:** In Progress (3/7 plans complete)
-**Last activity:** 2026-02-19 — Phase 17 Plan 03 complete: Excel import for package questions (ImportPackageQuestions GET/POST with ClosedXML .xlsx parsing and TSV paste; row-level validation; two-tab Bootstrap view)
+**Status:** In Progress (4/7 plans complete)
+**Last activity:** 2026-02-19 — Phase 17 Plan 04 complete: PackageExamViewModel + StartExam GET with per-user package assignment, Fisher-Yates shuffle, UserPackageAssignment persistence, legacy fallback path
 
-Progress: [██████░░░░░░░░░░░░░░] 43% (v1.5, 3/7 plans)
+Progress: [████████░░░░░░░░░░░░] 57% (v1.5, 4/7 plans)
 
 ## Performance Metrics
 
@@ -49,6 +49,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - ManagePackages uses ViewBag (untyped) — consistent with how Assessment action passes data to its view
 - Import Questions button in ManagePackages links to ImportPackageQuestions action — wired in 17-03
 - ImportPackageQuestions: ClosedXML .xlsx parser skips header row; TSV paste auto-detects header; Correct=A/B/C/D maps to option index 0/1/2/3
+- ShuffledOptionIdsPerQuestion serialized with string keys (.ToDictionary(kv => kv.Key.ToString(), ...)) — JSON object keys must be strings; GetShuffledOptionIds() parses string keys back to int
+- StartExam.cshtml @model updated to PackageExamViewModel immediately in 17-04 (not deferred to 17-05) — required for compile; view now uses AssessmentSessionId, TotalQuestions, DisplayNumber, QuestionId, OptionId
 
 **v1.4 decisions:**
 - In-memory grouping after ToListAsync() for monitor query — consistent with existing manage view pattern
@@ -94,5 +96,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 17-question-and-exam-ux-improvements 17-03-PLAN.md
+Stopped at: Completed 17-question-and-exam-ux-improvements 17-04-PLAN.md
 Resume file: None.
