@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-18)
 
 **Milestone:** v1.2 UX Consolidation
 **Phase:** 12 of 12 (Dashboard Consolidation — in progress)
-**Plan:** 12-01 complete — CDPDashboardViewModel and Dashboard() controller rewrite done. Phase 12 Plan 02 (view layer) is next.
+**Plan:** 12-02 complete — Dashboard.cshtml two-tab layout + three partial views done. Phase 12 Plan 03 (cleanup) is next.
 **Status:** In progress
-**Last activity:** 2026-02-19 — Phase 12 Plan 01 (CDPDashboardViewModel + Dashboard() rewrite) complete
+**Last activity:** 2026-02-19 — Phase 12 Plan 02 (Dashboard view layer) complete
 
 Progress: [█████████░] 92% (11/12 phases complete — phases 1-11 shipped; phase 12 next)
 
@@ -54,6 +54,7 @@ Progress: [█████████░] 92% (11/12 phases complete — phases
 | Plan | Duration | Tasks | Notes |
 |------|----------|-------|-------|
 | 12-01 (ViewModel + controller) | ~4 min | 2 | CDPDashboardViewModel + Dashboard() rewrite |
+| 12-02 (Razor views) | ~4 min | 2 | Dashboard.cshtml two-tab layout + three partial views |
 
 **Recent Trend:**
 - Phase 08 required extended human-verify cycles (complex auth logic)
@@ -108,6 +109,13 @@ Recent decisions affecting current work:
 - isLiteralCoachee: userRole == Coachee only — Admin simulating Coachee goes through ProtonProgress path
 - Supporting classes (CoacheeProgressRow, AssessmentReportItem, ReportFilters, CategoryStatistic) now canonical in CDPDashboardViewModel.cs — removed from DevDashboardViewModel.cs and ReportsDashboardViewModel.cs
 
+**From 12-02:**
+- Chart.js CDN added to _Layout.cshtml globally — partials cannot use @section Scripts; layout-level loading is the required pattern
+- CoacheeProgressRow has no NIP/Section fields — _ProtonProgressPartial table uses available fields only (Name, Track, Tahun, Progress, Approved, Pending, Rejected, Status)
+- Analytics partial uses Model.CategoryStats/ScoreDistribution (not ViewBag) — model-bound, consistent with CDPDashboardViewModel
+- UserAssessmentHistory and Results drill-down links retain CMP controller — not moved in Phase 12
+- JS tab auto-activation via URLSearchParams added in Dashboard.cshtml for analytics filter params
+
 ### Pending Todos
 
 None.
@@ -129,5 +137,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 12-01-PLAN.md — CDPDashboardViewModel + Dashboard() rewrite done. Phase 12 Plan 02 (view layer) is next.
+Stopped at: Completed 12-02-PLAN.md — Dashboard.cshtml two-tab layout + three partial views complete. Phase 12 Plan 03 (cleanup) is next.
 Resume file: None.
