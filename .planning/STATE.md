@@ -144,6 +144,7 @@ None.
 | 001 | (prior) | — | — | — |
 | 002 | (prior) | — | — | — |
 | 003 | Verify and clean all remaining Assessment Analytics access points in CMP after card removal | 2026-02-19 | 8e364df | [3-verify-and-clean-all-remaining-assessmen](.planning/quick/3-verify-and-clean-all-remaining-assessmen/) |
+| 004 | Add persistent Create Assessment button to Assessment manage view header for HC users | 2026-02-19 | b9518d6 | [4-when-hc-want-to-make-new-assessment-wher](.planning/quick/4-when-hc-want-to-make-new-assessment-wher/) |
 
 ### Roadmap Evolution
 
@@ -153,5 +154,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: v1.2 milestone archived — PROJECT.md evolved, ROADMAP.md collapsed, REQUIREMENTS.md deleted, git tag v1.2 created. Ready to /gsd:new-milestone.
+Stopped at: Completed quick-004 — persistent Create Assessment button added to Assessment manage view header.
 Resume file: None.
