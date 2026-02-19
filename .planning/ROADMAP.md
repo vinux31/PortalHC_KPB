@@ -5,7 +5,7 @@
 - ✅ **v1.0 CMP Assessment Completion** — Phases 1-3 (shipped 2026-02-17)
 - ✅ **v1.1 CDP Coaching Management** — Phases 4-7 (shipped 2026-02-18)
 - ✅ **Post-v1.1 Fix: Admin Role Switcher** — Phase 8 (shipped 2026-02-18)
-- 🚧 **v1.2 UX Consolidation** — Phases 9-12 (in progress)
+- ✅ **v1.2 UX Consolidation** — Phases 9-12 (shipped 2026-02-19)
 
 ## Phases
 
@@ -139,7 +139,7 @@ Plans:
 
 ---
 
-### 🚧 v1.2 UX Consolidation (In Progress)
+### ✅ v1.2 UX Consolidation (Phases 9-12) — SHIPPED 2026-02-19
 
 **Milestone Goal:** Refocus core pages to their intended purpose and consolidate overlapping dashboards into a coherent, role-aware experience. Assessment page shows only actionable items per role. Training Records becomes the single unified development history. Gap Analysis page is removed. Three dashboards are merged into one tabbed CDP Dashboard.
 
@@ -206,9 +206,11 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md — CDPDashboardViewModel + CDPController.Dashboard() rewrite with role-gated sub-model population and ExportAnalyticsResults/SearchUsers migration
-- [ ] 12-02-PLAN.md — Dashboard.cshtml two-tab layout with _CoacheeDashboardPartial, _ProtonProgressPartial, and _AssessmentAnalyticsPartial
-- [ ] 12-03-PLAN.md — Retire Dev Dashboard + HC Reports: delete standalone pages, update nav links, clean all cross-references
+- [x] 12-01-PLAN.md — CDPDashboardViewModel + CDPController.Dashboard() rewrite with role-gated sub-model population and ExportAnalyticsResults/SearchUsers migration
+- [x] 12-02-PLAN.md — Dashboard.cshtml two-tab layout with _CoacheeDashboardPartial, _ProtonProgressPartial, and _AssessmentAnalyticsPartial
+- [x] 12-03-PLAN.md — Retire Dev Dashboard + HC Reports: delete standalone pages, update nav links, clean all cross-references
+
+**Completed:** 2026-02-19
 
 ---
 
@@ -227,4 +229,4 @@ Plans:
 | 9. Gap Analysis Removal | v1.2 | 1/1 | Complete | 2026-02-18 |
 | 10. Unified Training Records | v1.2 | 2/2 | Complete | 2026-02-18 |
 | 11. Assessment Page Role Filter | v1.2 | 2/2 | Complete | 2026-02-18 |
-| 12. Dashboard Consolidation | v1.2 | 0/3 | Not started | - |
+| 12. Dashboard Consolidation | v1.2 | 3/3 | Complete | 2026-02-19 |
