@@ -121,6 +121,14 @@ None - no external service configuration required.
 - WorkerDetail.cshtml `@model` requires the same update
 - RecordsWorkerList.cshtml can now render `worker.CompletionDisplayText` for the new combined count column
 
+## Self-Check: PASSED
+
+- FOUND: Models/UnifiedTrainingRecord.cs
+- FOUND: commit 0c42d2f (feat(10-01): create UnifiedTrainingRecord ViewModel)
+- FOUND: commit 3a9b584 (feat(10-01): extend WorkerTrainingStatus and rewrite CMPController data layer)
+- FOUND: commit 2039490 (docs(10-01): complete unified-training-records data layer plan)
+- Build: 0 errors, 0 warnings (all pre-existing)
+
 ---
 *Phase: 10-unified-training-records*
 *Completed: 2026-02-18*

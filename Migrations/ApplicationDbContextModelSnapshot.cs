@@ -798,6 +798,9 @@ namespace HcPortal.Migrations
                     b.Property<DateTime?>("ApprovedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ApprovedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("CoacheeId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -811,11 +814,26 @@ namespace HcPortal.Migrations
                     b.Property<string>("EvidencePath")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("HCApprovalStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<DateTime?>("HCReviewedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("HCReviewedById")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("ProtonDeliverableId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("RejectedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -836,6 +854,55 @@ namespace HcPortal.Migrations
                         .IsUnique();
 
                     b.ToTable("ProtonDeliverableProgresses");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.ProtonFinalAssessment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CoacheeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("CompetencyLevelGranted")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("KkjMatrixItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProtonTrackAssignmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoacheeId");
+
+                    b.HasIndex("ProtonTrackAssignmentId");
+
+                    b.HasIndex("CoacheeId", "Status");
+
+                    b.ToTable("ProtonFinalAssessments");
                 });
 
             modelBuilder.Entity("HcPortal.Models.ProtonKompetensi", b =>
@@ -864,6 +931,54 @@ namespace HcPortal.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("ProtonKompetensiList");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.ProtonNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CoacheeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CoacheeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RecipientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CoacheeId");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("RecipientId", "IsRead");
+
+                    b.ToTable("ProtonNotifications");
                 });
 
             modelBuilder.Entity("HcPortal.Models.ProtonSubKompetensi", b =>
@@ -1249,6 +1364,17 @@ namespace HcPortal.Migrations
                         .IsRequired();
 
                     b.Navigation("ProtonDeliverable");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.ProtonFinalAssessment", b =>
+                {
+                    b.HasOne("HcPortal.Models.ProtonTrackAssignment", "ProtonTrackAssignment")
+                        .WithMany()
+                        .HasForeignKey("ProtonTrackAssignmentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ProtonTrackAssignment");
                 });
 
             modelBuilder.Entity("HcPortal.Models.ProtonSubKompetensi", b =>
