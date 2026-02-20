@@ -225,13 +225,13 @@ Plans:
   3. HC can click a "Reset" action on a `Completed` session in the monitoring detail view; the session reverts to `Open` with score and answers cleared, ready for retake
   4. HC can click a "Force Close" action on any `Open` or `InProgress` session in the monitoring detail view; the session is marked `Completed` with a system score of 0
   5. HC can set an `ExamWindowCloseDate` on an assessment; workers attempting to start the exam after that date see a clear "Ujian sudah ditutup" message instead of the exam
-**Plans:** TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 22-01: Schema migration (ExamWindowCloseDate nullable DateTime on Assessment); StartExam GET enforces close date lockout with user message
-- [ ] 22-02: Abandon flow — "Keluar Ujian" button on StartExam.cshtml + AbandonExam POST action sets Abandoned status
-- [ ] 22-03: Server-side timer — SubmitExam POST checks elapsed time vs DurationMinutes; rejects expired submissions
-- [ ] 22-04: HC retake (Reset) and force-close actions — MonitoringDetail view buttons + controller actions; reset clears Score/IsPassed/CompletedAt/answers; force-close sets Completed with Score=0
+- [ ] 22-01-PLAN.md — ExamWindowCloseDate migration + Create/Edit form binding + StartExam GET close-date lockout
+- [ ] 22-02-PLAN.md — AbandonExam POST action + "Keluar Ujian" button with confirmation in StartExam view
+- [ ] 22-03-PLAN.md — SubmitExam POST elapsed-time check (DurationMinutes + 2 min grace); redirect to StartExam on expiry
+- [ ] 22-04-PLAN.md — ResetAssessment + ForceCloseAssessment POST actions + MonitoringDetail view buttons
 
 ---
 
@@ -326,7 +326,7 @@ Plans:
 | 19. HC Create Training Record + Certificate Upload | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 21. Exam State Foundation | v1.7 | 0/1 | Not started | - |
-| 22. Exam Lifecycle Actions | v1.7 | 0/TBD | Not started | - |
+| 22. Exam Lifecycle Actions | v1.7 | 0/4 | Not started | - |
 | 23. Package Answer Integrity | v1.7 | 0/TBD | Not started | - |
 | 24. HC Audit Log | v1.7 | 0/TBD | Not started | - |
 | 25. Worker UX Enhancements | v1.7 | 0/TBD | Not started | - |
