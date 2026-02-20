@@ -114,7 +114,12 @@
                         {
                             @foreach (var session in Model.Sessions)
                             {
-                                var statusClass = session.UserStatus == "Completed" ? "bg-success" : "bg-light text-dark border";
+                                var statusClass = session.UserStatus switch
+                                {
+                                    "Completed"  => "bg-success",
+                                    "InProgress" => "bg-warning text-dark",
+                                    _            => "bg-light text-dark border"
+                                };
 
                                 string resultText;
                                 string resultClass;

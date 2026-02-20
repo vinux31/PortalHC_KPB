@@ -255,6 +255,7 @@ namespace HcPortal.Controllers
             var cutoff = DateTime.UtcNow.AddDays(-30);
             var monitorSessions = await _context.AssessmentSessions
                 .Where(a => a.Status == "Open"
+                         || a.Status == "InProgress"
                          || a.Status == "Upcoming"
                          || (a.Status == "Completed" && a.CompletedAt != null && a.CompletedAt >= cutoff))
                 .Select(a => new
@@ -291,7 +292,7 @@ namespace HcPortal.Controllers
                         };
                     }).ToList();
 
-                    bool hasOpen     = g.Any(a => a.Status == "Open");
+                    bool hasOpen     = g.Any(a => a.Status == "Open" || a.Status == "InProgress");
                     bool hasUpcoming = g.Any(a => a.Status == "Upcoming");
                     string groupStatus = hasOpen ? "Open" : hasUpcoming ? "Upcoming" : "Closed";
 
@@ -338,16 +339,24 @@ namespace HcPortal.Controllers
 
             var sessionViewModels = sessions.Select(a =>
             {
-                bool isCompleted = a.Score != null || a.CompletedAt != null;
+                string userStatus;
+                if (a.CompletedAt != null || a.Score != null)
+                    userStatus = "Completed";
+                else if (a.StartedAt != null)
+                    userStatus = "InProgress";
+                else
+                    userStatus = "Not started";
+
                 return new MonitoringSessionViewModel
                 {
                     Id           = a.Id,
                     UserFullName = a.User?.FullName ?? "Unknown",
                     UserNIP      = a.User?.NIP ?? "",
-                    UserStatus   = isCompleted ? "Completed" : "Not started",
+                    UserStatus   = userStatus,
                     Score        = a.Score,
                     IsPassed     = a.IsPassed,
-                    CompletedAt  = a.CompletedAt
+                    CompletedAt  = a.CompletedAt,
+                    StartedAt    = a.StartedAt
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
@@ -363,7 +372,7 @@ namespace HcPortal.Controllers
                 TotalCount     = sessionViewModels.Count,
                 CompletedCount = sessionViewModels.Count(s => s.UserStatus == "Completed"),
                 PassedCount    = sessionViewModels.Count(s => s.IsPassed == true),
-                GroupStatus    = sessions.Any(a => a.Status == "Open") ? "Open"
+                GroupStatus    = sessions.Any(a => a.Status == "Open" || a.Status == "InProgress") ? "Open"
                                : sessions.Any(a => a.Status == "Upcoming") ? "Upcoming" : "Closed"
             };
 
@@ -1540,6 +1549,14 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "This assessment has already been completed.";
                 return RedirectToAction("Assessment");
+            }
+
+            // Mark InProgress on first load only (idempotent — skip if already started)
+            if (assessment.StartedAt == null)
+            {
+                assessment.Status = "InProgress";
+                assessment.StartedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
             }
 
             // Packages are attached to the representative session (the one HC used when clicking "Packages"),
