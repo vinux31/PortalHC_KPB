@@ -94,6 +94,7 @@ None.
 | 004 | Add persistent Create Assessment button to Assessment manage view header for HC users | 2026-02-19 | b9518d6 | [4-when-hc-want-to-make-new-assessment-wher](.planning/quick/4-when-hc-want-to-make-new-assessment-wher/) |
 | 005 | Group manage view cards by assessment (Title+Category+Schedule.Date) — 1 card per assessment, compact user list, group delete | 2026-02-19 | 8d0b76a | [5-group-manage-view-cards-by-assessment](.planning/quick/5-group-manage-view-cards-by-assessment/) |
 | 006 | Fix slow performance on Assessment manage page — Select() projection on management query, monitor tab lazy-loaded via AJAX | 2026-02-20 | 564432f | [6-fix-slow-performance-on-assessment-manag](.planning/quick/6-fix-slow-performance-on-assessment-manag/) |
+| 007 | Fix KKJ Matriks table header misalignment | 2026-02-20 | 1d6b373 | [7-fix-kkj-matriks-table-header-misalignmen](.planning/quick/7-fix-kkj-matriks-table-header-misalignmen/) |
 
 ### Roadmap Evolution
 
@@ -110,5 +111,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed quick-6 — Assessment manage page performance fix (Select() projection + lazy monitor AJAX).
+Stopped at: Completed quick-7 — Fix KKJ Matriks table header misalignment (colspan 11→15, added Sr Spv/Shift Spv GSH, fixed ARU colspan grouping).
 Resume file: None.
