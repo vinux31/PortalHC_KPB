@@ -200,6 +200,10 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
   2. A certificate file saved through the upload path lands at a deterministic path under wwwroot/uploads/certificates/ and is reachable by its URL from the browser
   3. The EF migration applies cleanly on a fresh database and on the existing development database
   4. All pre-existing Training Records pages (RecordsWorkerList, personal Records view) still render without error after the migration
+**Plans:** 1 plan
+
+Plans:
+- [ ] 18-01-PLAN.md — Add v1.6 schema columns, EF migration, upload directory, and CMPController DI wiring
 
 ---
 
@@ -250,6 +254,6 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 | 15. Quick Edit | v1.3 | 0/1 | Cancelled | 2026-02-19 |
 | 16. Grouped Monitoring View | v1.4 | 3/3 | Complete | 2026-02-19 |
 | 17. Question and Exam UX | v1.5 | 7/7 | Complete | 2026-02-19 |
-| 18. Data Foundation | v1.6 | 0/? | Pending | — |
+| 18. Data Foundation | v1.6 | 0/1 | Pending | — |
 | 19. HC Create Training Record + Certificate Upload | v1.6 | 0/? | Pending | — |
 | 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 0/? | Pending | — |
