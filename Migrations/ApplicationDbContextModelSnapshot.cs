@@ -301,6 +301,9 @@ namespace HcPortal.Migrations
                     b.Property<int?>("Score")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("StartedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
