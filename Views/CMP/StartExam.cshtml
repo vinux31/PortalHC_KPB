@@ -13,12 +13,25 @@
             <h6 class="mb-0 fw-bold text-primary">@Model.Title</h6>
             <span class="text-muted small" id="answeredProgress">0/@Model.TotalQuestions answered</span>
         </div>
+        <!-- Keluar Ujian button -->
+        <div>
+            <button type="button" class="btn btn-outline-danger btn-sm"
+                    onclick="confirmAbandon()">
+                <i class="bi bi-box-arrow-left me-1"></i>Keluar Ujian
+            </button>
+        </div>
         <div class="text-end">
             <span class="fw-bold fs-5" id="examTimer">--:--</span>
             <div class="small text-muted">Time Remaining</div>
         </div>
     </div>
 </div>
+
+<!-- Hidden form for abandon action -->
+<form id="abandonForm" asp-action="AbandonExam" method="post" style="display:none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="id" value="@Model.AssessmentSessionId" />
+</form>
 
 @if (!Model.Questions.Any())
 {
@@ -255,6 +268,20 @@ else
 
     // -------- Init --------
     updatePanel();
+
+    // -------- Abandon exam --------
+    function confirmAbandon() {
+        var confirmed = confirm(
+            'Anda yakin ingin keluar dari ujian?\n\n' +
+            'Status ujian Anda akan dicatat sebagai "Ditinggalkan".\n' +
+            'Hubungi HC untuk mengulang ujian.'
+        );
+        if (confirmed) {
+            // Bypass the onbeforeunload warning — user already confirmed
+            window.onbeforeunload = null;
+            document.getElementById('abandonForm').submit();
+        }
+    }
 
     // -------- Prevent accidental leave --------
     window.onbeforeunload = function() {
