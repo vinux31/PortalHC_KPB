@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Milestone:** v1.7 Assessment System Integrity
 **Phase:** 21 of 26 (Exam State Foundation)
-**Current Plan:** — (ready to plan)
-**Status:** Ready to plan
-**Last activity:** 2026-02-20 — v1.7 roadmap created; 6 phases defined (21-26), 14/14 requirements mapped
+**Current Plan:** 01 complete
+**Status:** In progress
+**Last activity:** 2026-02-20 — Phase 21-01 complete: StartedAt column + InProgress state wiring
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.7)
+Progress: [█░░░░░░░░░░░░░░░░░░░] 5% (v1.7)
 
 ## Performance Metrics
 
@@ -40,13 +40,14 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
-**v1.7 architecture notes (pre-planning):**
+**v1.7 architecture notes:**
 - CMPController is ~2300 lines — v1.7 adds Abandon, ForceClose, Reset, AuditLog actions; be mindful of file size
 - PackageUserResponse table does not yet exist — Phase 23 creates it via EF migration
 - AuditLog table does not yet exist — Phase 24 creates it via EF migration
-- SessionStatus is currently an enum (Open, Upcoming, Completed) — Phase 21 adds InProgress and Abandoned values
-- StartedAt and ExamWindowCloseDate are new nullable columns — Phase 21 and 22 migrations respectively
+- SessionStatus is a plain string — Phase 21 added InProgress; Phase 22 adds Abandoned (no DB constraint)
+- StartedAt (Phase 21, done) and ExamWindowCloseDate (Phase 22) are nullable datetime2 columns
 - Token enforcement currently only in the lobby view (worker sees token prompt in Assessment.cshtml) — Phase 23 moves enforcement into StartExam GET controller action
+- Idempotency pattern established: use StartedAt == null as guard for first-write, not Status string comparison
 
 **v1.6 decisions (Phase 20-01):**
 - EditTrainingRecord has no GET action — modal is pre-populated inline via Razor in WorkerDetail.cshtml
@@ -93,5 +94,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: v1.7 roadmap created — phases 21-26 defined, all 14 requirements mapped. Ready to plan Phase 21.
+Stopped at: Completed 21-01-PLAN.md — StartedAt column + InProgress state wiring done. Ready for Phase 22.
 Resume file: None.
