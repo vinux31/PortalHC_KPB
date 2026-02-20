@@ -35,6 +35,7 @@ Progress: [█░░░░░░░░░░░░░░░░░░░] 5% (v1.
 *Updated after each plan completion*
 | Phase 22-exam-lifecycle-actions P03 | 5 | 1 tasks | 1 files |
 | Phase 22-exam-lifecycle-actions P04 | 4 | 2 tasks | 2 files |
+| Phase 22-exam-lifecycle-actions P01 | 5 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 22-exam-lifecycle-actions]: LIFE-03: 2-minute grace period fixed (not configurable); expiry redirects to StartExam; no Status mutation; null-StartedAt sessions bypass check
 - [Phase 22-04]: Abandoned branch placed before InProgress in UserStatus projection — Abandoned sessions have StartedAt set and would otherwise be misclassified as InProgress
 - [Phase 22-04]: ResetAssessment deletes UserPackageAssignment so next StartExam assigns a fresh random package; ForceCloseAssessment preserves answers for audit
+- [Phase 22-exam-lifecycle-actions]: ExamWindowCloseDate is nullable (null=no expiry); Abandoned guard placed alongside close-date guard before InProgress write; bulk-assign copies ExamWindowCloseDate from savedAssessment
 
 ### Pending Todos
 
