@@ -211,7 +211,7 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 **Plans:** 1 plan
 
 Plans:
-- [ ] 21-01-PLAN.md — Schema migration (StartedAt nullable DateTime on AssessmentSession) + idempotent InProgress write in StartExam GET + monitoring detail updated for three-state display
+- [x] 21-01-PLAN.md — Schema migration (StartedAt nullable DateTime on AssessmentSession) + idempotent InProgress write in StartExam GET + monitoring detail updated for three-state display
 
 ---
 
@@ -228,10 +228,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 22-01-PLAN.md — ExamWindowCloseDate migration + Create/Edit form binding + StartExam GET close-date lockout
-- [ ] 22-02-PLAN.md — AbandonExam POST action + "Keluar Ujian" button with confirmation in StartExam view
-- [ ] 22-03-PLAN.md — SubmitExam POST elapsed-time check (DurationMinutes + 2 min grace); redirect to StartExam on expiry
-- [ ] 22-04-PLAN.md — ResetAssessment + ForceCloseAssessment POST actions + MonitoringDetail view buttons
+- [x] 22-01-PLAN.md — ExamWindowCloseDate migration + Create/Edit form binding + StartExam GET close-date lockout + Abandoned re-entry guard
+- [x] 22-02-PLAN.md — AbandonExam POST action + "Keluar Ujian" button with confirmation in StartExam view
+- [x] 22-03-PLAN.md — SubmitExam POST elapsed-time check (DurationMinutes + 2 min grace); redirect to StartExam on expiry
+- [x] 22-04-PLAN.md — ResetAssessment + ForceCloseAssessment POST actions + 4-state UserStatus projection + MonitoringDetail view buttons
 
 ---
 
@@ -325,8 +325,8 @@ Plans:
 | 18. Data Foundation | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 19. HC Create Training Record + Certificate Upload | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 1/1 | Complete | 2026-02-20 |
-| 21. Exam State Foundation | v1.7 | 0/1 | Not started | - |
-| 22. Exam Lifecycle Actions | v1.7 | 0/4 | Not started | - |
+| 21. Exam State Foundation | v1.7 | 1/1 | Complete | 2026-02-20 |
+| 22. Exam Lifecycle Actions | v1.7 | 4/4 | Complete | 2026-02-20 |
 | 23. Package Answer Integrity | v1.7 | 0/TBD | Not started | - |
 | 24. HC Audit Log | v1.7 | 0/TBD | Not started | - |
 | 25. Worker UX Enhancements | v1.7 | 0/TBD | Not started | - |
