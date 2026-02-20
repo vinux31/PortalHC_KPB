@@ -83,7 +83,6 @@
     @if (viewMode == "manage" && canManage)
     {
         var managementData = ViewBag.ManagementData as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
-        var monitorGroups = ViewBag.MonitorData as List<HcPortal.Models.MonitoringGroupViewModel> ?? new List<HcPortal.Models.MonitoringGroupViewModel>();
 
         <!-- HC/Admin tabs: Management and Monitoring -->
         <ul class="nav nav-tabs mb-4" id="hcAssessmentTabs" role="tablist">
@@ -98,7 +97,7 @@
                 <button class="nav-link" id="monitor-tab" data-bs-toggle="tab"
                         data-bs-target="#monitor-tab-pane" type="button" role="tab">
                     <i class="bi bi-binoculars me-1"></i> Monitoring
-                    <span class="badge bg-secondary ms-1">@monitorGroups.Count</span>
+                    <span class="badge bg-secondary ms-1" id="monitorBadge">...</span>
                 </button>
             </li>
         </ul>
@@ -325,105 +324,13 @@
 
             <!-- Monitoring Tab Pane -->
             <div class="tab-pane fade" id="monitor-tab-pane" role="tabpanel">
-                @if (monitorGroups.Count == 0)
-                {
-                    <div class="text-center py-5">
-                        <i class="bi bi-binoculars text-muted mb-3" style="font-size: 4rem;"></i>
-                        <h5 class="text-muted">No active, upcoming, or recently closed assessments</h5>
-                        <p class="text-muted small">Closed assessments older than 30 days are not shown.</p>
+                <div id="monitorLoadingState" class="text-center py-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
                     </div>
-                }
-                else
-                {
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Assessment</th>
-                                    <th>Schedule</th>
-                                    <th>Status</th>
-                                    <th>Completion</th>
-                                    <th>Pass Rate</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var group in monitorGroups)
-                                {
-                                    var catBadgeClass = (string)group.Category switch
-                                    {
-                                        "OJT"                     => "bg-primary",
-                                        "IHT"                     => "bg-success",
-                                        "Training Licencor"        => "bg-danger",
-                                        "OTS"                     => "bg-warning text-dark",
-                                        "Mandatory HSSE Training"  => "bg-info",
-                                        "Proton"                  => "bg-purple",
-                                        _                         => "bg-secondary"
-                                    };
-                                    var statusBadgeClass = group.GroupStatus switch
-                                    {
-                                        "Open"     => "bg-success",
-                                        "Upcoming" => "bg-warning text-dark",
-                                        "Closed"   => "bg-secondary",
-                                        _          => "bg-secondary"
-                                    };
-
-                                    int completedPct = group.TotalCount > 0
-                                        ? (int)Math.Round(group.CompletedCount * 100.0 / group.TotalCount)
-                                        : 0;
-
-                                    int passRatePct = group.CompletedCount > 0
-                                        ? (int)Math.Round(group.PassedCount * 100.0 / group.CompletedCount)
-                                        : 0;
-
-                                    <tr>
-                                        <td>
-                                            <div class="fw-semibold">@group.Title</div>
-                                            <div class="mt-1">
-                                                <span class="badge @catBadgeClass small">@group.Category</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-nowrap">@group.Schedule.ToString("dd MMM yyyy")</td>
-                                        <td>
-                                            <span class="badge @statusBadgeClass">@group.GroupStatus</span>
-                                        </td>
-                                        <td style="min-width: 160px;">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <div class="progress flex-grow-1" style="height: 8px;" title="@group.CompletedCount of @group.TotalCount completed">
-                                                    <div class="progress-bar @(completedPct == 100 ? "bg-success" : "bg-primary")"
-                                                         role="progressbar"
-                                                         style="width: @completedPct%"
-                                                         aria-valuenow="@completedPct"
-                                                         aria-valuemin="0"
-                                                         aria-valuemax="100">
-                                                    </div>
-                                                </div>
-                                                <span class="text-muted small text-nowrap">@group.CompletedCount/@group.TotalCount</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-nowrap">
-                                            @if (group.CompletedCount == 0)
-                                            {
-                                                <span class="text-muted small">—</span>
-                                            }
-                                            else
-                                            {
-                                                var passRateBadge = passRatePct >= 70 ? "text-success" : "text-danger";
-                                                <span class="@passRateBadge fw-semibold small">@group.PassedCount passed (@passRatePct%)</span>
-                                            }
-                                        </td>
-                                        <td class="text-end">
-                                            <a href="@Url.Action("AssessmentMonitoringDetail", "CMP", new { title = group.Title, category = group.Category, scheduleDate = group.Schedule.Date })"
-                                               class="btn btn-sm btn-outline-primary">
-                                                <i class="bi bi-eye me-1"></i>View Details
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
+                    <p class="text-muted">Loading monitoring data...</p>
+                </div>
+                <div id="monitorContent" class="d-none"></div>
             </div>
 
         </div>
@@ -941,6 +848,86 @@
     function viewCertificate(title) {
         alert("Viewing certificate for: " + title);
     }
+
+    // Monitoring tab lazy-load — fires once on first click
+    (function () {
+        var monitorTab = document.getElementById('monitor-tab');
+        if (!monitorTab) return; // not in manage view
+
+        var loaded = false;
+        monitorTab.addEventListener('shown.bs.tab', function () {
+            if (loaded) return;
+            loaded = true;
+
+            fetch('/CMP/GetMonitorData')
+                .then(function (res) { return res.json(); })
+                .then(function (groups) {
+                    var badge = document.getElementById('monitorBadge');
+                    if (badge) badge.textContent = groups.length;
+
+                    var loading = document.getElementById('monitorLoadingState');
+                    var content = document.getElementById('monitorContent');
+                    if (loading) loading.classList.add('d-none');
+                    if (content) content.classList.remove('d-none');
+
+                    if (groups.length === 0) {
+                        content.innerHTML = '<div class="text-center py-5">' +
+                            '<i class="bi bi-binoculars text-muted mb-3" style="font-size:4rem;"></i>' +
+                            '<h5 class="text-muted">No active, upcoming, or recently closed assessments</h5>' +
+                            '<p class="text-muted small">Closed assessments older than 30 days are not shown.</p>' +
+                            '</div>';
+                        return;
+                    }
+
+                    var catBadge = function (cat) {
+                        var map = {
+                            'OJT': 'bg-primary', 'IHT': 'bg-success',
+                            'Training Licencor': 'bg-danger', 'OTS': 'bg-warning text-dark',
+                            'Mandatory HSSE Training': 'bg-info', 'Proton': 'bg-purple'
+                        };
+                        return map[cat] || 'bg-secondary';
+                    };
+                    var statusBadge = function (s) {
+                        return s === 'Open' ? 'bg-success' : s === 'Upcoming' ? 'bg-warning text-dark' : 'bg-secondary';
+                    };
+
+                    var rows = groups.map(function (g) {
+                        var completedPct = g.totalCount > 0 ? Math.round(g.completedCount * 100 / g.totalCount) : 0;
+                        var passRatePct  = g.completedCount > 0 ? Math.round(g.passedCount * 100 / g.completedCount) : 0;
+                        var schedDate    = new Date(g.schedule).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                        var detailUrl    = '/CMP/AssessmentMonitoringDetail?title=' + encodeURIComponent(g.title) +
+                                          '&category=' + encodeURIComponent(g.category) +
+                                          '&scheduleDate=' + new Date(g.schedule).toISOString().split('T')[0];
+                        var passCell = g.completedCount === 0
+                            ? '<span class="text-muted small">\u2014</span>'
+                            : '<span class="' + (passRatePct >= 70 ? 'text-success' : 'text-danger') + ' fw-semibold small">' + g.passedCount + ' passed (' + passRatePct + '%)</span>';
+
+                        return '<tr>' +
+                            '<td><div class="fw-semibold">' + g.title + '</div><div class="mt-1"><span class="badge ' + catBadge(g.category) + ' small">' + g.category + '</span></div></td>' +
+                            '<td class="text-nowrap">' + schedDate + '</td>' +
+                            '<td><span class="badge ' + statusBadge(g.groupStatus) + '">' + g.groupStatus + '</span></td>' +
+                            '<td style="min-width:160px;"><div class="d-flex align-items-center gap-2">' +
+                                '<div class="progress flex-grow-1" style="height:8px;" title="' + g.completedCount + ' of ' + g.totalCount + ' completed">' +
+                                    '<div class="progress-bar ' + (completedPct === 100 ? 'bg-success' : 'bg-primary') + '" role="progressbar" style="width:' + completedPct + '%" aria-valuenow="' + completedPct + '" aria-valuemin="0" aria-valuemax="100"></div>' +
+                                '</div>' +
+                                '<span class="text-muted small text-nowrap">' + g.completedCount + '/' + g.totalCount + '</span>' +
+                            '</div></td>' +
+                            '<td class="text-nowrap">' + passCell + '</td>' +
+                            '<td class="text-end"><a href="' + detailUrl + '" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>View Details</a></td>' +
+                        '</tr>';
+                    }).join('');
+
+                    content.innerHTML = '<div class="table-responsive"><table class="table table-hover align-middle">' +
+                        '<thead class="table-light"><tr>' +
+                        '<th>Assessment</th><th>Schedule</th><th>Status</th><th>Completion</th><th>Pass Rate</th><th></th>' +
+                        '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+                })
+                .catch(function () {
+                    var loading = document.getElementById('monitorLoadingState');
+                    if (loading) loading.innerHTML = '<div class="text-center py-5"><p class="text-danger">Failed to load monitoring data. Please refresh the page.</p></div>';
+                });
+        });
+    }());
 
     // ========== MANAGE VIEW FUNCTIONS ==========
 
