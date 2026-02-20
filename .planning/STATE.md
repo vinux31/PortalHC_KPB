@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Milestone:** v1.7 Assessment System Integrity
 **Phase:** 22 of 26 (Exam Lifecycle Actions)
-**Current Plan:** 22-03 (Plan 02 complete)
+**Current Plan:** 22-04 (Plan 03 complete)
 **Status:** Executing
-**Last activity:** 2026-02-20 — 22-02 complete: AbandonExam POST + Keluar Ujian button (LIFE-02)
+**Last activity:** 2026-02-20 — 22-03 complete: server-side timer enforcement guard in SubmitExam POST (LIFE-03)
 
 Progress: [█░░░░░░░░░░░░░░░░░░░] 5% (v1.7)
 
@@ -33,6 +33,7 @@ Progress: [█░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | 20-edit-delete-workerlist | 1 | Modal + cleanup |
 
 *Updated after each plan completion*
+| Phase 22-exam-lifecycle-actions P03 | 5 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -56,6 +57,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - EditTrainingRecord has no GET action — modal is pre-populated inline via Razor in WorkerDetail.cshtml
 - WorkerId and WorkerName stored on EditTrainingRecordViewModel for redirect without extra DB lookup
 - Assessment Online rows excluded from Edit/Delete — guarded by RecordType == "Training Manual" && TrainingRecordId.HasValue
+- [Phase 22-exam-lifecycle-actions]: LIFE-03: 2-minute grace period fixed (not configurable); expiry redirects to StartExam; no Status mutation; null-StartedAt sessions bypass check
 
 ### Pending Todos
 
@@ -97,5 +99,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 22-02-PLAN.md — AbandonExam POST + Keluar Ujian button done. Next: 22-03 (ForceClose).
+Stopped at: Completed 22-03-PLAN.md — server-side timer enforcement (LIFE-03) verified in SubmitExam POST. Next: 22-04 (ForceClose).
 Resume file: None.

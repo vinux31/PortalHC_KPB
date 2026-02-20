@@ -573,6 +573,7 @@ namespace HcPortal.Controllers
             assessment.IsTokenRequired = model.IsTokenRequired;
             assessment.PassPercentage = model.PassPercentage;
             assessment.AllowAnswerReview = model.AllowAnswerReview;
+            assessment.ExamWindowCloseDate = model.ExamWindowCloseDate;
 
             // Update token if token is required
             if (model.IsTokenRequired && !string.IsNullOrWhiteSpace(model.AccessToken))
@@ -656,6 +657,7 @@ namespace HcPortal.Controllers
                                 AccessToken = savedAssessment.AccessToken,
                                 PassPercentage = savedAssessment.PassPercentage,
                                 AllowAnswerReview = savedAssessment.AllowAnswerReview,
+                                ExamWindowCloseDate = savedAssessment.ExamWindowCloseDate,
                                 Progress = 0,
                                 UserId = uid,
                                 CreatedBy = currentUser?.Id
@@ -950,6 +952,9 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("PassPercentage", "Pass Percentage must be between 0 and 100.");
             }
 
+            // ExamWindowCloseDate is optional — remove from ModelState to prevent accidental validation failure
+            ModelState.Remove("ExamWindowCloseDate");
+
             // Validate model
             if (!ModelState.IsValid)
             {
@@ -1045,6 +1050,7 @@ namespace HcPortal.Controllers
                         AccessToken = model.AccessToken,
                         PassPercentage = model.PassPercentage,
                         AllowAnswerReview = model.AllowAnswerReview,
+                        ExamWindowCloseDate = model.ExamWindowCloseDate,
                         Progress = 0,
                         UserId = userId,
                         CreatedBy = currentUser?.Id
@@ -1649,6 +1655,20 @@ namespace HcPortal.Controllers
             if (assessment.Status == "Completed")
             {
                 TempData["Error"] = "This assessment has already been completed.";
+                return RedirectToAction("Assessment");
+            }
+
+            // Enforce exam window close date (LIFE-02 / DATA-03)
+            if (assessment.ExamWindowCloseDate.HasValue && DateTime.UtcNow > assessment.ExamWindowCloseDate.Value)
+            {
+                TempData["Error"] = "Ujian sudah ditutup. Waktu ujian telah berakhir.";
+                return RedirectToAction("Assessment");
+            }
+
+            // Block re-entry of Abandoned sessions — worker must contact HC for Reset (LIFE-02)
+            if (assessment.Status == "Abandoned")
+            {
+                TempData["Error"] = "Ujian Anda sebelumnya telah dibatalkan. Hubungi HC untuk mengulang.";
                 return RedirectToAction("Assessment");
             }
 
