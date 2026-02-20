@@ -36,6 +36,12 @@ namespace HcPortal.Models
         public DateTime? CompletedAt { get; set; }
         public DateTime? StartedAt { get; set; }
 
+        /// <summary>
+        /// Optional hard cutoff date for this exam window. Workers cannot start (or restart) the exam
+        /// after this date. Null = no expiry enforced.
+        /// </summary>
+        public DateTime? ExamWindowCloseDate { get; set; }
+
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
 
