@@ -8,6 +8,20 @@
 
 <!-- Header Section -->
 <div class="container-fluid py-4">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
     <div class="row mb-4">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
@@ -118,7 +132,8 @@
                             <th class="p-3" style="width: 9%;">Tipe Sertifikat</th>
                             <th class="p-3" style="width: 10%;">Berlaku Sampai</th>
                             <th class="p-3" style="width: 7%;">Status</th>
-                            <th class="p-3 text-center" style="width: 6%;">Sertifikat</th>
+                            <th class="p-3 text-center" style="width: 5%;">Sertifikat</th>
+                            <th class="p-3 text-center" style="width: 8%;">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -182,12 +197,182 @@
                                         <span class="text-muted">—</span>
                                     }
                                 </td>
+                                <td class="p-3 text-center">
+                                    @if (item.RecordType == "Training Manual" && item.TrainingRecordId.HasValue)
+                                    {
+                                        <div class="d-flex gap-1 justify-content-center">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" title="Edit"
+                                                    data-bs-toggle="modal" data-bs-target="#editModal-@item.TrainingRecordId">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <form method="post" action="@Url.Action("DeleteTrainingRecord", "CMP")" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@item.TrainingRecordId" />
+                                                <input type="hidden" name="workerId" value="@workerId" />
+                                                <input type="hidden" name="workerName" value="@workerName" />
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"
+                                                        onclick="return confirm('Hapus training record ini? Tindakan ini tidak dapat dibatalkan.')">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
                             </tr>
                             rowNumber++;
                         }
                     </tbody>
                 </table>
             </div>
+
+            @foreach (var item in Model.Where(x => x.RecordType == "Training Manual" && x.TrainingRecordId.HasValue))
+            {
+                <div class="modal fade" id="editModal-@item.TrainingRecordId" tabindex="-1"
+                     aria-labelledby="editModalLabel-@item.TrainingRecordId" aria-hidden="true">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title fw-bold" id="editModalLabel-@item.TrainingRecordId">
+                                    <i class="bi bi-pencil-square me-2"></i>Edit Training Record
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <form method="post" action="@Url.Action("EditTrainingRecord", "CMP")"
+                                  enctype="multipart/form-data">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="@item.TrainingRecordId" />
+                                <input type="hidden" name="WorkerId" value="@workerId" />
+                                <input type="hidden" name="WorkerName" value="@workerName" />
+                                <input type="hidden" name="ExistingSertifikatUrl" value="@item.SertifikatUrl" />
+                                <div class="modal-body">
+                                    <div class="row g-3">
+                                        <!-- Judul -->
+                                        <div class="col-md-12">
+                                            <label class="form-label fw-bold small">Nama Pelatihan <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="Judul" value="@item.Title" required />
+                                        </div>
+                                        <!-- Penyelenggara & Kota -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">Penyelenggara <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" name="Penyelenggara" value="@item.Penyelenggara" required />
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">Kota</label>
+                                            <input type="text" class="form-control" name="Kota" value="@item.Kota" />
+                                        </div>
+                                        <!-- Kategori -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">Kategori <span class="text-danger">*</span></label>
+                                            <select class="form-select" name="Kategori" required>
+                                                @{
+                                                    var kategoriOptions = new[] { "Safety", "Technical", "Soft Skill", "Compliance", "Leadership", "Lainnya" };
+                                                    foreach (var opt in kategoriOptions)
+                                                    {
+                                                        if (item.Kategori == opt)
+                                                        { <option value="@opt" selected>@opt</option> }
+                                                        else
+                                                        { <option value="@opt">@opt</option> }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <!-- Status -->
+                                        <div class="col-md-6">
+                                            <label class="form-label fw-bold small">Status <span class="text-danger">*</span></label>
+                                            <select class="form-select" name="Status" required>
+                                                @{
+                                                    var statusOptions = new[] { "Passed", "Failed", "Wait Certificate", "Valid", "Expired" };
+                                                    foreach (var opt in statusOptions)
+                                                    {
+                                                        if (item.Status == opt)
+                                                        { <option value="@opt" selected>@opt</option> }
+                                                        else
+                                                        { <option value="@opt">@opt</option> }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <!-- Tanggal -->
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold small">Tanggal <span class="text-danger">*</span></label>
+                                            <input type="date" class="form-control" name="Tanggal"
+                                                   value="@item.Date.ToString("yyyy-MM-dd")" required />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold small">Tanggal Mulai</label>
+                                            <input type="date" class="form-control" name="TanggalMulai"
+                                                   value="@(item.TanggalMulai.HasValue ? item.TanggalMulai.Value.ToString("yyyy-MM-dd") : "")" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold small">Tanggal Selesai</label>
+                                            <input type="date" class="form-control" name="TanggalSelesai"
+                                                   value="@(item.TanggalSelesai.HasValue ? item.TanggalSelesai.Value.ToString("yyyy-MM-dd") : "")" />
+                                        </div>
+                                        <!-- Nomor Sertifikat & Berlaku Sampai & Certificate Type -->
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold small">Nomor Sertifikat</label>
+                                            <input type="text" class="form-control" name="NomorSertifikat"
+                                                   value="@item.NomorSertifikat" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold small">Berlaku Sampai</label>
+                                            <input type="date" class="form-control" name="ValidUntil"
+                                                   value="@(item.ValidUntil.HasValue ? item.ValidUntil.Value.ToString("yyyy-MM-dd") : "")" />
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label fw-bold small">Tipe Sertifikat</label>
+                                            <select class="form-select" name="CertificateType">
+                                                <option value="">-- Pilih --</option>
+                                                @{
+                                                    var certTypes = new[] { "Internal", "External", "International", "Regulator" };
+                                                    foreach (var opt in certTypes)
+                                                    {
+                                                        if (item.CertificateType == opt)
+                                                        { <option value="@opt" selected>@opt</option> }
+                                                        else
+                                                        { <option value="@opt">@opt</option> }
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        <!-- Certificate section -->
+                                        <div class="col-md-12">
+                                            <hr />
+                                            <label class="form-label fw-bold small">Sertifikat</label>
+                                            @if (!string.IsNullOrEmpty(item.SertifikatUrl))
+                                            {
+                                                <div class="mb-2">
+                                                    <a href="@item.SertifikatUrl" target="_blank" class="btn btn-sm btn-outline-success">
+                                                        <i class="bi bi-download me-1"></i>Download Sertifikat Saat Ini
+                                                    </a>
+                                                    <small class="text-muted ms-2">Upload file baru di bawah untuk mengganti sertifikat ini.</small>
+                                                </div>
+                                            }
+                                            <input type="file" class="form-control" name="CertificateFile"
+                                                   accept=".pdf,.jpg,.jpeg,.png" />
+                                            <div class="form-text">
+                                                @(string.IsNullOrEmpty(item.SertifikatUrl)
+                                                    ? "Upload file sertifikat (PDF, JPG, PNG, maks. 10 MB)."
+                                                    : "Kosongkan jika tidak ingin mengganti sertifikat.")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-floppy me-1"></i>Simpan Perubahan
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>
@@ -244,7 +429,7 @@
             return;
         }
 
-        let csv = 'No,Tanggal,Tipe,Nama/Judul,Score,Pass/Fail,Penyelenggara,Tipe Sertifikat,Berlaku Sampai,Status,Sertifikat\n';
+        let csv = 'No,Tanggal,Tipe,Nama/Judul,Score,Pass/Fail,Penyelenggara,Tipe Sertifikat,Berlaku Sampai,Status,Sertifikat,Aksi\n';
 
         rows.forEach((row, index) => {
             const cells = row.querySelectorAll('td');
@@ -260,7 +445,7 @@
             const status = cells[9].textContent.trim();
             const sertifikat = cells[10] ? cells[10].querySelector('a') ? cells[10].querySelector('a').getAttribute('href') : '' : '';
 
-            csv += `${no},"${tanggal}","${tipe}","${nama}","${score}","${passFail}","${penyelenggara}","${tipeSertifikat}","${berlakuSampai}","${status}","${sertifikat}"\n`;
+            csv += `${no},"${tanggal}","${tipe}","${nama}","${score}","${passFail}","${penyelenggara}","${tipeSertifikat}","${berlakuSampai}","${status}","${sertifikat}",""\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
