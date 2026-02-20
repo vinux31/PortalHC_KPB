@@ -234,6 +234,10 @@ Plans:
   3. HC can upload a new certificate file on the Edit form; the old file is replaced and the new file is downloadable
   4. HC can clear the existing certificate file on the Edit form; the record saves with no file and the download link disappears
   5. Clicking Delete shows a confirmation and, on confirm, removes the record and any associated certificate file from disk; the row disappears from the list
+**Plans:** 1 plan
+
+Plans:
+- [ ] 20-01-PLAN.md — EditTrainingRecordViewModel, Edit/Delete controller actions, EditTrainingRecord.cshtml, WorkerDetail action links
 
 ---
 
@@ -260,4 +264,4 @@ Plans:
 | 17. Question and Exam UX | v1.5 | 7/7 | Complete | 2026-02-19 |
 | 18. Data Foundation | v1.6 | 0/1 | Pending | — |
 | 19. HC Create Training Record + Certificate Upload | v1.6 | 0/1 | Pending | — |
-| 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 0/? | Pending | — |
+| 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 0/1 | Pending | — |
