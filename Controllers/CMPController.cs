@@ -1208,6 +1208,7 @@ namespace HcPortal.Controllers
                 CertificateType = t.CertificateType,
                 ValidUntil = t.ValidUntil,
                 Status = t.Status,
+                SertifikatUrl = t.SertifikatUrl,
                 SortPriority = 1
             }));
 

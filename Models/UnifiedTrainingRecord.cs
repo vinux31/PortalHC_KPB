@@ -30,6 +30,9 @@ namespace HcPortal.Models
         //   Training rows: value as-is from TrainingRecord.Status
         public string? Status { get; set; }
 
+        // Certificate download URL (from TrainingRecord.SertifikatUrl) — null for Assessment rows
+        public string? SertifikatUrl { get; set; }
+
         // Sort tie-break: 0 for Assessment Online (sorts first), 1 for Training Manual
         public int SortPriority { get; set; }
 

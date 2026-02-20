@@ -1,0 +1,163 @@
+@model HcPortal.Models.CreateTrainingRecordViewModel
+
+@{
+    ViewData["Title"] = "Create Training Offline";
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Header with back button -->
+    <div class="mb-4">
+        <a href="@Url.Action("Records", "CMP")" class="btn btn-outline-secondary btn-sm mb-2">
+            <i class="bi bi-arrow-left me-2"></i>Kembali ke Daftar Pekerja
+        </a>
+        <h2 class="fw-bold mb-1">Create Training Offline</h2>
+        <p class="text-muted">Buat record training manual untuk pekerja</p>
+    </div>
+
+    <!-- Validation summary -->
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger"></div>
+    }
+
+    <form asp-action="CreateTrainingRecord" asp-controller="CMP" method="post" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-person me-2"></i>Data Pekerja</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label asp-for="UserId" class="form-label fw-bold">Pekerja <span class="text-danger">*</span></label>
+                        <select asp-for="UserId" asp-items="@(ViewBag.Workers as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)" class="form-select">
+                            <option value="">-- Pilih Pekerja --</option>
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-journal-text me-2"></i>Data Training</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Nama Pelatihan -->
+                    <div class="col-md-6">
+                        <label asp-for="Judul" class="form-label fw-bold">Nama Pelatihan <span class="text-danger">*</span></label>
+                        <input asp-for="Judul" class="form-control" placeholder="Masukkan nama pelatihan" />
+                        <span asp-validation-for="Judul" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Penyelenggara -->
+                    <div class="col-md-6">
+                        <label asp-for="Penyelenggara" class="form-label fw-bold">Penyelenggara <span class="text-danger">*</span></label>
+                        <input asp-for="Penyelenggara" class="form-control" placeholder="Masukkan penyelenggara" />
+                        <span asp-validation-for="Penyelenggara" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Kategori -->
+                    <div class="col-md-6">
+                        <label asp-for="Kategori" class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                        <select asp-for="Kategori" class="form-select">
+                            <option value="">-- Pilih Kategori --</option>
+                            <option value="OJT">OJT</option>
+                            <option value="IHT">IHT</option>
+                            <option value="MANDATORY">Mandatory HSSE Training</option>
+                            <option value="Training Licensor">Training Licensor</option>
+                            <option value="OTS">OTS</option>
+                            <option value="Proton">Proton</option>
+                            <option value="ISS">ISS</option>
+                            <option value="OSS">OSS</option>
+                        </select>
+                        <span asp-validation-for="Kategori" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Tanggal (primary date) -->
+                    <div class="col-md-6">
+                        <label asp-for="Tanggal" class="form-label fw-bold">Tanggal <span class="text-danger">*</span></label>
+                        <input asp-for="Tanggal" type="date" class="form-control" />
+                        <span asp-validation-for="Tanggal" class="text-danger small"></span>
+                    </div>
+
+                    <!-- TanggalMulai -->
+                    <div class="col-md-6">
+                        <label asp-for="TanggalMulai" class="form-label fw-bold">Tanggal Mulai</label>
+                        <input asp-for="TanggalMulai" type="date" class="form-control" />
+                    </div>
+
+                    <!-- TanggalSelesai -->
+                    <div class="col-md-6">
+                        <label asp-for="TanggalSelesai" class="form-label fw-bold">Tanggal Selesai</label>
+                        <input asp-for="TanggalSelesai" type="date" class="form-control" />
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Passed">Passed</option>
+                            <option value="Wait Certificate">Wait Certificate</option>
+                            <option value="Valid">Valid</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Data Sertifikat</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <!-- Nomor Sertifikat -->
+                    <div class="col-md-6">
+                        <label asp-for="NomorSertifikat" class="form-label fw-bold">Nomor Sertifikat</label>
+                        <input asp-for="NomorSertifikat" class="form-control" placeholder="Masukkan nomor sertifikat" />
+                    </div>
+
+                    <!-- Tipe Sertifikat -->
+                    <div class="col-md-6">
+                        <label asp-for="CertificateType" class="form-label fw-bold">Tipe Sertifikat</label>
+                        <select asp-for="CertificateType" class="form-select">
+                            <option value="">-- Pilih Tipe --</option>
+                            <option value="Permanent">Permanent</option>
+                            <option value="Annual">Annual</option>
+                            <option value="3-Year">3-Year</option>
+                        </select>
+                    </div>
+
+                    <!-- Berlaku Sampai -->
+                    <div class="col-md-6">
+                        <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai</label>
+                        <input asp-for="ValidUntil" type="date" class="form-control" />
+                    </div>
+
+                    <!-- Certificate File Upload -->
+                    <div class="col-md-6">
+                        <label asp-for="CertificateFile" class="form-label fw-bold">File Sertifikat</label>
+                        <input asp-for="CertificateFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                        <div class="form-text">PDF, JPG, atau PNG. Maksimal 10MB.</div>
+                        <span asp-validation-for="CertificateFile" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Submit buttons -->
+        <div class="d-flex justify-content-end gap-2">
+            <a href="@Url.Action("Records", "CMP")" class="btn btn-outline-secondary">
+                <i class="bi bi-x-lg me-2"></i>Batal
+            </a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Simpan
+            </button>
+        </div>
+    </form>
+</div>

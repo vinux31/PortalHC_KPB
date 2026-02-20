@@ -109,15 +109,16 @@
                     <thead class="table-light">
                         <tr>
                             <th class="p-3" style="width: 4%;">No</th>
-                            <th class="p-3" style="width: 10%;">Tanggal</th>
-                            <th class="p-3" style="width: 14%;">Tipe</th>
-                            <th class="p-3" style="width: 22%;">Nama / Judul</th>
+                            <th class="p-3" style="width: 9%;">Tanggal</th>
+                            <th class="p-3" style="width: 13%;">Tipe</th>
+                            <th class="p-3" style="width: 18%;">Nama / Judul</th>
                             <th class="p-3 text-center" style="width: 6%;">Score</th>
                             <th class="p-3 text-center" style="width: 8%;">Pass/Fail</th>
-                            <th class="p-3" style="width: 12%;">Penyelenggara</th>
-                            <th class="p-3" style="width: 10%;">Tipe Sertifikat</th>
+                            <th class="p-3" style="width: 11%;">Penyelenggara</th>
+                            <th class="p-3" style="width: 9%;">Tipe Sertifikat</th>
                             <th class="p-3" style="width: 10%;">Berlaku Sampai</th>
-                            <th class="p-3" style="width: 8%;">Status</th>
+                            <th class="p-3" style="width: 7%;">Status</th>
+                            <th class="p-3 text-center" style="width: 6%;">Sertifikat</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -168,6 +169,18 @@
                                     @if (!string.IsNullOrEmpty(item.Status))
                                     { <span class="badge @sc">@item.Status</span> }
                                     else { <span class="text-muted">—</span> }
+                                </td>
+                                <td class="p-3 text-center">
+                                    @if (!string.IsNullOrEmpty(item.SertifikatUrl))
+                                    {
+                                        <a href="@item.SertifikatUrl" target="_blank" class="btn btn-sm btn-outline-success" title="Download Sertifikat">
+                                            <i class="bi bi-download"></i>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
                                 </td>
                             </tr>
                             rowNumber++;
@@ -231,7 +244,7 @@
             return;
         }
 
-        let csv = 'No,Tanggal,Tipe,Nama/Judul,Score,Pass/Fail,Penyelenggara,Tipe Sertifikat,Berlaku Sampai,Status\n';
+        let csv = 'No,Tanggal,Tipe,Nama/Judul,Score,Pass/Fail,Penyelenggara,Tipe Sertifikat,Berlaku Sampai,Status,Sertifikat\n';
 
         rows.forEach((row, index) => {
             const cells = row.querySelectorAll('td');
@@ -245,8 +258,9 @@
             const tipeSertifikat = cells[7].textContent.trim();
             const berlakuSampai = cells[8].textContent.trim();
             const status = cells[9].textContent.trim();
+            const sertifikat = cells[10] ? cells[10].querySelector('a') ? cells[10].querySelector('a').getAttribute('href') : '' : '';
 
-            csv += `${no},"${tanggal}","${tipe}","${nama}","${score}","${passFail}","${penyelenggara}","${tipeSertifikat}","${berlakuSampai}","${status}"\n`;
+            csv += `${no},"${tanggal}","${tipe}","${nama}","${score}","${passFail}","${penyelenggara}","${tipeSertifikat}","${berlakuSampai}","${status}","${sertifikat}"\n`;
         });
 
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
