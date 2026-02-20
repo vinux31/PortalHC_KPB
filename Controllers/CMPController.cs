@@ -107,9 +107,8 @@ namespace HcPortal.Controllers
             // ========== HC/ADMIN BRANCH: Dual ViewBag data sets ==========
             if (view == "manage" && isHCAccess)
             {
-                // Management tab: ALL assessments (CRUD operations)
+                // Management tab: ALL assessments (CRUD operations) — projected to avoid loading full User entities
                 var managementQuery = _context.AssessmentSessions
-                    .Include(a => a.User)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(search))
@@ -127,31 +126,47 @@ namespace HcPortal.Controllers
 
                 ViewBag.SearchTerm = search;
 
-                // Fetch all matching sessions (include User for grouping)
+                // Project only needed fields — no full User entity load
                 var allSessions = await managementQuery
                     .OrderByDescending(a => a.Schedule)
+                    .Select(a => new
+                    {
+                        a.Id,
+                        a.Title,
+                        a.Category,
+                        a.Schedule,
+                        a.DurationMinutes,
+                        a.Status,
+                        a.IsTokenRequired,
+                        a.AccessToken,
+                        a.PassPercentage,
+                        a.AllowAnswerReview,
+                        a.CreatedAt,
+                        UserFullName = a.User != null ? a.User.FullName : "Unknown",
+                        UserEmail    = a.User != null ? a.User.Email    : ""
+                    })
                     .ToListAsync();
 
-                // Group by (Title, Category, Schedule.Date)
+                // Group by (Title, Category, Schedule.Date) — in-memory after projection
                 var grouped = allSessions
                     .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
                     .Select(g =>
                     {
-                        var rep = g.OrderBy(a => a.CreatedAt).First(); // representative session
+                        var rep = g.OrderBy(a => a.CreatedAt).First();
                         return new
                         {
-                            Title           = rep.Title,
-                            Category        = rep.Category,
-                            Schedule        = rep.Schedule,
-                            DurationMinutes = rep.DurationMinutes,
-                            Status          = rep.Status,
-                            IsTokenRequired = rep.IsTokenRequired,
-                            AccessToken     = rep.AccessToken,
-                            PassPercentage  = rep.PassPercentage,
+                            Title             = rep.Title,
+                            Category          = rep.Category,
+                            Schedule          = rep.Schedule,
+                            DurationMinutes   = rep.DurationMinutes,
+                            Status            = rep.Status,
+                            IsTokenRequired   = rep.IsTokenRequired,
+                            AccessToken       = rep.AccessToken,
+                            PassPercentage    = rep.PassPercentage,
                             AllowAnswerReview = rep.AllowAnswerReview,
                             RepresentativeId  = rep.Id,
-                            Users = g.Select(a => new { FullName = a.User?.FullName ?? "Unknown", Email = a.User?.Email ?? "" }).ToList(),
-                            AllIds = g.Select(a => a.Id).ToList()
+                            Users    = g.Select(a => new { FullName = a.UserFullName, Email = a.UserEmail }).ToList(),
+                            AllIds   = g.Select(a => a.Id).ToList()
                         };
                     })
                     .OrderByDescending(g => g.Schedule)
@@ -165,67 +180,11 @@ namespace HcPortal.Controllers
                     .Take(pageSize)
                     .ToList();
 
-                ViewBag.CurrentPage = page;
-                ViewBag.TotalPages  = totalPages;
-                ViewBag.TotalCount  = totalCount;
-                ViewBag.PageSize    = pageSize;
+                ViewBag.CurrentPage    = page;
+                ViewBag.TotalPages     = totalPages;
+                ViewBag.TotalCount     = totalCount;
+                ViewBag.PageSize       = pageSize;
                 ViewBag.ManagementData = managementData;
-
-                // Monitoring tab: Open, Upcoming, and Completed within last 30 days — grouped by assessment
-                var cutoff = DateTime.UtcNow.AddDays(-30);
-                var monitorSessions = await _context.AssessmentSessions
-                    .Include(a => a.User)
-                    .Where(a => a.Status == "Open"
-                             || a.Status == "Upcoming"
-                             || (a.Status == "Completed" && a.CompletedAt != null && a.CompletedAt >= cutoff))
-                    .ToListAsync();
-
-                var monitorGroups = monitorSessions
-                    .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
-                    .Select(g =>
-                    {
-                        var sessions = g.Select(a =>
-                        {
-                            bool isCompleted = a.Score != null || a.CompletedAt != null;
-                            return new MonitoringSessionViewModel
-                            {
-                                Id           = a.Id,
-                                UserFullName = a.User?.FullName ?? "Unknown",
-                                UserNIP      = a.User?.NIP ?? "",
-                                UserStatus   = isCompleted ? "Completed" : "Not started",
-                                Score        = a.Score,
-                                IsPassed     = a.IsPassed,
-                                CompletedAt  = a.CompletedAt
-                            };
-                        }).ToList();
-
-                        // GroupStatus: Open > Upcoming > Closed (priority order)
-                        bool hasOpen     = g.Any(a => a.Status == "Open");
-                        bool hasUpcoming = g.Any(a => a.Status == "Upcoming");
-                        string groupStatus = hasOpen ? "Open" : hasUpcoming ? "Upcoming" : "Closed";
-
-                        int completedCount = sessions.Count(s => s.UserStatus == "Completed");
-                        int passedCount    = sessions.Count(s => s.IsPassed == true);
-
-                        return new MonitoringGroupViewModel
-                        {
-                            Title          = g.Key.Title,
-                            Category       = g.Key.Category,
-                            Schedule       = g.First().Schedule,
-                            GroupStatus    = groupStatus,
-                            TotalCount     = sessions.Count,
-                            CompletedCount = completedCount,
-                            PassedCount    = passedCount,
-                            Sessions       = sessions
-                        };
-                    })
-                    // Sort: Open/Upcoming soonest-first; Closed most-recent-first
-                    .OrderBy(g => g.GroupStatus == "Closed" ? 1 : 0)
-                    .ThenBy(g => g.GroupStatus != "Closed" ? g.Schedule : DateTime.MaxValue)
-                    .ThenByDescending(g => g.GroupStatus == "Closed" ? g.Schedule : DateTime.MinValue)
-                    .ToList();
-
-                ViewBag.MonitorData = monitorGroups;
 
                 ViewBag.ViewMode = view;
                 ViewBag.UserRole = userRole;
@@ -281,6 +240,80 @@ namespace HcPortal.Controllers
             ViewBag.CanManage = isHCAccess;
 
             return View(exams);
+        }
+
+        // --- MONITORING TAB LAZY-LOAD ENDPOINT ---
+        [HttpGet]
+        public async Task<IActionResult> GetMonitorData()
+        {
+            var userRole = HttpContext.Session.GetString("UserRole") ?? "Worker";
+            bool isHCAccess = userRole == "HC" || userRole == "Admin";
+            if (!isHCAccess) return Forbid();
+
+            var cutoff = DateTime.UtcNow.AddDays(-30);
+            var monitorSessions = await _context.AssessmentSessions
+                .Where(a => a.Status == "Open"
+                         || a.Status == "Upcoming"
+                         || (a.Status == "Completed" && a.CompletedAt != null && a.CompletedAt >= cutoff))
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Title,
+                    a.Category,
+                    a.Schedule,
+                    a.Status,
+                    a.Score,
+                    a.IsPassed,
+                    a.CompletedAt,
+                    UserFullName = a.User != null ? a.User.FullName : "Unknown",
+                    UserNIP      = a.User != null ? a.User.NIP      : ""
+                })
+                .ToListAsync();
+
+            var monitorGroups = monitorSessions
+                .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
+                .Select(g =>
+                {
+                    var sessions = g.Select(a =>
+                    {
+                        bool isCompleted = a.Score != null || a.CompletedAt != null;
+                        return new MonitoringSessionViewModel
+                        {
+                            Id           = a.Id,
+                            UserFullName = a.UserFullName,
+                            UserNIP      = a.UserNIP,
+                            UserStatus   = isCompleted ? "Completed" : "Not started",
+                            Score        = a.Score,
+                            IsPassed     = a.IsPassed,
+                            CompletedAt  = a.CompletedAt
+                        };
+                    }).ToList();
+
+                    bool hasOpen     = g.Any(a => a.Status == "Open");
+                    bool hasUpcoming = g.Any(a => a.Status == "Upcoming");
+                    string groupStatus = hasOpen ? "Open" : hasUpcoming ? "Upcoming" : "Closed";
+
+                    int completedCount = sessions.Count(s => s.UserStatus == "Completed");
+                    int passedCount    = sessions.Count(s => s.IsPassed == true);
+
+                    return new MonitoringGroupViewModel
+                    {
+                        Title          = g.Key.Title,
+                        Category       = g.Key.Category,
+                        Schedule       = g.First().Schedule,
+                        GroupStatus    = groupStatus,
+                        TotalCount     = sessions.Count,
+                        CompletedCount = completedCount,
+                        PassedCount    = passedCount,
+                        Sessions       = sessions
+                    };
+                })
+                .OrderBy(g => g.GroupStatus == "Closed" ? 1 : 0)
+                .ThenBy(g => g.GroupStatus != "Closed" ? g.Schedule : DateTime.MaxValue)
+                .ThenByDescending(g => g.GroupStatus == "Closed" ? g.Schedule : DateTime.MinValue)
+                .ToList();
+
+            return Json(monitorGroups);
         }
 
         // --- ASSESSMENT MONITORING DETAIL ---
