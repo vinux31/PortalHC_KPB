@@ -9,6 +9,7 @@
 - ✅ **v1.3 Assessment Management UX** — Phases 13-15 (shipped 2026-02-19)
 - ✅ **v1.4 Assessment Monitoring** — Phase 16 (shipped 2026-02-19)
 - ✅ **v1.5 Question and Exam UX** — Phase 17 (shipped 2026-02-19)
+- 🔄 **v1.6 Training Records Management** — Phases 18-20 (started 2026-02-20)
 
 ## Phases
 
@@ -107,7 +108,7 @@ Plans:
 
 Plans:
 - [x] 06-01-PLAN.md — Data foundation: extend models, add ProtonNotification/ProtonFinalAssessment, migration
-- [x] 06-02-PLAN.md — Approve/Reject actions with sequential unlock and Deliverable UI
+- [x] 06-02-PLAN.md — Approve/Reject actions with rejection reasons and sequential unlock
 - [x] 06-03-PLAN.md — HC workflow: HCApprovals queue, final assessment, PlanIdp completion card
 
 **Completed:** 2026-02-18
@@ -183,6 +184,51 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 
 ---
 
+## v1.6 Training Records Management
+
+**Goal:** HC and Admin can fully manage manual training records for any worker system-wide — create, edit, delete, and attach certificate files — directly from the Training Records page.
+
+**Requirements:** TRN-01, TRN-02, TRN-03, TRN-04
+**Coverage:** 4/4 requirements mapped
+
+### Phase 18: Data Foundation
+**Goal:** The TrainingRecord model supports all v1.6 form fields and certificate file storage is wired into the project, so Phase 19 can build UI with no schema surprises
+**Depends on:** Phase 17 (v1.5 complete)
+**Requirements:** (none directly — foundation that enables TRN-01 through TRN-04)
+**Success Criteria** (what must be TRUE):
+  1. The database has TanggalMulai, TanggalSelesai, and NomorSertifikat columns on TrainingRecord with no data loss on existing rows
+  2. A certificate file saved through the upload path lands at a deterministic path under wwwroot/uploads/certificates/ and is reachable by its URL from the browser
+  3. The EF migration applies cleanly on a fresh database and on the existing development database
+  4. All pre-existing Training Records pages (RecordsWorkerList, personal Records view) still render without error after the migration
+
+---
+
+### Phase 19: HC Create Training Record + Certificate Upload
+**Goal:** HC or Admin can open a "Create Training Offline" form from the Training Records worker list, fill in all required and optional fields for any worker system-wide, optionally attach a certificate file, and save — producing a visible record in that worker's training history
+**Depends on:** Phase 18
+**Requirements:** TRN-01, TRN-04
+**Success Criteria** (what must be TRUE):
+  1. HC sees a "Create Training Offline" button on the RecordsWorkerList page and clicking it opens a form pre-loaded with a system-wide worker dropdown (not section-filtered)
+  2. Submitting the form with Nama Pelatihan, Penyelenggara, and Kategori filled saves the record and the worker's record appears in their training history immediately
+  3. Submitting the form without required fields (Nama Pelatihan, Penyelenggara, or Kategori) shows a validation error and does not save
+  4. HC can attach a PDF or image file; after saving, the file is downloadable from the worker's training record row
+  5. Submitting without a certificate file saves the record normally with no file attached
+
+---
+
+### Phase 20: Edit, Delete, and RecordsWorkerList Wiring
+**Goal:** HC or Admin can edit any existing manual training record (including replacing or removing a certificate file) and can delete any manual record, with both actions accessible directly from the Training Records worker list view
+**Depends on:** Phase 19
+**Requirements:** TRN-02, TRN-03
+**Success Criteria** (what must be TRUE):
+  1. HC sees Edit and Delete action links on each manually-created training record row in the RecordsWorkerList view; assessment-sourced rows show no such links
+  2. Clicking Edit opens a pre-populated form; HC can change any field and save — changes appear immediately in the record list
+  3. HC can upload a new certificate file on the Edit form; the old file is replaced and the new file is downloadable
+  4. HC can clear the existing certificate file on the Edit form; the record saves with no file and the download link disappears
+  5. Clicking Delete shows a confirmation and, on confirm, removes the record and any associated certificate file from disk; the row disappears from the list
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -204,3 +250,6 @@ See `.planning/milestones/v1.5-ROADMAP.md` for full details.
 | 15. Quick Edit | v1.3 | 0/1 | Cancelled | 2026-02-19 |
 | 16. Grouped Monitoring View | v1.4 | 3/3 | Complete | 2026-02-19 |
 | 17. Question and Exam UX | v1.5 | 7/7 | Complete | 2026-02-19 |
+| 18. Data Foundation | v1.6 | 0/? | Pending | — |
+| 19. HC Create Training Record + Certificate Upload | v1.6 | 0/? | Pending | — |
+| 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 0/? | Pending | — |

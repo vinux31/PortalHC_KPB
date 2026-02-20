@@ -6,16 +6,16 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Latest milestone:** v1.5 Question and Exam UX — SHIPPED 2026-02-19
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.6 Training Records Management — defining requirements
+**Current focus:** v1.6 Training Records Management — Phase 18 (Data Foundation)
 
 ## Current Position
 
 **Milestone:** v1.6 Training Records Management
-**Phase:** Not started (defining requirements)
-**Status:** Defining requirements
-**Last activity:** 2026-02-20 — Milestone v1.6 started
+**Phase:** 18 — Data Foundation
+**Status:** Roadmap defined, ready for planning
+**Last activity:** 2026-02-20 — v1.6 roadmap created (3 phases: 18-20)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.6)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.6 — 0/3 phases complete)
 
 ## Performance Metrics
 
@@ -98,9 +98,10 @@ None.
 - v1.3 milestone archived (2026-02-19)
 - Phase 16 defined for v1.4 Assessment Monitoring (2026-02-19)
 - Phase 17 added: Question and Exam UX improvements (2026-02-19)
+- Phases 18-20 defined for v1.6 Training Records Management (2026-02-20)
 
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Session resumed, awaiting next milestone planning.
+Stopped at: v1.6 roadmap created. Next: plan-phase 18.
 Resume file: None.

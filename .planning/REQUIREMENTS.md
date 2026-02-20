@@ -46,16 +46,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TRN-01 | TBD | Pending |
-| TRN-02 | TBD | Pending |
-| TRN-03 | TBD | Pending |
-| TRN-04 | TBD | Pending |
+| TRN-01 | Phase 19 | Pending |
+| TRN-02 | Phase 20 | Pending |
+| TRN-03 | Phase 20 | Pending |
+| TRN-04 | Phase 19 | Pending |
 
 **Coverage:**
 - v1.6 requirements: 4 total
-- Mapped to phases: 0 (pre-roadmap)
-- Unmapped: 4 ⚠️
+- Mapped to phases: 4 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 after initial definition*
+*Last updated: 2026-02-20 after v1.6 roadmap creation*
