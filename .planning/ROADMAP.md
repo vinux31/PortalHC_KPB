@@ -208,10 +208,10 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
   1. When a worker loads the StartExam page for the first time, their session status changes from `Open` to `InProgress` and a `StartedAt` timestamp is recorded
   2. The `InProgress` status is visible in the monitoring detail view alongside existing `Completed` and `Open` statuses
   3. Reloading the exam page does not reset `StartedAt` — the timestamp is only written once on first load
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 21-01: Schema migration (SessionStatus enum add InProgress + Abandoned, StartedAt nullable DateTime column on AssessmentSession); StartExam GET writes InProgress + StartedAt on first load
+- [ ] 21-01-PLAN.md — Schema migration (StartedAt nullable DateTime on AssessmentSession) + idempotent InProgress write in StartExam GET + monitoring detail updated for three-state display
 
 ---
 
@@ -325,7 +325,7 @@ Plans:
 | 18. Data Foundation | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 19. HC Create Training Record + Certificate Upload | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 1/1 | Complete | 2026-02-20 |
-| 21. Exam State Foundation | v1.7 | 0/TBD | Not started | - |
+| 21. Exam State Foundation | v1.7 | 0/1 | Not started | - |
 | 22. Exam Lifecycle Actions | v1.7 | 0/TBD | Not started | - |
 | 23. Package Answer Integrity | v1.7 | 0/TBD | Not started | - |
 | 24. HC Audit Log | v1.7 | 0/TBD | Not started | - |
