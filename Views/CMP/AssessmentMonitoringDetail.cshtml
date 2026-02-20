@@ -33,6 +33,21 @@
 
 <div class="container-fluid px-4 py-4">
 
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <!-- Back link -->
     <div class="mb-4">
         <a href="@ViewBag.BackUrl" class="btn btn-outline-secondary btn-sm">
@@ -101,13 +116,14 @@
                             <th>Score</th>
                             <th>Result</th>
                             <th>Completed At</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (Model.Sessions.Count == 0)
                         {
                             <tr>
-                                <td colspan="6" class="text-center text-muted py-4">No sessions found for this group.</td>
+                                <td colspan="7" class="text-center text-muted py-4">No sessions found for this group.</td>
                             </tr>
                         }
                         else
@@ -156,6 +172,36 @@
                                     <td class="@resultClass">@resultText</td>
                                     <td class="text-muted small">
                                         @(session.CompletedAt.HasValue ? session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "—")
+                                    </td>
+                                    <td>
+                                        @if (session.UserStatus == "Completed" || session.UserStatus == "Abandoned")
+                                        {
+                                            <!-- Reset: returns session to Open for retake (works for both Completed and Abandoned) -->
+                                            <form asp-action="ResetAssessment" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@session.Id" />
+                                                <button type="submit" class="btn btn-warning btn-sm">
+                                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                                                </button>
+                                            </form>
+                                        }
+                                        else if (session.UserStatus == "InProgress" || session.UserStatus == "Not started")
+                                        {
+                                            <!-- Force Close: terminates session with score 0 (only for active/not-yet-started sessions) -->
+                                            <form asp-action="ForceCloseAssessment" method="post" class="d-inline"
+                                                  onsubmit="return confirm('Tutup paksa sesi ini? Skor akan dicatat sebagai 0 dan peserta dinyatakan tidak lulus.')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@session.Id" />
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="bi bi-x-circle me-1"></i>Force Close
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">—</span>
+                                        }
                                     </td>
                                 </tr>
                             }
