@@ -240,9 +240,9 @@
             <table class="table table-hover align-middle mb-0">
                 <thead class="bg-light text-secondary small text-uppercase">
                     <tr>
-                        <th class="p-3 ps-4" style="width: 25%">Nama Kompetensi CPDP</th>
-                        <th class="p-3 text-center" style="width: 10%">Implementasi</th>
-                        <th class="p-3" style="width: 20%">Nama Sub Kompetensi</th>
+                        <th class="p-3 ps-4" style="width: 20%">Kompetensi</th>
+                        <th class="p-3" style="width: 15%">Sub Kompetensi</th>
+                        <th class="p-3" style="width: 15%">Deliverable</th>
                         <th class="p-3 text-center" style="width: 10%">Evidence</th>
                         <th class="p-3 text-center" style="width: 10%">Sr. Supervisor</th>
                         <th class="p-3 text-center" style="width: 10%">Section Head</th>
@@ -255,16 +255,16 @@
                     {
                         <tr>
                             <td class="p-3 ps-4 fw-bold text-dark">@item.Kompetensi</td>
-                            <td class="p-3 text-center text-muted small">@item.Periode</td>
                             <td class="p-3 text-dark small">
                                 @item.SubKompetensi
                                 @if(!string.IsNullOrEmpty(item.SupervisorComments))
                                 {
-                                    <i class="bi bi-chat-left-text-fill text-warning ms-1" 
-                                       data-bs-toggle="tooltip" 
+                                    <i class="bi bi-chat-left-text-fill text-warning ms-1"
+                                       data-bs-toggle="tooltip"
                                        title="Catatan Supervisor: @item.SupervisorComments"></i>
                                 }
                             </td>
+                            <td class="p-3 text-dark small">@item.Deliverable</td>
                             
                             <!-- Evidence Status -->
                             <td class="p-3 text-center">
