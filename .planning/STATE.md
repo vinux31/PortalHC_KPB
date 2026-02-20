@@ -2,20 +2,20 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-19)
+See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Latest milestone:** v1.5 Question and Exam UX — SHIPPED 2026-02-19
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Awaiting next milestone — run /gsd:new-milestone to begin
+**Current focus:** v1.6 Training Records Management — defining requirements
 
 ## Current Position
 
-**Milestone:** v1.5 Question and Exam UX
-**Phase:** 17 of 17 (Question and Exam UX Improvements)
-**Status:** COMPLETE (7/7 plans — human verified)
-**Last activity:** 2026-02-19 — Phase 17 complete: full exam flow verified (HC package management, Excel import, paged exam, shuffle, summary, ID-based grading, Results page)
+**Milestone:** v1.6 Training Records Management
+**Phase:** Not started (defining requirements)
+**Status:** Defining requirements
+**Last activity:** 2026-02-20 — Milestone v1.6 started
 
-Progress: [████████████████████] 100% (v1.5, 7/7 plans)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.6)
 
 ## Performance Metrics
 
@@ -101,6 +101,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-19
-Stopped at: v1.5 milestone archived — ROADMAP.md collapsed, REQUIREMENTS.md deleted, PROJECT.md evolved, git tag v1.5 created.
+Last session: 2026-02-20
+Stopped at: Session resumed, awaiting next milestone planning.
 Resume file: None.

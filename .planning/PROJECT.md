@@ -12,9 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v1.6 Training Records Management
+
+**Goal:** HC and Admin can fully manage manual training records for workers — create, edit, delete, and attach certificate files — directly from the Training Records page.
+
+**Target features:**
+- HC/Admin: "Create Training Offline" button to add training records for any worker system-wide
+- HC/Admin: Edit and delete existing manual training records
+- HC/Admin: Upload certificate files (PDF/image) per record
+- Training form fields: Nama Pelatihan, Penyelenggara, Kategori, Tanggal Mulai/Selesai (optional), Nomor Sertifikat (optional), Berlaku Sampai (optional), Certificate file (optional)
+
 ## Current State (v1.5)
 
-**Status:** v1.5 shipped 2026-02-19. Awaiting next milestone planning.
+**Status:** v1.5 shipped 2026-02-19. v1.6 milestone started 2026-02-20.
 
 ## Shipped Milestones
 
