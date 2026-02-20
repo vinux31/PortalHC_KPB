@@ -38,5 +38,15 @@ namespace HcPortal.Models
 
         // Computed: true only when ValidUntil is in the past — no lookahead window
         public bool IsExpired => ValidUntil.HasValue && ValidUntil.Value < DateTime.Now;
+
+        // TrainingRecord.Id — null for Assessment Online rows; used for Edit/Delete actions
+        public int? TrainingRecordId { get; set; }
+
+        // Training Manual-only fields for Edit modal pre-population (null for Assessment rows)
+        public string? Kategori { get; set; }
+        public string? Kota { get; set; }
+        public string? NomorSertifikat { get; set; }
+        public DateTime? TanggalMulai { get; set; }
+        public DateTime? TanggalSelesai { get; set; }
     }
 }

@@ -1197,6 +1197,119 @@ namespace HcPortal.Controllers
             return RedirectToAction("Records", new { isFiltered = "true" });
         }
 
+        // Phase 20: HC Edit Training Record — POST only (no GET; modal is pre-populated inline via Razor in WorkerDetail.cshtml)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditTrainingRecord(EditTrainingRecordViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
+            if (!isHCAccess) return Forbid();
+
+            // Validate file if provided
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                {
+                    TempData["Error"] = "Hanya file PDF, JPG, dan PNG yang diperbolehkan.";
+                    return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+                }
+                if (model.CertificateFile.Length > 10 * 1024 * 1024)
+                {
+                    TempData["Error"] = "Ukuran file maksimal 10MB.";
+                    return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var firstError = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .FirstOrDefault() ?? "Data tidak valid.";
+                TempData["Error"] = firstError;
+                return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+            }
+
+            var record = await _context.TrainingRecords.FindAsync(model.Id);
+            if (record == null) return NotFound();
+
+            // Handle file upload — replace old file if new file provided
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                // Delete old file if exists
+                if (!string.IsNullOrEmpty(record.SertifikatUrl))
+                {
+                    var oldPath = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                }
+
+                // Save new file with timestamp prefix
+                var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
+                Directory.CreateDirectory(uploadDir);
+                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
+                var filePath = Path.Combine(uploadDir, safeFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.CertificateFile.CopyToAsync(stream);
+                }
+                record.SertifikatUrl = $"/uploads/certificates/{safeFileName}";
+            }
+            // Else: keep record.SertifikatUrl unchanged
+
+            // Update all editable fields — UserId (worker) is intentionally NOT updated
+            record.Judul = model.Judul;
+            record.Penyelenggara = model.Penyelenggara;
+            record.Kota = model.Kota;
+            record.Kategori = model.Kategori;
+            record.Tanggal = model.Tanggal;
+            record.TanggalMulai = model.TanggalMulai;
+            record.TanggalSelesai = model.TanggalSelesai;
+            record.Status = model.Status;
+            record.NomorSertifikat = model.NomorSertifikat;
+            record.ValidUntil = model.ValidUntil;
+            record.CertificateType = model.CertificateType;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Training record berhasil diperbarui.";
+            return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+        }
+
+        // Phase 20: HC Delete Training Record — POST only
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteTrainingRecord(int id, string workerId, string workerName)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
+            if (!isHCAccess) return Forbid();
+
+            var record = await _context.TrainingRecords.FindAsync(id);
+            if (record == null) return NotFound();
+
+            // Delete certificate file from disk if it exists
+            if (!string.IsNullOrEmpty(record.SertifikatUrl))
+            {
+                var path = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+            }
+
+            _context.TrainingRecords.Remove(record);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Training record berhasil dihapus.";
+            return RedirectToAction("WorkerDetail", new { workerId = workerId, name = workerName });
+        }
+
         // Helper method: Get personal training records for Coach/Coachee
         private async Task<List<TrainingRecord>> GetPersonalTrainingRecords(string userId)
         {
@@ -1245,7 +1358,13 @@ namespace HcPortal.Controllers
                 ValidUntil = t.ValidUntil,
                 Status = t.Status,
                 SertifikatUrl = t.SertifikatUrl,
-                SortPriority = 1
+                SortPriority = 1,
+                TrainingRecordId = t.Id,
+                Kategori = t.Kategori,
+                Kota = t.Kota,
+                NomorSertifikat = t.NomorSertifikat,
+                TanggalMulai = t.TanggalMulai,
+                TanggalSelesai = t.TanggalSelesai
             }));
 
             return unified
