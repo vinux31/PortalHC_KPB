@@ -34,6 +34,7 @@ namespace HcPortal.Models
 
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
+        public DateTime? StartedAt { get; set; }
 
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
