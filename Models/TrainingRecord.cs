@@ -18,6 +18,11 @@ namespace HcPortal.Models
         // New fields for certificate expiry tracking
         public DateTime? ValidUntil { get; set; }  // Certificate validity end date
         public string? CertificateType { get; set; } // "Permanent", "Annual", "3-Year"
+
+        // v1.6 fields — start date, end date, certificate number
+        public DateTime? TanggalMulai { get; set; }    // Training start date
+        public DateTime? TanggalSelesai { get; set; }   // Training end date
+        public string? NomorSertifikat { get; set; }    // Certificate number
         
         // Computed property: Returns true if certificate expires within 30 days
         public bool IsExpiringSoon
