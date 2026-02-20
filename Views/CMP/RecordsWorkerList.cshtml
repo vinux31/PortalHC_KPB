@@ -164,7 +164,7 @@
                             <th class="p-3">Nopeg</th>
                             <th class="p-3">Jabatan</th>
                              <th class="p-3 text-center">Unit</th>
-                             <th class="p-3">Completion</th>
+                             <th class="p-3">Status Training</th>
                              <th class="p-3 text-center">Action</th>
                         </tr>
                     </thead>
@@ -191,7 +191,21 @@
                                     <small class="text-muted">@worker.Unit</small>
                                 </td>
                                 <td class="p-3">
-                                    <small class="text-muted">@worker.CompletionDisplayText</small>
+                                    @if (ViewBag.IsFilterMode == true)
+                                    {
+                                        if (worker.CompletionPercentage == 100)
+                                        {
+                                            <span class="badge bg-success">✓ Sudah</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">✗ Belum</span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">@worker.TotalTrainings training</small>
+                                    }
                                 </td>
                                 <td class="p-3 text-center">
                                     <button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation(); viewWorkerDetail('@worker.WorkerId', '@worker.WorkerName')" title="Lihat Detail">
@@ -447,8 +461,8 @@
         }
 
         // Build CSV content
-        let csv = 'Nama,NIP,Jabatan,Unit,Status\n';
-        
+        let csv = 'Nama,NIP,Jabatan,Unit,Status Training\n';
+
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             const nama = cells[0].querySelector('.fw-bold').textContent.trim();
