@@ -16,7 +16,7 @@ HC or Admin can edit any existing manual training record (all fields except Peke
 ### Edit/Delete location
 - Edit and Delete links appear on manual training record rows in **WorkerDetail** only (where records are physically displayed)
 - Assessment session rows get **no** Edit/Delete links — manual training rows only
-- Edit stays **in-page** on WorkerDetail (no separate edit page navigation) — Claude decides between modal and inline row expansion based on what fits better
+- Edit stays **in-page** on WorkerDetail using a **Bootstrap modal** — no separate edit page navigation
 - Navigation after save: Claude decides (stay on WorkerDetail or redirect)
 
 ### Edit form design

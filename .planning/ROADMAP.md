@@ -229,11 +229,11 @@ Plans:
 **Depends on:** Phase 19
 **Requirements:** TRN-02, TRN-03
 **Success Criteria** (what must be TRUE):
-  1. HC sees Edit and Delete action links on each manually-created training record row in the RecordsWorkerList view; assessment-sourced rows show no such links
-  2. Clicking Edit opens a pre-populated form; HC can change any field and save — changes appear immediately in the record list
-  3. HC can upload a new certificate file on the Edit form; the old file is replaced and the new file is downloadable
-  4. HC can clear the existing certificate file on the Edit form; the record saves with no file and the download link disappears
-  5. Clicking Delete shows a confirmation and, on confirm, removes the record and any associated certificate file from disk; the row disappears from the list
+  1. HC sees Edit and Delete action links on each manually-created training record row in WorkerDetail; assessment-sourced rows show no such links
+  2. Clicking Edit opens a pre-populated in-page modal; HC can change any field except Pekerja and save — changes appear immediately when modal closes
+  3. HC can upload a new certificate file on the Edit modal; the old file is replaced and the new file is downloadable
+  4. Clicking Delete shows a browser confirm() dialog and, on confirm, removes the record and any associated certificate file from disk; the row disappears from the list
+  Note: "Clear certificate without replacing" is out of scope — HC can only replace a certificate with a new file (discuss-phase decision 2026-02-20)
 **Plans:** 1 plan
 
 Plans:

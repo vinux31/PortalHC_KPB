@@ -6,14 +6,14 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Latest milestone:** v1.5 Question and Exam UX — SHIPPED 2026-02-19
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.6 Training Records Management — Phase 18 (Data Foundation)
+**Current focus:** v1.6 Training Records Management — Phase 20 (Edit, Delete, and RecordsWorkerList Wiring)
 
 ## Current Position
 
 **Milestone:** v1.6 Training Records Management
-**Phase:** 19 — HC Create Training Record + Certificate Upload
-**Status:** Plan 01 complete — Create Training Offline feature fully implemented
-**Last activity:** 2026-02-20 — 19-01-PLAN.md executed (CreateTrainingRecord ViewModel, controller actions, form view, button, certificate download)
+**Phase:** 20 — Edit, Delete, and RecordsWorkerList Wiring
+**Status:** Ready to plan — Phase 18 and 19 both complete
+**Last activity:** 2026-02-20 — Phase 19 Plan 01 verified (6/6 truths, human confirmation pending); quick-11 Kota field added to CreateTrainingRecord
 
 Progress: [███░░░░░░░░░░░░░░░░░] 33% (v1.6 — 1/3 phases complete)
 
@@ -115,5 +115,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed quick-11 — Add Kota field to CreateTrainingRecord form (model, ViewModel, controller, EF migration applied, views updated, "Create Training Offline" renamed to "Create Training").
+Stopped at: Session resumed. Phases 18 and 19 complete. Ready to plan Phase 20 (Edit, Delete, RecordsWorkerList Wiring).
 Resume file: None.
