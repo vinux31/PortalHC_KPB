@@ -93,6 +93,7 @@ None.
 | 003 | Verify and clean all remaining Assessment Analytics access points in CMP after card removal | 2026-02-19 | 8e364df | [3-verify-and-clean-all-remaining-assessmen](.planning/quick/3-verify-and-clean-all-remaining-assessmen/) |
 | 004 | Add persistent Create Assessment button to Assessment manage view header for HC users | 2026-02-19 | b9518d6 | [4-when-hc-want-to-make-new-assessment-wher](.planning/quick/4-when-hc-want-to-make-new-assessment-wher/) |
 | 005 | Group manage view cards by assessment (Title+Category+Schedule.Date) — 1 card per assessment, compact user list, group delete | 2026-02-19 | 8d0b76a | [5-group-manage-view-cards-by-assessment](.planning/quick/5-group-manage-view-cards-by-assessment/) |
+| 006 | Fix slow performance on Assessment manage page — Select() projection on management query, monitor tab lazy-loaded via AJAX | 2026-02-20 | 564432f | [6-fix-slow-performance-on-assessment-manag](.planning/quick/6-fix-slow-performance-on-assessment-manag/) |
 
 ### Roadmap Evolution
 
@@ -109,5 +110,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 19-01-PLAN.md — HC Create Training Record feature shipped.
+Stopped at: Completed quick-6 — Assessment manage page performance fix (Select() projection + lazy monitor AJAX).
 Resume file: None.
