@@ -11,9 +11,9 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Milestone:** v1.7 Assessment System Integrity
 **Phase:** 22 of 26 (Exam Lifecycle Actions)
-**Current Plan:** Planning complete — 4 plans ready for execution
-**Status:** Ready to execute
-**Last activity:** 2026-02-20 — Phase 22 planned: 4 plans (22-01 through 22-04)
+**Current Plan:** 22-03 (Plan 02 complete)
+**Status:** Executing
+**Last activity:** 2026-02-20 — 22-02 complete: AbandonExam POST + Keluar Ujian button (LIFE-02)
 
 Progress: [█░░░░░░░░░░░░░░░░░░░] 5% (v1.7)
 
@@ -48,6 +48,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - StartedAt (Phase 21, done) and ExamWindowCloseDate (Phase 22) are nullable datetime2 columns
 - Token enforcement currently only in the lobby view (worker sees token prompt in Assessment.cshtml) — Phase 23 moves enforcement into StartExam GET controller action
 - Idempotency pattern established: use StartedAt == null as guard for first-write, not Status string comparison
+- AbandonExam (22-02, done): StartedAt preserved on Abandon — HC audit requires it; Reset (22-04) clears it for retake
+- AbandonExam (22-02, done): worker-only ownership check (assessment.UserId != user.Id), no role guard on this action
+- Hidden form POST + confirm() + onbeforeunload bypass pattern established for exam destructive actions
 
 **v1.6 decisions (Phase 20-01):**
 - EditTrainingRecord has no GET action — modal is pre-populated inline via Razor in WorkerDetail.cshtml
@@ -94,5 +97,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Phase 22 planning complete — 4 plans verified and ready. Run /gsd:execute-phase 22 to build.
+Stopped at: Completed 22-02-PLAN.md — AbandonExam POST + Keluar Ujian button done. Next: 22-03 (ForceClose).
 Resume file: None.
