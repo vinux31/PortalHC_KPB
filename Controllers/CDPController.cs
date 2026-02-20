@@ -1493,6 +1493,7 @@ namespace HcPortal.Controllers
                 Id = idp.Id,
                 Kompetensi = idp.Kompetensi ?? "",
                 SubKompetensi = idp.SubKompetensi ?? "",
+                Deliverable = idp.Deliverable ?? "",
                 Periode = "", // Not in IdpItem schema, can be added later if needed
                 EvidenceStatus = string.IsNullOrEmpty(idp.Evidence) ? "Pending" : "Uploaded",
                 ApprovalSrSpv = idp.ApproveSrSpv ?? "Not Started",
