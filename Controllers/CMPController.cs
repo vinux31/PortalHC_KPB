@@ -342,6 +342,8 @@ namespace HcPortal.Controllers
                 string userStatus;
                 if (a.CompletedAt != null || a.Score != null)
                     userStatus = "Completed";
+                else if (a.Status == "Abandoned")
+                    userStatus = "Abandoned";
                 else if (a.StartedAt != null)
                     userStatus = "InProgress";
                 else
@@ -378,6 +380,105 @@ namespace HcPortal.Controllers
 
             ViewBag.BackUrl = Url.Action("Assessment", "CMP", new { view = "manage" });
             return View(model);
+        }
+
+        // --- RESET ASSESSMENT ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetAssessment(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            // Only reset Completed or Abandoned sessions
+            if (assessment.Status != "Completed" && assessment.Status != "Abandoned")
+            {
+                TempData["Error"] = "Hanya sesi yang telah selesai atau ditinggalkan yang dapat direset.";
+                return RedirectToAction("AssessmentMonitoringDetail", new
+                {
+                    title = assessment.Title,
+                    category = assessment.Category,
+                    scheduleDate = assessment.Schedule
+                });
+            }
+
+            // 1. Delete UserResponse records for this session (legacy path answers)
+            var responses = await _context.UserResponses
+                .Where(r => r.AssessmentSessionId == id)
+                .ToListAsync();
+            if (responses.Any())
+                _context.UserResponses.RemoveRange(responses);
+
+            // 2. Delete UserPackageAssignment for this session (package path)
+            //    Deleting ensures the next StartExam assigns a fresh random package.
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+            if (assignment != null)
+                _context.UserPackageAssignments.Remove(assignment);
+
+            // 3. Reset session state to Open
+            assessment.Status = "Open";
+            assessment.Score = null;
+            assessment.IsPassed = null;
+            assessment.CompletedAt = null;
+            assessment.StartedAt = null;
+            assessment.Progress = 0;
+            assessment.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Sesi ujian telah direset. Peserta dapat mengikuti ujian kembali.";
+            return RedirectToAction("AssessmentMonitoringDetail", new
+            {
+                title = assessment.Title,
+                category = assessment.Category,
+                scheduleDate = assessment.Schedule
+            });
+        }
+
+        // --- FORCE CLOSE ASSESSMENT ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForceCloseAssessment(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            // Only force-close Open or InProgress sessions
+            if (assessment.Status != "Open" && assessment.Status != "InProgress")
+            {
+                TempData["Error"] = "Force Close hanya dapat dilakukan pada sesi yang berstatus Open atau InProgress.";
+                return RedirectToAction("AssessmentMonitoringDetail", new
+                {
+                    title = assessment.Title,
+                    category = assessment.Category,
+                    scheduleDate = assessment.Schedule
+                });
+            }
+
+            // Mark as Completed with system score of 0
+            assessment.Status = "Completed";
+            assessment.Score = 0;
+            assessment.IsPassed = false;
+            assessment.CompletedAt = DateTime.UtcNow;
+            assessment.Progress = 100;
+            assessment.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Sesi ujian telah ditutup paksa oleh sistem dengan skor 0.";
+            return RedirectToAction("AssessmentMonitoringDetail", new
+            {
+                title = assessment.Title,
+                category = assessment.Category,
+                scheduleDate = assessment.Schedule
+            });
         }
 
         // --- EDIT ASSESSMENT ---
@@ -1705,6 +1806,39 @@ namespace HcPortal.Controllers
             return View(vm);
         }
 
+        // --- ABANDON EXAM ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AbandonExam(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            // Authorization: only the session owner can abandon their own exam
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            if (assessment.UserId != user.Id)
+                return Forbid();
+
+            // Only abandon if currently InProgress (idempotent guard)
+            if (assessment.Status != "InProgress" && assessment.Status != "Open")
+            {
+                TempData["Error"] = "Sesi ujian ini tidak dapat dibatalkan dalam status saat ini.";
+                return RedirectToAction("Assessment");
+            }
+
+            // Mark Abandoned — keep StartedAt so HC can see when the exam was started
+            assessment.Status = "Abandoned";
+            assessment.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            TempData["Info"] = "Ujian telah dibatalkan. Hubungi HC jika Anda ingin mengulang.";
+            return RedirectToAction("Assessment");
+        }
+
         // Helper: Fisher-Yates shuffle
         private static void Shuffle<T>(List<T> list, Random rng)
         {
@@ -1958,6 +2092,20 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "This assessment has already been completed.";
                 return RedirectToAction("Assessment");
+            }
+
+            // ---- Server-side timer enforcement (LIFE-03) ----
+            // Grace period: 2 minutes to account for network latency and slow connections.
+            // Skip check if StartedAt is null (legacy sessions that existed before Phase 21).
+            if (assessment.StartedAt.HasValue)
+            {
+                var elapsed = DateTime.UtcNow - assessment.StartedAt.Value;
+                int allowedMinutes = assessment.DurationMinutes + 2; // 2-minute grace
+                if (elapsed.TotalMinutes > allowedMinutes)
+                {
+                    TempData["Error"] = "Waktu ujian Anda telah habis. Pengiriman jawaban tidak dapat diproses.";
+                    return RedirectToAction("StartExam", new { id });
+                }
             }
 
             // Check for package path — must happen before any grading logic
