@@ -95,6 +95,7 @@ None.
 | 005 | Group manage view cards by assessment (Title+Category+Schedule.Date) — 1 card per assessment, compact user list, group delete | 2026-02-19 | 8d0b76a | [5-group-manage-view-cards-by-assessment](.planning/quick/5-group-manage-view-cards-by-assessment/) |
 | 006 | Fix slow performance on Assessment manage page — Select() projection on management query, monitor tab lazy-loaded via AJAX | 2026-02-20 | 564432f | [6-fix-slow-performance-on-assessment-manag](.planning/quick/6-fix-slow-performance-on-assessment-manag/) |
 | 007 | Fix KKJ Matriks table header misalignment | 2026-02-20 | 1d6b373 | [7-fix-kkj-matriks-table-header-misalignmen](.planning/quick/7-fix-kkj-matriks-table-header-misalignmen/) |
+| 008 | Remove Laporan Coaching from CDP module — card removed from Index, Coaching.cshtml deleted, Coaching/CreateSession/AddActionItem actions removed | 2026-02-20 | 0a2ee80 | [8-remove-laporan-coaching-from-cdp](.planning/quick/8-remove-laporan-coaching-from-cdp/) |
 
 ### Roadmap Evolution
 
@@ -111,5 +112,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed quick-7 — Fix KKJ Matriks table header misalignment (colspan 11→15, added Sr Spv/Shift Spv GSH, fixed ARU colspan grouping).
+Stopped at: Completed quick-8 — Remove Laporan Coaching from CDP (card removed from Index, Coaching.cshtml deleted, 3 controller actions removed, build clean).
 Resume file: None.
