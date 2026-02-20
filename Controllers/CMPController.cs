@@ -1054,6 +1054,113 @@ namespace HcPortal.Controllers
             return View("WorkerDetail", unified);
         }
         
+        // Phase 19: HC Create Training Record — GET
+        [HttpGet]
+        public async Task<IActionResult> CreateTrainingRecord()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
+            if (!isHCAccess) return Forbid();
+
+            // Load ALL workers system-wide (not section-filtered) for dropdown
+            var workers = await _context.Users
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, u.FullName, u.NIP })
+                .ToListAsync();
+
+            ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = w.Id,
+                Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
+            }).ToList();
+
+            return View(new CreateTrainingRecordViewModel());
+        }
+
+        // Phase 19: HC Create Training Record — POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateTrainingRecord(CreateTrainingRecordViewModel model)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
+            if (!isHCAccess) return Forbid();
+
+            // Validate file if provided
+            string? sertifikatUrl = null;
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                {
+                    ModelState.AddModelError("CertificateFile", "Hanya file PDF, JPG, dan PNG yang diperbolehkan.");
+                }
+                if (model.CertificateFile.Length > 10 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("CertificateFile", "Ukuran file maksimal 10MB.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                // Re-populate workers dropdown
+                var workers = await _context.Users
+                    .OrderBy(u => u.FullName)
+                    .Select(u => new { u.Id, u.FullName, u.NIP })
+                    .ToListAsync();
+                ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = w.Id,
+                    Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
+                }).ToList();
+                return View(model);
+            }
+
+            // Handle file upload
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
+                Directory.CreateDirectory(uploadDir);
+                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
+                var filePath = Path.Combine(uploadDir, safeFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.CertificateFile.CopyToAsync(stream);
+                }
+                sertifikatUrl = $"/uploads/certificates/{safeFileName}";
+            }
+
+            // Create record
+            var record = new TrainingRecord
+            {
+                UserId = model.UserId,
+                Judul = model.Judul,
+                Penyelenggara = model.Penyelenggara,
+                Kategori = model.Kategori,
+                Tanggal = model.Tanggal,
+                TanggalMulai = model.TanggalMulai,
+                TanggalSelesai = model.TanggalSelesai,
+                Status = model.Status,
+                NomorSertifikat = model.NomorSertifikat,
+                ValidUntil = model.ValidUntil,
+                CertificateType = model.CertificateType,
+                SertifikatUrl = sertifikatUrl
+            };
+
+            _context.TrainingRecords.Add(record);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Training record berhasil dibuat.";
+            return RedirectToAction("Records", new { isFiltered = "true" });
+        }
+
         // Helper method: Get personal training records for Coach/Coachee
         private async Task<List<TrainingRecord>> GetPersonalTrainingRecords(string userId)
         {
