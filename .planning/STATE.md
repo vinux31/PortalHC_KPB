@@ -98,6 +98,7 @@ None.
 | 008 | Remove Laporan Coaching from CDP module — card removed from Index, Coaching.cshtml deleted, Coaching/CreateSession/AddActionItem actions removed | 2026-02-20 | 0a2ee80 | [8-remove-laporan-coaching-from-cdp](.planning/quick/8-remove-laporan-coaching-from-cdp/) |
 | 009 | Fix Progress & Tracking table — remove Implementasi column, drop "Nama" prefix from headers, add Deliverable column between Sub Kompetensi and Evidence | 2026-02-20 | cb87e68 | [9-fix-progress-and-tracking-table-columns](.planning/quick/9-fix-progress-and-tracking-table-columns/) |
 | 010 | Fix Monitoring tab error on Assessment manage page — replace Session.GetString("UserRole") with _userManager.GetRolesAsync(), add res.ok guard in JS fetch | 2026-02-20 | 5a1ddcd | [10-fix-monitoring-data-error-on-assessment-](.planning/quick/10-fix-monitoring-data-error-on-assessment-/) |
+| 011 | Add Kota (city) field to CreateTrainingRecord form — model, ViewModel, controller mapping, EF migration; rename "Create Training Offline" to "Create Training" everywhere | 2026-02-20 | d529c1f | [11-add-kota-field-to-createtrainingrecord-a](.planning/quick/11-add-kota-field-to-createtrainingrecord-a/) |
 
 ### Roadmap Evolution
 
@@ -114,5 +115,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed quick-10 — Fix Monitoring tab error on Assessment manage page (GetMonitorData role check fixed, res.ok guard added, build clean).
+Stopped at: Completed quick-11 — Add Kota field to CreateTrainingRecord form (model, ViewModel, controller, EF migration applied, views updated, "Create Training Offline" renamed to "Create Training").
 Resume file: None.
