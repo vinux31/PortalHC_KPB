@@ -11,11 +11,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 **Milestone:** v1.6 Training Records Management
-**Phase:** 18 — Data Foundation
-**Status:** Roadmap defined, ready for planning
-**Last activity:** 2026-02-20 — v1.6 roadmap created (3 phases: 18-20)
+**Phase:** 19 — HC Create Training Record + Certificate Upload
+**Status:** Plan 01 complete — Create Training Offline feature fully implemented
+**Last activity:** 2026-02-20 — 19-01-PLAN.md executed (CreateTrainingRecord ViewModel, controller actions, form view, button, certificate download)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.6 — 0/3 phases complete)
+Progress: [███░░░░░░░░░░░░░░░░░] 33% (v1.6 — 1/3 phases complete)
 
 ## Performance Metrics
 
@@ -57,6 +57,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Package path grading uses PackageOption.IsCorrect (ID-based) — stable across shuffled option displays; UserResponse rows NOT inserted for package exams (FK constraint incompatibility)
 - TempData int/long unboxing switch pattern — CookieTempDataProvider deserializes JSON integers as long in .NET
 - SubmitExam POST gained [ValidateAntiForgeryToken] attribute (was missing pre-17-06)
+
+**v1.6 decisions (Phase 19):**
+- CreateTrainingRecord redirects to Records?isFiltered=true on success — avoids blank initial state
+- Worker dropdown on CreateTrainingRecord is system-wide (all users, no section filter) per TRN-01
+- File validation errors added to ModelState (inline) not TempData — consistent form UX
+- SertifikatUrl populated in GetUnifiedRecords so certificate links appear in both WorkerDetail and Coach/Coachee Records views
 
 **v1.4 decisions:**
 - In-memory grouping after ToListAsync() for monitor query — consistent with existing manage view pattern
@@ -103,5 +109,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: v1.6 roadmap created. Next: plan-phase 18.
+Stopped at: Completed 19-01-PLAN.md — HC Create Training Record feature shipped.
 Resume file: None.
