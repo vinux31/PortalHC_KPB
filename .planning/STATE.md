@@ -4,35 +4,33 @@
 
 See: .planning/PROJECT.md (updated 2026-02-20)
 
-**Latest milestone:** v1.6 Training Records Management — SHIPPED 2026-02-20
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.7 Assessment System Integrity — defining requirements
+**Current focus:** v1.7 Assessment System Integrity — Phase 21 (Exam State Foundation)
 
 ## Current Position
 
 **Milestone:** v1.7 Assessment System Integrity
-**Phase:** Not started (defining requirements)
-**Current Plan:** —
-**Status:** Defining requirements
-**Last activity:** 2026-02-20 — Milestone v1.7 started; 19 gaps identified in assessment system
+**Phase:** 21 of 26 (Exam State Foundation)
+**Current Plan:** — (ready to plan)
+**Status:** Ready to plan
+**Last activity:** 2026-02-20 — v1.7 roadmap created; 6 phases defined (21-26), 14/14 requirements mapped
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.7)
 
 ## Performance Metrics
 
-**Velocity (v1.0–v1.3):**
-- Total plans completed: 32
+**Velocity (v1.0–v1.6):**
+- Total plans completed: 46
 - Average duration: ~5 min/plan
-- Total execution time: ~2.5 hours
+- Total execution time: ~4 hours
 
-**v1.3 Phase Summary:**
+**v1.6 Phase Summary:**
 
-| Phase | Plans | Duration |
-|-------|-------|----------|
-| 13-navigation-and-creation-flow | 1 | ~3 min |
-| 14-bulk-assign | 1 | ~25 min |
-
-**Recent Trend:** Phase 14 was longer due to multi-task complexity (sibling query, picker UI, JS, transaction).
+| Phase | Plans | Notes |
+|-------|-------|-------|
+| 18-data-foundation | 1 | Schema migration only |
+| 19-hc-create-training-record | 1 | Upload + form |
+| 20-edit-delete-workerlist | 1 | Modal + cleanup |
 
 *Updated after each plan completion*
 
@@ -42,47 +40,18 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
-**v1.5 decisions (Phase 17):**
-- No Letter field on PackageOption — letters (A/B/C/D) are display-only at render time; grading uses PackageOption.Id
-- UserPackageAssignment -> AssessmentPackage FK uses Restrict (not Cascade) — assignments must survive package deletion post-exam
-- Shuffle data stored as JSON strings on UserPackageAssignment, not as join table rows
-- Unique index on UserPackageAssignment(AssessmentSessionId, UserId) — one assignment per session per user
-- ManagePackages uses ViewBag (untyped) — consistent with how Assessment action passes data to its view
-- Import Questions button in ManagePackages links to ImportPackageQuestions action — wired in 17-03
-- ImportPackageQuestions: ClosedXML .xlsx parser skips header row; TSV paste auto-detects header; Correct=A/B/C/D maps to option index 0/1/2/3
-- ShuffledOptionIdsPerQuestion serialized with string keys (.ToDictionary(kv => kv.Key.ToString(), ...)) — JSON object keys must be strings; GetShuffledOptionIds() parses string keys back to int
-- StartExam.cshtml @model updated to PackageExamViewModel immediately in 17-04 (not deferred to 17-05) — required for compile; view now uses AssessmentSessionId, TotalQuestions, DisplayNumber, QuestionId, OptionId
-- Radio buttons use name=radio_{questionId} (not answers[{questionId}]) so JS change events work independently of hidden form inputs — avoids double-submission
-- Letters A/B/C/D assigned at render time by option index, not stored in model or DB
-- id=page_@(page) uses explicit parentheses to prevent Razor compiler treating @page as a @page directive token
-- Package path grading uses PackageOption.IsCorrect (ID-based) — stable across shuffled option displays; UserResponse rows NOT inserted for package exams (FK constraint incompatibility)
-- TempData int/long unboxing switch pattern — CookieTempDataProvider deserializes JSON integers as long in .NET
-- SubmitExam POST gained [ValidateAntiForgeryToken] attribute (was missing pre-17-06)
-
-**v1.6 decisions (Phase 19):**
-- CreateTrainingRecord redirects to Records?isFiltered=true on success — avoids blank initial state
-- Worker dropdown on CreateTrainingRecord is system-wide (all users, no section filter) per TRN-01
-- File validation errors added to ModelState (inline) not TempData — consistent form UX
-- SertifikatUrl populated in GetUnifiedRecords so certificate links appear in both WorkerDetail and Coach/Coachee Records views
+**v1.7 architecture notes (pre-planning):**
+- CMPController is ~2300 lines — v1.7 adds Abandon, ForceClose, Reset, AuditLog actions; be mindful of file size
+- PackageUserResponse table does not yet exist — Phase 23 creates it via EF migration
+- AuditLog table does not yet exist — Phase 24 creates it via EF migration
+- SessionStatus is currently an enum (Open, Upcoming, Completed) — Phase 21 adds InProgress and Abandoned values
+- StartedAt and ExamWindowCloseDate are new nullable columns — Phase 21 and 22 migrations respectively
+- Token enforcement currently only in the lobby view (worker sees token prompt in Assessment.cshtml) — Phase 23 moves enforcement into StartExam GET controller action
 
 **v1.6 decisions (Phase 20-01):**
-- EditTrainingRecord has no GET action — modal is pre-populated inline via Razor in WorkerDetail.cshtml; purely POST-only approach avoids page navigation
-- WorkerId and WorkerName stored on EditTrainingRecordViewModel so redirect back to WorkerDetail requires no extra DB lookup in the POST
-- File validation errors on edit use TempData redirect (not ModelState+View) since there is no dedicated edit view to return to
-- UnifiedTrainingRecord extended with Kategori, Kota, NomorSertifikat, TanggalMulai, TanggalSelesai for modal field pre-population
-- Assessment Online rows intentionally excluded from Edit/Delete — guarded by RecordType == "Training Manual" && TrainingRecordId.HasValue
-
-**v1.4 decisions:**
-- In-memory grouping after ToListAsync() for monitor query — consistent with existing manage view pattern
-- MonitoringGroupViewModel is the canonical shape for all monitoring data (Plans 02 and 03 depend on this)
-- DateTime.UtcNow.AddDays(-30) cutoff for recently-closed sessions — UTC matches CompletedAt storage
-- 70% pass rate threshold for green/red display in monitoring tab — matches default PassPercentage config; display heuristic only
-
-**v1.3 decisions (now in PROJECT.md):**
-- Separate cards per concern on CMP Index — Assessment Lobby (all roles) + Manage Assessments (HC/Admin) as independent cards
-- Sibling session matching uses Title+Category+Schedule.Date for bulk assign
-- Already-assigned users excluded at Razor render time, not JS
-- Phase 15 Quick Edit cancelled — EditAssessment page covers the need without extra controller surface area
+- EditTrainingRecord has no GET action — modal is pre-populated inline via Razor in WorkerDetail.cshtml
+- WorkerId and WorkerName stored on EditTrainingRecordViewModel for redirect without extra DB lookup
+- Assessment Online rows excluded from Edit/Delete — guarded by RecordType == "Training Manual" && TrainingRecordId.HasValue
 
 ### Pending Todos
 
@@ -119,9 +88,10 @@ None.
 - Phase 16 defined for v1.4 Assessment Monitoring (2026-02-19)
 - Phase 17 added: Question and Exam UX improvements (2026-02-19)
 - Phases 18-20 defined for v1.6 Training Records Management (2026-02-20)
+- Phases 21-26 defined for v1.7 Assessment System Integrity (2026-02-20)
 
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 20-01-PLAN.md — TRN-02 (Edit) and TRN-03 (Delete) shipped via WorkerDetail Bootstrap modals.
+Stopped at: v1.7 roadmap created — phases 21-26 defined, all 14 requirements mapped. Ready to plan Phase 21.
 Resume file: None.

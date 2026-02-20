@@ -10,6 +10,7 @@
 - ✅ **v1.4 Assessment Monitoring** — Phase 16 (shipped 2026-02-19)
 - ✅ **v1.5 Question and Exam UX** — Phase 17 (shipped 2026-02-19)
 - ✅ **v1.6 Training Records Management** — Phases 18-20 (shipped 2026-02-20)
+- 🚧 **v1.7 Assessment System Integrity** — Phases 21-26 (in progress)
 
 ## Phases
 
@@ -193,6 +194,113 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 
 </details>
 
+### 🚧 v1.7 Assessment System Integrity (Phases 21-26)
+
+**Milestone Goal:** Close 12 critical gaps in the assessment system — exam lifecycle management, answer review for package exams, token enforcement, audit logging, worker history, and data integrity safeguards.
+
+---
+
+#### Phase 21: Exam State Foundation
+**Goal:** The assessment session model tracks real exam state — workers who load an exam are immediately recorded as InProgress with a start timestamp, and the exam window close date can be configured per assessment
+**Depends on:** Phase 20 (v1.6 complete)
+**Requirements:** LIFE-01
+**Success Criteria** (what must be TRUE):
+  1. When a worker loads the StartExam page for the first time, their session status changes from `Open` to `InProgress` and a `StartedAt` timestamp is recorded
+  2. The `InProgress` status is visible in the monitoring detail view alongside existing `Completed` and `Open` statuses
+  3. Reloading the exam page does not reset `StartedAt` — the timestamp is only written once on first load
+**Plans:** TBD
+
+Plans:
+- [ ] 21-01: Schema migration (SessionStatus enum add InProgress + Abandoned, StartedAt nullable DateTime column on AssessmentSession); StartExam GET writes InProgress + StartedAt on first load
+
+---
+
+#### Phase 22: Exam Lifecycle Actions
+**Goal:** Workers can intentionally exit an in-progress exam, HC can force-close or reset sessions for management, and the system enforces both server-side timer limits and configurable exam window close dates
+**Depends on:** Phase 21
+**Requirements:** LIFE-02, LIFE-03, LIFE-04, LIFE-05, DATA-03
+**Success Criteria** (what must be TRUE):
+  1. Worker sees a "Keluar Ujian" button on the exam page; clicking it (with confirmation) marks their session `Abandoned` and returns them to the assessment lobby
+  2. `SubmitExam` rejects a submission if the elapsed time since `StartedAt` exceeds `DurationMinutes`, returning the worker to the exam page with an expiry message
+  3. HC can click a "Reset" action on a `Completed` session in the monitoring detail view; the session reverts to `Open` with score and answers cleared, ready for retake
+  4. HC can click a "Force Close" action on any `Open` or `InProgress` session in the monitoring detail view; the session is marked `Completed` with a system score of 0
+  5. HC can set an `ExamWindowCloseDate` on an assessment; workers attempting to start the exam after that date see a clear "Ujian sudah ditutup" message instead of the exam
+**Plans:** TBD
+
+Plans:
+- [ ] 22-01: Schema migration (ExamWindowCloseDate nullable DateTime on Assessment); StartExam GET enforces close date lockout with user message
+- [ ] 22-02: Abandon flow — "Keluar Ujian" button on StartExam.cshtml + AbandonExam POST action sets Abandoned status
+- [ ] 22-03: Server-side timer — SubmitExam POST checks elapsed time vs DurationMinutes; rejects expired submissions
+- [ ] 22-04: HC retake (Reset) and force-close actions — MonitoringDetail view buttons + controller actions; reset clears Score/IsPassed/CompletedAt/answers; force-close sets Completed with Score=0
+
+---
+
+#### Phase 23: Package Answer Integrity
+**Goal:** Package-based exam answers are persisted to a dedicated table on submission, enabling answer review for package exams to work identically to the legacy path; token-protected exams enforce token entry before any exam content is shown
+**Depends on:** Phase 21
+**Requirements:** ANSR-01, ANSR-02, SEC-01
+**Success Criteria** (what must be TRUE):
+  1. When a worker submits a package-based exam, one `PackageUserResponse` row is inserted per question answered, recording the selected `PackageOptionId`
+  2. When `AllowAnswerReview` is enabled, a worker who completed a package-based exam can view each question with their selected answer highlighted and correct/incorrect feedback — matching the existing legacy answer review behavior
+  3. A worker attempting to start a token-protected exam without entering the correct token sees a token entry prompt and cannot access exam content; a direct URL to the exam without a valid token is blocked and redirected to the prompt
+**Plans:** TBD
+
+Plans:
+- [ ] 23-01: Schema migration (PackageUserResponse table: Id, AssessmentSessionId, PackageQuestionId, PackageOptionId, SubmittedAt); insert rows in SubmitExam package path
+- [ ] 23-02: Package answer review — ExamResult/AnswerReview view extended to load PackageUserResponse rows and display correct/incorrect per question for package path
+- [ ] 23-03: Token enforcement at StartExam — token check moved to GET action; unauthenticated token access redirected to token entry prompt; token validated before exam content rendered
+
+---
+
+#### Phase 24: HC Audit Log
+**Goal:** HC and Admin can see a full audit trail of assessment management actions — every create, edit, delete, and assign operation is logged with actor, timestamp, and description
+**Depends on:** Phase 21
+**Requirements:** SEC-02
+**Success Criteria** (what must be TRUE):
+  1. All HC assessment management actions (create assessment, edit assessment, delete assessment, assign users) write a row to the `AuditLog` table with actor NIP/name, action type, target description, and timestamp
+  2. HC and Admin can navigate to an Audit Log page and view the full log sorted by most recent, with actor name, action, and timestamp visible per row
+  3. Audit log entries are read-only — no edit or delete controls exist on the audit log view
+**Plans:** TBD
+
+Plans:
+- [ ] 24-01: Schema migration (AuditLog table: Id, ActorUserId, ActionType, Description, TargetId, TargetType, CreatedAt); AuditLogService helper; inject and call in all HC assessment management actions in CMPController
+- [ ] 24-02: Audit log view — AuditLog page (HC/Admin only) with paginated table sorted by CreatedAt DESC; nav link added to CMP management area
+
+---
+
+#### Phase 25: Worker UX Enhancements
+**Goal:** Workers can see their completed assessment history from their assessment page and understand which competencies they earned on the results page — closing the feedback loop between assessment and competency development
+**Depends on:** Phase 21
+**Requirements:** WRK-01, WRK-02
+**Success Criteria** (what must be TRUE):
+  1. Worker's assessment page shows a "Riwayat Ujian" section listing all their completed assessments with title, category, date, score, and pass/fail status
+  2. The riwayat section is visible only to the worker viewing their own page — HC viewing a worker's data is unaffected
+  3. After passing an assessment, the results page shows a "Kompetensi Diperoleh" section listing each competency name and the new level the worker has reached
+  4. The competency section only appears when competencies were actually updated (IsPassed = true and AssessmentCompetencyMap entries exist for that assessment category)
+**Plans:** TBD
+
+Plans:
+- [ ] 25-01: Worker assessment history — Assessment() action extended with completed sessions query for worker role; StartExam.cshtml or Assessment.cshtml worker tab extended with riwayat table
+- [ ] 25-02: Competency display on results — ExamResult view extended with AssessmentCompetencyMap lookup; "Kompetensi Diperoleh" card shown when competencies were updated on pass
+
+---
+
+#### Phase 26: Data Integrity Safeguards
+**Goal:** HC is protected from accidental data loss — deleting a package with active assignments or changing an assessment schedule when packages are attached both require explicit confirmation before proceeding
+**Depends on:** Phase 22
+**Requirements:** DATA-01, DATA-02
+**Success Criteria** (what must be TRUE):
+  1. When HC clicks "Delete" on a package that has one or more `UserPackageAssignment` records, a confirmation dialog shows the number of affected assignments before the delete proceeds
+  2. When HC submits an edit to an assessment's schedule date and packages are attached to that assessment, a confirmation warning is shown before the change is saved
+  3. If HC cancels either confirmation, no data is changed — the package and assignment records remain intact
+**Plans:** TBD
+
+Plans:
+- [ ] 26-01: Delete package warning — DeletePackage action checks UserPackageAssignment count; if > 0, returns confirmation view showing count; second POST with confirmed=true proceeds with delete
+- [ ] 26-02: Schedule change warning — EditAssessment POST detects date change + attached packages; returns confirmation view; second POST with confirmed=true saves the change
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -217,3 +325,9 @@ See `.planning/milestones/v1.6-ROADMAP.md` for full details.
 | 18. Data Foundation | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 19. HC Create Training Record + Certificate Upload | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 1/1 | Complete | 2026-02-20 |
+| 21. Exam State Foundation | v1.7 | 0/TBD | Not started | - |
+| 22. Exam Lifecycle Actions | v1.7 | 0/TBD | Not started | - |
+| 23. Package Answer Integrity | v1.7 | 0/TBD | Not started | - |
+| 24. HC Audit Log | v1.7 | 0/TBD | Not started | - |
+| 25. Worker UX Enhancements | v1.7 | 0/TBD | Not started | - |
+| 26. Data Integrity Safeguards | v1.7 | 0/TBD | Not started | - |

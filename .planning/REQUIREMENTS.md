@@ -67,30 +67,28 @@ Deferred to v1.8 (Assessment Polish milestone).
 
 ## Traceability
 
-Populated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LIFE-01 | — | Pending |
-| LIFE-02 | — | Pending |
-| LIFE-03 | — | Pending |
-| LIFE-04 | — | Pending |
-| LIFE-05 | — | Pending |
-| ANSR-01 | — | Pending |
-| ANSR-02 | — | Pending |
-| SEC-01 | — | Pending |
-| SEC-02 | — | Pending |
-| WRK-01 | — | Pending |
-| WRK-02 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| DATA-03 | — | Pending |
+| LIFE-01 | Phase 21 | Pending |
+| LIFE-02 | Phase 22 | Pending |
+| LIFE-03 | Phase 22 | Pending |
+| LIFE-04 | Phase 22 | Pending |
+| LIFE-05 | Phase 22 | Pending |
+| ANSR-01 | Phase 23 | Pending |
+| ANSR-02 | Phase 23 | Pending |
+| SEC-01 | Phase 23 | Pending |
+| SEC-02 | Phase 24 | Pending |
+| WRK-01 | Phase 25 | Pending |
+| WRK-02 | Phase 25 | Pending |
+| DATA-01 | Phase 26 | Pending |
+| DATA-02 | Phase 26 | Pending |
+| DATA-03 | Phase 22 | Pending |
 
 **Coverage:**
 - v1 requirements: 14 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14 (Phases 21-26)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 after initial definition*
+*Last updated: 2026-02-20 — traceability populated during v1.7 roadmap creation*
