@@ -4,19 +4,19 @@
 
 See: .planning/PROJECT.md (updated 2026-02-20)
 
-**Latest milestone:** v1.5 Question and Exam UX — SHIPPED 2026-02-19
+**Latest milestone:** v1.6 Training Records Management — SHIPPED 2026-02-20
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.6 Training Records Management — Phase 20 (Edit, Delete, and RecordsWorkerList Wiring)
+**Current focus:** v1.7 Assessment System Integrity — defining requirements
 
 ## Current Position
 
-**Milestone:** v1.6 Training Records Management
-**Phase:** 20 — Edit, Delete, and RecordsWorkerList Wiring
-**Current Plan:** 20-01 complete
-**Status:** v1.6 milestone complete
-**Last activity:** 2026-02-20 — Phase 20 Plan 01 complete; Edit/Delete modal wiring on WorkerDetail done
+**Milestone:** v1.7 Assessment System Integrity
+**Phase:** Not started (defining requirements)
+**Current Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-02-20 — Milestone v1.7 started; 19 gaps identified in assessment system
 
-Progress: [██████░░░░░░░░░░░░░░] 50% (v1.6 — 2/3 phases complete; Phase 20 Plan 01 done)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Performance Metrics
 

@@ -12,9 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone
+## Current Milestone: v1.7 Assessment System Integrity
 
-**Status:** v1.6 shipped 2026-02-20. Planning next milestone.
+**Goal:** Close 12 critical gaps in the assessment system — exam lifecycle management, answer review for package exams, token enforcement, audit logging, worker history, and data integrity safeguards.
+
+**Target features:**
+- Exam lifecycle: InProgress state, StartedAt timestamp, abandon flow, HC force-close, retake/reset
+- Server-side exam timer enforcement
+- PackageUserResponse table + answer review for package exams
+- Token access enforcement at StartExam
+- HC audit log for assessment management actions
+- Worker completed assessment history view
+- Competency granted display on results page
+- Data integrity: DeletePackage warning, schedule change warning, exam window lockout
 
 ## Current State (v1.6)
 

@@ -1,0 +1,96 @@
+# Requirements: Portal HC KPB
+
+**Defined:** 2026-02-20
+**Milestone:** v1.7 Assessment System Integrity
+**Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
+
+## v1 Requirements
+
+Requirements for v1.7 milestone. Each maps to roadmap phases.
+
+### Exam Lifecycle (LIFE)
+
+- [ ] **LIFE-01**: System records `StartedAt` timestamp and marks session status as `InProgress` when worker first loads the exam
+- [ ] **LIFE-02**: Worker can intentionally exit an in-progress exam via a "Keluar Ujian" button; session is marked `Abandoned`
+- [ ] **LIFE-03**: Exam timer is enforced server-side — `SubmitExam` rejects the submission if elapsed time exceeds `DurationMinutes`
+- [ ] **LIFE-04**: HC can reopen a `Completed` assessment session (reset to `Open`, clear score and answers) to allow a retake
+- [ ] **LIFE-05**: HC can force-close any `Open` or `InProgress` session from the assessment management view
+
+### Answer Review for Packages (ANSR)
+
+- [ ] **ANSR-01**: Worker's selected answers are saved in a `PackageUserResponse` table when a package-based exam is submitted
+- [ ] **ANSR-02**: `AllowAnswerReview` displays correct/incorrect per question for package-based exams, matching the existing legacy path behavior
+
+### Security (SEC)
+
+- [ ] **SEC-01**: `StartExam` enforces token requirement — token-protected sessions show a token entry prompt before rendering the exam; direct URL access without a valid token is blocked
+- [ ] **SEC-02**: All HC assessment management actions (create, edit, delete, assign users) are written to an audit log viewable by HC and Admin
+
+### Worker UX (WRK)
+
+- [ ] **WRK-01**: Worker can view their completed assessment history (title, category, date, score, pass/fail) from their assessment page
+- [ ] **WRK-02**: Results page shows which competencies were granted (competency name, new level) when the worker passes an assessment
+
+### Data Integrity (DATA)
+
+- [ ] **DATA-01**: HC sees a confirmation warning before deleting a package that has active `UserPackageAssignment` records
+- [ ] **DATA-02**: HC sees a confirmation warning when editing an assessment's schedule date if packages are attached to that assessment
+- [ ] **DATA-03**: HC can set an exam window close date per assessment; `StartExam` blocks access after that date with a clear message to the worker
+
+## v2 Requirements
+
+Deferred to v1.8 (Assessment Polish milestone).
+
+### Package Management
+
+- **PKG-01**: HC can re-assign a specific package to a user or trigger a reshuffle from the management UI
+
+### Performance
+
+- **PERF-01**: Monitoring queries use batch loading (Include/projection) to eliminate N+1 patterns
+- **PERF-02**: TempData int/long coercion replaced with robust type-safe serialization
+
+### UX Polish
+
+- **UX-01**: Answer review shows point value per question alongside correct/incorrect indicator
+- **UX-02**: ImportPackageQuestions deduplicates questions — skips rows where question text already exists in the package
+- **UX-03**: Status transition logic: `Upcoming` sessions auto-transition to `Open` by scheduled date
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Email notifications for exam events | No email system in project; deferred to future milestone |
+| Real-time exam monitoring (who is live now) | High complexity; not required for assessment integrity |
+| Mobile-optimized exam UI | Web-only per project constraints |
+| Automated test suite for assessment logic | Out of scope per project constraints |
+
+## Traceability
+
+Populated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| LIFE-01 | — | Pending |
+| LIFE-02 | — | Pending |
+| LIFE-03 | — | Pending |
+| LIFE-04 | — | Pending |
+| LIFE-05 | — | Pending |
+| ANSR-01 | — | Pending |
+| ANSR-02 | — | Pending |
+| SEC-01 | — | Pending |
+| SEC-02 | — | Pending |
+| WRK-01 | — | Pending |
+| WRK-02 | — | Pending |
+| DATA-01 | — | Pending |
+| DATA-02 | — | Pending |
+| DATA-03 | — | Pending |
+
+**Coverage:**
+- v1 requirements: 14 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 14 ⚠️
+
+---
+*Requirements defined: 2026-02-20*
+*Last updated: 2026-02-20 after initial definition*
