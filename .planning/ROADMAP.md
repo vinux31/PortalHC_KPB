@@ -217,6 +217,10 @@ Plans:
   3. Submitting the form without required fields (Nama Pelatihan, Penyelenggara, or Kategori) shows a validation error and does not save
   4. HC can attach a PDF or image file; after saving, the file is downloadable from the worker's training record row
   5. Submitting without a certificate file saves the record normally with no file attached
+**Plans:** 1 plan
+
+Plans:
+- [ ] 19-01-PLAN.md — ViewModel, controller actions, create form, RecordsWorkerList button, WorkerDetail certificate download
 
 ---
 
@@ -255,5 +259,5 @@ Plans:
 | 16. Grouped Monitoring View | v1.4 | 3/3 | Complete | 2026-02-19 |
 | 17. Question and Exam UX | v1.5 | 7/7 | Complete | 2026-02-19 |
 | 18. Data Foundation | v1.6 | 0/1 | Pending | — |
-| 19. HC Create Training Record + Certificate Upload | v1.6 | 0/? | Pending | — |
+| 19. HC Create Training Record + Certificate Upload | v1.6 | 0/1 | Pending | — |
 | 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 0/? | Pending | — |
