@@ -23,6 +23,7 @@ namespace HcPortal.Models
         public DateTime? TanggalMulai { get; set; }    // Training start date
         public DateTime? TanggalSelesai { get; set; }   // Training end date
         public string? NomorSertifikat { get; set; }    // Certificate number
+        public string? Kota { get; set; }               // City where training took place
         
         // Computed property: Returns true if certificate expires within 30 days
         public bool IsExpiringSoon

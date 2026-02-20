@@ -17,6 +17,9 @@ namespace HcPortal.Models
         [Display(Name = "Penyelenggara")]
         public string Penyelenggara { get; set; } = "";
 
+        [Display(Name = "Kota")]
+        public string? Kota { get; set; }
+
         [Required(ErrorMessage = "Kategori harus dipilih")]
         [Display(Name = "Kategori")]
         public string Kategori { get; set; } = "";

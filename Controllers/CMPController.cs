@@ -1178,6 +1178,7 @@ namespace HcPortal.Controllers
                 UserId = model.UserId,
                 Judul = model.Judul,
                 Penyelenggara = model.Penyelenggara,
+                Kota = model.Kota,
                 Kategori = model.Kategori,
                 Tanggal = model.Tanggal,
                 TanggalMulai = model.TanggalMulai,
