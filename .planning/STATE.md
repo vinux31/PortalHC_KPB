@@ -12,10 +12,11 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Milestone:** v1.6 Training Records Management
 **Phase:** 20 — Edit, Delete, and RecordsWorkerList Wiring
-**Status:** Ready to plan — Phase 18 and 19 both complete
-**Last activity:** 2026-02-20 — Phase 19 Plan 01 verified (6/6 truths, human confirmation pending); quick-11 Kota field added to CreateTrainingRecord
+**Current Plan:** 20-01 complete
+**Status:** Phase 20 Plan 01 complete — TRN-02 (Edit) and TRN-03 (Delete) shipped
+**Last activity:** 2026-02-20 — Phase 20 Plan 01 complete; Edit/Delete modal wiring on WorkerDetail done
 
-Progress: [███░░░░░░░░░░░░░░░░░] 33% (v1.6 — 1/3 phases complete)
+Progress: [██████░░░░░░░░░░░░░░] 50% (v1.6 — 2/3 phases complete; Phase 20 Plan 01 done)
 
 ## Performance Metrics
 
@@ -63,6 +64,13 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Worker dropdown on CreateTrainingRecord is system-wide (all users, no section filter) per TRN-01
 - File validation errors added to ModelState (inline) not TempData — consistent form UX
 - SertifikatUrl populated in GetUnifiedRecords so certificate links appear in both WorkerDetail and Coach/Coachee Records views
+
+**v1.6 decisions (Phase 20-01):**
+- EditTrainingRecord has no GET action — modal is pre-populated inline via Razor in WorkerDetail.cshtml; purely POST-only approach avoids page navigation
+- WorkerId and WorkerName stored on EditTrainingRecordViewModel so redirect back to WorkerDetail requires no extra DB lookup in the POST
+- File validation errors on edit use TempData redirect (not ModelState+View) since there is no dedicated edit view to return to
+- UnifiedTrainingRecord extended with Kategori, Kota, NomorSertifikat, TanggalMulai, TanggalSelesai for modal field pre-population
+- Assessment Online rows intentionally excluded from Edit/Delete — guarded by RecordType == "Training Manual" && TrainingRecordId.HasValue
 
 **v1.4 decisions:**
 - In-memory grouping after ToListAsync() for monitor query — consistent with existing manage view pattern
@@ -115,5 +123,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Session resumed. Phases 18 and 19 complete. Ready to plan Phase 20 (Edit, Delete, RecordsWorkerList Wiring).
+Stopped at: Completed 20-01-PLAN.md — TRN-02 (Edit) and TRN-03 (Delete) shipped via WorkerDetail Bootstrap modals.
 Resume file: None.
