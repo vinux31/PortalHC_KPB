@@ -860,7 +860,10 @@
             loaded = true;
 
             fetch('/CMP/GetMonitorData')
-                .then(function (res) { return res.json(); })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                })
                 .then(function (groups) {
                     var badge = document.getElementById('monitorBadge');
                     if (badge) badge.textContent = groups.length;

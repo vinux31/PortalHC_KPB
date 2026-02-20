@@ -246,8 +246,10 @@ namespace HcPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> GetMonitorData()
         {
-            var userRole = HttpContext.Session.GetString("UserRole") ?? "Worker";
-            bool isHCAccess = userRole == "HC" || userRole == "Admin";
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
+            var userRole = userRoles.FirstOrDefault();
+            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
             if (!isHCAccess) return Forbid();
 
             var cutoff = DateTime.UtcNow.AddDays(-30);
