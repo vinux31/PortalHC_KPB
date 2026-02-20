@@ -96,6 +96,7 @@ None.
 | 006 | Fix slow performance on Assessment manage page — Select() projection on management query, monitor tab lazy-loaded via AJAX | 2026-02-20 | 564432f | [6-fix-slow-performance-on-assessment-manag](.planning/quick/6-fix-slow-performance-on-assessment-manag/) |
 | 007 | Fix KKJ Matriks table header misalignment | 2026-02-20 | 1d6b373 | [7-fix-kkj-matriks-table-header-misalignmen](.planning/quick/7-fix-kkj-matriks-table-header-misalignmen/) |
 | 008 | Remove Laporan Coaching from CDP module — card removed from Index, Coaching.cshtml deleted, Coaching/CreateSession/AddActionItem actions removed | 2026-02-20 | 0a2ee80 | [8-remove-laporan-coaching-from-cdp](.planning/quick/8-remove-laporan-coaching-from-cdp/) |
+| 009 | Fix Progress & Tracking table — remove Implementasi column, drop "Nama" prefix from headers, add Deliverable column between Sub Kompetensi and Evidence | 2026-02-20 | cb87e68 | [9-fix-progress-and-tracking-table-columns](.planning/quick/9-fix-progress-and-tracking-table-columns/) |
 
 ### Roadmap Evolution
 
@@ -112,5 +113,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed quick-8 — Remove Laporan Coaching from CDP (card removed from Index, Coaching.cshtml deleted, 3 controller actions removed, build clean).
+Stopped at: Completed quick-9 — Fix Progress & Tracking table columns (Implementasi removed, headers renamed, Deliverable column added, build clean).
 Resume file: None.
