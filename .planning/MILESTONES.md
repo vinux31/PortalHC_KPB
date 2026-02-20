@@ -51,3 +51,13 @@
 
 ---
 
+
+## v1.6 Training Records Management (Shipped: 2026-02-20)
+
+**Phases completed:** 20 phases, 47 plans, 6 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+

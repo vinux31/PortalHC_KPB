@@ -13,7 +13,7 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 **Milestone:** v1.6 Training Records Management
 **Phase:** 20 — Edit, Delete, and RecordsWorkerList Wiring
 **Current Plan:** 20-01 complete
-**Status:** Phase 20 Plan 01 complete — TRN-02 (Edit) and TRN-03 (Delete) shipped
+**Status:** v1.6 milestone complete
 **Last activity:** 2026-02-20 — Phase 20 Plan 01 complete; Edit/Delete modal wiring on WorkerDetail done
 
 Progress: [██████░░░░░░░░░░░░░░] 50% (v1.6 — 2/3 phases complete; Phase 20 Plan 01 done)

@@ -12,21 +12,32 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v1.6 Training Records Management
+## Current Milestone
 
-**Goal:** HC and Admin can fully manage manual training records for workers — create, edit, delete, and attach certificate files — directly from the Training Records page.
+**Status:** v1.6 shipped 2026-02-20. Planning next milestone.
 
-**Target features:**
-- HC/Admin: "Create Training Offline" button to add training records for any worker system-wide
-- HC/Admin: Edit and delete existing manual training records
-- HC/Admin: Upload certificate files (PDF/image) per record
-- Training form fields: Nama Pelatihan, Penyelenggara, Kategori, Tanggal Mulai/Selesai (optional), Nomor Sertifikat (optional), Berlaku Sampai (optional), Certificate file (optional)
-
-## Current State (v1.5)
-
-**Status:** v1.5 shipped 2026-02-19. v1.6 milestone started 2026-02-20.
+## Current State (v1.6)
 
 ## Shipped Milestones
+
+### ✅ v1.6 - Training Records Management (2026-02-20)
+
+**Delivered:** HC and Admin can fully manage manual training records — create with certificate upload, edit all fields via in-page Bootstrap modal, and delete with file cleanup
+
+**What Shipped:**
+1. **Data Foundation** — TrainingRecord model extended with TanggalMulai, TanggalSelesai, NomorSertifikat, Kota; IWebHostEnvironment injected in CMPController; `wwwroot/uploads/certificates/` upload directory created
+2. **Create Training Record** — "Create Training" button on RecordsWorkerList; system-wide worker dropdown; all form fields with required validation; PDF/JPG/PNG certificate upload to `wwwroot/uploads/certificates/`; certificate downloadable from WorkerDetail
+3. **Edit via Bootstrap Modal** — Pencil button on each manual training row in WorkerDetail opens pre-populated in-page modal; all fields editable except Pekerja; uploading new cert replaces old file on disk; POST-only (no separate edit page)
+4. **Delete with Cleanup** — Trash button triggers browser `confirm()`; on confirm removes DB row and certificate file from disk; TempData success alert on return
+
+**Metrics:**
+- 3 phases (18-20), 3 plans + quick-11
+- 55 files changed, 8,230 insertions / 2,973 deletions
+- 2026-02-20
+
+See `.planning/milestones/v1.6-ROADMAP.md` for full details.
+
+---
 
 ### ✅ v1.5 - Question and Exam UX (2026-02-19)
 
@@ -210,6 +221,14 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Type badges differentiate Assessment Online (Score, Pass/Fail) vs Training Manual (Penyelenggara, Sertifikat, Berlaku Sampai)
   - HC/Admin worker list with combined completion rate from both data sources
 
+- ✅ **Training Record Management (HC/Admin — v1.6):**
+  - "Create Training" button on RecordsWorkerList → system-wide worker dropdown form
+  - Fields: Nama Pelatihan, Penyelenggara, Kategori, Kota, Tanggal, Status, NomorSertifikat, Berlaku Sampai, Certificate file (PDF/JPG/PNG, max 10MB)
+  - Certificate stored in `wwwroot/uploads/certificates/` with timestamp-prefixed filename; downloadable from WorkerDetail
+  - Edit via in-page Bootstrap modal (pencil button on manual rows only); all fields editable except Pekerja; new cert upload replaces old file on disk
+  - Delete with browser `confirm()`; removes DB row and certificate file from disk
+  - Assessment session rows have no Edit/Delete actions — manual training rows only
+
 ### CDP Module (Competency Development)
 - ✅ IDP (Individual Development Plan) management
 - ✅ Coaching sessions with domain-specific fields (Kompetensi, SubKompetensi, CatatanCoach, action items)
@@ -250,6 +269,15 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | Package path and legacy path mutually exclusive in SubmitExam | if (packageAssignment != null) → package path; else → legacy loop — UserResponse not inserted for package exams (FK constraint incompatibility) | v1.5 ✓ |
 | Packages found via sibling session query | StartExam GET searches siblings (same Title+Category+Date) — packages attached to representative session ID, not worker session ID | v1.5 ✓ |
 | TempData int/long unboxing switch pattern | CookieTempDataProvider deserializes JSON integers as long in .NET; switch { int i => i, long l => (int)l, _ => null } | v1.5 ✓ |
+| CreateTrainingRecord redirects to Records?isFiltered=true on success | Avoids blank initial state after creation; consistent with existing Records filter UX | v1.6 ✓ |
+| Worker dropdown on CreateTrainingRecord is system-wide | All users, no section filter — HC can create records for any worker per TRN-01 | v1.6 ✓ |
+| File validation errors added to ModelState inline (not TempData) | Consistent form UX; errors render next to fields with asp-validation-for spans | v1.6 ✓ |
+| SertifikatUrl populated in GetUnifiedRecords | Certificate links appear in both WorkerDetail and Coach/Coachee Records views without separate queries | v1.6 ✓ |
+| EditTrainingRecord has no GET action — Bootstrap modal only | Pre-populated inline via Razor in WorkerDetail; POST-only approach avoids separate page navigation per discuss-phase decision | v1.6 ✓ |
+| WorkerId/WorkerName on EditTrainingRecordViewModel | POST redirect to WorkerDetail requires no extra DB lookup; passed as hidden inputs in modal form | v1.6 ✓ |
+| File replace on edit: delete old file from disk, save new file | Prevents orphaned certificates accumulating in wwwroot/uploads/certificates/ | v1.6 ✓ |
+| Delete removes DB row + certificate file from disk | Atomic cleanup; no orphaned files; matches user expectation from confirm() dialog | v1.6 ✓ |
+| Clear-cert-without-replacing out of scope | Discuss-phase decision: HC can only replace; removed ROADMAP success criterion #4 to align | v1.6 ✓ |
 
 ## Technical Constraints
 
@@ -268,14 +296,15 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 - No email notification system (yet)
 - No audit logging (all changes currently untracked)
 - No automated testing (manual QA only)
-- Large monolithic controllers (CMPController = 1047 lines)
+- Large monolithic controllers (CMPController ~2300+ lines post-v1.6, CDPController 1000+ lines)
 
 ## Shipped Requirements
 
-All requirements from v1.0–v1.3 are satisfied (7/9 in v1.3; QED-01 and QED-02 cancelled). See milestone archives for traceability:
+All requirements from v1.0–v1.6 are satisfied. See milestone archives for traceability:
 - `milestones/v1.0-REQUIREMENTS.md` — 6 requirements (Phases 1-3)
 - `milestones/v1.2-REQUIREMENTS.md` — 11 requirements (Phases 9-12, all ✅ Shipped)
 - `milestones/v1.3-REQUIREMENTS.md` — 9 requirements (Phases 13-15; 7 shipped, 2 cancelled)
+- `milestones/v1.6-REQUIREMENTS.md` — 4 requirements (TRN-01 through TRN-04, all ✅ Shipped)
 
 ## Users & Roles
 
@@ -328,13 +357,14 @@ All requirements from v1.0–v1.3 are satisfied (7/9 in v1.3; QED-01 and QED-02 
 
 ## Technical Debt
 
-- Large monolithic controllers (CMPController ~2100+ lines post-v1.5, CDPController 1000+ lines)
+- Large monolithic controllers (CMPController ~2300+ lines post-v1.6, CDPController 1000+ lines)
 - No automated testing — manual QA only
 - No audit logging — all changes untracked
 - `GetPersonalTrainingRecords()` in CMPController is dead code (not called) — retained to avoid scope risk
-- N+1 queries addressed in batch where identified (GetWorkersInSection batch GroupBy) but not systematically audited
+- N+1 queries addressed in batch where identified but not systematically audited
 - AllowAnswerReview silently non-functional for package-based exams — UserResponse rows not created (FK constraint); no PackageUserResponse table exists yet
 - No UI to re-assign packages or manually override shuffle — edge case with no workaround
+- Worker self-add training records deferred to v1.7+ (WTRN-01, WTRN-02)
 
 ## References
 
@@ -345,4 +375,4 @@ All requirements from v1.0–v1.3 are satisfied (7/9 in v1.3; QED-01 and QED-02 
 
 ---
 
-*Last updated: 2026-02-19 after v1.5 milestone*
+*Last updated: 2026-02-20 after v1.6 milestone*
