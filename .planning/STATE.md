@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phases 27 + 28 + 29 ✅ complete, Phase 30/31 next
+**Current focus:** v1.8 Assessment Polish — Phases 27 + 28 + 29 ✅ complete (time-precision upgrade done), Phase 30/31 next
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 29: Auto-transition Upcoming to Open — ✅ COMPLETE (1/1 plan)
+**Phase:** Phase 29: Auto-transition Upcoming to Open — ✅ COMPLETE (2/2 plans)
 **Next Phase:** Phase 30 or 31 (reporting / ForceCloseAll)
-**Status:** Phase 29 complete. Workers and HC see Open status automatically when scheduled date arrives. No HC manual action required.
-**Last activity:** 2026-02-21 — Phase 29 auto-transition implemented and verified
+**Status:** Phase 29 complete. Time-based WIB comparison at all three auto-transition sites. StartExam time gate blocks future-scheduled assessments.
+**Last activity:** 2026-02-21 — Phase 29 plan 02 executed: time-precision upgrade + StartExam time gate
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 28-package-reassign-and-reshuffle P01 | 3min | 2 tasks | 2 files |
 | Phase 28-package-reassign-and-reshuffle P02 | 2min | 1 tasks | 1 files |
 | Phase 29-auto-transition-upcoming-to-open P01 | 2min | 2 tasks | 1 files |
+| Phase 29-auto-transition-upcoming-to-open P02 | 5min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -91,7 +92,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v1.8 architecture notes:**
 - GetMonitorData (AJAX endpoint) now uses 4-state UserStatus matching AssessmentMonitoringDetail: Completed / Abandoned / In Progress / Not started (Phase 27-01 done); Abandoned branch placed before InProgress because Abandoned sessions have StartedAt set
 - Phase 28 re-assign/reshuffle must guard against overwriting Completed sessions
-- Phase 29 auto-transition: COMPLETE — inline read-time status override at GetMonitorData (display-only), worker assessment list (display-only), StartExam (persisted); Schedule.Date <= DateTime.UtcNow.Date comparison at date granularity
+- Phase 29 auto-transition: COMPLETE — inline read-time status override at GetMonitorData (display-only), worker assessment list (display-only), StartExam (persisted); upgraded to time-based WIB comparison Schedule <= DateTime.UtcNow.AddHours(7); StartExam time gate added (Upcoming → redirect with error message)
 - Phase 31 RPT-02 ForceCloseAll is additive to existing per-session ForceClose (Phase 22) — reuse same status transition and audit log pattern
 - [Phase 32-01]: Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup identical to package path (Title + Category + Schedule.Date); StartExam reuses siblingSessionIds already computed for package check; ExamSummary and SubmitExam compute it inline in their else-blocks; UserResponse.AssessmentSessionId = id (worker's own session) unchanged
 - [Phase 28-01]: ReshufflePackage selects different package only when 2+ packages exist AND current assignment exists
@@ -139,10 +140,10 @@ None.
 - Phases 27-31 defined for v1.8 Assessment Polish (2026-02-21)
 - Phase 32 added: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers (2026-02-21)
 - Phase 28 complete: Package Reshuffle (re-assign dropped per user decision) — single + bulk reshuffle on monitoring page (2026-02-21)
-- Phase 29 complete: Auto-transition Upcoming→Open — query-time status override at GetMonitorData (display), worker list (display), StartExam (persisted to DB) (2026-02-21)
+- Phase 29 complete: Auto-transition Upcoming→Open — query-time status override at GetMonitorData (display), worker list (display), StartExam (persisted to DB); upgraded to time-based WIB comparison (Schedule <= UtcNow.AddHours(7)); StartExam time gate added for future-scheduled assessments (2026-02-21)
 
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 29 complete and verified. Phases 27, 28, 29 done. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
+Stopped at: Phase 29 Plan 02 complete. All auto-transition sites upgraded to time-based WIB. StartExam time gate added. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
 Resume file: None.
