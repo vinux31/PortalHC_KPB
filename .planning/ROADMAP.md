@@ -262,11 +262,11 @@ Plans:
   1. All HC assessment management actions (create assessment, edit assessment, delete assessment, assign users) write a row to the `AuditLog` table with actor NIP/name, action type, target description, and timestamp
   2. HC and Admin can navigate to an Audit Log page and view the full log sorted by most recent, with actor name, action, and timestamp visible per row
   3. Audit log entries are read-only — no edit or delete controls exist on the audit log view
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 24-01: Schema migration (AuditLog table: Id, ActorUserId, ActionType, Description, TargetId, TargetType, CreatedAt); AuditLogService helper; inject and call in all HC assessment management actions in CMPController
-- [ ] 24-02: Audit log view — AuditLog page (HC/Admin only) with paginated table sorted by CreatedAt DESC; nav link added to CMP management area
+- [ ] 24-01-PLAN.md — AuditLog entity, EF migration, AuditLogService DI service, instrument all 7 HC assessment management actions in CMPController
+- [ ] 24-02-PLAN.md — AuditLog page (HC/Admin only) with paginated table sorted by CreatedAt DESC; nav link in Assessment manage view header
 
 ---
 
