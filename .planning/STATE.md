@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phases 27 + 28 ✅ complete, Phase 29 next
+**Current focus:** v1.8 Assessment Polish — Phases 27 + 28 + 29 ✅ complete, Phase 30/31 next
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 27: Monitoring Status Fix — ✅ COMPLETE (1/1 plan, UAT passed)
-**Next Phase:** Phase 29: Auto-transition Upcoming to Open — ready to plan
-**Status:** Phase 27 already complete (executed earlier this session, UAT all 4 tests passed). Phase 28 also complete. Next is Phase 29.
-**Last activity:** 2026-02-21 — Phase 27 roadmap updated; Phase 28 verified
+**Phase:** Phase 29: Auto-transition Upcoming to Open — ✅ COMPLETE (1/1 plan)
+**Next Phase:** Phase 30 or 31 (reporting / ForceCloseAll)
+**Status:** Phase 29 complete. Workers and HC see Open status automatically when scheduled date arrives. No HC manual action required.
+**Last activity:** 2026-02-21 — Phase 29 auto-transition implemented and verified
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 32-fix-legacy-question-path P01 | 4min | 2 tasks | 1 files |
 | Phase 28-package-reassign-and-reshuffle P01 | 3min | 2 tasks | 2 files |
 | Phase 28-package-reassign-and-reshuffle P02 | 2min | 1 tasks | 1 files |
+| Phase 29-auto-transition-upcoming-to-open P01 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -90,7 +91,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v1.8 architecture notes:**
 - GetMonitorData (AJAX endpoint) now uses 4-state UserStatus matching AssessmentMonitoringDetail: Completed / Abandoned / In Progress / Not started (Phase 27-01 done); Abandoned branch placed before InProgress because Abandoned sessions have StartedAt set
 - Phase 28 re-assign/reshuffle must guard against overwriting Completed sessions
-- Phase 29 auto-transition: no background job infrastructure — implement as inline status-check on assessment load (filter method or service call before serving status to caller)
+- Phase 29 auto-transition: COMPLETE — inline read-time status override at GetMonitorData (display-only), worker assessment list (display-only), StartExam (persisted); Schedule.Date <= DateTime.UtcNow.Date comparison at date granularity
 - Phase 31 RPT-02 ForceCloseAll is additive to existing per-session ForceClose (Phase 22) — reuse same status transition and audit log pattern
 - [Phase 32-01]: Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup identical to package path (Title + Category + Schedule.Date); StartExam reuses siblingSessionIds already computed for package check; ExamSummary and SubmitExam compute it inline in their else-blocks; UserResponse.AssessmentSessionId = id (worker's own session) unchanged
 - [Phase 28-01]: ReshufflePackage selects different package only when 2+ packages exist AND current assignment exists
@@ -138,9 +139,10 @@ None.
 - Phases 27-31 defined for v1.8 Assessment Polish (2026-02-21)
 - Phase 32 added: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers (2026-02-21)
 - Phase 28 complete: Package Reshuffle (re-assign dropped per user decision) — single + bulk reshuffle on monitoring page (2026-02-21)
+- Phase 29 complete: Auto-transition Upcoming→Open — query-time status override at GetMonitorData (display), worker list (display), StartExam (persisted to DB) (2026-02-21)
 
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 28 complete and verified. Phase 27 (Monitoring Status Fix) is next.
+Stopped at: Completed Phase 29-01-PLAN.md (auto-transition Upcoming to Open at 3 CMPController call sites).
 Resume file: None.
