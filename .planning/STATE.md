@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — roadmap defined, ready to plan Phase 27
+**Current focus:** v1.8 Assessment Polish — Phase 27 Plan 01 at checkpoint (human-verify)
 
 ## Current Position
 
-**Milestone:** v1.8 Assessment Polish — ROADMAP DEFINED
-**Phase:** Phase 27: Monitoring Status Fix — not started
-**Current Plan:** —
-**Status:** Ready to plan
-**Last activity:** 2026-02-21 — v1.8 roadmap created (Phases 27-31)
+**Milestone:** v1.8 Assessment Polish — IN PROGRESS
+**Phase:** Phase 27: Monitoring Status Fix — in progress
+**Current Plan:** 27-01 (at checkpoint:human-verify — Task 3)
+**Status:** Awaiting human verification of GetMonitorData 4-state JSON output
+**Last activity:** 2026-02-21 — Phase 27-01 Tasks 1-2 complete, paused at verification checkpoint
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.8) | v1.7 complete ✅
+Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.
 | Phase 25-worker-ux-enhancements P02 | 4min | 2 tasks | 4 files |
 | Phase 26-data-integrity-safeguards P01 | 3min | 1 tasks | 2 files |
 | Phase 26-data-integrity-safeguards P02 | 4min | 1 tasks | 2 files |
+| Phase 27-monitoring-status-fix P01 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -84,7 +85,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 26-02]: Client-side JS confirm() guard for schedule-change warning — no server-side confirm page needed; IIFE fires before Bootstrap validation; OriginalSchedule as yyyy-MM-dd string for direct === comparison
 
 **v1.8 architecture notes:**
-- GetMonitorData (AJAX endpoint) currently uses 2-state UserStatus: isCompleted ? "Completed" : "Not started" — Phase 27 must expand to 4-state matching AssessmentMonitoringDetail logic (Completed / Abandoned / InProgress / Not started)
+- GetMonitorData (AJAX endpoint) now uses 4-state UserStatus matching AssessmentMonitoringDetail: Completed / Abandoned / In Progress / Not started (Phase 27-01 done); Abandoned branch placed before InProgress because Abandoned sessions have StartedAt set
 - Phase 28 re-assign/reshuffle must guard against overwriting Completed sessions
 - Phase 29 auto-transition: no background job infrastructure — implement as inline status-check on assessment load (filter method or service call before serving status to caller)
 - Phase 31 RPT-02 ForceCloseAll is additive to existing per-session ForceClose (Phase 22) — reuse same status transition and audit log pattern
@@ -130,5 +131,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: v1.8 roadmap defined (Phases 27-31). Run /gsd:plan-phase 27 to begin.
+Stopped at: Phase 27-01 Tasks 1-2 complete — paused at checkpoint:human-verify (Task 3). Start app, navigate to Assessment manage view Monitoring tab, inspect GetMonitorData JSON in DevTools to confirm 4-state statuses. Type "approved" to continue.
 Resume file: None.
