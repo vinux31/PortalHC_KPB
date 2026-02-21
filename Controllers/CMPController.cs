@@ -232,11 +232,11 @@ namespace HcPortal.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
-            // Auto-transition display: show Upcoming as Open when scheduled date has arrived (display-only, no SaveChangesAsync)
-            var todayUtc = DateTime.UtcNow.Date;
+            // Auto-transition display: show Upcoming as Open when scheduled date+time has arrived in WIB (display-only, no SaveChangesAsync)
+            var nowWib = DateTime.UtcNow.AddHours(7);
             foreach (var exam in exams)
             {
-                if (exam.Status == "Upcoming" && exam.Schedule.Date <= todayUtc)
+                if (exam.Status == "Upcoming" && exam.Schedule <= nowWib)
                     exam.Status = "Open";
             }
 
@@ -305,8 +305,8 @@ namespace HcPortal.Controllers
                 })
                 .ToListAsync();
 
-            // Auto-transition display: show Upcoming as Open when scheduled date has arrived (display-only, no SaveChangesAsync)
-            var today = DateTime.UtcNow.Date;
+            // Auto-transition display: show Upcoming as Open when scheduled date+time has arrived in WIB (display-only, no SaveChangesAsync)
+            var nowWib = DateTime.UtcNow.AddHours(7);
             monitorSessions = monitorSessions
                 .Select(a => new
                 {
@@ -314,7 +314,7 @@ namespace HcPortal.Controllers
                     a.Title,
                     a.Category,
                     a.Schedule,
-                    Status       = (a.Status == "Upcoming" && a.Schedule.Date <= today) ? "Open" : a.Status,
+                    Status       = (a.Status == "Upcoming" && a.Schedule <= nowWib) ? "Open" : a.Status,
                     a.Score,
                     a.IsPassed,
                     a.CompletedAt,
@@ -2118,8 +2118,8 @@ namespace HcPortal.Controllers
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
                 return Forbid();
 
-            // Auto-transition: Upcoming → Open when scheduled date has arrived (persisted to DB)
-            if (assessment.Status == "Upcoming" && assessment.Schedule.Date <= DateTime.UtcNow.Date)
+            // Auto-transition: Upcoming → Open when scheduled date+time has arrived in WIB (persisted to DB)
+            if (assessment.Status == "Upcoming" && assessment.Schedule <= DateTime.UtcNow.AddHours(7))
             {
                 assessment.Status = "Open";
                 assessment.UpdatedAt = DateTime.UtcNow;
