@@ -232,6 +232,14 @@ namespace HcPortal.Controllers
                 .Take(pageSize)
                 .ToListAsync();
 
+            // Auto-transition display: show Upcoming as Open when scheduled date has arrived (display-only, no SaveChangesAsync)
+            var todayUtc = DateTime.UtcNow.Date;
+            foreach (var exam in exams)
+            {
+                if (exam.Status == "Upcoming" && exam.Schedule.Date <= todayUtc)
+                    exam.Status = "Open";
+            }
+
             // Pagination info for view
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages2;
@@ -2109,6 +2117,14 @@ namespace HcPortal.Controllers
             if (user == null) return Challenge();
             if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
                 return Forbid();
+
+            // Auto-transition: Upcoming → Open when scheduled date has arrived (persisted to DB)
+            if (assessment.Status == "Upcoming" && assessment.Schedule.Date <= DateTime.UtcNow.Date)
+            {
+                assessment.Status = "Open";
+                assessment.UpdatedAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
 
             if (assessment.Status == "Completed")
             {
