@@ -17,7 +17,7 @@ namespace HcPortal.Models
         public int Id { get; set; }
         public string UserFullName { get; set; } = "";
         public string UserNIP { get; set; } = "";
-        public string UserStatus { get; set; } = "";    // "Not started", "InProgress", or "Completed"
+        public string UserStatus { get; set; } = "";    // "Not started", "In Progress", "Abandoned", or "Completed"
         public int? Score { get; set; }
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
