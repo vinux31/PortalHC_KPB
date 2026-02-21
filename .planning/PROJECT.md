@@ -12,23 +12,32 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v1.7 Assessment System Integrity
+## Current State (v1.7 — shipped 2026-02-21)
 
-**Goal:** Close 12 critical gaps in the assessment system — exam lifecycle management, answer review for package exams, token enforcement, audit logging, worker history, and data integrity safeguards.
-
-**Target features:**
-- Exam lifecycle: InProgress state, StartedAt timestamp, abandon flow, HC force-close, retake/reset
-- Server-side exam timer enforcement
-- PackageUserResponse table + answer review for package exams
-- Token access enforcement at StartExam
-- HC audit log for assessment management actions
-- Worker completed assessment history view
-- Competency granted display on results page
-- Data integrity: DeletePackage warning, schedule change warning, exam window lockout
-
-## Current State (v1.6)
+**Next:** Planning v1.8 (Assessment Polish) — run `/gsd:new-milestone`
 
 ## Shipped Milestones
+
+### ✅ v1.7 - Assessment System Integrity (2026-02-21)
+
+**Delivered:** Full exam lifecycle management, package answer persistence, server-side token enforcement, HC audit trail, worker history and competency feedback, and data integrity safeguards.
+
+**What Shipped:**
+1. **Exam State Tracking** — InProgress status + StartedAt timestamp on first exam load; idempotent write; 4-state monitoring badge (Not started / InProgress / Abandoned / Completed)
+2. **Exam Lifecycle Actions** — Worker abandon flow (Keluar Ujian); HC force-close sets Completed+Score=0; HC reset clears score+answers+StartedAt; server-side timer with 2-min grace; configurable ExamWindowCloseDate lockout
+3. **Package Answer Integrity** — PackageUserResponse table stores one row per question on submit; answer review for package exams works identically to legacy path; server-side token guard (TempData) blocks direct URL bypass
+4. **HC Audit Log** — AuditLogService (scoped DI) logs all 7+ HC management actions with actor NIP/name; paginated read-only AuditLog page (HC/Admin only, 25/page); accessible from Assessment manage view header
+5. **Worker UX** — Riwayat Ujian table on Assessment page listing completed history; Kompetensi Diperoleh card on Results page showing earned competency levels (IsPassed=true only)
+6. **Data Integrity Safeguards** — DeletePackage shows assignment count in JS confirm dialog + cascades PKR→UPA→options→questions→package; EditAssessment JS IIFE warns on schedule date change when packages attached
+
+**Metrics:**
+- 6 phases (21-26), 14 plans
+- 83 files changed, 17,854 insertions / 222 deletions
+- 2026-02-20 → 2026-02-21
+
+See `.planning/milestones/v1.7-ROADMAP.md` for full details.
+
+---
 
 ### ✅ v1.6 - Training Records Management (2026-02-20)
 
@@ -208,7 +217,12 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Bulk Assign: EditAssessment page shows currently-assigned users + section-filtered picker to add more; new AssessmentSessions created on save without altering existing ones
   - **Test Packages (v1.5):** HC creates packages per assessment; imports questions via Excel/paste; each user assigned random package with Fisher-Yates shuffled question + option order
   - **Package Management (v1.5):** ManagePackages page (create/delete), ImportPackageQuestions (Excel upload + paste), PREVIEW MODE for HC
-  - **Grouped Monitoring (v1.4):** Monitoring tab shows one row per assessment group with completion bar + pass rate; "View Details" links to per-user detail page
+  - **Grouped Monitoring (v1.4):** Monitoring tab shows one row per assessment group with completion bar + pass rate; "View Details" links to per-user detail page with 4-state UserStatus (Not started/InProgress/Abandoned/Completed)
+  - **Exam Lifecycle (v1.7):** InProgress tracking + StartedAt timestamp; worker Keluar Ujian abandon; HC ForceClose (Score=0) and Reset (clears for retake); server-side timer (+2min grace); configurable ExamWindowCloseDate lockout
+  - **Answer Integrity (v1.7):** PackageUserResponse table; answer review for package exams; server-side token enforcement (TempData guard)
+  - **HC Audit Log (v1.7):** All 7+ management actions logged with actor+timestamp; paginated read-only AuditLog page (HC/Admin only)
+  - **Worker UX (v1.7):** Riwayat Ujian history table on Assessment page; Kompetensi Diperoleh card on Results page
+  - **Data Integrity (v1.7):** DeletePackage assignment-count warning + cascade; EditAssessment schedule-change JS guard
 
 - ✅ **Assessment Analytics (HC/Admin — in CDP Dashboard):**
   - KPI cards, multi-parameter filtering, paginated results table
@@ -288,6 +302,15 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | File replace on edit: delete old file from disk, save new file | Prevents orphaned certificates accumulating in wwwroot/uploads/certificates/ | v1.6 ✓ |
 | Delete removes DB row + certificate file from disk | Atomic cleanup; no orphaned files; matches user expectation from confirm() dialog | v1.6 ✓ |
 | Clear-cert-without-replacing out of scope | Discuss-phase decision: HC can only replace; removed ROADMAP success criterion #4 to align | v1.6 ✓ |
+| StartedAt == null as idempotent first-write sentinel | StartedAt is the authoritative guard (not Status string) for InProgress write in StartExam GET — timestamp-based prevents double-write on reload | v1.7 ✓ |
+| Abandoned branch before InProgress in UserStatus projection | Abandoned sessions have StartedAt set — checking Abandoned before StartedAt!=null prevents misclassification in 4-state projection | v1.7 ✓ |
+| ResetAssessment deletes UPA so next StartExam gets fresh package | Deleting UserPackageAssignment on reset forces new random package assignment on next StartExam; ForceCloseAssessment preserves answers for audit | v1.7 ✓ |
+| TempData[TokenVerified_{id}] scoped by assessment ID | Token verification is scoped to session ID (not global) — prevents one session's token from bypassing another; InProgress sessions bypass guard | v1.7 ✓ |
+| AuditLogService SaveChangesAsync internal | Audit rows written immediately by service; actor name stored as "NIP - FullName" at write time for permanence; delete actions wrap audit in try/catch | v1.7 ✓ |
+| PackageOptionId nullable int on PackageUserResponse | null = skipped question (no answer selected); matches UserResponse.SelectedOptionId pattern | v1.7 ✓ |
+| viewModel declared outside Results if/else branches | Enables shared competency lookup block after both package and legacy paths without code duplication | v1.7 ✓ |
+| DeletePackage cascade order: PKR → UPA → options → questions → package | Correct FK-safe deletion order prevents constraint violations; assignment counts pre-computed in ManagePackages GET via GroupBy | v1.7 ✓ |
+| GetMonitorData 2-state UserStatus (deferred tech debt) | GetMonitorData uses isCompleted ? "Completed" : "Not started" — Abandoned/InProgress show as "Not started" in card summary; 4-state view works correctly in AssessmentMonitoringDetail | v1.7 deferred |
 
 ## Technical Constraints
 
@@ -304,17 +327,17 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 **Limitations:**
 - No email notification system (yet)
-- No audit logging (all changes currently untracked)
 - No automated testing (manual QA only)
-- Large monolithic controllers (CMPController ~2300+ lines post-v1.6, CDPController 1000+ lines)
+- Large monolithic controllers (CMPController ~2600+ lines post-v1.7, CDPController 1000+ lines)
 
 ## Shipped Requirements
 
-All requirements from v1.0–v1.6 are satisfied. See milestone archives for traceability:
+All requirements from v1.0–v1.7 are satisfied. See milestone archives for traceability:
 - `milestones/v1.0-REQUIREMENTS.md` — 6 requirements (Phases 1-3)
 - `milestones/v1.2-REQUIREMENTS.md` — 11 requirements (Phases 9-12, all ✅ Shipped)
 - `milestones/v1.3-REQUIREMENTS.md` — 9 requirements (Phases 13-15; 7 shipped, 2 cancelled)
 - `milestones/v1.6-REQUIREMENTS.md` — 4 requirements (TRN-01 through TRN-04, all ✅ Shipped)
+- `milestones/v1.7-REQUIREMENTS.md` — 14 requirements (LIFE-01–05, ANSR-01–02, SEC-01–02, WRK-01–02, DATA-01–03, all ✅ Shipped)
 
 ## Users & Roles
 
@@ -367,14 +390,13 @@ All requirements from v1.0–v1.6 are satisfied. See milestone archives for trac
 
 ## Technical Debt
 
-- Large monolithic controllers (CMPController ~2300+ lines post-v1.6, CDPController 1000+ lines)
+- Large monolithic controllers (CMPController ~2600+ lines post-v1.7, CDPController 1000+ lines)
 - No automated testing — manual QA only
-- No audit logging — all changes untracked
+- `GetMonitorData` uses 2-state UserStatus (`"Completed"` vs `"Not started"`) — Abandoned/InProgress show as "Not started" in monitoring card summary; 4-state view works correctly in AssessmentMonitoringDetail (deferred to v1.8)
 - `GetPersonalTrainingRecords()` in CMPController is dead code (not called) — retained to avoid scope risk
 - N+1 queries addressed in batch where identified but not systematically audited
-- AllowAnswerReview silently non-functional for package-based exams — UserResponse rows not created (FK constraint); no PackageUserResponse table exists yet
 - No UI to re-assign packages or manually override shuffle — edge case with no workaround
-- Worker self-add training records deferred to v1.7+ (WTRN-01, WTRN-02)
+- Worker self-add training records deferred to v1.8+ (WTRN-01, WTRN-02)
 
 ## References
 
@@ -385,4 +407,4 @@ All requirements from v1.0–v1.6 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-20 after v1.6 milestone*
+*Last updated: 2026-02-21 after v1.7 milestone*

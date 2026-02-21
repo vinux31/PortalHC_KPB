@@ -61,3 +61,20 @@
 
 ---
 
+
+## v1.7 Assessment System Integrity (Shipped: 2026-02-21)
+
+**Phases completed:** 6 phases (21-26), 14 plans
+**Files modified:** 83 | **Insertions:** 17,854 | **Deletions:** 222
+**Timeline:** 2026-02-20 → 2026-02-21
+
+**Key accomplishments:**
+1. Exam state tracking — Workers marked InProgress with timestamp on first exam load; idempotent guard prevents double-writes; visible as yellow badge in MonitoringDetail
+2. Full exam lifecycle — Abandon flow (Keluar Ujian), HC force-close/reset, server-side timer enforcement (+2min grace), configurable exam window close dates with lockout
+3. Package answer persistence & review — PackageUserResponse table; answer review works for package exams; token enforcement blocks direct URL bypass via TempData guard
+4. HC audit log — All 7+ HC assessment management actions logged with actor NIP/name, timestamp; paginated read-only AuditLog page (HC/Admin only)
+5. Worker UX — Riwayat Ujian history table on Assessment page; Kompetensi Diperoleh card on Results page showing earned competencies after passing
+6. Data integrity safeguards — DeletePackage shows assignment count in confirm dialog with cascade cleanup; EditAssessment warns on schedule change when packages attached
+
+---
+

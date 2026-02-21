@@ -2,18 +2,18 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-20)
+See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.7 Assessment System Integrity — MILESTONE COMPLETE
+**Current focus:** Planning v1.8 — run /gsd:new-milestone to start next milestone
 
 ## Current Position
 
-**Milestone:** v1.7 Assessment System Integrity — COMPLETE
-**Phase:** 26 of 26 (Data Integrity Safeguards) — COMPLETE (2 of 2 plans done)
-**Current Plan:** None — milestone finished
-**Status:** All 6 phases complete (Phases 21-26). v1.7 shipped 2026-02-21.
-**Last activity:** 2026-02-21 — Phase 26 complete: DeletePackage cascade+confirm, EditAssessment schedule-change JS guard
+**Milestone:** v1.7 Assessment System Integrity — ARCHIVED 2026-02-21
+**Phase:** None — between milestones
+**Current Plan:** None
+**Status:** v1.7 archived. Ready for v1.8 planning.
+**Last activity:** 2026-02-21 — v1.7 archived: 6 phases, 14 plans, 14/14 requirements, 83 files changed
 
 Progress: [████████████████████] 100% (v1.7)
 
@@ -123,5 +123,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 26 verified 7/7 — COMPLETE. v1.7 milestone COMPLETE (all 6 phases, 13 plans). Run /gsd:complete-milestone to archive.
+Stopped at: v1.7 milestone archived. Run /gsd:new-milestone to plan v1.8.
 Resume file: None.
