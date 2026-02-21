@@ -38,6 +38,7 @@ Progress: [██░░░░░░░░░░░░░░░░░░] 10% (v1
 | Phase 22-exam-lifecycle-actions P01 | 5 | 2 tasks | 7 files |
 | Phase 23-package-answer-integrity P03 | 2 | 1 tasks | 1 files |
 | Phase 23 P01 | 8 | 2 tasks | 6 files |
+| Phase 23-package-answer-integrity P02 | 5 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 22-exam-lifecycle-actions]: ExamWindowCloseDate is nullable (null=no expiry); Abandoned guard placed alongside close-date guard before InProgress write; bulk-assign copies ExamWindowCloseDate from savedAssessment
 - [Phase 23-03]: TempData keyed by assessment ID (TokenVerified_{id}) for scoped token verification; StartedAt==null guards first entry only; UserId==user.Id provides HC/Admin bypass
 - [Phase 23]: PackageOptionId nullable int — null=skipped question, matching UserResponse.SelectedOptionId pattern; all PKR FKs use Restrict delete to avoid cascade cycles
+- [Phase 23-02]: Results action branches on UserPackageAssignment presence — package path loads PackageUserResponse+PackageQuestion+PackageOption and uses shuffled order; TotalQuestions from orderedQuestionIds.Count (not Questions.Count which is 0 for package sessions)
 
 ### Pending Todos
 
@@ -108,5 +110,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 23-01-PLAN.md (PackageUserResponse migration + answer persistence). Phase 23 plan 01 done. Next: execute 23-02 (package answer review).
+Stopped at: Completed 23-02-PLAN.md (package answer review in Results action). Phase 23 plan 02 done. Phase 23 now fully complete. Next: execute Phase 24 (AuditLog).
 Resume file: None.
