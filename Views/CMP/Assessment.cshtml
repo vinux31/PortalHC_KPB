@@ -525,7 +525,7 @@
             <p class="text-muted small">There are no assessments in this category.</p>
         </div>
 
-        <!-- Riwayat Ujian (Exam History) — worker only -->
+        @* Riwayat Ujian (Exam History) — worker only *@
         var completedHistory = ViewBag.CompletedHistory as IEnumerable<dynamic>;
         if (completedHistory != null && completedHistory.Any())
         {

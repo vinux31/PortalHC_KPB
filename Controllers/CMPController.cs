@@ -2556,6 +2556,8 @@ namespace HcPortal.Controllers
             var packageAssignment = await _context.UserPackageAssignments
                 .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
 
+            AssessmentResultsViewModel viewModel;
+
             if (packageAssignment != null)
             {
                 // Package path: load PackageQuestion + PackageOption + PackageUserResponse data
@@ -2628,7 +2630,7 @@ namespace HcPortal.Controllers
                     }
                 }
 
-                var viewModel = new AssessmentResultsViewModel
+                viewModel = new AssessmentResultsViewModel
                 {
                     AssessmentId = assessment.Id,
                     Title = assessment.Title,
@@ -2643,8 +2645,6 @@ namespace HcPortal.Controllers
                     CorrectAnswers = correctCount,
                     QuestionReviews = questionReviews
                 };
-
-                return View(viewModel);
             }
             else
             {
