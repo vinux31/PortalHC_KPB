@@ -951,7 +951,7 @@
                         var schedDate    = new Date(g.schedule).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
                         var detailUrl    = '/CMP/AssessmentMonitoringDetail?title=' + encodeURIComponent(g.title) +
                                           '&category=' + encodeURIComponent(g.category) +
-                                          '&scheduleDate=' + new Date(g.schedule).toISOString().split('T')[0];
+                                          '&scheduleDate=' + (g.schedule || '').split('T')[0];
                         var passCell = g.completedCount === 0
                             ? '<span class="text-muted small">\u2014</span>'
                             : '<span class="' + (passRatePct >= 70 ? 'text-success' : 'text-danger') + ' fw-semibold small">' + g.passedCount + ' passed (' + passRatePct + '%)</span>';
