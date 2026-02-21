@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phase 28 ✅ complete, Phase 27 next
+**Current focus:** v1.8 Assessment Polish — Phases 27 + 28 ✅ complete, Phase 29 next
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 28: Package Reshuffle — ✅ COMPLETE (2/2 plans, verified)
-**Next Phase:** Phase 27: Monitoring Status Fix — ready to plan
-**Status:** Phase 28 verified. Reshuffle (single + bulk) live on AssessmentMonitoringDetail. Phase 27 is the monitoring status accuracy fix.
-**Last activity:** 2026-02-21 — Phase 28 complete and verified
+**Phase:** Phase 27: Monitoring Status Fix — ✅ COMPLETE (1/1 plan, UAT passed)
+**Next Phase:** Phase 29: Auto-transition Upcoming to Open — ready to plan
+**Status:** Phase 27 already complete (executed earlier this session, UAT all 4 tests passed). Phase 28 also complete. Next is Phase 29.
+**Last activity:** 2026-02-21 — Phase 27 roadmap updated; Phase 28 verified
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 

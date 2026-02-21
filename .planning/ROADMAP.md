@@ -227,7 +227,7 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 **Plans:** 1 plan
 
 Plans:
-- [ ] 27-01-PLAN.md — Update GetMonitorData UserStatus projection from 2-state to 4-state matching AssessmentMonitoringDetail logic
+- [x] 27-01-PLAN.md — Update GetMonitorData UserStatus projection from 2-state to 4-state matching AssessmentMonitoringDetail logic
 
 ---
 
@@ -335,7 +335,7 @@ Plans:
 | 24. HC Audit Log | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 25. Worker UX Enhancements | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 26. Data Integrity Safeguards | v1.7 | 2/2 | Complete | 2026-02-21 |
-| 27. Monitoring Status Fix | v1.8 | 0/1 | Pending | — |
+| 27. Monitoring Status Fix | v1.8 | 1/1 | Complete | 2026-02-21 |
 | 28. Package Reshuffle (Re-assign dropped) | v1.8 | 2/2 | Complete | 2026-02-21 |
 | 29. Auto-transition Upcoming to Open | v1.8 | 0/1 | Pending | — |
 | 30. Import Deduplication | v1.8 | 0/1 | Pending | — |
