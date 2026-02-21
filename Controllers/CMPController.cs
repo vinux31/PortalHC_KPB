@@ -243,6 +243,23 @@ namespace HcPortal.Controllers
             ViewBag.UserRole = userRole;
             ViewBag.CanManage = isHCAccess;
 
+            // ========== RIWAYAT UJIAN: completed assessment history for worker ==========
+            var completedHistory = await _context.AssessmentSessions
+                .Where(a => a.UserId == userId && a.Status == "Completed")
+                .OrderByDescending(a => a.CompletedAt)
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Title,
+                    a.Category,
+                    a.CompletedAt,
+                    a.Score,
+                    a.IsPassed
+                })
+                .ToListAsync();
+
+            ViewBag.CompletedHistory = completedHistory;
+
             return View(exams);
         }
 

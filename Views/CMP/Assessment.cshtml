@@ -506,13 +506,8 @@
                                     }
                                     else if (item.Status == "Upcoming")
                                     {
-                                        var daysUntil = (item.Schedule - DateTime.Now).Days;
-                                        var daysText = daysUntil > 0
-                                            ? $"Available in {daysUntil} day{(daysUntil != 1 ? "s" : "")}"
-                                            : "Coming soon";
-
                                         <button class="btn btn-outline-secondary w-100" disabled>
-                                            <i class="bi bi-lock-fill me-1"></i>@daysText
+                                            <i class="bi bi-lock-fill me-1"></i>@(((item.Schedule - DateTime.Now).Days > 0) ? $"Available in {(item.Schedule - DateTime.Now).Days} day{((item.Schedule - DateTime.Now).Days != 1 ? "s" : "")}" : "Coming soon")
                                         </button>
                                     }
                                 </div>
@@ -529,6 +524,59 @@
             <h5 class="text-muted">No assessments found</h5>
             <p class="text-muted small">There are no assessments in this category.</p>
         </div>
+
+        <!-- Riwayat Ujian (Exam History) — worker only -->
+        var completedHistory = ViewBag.CompletedHistory as IEnumerable<dynamic>;
+        if (completedHistory != null && completedHistory.Any())
+        {
+            <div class="mt-5">
+                <h4 class="fw-bold mb-3">
+                    <i class="bi bi-clock-history me-2 text-primary"></i>Riwayat Ujian
+                </h4>
+                <div class="card border-0 shadow-sm">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Judul</th>
+                                    <th>Kategori</th>
+                                    <th>Tanggal Selesai</th>
+                                    <th>Skor</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in completedHistory)
+                                {
+                                    <tr>
+                                        <td class="fw-semibold">@item.Title</td>
+                                        <td><span class="badge bg-secondary">@item.Category</span></td>
+                                        <td>@(item.CompletedAt != null ? ((DateTime)item.CompletedAt).ToString("dd MMM yyyy") : "—")</td>
+                                        <td>@(item.Score != null ? item.Score + "%" : "—")</td>
+                                        <td>
+                                            @if (item.IsPassed == true)
+                                            {
+                                                <span class="badge text-bg-success"><i class="bi bi-check-circle-fill me-1"></i>Lulus</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge text-bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Tidak Lulus</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-action="Results" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
+                                                <i class="bi bi-eye me-1"></i>Detail
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
     }
 
 </div>

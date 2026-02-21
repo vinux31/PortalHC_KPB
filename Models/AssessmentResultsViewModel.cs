@@ -14,6 +14,7 @@ namespace HcPortal.Models
         public int TotalQuestions { get; set; }
         public int CorrectAnswers { get; set; }
         public List<QuestionReviewItem>? QuestionReviews { get; set; }
+        public List<CompetencyGainItem>? CompetencyGains { get; set; }
     }
 
     public class QuestionReviewItem
@@ -31,5 +32,11 @@ namespace HcPortal.Models
         public string OptionText { get; set; } = "";
         public bool IsCorrect { get; set; }
         public bool IsSelected { get; set; }
+    }
+
+    public class CompetencyGainItem
+    {
+        public string CompetencyName { get; set; } = "";
+        public int LevelGranted { get; set; }
     }
 }
