@@ -281,11 +281,11 @@ Plans:
   2. The riwayat section is visible only to the worker viewing their own page — HC viewing a worker's data is unaffected
   3. After passing an assessment, the results page shows a "Kompetensi Diperoleh" section listing each competency name and the new level the worker has reached
   4. The competency section only appears when competencies were actually updated (IsPassed = true and AssessmentCompetencyMap entries exist for that assessment category)
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 25-01: Worker assessment history — Assessment() action extended with completed sessions query for worker role; StartExam.cshtml or Assessment.cshtml worker tab extended with riwayat table
-- [ ] 25-02: Competency display on results — ExamResult view extended with AssessmentCompetencyMap lookup; "Kompetensi Diperoleh" card shown when competencies were updated on pass
+- [ ] 25-01-PLAN.md — Worker assessment history: completed sessions query in Assessment() worker branch; Riwayat Ujian table in Assessment.cshtml
+- [ ] 25-02-PLAN.md — Competency display on results: AssessmentCompetencyMap lookup in Results action; "Kompetensi Diperoleh" card on Results.cshtml
 
 ---
 
