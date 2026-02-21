@@ -1,94 +1,81 @@
 # Requirements: Portal HC KPB
 
-**Defined:** 2026-02-20
-**Milestone:** v1.7 Assessment System Integrity
+**Defined:** 2026-02-21
+**Milestone:** v1.8 Assessment Polish
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
 ## v1 Requirements
 
-Requirements for v1.7 milestone. Each maps to roadmap phases.
+Requirements for v1.8 milestone. Each maps to roadmap phases.
 
-### Exam Lifecycle (LIFE)
+### Monitoring Fix (MON)
 
-- [ ] **LIFE-01**: System records `StartedAt` timestamp and marks session status as `InProgress` when worker first loads the exam
-- [ ] **LIFE-02**: Worker can intentionally exit an in-progress exam via a "Keluar Ujian" button; session is marked `Abandoned`
-- [ ] **LIFE-03**: Exam timer is enforced server-side — `SubmitExam` rejects the submission if elapsed time exceeds `DurationMinutes`
-- [ ] **LIFE-04**: HC can reopen a `Completed` assessment session (reset to `Open`, clear score and answers) to allow a retake
-- [ ] **LIFE-05**: HC can force-close any `Open` or `InProgress` session from the assessment management view
+- [ ] **MON-01**: HC sees correct status for Abandoned and InProgress sessions in the monitoring tab card summary — not "Not started"
 
-### Answer Review for Packages (ANSR)
+### Package Management (PKG)
 
-- [ ] **ANSR-01**: Worker's selected answers are saved in a `PackageUserResponse` table when a package-based exam is submitted
-- [ ] **ANSR-02**: `AllowAnswerReview` displays correct/incorrect per question for package-based exams, matching the existing legacy path behavior
+- [ ] **PKG-01**: HC can re-assign a different package to a worker who has already been assigned one, replacing their current package
+- [ ] **PKG-02**: HC can trigger a reshuffle (new random package) for a worker from the management UI
 
-### Security (SEC)
+### Assessment Scheduling (SCHED)
 
-- [ ] **SEC-01**: `StartExam` enforces token requirement — token-protected sessions show a token entry prompt before rendering the exam; direct URL access without a valid token is blocked
-- [ ] **SEC-02**: All HC assessment management actions (create, edit, delete, assign users) are written to an audit log viewable by HC and Admin
+- [ ] **SCHED-01**: Assessment sessions with status `Upcoming` automatically transition to `Open` when the scheduled date arrives, without HC manual action
 
-### Worker UX (WRK)
+### Import Quality (IMP)
 
-- [ ] **WRK-01**: Worker can view their completed assessment history (title, category, date, score, pass/fail) from their assessment page
-- [ ] **WRK-02**: Results page shows which competencies were granted (competency name, new level) when the worker passes an assessment
+- [ ] **IMP-01**: When importing questions via Excel or paste, rows with question text identical to an existing question in that package are skipped (not duplicated)
 
-### Data Integrity (DATA)
+### Reporting (RPT)
 
-- [ ] **DATA-01**: HC sees a confirmation warning before deleting a package that has active `UserPackageAssignment` records
-- [ ] **DATA-02**: HC sees a confirmation warning when editing an assessment's schedule date if packages are attached to that assessment
-- [ ] **DATA-03**: HC can set an exam window close date per assessment; `StartExam` blocks access after that date with a clear message to the worker
+- [ ] **RPT-01**: HC can download an Excel file of all worker results for a specific assessment from the monitoring detail page
+- [ ] **RPT-02**: HC can force-close all Open and InProgress sessions for an assessment at one click from the monitoring view, without closing one by one
 
 ## v2 Requirements
 
-Deferred to v1.8 (Assessment Polish milestone).
+Deferred to v1.9+.
 
-### Package Management
+### UX Polish
 
-- **PKG-01**: HC can re-assign a specific package to a user or trigger a reshuffle from the management UI
+- **UX-01**: Answer review shows point value per question alongside correct/incorrect indicator
+- **UX-03**: Status transition logic — Upcoming sessions auto-transition to Open by scheduled date (deferred if SCHED-01 covers this)
 
 ### Performance
 
 - **PERF-01**: Monitoring queries use batch loading (Include/projection) to eliminate N+1 patterns
 - **PERF-02**: TempData int/long coercion replaced with robust type-safe serialization
 
-### UX Polish
+### Worker Features
 
-- **UX-01**: Answer review shows point value per question alongside correct/incorrect indicator
-- **UX-02**: ImportPackageQuestions deduplicates questions — skips rows where question text already exists in the package
-- **UX-03**: Status transition logic: `Upcoming` sessions auto-transition to `Open` by scheduled date
+- **WTRN-01**: Worker can create their own manual training record
+- **WTRN-02**: Worker can upload a certificate for their self-created training record
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
 | Email notifications for exam events | No email system in project; deferred to future milestone |
-| Real-time exam monitoring (who is live now) | High complexity; not required for assessment integrity |
+| Real-time exam monitoring | High complexity; not required for assessment polish |
 | Mobile-optimized exam UI | Web-only per project constraints |
-| Automated test suite for assessment logic | Out of scope per project constraints |
+| Automated test suite | Out of scope per project constraints |
+| Worker self-add training records | Deferred to v1.9+ (WTRN-01, WTRN-02) |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LIFE-01 | Phase 21 | Pending |
-| LIFE-02 | Phase 22 | Pending |
-| LIFE-03 | Phase 22 | Pending |
-| LIFE-04 | Phase 22 | Pending |
-| LIFE-05 | Phase 22 | Pending |
-| ANSR-01 | Phase 23 | Pending |
-| ANSR-02 | Phase 23 | Pending |
-| SEC-01 | Phase 23 | Pending |
-| SEC-02 | Phase 24 | Pending |
-| WRK-01 | Phase 25 | Pending |
-| WRK-02 | Phase 25 | Pending |
-| DATA-01 | Phase 26 | Pending |
-| DATA-02 | Phase 26 | Pending |
-| DATA-03 | Phase 22 | Pending |
+| MON-01 | Phase 27 | Pending |
+| PKG-01 | Phase 28 | Pending |
+| PKG-02 | Phase 28 | Pending |
+| SCHED-01 | Phase 29 | Pending |
+| IMP-01 | Phase 30 | Pending |
+| RPT-01 | Phase 31 | Pending |
+| RPT-02 | Phase 31 | Pending |
 
 **Coverage:**
-- v1 requirements: 14 total
-- Mapped to phases: 14 (Phases 21-26)
+- v1 requirements: 7 total
+- Mapped to phases: 7
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-02-20*
-*Last updated: 2026-02-20 — traceability populated during v1.7 roadmap creation*
+*Requirements defined: 2026-02-21*
+*Last updated: 2026-02-21 — initial definition for v1.8*
