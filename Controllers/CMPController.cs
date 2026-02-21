@@ -2162,9 +2162,16 @@ namespace HcPortal.Controllers
             else
             {
                 // Legacy path: AssessmentQuestion
+                var siblingSessionIds = await _context.AssessmentSessions
+                    .Where(s => s.Title == assessment.Title &&
+                                s.Category == assessment.Category &&
+                                s.Schedule.Date == assessment.Schedule.Date)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
                 var legacyQuestions = await _context.AssessmentQuestions
                     .Include(q => q.Options)
-                    .Where(q => q.AssessmentSessionId == id)
+                    .Where(q => siblingSessionIds.Contains(q.AssessmentSessionId))
                     .OrderBy(q => q.Order)
                     .ToListAsync();
 
@@ -2407,11 +2414,27 @@ namespace HcPortal.Controllers
             else
             {
                 // ---- LEGACY PATH: existing AssessmentQuestion + AssessmentOption grading ----
+                var siblingSessionIds = await _context.AssessmentSessions
+                    .Where(s => s.Title == assessment.Title &&
+                                s.Category == assessment.Category &&
+                                s.Schedule.Date == assessment.Schedule.Date)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
+                var siblingWithQuestions = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Where(a => siblingSessionIds.Contains(a.Id) && a.Questions.Any())
+                    .FirstOrDefaultAsync();
+
+                var questionsForGrading = siblingWithQuestions?.Questions?.ToList()
+                    ?? new List<AssessmentQuestion>();
+
                 int totalScore = 0;
                 int maxScore = 0;
 
                 // Process Answers
-                foreach (var question in assessment.Questions)
+                foreach (var question in questionsForGrading)
                 {
                     maxScore += question.ScoreValue;
                     int? selectedOptionId = null;
