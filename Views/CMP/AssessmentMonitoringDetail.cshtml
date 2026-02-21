@@ -100,10 +100,17 @@
 
     <!-- Per-user table -->
     <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
             <h5 class="mb-0 fw-semibold">
                 <i class="bi bi-people me-2 text-primary"></i>Per-User Status
             </h5>
+            @if (Model.IsPackageMode && Model.PendingCount > 0)
+            {
+                <button type="button" class="btn btn-outline-primary btn-sm"
+                        onclick="reshuffleAll(event)">
+                    <i class="bi bi-shuffle me-1"></i>Reshuffle All (@Model.PendingCount pending)
+                </button>
+            }
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -112,6 +119,10 @@
                         <tr>
                             <th>Name</th>
                             <th>NIP</th>
+                            @if (Model.IsPackageMode)
+                            {
+                                <th>Package</th>
+                            }
                             <th>Status</th>
                             <th>Score</th>
                             <th>Result</th>
@@ -123,7 +134,7 @@
                         @if (Model.Sessions.Count == 0)
                         {
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-4">No sessions found for this group.</td>
+                                <td colspan="@(Model.IsPackageMode ? 8 : 7)" class="text-center text-muted py-4">No sessions found for this group.</td>
                             </tr>
                         }
                         else
@@ -158,6 +169,12 @@
                                 <tr>
                                     <td class="fw-semibold">@session.UserFullName</td>
                                     <td class="text-muted small">@(string.IsNullOrEmpty(session.UserNIP) ? "—" : session.UserNIP)</td>
+                                    @if (Model.IsPackageMode)
+                                    {
+                                        <td class="small" id="pkg-@session.Id">
+                                            @(string.IsNullOrEmpty(session.PackageName) ? "—" : session.PackageName)
+                                        </td>
+                                    }
                                     <td><span class="badge @statusClass">@session.UserStatus</span></td>
                                     <td>
                                         @if (session.Score.HasValue)
@@ -174,6 +191,18 @@
                                         @(session.CompletedAt.HasValue ? session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "—")
                                     </td>
                                     <td>
+                                        @if (Model.IsPackageMode)
+                                        {
+                                            var canReshuffle = session.UserStatus == "Not started";
+                                            <button type="button"
+                                                    class="btn btn-outline-primary btn-sm me-1 @(canReshuffle ? "" : "disabled")"
+                                                    @(canReshuffle ? "" : "disabled")
+                                                    data-session-id="@session.Id"
+                                                    onclick="@(canReshuffle ? $"reshuffleWorker({session.Id})" : "")"
+                                                    title="@(canReshuffle ? "Reshuffle paket ujian" : (session.UserStatus == "InProgress" ? "Tidak bisa reshuffle — sedang mengerjakan" : (session.UserStatus == "Completed" ? "Tidak bisa reshuffle — sudah selesai" : "Tidak bisa reshuffle — dibatalkan")))">
+                                                <i class="bi bi-shuffle me-1"></i>Reshuffle
+                                            </button>
+                                        }
                                         @if (session.UserStatus == "Completed" || session.UserStatus == "Abandoned")
                                         {
                                             <!-- Reset: returns session to Open for retake (works for both Completed and Abandoned) -->
@@ -200,7 +229,10 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted small">—</span>
+                                            @if (!Model.IsPackageMode)
+                                            {
+                                                <span class="text-muted small">—</span>
+                                            }
                                         }
                                     </td>
                                 </tr>
@@ -212,4 +244,137 @@
         </div>
     </div>
 
+    @if (Model.IsPackageMode)
+    {
+        <!-- Hidden form for antiforgery token (used by AJAX reshuffle calls) -->
+        <form id="reshuffleForm" style="display:none">@Html.AntiForgeryToken()</form>
+
+        <!-- Toast container (top-right, Bootstrap 5) -->
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+            <div id="reshuffleToast" class="toast align-items-center text-bg-success border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body" id="reshuffleToastBody">
+                        Package reshuffled successfully.
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result modal for Reshuffle All -->
+        <div class="modal fade" id="reshuffleResultModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="bi bi-shuffle me-2"></i>Reshuffle All — Results</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="reshuffleResultBody"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
 </div>
+
+@if (Model.IsPackageMode)
+{
+<script>
+    var antiForgeryToken = document.querySelector('#reshuffleForm input[name="__RequestVerificationToken"]').value;
+
+    function reshuffleWorker(sessionId) {
+        var btn = document.querySelector('[data-session-id="' + sessionId + '"]');
+        var originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btn.disabled = true;
+
+        $.ajax({
+            url: '/CMP/ReshufflePackage',
+            type: 'POST',
+            data: {
+                sessionId: sessionId,
+                __RequestVerificationToken: antiForgeryToken
+            },
+            success: function(resp) {
+                if (resp.success) {
+                    // Update package name in-place
+                    var pkgCell = document.getElementById('pkg-' + sessionId);
+                    if (pkgCell) pkgCell.textContent = resp.packageName;
+
+                    // Show toast
+                    var toastBody = document.getElementById('reshuffleToastBody');
+                    toastBody.textContent = 'Package berhasil di-reshuffle \u2192 ' + resp.packageName;
+                    var toast = new bootstrap.Toast(document.getElementById('reshuffleToast'));
+                    toast.show();
+                } else {
+                    alert(resp.message || 'Reshuffle gagal.');
+                }
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            },
+            error: function() {
+                alert('Terjadi kesalahan saat reshuffle.');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        });
+    }
+
+    function reshuffleAll(event) {
+        var pendingCount = @Model.PendingCount;
+        if (!confirm('Reshuffle semua ' + pendingCount + ' peserta yang belum mulai ujian?')) return;
+
+        var btn = event.target.closest('button');
+        var originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+        btn.disabled = true;
+
+        $.ajax({
+            url: '/CMP/ReshuffleAll',
+            type: 'POST',
+            data: {
+                title: '@Html.Raw(Model.Title.Replace("'", "\\'"))',
+                category: '@Model.Category',
+                scheduleDate: '@Model.Schedule.ToString("yyyy-MM-dd")',
+                __RequestVerificationToken: antiForgeryToken
+            },
+            success: function(resp) {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+
+                if (resp.success) {
+                    // Build result table
+                    var html = '<table class="table table-sm mb-0"><thead><tr><th>Name</th><th>Result</th></tr></thead><tbody>';
+                    resp.results.forEach(function(r) {
+                        var badgeClass = r.status.indexOf('Reshuffled') === 0 ? 'text-success' : 'text-muted';
+                        html += '<tr><td>' + r.name + '</td><td class="' + badgeClass + '">' + r.status + '</td></tr>';
+                    });
+                    html += '</tbody></table>';
+                    html += '<p class="mt-2 mb-0 text-muted small">' + resp.reshuffledCount + ' peserta berhasil di-reshuffle.</p>';
+
+                    document.getElementById('reshuffleResultBody').innerHTML = html;
+                    var modal = new bootstrap.Modal(document.getElementById('reshuffleResultModal'));
+                    modal.show();
+
+                    // Reload page after modal is closed so package cells reflect new assignments
+                    document.getElementById('reshuffleResultModal').addEventListener('hidden.bs.modal', function() {
+                        location.reload();
+                    }, { once: true });
+                } else {
+                    alert(resp.message || 'Reshuffle All gagal.');
+                }
+            },
+            error: function() {
+                alert('Terjadi kesalahan saat reshuffle.');
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        });
+    }
+</script>
+}
