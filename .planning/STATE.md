@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 27: Monitoring Status Fix — ✅ COMPLETE (UAT passed 4/4)
+**Phase:** Phase 32: Fix Legacy Question Path — ✅ COMPLETE (plan 01 done)
 **Next Phase:** Phase 28: Package Re-assign and Reshuffle — ready to plan
-**Status:** Phase 27 verified. Also fixed pre-existing View Details timezone bug (e9cd93d).
-**Last activity:** 2026-02-21 — Phase 27 UAT complete, all 4 tests passed
+**Status:** Phase 32 plan 01 complete. Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup for HC-created questions.
+**Last activity:** 2026-02-21 — Phase 32-01 complete, all three legacy paths fixed
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 26-data-integrity-safeguards P01 | 3min | 1 tasks | 2 files |
 | Phase 26-data-integrity-safeguards P02 | 4min | 1 tasks | 2 files |
 | Phase 27-monitoring-status-fix P01 | 3min | 2 tasks | 2 files |
+| Phase 32-fix-legacy-question-path P01 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Phase 28 re-assign/reshuffle must guard against overwriting Completed sessions
 - Phase 29 auto-transition: no background job infrastructure — implement as inline status-check on assessment load (filter method or service call before serving status to caller)
 - Phase 31 RPT-02 ForceCloseAll is additive to existing per-session ForceClose (Phase 22) — reuse same status transition and audit log pattern
+- [Phase 32-01]: Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup identical to package path (Title + Category + Schedule.Date); StartExam reuses siblingSessionIds already computed for package check; ExamSummary and SubmitExam compute it inline in their else-blocks; UserResponse.AssessmentSessionId = id (worker's own session) unchanged
 
 ### Pending Todos
 
@@ -133,5 +135,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Quick task 12 complete — Riwayat Ujian now shows Abandoned sessions with Dibatalkan badge.
+Stopped at: Completed Phase 32-01-PLAN.md — legacy question path fixed in StartExam, ExamSummary, SubmitExam.
 Resume file: None.
