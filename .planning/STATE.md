@@ -113,6 +113,7 @@ None.
 | 009 | Fix Progress & Tracking table — remove Implementasi column, drop "Nama" prefix from headers, add Deliverable column between Sub Kompetensi and Evidence | 2026-02-20 | cb87e68 | [9-fix-progress-and-tracking-table-columns](.planning/quick/9-fix-progress-and-tracking-table-columns/) |
 | 010 | Fix Monitoring tab error on Assessment manage page — replace Session.GetString("UserRole") with _userManager.GetRolesAsync(), add res.ok guard in JS fetch | 2026-02-20 | 5a1ddcd | [10-fix-monitoring-data-error-on-assessment-](.planning/quick/10-fix-monitoring-data-error-on-assessment-/) |
 | 011 | Add Kota (city) field to CreateTrainingRecord form — model, ViewModel, controller mapping, EF migration; rename "Create Training Offline" to "Create Training" everywhere | 2026-02-20 | d529c1f | [11-add-kota-field-to-createtrainingrecord-a](.planning/quick/11-add-kota-field-to-createtrainingrecord-a/) |
+| 012 | Fix Riwayat Ujian not updating — expand completedHistory query to include Abandoned sessions; add three-way status badge (Dibatalkan/Lulus/Tidak Lulus) | 2026-02-21 | 51323f2 | [12-fix-riwayat-ujian-not-updating-and-add-p](.planning/quick/12-fix-riwayat-ujian-not-updating-and-add-p/) |
 
 ### Roadmap Evolution
 
@@ -131,5 +132,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 27-01 Tasks 1-2 complete — paused at checkpoint:human-verify (Task 3). Start app, navigate to Assessment manage view Monitoring tab, inspect GetMonitorData JSON in DevTools to confirm 4-state statuses. Type "approved" to continue.
+Stopped at: Quick task 12 complete — Riwayat Ujian now shows Abandoned sessions with Dibatalkan badge.
 Resume file: None.
