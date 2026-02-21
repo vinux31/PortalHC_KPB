@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 28-package-reassign-and-reshuffle P02 | 2min | 1 tasks | 1 files |
 | Phase 29-auto-transition-upcoming-to-open P01 | 2min | 2 tasks | 1 files |
 | Phase 29-auto-transition-upcoming-to-open P02 | 5min | 2 tasks | 1 files |
+| Phase 29-auto-transition-upcoming-to-open P03 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -99,6 +100,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 28-01]: ReshuffleAll uses batch SaveChangesAsync (once after all worker changes) with audit in try/catch
 - [Phase 28-02]: reshuffleAll(event) receives event from onclick attribute — simpler than querySelector
 - [Phase 28-02]: Hidden form antiforgery pattern for AJAX token extraction — more reliable than regex parsing
+- [Phase 29-03]: ScheduleDate+ScheduleTime plain inputs (no asp-for); ScheduleHidden carries asp-for binding populated by JS before submit
+- [Phase 29-03]: Upcoming worker card disabled button shows exact opening datetime (HH:mm WIB) instead of day-countdown arithmetic
 
 ### Pending Todos
 
@@ -141,9 +144,10 @@ None.
 - Phase 32 added: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers (2026-02-21)
 - Phase 28 complete: Package Reshuffle (re-assign dropped per user decision) — single + bulk reshuffle on monitoring page (2026-02-21)
 - Phase 29 complete: Auto-transition Upcoming→Open — query-time status override at GetMonitorData (display), worker list (display), StartExam (persisted to DB); upgraded to time-based WIB comparison (Schedule <= UtcNow.AddHours(7)); StartExam time gate added for future-scheduled assessments (2026-02-21)
+- Phase 29 Plan 03 complete: Schedule time picker added to Create/Edit Assessment forms; Upcoming worker cards now show exact "Opens DD MMM YYYY, HH:mm WIB" (2026-02-21)
 
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 29 Plan 02 complete. All auto-transition sites upgraded to time-based WIB. StartExam time gate added. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
+Stopped at: Completed 29-03-PLAN.md — schedule time picker added to Create/Edit Assessment forms; Upcoming cards show exact opening datetime in WIB. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
 Resume file: None.
