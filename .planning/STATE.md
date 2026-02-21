@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phase 28 ready to execute
+**Current focus:** v1.8 Assessment Polish — Phase 28 complete
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 28: Package Reshuffle — IN PROGRESS (1/2 plans complete)
-**Status:** 28-01 backend done. 28-02 frontend (monitoring detail UI + AJAX) pending.
-**Last activity:** 2026-02-21 — 28-01 executed: ReshufflePackage + ReshuffleAll controller actions, view model enriched with IsPackageMode/PendingCount/PackageName/AssignmentId
+**Phase:** Phase 28: Package Reshuffle — COMPLETE (2/2 plans complete)
+**Status:** Phase 28 complete. Reshuffle backend (28-01) + frontend UI (28-02) done.
+**Last activity:** 2026-02-21 — 28-02 executed: reshuffle UI (per-worker AJAX button + Reshuffle All modal) added to AssessmentMonitoringDetail
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 27-monitoring-status-fix P01 | 3min | 2 tasks | 2 files |
 | Phase 32-fix-legacy-question-path P01 | 4min | 2 tasks | 1 files |
 | Phase 28-package-reassign-and-reshuffle P01 | 3min | 2 tasks | 2 files |
+| Phase 28-package-reassign-and-reshuffle P02 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 32-01]: Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup identical to package path (Title + Category + Schedule.Date); StartExam reuses siblingSessionIds already computed for package check; ExamSummary and SubmitExam compute it inline in their else-blocks; UserResponse.AssessmentSessionId = id (worker's own session) unchanged
 - [Phase 28-01]: ReshufflePackage selects different package only when 2+ packages exist AND current assignment exists
 - [Phase 28-01]: ReshuffleAll uses batch SaveChangesAsync (once after all worker changes) with audit in try/catch
+- [Phase 28-02]: reshuffleAll(event) receives event from onclick attribute — simpler than querySelector
+- [Phase 28-02]: Hidden form antiforgery pattern for AJAX token extraction — more reliable than regex parsing
 
 ### Pending Todos
 
@@ -137,5 +140,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 28-01-PLAN.md — backend reshuffle actions done. 28-02 (frontend) ready to execute.
+Stopped at: Completed 28-02-PLAN.md — reshuffle UI done. Phase 28 complete.
 Resume file: None.
