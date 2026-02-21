@@ -277,6 +277,7 @@ namespace HcPortal.Controllers
             var monitorSessions = await _context.AssessmentSessions
                 .Where(a => a.Status == "Open"
                          || a.Status == "InProgress"
+                         || a.Status == "Abandoned"
                          || a.Status == "Upcoming"
                          || (a.Status == "Completed" && a.CompletedAt != null && a.CompletedAt >= cutoff))
                 .Select(a => new
@@ -289,6 +290,7 @@ namespace HcPortal.Controllers
                     a.Score,
                     a.IsPassed,
                     a.CompletedAt,
+                    a.StartedAt,
                     UserFullName = a.User != null ? a.User.FullName : "Unknown",
                     UserNIP      = a.User != null ? a.User.NIP      : ""
                 })
@@ -300,16 +302,26 @@ namespace HcPortal.Controllers
                 {
                     var sessions = g.Select(a =>
                     {
-                        bool isCompleted = a.Score != null || a.CompletedAt != null;
+                        string userStatus;
+                        if (a.CompletedAt != null || a.Score != null)
+                            userStatus = "Completed";
+                        else if (a.Status == "Abandoned")
+                            userStatus = "Abandoned";
+                        else if (a.StartedAt != null)
+                            userStatus = "In Progress";
+                        else
+                            userStatus = "Not started";
+
                         return new MonitoringSessionViewModel
                         {
                             Id           = a.Id,
                             UserFullName = a.UserFullName,
                             UserNIP      = a.UserNIP,
-                            UserStatus   = isCompleted ? "Completed" : "Not started",
+                            UserStatus   = userStatus,
                             Score        = a.Score,
                             IsPassed     = a.IsPassed,
-                            CompletedAt  = a.CompletedAt
+                            CompletedAt  = a.CompletedAt,
+                            StartedAt    = a.StartedAt
                         };
                     }).ToList();
 
