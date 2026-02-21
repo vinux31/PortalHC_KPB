@@ -437,7 +437,14 @@
                                     <!-- Date -->
                                     <div class="meta-item">
                                         <i class="bi bi-calendar3"></i>
-                                        <span>@item.Schedule.ToString("dd MMM yyyy")</span>
+                                        @if (item.Status == "Upcoming")
+                                        {
+                                            <span>Opens @item.Schedule.ToString("dd MMM yyyy"), @item.Schedule.ToString("HH:mm") WIB</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@item.Schedule.ToString("dd MMM yyyy")</span>
+                                        }
                                     </div>
 
                                     <!-- Duration -->
@@ -507,7 +514,7 @@
                                     else if (item.Status == "Upcoming")
                                     {
                                         <button class="btn btn-outline-secondary w-100" disabled>
-                                            <i class="bi bi-lock-fill me-1"></i>@(((item.Schedule - DateTime.Now).Days > 0) ? $"Available in {(item.Schedule - DateTime.Now).Days} day{((item.Schedule - DateTime.Now).Days != 1 ? "s" : "")}" : "Coming soon")
+                                            <i class="bi bi-lock-fill me-1"></i>Opens @item.Schedule.ToString("dd MMM yyyy"), @item.Schedule.ToString("HH:mm") WIB
                                         </button>
                                     }
                                 </div>
