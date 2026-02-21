@@ -260,7 +260,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 29-01-PLAN.md — Apply Upcoming→Open auto-transition at three CMPController.cs read sites: GetMonitorData (display-only re-projection), worker assessment list (in-memory foreach), StartExam (persist before status checks)
+- [x] 29-01-PLAN.md — Apply Upcoming→Open auto-transition at three CMPController.cs read sites: GetMonitorData (display-only re-projection), worker assessment list (in-memory foreach), StartExam (persist before status checks)
 
 ---
 
@@ -337,7 +337,7 @@ Plans:
 | 26. Data Integrity Safeguards | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 27. Monitoring Status Fix | v1.8 | 1/1 | Complete | 2026-02-21 |
 | 28. Package Reshuffle (Re-assign dropped) | v1.8 | 2/2 | Complete | 2026-02-21 |
-| 29. Auto-transition Upcoming to Open | v1.8 | 0/1 | Pending | — |
+| 29. Auto-transition Upcoming to Open | v1.8 | 1/1 | Complete | 2026-02-21 |
 | 30. Import Deduplication | v1.8 | 0/1 | Pending | — |
 | 31. HC Reporting Actions | v1.8 | 0/2 | Pending | — |
 | 32. Fix legacy Question path | v1.8 | 1/1 | Complete | 2026-02-21 |

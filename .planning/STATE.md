@@ -144,5 +144,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed Phase 29-01-PLAN.md (auto-transition Upcoming to Open at 3 CMPController call sites).
+Stopped at: Phase 29 complete and verified. Phases 27, 28, 29 done. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
 Resume file: None.
