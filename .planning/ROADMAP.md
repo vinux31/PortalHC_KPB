@@ -257,10 +257,12 @@ Plans:
   1. An assessment with status Upcoming and a scheduled date of today or earlier is shown as Open to workers and HC without any manual action
   2. An assessment with a future scheduled date remains Upcoming and workers cannot start it
   3. The transition happens on the next page load or AJAX call after the scheduled date passes — no stale Upcoming state is served
-**Plans:** 1 plan
+**Plans:** 3 plans
 
 Plans:
 - [x] 29-01-PLAN.md — Apply Upcoming→Open auto-transition at three CMPController.cs read sites: GetMonitorData (display-only re-projection), worker assessment list (in-memory foreach), StartExam (persist before status checks)
+- [ ] 29-02-PLAN.md — Upgrade three auto-transition comparisons from date-only to time-based WIB (Schedule <= UtcNow.AddHours(7)); add StartExam time gate blocking future-scheduled access
+- [ ] 29-03-PLAN.md — Add Schedule time picker to CreateAssessment and EditAssessment forms; display "Opens DD MMM YYYY, HH:mm WIB" for Upcoming assessments in worker list
 
 ---
 
