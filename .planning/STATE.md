@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 28: Package Reshuffle — PLANNED (2 plans ready)
-**Status:** Plans created and verified. Scope narrowed to reshuffle-only (re-assign dropped). 2 plans: 28-01 backend (controller actions + view model), 28-02 frontend (monitoring detail UI + AJAX).
-**Last activity:** 2026-02-21 — Phase 28 planned (reshuffle only, re-assign dropped per user decision)
+**Phase:** Phase 28: Package Reshuffle — IN PROGRESS (1/2 plans complete)
+**Status:** 28-01 backend done. 28-02 frontend (monitoring detail UI + AJAX) pending.
+**Last activity:** 2026-02-21 — 28-01 executed: ReshufflePackage + ReshuffleAll controller actions, view model enriched with IsPackageMode/PendingCount/PackageName/AssignmentId
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -46,6 +46,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 26-data-integrity-safeguards P02 | 4min | 1 tasks | 2 files |
 | Phase 27-monitoring-status-fix P01 | 3min | 2 tasks | 2 files |
 | Phase 32-fix-legacy-question-path P01 | 4min | 2 tasks | 1 files |
+| Phase 28-package-reassign-and-reshuffle P01 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Phase 29 auto-transition: no background job infrastructure — implement as inline status-check on assessment load (filter method or service call before serving status to caller)
 - Phase 31 RPT-02 ForceCloseAll is additive to existing per-session ForceClose (Phase 22) — reuse same status transition and audit log pattern
 - [Phase 32-01]: Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup identical to package path (Title + Category + Schedule.Date); StartExam reuses siblingSessionIds already computed for package check; ExamSummary and SubmitExam compute it inline in their else-blocks; UserResponse.AssessmentSessionId = id (worker's own session) unchanged
+- [Phase 28-01]: ReshufflePackage selects different package only when 2+ packages exist AND current assignment exists
+- [Phase 28-01]: ReshuffleAll uses batch SaveChangesAsync (once after all worker changes) with audit in try/catch
 
 ### Pending Todos
 
@@ -134,5 +137,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 28 planned. Context gathered (reshuffle-only, re-assign dropped). Plans 28-01 and 28-02 created and verified. Ready to execute.
+Stopped at: Completed 28-01-PLAN.md — backend reshuffle actions done. 28-02 (frontend) ready to execute.
 Resume file: None.
