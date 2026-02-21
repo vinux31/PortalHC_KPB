@@ -300,7 +300,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 32-01-PLAN.md — Fix legacy path query to search sibling sessions for questions instead of only the worker's own session
+- [x] 32-01-PLAN.md — Fix legacy path query to search sibling sessions for questions instead of only the worker's own session
 
 ---
 
@@ -339,4 +339,4 @@ Plans:
 | 29. Auto-transition Upcoming to Open | v1.8 | 0/1 | Pending | — |
 | 30. Import Deduplication | v1.8 | 0/1 | Pending | — |
 | 31. HC Reporting Actions | v1.8 | 0/2 | Pending | — |
-| 32. Fix legacy Question path | v1.8 | 0/1 | Pending | — |
+| 32. Fix legacy Question path | v1.8 | 1/1 | Complete | 2026-02-21 |
