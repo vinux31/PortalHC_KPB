@@ -2126,6 +2126,13 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // Time gate: block access if assessment is still Upcoming (scheduled time not yet reached)
+            if (assessment.Status == "Upcoming")
+            {
+                TempData["Error"] = "Ujian belum dibuka. Silakan kembali setelah waktu ujian dimulai.";
+                return RedirectToAction("Assessment");
+            }
+
             if (assessment.Status == "Completed")
             {
                 TempData["Error"] = "This assessment has already been completed.";
