@@ -97,6 +97,37 @@
         </div>
     }
 
+    <!-- Kompetensi Diperoleh (Competencies Earned) -->
+    @if (Model.CompetencyGains != null && Model.CompetencyGains.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-award me-2 text-success"></i>Kompetensi Diperoleh</h5>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nama Kompetensi</th>
+                            <th>Level Diperoleh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var comp in Model.CompetencyGains)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@comp.CompetencyName</td>
+                                <td>
+                                    <span class="badge bg-success fs-6">Level @comp.LevelGranted</span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
     <!-- Answer Review Section -->
     @if (Model.AllowAnswerReview && Model.QuestionReviews != null)
     {

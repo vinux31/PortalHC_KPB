@@ -2691,7 +2691,7 @@ namespace HcPortal.Controllers
                     }
                 }
 
-                var viewModel = new AssessmentResultsViewModel
+                viewModel = new AssessmentResultsViewModel
                 {
                     AssessmentId = assessment.Id,
                     Title = assessment.Title,
@@ -2706,9 +2706,30 @@ namespace HcPortal.Controllers
                     CorrectAnswers = correctCount,
                     QuestionReviews = questionReviews
                 };
-
-                return View(viewModel);
             }
+
+            // ========== COMPETENCY GAINS (shared by both paths) ==========
+            if (viewModel.IsPassed)
+            {
+                var competencyMappings = await _context.AssessmentCompetencyMaps
+                    .Include(m => m.KkjMatrixItem)
+                    .Where(m => m.AssessmentCategory == assessment.Category &&
+                                (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
+                    .ToListAsync();
+
+                if (competencyMappings.Any())
+                {
+                    viewModel.CompetencyGains = competencyMappings
+                        .Select(m => new CompetencyGainItem
+                        {
+                            CompetencyName = m.KkjMatrixItem?.Kompetensi ?? "Unknown",
+                            LevelGranted = m.LevelGranted
+                        })
+                        .ToList();
+                }
+            }
+
+            return View(viewModel);
         }
         #endregion
 
