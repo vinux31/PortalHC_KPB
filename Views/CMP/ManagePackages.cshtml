@@ -2,6 +2,7 @@
     ViewData["Title"] = "Manage Packages";
     var packages = ViewBag.Packages as List<HcPortal.Models.AssessmentPackage> ?? new List<HcPortal.Models.AssessmentPackage>();
     int assessmentId = (int)ViewBag.AssessmentId;
+    var assignmentCounts = ViewBag.AssignmentCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
 }
 <div class="container-fluid py-4">
     <!-- Header -->
@@ -84,8 +85,14 @@
                                                class="btn btn-sm btn-outline-secondary">
                                                 <i class="bi bi-eye me-1"></i>Preview
                                             </a>
+                                            @{
+                                                var aCount = assignmentCounts.ContainsKey(pkg.Id) ? assignmentCounts[pkg.Id] : 0;
+                                                var confirmMsg = aCount > 0
+                                                    ? $"PERINGATAN: {aCount} peserta sudah ditugaskan ke {pkg.PackageName}. Menghapus paket ini akan menghapus semua data jawaban dan penugasan mereka.\\n\\nLanjutkan hapus?"
+                                                    : $"Hapus {pkg.PackageName} dan semua pertanyaannya?";
+                                            }
                                             <form asp-action="DeletePackage" method="post"
-                                                  onsubmit="return confirm('Delete @pkg.PackageName and all its questions?');">
+                                                  onsubmit="return confirm('@Html.Raw(confirmMsg)');">
                                                 <input type="hidden" name="packageId" value="@pkg.Id" />
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                                     <i class="bi bi-trash"></i>
