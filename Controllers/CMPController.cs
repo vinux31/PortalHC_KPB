@@ -1626,6 +1626,7 @@ namespace HcPortal.Controllers
             if (!assessment.IsTokenRequired)
             {
                 // If token not required, just success
+                TempData[$"TokenVerified_{assessment.Id}"] = true;
                 return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
             }
 
@@ -1635,6 +1636,7 @@ namespace HcPortal.Controllers
             }
 
             // Token Valid -> Redirect to Exam
+            TempData[$"TokenVerified_{assessment.Id}"] = true;
             return Json(new { success = true, redirectUrl = Url.Action("StartExam", new { id = assessment.Id }) });
         }
 
@@ -1656,6 +1658,19 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "This assessment has already been completed.";
                 return RedirectToAction("Assessment");
+            }
+
+            // Enforce token requirement — workers must verify token via Assessment lobby first (SEC-01)
+            // HC and Admin bypass: they are not exam takers; they may access StartExam for debugging/monitoring
+            // InProgress sessions bypass: token was checked on first entry; reload must not block the worker
+            if (assessment.IsTokenRequired && assessment.UserId == user.Id && assessment.StartedAt == null)
+            {
+                var tokenVerified = TempData[$"TokenVerified_{id}"];
+                if (tokenVerified == null)
+                {
+                    TempData["Error"] = "Ujian ini membutuhkan token akses. Silakan masukkan token terlebih dahulu.";
+                    return RedirectToAction("Assessment");
+                }
             }
 
             // Enforce exam window close date (LIFE-02 / DATA-03)
