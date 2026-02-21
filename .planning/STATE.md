@@ -5,14 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phase 28 complete
+**Current focus:** v1.8 Assessment Polish — Phase 28 ✅ complete, Phase 27 next
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 28: Package Reshuffle — COMPLETE (2/2 plans complete)
-**Status:** Phase 28 complete. Reshuffle backend (28-01) + frontend UI (28-02) done.
-**Last activity:** 2026-02-21 — 28-02 executed: reshuffle UI (per-worker AJAX button + Reshuffle All modal) added to AssessmentMonitoringDetail
+**Phase:** Phase 28: Package Reshuffle — ✅ COMPLETE (2/2 plans, verified)
+**Next Phase:** Phase 27: Monitoring Status Fix — ready to plan
+**Status:** Phase 28 verified. Reshuffle (single + bulk) live on AssessmentMonitoringDetail. Phase 27 is the monitoring status accuracy fix.
+**Last activity:** 2026-02-21 — Phase 28 complete and verified
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -136,9 +137,10 @@ None.
 - Phases 21-26 defined for v1.7 Assessment System Integrity (2026-02-20)
 - Phases 27-31 defined for v1.8 Assessment Polish (2026-02-21)
 - Phase 32 added: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers (2026-02-21)
+- Phase 28 complete: Package Reshuffle (re-assign dropped per user decision) — single + bulk reshuffle on monitoring page (2026-02-21)
 
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 28-02-PLAN.md — reshuffle UI done. Phase 28 complete.
+Stopped at: Phase 28 complete and verified. Phase 27 (Monitoring Status Fix) is next.
 Resume file: None.

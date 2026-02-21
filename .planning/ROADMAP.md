@@ -244,8 +244,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 28-01-PLAN.md — Backend: ReshufflePackage + ReshuffleAll controller actions, extend view models with IsPackageMode/PackageName
-- [ ] 28-02-PLAN.md — Frontend: Per-worker reshuffle button, Reshuffle All button, AJAX calls, toast, confirmation dialog, result modal
+- [x] 28-01-PLAN.md — Backend: ReshufflePackage + ReshuffleAll controller actions, extend view models with IsPackageMode/PackageName
+- [x] 28-02-PLAN.md — Frontend: Per-worker reshuffle button, Reshuffle All button, AJAX calls, toast, confirmation dialog, result modal
 
 ---
 
@@ -336,7 +336,7 @@ Plans:
 | 25. Worker UX Enhancements | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 26. Data Integrity Safeguards | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 27. Monitoring Status Fix | v1.8 | 0/1 | Pending | — |
-| 28. Package Re-assign and Reshuffle | v1.8 | 0/2 | Pending | — |
+| 28. Package Reshuffle (Re-assign dropped) | v1.8 | 2/2 | Complete | 2026-02-21 |
 | 29. Auto-transition Upcoming to Open | v1.8 | 0/1 | Pending | — |
 | 30. Import Deduplication | v1.8 | 0/1 | Pending | — |
 | 31. HC Reporting Actions | v1.8 | 0/2 | Pending | — |
