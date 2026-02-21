@@ -265,8 +265,10 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 24-01-PLAN.md — AuditLog entity, EF migration, AuditLogService DI service, instrument all 7 HC assessment management actions in CMPController
-- [ ] 24-02-PLAN.md — AuditLog page (HC/Admin only) with paginated table sorted by CreatedAt DESC; nav link in Assessment manage view header
+- [x] 24-01-PLAN.md — AuditLog entity, EF migration, AuditLogService DI service, instrument all 7 HC assessment management actions in CMPController
+- [x] 24-02-PLAN.md — AuditLog page (HC/Admin only) with paginated table sorted by CreatedAt DESC; nav link in Assessment manage view header
+
+**Completed:** 2026-02-21
 
 ---
 
@@ -330,6 +332,6 @@ Plans:
 | 21. Exam State Foundation | v1.7 | 1/1 | Complete | 2026-02-20 |
 | 22. Exam Lifecycle Actions | v1.7 | 4/4 | Complete | 2026-02-20 |
 | 23. Package Answer Integrity | v1.7 | 3/3 | Complete | 2026-02-21 |
-| 24. HC Audit Log | v1.7 | 0/TBD | Not started | - |
+| 24. HC Audit Log | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 25. Worker UX Enhancements | v1.7 | 0/TBD | Not started | - |
 | 26. Data Integrity Safeguards | v1.7 | 0/TBD | Not started | - |
