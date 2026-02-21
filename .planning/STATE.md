@@ -47,7 +47,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 **v1.7 architecture notes:**
 - CMPController is ~2300 lines — v1.7 adds Abandon, ForceClose, Reset, AuditLog actions; be mindful of file size
-- PackageUserResponse table does not yet exist — Phase 23 creates it via EF migration
+- PackageUserResponse table created (Phase 23-01 done) — migration 20260221030204_AddPackageUserResponse applied
 - AuditLog table does not yet exist — Phase 24 creates it via EF migration
 - SessionStatus is a plain string — Phase 21 added InProgress; Phase 22 adds Abandoned (no DB constraint)
 - StartedAt (Phase 21, done) and ExamWindowCloseDate (Phase 22) are nullable datetime2 columns
@@ -66,6 +66,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 22-04]: ResetAssessment deletes UserPackageAssignment so next StartExam assigns a fresh random package; ForceCloseAssessment preserves answers for audit
 - [Phase 22-exam-lifecycle-actions]: ExamWindowCloseDate is nullable (null=no expiry); Abandoned guard placed alongside close-date guard before InProgress write; bulk-assign copies ExamWindowCloseDate from savedAssessment
 - [Phase 23-03]: TempData keyed by assessment ID (TokenVerified_{id}) for scoped token verification; StartedAt==null guards first entry only; UserId==user.Id provides HC/Admin bypass
+- [Phase 23]: PackageOptionId nullable int — null=skipped question, matching UserResponse.SelectedOptionId pattern; all PKR FKs use Restrict delete to avoid cascade cycles
 
 ### Pending Todos
 
@@ -107,5 +108,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 23-03-PLAN.md (server-side token enforcement). Phase 23 all 3 plans done. Next: execute Phase 24 (AuditLog).
+Stopped at: Completed 23-01-PLAN.md (PackageUserResponse migration + answer persistence). Phase 23 plan 01 done. Next: execute 23-02 (package answer review).
 Resume file: None.
