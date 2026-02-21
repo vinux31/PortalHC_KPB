@@ -53,6 +53,7 @@ namespace HcPortal.Data
         public DbSet<PackageQuestion> PackageQuestions { get; set; }
         public DbSet<PackageOption> PackageOptions { get; set; }
         public DbSet<UserPackageAssignment> UserPackageAssignments { get; set; }
+        public DbSet<PackageUserResponse> PackageUserResponses { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -351,6 +352,27 @@ namespace HcPortal.Data
                     .IsUnique();
 
                 entity.HasIndex(a => a.UserId);
+            });
+
+            // PackageUserResponse -> AssessmentSession (Restrict — same as UserResponse pattern)
+            builder.Entity<PackageUserResponse>(entity =>
+            {
+                entity.HasOne(r => r.AssessmentSession)
+                    .WithMany()
+                    .HasForeignKey(r => r.AssessmentSessionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.PackageQuestion)
+                    .WithMany()
+                    .HasForeignKey(r => r.PackageQuestionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(r => r.PackageOption)
+                    .WithMany()
+                    .HasForeignKey(r => r.PackageOptionId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(r => new { r.AssessmentSessionId, r.PackageQuestionId });
             });
         }
     }
