@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 **Milestone:** v1.7 Assessment System Integrity
-**Phase:** 25 of 26 (Worker UX Enhancements) — COMPLETE (2 of 2 plans done)
-**Current Plan:** Phase 26 (next phase)
-**Status:** 25-02 done (Kompetensi Diperoleh card on Results page — earned competency names and levels shown on pass)
-**Last activity:** 2026-02-21 — Phase 25-02 complete: CompetencyGainItem class, CompetencyGains property, Results action refactor, Kompetensi Diperoleh card in Results.cshtml
+**Phase:** 26 of 26 (Data Integrity Safeguards) — IN PROGRESS (2 of 2 plans done)
+**Current Plan:** Phase 26 Plan 02 — COMPLETE
+**Status:** 26-02 done (JS schedule-change confirm guard on EditAssessment — warns HC when changing date on assessments with attached packages)
+**Last activity:** 2026-02-21 — Phase 26-02 complete: EditAssessment GET passes PackageCount+OriginalSchedule via ViewBag, JS IIFE schedule-change guard in EditAssessment.cshtml
 
 Progress: [███░░░░░░░░░░░░░░░░░] 15% (v1.7)
 
@@ -43,6 +43,7 @@ Progress: [███░░░░░░░░░░░░░░░░░] 15% (v1
 | Phase 24-hc-audit-log P02 | 1min | 1 tasks | 3 files |
 | Phase 25-worker-ux-enhancements P01 | 4min | 1 tasks | 2 files |
 | Phase 25-worker-ux-enhancements P02 | 4min | 2 tasks | 4 files |
+| Phase 26-data-integrity-safeguards P02 | 4min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 25-01]: Riwayat Ujian query in worker branch only; direct C# var/if statements at top-level Razor else-block (no @{} needed); @* *@ Razor comments for C# context
 - [Phase 25-02]: viewModel declared outside if/else branches in Results action to enable shared competency lookup block after both package and legacy paths
 - [Phase 25-02]: CompetencyGains only populated when IsPassed=true — failed assessments never show competency section; double null guard in view handles both null and empty cases
+- [Phase 26-02]: Client-side JS confirm() guard for schedule-change warning — no server-side confirm page needed; IIFE fires before Bootstrap validation; OriginalSchedule as yyyy-MM-dd string for direct === comparison
 
 ### Pending Todos
 
@@ -119,5 +121,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 25 verified 4/4 — COMPLETE. Phase 26 (Data Integrity Safeguards) is next.
+Stopped at: Completed 26-02-PLAN.md — Phase 26 plan 02 done. Phase 26 complete (2/2 plans done).
 Resume file: None.
