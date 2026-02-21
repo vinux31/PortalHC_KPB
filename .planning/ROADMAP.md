@@ -10,7 +10,7 @@
 - ✅ **v1.4 Assessment Monitoring** — Phase 16 (shipped 2026-02-19)
 - ✅ **v1.5 Question and Exam UX** — Phase 17 (shipped 2026-02-19)
 - ✅ **v1.6 Training Records Management** — Phases 18-20 (shipped 2026-02-20)
-- 🚧 **v1.7 Assessment System Integrity** — Phases 21-26 (in progress)
+- ✅ **v1.7 Assessment System Integrity** — Phases 21-26 (shipped 2026-02-21)
 
 ## Phases
 
@@ -302,8 +302,10 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 26-01-PLAN.md — Delete package warning: assignment count in confirm dialog + cascade cleanup of UserPackageAssignment and PackageUserResponse
-- [ ] 26-02-PLAN.md — Schedule change warning: JS confirm on date change when packages attached to assessment's sibling group
+- [x] 26-01-PLAN.md — Delete package warning: assignment count in confirm dialog + cascade cleanup of UserPackageAssignment and PackageUserResponse
+- [x] 26-02-PLAN.md — Schedule change warning: JS confirm on date change when packages attached to assessment's sibling group
+
+**Completed:** 2026-02-21
 
 ---
 
@@ -336,4 +338,4 @@ Plans:
 | 23. Package Answer Integrity | v1.7 | 3/3 | Complete | 2026-02-21 |
 | 24. HC Audit Log | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 25. Worker UX Enhancements | v1.7 | 2/2 | Complete | 2026-02-21 |
-| 26. Data Integrity Safeguards | v1.7 | 0/2 | Not started | - |
+| 26. Data Integrity Safeguards | v1.7 | 2/2 | Complete | 2026-02-21 |
