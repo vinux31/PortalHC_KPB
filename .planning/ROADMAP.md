@@ -295,12 +295,12 @@ Plans:
 
 ### Phase 32: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers
 
-**Goal:** [To be planned]
-**Depends on:** Phase 31
-**Plans:** 0 plans
+**Goal:** Legacy question path in StartExam uses sibling session lookup so HC-created questions appear for all workers in the assessment batch, not just the representative session owner
+**Depends on:** None (independent bug fix)
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 32 to break down)
+- [ ] 32-01-PLAN.md — Fix legacy path query to search sibling sessions for questions instead of only the worker's own session
 
 ---
 
@@ -339,3 +339,4 @@ Plans:
 | 29. Auto-transition Upcoming to Open | v1.8 | 0/1 | Pending | — |
 | 30. Import Deduplication | v1.8 | 0/1 | Pending | — |
 | 31. HC Reporting Actions | v1.8 | 0/2 | Pending | — |
+| 32. Fix legacy Question path | v1.8 | 0/1 | Pending | — |
