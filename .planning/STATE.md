@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning v1.8 — run /gsd:new-milestone to start next milestone
+**Current focus:** v1.8 Assessment Polish — defining requirements
 
 ## Current Position
 
-**Milestone:** v1.7 Assessment System Integrity — ARCHIVED 2026-02-21
-**Phase:** None — between milestones
-**Current Plan:** None
-**Status:** v1.7 archived. Ready for v1.8 planning.
-**Last activity:** 2026-02-21 — v1.7 archived: 6 phases, 14 plans, 14/14 requirements, 83 files changed
+**Milestone:** v1.8 Assessment Polish — IN PLANNING
+**Phase:** Not started (defining requirements)
+**Current Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-02-21 — Milestone v1.8 started
 
 Progress: [████████████████████] 100% (v1.7)
 

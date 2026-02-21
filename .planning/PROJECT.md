@@ -12,9 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v1.7 — shipped 2026-02-21)
+## Current Milestone: v1.8 Assessment Polish
 
-**Next:** Planning v1.8 (Assessment Polish) — run `/gsd:new-milestone`
+**Goal:** Close the monitoring consistency gap and add HC productivity features — correct 4-state status display, package re-assignment, status auto-transition, question import deduplication, per-assessment export, and bulk session close.
+
+**Target features:**
+- Fix GetMonitorData to show Abandoned/InProgress in monitoring card summary (4-state)
+- HC can re-assign or reshuffle a worker's package from management UI
+- Upcoming sessions auto-transition to Open when schedule date arrives
+- ImportPackageQuestions deduplicates identical question rows on re-import
+- HC can download an Excel export of results from the monitoring detail page
+- HC can bulk force-close all Open/InProgress sessions for an assessment at once
+
+## Current State (v1.7 — shipped 2026-02-21)
 
 ## Shipped Milestones
 
