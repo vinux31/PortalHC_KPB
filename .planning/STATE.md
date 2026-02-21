@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 **Milestone:** v1.7 Assessment System Integrity
-**Phase:** 25 of 26 (Worker UX Enhancements) — IN PROGRESS (1 of 2 plans done)
-**Current Plan:** Phase 25 Plan 02 (next plan)
-**Status:** 25-01 done (Riwayat Ujian exam history table on worker Assessment page)
-**Last activity:** 2026-02-21 — Phase 25-01 complete: ViewBag.CompletedHistory query in CMPController, Riwayat Ujian table in Assessment.cshtml worker branch
+**Phase:** 25 of 26 (Worker UX Enhancements) — COMPLETE (2 of 2 plans done)
+**Current Plan:** Phase 26 (next phase)
+**Status:** 25-02 done (Kompetensi Diperoleh card on Results page — earned competency names and levels shown on pass)
+**Last activity:** 2026-02-21 — Phase 25-02 complete: CompetencyGainItem class, CompetencyGains property, Results action refactor, Kompetensi Diperoleh card in Results.cshtml
 
 Progress: [███░░░░░░░░░░░░░░░░░] 15% (v1.7)
 
@@ -42,6 +42,7 @@ Progress: [███░░░░░░░░░░░░░░░░░] 15% (v1
 | Phase 24-hc-audit-log P01 | 8 | 2 tasks | 7 files |
 | Phase 24-hc-audit-log P02 | 1min | 1 tasks | 3 files |
 | Phase 25-worker-ux-enhancements P01 | 4min | 1 tasks | 2 files |
+| Phase 25-worker-ux-enhancements P02 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 24-01]: AuditLogService calls SaveChangesAsync internally — audit rows written immediately; actor name stored as "NIP - FullName" at write time for permanence; audit calls placed AFTER primary SaveChangesAsync (no phantom rows); delete actions wrap audit in try/catch to avoid rolling back successful deletes
 - [Phase 24-02]: pageSize fixed at 25 (KISS); page clamping for safe URL manipulation; Audit Log button btn-outline-secondary to distinguish from create/nav actions; nav link in existing canManage guard — no duplicate role check needed
 - [Phase 25-01]: Riwayat Ujian query in worker branch only; direct C# var/if statements at top-level Razor else-block (no @{} needed); @* *@ Razor comments for C# context
+- [Phase 25-02]: viewModel declared outside if/else branches in Results action to enable shared competency lookup block after both package and legacy paths
+- [Phase 25-02]: CompetencyGains only populated when IsPassed=true — failed assessments never show competency section; double null guard in view handles both null and empty cases
 
 ### Pending Todos
 
@@ -116,5 +119,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 25-01-PLAN.md
+Stopped at: Completed 25-02-PLAN.md — Phase 25 complete (2/2 plans done).
 Resume file: None.
