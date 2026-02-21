@@ -245,8 +245,8 @@ namespace HcPortal.Controllers
 
             // ========== RIWAYAT UJIAN: completed assessment history for worker ==========
             var completedHistory = await _context.AssessmentSessions
-                .Where(a => a.UserId == userId && a.Status == "Completed")
-                .OrderByDescending(a => a.CompletedAt)
+                .Where(a => a.UserId == userId && (a.Status == "Completed" || a.Status == "Abandoned"))
+                .OrderByDescending(a => a.CompletedAt ?? a.UpdatedAt)
                 .Select(a => new
                 {
                     a.Id,
@@ -254,7 +254,8 @@ namespace HcPortal.Controllers
                     a.Category,
                     a.CompletedAt,
                     a.Score,
-                    a.IsPassed
+                    a.IsPassed,
+                    a.Status
                 })
                 .ToListAsync();
 
