@@ -231,20 +231,21 @@ Plans:
 
 ---
 
-#### Phase 28: Package Re-assign and Reshuffle
-**Goal:** HC can replace a worker's current package assignment with a specific package or a new random one from the assessment management UI
+#### Phase 28: Package Reshuffle (Re-assign dropped)
+**Goal:** HC can reshuffle a worker's package assignment (single or bulk) from the AssessmentMonitoringDetail page to re-randomize packages as a recovery action
 **Depends on:** Phase 27
-**Requirements:** PKG-01, PKG-02
+**Requirements:** PKG-02 (reshuffle only — PKG-01 re-assign dropped per user decision)
 **Success Criteria** (what must be TRUE):
-  1. HC opens a worker's assignment on the management page and can select a different package from a dropdown — saving replaces the current assignment
-  2. HC clicks a "Reshuffle" button for a worker — the system assigns a new random package from the assessment's available packages, different from the current one if possible
-  3. Re-assign and reshuffle are only available when the worker's session is not Completed (cannot overwrite a finished exam)
-  4. After re-assign or reshuffle, the monitoring card reflects the updated package for that worker
+  1. HC clicks a "Reshuffle" button for a Pending worker — the system assigns a new random package, different from the current one if possible
+  2. HC clicks "Reshuffle All" — all Pending workers get reshuffled, with a result modal showing each worker's outcome
+  3. Reshuffle is only available for Pending (Not started) workers — InProgress/Completed/Abandoned are ineligible (buttons disabled)
+  4. Reshuffle controls only appear for package-mode assessments — question-mode assessments show no reshuffle UI
+  5. Per-worker reshuffle updates in-place with toast; Reshuffle All shows result modal
 **Plans:** 2 plans
 
 Plans:
-- [ ] 28-01-PLAN.md — Re-assign package: controller action (POST ReassignPackage), UI controls on management page, guard against Completed sessions
-- [ ] 28-02-PLAN.md — Reshuffle package: controller action (POST ReshufflePackage), random selection logic, UI button on management page
+- [ ] 28-01-PLAN.md — Backend: ReshufflePackage + ReshuffleAll controller actions, extend view models with IsPackageMode/PackageName
+- [ ] 28-02-PLAN.md — Frontend: Per-worker reshuffle button, Reshuffle All button, AJAX calls, toast, confirmation dialog, result modal
 
 ---
 
