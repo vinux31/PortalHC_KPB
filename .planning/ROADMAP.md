@@ -243,12 +243,12 @@ Plans:
   1. When a worker submits a package-based exam, one `PackageUserResponse` row is inserted per question answered, recording the selected `PackageOptionId`
   2. When `AllowAnswerReview` is enabled, a worker who completed a package-based exam can view each question with their selected answer highlighted and correct/incorrect feedback — matching the existing legacy answer review behavior
   3. A worker attempting to start a token-protected exam without entering the correct token sees a token entry prompt and cannot access exam content; a direct URL to the exam without a valid token is blocked and redirected to the prompt
-**Plans:** TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 23-01: Schema migration (PackageUserResponse table: Id, AssessmentSessionId, PackageQuestionId, PackageOptionId, SubmittedAt); insert rows in SubmitExam package path
-- [ ] 23-02: Package answer review — ExamResult/AnswerReview view extended to load PackageUserResponse rows and display correct/incorrect per question for package path
-- [ ] 23-03: Token enforcement at StartExam — token check moved to GET action; unauthenticated token access redirected to token entry prompt; token validated before exam content rendered
+- [ ] 23-01-PLAN.md — PackageUserResponse entity + EF migration + insert rows in SubmitExam package path + delete in ResetAssessment
+- [ ] 23-02-PLAN.md — Package answer review in Results action (load PackageUserResponse + build QuestionReviewItem for package path)
+- [ ] 23-03-PLAN.md — Server-side token enforcement in StartExam GET (TempData flag set by VerifyToken, checked before exam content)
 
 ---
 
@@ -327,7 +327,7 @@ Plans:
 | 20. Edit, Delete, and RecordsWorkerList Wiring | v1.6 | 1/1 | Complete | 2026-02-20 |
 | 21. Exam State Foundation | v1.7 | 1/1 | Complete | 2026-02-20 |
 | 22. Exam Lifecycle Actions | v1.7 | 4/4 | Complete | 2026-02-20 |
-| 23. Package Answer Integrity | v1.7 | 0/TBD | Not started | - |
+| 23. Package Answer Integrity | v1.7 | 0/3 | Not started | - |
 | 24. HC Audit Log | v1.7 | 0/TBD | Not started | - |
 | 25. Worker UX Enhancements | v1.7 | 0/TBD | Not started | - |
 | 26. Data Integrity Safeguards | v1.7 | 0/TBD | Not started | - |
