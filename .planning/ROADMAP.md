@@ -260,7 +260,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 29-01-PLAN.md — Implement auto-transition: status-check filter or service method called on assessment load; update GetMonitorData and worker-facing queries to apply transition before serving status
+- [ ] 29-01-PLAN.md — Apply Upcoming→Open auto-transition at three CMPController.cs read sites: GetMonitorData (display-only re-projection), worker assessment list (in-memory foreach), StartExam (persist before status checks)
 
 ---
 
