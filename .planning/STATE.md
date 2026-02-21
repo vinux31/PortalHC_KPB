@@ -43,6 +43,7 @@ Progress: [███░░░░░░░░░░░░░░░░░] 15% (v1
 | Phase 24-hc-audit-log P02 | 1min | 1 tasks | 3 files |
 | Phase 25-worker-ux-enhancements P01 | 4min | 1 tasks | 2 files |
 | Phase 25-worker-ux-enhancements P02 | 4min | 2 tasks | 4 files |
+| Phase 26-data-integrity-safeguards P01 | 3min | 1 tasks | 2 files |
 | Phase 26-data-integrity-safeguards P02 | 4min | 1 tasks | 2 files |
 
 ## Accumulated Context
@@ -79,6 +80,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 25-01]: Riwayat Ujian query in worker branch only; direct C# var/if statements at top-level Razor else-block (no @{} needed); @* *@ Razor comments for C# context
 - [Phase 25-02]: viewModel declared outside if/else branches in Results action to enable shared competency lookup block after both package and legacy paths
 - [Phase 25-02]: CompetencyGains only populated when IsPassed=true — failed assessments never show competency section; double null guard in view handles both null and empty cases
+- [Phase 26-01]: DeletePackage cascade: PackageUserResponses (via questionIds) → UserPackageAssignments → Options → Questions → Package; assignment count pre-computed in ManagePackages GET via GroupBy into ViewBag.AssignmentCounts; @{} block inside foreach pre-computes confirm message to avoid Razor @ collision in onsubmit
 - [Phase 26-02]: Client-side JS confirm() guard for schedule-change warning — no server-side confirm page needed; IIFE fires before Bootstrap validation; OriginalSchedule as yyyy-MM-dd string for direct === comparison
 
 ### Pending Todos
@@ -121,5 +123,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 26-02-PLAN.md — Phase 26 plan 02 done. Phase 26 complete (2/2 plans done).
+Stopped at: Completed 26-01-PLAN.md — Phase 26 plan 01 SUMMARY created. Phase 26 complete (2/2 plans done, both documented).
 Resume file: None.
