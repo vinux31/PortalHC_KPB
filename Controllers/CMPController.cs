@@ -584,6 +584,13 @@ namespace HcPortal.Controllers
             ViewBag.Users = users;
             ViewBag.Sections = OrganizationStructure.GetAllSections();
 
+            // Count packages attached to this assessment's sibling group (for schedule-change warning)
+            var siblingIds = siblings.Select(s => s.Id).ToList();
+            var packageCount = await _context.AssessmentPackages
+                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+            ViewBag.PackageCount = packageCount;
+            ViewBag.OriginalSchedule = assessment.Schedule.ToString("yyyy-MM-dd");
+
             return View(assessment);
         }
 
@@ -2750,6 +2757,14 @@ namespace HcPortal.Controllers
                 .OrderBy(p => p.PackageNumber)
                 .ToListAsync();
 
+            var packageIds = packages.Select(p => p.Id).ToList();
+            var assignmentCounts = await _context.UserPackageAssignments
+                .Where(a => packageIds.Contains(a.AssessmentPackageId))
+                .GroupBy(a => a.AssessmentPackageId)
+                .Select(g => new { PackageId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.PackageId, x => x.Count);
+            ViewBag.AssignmentCounts = assignmentCounts;
+
             ViewBag.Packages = packages;
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.AssessmentId = assessmentId;
@@ -2802,6 +2817,24 @@ namespace HcPortal.Controllers
 
             int assessmentId = pkg.AssessmentSessionId;
 
+            // Delete PackageUserResponses that reference questions in this package
+            var questionIds = pkg.Questions.Select(q => q.Id).ToList();
+            if (questionIds.Any())
+            {
+                var pkgResponses = await _context.PackageUserResponses
+                    .Where(r => questionIds.Contains(r.PackageQuestionId))
+                    .ToListAsync();
+                if (pkgResponses.Any())
+                    _context.PackageUserResponses.RemoveRange(pkgResponses);
+            }
+
+            // Delete UserPackageAssignments that reference this package
+            var assignments = await _context.UserPackageAssignments
+                .Where(a => a.AssessmentPackageId == packageId)
+                .ToListAsync();
+            if (assignments.Any())
+                _context.UserPackageAssignments.RemoveRange(assignments);
+
             // Cascade: options -> questions -> package
             foreach (var q in pkg.Questions)
                 _context.PackageOptions.RemoveRange(q.Options);
@@ -2809,6 +2842,22 @@ namespace HcPortal.Controllers
             _context.AssessmentPackages.Remove(pkg);
 
             await _context.SaveChangesAsync();
+
+            try
+            {
+                var delUser = await _userManager.GetUserAsync(User);
+                var delActorName = $"{delUser?.NIP ?? "?"} - {delUser?.FullName ?? "Unknown"}";
+                await _auditLog.LogAsync(
+                    delUser?.Id ?? "",
+                    delActorName,
+                    "DeletePackage",
+                    $"Deleted package '{pkg.PackageName}' from assessment [ID={assessmentId}]" +
+                        (assignments.Any() ? $" ({assignments.Count} assignment(s) removed)" : ""),
+                    assessmentId,
+                    "AssessmentPackage");
+            }
+            catch { /* audit failure must not roll back successful delete */ }
+
             TempData["Success"] = $"Package '{pkg.PackageName}' deleted.";
             return RedirectToAction("ManagePackages", new { assessmentId });
         }

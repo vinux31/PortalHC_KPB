@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Edit Assessment";
+    var packageCount = (int)(ViewBag.PackageCount ?? 0);
+    var originalSchedule = (string)(ViewBag.OriginalSchedule ?? "");
     // Get list of categories for dropdown
     var categories = new List<SelectListItem>
     {
@@ -50,7 +52,7 @@
     <!-- Edit Assessment Form -->
     <div class="card shadow-sm border-0">
         <div class="card-body p-4">
-            <form asp-action="EditAssessment" asp-route-id="@Model.Id" method="post" class="needs-validation" novalidate>
+            <form asp-action="EditAssessment" asp-route-id="@Model.Id" method="post" class="needs-validation" novalidate id="editAssessmentForm">
                 @Html.AntiForgeryToken()
 
                 @* Server-side validation summary *@
@@ -355,6 +357,33 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
+        // Schedule-change warning when packages are attached
+        (function() {
+            var packageCount = @packageCount;
+            var originalSchedule = '@originalSchedule';
+            if (packageCount <= 0) return; // No packages — no warning needed
+
+            var form = document.getElementById('editAssessmentForm');
+            if (!form) return;
+
+            form.addEventListener('submit', function(e) {
+                var scheduleInput = document.getElementById('Schedule');
+                if (!scheduleInput) return;
+
+                var newSchedule = scheduleInput.value;
+                if (newSchedule !== originalSchedule) {
+                    var msg = 'PERINGATAN: Assessment ini memiliki ' + packageCount + ' paket ujian yang terkait. ' +
+                              'Mengubah tanggal jadwal dapat mempengaruhi penugasan paket peserta.\n\n' +
+                              'Lanjutkan simpan perubahan?';
+                    if (!confirm(msg)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
+            });
+        })();
+
         // Toggle token input visibility
         document.getElementById('tokenToggle').addEventListener('change', function() {
             var tokenGroup = document.getElementById('tokenInputGroup');
