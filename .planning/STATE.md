@@ -5,15 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phase 28 ready to plan
+**Current focus:** v1.8 Assessment Polish — Phase 28 ready to execute
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 32: Fix Legacy Question Path — ✅ COMPLETE (plan 01 done)
-**Next Phase:** Phase 28: Package Re-assign and Reshuffle — ready to plan
-**Status:** Phase 32 plan 01 complete. Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup for HC-created questions.
-**Last activity:** 2026-02-21 — Phase 32-01 complete, all three legacy paths fixed
+**Phase:** Phase 28: Package Reshuffle — PLANNED (2 plans ready)
+**Status:** Plans created and verified. Scope narrowed to reshuffle-only (re-assign dropped). 2 plans: 28-01 backend (controller actions + view model), 28-02 frontend (monitoring detail UI + AJAX).
+**Last activity:** 2026-02-21 — Phase 28 planned (reshuffle only, re-assign dropped per user decision)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -135,5 +134,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed Phase 32-01-PLAN.md — legacy question path fixed in StartExam, ExamSummary, SubmitExam.
+Stopped at: Phase 28 planned. Context gathered (reshuffle-only, re-assign dropped). Plans 28-01 and 28-02 created and verified. Ready to execute.
 Resume file: None.
