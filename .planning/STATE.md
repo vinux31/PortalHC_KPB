@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — defining requirements
+**Current focus:** v1.8 Assessment Polish — roadmap defined, ready to plan Phase 27
 
 ## Current Position
 
-**Milestone:** v1.8 Assessment Polish — IN PLANNING
-**Phase:** Not started (defining requirements)
+**Milestone:** v1.8 Assessment Polish — ROADMAP DEFINED
+**Phase:** Phase 27: Monitoring Status Fix — not started
 **Current Plan:** —
-**Status:** Defining requirements
-**Last activity:** 2026-02-21 — Milestone v1.8 started
+**Status:** Ready to plan
+**Last activity:** 2026-02-21 — v1.8 roadmap created (Phases 27-31)
 
-Progress: [████████████████████] 100% (v1.7)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.8) | v1.7 complete ✅
 
 ## Performance Metrics
 
@@ -83,6 +83,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 26-01]: DeletePackage cascade: PackageUserResponses (via questionIds) → UserPackageAssignments → Options → Questions → Package; assignment count pre-computed in ManagePackages GET via GroupBy into ViewBag.AssignmentCounts; @{} block inside foreach pre-computes confirm message to avoid Razor @ collision in onsubmit
 - [Phase 26-02]: Client-side JS confirm() guard for schedule-change warning — no server-side confirm page needed; IIFE fires before Bootstrap validation; OriginalSchedule as yyyy-MM-dd string for direct === comparison
 
+**v1.8 architecture notes:**
+- GetMonitorData (AJAX endpoint) currently uses 2-state UserStatus: isCompleted ? "Completed" : "Not started" — Phase 27 must expand to 4-state matching AssessmentMonitoringDetail logic (Completed / Abandoned / InProgress / Not started)
+- Phase 28 re-assign/reshuffle must guard against overwriting Completed sessions
+- Phase 29 auto-transition: no background job infrastructure — implement as inline status-check on assessment load (filter method or service call before serving status to caller)
+- Phase 31 RPT-02 ForceCloseAll is additive to existing per-session ForceClose (Phase 22) — reuse same status transition and audit log pattern
+
 ### Pending Todos
 
 None.
@@ -119,9 +125,10 @@ None.
 - Phase 17 added: Question and Exam UX improvements (2026-02-19)
 - Phases 18-20 defined for v1.6 Training Records Management (2026-02-20)
 - Phases 21-26 defined for v1.7 Assessment System Integrity (2026-02-20)
+- Phases 27-31 defined for v1.8 Assessment Polish (2026-02-21)
 
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: v1.7 milestone archived. Run /gsd:new-milestone to plan v1.8.
+Stopped at: v1.8 roadmap defined (Phases 27-31). Run /gsd:plan-phase 27 to begin.
 Resume file: None.

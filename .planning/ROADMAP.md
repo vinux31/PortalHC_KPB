@@ -11,6 +11,7 @@
 - ✅ **v1.5 Question and Exam UX** — Phase 17 (shipped 2026-02-19)
 - ✅ **v1.6 Training Records Management** — Phases 18-20 (shipped 2026-02-20)
 - ✅ **v1.7 Assessment System Integrity** — Phases 21-26 (shipped 2026-02-21)
+- 🚧 **v1.8 Assessment Polish** — Phases 27-31 (in progress)
 
 ## Phases
 
@@ -208,6 +209,92 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 
 </details>
 
+### 🚧 v1.8 Assessment Polish (Phases 27-31)
+
+**Milestone Goal:** Close known gaps in assessment monitoring accuracy, package management flexibility, scheduling automation, import quality, and HC reporting — leaving the assessment system complete for routine operational use.
+
+---
+
+#### Phase 27: Monitoring Status Fix
+**Goal:** HC sees accurate session status in the monitoring card summary — Abandoned and InProgress sessions are never shown as "Not started"
+**Depends on:** Phase 26 (v1.7 complete)
+**Requirements:** MON-01
+**Success Criteria** (what must be TRUE):
+  1. HC opens the monitoring tab for an assessment — a worker who has started but not submitted shows "In Progress", not "Not started"
+  2. HC opens the monitoring tab for an assessment — a worker who abandoned their session shows "Abandoned", not "Not started"
+  3. A worker who has not started still shows "Not started"
+  4. A worker who submitted shows "Completed"
+**Plans:** 1 plan
+
+Plans:
+- [ ] 27-01-PLAN.md — Update GetMonitorData UserStatus projection from 2-state to 4-state matching AssessmentMonitoringDetail logic
+
+---
+
+#### Phase 28: Package Re-assign and Reshuffle
+**Goal:** HC can replace a worker's current package assignment with a specific package or a new random one from the assessment management UI
+**Depends on:** Phase 27
+**Requirements:** PKG-01, PKG-02
+**Success Criteria** (what must be TRUE):
+  1. HC opens a worker's assignment on the management page and can select a different package from a dropdown — saving replaces the current assignment
+  2. HC clicks a "Reshuffle" button for a worker — the system assigns a new random package from the assessment's available packages, different from the current one if possible
+  3. Re-assign and reshuffle are only available when the worker's session is not Completed (cannot overwrite a finished exam)
+  4. After re-assign or reshuffle, the monitoring card reflects the updated package for that worker
+**Plans:** 2 plans
+
+Plans:
+- [ ] 28-01-PLAN.md — Re-assign package: controller action (POST ReassignPackage), UI controls on management page, guard against Completed sessions
+- [ ] 28-02-PLAN.md — Reshuffle package: controller action (POST ReshufflePackage), random selection logic, UI button on management page
+
+---
+
+#### Phase 29: Auto-transition Upcoming to Open
+**Goal:** Assessment sessions with status Upcoming automatically become Open when their scheduled date arrives, so HC does not need to manually open each assessment
+**Depends on:** Phase 26 (v1.7 complete)
+**Requirements:** SCHED-01
+**Success Criteria** (what must be TRUE):
+  1. An assessment with status Upcoming and a scheduled date of today or earlier is shown as Open to workers and HC without any manual action
+  2. An assessment with a future scheduled date remains Upcoming and workers cannot start it
+  3. The transition happens on the next page load or AJAX call after the scheduled date passes — no stale Upcoming state is served
+**Plans:** 1 plan
+
+Plans:
+- [ ] 29-01-PLAN.md — Implement auto-transition: status-check filter or service method called on assessment load; update GetMonitorData and worker-facing queries to apply transition before serving status
+
+---
+
+#### Phase 30: Import Deduplication
+**Goal:** Importing questions (Excel or paste) into a package skips any row whose question text already exists in that package, preventing duplicate questions
+**Depends on:** Phase 26 (v1.7 complete)
+**Requirements:** IMP-01
+**Success Criteria** (what must be TRUE):
+  1. HC imports an Excel file containing 10 questions where 3 already exist in the package — exactly 7 questions are added and the import result indicates 3 were skipped
+  2. HC pastes question text containing a duplicate — the duplicate row is silently skipped and only new questions are saved
+  3. A package with zero prior questions accepts all imported rows with no skips
+**Plans:** 1 plan
+
+Plans:
+- [ ] 30-01-PLAN.md — Add duplicate-text guard in ImportPackageQuestions action: load existing question texts for the package, skip rows where QuestionText matches (case-insensitive), report skip count in result message
+
+---
+
+#### Phase 31: HC Reporting Actions
+**Goal:** HC can download a full Excel results report for an assessment and bulk-close all open sessions from the monitoring detail page
+**Depends on:** Phase 27
+**Requirements:** RPT-01, RPT-02
+**Success Criteria** (what must be TRUE):
+  1. HC clicks "Export Results" on the monitoring detail page — an Excel file downloads with one row per worker showing name, package, score, pass/fail, and completion time
+  2. The exported file includes all workers assigned to the assessment, including those who have not completed
+  3. HC clicks "Force Close All" on the monitoring view — all sessions with status Open or InProgress are transitioned to Abandoned, and the page reflects the updated statuses immediately
+  4. Force Close All is a single click with a confirmation prompt — no per-session action required
+**Plans:** 2 plans
+
+Plans:
+- [ ] 31-01-PLAN.md — Excel results export: ExportAssessmentResults action, ClosedXML workbook with worker result rows, download link on monitoring detail page
+- [ ] 31-02-PLAN.md — Bulk force-close: ForceCloseAll controller action (POST), update all Open/InProgress sessions to Abandoned, audit log entry, UI button with confirm prompt on monitoring view
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -238,3 +325,8 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 | 24. HC Audit Log | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 25. Worker UX Enhancements | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 26. Data Integrity Safeguards | v1.7 | 2/2 | Complete | 2026-02-21 |
+| 27. Monitoring Status Fix | v1.8 | 0/1 | Pending | — |
+| 28. Package Re-assign and Reshuffle | v1.8 | 0/2 | Pending | — |
+| 29. Auto-transition Upcoming to Open | v1.8 | 0/1 | Pending | — |
+| 30. Import Deduplication | v1.8 | 0/1 | Pending | — |
+| 31. HC Reporting Actions | v1.8 | 0/2 | Pending | — |
