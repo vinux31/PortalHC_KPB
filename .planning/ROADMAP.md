@@ -299,11 +299,11 @@ Plans:
   1. When HC clicks "Delete" on a package that has one or more `UserPackageAssignment` records, a confirmation dialog shows the number of affected assignments before the delete proceeds
   2. When HC submits an edit to an assessment's schedule date and packages are attached to that assessment, a confirmation warning is shown before the change is saved
   3. If HC cancels either confirmation, no data is changed — the package and assignment records remain intact
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 26-01: Delete package warning — DeletePackage action checks UserPackageAssignment count; if > 0, returns confirmation view showing count; second POST with confirmed=true proceeds with delete
-- [ ] 26-02: Schedule change warning — EditAssessment POST detects date change + attached packages; returns confirmation view; second POST with confirmed=true saves the change
+- [ ] 26-01-PLAN.md — Delete package warning: assignment count in confirm dialog + cascade cleanup of UserPackageAssignment and PackageUserResponse
+- [ ] 26-02-PLAN.md — Schedule change warning: JS confirm on date change when packages attached to assessment's sibling group
 
 ---
 
@@ -336,4 +336,4 @@ Plans:
 | 23. Package Answer Integrity | v1.7 | 3/3 | Complete | 2026-02-21 |
 | 24. HC Audit Log | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 25. Worker UX Enhancements | v1.7 | 2/2 | Complete | 2026-02-21 |
-| 26. Data Integrity Safeguards | v1.7 | 0/TBD | Not started | - |
+| 26. Data Integrity Safeguards | v1.7 | 0/2 | Not started | - |
