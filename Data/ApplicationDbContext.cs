@@ -55,6 +55,9 @@ namespace HcPortal.Data
         public DbSet<UserPackageAssignment> UserPackageAssignments { get; set; }
         public DbSet<PackageUserResponse> PackageUserResponses { get; set; }
 
+        // Audit Log — Phase 24
+        public DbSet<AuditLog> AuditLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -373,6 +376,15 @@ namespace HcPortal.Data
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasIndex(r => new { r.AssessmentSessionId, r.PackageQuestionId });
+            });
+
+            // ========== Audit Log (Phase 24) ==========
+            builder.Entity<AuditLog>(entity =>
+            {
+                entity.HasIndex(a => a.CreatedAt);
+                entity.HasIndex(a => a.ActorUserId);
+                entity.HasIndex(a => a.ActionType);
+                entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
         }
     }

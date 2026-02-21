@@ -42,6 +42,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
+// Audit log service
+builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
+
 // 4. Konfigurasi Cookie Authentication
 builder.Services.ConfigureApplicationCookie(options =>
 {
