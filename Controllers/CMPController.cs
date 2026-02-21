@@ -412,6 +412,13 @@ namespace HcPortal.Controllers
             if (responses.Any())
                 _context.UserResponses.RemoveRange(responses);
 
+            // 1b. Delete PackageUserResponse records for this session (package path answers)
+            var packageResponses = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == id)
+                .ToListAsync();
+            if (packageResponses.Any())
+                _context.PackageUserResponses.RemoveRange(packageResponses);
+
             // 2. Delete UserPackageAssignment for this session (package path)
             //    Deleting ensures the next StartExam assigns a fresh random package.
             var assignment = await _context.UserPackageAssignments
@@ -2169,10 +2176,14 @@ namespace HcPortal.Controllers
                             totalScore += q.ScoreValue;
                     }
 
-                    // Note: UserResponse records not created for package exams — AllowAnswerReview is not supported
-                    // for package-based exams in this phase. UserResponse.AssessmentQuestionId and
-                    // UserResponse.SelectedOptionId have hard FK constraints to AssessmentQuestions and
-                    // AssessmentOptions tables; PackageQuestion/PackageOption IDs do not exist in those tables.
+                    // Persist answer for package-based answer review
+                    _context.PackageUserResponses.Add(new PackageUserResponse
+                    {
+                        AssessmentSessionId = id,
+                        PackageQuestionId = q.Id,
+                        PackageOptionId = selectedOptId,
+                        SubmittedAt = DateTime.UtcNow
+                    });
                 }
 
                 int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
