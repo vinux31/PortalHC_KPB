@@ -1,0 +1,120 @@
+@model List<HcPortal.Models.AuditLog>
+@{
+    ViewData["Title"] = "Audit Log";
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
+}
+
+<div class="container-fluid py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1">
+                <i class="bi bi-clock-history me-2 text-primary"></i>Audit Log
+            </h4>
+            <p class="text-muted mb-0">
+                Riwayat seluruh aksi manajemen assessment
+                <span class="badge bg-secondary ms-1">@totalCount entries</span>
+            </p>
+        </div>
+        <a asp-action="Assessment" asp-route-view="manage" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i> Back to Manage
+        </a>
+    </div>
+
+    <!-- Table -->
+    @if (Model.Any())
+    {
+        <div class="card shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 170px;">Waktu</th>
+                            <th style="width: 200px;">Aktor</th>
+                            <th style="width: 160px;">Aksi</th>
+                            <th>Deskripsi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model)
+                        {
+                            <tr>
+                                <td class="text-nowrap">
+                                    <small>@log.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</small>
+                                </td>
+                                <td>
+                                    <small>@log.ActorName</small>
+                                </td>
+                                <td>
+                                    @{
+                                        var badgeClass = log.ActionType switch
+                                        {
+                                            "CreateAssessment" => "bg-success",
+                                            "EditAssessment" => "bg-primary",
+                                            "BulkAssign" => "bg-info text-dark",
+                                            "DeleteAssessment" => "bg-danger",
+                                            "DeleteAssessmentGroup" => "bg-danger",
+                                            "ForceCloseAssessment" => "bg-warning text-dark",
+                                            "ResetAssessment" => "bg-secondary",
+                                            _ => "bg-dark"
+                                        };
+                                    }
+                                    <span class="badge @badgeClass">@log.ActionType</span>
+                                </td>
+                                <td>
+                                    <small>@log.Description</small>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Audit log pagination" class="mt-3">
+                <ul class="pagination justify-content-center mb-0">
+                    <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="AuditLog" asp-route-page="@(currentPage - 1)">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        @if (i == 1 || i == totalPages || (i >= currentPage - 2 && i <= currentPage + 2))
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" asp-action="AuditLog" asp-route-page="@i">@i</a>
+                            </li>
+                        }
+                        else if (i == currentPage - 3 || i == currentPage + 3)
+                        {
+                            <li class="page-item disabled">
+                                <span class="page-link">...</span>
+                            </li>
+                        }
+                    }
+
+                    <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                        <a class="page-link" asp-action="AuditLog" asp-route-page="@(currentPage + 1)">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        }
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i> Belum ada riwayat aksi manajemen assessment.
+        </div>
+    }
+
+</div>

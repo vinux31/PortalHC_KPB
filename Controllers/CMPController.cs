@@ -943,6 +943,33 @@ namespace HcPortal.Controllers
             }
         }
 
+        // --- AUDIT LOG ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AuditLog(int page = 1)
+        {
+            const int pageSize = 25;
+
+            var totalCount = await _context.AuditLogs.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            // Clamp page to valid range
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            var logs = await _context.AuditLogs
+                .OrderByDescending(a => a.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+
+            return View(logs);
+        }
+
         // --- HALAMAN 5: CREATE ASSESSMENT (NEW) ---
         // GET: Tampilkan form create assessment
         [HttpGet]
