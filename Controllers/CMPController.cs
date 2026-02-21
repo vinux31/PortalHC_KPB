@@ -2412,69 +2412,166 @@ namespace HcPortal.Controllers
             // Build ViewModel
             var correctCount = 0;
             List<QuestionReviewItem>? questionReviews = null;
-
-            if (assessment.AllowAnswerReview)
-            {
-                questionReviews = new List<QuestionReviewItem>();
-                int questionNum = 0;
-                foreach (var question in assessment.Questions)
-                {
-                    questionNum++;
-                    var userResponse = assessment.Responses
-                        .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
-                    var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
-                    var selectedOption = userResponse?.SelectedOption;
-                    bool isCorrect = selectedOption != null && selectedOption.IsCorrect;
-                    if (isCorrect) correctCount++;
-
-                    questionReviews.Add(new QuestionReviewItem
-                    {
-                        QuestionNumber = questionNum,
-                        QuestionText = question.QuestionText,
-                        UserAnswer = selectedOption?.OptionText,
-                        CorrectAnswer = correctOption?.OptionText ?? "N/A",
-                        IsCorrect = isCorrect,
-                        Options = question.Options.Select(o => new OptionReviewItem
-                        {
-                            OptionText = o.OptionText,
-                            IsCorrect = o.IsCorrect,
-                            IsSelected = userResponse?.SelectedOptionId == o.Id
-                        }).ToList()
-                    });
-                }
-            }
-            else
-            {
-                // Still count correct for summary even when review disabled
-                foreach (var question in assessment.Questions)
-                {
-                    var userResponse = assessment.Responses
-                        .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
-                    if (userResponse?.SelectedOption != null && userResponse.SelectedOption.IsCorrect)
-                        correctCount++;
-                }
-            }
-
             var passPercentage = assessment.PassPercentage;
             var score = assessment.Score ?? 0;
 
-            var viewModel = new AssessmentResultsViewModel
-            {
-                AssessmentId = assessment.Id,
-                Title = assessment.Title,
-                Category = assessment.Category,
-                UserFullName = assessment.User?.FullName ?? "Unknown",
-                Score = score,
-                PassPercentage = passPercentage,
-                IsPassed = score >= passPercentage,
-                AllowAnswerReview = assessment.AllowAnswerReview,
-                CompletedAt = assessment.CompletedAt,
-                TotalQuestions = assessment.Questions.Count,
-                CorrectAnswers = correctCount,
-                QuestionReviews = questionReviews
-            };
+            // Detect package path
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
 
-            return View(viewModel);
+            if (packageAssignment != null)
+            {
+                // Package path: load PackageQuestion + PackageOption + PackageUserResponse data
+                var packageQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => q.AssessmentPackageId == packageAssignment.AssessmentPackageId)
+                    .OrderBy(q => q.Order)
+                    .ToListAsync();
+
+                var packageResponses = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == id)
+                    .ToListAsync();
+                var responseDict = packageResponses.ToDictionary(r => r.PackageQuestionId);
+
+                // Use shuffled order from assignment for display
+                var shuffledQuestionIds = packageAssignment.GetShuffledQuestionIds();
+                var questionLookup = packageQuestions.ToDictionary(q => q.Id);
+
+                // If shuffled IDs are empty (edge case), fall back to natural order
+                var orderedQuestionIds = shuffledQuestionIds.Any()
+                    ? shuffledQuestionIds.Where(qid => questionLookup.ContainsKey(qid)).ToList()
+                    : packageQuestions.Select(q => q.Id).ToList();
+
+                if (assessment.AllowAnswerReview)
+                {
+                    questionReviews = new List<QuestionReviewItem>();
+                    int questionNum = 0;
+                    foreach (var qId in orderedQuestionIds)
+                    {
+                        if (!questionLookup.TryGetValue(qId, out var question)) continue;
+                        questionNum++;
+
+                        responseDict.TryGetValue(qId, out var userResponse);
+                        var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                        var selectedOption = userResponse?.PackageOptionId != null
+                            ? question.Options.FirstOrDefault(o => o.Id == userResponse.PackageOptionId)
+                            : null;
+                        bool isCorrect = selectedOption != null && selectedOption.IsCorrect;
+                        if (isCorrect) correctCount++;
+
+                        questionReviews.Add(new QuestionReviewItem
+                        {
+                            QuestionNumber = questionNum,
+                            QuestionText = question.QuestionText,
+                            UserAnswer = selectedOption?.OptionText,
+                            CorrectAnswer = correctOption?.OptionText ?? "N/A",
+                            IsCorrect = isCorrect,
+                            Options = question.Options.Select(o => new OptionReviewItem
+                            {
+                                OptionText = o.OptionText,
+                                IsCorrect = o.IsCorrect,
+                                IsSelected = userResponse?.PackageOptionId == o.Id
+                            }).ToList()
+                        });
+                    }
+                }
+                else
+                {
+                    // Count correct even when review disabled
+                    foreach (var qId in orderedQuestionIds)
+                    {
+                        if (!questionLookup.TryGetValue(qId, out var question)) continue;
+                        responseDict.TryGetValue(qId, out var userResponse);
+                        if (userResponse?.PackageOptionId != null)
+                        {
+                            var selectedOpt = question.Options.FirstOrDefault(o => o.Id == userResponse.PackageOptionId);
+                            if (selectedOpt != null && selectedOpt.IsCorrect)
+                                correctCount++;
+                        }
+                    }
+                }
+
+                var viewModel = new AssessmentResultsViewModel
+                {
+                    AssessmentId = assessment.Id,
+                    Title = assessment.Title,
+                    Category = assessment.Category,
+                    UserFullName = assessment.User?.FullName ?? "Unknown",
+                    Score = score,
+                    PassPercentage = passPercentage,
+                    IsPassed = score >= passPercentage,
+                    AllowAnswerReview = assessment.AllowAnswerReview,
+                    CompletedAt = assessment.CompletedAt,
+                    TotalQuestions = orderedQuestionIds.Count,
+                    CorrectAnswers = correctCount,
+                    QuestionReviews = questionReviews
+                };
+
+                return View(viewModel);
+            }
+            else
+            {
+                // Legacy path: existing UserResponse + AssessmentQuestion data
+                if (assessment.AllowAnswerReview)
+                {
+                    questionReviews = new List<QuestionReviewItem>();
+                    int questionNum = 0;
+                    foreach (var question in assessment.Questions)
+                    {
+                        questionNum++;
+                        var userResponse = assessment.Responses
+                            .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
+                        var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
+                        var selectedOption = userResponse?.SelectedOption;
+                        bool isCorrect = selectedOption != null && selectedOption.IsCorrect;
+                        if (isCorrect) correctCount++;
+
+                        questionReviews.Add(new QuestionReviewItem
+                        {
+                            QuestionNumber = questionNum,
+                            QuestionText = question.QuestionText,
+                            UserAnswer = selectedOption?.OptionText,
+                            CorrectAnswer = correctOption?.OptionText ?? "N/A",
+                            IsCorrect = isCorrect,
+                            Options = question.Options.Select(o => new OptionReviewItem
+                            {
+                                OptionText = o.OptionText,
+                                IsCorrect = o.IsCorrect,
+                                IsSelected = userResponse?.SelectedOptionId == o.Id
+                            }).ToList()
+                        });
+                    }
+                }
+                else
+                {
+                    // Still count correct for summary even when review disabled
+                    foreach (var question in assessment.Questions)
+                    {
+                        var userResponse = assessment.Responses
+                            .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
+                        if (userResponse?.SelectedOption != null && userResponse.SelectedOption.IsCorrect)
+                            correctCount++;
+                    }
+                }
+
+                var viewModel = new AssessmentResultsViewModel
+                {
+                    AssessmentId = assessment.Id,
+                    Title = assessment.Title,
+                    Category = assessment.Category,
+                    UserFullName = assessment.User?.FullName ?? "Unknown",
+                    Score = score,
+                    PassPercentage = passPercentage,
+                    IsPassed = score >= passPercentage,
+                    AllowAnswerReview = assessment.AllowAnswerReview,
+                    CompletedAt = assessment.CompletedAt,
+                    TotalQuestions = assessment.Questions.Count,
+                    CorrectAnswers = correctCount,
+                    QuestionReviews = questionReviews
+                };
+
+                return View(viewModel);
+            }
         }
         #endregion
 
