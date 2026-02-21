@@ -555,7 +555,11 @@
                                         <td>@(item.CompletedAt != null ? ((DateTime)item.CompletedAt).ToString("dd MMM yyyy") : "—")</td>
                                         <td>@(item.Score != null ? item.Score + "%" : "—")</td>
                                         <td>
-                                            @if (item.IsPassed == true)
+                                            @if (item.Status == "Abandoned")
+                                            {
+                                                <span class="badge text-bg-warning"><i class="bi bi-slash-circle me-1"></i>Dibatalkan</span>
+                                            }
+                                            else if (item.IsPassed == true)
                                             {
                                                 <span class="badge text-bg-success"><i class="bi bi-check-circle-fill me-1"></i>Lulus</span>
                                             }
