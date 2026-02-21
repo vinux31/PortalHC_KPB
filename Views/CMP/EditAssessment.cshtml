@@ -130,10 +130,25 @@
                 <!-- Schedule & Duration -->
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label asp-for="Schedule" class="form-label fw-semibold">
-                            Schedule Date <span class="text-danger">*</span>
+                        <label class="form-label fw-semibold">
+                            Schedule Date &amp; Time <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="Schedule" type="date" class="form-control" required />
+                        <div class="d-flex gap-2 align-items-start">
+                            <div class="flex-grow-1">
+                                <input type="date" id="ScheduleDate"
+                                       value="@Model.Schedule.ToString("yyyy-MM-dd")"
+                                       class="form-control" required />
+                                <div class="form-text text-muted">Date (WIB)</div>
+                            </div>
+                            <div style="width:130px">
+                                <input type="time" id="ScheduleTime"
+                                       value="@Model.Schedule.ToString("HH:mm")"
+                                       class="form-control" required />
+                                <div class="form-text text-muted">Time (WIB)</div>
+                            </div>
+                        </div>
+                        <input asp-for="Schedule" type="hidden" id="ScheduleHidden"
+                               value="@Model.Schedule.ToString("yyyy-MM-ddTHH:mm:ss")" />
                         <span asp-validation-for="Schedule" class="text-danger"></span>
                     </div>
                     <div class="col-md-6">
@@ -367,10 +382,18 @@
             if (!form) return;
 
             form.addEventListener('submit', function(e) {
-                var scheduleInput = document.getElementById('Schedule');
-                if (!scheduleInput) return;
+                var schedDateInput = document.getElementById('ScheduleDate');
+                var schedTimeInput = document.getElementById('ScheduleTime');
+                var schedHidden   = document.getElementById('ScheduleHidden');
 
-                var newSchedule = scheduleInput.value;
+                // Combine ScheduleDate + ScheduleTime into Schedule hidden field
+                if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
+                    schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                }
+
+                if (!schedDateInput) return;
+
+                var newSchedule = schedDateInput.value;
                 if (newSchedule !== originalSchedule) {
                     var msg = 'PERINGATAN: Assessment ini memiliki ' + packageCount + ' paket ujian yang terkait. ' +
                               'Mengubah tanggal jadwal dapat mempengaruhi penugasan paket peserta.\n\n' +
@@ -403,6 +426,21 @@
             }
             document.getElementById('AccessToken').value = token;
         }
+
+        // Always combine ScheduleDate + ScheduleTime → ScheduleHidden on submit
+        // (runs regardless of packageCount; the package-warning block handles it when packageCount > 0)
+        (function() {
+            var form = document.getElementById('editAssessmentForm');
+            if (!form) return;
+            form.addEventListener('submit', function() {
+                var schedDateInput = document.getElementById('ScheduleDate');
+                var schedTimeInput = document.getElementById('ScheduleTime');
+                var schedHidden   = document.getElementById('ScheduleHidden');
+                if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
+                    schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                }
+            });
+        })();
 
         // Bootstrap form validation
         (function () {

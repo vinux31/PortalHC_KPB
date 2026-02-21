@@ -159,10 +159,20 @@
                 <div class="row">
                     <!-- Schedule -->
                     <div class="col-md-6 mb-3">
-                        <label asp-for="Schedule" class="form-label fw-semibold">
-                            Schedule Date <span class="text-danger">*</span>
+                        <label class="form-label fw-semibold">
+                            Schedule Date &amp; Time <span class="text-danger">*</span>
                         </label>
-                        <input asp-for="Schedule" type="date" class="form-control" required />
+                        <div class="d-flex gap-2 align-items-start">
+                            <div class="flex-grow-1">
+                                <input type="date" id="ScheduleDate" class="form-control" required />
+                                <div class="form-text text-muted">Date (WIB)</div>
+                            </div>
+                            <div style="width:130px">
+                                <input type="time" id="ScheduleTime" class="form-control" value="08:00" required />
+                                <div class="form-text text-muted">Time (WIB)</div>
+                            </div>
+                        </div>
+                        <input asp-for="Schedule" type="hidden" id="ScheduleHidden" />
                         <span asp-validation-for="Schedule" class="text-danger"></span>
                     </div>
                 </div>
@@ -588,8 +598,10 @@
                     var titleField = document.querySelector('input[name="Title"]') || document.getElementById('Title');
                     var title = titleField ? titleField.value.trim() : '';
                     var category = categorySelect ? categorySelect.value : '';
-                    var scheduleField = document.querySelector('input[name="Schedule"]');
-                    var schedule = scheduleField ? scheduleField.value : '';
+                    var schedDateInput = document.getElementById('ScheduleDate');
+                    var schedTimeInput = document.getElementById('ScheduleTime');
+                    var schedHidden   = document.getElementById('ScheduleHidden');
+                    var schedule = schedDateInput ? schedDateInput.value : '';
                     var durationField = document.querySelector('input[name="DurationMinutes"]');
                     var duration = durationField ? durationField.value : '';
 
@@ -646,6 +658,11 @@
                     }
 
                     console.log('✅ All validations passed. Submitting form...');
+
+                    // Combine ScheduleDate + ScheduleTime into Schedule hidden field
+                    if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
+                        schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                    }
 
                     // Show loading spinner
                     var submitBtn = document.getElementById('submitBtn');
