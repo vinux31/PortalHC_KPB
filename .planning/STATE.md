@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phase 27 Plan 01 at checkpoint (human-verify)
+**Current focus:** v1.8 Assessment Polish — Phase 28 ready to plan
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 27: Monitoring Status Fix — in progress
-**Current Plan:** 27-01 (at checkpoint:human-verify — Task 3)
-**Status:** Awaiting human verification of GetMonitorData 4-state JSON output
-**Last activity:** 2026-02-21 — Phase 27-01 Tasks 1-2 complete, paused at verification checkpoint
+**Phase:** Phase 27: Monitoring Status Fix — ✅ COMPLETE (UAT passed 4/4)
+**Next Phase:** Phase 28: Package Re-assign and Reshuffle — ready to plan
+**Status:** Phase 27 verified. Also fixed pre-existing View Details timezone bug (e9cd93d).
+**Last activity:** 2026-02-21 — Phase 27 UAT complete, all 4 tests passed
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
