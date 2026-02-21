@@ -1972,12 +1972,13 @@ namespace HcPortal.Controllers
             else
             {
                 // ---- LEGACY PATH: no packages, use old AssessmentQuestion/Option ----
-                var assessmentWithQuestions = await _context.AssessmentSessions
+                var sessionWithQuestions = await _context.AssessmentSessions
                     .Include(a => a.Questions)
                         .ThenInclude(q => q.Options)
-                    .FirstOrDefaultAsync(a => a.Id == id);
+                    .Where(a => siblingSessionIds.Contains(a.Id) && a.Questions.Any())
+                    .FirstOrDefaultAsync();
 
-                var legacyQuestions = assessmentWithQuestions?.Questions
+                var legacyQuestions = sessionWithQuestions?.Questions
                     .OrderBy(q => q.Order)
                     .Select((q, i) => new ExamQuestionItem
                     {
