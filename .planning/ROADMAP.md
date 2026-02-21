@@ -284,8 +284,10 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 25-01-PLAN.md — Worker assessment history: completed sessions query in Assessment() worker branch; Riwayat Ujian table in Assessment.cshtml
-- [ ] 25-02-PLAN.md — Competency display on results: AssessmentCompetencyMap lookup in Results action; "Kompetensi Diperoleh" card on Results.cshtml
+- [x] 25-01-PLAN.md — Worker assessment history: completed sessions query in Assessment() worker branch; Riwayat Ujian table in Assessment.cshtml
+- [x] 25-02-PLAN.md — Competency display on results: AssessmentCompetencyMap lookup in Results action; "Kompetensi Diperoleh" card on Results.cshtml
+
+**Completed:** 2026-02-21
 
 ---
 
@@ -333,5 +335,5 @@ Plans:
 | 22. Exam Lifecycle Actions | v1.7 | 4/4 | Complete | 2026-02-20 |
 | 23. Package Answer Integrity | v1.7 | 3/3 | Complete | 2026-02-21 |
 | 24. HC Audit Log | v1.7 | 2/2 | Complete | 2026-02-21 |
-| 25. Worker UX Enhancements | v1.7 | 0/TBD | Not started | - |
+| 25. Worker UX Enhancements | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 26. Data Integrity Safeguards | v1.7 | 0/TBD | Not started | - |
