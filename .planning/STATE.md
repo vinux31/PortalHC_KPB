@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-20)
 ## Current Position
 
 **Milestone:** v1.7 Assessment System Integrity
-**Phase:** 23 of 26 (Package Answer Integrity) — COMPLETE (all 3 plans done)
-**Current Plan:** Phase 23 complete — 23-01, 23-02, 23-03 all done
-**Status:** Phase 23 done; ready to execute Phase 24
-**Last activity:** 2026-02-21 — Phase 23 complete: PackageUserResponse migration, package answer review, token enforcement
+**Phase:** 24 of 26 (HC Audit Log) — IN PROGRESS (1 of 2 plans done)
+**Current Plan:** Phase 24 Plan 02 — audit log viewer UI
+**Status:** 24-01 done (AuditLog entity + service + 7 instrumented actions); ready for 24-02
+**Last activity:** 2026-02-21 — Phase 24-01 complete: AuditLog migration, AuditLogService, 7 audit call sites in CMPController
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 10% (v1.7)
 
@@ -39,6 +39,7 @@ Progress: [██░░░░░░░░░░░░░░░░░░] 10% (v1
 | Phase 23-package-answer-integrity P03 | 2 | 1 tasks | 1 files |
 | Phase 23 P01 | 8 | 2 tasks | 6 files |
 | Phase 23-package-answer-integrity P02 | 5 | 1 tasks | 1 files |
+| Phase 24-hc-audit-log P01 | 8 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -49,7 +50,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v1.7 architecture notes:**
 - CMPController is ~2300 lines — v1.7 adds Abandon, ForceClose, Reset, AuditLog actions; be mindful of file size
 - PackageUserResponse table created (Phase 23-01 done) — migration 20260221030204_AddPackageUserResponse applied
-- AuditLog table does not yet exist — Phase 24 creates it via EF migration
+- AuditLog table created (Phase 24-01 done) — migration 20260221032754_AddAuditLog applied; AuditLogService registered as scoped DI
 - SessionStatus is a plain string — Phase 21 added InProgress; Phase 22 adds Abandoned (no DB constraint)
 - StartedAt (Phase 21, done) and ExamWindowCloseDate (Phase 22) are nullable datetime2 columns
 - Token enforcement moved server-side (Phase 23-03 done): StartExam GET checks TempData[TokenVerified_{id}] set by VerifyToken POST; direct URL bypass no longer possible
@@ -69,6 +70,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 23-03]: TempData keyed by assessment ID (TokenVerified_{id}) for scoped token verification; StartedAt==null guards first entry only; UserId==user.Id provides HC/Admin bypass
 - [Phase 23]: PackageOptionId nullable int — null=skipped question, matching UserResponse.SelectedOptionId pattern; all PKR FKs use Restrict delete to avoid cascade cycles
 - [Phase 23-02]: Results action branches on UserPackageAssignment presence — package path loads PackageUserResponse+PackageQuestion+PackageOption and uses shuffled order; TotalQuestions from orderedQuestionIds.Count (not Questions.Count which is 0 for package sessions)
+- [Phase 24-01]: AuditLogService calls SaveChangesAsync internally — audit rows written immediately; actor name stored as "NIP - FullName" at write time for permanence; audit calls placed AFTER primary SaveChangesAsync (no phantom rows); delete actions wrap audit in try/catch to avoid rolling back successful deletes
 
 ### Pending Todos
 
@@ -110,5 +112,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Phase 24 planned — 2 plans in 2 waves ready to execute. Next: /gsd:execute-phase 24.
+Stopped at: Completed 24-01-PLAN.md — audit log infrastructure done; next: 24-02 audit log viewer UI
 Resume file: None.
