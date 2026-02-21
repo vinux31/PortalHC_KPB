@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 29: Auto-transition Upcoming to Open — ✅ COMPLETE (2/2 plans)
+**Phase:** Phase 29: Auto-transition Upcoming to Open — ✅ COMPLETE (3/3 plans)
 **Next Phase:** Phase 30 or 31 (reporting / ForceCloseAll)
-**Status:** Phase 29 complete. Time-based WIB comparison at all three auto-transition sites. StartExam time gate blocks future-scheduled assessments.
-**Last activity:** 2026-02-21 — Phase 29 plan 02 executed: time-precision upgrade + StartExam time gate
+**Status:** Phase 29 fully complete. Time-based WIB comparison at all three auto-transition sites. StartExam time gate blocks future-scheduled access. Schedule time picker on Create/Edit forms. Worker list shows "Opens DD MMM YYYY, HH:mm WIB" for Upcoming assessments.
+**Last activity:** 2026-02-21 — Phase 29 gap closure complete: 29-02 (WIB time precision) + 29-03 (time picker + display). Verified 12/12.
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -93,7 +93,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v1.8 architecture notes:**
 - GetMonitorData (AJAX endpoint) now uses 4-state UserStatus matching AssessmentMonitoringDetail: Completed / Abandoned / In Progress / Not started (Phase 27-01 done); Abandoned branch placed before InProgress because Abandoned sessions have StartedAt set
 - Phase 28 re-assign/reshuffle must guard against overwriting Completed sessions
-- Phase 29 auto-transition: COMPLETE — inline read-time status override at GetMonitorData (display-only), worker assessment list (display-only), StartExam (persisted); upgraded to time-based WIB comparison Schedule <= DateTime.UtcNow.AddHours(7); StartExam time gate added (Upcoming → redirect with error message)
+- Phase 29 auto-transition: COMPLETE — time-based WIB comparison `Schedule <= DateTime.UtcNow.AddHours(7)` at all 3 sites (GetMonitorData display-only, worker list display-only, StartExam persisted); StartExam time gate blocks future-scheduled access (Status=="Upcoming" → redirect with "Ujian belum dibuka"); Schedule time picker on Create/Edit forms (ScheduleDate + ScheduleTime combined into hidden ScheduleHidden via JS before submit, default 08:00); Assessment.cshtml Upcoming cards show "Opens DD MMM YYYY, HH:mm WIB"
 - Phase 31 RPT-02 ForceCloseAll is additive to existing per-session ForceClose (Phase 22) — reuse same status transition and audit log pattern
 - [Phase 32-01]: Legacy exam paths (StartExam, ExamSummary, SubmitExam) now use sibling session lookup identical to package path (Title + Category + Schedule.Date); StartExam reuses siblingSessionIds already computed for package check; ExamSummary and SubmitExam compute it inline in their else-blocks; UserResponse.AssessmentSessionId = id (worker's own session) unchanged
 - [Phase 28-01]: ReshufflePackage selects different package only when 2+ packages exist AND current assignment exists
@@ -149,5 +149,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 29-03-PLAN.md — schedule time picker added to Create/Edit Assessment forms; Upcoming cards show exact opening datetime in WIB. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
+Stopped at: Phase 29 fully complete (3/3 plans, verified 12/12). Gap closure done — time-based WIB comparison, StartExam time gate, time picker on forms, "Opens HH:mm WIB" on worker list. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
 Resume file: None.
