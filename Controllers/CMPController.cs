@@ -8,6 +8,7 @@ using ClosedXML.Excel;
 using HcPortal.Models.Competency;
 using HcPortal.Helpers;
 using System.Text.Json;
+using HcPortal.Services;
 
 namespace HcPortal.Controllers
 {
@@ -18,17 +19,20 @@ namespace HcPortal.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly AuditLogService _auditLog;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ApplicationDbContext context,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            AuditLogService auditLog)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _env = env;
+            _auditLog = auditLog;
         }
 
         public IActionResult Index()
@@ -437,6 +441,17 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
 
+            // Audit log
+            var rsUser = await _userManager.GetUserAsync(User);
+            var rsActorName = $"{rsUser?.NIP ?? "?"} - {rsUser?.FullName ?? "Unknown"}";
+            await _auditLog.LogAsync(
+                rsUser?.Id ?? "",
+                rsActorName,
+                "ResetAssessment",
+                $"Reset assessment '{assessment.Title}' for user {assessment.UserId} [ID={id}]",
+                id,
+                "AssessmentSession");
+
             TempData["Success"] = "Sesi ujian telah direset. Peserta dapat mengikuti ujian kembali.";
             return RedirectToAction("AssessmentMonitoringDetail", new
             {
@@ -478,6 +493,17 @@ namespace HcPortal.Controllers
             assessment.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
+
+            // Audit log
+            var fcUser = await _userManager.GetUserAsync(User);
+            var fcActorName = $"{fcUser?.NIP ?? "?"} - {fcUser?.FullName ?? "Unknown"}";
+            await _auditLog.LogAsync(
+                fcUser?.Id ?? "",
+                fcActorName,
+                "ForceCloseAssessment",
+                $"Force-closed assessment '{assessment.Title}' for user {assessment.UserId} [ID={id}]",
+                id,
+                "AssessmentSession");
 
             TempData["Success"] = "Sesi ujian telah ditutup paksa oleh sistem dengan skor 0.";
             return RedirectToAction("AssessmentMonitoringDetail", new
@@ -594,10 +620,24 @@ namespace HcPortal.Controllers
 
             assessment.UpdatedAt = DateTime.UtcNow;
 
+            // Fetch actor info before try block so it is available for both edit and bulk-assign audit calls
+            var editUser = await _userManager.GetUserAsync(User);
+            var editActorName = $"{editUser?.NIP ?? "?"} - {editUser?.FullName ?? "Unknown"}";
+
             try
             {
                 _context.AssessmentSessions.Update(assessment);
                 await _context.SaveChangesAsync();
+
+                // Audit log — edit
+                await _auditLog.LogAsync(
+                    editUser?.Id ?? "",
+                    editActorName,
+                    "EditAssessment",
+                    $"Edited assessment '{assessment.Title}' ({assessment.Category}) [ID={id}]",
+                    id,
+                    "AssessmentSession");
+
                 TempData["Success"] = $"Assessment '{assessment.Title}' has been updated successfully.";
             }
             catch (Exception ex)
@@ -648,10 +688,7 @@ namespace HcPortal.Controllers
                                 return RedirectToAction("Assessment", new { view = "manage" });
                             }
 
-                            // Get current user for audit
-                            var currentUser = await _userManager.GetUserAsync(User);
-
-                            // Build new sessions
+                            // Build new sessions (editUser already fetched at outer scope)
                             var newSessions = filteredNewUserIds.Select(uid => new AssessmentSession
                             {
                                 Title = savedAssessment.Title,
@@ -667,7 +704,7 @@ namespace HcPortal.Controllers
                                 ExamWindowCloseDate = savedAssessment.ExamWindowCloseDate,
                                 Progress = 0,
                                 UserId = uid,
-                                CreatedBy = currentUser?.Id
+                                CreatedBy = editUser?.Id
                             }).ToList();
 
                             _context.AssessmentSessions.AddRange(newSessions);
@@ -677,6 +714,16 @@ namespace HcPortal.Controllers
                             {
                                 await _context.SaveChangesAsync();
                                 await transaction.CommitAsync();
+
+                                // Audit log — bulk assign
+                                await _auditLog.LogAsync(
+                                    editUser?.Id ?? "",
+                                    editActorName,
+                                    "BulkAssign",
+                                    $"Assigned {newSessions.Count} new user(s) to assessment '{savedAssessment.Title}' ({savedAssessment.Category})",
+                                    id,
+                                    "AssessmentSession");
+
                                 TempData["Success"] = $"Assessment '{savedAssessment.Title}' has been updated. {newSessions.Count} new user(s) assigned.";
                             }
                             catch
@@ -752,6 +799,24 @@ namespace HcPortal.Controllers
 
                 await _context.SaveChangesAsync();
 
+                // Audit log
+                try
+                {
+                    var deleteUser = await _userManager.GetUserAsync(User);
+                    var deleteActorName = $"{deleteUser?.NIP ?? "?"} - {deleteUser?.FullName ?? "Unknown"}";
+                    await _auditLog.LogAsync(
+                        deleteUser?.Id ?? "",
+                        deleteActorName,
+                        "DeleteAssessment",
+                        $"Deleted assessment '{assessmentTitle}' [ID={id}]",
+                        id,
+                        "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessment {Id}", id);
+                }
+
                 logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle}");
                 return Json(new { success = true, message = $"Assessment '{assessmentTitle}' has been deleted successfully." });
             }
@@ -813,6 +878,24 @@ namespace HcPortal.Controllers
                 }
 
                 await _context.SaveChangesAsync();
+
+                // Audit log
+                try
+                {
+                    var dgUser = await _userManager.GetUserAsync(User);
+                    var dgActorName = $"{dgUser?.NIP ?? "?"} - {dgUser?.FullName ?? "Unknown"}";
+                    await _auditLog.LogAsync(
+                        dgUser?.Id ?? "",
+                        dgActorName,
+                        "DeleteAssessmentGroup",
+                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) — {siblings.Count} session(s)",
+                        representativeId,
+                        "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentGroup {Id}", representativeId);
+                }
 
                 logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}'");
                 return Json(new { success = true, message = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted." });
@@ -1075,6 +1158,16 @@ namespace HcPortal.Controllers
                 {
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
+
+                    // Audit log
+                    var actorName = $"{currentUser?.NIP ?? "?"} - {currentUser?.FullName ?? "Unknown"}";
+                    await _auditLog.LogAsync(
+                        currentUser?.Id ?? "",
+                        actorName,
+                        "CreateAssessment",
+                        $"Created assessment '{model.Title}' ({model.Category}) scheduled {model.Schedule:yyyy-MM-dd} for {sessions.Count} user(s)",
+                        sessions.FirstOrDefault()?.Id,
+                        "AssessmentSession");
 
                     // Populate createdSessions with IDs after save
                     for (int i = 0; i < sessions.Count; i++)
