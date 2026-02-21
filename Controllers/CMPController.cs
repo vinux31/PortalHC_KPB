@@ -297,6 +297,25 @@ namespace HcPortal.Controllers
                 })
                 .ToListAsync();
 
+            // Auto-transition display: show Upcoming as Open when scheduled date has arrived (display-only, no SaveChangesAsync)
+            var today = DateTime.UtcNow.Date;
+            monitorSessions = monitorSessions
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Title,
+                    a.Category,
+                    a.Schedule,
+                    Status       = (a.Status == "Upcoming" && a.Schedule.Date <= today) ? "Open" : a.Status,
+                    a.Score,
+                    a.IsPassed,
+                    a.CompletedAt,
+                    a.StartedAt,
+                    UserFullName = a.UserFullName,
+                    UserNIP      = a.UserNIP
+                })
+                .ToList();
+
             var monitorGroups = monitorSessions
                 .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
                 .Select(g =>
