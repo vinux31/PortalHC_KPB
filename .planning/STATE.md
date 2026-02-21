@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.7 Assessment System Integrity — Phase 24 (HC Audit Log)
+**Current focus:** v1.7 Assessment System Integrity — Phase 25 (Worker UX Enhancements)
 
 ## Current Position
 
@@ -114,5 +114,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-21
-Stopped at: Completed 24-02-PLAN.md — Phase 24 complete; next: Phase 25
+Stopped at: Phase 25 planned — 2 plans in 1 wave (both wave 1, parallel). Next: /gsd:execute-phase 25.
 Resume file: None.
