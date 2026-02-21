@@ -569,6 +569,254 @@ namespace HcPortal.Controllers
             });
         }
 
+        // --- RESHUFFLE PACKAGE (single worker) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReshufflePackage(int sessionId)
+        {
+            var assessment = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(a => a.Id == sessionId);
+
+            if (assessment == null)
+                return Json(new { success = false, message = "Session not found." });
+
+            // Derive UserStatus using 4-state logic
+            string userStatus;
+            if (assessment.CompletedAt != null || assessment.Score != null)
+                userStatus = "Completed";
+            else if (assessment.Status == "Abandoned")
+                userStatus = "Abandoned";
+            else if (assessment.StartedAt != null)
+                userStatus = "InProgress";
+            else
+                userStatus = "Not started";
+
+            if (userStatus != "Not started")
+                return Json(new { success = false, message = "Hanya peserta yang belum mulai ujian yang dapat di-reshuffle." });
+
+            // Find sibling session IDs (same Title + Category + Schedule.Date)
+            var siblingSessionIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title &&
+                            s.Category == assessment.Category &&
+                            s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            // Load all packages for this group (without full question graph — only Id, PackageName needed for selection)
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            if (!packages.Any())
+                return Json(new { success = false, message = "Assessment ini tidak menggunakan mode paket." });
+
+            // Load current assignment (may be null if worker hasn't started)
+            var currentAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+
+            // Select a new package — prefer a different one than current
+            AssessmentPackage selectedPackage;
+            var rng = new Random();
+            if (packages.Count >= 2 && currentAssignment != null)
+            {
+                var otherPackages = packages.Where(p => p.Id != currentAssignment.AssessmentPackageId).ToList();
+                selectedPackage = otherPackages[rng.Next(otherPackages.Count)];
+            }
+            else
+            {
+                selectedPackage = packages[rng.Next(packages.Count)];
+            }
+
+            string oldPackageName = currentAssignment != null
+                ? (packages.FirstOrDefault(p => p.Id == currentAssignment.AssessmentPackageId)?.PackageName ?? "?")
+                : "(none)";
+
+            // Delete existing assignment if one exists
+            if (currentAssignment != null)
+                _context.UserPackageAssignments.Remove(currentAssignment);
+
+            // Shuffle question order
+            var questionIds = selectedPackage.Questions
+                .OrderBy(q => q.Order)
+                .Select(q => q.Id)
+                .ToList();
+            Shuffle(questionIds, rng);
+
+            // Shuffle options per question
+            var optionOrderDict = new Dictionary<int, List<int>>();
+            foreach (var q in selectedPackage.Questions)
+            {
+                var optIds = q.Options.Select(o => o.Id).ToList();
+                Shuffle(optIds, rng);
+                optionOrderDict[q.Id] = optIds;
+            }
+
+            // Create new assignment
+            var newAssignment = new UserPackageAssignment
+            {
+                AssessmentSessionId = sessionId,
+                AssessmentPackageId = selectedPackage.Id,
+                UserId = assessment.UserId,
+                ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(questionIds),
+                ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(
+                    optionOrderDict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value))
+            };
+            _context.UserPackageAssignments.Add(newAssignment);
+
+            await _context.SaveChangesAsync();
+
+            // Audit log
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorName = $"{hcUser?.NIP ?? "?"} - {hcUser?.FullName ?? "Unknown"}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorName,
+                    "ReshufflePackage",
+                    $"Reshuffled package for user {assessment.UserId} on assessment '{assessment.Title}' [SessionID={sessionId}]: {oldPackageName} → {selectedPackage.PackageName}",
+                    sessionId,
+                    "AssessmentSession");
+            }
+            catch { /* audit failure must not roll back the successful reshuffle */ }
+
+            return Json(new { success = true, packageName = selectedPackage.PackageName, assignmentId = newAssignment.Id });
+        }
+
+        // --- RESHUFFLE ALL (bulk) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReshuffleAll(string title, string category, DateTime scheduleDate)
+        {
+            // Load all sessions for this group, including User for names
+            var sessions = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Title == title &&
+                            a.Category == category &&
+                            a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!sessions.Any())
+                return Json(new { success = false, message = "Assessment group not found." });
+
+            // Find sibling IDs and load all packages
+            var siblingSessionIds = sessions.Select(s => s.Id).ToList();
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            if (!packages.Any())
+                return Json(new { success = false, message = "Assessment ini tidak menggunakan mode paket." });
+
+            // Load all existing assignments keyed by AssessmentSessionId
+            var existingAssignments = await _context.UserPackageAssignments
+                .Where(a => siblingSessionIds.Contains(a.AssessmentSessionId))
+                .ToDictionaryAsync(a => a.AssessmentSessionId);
+
+            var rng = new Random();
+            var results = new List<object>();
+            int reshuffledCount = 0;
+
+            foreach (var session in sessions)
+            {
+                string userName = session.User?.FullName ?? "Unknown";
+
+                // Derive UserStatus
+                string userStatus;
+                if (session.CompletedAt != null || session.Score != null)
+                    userStatus = "Completed";
+                else if (session.Status == "Abandoned")
+                    userStatus = "Abandoned";
+                else if (session.StartedAt != null)
+                    userStatus = "InProgress";
+                else
+                    userStatus = "Not started";
+
+                if (userStatus != "Not started")
+                {
+                    string reason = userStatus == "InProgress" ? "sedang mengerjakan"
+                                  : userStatus == "Completed" ? "sudah selesai"
+                                  : "dibatalkan";
+                    results.Add(new { name = userName, status = $"Dilewati — {reason}" });
+                    continue;
+                }
+
+                // Select a different package if possible
+                existingAssignments.TryGetValue(session.Id, out var existingAssignment);
+                AssessmentPackage selectedPackage;
+                if (packages.Count >= 2 && existingAssignment != null)
+                {
+                    var otherPackages = packages.Where(p => p.Id != existingAssignment.AssessmentPackageId).ToList();
+                    selectedPackage = otherPackages[rng.Next(otherPackages.Count)];
+                }
+                else
+                {
+                    selectedPackage = packages[rng.Next(packages.Count)];
+                }
+
+                // Delete old assignment if exists
+                if (existingAssignment != null)
+                    _context.UserPackageAssignments.Remove(existingAssignment);
+
+                // Shuffle questions and options
+                var questionIds = selectedPackage.Questions
+                    .OrderBy(q => q.Order)
+                    .Select(q => q.Id)
+                    .ToList();
+                Shuffle(questionIds, rng);
+
+                var optionOrderDict = new Dictionary<int, List<int>>();
+                foreach (var q in selectedPackage.Questions)
+                {
+                    var optIds = q.Options.Select(o => o.Id).ToList();
+                    Shuffle(optIds, rng);
+                    optionOrderDict[q.Id] = optIds;
+                }
+
+                // Add new assignment (accumulated — SaveChangesAsync once at end)
+                _context.UserPackageAssignments.Add(new UserPackageAssignment
+                {
+                    AssessmentSessionId = session.Id,
+                    AssessmentPackageId = selectedPackage.Id,
+                    UserId = session.UserId,
+                    ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(questionIds),
+                    ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(
+                        optionOrderDict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value))
+                });
+
+                results.Add(new { name = userName, status = $"Reshuffled → {selectedPackage.PackageName}" });
+                reshuffledCount++;
+            }
+
+            // Batch save all changes
+            await _context.SaveChangesAsync();
+
+            // Single audit log entry for the entire bulk operation
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorName = $"{hcUser?.NIP ?? "?"} - {hcUser?.FullName ?? "Unknown"}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorName,
+                    "ReshuffleAll",
+                    $"Bulk reshuffled {reshuffledCount} worker(s) on assessment '{title}' [{category}] scheduled {scheduleDate:yyyy-MM-dd}",
+                    null,
+                    "AssessmentSession");
+            }
+            catch { /* audit failure must not roll back successful reshuffles */ }
+
+            return Json(new { success = true, results, reshuffledCount });
+        }
+
         // --- EDIT ASSESSMENT ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
