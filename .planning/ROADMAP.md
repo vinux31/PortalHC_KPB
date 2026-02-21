@@ -293,6 +293,15 @@ Plans:
 - [ ] 31-01-PLAN.md — Excel results export: ExportAssessmentResults action, ClosedXML workbook with worker result rows, download link on monitoring detail page
 - [ ] 31-02-PLAN.md — Bulk force-close: ForceCloseAll controller action (POST), update all Open/InProgress sessions to Abandoned, audit log entry, UI button with confirm prompt on monitoring view
 
+### Phase 32: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers
+
+**Goal:** [To be planned]
+**Depends on:** Phase 31
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 32 to break down)
+
 ---
 
 ## Progress

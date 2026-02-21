@@ -128,6 +128,7 @@ None.
 - Phases 18-20 defined for v1.6 Training Records Management (2026-02-20)
 - Phases 21-26 defined for v1.7 Assessment System Integrity (2026-02-20)
 - Phases 27-31 defined for v1.8 Assessment Polish (2026-02-21)
+- Phase 32 added: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers (2026-02-21)
 
 ## Session Continuity
 
