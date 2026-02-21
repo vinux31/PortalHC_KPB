@@ -371,6 +371,27 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment", new { view = "manage" });
             }
 
+            // Detect package mode: check if any sibling session has packages attached
+            var siblingIds = sessions.Select(s => s.Id).ToList();
+            var packageCount = await _context.AssessmentPackages
+                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+            var isPackageMode = packageCount > 0;
+
+            // Load package assignments for all sessions in this group (for PackageName display)
+            Dictionary<int, (int AssignmentId, string PackageName)> assignmentMap = new();
+            if (isPackageMode)
+            {
+                assignmentMap = await _context.UserPackageAssignments
+                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
+                    .Join(_context.AssessmentPackages,
+                        a => a.AssessmentPackageId,
+                        p => p.Id,
+                        (a, p) => new { a.AssessmentSessionId, a.Id, p.PackageName })
+                    .ToDictionaryAsync(
+                        x => x.AssessmentSessionId,
+                        x => (x.Id, x.PackageName));
+            }
+
             var sessionViewModels = sessions.Select(a =>
             {
                 string userStatus;
@@ -392,7 +413,9 @@ namespace HcPortal.Controllers
                     Score        = a.Score,
                     IsPassed     = a.IsPassed,
                     CompletedAt  = a.CompletedAt,
-                    StartedAt    = a.StartedAt
+                    StartedAt    = a.StartedAt,
+                    PackageName  = assignmentMap.ContainsKey(a.Id) ? assignmentMap[a.Id].PackageName : "",
+                    AssignmentId = assignmentMap.ContainsKey(a.Id) ? assignmentMap[a.Id].AssignmentId : null
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
@@ -409,7 +432,9 @@ namespace HcPortal.Controllers
                 CompletedCount = sessionViewModels.Count(s => s.UserStatus == "Completed"),
                 PassedCount    = sessionViewModels.Count(s => s.IsPassed == true),
                 GroupStatus    = sessions.Any(a => a.Status == "Open" || a.Status == "InProgress") ? "Open"
-                               : sessions.Any(a => a.Status == "Upcoming") ? "Upcoming" : "Closed"
+                               : sessions.Any(a => a.Status == "Upcoming") ? "Upcoming" : "Closed",
+                IsPackageMode  = isPackageMode,
+                PendingCount   = sessionViewModels.Count(s => s.UserStatus == "Not started")
             };
 
             ViewBag.BackUrl = Url.Action("Assessment", "CMP", new { view = "manage" });

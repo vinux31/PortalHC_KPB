@@ -9,6 +9,8 @@ namespace HcPortal.Models
         public int TotalCount { get; set; }             // all sessions in this group
         public int CompletedCount { get; set; }         // sessions where IsCompleted == true
         public int PassedCount { get; set; }            // sessions where IsPassed == true
+        public bool IsPackageMode { get; set; }         // true when the assessment group has packages attached
+        public int PendingCount { get; set; }           // count of "Not started" sessions (for Reshuffle All confirmation dialog)
         public List<MonitoringSessionViewModel> Sessions { get; set; } = new();
     }
 
@@ -22,5 +24,7 @@ namespace HcPortal.Models
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? StartedAt { get; set; }
+        public string PackageName { get; set; } = "";   // name of currently assigned package (e.g., "Paket A"), empty if none
+        public int? AssignmentId { get; set; }          // UserPackageAssignment.Id if one exists, null otherwise
     }
 }
