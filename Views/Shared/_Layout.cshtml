@@ -77,6 +77,16 @@
                                 </div>
                             </div>
 
+                            @* Manage Workers button — Admin & HC only *@
+                            @if (currentUser.RoleLevel <= 2)
+                            {
+                                <a href="/CMP/ManageWorkers" class="btn btn-outline-primary btn-sm me-3 d-flex align-items-center gap-2" 
+                                   title="Kelola Pekerja" id="btnNavManageWorkers">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span class="d-none d-xl-inline">Kelola Pekerja</span>
+                                </a>
+                            }
+
                             @* View Switcher Dropdown - Admin Only *@
                             @if (currentUser.RoleLevel == 1)
                             {

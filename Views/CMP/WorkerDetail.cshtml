@@ -1,463 +1,187 @@
-@model List<HcPortal.Models.UnifiedTrainingRecord>
+@model HcPortal.Models.ApplicationUser
 
 @{
-    ViewData["Title"] = "Worker Training Detail";
-    var workerName = ViewBag.WorkerName as string ?? "Worker";
-    var workerId = ViewBag.WorkerId as string ?? "";
+    ViewData["Title"] = "Detail Pekerja";
+    var role = ViewBag.Role as string ?? "No Role";
+    var roleBadgeClass = role switch
+    {
+        "Admin" => "bg-danger",
+        "HC" => "bg-warning text-dark",
+        "Direktur" or "VP" or "Manager" => "bg-info text-dark",
+        "Section Head" or "Sr Supervisor" => "bg-primary",
+        "Coach" => "bg-success",
+        _ => "bg-secondary"
+    };
+    var initials = Model.FullName.Length > 0
+        ? string.Join("", Model.FullName.Split(' ').Take(2).Select(w => w[0].ToString().ToUpper()))
+        : "?";
 }
 
-<!-- Header Section -->
-<div class="container-fluid py-4">
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="container py-4" style="max-width: 860px;">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-person-badge me-2 text-primary"></i>Detail Akun Pekerja
+            </h2>
+            <p class="text-muted mb-0">Informasi lengkap akun <strong>@Model.FullName</strong></p>
         </div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    }
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <a href="@Url.Action("Records", "CMP")" class="btn btn-outline-secondary btn-sm mb-2">
-                        <i class="bi bi-arrow-left me-2"></i>Kembali ke Daftar Pekerja
-                    </a>
-                    <h2 class="fw-bold mb-1">Training Records Detail</h2>
-                    <div class="d-flex align-items-center">
-                        <div class="avatar-initial rounded-circle bg-primary text-white me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; font-size: 1.5rem;">
-                            @workerName.Substring(0, 1)
-                        </div>
-                        <div>
-                            <h4 class="mb-0">@workerName</h4>
-                            <small class="text-muted">Worker ID: @workerId</small>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <button class="btn btn-success" onclick="exportWorkerRecords()">
-                        <i class="bi bi-file-earmark-excel me-2"></i>Export to Excel
-                    </button>
-                </div>
-            </div>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("EditWorker", "CMP", new { id = Model.Id })" class="btn btn-primary" id="btnEditFromDetail">
+                <i class="bi bi-pencil-square me-2"></i>Edit
+            </a>
+            <a href="@Url.Action("ManageWorkers", "CMP")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-2"></i>Kembali
+            </a>
         </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-2">Total Records</h6>
-                            <h2 class="fw-bold mb-0">@Model.Count</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="bi bi-clipboard-check" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-2">Selesai</h6>
-                            <h2 class="fw-bold mb-0">@Model.Count(x => (x.RecordType == "Assessment Online" && x.IsPassed == true) || (x.RecordType == "Training Manual" && (x.Status == "Passed" || x.Status == "Valid")))</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="bi bi-check-circle-fill" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-0 shadow-sm h-100" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-white-50 mb-2">Pending</h6>
-                            <h2 class="fw-bold mb-0">@Model.Count(x => x.Status == "Wait Certificate")</h2>
-                        </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="bi bi-hourglass-split" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filter and Search Section -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-md-8">
-                    <label class="form-label fw-bold small">Cari Judul</label>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Cari berdasarkan judul..." onkeyup="filterRecords()">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Training Records Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom py-3">
-            <h5 class="mb-0 fw-bold">
-                <i class="bi bi-list-check me-2"></i>Training Records
-            </h5>
-        </div>
+    <!-- Card 1: Identity Banner -->
+    <div class="card border-0 shadow-sm mb-4 overflow-hidden">
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="trainingTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="p-3" style="width: 4%;">No</th>
-                            <th class="p-3" style="width: 9%;">Tanggal</th>
-                            <th class="p-3" style="width: 13%;">Tipe</th>
-                            <th class="p-3" style="width: 18%;">Nama / Judul</th>
-                            <th class="p-3 text-center" style="width: 6%;">Score</th>
-                            <th class="p-3 text-center" style="width: 8%;">Pass/Fail</th>
-                            <th class="p-3" style="width: 11%;">Penyelenggara</th>
-                            <th class="p-3" style="width: 9%;">Tipe Sertifikat</th>
-                            <th class="p-3" style="width: 10%;">Berlaku Sampai</th>
-                            <th class="p-3" style="width: 7%;">Status</th>
-                            <th class="p-3 text-center" style="width: 5%;">Sertifikat</th>
-                            <th class="p-3 text-center" style="width: 8%;">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @{
-                            int rowNumber = 1;
-                        }
-                        @foreach (var item in Model.OrderByDescending(x => x.Date).ThenBy(x => x.SortPriority))
-                        {
-                            <tr class="training-row" data-title="@(item.Title.ToLower())">
-                                <td class="p-3 text-center">@rowNumber</td>
-                                <td class="p-3"><small>@item.Date.ToString("dd MMM yyyy")</small></td>
-                                <td class="p-3">
-                                    @if (item.RecordType == "Assessment Online")
-                                    { <span class="badge rounded-pill bg-primary">Assessment Online</span> }
-                                    else
-                                    { <span class="badge rounded-pill bg-success">Training Manual</span> }
-                                </td>
-                                <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
-                                <td class="p-3 text-center">@(item.Score.HasValue ? item.Score.ToString() : "—")</td>
-                                <td class="p-3 text-center">
-                                    @if (item.IsPassed.HasValue)
+            <div class="d-flex align-items-center p-4 gap-4" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);">
+                <div class="flex-shrink-0 rounded-circle bg-white text-primary fw-bold d-flex align-items-center justify-content-center shadow"
+                     style="width: 80px; height: 80px; font-size: 1.8rem;">
+                    @initials
+                </div>
+                <div class="text-white">
+                    <h3 class="mb-1 fw-bold">@Model.FullName</h3>
+                    <p class="mb-2 opacity-75"><i class="bi bi-envelope me-1"></i>@Model.Email</p>
+                    <span class="badge @roleBadgeClass" style="font-size: 0.85rem;">@role</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+
+        <!-- Card 2: Informasi Organisasi -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-success bg-opacity-10 border-0">
+                    <h6 class="mb-0 fw-bold text-success">
+                        <i class="bi bi-building me-2"></i>Informasi Organisasi
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted pe-3" style="width: 45%;">NIP / Nopeg</td>
+                                <td class="fw-semibold">@(Model.NIP ?? "-")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Jabatan</td>
+                                <td class="fw-semibold">@(Model.Position ?? "-")</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Bagian</td>
+                                <td class="fw-semibold">
+                                    @if (!string.IsNullOrEmpty(Model.Section))
                                     {
-                                        if (item.IsPassed == true) { <span class="badge bg-success">Pass</span> }
-                                        else { <span class="badge bg-danger">Fail</span> }
-                                    }
-                                    else { <span class="text-muted">—</span> }
-                                </td>
-                                <td class="p-3"><small class="text-muted">@(item.Penyelenggara ?? "—")</small></td>
-                                <td class="p-3">@(item.CertificateType ?? "—")</td>
-                                <td class="p-3">
-                                    @if (item.ValidUntil.HasValue)
-                                    {
-                                        <div>@item.ValidUntil.Value.ToString("dd MMM yyyy")</div>
-                                        @if (item.IsExpired)
-                                        { <span class="badge bg-danger mt-1">Expired</span> }
-                                    }
-                                    else { <span class="text-muted">—</span> }
-                                </td>
-                                <td class="p-3">
-                                    @{
-                                        var sc = item.Status switch {
-                                            "Passed" => "bg-success", "Valid" => "bg-success",
-                                            "Failed" => "bg-danger",
-                                            "Wait Certificate" => "bg-warning text-dark",
-                                            _ => "bg-secondary"
-                                        };
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.Status))
-                                    { <span class="badge @sc">@item.Status</span> }
-                                    else { <span class="text-muted">—</span> }
-                                </td>
-                                <td class="p-3 text-center">
-                                    @if (!string.IsNullOrEmpty(item.SertifikatUrl))
-                                    {
-                                        <a href="@item.SertifikatUrl" target="_blank" class="btn btn-sm btn-outline-success" title="Download Sertifikat">
-                                            <i class="bi bi-download"></i>
-                                        </a>
+                                        <span class="badge bg-primary bg-opacity-10 text-primary">@Model.Section</span>
                                     }
                                     else
                                     {
-                                        <span class="text-muted">—</span>
-                                    }
-                                </td>
-                                <td class="p-3 text-center">
-                                    @if (item.RecordType == "Training Manual" && item.TrainingRecordId.HasValue)
-                                    {
-                                        <div class="d-flex gap-1 justify-content-center">
-                                            <button type="button" class="btn btn-sm btn-outline-primary" title="Edit"
-                                                    data-bs-toggle="modal" data-bs-target="#editModal-@item.TrainingRecordId">
-                                                <i class="bi bi-pencil"></i>
-                                            </button>
-                                            <form method="post" action="@Url.Action("DeleteTrainingRecord", "CMP")" style="display:inline;">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@item.TrainingRecordId" />
-                                                <input type="hidden" name="workerId" value="@workerId" />
-                                                <input type="hidden" name="workerName" value="@workerName" />
-                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus"
-                                                        onclick="return confirm('Hapus training record ini? Tindakan ini tidak dapat dibatalkan.')">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">—</span>
+                                        <span class="text-muted">-</span>
                                     }
                                 </td>
                             </tr>
-                            rowNumber++;
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            @foreach (var item in Model.Where(x => x.RecordType == "Training Manual" && x.TrainingRecordId.HasValue))
-            {
-                <div class="modal fade" id="editModal-@item.TrainingRecordId" tabindex="-1"
-                     aria-labelledby="editModalLabel-@item.TrainingRecordId" aria-hidden="true">
-                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title fw-bold" id="editModalLabel-@item.TrainingRecordId">
-                                    <i class="bi bi-pencil-square me-2"></i>Edit Training Record
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form method="post" action="@Url.Action("EditTrainingRecord", "CMP")"
-                                  enctype="multipart/form-data">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="Id" value="@item.TrainingRecordId" />
-                                <input type="hidden" name="WorkerId" value="@workerId" />
-                                <input type="hidden" name="WorkerName" value="@workerName" />
-                                <input type="hidden" name="ExistingSertifikatUrl" value="@item.SertifikatUrl" />
-                                <div class="modal-body">
-                                    <div class="row g-3">
-                                        <!-- Judul -->
-                                        <div class="col-md-12">
-                                            <label class="form-label fw-bold small">Nama Pelatihan <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" name="Judul" value="@item.Title" required />
-                                        </div>
-                                        <!-- Penyelenggara & Kota -->
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold small">Penyelenggara <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" name="Penyelenggara" value="@item.Penyelenggara" required />
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold small">Kota</label>
-                                            <input type="text" class="form-control" name="Kota" value="@item.Kota" />
-                                        </div>
-                                        <!-- Kategori -->
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold small">Kategori <span class="text-danger">*</span></label>
-                                            <select class="form-select" name="Kategori" required>
-                                                @{
-                                                    var kategoriOptions = new[] { "Safety", "Technical", "Soft Skill", "Compliance", "Leadership", "Lainnya" };
-                                                    foreach (var opt in kategoriOptions)
-                                                    {
-                                                        if (item.Kategori == opt)
-                                                        { <option value="@opt" selected>@opt</option> }
-                                                        else
-                                                        { <option value="@opt">@opt</option> }
-                                                    }
-                                                }
-                                            </select>
-                                        </div>
-                                        <!-- Status -->
-                                        <div class="col-md-6">
-                                            <label class="form-label fw-bold small">Status <span class="text-danger">*</span></label>
-                                            <select class="form-select" name="Status" required>
-                                                @{
-                                                    var statusOptions = new[] { "Passed", "Failed", "Wait Certificate", "Valid", "Expired" };
-                                                    foreach (var opt in statusOptions)
-                                                    {
-                                                        if (item.Status == opt)
-                                                        { <option value="@opt" selected>@opt</option> }
-                                                        else
-                                                        { <option value="@opt">@opt</option> }
-                                                    }
-                                                }
-                                            </select>
-                                        </div>
-                                        <!-- Tanggal -->
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold small">Tanggal <span class="text-danger">*</span></label>
-                                            <input type="date" class="form-control" name="Tanggal"
-                                                   value="@item.Date.ToString("yyyy-MM-dd")" required />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold small">Tanggal Mulai</label>
-                                            <input type="date" class="form-control" name="TanggalMulai"
-                                                   value="@(item.TanggalMulai.HasValue ? item.TanggalMulai.Value.ToString("yyyy-MM-dd") : "")" />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold small">Tanggal Selesai</label>
-                                            <input type="date" class="form-control" name="TanggalSelesai"
-                                                   value="@(item.TanggalSelesai.HasValue ? item.TanggalSelesai.Value.ToString("yyyy-MM-dd") : "")" />
-                                        </div>
-                                        <!-- Nomor Sertifikat & Berlaku Sampai & Certificate Type -->
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold small">Nomor Sertifikat</label>
-                                            <input type="text" class="form-control" name="NomorSertifikat"
-                                                   value="@item.NomorSertifikat" />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold small">Berlaku Sampai</label>
-                                            <input type="date" class="form-control" name="ValidUntil"
-                                                   value="@(item.ValidUntil.HasValue ? item.ValidUntil.Value.ToString("yyyy-MM-dd") : "")" />
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label fw-bold small">Tipe Sertifikat</label>
-                                            <select class="form-select" name="CertificateType">
-                                                <option value="">-- Pilih --</option>
-                                                @{
-                                                    var certTypes = new[] { "Internal", "External", "International", "Regulator" };
-                                                    foreach (var opt in certTypes)
-                                                    {
-                                                        if (item.CertificateType == opt)
-                                                        { <option value="@opt" selected>@opt</option> }
-                                                        else
-                                                        { <option value="@opt">@opt</option> }
-                                                    }
-                                                }
-                                            </select>
-                                        </div>
-                                        <!-- Certificate section -->
-                                        <div class="col-md-12">
-                                            <hr />
-                                            <label class="form-label fw-bold small">Sertifikat</label>
-                                            @if (!string.IsNullOrEmpty(item.SertifikatUrl))
-                                            {
-                                                <div class="mb-2">
-                                                    <a href="@item.SertifikatUrl" target="_blank" class="btn btn-sm btn-outline-success">
-                                                        <i class="bi bi-download me-1"></i>Download Sertifikat Saat Ini
-                                                    </a>
-                                                    <small class="text-muted ms-2">Upload file baru di bawah untuk mengganti sertifikat ini.</small>
-                                                </div>
-                                            }
-                                            <input type="file" class="form-control" name="CertificateFile"
-                                                   accept=".pdf,.jpg,.jpeg,.png" />
-                                            <div class="form-text">
-                                                @(string.IsNullOrEmpty(item.SertifikatUrl)
-                                                    ? "Upload file sertifikat (PDF, JPG, PNG, maks. 10 MB)."
-                                                    : "Kosongkan jika tidak ingin mengganti sertifikat.")
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-floppy me-1"></i>Simpan Perubahan
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                            <tr>
+                                <td class="text-muted">Unit</td>
+                                <td class="fw-semibold"><small>@(Model.Unit ?? "-")</small></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Directorate</td>
+                                <td class="fw-semibold"><small>@(Model.Directorate ?? "-")</small></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Tgl Bergabung</td>
+                                <td class="fw-semibold">
+                                    @(Model.JoinDate.HasValue ? Model.JoinDate.Value.ToString("dd MMMM yyyy") : "-")
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            }
+            </div>
         </div>
+
+        <!-- Card 3: Hak Akses & Sistem -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-warning bg-opacity-10 border-0">
+                    <h6 class="mb-0 fw-bold text-warning">
+                        <i class="bi bi-shield-lock me-2"></i>Hak Akses &amp; Sistem
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless table-sm mb-0">
+                        <tbody>
+                            <tr>
+                                <td class="text-muted pe-3" style="width: 50%;">Role</td>
+                                <td><span class="badge @roleBadgeClass">@role</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Role Level</td>
+                                <td class="fw-semibold">Level @Model.RoleLevel</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Tampilan Default</td>
+                                <td>
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border">@Model.SelectedView</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Email Terverifikasi</td>
+                                <td>
+                                    @if (Model.EmailConfirmed)
+                                    {
+                                        <span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>Ya</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-danger"><i class="bi bi-x-circle-fill me-1"></i>Belum</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Akun Terkunci</td>
+                                <td>
+                                    @if (Model.LockoutEnd.HasValue && Model.LockoutEnd.Value > DateTimeOffset.UtcNow)
+                                    {
+                                        <span class="text-danger"><i class="bi bi-lock-fill me-1"></i>Terkunci</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-success"><i class="bi bi-unlock-fill me-1"></i>Aktif</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Username</td>
+                                <td><small class="font-monospace text-muted">@Model.UserName</small></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">User ID</td>
+                                <td><small class="font-monospace text-muted" style="font-size: 0.68rem;">@Model.Id</small></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="d-flex justify-content-end gap-2 mt-4">
+        <a href="@Url.Action("ManageWorkers", "CMP")" class="btn btn-light px-4">
+            <i class="bi bi-arrow-left me-2"></i>Kembali ke Daftar
+        </a>
+        <a href="@Url.Action("EditWorker", "CMP", new { id = Model.Id })" class="btn btn-primary px-4">
+            <i class="bi bi-pencil-square me-2"></i>Edit Akun
+        </a>
     </div>
 </div>
-
-<style>
-    .training-row {
-        transition: all 0.2s ease;
-    }
-
-    .training-row:hover {
-        background-color: #f8f9ff;
-        transform: scale(1.005);
-    }
-
-    .table-responsive {
-        max-height: 600px;
-        overflow-y: auto;
-    }
-
-    .table thead {
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        background: white;
-    }
-</style>
-
-<script>
-    function filterRecords() {
-        const searchInput = document.getElementById('searchInput').value.toLowerCase();
-        const rows = document.querySelectorAll('.training-row');
-
-        rows.forEach(row => {
-            const title = row.getAttribute('data-title');
-            const searchMatch = !searchInput || title.includes(searchInput);
-            row.style.display = searchMatch ? '' : 'none';
-        });
-
-        // Update row numbers
-        let visibleNumber = 1;
-        rows.forEach(row => {
-            if (row.style.display !== 'none') {
-                row.querySelector('td:first-child').textContent = visibleNumber++;
-            }
-        });
-    }
-
-    function exportWorkerRecords() {
-        const workerName = '@workerName';
-        const rows = Array.from(document.querySelectorAll('.training-row')).filter(row => row.style.display !== 'none');
-
-        if (rows.length === 0) {
-            alert('No data to export');
-            return;
-        }
-
-        let csv = 'No,Tanggal,Tipe,Nama/Judul,Score,Pass/Fail,Penyelenggara,Tipe Sertifikat,Berlaku Sampai,Status,Sertifikat,Aksi\n';
-
-        rows.forEach((row, index) => {
-            const cells = row.querySelectorAll('td');
-            const no = index + 1;
-            const tanggal = cells[1].textContent.trim();
-            const tipe = cells[2].textContent.trim();
-            const nama = cells[3].textContent.trim();
-            const score = cells[4].textContent.trim();
-            const passFail = cells[5].textContent.trim();
-            const penyelenggara = cells[6].textContent.trim();
-            const tipeSertifikat = cells[7].textContent.trim();
-            const berlakuSampai = cells[8].textContent.trim();
-            const status = cells[9].textContent.trim();
-            const sertifikat = cells[10] ? cells[10].querySelector('a') ? cells[10].querySelector('a').getAttribute('href') : '' : '';
-
-            csv += `${no},"${tanggal}","${tipe}","${nama}","${score}","${passFail}","${penyelenggara}","${tipeSertifikat}","${berlakuSampai}","${status}","${sertifikat}",""\n`;
-        });
-
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-
-        link.setAttribute('href', url);
-        link.setAttribute('download', `Training_Records_${workerName.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
-        link.style.visibility = 'hidden';
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-</script>
