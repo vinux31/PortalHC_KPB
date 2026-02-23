@@ -68,15 +68,17 @@ Each task was committed atomically:
 1. **Task 1: Create Index.cshtml and _CatalogTree.cshtml** - `2430d4b` (feat)
 2. **Task 2 (original): CDP nav dropdown** - `8fccbf1` (feat) — superseded by revision
 3. **Task 2 (revised): Revert nav to plain link + CDP Index card** - `027b159` (fix)
+4. **Task 2 (layout revision): Split CDP Index into two sections, rename title** - `5526a2e` (fix)
+5. **Task 3: Human verification checkpoint** - APPROVED
 
-**Plan metadata:** _(docs commit follows)_
+**Plan metadata:** `0bf3f60` (docs — pre-checkpoint), updated after verification
 
 ## Files Created/Modified
 
 - `Views/ProtonCatalog/Index.cshtml` - Track dropdown, AJAX tree container, Add Track modal, all JS in @section Scripts
 - `Views/ProtonCatalog/_CatalogTree.cshtml` - Three-level collapse tree partial with inline chevron script
 - `Views/Shared/_Layout.cshtml` - CDP nav reverted to plain `<a>` link (was dropdown, now direct link to /CDP/Index)
-- `Views/CDP/Index.cshtml` - Proton Catalog card added (bg-success, bi-list-check), visible to HC/Admin via User.IsInRole
+- `Views/CDP/Index.cshtml` - Proton Catalog card added (bg-success, bi-list-check), visible to HC/Admin via User.IsInRole; layout split into two sections (CDP/IDP group and Proton Program group)
 
 ## Decisions Made
 
@@ -95,9 +97,16 @@ Each task was committed atomically:
 - **Revision committed as:** `027b159` — fix commit applying both changes
 - **Impact:** CDP/Index.cshtml added as a modified file (not in original plan); _Layout.cshtml change is a revert not a net-new modification
 
+### Additional layout revision after Task 2
+
+**Commit `5526a2e`: CDP/Index layout split + title rename**
+- CDP/Index.cshtml cards split into two labelled sections: "CDP/IDP" group (CDP, CMP, BP) and "Proton Program" group (Proton Main, Proton Catalog), with an `<hr>` divider
+- ProtonCatalog/Index.cshtml page heading renamed from "Proton Catalog Manager" to "Proton Catalog"; subtitle card text updated to "Catalog Management"
+- User-directed after reviewing the initial layout
+
 ---
 
-**Total deviations:** 1 user-directed revision (not an auto-fix)
+**Total deviations:** 1 user-directed revision with two commits (nav approach changed, then layout refined); not auto-fixes
 **Impact on plan:** Scope equivalent — Proton Catalog is still navigable for HC/Admin, just via CDP Index page rather than navbar. No other tasks affected.
 
 ## Issues Encountered
@@ -110,7 +119,7 @@ None - no external service configuration required.
 
 ## Next Phase Readiness
 
-- Phase 34 complete pending human verification checkpoint (Task 3)
+- Phase 34 COMPLETE — human verification checkpoint passed (approved 2026-02-23)
 - Views/ProtonCatalog/Index.cshtml and _CatalogTree.cshtml are ready for Phase 35 (catalog editor: add/edit/delete/reorder Kompetensi, SubKompetensi, Deliverables)
 - ProtonCatalogController is wired and functional; Phase 35 will extend it with CRUD endpoints
 
@@ -119,9 +128,11 @@ None - no external service configuration required.
 - Views/ProtonCatalog/Index.cshtml: FOUND
 - Views/ProtonCatalog/_CatalogTree.cshtml: FOUND
 - Views/Shared/_Layout.cshtml (CDP plain link): FOUND
-- Views/CDP/Index.cshtml (Proton Catalog card): FOUND
+- Views/CDP/Index.cshtml (Proton Catalog card + two-section layout): FOUND
 - Commit 2430d4b (Task 1): FOUND
 - Commit 027b159 (Task 2 revision): FOUND
+- Commit 5526a2e (layout revision): FOUND
+- Human verification checkpoint: APPROVED
 
 ---
 *Phase: 34-catalog-page*
