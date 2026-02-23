@@ -255,11 +255,11 @@ Plans:
   3. HC/Admin expands a Kompetensi row — SubKompetensi rows appear beneath it; expanding a SubKompetensi row reveals its Deliverables
   4. HC/Admin submits the "Add Track" modal with TrackType, TahunKe, and DisplayName — the new track appears in the dropdown immediately without a full page reload
   5. Page is read-only in this phase (no add/edit/delete/reorder controls yet)
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 34-01-PLAN.md — ProtonCatalogController with Index GET (load tracks, load catalog for selected track), CreateTrack POST (AJAX JSON); ProtonCatalog ViewModels
-- [ ] 34-02-PLAN.md — ProtonCatalog/Index.cshtml: track dropdown with AJAX reload on change, collapsible tree table (Bootstrap collapse or JS toggle), Add Track modal; nav link in _Layout.cshtml for HC/Admin
+- [ ] 34-01-PLAN.md — ProtonCatalogController with Index GET (load tracks, load catalog for selected track), GetCatalogTree GET (AJAX partial), AddTrack POST (JSON); ProtonCatalogViewModel appended to ProtonViewModels.cs
+- [ ] 34-02-PLAN.md — Views/ProtonCatalog/Index.cshtml (track dropdown, AJAX tree reload, Add Track modal + JS), Views/ProtonCatalog/_CatalogTree.cshtml (Bootstrap collapse tree partial), _Layout.cshtml CDP nav dropdown with Proton Catalog link (HC/Admin only)
 
 ---
 
