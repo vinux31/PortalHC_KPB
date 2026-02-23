@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phases 27-30 ✅ complete, Phase 31 planned and ready to execute
+**Current focus:** v1.8 Assessment Polish — Phases 27-31 ✅ complete, v1.8 milestone complete
 
 ## Current Position
 
-**Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 31: HC Reporting Actions — 🗺 PLANNED (0/2 plans executed)
-**Next Phase:** Phase 31 — ready to execute (2 plans, 1 wave)
-**Status:** Phase 31 fully planned. 31-01: ExportAssessmentResults GET action (ClosedXML, all workers, Name/NIP/Package/Status/Score/Result/CompletedAt). 31-02: ForceCloseAll POST action (Open/InProgress→Abandoned, AuditLogService summary entry, confirm() guard). Both plans Wave 1.
-**Last activity:** 2026-02-23 — Phase 31 planned: research + planner + checker all passed. Ready for /gsd:execute-phase 31.
+**Milestone:** v1.8 Assessment Polish — COMPLETE
+**Phase:** Phase 31: HC Reporting Actions — COMPLETE (2/2 plans executed)
+**Next Phase:** Plan next milestone (v1.9)
+**Status:** 31-02 complete: ForceCloseAll POST action (Open/InProgress→Abandoned, one AuditLog summary entry, confirm() guard, btn-danger). Phase 31 fully done. v1.8 complete.
+**Last activity:** 2026-02-23 — Phase 31-02 executed: ForceCloseAll action + Force Close All button. Build clean (0 errors).
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
+Progress: [██░░░░░░░░░░░░░░░░░░] 10% (v1.8) | v1.7 complete ✅
 
 ## Performance Metrics
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 29-auto-transition-upcoming-to-open P02 | 5min | 2 tasks | 1 files |
 | Phase 29-auto-transition-upcoming-to-open P03 | 2min | 2 tasks | 3 files |
 | Phase 30-import-deduplication P01 | 1min | 2 tasks | 1 files |
+| Phase 31-hc-reporting-actions P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 29-03]: ScheduleDate+ScheduleTime plain inputs (no asp-for); ScheduleHidden carries asp-for binding populated by JS before submit
 - [Phase 29-03]: Upcoming worker card disabled button shows exact opening datetime (HH:mm WIB) instead of day-countdown arithmetic
 - [Phase 30-01]: Import deduplication: NormalizeText (trim+collapse whitespace+toLowerInvariant, no punctuation strip) + MakeFingerprint (join with ||| separator) + HashSet<string> existingFingerprints (per-package) + seenInBatch (in-batch self-dedup); silent skip with skipped counter (no errors entry); 0-valid-rows branch before all-duplicates branch in TempData routing; ThenInclude(q => q.Options) required on POST query; options sorted by Id asc for stable fingerprint
+- [Phase 31-01]: ExportAssessmentResults uses GET (file downloads need no antiforgery); all sessions queried without status filter so not-started workers appear; Score written as Score?.ToString() ?? "—" to avoid XLCellValue ambiguous overload; Package column conditional on isPackageMode (both header col++ and data row c++ incremented conditionally; totalCols = isPackageMode ? 7 : 6 for header range); btn-outline-success for Export button; d-flex gap-2 wrapper alongside Reshuffle All scales to future additions
+- [Phase 31-02]: ForceCloseAll sets Status=Abandoned (not Completed): bulk administrative closure does not record a score
+- [Phase 31-02]: One AuditLog entry per bulk action with session count in description (not per-session rows)
+- [Phase 31-02]: POST form ForceCloseAll uses @Html.AntiForgeryToken() inside form + onsubmit confirm() guard (Indonesian text) + btn-danger
 
 ### Pending Todos
 
@@ -152,5 +157,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Session resumed, Phase 31 planned. Research + planning + verification complete. Proceeding to execute-phase 31.
+Stopped at: Completed 31-01-PLAN.md — ExportAssessmentResults action + Export Results button. Ready for 31-02.
 Resume file: None.
