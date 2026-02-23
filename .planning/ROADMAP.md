@@ -11,7 +11,7 @@
 - ✅ **v1.5 Question and Exam UX** — Phase 17 (shipped 2026-02-19)
 - ✅ **v1.6 Training Records Management** — Phases 18-20 (shipped 2026-02-20)
 - ✅ **v1.7 Assessment System Integrity** — Phases 21-26 (shipped 2026-02-21)
-- 🚧 **v1.8 Assessment Polish** — Phases 27-31 (in progress)
+- ✅ **v1.8 Assessment Polish** — Phases 27-31 (shipped 2026-02-23)
 
 ## Phases
 
@@ -277,7 +277,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 30-01-PLAN.md — Add fingerprint-based dedup to ImportPackageQuestions POST: ThenInclude Options, NormalizeText+MakeFingerprint helpers, HashSet skip check (package-scope + in-batch), 3-branch TempData routing with path-specific messages
+- [x] 30-01-PLAN.md — Add fingerprint-based dedup to ImportPackageQuestions POST: ThenInclude Options, NormalizeText+MakeFingerprint helpers, HashSet skip check (package-scope + in-batch), 3-branch TempData routing with path-specific messages
 
 ---
 
@@ -292,9 +292,11 @@ Plans:
   4. Force Close All is a single click with a confirmation prompt — no per-session action required
 **Plans:** 2 plans
 
+**Completed:** 2026-02-23
+
 Plans:
-- [ ] 31-01-PLAN.md — Excel results export: ExportAssessmentResults action, ClosedXML workbook with worker result rows, download link on monitoring detail page
-- [ ] 31-02-PLAN.md — Bulk force-close: ForceCloseAll controller action (POST), update all Open/InProgress sessions to Abandoned, audit log entry, UI button with confirm prompt on monitoring view
+- [x] 31-01-PLAN.md — Excel results export: ExportAssessmentResults action, ClosedXML workbook with worker result rows, download link on monitoring detail page
+- [x] 31-02-PLAN.md — Bulk force-close: ForceCloseAll controller action (POST), update all Open/InProgress sessions to Abandoned, audit log entry, UI button with confirm prompt on monitoring view
 
 ### Phase 32: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers
 
