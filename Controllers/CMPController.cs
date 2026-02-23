@@ -3266,8 +3266,22 @@ namespace HcPortal.Controllers
         {
             var pkg = await _context.AssessmentPackages
                 .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(p => p.Id == packageId);
             if (pkg == null) return NotFound();
+
+            // Build fingerprint set from existing package questions (for deduplication)
+            var existingFingerprints = pkg.Questions.Select(q =>
+            {
+                var opts = q.Options.OrderBy(o => o.Id).Select(o => o.OptionText).ToList();
+                return MakeFingerprint(
+                    q.QuestionText,
+                    opts.ElementAtOrDefault(0) ?? "",
+                    opts.ElementAtOrDefault(1) ?? "",
+                    opts.ElementAtOrDefault(2) ?? "",
+                    opts.ElementAtOrDefault(3) ?? "");
+            }).ToHashSet();
+            var seenInBatch = new HashSet<string>();
 
             List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct)> rows;
             var errors = new List<string>();
@@ -3341,6 +3355,7 @@ namespace HcPortal.Controllers
             // Validate and persist rows
             int order = pkg.Questions.Count + 1;
             int added = 0;
+            int skipped = 0;
             for (int i = 0; i < rows.Count; i++)
             {
                 var (q, a, b, c, d, cor) = rows[i];
@@ -3362,6 +3377,15 @@ namespace HcPortal.Controllers
                     errors.Add($"Row {i + 1}: 'Correct' column must be A, B, C, or D. Got '{cor}'. Skipped.");
                     continue;
                 }
+
+                // Deduplication: skip rows already in the package or seen in this import batch
+                var fp = MakeFingerprint(q, a, b, c, d);
+                if (existingFingerprints.Contains(fp) || seenInBatch.Contains(fp))
+                {
+                    skipped++;
+                    continue;
+                }
+                seenInBatch.Add(fp);
 
                 var newQ = new PackageQuestion
                 {
@@ -3389,11 +3413,25 @@ namespace HcPortal.Controllers
                 added++;
             }
 
-            if (errors.Any())
-                TempData["Warning"] = $"Imported {added} question(s) with {errors.Count} error(s): " +
-                                      string.Join(" | ", errors.Take(5));
+            // 0-valid-rows: something submitted but nothing parseable
+            if (added == 0 && skipped == 0)
+            {
+                TempData["Warning"] = "No valid questions found in the import. Check the format and try again.";
+                return RedirectToAction("ImportPackageQuestions", new { packageId });
+            }
+
+            // All-duplicates: every parseable row was already in the package
+            if (added == 0 && skipped > 0)
+            {
+                TempData["Warning"] = "All questions were already in the package. Nothing was added.";
+                return RedirectToAction("ImportPackageQuestions", new { packageId });
+            }
+
+            // Normal success: at least 1 row was added
+            if (excelFile != null && excelFile.Length > 0)
+                TempData["Success"] = $"Imported from file: {added} added, {skipped} skipped.";
             else
-                TempData["Success"] = $"Successfully imported {added} question(s) into {pkg.PackageName}.";
+                TempData["Success"] = $"{added} added, {skipped} skipped.";
 
             return RedirectToAction("ManagePackages", new { assessmentId = pkg.AssessmentSessionId });
         }
