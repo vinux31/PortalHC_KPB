@@ -2,20 +2,20 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-21)
+See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phases 27-31 ✅ complete, v1.8 milestone complete
+**Current focus:** v1.9 Proton Catalog Management — defining requirements and roadmap
 
 ## Current Position
 
-**Milestone:** v1.8 Assessment Polish — COMPLETE
-**Phase:** Phase 31: HC Reporting Actions — COMPLETE (2/2 plans executed)
-**Next Phase:** Plan next milestone (v1.9)
-**Status:** 31-02 complete: ForceCloseAll POST action (Open/InProgress→Abandoned, one AuditLog summary entry, confirm() guard, btn-danger). Phase 31 fully done. v1.8 complete.
-**Last activity:** 2026-02-23 — Phase 31-02 executed: ForceCloseAll action + Force Close All button. Build clean (0 errors).
+**Milestone:** v1.9 Proton Catalog Management — IN PROGRESS (defining)
+**Phase:** Not started (requirements phase)
+**Next Phase:** Phase 33 (first phase, numbering from 33)
+**Status:** Milestone defined. Scope: single-page tree table for HC/Admin to CRUD Proton catalog (Track → Kompetensi → SubKompetensi → Deliverable) with drag-and-drop reorder and delete guards.
+**Last activity:** 2026-02-23 — v1.9 milestone started. v1.8 fully shipped.
 
-Progress: [██░░░░░░░░░░░░░░░░░░] 10% (v1.8) | v1.7 complete ✅
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v1.9) | v1.8 complete ✅
 
 ## Performance Metrics
 
@@ -155,8 +155,10 @@ None.
 - Phase 29 Plan 03 complete: Schedule time picker added to Create/Edit Assessment forms; Upcoming worker cards now show exact "Opens DD MMM YYYY, HH:mm WIB" (2026-02-21)
 - Phase 31 complete: HC Reporting Actions — ExportAssessmentResults (Plan 01, ClosedXML all-workers export) + ForceCloseAll (Plan 02, bulk Abandoned + one AuditLog summary entry); v1.8 milestone complete (2026-02-23)
 
+- v1.9 started: Proton Catalog Management — single-page tree table, ProtonTrack entity, CRUD+reorder+delete guards for all 3 hierarchy levels (Kompetensi/SubKompetensi/Deliverable) (2026-02-23)
+
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 31-02-PLAN.md — ForceCloseAll action + Force Close All button. Phase 31 and v1.8 complete.
+Stopped at: Session resumed, v1.9 milestone started (Proton Catalog Management). Defining requirements and roadmap.
 Resume file: None.

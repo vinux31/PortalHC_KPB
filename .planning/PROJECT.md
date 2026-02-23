@@ -12,17 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v1.8 Assessment Polish
+## Current Milestone: v1.9 Proton Catalog Management
 
-**Goal:** Close the monitoring consistency gap and add HC productivity features — correct 4-state status display, package re-assignment, status auto-transition, question import deduplication, per-assessment export, and bulk session close.
+**Goal:** HC/Admin can manage the full Proton program catalog (Tracks → Kompetensi → SubKompetensi → Deliverables) through a single web page — add, edit, delete, and reorder without database access.
 
 **Target features:**
-- Fix GetMonitorData to show Abandoned/InProgress in monitoring card summary (4-state)
-- HC can re-assign or reshuffle a worker's package from management UI
-- Upcoming sessions auto-transition to Open when schedule date arrives
-- ImportPackageQuestions deduplicates identical question rows on re-import
-- HC can download an Excel export of results from the monitoring detail page
-- HC can bulk force-close all Open/InProgress sessions for an assessment at once
+- New `ProtonTrack` entity replaces hardcoded TrackType+TahunKe strings; HC can create new tracks
+- Single-page tree table showing entire catalog hierarchy with expand/collapse per track
+- Inline add/edit for all three levels (Kompetensi, SubKompetensi, Deliverable) via AJAX
+- Drag-and-drop reorder (SortableJS) within each level
+- Delete guard: show active coachee count, require hard confirmation before deleting items with live progress
 
 ## Current State (v1.7 — shipped 2026-02-21)
 
@@ -417,4 +416,4 @@ All requirements from v1.0–v1.7 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-21 after v1.7 milestone*
+*Last updated: 2026-02-23 after v1.8 milestone — starting v1.9 Proton Catalog Management*
