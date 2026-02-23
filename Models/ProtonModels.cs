@@ -1,17 +1,34 @@
 namespace HcPortal.Models;
 
 /// <summary>
+/// Normalized track entity — single source of truth for Proton track identifiers (Phase 33)
+/// </summary>
+public class ProtonTrack
+{
+    public int Id { get; set; }
+    /// <summary>Values: "Panelman" or "Operator"</summary>
+    public string TrackType { get; set; } = "";
+    /// <summary>Values: "Tahun 1", "Tahun 2", "Tahun 3"</summary>
+    public string TahunKe { get; set; } = "";
+    /// <summary>Auto-generated at seed time. Format: "Panelman - Tahun 1" (TrackType + " - " + TahunKe)</summary>
+    public string DisplayName { get; set; } = "";
+    /// <summary>Display order in UI dropdowns (1-6)</summary>
+    public int Urutan { get; set; }
+
+    // Navigation property — one Track has many Kompetensi
+    public ICollection<ProtonKompetensi> KompetensiList { get; set; } = new List<ProtonKompetensi>();
+}
+
+/// <summary>
 /// Master table — top level of Proton deliverable hierarchy
 /// </summary>
 public class ProtonKompetensi
 {
     public int Id { get; set; }
     public string NamaKompetensi { get; set; } = "";
-    /// <summary>Values: "Panelman" or "Operator"</summary>
-    public string TrackType { get; set; } = "";
-    /// <summary>Values: "Tahun 1", "Tahun 2", "Tahun 3"</summary>
-    public string TahunKe { get; set; } = "";
     public int Urutan { get; set; }
+    public int ProtonTrackId { get; set; }
+    public ProtonTrack? ProtonTrack { get; set; }
 
     public ICollection<ProtonSubKompetensi> SubKompetensiList { get; set; } = new List<ProtonSubKompetensi>();
 }
@@ -52,10 +69,8 @@ public class ProtonTrackAssignment
     public string CoacheeId { get; set; } = "";
     /// <summary>No FK constraint</summary>
     public string AssignedById { get; set; } = "";
-    /// <summary>Values: "Panelman" or "Operator"</summary>
-    public string TrackType { get; set; } = "";
-    /// <summary>Values: "Tahun 1", "Tahun 2", "Tahun 3"</summary>
-    public string TahunKe { get; set; } = "";
+    public int ProtonTrackId { get; set; }
+    public ProtonTrack? ProtonTrack { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
 }
