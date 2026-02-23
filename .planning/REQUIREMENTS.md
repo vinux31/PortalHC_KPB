@@ -61,19 +61,19 @@ Deferred to v1.10+.
 | SCHEMA-01 | Phase 33 | Pending |
 | CAT-01 | Phase 34 | Pending |
 | CAT-02 | Phase 34 | Pending |
+| CAT-09 | Phase 34 | Pending |
 | CAT-03 | Phase 35 | Pending |
 | CAT-04 | Phase 35 | Pending |
 | CAT-05 | Phase 35 | Pending |
 | CAT-06 | Phase 35 | Pending |
 | CAT-07 | Phase 36 | Pending |
 | CAT-08 | Phase 37 | Pending |
-| CAT-09 | Phase 37 | Pending |
 
 **Coverage:**
-- v1 requirements: 9 total
-- Mapped to phases: 9
-- Unmapped: 0 ✓
+- v1 requirements: 10 total
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-23*
-*Last updated: 2026-02-23 — initial definition for v1.9*
+*Last updated: 2026-02-23 — traceability updated after roadmap creation; CAT-09 moved to Phase 34 (nav link belongs with the page it navigates to); requirement count corrected to 10*

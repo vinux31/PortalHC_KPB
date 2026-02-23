@@ -11,7 +11,8 @@
 - ✅ **v1.5 Question and Exam UX** — Phase 17 (shipped 2026-02-19)
 - ✅ **v1.6 Training Records Management** — Phases 18-20 (shipped 2026-02-20)
 - ✅ **v1.7 Assessment System Integrity** — Phases 21-26 (shipped 2026-02-21)
-- ✅ **v1.8 Assessment Polish** — Phases 27-31 (shipped 2026-02-23)
+- ✅ **v1.8 Assessment Polish** — Phases 27-32 (shipped 2026-02-23)
+- 🚧 **v1.9 Proton Catalog Management** — Phases 33-37 (in progress)
 
 ## Phases
 
@@ -209,103 +210,108 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 
 </details>
 
-### 🚧 v1.8 Assessment Polish (Phases 27-31)
+<details>
+<summary>✅ v1.8 Assessment Polish (Phases 27-32) — SHIPPED 2026-02-23</summary>
 
-**Milestone Goal:** Close known gaps in assessment monitoring accuracy, package management flexibility, scheduling automation, import quality, and HC reporting — leaving the assessment system complete for routine operational use.
+- [x] Phase 27: Monitoring Status Fix (1/1 plans) — completed 2026-02-21
+- [x] Phase 28: Package Reshuffle (2/2 plans) — completed 2026-02-21
+- [x] Phase 29: Auto-transition Upcoming to Open (3/3 plans) — completed 2026-02-21
+- [x] Phase 30: Import Deduplication (1/1 plans) — completed 2026-02-23
+- [x] Phase 31: HC Reporting Actions (2/2 plans) — completed 2026-02-23
+- [x] Phase 32: Fix Legacy Question Path (1/1 plans) — completed 2026-02-21
 
----
+</details>
 
-#### Phase 27: Monitoring Status Fix
-**Goal:** HC sees accurate session status in the monitoring card summary — Abandoned and InProgress sessions are never shown as "Not started"
-**Depends on:** Phase 26 (v1.7 complete)
-**Requirements:** MON-01
-**Success Criteria** (what must be TRUE):
-  1. HC opens the monitoring tab for an assessment — a worker who has started but not submitted shows "In Progress", not "Not started"
-  2. HC opens the monitoring tab for an assessment — a worker who abandoned their session shows "Abandoned", not "Not started"
-  3. A worker who has not started still shows "Not started"
-  4. A worker who submitted shows "Completed"
-**Plans:** 1 plan
+### 🚧 v1.9 Proton Catalog Management (Phases 33-37)
 
-Plans:
-- [x] 27-01-PLAN.md — Update GetMonitorData UserStatus projection from 2-state to 4-state matching AssessmentMonitoringDetail logic
+**Milestone Goal:** HC/Admin can manage the full Proton program catalog (Tracks → Kompetensi → SubKompetensi → Deliverable) through a single web page with no database access needed — full CRUD, drag-and-drop reorder, and delete guards with active coachee impact counts.
 
 ---
 
-#### Phase 28: Package Reshuffle (Re-assign dropped)
-**Goal:** HC can reshuffle a worker's package assignment (single or bulk) from the AssessmentMonitoringDetail page to re-randomize packages as a recovery action
-**Depends on:** Phase 27
-**Requirements:** PKG-02 (reshuffle only — PKG-01 re-assign dropped per user decision)
+#### Phase 33: ProtonTrack Schema
+**Goal:** The ProtonTrack entity exists as a first-class table and ProtonKompetensi references it via FK — no code or data depends on the old TrackType+TahunKe strings anymore
+**Depends on:** Phase 32 (v1.8 complete)
+**Requirements:** SCHEMA-01
 **Success Criteria** (what must be TRUE):
-  1. HC clicks a "Reshuffle" button for a Pending worker — the system assigns a new random package, different from the current one if possible
-  2. HC clicks "Reshuffle All" — all Pending workers get reshuffled, with a result modal showing each worker's outcome
-  3. Reshuffle is only available for Pending (Not started) workers — InProgress/Completed/Abandoned are ineligible (buttons disabled)
-  4. Reshuffle controls only appear for package-mode assessments — question-mode assessments show no reshuffle UI
-  5. Per-worker reshuffle updates in-place with toast; Reshuffle All shows result modal
-**Plans:** 2 plans
+  1. A `ProtonTrack` table exists in the database with TrackType, TahunKe, and DisplayName columns
+  2. `ProtonKompetensi` rows each have a non-null `ProtonTrackId` FK pointing to a row in `ProtonTrack`
+  3. All existing seeded Proton data (Panelman / Operator tracks, Tahun 1/2/3) is present and intact after migration
+  4. The AssignTrack workflow resolves tracks by ProtonTrackId — no code reads TrackType+TahunKe strings from ProtonKompetensi directly
+**Plans:** TBD
 
 Plans:
-- [x] 28-01-PLAN.md — Backend: ReshufflePackage + ReshuffleAll controller actions, extend view models with IsPackageMode/PackageName
-- [x] 28-02-PLAN.md — Frontend: Per-worker reshuffle button, Reshuffle All button, AJAX calls, toast, confirmation dialog, result modal
+- [ ] 33-01-PLAN.md — ProtonTrack model, DbContext registration, EF migration; data migration populating ProtonTrack rows from distinct TrackType+TahunKe values in existing ProtonKompetensi; add ProtonTrackId FK column and backfill; drop old string columns
+- [ ] 33-02-PLAN.md — Update SeedProtonData.cs to seed via ProtonTrack FKs; update AssignTrack and any other CDPController reads that filter by TrackType+TahunKe to use ProtonTrackId
 
 ---
 
-#### Phase 29: Auto-transition Upcoming to Open
-**Goal:** Assessment sessions with status Upcoming automatically become Open when their scheduled date arrives, so HC does not need to manually open each assessment
-**Depends on:** Phase 26 (v1.7 complete)
-**Requirements:** SCHED-01
+#### Phase 34: Catalog Page
+**Goal:** HC/Admin can open the Proton Catalog Manager from navigation and view the complete Kompetensi → SubKompetensi → Deliverable tree for any track, with expand/collapse per row and a working track dropdown
+**Depends on:** Phase 33
+**Requirements:** CAT-01, CAT-02, CAT-09
 **Success Criteria** (what must be TRUE):
-  1. An assessment with status Upcoming and a scheduled date of today or earlier is shown as Open to workers and HC without any manual action
-  2. An assessment with a future scheduled date remains Upcoming and workers cannot start it
-  3. The transition happens on the next page load or AJAX call after the scheduled date passes — no stale Upcoming state is served
-**Plans:** 3 plans
+  1. HC/Admin sees a "Proton Catalog" link in the navigation that takes them to the catalog manager page
+  2. HC/Admin selects a track from the dropdown — the page shows all Kompetensi for that track as top-level rows
+  3. HC/Admin expands a Kompetensi row — SubKompetensi rows appear beneath it; expanding a SubKompetensi row reveals its Deliverables
+  4. HC/Admin submits the "Add Track" modal with TrackType, TahunKe, and DisplayName — the new track appears in the dropdown immediately without a full page reload
+  5. Page is read-only in this phase (no add/edit/delete/reorder controls yet)
+**Plans:** TBD
 
 Plans:
-- [x] 29-01-PLAN.md — Apply Upcoming→Open auto-transition at three CMPController.cs read sites: GetMonitorData (display-only re-projection), worker assessment list (in-memory foreach), StartExam (persist before status checks)
-- [x] 29-02-PLAN.md — Upgrade three auto-transition comparisons from date-only to time-based WIB (Schedule <= UtcNow.AddHours(7)); add StartExam time gate blocking future-scheduled access
-- [x] 29-03-PLAN.md — Add Schedule time picker to CreateAssessment and EditAssessment forms; display "Opens DD MMM YYYY, HH:mm WIB" for Upcoming assessments in worker list
+- [ ] 34-01-PLAN.md — ProtonCatalogController with Index GET (load tracks, load catalog for selected track), CreateTrack POST (AJAX JSON); ProtonCatalog ViewModels
+- [ ] 34-02-PLAN.md — ProtonCatalog/Index.cshtml: track dropdown with AJAX reload on change, collapsible tree table (Bootstrap collapse or JS toggle), Add Track modal; nav link in _Layout.cshtml for HC/Admin
 
 ---
 
-#### Phase 30: Import Deduplication
-**Goal:** Importing questions (Excel or paste) into a package skips any row whose question text already exists in that package, preventing duplicate questions
-**Depends on:** Phase 26 (v1.7 complete)
-**Requirements:** IMP-01
+#### Phase 35: CRUD Add and Edit
+**Goal:** HC/Admin can add Kompetensi, SubKompetensi, and Deliverables inline and rename any item in-place — all without leaving the page
+**Depends on:** Phase 34
+**Requirements:** CAT-03, CAT-04, CAT-05, CAT-06
 **Success Criteria** (what must be TRUE):
-  1. HC imports an Excel file containing 10 questions where 3 already exist in the package — exactly 7 questions are added and the import result indicates 3 were skipped
-  2. HC pastes question text containing a duplicate — the duplicate row is silently skipped and only new questions are saved
-  3. A package with zero prior questions accepts all imported rows with no skips
-**Plans:** 1 plan
+  1. HC/Admin clicks "Add Kompetensi" for the selected track — an inline input appears; submitting it adds the new Kompetensi to the tree without a page reload
+  2. HC/Admin clicks "Add SubKompetensi" under a Kompetensi row — an inline input appears in the expanded section; submitting adds the SubKompetensi under the correct parent
+  3. HC/Admin clicks "Add Deliverable" under a SubKompetensi row — an inline input appears and submission adds the Deliverable under the correct parent
+  4. HC/Admin clicks the name of any Kompetensi, SubKompetensi, or Deliverable — it becomes an editable field; saving commits the new name via AJAX and the row updates in-place
+**Plans:** TBD
 
 Plans:
-- [x] 30-01-PLAN.md — Add fingerprint-based dedup to ImportPackageQuestions POST: ThenInclude Options, NormalizeText+MakeFingerprint helpers, HashSet skip check (package-scope + in-batch), 3-branch TempData routing with path-specific messages
+- [ ] 35-01-PLAN.md — Backend: AddKompetensi, AddSubKompetensi, AddDeliverable POST actions (JSON, return new item id + name); EditCatalogItem POST action (accepts level + id + name, updates correct entity)
+- [ ] 35-02-PLAN.md — Frontend: inline add inputs per level (append row on success), click-to-edit name fields (inline input, AJAX save, revert on cancel); wire all AJAX calls with antiforgery token
 
 ---
 
-#### Phase 31: HC Reporting Actions
-**Goal:** HC can download a full Excel results report for an assessment and bulk-close all open sessions from the monitoring detail page
-**Depends on:** Phase 27
-**Requirements:** RPT-01, RPT-02
+#### Phase 36: Delete Guards
+**Goal:** HC/Admin can delete any catalog item only after seeing how many active coachees are affected and explicitly confirming — deletion cascades to all child items
+**Depends on:** Phase 35
+**Requirements:** CAT-07
 **Success Criteria** (what must be TRUE):
-  1. HC clicks "Export Results" on the monitoring detail page — an Excel file downloads with one row per worker showing name, package, score, pass/fail, and completion time
-  2. The exported file includes all workers assigned to the assessment, including those who have not completed
-  3. HC clicks "Force Close All" on the monitoring view — all sessions with status Open or InProgress are transitioned to Abandoned, and the page reflects the updated statuses immediately
-  4. Force Close All is a single click with a confirmation prompt — no per-session action required
-**Plans:** 2 plans
-
-**Completed:** 2026-02-23
-
-Plans:
-- [x] 31-01-PLAN.md — Excel results export: ExportAssessmentResults action, ClosedXML workbook with worker result rows, download link on monitoring detail page
-- [x] 31-02-PLAN.md — Bulk force-close: ForceCloseAll controller action (POST), update all Open/InProgress sessions to Abandoned, audit log entry, UI button with confirm prompt on monitoring view
-
-### Phase 32: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers
-
-**Goal:** Legacy question path in StartExam uses sibling session lookup so HC-created questions appear for all workers in the assessment batch, not just the representative session owner
-**Depends on:** None (independent bug fix)
-**Plans:** 1 plan
+  1. HC/Admin clicks "Delete" on a Kompetensi — a Bootstrap modal appears showing the name of the item and the count of active coachees who have progress on it or any child item
+  2. HC/Admin types or clicks a hard confirmation in the modal — the item and all its SubKompetensi and Deliverables are deleted; the tree updates without a page reload
+  3. When 0 coachees are affected, the modal still appears but states "No active coachees affected" — deletion still requires confirmation
+  4. Delete is available on SubKompetensi and Deliverables with the same guard — each shows its own affected coachee count
+  5. Cascade order is enforced: Deliverables deleted before SubKompetensi before Kompetensi (no FK constraint errors)
+**Plans:** TBD
 
 Plans:
-- [x] 32-01-PLAN.md — Fix legacy path query to search sibling sessions for questions instead of only the worker's own session
+- [ ] 36-01-PLAN.md — Backend: GetDeleteImpact GET action (returns affected coachee count for item + children); DeleteCatalogItem POST action with cascade delete in correct order (Deliverables → SubKompetensi → Kompetensi → Track)
+- [ ] 36-02-PLAN.md — Frontend: delete button per row triggers AJAX impact fetch → populates Bootstrap modal with item name + count → hard confirm triggers delete AJAX → removes row from tree on success
+
+---
+
+#### Phase 37: Drag-and-Drop Reorder
+**Goal:** HC/Admin can drag Kompetensi, SubKompetensi, or Deliverable rows to a new position within their level — the new order persists immediately
+**Depends on:** Phase 36
+**Requirements:** CAT-08
+**Success Criteria** (what must be TRUE):
+  1. HC/Admin drags a Kompetensi row to a new position — on drop, the visual order updates and an AJAX call persists the new sort order; page reload confirms order is saved
+  2. HC/Admin drags a SubKompetensi row within its Kompetensi — same behavior: visual update + AJAX persist
+  3. HC/Admin drags a Deliverable row within its SubKompetensi — same behavior
+  4. Reorder is constrained within the same parent — a Kompetensi cannot be dropped into a different track's section; a Deliverable cannot be dropped under a different SubKompetensi
+**Plans:** TBD
+
+Plans:
+- [ ] 37-01-PLAN.md — Backend: ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST actions (accept ordered id array, update SortOrder/DisplayOrder on each entity, SaveChanges)
+- [ ] 37-02-PLAN.md — Frontend: SortableJS via CDN (same pattern as Chart.js in _Layout.cshtml); initialize Sortable on each level's container; onEnd handler POSTs new id order array to correct reorder endpoint; drag handles styled with Bootstrap icons
 
 ---
 
@@ -340,8 +346,13 @@ Plans:
 | 25. Worker UX Enhancements | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 26. Data Integrity Safeguards | v1.7 | 2/2 | Complete | 2026-02-21 |
 | 27. Monitoring Status Fix | v1.8 | 1/1 | Complete | 2026-02-21 |
-| 28. Package Reshuffle (Re-assign dropped) | v1.8 | 2/2 | Complete | 2026-02-21 |
+| 28. Package Reshuffle | v1.8 | 2/2 | Complete | 2026-02-21 |
 | 29. Auto-transition Upcoming to Open | v1.8 | 3/3 | Complete | 2026-02-21 |
-| 30. Import Deduplication | v1.8 | 0/1 | Pending | — |
-| 31. HC Reporting Actions | v1.8 | 0/2 | Pending | — |
-| 32. Fix legacy Question path | v1.8 | 1/1 | Complete | 2026-02-21 |
+| 30. Import Deduplication | v1.8 | 1/1 | Complete | 2026-02-23 |
+| 31. HC Reporting Actions | v1.8 | 2/2 | Complete | 2026-02-23 |
+| 32. Fix Legacy Question Path | v1.8 | 1/1 | Complete | 2026-02-21 |
+| 33. ProtonTrack Schema | v1.9 | 0/2 | Not started | — |
+| 34. Catalog Page | v1.9 | 0/2 | Not started | — |
+| 35. CRUD Add and Edit | v1.9 | 0/2 | Not started | — |
+| 36. Delete Guards | v1.9 | 0/2 | Not started | — |
+| 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
