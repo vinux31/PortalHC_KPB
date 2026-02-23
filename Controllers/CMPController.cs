@@ -716,6 +716,50 @@ namespace HcPortal.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
+        // --- FORCE CLOSE ALL SESSIONS IN GROUP ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForceCloseAll(string title, string category, DateTime scheduleDate)
+        {
+            // Find all Open or InProgress sessions in this assessment group
+            var sessionsToClose = await _context.AssessmentSessions
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date
+                         && (a.Status == "Open" || a.Status == "InProgress"))
+                .ToListAsync();
+
+            if (!sessionsToClose.Any())
+            {
+                TempData["Error"] = "No Open or InProgress sessions to close.";
+                return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+            }
+
+            // Bulk-transition to Abandoned (session period ended — no score recorded)
+            foreach (var session in sessionsToClose)
+            {
+                session.Status    = "Abandoned";
+                session.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            // Audit log — one summary entry for the bulk action (AuditLogService saves immediately)
+            var actor = await _userManager.GetUserAsync(User);
+            var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+            await _auditLog.LogAsync(
+                actor?.Id ?? "",
+                actorName,
+                "ForceCloseAll",
+                $"Force-closed all Open/InProgress sessions for '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) — {sessionsToClose.Count} session(s) closed",
+                null,
+                "AssessmentSession");
+
+            TempData["Success"] = $"Berhasil menutup {sessionsToClose.Count} sesi ujian.";
+            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+        }
+
         // --- RESHUFFLE PACKAGE (single worker) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
