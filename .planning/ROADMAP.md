@@ -277,7 +277,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 30-01-PLAN.md — Add duplicate-text guard in ImportPackageQuestions action: load existing question texts for the package, skip rows where QuestionText matches (case-insensitive), report skip count in result message
+- [ ] 30-01-PLAN.md — Add fingerprint-based dedup to ImportPackageQuestions POST: ThenInclude Options, NormalizeText+MakeFingerprint helpers, HashSet skip check (package-scope + in-batch), 3-branch TempData routing with path-specific messages
 
 ---
 
