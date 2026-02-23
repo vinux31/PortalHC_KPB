@@ -11,9 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Milestone:** v1.9 Proton Catalog Management — IN PROGRESS
 **Phase:** 34 of 37 (Catalog Page)
-**Next action:** `/gsd:execute-phase 34`
-**Status:** Phase 34 planned (2 plans, 2 waves). Ready to execute.
-**Last activity:** 2026-02-23 — Phase 34 planned: ProtonCatalogController + catalog tree view + nav link
+**Current Plan:** 2 of 2
+**Next action:** `/gsd:execute-phase 34` (Plan 02 — catalog view + partial view + nav link)
+**Status:** Phase 34 Plan 01 complete. Plan 02 pending.
+**Last activity:** 2026-02-23 — Phase 34 Plan 01 complete: ProtonCatalogController + ProtonCatalogViewModel
 
 Progress: [##░░░░░░░░░░░░░░░░░░] 10% (v1.9) | v1.8 complete
 
@@ -32,6 +33,7 @@ Progress: [##░░░░░░░░░░░░░░░░░░] 10% (v1.9) 
 | Phase 31-hc-reporting-actions P02 | — | — |
 | Phase 33-protontrack-schema P01 | 14min | 3 tasks | 9 files |
 | Phase 33-protontrack-schema P02 | 3min | 3 tasks | 1 files |
+| Phase 34-catalog-page P01 | 6min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -46,6 +48,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Reorder via SortableJS drag handles + AJAX POST (same CDN pattern as Chart.js)
 - New ProtonCatalogController (not CDPController) — CDPController already ~1000+ lines
 - Cascade delete order: Deliverables → SubKompetensi → Kompetensi → Track
+- [Phase 34-01]: ProtonCatalogController uses ViewBag (not typed model) — ProtonCatalogViewModel exists as typed contract for future phases
+- [Phase 34-01]: GetCatalogTree returns PartialView HTML (not JSON) so AJAX caller injects server-rendered HTML directly
+- [Phase 34-01]: AddTrack auth failure returns JSON error (not Forbid) to preserve AJAX JSON contract
 
 **v1.8 architecture notes (relevant to v1.9):**
 - [Phase 32-01]: Legacy exam paths use sibling session lookup — no action needed for catalog work
@@ -66,5 +71,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 33-02-PLAN.md — CDPController verification complete, Phase 33 fully done.
+Stopped at: Completed 34-01-PLAN.md — ProtonCatalogController + ProtonCatalogViewModel shipped.
 Resume file: None.
