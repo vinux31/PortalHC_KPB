@@ -65,7 +65,7 @@ namespace HcPortal.Controllers
                 var kompetensiList = await _context.ProtonKompetensiList
                     .Include(k => k.SubKompetensiList)
                         .ThenInclude(s => s.Deliverables)
-                    .Where(k => k.TrackType == assignment.TrackType && k.TahunKe == assignment.TahunKe)
+                    .Where(k => k.ProtonTrackId == assignment.ProtonTrackId)
                     .OrderBy(k => k.Urutan)
                     .ToListAsync();
 
@@ -79,10 +79,14 @@ namespace HcPortal.Controllers
                     .OrderByDescending(fa => fa.CreatedAt)
                     .FirstOrDefaultAsync();
 
+                // Load ProtonTrack for display name
+                var protonTrack = await _context.ProtonTracks
+                    .FirstOrDefaultAsync(t => t.Id == assignment.ProtonTrackId);
+
                 var protonViewModel = new ProtonPlanViewModel
                 {
-                    TrackType = assignment.TrackType,
-                    TahunKe = assignment.TahunKe,
+                    TrackType = protonTrack?.TrackType ?? "",
+                    TahunKe = protonTrack?.TahunKe ?? "",
                     KompetensiList = kompetensiList,
                     ActiveProgress = activeProgress,
                     FinalAssessment = finalAssessment
@@ -185,8 +189,10 @@ namespace HcPortal.Controllers
             if (assignment == null)
                 return subModel;
 
-            subModel.TrackType = assignment.TrackType;
-            subModel.TahunKe = assignment.TahunKe;
+            // Load ProtonTrack for display
+            var track = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == assignment.ProtonTrackId);
+            subModel.TrackType = track?.TrackType ?? "";
+            subModel.TahunKe = track?.TahunKe ?? "";
 
             var progresses = await _context.ProtonDeliverableProgresses
                 .Where(p => p.CoacheeId == userId)
@@ -265,6 +271,7 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             var assignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
                 .Where(a => scopedCoacheeIds.Contains(a.CoacheeId) && a.IsActive)
                 .ToListAsync();
             var assignmentDict = assignments.ToDictionary(a => a.CoacheeId, a => a);
@@ -291,8 +298,8 @@ namespace HcPortal.Controllers
                 {
                     CoacheeId = coacheeId,
                     CoacheeName = userNames.GetValueOrDefault(coacheeId, coacheeId),
-                    TrackType = assignment?.TrackType ?? "",
-                    TahunKe = assignment?.TahunKe ?? "",
+                    TrackType = assignment?.ProtonTrack?.TrackType ?? "",
+                    TahunKe = assignment?.ProtonTrack?.TahunKe ?? "",
                     TotalDeliverables = progresses.Count,
                     Approved = progresses.Count(p => p.Status == "Approved"),
                     Submitted = progresses.Count(p => p.Status == "Submitted"),
@@ -652,12 +659,19 @@ namespace HcPortal.Controllers
             var coacheeIds = coachees.Select(c => c.Id).ToList();
 
             var assignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
                 .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
                 .ToListAsync();
 
             var activeProgresses = await _context.ProtonDeliverableProgresses
                 .Where(p => coacheeIds.Contains(p.CoacheeId) && p.Status == "Active")
                 .ToListAsync();
+
+            // Load ProtonTracks for assignment dropdown (Phase 33)
+            var protonTracks = await _context.ProtonTracks
+                .OrderBy(t => t.Urutan)
+                .ToListAsync();
+            ViewBag.ProtonTracks = protonTracks;
 
             var viewModel = new ProtonMainViewModel
             {
@@ -671,7 +685,7 @@ namespace HcPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignTrack(string coacheeId, string trackType, string tahunKe)
+        public async Task<IActionResult> AssignTrack(string coacheeId, int protonTrackId)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -685,9 +699,17 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            if (string.IsNullOrEmpty(coacheeId) || string.IsNullOrEmpty(trackType) || string.IsNullOrEmpty(tahunKe))
+            if (string.IsNullOrEmpty(coacheeId) || protonTrackId <= 0)
             {
                 TempData["Error"] = "Data tidak lengkap.";
+                return RedirectToAction("ProtonMain");
+            }
+
+            // Validate ProtonTrack exists
+            var protonTrack = await _context.ProtonTracks.FindAsync(protonTrackId);
+            if (protonTrack == null)
+            {
+                TempData["Error"] = "Track tidak ditemukan.";
                 return RedirectToAction("ProtonMain");
             }
 
@@ -711,8 +733,7 @@ namespace HcPortal.Controllers
             {
                 CoacheeId = coacheeId,
                 AssignedById = user.Id,
-                TrackType = trackType,
-                TahunKe = tahunKe,
+                ProtonTrackId = protonTrackId,
                 IsActive = true,
                 AssignedAt = DateTime.UtcNow
             };
@@ -723,8 +744,7 @@ namespace HcPortal.Controllers
             var deliverables = await _context.ProtonDeliverableList
                 .Include(d => d.ProtonSubKompetensi)
                     .ThenInclude(s => s.ProtonKompetensi)
-                .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.TrackType == trackType &&
-                            d.ProtonSubKompetensi.ProtonKompetensi.TahunKe == tahunKe)
+                .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == protonTrackId)
                 .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
                     .ThenBy(d => d.ProtonSubKompetensi.Urutan)
                     .ThenBy(d => d.Urutan)
@@ -797,13 +817,13 @@ namespace HcPortal.Controllers
 
             // Get track info from current deliverable's hierarchy
             var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
-            string trackType = kompetensi?.TrackType ?? "";
-            string tahunKe = kompetensi?.TahunKe ?? "";
+            int trackId = kompetensi?.ProtonTrackId ?? 0;
+            string trackType = kompetensi?.ProtonTrack?.TrackType ?? "";
+            string tahunKe = kompetensi?.ProtonTrack?.TahunKe ?? "";
 
             // Order all deliverables for this track by Kompetensi.Urutan, SubKompetensi.Urutan, Deliverable.Urutan
             var orderedProgresses = allProgresses
-                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TrackType == trackType
-                         && p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TahunKe == tahunKe)
+                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrackId == trackId)
                 .OrderBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0)
                 .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
                 .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
@@ -904,8 +924,7 @@ namespace HcPortal.Controllers
 
             // Get track info for ordering
             var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
-            string trackType = kompetensi?.TrackType ?? "";
-            string tahunKe = kompetensi?.TahunKe ?? "";
+            int trackId = kompetensi?.ProtonTrackId ?? 0;
 
             // Set approval fields (in memory, before SaveChangesAsync)
             progress.Status = "Approved";
@@ -921,8 +940,7 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             var orderedProgresses = allProgresses
-                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TrackType == trackType
-                         && p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.TahunKe == tahunKe)
+                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrackId == trackId)
                 .OrderBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0)
                 .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
                 .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
@@ -1117,6 +1135,7 @@ namespace HcPortal.Controllers
 
             // Build "Ready for Final Assessment" list
             var allAssignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
                 .Where(a => a.IsActive)
                 .ToListAsync();
 
@@ -1150,8 +1169,8 @@ namespace HcPortal.Controllers
                         CoacheeId = assignment.CoacheeId,
                         CoacheeName = userNames[assignment.CoacheeId],
                         TrackAssignmentId = assignment.Id,
-                        TrackType = assignment.TrackType,
-                        TahunKe = assignment.TahunKe
+                        TrackType = assignment.ProtonTrack?.TrackType ?? "",
+                        TahunKe = assignment.ProtonTrack?.TahunKe ?? ""
                     });
                 }
             }
@@ -1189,8 +1208,9 @@ namespace HcPortal.Controllers
                               (userRole == UserRoles.Admin && user.SelectedView == "HC");
             if (!isHCAccess) return Forbid();
 
-            // Load the track assignment
+            // Load the track assignment with ProtonTrack for display
             var assignment = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
                 .FirstOrDefaultAsync(a => a.Id == trackAssignmentId && a.IsActive);
             if (assignment == null) return NotFound();
 
@@ -1255,6 +1275,7 @@ namespace HcPortal.Controllers
 
             // Load assignment
             var assignment = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
                 .FirstOrDefaultAsync(a => a.Id == trackAssignmentId && a.IsActive);
             if (assignment == null) return NotFound();
 

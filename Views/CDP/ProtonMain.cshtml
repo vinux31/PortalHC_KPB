@@ -74,7 +74,7 @@
                                     @if (assignment != null)
                                     {
                                         <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
-                                            @assignment.TrackType - @assignment.TahunKe
+                                            @(assignment.ProtonTrack?.DisplayName ?? $"{assignment.ProtonTrack?.TrackType} - {assignment.ProtonTrack?.TahunKe}")
                                         </span>
                                     }
                                     else
@@ -127,21 +127,13 @@
                     <input type="hidden" id="coacheeIdInput" name="coacheeId" value="" />
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Track Type</label>
-                        <select class="form-select" name="trackType" required>
+                        <label class="form-label fw-semibold">Track Proton</label>
+                        <select class="form-select" name="protonTrackId" required>
                             <option value="">Pilih Track</option>
-                            <option value="Panelman">Panelman</option>
-                            <option value="Operator">Operator</option>
-                        </select>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Tahun Ke</label>
-                        <select class="form-select" name="tahunKe" required>
-                            <option value="">Pilih Tahun</option>
-                            <option value="Tahun 1">Tahun 1</option>
-                            <option value="Tahun 2">Tahun 2</option>
-                            <option value="Tahun 3">Tahun 3</option>
+                            @foreach (var track in (ViewBag.ProtonTracks as List<HcPortal.Models.ProtonTrack> ?? new()))
+                            {
+                                <option value="@track.Id">@track.DisplayName</option>
+                            }
                         </select>
                     </div>
 

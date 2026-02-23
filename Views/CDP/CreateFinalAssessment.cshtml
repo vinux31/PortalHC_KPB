@@ -58,7 +58,7 @@
                     </div>
                     <div class="col-md-6">
                         <label class="form-label small text-muted fw-bold">Track</label>
-                        <div>@(Model.Assignment?.TrackType) — @(Model.Assignment?.TahunKe)</div>
+                        <div>@(Model.Assignment?.ProtonTrack?.DisplayName ?? $"{Model.Assignment?.ProtonTrack?.TrackType} — {Model.Assignment?.ProtonTrack?.TahunKe}")</div>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label small text-muted fw-bold">Level Kompetensi Diberikan</label>
@@ -107,7 +107,7 @@
                 </div>
                 <div class="col-md-6">
                     <label class="form-label small text-muted fw-bold">Track</label>
-                    <div>@(Model.Assignment?.TrackType) — @(Model.Assignment?.TahunKe)</div>
+                    <div>@(Model.Assignment?.ProtonTrack?.DisplayName ?? $"{Model.Assignment?.ProtonTrack?.TrackType} — {Model.Assignment?.ProtonTrack?.TahunKe}")</div>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label small text-muted fw-bold">Total Deliverable</label>
@@ -140,7 +140,7 @@
                 <div class="row g-3 mb-4 p-3 bg-light rounded">
                     <div class="col-md-4">
                         <small class="text-muted d-block">Track</small>
-                        <span class="fw-semibold">@(Model.Assignment?.TrackType) — @(Model.Assignment?.TahunKe)</span>
+                        <span class="fw-semibold">@(Model.Assignment?.ProtonTrack?.DisplayName ?? $"{Model.Assignment?.ProtonTrack?.TrackType} — {Model.Assignment?.ProtonTrack?.TahunKe}")</span>
                     </div>
                     <div class="col-md-4">
                         <small class="text-muted d-block">Total Deliverable</small>
