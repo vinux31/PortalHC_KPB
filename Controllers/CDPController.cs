@@ -775,11 +775,12 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // Load progress with full hierarchy
+            // Load progress with full hierarchy including ProtonTrack for display info
             var progress = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
                     .ThenInclude(d => d.ProtonSubKompetensi)
                         .ThenInclude(s => s.ProtonKompetensi)
+                            .ThenInclude(k => k.ProtonTrack)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (progress == null) return NotFound();
