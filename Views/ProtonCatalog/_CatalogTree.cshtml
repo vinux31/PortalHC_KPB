@@ -1,0 +1,109 @@
+@model List<HcPortal.Models.ProtonKompetensi>
+
+@if (Model == null || !Model.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-info-circle me-2"></i>No Kompetensi yet — add some in the catalog editor
+    </div>
+}
+else
+{
+    <table class="table table-bordered mb-0">
+        <colgroup>
+            <col style="width:50px;">
+            <col>
+            <col style="width:120px;">
+        </colgroup>
+        <tbody>
+            @foreach (var kompetensi in Model.OrderBy(k => k.Urutan))
+            {
+                <!-- Level 1: Kompetensi row -->
+                <tr>
+                    <td class="align-middle text-center">
+                        <button type="button" class="btn btn-link btn-sm p-0 text-secondary"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#kompetensi-@kompetensi.Id"
+                                aria-expanded="false"
+                                aria-label="Toggle @kompetensi.NamaKompetensi">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </td>
+                    <td class="align-middle fw-semibold ps-2">@kompetensi.NamaKompetensi</td>
+                    <td class="align-middle text-muted small">Kompetensi</td>
+                </tr>
+                <!-- Level 1: Kompetensi collapse container -->
+                <tr id="kompetensi-@kompetensi.Id" class="collapse">
+                    <td colspan="3" class="p-0 ps-4">
+                        <table class="table table-bordered mb-0">
+                            <colgroup>
+                                <col style="width:50px;">
+                                <col>
+                                <col style="width:120px;">
+                            </colgroup>
+                            <tbody>
+                                @foreach (var sub in kompetensi.SubKompetensiList.OrderBy(s => s.Urutan))
+                                {
+                                    <!-- Level 2: SubKompetensi row -->
+                                    <tr>
+                                        <td class="align-middle text-center">
+                                            <button type="button" class="btn btn-link btn-sm p-0 text-secondary"
+                                                    data-bs-toggle="collapse"
+                                                    data-bs-target="#subkompetensi-@sub.Id"
+                                                    aria-expanded="false"
+                                                    aria-label="Toggle @sub.NamaSubKompetensi">
+                                                <i class="bi bi-chevron-right"></i>
+                                            </button>
+                                        </td>
+                                        <td class="align-middle ps-2">@sub.NamaSubKompetensi</td>
+                                        <td class="align-middle text-muted small">SubKompetensi</td>
+                                    </tr>
+                                    <!-- Level 2: SubKompetensi collapse container -->
+                                    <tr id="subkompetensi-@sub.Id" class="collapse">
+                                        <td colspan="3" class="p-0 ps-4">
+                                            <table class="table table-bordered mb-0">
+                                                <colgroup>
+                                                    <col style="width:50px;">
+                                                    <col>
+                                                    <col style="width:120px;">
+                                                </colgroup>
+                                                <tbody>
+                                                    @foreach (var deliverable in sub.Deliverables.OrderBy(d => d.Urutan))
+                                                    {
+                                                        <!-- Level 3: Deliverable (leaf, no chevron) -->
+                                                        <tr>
+                                                            <td></td>
+                                                            <td class="align-middle ps-2">@deliverable.NamaDeliverable</td>
+                                                            <td class="align-middle text-muted small">Deliverable</td>
+                                                        </tr>
+                                                    }
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <script>
+        (function () {
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
+                var targetId = btn.getAttribute('data-bs-target').replace('#', '');
+                var target = document.getElementById(targetId);
+                if (!target) return;
+                target.addEventListener('show.bs.collapse', function () {
+                    var icon = btn.querySelector('i');
+                    if (icon) { icon.classList.replace('bi-chevron-right', 'bi-chevron-down'); }
+                });
+                target.addEventListener('hide.bs.collapse', function () {
+                    var icon = btn.querySelector('i');
+                    if (icon) { icon.classList.replace('bi-chevron-down', 'bi-chevron-right'); }
+                });
+            });
+        })();
+    </script>
+}

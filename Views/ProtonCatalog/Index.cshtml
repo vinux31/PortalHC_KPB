@@ -1,0 +1,191 @@
+@using HcPortal.Models
+@{
+    ViewData["Title"] = "Proton Catalog Manager";
+    var tracks = ViewBag.AllTracks as List<ProtonTrack> ?? new List<ProtonTrack>();
+    var selectedTrackId = ViewBag.SelectedTrackId as int?;
+    var kompetensiList = ViewBag.KompetensiList as List<ProtonKompetensi>;
+}
+
+<h2 class="fw-bold mb-4">
+    <i class="bi bi-list-check text-primary me-2"></i>Proton Catalog Manager
+</h2>
+
+<!-- Track selection card -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <label for="trackDropdown" class="form-label fw-semibold mb-1">Select Track</label>
+                <select class="form-select" id="trackDropdown">
+                    <option value="">-- Select a track... --</option>
+                    @foreach (var track in tracks)
+                    {
+                        if (track.Id == selectedTrackId)
+                        {
+                            <option value="@track.Id" selected>@track.DisplayName</option>
+                        }
+                        else
+                        {
+                            <option value="@track.Id">@track.DisplayName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-4 text-end mt-3 mt-md-0">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTrackModal">
+                    Add Track
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tree container card -->
+<div class="card border-0 shadow-sm">
+    <div id="treeContainer" class="card-body p-0">
+        @if (kompetensiList != null)
+        {
+            @await Html.PartialAsync("_CatalogTree", kompetensiList)
+        }
+        else
+        {
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-info-circle me-2"></i>Select a track to view kompetensi
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add Track Modal -->
+<div class="modal fade" id="addTrackModal" tabindex="-1" aria-labelledby="addTrackModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addTrackModalLabel">Add Track</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addTrackForm">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+
+                    <div class="mb-3">
+                        <label for="trackTypeSelect" class="form-label fw-semibold">Track Type</label>
+                        <select class="form-select" id="trackTypeSelect" onchange="updateDisplayName()">
+                            <option value="">-- Select type --</option>
+                            <option value="Panelman">Panelman</option>
+                            <option value="Operator">Operator</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tahunKeSelect" class="form-label fw-semibold">Tahun Ke</label>
+                        <select class="form-select" id="tahunKeSelect" onchange="updateDisplayName()">
+                            <option value="">-- Select year --</option>
+                            <option value="Tahun 1">Tahun 1</option>
+                            <option value="Tahun 2">Tahun 2</option>
+                            <option value="Tahun 3">Tahun 3</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="displayNamePreview" class="form-label fw-semibold">Display Name (auto-generated)</label>
+                        <input type="text" class="form-control" id="displayNamePreview" readonly placeholder="Auto-generated">
+                    </div>
+
+                    <div id="addTrackError" class="alert alert-danger mt-2 d-none"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="addTrackSubmit">Add Track</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // Live preview of DisplayName as user selects TrackType + TahunKe
+    function updateDisplayName() {
+        var type = document.getElementById('trackTypeSelect').value;
+        var year = document.getElementById('tahunKeSelect').value;
+        document.getElementById('displayNamePreview').value = (type && year) ? type + ' - ' + year : '';
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // Track dropdown change handler
+        document.getElementById('trackDropdown').addEventListener('change', onTrackChanged);
+
+        // Add Track form submit
+        document.getElementById('addTrackForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var trackType = document.getElementById('trackTypeSelect').value;
+            var tahunKe = document.getElementById('tahunKeSelect').value;
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            var errorDiv = document.getElementById('addTrackError');
+            errorDiv.classList.add('d-none');
+            errorDiv.textContent = '';
+
+            if (!trackType || !tahunKe) {
+                errorDiv.textContent = 'Please select both Track Type and Year.';
+                errorDiv.classList.remove('d-none');
+                return;
+            }
+
+            var body = new URLSearchParams({ trackType: trackType, tahunKe: tahunKe, __RequestVerificationToken: token });
+            fetch('/ProtonCatalog/AddTrack', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (result) {
+                if (result.success) {
+                    // 1. Add new option to dropdown
+                    var dropdown = document.getElementById('trackDropdown');
+                    var option = document.createElement('option');
+                    option.value = result.trackId;
+                    option.textContent = result.displayName;
+                    dropdown.appendChild(option);
+                    // 2. Select new track
+                    dropdown.value = result.trackId;
+                    // 3. Close modal
+                    bootstrap.Modal.getInstance(document.getElementById('addTrackModal')).hide();
+                    // 4. Load tree (will show empty state)
+                    onTrackChanged();
+                } else {
+                    errorDiv.textContent = result.error;
+                    errorDiv.classList.remove('d-none');
+                }
+            })
+            .catch(function (err) { console.error('AddTrack error:', err); });
+        });
+
+        // Reset modal fields on close
+        document.getElementById('addTrackModal').addEventListener('hidden.bs.modal', function () {
+            document.getElementById('trackTypeSelect').value = '';
+            document.getElementById('tahunKeSelect').value = '';
+            document.getElementById('displayNamePreview').value = '';
+            document.getElementById('addTrackError').classList.add('d-none');
+            document.getElementById('addTrackError').textContent = '';
+        });
+    });
+
+    // AJAX tree reload on track change
+    function onTrackChanged() {
+        var trackId = document.getElementById('trackDropdown').value;
+        if (!trackId) {
+            window.history.pushState(null, '', '/ProtonCatalog');
+            document.getElementById('treeContainer').innerHTML =
+                '<div class="text-center py-5 text-muted"><i class="bi bi-info-circle me-2"></i>Select a track to view kompetensi</div>';
+            return;
+        }
+        window.history.pushState(null, '', '/ProtonCatalog?trackId=' + trackId);
+        fetch('/ProtonCatalog/GetCatalogTree?trackId=' + trackId)
+            .then(function (r) { return r.text(); })
+            .then(function (html) { document.getElementById('treeContainer').innerHTML = html; })
+            .catch(function (err) { console.error('Tree load error:', err); });
+    }
+</script>
+}
