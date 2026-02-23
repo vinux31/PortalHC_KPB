@@ -48,6 +48,9 @@ namespace HcPortal.Data
         public DbSet<ProtonNotification> ProtonNotifications { get; set; }
         public DbSet<ProtonFinalAssessment> ProtonFinalAssessments { get; set; }
 
+        // Proton Track (Phase 33 — normalized track entity)
+        public DbSet<ProtonTrack> ProtonTracks { get; set; }
+
         // Test Packages — Phase 17
         public DbSet<AssessmentPackage> AssessmentPackages { get; set; }
         public DbSet<PackageQuestion> PackageQuestions { get; set; }
@@ -237,6 +240,39 @@ namespace HcPortal.Data
 
             // Proton Deliverable Tracking configuration (Phase 5)
 
+            // ProtonTrack entity configuration (Phase 33)
+            builder.Entity<ProtonTrack>(entity =>
+            {
+                entity.ToTable("ProtonTracks");
+                entity.HasKey(t => t.Id);
+                entity.HasIndex(t => new { t.TrackType, t.TahunKe }).IsUnique();
+                entity.Property(t => t.TrackType).IsRequired().HasMaxLength(50);
+                entity.Property(t => t.TahunKe).IsRequired().HasMaxLength(50);
+                entity.Property(t => t.DisplayName).IsRequired().HasMaxLength(100);
+            });
+
+            // ProtonKompetensi -> ProtonTrack (Phase 33)
+            builder.Entity<ProtonKompetensi>(entity =>
+            {
+                entity.HasOne(k => k.ProtonTrack)
+                    .WithMany(t => t.KompetensiList)
+                    .HasForeignKey(k => k.ProtonTrackId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasIndex(k => k.ProtonTrackId);
+            });
+
+            // ProtonTrackAssignment -> ProtonTrack (Phase 33) + existing indexes
+            builder.Entity<ProtonTrackAssignment>(entity =>
+            {
+                entity.HasOne(a => a.ProtonTrack)
+                    .WithMany()
+                    .HasForeignKey(a => a.ProtonTrackId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(a => a.ProtonTrackId);
+                entity.HasIndex(a => a.CoacheeId);
+                entity.HasIndex(a => new { a.CoacheeId, a.IsActive });
+            });
+
             // ProtonSubKompetensi -> ProtonKompetensi
             builder.Entity<ProtonSubKompetensi>(entity =>
             {
@@ -267,13 +303,6 @@ namespace HcPortal.Data
                 entity.HasIndex(p => p.CoacheeId);
                 entity.HasIndex(p => new { p.CoacheeId, p.ProtonDeliverableId }).IsUnique();
                 entity.HasIndex(p => p.Status);
-            });
-
-            // ProtonTrackAssignment indexes
-            builder.Entity<ProtonTrackAssignment>(entity =>
-            {
-                entity.HasIndex(a => a.CoacheeId);
-                entity.HasIndex(a => new { a.CoacheeId, a.IsActive });
             });
 
             // ProtonFinalAssessment -> ProtonTrackAssignment (Phase 6)
