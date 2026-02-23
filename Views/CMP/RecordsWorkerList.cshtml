@@ -66,10 +66,9 @@
                     
                     <div class="row g-3 align-items-end">
                         <!-- Dropdown 1: Section -->
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md-2">
                             <label class="form-label fw-bold small">Bagian</label>
-                            <!-- Logic Fix: Reset subCategory when Section changes -->
-                            <select class="form-select form-select-sm" name="section" id="filterSection" onchange="document.getElementById('filterSubCategory').value=''; this.form.submit()">
+                            <select class="form-select form-select-sm" name="section" id="filterSection" onchange="document.getElementById('filterUnit').value=''; this.form.submit()">
                                 <option value="">Semua Bagian</option>
                                 <option value="GAST">GAST</option>
                                 <option value="RFCC">RFCC</option>
@@ -77,9 +76,9 @@
                                 <option value="DHT / HMU">DHT / HMU</option>
                             </select>
                         </div>
-                        
+
                         <!-- Dropdown 2: Category -->
-                        <div class="col-12 col-md-3">
+                        <div class="col-12 col-md-2">
                             <label class="form-label fw-bold small">Kategori Training</label>
                             <select class="form-select form-select-sm" name="category" id="filterCategory" onchange="this.form.submit()">
                                 <option value="">-- Pilih Kategori --</option>
@@ -94,7 +93,20 @@
                             </select>
                         </div>
 
-
+                        <!-- Dropdown 3: Unit (populated from workers in selected section) -->
+                        <div class="col-12 col-md-2">
+                            <label class="form-label fw-bold small">Unit</label>
+                            <select class="form-select form-select-sm" name="unit" id="filterUnit" onchange="this.form.submit()">
+                                <option value="">Semua Unit</option>
+                                @foreach (var unitVal in availableUnits)
+                                {
+                                    if (!string.IsNullOrEmpty(unitVal))
+                                    {
+                                        <option value="@unitVal" selected="@(ViewBag.SelectedUnit as string == unitVal)">@unitVal</option>
+                                    }
+                                }
+                            </select>
+                        </div>
 
                         <!-- Dropdown 4: Status -->
                         <div class="col-12 col-md-2">
@@ -107,7 +119,7 @@
                         </div>
 
                         <!-- Search -->
-                        <div class="col-12 col-md-4">
+                        <div class="col-12 col-md-3">
                             <label class="form-label fw-bold small">Cari Nama/Nopeg</label>
                             <div class="input-group input-group-sm">
                                 <input type="text" class="form-control" name="search" placeholder="Cari nama atau nopeg..." value="@ViewBag.SearchTerm">
@@ -354,10 +366,12 @@
         const selectedSection = "@Html.Raw(ViewBag.SelectedSection)";
         const selectedCategory = "@Html.Raw(ViewBag.SelectedCategory)";
         const selectedStatus = "@Html.Raw(ViewBag.SelectedStatus)";
-        
+        const selectedUnit = "@Html.Raw(ViewBag.SelectedUnit)";
+
         if (selectedSection) document.getElementById("filterSection").value = selectedSection;
         if (selectedCategory) document.getElementById("filterCategory").value = selectedCategory;
         if (selectedStatus) document.getElementById("filterStatus").value = selectedStatus;
+        if (selectedUnit) document.getElementById("filterUnit").value = selectedUnit;
 
         // Initialize pagination
         initializePagination();
@@ -439,8 +453,7 @@
 
     // View worker detail
     function viewWorkerDetail(workerId, workerName) {
-        // Navigate to worker detail page (you can customize this URL)
-        window.location.href = `/CMP/WorkerDetail?workerId=${encodeURIComponent(workerId)}&name=${encodeURIComponent(workerName)}`;
+        window.location.href = `/CMP/WorkerDetail?id=${encodeURIComponent(workerId)}`;
     }
 
     // Export to Excel

@@ -1755,14 +1755,14 @@ namespace HcPortal.Controllers
         }
 
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
-        public async Task<IActionResult> Records(string? section, string? category, string? search, string? statusFilter, string? isFiltered)
+        public async Task<IActionResult> Records(string? section, string? unit, string? category, string? search, string? statusFilter, string? isFiltered)
         {
             // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
             int userLevel = user?.RoleLevel ?? 6;
-            
+
             // Check if this is an initial load (no filter applied explicitly)
             // We use the hidden input 'isFiltered' from the form to differentiate
             bool isInitialState = string.IsNullOrEmpty(isFiltered);
@@ -1777,11 +1777,12 @@ namespace HcPortal.Controllers
             ViewBag.UserRole = userRole;
             ViewBag.UserLevel = userLevel;
             ViewBag.SelectedSection = section; // Can be null/empty for "Semua Bagian"
+            ViewBag.SelectedUnit = unit;
             ViewBag.SelectedCategory = category;
             ViewBag.SearchTerm = search;
             ViewBag.SelectedStatus = statusFilter;
             ViewBag.IsInitialState = isInitialState;
-            
+
             // Determine if we should show Status column (Filter Mode) or Stats columns (Default Mode)
             bool isFilterMode = !string.IsNullOrEmpty(category);
             ViewBag.IsFilterMode = isFilterMode;
@@ -1795,8 +1796,8 @@ namespace HcPortal.Controllers
                 return View("Records", unified);
             }
             // HC, Admin (all SelectedView values), Management, Supervisor -> worker list
-            
-            // Supervisor view: 
+
+            // Supervisor view:
             List<WorkerTrainingStatus> workers;
 
             if (isInitialState)
@@ -1807,7 +1808,7 @@ namespace HcPortal.Controllers
             else
             {
                 // Fetch filtered data
-                workers = await GetWorkersInSection(section, null, category, search, statusFilter);
+                workers = await GetWorkersInSection(section, unit, category, search, statusFilter);
             }
 
             return View("RecordsWorkerList", workers);
@@ -2129,6 +2130,12 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(section))
             {
                 usersQuery = usersQuery.Where(u => u.Section == section);
+            }
+
+            // 0b. FILTER BY UNIT
+            if (!string.IsNullOrEmpty(unitFilter))
+            {
+                usersQuery = usersQuery.Where(u => u.Unit == unitFilter);
             }
 
             // 1. FILTER BY SEARCH (Name or NIP)
