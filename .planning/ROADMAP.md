@@ -258,8 +258,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 34-01-PLAN.md — ProtonCatalogController with Index GET (load tracks, load catalog for selected track), GetCatalogTree GET (AJAX partial), AddTrack POST (JSON); ProtonCatalogViewModel appended to ProtonViewModels.cs
-- [ ] 34-02-PLAN.md — Views/ProtonCatalog/Index.cshtml (track dropdown, AJAX tree reload, Add Track modal + JS), Views/ProtonCatalog/_CatalogTree.cshtml (Bootstrap collapse tree partial), _Layout.cshtml CDP nav dropdown with Proton Catalog link (HC/Admin only)
+- [x] 34-01-PLAN.md — ProtonCatalogController with Index GET (load tracks, load catalog for selected track), GetCatalogTree GET (AJAX partial), AddTrack POST (JSON); ProtonCatalogViewModel appended to ProtonViewModels.cs
+- [x] 34-02-PLAN.md — Views/ProtonCatalog/Index.cshtml (track dropdown, AJAX tree reload, Add Track modal + JS), Views/ProtonCatalog/_CatalogTree.cshtml (Bootstrap collapse tree partial), _Layout.cshtml CDP nav dropdown with Proton Catalog link (HC/Admin only)
 
 ---
 
@@ -352,7 +352,7 @@ Plans:
 | 31. HC Reporting Actions | v1.8 | 2/2 | Complete | 2026-02-23 |
 | 32. Fix Legacy Question Path | v1.8 | 1/1 | Complete | 2026-02-21 |
 | 33. ProtonTrack Schema | v1.9 | 2/2 | Complete | 2026-02-23 |
-| 34. Catalog Page | v1.9 | 0/2 | Not started | — |
+| 34. Catalog Page | v1.9 | 2/2 | Complete | 2026-02-23 |
 | 35. CRUD Add and Edit | v1.9 | 0/2 | Not started | — |
 | 36. Delete Guards | v1.9 | 0/2 | Not started | — |
 | 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
