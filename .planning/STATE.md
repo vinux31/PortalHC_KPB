@@ -153,9 +153,10 @@ None.
 - Phase 29 complete: Auto-transition Upcoming→Open — query-time status override at GetMonitorData (display), worker list (display), StartExam (persisted to DB); upgraded to time-based WIB comparison (Schedule <= UtcNow.AddHours(7)); StartExam time gate added for future-scheduled assessments (2026-02-21)
 - Phase 30 complete: Import Deduplication — fingerprint-based dedup in ImportPackageQuestions POST; NormalizeText+MakeFingerprint helpers; ThenInclude for options; existingFingerprints+seenInBatch HashSets; 3-branch TempData routing with skip counts (2026-02-23)
 - Phase 29 Plan 03 complete: Schedule time picker added to Create/Edit Assessment forms; Upcoming worker cards now show exact "Opens DD MMM YYYY, HH:mm WIB" (2026-02-21)
+- Phase 31 complete: HC Reporting Actions — ExportAssessmentResults (Plan 01, ClosedXML all-workers export) + ForceCloseAll (Plan 02, bulk Abandoned + one AuditLog summary entry); v1.8 milestone complete (2026-02-23)
 
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 31-01-PLAN.md — ExportAssessmentResults action + Export Results button. Ready for 31-02.
+Stopped at: Completed 31-02-PLAN.md — ForceCloseAll action + Force Close All button. Phase 31 and v1.8 complete.
 Resume file: None.
