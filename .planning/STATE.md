@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-21)
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 29: Auto-transition Upcoming to Open — ✅ COMPLETE (3/3 plans)
-**Next Phase:** Phase 30 or 31 (reporting / ForceCloseAll)
-**Status:** Phase 29 fully complete. Time-based WIB comparison at all three auto-transition sites. StartExam time gate blocks future-scheduled access. Schedule time picker on Create/Edit forms. Worker list shows "Opens DD MMM YYYY, HH:mm WIB" for Upcoming assessments.
-**Last activity:** 2026-02-21 — Phase 29 gap closure complete: 29-02 (WIB time precision) + 29-03 (time picker + display). Verified 12/12.
+**Phase:** Phase 30: Import Deduplication — ✅ COMPLETE (1/1 plans)
+**Next Phase:** Phase 31 (HC Reporting Actions / ForceCloseAll)
+**Status:** Phase 30 fully complete. Fingerprint-based deduplication in ImportPackageQuestions POST. NormalizeText+MakeFingerprint helpers. ThenInclude(q=>q.Options) on POST query. existingFingerprints+seenInBatch HashSets. 3-branch TempData/redirect (0-valid-rows warning, all-duplicates warning, success with skip count).
+**Last activity:** 2026-02-23 — Phase 30 complete: import deduplication added to CMPController. Both task commits done (8098c0f, dfb3082).
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.
 | Phase 29-auto-transition-upcoming-to-open P01 | 2min | 2 tasks | 1 files |
 | Phase 29-auto-transition-upcoming-to-open P02 | 5min | 2 tasks | 1 files |
 | Phase 29-auto-transition-upcoming-to-open P03 | 2min | 2 tasks | 3 files |
+| Phase 30-import-deduplication P01 | 1min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 28-02]: Hidden form antiforgery pattern for AJAX token extraction — more reliable than regex parsing
 - [Phase 29-03]: ScheduleDate+ScheduleTime plain inputs (no asp-for); ScheduleHidden carries asp-for binding populated by JS before submit
 - [Phase 29-03]: Upcoming worker card disabled button shows exact opening datetime (HH:mm WIB) instead of day-countdown arithmetic
+- [Phase 30-01]: Import deduplication: NormalizeText (trim+collapse whitespace+toLowerInvariant, no punctuation strip) + MakeFingerprint (join with ||| separator) + HashSet<string> existingFingerprints (per-package) + seenInBatch (in-batch self-dedup); silent skip with skipped counter (no errors entry); 0-valid-rows branch before all-duplicates branch in TempData routing; ThenInclude(q => q.Options) required on POST query; options sorted by Id asc for stable fingerprint
 
 ### Pending Todos
 
@@ -144,10 +146,11 @@ None.
 - Phase 32 added: Fix legacy Question path in StartExam — sibling session lookup so HC-created questions work for all workers (2026-02-21)
 - Phase 28 complete: Package Reshuffle (re-assign dropped per user decision) — single + bulk reshuffle on monitoring page (2026-02-21)
 - Phase 29 complete: Auto-transition Upcoming→Open — query-time status override at GetMonitorData (display), worker list (display), StartExam (persisted to DB); upgraded to time-based WIB comparison (Schedule <= UtcNow.AddHours(7)); StartExam time gate added for future-scheduled assessments (2026-02-21)
+- Phase 30 complete: Import Deduplication — fingerprint-based dedup in ImportPackageQuestions POST; NormalizeText+MakeFingerprint helpers; ThenInclude for options; existingFingerprints+seenInBatch HashSets; 3-branch TempData routing with skip counts (2026-02-23)
 - Phase 29 Plan 03 complete: Schedule time picker added to Create/Edit Assessment forms; Upcoming worker cards now show exact "Opens DD MMM YYYY, HH:mm WIB" (2026-02-21)
 
 ## Session Continuity
 
-Last session: 2026-02-21
-Stopped at: Phase 29 fully complete (3/3 plans, verified 12/12). Gap closure done — time-based WIB comparison, StartExam time gate, time picker on forms, "Opens HH:mm WIB" on worker list. Phase 30 (Import Deduplication) and Phase 31 (HC Reporting Actions) remain for v1.8.
+Last session: 2026-02-23
+Stopped at: Phase 30 fully complete (1/1 plans). Import deduplication via fingerprints (NormalizeText+MakeFingerprint+HashSet) in ImportPackageQuestions POST. Phase 31 (HC Reporting Actions / ForceCloseAll) remains for v1.8.
 Resume file: None.
