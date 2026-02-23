@@ -596,6 +596,126 @@ namespace HcPortal.Controllers
             });
         }
 
+        // --- EXPORT ASSESSMENT RESULTS ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportAssessmentResults(string title, string category, DateTime scheduleDate)
+        {
+            // Query all sessions in this group (all workers assigned, regardless of completion status)
+            var sessions = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!sessions.Any())
+            {
+                TempData["Error"] = "No sessions found for this assessment group.";
+                return RedirectToAction("Assessment", new { view = "manage" });
+            }
+
+            // Detect package mode and load package assignments (same pattern as AssessmentMonitoringDetail)
+            var siblingIds = sessions.Select(s => s.Id).ToList();
+            var packageCount = await _context.AssessmentPackages
+                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+            var isPackageMode = packageCount > 0;
+
+            Dictionary<int, string> packageNameMap = new();
+            if (isPackageMode)
+            {
+                packageNameMap = await _context.UserPackageAssignments
+                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
+                    .Join(_context.AssessmentPackages,
+                        a => a.AssessmentPackageId,
+                        p => p.Id,
+                        (a, p) => new { a.AssessmentSessionId, p.PackageName })
+                    .ToDictionaryAsync(
+                        x => x.AssessmentSessionId,
+                        x => x.PackageName);
+            }
+
+            // Build row data: one row per session, include all statuses
+            var rows = sessions.Select(a =>
+            {
+                string userStatus;
+                if (a.CompletedAt != null || a.Score != null)
+                    userStatus = "Completed";
+                else if (a.Status == "Abandoned")
+                    userStatus = "Abandoned";
+                else if (a.StartedAt != null)
+                    userStatus = "In Progress";
+                else
+                    userStatus = "Not Started";
+
+                string resultText = a.IsPassed == true ? "Pass"
+                                  : a.IsPassed == false ? "Fail"
+                                  : "—";
+
+                return new
+                {
+                    UserFullName = a.User?.FullName ?? "Unknown",
+                    UserNIP      = a.User?.NIP ?? "",
+                    PackageName  = isPackageMode
+                                    ? (packageNameMap.ContainsKey(a.Id) ? packageNameMap[a.Id] : "—")
+                                    : "—",
+                    UserStatus   = userStatus,
+                    Score        = a.Score.HasValue ? (object)a.Score.Value : "—",
+                    Result       = resultText,
+                    CompletedAt  = a.CompletedAt.HasValue
+                                    ? a.CompletedAt.Value.ToString("yyyy-MM-dd HH:mm")
+                                    : ""
+                };
+            })
+            .OrderBy(r => r.UserStatus)
+            .ThenBy(r => r.UserFullName)
+            .ToList();
+
+            // Generate workbook (ClosedXML — same pattern as CDPController.ExportAnalyticsResults)
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Results");
+
+            // Header row
+            int col = 1;
+            worksheet.Cell(1, col++).Value = "Name";
+            worksheet.Cell(1, col++).Value = "NIP";
+            if (isPackageMode) worksheet.Cell(1, col++).Value = "Package";
+            worksheet.Cell(1, col++).Value = "Status";
+            worksheet.Cell(1, col++).Value = "Score";
+            worksheet.Cell(1, col++).Value = "Result";
+            worksheet.Cell(1, col).Value   = "Completed At";
+
+            int totalCols = isPackageMode ? 7 : 6;
+            var headerRange = worksheet.Range(1, 1, 1, totalCols);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            // Data rows
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var r = rows[i];
+                var row = i + 2;
+                int c = 1;
+                worksheet.Cell(row, c++).Value = r.UserFullName;
+                worksheet.Cell(row, c++).Value = r.UserNIP;
+                if (isPackageMode) worksheet.Cell(row, c++).Value = r.PackageName;
+                worksheet.Cell(row, c++).Value = r.UserStatus;
+                worksheet.Cell(row, c++).Value = r.Score?.ToString() ?? "—";
+                worksheet.Cell(row, c++).Value = r.Result;
+                worksheet.Cell(row, c).Value   = r.CompletedAt;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var content = stream.ToArray();
+            // Sanitize title for filename: replace non-alphanumeric with _
+            var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
+            var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Results.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
         // --- RESHUFFLE PACKAGE (single worker) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
