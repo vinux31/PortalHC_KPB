@@ -372,9 +372,7 @@ namespace HcPortal.Controllers
                         Sessions       = sessions
                     };
                 })
-                .OrderBy(g => g.GroupStatus == "Closed" ? 1 : 0)
-                .ThenBy(g => g.GroupStatus != "Closed" ? g.Schedule : DateTime.MaxValue)
-                .ThenByDescending(g => g.GroupStatus == "Closed" ? g.Schedule : DateTime.MinValue)
+                .OrderByDescending(g => g.Schedule)
                 .ToList();
 
             return Json(monitorGroups);
