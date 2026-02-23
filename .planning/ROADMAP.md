@@ -240,8 +240,8 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
 **Plans:** 2 plans
 
 Plans:
-- [ ] 33-01-PLAN.md — ProtonTrack model, DbContext registration, EF migration; data migration populating ProtonTrack rows from distinct TrackType+TahunKe values in existing ProtonKompetensi; add ProtonTrackId FK column and backfill; drop old string columns
-- [ ] 33-02-PLAN.md — Update SeedProtonData.cs to seed via ProtonTrack FKs; update AssignTrack and any other CDPController reads that filter by TrackType+TahunKe to use ProtonTrackId
+- [x] 33-01-PLAN.md — ProtonTrack model, DbContext registration, EF migration; data migration populating ProtonTrack rows from distinct TrackType+TahunKe values in existing ProtonKompetensi; add ProtonTrackId FK column and backfill; drop old string columns
+- [x] 33-02-PLAN.md — Update SeedProtonData.cs to seed via ProtonTrack FKs; update AssignTrack and any other CDPController reads that filter by TrackType+TahunKe to use ProtonTrackId
 
 ---
 
@@ -351,7 +351,7 @@ Plans:
 | 30. Import Deduplication | v1.8 | 1/1 | Complete | 2026-02-23 |
 | 31. HC Reporting Actions | v1.8 | 2/2 | Complete | 2026-02-23 |
 | 32. Fix Legacy Question Path | v1.8 | 1/1 | Complete | 2026-02-21 |
-| 33. ProtonTrack Schema | v1.9 | 0/2 | Not started | — |
+| 33. ProtonTrack Schema | v1.9 | 2/2 | Complete | 2026-02-23 |
 | 34. Catalog Page | v1.9 | 0/2 | Not started | — |
 | 35. CRUD Add and Edit | v1.9 | 0/2 | Not started | — |
 | 36. Delete Guards | v1.9 | 0/2 | Not started | — |

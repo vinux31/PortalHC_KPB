@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Milestone:** v1.9 Proton Catalog Management — IN PROGRESS
 **Phase:** 33 of 37 (ProtonTrack Schema) — COMPLETE
-**Next action:** `/gsd:execute-phase 34`
-**Status:** Phase 33 complete. Both plans done. Phase 34 ready to execute.
+**Next action:** `/gsd:plan-phase 34`
+**Status:** Phase 33 complete. Both plans done. Phase 34 ready to plan.
 **Last activity:** 2026-02-23 — Phase 33 Plan 02 complete: CDPController verification passed, Deliverable include chain bug fixed
 
 Progress: [##░░░░░░░░░░░░░░░░░░] 10% (v1.9) | v1.8 complete
