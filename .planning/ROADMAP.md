@@ -237,7 +237,7 @@ See `.planning/milestones/v1.7-ROADMAP.md` for full details.
   2. `ProtonKompetensi` rows each have a non-null `ProtonTrackId` FK pointing to a row in `ProtonTrack`
   3. All existing seeded Proton data (Panelman / Operator tracks, Tahun 1/2/3) is present and intact after migration
   4. The AssignTrack workflow resolves tracks by ProtonTrackId — no code reads TrackType+TahunKe strings from ProtonKompetensi directly
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 - [ ] 33-01-PLAN.md — ProtonTrack model, DbContext registration, EF migration; data migration populating ProtonTrack rows from distinct TrackType+TahunKe values in existing ProtonKompetensi; add ProtonTrackId FK column and backfill; drop old string columns
