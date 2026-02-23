@@ -116,3 +116,23 @@ public class FinalAssessmentViewModel
     /// <summary>Null if no final assessment has been created yet</summary>
     public ProtonFinalAssessment? ExistingAssessment { get; set; }
 }
+
+/// <summary>
+/// ViewModel for ProtonCatalog/Index page (Phase 34 CAT-01, CAT-02)
+/// HC/Admin view the full Kompetensi → SubKompetensi → Deliverable tree for a selected track.
+/// </summary>
+public class ProtonCatalogViewModel
+{
+    /// <summary>All ProtonTrack rows ordered by Urutan — populates the track dropdown.</summary>
+    public List<ProtonTrack> AllTracks { get; set; } = new();
+
+    /// <summary>Currently selected track Id from query param; null when no track selected.</summary>
+    public int? SelectedTrackId { get; set; }
+
+    /// <summary>
+    /// Full Kompetensi tree for the selected track.
+    /// Each Kompetensi has SubKompetensiList loaded, each SubKompetensi has Deliverables loaded.
+    /// Empty when no track is selected.
+    /// </summary>
+    public List<ProtonKompetensi> KompetensiList { get; set; } = new();
+}
