@@ -104,13 +104,24 @@
             <h5 class="mb-0 fw-semibold">
                 <i class="bi bi-people me-2 text-primary"></i>Per-User Status
             </h5>
-            @if (Model.IsPackageMode && Model.PendingCount > 0)
-            {
-                <button type="button" class="btn btn-outline-primary btn-sm"
-                        onclick="reshuffleAll(event)">
-                    <i class="bi bi-shuffle me-1"></i>Reshuffle All (@Model.PendingCount pending)
-                </button>
-            }
+            <div class="d-flex gap-2 align-items-center">
+                <!-- Export Results: GET download, no antiforgery needed -->
+                <form asp-action="ExportAssessmentResults" method="get" class="d-inline">
+                    <input type="hidden" name="title" value="@Model.Title" />
+                    <input type="hidden" name="category" value="@Model.Category" />
+                    <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
+                    <button type="submit" class="btn btn-outline-success btn-sm">
+                        <i class="bi bi-download me-1"></i>Export Results
+                    </button>
+                </form>
+                @if (Model.IsPackageMode && Model.PendingCount > 0)
+                {
+                    <button type="button" class="btn btn-outline-primary btn-sm"
+                            onclick="reshuffleAll(event)">
+                        <i class="bi bi-shuffle me-1"></i>Reshuffle All (@Model.PendingCount pending)
+                    </button>
+                }
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
