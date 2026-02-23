@@ -2380,6 +2380,13 @@ namespace HcPortal.Controllers
             return raw; // unchanged — will fail validation and show error
         }
 
+        // Helpers: text normalization and fingerprint for import deduplication
+        private static string NormalizeText(string s)
+            => System.Text.RegularExpressions.Regex.Replace(s.Trim(), @"\s+", " ").ToLowerInvariant();
+
+        private static string MakeFingerprint(string q, string a, string b, string c, string d)
+            => string.Join("|||", new[] { q, a, b, c, d }.Select(NormalizeText));
+
         // --- EXAM SUMMARY (PRE-SUBMIT REVIEW) ---
 
         [HttpPost]
