@@ -5,15 +5,15 @@
 See: .planning/PROJECT.md (updated 2026-02-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.8 Assessment Polish — Phases 27 + 28 + 29 ✅ complete (time-precision upgrade done), Phase 30/31 next
+**Current focus:** v1.8 Assessment Polish — Phases 27-30 ✅ complete, Phase 31 planned and ready to execute
 
 ## Current Position
 
 **Milestone:** v1.8 Assessment Polish — IN PROGRESS
-**Phase:** Phase 30: Import Deduplication — ✅ COMPLETE (1/1 plans)
-**Next Phase:** Phase 31 (HC Reporting Actions / ForceCloseAll)
-**Status:** Phase 30 fully complete. Fingerprint-based deduplication in ImportPackageQuestions POST. NormalizeText+MakeFingerprint helpers. ThenInclude(q=>q.Options) on POST query. existingFingerprints+seenInBatch HashSets. 3-branch TempData/redirect (0-valid-rows warning, all-duplicates warning, success with skip count).
-**Last activity:** 2026-02-23 — Phase 30 complete: import deduplication added to CMPController. Both task commits done (8098c0f, dfb3082).
+**Phase:** Phase 31: HC Reporting Actions — 🗺 PLANNED (0/2 plans executed)
+**Next Phase:** Phase 31 — ready to execute (2 plans, 1 wave)
+**Status:** Phase 31 fully planned. 31-01: ExportAssessmentResults GET action (ClosedXML, all workers, Name/NIP/Package/Status/Score/Result/CompletedAt). 31-02: ForceCloseAll POST action (Open/InProgress→Abandoned, AuditLogService summary entry, confirm() guard). Both plans Wave 1.
+**Last activity:** 2026-02-23 — Phase 31 planned: research + planner + checker all passed. Ready for /gsd:execute-phase 31.
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 5% (v1.8) | v1.7 complete ✅
 
@@ -152,5 +152,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Phase 30 fully complete (1/1 plans). Import deduplication via fingerprints (NormalizeText+MakeFingerprint+HashSet) in ImportPackageQuestions POST. Phase 31 (HC Reporting Actions / ForceCloseAll) remains for v1.8.
+Stopped at: Session resumed, Phase 31 planned. Research + planning + verification complete. Proceeding to execute-phase 31.
 Resume file: None.
