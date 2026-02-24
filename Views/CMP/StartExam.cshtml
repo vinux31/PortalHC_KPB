@@ -160,6 +160,48 @@ else
     </div>
 }
 
+<!-- Resume confirmation modal (shown on load for in-progress sessions) -->
+<div class="modal fade" id="resumeConfirmModal" tabindex="-1"
+     data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-light border-bottom-0 pb-0">
+                <h5 class="modal-title text-warning fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Ada ujian yang belum selesai
+                </h5>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0">Lanjutkan dari soal no. <strong id="resumePageNum">--</strong>?</p>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-warning w-100 fw-semibold" id="resumeConfirmBtn">
+                    <i class="bi bi-arrow-right me-1"></i>Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Expired exam modal (shown when remaining time <= 0 on resume) -->
+<div class="modal fade" id="examExpiredModal" tabindex="-1"
+     data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-light border-bottom-0 pb-0">
+                <h5 class="modal-title text-danger fw-bold">
+                    <i class="bi bi-hourglass-bottom me-2"></i>Waktu Assessment Habis
+                </h5>
+            </div>
+            <div class="modal-body pt-2">
+                <p class="mb-0">Waktu ujian Anda telah berakhir. Jawaban yang sudah tersimpan akan dikirimkan secara otomatis.</p>
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-danger w-100" data-bs-dismiss="modal">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Auto-save indicator (fixed bottom-right) -->
 <div id="saveIndicator" style="display:none; position:fixed; bottom:20px; right:20px; z-index:1050;">
     <span id="saveIndicatorBadge" class="badge rounded-pill px-3 py-2" style="font-size:0.85rem;">
@@ -185,9 +227,19 @@ else
     const DURATION_SECONDS = @Model.DurationMinutes * 60;
     const WARNING_THRESHOLD = 300; // 5 minutes
 
+    // --- Resume constants (from server) ---
+    const IS_RESUME = @((ViewBag.IsResume as bool? ?? false) ? "true" : "false");
+    const RESUME_PAGE = @(ViewBag.LastActivePage ?? 0);
+    const ELAPSED_SECONDS_FROM_DB = @(ViewBag.ElapsedSeconds ?? 0);
+    const REMAINING_SECONDS_FROM_DB = @(ViewBag.RemainingSeconds ?? (Model.DurationMinutes * 60));
+    const EXAM_EXPIRED = @((ViewBag.ExamExpired as bool? ?? false) ? "true" : "false");
+    const SAVED_ANSWERS = @Html.Raw(ViewBag.SavedAnswers ?? "{}");
+    const SESSION_PROGRESS_URL = '@Url.Action("UpdateSessionProgress", "CMP")';
+
     // -------- State --------
-    let currentPage = 0;
-    let timeRemaining = DURATION_SECONDS;
+    let currentPage = 0;  // Will be set to RESUME_PAGE after modal confirmation
+    let timeRemaining = REMAINING_SECONDS_FROM_DB;   // Server-calculated, not full duration
+    let elapsedSeconds = ELAPSED_SECONDS_FROM_DB;    // Tracks active time for UpdateSessionProgress
     let answeredQuestions = new Set(); // tracks which question IDs have been answered
 
     // Mapping: page index -> array of question IDs on that page
@@ -213,10 +265,11 @@ else
         }
         if (timeRemaining <= 0) {
             clearInterval(timerInterval);
-            alert('Time is up! Submitting your exam automatically.');
+            window.onbeforeunload = null;
             document.getElementById('examForm').submit();
         }
         timeRemaining--;
+        elapsedSeconds++;
     }
     var timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
@@ -348,6 +401,91 @@ else
         }, DEBOUNCE_MS);
     }
 
+    // -------- Answer pre-population (for resume) --------
+    function prePopulateAnswers() {
+        if (!IS_RESUME) return;   // Only relevant for resume sessions
+
+        const hasAnswers = SAVED_ANSWERS && Object.keys(SAVED_ANSWERS).length > 0;
+
+        if (!hasAnswers) {
+            // Locked decision: show toast warning when pre-populate has no data on resume
+            // "Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. X."
+            // X is 1-based: RESUME_PAGE is 0-indexed, so display as (RESUME_PAGE + 1)
+            showResumeFailureToast('Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. ' + (RESUME_PAGE + 1) + '.');
+            return;
+        }
+
+        Object.entries(SAVED_ANSWERS).forEach(function([qIdStr, optId]) {
+            if (!optId || optId === 0) return;
+            const qId = parseInt(qIdStr);
+            // Update hidden input
+            const hiddenInput = document.getElementById('ans_' + qId);
+            if (hiddenInput) hiddenInput.value = optId;
+            // Pre-check radio button
+            const radio = document.querySelector('input[name="radio_' + qId + '"][value="' + optId + '"]');
+            if (radio) {
+                radio.checked = true;
+                // Apply visual highlight to the selected label
+                document.querySelectorAll('[id^="lbl_' + qId + '_"]').forEach(function(lbl) {
+                    lbl.classList.remove('option-selected');
+                });
+                const selectedLabel = document.getElementById('lbl_' + qId + '_' + optId);
+                if (selectedLabel) selectedLabel.classList.add('option-selected');
+            }
+            // Track as answered
+            answeredQuestions.add(String(qId));
+        });
+        updateAnsweredCount();
+    }
+
+    // Show a non-blocking toast warning for pre-populate failure
+    // Uses inline Bootstrap toast (no external library needed — Bootstrap 5 already loaded)
+    function showResumeFailureToast(message) {
+        // Create toast container if it doesn't already exist
+        let toastContainer = document.getElementById('resumeToastContainer');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'resumeToastContainer';
+            toastContainer.style.cssText = 'position:fixed;bottom:1.5rem;end:1rem;z-index:1100;';
+            // Use Bootstrap's position utility classes instead of inline style for RTL safety
+            toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
+            toastContainer.style.zIndex = '1100';
+            document.body.appendChild(toastContainer);
+        }
+        const toastId = 'resumeFailureToast';
+        const toastHtml = '<div id="' + toastId + '" class="toast align-items-center text-bg-warning border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="6000">' +
+            '<div class="d-flex">' +
+            '<div class="toast-body fw-semibold"><i class="bi bi-exclamation-triangle-fill me-2"></i>' + message + '</div>' +
+            '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
+            '</div></div>';
+        toastContainer.innerHTML = toastHtml;
+        const toastEl = document.getElementById(toastId);
+        const toast = new bootstrap.Toast(toastEl);
+        toast.show();
+    }
+
+    // -------- Session progress save (elapsed time + current page) --------
+    function saveSessionProgress() {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (!token) return;
+        fetch(SESSION_PROGRESS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token.value
+            },
+            body: 'sessionId=' + SESSION_ID +
+                  '&elapsedSeconds=' + elapsedSeconds +
+                  '&currentPage=' + currentPage
+        }).catch(function() {
+            // Silent failure: local elapsedSeconds continues; next 30s poll will retry
+            console.warn('UpdateSessionProgress failed — will retry on next interval');
+        });
+    }
+
+    // Periodic save every 30 seconds
+    setInterval(saveSessionProgress, 30000);
+
     // -------- Radio change listener (replaces old listener) --------
     document.querySelectorAll('.exam-radio').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -408,6 +546,7 @@ else
         currentPage = newPage;
         document.getElementById('page_' + currentPage).style.display = 'block';
         updatePanel();
+        saveSessionProgress();  // Save elapsed time + new page on every navigation
         window.scrollTo(0, 0);
     }
 
@@ -474,7 +613,43 @@ else
     }
 
     // -------- Init --------
-    updatePanel();
+
+    // Pre-populate saved answers before anything is shown (seamless, no flicker)
+    // Also shows failure toast if IS_RESUME is true but no answers were loaded
+    prePopulateAnswers();
+
+    // Expired exam: show modal then auto-submit
+    if (EXAM_EXPIRED) {
+        clearInterval(timerInterval);   // Stop timer (time already up)
+        window.onbeforeunload = null;
+        const expiredModal = new bootstrap.Modal(document.getElementById('examExpiredModal'));
+        expiredModal.show();
+        // Auto-submit after worker acknowledges (or after 5 seconds as fallback)
+        document.querySelector('#examExpiredModal button').addEventListener('click', function() {
+            document.getElementById('examForm').submit();
+        });
+        setTimeout(function() {
+            document.getElementById('examForm').submit();
+        }, 5000);
+    } else if (IS_RESUME && RESUME_PAGE > 0) {
+        // Show resume confirmation modal (worker left mid-exam on a non-first page)
+        document.getElementById('resumePageNum').innerText = (RESUME_PAGE + 1);
+        const resumeModal = new bootstrap.Modal(document.getElementById('resumeConfirmModal'));
+        resumeModal.show();
+
+        document.getElementById('resumeConfirmBtn').addEventListener('click', function() {
+            resumeModal.hide();
+            // Navigate to last active page
+            document.getElementById('page_0').style.display = 'none';
+            currentPage = RESUME_PAGE;
+            document.getElementById('page_' + currentPage).style.display = 'block';
+            updatePanel();
+            window.scrollTo(0, 0);
+        });
+    } else {
+        // Normal start or resume from page 0: just render panel
+        updatePanel();
+    }
 
     // -------- Abandon exam --------
     function confirmAbandon() {
