@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.9 Proton Catalog Management — Phase 35 complete, ready for Phase 36 (delete + reorder)
+**Current focus:** v1.9 Proton Catalog Management — Phase 36 Plan 01 complete, ready for Phase 36 Plan 02 (delete guard frontend)
 
 ## Current Position
 
 **Milestone:** v1.9 Proton Catalog Management — IN PROGRESS
-**Phase:** 35 of 37 (Catalog Editor) — COMPLETE
-**Current Plan:** 2 of 2 — COMPLETE
-**Next action:** Begin Phase 36 — catalog delete and reorder interactions
-**Status:** Phase 35 COMPLETE — all CAT-03 through CAT-06 requirements met (inline add/edit across all three levels)
-**Last activity:** 2026-02-24 — Phase 35 Plan 02 complete: _CatalogTree.cshtml HTML structure + initCatalogTree() in Index.cshtml; human verification passed
+**Phase:** 36 of 37 (Delete Guards) — IN PROGRESS
+**Current Plan:** 1 of 2 — COMPLETE
+**Next action:** Begin Phase 36 Plan 02 — delete guard frontend (trash icon, Bootstrap modal, initDeleteGuards())
+**Status:** Phase 36 Plan 01 COMPLETE — GetDeleteImpact GET and DeleteCatalogItem POST added; cascade delete and active-coachee impact query both compile clean
+**Last activity:** 2026-02-24 — Phase 36 Plan 01 complete: GetDeleteImpact + DeleteCatalogItem added to ProtonCatalogController (165 insertions, ~2 min)
 
 Progress: [######░░░░░░░░░░░░░░] 30% (v1.9) | v1.8 complete
 
@@ -37,6 +37,7 @@ Progress: [######░░░░░░░░░░░░░░] 30% (v1.9) | v1.8 c
 | Phase 34-catalog-page P02 | ~30min | 2 tasks + revision | 4 files |
 | Phase 35-crud-add-edit P01 | 2min | 2 tasks | 1 file |
 | Phase 35-crud-add-edit P02 | ~45min | 2 tasks + 1 fix | 2 files |
+| Phase 36-delete-guards P01 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 33-01]: CDPController consumer fixes implemented in Plan 01 (Rule 3 blocking) — project must compile for EF to scaffold migration
 - [Phase 33-01]: AssignTrack action now accepts protonTrackId (int) — old trackType+tahunKe string params removed
 - [Phase 33]: Only one code gap found in Plan 02: Deliverable action missing ThenInclude(ProtonTrack) — fixed as Rule 1 bug; all Plan 01 consumer fixes verified correct
+- [Phase 36-delete-guards]: GetDeleteImpact returns JSON {success:false} not Forbid for RoleLevel > 2 — preserves AJAX JSON contract
+- [Phase 36-delete-guards]: DeleteCatalogItem uses single SaveChangesAsync at end (not per-RemoveRange) — EF Core batches all removals into one FK-safe transaction
 
 ### Pending Todos
 
@@ -81,5 +84,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Phase 35 Plan 02 complete — inline add/edit interactions shipped, human verification passed. Ready for Phase 36 (delete + reorder).
+Stopped at: Completed 36-delete-guards-01-PLAN.md — GetDeleteImpact + DeleteCatalogItem backend endpoints live. Ready for Phase 36 Plan 02 (delete guard frontend).
 Resume file: None.
