@@ -10,13 +10,13 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 ## Current Position
 
 **Milestone:** v1.9 Proton Catalog Management — IN PROGRESS
-**Phase:** 36 of 37 (Delete Guards) — COMPLETE
-**Current Plan:** 2 of 2 — COMPLETE
-**Next action:** Begin Phase 37 — reorder/drag (SortableJS drag handles + AJAX POST)
-**Status:** Phase 36 COMPLETE — delete guard frontend shipped; trash icons, #deleteModal, initDeleteGuards() all verified end-to-end in browser
-**Last activity:** 2026-02-24 — Phase 36 Plan 02 complete: trash icons + delete modal + initDeleteGuards() wired; 2 post-verification fixes (collapse bubbling, Deliverable pencil d-none)
+**Phase:** 37 of 37 (Drag-Drop Reorder) — IN PROGRESS
+**Current Plan:** 1 of 2 — COMPLETE
+**Next action:** Execute Phase 37-02 — SortableJS frontend (drag handles + AJAX POST wiring)
+**Status:** Phase 37 Plan 01 COMPLETE — ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST endpoints added to ProtonCatalogController; build passes
+**Last activity:** 2026-02-24 — Phase 37 Plan 01 complete: three Reorder* POST actions added, dotnet build passes with 0 errors
 
-Progress: [######░░░░░░░░░░░░░░] 30% (v1.9) | v1.8 complete
+Progress: [#######░░░░░░░░░░░░░] 35% (v1.9) | v1.8 complete
 
 ## Performance Metrics
 
@@ -39,6 +39,7 @@ Progress: [######░░░░░░░░░░░░░░] 30% (v1.9) | v1.8 c
 | Phase 35-crud-add-edit P02 | ~45min | 2 tasks + 1 fix | 2 files |
 | Phase 36-delete-guards P01 | 2min | 2 tasks | 1 files |
 | Phase 36-delete-guards P02 | 30min | 3 tasks | 2 files |
+| Phase 37-drag-drop-reorder P01 | 1min | 1 task | 1 file |
 
 ## Accumulated Context
 
@@ -76,6 +77,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 36-delete-guards]: Deliverable pencil-btn loses d-none (fix 841f40c) — leaf nodes have no collapse toggle so the pencil was never revealed; always visible when parent SubKompetensi is expanded
 - [Phase 36-delete-guards]: Bootstrap collapse events bubble — e.target !== target guard added to all 6 collapse listeners (chevron, pencil show/hide, trash show/hide) so child collapse events do not affect parent row icons
 - [Phase 36-delete-guards]: deleteConfirmBtn re-cloned on every initDeleteGuards() call via cloneNode(true)+replaceChild — safe pattern for re-initializing listeners on tree reload without accumulating duplicates
+- [Phase 37-drag-drop-reorder P01]: Reorder endpoints follow identical AJAX JSON contract — RoleLevel > 2 returns Json({success:false,error:"Unauthorized"}), not Forbid()
+- [Phase 37-drag-drop-reorder P01]: Single SaveChangesAsync at end of Urutan reassignment loop — EF Core batches all UPDATE statements in one round-trip
 
 ### Pending Todos
 
@@ -88,5 +91,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 36-delete-guards-02-PLAN.md — Phase 36 complete. Delete guard frontend (trash icons, #deleteModal, initDeleteGuards()) verified end-to-end. Ready for Phase 37 (reorder/drag).
+Stopped at: Completed 37-drag-drop-reorder-01-PLAN.md — Phase 37 Plan 01 complete. ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST endpoints added; dotnet build passes. Ready for Phase 37-02 (SortableJS frontend).
 Resume file: None.
