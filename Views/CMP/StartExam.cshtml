@@ -468,8 +468,7 @@ else
     // -------- Session progress save (elapsed time + current page) --------
     function saveSessionProgress() {
         const token = document.querySelector('input[name="__RequestVerificationToken"]');
-        if (!token) { console.warn('[resume] saveSessionProgress: no antiforgery token found'); return; }
-        console.log('[resume] saveSessionProgress — sessionId=' + SESSION_ID + ' page=' + currentPage + ' elapsed=' + elapsedSeconds);
+        if (!token) return;
         fetch(SESSION_PROGRESS_URL, {
             method: 'POST',
             headers: {
@@ -479,12 +478,8 @@ else
             body: 'sessionId=' + SESSION_ID +
                   '&elapsedSeconds=' + elapsedSeconds +
                   '&currentPage=' + currentPage
-        }).then(function(r) {
-            return r.json().then(function(data) {
-                console.log('[resume] UpdateSessionProgress HTTP=' + r.status, data);
-            });
-        }).catch(function(err) {
-            console.warn('[resume] UpdateSessionProgress network error:', err);
+        }).catch(function() {
+            console.warn('UpdateSessionProgress failed — will retry on next interval');
         });
     }
 

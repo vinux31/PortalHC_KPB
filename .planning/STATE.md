@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 41 complete, Phase 42 next
+**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 42 complete, Phase 43 next
 
 ## Current Position
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
-**Phase:** 42 of 44 (Session Resume)
-**Current Plan:** 03 of 4 complete
-**Next action:** Execute Phase 42 Plan 04
-**Status:** Phase 42 Plan 03 complete — Resume button on assessment cards, resume modal, timer from remaining seconds, answer pre-population, periodic saves, expired-exam path
-**Last activity:** 2026-02-24 — Phase 42 Plan 03 complete (frontend session resume, 2 views modified, build green)
+**Phase:** 43 of 44 (Worker Polling)
+**Current Plan:** 0 of 2 complete
+**Next action:** Plan and execute Phase 43
+**Status:** Phase 42 complete — all 6 verification tests approved (4 bugs fixed during human verification)
+**Last activity:** 2026-02-24 — Phase 42 complete (session resume end-to-end verified)
 
-Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete, Phase 41 ✓)
+Progress: [████████░░░░░░░░░░░░] 50% (v2.1 — 2/4 phases complete, Phase 41 ✓, Phase 42 ✓)
 
 ## Performance Metrics
 
@@ -38,6 +38,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 25% (v2
 | Phase 42-session-resume P01 | 2min | 2 tasks | 5 files |
 | Phase 42-session-resume P02 | 3min | 2 tasks, 1 file |
 | Phase 42-session-resume P03 | 2min | 2 tasks, 2 files |
+| Phase 42-session-resume P04 | ~40min | 1 checkpoint + 4 bug fixes, 3 files |
 
 ## Accumulated Context
 
@@ -81,5 +82,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 42-session-resume-03-PLAN.md — frontend session resume complete. Ready for Plan 04.
+Stopped at: Phase 42 complete — all 6 verification tests approved. Ready for Phase 43.
 Resume file: None.
