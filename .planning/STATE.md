@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — Phase 40 COMPLETE
+**Current focus:** v1.9 + v2.0 milestones complete — all active phases done
 
 ## Current Position
 
-**Milestone:** v2.0 Assessment Management & Training History — COMPLETE
-**Phase:** 40 of 40 — COMPLETE
-**Current Plan:** All plans complete
-**Next action:** None — roadmap complete
-**Status:** 40-02 complete (Tasks 1+2 committed, human-verify approved). Phase 40 done.
-**Last activity:** 2026-02-24 — 40-02 complete: History tab, tab strip, tab-persistence JS added to RecordsWorkerList
+**Milestone:** v1.9 Proton Catalog Management — COMPLETE (Phase 37 cancelled by user decision)
+**Phase:** 37 of 37 — CANCELLED (drag-and-drop removed; SortableJS incompatible with nested-table tree)
+**Current Plan:** All plans complete or cancelled
+**Next action:** `/gsd:complete-milestone` to archive v1.9, then v2.0
+**Status:** Phases 33–36 complete, 37 cancelled. v2.0 phases 38–40 complete. Roadmap fully executed.
+**Last activity:** 2026-02-24 — Phase 37 marked cancelled (user confirmed intentional removal)
 
 Progress: [████████████████████] 100% (v2.0 — 2 of 2 plans complete)
 

@@ -311,8 +311,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 37-01-PLAN.md — Backend: ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST actions in ProtonCatalogController; each accepts int[] orderedIds and reassigns Urutan 1..N
-- [ ] 37-02-PLAN.md — Frontend: SortableJS 1.15.7 CDN in _Layout.cshtml; grip handle column in _CatalogTree.cshtml; initSortables() + handleDropEnd() + in-flight lock in Index.cshtml; human verification checkpoint
+- [~] 37-01-PLAN.md — Cancelled (feature removed; SortableJS incompatible with nested-table tree structure)
+- [~] 37-02-PLAN.md — Cancelled (feature removed)
 
 ---
 
@@ -414,7 +414,7 @@ Plans:
 | 34. Catalog Page | v1.9 | 2/2 | Complete | 2026-02-23 |
 | 35. CRUD Add and Edit | v1.9 | 2/2 | Complete | 2026-02-24 |
 | 36. Delete Guards | v1.9 | 2/2 | Complete | 2026-02-24 |
-| 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
+| 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Cancelled | 2026-02-24 |
 | 38. Auto-Hide Filter | v2.0 | 1/1 | Complete | 2026-02-24 |
 | 39. Close Early | v2.0 | 2/2 | Complete | 2026-02-24 |
 | 40. Training Records History Tab | v2.0 | 2/2 | Complete | 2026-02-24 |
