@@ -1069,6 +1069,46 @@ namespace HcPortal.Controllers
             return Json(new { success = true });
         }
 
+        // --- SAVE LEGACY ANSWER (auto-save for legacy exam path → UserResponse) ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveLegacyAnswer(int sessionId, int questionId, int optionId)
+        {
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Only the session owner may save answers
+            if (session.UserId != user.Id)
+                return Json(new { success = false, error = "Unauthorized" });
+
+            // Session must still be in progress
+            if (session.Status == "Completed" || session.Status == "Abandoned")
+                return Json(new { success = false, error = "Session already closed" });
+
+            // Atomic upsert: update existing row, or insert if none exists
+            var updatedCount = await _context.UserResponses
+                .Where(r => r.AssessmentSessionId == sessionId && r.AssessmentQuestionId == questionId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.SelectedOptionId, optionId)
+                );
+
+            if (updatedCount == 0)
+            {
+                _context.UserResponses.Add(new UserResponse
+                {
+                    AssessmentSessionId = sessionId,
+                    AssessmentQuestionId = questionId,
+                    SelectedOptionId = optionId
+                });
+                await _context.SaveChangesAsync();
+            }
+
+            return Json(new { success = true });
+        }
+
         // --- CHECK EXAM STATUS (polled by worker JS every 30s to detect early close) ---
         [HttpGet]
         public async Task<IActionResult> CheckExamStatus(int sessionId)
