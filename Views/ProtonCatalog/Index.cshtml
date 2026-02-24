@@ -206,6 +206,13 @@
     function reloadTree() {
         var trackId = document.getElementById('trackDropdown').value;
         if (!trackId) return;
+
+        // Remember which collapse containers are currently open
+        var openIds = [];
+        document.querySelectorAll('#treeContainer .collapse.show').forEach(function(el) {
+            if (el.id) openIds.push(el.id);
+        });
+
         fetch('/ProtonCatalog/GetCatalogTree?trackId=' + trackId)
             .then(function (r) { return r.text(); })
             .then(function (html) {
@@ -214,6 +221,11 @@
                     container.innerHTML = html;
                     initCatalogTree();
                     initDeleteGuards();
+                    // Restore expanded state
+                    openIds.forEach(function(id) {
+                        var el = document.getElementById(id);
+                        if (el) bootstrap.Collapse.getOrCreateInstance(el, { toggle: false }).show();
+                    });
                 }
             })
             .catch(function (err) { console.error('Tree reload error:', err); });
