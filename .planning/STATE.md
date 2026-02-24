@@ -2,21 +2,21 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-23)
+See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.9 + v2.0 milestones complete — all active phases done
+**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — defining requirements
 
 ## Current Position
 
-**Milestone:** v1.9 Proton Catalog Management — COMPLETE (Phase 37 cancelled by user decision)
-**Phase:** 37 of 37 — CANCELLED (drag-and-drop removed; SortableJS incompatible with nested-table tree)
-**Current Plan:** All plans complete or cancelled
-**Next action:** `/gsd:complete-milestone` to archive v1.9, then v2.0
-**Status:** v2.0 milestone complete
-**Last activity:** 2026-02-24 — Phase 37 marked cancelled (user confirmed intentional removal)
+**Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
+**Phase:** Not started (defining requirements)
+**Current Plan:** —
+**Next action:** Research → Requirements → Roadmap
+**Status:** Milestone started 2026-02-24
+**Last activity:** 2026-02-24 — Milestone v2.1 started
 
-Progress: [████████████████████] 100% (v2.0 — 2 of 2 plans complete)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.1)
 
 ## Performance Metrics
 

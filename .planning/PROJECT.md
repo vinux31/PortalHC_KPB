@@ -12,9 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v2.0 — shipped 2026-02-24)
+## Current Milestone: v2.1 Assessment Resilience & Real-Time Monitoring
 
-No active milestone. Next milestone to be defined via `/gsd:new-milestone`.
+**Goal:** Worker tidak kehilangan progress saat disconnected dan HC bisa memantau perkembangan tiap worker secara live selama assessment berlangsung.
+
+**Target features:**
+- Auto-save answers per-klik + per-halaman (AJAX ke SaveAnswer endpoint); solves Close Early scoring dari jawaban parsial
+- Session resume — elapsed time + last page disimpan; jika disconnected lalu reconnect, exam melanjutkan dari posisi terakhir dengan sisa waktu akurat
+- Worker exam polling — exam page poll setiap 10s; jika session closed (Close Early), browser auto-redirect ke Results
+- Live progress monitoring (HC) — Progress column (dijawab/total) di MonitoringDetail Per-User Status; auto-refresh 5-10s; NIP column dihapus
+
+## Current State (v2.0 — shipped 2026-02-24)
 
 ## Shipped Milestones
 
