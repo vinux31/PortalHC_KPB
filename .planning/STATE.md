@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
 **Phase:** 41 of 44 (Auto-Save)
-**Current Plan:** 01 complete
-**Next action:** `/gsd:plan-phase 42` (resume)
-**Status:** Phase 41 Plan 01 complete — backend auto-save endpoints live
-**Last activity:** 2026-02-24 — Phase 41-01 complete (SaveAnswer hardened, SaveLegacyAnswer added, UNIQUE constraint applied)
+**Current Plan:** 02 in progress (paused at Task 3 checkpoint:human-verify)
+**Next action:** Human verify auto-save behaviour in browser, then resume 41-02 Task 3
+**Status:** Phase 41 Plan 02 Tasks 1-2 complete — auto-save JS + indicator + navigation blocking live; ExamSummary badge live
+**Last activity:** 2026-02-24 — Phase 41-02 Tasks 1-2 complete (debounced auto-save, save indicator, navigation blocking, ExamSummary badge)
 
 Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete)
 
@@ -34,6 +34,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 25% (v2
 | Phase 40-history-tab P01 | 8min | 2 tasks, 3 files |
 | Phase 40-history-tab P02 | ~5min | 2 tasks + 1 checkpoint, 1 file |
 | Phase 41-auto-save P01 | 2min | 2 tasks, 5 files |
+| Phase 41-auto-save P02 | ~7min | 2 tasks (Task 3 checkpoint pending), 2 files |
 
 ## Accumulated Context
 
@@ -68,5 +69,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 41-01-PLAN.md — SaveAnswer hardened with ExecuteUpdateAsync, SaveLegacyAnswer added, UNIQUE constraint on PackageUserResponse applied to DB
+Stopped at: 41-02-PLAN.md Task 3 checkpoint:human-verify — awaiting browser verification of auto-save indicator, navigation blocking, and ExamSummary badge
 Resume file: None.
