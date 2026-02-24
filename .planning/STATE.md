@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — Phase 39 in progress (39-01 done, 39-02 pending)
+**Current focus:** v2.0 Assessment Management & Training History — Phase 39 COMPLETE, Phase 40 pending
 
 ## Current Position
 
 **Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
-**Phase:** 39 of 40 — IN PROGRESS (2 plans, 2 waves)
-**Current Plan:** 39-02 — Frontend button + modal (checkpoint)
-**Next action:** `/gsd:execute-phase 39` — execute 39-02 frontend plan (human-verify checkpoint)
-**Status:** 39-01 backend complete. CloseEarly POST action live in CMPController. Ready for 39-02 frontend.
-**Last activity:** 2026-02-24 — 39-01 executed: CloseEarly action added to CMPController (0 errors, 246 lines)
+**Phase:** 40 of 40 — PENDING
+**Current Plan:** 40-01 — History tab on RecordsWorkerList
+**Next action:** `/gsd:execute-phase 40` — execute phase 40 (history tab)
+**Status:** Phase 39 complete. CloseEarly feature fully shipped: backend scoring (39-01) + frontend modal + incremental save + worker notification (39-02).
+**Last activity:** 2026-02-24 — 39-02 executed: Submit Assessment modal, SaveAnswer endpoint, CheckExamStatus polling, 3 verification issues fixed
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0)
 
@@ -42,6 +42,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.
 | Phase 37-drag-drop-reorder P01 | 1min | 1 task | 1 file |
 | Phase 38-auto-hide-filter P01 | 3min | 2 tasks | 1 files |
 | Phase 39-close-early P01 | 5min | 1 task | 1 file |
+| Phase 39-close-early P02 | ~25min | 2 tasks + 3 fixes | 3 files |
 
 ## Accumulated Context
 
@@ -56,6 +57,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 39-01]: maxScore uses pkg.Questions.Sum(q => q.ScoreValue) not Count*10 — safe against non-standard ScoreValue (Pitfall 6)
 - [Phase 39-01]: Competency update block included for both package and legacy paths when IsPassed==true — parity with SubmitExam lines 2878-2921
 - [Phase 39-01]: CloseEarly reads PackageUserResponses (does NOT write new ones) — SubmitExam writes them, CloseEarly reads existing
+- [Phase 39-02]: SaveAnswer endpoint uses explicit session-owner check (Json error) not [Authorize(Roles)] — workers don't have HC/Admin roles
+- [Phase 39-02]: SubmitExam upsert checks FirstOrDefaultAsync per-question in loop — handles partial SaveAnswer coverage without loading all records upfront
+- [Phase 39-02]: CheckExamStatus is a plain GET with no antiforgery — read-only, JSON for JS consumption
+- [Phase 39-02]: 30s poll interval — balances worker notification speed vs server load during active exam
 - Phase 40 (history tab): Second tab on RecordsWorkerList (not a new page). Combined in-memory merge of TrainingRecords + completed AssessmentSessions, sorted by tanggal mulai descending. Pattern mirrors existing GetUnifiedRecords approach.
 - Phase 40 depends on Phase 38 (same dependency level as Phase 39) — both can be planned independently after Phase 38 ships.
 
@@ -104,5 +109,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 39-01-PLAN.md — CloseEarly backend action done. Ready for 39-02 frontend (human-verify checkpoint).
+Stopped at: Completed 39-02-PLAN.md — Phase 39 CloseEarly fully complete (backend + frontend + incremental save + worker notification + verification fixes). Phase 40 (history tab) is next.
 Resume file: None.
