@@ -114,6 +114,14 @@
                         <i class="bi bi-download me-1"></i>Export Results
                     </button>
                 </form>
+                @if (Model.GroupStatus == "Open")
+                {
+                    <!-- Close Early: triggers Bootstrap modal confirmation -->
+                    <button type="button" class="btn btn-warning btn-sm"
+                            data-bs-toggle="modal" data-bs-target="#closeEarlyModal">
+                        <i class="bi bi-clock-history me-1"></i>Tutup Lebih Awal
+                    </button>
+                }
                 <!-- Force Close All: POST with antiforgery, confirm() guard -->
                 <form asp-action="ForceCloseAll" method="post" class="d-inline"
                       onsubmit="return confirm('Tutup paksa semua sesi Open/InProgress? Sesi akan ditandai Abandoned dan tidak dapat dikembalikan.')">
@@ -288,6 +296,44 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.GroupStatus == "Open")
+    {
+        <!-- Close Early Confirmation Modal -->
+        <div class="modal fade" id="closeEarlyModal" tabindex="-1" aria-labelledby="closeEarlyModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title fw-semibold" id="closeEarlyModalLabel">
+                            <i class="bi bi-clock-history me-2"></i>Tutup Lebih Awal
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-2">Tindakan ini akan <strong>menutup grup ujian "@Model.Title" lebih awal</strong> secara permanen dan tidak dapat dibatalkan.</p>
+                        <ul class="mb-2">
+                            <li><strong>Peserta yang sedang mengerjakan (InProgress)</strong> akan diberi skor berdasarkan jawaban yang sudah mereka kirimkan.</li>
+                            <li><strong>Peserta yang belum mulai (Not Started)</strong> akan dikunci dan tidak dapat mengakses ujian.</li>
+                            <li>Peserta yang sudah selesai tidak akan terpengaruh.</li>
+                        </ul>
+                        <p class="text-danger mb-0"><i class="bi bi-exclamation-triangle-fill me-1"></i>Apakah Anda yakin ingin menutup ujian ini lebih awal?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <form asp-action="CloseEarly" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="title" value="@Model.Title" />
+                            <input type="hidden" name="category" value="@Model.Category" />
+                            <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
+                            <button type="submit" class="btn btn-warning">
+                                <i class="bi bi-clock-history me-1"></i>Ya, Tutup Lebih Awal
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
