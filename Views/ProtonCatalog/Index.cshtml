@@ -112,7 +112,224 @@
         document.getElementById('displayNamePreview').value = (type && year) ? type + ' - ' + year : '';
     }
 
+    // ── Catalog tree helpers ──────────────────────────────────────────────────
+
+    function buildInlineInput(placeholderText, onSave, onCancel) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'd-flex align-items-center flex-wrap gap-1';
+
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control form-control-sm d-inline-block';
+        input.style.width = '60%';
+        input.placeholder = placeholderText;
+
+        var saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn-sm btn-success ms-1 save-btn';
+        saveBtn.textContent = '\u2713';
+        saveBtn.disabled = true;
+
+        var cancelBtn = document.createElement('button');
+        cancelBtn.className = 'btn btn-sm btn-secondary ms-1 cancel-btn';
+        cancelBtn.textContent = '\u2717';
+
+        input.addEventListener('input', function () {
+            saveBtn.disabled = input.value.trim() === '';
+        });
+        saveBtn.addEventListener('click', function () { onSave(input.value.trim()); });
+        cancelBtn.addEventListener('click', function () { onCancel(); });
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(saveBtn);
+        wrapper.appendChild(cancelBtn);
+        return wrapper;
+    }
+
+    function postItem(url, params, onSuccess, onError) {
+        var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (!tokenEl) { onError('Token tidak ditemukan.'); return; }
+        var body = new URLSearchParams(Object.assign({}, params, { __RequestVerificationToken: tokenEl.value }));
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: body.toString()
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (result) {
+                if (result.success) { onSuccess(result); }
+                else { onError(result.error || 'Gagal.'); }
+            })
+            .catch(function () { onError('Terjadi kesalahan. Coba lagi.'); });
+    }
+
+    function showInlineError(container, msg) {
+        var existing = container.querySelector('.inline-error');
+        if (existing) existing.remove();
+        var err = document.createElement('div');
+        err.className = 'inline-error text-danger small mt-1';
+        err.textContent = msg;
+        container.appendChild(err);
+    }
+
+    function restoreNameSpan(nameSpan, widget) {
+        nameSpan.style.display = '';
+        if (widget.parentNode) widget.parentNode.removeChild(widget);
+    }
+
+    function reloadTree() {
+        var trackId = document.getElementById('trackDropdown').value;
+        if (!trackId) return;
+        fetch('/ProtonCatalog/GetCatalogTree?trackId=' + trackId)
+            .then(function (r) { return r.text(); })
+            .then(function (html) {
+                var container = document.getElementById('treeContainer');
+                if (container) {
+                    container.innerHTML = html;
+                    initCatalogTree();
+                }
+            })
+            .catch(function (err) { console.error('Tree reload error:', err); });
+    }
+
+    // ── initCatalogTree — call after every tree HTML injection ────────────────
+
+    function initCatalogTree() {
+
+        // Chevron rotation
+        document.querySelectorAll('#treeContainer [data-bs-toggle="collapse"]').forEach(function (btn) {
+            var targetId = btn.getAttribute('data-bs-target').replace('#', '');
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            target.addEventListener('show.bs.collapse', function () {
+                var icon = btn.querySelector('i.bi-chevron-right, i.bi-chevron-down');
+                if (icon) icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                var icon = btn.querySelector('i.bi-chevron-right, i.bi-chevron-down');
+                if (icon) icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
+            });
+        });
+
+        // Pencil icon: show when row expanded, hide when collapsed
+        document.querySelectorAll('#treeContainer [data-bs-toggle="collapse"]').forEach(function (btn) {
+            var row = btn.closest('tr');
+            if (!row) return;
+            var pencil = row.querySelector('.pencil-btn');
+            if (!pencil) return;
+            var targetId = btn.getAttribute('data-bs-target').replace('#', '');
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            target.addEventListener('show.bs.collapse', function () {
+                pencil.classList.remove('d-none');
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                pencil.classList.add('d-none');
+            });
+        });
+
+        // Add Kompetensi
+        var addKompetensiLink = document.getElementById('addKompetensiLink');
+        var addKompetensiContainer = document.getElementById('addKompetensiInput');
+        if (addKompetensiLink && addKompetensiContainer) {
+            addKompetensiLink.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (!addKompetensiContainer.classList.contains('d-none')) return;
+                var trackId = document.getElementById('trackDropdown').value;
+                if (!trackId) return;
+                addKompetensiContainer.classList.remove('d-none');
+                var widget = buildInlineInput('Nama Kompetensi...', function (nama) {
+                    postItem('/ProtonCatalog/AddKompetensi', { trackId: trackId, nama: nama }, function () {
+                        addKompetensiContainer.classList.add('d-none');
+                        addKompetensiContainer.innerHTML = '';
+                        reloadTree();
+                    }, function (err) { showInlineError(addKompetensiContainer, err); });
+                }, function () {
+                    addKompetensiContainer.classList.add('d-none');
+                    addKompetensiContainer.innerHTML = '';
+                });
+                addKompetensiContainer.appendChild(widget);
+                widget.querySelector('input').focus();
+            });
+        }
+
+        // Add SubKompetensi
+        document.querySelectorAll('#treeContainer .add-subkompetensi-trigger-row a[data-parent-id]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var kompetensiId = link.dataset.parentId;
+                var container = document.getElementById('addSubKompetensiInput-' + kompetensiId);
+                if (!container || !container.classList.contains('d-none')) return;
+                container.classList.remove('d-none');
+                var widget = buildInlineInput('Nama SubKompetensi...', function (nama) {
+                    postItem('/ProtonCatalog/AddSubKompetensi', { kompetensiId: kompetensiId, nama: nama }, function () {
+                        container.classList.add('d-none');
+                        container.innerHTML = '';
+                        reloadTree();
+                    }, function (err) { showInlineError(container, err); });
+                }, function () {
+                    container.classList.add('d-none');
+                    container.innerHTML = '';
+                });
+                container.appendChild(widget);
+                widget.querySelector('input').focus();
+            });
+        });
+
+        // Add Deliverable
+        document.querySelectorAll('#treeContainer .add-deliverable-trigger-row a[data-parent-id]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var subKompetensiId = link.dataset.parentId;
+                var container = document.getElementById('addDeliverableInput-' + subKompetensiId);
+                if (!container || !container.classList.contains('d-none')) return;
+                container.classList.remove('d-none');
+                var widget = buildInlineInput('Nama Deliverable...', function (nama) {
+                    postItem('/ProtonCatalog/AddDeliverable', { subKompetensiId: subKompetensiId, nama: nama }, function () {
+                        container.classList.add('d-none');
+                        container.innerHTML = '';
+                        reloadTree();
+                    }, function (err) { showInlineError(container, err); });
+                }, function () {
+                    container.classList.add('d-none');
+                    container.innerHTML = '';
+                });
+                container.appendChild(widget);
+                widget.querySelector('input').focus();
+            });
+        });
+
+        // Edit (pencil click)
+        document.querySelectorAll('#treeContainer .pencil-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var level = btn.dataset.level;
+                var itemId = btn.dataset.id;
+                var nameSpan = btn.closest('tr').querySelector('.item-name[data-id="' + itemId + '"]');
+                if (!nameSpan || nameSpan.style.display === 'none') return;
+                var originalName = nameSpan.textContent.trim();
+                var widget = buildInlineInput(originalName, function (newName) {
+                    postItem('/ProtonCatalog/EditCatalogItem', { level: level, itemId: itemId, nama: newName }, function () {
+                        nameSpan.textContent = newName;
+                        restoreNameSpan(nameSpan, widget);
+                    }, function (err) {
+                        showInlineError(widget.parentNode || nameSpan.parentNode, err);
+                    });
+                }, function () {
+                    restoreNameSpan(nameSpan, widget);
+                });
+                widget.querySelector('input').value = originalName;
+                widget.querySelector('.save-btn').disabled = false;
+                nameSpan.style.display = 'none';
+                nameSpan.parentNode.insertBefore(widget, nameSpan.nextSibling);
+            });
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     document.addEventListener('DOMContentLoaded', function () {
+
+        // Initialize tree interactions for server-side rendered tree
+        initCatalogTree();
 
         // Track dropdown change handler
         document.getElementById('trackDropdown').addEventListener('change', onTrackChanged);
@@ -142,17 +359,13 @@
             .then(function (r) { return r.json(); })
             .then(function (result) {
                 if (result.success) {
-                    // 1. Add new option to dropdown
                     var dropdown = document.getElementById('trackDropdown');
                     var option = document.createElement('option');
                     option.value = result.trackId;
                     option.textContent = result.displayName;
                     dropdown.appendChild(option);
-                    // 2. Select new track
                     dropdown.value = result.trackId;
-                    // 3. Close modal
                     bootstrap.Modal.getInstance(document.getElementById('addTrackModal')).hide();
-                    // 4. Load tree (will show empty state)
                     onTrackChanged();
                 } else {
                     errorDiv.textContent = result.error;
@@ -184,7 +397,10 @@
         window.history.pushState(null, '', '/ProtonCatalog?trackId=' + trackId);
         fetch('/ProtonCatalog/GetCatalogTree?trackId=' + trackId)
             .then(function (r) { return r.text(); })
-            .then(function (html) { document.getElementById('treeContainer').innerHTML = html; })
+            .then(function (html) {
+                document.getElementById('treeContainer').innerHTML = html;
+                initCatalogTree();
+            })
             .catch(function (err) { console.error('Tree load error:', err); });
     }
 </script>
