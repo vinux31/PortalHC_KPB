@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — Phase 38 complete, Phase 39 next
+**Current focus:** v2.0 Assessment Management & Training History — Phase 39 planned, ready to execute
 
 ## Current Position
 
 **Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
-**Phase:** 39 of 40 — NOT STARTED
-**Current Plan:** 39-01 — CloseEarly action (CMPController)
-**Next action:** Plan and execute Phase 39 (close-early) or Phase 40 (history tab)
-**Status:** Phase 38 complete. 7-day auto-hide filter live on both Management and Monitor tabs.
-**Last activity:** 2026-02-24 — Phase 38-01 executed (2 tasks, 1 file, d53369e)
+**Phase:** 39 of 40 — PLANNED (2 plans, 2 waves)
+**Current Plan:** 39-01 — CloseEarly action (CMPController), 39-02 — Frontend button + modal (checkpoint)
+**Next action:** `/gsd:execute-phase 39` — execute close-early feature
+**Status:** Phase 39 planned. 2 plans: Wave 1 backend (autonomous), Wave 2 frontend (human checkpoint).
+**Last activity:** 2026-02-24 — Phase 39 planned (research + 2 plans + verification passed)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0)
 
