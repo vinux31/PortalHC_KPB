@@ -37,6 +37,19 @@ namespace HcPortal.Models
         public DateTime? StartedAt { get; set; }
 
         /// <summary>
+        /// Total seconds the worker has actively spent in the exam (excludes offline time).
+        /// Updated on each page navigation and every 30 seconds via frontend polling.
+        /// Default 0 on session start.
+        /// </summary>
+        public int ElapsedSeconds { get; set; } = 0;
+
+        /// <summary>
+        /// Last page (0-based index) the worker was viewing before disconnect.
+        /// Null = never navigated (still on page 0). Used to resume on correct page.
+        /// </summary>
+        public int? LastActivePage { get; set; }
+
+        /// <summary>
         /// Optional hard cutoff date for this exam window. Workers cannot start (or restart) the exam
         /// after this date. Null = no expiry enforced.
         /// </summary>
