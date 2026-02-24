@@ -3467,6 +3467,12 @@ namespace HcPortal.Controllers
                 var questionsForGrading = siblingWithQuestions?.Questions?.ToList()
                     ?? new List<AssessmentQuestion>();
 
+                // Pre-load existing auto-saved responses (from Phase 41 SaveLegacyAnswer) to avoid duplicate inserts
+                var existingLegacyResponses = await _context.UserResponses
+                    .Where(r => r.AssessmentSessionId == id)
+                    .ToListAsync();
+                var existingLegacyDict = existingLegacyResponses.ToDictionary(r => r.AssessmentQuestionId);
+
                 int totalScore = 0;
                 int maxScore = 0;
 
@@ -3488,13 +3494,21 @@ namespace HcPortal.Controllers
                         }
                     }
 
-                    // Save User Response
-                    _context.UserResponses.Add(new UserResponse
+                    // Upsert: update auto-saved row if it exists, otherwise insert new row
+                    // (mirrors package path — avoids MERGE FK conflict from duplicate inserts)
+                    if (existingLegacyDict.TryGetValue(question.Id, out var existingLegacyResponse))
                     {
-                        AssessmentSessionId = id,
-                        AssessmentQuestionId = question.Id,
-                        SelectedOptionId = selectedOptionId
-                    });
+                        existingLegacyResponse.SelectedOptionId = selectedOptionId;
+                    }
+                    else
+                    {
+                        _context.UserResponses.Add(new UserResponse
+                        {
+                            AssessmentSessionId = id,
+                            AssessmentQuestionId = question.Id,
+                            SelectedOptionId = selectedOptionId
+                        });
+                    }
                 }
 
                 // Calculate Grade (0-100 scale if needed, or raw score)
