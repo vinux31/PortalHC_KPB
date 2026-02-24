@@ -334,7 +334,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 38-01-PLAN.md — Backend query change: add 7-day cutoff filter to both GetManageData and GetMonitorData queries using ExamWindowCloseDate ?? Schedule.Date; no frontend changes needed
+- [x] 38-01-PLAN.md — Backend query change: add 7-day cutoff filter to both GetManageData and GetMonitorData queries using ExamWindowCloseDate ?? Schedule.Date; no frontend changes needed
 
 ---
 
@@ -415,6 +415,6 @@ Plans:
 | 35. CRUD Add and Edit | v1.9 | 2/2 | Complete | 2026-02-24 |
 | 36. Delete Guards | v1.9 | 1/2 | In progress | — |
 | 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
-| 38. Auto-Hide Filter | v2.0 | 0/1 | Not started | — |
+| 38. Auto-Hide Filter | v2.0 | 1/1 | Complete | 2026-02-24 |
 | 39. Close Early | v2.0 | 0/2 | Not started | — |
 | 40. Training Records History Tab | v2.0 | 0/2 | Not started | — |
