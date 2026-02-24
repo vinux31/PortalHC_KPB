@@ -42,6 +42,13 @@ namespace HcPortal.Models
         /// <summary>Set to true when the user submits the exam.</summary>
         public bool IsCompleted { get; set; } = false;
 
+        /// <summary>
+        /// Number of questions in the assigned package at the time of first exam load.
+        /// Used on resume to detect stale question sets (HC changed package after session started).
+        /// Null = not yet recorded (sessions started before Phase 42).
+        /// </summary>
+        public int? SavedQuestionCount { get; set; }
+
         // ========== Helper methods (not mapped to DB) ==========
 
         private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
