@@ -1,550 +1,488 @@
-# Technology Stack: ASP.NET Core MVC 8 Auto-Save, Session Resume, and Polling
+# Technology Stack: v2.1 Assessment Resilience & Real-Time Monitoring
 
-**Project:** Auto-save exam answers, session elapsed time tracking, worker session close detection, HC monitoring polling
+**Project:** Portal HC KPB - v2.1 Milestone (auto-save, session resume, exam polling, live monitoring)
 **Researched:** 2026-02-24
-**Confidence:** HIGH (EF Core, ExecuteUpdate patterns verified with official Microsoft docs; polling patterns from multiple sources)
+**Overall Confidence:** HIGH
 
 ---
 
 ## Executive Summary
 
-This research covers 4 specific features for an existing ASP.NET Core 8 MVC application:
+The v2.1 milestone adds four resilience features to an existing ASP.NET Core 8 MVC application:
 
-1. **SaveAnswer upsert** - Insert or update PackageUserResponse efficiently
-2. **Elapsed time storage** - Track exam duration server-side for resume accuracy
-3. **Worker session polling** - Lightweight endpoint detects when HC closes session
-4. **HC monitor polling** - Lightweight endpoint returns session answer counts
+1. **Auto-save answers** on each radio click → `SaveAnswer` AJAX POST (v1.7 endpoint exists)
+2. **Session resume** → persist last page + elapsed time via `sessionStorage` + database columns
+3. **Worker exam polling** → 10s polling on `CheckExamStatus` endpoint (existing, tested)
+4. **Live HC monitoring** → auto-refresh progress every 5-10s via AJAX
 
-**Key recommendation:** Use EF Core's `ExecuteUpdateAsync` with manual insert-or-update logic (no third-party upsert library needed). Store elapsed time as integer seconds in AssessmentSession. Use lightweight status/count endpoints with minimal JSON payloads.
+**Key Finding: No new NuGet packages required.** Uses:
+- Existing ASP.NET Core 8 MVC + EF Core endpoints
+- Browser native APIs (Fetch, sessionStorage, setInterval)
+- No WebSockets, no job queues, no real-time libraries
+- Stack stays lean: server handles ~20 req/sec easily at scale
 
 ---
 
-## 1. SaveAnswer Upsert Pattern
+## Recommended Stack
 
-### Recommendation: ExecuteUpdateAsync with FindAsync Insert-or-Update
+### Backend (Server-Side)
 
-**Why NOT:**
-- **No native EF Core Upsert** — EF Core 8 doesn't have a built-in Upsert method. AddOrUpdate from EF6 doesn't exist in EF Core.
-- **MERGE statement has concurrency issues** — SQL Server MERGE can race when two concurrent merges both detect NOT MATCHED and insert the same row, causing unique constraint violations.
-- **Third-party libraries (FlexLabs.Upsert) add complexity** — Unnecessary for a single-row operation that happens infrequently enough per session.
+| Technology | Version | Purpose | Status | Changes |
+|-----------|---------|---------|--------|---------|
+| ASP.NET Core MVC | 8.0 | Web framework | Existing | None — use existing patterns |
+| Entity Framework Core | 8.0 | ORM | Existing | None — SaveAnswer already exists |
+| SQL Server / SQLite | Current | Database | Existing | Schema only: add 2 columns to AssessmentSession |
+| ASP.NET Identity | 8.0 | Auth | Existing | None — antiforgery tokens already used |
 
-**Why ExecuteUpdateAsync + Insert fallback:**
-
-ExecuteUpdateAsync (EF Core 7+) is the modern pattern. It executes a single SQL UPDATE statement without loading data into memory. For upsert, combine it with FindAsync for the insert case.
-
-### Implementation Pattern
-
-```csharp
-// In AssessmentSessionRepository or QuestionAnswerService
-public async Task<PackageUserResponse> UpsertAnswerAsync(
-    int assessmentSessionId,
-    int questionId,
-    int selectedOptionId)
-{
-    var dbContext = _context; // Your DbContext
-
-    // Attempt UPDATE first (most common case: user changed answer)
-    var rowsAffected = await dbContext.PackageUserResponses
-        .Where(r => r.AssessmentSessionId == assessmentSessionId
-                 && r.QuestionId == questionId)
-        .ExecuteUpdateAsync(s => s
-            .SetProperty(r => r.SelectedOptionId, selectedOptionId)
-            .SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
-
-    // If no rows affected, row doesn't exist yet — INSERT
-    if (rowsAffected == 0)
-    {
-        var newResponse = new PackageUserResponse
-        {
-            AssessmentSessionId = assessmentSessionId,
-            QuestionId = questionId,
-            SelectedOptionId = selectedOptionId,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        dbContext.PackageUserResponses.Add(newResponse);
-        await dbContext.SaveChangesAsync();
-
-        return newResponse;
-    }
-
-    // For update case, reload to return updated entity if needed
-    // Or construct object from parameters if not needed in response
-    return new PackageUserResponse
-    {
-        AssessmentSessionId = assessmentSessionId,
-        QuestionId = questionId,
-        SelectedOptionId = selectedOptionId
-    };
-}
-```
-
-### Alternative: Raw SQL MERGE (for maximum concurrency safety)
-
-If you want true atomic upsert at database level (prevents race conditions entirely), use SQL Server's MERGE statement directly via ExecuteSqlInterpolated:
-
-```csharp
-public async Task<int> UpsertAnswerViaMergeAsync(
-    int assessmentSessionId,
-    int questionId,
-    int selectedOptionId)
-{
-    // SQL Server MERGE is atomic - no race condition possible
-    var rowsAffected = await _context.Database
-        .ExecuteSqlInterpolatedAsync(
-            $@"MERGE INTO PackageUserResponses AS target
-               USING (SELECT {assessmentSessionId} AS AssessmentSessionId,
-                            {questionId} AS QuestionId,
-                            {selectedOptionId} AS SelectedOptionId) AS source
-               ON target.AssessmentSessionId = source.AssessmentSessionId
-                  AND target.QuestionId = source.QuestionId
-               WHEN MATCHED THEN
-                   UPDATE SET target.SelectedOptionId = source.SelectedOptionId,
-                             target.UpdatedAt = GETUTCDATE()
-               WHEN NOT MATCHED THEN
-                   INSERT (AssessmentSessionId, QuestionId, SelectedOptionId, CreatedAt, UpdatedAt)
-                   VALUES (source.AssessmentSessionId, source.QuestionId, source.SelectedOptionId, GETUTCDATE(), GETUTCDATE());");
-
-    return rowsAffected;
-}
-```
-
-### Recommended Choice: ExecuteUpdateAsync Pattern
-
-**Choose ExecuteUpdateAsync + Insert Fallback because:**
-- Single-row operations happen per AJAX call (not bulk)
-- Simpler to test and debug than raw SQL MERGE
-- No concurrency issues — if ExecuteUpdate returns 0 rows, INSERT is guaranteed to succeed (assuming AssessmentSessionId + QuestionId unique constraint)
-- Easier to return updated object for response if needed
-
-**Concurrency handling:**
-- Race condition possible: Two concurrent updates both see row doesn't exist, both try INSERT
-- Prevention: Ensure `(AssessmentSessionId, QuestionId)` has a UNIQUE constraint in schema
-- If constraint violated, catch `DbUpdateException` and retry the flow once
-
-### Entity Model Addition
-
-No new fields needed. Ensure these fields exist on `PackageUserResponse`:
-
-```csharp
-public class PackageUserResponse
-{
-    public int Id { get; set; }
-    public int AssessmentSessionId { get; set; }
-    public int QuestionId { get; set; }
-    public int SelectedOptionId { get; set; }
-
-    // For audit trail (optional, but good practice)
-    public DateTime CreatedAt { get; set; }
-    public DateTime UpdatedAt { get; set; }
-
-    // Navigation properties
-    public AssessmentSession AssessmentSession { get; set; }
-    public Question Question { get; set; }
-    public Option SelectedOption { get; set; }
-}
-```
-
-**Database constraint (must exist):**
+**Database Schema Changes (Migration Only):**
 ```sql
-ALTER TABLE PackageUserResponses
-ADD CONSTRAINT UK_AssessmentSessionQuestion
-UNIQUE (AssessmentSessionId, QuestionId);
+ALTER TABLE AssessmentSessions ADD
+    LastPageIndex INT DEFAULT 0,
+    ElapsedSeconds INT DEFAULT 0;
 ```
+
+No new tables, no new dependencies.
+
+### Frontend (Client-Side)
+
+| Technology | Version | Purpose | Status | Notes |
+|-----------|---------|---------|--------|-------|
+| **Fetch API** | Native ES6 | AJAX to endpoints | Existing | Already used in StartExam.cshtml for polling; increase call frequency |
+| **sessionStorage** | Native HTML5 | Client state persistence | **NEW** | Resume page + time across refresh; ephemeral (cleared on logout) |
+| **setInterval()** | Native ES3 | Polling timer | Existing | Already used for countdown; reuse for status polling |
+| **jQuery** | 3.7.1 (CDN) | DOM manipulation | Existing | Keep for backward compatibility; new code uses `fetch()` |
+| **Bootstrap 5** | 5.3.0 (CDN) | UI framework | Existing | Modals, alerts, progress bars; no changes |
+
+**Zero new JavaScript libraries.** All native browser APIs or already loaded via CDN.
+
+### Supporting Libraries (Unchanged)
+
+- ClosedXML (0.105.0) — Excel exports, no interaction with v2.1
+- Chart.js — Monitoring visualizations, no code changes (auto-refresh only)
 
 ---
 
-## 2. Elapsed Time Storage
+## Feature Implementation Details
 
-### Recommendation: Add `ElapsedSeconds` to AssessmentSession
+### 1. Auto-Save on Radio Click
 
-**Field Design:**
+**Status:** Extend existing pattern (SaveAnswer already tested in v1.7)
 
-```csharp
-public class AssessmentSession
-{
-    // Existing fields
-    public int Id { get; set; }
-    public int WorkerId { get; set; }
-    public int AssessmentPackageId { get; set; }
-    public DateTime StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
-    public DateTime ExamWindowCloseDate { get; set; }
-    public string Status { get; set; } // "InProgress", "Completed", "Closed"
+**Endpoint:** `POST /CMP/SaveAnswer?sessionId=X&questionId=Y&optionId=Z`
+- Already exists, already handles concurrent requests
+- Uses EF Core `ExecuteUpdateAsync` pattern (try update, fallback to insert)
+- Antiforgery tokens already in place
 
-    // NEW: Elapsed time tracking
-    public int ElapsedSeconds { get; set; } = 0;  // Total seconds spent so far
-    public DateTime? LastHeartbeatAt { get; set; } // When worker was last active
-}
-```
-
-### How It Works
-
-1. **On exam start:** ElapsedSeconds = 0
-2. **Periodically (every AJAX save or heartbeat):** Update ElapsedSeconds
-
-```csharp
-public async Task UpdateElapsedTimeAsync(int sessionId)
-{
-    var now = DateTime.UtcNow;
-
-    var session = await _context.AssessmentSessions
-        .Where(s => s.Id == sessionId && s.Status == "InProgress")
-        .ExecuteUpdateAsync(s => s
-            .SetProperty(x => x.ElapsedSeconds, x =>
-                (int)(now - x.StartedAt).TotalSeconds)
-            .SetProperty(x => x.LastHeartbeatAt, now));
-}
-```
-
-3. **On resume after page refresh:**
-
-```csharp
-public async Task<SessionResumeDto> GetSessionForResumeAsync(int sessionId)
-{
-    var session = await _context.AssessmentSessions
-        .Where(s => s.Id == sessionId)
-        .Select(s => new SessionResumeDto
-        {
-            SessionId = s.Id,
-            ElapsedSeconds = s.ElapsedSeconds,
-            RemainingSeconds =
-                (int)(s.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds,
-            IsClosed = s.Status == "Closed" || DateTime.UtcNow > s.ExamWindowCloseDate,
-            Status = s.Status
-        })
-        .FirstOrDefaultAsync();
-
-    return session;
-}
-
-public class SessionResumeDto
-{
-    public int SessionId { get; set; }
-    public int ElapsedSeconds { get; set; }        // How long they've been working
-    public int RemainingSeconds { get; set; }      // How much time left
-    public bool IsClosed { get; set; }
-    public string Status { get; set; }
-}
-```
-
-### Why Integer Seconds (Not TimeSpan)
-
-- **Database simplicity:** Int32 is more portable than TimeSpan
-- **Calculation accuracy:** `DateTime.UtcNow - StartedAt` returns TimeSpan; cast to int seconds when persisting
-- **Client resume:** Browser receives `{ elapsedSeconds: 1247, remainingSeconds: 1353 }` and can calculate timer accurately
-
-### Anti-Pattern to Avoid
-
-Do NOT store elapsed time only in browser localStorage. If worker closes browser and reopens, you lose time without server persistence.
-
----
-
-## 3. Worker Exam Polling Endpoint
-
-### Recommendation: Lightweight Status-Only Endpoint (HTTP 200 vs 308)
-
-**Endpoint:**
-```csharp
-[HttpGet("/api/exam/session/{sessionId}/status")]
-public async Task<IActionResult> GetSessionStatusAsync(int sessionId)
-{
-    var session = await _context.AssessmentSessions
-        .AsNoTracking()
-        .Where(s => s.Id == sessionId)
-        .Select(s => new
-        {
-            status = s.Status,
-            closedAt = s.CompletedAt ?? s.ExamWindowCloseDate,
-            isClosed = s.Status == "Closed" || DateTime.UtcNow > s.ExamWindowCloseDate
-        })
-        .FirstOrDefaultAsync();
-
-    if (session == null)
-        return NotFound();
-
-    // If session closed, signal with 308 (Permanent Redirect)
-    if (session.isClosed)
-        return StatusCode(308, new { message = "Exam closed, redirect to results" });
-
-    // Otherwise, all good
-    return Ok(new { status = "active", closedAt = session.closedAt });
-}
-```
-
-### Why This Design
-
-**HTTP Status Codes:**
-- `200 OK` — Session still active, keep polling
-- `308 Permanent Redirect` — Session closed, don't poll anymore, redirect to results
-
-**Why NOT 403/410:**
-- 403 (Forbidden) suggests permission issue, not closure
-- 410 (Gone) implies resource deleted, not applicable for a closed session
-- 308 signals "permanent" state change without being an error
-
-**Lightweight Query:**
-- `AsNoTracking()` — Don't track changes, faster read-only query
-- Only select 2-3 fields needed (status, closedAt, isClosed calculation)
-- No joins, no related data loaded
-- Single table scan on AssessmentSessions.Status index
-
-### Client-Side Polling Code
-
+**Client Code:** Fire-and-forget AJAX on radio change
 ```javascript
-// JavaScript on worker exam page
-async function pollSessionStatus(sessionId, interval = 10000) {
-    const response = await fetch(`/api/exam/session/${sessionId}/status`);
+document.querySelectorAll('.exam-radio').forEach(radio => {
+    radio.addEventListener('change', () => {
+        const qId = radio.getAttribute('data-question-id');
+        const optId = radio.value;
 
-    if (response.status === 308) {
-        // Session closed
-        alert("Exam has been closed by admin. Redirecting to results...");
-        window.location.href = `/exam/results/${sessionId}`;
-        return;
-    }
+        // Update local hidden input (fallback if AJAX fails)
+        document.getElementById('ans_' + qId).value = optId;
 
-    if (response.ok) {
-        const data = await response.json();
-        // Session still active, continue polling
-        setTimeout(() => pollSessionStatus(sessionId, interval), interval);
-    }
-}
-
-// Start polling when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    pollSessionStatus(getSessionIdFromPage());
+        // NEW: Auto-save to DB (non-blocking)
+        fetch('/CMP/SaveAnswer', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': token
+            },
+            body: `sessionId=${SESSION_ID}&questionId=${qId}&optionId=${optId}`
+        }).catch(() => {}); // Ignore network errors
+    });
 });
 ```
 
+**Why fetch() over jQuery.ajax():**
+- Fetch is modern, simpler, already used for CheckExamStatus polling
+- No jQuery dependency added
+- Easier error handling with `.catch()`
+
+**Load:** ~5 answers/worker × 100 workers = ~500 POST/min = 8 req/sec (negligible)
+
 ---
 
-## 4. HC Monitoring Polling Endpoint
+### 2. Session Resume (Last Page + Elapsed Time)
 
-### Recommendation: Grouped Count Query
+**Client-Side:** `sessionStorage` for immediate resume
+**Server-Side:** Database columns + endpoint to fetch resume state
 
-**Endpoint:**
+**Client Storage (sessionStorage keys):**
+```javascript
+sessionStorage.setItem('exam_' + SESSION_ID + '_page', currentPage);
+sessionStorage.setItem('exam_' + SESSION_ID + '_elapsed', elapsedSeconds);
+```
+
+**On page load (StartExam.cshtml):**
+```javascript
+// Restore page and time from sessionStorage (if page refresh)
+const lastPage = parseInt(sessionStorage.getItem('exam_' + SESSION_ID + '_page')) || 0;
+const elapsedStoredSeconds = parseInt(sessionStorage.getItem('exam_' + SESSION_ID + '_elapsed')) || 0;
+
+currentPage = lastPage;
+timeRemaining = DURATION_SECONDS - elapsedStoredSeconds;
+changePage(lastPage);
+```
+
+**Periodic update (every 5 seconds during exam):**
+```javascript
+setInterval(() => {
+    sessionStorage.setItem('exam_' + SESSION_ID + '_page', currentPage);
+    sessionStorage.setItem('exam_' + SESSION_ID + '_elapsed', DURATION_SECONDS - timeRemaining);
+}, 5000);
+```
+
+**On ExamSummary POST:**
+```javascript
+// Append to form before submit
+const form = document.getElementById('examForm');
+form.innerHTML += `<input type="hidden" name="lastPageIndex" value="${currentPage}">`;
+form.innerHTML += `<input type="hidden" name="elapsedSeconds" value="${DURATION_SECONDS - timeRemaining}">`;
+form.submit();
+```
+
+**Server-Side Persistence (ExamSummary controller):**
 ```csharp
-[HttpGet("/api/admin/assessment/{assessmentPackageId}/monitoring")]
-public async Task<IActionResult> GetAssessmentMonitoringAsync(int assessmentPackageId)
+[HttpPost]
+public async Task<IActionResult> ExamSummary(int id, int lastPageIndex, int elapsedSeconds, ...)
 {
-    var sessions = await _context.AssessmentSessions
-        .AsNoTracking()
-        .Where(s => s.AssessmentPackageId == assessmentPackageId)
-        .GroupJoin(
-            _context.PackageUserResponses.AsNoTracking(),
-            session => session.Id,
-            response => response.AssessmentSessionId,
-            (session, responses) => new
-            {
-                sessionId = session.Id,
-                workerId = session.WorkerId,
-                startedAt = session.StartedAt,
-                status = session.Status,
-                answeredCount = responses.Count(),
-                totalQuestions = _context.Questions
-                    .Where(q => q.AssessmentPackageId == assessmentPackageId)
-                    .Count(),
-                elapsedSeconds = session.ElapsedSeconds,
-                remainingSeconds = (int)(session.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds
-            })
-        .ToListAsync();
+    var session = await _context.AssessmentSessions.FindAsync(id);
+    session.LastPageIndex = lastPageIndex;
+    session.ElapsedSeconds = elapsedSeconds;
+    session.Status = "Completed";
+    session.CompletedAt = DateTime.UtcNow;
+    await _context.SaveChangesAsync();
 
-    return Ok(sessions);
+    // Redirect to results
 }
 ```
 
-### Better: Use SubQuery for Performance
-
-The above GroupJoin counts total questions for EVERY session (N+1 pattern). Better approach:
-
+**Resume Endpoint (optional, for debugging):**
 ```csharp
-[HttpGet("/api/admin/assessment/{assessmentPackageId}/monitoring")]
-public async Task<IActionResult> GetAssessmentMonitoringAsync(int assessmentPackageId)
+[HttpGet("GetSessionResume")]
+public async Task<IActionResult> GetSessionResume(int sessionId)
 {
-    var totalQuestions = await _context.Questions
+    var session = await _context.AssessmentSessions
         .AsNoTracking()
-        .Where(q => q.AssessmentPackageId == assessmentPackageId)
-        .CountAsync();
-
-    var sessions = await _context.AssessmentSessions
-        .AsNoTracking()
-        .Where(s => s.AssessmentPackageId == assessmentPackageId)
-        .Select(s => new
-        {
-            sessionId = s.Id,
-            workerId = s.WorkerId,
-            startedAt = s.StartedAt,
-            status = s.Status,
-            answeredCount = _context.PackageUserResponses
-                .Where(r => r.AssessmentSessionId == s.Id)
-                .Count(),
-            totalQuestions = totalQuestions,
+        .Where(s => s.Id == sessionId && s.Status == "InProgress")
+        .Select(s => new {
+            lastPageIndex = s.LastPageIndex ?? 0,
             elapsedSeconds = s.ElapsedSeconds,
-            remainingSeconds = (int)(s.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds,
-            isClosed = s.Status == "Closed" || DateTime.UtcNow > s.ExamWindowCloseDate
+            remainingSeconds = (int)(s.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds
         })
-        .ToListAsync();
+        .FirstOrDefaultAsync();
 
-    return Ok(sessions);
+    return Json(session);
 }
 ```
 
-### Best: Window Function (Single Query)
+**Why sessionStorage:**
+- Persists across page refresh (F5, accidental close)
+- Cleared on browser close or logout (security)
+- ~200 bytes per session (trivial)
+- No network overhead (instant restore)
+- Works offline until next AJAX call
 
-For maximum efficiency, use SQL window function to get answer counts per session:
+**Database columns purpose:**
+- Audit trail (compliance: record how long worker took)
+- Resume after logout + re-login (sessionStorage cleared)
+- Admin can see elapsed time in session history
 
+---
+
+### 3. Worker Exam Polling (Every 10s)
+
+**Status:** Existing endpoint, just reduce interval
+
+**Endpoint:** `GET /CMP/CheckExamStatus?sessionId=X` (already exists, v1.7)
+- Response: `{ "closed": bool, "redirectUrl": string }`
+- Lightweight query: single SELECT on AssessmentSession.Id
+- No new code needed on server
+
+**Client Code (StartExam.cshtml):**
+```javascript
+// EXISTING: Polling every 30 seconds
+// CHANGE: Reduce to 10 seconds for faster HC close detection
+const POLL_INTERVAL = 10000; // was 30000
+
+setInterval(() => {
+    fetch('/CMP/CheckExamStatus?sessionId=' + SESSION_ID)
+        .then(r => r.json())
+        .then(data => {
+            if (data.closed && !examClosed) {
+                examClosed = true;
+                clearInterval(statusPollInterval);
+                clearInterval(timerInterval);
+
+                // Show notification
+                alert('Exam closed by administrator. Redirecting...');
+
+                // Redirect to results
+                setTimeout(() => {
+                    window.location.href = data.redirectUrl || '/CMP/Assessment';
+                }, 3000);
+            }
+        })
+        .catch(() => {}); // Continue polling on network error
+}, POLL_INTERVAL);
+```
+
+**Load Estimate:**
+- 100 concurrent workers → 10 req/sec
+- Query: 1 table, 1 WHERE clause, 0 joins
+- Database can handle 1000+ req/sec easily
+- Network: ~100 bytes per response (minimal)
+
+**No new libraries.** Uses existing Fetch API and setInterval.
+
+---
+
+### 4. Live HC Monitoring Auto-Refresh (Every 5-10s)
+
+**Status:** Existing page, add polling script
+
+**Options:**
+
+**Option A: Refetch full page, extract progress DOM**
+```javascript
+// In AssessmentMonitoringDetail.cshtml <script> block
+const MONITORING_URL = window.location.href;
+const POLL_INTERVAL = 10000; // 10 seconds
+
+setInterval(() => {
+    fetch(MONITORING_URL)
+        .then(r => r.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+
+            // Extract new progress values
+            const newProgress = doc.querySelector('#completedProgress');
+            if (newProgress) {
+                document.querySelector('#completedProgress').innerText =
+                    newProgress.innerText;
+            }
+        })
+        .catch(() => {});
+}, POLL_INTERVAL);
+```
+
+**Option B: Dedicated JSON endpoint (recommended for efficiency)**
 ```csharp
-public async Task<IActionResult> GetAssessmentMonitoringAsync(int assessmentPackageId)
+// In CMPController.cs
+[HttpGet("GetMonitoringProgress")]
+public async Task<IActionResult> GetMonitoringProgress(string title, string category, DateTime scheduleDate)
 {
-    var monitoring = await _context.Database
-        .SqlQuery<MonitoringSessionDto>($@"
-            SELECT
-                s.Id AS SessionId,
-                s.WorkerId,
-                s.StartedAt,
-                s.Status,
-                COUNT(DISTINCT r.Id) AS AnsweredCount,
-                (SELECT COUNT(*) FROM Questions WHERE AssessmentPackageId = {assessmentPackageId}) AS TotalQuestions,
-                s.ElapsedSeconds,
-                DATEDIFF(SECOND, GETUTCDATE(), s.ExamWindowCloseDate) AS RemainingSeconds,
-                CASE WHEN s.Status = 'Closed' OR GETUTCDATE() > s.ExamWindowCloseDate THEN 1 ELSE 0 END AS IsClosed
-            FROM AssessmentSessions s
-            LEFT JOIN PackageUserResponses r ON s.Id = r.AssessmentSessionId
-            WHERE s.AssessmentPackageId = {assessmentPackageId}
-            GROUP BY s.Id, s.WorkerId, s.StartedAt, s.Status, s.ElapsedSeconds, s.ExamWindowCloseDate
-            ORDER BY s.StartedAt DESC")
+    var sessions = await _context.AssessmentSessions
+        .AsNoTracking()
+        .Where(s => s.Title == title && s.Category == category && s.Schedule == scheduleDate)
         .ToListAsync();
 
-    return Ok(monitoring);
-}
+    int total = sessions.Count;
+    int completed = sessions.Count(s => s.Status == "Completed");
+    int progressPct = total > 0 ? (int)Math.Round(completed * 100.0 / total) : 0;
 
-public class MonitoringSessionDto
-{
-    public int SessionId { get; set; }
-    public int WorkerId { get; set; }
-    public DateTime StartedAt { get; set; }
-    public string Status { get; set; }
-    public int AnsweredCount { get; set; }
-    public int TotalQuestions { get; set; }
-    public int ElapsedSeconds { get; set; }
-    public int RemainingSeconds { get; set; }
-    public bool IsClosed { get; set; }
+    return Json(new { completedCount = completed, totalCount = total, progressPct });
 }
 ```
-
-### Response Format
-
-```json
-[
-  {
-    "sessionId": 42,
-    "workerId": 101,
-    "startedAt": "2026-02-24T14:30:00Z",
-    "status": "InProgress",
-    "answeredCount": 23,
-    "totalQuestions": 50,
-    "elapsedSeconds": 847,
-    "remainingSeconds": 6153,
-    "isClosed": false
-  }
-]
-```
-
-### Client-Side Polling (HC Dashboard)
 
 ```javascript
-// Poll every 5-10 seconds for live session status
-async function pollMonitoring(assessmentPackageId) {
-    const response = await fetch(`/api/admin/assessment/${assessmentPackageId}/monitoring`);
-    const sessions = await response.json();
+// Client code (Option B - more efficient)
+const TITLE = '@Model.Title';
+const CATEGORY = '@Model.Category';
+const SCHEDULE = '@Model.Schedule.ToString("yyyy-MM-ddTHH:mm:ss")';
 
-    // Update table with latest counts
-    updateSessionTable(sessions);
-
-    // Highlight sessions that just closed
-    sessions.forEach(session => {
-        if (session.isClosed) {
-            markRowAsClosed(session.sessionId);
-        }
-    });
-
-    // Continue polling
-    setTimeout(() => pollMonitoring(assessmentPackageId), 5000);
-}
+setInterval(() => {
+    fetch(`/CMP/GetMonitoringProgress?title=${encodeURIComponent(TITLE)}&category=${encodeURIComponent(CATEGORY)}&scheduleDate=${encodeURIComponent(SCHEDULE)}`)
+        .then(r => r.json())
+        .then(data => {
+            // Update only the progress column
+            document.querySelector('#progressBar').style.width = data.progressPct + '%';
+            document.querySelector('#progressText').innerText = data.completedCount + '/' + data.totalCount;
+        })
+        .catch(() => {});
+}, 10000);
 ```
+
+**Recommendation:** Option B (dedicated endpoint)
+- Payload: ~100 bytes vs. ~30KB for full page
+- Cleaner separation of concerns
+- Easier to test and debug
 
 ---
 
-## Installation & Configuration
+## Database Schema Migration
 
-### NuGet Packages
+**Create new migration:**
+```bash
+dotnet ef migrations add AddSessionResumeColumns
+```
 
-No additional packages required. You're using existing stack:
-- `Microsoft.EntityFrameworkCore` (8.0+)
-- `Microsoft.EntityFrameworkCore.SqlServer` (8.0+)
-- `Microsoft.AspNetCore.Mvc` (8.0+)
-
-### Database Migrations
-
-Add ElapsedSeconds and LastHeartbeatAt to AssessmentSession:
-
+**Migration code:**
 ```csharp
-// In your DbContext migration
 protected override void Up(MigrationBuilder migrationBuilder)
 {
+    migrationBuilder.AddColumn<int>(
+        name: "LastPageIndex",
+        table: "AssessmentSessions",
+        type: "int",
+        nullable: false,
+        defaultValue: 0);
+
     migrationBuilder.AddColumn<int>(
         name: "ElapsedSeconds",
         table: "AssessmentSessions",
         type: "int",
         nullable: false,
         defaultValue: 0);
+}
 
-    migrationBuilder.AddColumn<DateTime>(
-        name: "LastHeartbeatAt",
-        table: "AssessmentSessions",
-        type: "datetime2",
-        nullable: true);
-
-    // Add unique constraint on (AssessmentSessionId, QuestionId) if not exists
-    migrationBuilder.CreateIndex(
-        name: "IX_PackageUserResponses_SessionQuestion",
-        table: "PackageUserResponses",
-        columns: new[] { "AssessmentSessionId", "QuestionId" },
-        unique: true);
+protected override void Down(MigrationBuilder migrationBuilder)
+{
+    migrationBuilder.DropColumn(name: "LastPageIndex", table: "AssessmentSessions");
+    migrationBuilder.DropColumn(name: "ElapsedSeconds", table: "AssessmentSessions");
 }
 ```
 
-### Startup Configuration
+**Apply:**
+```bash
+dotnet ef database update
+```
 
+**Entity Model Update:**
 ```csharp
-// In Startup.cs or Program.cs
-services.AddDbContext<YourDbContext>(options =>
-    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+public class AssessmentSession
+{
+    // Existing fields...
+    public DateTime? StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+
+    // NEW:
+    public int LastPageIndex { get; set; } = 0;
+    public int ElapsedSeconds { get; set; } = 0;
+}
 ```
 
 ---
 
-## Summary Table
+## Alternatives Considered & Rejected
 
-| Feature | Technology | Pattern | Why |
-|---------|-----------|---------|-----|
-| **SaveAnswer Upsert** | EF Core ExecuteUpdateAsync | Try UPDATE first, INSERT if no rows affected | Concurrency-safe, no third-party lib, simple |
-| **Elapsed Time** | int ElapsedSeconds field | Update every AJAX call via ExecuteUpdateAsync | Accurate resume after page refresh, persisted server-side |
-| **Worker Polling** | Lightweight GET endpoint | Return 308 when closed, 200 when active | Minimal payload, clear HTTP semantics |
-| **HC Monitoring** | Window function SQL query | GROUP BY sessionId, COUNT(answers) | Single efficient query, no N+1 |
+| Use Case | Proposed | Why Rejected | Our Choice |
+|----------|----------|-------------|-----------|
+| Auto-save | WebSockets (SignalR) | Overkill; polling sufficient; adds 2 dependencies | Fire-and-forget fetch POST |
+| Resume state | Redis cache | Deployment complexity; sessionStorage ephemeral by design | sessionStorage + DB columns |
+| Resume state | URL params | Leaks data in browser history | sessionStorage |
+| Session polling | WebSockets (SignalR) | Workers don't need real-time; 10s polling fast enough | 10s fetch polling |
+| Polling library | Axios | Already have fetch; no extra dependency | Native fetch API |
+| Persistence | IndexedDB | Overkill; sessionStorage sufficient for exam duration | sessionStorage (~100 bytes) |
 
 ---
 
-## Sources
+## Load Testing Baseline
 
-- [ExecuteUpdate and ExecuteDelete - EF Core | Microsoft Learn](https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete)
-- [Efficient Updating - EF Core | Microsoft Learn](https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating)
-- [Handling Concurrency Conflicts - EF Core | Microsoft Learn](https://learn.microsoft.com/en-us/ef/core/saving/concurrency)
-- [MERGE (Transact-SQL) - SQL Server | Microsoft Learn](https://learn.microsoft.com/en-us/sql/t-sql/statements/merge-transact-sql?view=sql-server-ver17)
-- [EF Core ExecuteUpdate (EF Core 7–10) – Set-Based Bulk Updates](https://www.learnentityframeworkcore.com/dbset/execute-update)
-- [SQL Server MERGE to insert, update and delete at the same time](https://www.mssqltips.com/sqlservertip/1704/using-merge-in-sql-server-to-insert-update-and-delete-at-the-same-time/)
-- [Implementing HTTP Polling](https://www.abhinavpandey.dev/blog/polling)
-- [The Complete Guide to API Polling: Implementation, Optimization, and Alternatives](https://medium.com/@alaxhenry0121/the-complete-guide-to-api-polling-implementation-optimization-and-alternatives-a4eae3b0ef69)
-- [Merge/Upsert/AddOrUpdate support · Issue #4526 · dotnet/efcore](https://github.com/dotnet/efcore/issues/4526)
-- [Bulk Extensions for EF Core | Bulk Insert, Update, Delete, Merge & Upsert](https://entityframework-extensions.net/bulk-extensions)
+**Concurrent Scenario:** 100 workers taking exams simultaneously
+
+| Operation | Frequency | Payload | Total/sec |
+|-----------|-----------|---------|-----------|
+| SaveAnswer (auto-click) | ~1 per min/worker | 150 bytes POST | ~1.6 req/sec |
+| CheckExamStatus poll | Every 10s/worker | 100 bytes GET | ~10 req/sec |
+| MonitoringDetail poll | Every 10s/HC (1-5 HC) | 100 bytes GET | <1 req/sec |
+| **Total** | — | — | **~12 req/sec** |
+
+**Database Load:**
+- SaveAnswer: 2 queries (ExecuteUpdate + possible Insert) = moderate I/O
+- CheckExamStatus: 1 SELECT = minimal I/O
+- Monitoring: 1 SELECT with COUNT = minimal I/O
+
+**Prediction:** ASP.NET Core can handle 1000+ req/sec on modern hardware. 12 req/sec is negligible.
+
+---
+
+## Browsers & Compatibility
+
+| Technology | Min Browser | Note |
+|-----------|-----------|------|
+| Fetch API | Chrome 42, Firefox 39, Safari 10.1, Edge 15 | Covers 99%+ of modern users |
+| sessionStorage | IE 8+ | Covers 100% |
+| setInterval() | All | ES3 standard |
+| Antiforgery tokens | All | Server-side feature |
+
+**Recommendation:** No polyfills needed; ASP.NET Core 8 assumes modern browsers.
+
+---
+
+## Deployment Checklist
+
+**Server-Side:**
+- [ ] Create and apply migration to add 2 columns to AssessmentSession
+- [ ] Update AssessmentSession model to include new columns
+- [ ] Update ExamSummary POST handler to receive lastPageIndex + elapsedSeconds
+- [ ] Verify SaveAnswer endpoint handles concurrent clicks (EF Core already does)
+- [ ] Reduce CheckExamStatus polling from 30s to 10s (optional but recommended)
+
+**Client-Side (Frontend):**
+- [ ] Add sessionStorage logic to StartExam.cshtml for page/time persistence
+- [ ] Update page navigation to update sessionStorage every change
+- [ ] Add periodic save of elapsed time to sessionStorage (every 5s)
+- [ ] Append lastPageIndex + elapsedSeconds to ExamSummary form before submit
+- [ ] Test sessionStorage survives F5 refresh
+- [ ] Test sessionStorage clears on logout
+
+**Monitoring (Optional):**
+- [ ] Add GetMonitoringProgress endpoint to CMPController (or refetch full page)
+- [ ] Add polling script to AssessmentMonitoringDetail.cshtml
+- [ ] Test auto-refresh updates progress column every 10s
+
+**Testing:**
+- [ ] Load test: 50+ concurrent workers, verify 10s polling doesn't spike CPU
+- [ ] Verify antiforgery tokens work with all new AJAX calls
+- [ ] Test with network throttling (simulate slow connection)
+- [ ] Test SaveAnswer with rapid-fire clicks (100+ per session)
+
+---
+
+## Performance Tips
+
+1. **sessionStorage is fast:** No network round-trip; restore instantly on page load
+2. **Fetch is lean:** Simpler than jQuery.ajax; 1KB gzipped
+3. **Polling is efficient:** 10s interval with simple SELECT queries scales easily
+4. **Fire-and-forget design:** AJAX errors don't block exam; answers in hidden inputs as fallback
+
+---
+
+## Sources & Verification
+
+**ASP.NET Core & EF Core:**
+- [SaveAnswer pattern - EF Core ExecuteUpdateAsync](https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete)
+- [Efficient Updating in EF Core](https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating)
+- [ASP.NET Core Antiforgery Protection](https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery)
+
+**Browser APIs:**
+- [Fetch API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
+- [sessionStorage (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage)
+- [setInterval (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/setInterval)
+
+**Existing Codebase (Verified):**
+- StartExam.cshtml: Uses fetch for CheckExamStatus polling (line 321)
+- CMPController.cs: SaveAnswer & CheckExamStatus endpoints exist (tested in v1.7)
+- _Layout.cshtml: jQuery 3.7.1 + Bootstrap 5.3.0 already included
+- AssessmentSession.cs: Model has StartedAt, CompletedAt, ExamWindowCloseDate
+
+---
+
+## Summary: What's New vs. What Exists
+
+| Component | Existing | New | Change |
+|-----------|----------|-----|--------|
+| SaveAnswer endpoint | ✓ v1.7 | — | Increase click frequency (no code change) |
+| CheckExamStatus endpoint | ✓ | — | Reduce polling from 30s to 10s |
+| Fetch API usage | ✓ | — | Reuse for auto-save (same pattern) |
+| sessionStorage | — | ✓ | New: persist page + time across refresh |
+| DB columns (LastPageIndex, ElapsedSeconds) | — | ✓ | New: 1 migration |
+| ExamSummary handler | ✓ | — | Extend: receive 2 new params |
+| Monitoring auto-refresh | — | ✓ | New: optional polling script |
+
+**Bottom Line:** Mostly extending existing patterns. No new dependencies. No deployment risk.
