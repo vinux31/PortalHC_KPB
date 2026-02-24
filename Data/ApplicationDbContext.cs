@@ -404,7 +404,8 @@ namespace HcPortal.Data
                     .HasForeignKey(r => r.PackageOptionId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasIndex(r => new { r.AssessmentSessionId, r.PackageQuestionId });
+                entity.HasIndex(r => new { r.AssessmentSessionId, r.PackageQuestionId })
+                    .IsUnique();
             });
 
             // ========== Audit Log (Phase 24) ==========

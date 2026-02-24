@@ -1046,16 +1046,15 @@ namespace HcPortal.Controllers
             if (session.Status == "Completed" || session.Status == "Abandoned")
                 return Json(new { success = false, error = "Session already closed" });
 
-            // Upsert: update existing record for this session+question, or insert new one
-            var existing = await _context.PackageUserResponses
-                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+            // Atomic upsert: update existing row, or insert if none exists
+            var updatedCount = await _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.PackageOptionId, optionId)
+                    .SetProperty(r => r.SubmittedAt, DateTime.UtcNow)
+                );
 
-            if (existing != null)
-            {
-                existing.PackageOptionId = optionId;
-                existing.SubmittedAt = DateTime.UtcNow;
-            }
-            else
+            if (updatedCount == 0)
             {
                 _context.PackageUserResponses.Add(new PackageUserResponse
                 {
@@ -1064,9 +1063,9 @@ namespace HcPortal.Controllers
                     PackageOptionId = optionId,
                     SubmittedAt = DateTime.UtcNow
                 });
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             return Json(new { success = true });
         }
 
