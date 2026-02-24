@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.9 Proton Catalog Management — ALL PHASES COMPLETE, ready for milestone wrap-up
+**Current focus:** v2.0 Assessment Management & Training History — defining requirements, ready to plan Phase 38
 
 ## Current Position
 
-**Milestone:** v1.9 Proton Catalog Management — COMPLETE (all phases done)
-**Phase:** 37 of 37 (Drag-Drop Reorder) — COMPLETE (reorder feature removed per user decision; collapse-state fix shipped)
-**Current Plan:** 2 of 2 — COMPLETE
-**Next action:** `/gsd:complete-milestone` — archive v1.9 and prepare next milestone
-**Status:** Phase 37 COMPLETE — drag-and-drop reorder dropped (nested-table structure too complex); collapse-state preservation added to reloadTree()
-**Last activity:** 2026-02-24 — Phase 37 complete: reorder feature removed; expand-state preserved after add-item reload
+**Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
+**Phase:** 38 of 40 — NOT STARTED
+**Current Plan:** —
+**Next action:** `/gsd:plan-phase 38` — auto-hide filter (Management + Monitoring tabs)
+**Status:** Requirements defined. 4 requirements across 3 phases (38-40).
+**Last activity:** 2026-02-24 — v2.0 milestone started: Close Early, auto-hide tabs, Training History tab
 
-Progress: [████████████████████] 100% (v1.9) | v1.8 complete
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0) | v1.9 complete
 
 ## Performance Metrics
 
