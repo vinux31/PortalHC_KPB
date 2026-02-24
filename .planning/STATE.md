@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — Phase 40 PLANNED, ready to execute
+**Current focus:** v2.0 Assessment Management & Training History — Phase 40 IN PROGRESS (40-01 complete, awaiting human-verify checkpoint before 40-02)
 
 ## Current Position
 
 **Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
-**Phase:** 40 of 40 — PLANNED
-**Current Plan:** 40-01 — Backend: AllWorkersHistoryRow + RecordsWorkerListViewModel + GetAllWorkersHistory()
-**Next action:** `/gsd:execute-phase 40` — execute phase 40 (history tab)
-**Status:** Phase 40 planned (2 plans, 2 waves). Ready to execute.
-**Last activity:** 2026-02-24 — 40-RESEARCH.md + 40-01-PLAN.md + 40-02-PLAN.md created; verification passed
+**Phase:** 40 of 40 — IN PROGRESS
+**Current Plan:** 40-02 — Frontend: History Tab in RecordsWorkerList view
+**Next action:** Human verify 40-01 build (0 errors, GetAllWorkersHistory appears 3 times in grep), then execute 40-02
+**Status:** 40-01 complete (Tasks 1+2 committed). Checkpoint: human-verify before 40-02.
+**Last activity:** 2026-02-24 — 40-01 complete: AllWorkersHistoryRow, RecordsWorkerListViewModel, GetAllWorkersHistory() added
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0)
+Progress: [██░░░░░░░░░░░░░░░░░░] 50% (v2.0 — 1 of 2 plans complete)
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.
 | Phase 38-auto-hide-filter P01 | 3min | 2 tasks | 1 files |
 | Phase 39-close-early P01 | 5min | 1 task | 1 file |
 | Phase 39-close-early P02 | ~25min | 2 tasks + 3 fixes | 3 files |
+| Phase 40-history-tab P01 | 8min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 39-02]: 30s poll interval — balances worker notification speed vs server load during active exam
 - Phase 40 (history tab): Second tab on RecordsWorkerList (not a new page). Combined in-memory merge of TrainingRecords + completed AssessmentSessions, sorted by tanggal mulai descending. Pattern mirrors existing GetUnifiedRecords approach.
 - Phase 40 depends on Phase 38 (same dependency level as Phase 39) — both can be planned independently after Phase 38 ships.
+- [Phase 40-01]: Records() had one consolidated return point (not two as plan estimated) — if/else sets workers, single return wraps RecordsWorkerListViewModel
+- [Phase 40-01]: GetAllWorkersHistory() uses Include(User) nav — FullName ?? UserId fallback; TanggalMulai ?? Tanggal for training Date
 
 **v1.9 design decisions (approved):**
 - Single page for everything: track dropdown + collapsible tree table (not 4 drill-down pages)
@@ -109,5 +112,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 40-02-PLAN.md — Phase 40 plans created and verified. Ready to execute.
+Stopped at: Phase 40-01 complete (Tasks 1+2). Checkpoint: human-verify before executing 40-02.
 Resume file: None.
