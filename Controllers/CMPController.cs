@@ -1140,6 +1140,40 @@ namespace HcPortal.Controllers
             return Json(new { closed = isClosed, redirectUrl });
         }
 
+        // --- UPDATE SESSION PROGRESS (saves elapsed time + current page for resume) ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateSessionProgress(int sessionId, int elapsedSeconds, int currentPage)
+        {
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Session ownership check (same pattern as SaveAnswer)
+            if (session.UserId != user.Id)
+                return Json(new { success = false, error = "Unauthorized" });
+
+            // Skip update if session already closed
+            if (session.Status == "Completed" || session.Status == "Abandoned")
+                return Json(new { success = false, error = "Session already closed" });
+
+            // Atomic update of elapsed time and last active page
+            var updated = await _context.AssessmentSessions
+                .Where(s => s.Id == sessionId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.ElapsedSeconds, elapsedSeconds)
+                    .SetProperty(r => r.LastActivePage, currentPage)
+                    .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
+                );
+
+            if (updated == 0)
+                return Json(new { success = false, error = "Update failed" });
+
+            return Json(new { success = true });
+        }
+
         // --- RESHUFFLE PACKAGE (single worker) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
