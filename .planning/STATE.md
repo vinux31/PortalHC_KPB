@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.9 Proton Catalog Management — Phase 36 Plan 01 complete, ready for Phase 36 Plan 02 (delete guard frontend)
+**Current focus:** v1.9 Proton Catalog Management — Phase 36 COMPLETE, ready for Phase 37 (reorder/drag)
 
 ## Current Position
 
 **Milestone:** v1.9 Proton Catalog Management — IN PROGRESS
-**Phase:** 36 of 37 (Delete Guards) — IN PROGRESS
-**Current Plan:** 1 of 2 — COMPLETE
-**Next action:** Begin Phase 36 Plan 02 — delete guard frontend (trash icon, Bootstrap modal, initDeleteGuards())
-**Status:** Phase 36 Plan 01 COMPLETE — GetDeleteImpact GET and DeleteCatalogItem POST added; cascade delete and active-coachee impact query both compile clean
-**Last activity:** 2026-02-24 — Phase 36 Plan 01 complete: GetDeleteImpact + DeleteCatalogItem added to ProtonCatalogController (165 insertions, ~2 min)
+**Phase:** 36 of 37 (Delete Guards) — COMPLETE
+**Current Plan:** 2 of 2 — COMPLETE
+**Next action:** Begin Phase 37 — reorder/drag (SortableJS drag handles + AJAX POST)
+**Status:** Phase 36 COMPLETE — delete guard frontend shipped; trash icons, #deleteModal, initDeleteGuards() all verified end-to-end in browser
+**Last activity:** 2026-02-24 — Phase 36 Plan 02 complete: trash icons + delete modal + initDeleteGuards() wired; 2 post-verification fixes (collapse bubbling, Deliverable pencil d-none)
 
 Progress: [######░░░░░░░░░░░░░░] 30% (v1.9) | v1.8 complete
 
@@ -38,6 +38,7 @@ Progress: [######░░░░░░░░░░░░░░] 30% (v1.9) | v1.8 c
 | Phase 35-crud-add-edit P01 | 2min | 2 tasks | 1 file |
 | Phase 35-crud-add-edit P02 | ~45min | 2 tasks + 1 fix | 2 files |
 | Phase 36-delete-guards P01 | 2min | 2 tasks | 1 files |
+| Phase 36-delete-guards P02 | 30min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 33]: Only one code gap found in Plan 02: Deliverable action missing ThenInclude(ProtonTrack) — fixed as Rule 1 bug; all Plan 01 consumer fixes verified correct
 - [Phase 36-delete-guards]: GetDeleteImpact returns JSON {success:false} not Forbid for RoleLevel > 2 — preserves AJAX JSON contract
 - [Phase 36-delete-guards]: DeleteCatalogItem uses single SaveChangesAsync at end (not per-RemoveRange) — EF Core batches all removals into one FK-safe transaction
+- [Phase 36-delete-guards]: Deliverable pencil-btn loses d-none (fix 841f40c) — leaf nodes have no collapse toggle so the pencil was never revealed; always visible when parent SubKompetensi is expanded
+- [Phase 36-delete-guards]: Bootstrap collapse events bubble — e.target !== target guard added to all 6 collapse listeners (chevron, pencil show/hide, trash show/hide) so child collapse events do not affect parent row icons
+- [Phase 36-delete-guards]: deleteConfirmBtn re-cloned on every initDeleteGuards() call via cloneNode(true)+replaceChild — safe pattern for re-initializing listeners on tree reload without accumulating duplicates
 
 ### Pending Todos
 
@@ -84,5 +88,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 36-delete-guards-01-PLAN.md — GetDeleteImpact + DeleteCatalogItem backend endpoints live. Ready for Phase 36 Plan 02 (delete guard frontend).
+Stopped at: Completed 36-delete-guards-02-PLAN.md — Phase 36 complete. Delete guard frontend (trash icons, #deleteModal, initDeleteGuards()) verified end-to-end. Ready for Phase 37 (reorder/drag).
 Resume file: None.
