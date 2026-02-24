@@ -59,23 +59,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAVE-01 | — | Pending |
-| SAVE-02 | — | Pending |
-| SAVE-03 | — | Pending |
-| RESUME-01 | — | Pending |
-| RESUME-02 | — | Pending |
-| RESUME-03 | — | Pending |
-| POLL-01 | — | Pending |
-| POLL-02 | — | Pending |
-| MONITOR-01 | — | Pending |
-| MONITOR-02 | — | Pending |
-| MONITOR-03 | — | Pending |
+| SAVE-01 | Phase 41 | Pending |
+| SAVE-02 | Phase 41 | Pending |
+| SAVE-03 | Phase 41 | Pending |
+| RESUME-01 | Phase 42 | Pending |
+| RESUME-02 | Phase 42 | Pending |
+| RESUME-03 | Phase 42 | Pending |
+| POLL-01 | Phase 43 | Pending |
+| POLL-02 | Phase 43 | Pending |
+| MONITOR-01 | Phase 44 | Pending |
+| MONITOR-02 | Phase 44 | Pending |
+| MONITOR-03 | Phase 44 | Pending |
 
 **Coverage:**
 - v2.1 requirements: 11 total
-- Mapped to phases: 0 (pre-roadmap)
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11 (Phases 41-44)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-24*
-*Last updated: 2026-02-24 after v2.1 milestone initialization*
+*Last updated: 2026-02-24 after v2.1 roadmap creation — traceability complete*
