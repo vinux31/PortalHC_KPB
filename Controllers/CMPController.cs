@@ -2865,10 +2865,31 @@ namespace HcPortal.Controllers
                     };
                     _context.UserPackageAssignments.Add(assignment);
                     await _context.SaveChangesAsync();
+
+                    // Record question count for stale-question detection on resume (RESUME-03 safety net)
+                    assignment.SavedQuestionCount = selectedPackage.Questions.Count;
+                    await _context.SaveChangesAsync();
                 }
 
                 // Load the assigned package
                 var assignedPackage = packages.First(p => p.Id == assignment.AssessmentPackageId);
+
+                // Stale question set check: compare count at session start vs. now
+                // HC cannot normally edit questions once a session is active (existing guard), but this is a defensive safety net
+                if (assessment.StartedAt != null && assignment.SavedQuestionCount.HasValue &&
+                    assignment.SavedQuestionCount.Value != assignedPackage.Questions.Count)
+                {
+                    // Clear saved progress so worker gets a clean restart when HC resets
+                    await _context.AssessmentSessions
+                        .Where(s => s.Id == id)
+                        .ExecuteUpdateAsync(s => s
+                            .SetProperty(r => r.ElapsedSeconds, 0)
+                            .SetProperty(r => r.LastActivePage, (int?)null)
+                        );
+
+                    TempData["Error"] = "Soal ujian telah berubah. Hubungi HC untuk mengatur ulang ujian Anda.";
+                    return RedirectToAction("Assessment");
+                }
 
                 // Build ViewModel in shuffled order
                 var shuffledQuestionIds = assignment.GetShuffledQuestionIds();
@@ -2915,6 +2936,31 @@ namespace HcPortal.Controllers
                     AssignmentId = assignment.Id,
                     Questions = examQuestions
                 };
+
+                // Resume state: set ViewBag flags for frontend
+                bool isResume = assessment.StartedAt != null;
+                int durationSeconds = assessment.DurationMinutes * 60;
+                int elapsedSec = assessment.ElapsedSeconds;
+                int remainingSeconds = durationSeconds - elapsedSec;
+
+                ViewBag.IsResume = isResume;
+                ViewBag.LastActivePage = assessment.LastActivePage ?? 0;
+                ViewBag.ElapsedSeconds = elapsedSec;
+                ViewBag.RemainingSeconds = remainingSeconds;
+                ViewBag.ExamExpired = isResume && remainingSeconds <= 0;
+
+                // Load previously saved answers for pre-population (package path)
+                if (isResume)
+                {
+                    var savedAnswers = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == id)
+                        .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId ?? 0);
+                    ViewBag.SavedAnswers = System.Text.Json.JsonSerializer.Serialize(savedAnswers);
+                }
+                else
+                {
+                    ViewBag.SavedAnswers = "{}";
+                }
             }
             else
             {
@@ -2948,6 +2994,31 @@ namespace HcPortal.Controllers
                     AssignmentId = null,
                     Questions = legacyQuestions
                 };
+
+                // Resume state for legacy path
+                bool isResumeLegacy = assessment.StartedAt != null;
+                int durationSecondsLegacy = assessment.DurationMinutes * 60;
+                int elapsedSecLegacy = assessment.ElapsedSeconds;
+                int remainingSecondsLegacy = durationSecondsLegacy - elapsedSecLegacy;
+
+                ViewBag.IsResume = isResumeLegacy;
+                ViewBag.LastActivePage = assessment.LastActivePage ?? 0;
+                ViewBag.ElapsedSeconds = elapsedSecLegacy;
+                ViewBag.RemainingSeconds = remainingSecondsLegacy;
+                ViewBag.ExamExpired = isResumeLegacy && remainingSecondsLegacy <= 0;
+
+                // Load previously saved answers for pre-population (legacy path)
+                if (isResumeLegacy)
+                {
+                    var savedAnswersLegacy = await _context.UserResponses
+                        .Where(r => r.AssessmentSessionId == id)
+                        .ToDictionaryAsync(r => r.AssessmentQuestionId, r => r.SelectedOptionId ?? 0);
+                    ViewBag.SavedAnswers = System.Text.Json.JsonSerializer.Serialize(savedAnswersLegacy);
+                }
+                else
+                {
+                    ViewBag.SavedAnswers = "{}";
+                }
             }
 
             return View(vm);
