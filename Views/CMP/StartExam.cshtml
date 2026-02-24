@@ -160,6 +160,23 @@ else
     </div>
 }
 
+<!-- Auto-save indicator (fixed bottom-right) -->
+<div id="saveIndicator" style="display:none; position:fixed; bottom:20px; right:20px; z-index:1050;">
+    <span id="saveIndicatorBadge" class="badge rounded-pill px-3 py-2" style="font-size:0.85rem;">
+        <span id="saveIndicatorText"></span>
+    </span>
+</div>
+
+<style>
+    #saveIndicator.fade-out {
+        animation: saveIndicatorFade 0.4s ease-in-out forwards;
+    }
+    @@keyframes saveIndicatorFade {
+        0%   { opacity: 1; }
+        100% { opacity: 0; }
+    }
+</style>
+
 <script>
     // -------- Constants --------
     const TOTAL_QUESTIONS = @Model.TotalQuestions;
@@ -204,16 +221,6 @@ else
     var timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
 
-    // -------- Page switching --------
-    function changePage(newPage) {
-        if (newPage < 0 || newPage >= TOTAL_PAGES) return;
-        document.getElementById('page_' + currentPage).style.display = 'none';
-        currentPage = newPage;
-        document.getElementById('page_' + currentPage).style.display = 'block';
-        updatePanel();
-        window.scrollTo(0, 0);
-    }
-
     // -------- Answer tracking + incremental save --------
     const SAVE_ANSWER_URL = '@Url.Action("SaveAnswer", "CMP")';
     const SAVE_ANSWER_TOKEN = document.querySelector('input[name="__RequestVerificationToken"]') !== null
@@ -221,18 +228,127 @@ else
         : '';
     const SESSION_ID = @Model.AssessmentSessionId;
 
-    function saveAnswerAsync(questionId, optionId) {
-        // Fire and forget — do not block UI. Silently ignore failures.
-        fetch(SAVE_ANSWER_URL, {
+    // -------- Auto-save state --------
+    const IS_PACKAGE_PATH = @(Model.HasPackages ? "true" : "false");
+    const SAVE_LEGACY_URL = '@Url.Action("SaveLegacyAnswer", "CMP")';
+    const DEBOUNCE_MS = 300;
+    const SAVE_TIMEOUT_MS = 5000; // Navigation timeout if saves hang
+    let pendingSaves = {};    // questionId -> debounce timeout ID
+    let inFlightSaves = new Set();  // question IDs with requests in-flight
+    let failureToastShown = false;
+    let indicatorFadeTimer = null;
+
+    // -------- Auto-save functions --------
+
+    function getDisplayNumForQuestion(qId) {
+        const qcard = document.getElementById('qcard_' + qId);
+        if (qcard) {
+            const badge = qcard.querySelector('.badge.bg-primary');
+            if (badge) return badge.innerText.trim();
+        }
+        return qId;
+    }
+
+    function showSaveIndicator(qId, state) {
+        const indicator = document.getElementById('saveIndicator');
+        const badge = document.getElementById('saveIndicatorBadge');
+        const text = document.getElementById('saveIndicatorText');
+        const displayNum = getDisplayNumForQuestion(qId);
+
+        // Clear any pending fade-out
+        if (indicatorFadeTimer) { clearTimeout(indicatorFadeTimer); indicatorFadeTimer = null; }
+        indicator.classList.remove('fade-out');
+
+        if (state === 'saving') {
+            badge.className = 'badge rounded-pill px-3 py-2 bg-secondary text-white';
+            text.innerText = 'Soal no. ' + displayNum + ', menyimpan...';
+            indicator.style.display = 'block';
+            indicator.style.opacity = '1';
+        } else if (state === 'saved') {
+            badge.className = 'badge rounded-pill px-3 py-2 bg-success text-white';
+            text.innerText = 'Soal no. ' + displayNum + ', saved';
+            indicator.style.display = 'block';
+            indicator.style.opacity = '1';
+            // Auto-fade after 2 seconds
+            indicatorFadeTimer = setTimeout(function() {
+                indicator.classList.add('fade-out');
+                setTimeout(function() { indicator.style.display = 'none'; indicator.classList.remove('fade-out'); }, 400);
+            }, 2000);
+        } else if (state === 'error') {
+            badge.className = 'badge rounded-pill px-3 py-2 bg-danger text-white';
+            text.innerText = 'Soal no. ' + displayNum + ', gagal tersimpan';
+            indicator.style.display = 'block';
+            indicator.style.opacity = '1';
+        }
+    }
+
+    function showFailureToast() {
+        if (failureToastShown) return;
+        failureToastShown = true;
+        var toast = document.createElement('div');
+        toast.style.cssText = 'position:fixed;top:80px;right:20px;z-index:2000;max-width:380px;';
+        toast.className = 'alert alert-warning alert-dismissible fade show';
+        toast.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>' +
+            '<strong>Koneksi bermasalah, cek jaringan</strong>' +
+            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+            failureToastShown = false;
+        }, 5000);
+    }
+
+    function doSaveFetch(qId, optId) {
+        var saveUrl = IS_PACKAGE_PATH ? SAVE_ANSWER_URL : SAVE_LEGACY_URL;
+        return fetch(saveUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'RequestVerificationToken': SAVE_ANSWER_TOKEN
             },
-            body: 'sessionId=' + SESSION_ID + '&questionId=' + questionId + '&optionId=' + optionId
-        }).catch(function() { /* ignore network errors — answers still in hidden inputs for final submit */ });
+            body: 'sessionId=' + SESSION_ID + '&questionId=' + qId + '&optionId=' + optId
+        }).then(function(r) {
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            return r.json();
+        }).then(function(data) {
+            if (!data.success) throw new Error(data.error || 'Save rejected');
+        });
     }
 
+    function saveAnswerAsync(qId, optId, isRetry) {
+        if (inFlightSaves.has(String(qId))) return;
+        inFlightSaves.add(String(qId));
+        showSaveIndicator(qId, 'saving');
+
+        doSaveFetch(qId, optId)
+            .then(function() {
+                showSaveIndicator(qId, 'saved');
+            })
+            .catch(function() {
+                if (!isRetry) {
+                    // 1x retry immediately
+                    inFlightSaves.delete(String(qId));
+                    saveAnswerAsync(qId, optId, true);
+                } else {
+                    // Retry also failed
+                    showSaveIndicator(qId, 'error');
+                    showFailureToast();
+                }
+            })
+            .finally(function() {
+                inFlightSaves.delete(String(qId));
+            });
+    }
+
+    function saveAnswerWithDebounce(qId, optId) {
+        if (pendingSaves[qId]) { clearTimeout(pendingSaves[qId]); }
+        pendingSaves[qId] = setTimeout(function() {
+            delete pendingSaves[qId];
+            saveAnswerAsync(qId, optId, false);
+        }, DEBOUNCE_MS);
+    }
+
+    // -------- Radio change listener (replaces old listener) --------
     document.querySelectorAll('.exam-radio').forEach(function(radio) {
         radio.addEventListener('change', function() {
             const qId = this.getAttribute('data-question-id');
@@ -246,10 +362,81 @@ else
                 lbl.classList.remove('option-selected');
             });
             document.getElementById('lbl_' + qId + '_' + optId).classList.add('option-selected');
-            // Incrementally persist answer to DB (non-blocking)
-            saveAnswerAsync(qId, optId);
+            // Debounced auto-save
+            saveAnswerWithDebounce(qId, optId);
         });
     });
+
+    // -------- Page switching --------
+    function changePage(newPage) {
+        if (newPage < 0 || newPage >= TOTAL_PAGES) return;
+
+        // Check for pending saves
+        if (Object.keys(pendingSaves).length > 0 || inFlightSaves.size > 0) {
+            // Disable nav buttons while waiting
+            document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+                b.disabled = true;
+            });
+
+            var navTimeout = setTimeout(function() {
+                // 5s timeout: give up waiting, navigate anyway
+                clearInterval(navPoll);
+                document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+                    b.disabled = false;
+                });
+                performPageSwitch(newPage);
+            }, SAVE_TIMEOUT_MS);
+
+            var navPoll = setInterval(function() {
+                if (Object.keys(pendingSaves).length === 0 && inFlightSaves.size === 0) {
+                    clearInterval(navPoll);
+                    clearTimeout(navTimeout);
+                    document.querySelectorAll('[onclick^="changePage"], #reviewSubmitBtn').forEach(function(b) {
+                        b.disabled = false;
+                    });
+                    performPageSwitch(newPage);
+                }
+            }, 50);
+            return;
+        }
+
+        performPageSwitch(newPage);
+    }
+
+    function performPageSwitch(newPage) {
+        document.getElementById('page_' + currentPage).style.display = 'none';
+        currentPage = newPage;
+        document.getElementById('page_' + currentPage).style.display = 'block';
+        updatePanel();
+        window.scrollTo(0, 0);
+    }
+
+    // -------- ReviewSubmitBtn: block form submit until saves complete --------
+    var reviewBtn = document.getElementById('reviewSubmitBtn');
+    if (reviewBtn) {
+        reviewBtn.addEventListener('click', function(e) {
+            if (Object.keys(pendingSaves).length > 0 || inFlightSaves.size > 0) {
+                e.preventDefault();
+                reviewBtn.disabled = true;
+
+                var rTimeout = setTimeout(function() {
+                    clearInterval(rPoll);
+                    reviewBtn.disabled = false;
+                    document.getElementById('examForm').submit();
+                }, SAVE_TIMEOUT_MS);
+
+                var rPoll = setInterval(function() {
+                    if (Object.keys(pendingSaves).length === 0 && inFlightSaves.size === 0) {
+                        clearInterval(rPoll);
+                        clearTimeout(rTimeout);
+                        reviewBtn.disabled = false;
+                        document.getElementById('examForm').submit();
+                    }
+                }, 50);
+            }
+            // If no saves pending: default form submit proceeds normally
+        });
+    }
 
     function updateAnsweredCount() {
         document.getElementById('answeredProgress').innerText =
