@@ -416,6 +416,7 @@
                         "Open" => "bg-success",
                         "Upcoming" => "bg-warning text-dark",
                         "Completed" => "bg-primary",
+                        "InProgress" => "bg-warning text-dark",
                         _ => "bg-secondary"
                     };
 
@@ -470,6 +471,7 @@
                                                 "Open" => "bi-check-circle-fill text-success",
                                                 "Upcoming" => "bi-clock-fill text-warning",
                                                 "Completed" => "bi-check-circle text-primary",
+                                                "InProgress" => "bi-play-circle-fill text-warning",
                                                 _ => "bi-circle"
                                             };
                                         }
@@ -496,7 +498,13 @@
 
                                 <!-- Personal View: Show action buttons -->
                                 <div class="mt-auto">
-                                    @if (item.Status == "Open")
+                                    @if (item.Status == "InProgress")
+                                    {
+                                        <a class="btn btn-warning w-100" asp-action="StartExam" asp-route-id="@item.Id">
+                                            <i class="bi bi-play-circle-fill me-1"></i>Resume
+                                        </a>
+                                    }
+                                    else if (item.Status == "Open")
                                     {
                                         if (item.IsTokenRequired)
                                         {
