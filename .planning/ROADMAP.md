@@ -290,11 +290,11 @@ Plans:
   3. When 0 coachees are affected, the modal still appears but states "No active coachees affected" — deletion still requires confirmation
   4. Delete is available on SubKompetensi and Deliverables with the same guard — each shows its own affected coachee count
   5. Cascade order is enforced: Deliverables deleted before SubKompetensi before Kompetensi (no FK constraint errors)
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 - [ ] 36-01-PLAN.md — Backend: GetDeleteImpact GET action (returns affected coachee count for item + children); DeleteCatalogItem POST action with cascade delete in correct order (Deliverables → SubKompetensi → Kompetensi → Track)
-- [ ] 36-02-PLAN.md — Frontend: delete button per row triggers AJAX impact fetch → populates Bootstrap modal with item name + count → hard confirm triggers delete AJAX → removes row from tree on success
+- [ ] 36-02-PLAN.md — Frontend: trash icon in _CatalogTree.cshtml; shared #deleteModal in Index.cshtml; initDeleteGuards() function wired into initCatalogTree() call chain; human verification checkpoint
 
 ---
 
