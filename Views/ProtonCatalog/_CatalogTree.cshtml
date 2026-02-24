@@ -38,11 +38,18 @@ else
                     </td>
                     <td class="align-middle text-end pe-2">
                         <button type="button"
-                                class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none"
+                                class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none me-1"
                                 data-level="Kompetensi"
                                 data-id="@kompetensi.Id"
                                 aria-label="Edit @kompetensi.NamaKompetensi">
                             <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button"
+                                class="btn btn-link btn-sm p-0 text-danger trash-btn d-none"
+                                data-level="Kompetensi"
+                                data-id="@kompetensi.Id"
+                                aria-label="Delete @kompetensi.NamaKompetensi">
+                            <i class="bi bi-trash"></i>
                         </button>
                     </td>
                 </tr>
@@ -82,11 +89,18 @@ else
                                         </td>
                                         <td class="align-middle text-end pe-2">
                                             <button type="button"
-                                                    class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none"
+                                                    class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none me-1"
                                                     data-level="SubKompetensi"
                                                     data-id="@sub.Id"
                                                     aria-label="Edit @sub.NamaSubKompetensi">
                                                 <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-link btn-sm p-0 text-danger trash-btn d-none"
+                                                    data-level="SubKompetensi"
+                                                    data-id="@sub.Id"
+                                                    aria-label="Delete @sub.NamaSubKompetensi">
+                                                <i class="bi bi-trash"></i>
                                             </button>
                                         </td>
                                     </tr>
@@ -118,11 +132,18 @@ else
                                                             </td>
                                                             <td class="align-middle text-end pe-2">
                                                                 <button type="button"
-                                                                        class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none"
+                                                                        class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none me-1"
                                                                         data-level="Deliverable"
                                                                         data-id="@deliverable.Id"
                                                                         aria-label="Edit @deliverable.NamaDeliverable">
                                                                     <i class="bi bi-pencil"></i>
+                                                                </button>
+                                                                <button type="button"
+                                                                        class="btn btn-link btn-sm p-0 text-danger trash-btn"
+                                                                        data-level="Deliverable"
+                                                                        data-id="@deliverable.Id"
+                                                                        aria-label="Delete @deliverable.NamaDeliverable">
+                                                                    <i class="bi bi-trash"></i>
                                                                 </button>
                                                             </td>
                                                         </tr>
