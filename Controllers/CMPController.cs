@@ -111,8 +111,11 @@ namespace HcPortal.Controllers
             // ========== HC/ADMIN BRANCH: Dual ViewBag data sets ==========
             if (view == "manage" && isHCAccess)
             {
+                var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
                 // Management tab: ALL assessments (CRUD operations) — projected to avoid loading full User entities
                 var managementQuery = _context.AssessmentSessions
+                    .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(search))
@@ -283,12 +286,14 @@ namespace HcPortal.Controllers
             if (!isHCAccess) return Forbid();
 
             var cutoff = DateTime.UtcNow.AddDays(-30);
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
             var monitorSessions = await _context.AssessmentSessions
-                .Where(a => a.Status == "Open"
-                         || a.Status == "InProgress"
-                         || a.Status == "Abandoned"
-                         || a.Status == "Upcoming"
-                         || (a.Status == "Completed" && a.CompletedAt != null && a.CompletedAt >= cutoff))
+                .Where(a => ((a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
+                         && (a.Status == "Open"
+                          || a.Status == "InProgress"
+                          || a.Status == "Abandoned"
+                          || a.Status == "Upcoming"
+                          || (a.Status == "Completed" && a.CompletedAt != null && a.CompletedAt >= cutoff)))
                 .Select(a => new
                 {
                     a.Id,
