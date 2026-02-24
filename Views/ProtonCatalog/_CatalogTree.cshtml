@@ -2,8 +2,13 @@
 
 @if (Model == null || !Model.Any())
 {
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-info-circle me-2"></i>No Kompetensi yet — add some in the catalog editor
+    <div class="p-3">
+        <div class="text-muted small fst-italic mb-2 ps-1">No Kompetensi yet</div>
+        <!-- Add Kompetensi trigger row (always visible) -->
+        <div class="add-trigger-row" id="addKompetensiTrigger" data-track-id="@ViewBag.SelectedTrackId">
+            <a href="#" class="text-primary small text-decoration-none" id="addKompetensiLink">+ Add Kompetensi</a>
+            <div class="add-input-row d-none mt-1" id="addKompetensiInput"></div>
+        </div>
     </div>
 }
 else
@@ -12,7 +17,7 @@ else
         <colgroup>
             <col style="width:50px;">
             <col>
-            <col style="width:120px;">
+            <col style="width:50px;">
         </colgroup>
         <tbody>
             @foreach (var kompetensi in Model.OrderBy(k => k.Urutan))
@@ -28,8 +33,18 @@ else
                             <i class="bi bi-chevron-right"></i>
                         </button>
                     </td>
-                    <td class="align-middle fw-semibold ps-2">@kompetensi.NamaKompetensi</td>
-                    <td class="align-middle text-muted small">Kompetensi</td>
+                    <td class="align-middle fw-semibold ps-2">
+                        <span class="item-name" data-level="Kompetensi" data-id="@kompetensi.Id">@kompetensi.NamaKompetensi</span>
+                    </td>
+                    <td class="align-middle text-end pe-2">
+                        <button type="button"
+                                class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none"
+                                data-level="Kompetensi"
+                                data-id="@kompetensi.Id"
+                                aria-label="Edit @kompetensi.NamaKompetensi">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                    </td>
                 </tr>
                 <!-- Level 1: Kompetensi collapse container -->
                 <tr id="kompetensi-@kompetensi.Id" class="collapse">
@@ -38,9 +53,17 @@ else
                             <colgroup>
                                 <col style="width:50px;">
                                 <col>
-                                <col style="width:120px;">
+                                <col style="width:50px;">
                             </colgroup>
                             <tbody>
+                                @if (!kompetensi.SubKompetensiList.Any())
+                                {
+                                    <tr>
+                                        <td colspan="3" class="py-1">
+                                            <div class="text-muted small fst-italic ps-1">No SubKompetensi yet</div>
+                                        </td>
+                                    </tr>
+                                }
                                 @foreach (var sub in kompetensi.SubKompetensiList.OrderBy(s => s.Urutan))
                                 {
                                     <!-- Level 2: SubKompetensi row -->
@@ -54,8 +77,18 @@ else
                                                 <i class="bi bi-chevron-right"></i>
                                             </button>
                                         </td>
-                                        <td class="align-middle ps-2">@sub.NamaSubKompetensi</td>
-                                        <td class="align-middle text-muted small">SubKompetensi</td>
+                                        <td class="align-middle ps-2">
+                                            <span class="item-name" data-level="SubKompetensi" data-id="@sub.Id">@sub.NamaSubKompetensi</span>
+                                        </td>
+                                        <td class="align-middle text-end pe-2">
+                                            <button type="button"
+                                                    class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none"
+                                                    data-level="SubKompetensi"
+                                                    data-id="@sub.Id"
+                                                    aria-label="Edit @sub.NamaSubKompetensi">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                        </td>
                                     </tr>
                                     <!-- Level 2: SubKompetensi collapse container -->
                                     <tr id="subkompetensi-@sub.Id" class="collapse">
@@ -64,23 +97,57 @@ else
                                                 <colgroup>
                                                     <col style="width:50px;">
                                                     <col>
-                                                    <col style="width:120px;">
+                                                    <col style="width:50px;">
                                                 </colgroup>
                                                 <tbody>
+                                                    @if (!sub.Deliverables.Any())
+                                                    {
+                                                        <tr>
+                                                            <td colspan="3" class="py-1">
+                                                                <div class="text-muted small fst-italic ps-1">No Deliverables yet</div>
+                                                            </td>
+                                                        </tr>
+                                                    }
                                                     @foreach (var deliverable in sub.Deliverables.OrderBy(d => d.Urutan))
                                                     {
                                                         <!-- Level 3: Deliverable (leaf, no chevron) -->
                                                         <tr>
                                                             <td></td>
-                                                            <td class="align-middle ps-2">@deliverable.NamaDeliverable</td>
-                                                            <td class="align-middle text-muted small">Deliverable</td>
+                                                            <td class="align-middle ps-2">
+                                                                <span class="item-name" data-level="Deliverable" data-id="@deliverable.Id">@deliverable.NamaDeliverable</span>
+                                                            </td>
+                                                            <td class="align-middle text-end pe-2">
+                                                                <button type="button"
+                                                                        class="btn btn-link btn-sm p-0 text-muted pencil-btn d-none"
+                                                                        data-level="Deliverable"
+                                                                        data-id="@deliverable.Id"
+                                                                        aria-label="Edit @deliverable.NamaDeliverable">
+                                                                    <i class="bi bi-pencil"></i>
+                                                                </button>
+                                                            </td>
                                                         </tr>
                                                     }
+                                                    <!-- Add Deliverable trigger (always visible) -->
+                                                    <tr class="add-deliverable-trigger-row">
+                                                        <td colspan="3" class="py-1">
+                                                            <a href="#" class="text-primary small text-decoration-none ms-1"
+                                                               data-parent-id="@sub.Id">+ Add Deliverable</a>
+                                                            <div class="add-input-row d-none mt-1" id="addDeliverableInput-@sub.Id"></div>
+                                                        </td>
+                                                    </tr>
                                                 </tbody>
                                             </table>
                                         </td>
                                     </tr>
                                 }
+                                <!-- Add SubKompetensi trigger (always visible, after last SubKompetensi row) -->
+                                <tr class="add-subkompetensi-trigger-row">
+                                    <td colspan="3" class="py-1">
+                                        <a href="#" class="text-primary small text-decoration-none ms-1"
+                                           data-parent-id="@kompetensi.Id">+ Add SubKompetensi</a>
+                                        <div class="add-input-row d-none mt-1" id="addSubKompetensiInput-@kompetensi.Id"></div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </td>
@@ -89,21 +156,240 @@ else
         </tbody>
     </table>
 
-    <script>
-        (function () {
-            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
-                var targetId = btn.getAttribute('data-bs-target').replace('#', '');
-                var target = document.getElementById(targetId);
-                if (!target) return;
-                target.addEventListener('show.bs.collapse', function () {
-                    var icon = btn.querySelector('i');
-                    if (icon) { icon.classList.replace('bi-chevron-right', 'bi-chevron-down'); }
-                });
-                target.addEventListener('hide.bs.collapse', function () {
-                    var icon = btn.querySelector('i');
-                    if (icon) { icon.classList.replace('bi-chevron-down', 'bi-chevron-right'); }
-                });
-            });
-        })();
-    </script>
+    <!-- Add Kompetensi trigger (always visible below the last Kompetensi row) -->
+    <div class="p-2 ps-3" id="addKompetensiTrigger" data-track-id="@ViewBag.SelectedTrackId">
+        <a href="#" class="text-primary small text-decoration-none"
+           id="addKompetensiLink">+ Add Kompetensi</a>
+        <div class="add-input-row d-none mt-1" id="addKompetensiInput"></div>
+    </div>
 }
+
+<script>
+    (function () {
+
+        // ── Helpers ──────────────────────────────────────────────────────────
+
+        function buildInlineInput(placeholderText, onSave, onCancel) {
+            var wrapper = document.createElement('div');
+            wrapper.className = 'd-flex align-items-center flex-wrap gap-1';
+
+            var input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'form-control form-control-sm d-inline-block';
+            input.style.width = '60%';
+            input.placeholder = placeholderText;
+
+            var saveBtn = document.createElement('button');
+            saveBtn.className = 'btn btn-sm btn-success ms-1 save-btn';
+            saveBtn.textContent = '\u2713';
+            saveBtn.disabled = true;
+
+            var cancelBtn = document.createElement('button');
+            cancelBtn.className = 'btn btn-sm btn-secondary ms-1 cancel-btn';
+            cancelBtn.textContent = '\u2717';
+
+            input.addEventListener('input', function () {
+                saveBtn.disabled = input.value.trim() === '';
+            });
+            saveBtn.addEventListener('click', function () {
+                onSave(input.value.trim());
+            });
+            cancelBtn.addEventListener('click', function () {
+                onCancel();
+            });
+
+            wrapper.appendChild(input);
+            wrapper.appendChild(saveBtn);
+            wrapper.appendChild(cancelBtn);
+            return wrapper;
+        }
+
+        function postItem(url, params, onSuccess, onError) {
+            var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (!tokenEl) { onError('Token tidak ditemukan.'); return; }
+            var body = new URLSearchParams(Object.assign({}, params, { __RequestVerificationToken: tokenEl.value }));
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: body.toString()
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (result) {
+                    if (result.success) {
+                        onSuccess(result);
+                    } else {
+                        onError(result.error || 'Gagal.');
+                    }
+                })
+                .catch(function () { onError('Terjadi kesalahan. Coba lagi.'); });
+        }
+
+        function reloadTree() {
+            var trackDropdown = document.getElementById('trackDropdown');
+            var trackId = trackDropdown ? trackDropdown.value : null;
+            if (!trackId) return;
+            fetch('/ProtonCatalog/GetCatalogTree?trackId=' + trackId)
+                .then(function (r) { return r.text(); })
+                .then(function (html) {
+                    var container = document.getElementById('treeContainer');
+                    if (container) container.innerHTML = html;
+                })
+                .catch(function (err) { console.error('Tree reload error:', err); });
+        }
+
+        function showInlineError(container, msg) {
+            var existing = container.querySelector('.inline-error');
+            if (existing) existing.remove();
+            var err = document.createElement('div');
+            err.className = 'inline-error text-danger small mt-1';
+            err.textContent = msg;
+            container.appendChild(err);
+        }
+
+        function restoreNameSpan(nameSpan, widget) {
+            nameSpan.style.display = '';
+            if (widget.parentNode) widget.parentNode.removeChild(widget);
+        }
+
+        // ── Chevron rotation ─────────────────────────────────────────────────
+
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
+            var targetId = btn.getAttribute('data-bs-target').replace('#', '');
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            target.addEventListener('show.bs.collapse', function () {
+                var icon = btn.querySelector('i.bi-chevron-right, i.bi-chevron-down');
+                if (icon) icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                var icon = btn.querySelector('i.bi-chevron-right, i.bi-chevron-down');
+                if (icon) icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
+            });
+        });
+
+        // ── Pencil icon visibility (show on expand, hide on collapse) ────────
+
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (btn) {
+            var row = btn.closest('tr');
+            if (!row) return;
+            var pencil = row.querySelector('.pencil-btn');
+            if (!pencil) return;
+            var targetId = btn.getAttribute('data-bs-target').replace('#', '');
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            target.addEventListener('show.bs.collapse', function () {
+                pencil.classList.remove('d-none');
+            });
+            target.addEventListener('hide.bs.collapse', function () {
+                pencil.classList.add('d-none');
+            });
+        });
+
+        // ── Add Kompetensi ───────────────────────────────────────────────────
+
+        var addKompetensiLink = document.getElementById('addKompetensiLink');
+        var addKompetensiContainer = document.getElementById('addKompetensiInput');
+        var addKompetensiTrigger = document.getElementById('addKompetensiTrigger');
+        if (addKompetensiLink && addKompetensiContainer) {
+            addKompetensiLink.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (!addKompetensiContainer.classList.contains('d-none')) return;
+                var trackId = addKompetensiTrigger ? addKompetensiTrigger.dataset.trackId : null;
+                if (!trackId) return;
+                addKompetensiContainer.classList.remove('d-none');
+                var widget = buildInlineInput('Nama Kompetensi...', function (nama) {
+                    postItem('/ProtonCatalog/AddKompetensi', { trackId: trackId, nama: nama }, function () {
+                        addKompetensiContainer.classList.add('d-none');
+                        addKompetensiContainer.innerHTML = '';
+                        reloadTree();
+                    }, function (err) {
+                        showInlineError(addKompetensiContainer, err);
+                    });
+                }, function () {
+                    addKompetensiContainer.classList.add('d-none');
+                    addKompetensiContainer.innerHTML = '';
+                });
+                addKompetensiContainer.appendChild(widget);
+                widget.querySelector('input').focus();
+            });
+        }
+
+        // ── Add SubKompetensi ────────────────────────────────────────────────
+
+        document.querySelectorAll('.add-subkompetensi-trigger-row a[data-parent-id]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var kompetensiId = link.dataset.parentId;
+                var container = document.getElementById('addSubKompetensiInput-' + kompetensiId);
+                if (!container || !container.classList.contains('d-none')) return;
+                container.classList.remove('d-none');
+                var widget = buildInlineInput('Nama SubKompetensi...', function (nama) {
+                    postItem('/ProtonCatalog/AddSubKompetensi', { kompetensiId: kompetensiId, nama: nama }, function () {
+                        container.classList.add('d-none');
+                        container.innerHTML = '';
+                        reloadTree();
+                    }, function (err) { showInlineError(container, err); });
+                }, function () {
+                    container.classList.add('d-none');
+                    container.innerHTML = '';
+                });
+                container.appendChild(widget);
+                widget.querySelector('input').focus();
+            });
+        });
+
+        // ── Add Deliverable ──────────────────────────────────────────────────
+
+        document.querySelectorAll('.add-deliverable-trigger-row a[data-parent-id]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var subKompetensiId = link.dataset.parentId;
+                var container = document.getElementById('addDeliverableInput-' + subKompetensiId);
+                if (!container || !container.classList.contains('d-none')) return;
+                container.classList.remove('d-none');
+                var widget = buildInlineInput('Nama Deliverable...', function (nama) {
+                    postItem('/ProtonCatalog/AddDeliverable', { subKompetensiId: subKompetensiId, nama: nama }, function () {
+                        container.classList.add('d-none');
+                        container.innerHTML = '';
+                        reloadTree();
+                    }, function (err) { showInlineError(container, err); });
+                }, function () {
+                    container.classList.add('d-none');
+                    container.innerHTML = '';
+                });
+                container.appendChild(widget);
+                widget.querySelector('input').focus();
+            });
+        });
+
+        // ── Edit (pencil) ────────────────────────────────────────────────────
+
+        document.querySelectorAll('.pencil-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var level = btn.dataset.level;
+                var itemId = btn.dataset.id;
+                var nameSpan = btn.closest('tr').querySelector('.item-name[data-id="' + itemId + '"]');
+                if (!nameSpan) return;
+                // Prevent opening multiple edit widgets on the same row
+                if (nameSpan.style.display === 'none') return;
+                var originalName = nameSpan.textContent.trim();
+                var widget = buildInlineInput(originalName, function (newName) {
+                    postItem('/ProtonCatalog/EditCatalogItem', { level: level, itemId: itemId, nama: newName }, function () {
+                        nameSpan.textContent = newName;
+                        restoreNameSpan(nameSpan, widget);
+                    }, function (err) {
+                        showInlineError(widget.parentNode || nameSpan.parentNode, err);
+                    });
+                }, function () {
+                    restoreNameSpan(nameSpan, widget);
+                });
+                widget.querySelector('input').value = originalName;
+                widget.querySelector('.save-btn').disabled = false;
+                // Replace nameSpan with widget in-place
+                nameSpan.style.display = 'none';
+                nameSpan.parentNode.insertBefore(widget, nameSpan.nextSibling);
+            });
+        });
+
+    })();
+</script>
