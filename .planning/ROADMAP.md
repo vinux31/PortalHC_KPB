@@ -272,11 +272,11 @@ Plans:
   2. HC/Admin clicks "Add SubKompetensi" under a Kompetensi row — an inline input appears in the expanded section; submitting adds the SubKompetensi under the correct parent
   3. HC/Admin clicks "Add Deliverable" under a SubKompetensi row — an inline input appears and submission adds the Deliverable under the correct parent
   4. HC/Admin clicks the name of any Kompetensi, SubKompetensi, or Deliverable — it becomes an editable field; saving commits the new name via AJAX and the row updates in-place
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
 - [ ] 35-01-PLAN.md — Backend: AddKompetensi, AddSubKompetensi, AddDeliverable POST actions (JSON, return new item id + name); EditCatalogItem POST action (accepts level + id + name, updates correct entity)
-- [ ] 35-02-PLAN.md — Frontend: inline add inputs per level (append row on success), click-to-edit name fields (inline input, AJAX save, revert on cancel); wire all AJAX calls with antiforgery token
+- [ ] 35-02-PLAN.md — Frontend: empty-state messages per level, inline Add input rows with Save/Cancel buttons, pencil-icon edit trigger (visible on expand), AJAX wiring for all four endpoints with antiforgery token; human verification checkpoint
 
 ---
 
