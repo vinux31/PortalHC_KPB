@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — Phase 39 planned, ready to execute
+**Current focus:** v2.0 Assessment Management & Training History — Phase 39 in progress (39-01 done, 39-02 pending)
 
 ## Current Position
 
 **Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
-**Phase:** 39 of 40 — PLANNED (2 plans, 2 waves)
-**Current Plan:** 39-01 — CloseEarly action (CMPController), 39-02 — Frontend button + modal (checkpoint)
-**Next action:** `/gsd:execute-phase 39` — execute close-early feature
-**Status:** Phase 39 planned. 2 plans: Wave 1 backend (autonomous), Wave 2 frontend (human checkpoint).
-**Last activity:** 2026-02-24 — Phase 39 planned (research + 2 plans + verification passed)
+**Phase:** 39 of 40 — IN PROGRESS (2 plans, 2 waves)
+**Current Plan:** 39-02 — Frontend button + modal (checkpoint)
+**Next action:** `/gsd:execute-phase 39` — execute 39-02 frontend plan (human-verify checkpoint)
+**Status:** 39-01 backend complete. CloseEarly POST action live in CMPController. Ready for 39-02 frontend.
+**Last activity:** 2026-02-24 — 39-01 executed: CloseEarly action added to CMPController (0 errors, 246 lines)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0)
 
@@ -41,6 +41,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.
 | Phase 36-delete-guards P02 | 30min | 3 tasks | 2 files |
 | Phase 37-drag-drop-reorder P01 | 1min | 1 task | 1 file |
 | Phase 38-auto-hide-filter P01 | 3min | 2 tasks | 1 files |
+| Phase 39-close-early P01 | 5min | 1 task | 1 file |
 
 ## Accumulated Context
 
@@ -51,6 +52,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v2.0 design decisions (approved):**
 - Phase 38 (auto-hide): Pure backend query change — both GetManageData and GetMonitorData get the same 7-day cutoff. Fallback: ExamWindowCloseDate ?? Schedule.Date. No frontend changes.
 - Phase 39 (close early): CloseEarly POST action in CMPController. InProgress sessions scored from actual PackageUserResponse answers (same grading logic as SubmitExam package path). Not Score=0. Audit log entry required.
+- [Phase 39-01]: isInProgress check uses timestamps (StartedAt!=null && CompletedAt==null && Score==null), not Status field — 4-state display logic source of truth
+- [Phase 39-01]: maxScore uses pkg.Questions.Sum(q => q.ScoreValue) not Count*10 — safe against non-standard ScoreValue (Pitfall 6)
+- [Phase 39-01]: Competency update block included for both package and legacy paths when IsPassed==true — parity with SubmitExam lines 2878-2921
+- [Phase 39-01]: CloseEarly reads PackageUserResponses (does NOT write new ones) — SubmitExam writes them, CloseEarly reads existing
 - Phase 40 (history tab): Second tab on RecordsWorkerList (not a new page). Combined in-memory merge of TrainingRecords + completed AssessmentSessions, sorted by tanggal mulai descending. Pattern mirrors existing GetUnifiedRecords approach.
 - Phase 40 depends on Phase 38 (same dependency level as Phase 39) — both can be planned independently after Phase 38 ships.
 
@@ -99,5 +104,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 38-01-PLAN.md — Phase 38 auto-hide-filter done. Ready for Phase 39 or 40.
+Stopped at: Completed 39-01-PLAN.md — CloseEarly backend action done. Ready for 39-02 frontend (human-verify checkpoint).
 Resume file: None.
