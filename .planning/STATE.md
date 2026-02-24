@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.9 Proton Catalog Management — Phase 36 COMPLETE, ready for Phase 37 (reorder/drag)
+**Current focus:** v1.9 Proton Catalog Management — ALL PHASES COMPLETE, ready for milestone wrap-up
 
 ## Current Position
 
-**Milestone:** v1.9 Proton Catalog Management — IN PROGRESS
-**Phase:** 37 of 37 (Drag-Drop Reorder) — IN PROGRESS
-**Current Plan:** 1 of 2 — COMPLETE
-**Next action:** Execute Phase 37-02 — SortableJS frontend (drag handles + AJAX POST wiring)
-**Status:** Phase 37 Plan 01 COMPLETE — ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST endpoints added to ProtonCatalogController; build passes
-**Last activity:** 2026-02-24 — Phase 37 Plan 01 complete: three Reorder* POST actions added, dotnet build passes with 0 errors
+**Milestone:** v1.9 Proton Catalog Management — COMPLETE (all phases done)
+**Phase:** 37 of 37 (Drag-Drop Reorder) — COMPLETE (reorder feature removed per user decision; collapse-state fix shipped)
+**Current Plan:** 2 of 2 — COMPLETE
+**Next action:** `/gsd:complete-milestone` — archive v1.9 and prepare next milestone
+**Status:** Phase 37 COMPLETE — drag-and-drop reorder dropped (nested-table structure too complex); collapse-state preservation added to reloadTree()
+**Last activity:** 2026-02-24 — Phase 37 complete: reorder feature removed; expand-state preserved after add-item reload
 
-Progress: [#######░░░░░░░░░░░░░] 35% (v1.9) | v1.8 complete
+Progress: [████████████████████] 100% (v1.9) | v1.8 complete
 
 ## Performance Metrics
 
@@ -51,7 +51,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Single page for everything: track dropdown + collapsible tree table (not 4 drill-down pages)
 - Add/Edit via AJAX inline — no page reloads
 - Delete via Bootstrap modal with active coachee count + hard confirm
-- Reorder via SortableJS drag handles + AJAX POST (same CDN pattern as Chart.js)
+- ~~Reorder via SortableJS drag handles~~ — removed: nested-table tree structure incompatible with SortableJS (CAT-08 dropped)
 - New ProtonCatalogController (not CDPController) — CDPController already ~1000+ lines
 - Cascade delete order: Deliverables → SubKompetensi → Kompetensi → Track
 - [Phase 34-01]: ProtonCatalogController uses ViewBag (not typed model) — ProtonCatalogViewModel exists as typed contract for future phases
@@ -91,5 +91,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 37-drag-drop-reorder-01-PLAN.md — Phase 37 Plan 01 complete. ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST endpoints added; dotnet build passes. Ready for Phase 37-02 (SortableJS frontend).
+Stopped at: Phase 37 complete — reorder feature removed per user decision; collapse-state preservation fix shipped. v1.9 milestone complete. Ready for /gsd:complete-milestone.
 Resume file: None.
