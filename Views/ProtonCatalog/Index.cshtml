@@ -262,7 +262,7 @@
             });
         });
 
-        // Grip handle: show when row expanded, hide when collapsed (same pattern as pencil/trash)
+        // Grip handle: show when row collapsed, hide when expanded (drag only on closed rows)
         document.querySelectorAll('#treeContainer [data-bs-toggle="collapse"]').forEach(function (btn) {
             var row = btn.closest('tr');
             if (!row) return;
@@ -273,11 +273,11 @@
             if (!target) return;
             target.addEventListener('show.bs.collapse', function (e) {
                 if (e.target !== target) return;
-                handle.classList.remove('d-none');
+                handle.classList.add('d-none');
             });
             target.addEventListener('hide.bs.collapse', function (e) {
                 if (e.target !== target) return;
-                handle.classList.add('d-none');
+                handle.classList.remove('d-none');
             });
         });
 
@@ -408,7 +408,24 @@
         }, 4000);
     }
 
+    function repositionCollapseContainers(tbody, level) {
+        // After SortableJS moves a sortable-row, its collapse <tr> stays in the old position.
+        // Walk rows in their new order and move each collapse container to immediately follow its parent.
+        var prefixMap = { 'Kompetensi': 'kompetensi-', 'SubKompetensi': 'subkompetensi-' };
+        var prefix = prefixMap[level];
+        if (!prefix) return; // Deliverable has no collapse containers
+        tbody.querySelectorAll('tr.sortable-row').forEach(function(row) {
+            var collapseRow = document.getElementById(prefix + row.dataset.id);
+            if (collapseRow && collapseRow.parentNode === tbody && row.nextSibling !== collapseRow) {
+                tbody.insertBefore(collapseRow, row.nextSibling);
+            }
+        });
+    }
+
     function handleDropEnd(evt, level) {
+        // Repair DOM: move collapse containers to follow their parent rows
+        repositionCollapseContainers(evt.to, level);
+
         // Collect current order from DOM after drop (robust — avoids index math with mixed tbody)
         var orderedIds = [];
         evt.to.querySelectorAll('tr.sortable-row').forEach(function(row) {
