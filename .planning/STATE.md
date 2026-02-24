@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
 **Phase:** 42 of 44 (Session Resume)
-**Current Plan:** 02 of 4 complete
-**Next action:** Execute Phase 42 Plan 03
-**Status:** Phase 42 Plan 02 complete — UpdateSessionProgress endpoint + StartExam GET resume ViewBag flags in place
-**Last activity:** 2026-02-24 — Phase 42 Plan 02 complete (backend endpoints for session resume, build green)
+**Current Plan:** 03 of 4 complete
+**Next action:** Execute Phase 42 Plan 04
+**Status:** Phase 42 Plan 03 complete — Resume button on assessment cards, resume modal, timer from remaining seconds, answer pre-population, periodic saves, expired-exam path
+**Last activity:** 2026-02-24 — Phase 42 Plan 03 complete (frontend session resume, 2 views modified, build green)
 
 Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete, Phase 41 ✓)
 
@@ -37,6 +37,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 25% (v2
 | Phase 41-auto-save P02 | ~12min | 3 tasks + human checkpoint, 2 files |
 | Phase 42-session-resume P01 | 2min | 2 tasks | 5 files |
 | Phase 42-session-resume P02 | 3min | 2 tasks, 1 file |
+| Phase 42-session-resume P03 | 2min | 2 tasks, 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 42-01]: LastActivePage and SavedQuestionCount are nullable int — null signals pre-Phase-42 session, avoiding data migration of live records
 - [Phase 42-02]: isResume = assessment.StartedAt != null — first-load safe because ElapsedSeconds=0 and LastActivePage=null/0 prevent resume modal (modal requires IsResume && LastActivePage > 0)
 - [Phase 42-02]: RemainingSeconds = (DurationMinutes * 60) - ElapsedSeconds — offline time is excluded from exam duration by design
+- [Phase 42-03]: btn-warning (yellow) for Resume button; <a asp-action> not JS button — resume modal fires on StartExam load, not card click
+- [Phase 42-03]: RESUME_PAGE > 0 gates resume modal — page 0 resume is silent (worker was on first page)
+- [Phase 42-03]: prePopulateAnswers runs first in init block — answeredCount badge correct before modal renders
+- [Phase 42-03]: Failure toast "Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. X." (1-based X) per locked user decision
+- [Phase 42-03]: EXAM_EXPIRED path: modal + OK-click submit + 5s fallback; window.onbeforeunload = null before auto-submit
 
 ### Pending Todos
 
@@ -75,5 +81,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 42-session-resume-02-PLAN.md — backend endpoints for session resume complete. Ready for Plan 03.
+Stopped at: Completed 42-session-resume-03-PLAN.md — frontend session resume complete. Ready for Plan 04.
 Resume file: None.
