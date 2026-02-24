@@ -13,7 +13,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 **Phase:** 37 of 37 — CANCELLED (drag-and-drop removed; SortableJS incompatible with nested-table tree)
 **Current Plan:** All plans complete or cancelled
 **Next action:** `/gsd:complete-milestone` to archive v1.9, then v2.0
-**Status:** Phases 33–36 complete, 37 cancelled. v2.0 phases 38–40 complete. Roadmap fully executed.
+**Status:** v2.0 milestone complete
 **Last activity:** 2026-02-24 — Phase 37 marked cancelled (user confirmed intentional removal)
 
 Progress: [████████████████████] 100% (v2.0 — 2 of 2 plans complete)

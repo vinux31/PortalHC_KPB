@@ -12,18 +12,49 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v2.0 Assessment Management & Training History
+## Current State (v2.0 — shipped 2026-02-24)
 
-**Goal:** HC gets better control over active assessments and a unified history view — close assessments early with fair scoring, auto-clean stale entries from Management and Monitoring tabs, and see all training + assessment completions in one place.
-
-**Target features:**
-- Close Early: HC can stop an active assessment from MonitoringDetail; InProgress workers scored from actual answers
-- Auto-hide (7 days post-close) applied to both Management tab and Monitoring tab
-- Training Records WorkerList gets a new "History" tab — all workers' training + online assessments combined, sorted by date
-
-## Current State (v1.7 — shipped 2026-02-21)
+No active milestone. Next milestone to be defined via `/gsd:new-milestone`.
 
 ## Shipped Milestones
+
+### ✅ v2.0 - Assessment Management & Training History (2026-02-24)
+
+**Delivered:** HC can close active assessments early with fair scoring, both Management and Monitoring tabs auto-hide stale groups after 7 days, and a new History tab on RecordsWorkerList shows all workers' training and assessment completions in one combined view.
+
+**What Shipped:**
+1. **Close Early** — "Tutup Lebih Awal" button on AssessmentMonitoringDetail; sets ExamWindowCloseDate=now; InProgress sessions scored from actual PackageUserResponse answers (same grading as SubmitExam); audit log entry
+2. **Auto-Hide Filter (7 days)** — Both GetManageData and GetMonitorData apply identical 7-day cutoff using ExamWindowCloseDate ?? Schedule.Date; no frontend changes needed
+3. **All Workers History Tab** — RecordsWorkerList gains a "History" tab; AllWorkersHistoryRow + RecordsWorkerListViewModel; GetAllWorkersHistory() merges TrainingRecords + completed AssessmentSessions sorted by date descending; type badges (blue=Assessment Online, green=Manual); URL-persisted tab via ?activeTab=history
+
+**Metrics:**
+- 3 phases (38-40), 5 plans
+- 2026-02-24
+
+See `.planning/milestones/v2.0-ROADMAP.md` for full details.
+
+---
+
+### ✅ v1.9 - Proton Catalog Management (2026-02-24)
+
+**Delivered:** HC/Admin can manage the full Proton program catalog through a single web page — add/rename/delete Kompetensi, SubKompetensi, and Deliverables inline with no database access needed; delete guards show active coachee impact counts.
+
+**What Shipped:**
+1. **ProtonTrack Schema** — ProtonTrack first-class table; ProtonKompetensi FK migration; all TrackType+TahunKe string fields eliminated; AssignTrack uses ProtonTrackId
+2. **Catalog Page** — ProtonCatalogController; Kompetensi→SubKompetensi→Deliverable tree with Bootstrap expand/collapse; track dropdown; Add Track modal; CDP nav link (HC/Admin only)
+3. **CRUD Add and Edit** — Inline add inputs for all 3 levels; pencil-icon in-place rename via AJAX; antiforgery token wired
+4. **Delete Guards** — Trash icon → Bootstrap modal showing affected active coachee count; cascade delete (Deliverables→SubKompetensi→Kompetensi→Track); FK-safe order enforced
+
+**What Was Cancelled:**
+- **Drag-and-Drop Reorder (Phase 37)** — SortableJS incompatible with nested-table tree structure; collapse-state preservation shipped instead as bonus fix
+
+**Metrics:**
+- 4 shipped phases (33-36), 8 plans (Phase 37 cancelled)
+- 2026-02-23 → 2026-02-24
+
+See `.planning/milestones/v1.9-ROADMAP.md` for full details.
+
+---
 
 ### ✅ v1.7 - Assessment System Integrity (2026-02-21)
 
@@ -251,6 +282,11 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Personal view: assessment sessions + manual training merged in one chronological table
   - Type badges differentiate Assessment Online (Score, Pass/Fail) vs Training Manual (Penyelenggara, Sertifikat, Berlaku Sampai)
   - HC/Admin worker list with combined completion rate from both data sources
+  - **All Workers History Tab (v2.0):** RecordsWorkerList "History" tab — all workers' manual training + completed assessments merged, sorted by date descending; 8-column table with type badge; URL-persisted tab (?activeTab=history)
+
+- ✅ **Assessment Lifecycle (HC/Admin — v2.0):**
+  - Close Early: "Tutup Lebih Awal" button on MonitoringDetail (HC/Admin only, Open groups only); scores InProgress workers from actual answers; audit log entry
+  - Auto-hide: Management and Monitoring tabs both apply 7-day cutoff filter post-close; fallback to Schedule date if no ExamWindowCloseDate set
 
 - ✅ **Training Record Management (HC/Admin — v1.6):**
   - "Create Training" button on RecordsWorkerList → system-wide worker dropdown form
@@ -266,6 +302,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 - ✅ Proton deliverable tracking with sequential lock and evidence upload/revise
 - ✅ Approval workflow (SrSpv → SectionHead → HC) with rejection reasons
 - ✅ HC HCApprovals queue + final Proton Assessment creation
+- ✅ **Proton Catalog Manager (v1.9):** ProtonCatalogController; tree view (Kompetensi→SubKompetensi→Deliverable) with Bootstrap expand/collapse; track dropdown; Add Track modal; inline add for all 3 levels; pencil-icon rename; trash icon delete with coachee impact modal (cascade: Deliverables→SubKompetensi→Kompetensi→Track)
 
 - ✅ **Unified CDP Dashboard (two tabs):**
   - Proton Progress tab: role-scoped team data (Coachee=self, Spv=unit, SrSpv/SectionHead=section, HC/Admin=all)
@@ -318,6 +355,13 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | viewModel declared outside Results if/else branches | Enables shared competency lookup block after both package and legacy paths without code duplication | v1.7 ✓ |
 | DeletePackage cascade order: PKR → UPA → options → questions → package | Correct FK-safe deletion order prevents constraint violations; assignment counts pre-computed in ManagePackages GET via GroupBy | v1.7 ✓ |
 | GetMonitorData 2-state UserStatus (deferred tech debt) | GetMonitorData uses isCompleted ? "Completed" : "Not started" — Abandoned/InProgress show as "Not started" in card summary; 4-state view works correctly in AssessmentMonitoringDetail | v1.7 deferred |
+| ProtonTrack as first-class entity | ProtonTrack table with Id/TrackType/TahunKe/DisplayName/Urutan; ProtonKompetensi and ProtonTrackAssignment reference via FK; all string-based filtering eliminated | v1.9 ✓ |
+| Catalog tree uses Bootstrap collapse, not SortableJS | Nested-table structure with collapse containers; SortableJS attempted for drag-drop but proved incompatible (containers don't move with parent rows) | v1.9 ✓ |
+| Drag-and-drop reorder cancelled entirely | SortableJS incompatible with nested-table tree; user decision to remove entirely rather than implement workaround; collapse-state preservation shipped as bonus | v1.9 cancelled |
+| CloseEarly scores from PackageUserResponse (not Score=0) | InProgress sessions at early close scored from actual submitted answers using same grading logic as SubmitExam package path; fair to workers who had started | v2.0 ✓ |
+| 7-day auto-hide uses ExamWindowCloseDate ?? Schedule.Date | Both GetManageData and GetMonitorData apply identical cutoff; fallback to Schedule ensures groups without explicit close date still age out | v2.0 ✓ |
+| GetAllWorkersHistory merges in memory, not SQL UNION | Two separate EF Core queries (TrainingRecords + AssessmentSessions); merged and sorted in memory via LINQ OrderByDescending — consistent with UnifiedTrainingRecord pattern | v2.0 ✓ |
+| RecordsWorkerListViewModel wraps existing Workers list | ViewModel wrapper preserves all existing worker-list functionality unchanged; History list added as second property — minimal disruption to existing code | v2.0 ✓ |
 
 ## Technical Constraints
 
@@ -339,12 +383,14 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ## Shipped Requirements
 
-All requirements from v1.0–v1.7 are satisfied. See milestone archives for traceability:
+All requirements from v1.0–v2.0 are satisfied. See milestone archives for traceability:
 - `milestones/v1.0-REQUIREMENTS.md` — 6 requirements (Phases 1-3)
 - `milestones/v1.2-REQUIREMENTS.md` — 11 requirements (Phases 9-12, all ✅ Shipped)
 - `milestones/v1.3-REQUIREMENTS.md` — 9 requirements (Phases 13-15; 7 shipped, 2 cancelled)
 - `milestones/v1.6-REQUIREMENTS.md` — 4 requirements (TRN-01 through TRN-04, all ✅ Shipped)
 - `milestones/v1.7-REQUIREMENTS.md` — 14 requirements (LIFE-01–05, ANSR-01–02, SEC-01–02, WRK-01–02, DATA-01–03, all ✅ Shipped)
+- `milestones/v1.9-REQUIREMENTS.md` — 10 requirements (SCHEMA-01, CAT-01–09; 9 shipped, CAT-08 cancelled)
+- `milestones/v2.0-REQUIREMENTS.md` — 4 requirements (ASSESS-01–03, HIST-01, all ✅ Shipped)
 
 ## Users & Roles
 
@@ -397,13 +443,14 @@ All requirements from v1.0–v1.7 are satisfied. See milestone archives for trac
 
 ## Technical Debt
 
-- Large monolithic controllers (CMPController ~2600+ lines post-v1.7, CDPController 1000+ lines)
+- Large monolithic controllers (CMPController ~2700+ lines post-v2.0, CDPController 1000+ lines, ProtonCatalogController ~400 lines)
 - No automated testing — manual QA only
-- `GetMonitorData` uses 2-state UserStatus (`"Completed"` vs `"Not started"`) — Abandoned/InProgress show as "Not started" in monitoring card summary; 4-state view works correctly in AssessmentMonitoringDetail (deferred to v1.8)
+- `GetMonitorData` uses 2-state UserStatus (`"Completed"` vs `"Not started"`) — Abandoned/InProgress show as "Not started" in monitoring card summary; 4-state view works correctly in AssessmentMonitoringDetail
 - `GetPersonalTrainingRecords()` in CMPController is dead code (not called) — retained to avoid scope risk
 - N+1 queries addressed in batch where identified but not systematically audited
 - No UI to re-assign packages or manually override shuffle — edge case with no workaround
-- Worker self-add training records deferred to v1.8+ (WTRN-01, WTRN-02)
+- Proton catalog drag-and-drop reorder removed (SortableJS incompatible with nested-table tree); no UI reordering for catalog items
+- Worker self-add training records deferred (WTRN-01, WTRN-02)
 
 ## References
 
@@ -414,4 +461,4 @@ All requirements from v1.0–v1.7 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-24 after v1.9 milestone — starting v2.0 Assessment Management & Training History*
+*Last updated: 2026-02-24 after v2.0 milestone — all milestones complete, no active milestone*

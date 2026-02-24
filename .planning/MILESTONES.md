@@ -78,3 +78,23 @@
 
 ---
 
+
+## v1.9 Proton Catalog Management (Shipped: 2026-02-24)
+
+**Phases completed:** 40 phases, 86 plans, 9 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
+
+## v2.0 Assessment Management & Training History (Shipped: 2026-02-24)
+
+**Phases completed:** 40 phases, 86 plans, 9 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
