@@ -411,8 +411,8 @@ else
         if (!hasAnswers) {
             // Locked decision: show toast warning when pre-populate has no data on resume
             // "Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. X."
-            // X is 1-based: RESUME_PAGE is 0-indexed, so display as (RESUME_PAGE + 1)
-            showResumeFailureToast('Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. ' + (RESUME_PAGE + 1) + '.');
+            // X is first question number on last active page (1-based question number)
+            showResumeFailureToast('Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. ' + (RESUME_PAGE * QUESTIONS_PER_PAGE + 1) + '.');
             return;
         }
 
@@ -638,7 +638,7 @@ else
         }, 5000);
     } else if (IS_RESUME && RESUME_PAGE > 0) {
         // Show resume confirmation modal (worker left mid-exam on a non-first page)
-        document.getElementById('resumePageNum').innerText = (RESUME_PAGE + 1);
+        document.getElementById('resumePageNum').innerText = (RESUME_PAGE * QUESTIONS_PER_PAGE + 1);
         const resumeModal = new bootstrap.Modal(document.getElementById('resumeConfirmModal'));
         resumeModal.show();
 
