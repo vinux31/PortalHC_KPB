@@ -307,11 +307,11 @@ Plans:
   2. HC/Admin drags a SubKompetensi row within its Kompetensi — same behavior: visual update + AJAX persist
   3. HC/Admin drags a Deliverable row within its SubKompetensi — same behavior
   4. Reorder is constrained within the same parent — a Kompetensi cannot be dropped into a different track's section; a Deliverable cannot be dropped under a different SubKompetensi
-**Plans:** TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 37-01-PLAN.md — Backend: ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST actions (accept ordered id array, update SortOrder/DisplayOrder on each entity, SaveChanges)
-- [ ] 37-02-PLAN.md — Frontend: SortableJS via CDN (same pattern as Chart.js in _Layout.cshtml); initialize Sortable on each level's container; onEnd handler POSTs new id order array to correct reorder endpoint; drag handles styled with Bootstrap icons
+- [ ] 37-01-PLAN.md — Backend: ReorderKompetensi, ReorderSubKompetensi, ReorderDeliverable POST actions in ProtonCatalogController; each accepts int[] orderedIds and reassigns Urutan 1..N
+- [ ] 37-02-PLAN.md — Frontend: SortableJS 1.15.7 CDN in _Layout.cshtml; grip handle column in _CatalogTree.cshtml; initSortables() + handleDropEnd() + in-flight lock in Index.cshtml; human verification checkpoint
 
 ---
 
