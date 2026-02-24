@@ -770,11 +770,13 @@
             // Function to filter cards
             function filterCards(status) {
                 let visibleCount = 0;
+                // InProgress sessions are active exams — show them alongside Open in the Open tab
+                const matchStatuses = status === 'open' ? ['open', 'inprogress'] : [status];
 
                 cards.forEach(card => {
                     const cardStatus = card.getAttribute('data-status');
 
-                    if (cardStatus === status) {
+                    if (matchStatuses.includes(cardStatus)) {
                         card.classList.remove('hidden');
                         visibleCount++;
                     } else {
