@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — Phase 39 COMPLETE, Phase 40 pending
+**Current focus:** v2.0 Assessment Management & Training History — Phase 40 PLANNED, ready to execute
 
 ## Current Position
 
 **Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
-**Phase:** 40 of 40 — PENDING
-**Current Plan:** 40-01 — History tab on RecordsWorkerList
+**Phase:** 40 of 40 — PLANNED
+**Current Plan:** 40-01 — Backend: AllWorkersHistoryRow + RecordsWorkerListViewModel + GetAllWorkersHistory()
 **Next action:** `/gsd:execute-phase 40` — execute phase 40 (history tab)
-**Status:** Phase 39 complete. CloseEarly feature fully shipped: backend scoring (39-01) + frontend modal + incremental save + worker notification (39-02).
-**Last activity:** 2026-02-24 — 39-02 executed: Submit Assessment modal, SaveAnswer endpoint, CheckExamStatus polling, 3 verification issues fixed
+**Status:** Phase 40 planned (2 plans, 2 waves). Ready to execute.
+**Last activity:** 2026-02-24 — 40-RESEARCH.md + 40-01-PLAN.md + 40-02-PLAN.md created; verification passed
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0)
 
@@ -109,5 +109,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 39-02-PLAN.md — Phase 39 CloseEarly fully complete (backend + frontend + incremental save + worker notification + verification fixes). Phase 40 (history tab) is next.
+Stopped at: Completed 40-02-PLAN.md — Phase 40 plans created and verified. Ready to execute.
 Resume file: None.
