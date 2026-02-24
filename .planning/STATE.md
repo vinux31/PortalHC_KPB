@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v1.9 Proton Catalog Management — Phase 35 (Catalog Editor), Plan 01 complete
+**Current focus:** v1.9 Proton Catalog Management — Phase 35 complete, ready for Phase 36 (delete + reorder)
 
 ## Current Position
 
 **Milestone:** v1.9 Proton Catalog Management — IN PROGRESS
-**Phase:** 35 of 37 (Catalog Editor)
-**Current Plan:** 1 of TBD
-**Next action:** Begin Phase 35 Plan 02 — frontend AJAX for add/edit catalog items
-**Status:** Phase 35 Plan 01 COMPLETE — four backend POST endpoints added and verified with dotnet build.
-**Last activity:** 2026-02-24 — Phase 35 Plan 01 complete: AddKompetensi, AddSubKompetensi, AddDeliverable, EditCatalogItem POST actions in ProtonCatalogController
+**Phase:** 35 of 37 (Catalog Editor) — COMPLETE
+**Current Plan:** 2 of 2 — COMPLETE
+**Next action:** Begin Phase 36 — catalog delete and reorder interactions
+**Status:** Phase 35 COMPLETE — all CAT-03 through CAT-06 requirements met (inline add/edit across all three levels)
+**Last activity:** 2026-02-24 — Phase 35 Plan 02 complete: _CatalogTree.cshtml HTML structure + initCatalogTree() in Index.cshtml; human verification passed
 
-Progress: [###░░░░░░░░░░░░░░░░░] 15% (v1.9) | v1.8 complete
+Progress: [######░░░░░░░░░░░░░░] 30% (v1.9) | v1.8 complete
 
 ## Performance Metrics
 
@@ -36,6 +36,7 @@ Progress: [###░░░░░░░░░░░░░░░░░] 15% (v1.9) | 
 | Phase 34-catalog-page P01 | 6min | 2 tasks | 2 files |
 | Phase 34-catalog-page P02 | ~30min | 2 tasks + revision | 4 files |
 | Phase 35-crud-add-edit P01 | 2min | 2 tasks | 1 file |
+| Phase 35-crud-add-edit P02 | ~45min | 2 tasks + 1 fix | 2 files |
 
 ## Accumulated Context
 
@@ -57,6 +58,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 34-02]: Role guard in cdp/index view uses User.IsInRole("HC")||("Admin") — actual role claims, not SelectedView
 - [Phase 35-01]: ProtonDeliverableList is the correct DbSet name (not ProtonDeliverables) — confirmed from ApplicationDbContext before writing
 - [Phase 35-01]: EditCatalogItem dispatches via switch on level string ("Kompetensi"|"SubKompetensi"|"Deliverable") to the correct DbSet FindAsync
+- [Phase 35-02]: JS moved from _CatalogTree.cshtml to Index.cshtml — browsers do not execute scripts injected via innerHTML; initCatalogTree() called on DOMContentLoaded and after each reloadTree()
+- [Phase 35-02]: reloadTree() calls initCatalogTree() after innerHTML injection to re-attach all event listeners on the freshly rendered tree
+- [Phase 35-02]: On successful add, full tree reload (reloadTree) used rather than DOM insertion — consistent with existing AJAX pattern
 
 **v1.8 architecture notes (relevant to v1.9):**
 - [Phase 32-01]: Legacy exam paths use sibling session lookup — no action needed for catalog work
@@ -77,5 +81,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Phase 35 Plan 01 complete — 4 backend POST endpoints added, dotnet build clean. Ready for Phase 35 Plan 02 (frontend AJAX).
+Stopped at: Phase 35 Plan 02 complete — inline add/edit interactions shipped, human verification passed. Ready for Phase 36 (delete + reorder).
 Resume file: None.
