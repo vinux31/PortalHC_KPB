@@ -417,4 +417,4 @@ Plans:
 | 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
 | 38. Auto-Hide Filter | v2.0 | 1/1 | Complete | 2026-02-24 |
 | 39. Close Early | v2.0 | 2/2 | Complete | 2026-02-24 |
-| 40. Training Records History Tab | v2.0 | 0/2 | Not started | — |
+| 40. Training Records History Tab | v2.0 | 2/2 | Complete | 2026-02-24 |
