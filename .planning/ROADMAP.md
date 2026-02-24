@@ -413,7 +413,7 @@ Plans:
 | 33. ProtonTrack Schema | v1.9 | 2/2 | Complete | 2026-02-23 |
 | 34. Catalog Page | v1.9 | 2/2 | Complete | 2026-02-23 |
 | 35. CRUD Add and Edit | v1.9 | 2/2 | Complete | 2026-02-24 |
-| 36. Delete Guards | v1.9 | 1/2 | In progress | — |
+| 36. Delete Guards | v1.9 | 2/2 | Complete | 2026-02-24 |
 | 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
 | 38. Auto-Hide Filter | v2.0 | 1/1 | Complete | 2026-02-24 |
 | 39. Close Early | v2.0 | 2/2 | Complete | 2026-02-24 |
