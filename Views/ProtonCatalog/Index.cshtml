@@ -228,11 +228,13 @@
             var targetId = btn.getAttribute('data-bs-target').replace('#', '');
             var target = document.getElementById(targetId);
             if (!target) return;
-            target.addEventListener('show.bs.collapse', function () {
+            target.addEventListener('show.bs.collapse', function (e) {
+                if (e.target !== target) return;
                 var icon = btn.querySelector('i.bi-chevron-right, i.bi-chevron-down');
                 if (icon) icon.classList.replace('bi-chevron-right', 'bi-chevron-down');
             });
-            target.addEventListener('hide.bs.collapse', function () {
+            target.addEventListener('hide.bs.collapse', function (e) {
+                if (e.target !== target) return;
                 var icon = btn.querySelector('i.bi-chevron-right, i.bi-chevron-down');
                 if (icon) icon.classList.replace('bi-chevron-down', 'bi-chevron-right');
             });
@@ -247,10 +249,12 @@
             var targetId = btn.getAttribute('data-bs-target').replace('#', '');
             var target = document.getElementById(targetId);
             if (!target) return;
-            target.addEventListener('show.bs.collapse', function () {
+            target.addEventListener('show.bs.collapse', function (e) {
+                if (e.target !== target) return;
                 pencil.classList.remove('d-none');
             });
-            target.addEventListener('hide.bs.collapse', function () {
+            target.addEventListener('hide.bs.collapse', function (e) {
+                if (e.target !== target) return;
                 pencil.classList.add('d-none');
             });
         });
@@ -376,8 +380,8 @@
             var targetId = btn.getAttribute('data-bs-target').replace('#', '');
             var target = document.getElementById(targetId);
             if (!target) return;
-            target.addEventListener('show.bs.collapse', function () { trash.classList.remove('d-none'); });
-            target.addEventListener('hide.bs.collapse', function () { trash.classList.add('d-none'); });
+            target.addEventListener('show.bs.collapse', function (e) { if (e.target !== target) return; trash.classList.remove('d-none'); });
+            target.addEventListener('hide.bs.collapse', function (e) { if (e.target !== target) return; trash.classList.add('d-none'); });
         });
 
         // Wire trash-btn clicks
