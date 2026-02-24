@@ -1,0 +1,64 @@
+RESEARCH DOMAIN: Auto-Save, Session Resume, and Polling Features
+Project: PortalHC Online Assessment System (Phases 41-45)
+Researched: 2026-02-24
+Status: COMPLETE
+
+FILES:
+------
+1. README-AUTO-SAVE-RESUME-POLLING.md (267 lines, ~9.8 KB)
+   → Quick reference guide, file index, pattern library, testing checklist
+   → Start here for overview and navigation
+
+2. SUMMARY-AUTO-SAVE-RESUME-POLLING.md (280 lines, ~16 KB)
+   → Executive summary for roadmap planning
+   → Phase structure recommendations (5 phases)
+   → Dependencies, load testing scenarios, risk assessment
+   → For: Project leads, architects
+
+3. PITFALLS-AUTO-SAVE-RESUME-POLLING.md (1091 lines, ~54 KB)
+   → Comprehensive pitfall analysis (10 pitfalls detailed)
+   → Root causes, prevention strategies (code examples), detection methods
+   → Phase-specific warnings and verification checklist
+   → For: Developers, QA, code reviewers
+
+KEY FINDINGS:
+-------------
+- 10 documented pitfalls, 6 CRITICAL, 2 MODERATE, 2 MINOR
+- All preventable with concrete ASP.NET Core + EF Core patterns
+- Recommended 5-phase rollout: SaveAnswer → Resume → Polling → CloseEarly → Monitoring
+- Load testing critical: race conditions only surface with 50+ concurrent users
+- Must implement client debounce + server upsert + DB constraint simultaneously
+
+CRITICAL PATTERNS:
+------------------
+1. Atomic upsert (ExecuteUpdateAsync) for SaveAnswer
+2. Server-side elapsed time calculation for timer security
+3. RowVersion on AssessmentSession for optimistic concurrency
+4. Move token verification to database (away from TempData)
+5. IMemoryCache with 5s TTL for polling endpoints
+6. JavaScript debounce (300ms) on option clicks
+
+VERIFICATION CHECKLIST:
+-----------------------
+Phase 41: Debounce + atomic upsert + unique constraint + RowVersion
+Phase 42: Elapsed time server-side + freeze question count
+Phase 43: Cache 5s TTL + cache invalidation + auth checks
+Phase 44: RowVersion conflicts handled + serializable transaction option
+Phase 45: Progress counts non-null only + recalculate on submit
+
+CONFIDENCE LEVELS:
+------------------
+Pitfalls 1-6 (Critical): HIGH (official docs + proven patterns)
+Pitfalls 7-8 (Moderate): HIGH (obvious fixes, well-tested)
+Pitfalls 9-10 (Minor): HIGH (standard DX/security practices)
+Overall Integration: MEDIUM (monolithic code base, refactoring complex)
+
+Next Steps:
+-----------
+1. Review SUMMARY-AUTO-SAVE-RESUME-POLLING.md for phase planning
+2. For Phase 41: Use PITFALLS.md sections #1, #6, #9 as implementation spec
+3. Load test each phase with scenarios in SUMMARY.md
+4. Run verification checklist before phase completion
+
+Research completed by: Claude Code (Agent Research Mode)
+Date: 2026-02-24

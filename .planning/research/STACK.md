@@ -1,374 +1,550 @@
-# Stack Research
+# Technology Stack: ASP.NET Core MVC 8 Auto-Save, Session Resume, and Polling
 
-**Domain:** ASP.NET Core 8 MVC — UX Consolidation (v1.2)
-**Researched:** 2026-02-18
-**Confidence:** HIGH — all patterns verified against existing codebase; no new dependencies required
-
----
-
-## Context: What This Milestone Is
-
-This is a restructuring milestone, not a greenfield build. The existing stack (ASP.NET Core 8 MVC, EF Core 8, Razor Views, Bootstrap 5.3, ASP.NET Identity, Chart.js, ClosedXML) already handles every requirement. No new NuGet packages are needed.
-
-The three goals are:
-
-1. Merge `AssessmentSession` + `TrainingRecord` into a unified Razor table with role-based filtering
-2. Tab-based role visibility — show/hide tabs per server-side role check, no full page reload
-3. Remove the Gap Analysis page cleanly — controller action, view, nav links, cross-links
+**Project:** Auto-save exam answers, session elapsed time tracking, worker session close detection, HC monitoring polling
+**Researched:** 2026-02-24
+**Confidence:** HIGH (EF Core, ExecuteUpdate patterns verified with official Microsoft docs; polling patterns from multiple sources)
 
 ---
 
-## Recommended Stack
+## Executive Summary
 
-### Core Technologies (All Already in Use — No Changes)
+This research covers 4 specific features for an existing ASP.NET Core 8 MVC application:
 
-| Technology | Version | Purpose | Why Recommended |
-|------------|---------|---------|-----------------|
-| ASP.NET Core 8 MVC | 8.0.x | Request routing, controller actions, server-side rendering | `Records()` and `Assessment()` actions in `CMPController` are the merge targets. No framework change needed. |
-| Razor Views (.cshtml) | ASP.NET Core 8 | Templating for unified table and tab visibility | Tab visibility via `@if (userRole == ...)` blocks is idiomatic Razor and is already the pattern used in this codebase. |
-| EF Core 8 | 8.0.0 | Database queries for merging heterogeneous data | Merge pattern: query both `AssessmentSessions` and `TrainingRecords` in one controller action, project to a shared ViewModel, sort in-memory via LINQ. |
-| ASP.NET Identity | 8.0.0 | Role-based tab visibility decisions | `UserManager.GetRolesAsync()` is the established pattern (see `CDPController`, `CMPController`). Resolved server-side before the view renders. |
-| Bootstrap 5.3 | 5.3.0 (CDN) | Tab UI component (`nav-tabs` + `tab-pane`) | Already loaded in `_Layout.cshtml`. Bootstrap's native tab component handles show/hide without any page reload. No additional JS library needed. |
+1. **SaveAnswer upsert** - Insert or update PackageUserResponse efficiently
+2. **Elapsed time storage** - Track exam duration server-side for resume accuracy
+3. **Worker session polling** - Lightweight endpoint detects when HC closes session
+4. **HC monitor polling** - Lightweight endpoint returns session answer counts
 
-### Supporting Libraries (Already Present — No New Additions)
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| ClosedXML | 0.105.0 | Excel export from unified table | Only needed if the merged view adds an Export Excel button — reuse existing Records view pattern |
-| Chart.js | CDN | Charts in the merged view if needed | Already used in `CompetencyGap.cshtml` and `DevDashboard`. Reuse existing CDN script tag pattern. |
-| jQuery 3.7.1 | CDN | Tab state persistence via `localStorage` | Already loaded in `_Layout.cshtml`. Use only if tab selection needs to survive a page reload. |
-
-### Development Tools (No Change)
-
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| EF Core Tools | Migrations | Not needed for this milestone — no schema changes. `TrainingRecord` and `AssessmentSession` tables already exist. |
-| .NET 8 SDK | Build | No change. |
+**Key recommendation:** Use EF Core's `ExecuteUpdateAsync` with manual insert-or-update logic (no third-party upsert library needed). Store elapsed time as integer seconds in AssessmentSession. Use lightweight status/count endpoints with minimal JSON payloads.
 
 ---
 
-## Installation
+## 1. SaveAnswer Upsert Pattern
 
-No new packages required. All patterns use what is already in `HcPortal.csproj`.
+### Recommendation: ExecuteUpdateAsync with FindAsync Insert-or-Update
 
----
+**Why NOT:**
+- **No native EF Core Upsert** — EF Core 8 doesn't have a built-in Upsert method. AddOrUpdate from EF6 doesn't exist in EF Core.
+- **MERGE statement has concurrency issues** — SQL Server MERGE can race when two concurrent merges both detect NOT MATCHED and insert the same row, causing unique constraint violations.
+- **Third-party libraries (FlexLabs.Upsert) add complexity** — Unnecessary for a single-row operation that happens infrequently enough per session.
 
-## Patterns for Each Goal
+**Why ExecuteUpdateAsync + Insert fallback:**
 
-### Goal 1: Merging Heterogeneous Data Sources (AssessmentSession + TrainingRecord)
+ExecuteUpdateAsync (EF Core 7+) is the modern pattern. It executes a single SQL UPDATE statement without loading data into memory. For upsert, combine it with FindAsync for the insert case.
 
-**Pattern: Project both sources to a shared ViewModel in the controller, merge in-memory, sort unified.**
+### Implementation Pattern
 
-The codebase already does this for `CoacheeProgressRow` in `DevDashboard` and `TrackingItem` in the `Progress` view. Apply the same approach:
-
-**Shared ViewModel:**
 ```csharp
-// New file: Models/CapabilityRowViewModel.cs
-public class CapabilityRowViewModel
+// In AssessmentSessionRepository or QuestionAnswerService
+public async Task<PackageUserResponse> UpsertAnswerAsync(
+    int assessmentSessionId,
+    int questionId,
+    int selectedOptionId)
 {
-    public DateTime Date { get; set; }
-    public string Title { get; set; } = "";
-    public string Category { get; set; } = "";   // Common field, different vocabulary
-    public string SourceType { get; set; } = ""; // "Assessment" | "Training"
-    public string Status { get; set; } = "";
-    public string? Score { get; set; }           // Assessment-only
-    public string? CertificateUrl { get; set; }  // Training-only
-    public DateTime? ValidUntil { get; set; }    // Training-only (cert expiry)
+    var dbContext = _context; // Your DbContext
+
+    // Attempt UPDATE first (most common case: user changed answer)
+    var rowsAffected = await dbContext.PackageUserResponses
+        .Where(r => r.AssessmentSessionId == assessmentSessionId
+                 && r.QuestionId == questionId)
+        .ExecuteUpdateAsync(s => s
+            .SetProperty(r => r.SelectedOptionId, selectedOptionId)
+            .SetProperty(r => r.UpdatedAt, DateTime.UtcNow));
+
+    // If no rows affected, row doesn't exist yet — INSERT
+    if (rowsAffected == 0)
+    {
+        var newResponse = new PackageUserResponse
+        {
+            AssessmentSessionId = assessmentSessionId,
+            QuestionId = questionId,
+            SelectedOptionId = selectedOptionId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        dbContext.PackageUserResponses.Add(newResponse);
+        await dbContext.SaveChangesAsync();
+
+        return newResponse;
+    }
+
+    // For update case, reload to return updated entity if needed
+    // Or construct object from parameters if not needed in response
+    return new PackageUserResponse
+    {
+        AssessmentSessionId = assessmentSessionId,
+        QuestionId = questionId,
+        SelectedOptionId = selectedOptionId
+    };
 }
 ```
 
-**Controller action:**
+### Alternative: Raw SQL MERGE (for maximum concurrency safety)
+
+If you want true atomic upsert at database level (prevents race conditions entirely), use SQL Server's MERGE statement directly via ExecuteSqlInterpolated:
+
 ```csharp
-// In CMPController — new or updated unified action
-public async Task<IActionResult> CapabilityRecords(string? userId = null)
+public async Task<int> UpsertAnswerViaMergeAsync(
+    int assessmentSessionId,
+    int questionId,
+    int selectedOptionId)
 {
-    var currentUser = await _userManager.GetUserAsync(User);
-    var roles = await _userManager.GetRolesAsync(currentUser!);
-    var userRole = roles.FirstOrDefault();
+    // SQL Server MERGE is atomic - no race condition possible
+    var rowsAffected = await _context.Database
+        .ExecuteSqlInterpolatedAsync(
+            $@"MERGE INTO PackageUserResponses AS target
+               USING (SELECT {assessmentSessionId} AS AssessmentSessionId,
+                            {questionId} AS QuestionId,
+                            {selectedOptionId} AS SelectedOptionId) AS source
+               ON target.AssessmentSessionId = source.AssessmentSessionId
+                  AND target.QuestionId = source.QuestionId
+               WHEN MATCHED THEN
+                   UPDATE SET target.SelectedOptionId = source.SelectedOptionId,
+                             target.UpdatedAt = GETUTCDATE()
+               WHEN NOT MATCHED THEN
+                   INSERT (AssessmentSessionId, QuestionId, SelectedOptionId, CreatedAt, UpdatedAt)
+                   VALUES (source.AssessmentSessionId, source.QuestionId, source.SelectedOptionId, GETUTCDATE(), GETUTCDATE());");
 
-    // Role-based target user resolution (matches DevDashboard pattern)
-    string targetUserId = ResolveTargetUserId(currentUser, userRole, userId);
+    return rowsAffected;
+}
+```
 
-    // Source 1: AssessmentSession
-    var sessions = await _context.AssessmentSessions
-        .Where(a => a.UserId == targetUserId && a.Status == "Completed")
-        .OrderByDescending(a => a.Schedule)
-        .ToListAsync();
+### Recommended Choice: ExecuteUpdateAsync Pattern
 
-    // Source 2: TrainingRecord
-    var trainings = await _context.TrainingRecords
-        .Where(t => t.UserId == targetUserId)
-        .OrderByDescending(t => t.Tanggal)
-        .ToListAsync();
+**Choose ExecuteUpdateAsync + Insert Fallback because:**
+- Single-row operations happen per AJAX call (not bulk)
+- Simpler to test and debug than raw SQL MERGE
+- No concurrency issues — if ExecuteUpdate returns 0 rows, INSERT is guaranteed to succeed (assuming AssessmentSessionId + QuestionId unique constraint)
+- Easier to return updated object for response if needed
 
-    // Project both to unified shape, then merge and sort
-    var unified = sessions
-        .Select(a => new CapabilityRowViewModel
+**Concurrency handling:**
+- Race condition possible: Two concurrent updates both see row doesn't exist, both try INSERT
+- Prevention: Ensure `(AssessmentSessionId, QuestionId)` has a UNIQUE constraint in schema
+- If constraint violated, catch `DbUpdateException` and retry the flow once
+
+### Entity Model Addition
+
+No new fields needed. Ensure these fields exist on `PackageUserResponse`:
+
+```csharp
+public class PackageUserResponse
+{
+    public int Id { get; set; }
+    public int AssessmentSessionId { get; set; }
+    public int QuestionId { get; set; }
+    public int SelectedOptionId { get; set; }
+
+    // For audit trail (optional, but good practice)
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
+
+    // Navigation properties
+    public AssessmentSession AssessmentSession { get; set; }
+    public Question Question { get; set; }
+    public Option SelectedOption { get; set; }
+}
+```
+
+**Database constraint (must exist):**
+```sql
+ALTER TABLE PackageUserResponses
+ADD CONSTRAINT UK_AssessmentSessionQuestion
+UNIQUE (AssessmentSessionId, QuestionId);
+```
+
+---
+
+## 2. Elapsed Time Storage
+
+### Recommendation: Add `ElapsedSeconds` to AssessmentSession
+
+**Field Design:**
+
+```csharp
+public class AssessmentSession
+{
+    // Existing fields
+    public int Id { get; set; }
+    public int WorkerId { get; set; }
+    public int AssessmentPackageId { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
+    public DateTime ExamWindowCloseDate { get; set; }
+    public string Status { get; set; } // "InProgress", "Completed", "Closed"
+
+    // NEW: Elapsed time tracking
+    public int ElapsedSeconds { get; set; } = 0;  // Total seconds spent so far
+    public DateTime? LastHeartbeatAt { get; set; } // When worker was last active
+}
+```
+
+### How It Works
+
+1. **On exam start:** ElapsedSeconds = 0
+2. **Periodically (every AJAX save or heartbeat):** Update ElapsedSeconds
+
+```csharp
+public async Task UpdateElapsedTimeAsync(int sessionId)
+{
+    var now = DateTime.UtcNow;
+
+    var session = await _context.AssessmentSessions
+        .Where(s => s.Id == sessionId && s.Status == "InProgress")
+        .ExecuteUpdateAsync(s => s
+            .SetProperty(x => x.ElapsedSeconds, x =>
+                (int)(now - x.StartedAt).TotalSeconds)
+            .SetProperty(x => x.LastHeartbeatAt, now));
+}
+```
+
+3. **On resume after page refresh:**
+
+```csharp
+public async Task<SessionResumeDto> GetSessionForResumeAsync(int sessionId)
+{
+    var session = await _context.AssessmentSessions
+        .Where(s => s.Id == sessionId)
+        .Select(s => new SessionResumeDto
         {
-            Date = a.Schedule,
-            Title = a.Title,
-            Category = a.Category,       // "Assessment OJ", "IHT", etc.
-            SourceType = "Assessment",
-            Status = a.IsPassed == true ? "Passed" : "Failed",
-            Score = a.Score?.ToString()
+            SessionId = s.Id,
+            ElapsedSeconds = s.ElapsedSeconds,
+            RemainingSeconds =
+                (int)(s.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds,
+            IsClosed = s.Status == "Closed" || DateTime.UtcNow > s.ExamWindowCloseDate,
+            Status = s.Status
         })
-        .Concat(trainings.Select(t => new CapabilityRowViewModel
-        {
-            Date = t.Tanggal,
-            Title = t.Judul ?? "",
-            Category = t.Kategori ?? "",  // "PROTON", "OJT", "MANDATORY"
-            SourceType = "Training",
-            Status = t.Status ?? "",
-            CertificateUrl = t.SertifikatUrl,
-            ValidUntil = t.ValidUntil
-        }))
-        .OrderByDescending(r => r.Date)   // Unified chronological sort
-        .ToList();
+        .FirstOrDefaultAsync();
 
-    ViewBag.UserRole = userRole;
-    return View(unified);
+    return session;
+}
+
+public class SessionResumeDto
+{
+    public int SessionId { get; set; }
+    public int ElapsedSeconds { get; set; }        // How long they've been working
+    public int RemainingSeconds { get; set; }      // How much time left
+    public bool IsClosed { get; set; }
+    public string Status { get; set; }
 }
 ```
 
-**Why in-memory merge, not SQL UNION:**
-- `AssessmentSession` and `TrainingRecord` have incompatible schemas. EF Core does not support UNION across unrelated `DbSet` entities without raw SQL.
-- In-memory LINQ `.Concat().OrderBy()` after two separate queries is the established pattern in this codebase and is correct at these data volumes (per-user sets, not org-wide aggregations across all records).
-- Avoids raw SQL and keeps EF type safety.
+### Why Integer Seconds (Not TimeSpan)
 
-**Role-based target user resolution (matches existing codebase):**
+- **Database simplicity:** Int32 is more portable than TimeSpan
+- **Calculation accuracy:** `DateTime.UtcNow - StartedAt` returns TimeSpan; cast to int seconds when persisting
+- **Client resume:** Browser receives `{ elapsedSeconds: 1247, remainingSeconds: 1353 }` and can calculate timer accurately
+
+### Anti-Pattern to Avoid
+
+Do NOT store elapsed time only in browser localStorage. If worker closes browser and reopens, you lose time without server persistence.
+
+---
+
+## 3. Worker Exam Polling Endpoint
+
+### Recommendation: Lightweight Status-Only Endpoint (HTTP 200 vs 308)
+
+**Endpoint:**
 ```csharp
-// HC/Admin: show user selector dropdown; Coachee: locked to self
-if (userRole == UserRoles.HC || userRole == UserRoles.Admin)
+[HttpGet("/api/exam/session/{sessionId}/status")]
+public async Task<IActionResult> GetSessionStatusAsync(int sessionId)
 {
-    // userId from query param, falls back to currentUser.Id if null
-    targetUserId = userId ?? currentUser.Id;
-}
-else if (userRole is UserRoles.Coach or UserRoles.SrSupervisor or UserRoles.SectionHead)
-{
-    // Scoped to section — Coach can view any coachee in same section
-    targetUserId = userId ?? currentUser.Id;
-    // Validate userId is in same section before accepting
-}
-else // Coachee
-{
-    targetUserId = currentUser.Id; // Always locked to self
+    var session = await _context.AssessmentSessions
+        .AsNoTracking()
+        .Where(s => s.Id == sessionId)
+        .Select(s => new
+        {
+            status = s.Status,
+            closedAt = s.CompletedAt ?? s.ExamWindowCloseDate,
+            isClosed = s.Status == "Closed" || DateTime.UtcNow > s.ExamWindowCloseDate
+        })
+        .FirstOrDefaultAsync();
+
+    if (session == null)
+        return NotFound();
+
+    // If session closed, signal with 308 (Permanent Redirect)
+    if (session.isClosed)
+        return StatusCode(308, new { message = "Exam closed, redirect to results" });
+
+    // Otherwise, all good
+    return Ok(new { status = "active", closedAt = session.closedAt });
 }
 ```
 
----
+### Why This Design
 
-### Goal 2: Tab-Based Role Visibility in Razor (No Page Reload)
+**HTTP Status Codes:**
+- `200 OK` — Session still active, keep polling
+- `308 Permanent Redirect` — Session closed, don't poll anymore, redirect to results
 
-**Pattern: Bootstrap 5 native `nav-tabs` + server-side `@if` blocks in Razor.**
+**Why NOT 403/410:**
+- 403 (Forbidden) suggests permission issue, not closure
+- 410 (Gone) implies resource deleted, not applicable for a closed session
+- 308 signals "permanent" state change without being an error
 
-No AJAX. No JavaScript framework. Tabs switch client-side via Bootstrap's built-in `data-bs-toggle="tab"`. The role check is resolved server-side before render — restricted tabs are never emitted into the HTML response.
+**Lightweight Query:**
+- `AsNoTracking()` — Don't track changes, faster read-only query
+- Only select 2-3 fields needed (status, closedAt, isClosed calculation)
+- No joins, no related data loaded
+- Single table scan on AssessmentSessions.Status index
 
-**View structure:**
-```cshtml
-@{
-    var userRole = ViewBag.UserRole as string;
-    bool isHcOrAdmin = userRole == "HC" || userRole == "Admin";
-    bool isCoachOrAbove = userRole is "Coach" or "Sr Supervisor" or "Section Head";
-}
+### Client-Side Polling Code
 
-<ul class="nav nav-tabs mb-3" id="capabilityTabs" role="tablist">
-
-    <!-- Tab visible to all roles -->
-    <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="training-tab"
-                data-bs-toggle="tab" data-bs-target="#training-pane"
-                type="button" role="tab" aria-selected="true">
-            Training Records
-        </button>
-    </li>
-
-    <!-- Tab visible to all roles -->
-    <li class="nav-item" role="presentation">
-        <button class="nav-link" id="assessment-tab"
-                data-bs-toggle="tab" data-bs-target="#assessment-pane"
-                type="button" role="tab" aria-selected="false">
-            Assessments
-        </button>
-    </li>
-
-    <!-- Tab restricted to HC and Admin only -->
-    @if (isHcOrAdmin)
-    {
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="org-tab"
-                    data-bs-toggle="tab" data-bs-target="#org-pane"
-                    type="button" role="tab" aria-selected="false">
-                Org Summary
-            </button>
-        </li>
-    }
-
-</ul>
-
-<div class="tab-content" id="capabilityTabContent">
-
-    <div class="tab-pane fade show active" id="training-pane" role="tabpanel">
-        @* Training records table *@
-    </div>
-
-    <div class="tab-pane fade" id="assessment-pane" role="tabpanel">
-        @* Assessment table *@
-    </div>
-
-    @if (isHcOrAdmin)
-    {
-        <div class="tab-pane fade" id="org-pane" role="tabpanel">
-            @* HC-only org content — not in DOM for other roles *@
-        </div>
-    }
-
-</div>
-```
-
-**Why this approach:**
-- Bootstrap 5.3 is already loaded in `_Layout.cshtml`. `data-bs-toggle="tab"` works with zero additional JS.
-- The existing codebase consistently uses `@if (userRole == ...)` for role gating in Razor (see `Progress.cshtml`, `_Layout.cshtml` nav items, `Coaching.cshtml`). This matches the established pattern — do not deviate.
-- Do NOT use `display:none` CSS toggling for role-gated tabs. Hidden CSS content is still sent in the HTML response and is visible via browser DevTools. Use server-side `@if` so restricted content is never in the DOM for unauthorized users.
-
-**Optional: Tab state persistence across page reloads (use existing jQuery):**
 ```javascript
-// Save active tab on switch
-document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
-    tab.addEventListener('shown.bs.tab', e => {
-        localStorage.setItem('capabilityActiveTab', e.target.id);
-    });
-});
+// JavaScript on worker exam page
+async function pollSessionStatus(sessionId, interval = 10000) {
+    const response = await fetch(`/api/exam/session/${sessionId}/status`);
 
-// Restore active tab on load
-const saved = localStorage.getItem('capabilityActiveTab');
-if (saved) {
-    const tab = document.getElementById(saved);
-    if (tab) bootstrap.Tab.getOrCreateInstance(tab).show();
+    if (response.status === 308) {
+        // Session closed
+        alert("Exam has been closed by admin. Redirecting to results...");
+        window.location.href = `/exam/results/${sessionId}`;
+        return;
+    }
+
+    if (response.ok) {
+        const data = await response.json();
+        // Session still active, continue polling
+        setTimeout(() => pollSessionStatus(sessionId, interval), interval);
+    }
+}
+
+// Start polling when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    pollSessionStatus(getSessionIdFromPage());
+});
+```
+
+---
+
+## 4. HC Monitoring Polling Endpoint
+
+### Recommendation: Grouped Count Query
+
+**Endpoint:**
+```csharp
+[HttpGet("/api/admin/assessment/{assessmentPackageId}/monitoring")]
+public async Task<IActionResult> GetAssessmentMonitoringAsync(int assessmentPackageId)
+{
+    var sessions = await _context.AssessmentSessions
+        .AsNoTracking()
+        .Where(s => s.AssessmentPackageId == assessmentPackageId)
+        .GroupJoin(
+            _context.PackageUserResponses.AsNoTracking(),
+            session => session.Id,
+            response => response.AssessmentSessionId,
+            (session, responses) => new
+            {
+                sessionId = session.Id,
+                workerId = session.WorkerId,
+                startedAt = session.StartedAt,
+                status = session.Status,
+                answeredCount = responses.Count(),
+                totalQuestions = _context.Questions
+                    .Where(q => q.AssessmentPackageId == assessmentPackageId)
+                    .Count(),
+                elapsedSeconds = session.ElapsedSeconds,
+                remainingSeconds = (int)(session.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds
+            })
+        .ToListAsync();
+
+    return Ok(sessions);
 }
 ```
-This is ~10 lines in `@section Scripts`. No library needed — jQuery is already loaded.
 
----
+### Better: Use SubQuery for Performance
 
-### Goal 3: Removing the Gap Analysis Page Cleanly
+The above GroupJoin counts total questions for EVERY session (N+1 pattern). Better approach:
 
-**Surface area confirmed by codebase audit:**
+```csharp
+[HttpGet("/api/admin/assessment/{assessmentPackageId}/monitoring")]
+public async Task<IActionResult> GetAssessmentMonitoringAsync(int assessmentPackageId)
+{
+    var totalQuestions = await _context.Questions
+        .AsNoTracking()
+        .Where(q => q.AssessmentPackageId == assessmentPackageId)
+        .CountAsync();
 
-| Location | What to Remove |
-|----------|---------------|
-| `Controllers/CMPController.cs` (line ~1533) | `CompetencyGap(string? userId)` action method |
-| `Views/CMP/CompetencyGap.cshtml` | Delete the file |
-| `Views/CMP/Index.cshtml` (line 72) | Remove the "Gap Analysis" card block (the entire `col-12 col-md-6 col-lg-4` div containing the card) |
-| `Views/CMP/CpdpProgress.cshtml` (line 19) | Remove the `<a href="CompetencyGap">Gap Analysis</a>` sibling nav link |
-| `Views/Shared/_Layout.cshtml` | No direct link to CompetencyGap — already absent from top nav (confirmed) |
-| `Models/Competency/CompetencyGapViewModel.cs` | Delete or retain — only referenced by the CompetencyGap action and view |
+    var sessions = await _context.AssessmentSessions
+        .AsNoTracking()
+        .Where(s => s.AssessmentPackageId == assessmentPackageId)
+        .Select(s => new
+        {
+            sessionId = s.Id,
+            workerId = s.WorkerId,
+            startedAt = s.StartedAt,
+            status = s.Status,
+            answeredCount = _context.PackageUserResponses
+                .Where(r => r.AssessmentSessionId == s.Id)
+                .Count(),
+            totalQuestions = totalQuestions,
+            elapsedSeconds = s.ElapsedSeconds,
+            remainingSeconds = (int)(s.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds,
+            isClosed = s.Status == "Closed" || DateTime.UtcNow > s.ExamWindowCloseDate
+        })
+        .ToListAsync();
 
-**Safe removal order:**
-1. Remove the `CompetencyGap` controller action first. This immediately breaks compilation or produces runtime 404s for any remaining `Url.Action("CompetencyGap", ...)` calls — surfaces all cross-links.
-2. Delete `Views/CMP/CompetencyGap.cshtml`.
-3. Remove `Url.Action("CompetencyGap", ...)` reference from `Views/CMP/CpdpProgress.cshtml` (line 19).
-4. Remove the Gap Analysis card from `Views/CMP/Index.cshtml` (line 72 — the entire card `div`).
-5. Delete `Models/Competency/CompetencyGapViewModel.cs` after verifying no other references.
-
-**Pre-removal grep to find all references:**
+    return Ok(sessions);
+}
 ```
-Search pattern: CompetencyGap
-File scope: **/*.cshtml, **/*.cs
+
+### Best: Window Function (Single Query)
+
+For maximum efficiency, use SQL window function to get answer counts per session:
+
+```csharp
+public async Task<IActionResult> GetAssessmentMonitoringAsync(int assessmentPackageId)
+{
+    var monitoring = await _context.Database
+        .SqlQuery<MonitoringSessionDto>($@"
+            SELECT
+                s.Id AS SessionId,
+                s.WorkerId,
+                s.StartedAt,
+                s.Status,
+                COUNT(DISTINCT r.Id) AS AnsweredCount,
+                (SELECT COUNT(*) FROM Questions WHERE AssessmentPackageId = {assessmentPackageId}) AS TotalQuestions,
+                s.ElapsedSeconds,
+                DATEDIFF(SECOND, GETUTCDATE(), s.ExamWindowCloseDate) AS RemainingSeconds,
+                CASE WHEN s.Status = 'Closed' OR GETUTCDATE() > s.ExamWindowCloseDate THEN 1 ELSE 0 END AS IsClosed
+            FROM AssessmentSessions s
+            LEFT JOIN PackageUserResponses r ON s.Id = r.AssessmentSessionId
+            WHERE s.AssessmentPackageId = {assessmentPackageId}
+            GROUP BY s.Id, s.WorkerId, s.StartedAt, s.Status, s.ElapsedSeconds, s.ExamWindowCloseDate
+            ORDER BY s.StartedAt DESC")
+        .ToListAsync();
+
+    return Ok(monitoring);
+}
+
+public class MonitoringSessionDto
+{
+    public int SessionId { get; set; }
+    public int WorkerId { get; set; }
+    public DateTime StartedAt { get; set; }
+    public string Status { get; set; }
+    public int AnsweredCount { get; set; }
+    public int TotalQuestions { get; set; }
+    public int ElapsedSeconds { get; set; }
+    public int RemainingSeconds { get; set; }
+    public bool IsClosed { get; set; }
+}
 ```
 
-Current confirmed references (from codebase audit — complete list):
-- `CMPController.cs` — the action method itself
-- `Views/CMP/CompetencyGap.cshtml` — the view file
-- `Views/CMP/Index.cshtml` — card link (line 72)
-- `Views/CMP/CpdpProgress.cshtml` — sibling tab link (line 19)
-- `Models/Competency/CompetencyGapViewModel.cs` — ViewModel class used only by this feature
+### Response Format
 
-**What NOT to do:**
-- Do not add a redirect from `/CMP/CompetencyGap` to another URL. A 404 is semantically correct for removed content. A redirect implies the content moved; it did not.
-- Do not leave the `CompetencyGapViewModel.cs` file orphaned — delete it to avoid confusion about dead code.
+```json
+[
+  {
+    "sessionId": 42,
+    "workerId": 101,
+    "startedAt": "2026-02-24T14:30:00Z",
+    "status": "InProgress",
+    "answeredCount": 23,
+    "totalQuestions": 50,
+    "elapsedSeconds": 847,
+    "remainingSeconds": 6153,
+    "isClosed": false
+  }
+]
+```
 
----
+### Client-Side Polling (HC Dashboard)
 
-## Alternatives Considered
+```javascript
+// Poll every 5-10 seconds for live session status
+async function pollMonitoring(assessmentPackageId) {
+    const response = await fetch(`/api/admin/assessment/${assessmentPackageId}/monitoring`);
+    const sessions = await response.json();
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| In-memory LINQ `.Concat()` for data merge | `FromSqlRaw` UNION query | More complex, bypasses EF type safety, harder to maintain. Not justified at per-user data volumes. |
-| Bootstrap 5 `nav-tabs` for tab UI | Custom CSS toggle + JavaScript | Duplicates functionality already loaded in `_Layout.cshtml`. Bootstrap tabs have accessible ARIA roles built in. |
-| Server-side `@if` for role-gated tabs | `display:none` CSS toggling | Security flaw — hidden content is still in the HTML response and visible via browser DevTools. |
-| Server-side `@if (userRole == ...)` in Razor | `[Authorize(Policy=...)]` on tab content | Policy attributes apply to controller actions (full routes), not Razor blocks within a single action. Wrong abstraction level. |
-| Hard 404 on CompetencyGap removal | 301 redirect to CpdpProgress | Semantically wrong — the content was removed, not moved. |
-| Separate API endpoint per tab | Render all tab content on initial page load | Adds network round-trips per tab switch. Unnecessary for this data size. Server-side render on load is the correct pattern for MVC. |
+    // Update table with latest counts
+    updateSessionTable(sessions);
 
----
+    // Highlight sessions that just closed
+    sessions.forEach(session => {
+        if (session.isClosed) {
+            markRowAsClosed(session.sessionId);
+        }
+    });
 
-## What NOT to Use
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| Any new NuGet package | No new dependency is warranted — Bootstrap, jQuery, EF Core already cover all requirements | Existing stack |
-| Blazor or any SPA component | Mixing Blazor into an MVC app creates two rendering pipelines; tab visibility requires zero JS framework | Bootstrap `nav-tabs` with `data-bs-toggle="tab"` |
-| `display:none` for role-gated tab content | Sends restricted HTML to the browser; inspectable via DevTools | Server-side `@if` blocks in Razor |
-| Raw SQL / `FromSqlRaw` for data merge | Schema mismatch between `AssessmentSession` and `TrainingRecord`; bypasses EF type safety | In-memory LINQ `.Concat().OrderByDescending()` after two separate queries |
-| AJAX partial views per tab | Adds network latency per tab switch; unnecessary for this data size | Render all tab content server-side in one response |
-| DataTables.js | Adds an external dependency for features that Bootstrap + LINQ pagination already cover | Server-side pagination (existing `CMPController.Assessment` pattern) |
-
----
-
-## Stack Patterns by Variant
-
-**If the unified table has more than 50 rows per user:**
-- Add server-side pagination using the existing `page`/`pageSize` pattern from `CMPController.Assessment` (lines 78-80)
-- Do not add client-side pagination libraries
-
-**If tab state must persist across page reloads:**
-- Use `localStorage` with the existing jQuery already in `_Layout.cshtml`
-- ~10 lines of script in `@section Scripts` — no library needed
-
-**If HC role needs to select any user for the unified view:**
-- Apply the `userId` query parameter + dropdown selector pattern from `CMPController.Assessment` (`view == "manage"`) and `CMPController.CompetencyGap` (before removal)
-- Render the user-selector dropdown only when `isHcOrAdmin == true`
-
-**If the merged view needs column filtering by SourceType (Assessment vs Training):**
-- Pass filter as a query parameter (`?sourceType=Assessment`)
-- Apply `.Where(r => r.SourceType == sourceType)` before building the ViewModel
-- Render filter buttons as regular `<a>` links (not JavaScript) — consistent with existing filter patterns in `CMPController.Records`
+    // Continue polling
+    setTimeout(() => pollMonitoring(assessmentPackageId), 5000);
+}
+```
 
 ---
 
-## Version Compatibility
+## Installation & Configuration
 
-| Package | Version in Use | Notes |
-|---------|---------------|-------|
-| ASP.NET Core | net8.0 TFM | All patterns target .NET 8 APIs |
-| EF Core | 8.0.0 | `ToListAsync()`, `FirstOrDefaultAsync()`, `Concat()` — all in use throughout codebase |
-| Bootstrap | 5.3.0 (CDN) | `data-bs-toggle="tab"` requires Bootstrap 5.x; confirmed loaded in `_Layout.cshtml` |
-| jQuery | 3.7.1 (CDN) | Available for `localStorage` tab persistence if needed; already in `_Layout.cshtml` |
-| ClosedXML | 0.105.0 | No change; only relevant if Export Excel is added to unified view |
+### NuGet Packages
+
+No additional packages required. You're using existing stack:
+- `Microsoft.EntityFrameworkCore` (8.0+)
+- `Microsoft.EntityFrameworkCore.SqlServer` (8.0+)
+- `Microsoft.AspNetCore.Mvc` (8.0+)
+
+### Database Migrations
+
+Add ElapsedSeconds and LastHeartbeatAt to AssessmentSession:
+
+```csharp
+// In your DbContext migration
+protected override void Up(MigrationBuilder migrationBuilder)
+{
+    migrationBuilder.AddColumn<int>(
+        name: "ElapsedSeconds",
+        table: "AssessmentSessions",
+        type: "int",
+        nullable: false,
+        defaultValue: 0);
+
+    migrationBuilder.AddColumn<DateTime>(
+        name: "LastHeartbeatAt",
+        table: "AssessmentSessions",
+        type: "datetime2",
+        nullable: true);
+
+    // Add unique constraint on (AssessmentSessionId, QuestionId) if not exists
+    migrationBuilder.CreateIndex(
+        name: "IX_PackageUserResponses_SessionQuestion",
+        table: "PackageUserResponses",
+        columns: new[] { "AssessmentSessionId", "QuestionId" },
+        unique: true);
+}
+```
+
+### Startup Configuration
+
+```csharp
+// In Startup.cs or Program.cs
+services.AddDbContext<YourDbContext>(options =>
+    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+```
+
+---
+
+## Summary Table
+
+| Feature | Technology | Pattern | Why |
+|---------|-----------|---------|-----|
+| **SaveAnswer Upsert** | EF Core ExecuteUpdateAsync | Try UPDATE first, INSERT if no rows affected | Concurrency-safe, no third-party lib, simple |
+| **Elapsed Time** | int ElapsedSeconds field | Update every AJAX call via ExecuteUpdateAsync | Accurate resume after page refresh, persisted server-side |
+| **Worker Polling** | Lightweight GET endpoint | Return 308 when closed, 200 when active | Minimal payload, clear HTTP semantics |
+| **HC Monitoring** | Window function SQL query | GROUP BY sessionId, COUNT(answers) | Single efficient query, no N+1 |
 
 ---
 
 ## Sources
 
-- Direct codebase audit (file reads, 2026-02-18) — HIGH confidence:
-  - `Controllers/CMPController.cs` — `Records()`, `Assessment()`, `CompetencyGap()` actions
-  - `Controllers/CDPController.cs` — `DevDashboard()`, `Coaching()` role patterns
-  - `Views/CMP/CompetencyGap.cshtml` — cross-links confirmed
-  - `Views/CMP/CpdpProgress.cshtml` — cross-link at line 19 confirmed
-  - `Views/CMP/Index.cshtml` — card link at line 72 confirmed
-  - `Views/CMP/Records.cshtml` — TrainingRecord table pattern
-  - `Views/CDP/Progress.cshtml` — Razor role-gating pattern via `@if`
-  - `Views/Shared/_Layout.cshtml` — Bootstrap 5.3 and jQuery CDN confirmed, no CompetencyGap nav link
-  - `Models/AssessmentSession.cs` — field inventory for ViewModel projection
-  - `Models/TrainingRecord.cs` — field inventory for ViewModel projection
-  - `Models/ApplicationUser.cs` — `RoleLevel`, `SelectedView` fields
-  - `Models/UserRoles.cs` — role constants
-  - `HcPortal.csproj` — package versions
-
-- Bootstrap 5 tab component documentation (`data-bs-toggle="tab"`) — HIGH confidence (stable API, no version-specific gotchas in 5.3.x)
-- ASP.NET Core 8 Razor `@if` role gating — HIGH confidence (established pattern, already in use in multiple views in this codebase)
-
----
-
-*Stack research for: Portal HC KPB v1.2 UX Consolidation*
-*Researched: 2026-02-18*
+- [ExecuteUpdate and ExecuteDelete - EF Core | Microsoft Learn](https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete)
+- [Efficient Updating - EF Core | Microsoft Learn](https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating)
+- [Handling Concurrency Conflicts - EF Core | Microsoft Learn](https://learn.microsoft.com/en-us/ef/core/saving/concurrency)
+- [MERGE (Transact-SQL) - SQL Server | Microsoft Learn](https://learn.microsoft.com/en-us/sql/t-sql/statements/merge-transact-sql?view=sql-server-ver17)
+- [EF Core ExecuteUpdate (EF Core 7–10) – Set-Based Bulk Updates](https://www.learnentityframeworkcore.com/dbset/execute-update)
+- [SQL Server MERGE to insert, update and delete at the same time](https://www.mssqltips.com/sqlservertip/1704/using-merge-in-sql-server-to-insert-update-and-delete-at-the-same-time/)
+- [Implementing HTTP Polling](https://www.abhinavpandey.dev/blog/polling)
+- [The Complete Guide to API Polling: Implementation, Optimization, and Alternatives](https://medium.com/@alaxhenry0121/the-complete-guide-to-api-polling-implementation-optimization-and-alternatives-a4eae3b0ef69)
+- [Merge/Upsert/AddOrUpdate support · Issue #4526 · dotnet/efcore](https://github.com/dotnet/efcore/issues/4526)
+- [Bulk Extensions for EF Core | Bulk Insert, Update, Delete, Merge & Upsert](https://entityframework-extensions.net/bulk-extensions)
