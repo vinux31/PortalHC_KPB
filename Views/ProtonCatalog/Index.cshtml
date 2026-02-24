@@ -103,6 +103,33 @@
     </div>
 </div>
 
+<!-- Delete Catalog Item Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Catalog Item</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Loading state -->
+                <div id="deleteModalLoading" class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-secondary me-2" role="status"></div>
+                    <span class="text-muted">Loading impact...</span>
+                </div>
+                <!-- Content state (populated by JS) -->
+                <div id="deleteModalContent" class="d-none"></div>
+                <!-- Error state -->
+                <div id="deleteModalError" class="d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger d-none" id="deleteConfirmBtn">Yes, Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <script>
     // Live preview of DisplayName as user selects TrackType + TahunKe
@@ -186,6 +213,7 @@
                 if (container) {
                     container.innerHTML = html;
                     initCatalogTree();
+                    initDeleteGuards();
                 }
             })
             .catch(function (err) { console.error('Tree reload error:', err); });
@@ -326,10 +354,128 @@
 
     // ─────────────────────────────────────────────────────────────────────────
 
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    function showDeleteError(msg) {
+        var err = document.getElementById('deleteModalError');
+        err.innerHTML = '<div class="alert alert-danger mb-0 py-2">' + escapeHtml(msg) + '</div>';
+        err.classList.remove('d-none');
+    }
+
+    function initDeleteGuards() {
+        // Extend collapse events to also show/hide trash-btn (alongside pencil-btn, same pattern)
+        document.querySelectorAll('#treeContainer [data-bs-toggle="collapse"]').forEach(function (btn) {
+            var row = btn.closest('tr');
+            if (!row) return;
+            var trash = row.querySelector('.trash-btn');
+            if (!trash) return;
+            var targetId = btn.getAttribute('data-bs-target').replace('#', '');
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            target.addEventListener('show.bs.collapse', function () { trash.classList.remove('d-none'); });
+            target.addEventListener('hide.bs.collapse', function () { trash.classList.add('d-none'); });
+        });
+
+        // Wire trash-btn clicks
+        document.querySelectorAll('#treeContainer .trash-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var level = btn.dataset.level;
+                var itemId = btn.dataset.id;
+
+                // Store pending delete info on modal element for the confirm button
+                var modalEl = document.getElementById('deleteModal');
+                modalEl.dataset.pendingLevel = level;
+                modalEl.dataset.pendingItemId = itemId;
+
+                // Reset modal to loading state
+                document.getElementById('deleteModalLoading').classList.remove('d-none');
+                document.getElementById('deleteModalContent').classList.add('d-none');
+                document.getElementById('deleteModalContent').innerHTML = '';
+                document.getElementById('deleteModalError').classList.add('d-none');
+                document.getElementById('deleteModalError').innerHTML = '';
+                document.getElementById('deleteConfirmBtn').classList.add('d-none');
+                document.getElementById('deleteConfirmBtn').disabled = false;
+                document.getElementById('deleteConfirmBtn').innerHTML = 'Yes, Delete';
+
+                // Show modal
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+
+                // Fetch impact
+                fetch('/ProtonCatalog/GetDeleteImpact?level=' + encodeURIComponent(level) + '&itemId=' + encodeURIComponent(itemId))
+                    .then(function (r) { return r.json(); })
+                    .then(function (result) {
+                        document.getElementById('deleteModalLoading').classList.add('d-none');
+                        if (!result.success) {
+                            showDeleteError(result.error || 'Gagal memuat data.');
+                            return;
+                        }
+
+                        // Build modal content
+                        var content = document.getElementById('deleteModalContent');
+                        var html = '<p>Delete <strong>' + escapeHtml(result.itemName) + '</strong>?</p>';
+
+                        if (level === 'Kompetensi') {
+                            html += '<ul class="mb-2">';
+                            html += '<li>' + result.subKompetensiCount + ' SubKompetensi will be deleted</li>';
+                            html += '<li>' + result.deliverableCount + ' Deliverables will be deleted</li>';
+                            html += '</ul>';
+                        } else if (level === 'SubKompetensi') {
+                            html += '<ul class="mb-2">';
+                            html += '<li>' + result.deliverableCount + ' Deliverables will be deleted</li>';
+                            html += '</ul>';
+                        }
+
+                        if (result.coacheeCount === 0) {
+                            html += '<div class="alert alert-info mb-0 py-2"><i class="bi bi-info-circle me-1"></i>No active coachees affected.</div>';
+                        } else {
+                            html += '<div class="alert alert-warning mb-0 py-2"><i class="bi bi-exclamation-triangle me-1"></i>' + result.coacheeCount + ' active coachee(s) have progress on this item or its children.</div>';
+                        }
+
+                        content.innerHTML = html;
+                        content.classList.remove('d-none');
+                        document.getElementById('deleteConfirmBtn').classList.remove('d-none');
+                    })
+                    .catch(function () {
+                        document.getElementById('deleteModalLoading').classList.add('d-none');
+                        showDeleteError('Terjadi kesalahan. Coba lagi.');
+                    });
+            });
+        });
+
+        // Wire confirm button (single listener — replaces any prior listener by re-cloning the button)
+        var confirmBtn = document.getElementById('deleteConfirmBtn');
+        var freshBtn = confirmBtn.cloneNode(true);
+        confirmBtn.parentNode.replaceChild(freshBtn, confirmBtn);
+        freshBtn.addEventListener('click', function () {
+            var modalEl = document.getElementById('deleteModal');
+            var level = modalEl.dataset.pendingLevel;
+            var itemId = modalEl.dataset.pendingItemId;
+
+            freshBtn.disabled = true;
+            freshBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status"></span>Deleting...';
+
+            postItem('/ProtonCatalog/DeleteCatalogItem', { level: level, itemId: itemId }, function () {
+                bootstrap.Modal.getInstance(modalEl).hide();
+                reloadTree();
+            }, function (err) {
+                freshBtn.disabled = false;
+                freshBtn.innerHTML = 'Yes, Delete';
+                showDeleteError(err);
+            });
+        });
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+
     document.addEventListener('DOMContentLoaded', function () {
 
         // Initialize tree interactions for server-side rendered tree
         initCatalogTree();
+        initDeleteGuards();
 
         // Track dropdown change handler
         document.getElementById('trackDropdown').addEventListener('change', onTrackChanged);
@@ -400,6 +546,7 @@
             .then(function (html) {
                 document.getElementById('treeContainer').innerHTML = html;
                 initCatalogTree();
+                initDeleteGuards();
             })
             .catch(function (err) { console.error('Tree load error:', err); });
     }
