@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
 **Phase:** 42 of 44 (Session Resume)
-**Current Plan:** 01 of 4 complete
-**Next action:** Execute Phase 42 Plan 02
-**Status:** Phase 42 Plan 01 complete — database schema in place (ElapsedSeconds, LastActivePage, SavedQuestionCount)
-**Last activity:** 2026-02-24 — Phase 42 Plan 01 complete (migration AddSessionResumeFields applied, build green)
+**Current Plan:** 02 of 4 complete
+**Next action:** Execute Phase 42 Plan 03
+**Status:** Phase 42 Plan 02 complete — UpdateSessionProgress endpoint + StartExam GET resume ViewBag flags in place
+**Last activity:** 2026-02-24 — Phase 42 Plan 02 complete (backend endpoints for session resume, build green)
 
 Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete, Phase 41 ✓)
 
@@ -36,6 +36,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 25% (v2
 | Phase 41-auto-save P01 | 2min | 2 tasks, 5 files |
 | Phase 41-auto-save P02 | ~12min | 3 tasks + human checkpoint, 2 files |
 | Phase 42-session-resume P01 | 2min | 2 tasks | 5 files |
+| Phase 42-session-resume P02 | 3min | 2 tasks, 1 file |
 
 ## Accumulated Context
 
@@ -60,6 +61,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 41-auto-save]: SaveLegacyAnswer targets UserResponse (not PackageUserResponse) — consistent with legacy exam scoring path established in Phase 39
 - [Phase 42-01]: ElapsedSeconds is non-nullable int with DEFAULT 0 — no null check needed in backend, clean accumulation
 - [Phase 42-01]: LastActivePage and SavedQuestionCount are nullable int — null signals pre-Phase-42 session, avoiding data migration of live records
+- [Phase 42-02]: isResume = assessment.StartedAt != null — first-load safe because ElapsedSeconds=0 and LastActivePage=null/0 prevent resume modal (modal requires IsResume && LastActivePage > 0)
+- [Phase 42-02]: RemainingSeconds = (DurationMinutes * 60) - ElapsedSeconds — offline time is excluded from exam duration by design
 
 ### Pending Todos
 
@@ -72,5 +75,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Completed 42-session-resume-01-PLAN.md — database fields and migration applied. Ready for Plan 02.
+Stopped at: Completed 42-session-resume-02-PLAN.md — backend endpoints for session resume complete. Ready for Plan 03.
 Resume file: None.
