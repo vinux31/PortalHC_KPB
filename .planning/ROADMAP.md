@@ -13,6 +13,7 @@
 - ✅ **v1.7 Assessment System Integrity** — Phases 21-26 (shipped 2026-02-21)
 - ✅ **v1.8 Assessment Polish** — Phases 27-32 (shipped 2026-02-23)
 - 🚧 **v1.9 Proton Catalog Management** — Phases 33-37 (in progress)
+- 🔜 **v2.0 Assessment Management & Training History** — Phases 38-40 (planned)
 
 ## Phases
 
@@ -315,6 +316,64 @@ Plans:
 
 ---
 
+### 🔜 v2.0 Assessment Management & Training History (Phases 38-40)
+
+**Milestone Goal:** HC gets better control over active assessments and a unified history view — close assessments early with fair scoring, auto-clean stale entries from Management and Monitoring tabs, and see all training + assessment completions in one place.
+
+---
+
+#### Phase 38: Auto-Hide Filter
+**Goal:** Stale assessment groups disappear automatically from both the Management tab and the Monitoring tab 7 days after their exam window closes — HC no longer sees old completed assessments cluttering the active list
+**Depends on:** Phase 37 (v1.9 complete)
+**Requirements:** ASSESS-02, ASSESS-03
+**Success Criteria** (what must be TRUE):
+  1. An assessment group whose ExamWindowCloseDate was 8 or more days ago no longer appears in the Monitoring tab — only groups closed within the last 7 days (or still open/upcoming) are shown
+  2. The same assessment group is also absent from the Management tab — both tabs apply the identical 7-day cutoff filter
+  3. An assessment group with no ExamWindowCloseDate falls back to Schedule date for the 7-day calculation — groups are not permanently pinned just because no close date was set
+  4. An assessment group closed exactly 7 days ago is still visible — it disappears on day 8
+**Plans:** 1 plan
+
+Plans:
+- [ ] 38-01-PLAN.md — Backend query change: add 7-day cutoff filter to both GetManageData and GetMonitorData queries using ExamWindowCloseDate ?? Schedule.Date; no frontend changes needed
+
+---
+
+#### Phase 39: Close Early
+**Goal:** HC can stop an active assessment group from the MonitoringDetail page — workers already in progress receive a fair score calculated from their actual submitted answers rather than a zero
+**Depends on:** Phase 38
+**Requirements:** ASSESS-01
+**Success Criteria** (what must be TRUE):
+  1. HC sees a "Tutup Lebih Awal" button on AssessmentMonitoringDetail for any Open assessment group — the button is not shown for Upcoming or already-closed groups
+  2. HC clicks the button and confirms — ExamWindowCloseDate is set to now for all sessions in the group; workers who have not started can no longer access the exam
+  3. Workers whose status was InProgress at the time of close are marked Completed with a score calculated from their actual PackageUserResponse answers (not Score=0)
+  4. Workers whose status was Not Started remain Not Started — they are locked out but their score stays null
+  5. The MonitoringDetail page reflects the updated statuses and scores immediately after the action completes
+**Plans:** 2 plans
+
+Plans:
+- [ ] 39-01-PLAN.md — Backend: CloseEarly POST action in CMPController; sets ExamWindowCloseDate=DateTime.UtcNow on all sibling sessions; for each InProgress session, calculate score from PackageUserResponse answers using same grading logic as SubmitExam package path; mark session Completed+IsPassed; audit log entry
+- [ ] 39-02-PLAN.md — Frontend: "Tutup Lebih Awal" button in AssessmentMonitoringDetail.cshtml (HC/Admin only, Open groups only); Bootstrap confirmation modal with warning text; POST form to CloseEarly action; human verification checkpoint
+
+---
+
+#### Phase 40: Training Records History Tab
+**Goal:** HC can see all workers' training activity — both manual training records and completed assessment online sessions — in one combined chronological list without navigating to individual worker pages
+**Depends on:** Phase 38
+**Requirements:** HIST-01
+**Success Criteria** (what must be TRUE):
+  1. The RecordsWorkerList page has a second tab labelled "History" alongside the existing worker list tab — clicking it shows the combined history table
+  2. The History tab shows one row per training event across all workers: manual TrainingRecords and completed AssessmentSessions (IsPassed is not null) are both included
+  3. Each row displays the worker name, record type (Manual / Assessment Online), title, tanggal mulai, and relevant type-specific detail (penyelenggara for manual; score+pass/fail for assessment)
+  4. Rows are sorted by tanggal mulai descending — the most recent activity appears at the top regardless of type
+  5. HC can use the History tab to confirm a specific worker completed a training or assessment without opening that worker's individual detail page
+**Plans:** 2 plans
+
+Plans:
+- [ ] 40-01-PLAN.md — Backend: AllWorkersHistoryViewModel; CMPController action or extension to RecordsWorkerList GET that queries all TrainingRecords + completed AssessmentSessions (Status=="Completed"), merges and sorts by tanggal mulai descending; human verification checkpoint
+- [ ] 40-02-PLAN.md — Frontend: second Bootstrap tab in RecordsWorkerList.cshtml; history table with type badge, worker name, title, date, type-specific columns; tab persistence via activeTab hidden input or URL param; human verification checkpoint
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -356,3 +415,6 @@ Plans:
 | 35. CRUD Add and Edit | v1.9 | 2/2 | Complete | 2026-02-24 |
 | 36. Delete Guards | v1.9 | 1/2 | In progress | — |
 | 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
+| 38. Auto-Hide Filter | v2.0 | 0/1 | Not started | — |
+| 39. Close Early | v2.0 | 0/2 | Not started | — |
+| 40. Training Records History Tab | v2.0 | 0/2 | Not started | — |
