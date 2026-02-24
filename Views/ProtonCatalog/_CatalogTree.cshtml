@@ -1,16 +1,3 @@
-<style>
-    .sortable-ghost {
-        opacity: 0.3;
-        background-color: #e8f4fd;
-    }
-    .sortable-chosen {
-        opacity: 0.8;
-    }
-    .drag-handle:active {
-        cursor: grabbing;
-    }
-</style>
-
 @model List<HcPortal.Models.ProtonKompetensi>
 
 @if (Model == null || !Model.Any())
@@ -28,19 +15,15 @@ else
 {
     <table class="table table-bordered mb-0">
         <colgroup>
-            <col style="width:24px;">
             <col style="width:50px;">
             <col>
             <col style="width:50px;">
         </colgroup>
-        <tbody data-sortable-level="Kompetensi">
+        <tbody>
             @foreach (var kompetensi in Model.OrderBy(k => k.Urutan))
             {
                 <!-- Level 1: Kompetensi row -->
-                <tr class="sortable-row" data-id="@kompetensi.Id">
-                    <td class="align-middle text-center">
-                        <i class="bi bi-grip-vertical drag-handle text-secondary" style="cursor:grab; font-size:1rem;"></i>
-                    </td>
+                <tr>
                     <td class="align-middle text-center">
                         <button type="button" class="btn btn-link btn-sm p-0 text-secondary"
                                 data-bs-toggle="collapse"
@@ -72,19 +55,18 @@ else
                 </tr>
                 <!-- Level 1: Kompetensi collapse container -->
                 <tr id="kompetensi-@kompetensi.Id" class="collapse">
-                    <td colspan="4" class="p-0 ps-4">
+                    <td colspan="3" class="p-0 ps-4">
                         <table class="table table-bordered mb-0">
                             <colgroup>
-                                <col style="width:24px;">
                                 <col style="width:50px;">
                                 <col>
                                 <col style="width:50px;">
                             </colgroup>
-                            <tbody data-sortable-level="SubKompetensi" data-parent-id="@kompetensi.Id">
+                            <tbody>
                                 @if (!kompetensi.SubKompetensiList.Any())
                                 {
                                     <tr>
-                                        <td colspan="4" class="py-1">
+                                        <td colspan="3" class="py-1">
                                             <div class="text-muted small fst-italic ps-1">No SubKompetensi yet</div>
                                         </td>
                                     </tr>
@@ -92,10 +74,7 @@ else
                                 @foreach (var sub in kompetensi.SubKompetensiList.OrderBy(s => s.Urutan))
                                 {
                                     <!-- Level 2: SubKompetensi row -->
-                                    <tr class="sortable-row" data-id="@sub.Id">
-                                        <td class="align-middle text-center">
-                                            <i class="bi bi-grip-vertical drag-handle text-secondary" style="cursor:grab; font-size:1rem;"></i>
-                                        </td>
+                                    <tr>
                                         <td class="align-middle text-center">
                                             <button type="button" class="btn btn-link btn-sm p-0 text-secondary"
                                                     data-bs-toggle="collapse"
@@ -127,19 +106,18 @@ else
                                     </tr>
                                     <!-- Level 2: SubKompetensi collapse container -->
                                     <tr id="subkompetensi-@sub.Id" class="collapse">
-                                        <td colspan="4" class="p-0 ps-4">
+                                        <td colspan="3" class="p-0 ps-4">
                                             <table class="table table-bordered mb-0">
                                                 <colgroup>
-                                                    <col style="width:24px;">
                                                     <col style="width:50px;">
                                                     <col>
                                                     <col style="width:50px;">
                                                 </colgroup>
-                                                <tbody data-sortable-level="Deliverable" data-parent-id="@sub.Id">
+                                                <tbody>
                                                     @if (!sub.Deliverables.Any())
                                                     {
                                                         <tr>
-                                                            <td colspan="4" class="py-1">
+                                                            <td colspan="3" class="py-1">
                                                                 <div class="text-muted small fst-italic ps-1">No Deliverables yet</div>
                                                             </td>
                                                         </tr>
@@ -147,11 +125,9 @@ else
                                                     @foreach (var deliverable in sub.Deliverables.OrderBy(d => d.Urutan))
                                                     {
                                                         <!-- Level 3: Deliverable (leaf, no chevron) -->
-                                                        <tr class="sortable-row" data-id="@deliverable.Id">
-                                                            <td class="align-middle text-center">
-                                                                <i class="bi bi-grip-vertical drag-handle text-secondary" style="cursor:grab; font-size:1rem;"></i>
-                                                            </td>
-                                                            <td class="align-middle ps-2" colspan="2">
+                                                        <tr>
+                                                            <td></td>
+                                                            <td class="align-middle ps-2">
                                                                 <span class="item-name" data-level="Deliverable" data-id="@deliverable.Id">@deliverable.NamaDeliverable</span>
                                                             </td>
                                                             <td class="align-middle text-end pe-2 text-nowrap">
@@ -174,7 +150,7 @@ else
                                                     }
                                                     <!-- Add Deliverable trigger (always visible) -->
                                                     <tr class="add-deliverable-trigger-row">
-                                                        <td colspan="4" class="py-1">
+                                                        <td colspan="3" class="py-1">
                                                             <a href="#" class="text-primary small text-decoration-none ms-1"
                                                                data-parent-id="@sub.Id">+ Add Deliverable</a>
                                                             <div class="add-input-row d-none mt-1" id="addDeliverableInput-@sub.Id"></div>
@@ -187,7 +163,7 @@ else
                                 }
                                 <!-- Add SubKompetensi trigger (always visible, after last SubKompetensi row) -->
                                 <tr class="add-subkompetensi-trigger-row">
-                                    <td colspan="4" class="py-1">
+                                    <td colspan="3" class="py-1">
                                         <a href="#" class="text-primary small text-decoration-none ms-1"
                                            data-parent-id="@kompetensi.Id">+ Add SubKompetensi</a>
                                         <div class="add-input-row d-none mt-1" id="addSubKompetensiInput-@kompetensi.Id"></div>
