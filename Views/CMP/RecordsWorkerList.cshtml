@@ -51,6 +51,30 @@
         </div>
     }
 
+    <!-- Tab Strip (Phase 40) -->
+    <ul class="nav nav-tabs mb-4" id="recordsTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="workers-tab" data-bs-toggle="tab"
+                    data-bs-target="#workers-tab-pane" type="button" role="tab"
+                    aria-controls="workers-tab-pane" aria-selected="true">
+                <i class="bi bi-people me-1"></i> Daftar Pekerja
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="history-tab" data-bs-toggle="tab"
+                    data-bs-target="#history-tab-pane" type="button" role="tab"
+                    aria-controls="history-tab-pane" aria-selected="false">
+                <i class="bi bi-clock-history me-1"></i> History
+                <span class="badge bg-secondary ms-1">@Model.History.Count</span>
+            </button>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="recordsTabsContent">
+
+    <!-- Workers Tab Pane — wraps existing filter + table -->
+    <div class="tab-pane fade show active" id="workers-tab-pane" role="tabpanel" aria-labelledby="workers-tab">
+
     <!-- Filter and Export Section -->
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div class="d-flex gap-2">
@@ -254,6 +278,89 @@
             <i class="bi bi-file-earmark-excel me-2"></i>Export to Excel
         </button>
     </div>
+
+    </div> <!-- /workers-tab-pane -->
+
+    <!-- History Tab Pane (Phase 40) -->
+    <div class="tab-pane fade" id="history-tab-pane" role="tabpanel" aria-labelledby="history-tab">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 fw-bold text-primary">
+                    <i class="bi bi-clock-history me-2"></i>Riwayat Training &amp; Assessment — Semua Pekerja
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                @if (!Model.History.Any())
+                {
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                        <h5>Belum ada riwayat</h5>
+                        <p class="small">Data akan muncul setelah ada Training Record atau Assessment yang selesai.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="sticky-header">
+                                <tr>
+                                    <th class="p-3">Nama Pekerja</th>
+                                    <th class="p-3">Nopeg</th>
+                                    <th class="p-3">Tipe</th>
+                                    <th class="p-3">Judul / Nama Pelatihan</th>
+                                    <th class="p-3">Tanggal Mulai</th>
+                                    <th class="p-3">Penyelenggara</th>
+                                    <th class="p-3 text-center">Nilai</th>
+                                    <th class="p-3 text-center">Pass/Fail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in Model.History)
+                                {
+                                    <tr>
+                                        <td class="p-3 fw-semibold">@row.WorkerName</td>
+                                        <td class="p-3 text-muted">@(row.WorkerNIP ?? "—")</td>
+                                        <td class="p-3">
+                                            @if (row.RecordType == "Assessment Online")
+                                            {
+                                                <span class="badge rounded-pill bg-primary">Assessment Online</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge rounded-pill bg-success">Manual</span>
+                                            }
+                                        </td>
+                                        <td class="p-3"><span class="fw-semibold">@row.Title</span></td>
+                                        <td class="p-3">@row.Date.ToString("dd MMM yyyy")</td>
+                                        <td class="p-3">@(row.Penyelenggara ?? "—")</td>
+                                        <td class="p-3 text-center">
+                                            @if (row.Score.HasValue)
+                                            { <span>@row.Score</span> }
+                                            else
+                                            { <span class="text-muted">—</span> }
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            @if (row.IsPassed.HasValue)
+                                            {
+                                                if (row.IsPassed == true)
+                                                { <span class="badge bg-success">Pass</span> }
+                                                else
+                                                { <span class="badge bg-danger">Fail</span> }
+                                            }
+                                            else
+                                            { <span class="text-muted">—</span> }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    </div> <!-- /tab-content -->
 </div>
 
 <style>
@@ -375,6 +482,18 @@
 
         // Initialize pagination
         initializePagination();
+
+        // Update URL param when switching tabs so the browser back button and refresh work
+        document.getElementById('history-tab')?.addEventListener('shown.bs.tab', function () {
+            var url = new URL(window.location.href);
+            url.searchParams.set('activeTab', 'history');
+            history.replaceState(null, '', url.toString());
+        });
+        document.getElementById('workers-tab')?.addEventListener('shown.bs.tab', function () {
+            var url = new URL(window.location.href);
+            url.searchParams.delete('activeTab');
+            history.replaceState(null, '', url.toString());
+        });
     });
 
     // Initialize pagination
@@ -499,4 +618,16 @@
         link.click();
         document.body.removeChild(link);
     }
+
+    // Phase 40: Tab persistence — activate History tab if ?activeTab=history in URL
+    // Pattern mirrors Views/CDP/Dashboard.cshtml lines 56-72
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('activeTab') === 'history') {
+            var historyTabEl = document.getElementById('history-tab');
+            if (historyTabEl) {
+                new bootstrap.Tab(historyTabEl).show();
+            }
+        }
+    })();
 </script>
