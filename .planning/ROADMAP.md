@@ -351,8 +351,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 39-01-PLAN.md — Backend: CloseEarly POST action in CMPController; sets ExamWindowCloseDate=DateTime.UtcNow on all sibling sessions; for each InProgress session, calculate score from PackageUserResponse answers using same grading logic as SubmitExam package path; mark session Completed+IsPassed; audit log entry
-- [ ] 39-02-PLAN.md — Frontend: "Tutup Lebih Awal" button in AssessmentMonitoringDetail.cshtml (HC/Admin only, Open groups only); Bootstrap confirmation modal with warning text; POST form to CloseEarly action; human verification checkpoint
+- [x] 39-01-PLAN.md — Backend: CloseEarly POST action in CMPController; sets ExamWindowCloseDate=DateTime.UtcNow on all sibling sessions; for each InProgress session, calculate score from PackageUserResponse answers using same grading logic as SubmitExam package path; mark session Completed+IsPassed; audit log entry
+- [x] 39-02-PLAN.md — Frontend: "Tutup Lebih Awal" button in AssessmentMonitoringDetail.cshtml (HC/Admin only, Open groups only); Bootstrap confirmation modal with warning text; POST form to CloseEarly action; human verification checkpoint
 
 ---
 
@@ -416,5 +416,5 @@ Plans:
 | 36. Delete Guards | v1.9 | 1/2 | In progress | — |
 | 37. Drag-and-Drop Reorder | v1.9 | 0/2 | Not started | — |
 | 38. Auto-Hide Filter | v2.0 | 1/1 | Complete | 2026-02-24 |
-| 39. Close Early | v2.0 | 0/2 | Not started | — |
+| 39. Close Early | v2.0 | 2/2 | Complete | 2026-02-24 |
 | 40. Training Records History Tab | v2.0 | 0/2 | Not started | — |
