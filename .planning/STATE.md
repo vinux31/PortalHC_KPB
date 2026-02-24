@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
 **Phase:** 42 of 44 (Session Resume)
-**Current Plan:** — (not started)
-**Next action:** `/gsd:plan-phase 42`
-**Status:** Phase 41 complete — all 3 requirements satisfied (SAVE-01, SAVE-02, SAVE-03)
-**Last activity:** 2026-02-24 — Phase 41 complete (auto-save: debounced radio saves, indicator, nav blocking, ExamSummary badge, human verified)
+**Current Plan:** 01 of 4 complete
+**Next action:** Execute Phase 42 Plan 02
+**Status:** Phase 42 Plan 01 complete — database schema in place (ElapsedSeconds, LastActivePage, SavedQuestionCount)
+**Last activity:** 2026-02-24 — Phase 42 Plan 01 complete (migration AddSessionResumeFields applied, build green)
 
 Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete, Phase 41 ✓)
 
@@ -35,6 +35,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 25% (v2
 | Phase 40-history-tab P02 | ~5min | 2 tasks + 1 checkpoint, 1 file |
 | Phase 41-auto-save P01 | 2min | 2 tasks, 5 files |
 | Phase 41-auto-save P02 | ~12min | 3 tasks + human checkpoint, 2 files |
+| Phase 42-session-resume P01 | 2min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -57,6 +58,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 41-auto-save]: ExecuteUpdateAsync + conditional Add pattern used for atomic upsert — avoids EF change tracking race condition on concurrent auto-saves
 - [Phase 41-auto-save]: UNIQUE DB constraint on PackageUserResponse(AssessmentSessionId, PackageQuestionId) as safety net for extreme concurrency
 - [Phase 41-auto-save]: SaveLegacyAnswer targets UserResponse (not PackageUserResponse) — consistent with legacy exam scoring path established in Phase 39
+- [Phase 42-01]: ElapsedSeconds is non-nullable int with DEFAULT 0 — no null check needed in backend, clean accumulation
+- [Phase 42-01]: LastActivePage and SavedQuestionCount are nullable int — null signals pre-Phase-42 session, avoiding data migration of live records
 
 ### Pending Todos
 
@@ -69,5 +72,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Phase 41 complete — all plans executed, human verification approved. Ready to plan Phase 42.
+Stopped at: Completed 42-session-resume-01-PLAN.md — database fields and migration applied. Ready for Plan 02.
 Resume file: None.
