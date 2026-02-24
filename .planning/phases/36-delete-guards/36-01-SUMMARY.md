@@ -96,3 +96,9 @@ None - no external service configuration required.
 ---
 *Phase: 36-delete-guards*
 *Completed: 2026-02-24*
+
+## Self-Check: PASSED
+
+- Controllers/ProtonCatalogController.cs: FOUND
+- .planning/phases/36-delete-guards/36-01-SUMMARY.md: FOUND
+- Commit 8b0653f: FOUND
