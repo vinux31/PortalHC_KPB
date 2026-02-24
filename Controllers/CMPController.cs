@@ -781,6 +781,252 @@ namespace HcPortal.Controllers
             return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
         }
 
+        // --- CLOSE EARLY (score InProgress sessions from submitted answers, lock all) ---
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseEarly(string title, string category, DateTime scheduleDate)
+        {
+            // Step 1 — Load all sibling sessions (same pattern as ForceCloseAll)
+            var allSessions = await _context.AssessmentSessions
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!allSessions.Any())
+            {
+                TempData["Error"] = "Assessment group not found.";
+                return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+            }
+
+            // Step 2 — Detect package mode (same pattern as AssessmentMonitoringDetail lines 405-408)
+            var siblingIds = allSessions.Select(s => s.Id).ToList();
+            var packageCount = await _context.AssessmentPackages
+                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+            var isPackageMode = packageCount > 0;
+
+            // Step 3 — For package mode: preload all packages + questions + options + assignments in bulk (avoid N+1 queries)
+            Dictionary<int, UserPackageAssignment> sessionAssignmentMap = new();
+            Dictionary<int, AssessmentPackage> packageMap = new();
+
+            if (isPackageMode)
+            {
+                var assignments = await _context.UserPackageAssignments
+                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
+                    .ToListAsync();
+                foreach (var a in assignments)
+                    sessionAssignmentMap[a.AssessmentSessionId] = a;
+
+                var packageIds = assignments.Select(a => a.AssessmentPackageId).Distinct().ToList();
+                var packages = await _context.AssessmentPackages
+                    .Include(p => p.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Where(p => packageIds.Contains(p.Id))
+                    .ToListAsync();
+                foreach (var p in packages)
+                    packageMap[p.Id] = p;
+            }
+
+            // Step 4 — For legacy mode: preload questions + options for the group's sibling that has questions
+            List<AssessmentQuestion> legacyQuestions = new();
+            if (!isPackageMode)
+            {
+                var siblingWithQuestions = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Where(a => siblingIds.Contains(a.Id) && a.Questions.Any())
+                    .FirstOrDefaultAsync();
+                legacyQuestions = siblingWithQuestions?.Questions?.ToList() ?? new();
+            }
+
+            // Step 5 — Loop over all sessions, set ExamWindowCloseDate, score InProgress sessions
+            int inProgressCount = 0;
+
+            foreach (var session in allSessions)
+            {
+                // Always lock out future starts
+                session.ExamWindowCloseDate = DateTime.UtcNow;
+                session.UpdatedAt = DateTime.UtcNow;
+
+                bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
+                if (!isInProgress) continue;
+
+                inProgressCount++;
+
+                if (isPackageMode)
+                {
+                    // Package path: score from PackageUserResponse records
+                    if (!sessionAssignmentMap.TryGetValue(session.Id, out var assignment)) continue;
+                    if (!packageMap.TryGetValue(assignment.AssessmentPackageId, out var pkg)) continue;
+
+                    // Load existing answers for this session as a dictionary questionId -> optionId
+                    var responses = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == session.Id)
+                        .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
+
+                    int totalScore = 0;
+                    int maxScore = pkg.Questions.Sum(q => q.ScoreValue); // use Sum, not Count*10 (Pitfall 6)
+
+                    foreach (var q in pkg.Questions)
+                    {
+                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                        {
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += q.ScoreValue;
+                        }
+                        // No answer = no points (Pitfall 5 handled)
+                    }
+
+                    int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+                    session.Score = finalPercentage;
+                    session.Status = "Completed";
+                    session.Progress = 100;
+                    session.IsPassed = finalPercentage >= session.PassPercentage;
+                    session.CompletedAt = DateTime.UtcNow;
+                    assignment.IsCompleted = true;
+
+                    // Competency update for passed sessions (parity with SubmitExam lines 2878-2921)
+                    if (session.IsPassed == true)
+                    {
+                        var mappedCompetencies = await _context.AssessmentCompetencyMaps
+                            .Include(m => m.KkjMatrixItem)
+                            .Where(m => m.AssessmentCategory == session.Category &&
+                                        (m.TitlePattern == null || session.Title.Contains(m.TitlePattern)))
+                            .ToListAsync();
+
+                        if (mappedCompetencies.Any())
+                        {
+                            var sessionUser = await _context.Users.FindAsync(session.UserId);
+                            foreach (var mapping in mappedCompetencies)
+                            {
+                                if (mapping.MinimumScoreRequired.HasValue && session.Score < mapping.MinimumScoreRequired.Value)
+                                    continue;
+
+                                var existingLevel = await _context.UserCompetencyLevels
+                                    .FirstOrDefaultAsync(c => c.UserId == session.UserId &&
+                                                              c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+                                if (existingLevel == null)
+                                {
+                                    int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, sessionUser?.Position);
+                                    _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                                    {
+                                        UserId = session.UserId,
+                                        KkjMatrixItemId = mapping.KkjMatrixItemId,
+                                        CurrentLevel = mapping.LevelGranted,
+                                        TargetLevel = targetLevel,
+                                        Source = "Assessment",
+                                        AssessmentSessionId = session.Id,
+                                        AchievedAt = DateTime.UtcNow
+                                    });
+                                }
+                                else if (mapping.LevelGranted > existingLevel.CurrentLevel)
+                                {
+                                    existingLevel.CurrentLevel = mapping.LevelGranted;
+                                    existingLevel.Source = "Assessment";
+                                    existingLevel.AssessmentSessionId = session.Id;
+                                    existingLevel.UpdatedAt = DateTime.UtcNow;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // Legacy path: score from UserResponse records (reuse SubmitExam legacy grading logic)
+                    // Load answers for this session
+                    var userResponses = await _context.UserResponses
+                        .Where(r => r.AssessmentSessionId == session.Id)
+                        .ToDictionaryAsync(r => r.AssessmentQuestionId, r => r.SelectedOptionId);
+
+                    int totalScore = 0;
+                    int maxScore = 0;
+
+                    foreach (var question in legacyQuestions)
+                    {
+                        maxScore += question.ScoreValue;
+                        if (userResponses.TryGetValue(question.Id, out var selectedOptionId) && selectedOptionId.HasValue)
+                        {
+                            var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += question.ScoreValue;
+                        }
+                    }
+
+                    int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+                    session.Score = finalPercentage;
+                    session.Status = "Completed";
+                    session.Progress = 100;
+                    session.IsPassed = finalPercentage >= session.PassPercentage;
+                    session.CompletedAt = DateTime.UtcNow;
+
+                    // Competency update for legacy passed sessions
+                    if (session.IsPassed == true)
+                    {
+                        var mappedCompetencies = await _context.AssessmentCompetencyMaps
+                            .Include(m => m.KkjMatrixItem)
+                            .Where(m => m.AssessmentCategory == session.Category &&
+                                        (m.TitlePattern == null || session.Title.Contains(m.TitlePattern)))
+                            .ToListAsync();
+
+                        if (mappedCompetencies.Any())
+                        {
+                            var sessionUser = await _context.Users.FindAsync(session.UserId);
+                            foreach (var mapping in mappedCompetencies)
+                            {
+                                if (mapping.MinimumScoreRequired.HasValue && session.Score < mapping.MinimumScoreRequired.Value)
+                                    continue;
+
+                                var existingLevel = await _context.UserCompetencyLevels
+                                    .FirstOrDefaultAsync(c => c.UserId == session.UserId &&
+                                                              c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+                                if (existingLevel == null)
+                                {
+                                    int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, sessionUser?.Position);
+                                    _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                                    {
+                                        UserId = session.UserId,
+                                        KkjMatrixItemId = mapping.KkjMatrixItemId,
+                                        CurrentLevel = mapping.LevelGranted,
+                                        TargetLevel = targetLevel,
+                                        Source = "Assessment",
+                                        AssessmentSessionId = session.Id,
+                                        AchievedAt = DateTime.UtcNow
+                                    });
+                                }
+                                else if (mapping.LevelGranted > existingLevel.CurrentLevel)
+                                {
+                                    existingLevel.CurrentLevel = mapping.LevelGranted;
+                                    existingLevel.Source = "Assessment";
+                                    existingLevel.AssessmentSessionId = session.Id;
+                                    existingLevel.UpdatedAt = DateTime.UtcNow;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 6 — Single SaveChangesAsync + audit log + redirect
+            await _context.SaveChangesAsync();
+
+            var actor = await _userManager.GetUserAsync(User);
+            var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+            await _auditLog.LogAsync(
+                actor?.Id ?? "",
+                actorName,
+                "CloseEarly",
+                $"Closed early assessment group '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) — {inProgressCount} session(s) scored from answers, {allSessions.Count} total session(s) locked",
+                null,
+                "AssessmentSession");
+
+            TempData["Success"] = $"Assessment group ditutup lebih awal. {inProgressCount} sesi diberi skor berdasarkan jawaban yang sudah dikerjakan.";
+            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+        }
+
         // --- RESHUFFLE PACKAGE (single worker) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
