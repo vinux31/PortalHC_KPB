@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 41 ready to plan
+**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 41 complete, Phase 42 next
 
 ## Current Position
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
-**Phase:** 41 of 44 (Auto-Save)
-**Current Plan:** 02 in progress (paused at Task 3 checkpoint:human-verify)
-**Next action:** Human verify auto-save behaviour in browser, then resume 41-02 Task 3
-**Status:** Phase 41 Plan 02 Tasks 1-2 complete — auto-save JS + indicator + navigation blocking live; ExamSummary badge live
-**Last activity:** 2026-02-24 — Phase 41-02 Tasks 1-2 complete (debounced auto-save, save indicator, navigation blocking, ExamSummary badge)
+**Phase:** 42 of 44 (Session Resume)
+**Current Plan:** — (not started)
+**Next action:** `/gsd:plan-phase 42`
+**Status:** Phase 41 complete — all 3 requirements satisfied (SAVE-01, SAVE-02, SAVE-03)
+**Last activity:** 2026-02-24 — Phase 41 complete (auto-save: debounced radio saves, indicator, nav blocking, ExamSummary badge, human verified)
 
-Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete)
+Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete, Phase 41 ✓)
 
 ## Performance Metrics
 
@@ -34,7 +34,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 25% (v2
 | Phase 40-history-tab P01 | 8min | 2 tasks, 3 files |
 | Phase 40-history-tab P02 | ~5min | 2 tasks + 1 checkpoint, 1 file |
 | Phase 41-auto-save P01 | 2min | 2 tasks, 5 files |
-| Phase 41-auto-save P02 | ~7min | 2 tasks (Task 3 checkpoint pending), 2 files |
+| Phase 41-auto-save P02 | ~12min | 3 tasks + human checkpoint, 2 files |
 
 ## Accumulated Context
 
@@ -69,5 +69,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: 41-02-PLAN.md Task 3 checkpoint:human-verify — awaiting browser verification of auto-save indicator, navigation blocking, and ExamSummary badge
+Stopped at: Phase 41 complete — all plans executed, human verification approved. Ready to plan Phase 42.
 Resume file: None.
