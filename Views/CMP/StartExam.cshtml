@@ -214,7 +214,25 @@ else
         window.scrollTo(0, 0);
     }
 
-    // -------- Answer tracking --------
+    // -------- Answer tracking + incremental save --------
+    const SAVE_ANSWER_URL = '@Url.Action("SaveAnswer", "CMP")';
+    const SAVE_ANSWER_TOKEN = document.querySelector('input[name="__RequestVerificationToken"]') !== null
+        ? document.querySelector('input[name="__RequestVerificationToken"]').value
+        : '';
+    const SESSION_ID = @Model.AssessmentSessionId;
+
+    function saveAnswerAsync(questionId, optionId) {
+        // Fire and forget — do not block UI. Silently ignore failures.
+        fetch(SAVE_ANSWER_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': SAVE_ANSWER_TOKEN
+            },
+            body: 'sessionId=' + SESSION_ID + '&questionId=' + questionId + '&optionId=' + optionId
+        }).catch(function() { /* ignore network errors — answers still in hidden inputs for final submit */ });
+    }
+
     document.querySelectorAll('.exam-radio').forEach(function(radio) {
         radio.addEventListener('change', function() {
             const qId = this.getAttribute('data-question-id');
@@ -228,6 +246,8 @@ else
                 lbl.classList.remove('option-selected');
             });
             document.getElementById('lbl_' + qId + '_' + optId).classList.add('option-selected');
+            // Incrementally persist answer to DB (non-blocking)
+            saveAnswerAsync(qId, optId);
         });
     });
 
@@ -290,6 +310,40 @@ else
     document.getElementById('examForm').addEventListener('submit', function() {
         window.onbeforeunload = null;
     });
+
+    // -------- Poll CheckExamStatus every 30s (detect early close by HC) --------
+    const CHECK_STATUS_URL = '@Url.Action("CheckExamStatus", "CMP")?sessionId=' + SESSION_ID;
+    var statusPollInterval = null;
+    var examClosed = false;
+
+    function checkExamStatus() {
+        if (examClosed) return;
+        fetch(CHECK_STATUS_URL)
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (data.closed && !examClosed) {
+                    examClosed = true;
+                    clearInterval(statusPollInterval);
+                    clearInterval(timerInterval);
+                    window.onbeforeunload = null;
+
+                    // Show banner notification
+                    var banner = document.createElement('div');
+                    banner.className = 'alert alert-warning alert-dismissible text-center fw-semibold';
+                    banner.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:2000;min-width:400px;max-width:90vw;';
+                    banner.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Ujian telah ditutup oleh administrator. Anda akan diarahkan ke halaman hasil...';
+                    document.body.appendChild(banner);
+
+                    // Redirect after 3 seconds
+                    setTimeout(function() {
+                        window.location.href = data.redirectUrl || '/CMP/Assessment';
+                    }, 3000);
+                }
+            })
+            .catch(function() { /* ignore network errors during poll */ });
+    }
+
+    statusPollInterval = setInterval(checkExamStatus, 30000);
 </script>
 
 <style>

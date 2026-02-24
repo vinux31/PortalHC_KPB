@@ -1027,6 +1027,80 @@ namespace HcPortal.Controllers
             return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
         }
 
+        // --- SAVE ANSWER (incremental — called by worker JS on each radio change) ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveAnswer(int sessionId, int questionId, int optionId)
+        {
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Only the session owner may save answers
+            if (session.UserId != user.Id)
+                return Json(new { success = false, error = "Unauthorized" });
+
+            // Session must still be in progress
+            if (session.Status == "Completed" || session.Status == "Abandoned")
+                return Json(new { success = false, error = "Session already closed" });
+
+            // Upsert: update existing record for this session+question, or insert new one
+            var existing = await _context.PackageUserResponses
+                .FirstOrDefaultAsync(r => r.AssessmentSessionId == sessionId && r.PackageQuestionId == questionId);
+
+            if (existing != null)
+            {
+                existing.PackageOptionId = optionId;
+                existing.SubmittedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                _context.PackageUserResponses.Add(new PackageUserResponse
+                {
+                    AssessmentSessionId = sessionId,
+                    PackageQuestionId = questionId,
+                    PackageOptionId = optionId,
+                    SubmittedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        // --- CHECK EXAM STATUS (polled by worker JS every 30s to detect early close) ---
+        [HttpGet]
+        public async Task<IActionResult> CheckExamStatus(int sessionId)
+        {
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Only the session owner may poll status
+            if (session.UserId != user.Id)
+                return Json(new { closed = false });
+
+            bool isClosed = false;
+
+            // Closed if ExamWindowCloseDate has been set and is in the past (CloseEarly fired)
+            if (session.ExamWindowCloseDate.HasValue && DateTime.UtcNow > session.ExamWindowCloseDate.Value)
+                isClosed = true;
+
+            // Also closed if session is already Completed (CloseEarly scored it)
+            if (session.Status == "Completed")
+                isClosed = true;
+
+            string redirectUrl = isClosed
+                ? Url.Action("Results", new { id = sessionId }) ?? "/CMP/Assessment"
+                : "";
+
+            return Json(new { closed = isClosed, redirectUrl });
+        }
+
         // --- RESHUFFLE PACKAGE (single worker) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -3101,14 +3175,25 @@ namespace HcPortal.Controllers
                             totalScore += q.ScoreValue;
                     }
 
-                    // Persist answer for package-based answer review
-                    _context.PackageUserResponses.Add(new PackageUserResponse
+                    // Persist answer for package-based answer review (upsert: SaveAnswer may have already
+                    // written a record incrementally; update it rather than inserting a duplicate)
+                    var existingResponse = await _context.PackageUserResponses
+                        .FirstOrDefaultAsync(r => r.AssessmentSessionId == id && r.PackageQuestionId == q.Id);
+                    if (existingResponse != null)
                     {
-                        AssessmentSessionId = id,
-                        PackageQuestionId = q.Id,
-                        PackageOptionId = selectedOptId,
-                        SubmittedAt = DateTime.UtcNow
-                    });
+                        existingResponse.PackageOptionId = selectedOptId;
+                        existingResponse.SubmittedAt = DateTime.UtcNow;
+                    }
+                    else
+                    {
+                        _context.PackageUserResponses.Add(new PackageUserResponse
+                        {
+                            AssessmentSessionId = id,
+                            PackageQuestionId = q.Id,
+                            PackageOptionId = selectedOptId,
+                            SubmittedAt = DateTime.UtcNow
+                        });
+                    }
                 }
 
                 int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;

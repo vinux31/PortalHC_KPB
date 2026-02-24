@@ -119,7 +119,7 @@
                     <!-- Close Early: triggers Bootstrap modal confirmation -->
                     <button type="button" class="btn btn-warning btn-sm"
                             data-bs-toggle="modal" data-bs-target="#closeEarlyModal">
-                        <i class="bi bi-clock-history me-1"></i>Tutup Lebih Awal
+                        <i class="bi bi-clock-history me-1"></i>Submit Assessment
                     </button>
                 }
                 <!-- Force Close All: POST with antiforgery, confirm() guard -->
@@ -310,7 +310,7 @@
                 <div class="modal-content">
                     <div class="modal-header bg-warning">
                         <h5 class="modal-title fw-semibold" id="closeEarlyModalLabel">
-                            <i class="bi bi-clock-history me-2"></i>Tutup Lebih Awal
+                            <i class="bi bi-clock-history me-2"></i>Submit Assessment
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
@@ -331,7 +331,7 @@
                             <input type="hidden" name="category" value="@Model.Category" />
                             <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
                             <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-clock-history me-1"></i>Ya, Tutup Lebih Awal
+                                <i class="bi bi-clock-history me-1"></i>Ya, Submit Assessment
                             </button>
                         </form>
                     </div>
