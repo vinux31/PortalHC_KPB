@@ -239,5 +239,170 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
             return Json(new { success = true });
         }
+
+        // GET: /ProtonCatalog/GetDeleteImpact?level=Kompetensi&itemId=1
+        [HttpGet]
+        public async Task<IActionResult> GetDeleteImpact(string level, int itemId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || user.RoleLevel > 2)
+                return Json(new { success = false, error = "Unauthorized" });
+
+            if (string.IsNullOrWhiteSpace(level) || itemId <= 0)
+                return Json(new { success = false, error = "Input tidak valid." });
+
+            string itemName;
+            List<int> affectedDeliverableIds;
+            int subKompetensiCount = 0;
+            int deliverableCount = 0;
+
+            switch (level)
+            {
+                case "Kompetensi":
+                    var kompetensi = await _context.ProtonKompetensiList
+                        .Include(k => k.SubKompetensiList)
+                            .ThenInclude(s => s.Deliverables)
+                        .FirstOrDefaultAsync(k => k.Id == itemId);
+                    if (kompetensi == null)
+                        return Json(new { success = false, error = "Item tidak ditemukan." });
+                    itemName = kompetensi.NamaKompetensi;
+                    subKompetensiCount = kompetensi.SubKompetensiList.Count;
+                    affectedDeliverableIds = kompetensi.SubKompetensiList
+                        .SelectMany(s => s.Deliverables)
+                        .Select(d => d.Id)
+                        .ToList();
+                    deliverableCount = affectedDeliverableIds.Count;
+                    break;
+
+                case "SubKompetensi":
+                    var sub = await _context.ProtonSubKompetensiList
+                        .Include(s => s.Deliverables)
+                        .FirstOrDefaultAsync(s => s.Id == itemId);
+                    if (sub == null)
+                        return Json(new { success = false, error = "Item tidak ditemukan." });
+                    itemName = sub.NamaSubKompetensi;
+                    affectedDeliverableIds = sub.Deliverables.Select(d => d.Id).ToList();
+                    deliverableCount = affectedDeliverableIds.Count;
+                    break;
+
+                case "Deliverable":
+                    var deliverable = await _context.ProtonDeliverableList
+                        .FirstOrDefaultAsync(d => d.Id == itemId);
+                    if (deliverable == null)
+                        return Json(new { success = false, error = "Item tidak ditemukan." });
+                    itemName = deliverable.NamaDeliverable;
+                    affectedDeliverableIds = new List<int> { itemId };
+                    deliverableCount = 1;
+                    break;
+
+                default:
+                    return Json(new { success = false, error = "Level tidak valid." });
+            }
+
+            int coacheeCount = 0;
+            if (affectedDeliverableIds.Any())
+            {
+                coacheeCount = await _context.ProtonDeliverableProgresses
+                    .Where(p => affectedDeliverableIds.Contains(p.ProtonDeliverableId)
+                             && p.Status != "Locked")
+                    .Select(p => p.CoacheeId)
+                    .Distinct()
+                    .CountAsync();
+            }
+
+            return Json(new
+            {
+                success = true,
+                itemName = itemName,
+                coacheeCount = coacheeCount,
+                subKompetensiCount = subKompetensiCount,
+                deliverableCount = deliverableCount
+            });
+        }
+
+        // POST: /ProtonCatalog/DeleteCatalogItem
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCatalogItem(string level, int itemId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null || user.RoleLevel > 2)
+                return Json(new { success = false, error = "Unauthorized" });
+
+            if (string.IsNullOrWhiteSpace(level) || itemId <= 0)
+                return Json(new { success = false, error = "Input tidak valid." });
+
+            switch (level)
+            {
+                case "Kompetensi":
+                    var kompetensi = await _context.ProtonKompetensiList
+                        .Include(k => k.SubKompetensiList)
+                            .ThenInclude(s => s.Deliverables)
+                        .FirstOrDefaultAsync(k => k.Id == itemId);
+                    if (kompetensi == null)
+                        return Json(new { success = false, error = "Item tidak ditemukan." });
+
+                    var allDeliverableIds = kompetensi.SubKompetensiList
+                        .SelectMany(s => s.Deliverables)
+                        .Select(d => d.Id)
+                        .ToList();
+
+                    if (allDeliverableIds.Any())
+                    {
+                        var progresses = await _context.ProtonDeliverableProgresses
+                            .Where(p => allDeliverableIds.Contains(p.ProtonDeliverableId))
+                            .ToListAsync();
+                        _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+                    }
+
+                    var allDeliverables = kompetensi.SubKompetensiList
+                        .SelectMany(s => s.Deliverables)
+                        .ToList();
+                    _context.ProtonDeliverableList.RemoveRange(allDeliverables);
+
+                    _context.ProtonSubKompetensiList.RemoveRange(kompetensi.SubKompetensiList);
+                    _context.ProtonKompetensiList.Remove(kompetensi);
+                    break;
+
+                case "SubKompetensi":
+                    var sub = await _context.ProtonSubKompetensiList
+                        .Include(s => s.Deliverables)
+                        .FirstOrDefaultAsync(s => s.Id == itemId);
+                    if (sub == null)
+                        return Json(new { success = false, error = "Item tidak ditemukan." });
+
+                    var subDeliverableIds = sub.Deliverables.Select(d => d.Id).ToList();
+                    if (subDeliverableIds.Any())
+                    {
+                        var progresses = await _context.ProtonDeliverableProgresses
+                            .Where(p => subDeliverableIds.Contains(p.ProtonDeliverableId))
+                            .ToListAsync();
+                        _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+                    }
+
+                    _context.ProtonDeliverableList.RemoveRange(sub.Deliverables);
+                    _context.ProtonSubKompetensiList.Remove(sub);
+                    break;
+
+                case "Deliverable":
+                    var deliverable = await _context.ProtonDeliverableList
+                        .FirstOrDefaultAsync(d => d.Id == itemId);
+                    if (deliverable == null)
+                        return Json(new { success = false, error = "Item tidak ditemukan." });
+
+                    var delivProgresses = await _context.ProtonDeliverableProgresses
+                        .Where(p => p.ProtonDeliverableId == itemId)
+                        .ToListAsync();
+                    _context.ProtonDeliverableProgresses.RemoveRange(delivProgresses);
+                    _context.ProtonDeliverableList.Remove(deliverable);
+                    break;
+
+                default:
+                    return Json(new { success = false, error = "Level tidak valid." });
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
     }
 }
