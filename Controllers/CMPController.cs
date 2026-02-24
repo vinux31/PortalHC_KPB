@@ -206,7 +206,8 @@ namespace HcPortal.Controllers
                 .Where(a => a.UserId == userId);
 
             // Workers see only actionable assessments — Completed lives in Training Records (/CMP/Records)
-            query = query.Where(a => a.Status == "Open" || a.Status == "Upcoming");
+            // InProgress is included so workers can resume mid-exam sessions (Phase 42)
+            query = query.Where(a => a.Status == "Open" || a.Status == "Upcoming" || a.Status == "InProgress");
 
             // ========== SEARCH FILTER ==========
             if (!string.IsNullOrEmpty(search))
