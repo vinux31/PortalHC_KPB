@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — Phase 40 IN PROGRESS (40-01 complete, awaiting human-verify checkpoint before 40-02)
+**Current focus:** v2.0 Assessment Management & Training History — Phase 40 COMPLETE
 
 ## Current Position
 
-**Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
-**Phase:** 40 of 40 — IN PROGRESS
-**Current Plan:** 40-02 — Frontend: History Tab in RecordsWorkerList view
-**Next action:** Human verify 40-01 build (0 errors, GetAllWorkersHistory appears 3 times in grep), then execute 40-02
-**Status:** 40-01 complete (Tasks 1+2 committed). Checkpoint: human-verify before 40-02.
-**Last activity:** 2026-02-24 — 40-01 complete: AllWorkersHistoryRow, RecordsWorkerListViewModel, GetAllWorkersHistory() added
+**Milestone:** v2.0 Assessment Management & Training History — COMPLETE
+**Phase:** 40 of 40 — COMPLETE
+**Current Plan:** All plans complete
+**Next action:** None — roadmap complete
+**Status:** 40-02 complete (Tasks 1+2 committed, human-verify approved). Phase 40 done.
+**Last activity:** 2026-02-24 — 40-02 complete: History tab, tab strip, tab-persistence JS added to RecordsWorkerList
 
-Progress: [██░░░░░░░░░░░░░░░░░░] 50% (v2.0 — 1 of 2 plans complete)
+Progress: [████████████████████] 100% (v2.0 — 2 of 2 plans complete)
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Progress: [██░░░░░░░░░░░░░░░░░░] 50% (v2
 | Phase 39-close-early P01 | 5min | 1 task | 1 file |
 | Phase 39-close-early P02 | ~25min | 2 tasks + 3 fixes | 3 files |
 | Phase 40-history-tab P01 | 8min | 2 tasks | 3 files |
+| Phase 40-history-tab P02 | ~5min | 2 tasks + 1 checkpoint | 1 file |
 
 ## Accumulated Context
 
@@ -112,5 +113,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Phase 40-01 complete (Tasks 1+2). Checkpoint: human-verify before executing 40-02.
+Stopped at: Phase 40-02 complete. Roadmap complete.
 Resume file: None.
