@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.0 Assessment Management & Training History — defining requirements, ready to plan Phase 38
+**Current focus:** v2.0 Assessment Management & Training History — Phase 38 complete, Phase 39 next
 
 ## Current Position
 
 **Milestone:** v2.0 Assessment Management & Training History — IN PROGRESS
-**Phase:** 38 of 40 — NOT STARTED
-**Current Plan:** —
-**Next action:** `/gsd:plan-phase 38` — auto-hide filter (Management + Monitoring tabs)
-**Status:** Requirements defined. 4 requirements across 3 phases (38-40).
-**Last activity:** 2026-02-24 — v2.0 milestone started: Close Early, auto-hide tabs, Training History tab
+**Phase:** 39 of 40 — NOT STARTED
+**Current Plan:** 39-01 — CloseEarly action (CMPController)
+**Next action:** Plan and execute Phase 39 (close-early) or Phase 40 (history tab)
+**Status:** Phase 38 complete. 7-day auto-hide filter live on both Management and Monitor tabs.
+**Last activity:** 2026-02-24 — Phase 38-01 executed (2 tasks, 1 file, d53369e)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0) | v1.9 complete
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.0)
 
 ## Performance Metrics
 
@@ -40,12 +40,19 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.
 | Phase 36-delete-guards P01 | 2min | 2 tasks | 1 files |
 | Phase 36-delete-guards P02 | 30min | 3 tasks | 2 files |
 | Phase 37-drag-drop-reorder P01 | 1min | 1 task | 1 file |
+| Phase 38-auto-hide-filter P01 | 3min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**v2.0 design decisions (approved):**
+- Phase 38 (auto-hide): Pure backend query change — both GetManageData and GetMonitorData get the same 7-day cutoff. Fallback: ExamWindowCloseDate ?? Schedule.Date. No frontend changes.
+- Phase 39 (close early): CloseEarly POST action in CMPController. InProgress sessions scored from actual PackageUserResponse answers (same grading logic as SubmitExam package path). Not Score=0. Audit log entry required.
+- Phase 40 (history tab): Second tab on RecordsWorkerList (not a new page). Combined in-memory merge of TrainingRecords + completed AssessmentSessions, sorted by tanggal mulai descending. Pattern mirrors existing GetUnifiedRecords approach.
+- Phase 40 depends on Phase 38 (same dependency level as Phase 39) — both can be planned independently after Phase 38 ships.
 
 **v1.9 design decisions (approved):**
 - Single page for everything: track dropdown + collapsible tree table (not 4 drill-down pages)
@@ -79,6 +86,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 36-delete-guards]: deleteConfirmBtn re-cloned on every initDeleteGuards() call via cloneNode(true)+replaceChild — safe pattern for re-initializing listeners on tree reload without accumulating duplicates
 - [Phase 37-drag-drop-reorder P01]: Reorder endpoints follow identical AJAX JSON contract — RoleLevel > 2 returns Json({success:false,error:"Unauthorized"}), not Forbid()
 - [Phase 37-drag-drop-reorder P01]: Single SaveChangesAsync at end of Urutan reassignment loop — EF Core batches all UPDATE statements in one round-trip
+- [Phase 38-auto-hide-filter]: 7-day auto-hide: ExamWindowCloseDate ?? Schedule fallback in both Management and Monitor WHERE clauses; DateTime.UtcNow; no frontend changes
 
 ### Pending Todos
 
@@ -91,5 +99,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Phase 37 complete — reorder feature removed per user decision; collapse-state preservation fix shipped. v1.9 milestone complete. Ready for /gsd:complete-milestone.
+Stopped at: Completed 38-01-PLAN.md — Phase 38 auto-hide-filter done. Ready for Phase 39 or 40.
 Resume file: None.
