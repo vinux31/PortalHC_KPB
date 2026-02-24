@@ -132,6 +132,9 @@
 
 @section Scripts {
 <script>
+    // SortableJS instance registry — destroyed and rebuilt on each initCatalogTree() call
+    var allSortableInstances = [];
+
     // Live preview of DisplayName as user selects TrackType + TahunKe
     function updateDisplayName() {
         var type = document.getElementById('trackTypeSelect').value;
@@ -259,6 +262,25 @@
             });
         });
 
+        // Grip handle: show when row expanded, hide when collapsed (same pattern as pencil/trash)
+        document.querySelectorAll('#treeContainer [data-bs-toggle="collapse"]').forEach(function (btn) {
+            var row = btn.closest('tr');
+            if (!row) return;
+            var handle = row.querySelector('.drag-handle');
+            if (!handle) return;
+            var targetId = btn.getAttribute('data-bs-target').replace('#', '');
+            var target = document.getElementById(targetId);
+            if (!target) return;
+            target.addEventListener('show.bs.collapse', function (e) {
+                if (e.target !== target) return;
+                handle.classList.remove('d-none');
+            });
+            target.addEventListener('hide.bs.collapse', function (e) {
+                if (e.target !== target) return;
+                handle.classList.add('d-none');
+            });
+        });
+
         // Add Kompetensi
         var addKompetensiLink = document.getElementById('addKompetensiLink');
         var addKompetensiContainer = document.getElementById('addKompetensiInput');
@@ -353,6 +375,94 @@
                 nameSpan.style.display = 'none';
                 nameSpan.parentNode.insertBefore(widget, nameSpan.nextSibling);
             });
+        });
+
+        // Initialize drag-and-drop sortables
+        initSortables();
+    }
+
+    // ── Drag-and-drop reorder (SortableJS) ───────────────────────────────────────
+
+    function disableAllSortables() {
+        allSortableInstances.forEach(function(s) { s.option('disabled', true); });
+    }
+
+    function enableAllSortables() {
+        allSortableInstances.forEach(function(s) { s.option('disabled', false); });
+    }
+
+    function showReorderError(msg) {
+        var existing = document.getElementById('reorderAlert');
+        if (existing) existing.remove();
+        var alertEl = document.createElement('div');
+        alertEl.id = 'reorderAlert';
+        alertEl.className = 'alert alert-warning alert-dismissible fade show py-2 mb-2 mx-3 mt-2';
+        alertEl.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>'
+            + escapeHtml(msg)
+            + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+        var treeContainer = document.getElementById('treeContainer');
+        if (treeContainer) treeContainer.parentNode.insertBefore(alertEl, treeContainer);
+        setTimeout(function() {
+            var a = document.getElementById('reorderAlert');
+            if (a) { try { bootstrap.Alert.getOrCreateInstance(a).close(); } catch(e) { a.remove(); } }
+        }, 4000);
+    }
+
+    function handleDropEnd(evt, level) {
+        // Collect current order from DOM after drop (robust — avoids index math with mixed tbody)
+        var orderedIds = [];
+        evt.to.querySelectorAll('tr.sortable-row').forEach(function(row) {
+            orderedIds.push(parseInt(row.dataset.id, 10));
+        });
+
+        if (orderedIds.length === 0) { enableAllSortables(); return; }
+
+        var endpointMap = {
+            'Kompetensi':    '/ProtonCatalog/ReorderKompetensi',
+            'SubKompetensi': '/ProtonCatalog/ReorderSubKompetensi',
+            'Deliverable':   '/ProtonCatalog/ReorderDeliverable'
+        };
+
+        // Build bracket-notation params for ASP.NET Core int[] model binding
+        var params = {};
+        orderedIds.forEach(function(id, i) {
+            params['orderedIds[' + i + ']'] = id;
+        });
+
+        postItem(endpointMap[level], params,
+            function() {
+                // Success: visual order is already correct — just re-enable
+                enableAllSortables();
+            },
+            function(err) {
+                // Failure: restore server order, re-enable, show error
+                enableAllSortables();
+                reloadTree();
+                showReorderError('Gagal menyimpan urutan. ' + (err || ''));
+            }
+        );
+    }
+
+    function initSortables() {
+        // Destroy stale instances from previous tree render (prevents memory leaks after reloadTree)
+        allSortableInstances.forEach(function(s) { try { s.destroy(); } catch(e) {} });
+        allSortableInstances = [];
+
+        // Initialize one Sortable per [data-sortable-level] tbody
+        document.querySelectorAll('#treeContainer [data-sortable-level]').forEach(function(tbody) {
+            var level = tbody.dataset.sortableLevel;
+            var s = Sortable.create(tbody, {
+                handle: '.drag-handle',
+                draggable: 'tr.sortable-row',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onEnd: function(evt) {
+                    disableAllSortables();
+                    handleDropEnd(evt, level);
+                }
+            });
+            allSortableInstances.push(s);
         });
     }
 
