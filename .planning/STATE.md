@@ -11,12 +11,12 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
 **Phase:** 41 of 44 (Auto-Save)
-**Current Plan:** — (not started)
-**Next action:** `/gsd:plan-phase 41`
-**Status:** Roadmap created 2026-02-24 — ready to plan Phase 41
-**Last activity:** 2026-02-24 — v2.1 roadmap created (4 phases, 11 requirements mapped)
+**Current Plan:** 01 complete
+**Next action:** `/gsd:plan-phase 42` (resume)
+**Status:** Phase 41 Plan 01 complete — backend auto-save endpoints live
+**Last activity:** 2026-02-24 — Phase 41-01 complete (SaveAnswer hardened, SaveLegacyAnswer added, UNIQUE constraint applied)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.1)
+Progress: [████░░░░░░░░░░░░░░░░] 25% (v2.1 — 1/4 phases complete)
 
 ## Performance Metrics
 
@@ -33,6 +33,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.
 | Phase 39-close-early P02 | ~25min | 2 tasks + 3 fixes, 3 files |
 | Phase 40-history-tab P01 | 8min | 2 tasks, 3 files |
 | Phase 40-history-tab P02 | ~5min | 2 tasks + 1 checkpoint, 1 file |
+| Phase 41-auto-save P01 | 2min | 2 tasks, 5 files |
 
 ## Accumulated Context
 
@@ -52,6 +53,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 39-02]: SaveAnswer uses explicit session-owner check (Json error), not [Authorize(Roles)]
 - [Phase 39-02]: CheckExamStatus is a plain GET with no antiforgery — read-only JSON
 - [Phase 39-02]: 30s poll interval shipped in v2.0 — Phase 43 tightens to 10-30s with caching
+- [Phase 41-auto-save]: ExecuteUpdateAsync + conditional Add pattern used for atomic upsert — avoids EF change tracking race condition on concurrent auto-saves
+- [Phase 41-auto-save]: UNIQUE DB constraint on PackageUserResponse(AssessmentSessionId, PackageQuestionId) as safety net for extreme concurrency
+- [Phase 41-auto-save]: SaveLegacyAnswer targets UserResponse (not PackageUserResponse) — consistent with legacy exam scoring path established in Phase 39
 
 ### Pending Todos
 
@@ -64,5 +68,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: v2.1 roadmap created — 4 phases (41-44), 11/11 requirements mapped, ready to plan Phase 41
+Stopped at: Completed 41-01-PLAN.md — SaveAnswer hardened with ExecuteUpdateAsync, SaveLegacyAnswer added, UNIQUE constraint on PackageUserResponse applied to DB
 Resume file: None.
