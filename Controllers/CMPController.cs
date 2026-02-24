@@ -2152,7 +2152,11 @@ namespace HcPortal.Controllers
                 workers = await GetWorkersInSection(section, unit, category, search, statusFilter);
             }
 
-            return View("RecordsWorkerList", workers);
+            return View("RecordsWorkerList", new RecordsWorkerListViewModel
+            {
+                Workers = workers,
+                History = await GetAllWorkersHistory()
+            });
         }
 
         // WORKER DETAIL PAGE - Show individual worker's training records
@@ -2456,6 +2460,49 @@ namespace HcPortal.Controllers
             return unified
                 .OrderByDescending(r => r.Date)
                 .ThenBy(r => r.SortPriority)
+                .ToList();
+        }
+
+        // Phase 40: all-workers history helper — merges TrainingRecords + completed AssessmentSessions across all workers
+        private async Task<List<AllWorkersHistoryRow>> GetAllWorkersHistory()
+        {
+            // Query 1: All completed assessment sessions with User nav property
+            var assessments = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Status == "Completed")
+                .ToListAsync();
+
+            // Query 2: All training records with User nav property
+            var trainings = await _context.TrainingRecords
+                .Include(t => t.User)
+                .ToListAsync();
+
+            var rows = new List<AllWorkersHistoryRow>();
+
+            rows.AddRange(assessments.Select(a => new AllWorkersHistoryRow
+            {
+                WorkerName  = a.User?.FullName ?? a.UserId,
+                WorkerNIP   = a.User?.NIP,
+                RecordType  = "Assessment Online",
+                Title       = a.Title ?? "",
+                Date        = a.CompletedAt ?? a.Schedule,
+                Score       = a.Score,
+                IsPassed    = a.IsPassed
+            }));
+
+            rows.AddRange(trainings.Select(t => new AllWorkersHistoryRow
+            {
+                WorkerName   = t.User?.FullName ?? t.UserId,
+                WorkerNIP    = t.User?.NIP,
+                RecordType   = "Manual",
+                Title        = t.Judul ?? "",
+                // PITFALL: TanggalMulai is nullable — must coalesce to Tanggal
+                Date         = t.TanggalMulai ?? t.Tanggal,
+                Penyelenggara = t.Penyelenggara
+            }));
+
+            return rows
+                .OrderByDescending(r => r.Date)
                 .ToList();
         }
 
