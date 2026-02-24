@@ -402,19 +402,30 @@ namespace HcPortal.Controllers
                 .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
             var isPackageMode = packageCount > 0;
 
-            // Load package assignments for all sessions in this group (for PackageName display)
-            Dictionary<int, (int AssignmentId, string PackageName)> assignmentMap = new();
+            // Build question count map per session
+            Dictionary<int, int> questionCountMap = new();
             if (isPackageMode)
             {
-                assignmentMap = await _context.UserPackageAssignments
+                // Package mode: count PackageQuestion rows via UserPackageAssignment → AssessmentPackage
+                questionCountMap = await _context.UserPackageAssignments
                     .Where(a => siblingIds.Contains(a.AssessmentSessionId))
-                    .Join(_context.AssessmentPackages,
+                    .Join(_context.AssessmentPackages.Include(p => p.Questions),
                         a => a.AssessmentPackageId,
                         p => p.Id,
-                        (a, p) => new { a.AssessmentSessionId, a.Id, p.PackageName })
+                        (a, p) => new { a.AssessmentSessionId, QuestionCount = p.Questions.Count })
                     .ToDictionaryAsync(
                         x => x.AssessmentSessionId,
-                        x => (x.Id, x.PackageName));
+                        x => x.QuestionCount);
+            }
+            else
+            {
+                // Legacy mode: count AssessmentQuestion rows per session
+                questionCountMap = await _context.AssessmentQuestions
+                    .Where(q => siblingIds.Contains(q.AssessmentSessionId))
+                    .GroupBy(q => q.AssessmentSessionId)
+                    .ToDictionaryAsync(
+                        g => g.Key,
+                        g => g.Count());
             }
 
             var sessionViewModels = sessions.Select(a =>
@@ -439,8 +450,7 @@ namespace HcPortal.Controllers
                     IsPassed     = a.IsPassed,
                     CompletedAt  = a.CompletedAt,
                     StartedAt    = a.StartedAt,
-                    PackageName  = assignmentMap.ContainsKey(a.Id) ? assignmentMap[a.Id].PackageName : "",
-                    AssignmentId = assignmentMap.ContainsKey(a.Id) ? assignmentMap[a.Id].AssignmentId : null
+                    QuestionCount = questionCountMap.ContainsKey(a.Id) ? questionCountMap[a.Id] : 0
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
@@ -613,24 +623,34 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment", new { view = "manage" });
             }
 
-            // Detect package mode and load package assignments (same pattern as AssessmentMonitoringDetail)
+            // Detect package mode and load question counts (same pattern as AssessmentMonitoringDetail)
             var siblingIds = sessions.Select(s => s.Id).ToList();
             var packageCount = await _context.AssessmentPackages
                 .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
             var isPackageMode = packageCount > 0;
 
-            Dictionary<int, string> packageNameMap = new();
+            // Build question count map per session
+            Dictionary<int, int> questionCountMap = new();
             if (isPackageMode)
             {
-                packageNameMap = await _context.UserPackageAssignments
+                questionCountMap = await _context.UserPackageAssignments
                     .Where(a => siblingIds.Contains(a.AssessmentSessionId))
-                    .Join(_context.AssessmentPackages,
+                    .Join(_context.AssessmentPackages.Include(p => p.Questions),
                         a => a.AssessmentPackageId,
                         p => p.Id,
-                        (a, p) => new { a.AssessmentSessionId, p.PackageName })
+                        (a, p) => new { a.AssessmentSessionId, QuestionCount = p.Questions.Count })
                     .ToDictionaryAsync(
                         x => x.AssessmentSessionId,
-                        x => x.PackageName);
+                        x => x.QuestionCount);
+            }
+            else
+            {
+                questionCountMap = await _context.AssessmentQuestions
+                    .Where(q => siblingIds.Contains(q.AssessmentSessionId))
+                    .GroupBy(q => q.AssessmentSessionId)
+                    .ToDictionaryAsync(
+                        g => g.Key,
+                        g => g.Count());
             }
 
             // Build row data: one row per session, include all statuses
@@ -652,15 +672,13 @@ namespace HcPortal.Controllers
 
                 return new
                 {
-                    UserFullName = a.User?.FullName ?? "Unknown",
-                    UserNIP      = a.User?.NIP ?? "",
-                    PackageName  = isPackageMode
-                                    ? (packageNameMap.ContainsKey(a.Id) ? packageNameMap[a.Id] : "—")
-                                    : "—",
-                    UserStatus   = userStatus,
-                    Score        = a.Score.HasValue ? (object)a.Score.Value : "—",
-                    Result       = resultText,
-                    CompletedAt  = a.CompletedAt.HasValue
+                    UserFullName  = a.User?.FullName ?? "Unknown",
+                    UserNIP       = a.User?.NIP ?? "",
+                    QuestionCount = questionCountMap.ContainsKey(a.Id) ? questionCountMap[a.Id] : 0,
+                    UserStatus    = userStatus,
+                    Score         = a.Score.HasValue ? (object)a.Score.Value : "—",
+                    Result        = resultText,
+                    CompletedAt   = a.CompletedAt.HasValue
                                     ? a.CompletedAt.Value.ToString("yyyy-MM-dd HH:mm")
                                     : ""
                 };
@@ -677,13 +695,13 @@ namespace HcPortal.Controllers
             int col = 1;
             worksheet.Cell(1, col++).Value = "Name";
             worksheet.Cell(1, col++).Value = "NIP";
-            if (isPackageMode) worksheet.Cell(1, col++).Value = "Package";
+            worksheet.Cell(1, col++).Value = "Jumlah Soal";
             worksheet.Cell(1, col++).Value = "Status";
             worksheet.Cell(1, col++).Value = "Score";
             worksheet.Cell(1, col++).Value = "Result";
             worksheet.Cell(1, col).Value   = "Completed At";
 
-            int totalCols = isPackageMode ? 7 : 6;
+            int totalCols = 7;
             var headerRange = worksheet.Range(1, 1, 1, totalCols);
             headerRange.Style.Font.Bold = true;
             headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
@@ -696,7 +714,7 @@ namespace HcPortal.Controllers
                 int c = 1;
                 worksheet.Cell(row, c++).Value = r.UserFullName;
                 worksheet.Cell(row, c++).Value = r.UserNIP;
-                if (isPackageMode) worksheet.Cell(row, c++).Value = r.PackageName;
+                worksheet.Cell(row, c++).Value = r.QuestionCount;
                 worksheet.Cell(row, c++).Value = r.UserStatus;
                 worksheet.Cell(row, c++).Value = r.Score?.ToString() ?? "—";
                 worksheet.Cell(row, c++).Value = r.Result;

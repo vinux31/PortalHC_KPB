@@ -24,7 +24,6 @@ namespace HcPortal.Models
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? StartedAt { get; set; }
-        public string PackageName { get; set; } = "";   // name of currently assigned package (e.g., "Paket A"), empty if none
-        public int? AssignmentId { get; set; }          // UserPackageAssignment.Id if one exists, null otherwise
+        public int QuestionCount { get; set; }             // number of questions assigned to this session
     }
 }

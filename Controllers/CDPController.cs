@@ -26,8 +26,10 @@ namespace HcPortal.Controllers
             _env = env;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            var user = await _userManager.GetUserAsync(User);
+            ViewBag.CanAccessProton = user != null && user.RoleLevel <= 5;
             return View();
         }
 

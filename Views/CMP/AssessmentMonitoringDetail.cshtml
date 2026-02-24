@@ -141,10 +141,7 @@
                         <tr>
                             <th>Name</th>
                             <th>NIP</th>
-                            @if (Model.IsPackageMode)
-                            {
-                                <th>Package</th>
-                            }
+                            <th>Jumlah Soal</th>
                             <th>Status</th>
                             <th>Score</th>
                             <th>Result</th>
@@ -156,7 +153,7 @@
                         @if (Model.Sessions.Count == 0)
                         {
                             <tr>
-                                <td colspan="@(Model.IsPackageMode ? 8 : 7)" class="text-center text-muted py-4">No sessions found for this group.</td>
+                                <td colspan="8" class="text-center text-muted py-4">No sessions found for this group.</td>
                             </tr>
                         }
                         else
@@ -191,12 +188,7 @@
                                 <tr>
                                     <td class="fw-semibold">@session.UserFullName</td>
                                     <td class="text-muted small">@(string.IsNullOrEmpty(session.UserNIP) ? "—" : session.UserNIP)</td>
-                                    @if (Model.IsPackageMode)
-                                    {
-                                        <td class="small" id="pkg-@session.Id">
-                                            @(string.IsNullOrEmpty(session.PackageName) ? "—" : session.PackageName)
-                                        </td>
-                                    }
+                                    <td class="text-center">@session.QuestionCount</td>
                                     <td><span class="badge @statusClass">@session.UserStatus</span></td>
                                     <td>
                                         @if (session.Score.HasValue)
@@ -324,10 +316,6 @@
             },
             success: function(resp) {
                 if (resp.success) {
-                    // Update package name in-place
-                    var pkgCell = document.getElementById('pkg-' + sessionId);
-                    if (pkgCell) pkgCell.textContent = resp.packageName;
-
                     // Show toast
                     var toastBody = document.getElementById('reshuffleToastBody');
                     toastBody.textContent = 'Package berhasil di-reshuffle \u2192 ' + resp.packageName;
