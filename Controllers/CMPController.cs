@@ -3634,10 +3634,6 @@ namespace HcPortal.Controllers
         {
             var assessment = await _context.AssessmentSessions
                 .Include(a => a.User)
-                .Include(a => a.Questions.OrderBy(q => q.Order))
-                    .ThenInclude(q => q.Options)
-                .Include(a => a.Responses)
-                    .ThenInclude(r => r.SelectedOption)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (assessment == null) return NotFound();
@@ -3667,6 +3663,25 @@ namespace HcPortal.Controllers
             // Detect package path
             var packageAssignment = await _context.UserPackageAssignments
                 .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
+
+            // For legacy path only: explicitly load Questions (ordered) and Responses.
+            // Kept separate to avoid EF Core generating a ROW_NUMBER() full table scan when
+            // OrderBy is used inside an Include on a large AssessmentQuestions table.
+            if (packageAssignment == null)
+            {
+                await _context.Entry(assessment)
+                    .Collection(a => a.Questions)
+                    .Query()
+                    .Include(q => q.Options)
+                    .OrderBy(q => q.Order)
+                    .LoadAsync();
+
+                await _context.Entry(assessment)
+                    .Collection(a => a.Responses)
+                    .Query()
+                    .Include(r => r.SelectedOption)
+                    .LoadAsync();
+            }
 
             AssessmentResultsViewModel viewModel;
 
