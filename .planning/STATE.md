@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 42 complete, Phase 43 next
+**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 43 complete, Phase 44 next
 
 ## Current Position
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
-**Phase:** 43 of 44 (Worker Polling)
-**Current Plan:** 1 of 2 complete (Plan 01 complete; Plan 02 at checkpoint — awaiting human verification)
-**Next action:** Human verifies end-to-end: worker tab auto-redirects within 10-30s of HC clicking "Tutup Lebih Awal"
-**Status:** Plan 01 complete (IMemoryCache registered + CMPController injected). Plan 02 Task 1 complete (interval changed to 10s, build passes). Checkpoint reached.
-**Last activity:** 2026-02-25 — Phase 43 Plan 01 complete (IMemoryCache cache-aside); Plan 02 checkpoint:human-verify pending
+**Phase:** 44 of 44 (Real-Time Monitoring)
+**Current Plan:** Phase 43 complete (2/2 plans). Ready to begin Phase 44 Plan 01.
+**Next action:** Begin Phase 44 — Real-Time Monitoring (GROUP BY query against PackageUserResponse for HC monitoring dashboard)
+**Status:** Phase 43 complete. Plan 01 (IMemoryCache cache-aside) and Plan 02 (10s poll interval + end-to-end verified) both done.
+**Last activity:** 2026-02-25 — Phase 43 Plan 02 complete (human verification approved; Results ROW_NUMBER() bug auto-fixed)
 
-Progress: [████████░░░░░░░░░░░░] 50% (v2.1 — 2/4 phases complete, Phase 41 ✓, Phase 42 ✓)
+Progress: [████████████░░░░░░░░] 75% (v2.1 — 3/4 phases complete, Phase 41 ✓, Phase 42 ✓, Phase 43 ✓)
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Progress: [████████░░░░░░░░░░░░] 50% (v2
 | Phase 42-session-resume P03 | 2min | 2 tasks, 2 files |
 | Phase 42-session-resume P04 | ~40min | 1 checkpoint + 4 bug fixes, 3 files |
 | Phase 43-worker-polling P01 | 2min | 2 tasks, 2 files |
+| Phase 43-worker-polling P02 | ~10min | 2 tasks + 1 bug fix, 2 files |
 
 ## Accumulated Context
 
@@ -53,6 +54,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 43-01]: Cache key is session-scoped (exam-status-{sessionId}), not user-scoped — ownership verified on every cache miss; non-owners short-circuit before cache key computed
 - [Phase 43-01]: 5-second TTL collapses ~100 concurrent worker polls to 1 DB hit per 5s per session (~99% DB load reduction); TTL shorter than 10s poll interval ensures at most 1 DB hit per cycle
 - [Phase 43-01]: CloseEarly invalidates cache immediately after SaveChangesAsync so next poll reflects closed status within the TTL window
+- [Phase 43-02]: 10s poll interval (not 30s) — workers detect HC early close within 10-20s; saveSessionProgress stays at 30s (unchanged)
+- [Phase 43-02]: Results page ROW_NUMBER() full scan replaced with separate Questions/Responses loads for legacy path — avoids full scan timeout on large datasets
 - All four features use zero new NuGet packages — Fetch API, setInterval, IMemoryCache all already available
 - Phase order is strictly dependency-driven: 41 (auto-save) → 42 (resume) → 43 (polling) → 44 (monitoring)
 - Phase 44 monitoring uses a single GROUP BY query against PackageUserResponse — not N+1 per session
@@ -86,5 +89,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 43-01-PLAN.md (Plan 01 complete). Phase 43 Plan 02 checkpoint:human-verify — Task 1 committed (a6f8500), awaiting human verification of end-to-end worker redirect flow.
+Stopped at: Completed 43-02-PLAN.md (Plan 02 complete). Phase 43 complete. Ready to begin Phase 44 (Real-Time Monitoring).
 Resume file: None.
