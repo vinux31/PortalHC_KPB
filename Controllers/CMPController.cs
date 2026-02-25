@@ -911,7 +911,7 @@ namespace HcPortal.Controllers
 
             // Step 3 — For package mode: preload all packages + questions + options + assignments in bulk (avoid N+1 queries)
             Dictionary<int, UserPackageAssignment> sessionAssignmentMap = new();
-            Dictionary<int, AssessmentPackage> packageMap = new();
+            Dictionary<int, PackageQuestion> allQuestionLookup = new();
 
             if (isPackageMode)
             {
@@ -921,14 +921,16 @@ namespace HcPortal.Controllers
                 foreach (var a in assignments)
                     sessionAssignmentMap[a.AssessmentSessionId] = a;
 
-                var packageIds = assignments.Select(a => a.AssessmentPackageId).Distinct().ToList();
-                var packages = await _context.AssessmentPackages
+                // Load ALL sibling packages (cross-package: ShuffledQuestionIds may reference any package)
+                var allSiblingPackages = await _context.AssessmentPackages
                     .Include(p => p.Questions)
                         .ThenInclude(q => q.Options)
-                    .Where(p => packageIds.Contains(p.Id))
+                    .Where(p => siblingIds.Contains(p.AssessmentSessionId))
                     .ToListAsync();
-                foreach (var p in packages)
-                    packageMap[p.Id] = p;
+                // Build a flat question lookup by ID (spans all packages)
+                allQuestionLookup = allSiblingPackages
+                    .SelectMany(p => p.Questions)
+                    .ToDictionary(q => q.Id);
             }
 
             // Step 4 — For legacy mode: preload questions + options for the group's sibling that has questions
@@ -961,25 +963,29 @@ namespace HcPortal.Controllers
                 {
                     // Package path: score from PackageUserResponse records
                     if (!sessionAssignmentMap.TryGetValue(session.Id, out var assignment)) continue;
-                    if (!packageMap.TryGetValue(assignment.AssessmentPackageId, out var pkg)) continue;
 
-                    // Load existing answers for this session as a dictionary questionId -> optionId
+                    // Get question IDs from this worker's assignment (cross-package)
+                    var sessionShuffledIds = assignment.GetShuffledQuestionIds();
+                    if (!sessionShuffledIds.Any()) continue;
+
                     var responses = await _context.PackageUserResponses
                         .Where(r => r.AssessmentSessionId == session.Id)
                         .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
 
                     int totalScore = 0;
-                    int maxScore = pkg.Questions.Sum(q => q.ScoreValue); // use Sum, not Count*10 (Pitfall 6)
+                    int maxScore = 0;
 
-                    foreach (var q in pkg.Questions)
+                    foreach (var qId in sessionShuffledIds)
                     {
+                        if (!allQuestionLookup.TryGetValue(qId, out var q)) continue;
+                        maxScore += q.ScoreValue;
                         if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
                         {
                             var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
                             if (selectedOption != null && selectedOption.IsCorrect)
                                 totalScore += q.ScoreValue;
                         }
-                        // No answer = no points (Pitfall 5 handled)
+                        // No answer = no points
                     }
 
                     int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
@@ -1339,19 +1345,6 @@ namespace HcPortal.Controllers
             var currentAssignment = await _context.UserPackageAssignments
                 .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
 
-            // Select a new package — prefer a different one than current
-            AssessmentPackage selectedPackage;
-            var rng = new Random();
-            if (packages.Count >= 2 && currentAssignment != null)
-            {
-                var otherPackages = packages.Where(p => p.Id != currentAssignment.AssessmentPackageId).ToList();
-                selectedPackage = otherPackages[rng.Next(otherPackages.Count)];
-            }
-            else
-            {
-                selectedPackage = packages[rng.Next(packages.Count)];
-            }
-
             string oldPackageName = currentAssignment != null
                 ? (packages.FirstOrDefault(p => p.Id == currentAssignment.AssessmentPackageId)?.PackageName ?? "?")
                 : "(none)";
@@ -1360,31 +1353,19 @@ namespace HcPortal.Controllers
             if (currentAssignment != null)
                 _context.UserPackageAssignments.Remove(currentAssignment);
 
-            // Shuffle question order
-            var questionIds = selectedPackage.Questions
-                .OrderBy(q => q.Order)
-                .Select(q => q.Id)
-                .ToList();
-            Shuffle(questionIds, rng);
-
-            // Shuffle options per question
-            var optionOrderDict = new Dictionary<int, List<int>>();
-            foreach (var q in selectedPackage.Questions)
-            {
-                var optIds = q.Options.Select(o => o.Id).ToList();
-                Shuffle(optIds, rng);
-                optionOrderDict[q.Id] = optIds;
-            }
+            // Build cross-package ShuffledQuestionIds (per user decision: slot-list algorithm)
+            var rng = new Random();
+            var shuffledIds = BuildCrossPackageAssignment(packages, rng);
+            var sentinelPackage = packages.First();
 
             // Create new assignment
             var newAssignment = new UserPackageAssignment
             {
                 AssessmentSessionId = sessionId,
-                AssessmentPackageId = selectedPackage.Id,
+                AssessmentPackageId = sentinelPackage.Id,  // sentinel per discretion decision
                 UserId = assessment.UserId,
-                ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(questionIds),
-                ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(
-                    optionOrderDict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value))
+                ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(shuffledIds),
+                ShuffledOptionIdsPerQuestion = "{}"  // option shuffle removed per user decision
             };
             _context.UserPackageAssignments.Add(newAssignment);
 
@@ -1399,13 +1380,13 @@ namespace HcPortal.Controllers
                     hcUser?.Id ?? "",
                     actorName,
                     "ReshufflePackage",
-                    $"Reshuffled package for user {assessment.UserId} on assessment '{assessment.Title}' [SessionID={sessionId}]: {oldPackageName} → {selectedPackage.PackageName}",
+                    $"Reshuffled package (cross-package) for user {assessment.UserId} on assessment '{assessment.Title}' [SessionID={sessionId}]: {shuffledIds.Count} questions from {packages.Count} packages",
                     sessionId,
                     "AssessmentSession");
             }
             catch { /* audit failure must not roll back the successful reshuffle */ }
 
-            return Json(new { success = true, packageName = selectedPackage.PackageName, assignmentId = newAssignment.Id });
+            return Json(new { success = true, packageName = $"Cross-package ({packages.Count} paket)", assignmentId = newAssignment.Id });
         }
 
         // --- RESHUFFLE ALL (bulk) ---
@@ -1470,50 +1451,26 @@ namespace HcPortal.Controllers
                     continue;
                 }
 
-                // Select a different package if possible
+                // Build cross-package ShuffledQuestionIds for this session (independent draw per worker per user decision)
                 existingAssignments.TryGetValue(session.Id, out var existingAssignment);
-                AssessmentPackage selectedPackage;
-                if (packages.Count >= 2 && existingAssignment != null)
-                {
-                    var otherPackages = packages.Where(p => p.Id != existingAssignment.AssessmentPackageId).ToList();
-                    selectedPackage = otherPackages[rng.Next(otherPackages.Count)];
-                }
-                else
-                {
-                    selectedPackage = packages[rng.Next(packages.Count)];
-                }
+                var sessionShuffledIds = BuildCrossPackageAssignment(packages, rng);
+                var sentinelPackage = packages.First();
 
                 // Delete old assignment if exists
                 if (existingAssignment != null)
                     _context.UserPackageAssignments.Remove(existingAssignment);
 
-                // Shuffle questions and options
-                var questionIds = selectedPackage.Questions
-                    .OrderBy(q => q.Order)
-                    .Select(q => q.Id)
-                    .ToList();
-                Shuffle(questionIds, rng);
-
-                var optionOrderDict = new Dictionary<int, List<int>>();
-                foreach (var q in selectedPackage.Questions)
-                {
-                    var optIds = q.Options.Select(o => o.Id).ToList();
-                    Shuffle(optIds, rng);
-                    optionOrderDict[q.Id] = optIds;
-                }
-
                 // Add new assignment (accumulated — SaveChangesAsync once at end)
                 _context.UserPackageAssignments.Add(new UserPackageAssignment
                 {
                     AssessmentSessionId = session.Id,
-                    AssessmentPackageId = selectedPackage.Id,
+                    AssessmentPackageId = sentinelPackage.Id,  // sentinel per discretion decision
                     UserId = session.UserId,
-                    ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(questionIds),
-                    ShuffledOptionIdsPerQuestion = System.Text.Json.JsonSerializer.Serialize(
-                        optionOrderDict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value))
+                    ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(sessionShuffledIds),
+                    ShuffledOptionIdsPerQuestion = "{}"  // option shuffle removed per user decision
                 });
 
-                results.Add(new { name = userName, status = $"Reshuffled → {selectedPackage.PackageName}" });
+                results.Add(new { name = userName, status = $"Reshuffled (cross-package, {packages.Count} paket)" });
                 reshuffledCount++;
             }
 
@@ -2950,50 +2907,40 @@ namespace HcPortal.Controllers
 
                 if (assignment == null)
                 {
-                    // Randomly assign a package
                     var rng = new Random();
-                    var selectedPackage = packages[rng.Next(packages.Count)];
 
-                    // Shuffle question order
-                    var questionIds = selectedPackage.Questions
-                        .OrderBy(q => q.Order)
-                        .Select(q => q.Id)
-                        .ToList();
-                    Shuffle(questionIds, rng);
+                    // Build cross-package ShuffledQuestionIds (per user decision: slot-list algorithm)
+                    var shuffledIds = BuildCrossPackageAssignment(packages, rng);
 
-                    // Shuffle options per question
-                    var optionOrderDict = new Dictionary<int, List<int>>();
-                    foreach (var q in selectedPackage.Questions)
-                    {
-                        var optIds = q.Options.Select(o => o.Id).ToList();
-                        Shuffle(optIds, rng);
-                        optionOrderDict[q.Id] = optIds;
-                    }
+                    // Sentinel: store first package ID (no schema change — AssessmentPackageId still required by FK)
+                    var sentinelPackage = packages.First();
 
                     assignment = new UserPackageAssignment
                     {
                         AssessmentSessionId = id,
-                        AssessmentPackageId = selectedPackage.Id,
+                        AssessmentPackageId = sentinelPackage.Id,  // sentinel per discretion decision
                         UserId = user.Id,
-                        ShuffledQuestionIds = JsonSerializer.Serialize(questionIds),
-                        ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(
-                            optionOrderDict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value))
+                        ShuffledQuestionIds = JsonSerializer.Serialize(shuffledIds),
+                        ShuffledOptionIdsPerQuestion = "{}"  // option shuffle removed per user decision
                     };
                     _context.UserPackageAssignments.Add(assignment);
                     await _context.SaveChangesAsync();
 
                     // Record question count for stale-question detection on resume (RESUME-03 safety net)
-                    assignment.SavedQuestionCount = selectedPackage.Questions.Count;
+                    assignment.SavedQuestionCount = shuffledIds.Count;
                     await _context.SaveChangesAsync();
                 }
 
-                // Load the assigned package
-                var assignedPackage = packages.First(p => p.Id == assignment.AssessmentPackageId);
+                // For cross-package assignments, SavedQuestionCount = shuffledIds.Count at time of creation
+                // Compare against re-derived count: minimum question count across packages (safety fallback)
+                int currentQuestionCount = packages.Min(p => p.Questions.Count) == 0
+                    ? 0
+                    : (packages.Count == 1 ? packages[0].Questions.Count : packages.Min(p => p.Questions.Count));
 
                 // Stale question set check: compare count at session start vs. now
                 // HC cannot normally edit questions once a session is active (existing guard), but this is a defensive safety net
                 if (assessment.StartedAt != null && assignment.SavedQuestionCount.HasValue &&
-                    assignment.SavedQuestionCount.Value != assignedPackage.Questions.Count)
+                    assignment.SavedQuestionCount.Value != currentQuestionCount)
                 {
                     // Clear saved progress so worker gets a clean restart when HC resets
                     await _context.AssessmentSessions
@@ -3009,30 +2956,22 @@ namespace HcPortal.Controllers
 
                 // Build ViewModel in shuffled order
                 var shuffledQuestionIds = assignment.GetShuffledQuestionIds();
-                var shuffledOptionIds = assignment.GetShuffledOptionIds();
 
-                var questionLookup = assignedPackage.Questions.ToDictionary(q => q.Id);
-                var optionLookup = assignedPackage.Questions
-                    .SelectMany(q => q.Options)
-                    .ToDictionary(o => o.Id);
+                // Cross-package: build lookup across all packages (ShuffledQuestionIds may reference any package)
+                var allPackageQuestions = packages.SelectMany(p => p.Questions).ToDictionary(q => q.Id);
 
                 var examQuestions = new List<ExamQuestionItem>();
                 int displayNum = 1;
                 foreach (var qId in shuffledQuestionIds)
                 {
-                    if (!questionLookup.TryGetValue(qId, out var q)) continue;
+                    if (!allPackageQuestions.TryGetValue(qId, out var q)) continue;
 
-                    var orderedOptIds = shuffledOptionIds.TryGetValue(qId, out var optIds)
-                        ? optIds
-                        : q.Options.Select(o => o.Id).ToList();
-
-                    var opts = orderedOptIds
-                        .Where(oid => optionLookup.ContainsKey(oid))
-                        .Select(oid => new ExamOptionItem
-                        {
-                            OptionId = optionLookup[oid].Id,
-                            OptionText = optionLookup[oid].OptionText
-                        }).ToList();
+                    // Options in original DB order — option shuffle removed per user decision
+                    var opts = q.Options.OrderBy(o => o.Id).Select(o => new ExamOptionItem
+                    {
+                        OptionId = o.Id,
+                        OptionText = o.OptionText
+                    }).ToList();
 
                     examQuestions.Add(new ExamQuestionItem
                     {
@@ -3183,6 +3122,67 @@ namespace HcPortal.Controllers
             }
         }
 
+        /// <summary>
+        /// Builds a cross-package ShuffledQuestionIds list using the slot-list algorithm.
+        /// Per user decision: guaranteed even distribution (K/N per package, remainder randomly allocated),
+        /// Fisher-Yates shuffle of the slot list, then position i → package[slot[i]].Questions ordered by Order, take index pkgCounter[pkgIdx].
+        /// For 1 package: returns questions in original DB order (no shuffle).
+        /// All packages must be loaded with .Include(p => p.Questions) — questions ordered by q.Order.
+        /// </summary>
+        private static List<int> BuildCrossPackageAssignment(List<AssessmentPackage> packages, Random rng)
+        {
+            if (packages.Count == 0)
+                return new List<int>();
+
+            // Single package: return questions in original DB order (no shuffle per user decision)
+            if (packages.Count == 1)
+            {
+                return packages[0].Questions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
+            }
+
+            // Safety fallback: use minimum question count across packages (edge case per user decision)
+            int K = packages.Min(p => p.Questions.Count);
+            if (K == 0)
+                return new List<int>();
+
+            int N = packages.Count;
+            int baseCount = K / N;
+            int remainder = K % N;
+
+            // Decide which package indices get +1 question (random allocation of remainder)
+            var remainderIndices = Enumerable.Range(0, N)
+                .OrderBy(_ => rng.Next())
+                .Take(remainder)
+                .ToHashSet();
+
+            // Build slot list: [pkg0 × baseCount(+1?), pkg1 × baseCount(+1?), ...]
+            var slots = new List<int>();
+            for (int i = 0; i < N; i++)
+            {
+                int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
+                for (int j = 0; j < count; j++)
+                    slots.Add(i);
+            }
+
+            // Fisher-Yates shuffle the slot list
+            Shuffle(slots, rng);
+
+            // Build ShuffledQuestionIds: for position p, take package[slots[p]].Questions ordered by Order, at index pkgCounter[pkgIdx]
+            var pkgCounter = new int[N];
+            var shuffledIds = new List<int>();
+            var orderedQuestions = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
+
+            for (int pos = 0; pos < K; pos++)
+            {
+                int pkgIdx = slots[pos];
+                var question = orderedQuestions[pkgIdx][pkgCounter[pkgIdx]];
+                pkgCounter[pkgIdx]++;
+                shuffledIds.Add(question.Id);
+            }
+
+            return shuffledIds;
+        }
+
         // Helper: extract A/B/C/D from common Correct-column formats
         // Accepts: "A", "B.", "C. some text", "OPTION D", "d" (case-insensitive after ToUpper())
         private static string ExtractCorrectLetter(string raw)
@@ -3272,10 +3272,11 @@ namespace HcPortal.Controllers
 
             if (assignment != null)
             {
+                // Cross-package: load questions by IDs from ShuffledQuestionIds
                 var shuffledQIds = assignment.GetShuffledQuestionIds();
                 var questions = await _context.PackageQuestions
                     .Include(q => q.Options)
-                    .Where(q => q.AssessmentPackageId == assignment.AssessmentPackageId)
+                    .Where(q => shuffledQIds.Contains(q.Id))
                     .ToListAsync();
 
                 var qLookup = questions.ToDictionary(q => q.Id);
@@ -3463,16 +3464,21 @@ namespace HcPortal.Controllers
             if (packageAssignment != null)
             {
                 // ---- PACKAGE PATH: ID-based grading via PackageOption.IsCorrect ----
+                // Cross-package: load questions by IDs from ShuffledQuestionIds (spans multiple packages)
+                var shuffledIds = packageAssignment.GetShuffledQuestionIds();
                 var packageQuestions = await _context.PackageQuestions
                     .Include(q => q.Options)
-                    .Where(q => q.AssessmentPackageId == packageAssignment.AssessmentPackageId)
+                    .Where(q => shuffledIds.Contains(q.Id))
                     .ToListAsync();
+                var questionLookupById = packageQuestions.ToDictionary(q => q.Id);
 
                 int totalScore = 0;
-                int maxScore = packageQuestions.Count * 10; // each question = 10 points
+                int maxScore = shuffledIds.Sum(qId =>
+                    questionLookupById.TryGetValue(qId, out var qq) ? qq.ScoreValue : 0);
 
-                foreach (var q in packageQuestions)
+                foreach (var qId in shuffledIds)
                 {
+                    if (!questionLookupById.TryGetValue(qId, out var q)) continue;
                     int? selectedOptId = answers.ContainsKey(q.Id) ? answers[q.Id] : (int?)null;
 
                     if (selectedOptId.HasValue)
@@ -3786,10 +3792,11 @@ namespace HcPortal.Controllers
             if (packageAssignment != null)
             {
                 // Package path: load PackageQuestion + PackageOption + PackageUserResponse data
+                // Cross-package: load questions by IDs from ShuffledQuestionIds
+                var shuffledQuestionIds = packageAssignment.GetShuffledQuestionIds();
                 var packageQuestions = await _context.PackageQuestions
                     .Include(q => q.Options)
-                    .Where(q => q.AssessmentPackageId == packageAssignment.AssessmentPackageId)
-                    .OrderBy(q => q.Order)
+                    .Where(q => shuffledQuestionIds.Contains(q.Id))
                     .ToListAsync();
 
                 var packageResponses = await _context.PackageUserResponses
@@ -3797,8 +3804,7 @@ namespace HcPortal.Controllers
                     .ToListAsync();
                 var responseDict = packageResponses.ToDictionary(r => r.PackageQuestionId);
 
-                // Use shuffled order from assignment for display
-                var shuffledQuestionIds = packageAssignment.GetShuffledQuestionIds();
+                // Use shuffled order from assignment for display (shuffledQuestionIds already declared above)
                 var questionLookup = packageQuestions.ToDictionary(q => q.Id);
 
                 // If shuffled IDs are empty (edge case), fall back to natural order
@@ -4209,6 +4215,48 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "Please upload an Excel file or paste question data.";
                 return RedirectToAction("ImportPackageQuestions", new { packageId });
+            }
+
+            // Cross-package count validation (per user decision):
+            // If other sibling packages already have questions, imported count must match their count
+            var targetSession = await _context.AssessmentSessions.FindAsync(pkg.AssessmentSessionId);
+            if (targetSession != null)
+            {
+                var siblingSessionIds = await _context.AssessmentSessions
+                    .Where(s => s.Title == targetSession.Title &&
+                                s.Category == targetSession.Category &&
+                                s.Schedule.Date == targetSession.Schedule.Date)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
+                var siblingPackagesWithQuestions = await _context.AssessmentPackages
+                    .Include(p => p.Questions)
+                    .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId)
+                             && p.Id != packageId
+                             && p.Questions.Any())
+                    .ToListAsync();
+
+                if (siblingPackagesWithQuestions.Any())
+                {
+                    var validRowCount = rows.Count(r =>
+                    {
+                        var (rq, ra, rb, rc, rd, rcor) = r;
+                        var normalizedCor = ExtractCorrectLetter(rcor);
+                        return !string.IsNullOrWhiteSpace(rq) &&
+                               !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
+                               !string.IsNullOrWhiteSpace(rc) && !string.IsNullOrWhiteSpace(rd) &&
+                               new[] { "A", "B", "C", "D" }.Contains(normalizedCor);
+                    });
+
+                    var referencePackage = siblingPackagesWithQuestions.First();
+                    int expectedCount = referencePackage.Questions.Count;
+
+                    if (validRowCount != expectedCount)
+                    {
+                        TempData["Error"] = $"Jumlah soal tidak sama dengan paket lain. {referencePackage.PackageName}: {expectedCount} soal. Harap masukkan {expectedCount} soal.";
+                        return RedirectToAction("ImportPackageQuestions", new { packageId });
+                    }
+                }
             }
 
             // Validate and persist rows

@@ -26,6 +26,52 @@
         <div class="alert alert-danger alert-dismissible fade show">@TempData["Error"]<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     }
 
+    @{
+        // Compute summary data for the panel
+        bool hasMismatch = false;
+        int? referenceCount = null;
+        if (packages.Any(p => p.Questions.Any()))
+        {
+            referenceCount = packages.Where(p => p.Questions.Any()).Select(p => p.Questions.Count).First();
+            hasMismatch = packages.Where(p => p.Questions.Any()).Any(p => p.Questions.Count != referenceCount);
+        }
+        bool isMultiPackage = packages.Count > 1;
+        string modeLabel = isMultiPackage ? $"Multi-Package ({packages.Count} paket)" : "Single Package";
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div>
+                    <span class="text-muted small">Mode:</span>
+                    <strong class="ms-1">@modeLabel</strong>
+                </div>
+                @if (packages.Any())
+                {
+                    <div class="vr d-none d-md-block"></div>
+                    @foreach (var pkg in packages)
+                    {
+                        bool pkgHasQuestions = pkg.Questions.Any();
+                        bool pkgOk = pkgHasQuestions && (!hasMismatch || pkg.Questions.Count == referenceCount);
+                        bool pkgWarning = pkgHasQuestions && hasMismatch && pkg.Questions.Count != referenceCount;
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="badge @(pkgOk ? "text-bg-success" : pkgWarning ? "text-bg-warning" : "text-bg-secondary")">
+                                @(pkgOk ? "OK" : pkgWarning ? "Warning" : "Kosong")
+                            </span>
+                            <span class="small">@pkg.PackageName: @pkg.Questions.Count soal</span>
+                        </div>
+                    }
+                }
+                @if (hasMismatch)
+                {
+                    <div class="text-warning small ms-auto">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Jumlah soal tidak sama antar paket
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
     <div class="row">
         <!-- Create Package Form -->
         <div class="col-md-4">

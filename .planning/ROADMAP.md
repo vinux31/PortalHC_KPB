@@ -307,9 +307,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 45-01-PLAN.md — Migration (DELETE UserPackageAssignments) + BuildCrossPackageAssignment helper + StartExam assignment creation
-- [ ] 45-02-PLAN.md — Fix all consumers: StartExam ViewModel, SubmitExam, ExamSummary, Results, CloseEarly
-- [ ] 45-03-PLAN.md — Reshuffle (single + bulk) + ImportPackageQuestions validation + ManagePackages summary panel
+- [x] 45-01-PLAN.md — Migration (DELETE UserPackageAssignments) + BuildCrossPackageAssignment helper + StartExam assignment creation
+- [x] 45-02-PLAN.md — Fix all consumers: StartExam ViewModel, SubmitExam, ExamSummary, Results, CloseEarly
+- [x] 45-03-PLAN.md — Reshuffle (single + bulk) + ImportPackageQuestions validation + ManagePackages summary panel
 
 </details>
 
@@ -361,4 +361,4 @@ Plans:
 | 42. Session Resume | v2.1 | 4/4 | Complete | 2026-02-24 |
 | 43. Worker Polling | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
-| 45. Cross-Package Per-Position Shuffle | v2.1 | 0/3 | Pending | — |
+| 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
