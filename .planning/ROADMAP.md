@@ -281,6 +281,16 @@ Plans:
 - [x] 43-01-PLAN.md — Backend: IMemoryCache registration + CheckExamStatus 5s TTL cache + CloseEarly cache invalidation
 - [x] 43-02-PLAN.md — Frontend: tighten polling interval from 30s to 10s + human verification
 
+**Completed:** 2026-02-25
+
+### Phase 44: Real-Time Monitoring
+**Goal:** HC's AssessmentMonitoringDetail page auto-updates worker status, progress, scores, and time remaining without manual refresh.
+**Plans:** 2 plans
+
+Plans:
+- [ ] 44-01-PLAN.md — Backend: GetMonitoringProgress JSON endpoint (session DTOs with progress, score, remainingSeconds)
+- [ ] 44-02-PLAN.md — Frontend: table restructure + 10s polling + 1s countdown + live action buttons + human verification
+
 </details>
 
 ## Progress
@@ -330,3 +340,4 @@ Plans:
 | 41. Auto-Save | v2.1 | 2/2 | Complete | 2026-02-24 |
 | 42. Session Resume | v2.1 | 4/4 | Complete | 2026-02-24 |
 | 43. Worker Polling | v2.1 | 2/2 | Complete | 2026-02-25 |
+| 44. Real-Time Monitoring | v2.1 | 0/2 | In Progress | — |

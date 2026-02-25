@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 43 complete, Phase 44 next
+**Current focus:** v2.1 Assessment Resilience & Real-Time Monitoring — Phase 44 auto tasks complete, human verification checkpoint pending
 
 ## Current Position
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
 **Phase:** 44 of 44 (Real-Time Monitoring)
-**Current Plan:** Phase 43 complete (2/2 plans). Ready to begin Phase 44 Plan 01.
-**Next action:** Begin Phase 44 — Real-Time Monitoring (GROUP BY query against PackageUserResponse for HC monitoring dashboard)
-**Status:** Phase 43 complete. Plan 01 (IMemoryCache cache-aside) and Plan 02 (10s poll interval + end-to-end verified) both done.
-**Last activity:** 2026-02-25 — Phase 43 Plan 02 complete (human verification approved; Results ROW_NUMBER() bug auto-fixed)
+**Current Plan:** Phase 44 Plan 02 auto tasks complete. Human verification checkpoint pending.
+**Next action:** Human verifies live polling on AssessmentMonitoringDetail page — approve or report issues
+**Status:** Phase 44 Plan 02 Tasks 1 and 2 complete. Table restructured, polling JS added. Awaiting checkpoint human-verify approval.
+**Last activity:** 2026-02-25 — Phase 44 Plan 02 Tasks 1+2 complete (table restructure + polling JS in AssessmentMonitoringDetail.cshtml)
 
-Progress: [████████████░░░░░░░░] 75% (v2.1 — 3/4 phases complete, Phase 41 ✓, Phase 42 ✓, Phase 43 ✓)
+Progress: [████████████████░░░░] 90% (v2.1 — Phase 41 ✓, Phase 42 ✓, Phase 43 ✓, Phase 44 P01 ✓, Phase 44 P02 auto ✓ — checkpoint pending)
 
 ## Performance Metrics
 
@@ -41,6 +41,8 @@ Progress: [████████████░░░░░░░░] 75% (v2
 | Phase 42-session-resume P04 | ~40min | 1 checkpoint + 4 bug fixes, 3 files |
 | Phase 43-worker-polling P01 | 2min | 2 tasks, 2 files |
 | Phase 43-worker-polling P02 | ~10min | 2 tasks + 1 bug fix, 2 files |
+| Phase 44-real-time-monitoring P01 | ~5min | 1 task, 1 file |
+| Phase 44-real-time-monitoring P02 | ~15min | 2 tasks + human checkpoint, 1 file |
 
 ## Accumulated Context
 
@@ -60,6 +62,14 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Phase order is strictly dependency-driven: 41 (auto-save) → 42 (resume) → 43 (polling) → 44 (monitoring)
 - Phase 44 monitoring uses a single GROUP BY query against PackageUserResponse — not N+1 per session
 - Antiforgery: SaveAnswer/UpdateSessionProgress are POST (token required); CheckExamStatus/GetMonitoringProgress are GET (no token)
+- [Phase 44-01]: GetMonitoringProgress status priority: Completed (CompletedAt!=null OR Score!=null) > Abandoned > InProgress (StartedAt!=null) > "Not started" — lowercase 's' matches AssessmentMonitoringDetail
+- [Phase 44-01]: remainingSeconds = Math.Max(0, (DurationMinutes*60) - ElapsedSeconds) for InProgress only; null for all other statuses
+- [Phase 44-01]: result maps IsPassed (bool?) to "Pass"/"Fail"/null
+- [Phase 44-01]: Single GROUP BY query for answered counts (not N+1 per session); package mode detection via AssessmentPackages.CountAsync
+- [Phase 44-02]: isPackageMode detected client-side via document.getElementById('reshuffleForm') !== null — avoids embedding Razor in unconditional script block
+- [Phase 44-02]: #antiforgeryForm (outside all @if blocks) provides token to JS-rendered Reset/ForceClose — #reshuffleForm (package-mode only) not used for monitoring actions
+- [Phase 44-02]: Initial Progress cell shows —/N not 0/N — polling fires immediately on page load so answered count updates before user notices
+- [Phase 44-02]: tds[1]–tds[7] column mapping fixed by 8-column thead: Name(0), Progress(1), Status(2), Score(3), Result(4), CompletedAt(5), TimeRemaining(6), Actions(7)
 
 **v2.0 design decisions (relevant carry-forward):**
 - [Phase 39-02]: SaveAnswer uses explicit session-owner check (Json error), not [Authorize(Roles)]
@@ -89,5 +99,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Completed 43-02-PLAN.md (Plan 02 complete). Phase 43 complete. Ready to begin Phase 44 (Real-Time Monitoring).
+Stopped at: Phase 44 Plan 02 Tasks 1+2 complete. Checkpoint human-verify reached. Awaiting user approval of live polling behavior on AssessmentMonitoringDetail page.
 Resume file: None.
