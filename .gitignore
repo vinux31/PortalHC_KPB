@@ -488,3 +488,6 @@ $RECYCLE.BIN/
 
 # Throwaway test files
 test.txt
+
+# Git worktrees
+.worktrees/
