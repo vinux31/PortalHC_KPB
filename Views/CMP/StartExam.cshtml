@@ -673,7 +673,7 @@ else
         window.onbeforeunload = null;
     });
 
-    // -------- Poll CheckExamStatus every 30s (detect early close by HC) --------
+    // -------- Poll CheckExamStatus every 10s (detect early close by HC) --------
     const CHECK_STATUS_URL = '@Url.Action("CheckExamStatus", "CMP")?sessionId=' + SESSION_ID;
     var statusPollInterval = null;
     var examClosed = false;
@@ -705,7 +705,7 @@ else
             .catch(function() { /* ignore network errors during poll */ });
     }
 
-    statusPollInterval = setInterval(checkExamStatus, 30000);
+    statusPollInterval = setInterval(checkExamStatus, 10000);
 </script>
 }
 
