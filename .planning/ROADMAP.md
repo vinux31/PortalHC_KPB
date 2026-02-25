@@ -14,6 +14,7 @@
 - ✅ **v1.8 Assessment Polish** — Phases 27-32 (shipped 2026-02-23)
 - ✅ **v1.9 Proton Catalog Management** — Phases 33-37 (shipped 2026-02-24)
 - ✅ **v2.0 Assessment Management & Training History** — Phases 38-40 (shipped 2026-02-24)
+- 🚧 **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-44 (in progress)
 
 ## Phases
 
@@ -247,6 +248,41 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 
 </details>
 
+<details>
+<summary>🚧 v2.1 Assessment Resilience & Real-Time Monitoring (Phases 41-44) — IN PROGRESS</summary>
+
+### Phase 41: Auto-Save
+**Goal:** Worker answers are automatically saved on each radio selection so no progress is lost if the page is refreshed or the session times out
+**Plans:** 2 plans
+
+Plans:
+- [x] 41-01-PLAN.md — Backend: atomic upsert for SaveAnswer + SaveLegacyAnswer hardening
+- [x] 41-02-PLAN.md — Frontend: auto-save wiring via fetch on radio change + visual feedback
+
+**Completed:** 2026-02-24
+
+### Phase 42: Session Resume
+**Goal:** Workers who return to an in-progress exam session are offered the option to resume from where they left off, with their elapsed time correctly tracked
+**Plans:** 4 plans
+
+Plans:
+- [x] 42-01-PLAN.md — DB schema: ElapsedSeconds, LastActivePage, SavedQuestionCount columns
+- [x] 42-02-PLAN.md — Backend: StartExam ViewModel with resume fields + UpdateSessionProgress endpoint
+- [x] 42-03-PLAN.md — Frontend: resume modal + prePopulateAnswers + timer restoration
+- [x] 42-04-PLAN.md — Human verification checkpoint (4 bugs fixed during review)
+
+**Completed:** 2026-02-24
+
+### Phase 43: Worker Polling
+**Goal:** The exam page automatically detects when HC closes the session early and redirects the worker to their Results page — workers are never stuck on the exam page after their session has been closed
+**Plans:** 2 plans
+
+Plans:
+- [ ] 43-01-PLAN.md — Backend: IMemoryCache registration + CheckExamStatus 5s TTL cache + CloseEarly cache invalidation
+- [ ] 43-02-PLAN.md — Frontend: tighten polling interval from 30s to 10s + human verification
+
+</details>
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -291,3 +327,6 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 | 38. Auto-Hide Filter | v2.0 | 1/1 | Complete | 2026-02-24 |
 | 39. Close Early | v2.0 | 2/2 | Complete | 2026-02-24 |
 | 40. Training Records History Tab | v2.0 | 2/2 | Complete | 2026-02-24 |
+| 41. Auto-Save | v2.1 | 2/2 | Complete | 2026-02-24 |
+| 42. Session Resume | v2.1 | 4/4 | Complete | 2026-02-24 |
+| 43. Worker Polling | v2.1 | 0/2 | In Progress | — |
