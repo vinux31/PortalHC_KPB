@@ -14,7 +14,7 @@
 - ✅ **v1.8 Assessment Polish** — Phases 27-32 (shipped 2026-02-23)
 - ✅ **v1.9 Proton Catalog Management** — Phases 33-37 (shipped 2026-02-24)
 - ✅ **v2.0 Assessment Management & Training History** — Phases 38-40 (shipped 2026-02-24)
-- ✅ **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-44 (shipped 2026-02-25)
+- 🚧 **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-45 (in progress)
 
 ## Phases
 
@@ -249,7 +249,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 </details>
 
 <details>
-<summary>✅ v2.1 Assessment Resilience & Real-Time Monitoring (Phases 41-44) — SHIPPED 2026-02-25</summary>
+<summary>🚧 v2.1 Assessment Resilience & Real-Time Monitoring (Phases 41-45) — IN PROGRESS</summary>
 
 ### Phase 41: Auto-Save
 **Goal:** Worker answers are automatically saved on each radio selection so no progress is lost if the page is refreshed or the session times out
@@ -292,6 +292,24 @@ Plans:
 - [x] 44-02-PLAN.md — Frontend: table restructure + 10s polling + 1s countdown + live action buttons + human verification
 
 **Completed:** 2026-02-25
+
+### Phase 45: Cross-Package Per-Position Shuffle
+**Goal:** Replace single-package assignment with per-position cross-package shuffle — each question slot randomly selects which package's version of that question to show, so workers receive a unique mix of questions from multiple packages rather than all questions from one package
+**Depends on:** Phase 44
+**Success Criteria** (what must be TRUE):
+  1. For 1 package: worker receives questions in order from that package (no cross-package choice)
+  2. For 2 packages: each question slot independently picks Package A or B (50/50), so workers get a unique mix
+  3. For 3+ packages: each slot picks from all packages with equal probability
+  4. All packages must have equal question counts — validation enforced at import/creation time
+  5. ShuffledQuestionIds JSON stores the resulting cross-package question ID sequence (compatible with existing grading, auto-save, and resume paths)
+  6. Reshuffle (single + bulk) regenerates the cross-package selection using the new logic
+  7. Existing grading (SubmitExam), auto-save (SaveAnswer), and session resume work unchanged
+**Plans:** 3 plans
+
+Plans:
+- [ ] 45-01-PLAN.md — Migration (DELETE UserPackageAssignments) + BuildCrossPackageAssignment helper + StartExam assignment creation
+- [ ] 45-02-PLAN.md — Fix all consumers: StartExam ViewModel, SubmitExam, ExamSummary, Results, CloseEarly
+- [ ] 45-03-PLAN.md — Reshuffle (single + bulk) + ImportPackageQuestions validation + ManagePackages summary panel
 
 </details>
 
@@ -343,3 +361,4 @@ Plans:
 | 42. Session Resume | v2.1 | 4/4 | Complete | 2026-02-24 |
 | 43. Worker Polling | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
+| 45. Cross-Package Per-Position Shuffle | v2.1 | 0/3 | Pending | — |

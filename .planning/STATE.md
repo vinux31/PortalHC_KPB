@@ -89,6 +89,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 42-03]: Failure toast "Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. X." (1-based X) per locked user decision
 - [Phase 42-03]: EXAM_EXPIRED path: modal + OK-click submit + 5s fallback; window.onbeforeunload = null before auto-submit
 
+### Roadmap Evolution
+
+- Phase 45 added: Cross-Package Per-Position Shuffle (replaces single-package assignment with per-slot random cross-package selection)
+
 ### Pending Todos
 
 None.
