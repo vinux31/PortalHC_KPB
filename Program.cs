@@ -10,6 +10,7 @@ builder.Services.AddControllersWithViews();
 
 // Session configuration for TempData
 builder.Services.AddDistributedMemoryCache();
+builder.Services.AddMemoryCache();
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
