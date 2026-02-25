@@ -9,6 +9,7 @@ using HcPortal.Models.Competency;
 using HcPortal.Helpers;
 using System.Text.Json;
 using HcPortal.Services;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace HcPortal.Controllers
 {
@@ -20,19 +21,22 @@ namespace HcPortal.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly AuditLogService _auditLog;
+        private readonly IMemoryCache _cache;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ApplicationDbContext context,
             IWebHostEnvironment env,
-            AuditLogService auditLog)
+            AuditLogService auditLog,
+            IMemoryCache cache)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _env = env;
             _auditLog = auditLog;
+            _cache = cache;
         }
 
         public IActionResult Index()
@@ -1011,8 +1015,12 @@ namespace HcPortal.Controllers
                 }
             }
 
-            // Step 6 — Single SaveChangesAsync + audit log + redirect
+            // Step 6 — Single SaveChangesAsync + cache invalidation + audit log + redirect
             await _context.SaveChangesAsync();
+
+            // Invalidate cached exam status for every session we just closed
+            foreach (var s in allSessions)
+                _cache.Remove($"exam-status-{s.Id}");
 
             var actor = await _userManager.GetUserAsync(User);
             var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
@@ -1110,19 +1118,25 @@ namespace HcPortal.Controllers
             return Json(new { success = true });
         }
 
-        // --- CHECK EXAM STATUS (polled by worker JS every 30s to detect early close) ---
+        // --- CHECK EXAM STATUS (polled by worker JS every 10s to detect early close) ---
         [HttpGet]
         public async Task<IActionResult> CheckExamStatus(int sessionId)
         {
-            var session = await _context.AssessmentSessions.FindAsync(sessionId);
-            if (session == null) return NotFound();
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
+
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null) return NotFound();
 
             // Only the session owner may poll status
             if (session.UserId != user.Id)
                 return Json(new { closed = false });
+
+            string cacheKey = $"exam-status-{sessionId}";
+
+            // Return cached result if available (5-second TTL — reduces DB load for concurrent workers)
+            if (_cache.TryGetValue(cacheKey, out (bool closed, string url) hit))
+                return Json(new { closed = hit.closed, redirectUrl = hit.url });
 
             bool isClosed = false;
 
@@ -1137,6 +1151,9 @@ namespace HcPortal.Controllers
             string redirectUrl = isClosed
                 ? Url.Action("Results", new { id = sessionId }) ?? "/CMP/Assessment"
                 : "";
+
+            // Cache result for 5 seconds (ownership already verified above)
+            _cache.Set(cacheKey, (isClosed, redirectUrl), TimeSpan.FromSeconds(5));
 
             return Json(new { closed = isClosed, redirectUrl });
         }
