@@ -69,31 +69,28 @@
 
     <!-- Summary cards -->
     <div class="row g-3 mb-4">
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="card border-0 shadow-sm text-center py-3">
-                <div class="fs-3 fw-bold text-primary">@Model.TotalCount</div>
+                <div class="fs-3 fw-bold text-primary" id="count-total">@Model.TotalCount</div>
                 <div class="text-muted small">Total Assigned</div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="card border-0 shadow-sm text-center py-3">
-                <div class="fs-3 fw-bold text-success">@Model.CompletedCount</div>
-                <div class="text-muted small">Completed (@completedPct%)</div>
+                <div class="fs-3 fw-bold text-success" id="count-completed">@Model.CompletedCount</div>
+                <div class="text-muted small">Completed</div>
             </div>
         </div>
-        <div class="col-sm-4">
+        <div class="col-sm-3">
             <div class="card border-0 shadow-sm text-center py-3">
-                @if (Model.CompletedCount == 0)
-                {
-                    <div class="fs-3 fw-bold text-muted">—</div>
-                    <div class="text-muted small">Pass Rate</div>
-                }
-                else
-                {
-                    var passColor = passRatePct >= 70 ? "text-success" : "text-danger";
-                    <div class="fs-3 fw-bold @passColor">@Model.PassedCount</div>
-                    <div class="text-muted small">Passed (@passRatePct%)</div>
-                }
+                <div class="fs-3 fw-bold text-warning" id="count-inprogress">@(Model.Sessions.Count(s => s.UserStatus == "InProgress"))</div>
+                <div class="text-muted small">In Progress</div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="fs-3 fw-bold text-secondary" id="count-notstarted">@Model.PendingCount</div>
+                <div class="text-muted small">Not Started</div>
             </div>
         </div>
     </div>
@@ -117,7 +114,7 @@
                 @if (Model.GroupStatus == "Open")
                 {
                     <!-- Close Early: triggers Bootstrap modal confirmation -->
-                    <button type="button" class="btn btn-warning btn-sm"
+                    <button type="button" class="btn btn-warning btn-sm" id="closeEarlyBtn"
                             data-bs-toggle="modal" data-bs-target="#closeEarlyModal">
                         <i class="bi bi-clock-history me-1"></i>Submit Assessment
                     </button>
@@ -148,12 +145,12 @@
                     <thead class="table-light">
                         <tr>
                             <th>Name</th>
-                            <th>NIP</th>
-                            <th>Jumlah Soal</th>
+                            <th>Progress</th>
                             <th>Status</th>
                             <th>Score</th>
                             <th>Result</th>
                             <th>Completed At</th>
+                            <th>Time Remaining</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -193,12 +190,11 @@
                                     resultClass = "text-muted";
                                 }
 
-                                <tr>
+                                <tr data-session-id="@session.Id">
                                     <td class="fw-semibold">@session.UserFullName</td>
-                                    <td class="text-muted small">@(string.IsNullOrEmpty(session.UserNIP) ? "—" : session.UserNIP)</td>
-                                    <td class="text-center">@session.QuestionCount</td>
-                                    <td><span class="badge @statusClass">@session.UserStatus</span></td>
-                                    <td>
+                                    <td class="text-center progress-cell">@(session.QuestionCount > 0 ? $"—/{session.QuestionCount}" : "—")</td>
+                                    <td class="status-cell"><span class="badge @statusClass">@session.UserStatus</span></td>
+                                    <td class="score-cell">
                                         @if (session.Score.HasValue)
                                         {
                                             <span>@session.Score%</span>
@@ -208,10 +204,11 @@
                                             <span class="text-muted">—</span>
                                         }
                                     </td>
-                                    <td class="@resultClass">@resultText</td>
-                                    <td class="text-muted small">
+                                    <td class="result-cell @resultClass">@resultText</td>
+                                    <td class="completedat-cell text-muted small">
                                         @(session.CompletedAt.HasValue ? session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "—")
                                     </td>
+                                    <td class="timeremaining-cell text-muted">—</td>
                                     <td>
                                         @if (Model.IsPackageMode)
                                         {
@@ -264,6 +261,22 @@
                 </table>
             </div>
         </div>
+    </div>
+
+    <!-- Global antiforgery token for JS-rendered action buttons -->
+    <form id="antiforgeryForm" style="display:none">@Html.AntiForgeryToken()</form>
+
+    <!-- Hidden fields for polling endpoint params -->
+    <input type="hidden" id="hTitle" value="@Model.Title" />
+    <input type="hidden" id="hCategory" value="@Model.Category" />
+    <input type="hidden" id="hScheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
+
+    <!-- Last updated + error indicator -->
+    <div class="d-flex align-items-center gap-3 mt-2 px-1">
+        <small class="text-muted">
+            Last updated: <span id="last-updated-time">—</span>
+        </small>
+        <span id="poll-error" class="badge bg-warning text-dark" style="display:none;">Update error — retrying</span>
     </div>
 
     @if (Model.IsPackageMode)
@@ -434,3 +447,219 @@
     }
 </script>
 }
+
+<script>
+(function () {
+    // ---- State ----
+    var countdownMap = {}; // { sessionId: remainingSeconds | null }
+    var pollingActive = true;
+    var pollingTimer = null;
+    var countdownTimer = null;
+
+    // ---- Read page params from hidden fields ----
+    var hTitle        = document.getElementById('hTitle').value;
+    var hCategory     = document.getElementById('hCategory').value;
+    var hScheduleDate = document.getElementById('hScheduleDate').value;
+
+    // ---- Antiforgery token (for JS-rendered Reset / ForceClose forms) ----
+    function getToken() {
+        var inp = document.querySelector('#antiforgeryForm input[name="__RequestVerificationToken"]');
+        return inp ? inp.value : '';
+    }
+
+    // ---- Status badge class helper ----
+    function statusBadgeClass(status) {
+        if (status === 'Completed')  return 'badge bg-success';
+        if (status === 'InProgress') return 'badge bg-warning text-dark';
+        if (status === 'Abandoned')  return 'badge bg-secondary';
+        return 'badge bg-light text-dark border'; // Not started
+    }
+
+    // ---- Build actions HTML per status ----
+    function buildActionsHtml(session, isPackageMode) {
+        var html = '';
+        var token = getToken();
+
+        // Reshuffle button (package mode only)
+        if (isPackageMode) {
+            var canReshuffle = (session.status === 'Not started');
+            html += '<button type="button"'
+                + ' class="btn btn-outline-primary btn-sm me-1' + (canReshuffle ? '' : ' disabled') + '"'
+                + (canReshuffle ? '' : ' disabled')
+                + ' data-session-id="' + session.sessionId + '"'
+                + (canReshuffle ? ' onclick="reshuffleWorker(' + session.sessionId + ')"' : '')
+                + '><i class="bi bi-shuffle me-1"></i>Reshuffle</button>';
+        }
+
+        if (session.status === 'Completed') {
+            // View Results (new tab) + Reset
+            html += '<a href="/CMP/Results/' + session.sessionId + '" target="_blank"'
+                + ' class="btn btn-success btn-sm me-1">View Results</a>';
+            html += '<form class="d-inline" method="post" action="/CMP/ResetAssessment"'
+                + ' onsubmit="return confirm(\'Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.\')">'
+                + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
+                + '<input type="hidden" name="id" value="' + session.sessionId + '" />'
+                + '<button type="submit" class="btn btn-warning btn-sm"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>'
+                + '</form>';
+        } else if (session.status === 'Abandoned') {
+            // Reset only
+            html += '<form class="d-inline" method="post" action="/CMP/ResetAssessment"'
+                + ' onsubmit="return confirm(\'Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.\')">'
+                + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
+                + '<input type="hidden" name="id" value="' + session.sessionId + '" />'
+                + '<button type="submit" class="btn btn-warning btn-sm"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</button>'
+                + '</form>';
+        } else {
+            // Not started or InProgress: Force Close
+            html += '<form class="d-inline" method="post" action="/CMP/ForceCloseAssessment"'
+                + ' onsubmit="return confirm(\'Tutup paksa sesi ini? Skor akan dicatat sebagai 0 dan peserta dinyatakan tidak lulus.\')">'
+                + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
+                + '<input type="hidden" name="id" value="' + session.sessionId + '" />'
+                + '<button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-circle me-1"></i>Force Close</button>'
+                + '</form>';
+        }
+        return html;
+    }
+
+    // ---- Format time remaining ----
+    function formatTime(secs) {
+        if (secs === null || secs === undefined) return '—';
+        if (secs <= 0) return '00:00';
+        var m = Math.floor(secs / 60);
+        var s = secs % 60;
+        return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+
+    // ---- Detect package mode from page (Reshuffle button presence) ----
+    var isPackageMode = (document.getElementById('reshuffleForm') !== null);
+
+    // ---- Update a single row ----
+    function updateRow(session) {
+        var tr = document.querySelector('tr[data-session-id="' + session.sessionId + '"]');
+        if (!tr) return;
+
+        var tds = tr.querySelectorAll('td');
+        // Column order (0-indexed): Name=0, Progress=1, Status=2, Score=3, Result=4, CompletedAt=5, TimeRemaining=6, Actions=7
+
+        // Progress (col 1)
+        var total = session.totalQuestions || 0;
+        tds[1].textContent = total > 0 ? (session.progress + '/' + total) : '—';
+
+        // Status (col 2)
+        tds[2].innerHTML = '<span class="' + statusBadgeClass(session.status) + '">' + session.status + '</span>';
+
+        // Score (col 3)
+        tds[3].textContent = session.score !== null && session.score !== undefined ? session.score + '%' : '—';
+
+        // Result (col 4)
+        var resultText = session.result || '—';
+        var resultClass = session.result === 'Pass' ? 'text-success fw-semibold' : (session.result === 'Fail' ? 'text-danger fw-semibold' : 'text-muted');
+        tds[4].textContent = resultText;
+        tds[4].className = 'result-cell ' + resultClass;
+
+        // Completed At (col 5)
+        if (session.completedAt) {
+            var d = new Date(session.completedAt);
+            tds[5].textContent = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        } else {
+            tds[5].textContent = '—';
+        }
+
+        // Time Remaining (col 6) — re-sync countdownMap from server snapshot
+        countdownMap[session.sessionId] = session.status === 'InProgress' ? session.remainingSeconds : null;
+        tds[6].textContent = formatTime(countdownMap[session.sessionId]);
+
+        // Actions (col 7)
+        tds[7].innerHTML = buildActionsHtml(session, isPackageMode);
+    }
+
+    // ---- Tick countdown every second ----
+    function tickCountdowns() {
+        Object.keys(countdownMap).forEach(function (idStr) {
+            var id = parseInt(idStr, 10);
+            var secs = countdownMap[id];
+            if (secs !== null && secs > 0) {
+                countdownMap[id] = secs - 1;
+                var tr = document.querySelector('tr[data-session-id="' + id + '"]');
+                if (tr) {
+                    var tds = tr.querySelectorAll('td');
+                    if (tds[6]) tds[6].textContent = formatTime(countdownMap[id]);
+                }
+            }
+        });
+    }
+
+    // ---- Update summary counts ----
+    function updateSummary(sessions) {
+        var total      = sessions.length;
+        var completed  = sessions.filter(function (s) { return s.status === 'Completed'; }).length;
+        var inProgress = sessions.filter(function (s) { return s.status === 'InProgress'; }).length;
+        var notStarted = sessions.filter(function (s) { return s.status === 'Not started'; }).length;
+
+        var elTotal      = document.getElementById('count-total');
+        var elCompleted  = document.getElementById('count-completed');
+        var elInProgress = document.getElementById('count-inprogress');
+        var elNotStarted = document.getElementById('count-notstarted');
+
+        if (elTotal)      elTotal.textContent      = total;
+        if (elCompleted)  elCompleted.textContent  = completed;
+        if (elInProgress) elInProgress.textContent = inProgress;
+        if (elNotStarted) elNotStarted.textContent = notStarted;
+    }
+
+    // ---- Update "Last updated" timestamp ----
+    function updateLastUpdated() {
+        var el = document.getElementById('last-updated-time');
+        if (el) el.textContent = new Date().toLocaleTimeString('id-ID');
+        // Hide error indicator on success
+        var errEl = document.getElementById('poll-error');
+        if (errEl) errEl.style.display = 'none';
+    }
+
+    // ---- Show error indicator on fetch failure ----
+    function showErrorIndicator() {
+        var errEl = document.getElementById('poll-error');
+        if (errEl) errEl.style.display = '';
+    }
+
+    // ---- Main poll function ----
+    async function fetchProgress() {
+        if (!pollingActive) return;
+        try {
+            var url = '/CMP/GetMonitoringProgress'
+                + '?title=' + encodeURIComponent(hTitle)
+                + '&category=' + encodeURIComponent(hCategory)
+                + '&scheduleDate=' + encodeURIComponent(hScheduleDate);
+
+            var resp = await fetch(url);
+            if (!resp.ok) { showErrorIndicator(); return; }
+
+            var sessions = await resp.json();
+            sessions.forEach(updateRow);
+            updateSummary(sessions);
+            updateLastUpdated();
+
+            // Stop polling when all sessions are Completed
+            if (sessions.length > 0 && sessions.every(function (s) { return s.status === 'Completed'; })) {
+                clearInterval(pollingTimer);
+                clearInterval(countdownTimer);
+                pollingActive = false;
+
+                // Hide "Tutup Lebih Awal" button
+                var closeBtn = document.getElementById('closeEarlyBtn');
+                if (closeBtn) closeBtn.style.display = 'none';
+            }
+        } catch (e) {
+            showErrorIndicator();
+        }
+    }
+
+    // ---- Start intervals ----
+    pollingTimer   = setInterval(fetchProgress, 10000);
+    countdownTimer = setInterval(tickCountdowns, 1000);
+
+    // Run first poll immediately (don't wait 10s)
+    fetchProgress();
+})();
+</script>
