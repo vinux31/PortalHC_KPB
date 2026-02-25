@@ -12,19 +12,31 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v2.1 Assessment Resilience & Real-Time Monitoring
+## Current State (v2.1 — shipped 2026-02-25)
 
-**Goal:** Worker tidak kehilangan progress saat disconnected dan HC bisa memantau perkembangan tiap worker secara live selama assessment berlangsung.
-
-**Target features:**
-- Auto-save answers per-klik + per-halaman (AJAX ke SaveAnswer endpoint); solves Close Early scoring dari jawaban parsial
-- Session resume — elapsed time + last page disimpan; jika disconnected lalu reconnect, exam melanjutkan dari posisi terakhir dengan sisa waktu akurat
-- Worker exam polling — exam page poll setiap 10s; jika session closed (Close Early), browser auto-redirect ke Results
-- Live progress monitoring (HC) — Progress column (dijawab/total) di MonitoringDetail Per-User Status; auto-refresh 5-10s; NIP column dihapus
-
-## Current State (v2.0 — shipped 2026-02-24)
+No active milestone. Planning next milestone.
 
 ## Shipped Milestones
+
+### ✅ v2.1 - Assessment Resilience & Real-Time Monitoring (2026-02-25)
+
+**Delivered:** Workers never lose exam progress (auto-save per-click + session resume from exact page with accurate remaining time), HC can monitor live during assessments (progress/status/countdown auto-refresh), and cross-package shuffle gives each worker a unique question mix from multiple packages.
+
+**What Shipped:**
+1. **Auto-Save** — SaveAnswer atomic upsert (ExecuteUpdateAsync + UNIQUE constraint); SaveLegacyAnswer for legacy path; visual feedback on save
+2. **Session Resume** — ElapsedSeconds + LastActivePage persisted; resume modal on reconnect; pre-populated answers; offline time excluded from duration
+3. **Worker Polling** — 10s poll interval with IMemoryCache (5s TTL); auto-redirect to Results on HC close-early; CloseEarly cache invalidation
+4. **Real-Time Monitoring** — GetMonitoringProgress JSON endpoint; 10s table auto-refresh + 1s countdown; JS-rendered Reset/ForceClose action buttons; 8-column table restructure
+5. **Cross-Package Per-Position Shuffle** — BuildCrossPackageAssignment: per-position random package selection with even distribution; import validation enforces equal question counts; all 5 consumers updated; ManagePackages summary panel
+
+**Metrics:**
+- 5 phases (41-45), 13 plans
+- 52 files changed, 12,184 insertions / 255 deletions
+- 2026-02-24 → 2026-02-25
+
+See `.planning/milestones/v2.1-ROADMAP.md` for full details.
+
+---
 
 ### ✅ v2.0 - Assessment Management & Training History (2026-02-24)
 
@@ -261,8 +273,8 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Dedicated Manage Assessments card on CMP Index (HC/Admin only; workers see Assessment Lobby only)
   - Manage view: grouped assessment cards (1 card per unique Title+Category+Date assessment, compact user list, group delete)
   - Bulk Assign: EditAssessment page shows currently-assigned users + section-filtered picker to add more; new AssessmentSessions created on save without altering existing ones
-  - **Test Packages (v1.5):** HC creates packages per assessment; imports questions via Excel/paste; each user assigned random package with Fisher-Yates shuffled question + option order
-  - **Package Management (v1.5):** ManagePackages page (create/delete), ImportPackageQuestions (Excel upload + paste), PREVIEW MODE for HC
+  - **Test Packages (v1.5, updated v2.1):** HC creates packages per assessment; imports questions via Excel/paste; cross-package per-position shuffle gives each worker a unique question mix from multiple packages (v2.1 replaces single-package Fisher-Yates)
+  - **Package Management (v1.5, updated v2.1):** ManagePackages page (create/delete + summary panel showing mode/badge/mismatch), ImportPackageQuestions (Excel upload + paste + cross-package count validation), PREVIEW MODE for HC
   - **Grouped Monitoring (v1.4):** Monitoring tab shows one row per assessment group with completion bar + pass rate; "View Details" links to per-user detail page with 4-state UserStatus (Not started/InProgress/Abandoned/Completed)
   - **Exam Lifecycle (v1.7):** InProgress tracking + StartedAt timestamp; worker Keluar Ujian abandon; HC ForceClose (Score=0) and Reset (clears for retake); server-side timer (+2min grace); configurable ExamWindowCloseDate lockout
   - **Answer Integrity (v1.7):** PackageUserResponse table; answer review for package exams; server-side token enforcement (TempData guard)
@@ -291,6 +303,15 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Type badges differentiate Assessment Online (Score, Pass/Fail) vs Training Manual (Penyelenggara, Sertifikat, Berlaku Sampai)
   - HC/Admin worker list with combined completion rate from both data sources
   - **All Workers History Tab (v2.0):** RecordsWorkerList "History" tab — all workers' manual training + completed assessments merged, sorted by date descending; 8-column table with type badge; URL-persisted tab (?activeTab=history)
+
+- ✅ **Assessment Resilience (v2.1):**
+  - Auto-save: answers saved per-click via AJAX (atomic upsert + UNIQUE constraint); legacy path via SaveLegacyAnswer; visual "Tersimpan" feedback
+  - Session resume: ElapsedSeconds + LastActivePage persisted; resume modal on reconnect; pre-populated answers; offline time excluded from duration
+  - Worker polling: 10s poll with IMemoryCache (5s TTL); auto-redirect to Results on HC close-early; CloseEarly cache invalidation
+
+- ✅ **Real-Time Monitoring (HC/Admin — v2.1):**
+  - GetMonitoringProgress JSON endpoint; 10s table auto-refresh + 1s countdown timer; JS-rendered Reset/ForceClose action buttons
+  - 8-column table: Name, Progress (answered/total), Status, Score, Result, CompletedAt, TimeRemaining, Actions
 
 - ✅ **Assessment Lifecycle (HC/Admin — v2.0):**
   - Close Early: "Tutup Lebih Awal" button on MonitoringDetail (HC/Admin only, Open groups only); scores InProgress workers from actual answers; audit log entry
@@ -370,6 +391,14 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | 7-day auto-hide uses ExamWindowCloseDate ?? Schedule.Date | Both GetManageData and GetMonitorData apply identical cutoff; fallback to Schedule ensures groups without explicit close date still age out | v2.0 ✓ |
 | GetAllWorkersHistory merges in memory, not SQL UNION | Two separate EF Core queries (TrainingRecords + AssessmentSessions); merged and sorted in memory via LINQ OrderByDescending — consistent with UnifiedTrainingRecord pattern | v2.0 ✓ |
 | RecordsWorkerListViewModel wraps existing Workers list | ViewModel wrapper preserves all existing worker-list functionality unchanged; History list added as second property — minimal disruption to existing code | v2.0 ✓ |
+| ExecuteUpdateAsync atomic upsert for SaveAnswer | Avoids EF change tracking race on concurrent auto-saves; UNIQUE constraint (SessionId, QuestionId) as safety net | v2.1 ✓ |
+| ElapsedSeconds non-nullable int DEFAULT 0 | Clean accumulation, no null checks; LastActivePage/SavedQuestionCount nullable (null = pre-v2.1 session) | v2.1 ✓ |
+| Offline time excluded from exam duration | RemainingSeconds = (DurationMinutes*60) - ElapsedSeconds; disconnect gap is "free time" by design | v2.1 ✓ |
+| IMemoryCache 5s TTL for CheckExamStatus | Session-scoped key; ~99% DB reduction for concurrent polls; CloseEarly invalidates immediately | v2.1 ✓ |
+| GetMonitoringProgress single GROUP BY query | Answered counts via one GROUP BY on PackageUserResponse; not N+1 per session | v2.1 ✓ |
+| Cross-package per-position shuffle replaces single-package | BuildCrossPackageAssignment: 1 pkg = DB order, N pkgs = even distribution + Fisher-Yates; sentinel FK; option shuffle removed | v2.1 ✓ |
+| Import validation enforces equal question counts | Block import if count differs from existing non-empty packages; empty packages excluded from validation | v2.1 ✓ |
+| All consumers load questions by ShuffledQuestionIds | SubmitExam, ExamSummary, Results, CloseEarly all use shuffledIds.Contains — no AssessmentPackageId filter | v2.1 ✓ |
 
 ## Technical Constraints
 
@@ -391,7 +420,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ## Shipped Requirements
 
-All requirements from v1.0–v2.0 are satisfied. See milestone archives for traceability:
+All requirements from v1.0–v2.1 are satisfied. See milestone archives for traceability:
 - `milestones/v1.0-REQUIREMENTS.md` — 6 requirements (Phases 1-3)
 - `milestones/v1.2-REQUIREMENTS.md` — 11 requirements (Phases 9-12, all ✅ Shipped)
 - `milestones/v1.3-REQUIREMENTS.md` — 9 requirements (Phases 13-15; 7 shipped, 2 cancelled)
@@ -399,6 +428,7 @@ All requirements from v1.0–v2.0 are satisfied. See milestone archives for trac
 - `milestones/v1.7-REQUIREMENTS.md` — 14 requirements (LIFE-01–05, ANSR-01–02, SEC-01–02, WRK-01–02, DATA-01–03, all ✅ Shipped)
 - `milestones/v1.9-REQUIREMENTS.md` — 10 requirements (SCHEMA-01, CAT-01–09; 9 shipped, CAT-08 cancelled)
 - `milestones/v2.0-REQUIREMENTS.md` — 4 requirements (ASSESS-01–03, HIST-01, all ✅ Shipped)
+- `milestones/v2.1-REQUIREMENTS.md` — 11 requirements (SAVE-01–03, RESUME-01–03, POLL-01–02, MONITOR-01–03, all ✅ Shipped)
 
 ## Users & Roles
 
@@ -451,12 +481,14 @@ All requirements from v1.0–v2.0 are satisfied. See milestone archives for trac
 
 ## Technical Debt
 
-- Large monolithic controllers (CMPController ~2700+ lines post-v2.0, CDPController 1000+ lines, ProtonCatalogController ~400 lines)
+- Large monolithic controllers (CMPController ~3200+ lines post-v2.1, CDPController 1000+ lines, ProtonCatalogController ~400 lines)
 - No automated testing — manual QA only
 - `GetMonitorData` uses 2-state UserStatus (`"Completed"` vs `"Not started"`) — Abandoned/InProgress show as "Not started" in monitoring card summary; 4-state view works correctly in AssessmentMonitoringDetail
 - `GetPersonalTrainingRecords()` in CMPController is dead code (not called) — retained to avoid scope risk
 - N+1 queries addressed in batch where identified but not systematically audited
 - No UI to re-assign packages or manually override shuffle — edge case with no workaround
+- `ShuffledOptionIdsPerQuestion` field on UserPackageAssignment is deprecated (always "{}") — kept for schema compatibility but unused since v2.1 cross-package shuffle removed option randomization
+- Close Early + SubmitExam concurrency race not hardened (CONCUR-01 deferred to v2.2)
 - Proton catalog drag-and-drop reorder removed (SortableJS incompatible with nested-table tree); no UI reordering for catalog items
 - Worker self-add training records deferred (WTRN-01, WTRN-02)
 
@@ -469,4 +501,4 @@ All requirements from v1.0–v2.0 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-24 after v2.0 milestone — all milestones complete, no active milestone*
+*Last updated: 2026-02-25 after v2.1 milestone — all milestones complete, no active milestone*

@@ -98,3 +98,21 @@
 
 ---
 
+
+## v2.1 Assessment Resilience & Real-Time Monitoring (Shipped: 2026-02-25)
+
+**Phases completed:** 5 phases (41-45), 13 plans
+**Files modified:** 52 | **Insertions:** 12,184 | **Deletions:** 255
+**Timeline:** 2026-02-24 → 2026-02-25
+
+**Delivered:** Workers never lose exam progress (auto-save + session resume), HC can monitor live during assessments, and cross-package shuffle gives each worker a unique question mix from multiple packages.
+
+**Key accomplishments:**
+1. Auto-save — Worker answers saved per-click via AJAX with atomic upsert (ExecuteUpdateAsync + UNIQUE constraint); legacy exam path also covered via SaveLegacyAnswer
+2. Session resume — ElapsedSeconds + LastActivePage persisted; workers resume from exact page with accurate remaining time; pre-populated answers on reconnect
+3. Worker polling — 10s poll interval with IMemoryCache (5s TTL, ~99% DB load reduction); auto-redirects worker to Results when HC closes session early
+4. Real-time monitoring — HC sees live progress (answered/total), status, score, time remaining per worker; 10s auto-refresh + 1s countdown; JS-rendered Reset/ForceClose action buttons
+5. Cross-package per-position shuffle — Each question slot independently picks which package's question to show; even distribution across packages; import validation enforces equal counts; all 5 consumers (StartExam, SubmitExam, ExamSummary, Results, CloseEarly) updated
+
+---
+
