@@ -14,7 +14,7 @@
 - ✅ **v1.8 Assessment Polish** — Phases 27-32 (shipped 2026-02-23)
 - ✅ **v1.9 Proton Catalog Management** — Phases 33-37 (shipped 2026-02-24)
 - ✅ **v2.0 Assessment Management & Training History** — Phases 38-40 (shipped 2026-02-24)
-- 🚧 **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-44 (in progress)
+- ✅ **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-44 (shipped 2026-02-25)
 
 ## Phases
 
@@ -249,7 +249,7 @@ See `.planning/milestones/v2.0-ROADMAP.md` for full details.
 </details>
 
 <details>
-<summary>🚧 v2.1 Assessment Resilience & Real-Time Monitoring (Phases 41-44) — IN PROGRESS</summary>
+<summary>✅ v2.1 Assessment Resilience & Real-Time Monitoring (Phases 41-44) — SHIPPED 2026-02-25</summary>
 
 ### Phase 41: Auto-Save
 **Goal:** Worker answers are automatically saved on each radio selection so no progress is lost if the page is refreshed or the session times out
@@ -288,8 +288,10 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 44-01-PLAN.md — Backend: GetMonitoringProgress JSON endpoint (session DTOs with progress, score, remainingSeconds)
-- [ ] 44-02-PLAN.md — Frontend: table restructure + 10s polling + 1s countdown + live action buttons + human verification
+- [x] 44-01-PLAN.md — Backend: GetMonitoringProgress JSON endpoint (session DTOs with progress, score, remainingSeconds)
+- [x] 44-02-PLAN.md — Frontend: table restructure + 10s polling + 1s countdown + live action buttons + human verification
+
+**Completed:** 2026-02-25
 
 </details>
 
@@ -340,4 +342,4 @@ Plans:
 | 41. Auto-Save | v2.1 | 2/2 | Complete | 2026-02-24 |
 | 42. Session Resume | v2.1 | 4/4 | Complete | 2026-02-24 |
 | 43. Worker Polling | v2.1 | 2/2 | Complete | 2026-02-25 |
-| 44. Real-Time Monitoring | v2.1 | 0/2 | In Progress | — |
+| 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
