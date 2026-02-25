@@ -409,10 +409,12 @@ else
         const hasAnswers = SAVED_ANSWERS && Object.keys(SAVED_ANSWERS).length > 0;
 
         if (!hasAnswers) {
-            // Locked decision: show toast warning when pre-populate has no data on resume
-            // "Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. X."
-            // X is first question number on last active page (1-based question number)
-            showResumeFailureToast('Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. ' + (RESUME_PAGE * QUESTIONS_PER_PAGE + 1) + '.');
+            // Only warn if worker was genuinely mid-exam on a non-first page.
+            // If RESUME_PAGE === 0 the worker simply opened the exam and left without answering —
+            // there's nothing to restore, so a "failure" toast is misleading.
+            if (RESUME_PAGE > 0) {
+                showResumeFailureToast('Gagal memuat jawaban sebelumnya. Lanjutkan dari soal no. ' + (RESUME_PAGE * QUESTIONS_PER_PAGE + 1) + '.');
+            }
             return;
         }
 
@@ -447,8 +449,6 @@ else
         if (!toastContainer) {
             toastContainer = document.createElement('div');
             toastContainer.id = 'resumeToastContainer';
-            toastContainer.style.cssText = 'position:fixed;bottom:1.5rem;end:1rem;z-index:1100;';
-            // Use Bootstrap's position utility classes instead of inline style for RTL safety
             toastContainer.className = 'position-fixed bottom-0 end-0 p-3';
             toastContainer.style.zIndex = '1100';
             document.body.appendChild(toastContainer);
@@ -633,7 +633,11 @@ else
         }, 5000);
     } else if (IS_RESUME && RESUME_PAGE > 0) {
         // Show resume confirmation modal (worker left mid-exam on a non-first page)
-        document.getElementById('resumePageNum').innerText = (RESUME_PAGE * QUESTIONS_PER_PAGE + 1);
+        // Use answered count + 1 for accurate resume position (falls back to page-based if no answers loaded)
+        var resumeFromNum = answeredQuestions.size > 0
+            ? answeredQuestions.size + 1
+            : RESUME_PAGE * QUESTIONS_PER_PAGE + 1;
+        document.getElementById('resumePageNum').innerText = resumeFromNum;
         const resumeModal = new bootstrap.Modal(document.getElementById('resumeConfirmModal'));
         resumeModal.show();
 

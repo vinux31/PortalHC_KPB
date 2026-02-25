@@ -593,10 +593,10 @@ namespace HcPortal.Controllers
 
             if (assessment == null) return NotFound();
 
-            // Only reset Completed or Abandoned sessions
-            if (assessment.Status != "Completed" && assessment.Status != "Abandoned")
+            // Reset is valid for any active status (Open, InProgress, Completed, Abandoned)
+            if (assessment.Status != "Open" && assessment.Status != "InProgress" && assessment.Status != "Completed" && assessment.Status != "Abandoned")
             {
-                TempData["Error"] = "Hanya sesi yang telah selesai atau ditinggalkan yang dapat direset.";
+                TempData["Error"] = "Status sesi tidak valid untuk direset.";
                 return RedirectToAction("AssessmentMonitoringDetail", new
                 {
                     title = assessment.Title,
@@ -632,6 +632,8 @@ namespace HcPortal.Controllers
             assessment.IsPassed = null;
             assessment.CompletedAt = null;
             assessment.StartedAt = null;
+            assessment.ElapsedSeconds = 0;
+            assessment.LastActivePage = null;
             assessment.Progress = 0;
             assessment.UpdatedAt = DateTime.UtcNow;
 
@@ -1311,8 +1313,8 @@ namespace HcPortal.Controllers
             else
                 userStatus = "Not started";
 
-            if (userStatus != "Not started")
-                return Json(new { success = false, message = "Hanya peserta yang belum mulai ujian yang dapat di-reshuffle." });
+            if (userStatus != "Not started" && userStatus != "Abandoned")
+                return Json(new { success = false, message = "Hanya peserta yang belum mulai atau sesi yang ditinggalkan yang dapat di-reshuffle." });
 
             // Find sibling session IDs (same Title + Category + Schedule.Date)
             var siblingSessionIds = await _context.AssessmentSessions
