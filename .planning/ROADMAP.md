@@ -278,8 +278,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 43-01-PLAN.md — Backend: IMemoryCache registration + CheckExamStatus 5s TTL cache + CloseEarly cache invalidation
-- [ ] 43-02-PLAN.md — Frontend: tighten polling interval from 30s to 10s + human verification
+- [x] 43-01-PLAN.md — Backend: IMemoryCache registration + CheckExamStatus 5s TTL cache + CloseEarly cache invalidation
+- [x] 43-02-PLAN.md — Frontend: tighten polling interval from 30s to 10s + human verification
 
 </details>
 
@@ -329,4 +329,4 @@ Plans:
 | 40. Training Records History Tab | v2.0 | 2/2 | Complete | 2026-02-24 |
 | 41. Auto-Save | v2.1 | 2/2 | Complete | 2026-02-24 |
 | 42. Session Resume | v2.1 | 4/4 | Complete | 2026-02-24 |
-| 43. Worker Polling | v2.1 | 0/2 | In Progress | — |
+| 43. Worker Polling | v2.1 | 2/2 | Complete | 2026-02-25 |
