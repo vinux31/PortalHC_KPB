@@ -11,10 +11,10 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — IN PROGRESS
 **Phase:** 43 of 44 (Worker Polling)
-**Current Plan:** 1 of 2 complete (Plan 02 at checkpoint — awaiting human verification)
+**Current Plan:** 1 of 2 complete (Plan 01 complete; Plan 02 at checkpoint — awaiting human verification)
 **Next action:** Human verifies end-to-end: worker tab auto-redirects within 10-30s of HC clicking "Tutup Lebih Awal"
-**Status:** Plan 02 Task 1 complete (interval changed to 10s, build passes). Checkpoint reached.
-**Last activity:** 2026-02-25 — Phase 43 Plan 02 Task 1 complete; checkpoint:human-verify pending
+**Status:** Plan 01 complete (IMemoryCache registered + CMPController injected). Plan 02 Task 1 complete (interval changed to 10s, build passes). Checkpoint reached.
+**Last activity:** 2026-02-25 — Phase 43 Plan 01 complete (IMemoryCache cache-aside); Plan 02 checkpoint:human-verify pending
 
 Progress: [████████░░░░░░░░░░░░] 50% (v2.1 — 2/4 phases complete, Phase 41 ✓, Phase 42 ✓)
 
@@ -39,6 +39,7 @@ Progress: [████████░░░░░░░░░░░░] 50% (v2
 | Phase 42-session-resume P02 | 3min | 2 tasks, 1 file |
 | Phase 42-session-resume P03 | 2min | 2 tasks, 2 files |
 | Phase 42-session-resume P04 | ~40min | 1 checkpoint + 4 bug fixes, 3 files |
+| Phase 43-worker-polling P01 | 2min | 2 tasks, 2 files |
 
 ## Accumulated Context
 
@@ -49,6 +50,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v2.1 design decisions (from research):**
 - SaveAnswer endpoint already exists — Phase 41 hardens it with atomic upsert (ExecuteUpdateAsync), not a rewrite
 - CheckExamStatus endpoint already exists — Phase 43 adds setInterval wiring + memory cache on top of it
+- [Phase 43-01]: Cache key is session-scoped (exam-status-{sessionId}), not user-scoped — ownership verified on every cache miss; non-owners short-circuit before cache key computed
+- [Phase 43-01]: 5-second TTL collapses ~100 concurrent worker polls to 1 DB hit per 5s per session (~99% DB load reduction); TTL shorter than 10s poll interval ensures at most 1 DB hit per cycle
+- [Phase 43-01]: CloseEarly invalidates cache immediately after SaveChangesAsync so next poll reflects closed status within the TTL window
 - All four features use zero new NuGet packages — Fetch API, setInterval, IMemoryCache all already available
 - Phase order is strictly dependency-driven: 41 (auto-save) → 42 (resume) → 43 (polling) → 44 (monitoring)
 - Phase 44 monitoring uses a single GROUP BY query against PackageUserResponse — not N+1 per session
@@ -82,5 +86,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-25
-Stopped at: Phase 43 Plan 02 checkpoint:human-verify — Task 1 committed (a6f8500), awaiting human verification of end-to-end worker redirect flow.
+Stopped at: Completed 43-01-PLAN.md (Plan 01 complete). Phase 43 Plan 02 checkpoint:human-verify — Task 1 committed (a6f8500), awaiting human verification of end-to-end worker redirect flow.
 Resume file: None.
