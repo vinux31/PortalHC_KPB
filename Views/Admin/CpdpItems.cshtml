@@ -13,6 +13,18 @@
     #readTableWrapper th, #readTableWrapper td:first-child { white-space: nowrap; }
     #readTableWrapper td:nth-child(2) { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     #readTableWrapper td:nth-child(3) { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .edit-input { border: 1px solid #ced4da; border-radius: 4px; padding: 2px 4px; font-size: 0.78rem; width: 100%; min-width: 60px; }
+    .edit-input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 2px rgba(13,110,253,0.15); }
+    .cpdp-edit-tbl td:nth-child(1), .cpdp-edit-tbl th:nth-child(1) { position: sticky; left: 0; background: white; z-index: 5; border-right: 1px solid #dee2e6; min-width: 60px; }
+    .cpdp-edit-tbl td:nth-child(2), .cpdp-edit-tbl th:nth-child(2) { position: sticky; left: 62px; background: white; z-index: 5; border-right: 1px solid #dee2e6; min-width: 140px; }
+    .cpdp-edit-tbl thead th { position: sticky; top: 0; background: #343a40; color: white; z-index: 10; }
+    .cpdp-edit-tbl thead th:nth-child(1), .cpdp-edit-tbl thead th:nth-child(2) { z-index: 15; }
+    .col-no-edit { min-width: 60px; } .col-nama { min-width: 140px; } .col-indikator { min-width: 120px; }
+    .col-detail { min-width: 200px; } .col-silabus { min-width: 200px; } .col-target { min-width: 200px; }
+    .col-aksi { min-width: 80px; }
+    .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
 </style>
 
 <nav aria-label="breadcrumb" class="mb-2">
@@ -78,7 +90,42 @@
             </table>
         </div>
 
-        <div id="editTableWrapper" class="d-none"></div>
+        <div id="editTableWrapper" class="d-none">
+          <div class="table-responsive custom-scrollbar" style="max-height: 75vh; overflow-x: auto; overflow-y: auto; border: 1px solid #ddd; border-radius: 8px;">
+            <table id="editTable" class="table table-sm table-bordered cpdp-edit-tbl mb-0">
+              <thead>
+                <tr>
+                  <th class="col-no-edit">No</th>
+                  <th class="col-nama">Nama Kompetensi</th>
+                  <th class="col-indikator">Indikator Perilaku</th>
+                  <th class="col-detail">Detail Indikator</th>
+                  <th class="col-silabus">Silabus / IDP</th>
+                  <th class="col-target">Target Deliverable</th>
+                  <th class="col-aksi">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="editTbody">
+                @foreach (var item in Model)
+                {
+                  <tr data-id="@item.Id" data-section="@item.Section">
+                    <td><input type="text" name="No" value="@item.No" class="edit-input" /></td>
+                    <td><input type="text" name="NamaKompetensi" value="@item.NamaKompetensi" class="edit-input" /></td>
+                    <td><input type="text" name="IndikatorPerilaku" value="@item.IndikatorPerilaku" class="edit-input" /></td>
+                    <td><input type="text" name="DetailIndikator" value="@item.DetailIndikator" class="edit-input" /></td>
+                    <td><input type="text" name="Silabus" value="@item.Silabus" class="edit-input" /></td>
+                    <td><input type="text" name="TargetDeliverable" value="@item.TargetDeliverable" class="edit-input" /></td>
+                    <td>
+                      <input type="hidden" name="Status" value="@item.Status" />
+                      <input type="hidden" name="Section" value="@item.Section" />
+                      <button type="button" class="btn btn-sm btn-outline-secondary insert-below-btn me-1" title="Sisipkan baris bawah"><i class="bi bi-plus-circle"></i></button>
+                      <button type="button" class="btn btn-sm btn-outline-danger delete-row-btn" title="Hapus baris"><i class="bi bi-trash"></i></button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
 
     </div>
 </div>
@@ -95,8 +142,24 @@
 <script>
     var cpdpItems = @Html.Raw(itemsJson);
 
-    var currentSection = '';
+    // ── Edit/Read mode toggle ──────────────────────────────────────────────
+    document.getElementById('btnEdit').addEventListener('click', function() {
+        document.getElementById('readTableWrapper').classList.add('d-none');
+        document.getElementById('editTableWrapper').classList.remove('d-none');
+        document.getElementById('readActions').classList.add('d-none');
+        document.getElementById('editActions').classList.remove('d-none');
+        filterTables();  // apply current section filter to edit table
+    });
 
+    document.getElementById('btnCancel').addEventListener('click', function() {
+        if (!confirm('Batalkan semua perubahan?')) return;
+        location.reload();
+    });
+
+    document.getElementById('btnSave').addEventListener('click', function() { saveAllRows(); });
+
+    // ── Section filter ─────────────────────────────────────────────────────
+    var currentSection = '';
     document.getElementById('sectionFilter').addEventListener('change', function(e) {
         currentSection = e.target.value;
         document.getElementById('selectedSection').value = currentSection;
@@ -104,18 +167,150 @@
     });
 
     function filterTables() {
-        var rows = document.querySelectorAll('#readTableWrapper tbody tr');
+        var allRows = document.querySelectorAll('#readTableWrapper tbody tr, #editTable tbody tr');
         var visible = 0;
-        rows.forEach(function(row) {
+        allRows.forEach(function(row) {
             var rowSection = (row.dataset.section || '').toUpperCase();
             var sel = currentSection.toUpperCase();
             var show = (sel === '' || rowSection === sel);
             row.style.display = show ? '' : 'none';
             if (show) visible++;
         });
-        document.getElementById('rowCount').textContent = rows.length > 0 ? visible + ' baris' : '';
+        // Count only unique visible (read + edit overlap same rows; count once)
+        var readVisible = document.querySelectorAll('#readTableWrapper tbody tr:not([style*="none"])').length;
+        document.getElementById('rowCount').textContent = readVisible > 0 ? readVisible + ' baris' : '';
+    }
+    filterTables();
+
+    // ── Insert-below button ────────────────────────────────────────────────
+    document.getElementById('editTbody').addEventListener('click', function(e) {
+        var insertBtn = e.target.closest('.insert-below-btn');
+        if (insertBtn) {
+            var currentRow = insertBtn.closest('tr');
+            var sectionVal = currentRow.querySelector('[name="Section"]').value || currentSection;
+            var newRow = makeNewRow(sectionVal);
+            currentRow.insertAdjacentElement('afterend', newRow);
+            filterTables();
+        }
+
+        var deleteBtn = e.target.closest('.delete-row-btn');
+        if (deleteBtn) {
+            var row = deleteBtn.closest('tr');
+            var rowId = parseInt(row.dataset.id) || 0;
+            if (rowId === 0) {
+                // New row — remove from DOM only
+                row.remove();
+                filterTables();
+            } else {
+                // Existing row — AJAX delete
+                if (!confirm('Hapus baris ini dari database?')) return;
+                var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                fetch('/Admin/CpdpItemDelete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+                    body: 'id=' + rowId
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        // Remove from both tables
+                        document.querySelectorAll('tr[data-id="' + rowId + '"]').forEach(function(r) { r.remove(); });
+                        cpdpItems = cpdpItems.filter(function(i) { return i.Id !== rowId; });
+                        filterTables();
+                    } else {
+                        alert(data.message || 'Gagal menghapus.');
+                    }
+                })
+                .catch(function() { alert('Koneksi error.'); });
+            }
+        }
+    });
+
+    // Also wire delete buttons on read-mode table
+    document.getElementById('readTableWrapper').addEventListener('click', function(e) {
+        var btn = e.target.closest('.delete-btn');
+        if (!btn) return;
+        var rowId = parseInt(btn.dataset.id);
+        var name = btn.dataset.name || '';
+        if (!confirm('Hapus "' + name + '"?')) return;
+        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        fetch('/Admin/CpdpItemDelete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'RequestVerificationToken': token },
+            body: 'id=' + rowId
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                document.querySelectorAll('tr[data-id="' + rowId + '"]').forEach(function(r) { r.remove(); });
+                cpdpItems = cpdpItems.filter(function(i) { return i.Id !== rowId; });
+                filterTables();
+            } else {
+                alert(data.message || 'Gagal menghapus.');
+            }
+        })
+        .catch(function() { alert('Koneksi error.'); });
+    });
+
+    // ── Make new blank row ─────────────────────────────────────────────────
+    function makeNewRow(sectionVal) {
+        var tr = document.createElement('tr');
+        tr.dataset.id = '0';
+        tr.dataset.section = sectionVal || '';
+        tr.innerHTML =
+            '<td><input type="text" name="No" value="" class="edit-input" /></td>' +
+            '<td><input type="text" name="NamaKompetensi" value="" class="edit-input" /></td>' +
+            '<td><input type="text" name="IndikatorPerilaku" value="" class="edit-input" /></td>' +
+            '<td><input type="text" name="DetailIndikator" value="" class="edit-input" /></td>' +
+            '<td><input type="text" name="Silabus" value="" class="edit-input" /></td>' +
+            '<td><input type="text" name="TargetDeliverable" value="" class="edit-input" /></td>' +
+            '<td>' +
+              '<input type="hidden" name="Status" value="" />' +
+              '<input type="hidden" name="Section" value="' + (sectionVal || '') + '" />' +
+              '<button type="button" class="btn btn-sm btn-outline-secondary insert-below-btn me-1" title="Sisipkan baris bawah"><i class="bi bi-plus-circle"></i></button>' +
+              '<button type="button" class="btn btn-sm btn-outline-danger delete-row-btn" title="Hapus baris"><i class="bi bi-trash"></i></button>' +
+            '</td>';
+        return tr;
     }
 
-    // Initialize count on load
-    filterTables();
+    // ── Bulk save ──────────────────────────────────────────────────────────
+    function saveAllRows() {
+        var rows = [];
+        document.querySelectorAll('#editTable tbody tr').forEach(function(tr) {
+            var rowId = parseInt(tr.dataset.id) || 0;
+            rows.push({
+                Id:                 rowId,
+                No:                 tr.querySelector('[name="No"]').value,
+                NamaKompetensi:     tr.querySelector('[name="NamaKompetensi"]').value,
+                IndikatorPerilaku:  tr.querySelector('[name="IndikatorPerilaku"]').value,
+                DetailIndikator:    tr.querySelector('[name="DetailIndikator"]').value,
+                Silabus:            tr.querySelector('[name="Silabus"]').value,
+                TargetDeliverable:  tr.querySelector('[name="TargetDeliverable"]').value,
+                Status:             tr.querySelector('[name="Status"]').value || '',
+                Section:            tr.querySelector('[name="Section"]').value || ''
+            });
+        });
+
+        if (rows.length === 0) { alert('Tidak ada data untuk disimpan.'); return; }
+
+        var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        fetch('/Admin/CpdpItemsSave', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+            body: JSON.stringify(rows)
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.success) {
+                var toastEl = document.getElementById('saveToast');
+                var toast = new bootstrap.Toast(toastEl, { delay: 2000 });
+                toast.show();
+                setTimeout(function() { location.reload(); }, 2100);
+            } else {
+                alert('Error: ' + (data.message || 'Gagal menyimpan.'));
+            }
+        })
+        .catch(function() { alert('Koneksi error.'); });
+    }
 </script>
