@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: planning
-last_updated: "2026-02-26T14:23:34.977Z"
+last_updated: "2026-02-26T15:03:22.682Z"
 last_activity: "2026-02-26 - Completed Plan 48-03: multi-cell selection (click/shift+click/Ctrl+C/V/Delete), Excel export endpoint (ClosedXML) + Export button with section-aware href"
 progress:
   total_phases: 43
   completed_phases: 41
-  total_plans: 98
-  completed_plans: 97
+  total_plans: 99
+  completed_plans: 98
 ---
 
 ---
@@ -122,9 +122,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 48 — CPDP Items Manager (Complete, 3/3 plans done)
+**Phase:** Phase 48 — CPDP Items Manager (Complete, 4/4 plans done)
 **Status:** Ready to plan
-**Last activity:** 2026-02-26 - Completed Plan 48-03: multi-cell selection (click/shift+click/Ctrl+C/V/Delete), Excel export endpoint (ClosedXML) + Export button with section-aware href
+**Last activity:** 2026-02-26 - Completed Plan 48-04: UAT gap closure (6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear)
 
 Progress: [███░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
@@ -173,6 +173,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - getTableCells() returns 2D array of first 6 td elements per row (data columns 0-5, excluding Aksi col at index 6)
 - Export href updated in sectionFilter change handler (same listener as filterTables) — no separate event listener needed
 - Build MSB3021/MSB3027 file-lock errors are running-process artifacts (not C# compilation errors)
+- [Phase 48-04]: Read-mode table mirrors edit-mode: 3 missing columns (DetailIndikator, Silabus, TargetDeliverable) added to thead and tbody
+- [Phase 48-04]: CpdpItemDelete reference guard removed: HC Admin has full delete authority regardless of IdpItem string references
+- [Phase 48-04]: Backspace added alongside Delete for multi-cell clear: fixed (A || B) && C operator precedence, removed redundant nested if
 
 ### Roadmap Evolution
 
@@ -203,9 +206,10 @@ None.
 | Phase 48-cpdp-items-manager P01 | 5 | 3 tasks | 3 files |
 | Phase 48-cpdp-items-manager P02 | 5 | 3 tasks | 3 files |
 | Phase 48-cpdp-items-manager P03 | 10 | 2 tasks | 2 files |
+| Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 48-03-PLAN.md (multi-cell selection, clipboard operations, Excel export). Phase 48 complete. Next: Phase 49.
+Stopped at: Completed 48-04-PLAN.md (gap closure: 6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear). Phase 48 fully complete (4/4 plans). Next: Phase 49.
 Resume file: None.
