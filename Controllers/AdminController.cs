@@ -190,6 +190,28 @@ namespace HcPortal.Controllers
             });
         }
 
+        // POST /Admin/KkjBagianDelete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KkjBagianDelete(int id)
+        {
+            var bagian = await _context.KkjBagians.FindAsync(id);
+            if (bagian == null)
+                return Json(new { success = false, message = "Bagian tidak ditemukan." });
+
+            var assignedCount = await _context.KkjMatrices
+                .CountAsync(k => k.Bagian == bagian.Name);
+
+            if (assignedCount > 0)
+                return Json(new { success = false, blocked = true,
+                    message = $"Tidak dapat dihapus — masih ada {assignedCount} item yang di-assign ke bagian ini." });
+
+            _context.KkjBagians.Remove(bagian);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
         // POST /Admin/KkjMatrixDelete
         [HttpPost]
         [ValidateAntiForgeryToken]
