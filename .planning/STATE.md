@@ -3,6 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Attempt History
 status: completed
+last_updated: "2026-02-26T01:40:49.479Z"
+last_activity: "2026-02-26 - Completed Plan 46-02: History tab split into Riwayat Assessment + Riwayat Training sub-tabs with Attempt # sequencing"
+progress:
+  total_phases: 41
+  completed_phases: 40
+  total_plans: 88
+  completed_plans: 87
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Attempt History
+status: completed
 last_updated: "2026-02-26T02:15:00.000Z"
 last_activity: "2026-02-26 - Completed Plan 46-02: History tab split into Riwayat Assessment + Riwayat Training sub-tabs with Attempt # sequencing"
 progress:
@@ -25,7 +39,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Milestone:** v2.2 Attempt History — In Progress
 **Phase:** Phase 46 — Attempt History (Plan 2 of 3 complete)
-**Status:** Plan 46-02 complete — History tab at /CMP/Records has Riwayat Assessment + Riwayat Training sub-tabs with Attempt # sequencing
+**Status:** Milestone complete
 **Last activity:** 2026-02-26 - Completed Plan 46-02: History tab split into Riwayat Assessment + Riwayat Training sub-tabs with Attempt # sequencing
 
 Progress: [██████░░░░░░░░░░░░░░] 67%

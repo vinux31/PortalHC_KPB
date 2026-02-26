@@ -290,7 +290,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Attempt History | 2/2 | Complete   | 2026-02-26 | - |
+| 46. Attempt History | 2/2 | Complete    | 2026-02-26 | - |
 
 ## Progress
 
