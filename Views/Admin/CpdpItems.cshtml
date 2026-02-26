@@ -407,11 +407,9 @@
         } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
             e.preventDefault();
             pasteFromClipboard();
-        } else if (e.key === 'Delete' || e.key === 'Backspace' && e.target.tagName !== 'INPUT') {
-            if (e.key === 'Delete' && e.target.tagName !== 'INPUT') {
-                e.preventDefault();
-                clearCellContents();
-            }
+        } else if ((e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT') {
+            e.preventDefault();
+            clearCellContents();
         }
     });
 
