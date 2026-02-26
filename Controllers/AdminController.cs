@@ -318,14 +318,6 @@ namespace HcPortal.Controllers
             if (item == null)
                 return Json(new { success = false, message = "CPDP item tidak ditemukan." });
 
-            // Reference guard: check IdpItem records that match by NamaKompetensi string
-            var usageCount = await _context.IdpItems
-                .CountAsync(i => i.Kompetensi == item.NamaKompetensi);
-
-            if (usageCount > 0)
-                return Json(new { success = false, blocked = true,
-                    message = $"Tidak dapat dihapus — digunakan oleh {usageCount} IDP record." });
-
             _context.CpdpItems.Remove(item);
             await _context.SaveChangesAsync();
 
