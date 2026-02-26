@@ -80,9 +80,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (In Progress, 3/5 plans done)
+**Phase:** Phase 47 — KKJ Matrix Manager (In Progress, 4/5 plans done)
 **Status:** In Progress
-**Last activity:** 2026-02-26 - Completed Plan 47-03: KkjBagian entity, EF migration, KkjBagianSave/Add endpoints, per-bagian grouped KkjMatrix view with editable column headers
+**Last activity:** 2026-02-26 - Completed Plan 47-04: Expanded read-mode table to 21 columns (No, Indeks, Kompetensi, SkillGroup, SubSkillGroup, 15 Target_* with bagian.Label_* headers, Aksi); added 22nd Aksi column to edit-mode makeRow() with insert-below (insertBefore) and inline delete (DOM-only for Id=0, AJAX for Id>0)
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, 3/5 plans in Phase 47)
 
@@ -120,6 +120,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - deleteRow removes row from DOM and filters kkjItems array to keep JS state in sync without page reload
 - EF upsert via FindAsync then update each property individually — avoids tracking conflicts with deserialized JSON objects
 - [Phase 47-03]: KkjBagian seeded on first GET rather than migration data seed; Bagian stored as string name (FK by name) consistent with CpdpItem.Section precedent; per-bagian add-row buttons replace single global btnAddRow
+- [Phase 47-04]: Read-mode Target_* column headers use bagian.Label_* values; inline delete for Id=0 rows is DOM-only (no server call); insert-below copies bagian name from current row's hidden Bagian input; Aksi th appended after 15 label inputs in renderEditRows() thead
 
 ### Roadmap Evolution
 
@@ -146,5 +147,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-03-PLAN.md: KkjBagian entity (15 Label_* headers), EF migration, KkjBagianSave/KkjBagianAdd endpoints, per-bagian grouped KkjMatrix view with editable column header inputs. Next: Plan 47-04.
+Stopped at: Completed 47-04-PLAN.md: Full 21-column read-mode table with bagian.Label_* headers; 22nd Aksi column in edit-mode makeRow() with insert-below and inline delete. Next: Plan 47-05.
 Resume file: None.
