@@ -2,90 +2,6 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
-status: planning
-last_updated: "2026-02-26T13:25:11.938Z"
-last_activity: "2026-02-26 - Completed Plan 47-09: Fixed Ctrl+V paste from Excel — mousedown focuses anchor input, paste handler uses selectedCells[0] as anchor, Ctrl+V uses navigator.clipboard.readText() decoupled from focus state."
-progress:
-  total_phases: 42
-  completed_phases: 40
-  total_plans: 95
-  completed_plans: 94
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Admin Portal
-status: planning
-last_updated: "2026-02-26T13:21:04.793Z"
-last_activity: "2026-02-26 - Completed Plan 47-08: Deleted INPUT guard from mousedown handler (drag selection fix) and added editBagianFilter dropdown with edit-bagian-section wrappers (edit-mode single-bagian filter). Phase 47 fully complete."
-progress:
-  total_phases: 42
-  completed_phases: 40
-  total_plans: 95
-  completed_plans: 94
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Admin Portal
-status: completed
-last_updated: "2026-02-26T12:32:06.478Z"
-last_activity: "2026-02-26 - Completed Plan 47-07: Replaced static Razor read-mode with JS-driven dropdown filter + single-panel table + bagian CRUD toolbar (Ubah Nama, Hapus, Tambah Bagian) and KkjBagianDelete POST action with assignment guard"
-progress:
-  total_phases: 42
-  completed_phases: 40
-  total_plans: 94
-  completed_plans: 93
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Admin Portal
-status: completed
-last_updated: "2026-02-26T11:46:04.530Z"
-last_activity: "2026-02-26 - Completed Plan 47-06: Fixed renderEditRows() orphan filter (Bagian='' items now appear in first bagian tbody) and btnSave rows.length === 0 guard (header-only saves show toast without KkjMatrixSave error)"
-progress:
-  total_phases: 41
-  completed_phases: 40
-  total_plans: 93
-  completed_plans: 92
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Admin Portal
-status: completed
-last_updated: "2026-02-26T11:04:04.420Z"
-last_activity: "2026-02-26 - Completed Plan 47-05: Excel-like multi-cell selection (click+drag, Shift+click, Delete range-clear, Ctrl+C TSV copy, Ctrl+V anchor paste) and Bootstrap Toast "Data berhasil disimpan" on save success"
-progress:
-  total_phases: 41
-  completed_phases: 40
-  total_plans: 91
-  completed_plans: 90
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Admin Portal
-status: executing
-last_updated: "2026-02-26T10:59:49.676Z"
-last_activity: "2026-02-26 - Completed Plan 47-04: Expanded read-mode table to 21 columns (No, Indeks, Kompetensi, SkillGroup, SubSkillGroup, 15 Target_* with bagian.Label_* headers, Aksi); added 22nd Aksi column to edit-mode makeRow() with insert-below (insertBefore) and inline delete (DOM-only for Id=0, AJAX for Id>0)"
-progress:
-  total_phases: 41
-  completed_phases: 40
-  total_plans: 91
-  completed_plans: 90
----
-
----
-gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: Admin Portal
 status: completed
 last_updated: "2026-02-26T10:47:50.555Z"
 last_activity: "2026-02-26 - Completed Plan 47-02: KkjMatrix write operations (KkjMatrixSave, KkjMatrixDelete, edit mode table, clipboard paste, add-row)"
@@ -164,11 +80,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 9/9 plans done)
-**Status:** Ready to plan
-**Last activity:** 2026-02-26 - Completed Plan 47-09: Fixed Ctrl+V paste from Excel — mousedown focuses anchor input, paste handler uses selectedCells[0] as anchor, Ctrl+V uses navigator.clipboard.readText() decoupled from focus state.
+**Phase:** Phase 48 — CPDP Items Manager / KKJ-IDP Mapping Editor (Planned, 0/3 plans done)
+**Status:** Planning complete — ready for execution
+**Last activity:** 2026-02-26 - Planned Phase 48: 3 plans created (48-01: GET+read-mode+section-dropdown, 48-02: edit-mode+bulk-save+delete-guard+CMP-Mapping-dropdown, 48-03: multi-cell-clipboard+Excel-export)
 
-Progress: [██░░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
+Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, Phase 48 planning complete)
 
 ## Performance Metrics
 
@@ -205,28 +121,15 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - EF upsert via FindAsync then update each property individually — avoids tracking conflicts with deserialized JSON objects
 - [Phase 47-03]: KkjBagian seeded on first GET rather than migration data seed; Bagian stored as string name (FK by name) consistent with CpdpItem.Section precedent; per-bagian add-row buttons replace single global btnAddRow
 - [Phase 47-04]: Read-mode Target_* column headers use bagian.Label_* values; inline delete for Id=0 rows is DOM-only (no server call); insert-below copies bagian name from current row's hidden Bagian input; Aksi th appended after 15 label inputs in renderEditRows() thead
-- [Phase 47-05]: selectedCells array tracks td elements (not coordinates) — simpler to apply/remove .cell-selected class directly
-- [Phase 47-05]: Toast delay 1500ms, reload after 1700ms — slight buffer ensures toast fade-out animation completes before reload
-
-**Phase 47-06 decisions:**
-- Orphans captured in first bagian (not a dedicated section) so user can assign them by editing the hidden Bagian input in edit mode
-- rows.length === 0 guard placed client-side only — AdminController.KkjMatrixSave guard left unchanged
-- Toast + reload for empty-rows path copied exactly from KkjMatrixSave success path (delay 1500ms, reload 1700ms)
-
-**Phase 47-07 decisions:**
-- renderReadTable() uses JS arrays (kkjItems/kkjBagians) already on page — no extra server round-trip for filter change
-- Rename reuses KkjBagianSave with single-element array payload — reuses existing endpoint without new action
-- KkjBagianDelete placed between KkjBagianAdd and KkjMatrixDelete for consistent controller action ordering
-- Hapus guard uses CountAsync on KkjMatrices.Bagian string match — consistent with string-FK-by-name pattern
-- [Phase 47-08]: INPUT guard deleted because every td in .kkj-edit-tbl contains a full-width input — e.target is always INPUT, permanently preventing isDragging from activating
-- [Phase 47-08]: cloneNode pattern used to re-wire editBagianFilter change event — prevents duplicate listeners accumulating across renderEditRows() re-renders
-- [Phase 47-08]: display:none bagian sections kept in DOM so collectRows() and collectBagians() still gather all bagians on save — no save logic changes needed
-- [Phase 47-09]: Use navigator.clipboard.readText() for Ctrl+V paste — decoupled from focus/activeElement state caused by e.preventDefault() in mousedown
-- [Phase 47-09]: selectedCells[0] used as canonical paste anchor in both paste event handler and Ctrl+V handler — consistent with selection state, avoids activeElement issues
 
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
+- Phases 55-58 removed: Question Bank Edit, Package Question Edit/Delete, ProtonTrack Edit/Delete, Password Reset Standalone — all covered by consolidation phases
+- Phase 59 added: Konsolidasi Kelola Pekerja (move ManageWorkers to Kelola Data)
+- Phase 60 added: Konsolidasi Proton Catalog (move ProtonCatalog to Kelola Data)
+- Phase 61 added: Konsolidasi Assessment Management (move Assessment manage to Kelola Data)
+- Phase 62 added: Update Kelola Data Hub (restructure Index page, remove Section C)
 
 ### Pending Todos
 
@@ -245,13 +148,9 @@ None.
 | Phase 46-attempt-history P01 | 3 | 2 tasks | 6 files |
 | Phase 47-kkj-matrix-manager P01 | 3 | 3 tasks | 4 files |
 | Phase 47 P03 | 7 | 3 tasks | 6 files |
-| Phase 47-kkj-matrix-manager P05 | 5 | 2 tasks | 1 files |
-| Phase 47-kkj-matrix-manager P07 | 3 | 2 tasks | 2 files |
-| Phase 47-kkj-matrix-manager P08 | 8 | 2 tasks | 1 files |
-| Phase 47 P09 | 1 | 1 tasks | 1 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-09-PLAN.md: Fixed Ctrl+V paste (mousedown focus + selectedCells[0] anchor + navigator.clipboard.readText). Phase 47 fully complete (9/9 plans). Next: Phase 48.
+Stopped at: Planned Phase 48 (KKJ-IDP Mapping Editor) — 3 plans written. Note: Phase 47 still has Plan 47-05 (Excel multi-cell selection + save toast) pending — Phase 48 planning was explicitly requested ahead of 47-05. Next: Execute Phase 48 plans (48-01 → 48-02 → 48-03).
 Resume file: None.
