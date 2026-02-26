@@ -46,9 +46,10 @@ None.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 13 | Add bagian selection page for CMP KKJiDP CPDP mapping with RFCC GAST NGP DHT sections | 2026-02-26 | 1daecde | [13-add-bagian-selection-page-for-cmp-kkjidp](./quick/13-add-bagian-selection-page-for-cmp-kkjidp/) |
+| 14 | Add Section column to CpdpItem model and migration; filter Mapping() by section | 2026-02-26 | 58ec72d | [14-add-section-column-to-cpdpitem-model-mig](./quick/14-add-section-column-to-cpdpitem-model-mig/) |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: v2.2 roadmap created — Phase 46 Attempt History defined, ready for /gsd:plan-phase 46.
+Stopped at: Quick task 14 complete — Section column on CpdpItems, migration applied, Mapping() filters by section.
 Resume file: None.
