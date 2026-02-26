@@ -108,9 +108,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 5/5 plans done)
+**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 6/6 plans done)
 **Status:** Milestone complete
-**Last activity:** 2026-02-26 - Completed Plan 47-05: Excel-like multi-cell selection (click+drag, Shift+click, Delete range-clear, Ctrl+C TSV copy, Ctrl+V anchor paste) and Bootstrap Toast "Data berhasil disimpan" on save success
+**Last activity:** 2026-02-26 - Completed Plan 47-06: Fixed renderEditRows() orphan filter (Bagian='' items now appear in first bagian tbody) and btnSave rows.length === 0 guard (header-only saves show toast without KkjMatrixSave error)
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
@@ -152,6 +152,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 47-05]: selectedCells array tracks td elements (not coordinates) — simpler to apply/remove .cell-selected class directly
 - [Phase 47-05]: Toast delay 1500ms, reload after 1700ms — slight buffer ensures toast fade-out animation completes before reload
 
+**Phase 47-06 decisions:**
+- Orphans captured in first bagian (not a dedicated section) so user can assign them by editing the hidden Bagian input in edit mode
+- rows.length === 0 guard placed client-side only — AdminController.KkjMatrixSave guard left unchanged
+- Toast + reload for empty-rows path copied exactly from KkjMatrixSave success path (delay 1500ms, reload 1700ms)
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -178,5 +183,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-05-PLAN.md: Excel-like multi-cell selection and Bootstrap Toast on save success. Phase 47 complete (5/5 plans). Next: Phase 48.
+Stopped at: Completed 47-06-PLAN.md: Fixed renderEditRows() orphan filter and btnSave empty-rows guard. Phase 47 complete (6/6 plans). Next: Phase 48.
 Resume file: None.
