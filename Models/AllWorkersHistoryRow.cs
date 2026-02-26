@@ -23,4 +23,7 @@ public class AllWorkersHistoryRow
     // Assessment-only
     public int? Score { get; set; }
     public bool? IsPassed { get; set; }
+
+    // Phase 46: Attempt sequencing for Riwayat Assessment sub-tab
+    public int? AttemptNumber { get; set; }
 }

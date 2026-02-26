@@ -2330,10 +2330,19 @@ namespace HcPortal.Controllers
                 workers = await GetWorkersInSection(section, unit, category, search, statusFilter);
             }
 
+            var (assessmentHistory, trainingHistory) = await GetAllWorkersHistory();
+
             return View("RecordsWorkerList", new RecordsWorkerListViewModel
             {
-                Workers = workers,
-                History = await GetAllWorkersHistory()
+                Workers           = workers,
+                AssessmentHistory = assessmentHistory,
+                TrainingHistory   = trainingHistory,
+                AssessmentTitles  = assessmentHistory
+                    .Select(r => r.Title)
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .Distinct()
+                    .OrderBy(t => t)
+                    .ToList()
             });
         }
 
@@ -2641,47 +2650,87 @@ namespace HcPortal.Controllers
                 .ToList();
         }
 
-        // Phase 40: all-workers history helper — merges TrainingRecords + completed AssessmentSessions across all workers
-        private async Task<List<AllWorkersHistoryRow>> GetAllWorkersHistory()
+        // Phase 46: Split all-workers history into assessment and training — supports Attempt # computation
+        private async Task<(List<AllWorkersHistoryRow> assessment, List<AllWorkersHistoryRow> training)> GetAllWorkersHistory()
         {
-            // Query 1: All completed assessment sessions with User nav property
-            var assessments = await _context.AssessmentSessions
+            // --- Assessment history ---
+
+            // Batch count archived attempts per user+title to avoid N+1
+            var archivedCounts = await _context.AssessmentAttemptHistory
+                .GroupBy(h => new { h.UserId, h.Title })
+                .Select(g => new { g.Key.UserId, g.Key.Title, Count = g.Count() })
+                .ToListAsync();
+
+            var archivedCountLookup = archivedCounts
+                .ToDictionary(x => (x.UserId, x.Title), x => x.Count);
+
+            // Query 1: Archived attempts (AttemptNumber already stored)
+            var archivedAttempts = await _context.AssessmentAttemptHistory
+                .Include(h => h.User)
+                .ToListAsync();
+
+            var assessmentRows = new List<AllWorkersHistoryRow>();
+
+            assessmentRows.AddRange(archivedAttempts.Select(h => new AllWorkersHistoryRow
+            {
+                WorkerName    = h.User?.FullName ?? h.UserId,
+                WorkerNIP     = h.User?.NIP,
+                RecordType    = "Assessment Online",
+                Title         = h.Title,
+                Date          = h.CompletedAt ?? h.StartedAt ?? h.ArchivedAt,
+                Score         = h.Score,
+                IsPassed      = h.IsPassed,
+                AttemptNumber = h.AttemptNumber
+            }));
+
+            // Query 2: Current completed sessions (Attempt # = archived count for that user+title + 1)
+            var currentCompleted = await _context.AssessmentSessions
                 .Include(a => a.User)
                 .Where(a => a.Status == "Completed")
                 .ToListAsync();
 
-            // Query 2: All training records with User nav property
+            assessmentRows.AddRange(currentCompleted.Select(a =>
+            {
+                var key = (a.UserId, a.Title ?? "");
+                int archived = archivedCountLookup.TryGetValue(key, out var c) ? c : 0;
+                return new AllWorkersHistoryRow
+                {
+                    WorkerName    = a.User?.FullName ?? a.UserId,
+                    WorkerNIP     = a.User?.NIP,
+                    RecordType    = "Assessment Online",
+                    Title         = a.Title ?? "",
+                    Date          = a.CompletedAt ?? a.Schedule,
+                    Score         = a.Score,
+                    IsPassed      = a.IsPassed,
+                    AttemptNumber = archived + 1
+                };
+            }));
+
+            // Sort: grouped by title then date descending
+            assessmentRows = assessmentRows
+                .OrderBy(r => r.Title)
+                .ThenByDescending(r => r.Date)
+                .ToList();
+
+            // --- Training history ---
             var trainings = await _context.TrainingRecords
                 .Include(t => t.User)
                 .ToListAsync();
 
-            var rows = new List<AllWorkersHistoryRow>();
-
-            rows.AddRange(assessments.Select(a => new AllWorkersHistoryRow
+            var trainingRows = trainings.Select(t => new AllWorkersHistoryRow
             {
-                WorkerName  = a.User?.FullName ?? a.UserId,
-                WorkerNIP   = a.User?.NIP,
-                RecordType  = "Assessment Online",
-                Title       = a.Title ?? "",
-                Date        = a.CompletedAt ?? a.Schedule,
-                Score       = a.Score,
-                IsPassed    = a.IsPassed
-            }));
-
-            rows.AddRange(trainings.Select(t => new AllWorkersHistoryRow
-            {
-                WorkerName   = t.User?.FullName ?? t.UserId,
-                WorkerNIP    = t.User?.NIP,
-                RecordType   = "Manual",
-                Title        = t.Judul ?? "",
+                WorkerName    = t.User?.FullName ?? t.UserId,
+                WorkerNIP     = t.User?.NIP,
+                RecordType    = "Manual",
+                Title         = t.Judul ?? "",
                 // PITFALL: TanggalMulai is nullable — must coalesce to Tanggal
-                Date         = t.TanggalMulai ?? t.Tanggal,
+                Date          = t.TanggalMulai ?? t.Tanggal,
                 Penyelenggara = t.Penyelenggara
-            }));
+            })
+            .OrderByDescending(r => r.Date)
+            .ToList();
 
-            return rows
-                .OrderByDescending(r => r.Date)
-                .ToList();
+            return (assessmentRows, trainingRows);
         }
 
         // Helper method: Get all workers in a section (with optional filters)
