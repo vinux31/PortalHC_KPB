@@ -3,41 +3,66 @@
 **Defined:** 2026-02-26
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v2.2 Requirements
+## v2.3 Requirements — Admin Portal
 
-### Attempt History
+### Category A: Master Data Managers (seed-only → full UI)
 
-- [x] **HIST-01**: When HC resets an assessment session, the current attempt data (score, pass/fail, started_at, completed_at, status) is archived as a historical record before the session is cleared
-- [x] **HIST-02**: HC and Admin can view all historical attempts per worker per assessment in the History tab at /CMP/Records, with an Attempt # column showing sequential attempt number per worker per assessment title
-- [x] **HIST-03**: The upgraded History tab displays columns: Nama Pekerja, NIP, Assessment Title, Attempt #, Score, Pass/Fail, Tanggal — showing both archived attempts and current completed sessions
+- [ ] **MDAT-01**: Admin can view, create, edit, and delete KKJ Matrix items (KkjMatrixItem) through a dedicated management page — no database/code change required
+- [ ] **MDAT-02**: Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page
+- [ ] **MDAT-03**: Admin can view, create, edit, and delete Assessment Competency Maps (AssessmentCompetencyMap) — mapping assessment categories to KKJ items
+
+### Category B: Operational Admin (no admin override existed)
+
+- [ ] **OPER-01**: Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) — assign and unassign coaches to coachees
+- [ ] **OPER-02**: Admin can view, create, edit, and delete Proton Track Assignments (ProtonTrackAssignment) — assign workers to Proton tracks and manage active/inactive state
+- [ ] **OPER-03**: Admin can view and override ProtonDeliverableProgress status — correct stuck or erroneous deliverable records
+- [ ] **OPER-04**: Admin can view, approve, reject, and edit ProtonFinalAssessment records — admin-level management of final assessments
+- [ ] **OPER-05**: Admin can view all CoachingSession and ActionItem records and perform override edits or deletions
+
+### Category C: CRUD Completions (partial CRUD → full)
+
+- [ ] **CRUD-01**: Admin/HC can edit existing AssessmentQuestion text and options (Edit was missing — only Add/Delete existed)
+- [ ] **CRUD-02**: Admin/HC can edit and delete individual PackageQuestion and PackageOption records (currently import-only, no inline edit/delete)
+- [ ] **CRUD-03**: Admin can edit and delete ProtonTrack records (Create existed, Edit/Delete were missing)
+- [ ] **CRUD-04**: Admin can reset a worker's password from a standalone action without going through the full EditWorker form
 
 ## Future Requirements
 
-*(None captured yet)*
+*(None captured yet — all gaps included in v2.3)*
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| ForceClose creates attempt history | ForceClose already sets final Completed state; only Reset flow needs archiving |
-| Worker-visible attempt history | Workers see their current Records; attempt history is HC/Admin audit view |
-| Analytics/charts on attempt data | User explicitly deferred — table view only for this milestone |
-| Notifications | Deferred — no server connection yet |
-| Certificate tab | Deferred — descoped from this milestone |
+| Notifications manager | System-generated, low admin value for now |
+| UserCompetencyLevel admin override | System-calculated — manual override risks data integrity |
+| AssessmentAttemptHistory admin CRUD | Append-only audit trail by design |
+| Role management page (add/remove IdentityRoles) | 9 roles are fixed by design, no need to add/remove |
+| User activity summary (last login, sessions) | Not requested, out of scope |
+| AuditLog edit/delete | Append-only by design |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HIST-01 | Phase 46 | Complete |
-| HIST-02 | Phase 46 | Complete |
-| HIST-03 | Phase 46 | Complete |
+| MDAT-01 | Phase 47 | Pending |
+| MDAT-02 | Phase 48 | Pending |
+| MDAT-03 | Phase 49 | Pending |
+| OPER-01 | Phase 50 | Pending |
+| OPER-02 | Phase 51 | Pending |
+| OPER-03 | Phase 52 | Pending |
+| OPER-04 | Phase 53 | Pending |
+| OPER-05 | Phase 54 | Pending |
+| CRUD-01 | Phase 55 | Pending |
+| CRUD-02 | Phase 56 | Pending |
+| CRUD-03 | Phase 57 | Pending |
+| CRUD-04 | Phase 58 | Pending |
 
 **Coverage:**
-- v2.2 requirements: 3 total
-- Mapped to phases: 3
+- v2.3 requirements: 12 total
+- Mapped to phases: 12
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-26 — traceability confirmed after roadmap creation*
+*Last updated: 2026-02-26 after initial definition*
