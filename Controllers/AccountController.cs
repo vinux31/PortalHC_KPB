@@ -113,50 +113,5 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        // 7. Switch View (Admin Only - RoleLevel 1)
-        [HttpGet]
-        public async Task<IActionResult> SwitchView(string view, string? returnUrl = null)
-        {
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                return RedirectToAction("Login");
-            }
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
-            {
-                return RedirectToAction("Login");
-            }
-
-            // Only Admin (RoleLevel 1) can switch views
-            if (user.RoleLevel != 1)
-            {
-                return RedirectToAction("AccessDenied");
-            }
-
-            // Validate view is one of the allowed values
-            var allowedViews = new[] { "HC", "Atasan", "Coach", "Coachee", "Admin" };
-            if (!allowedViews.Contains(view))
-            {
-                return BadRequest("Invalid view");
-            }
-
-            // Validate Atasan view requires Section
-            if (view == "Atasan" && string.IsNullOrEmpty(user.Section))
-            {
-                TempData["Warning"] = "Atasan View requires a Section to be set in your profile. Showing personal data instead.";
-            }
-
-            // Update user's selected view
-            user.SelectedView = view;
-            await _userManager.UpdateAsync(user);
-
-            // Redirect back to referring page or home
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-            return RedirectToAction("Index", "Home");
-        }
     }
 }

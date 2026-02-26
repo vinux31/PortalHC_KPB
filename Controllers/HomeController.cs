@@ -30,29 +30,8 @@ public class HomeController : Controller
         var userRole = userRoles.FirstOrDefault();
         var targetUserIds = new List<string> { user.Id }; // Default: current user only
 
-        // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-        if (userRole == UserRoles.Admin)
-        {
-            if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
-            {
-                // Personal view: use current user only (already set as default)
-            }
-            else if (user.SelectedView == "Atasan" && !string.IsNullOrEmpty(user.Section))
-            {
-                // Section view: get all users in section
-                targetUserIds = await _context.Users
-                    .Where(u => u.Section == user.Section)
-                    .Select(u => u.Id)
-                    .ToListAsync();
-            }
-            else if (user.SelectedView == "HC")
-            {
-                // HC view: get all users
-                targetUserIds = await _context.Users
-                    .Select(u => u.Id)
-                    .ToListAsync();
-            }
-        }
+        // Admin sees personal data only (no view switching)
+
 
         var viewModel = new DashboardHomeViewModel
         {

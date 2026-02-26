@@ -2314,7 +2314,7 @@ namespace HcPortal.Controllers
                 var unified = await GetUnifiedRecords(user!.Id);
                 return View("Records", unified);
             }
-            // HC, Admin (all SelectedView values), Management, Supervisor -> worker list
+            // HC, Admin, Management, Supervisor -> worker list
 
             // Supervisor view:
             List<WorkerTrainingStatus> workers;

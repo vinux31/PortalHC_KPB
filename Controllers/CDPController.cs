@@ -48,8 +48,7 @@ namespace HcPortal.Controllers
             }
 
             // ========== COACHEE ROLE PATH (Proton DB view) ==========
-            bool isCoacheeView = userRole == UserRoles.Coachee ||
-                                 (userRole == UserRoles.Admin && user != null && user.SelectedView == "Coachee");
+            bool isCoacheeView = userRole == UserRoles.Coachee;
 
             if (isCoacheeView && user != null)
             {
@@ -99,23 +98,7 @@ namespace HcPortal.Controllers
                 return View(protonViewModel);
             }
 
-            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin)
-            {
-                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
-                {
-                    // Show only user's documents
-                    bagian = null; // Override: user's section
-                    unit = null; // Override: user's unit
-                    level = null; // Override: user's level
-                }
-                else if (user.SelectedView == "HC")
-                {
-                    // Show all documents (keep filters as-is)
-                    // bagian, unit, level remain from parameters
-                }
-                // For Atasan view, use existing logic (filter by bagian)
-            }
+            // Admin sees default view (no view switching)
             // For non-admin or admin without specific view, use existing logic
 
             // Check if HC user has selected a bagian
@@ -165,7 +148,7 @@ namespace HcPortal.Controllers
             model.ProtonProgressData = await BuildProtonProgressSubModelAsync(user, userRole);
             model.ScopeLabel = _lastScopeLabel;
 
-            // === ANALYTICS: HC/Admin regardless of SelectedView (per Phase 12 locked decision) ===
+            // === ANALYTICS: HC/Admin ===
             bool isHCAccess = userRole == UserRoles.HC || userRole == UserRoles.Admin;
             if (isHCAccess)
             {
@@ -790,8 +773,7 @@ namespace HcPortal.Controllers
             // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC
             bool isCoachee = progress.CoacheeId == user.Id;
             bool isCoach = user.RoleLevel <= 5;
-            bool isHC = userRole == UserRoles.HC ||
-                        (userRole == UserRoles.Admin && user?.SelectedView == "HC");
+            bool isHC = userRole == UserRoles.HC;
 
             // HC has full access — no section check required
             if (!isCoachee && !isHC && isCoach)
@@ -858,9 +840,7 @@ namespace HcPortal.Controllers
 
             // Phase 6: approval context
             bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
-                                  userRole == UserRoles.SectionHead ||
-                                  (userRole == UserRoles.Admin &&
-                                   (user.SelectedView == "Atasan" || user.SelectedView == "HC"));
+                                  userRole == UserRoles.SectionHead;
             bool canApprove = isAtasanAccess && progress.Status == "Submitted";
             bool canHCReview = isHC && progress.HCApprovalStatus == "Pending";
 
@@ -893,9 +873,7 @@ namespace HcPortal.Controllers
 
             // SrSupervisor, SectionHead, or Admin simulating Atasan/HC view can approve
             bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
-                                  userRole == UserRoles.SectionHead ||
-                                  (userRole == UserRoles.Admin &&
-                                   (user.SelectedView == "Atasan" || user.SelectedView == "HC"));
+                                  userRole == UserRoles.SectionHead;
             if (!isAtasanAccess) return Forbid();
 
             // Load progress with full Include chain
@@ -986,9 +964,7 @@ namespace HcPortal.Controllers
 
             // SrSupervisor, SectionHead, or Admin simulating Atasan/HC view can reject
             bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
-                                  userRole == UserRoles.SectionHead ||
-                                  (userRole == UserRoles.Admin &&
-                                   (user.SelectedView == "Atasan" || user.SelectedView == "HC"));
+                                  userRole == UserRoles.SectionHead;
             if (!isAtasanAccess) return Forbid();
 
             // Validate rejection reason
@@ -1076,8 +1052,7 @@ namespace HcPortal.Controllers
             var userRole = roles.FirstOrDefault();
 
             // HC or Admin simulating HC view can review
-            bool isHCAccess = userRole == UserRoles.HC ||
-                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            bool isHCAccess = userRole == UserRoles.HC;
             if (!isHCAccess) return Forbid();
 
             var progress = await _context.ProtonDeliverableProgresses
@@ -1109,9 +1084,8 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // HC or Admin simulating HC view can access
-            bool isHCAccess = userRole == UserRoles.HC ||
-                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            // HC only can access
+            bool isHCAccess = userRole == UserRoles.HC;
             if (!isHCAccess) return Forbid();
 
             // Query pending HC reviews (any deliverable that HC hasn't reviewed yet)
@@ -1207,8 +1181,7 @@ namespace HcPortal.Controllers
             var userRole = roles.FirstOrDefault();
 
             // HC or Admin simulating HC view can access
-            bool isHCAccess = userRole == UserRoles.HC ||
-                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            bool isHCAccess = userRole == UserRoles.HC;
             if (!isHCAccess) return Forbid();
 
             // Load the track assignment with ProtonTrack for display
@@ -1272,8 +1245,7 @@ namespace HcPortal.Controllers
             var userRole = roles.FirstOrDefault();
 
             // HC or Admin simulating HC view can create
-            bool isHCAccess = userRole == UserRoles.HC ||
-                              (userRole == UserRoles.Admin && user.SelectedView == "HC");
+            bool isHCAccess = userRole == UserRoles.HC;
             if (!isHCAccess) return Forbid();
 
             // Load assignment
@@ -1481,21 +1453,7 @@ namespace HcPortal.Controllers
                 ViewBag.Coachees = mockCoachees;
             }
 
-            // ========== VIEW-BASED FILTERING FOR ADMIN ==========
-            if (userRole == UserRoles.Admin)
-            {
-                if (user.SelectedView == "Coachee" || user.SelectedView == "Coach")
-                {
-                    // Force coacheeId to current user
-                    coacheeId = user.Id;
-                }
-                else if (user.SelectedView == "HC")
-                {
-                    // Leave coacheeId empty (user can select from dropdown)
-                    coacheeId = null;
-                }
-                // For Atasan view, let existing logic work (filter by bagian)
-            }
+            // Admin sees default view (no view switching)
 
             // For non-admin or admin without specific view, use existing logic
 

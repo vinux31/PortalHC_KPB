@@ -22,7 +22,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-    <link href="~/css/view-switcher.css" rel="stylesheet" />
+
 
     <style>
         /* Sedikit styling agar Navbar terlihat 'mahal' */
@@ -31,7 +31,7 @@
         .dropdown-item:active { background-color: #0d6efd; }
     </style>
 </head>
-<body class="bg-light view-@(currentUser?.SelectedView?.ToLower() ?? "coachee")">
+<body class="bg-light">
 
     <header>
         <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom mb-4 sticky-top">
@@ -87,72 +87,7 @@
                                 </a>
                             }
 
-                            @* View Switcher Dropdown - Admin Only *@
-                            @if (currentUser.RoleLevel == 1)
-                            {
-                                <div class="dropdown me-3">
-                                    <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
-                                        <div class="bg-secondary bg-opacity-10 text-secondary rounded px-3 py-2 d-flex align-items-center gap-2" style="min-width: 140px;">
-                                            <i class="bi bi-eye-fill"></i>
-                                            <span class="small fw-semibold" id="currentViewText">@currentUser.SelectedView</span>
-                                        </div>
-                                    </a>
-                                    <ul class="dropdown-menu shadow-sm border-0">
-                                        <li><h6 class="dropdown-header text-uppercase small fw-bold">Switch View</h6></li>
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="SwitchView" asp-route-view="HC" asp-route-returnUrl="@Context.Request.Path">
-                                                <i class="bi bi-building"></i>
-                                                <span>HC View</span>
-                                                @if (currentUser.SelectedView == "HC")
-                                                {
-                                                    <i class="bi bi-check2 ms-auto text-primary"></i>
-                                                }
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="SwitchView" asp-route-view="Atasan" asp-route-returnUrl="@Context.Request.Path">
-                                                <i class="bi bi-person-workspace"></i>
-                                                <span>Atasan View</span>
-                                                @if (currentUser.SelectedView == "Atasan")
-                                                {
-                                                    <i class="bi bi-check2 ms-auto text-primary"></i>
-                                                }
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="SwitchView" asp-route-view="Coach" asp-route-returnUrl="@Context.Request.Path">
-                                                <i class="bi bi-person-video2"></i>
-                                                <span>Coach View</span>
-                                                @if (currentUser.SelectedView == "Coach")
-                                                {
-                                                    <i class="bi bi-check2 ms-auto text-primary"></i>
-                                                }
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="SwitchView" asp-route-view="Coachee" asp-route-returnUrl="@Context.Request.Path">
-                                                <i class="bi bi-person"></i>
-                                                <span>Coachee View</span>
-                                                @if (currentUser.SelectedView == "Coachee")
-                                                {
-                                                    <i class="bi bi-check2 ms-auto text-primary"></i>
-                                                }
-                                            </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <a class="dropdown-item d-flex align-items-center gap-2" asp-controller="Account" asp-action="SwitchView" asp-route-view="Admin" asp-route-returnUrl="@Context.Request.Path">
-                                                <i class="bi bi-shield-fill"></i>
-                                                <span>Admin View</span>
-                                                @if (currentUser.SelectedView == "Admin")
-                                                {
-                                                    <i class="bi bi-check2 ms-auto text-primary"></i>
-                                                }
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            }
+
 
                             <div class="dropdown">
                                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
