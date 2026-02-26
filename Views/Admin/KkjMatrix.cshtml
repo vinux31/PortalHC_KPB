@@ -295,8 +295,16 @@ function renderEditRows() {
     var container = document.getElementById('editTablesContainer');
     container.innerHTML = '';
 
+    var knownBagianNames = kkjBagians.map(function(b) { return b.Name; });
+    var bagianIndex = 0;
     kkjBagians.forEach(function(bagian) {
-        var bagianItems = kkjItems.filter(function(i) { return i.Bagian === bagian.Name; });
+        var isFirstBagian = (bagianIndex === 0);
+        var bagianItems = kkjItems.filter(function(i) {
+            if (i.Bagian === bagian.Name) return true;
+            if (isFirstBagian && (i.Bagian === '' || i.Bagian === null || knownBagianNames.indexOf(i.Bagian) === -1)) return true;
+            return false;
+        });
+        bagianIndex++;
 
         // Section heading with editable bagian name input
         var heading = document.createElement('div');
@@ -651,7 +659,14 @@ document.getElementById('btnSave').addEventListener('click', function() {
                 alert('Error menyimpan bagian: ' + bagianResp.message);
                 return;
             }
-            // Step 2: Save row data
+            // Step 2: Save row data (skip if no rows)
+            if (rows.length === 0) {
+                var toastEl = document.getElementById('saveToast');
+                var toast = new bootstrap.Toast(toastEl, { delay: 1500 });
+                toast.show();
+                setTimeout(function() { location.reload(); }, 1700);
+                return;
+            }
             $.ajax({
                 url: '/Admin/KkjMatrixSave',
                 type: 'POST',
