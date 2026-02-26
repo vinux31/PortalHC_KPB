@@ -12,7 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v2.2 - Attempt History
+## Current Milestone: v2.3 - Admin Portal
+
+**Goal:** Admin memiliki full CRUD control atas seluruh data sistem — master data, relasi operasional, dan partial CRUD yang belum lengkap — tanpa perlu akses database langsung.
+
+**Target features:**
+- Master data managers: KKJ Matrix, CPDP Items, AssessmentCompetencyMap
+- Operational admin: CoachCoacheeMapping, ProtonTrackAssignment, DeliverableProgress override, FinalAssessment manager
+- CRUD completions: QuestionBank edit, PackageQuestion edit/delete, ProtonTrack edit/delete, Password Reset standalone
+
+## Shipped: v2.2 - Attempt History
 
 **Goal:** HC dan Admin dapat melihat riwayat lengkap semua attempt assessment per worker, termasuk attempt yang sebelumnya dihapus saat Reset.
 
