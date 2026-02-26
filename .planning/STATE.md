@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: executing
+last_updated: "2026-02-26T13:57:57.766Z"
+last_activity: "2026-02-26 - Completed Plan 48-01: CpdpItems GET action, read-mode view with section dropdown, Admin/Index card activation"
+progress:
+  total_phases: 43
+  completed_phases: 40
+  total_plans: 98
+  completed_plans: 96
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: planning
 last_updated: "2026-02-26T13:50:52.951Z"
 last_activity: "2026-02-26 - Planned Phase 48: 3 plans created (48-01: GET+read-mode+section-dropdown, 48-02: edit-mode+bulk-save+delete-guard+CMP-Mapping-dropdown, 48-03: multi-cell-clipboard+Excel-export)"
@@ -94,9 +108,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 48 — CPDP Items Manager / KKJ-IDP Mapping Editor (In Progress, 1/3 plans done)
-**Status:** Executing — Plan 48-01 complete, 48-02 next
-**Last activity:** 2026-02-26 - Completed Plan 48-01: CpdpItems GET action, read-mode view with section dropdown, Admin/Index card activation
+**Phase:** Phase 48 — CPDP Items Manager / KKJ-IDP Mapping Editor (In Progress, 2/3 plans done)
+**Status:** Executing — Plan 48-02 complete, 48-03 next
+**Last activity:** 2026-02-26 - Completed Plan 48-02: edit-mode table, CpdpItemsSave + CpdpItemDelete POST actions, CMP dropdown section selector
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, Phase 48 planning complete)
 
@@ -136,6 +150,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 47-03]: KkjBagian seeded on first GET rather than migration data seed; Bagian stored as string name (FK by name) consistent with CpdpItem.Section precedent; per-bagian add-row buttons replace single global btnAddRow
 - [Phase 47-04]: Read-mode Target_* column headers use bagian.Label_* values; inline delete for Id=0 rows is DOM-only (no server call); insert-below copies bagian name from current row's hidden Bagian input; Aksi th appended after 15 label inputs in renderEditRows() thead
 - [Phase 48-01]: data-name attribute uses Razor auto-encoding (@item.NamaKompetensi) instead of Html.AttributeEncode which is unavailable in typed Razor views
+- [Phase 48-02]: Razor auto-encoding (@item.Property) replaces Html.AttributeEncode — unavailable on IHtmlHelper<List<T>> typed views
+- [Phase 48-02]: filterTables() queries both read and edit tbody rows so section filter persists across mode toggle
+- [Phase 48-02]: MappingSectionSelect: dropdown replaces card layout; Lihat button disabled until section selected
 
 ### Roadmap Evolution
 
@@ -164,9 +181,10 @@ None.
 | Phase 47-kkj-matrix-manager P01 | 3 | 3 tasks | 4 files |
 | Phase 47 P03 | 7 | 3 tasks | 6 files |
 | Phase 48-cpdp-items-manager P01 | 5 | 3 tasks | 3 files |
+| Phase 48-cpdp-items-manager P02 | 5 | 3 tasks | 3 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Planned Phase 48 (KKJ-IDP Mapping Editor) — 3 plans written. Note: Phase 47 still has Plan 47-05 (Excel multi-cell selection + save toast) pending — Phase 48 planning was explicitly requested ahead of 47-05. Next: Execute Phase 48 plans (48-01 → 48-02 → 48-03).
+Stopped at: Completed 48-02-PLAN.md (edit mode table, bulk-save POST, delete-guard POST, CMP mapping dropdown). Next: Execute 48-03 (multi-cell clipboard + Excel export).
 Resume file: None.
