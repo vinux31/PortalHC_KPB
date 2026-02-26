@@ -92,3 +92,14 @@ None - no external service configuration required.
 ---
 *Phase: 47-kkj-matrix-manager*
 *Completed: 2026-02-26*
+
+## Self-Check: PASSED
+
+- FOUND: Views/Admin/KkjMatrix.cshtml
+- FOUND: .planning/phases/47-kkj-matrix-manager/47-06-SUMMARY.md
+- FOUND: a2cbd75 (task commit)
+- FOUND: e56328e (metadata commit)
+- Build: 0 errors, 31 warnings (pre-existing)
+- knownBagianNames: present at line 298
+- rows.length === 0: present at line 663
+- bagianIndex/isFirstBagian: present at lines 299, 301
