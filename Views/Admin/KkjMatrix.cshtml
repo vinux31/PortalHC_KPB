@@ -11,6 +11,20 @@
 
 @Html.AntiForgeryToken()
 
+<!-- Save success toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+    <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert"
+         aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body">
+                <i class="bi bi-check-circle-fill me-2"></i>Data berhasil disimpan.
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast" aria-label="Tutup"></button>
+        </div>
+    </div>
+</div>
+
 <script>
     var kkjItems = @Html.Raw(itemsJson);
     var kkjBagians = @Html.Raw(bagiansJson ?? "[]");
@@ -646,7 +660,10 @@ document.getElementById('btnSave').addEventListener('click', function() {
                 data: JSON.stringify(rows),
                 success: function(rowResp) {
                     if (rowResp.success) {
-                        location.reload();
+                        var toastEl = document.getElementById('saveToast');
+                        var toast = new bootstrap.Toast(toastEl, { delay: 1500 });
+                        toast.show();
+                        setTimeout(function() { location.reload(); }, 1700);
                     } else {
                         alert('Error menyimpan baris: ' + rowResp.message);
                     }
