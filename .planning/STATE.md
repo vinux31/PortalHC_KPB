@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-25)
 **Milestone:** v2.1 Assessment Resilience & Real-Time Monitoring — SHIPPED
 **Phase:** All 5 phases (41-45) complete
 **Status:** Milestone complete, tagged v2.1
-**Last activity:** 2026-02-25 — v2.1 milestone archived
+**Last activity:** 2026-02-26 - Completed quick task 13: Add bagian selection page for CMP KKJiDP CPDP mapping with RFCC GAST NGP DHT sections
 
 Progress: [████████████████████] 100% (v2.1 shipped)
 
@@ -40,6 +40,12 @@ None.
 ### Blockers/Concerns
 
 None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 13 | Add bagian selection page for CMP KKJiDP CPDP mapping with RFCC GAST NGP DHT sections | 2026-02-26 | 1daecde | [13-add-bagian-selection-page-for-cmp-kkjidp](./quick/13-add-bagian-selection-page-for-cmp-kkjidp/) |
 
 ## Session Continuity
 
