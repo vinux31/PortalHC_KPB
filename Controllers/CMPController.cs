@@ -72,8 +72,16 @@ namespace HcPortal.Controllers
         }
 
         // --- HALAMAN 2: MAPPING KKJ - CPDP ---
-        public async Task<IActionResult> Mapping()
+        public async Task<IActionResult> Mapping(string? section)
         {
+            // If no section selected, show bagian selection page
+            if (string.IsNullOrEmpty(section))
+            {
+                return View("MappingSectionSelect");
+            }
+
+            ViewBag.SelectedSection = section;
+
             // ✅ QUERY FROM DATABASE instead of hardcoded data
             var cpdpData = await _context.CpdpItems
                 .OrderBy(c => c.No)
