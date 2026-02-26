@@ -56,6 +56,35 @@ namespace HcPortal.Models
 
         // 15. Officer HSE Compliance (14)
         public string Target_HSE { get; set; } = "-";
+
+        // Bagian grouping (FK by name to KkjBagian.Name)
+        public string Bagian { get; set; } = "";   // e.g. "RFCC", "GAST", "NGP", "DHT/HMU"
+    }
+
+    // KKJ Matrix Bagian (section grouping with editable column headers)
+    public class KkjBagian
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";           // e.g. "RFCC", "GAST", "NGP", "DHT/HMU"
+        public int DisplayOrder { get; set; } = 0;
+
+        // Editable column header labels for each Target_* field
+        // Defaults mirror the existing static headers in KkjMatrix.cshtml
+        public string Label_SectionHead        { get; set; } = "Section Head";
+        public string Label_SrSpv_GSH          { get; set; } = "Sr Spv GSH";
+        public string Label_ShiftSpv_GSH       { get; set; } = "Shift Spv GSH";
+        public string Label_Panelman_GSH_12_13 { get; set; } = "Panelman GSH 12-13";
+        public string Label_Panelman_GSH_14    { get; set; } = "Panelman GSH 14";
+        public string Label_Operator_GSH_8_11  { get; set; } = "Op GSH 8-11";
+        public string Label_Operator_GSH_12_13 { get; set; } = "Op GSH 12-13";
+        public string Label_ShiftSpv_ARU       { get; set; } = "Shift Spv ARU";
+        public string Label_Panelman_ARU_12_13 { get; set; } = "Panelman ARU 12-13";
+        public string Label_Panelman_ARU_14    { get; set; } = "Panelman ARU 14";
+        public string Label_Operator_ARU_8_11  { get; set; } = "Op ARU 8-11";
+        public string Label_Operator_ARU_12_13 { get; set; } = "Op ARU 12-13";
+        public string Label_SrSpv_Facility     { get; set; } = "Sr Spv Facility";
+        public string Label_JrAnalyst          { get; set; } = "Jr Analyst";
+        public string Label_HSE                { get; set; } = "HSE";
     }
 
     // 2. CLASS UNTUK HALAMAN MAPPING (GAP ANALYSIS) - KITA KEMBALIKAN

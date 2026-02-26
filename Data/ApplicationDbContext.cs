@@ -26,6 +26,7 @@ namespace HcPortal.Data
         
         // Master Data (KKJ & CPDP)
         public DbSet<KkjMatrixItem> KkjMatrices { get; set; }
+        public DbSet<KkjBagian> KkjBagians { get; set; }
         public DbSet<CpdpItem> CpdpItems { get; set; }
 
         // Competency Tracking
@@ -159,6 +160,13 @@ namespace HcPortal.Data
             builder.Entity<KkjMatrixItem>(entity =>
             {
                 entity.ToTable("KkjMatrices");
+            });
+
+            builder.Entity<KkjBagian>(entity =>
+            {
+                entity.ToTable("KkjBagians");
+                entity.HasIndex(b => b.Name).IsUnique();
+                entity.HasIndex(b => b.DisplayOrder);
             });
 
             builder.Entity<CpdpItem>(entity =>
