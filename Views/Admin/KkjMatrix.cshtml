@@ -70,6 +70,7 @@
     .kkj-edit-tbl td:nth-child(2), .kkj-edit-tbl th:nth-child(2) { position: sticky; left: 57px; background: white; z-index: 5; border-right: 1px solid #dee2e6; }
     .kkj-edit-tbl thead th { position: sticky; top: 0; background: #343a40; color: white; z-index: 10; }
     .kkj-edit-tbl thead th:nth-child(1), .kkj-edit-tbl thead th:nth-child(2) { z-index: 15; }
+    .col-aksi { min-width: 75px; }
     .bagian-label-input { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.4); }
     .bagian-label-input:focus { background: white; color: #212529; }
     .bagian-name-input { font-weight: bold; }
@@ -345,6 +346,12 @@ function renderEditRows() {
             headerRow.appendChild(th);
         });
 
+        var thAksi = document.createElement('th');
+        thAksi.className = 'col-aksi';
+        thAksi.textContent = 'Aksi';
+        thAksi.style.minWidth = '75px';
+        headerRow.appendChild(thAksi);
+
         thead.appendChild(headerRow);
         tbl.appendChild(thead);
 
@@ -420,6 +427,61 @@ function makeRow(item) {
         td.appendChild(input);
         tr.appendChild(td);
     });
+
+    // 22nd column: Aksi (insert-below + inline delete)
+    var tdAksi = document.createElement('td');
+    tdAksi.className = 'col-aksi text-nowrap';
+
+    // Insert-below button
+    var btnInsert = document.createElement('button');
+    btnInsert.type = 'button';
+    btnInsert.className = 'btn btn-outline-success btn-sm me-1';
+    btnInsert.title = 'Sisipkan baris baru di bawah';
+    btnInsert.innerHTML = '<i class="bi bi-plus-circle"></i>';
+    btnInsert.addEventListener('click', function() {
+        var bagianName = tr.querySelector('input[name="Bagian"]').value || '';
+        var newRow = makeEmptyRow();
+        newRow.querySelector('input[name="Bagian"]').value = bagianName;
+        tr.parentNode.insertBefore(newRow, tr.nextSibling);
+    });
+
+    // Inline delete button
+    var btnDel = document.createElement('button');
+    btnDel.type = 'button';
+    btnDel.className = 'btn btn-outline-danger btn-sm';
+    btnDel.title = 'Hapus baris ini';
+    btnDel.innerHTML = '<i class="bi bi-trash"></i>';
+    btnDel.addEventListener('click', function() {
+        var id = parseInt(tr.dataset.id) || 0;
+        if (id === 0) {
+            // Unsaved row — remove from DOM directly
+            tr.remove();
+        } else {
+            // Saved row — confirm then AJAX delete
+            var kompetensi = tr.querySelector('[name="Kompetensi"]') ? tr.querySelector('[name="Kompetensi"]').value : '';
+            if (!confirm('Hapus "' + kompetensi + '"?')) return;
+            var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            $.ajax({
+                url: '/Admin/KkjMatrixDelete',
+                type: 'POST',
+                data: { id: id, __RequestVerificationToken: token },
+                success: function(response) {
+                    if (response.success) {
+                        tr.remove();
+                        kkjItems = kkjItems.filter(function(i) { return i.Id !== id; });
+                    } else if (response.blocked) {
+                        alert(response.message);
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                }
+            });
+        }
+    });
+
+    tdAksi.appendChild(btnInsert);
+    tdAksi.appendChild(btnDel);
+    tr.appendChild(tdAksi);
     return tr;
 }
 
