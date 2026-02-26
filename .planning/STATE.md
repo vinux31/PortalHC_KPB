@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-26T09:44:35.441Z"
+last_updated: "2026-02-26T10:47:50.555Z"
 last_activity: "2026-02-26 - Completed Plan 47-02: KkjMatrix write operations (KkjMatrixSave, KkjMatrixDelete, edit mode table, clipboard paste, add-row)"
 progress:
   total_phases: 41
-  completed_phases: 40
-  total_plans: 88
-  completed_plans: 87
+  completed_phases: 39
+  total_plans: 91
+  completed_plans: 88
 ---
 
 ---
@@ -80,11 +80,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (Complete, all 2 plans done); Phase 48 (CPDP Items Manager) is next
-**Status:** Milestone complete
-**Last activity:** 2026-02-26 - Completed Plan 47-02: KkjMatrix write operations (KkjMatrixSave, KkjMatrixDelete, edit mode table, clipboard paste, add-row)
+**Phase:** Phase 47 — KKJ Matrix Manager (In Progress, 3/5 plans done)
+**Status:** In Progress
+**Last activity:** 2026-02-26 - Completed Plan 47-03: KkjBagian entity, EF migration, KkjBagianSave/Add endpoints, per-bagian grouped KkjMatrix view with editable column headers
 
-Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 1/12 phases complete, 2/2 plans in Phase 47)
+Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, 3/5 plans in Phase 47)
 
 ## Performance Metrics
 
@@ -119,6 +119,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - editActions buttons placed in header toolbar div alongside btnEdit, using d-none/d-flex toggling
 - deleteRow removes row from DOM and filters kkjItems array to keep JS state in sync without page reload
 - EF upsert via FindAsync then update each property individually — avoids tracking conflicts with deserialized JSON objects
+- [Phase 47-03]: KkjBagian seeded on first GET rather than migration data seed; Bagian stored as string name (FK by name) consistent with CpdpItem.Section precedent; per-bagian add-row buttons replace single global btnAddRow
 
 ### Roadmap Evolution
 
@@ -140,9 +141,10 @@ None.
 | 14 | Add Section column to CpdpItem model and migration; filter Mapping() by section | 2026-02-26 | 58ec72d | [14-add-section-column-to-cpdpitem-model-mig](./quick/14-add-section-column-to-cpdpitem-model-mig/) |
 | Phase 46-attempt-history P01 | 3 | 2 tasks | 6 files |
 | Phase 47-kkj-matrix-manager P01 | 3 | 3 tasks | 4 files |
+| Phase 47 P03 | 7 | 3 tasks | 6 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-02-PLAN.md: KkjMatrix write operations (KkjMatrixSave POST, KkjMatrixDelete POST, edit-mode table, clipboard paste, add-row); Phase 47 complete. Next: Phase 48 CPDP Items Manager.
+Stopped at: Completed 47-03-PLAN.md: KkjBagian entity (15 Label_* headers), EF migration, KkjBagianSave/KkjBagianAdd endpoints, per-bagian grouped KkjMatrix view with editable column header inputs. Next: Plan 47-04.
 Resume file: None.
