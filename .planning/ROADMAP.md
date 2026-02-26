@@ -16,7 +16,7 @@
 - ✅ **v2.0 Assessment Management & Training History** — Phases 38-40 (shipped 2026-02-24)
 - ✅ **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-45 (shipped 2026-02-25)
 - ✅ **v2.2 Attempt History** — Phase 46 (shipped 2026-02-26)
-- 🚧 **v2.3 Admin Portal** — Phases 47-58 (in progress)
+- 🚧 **v2.3 Admin Portal** — Phases 47-62 (in progress)
 
 ## Phases
 
@@ -284,10 +284,14 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [ ] **Phase 52: DeliverableProgress Override** — OPER-03 (planned)
 - [ ] **Phase 53: Final Assessment Manager** — OPER-04 (planned)
 - [ ] **Phase 54: Coaching Session Override** — OPER-05 (planned)
-- [ ] **Phase 55: Question Bank Edit** — CRUD-01 (planned)
-- [ ] **Phase 56: Package Question Edit/Delete** — CRUD-02 (planned)
-- [ ] **Phase 57: ProtonTrack Edit/Delete** — CRUD-03 (planned)
-- [ ] **Phase 58: Password Reset Standalone** — CRUD-04 (planned)
+- [x] ~~**Phase 55: Question Bank Edit**~~ — REMOVED (covered by Phase 61 Assessment Management consolidation)
+- [x] ~~**Phase 56: Package Question Edit/Delete**~~ — REMOVED (covered by Phase 61 Assessment Management consolidation)
+- [x] ~~**Phase 57: ProtonTrack Edit/Delete**~~ — REMOVED (covered by Phase 60 Proton Catalog consolidation)
+- [x] ~~**Phase 58: Password Reset Standalone**~~ — REMOVED (covered by Phase 59 Kelola Pekerja consolidation)
+- [ ] **Phase 59: Konsolidasi Kelola Pekerja** — CONS-01 (planned)
+- [ ] **Phase 60: Konsolidasi Proton Catalog** — CONS-02 (planned)
+- [ ] **Phase 61: Konsolidasi Assessment Management** — CONS-03 (planned)
+- [ ] **Phase 62: Update Kelola Data Hub** — CONS-04 (planned)
 
 ### Phase Details
 
@@ -310,14 +314,22 @@ Plans:
 - [ ] 47-04-PLAN.md — GAP: Full 21-column read-mode table + per-row insert/delete in edit mode
 - [ ] 47-05-PLAN.md — GAP: Excel multi-cell selection (drag, Ctrl+C/V, Delete range) + save toast
 
-### Phase 48: CPDP Items Manager
-**Goal:** Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page
+### Phase 48: CPDP Items Manager (KKJ-IDP Mapping Editor)
+**Goal:** Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page — spreadsheet-style inline editing, bulk-save, delete guard, multi-cell clipboard, and Excel export
 **Depends on:** Phase 47
 **Requirements:** MDAT-02
 **Success Criteria** (what must be TRUE):
-  1. Admin can navigate to a CPDP Items management page that lists all CpdpItem records, filterable by section
-  2. Admin can create, edit, and delete CpdpItem records through the management UI
-**Plans:** TBD
+  1. Admin can navigate to a CPDP Items management page that lists all CpdpItem records, filterable by section dropdown (RFCC, GAST, NGP, DHT)
+  2. Admin can create, edit, and delete CpdpItem records through spreadsheet-style inline editing with bulk-save and reference guard
+  3. Admin can copy-paste data from Excel using multi-cell clipboard operations
+  4. Admin can export filtered data to Excel
+  5. CMP/Mapping section select page updated to use dropdown instead of card selection
+**Plans:** 3 plans
+
+Plans:
+- [ ] 48-01-PLAN.md — GET action + read-mode table + section dropdown + Admin/Index link update
+- [ ] 48-02-PLAN.md — Edit mode table + CpdpItemsSave POST + CpdpItemDelete POST + CMP/Mapping dropdown update
+- [ ] 48-03-PLAN.md — Multi-cell selection (Ctrl+C/V, Delete range) + Excel export endpoint
 
 ### Phase 49: Assessment Competency Map Manager
 **Goal:** Admin can view, create, edit, and delete Assessment Competency Maps (AssessmentCompetencyMap) — mapping assessment categories to KKJ items
@@ -358,28 +370,59 @@ Plans:
 **Requirements:** OPER-05
 **Plans:** TBD
 
-### Phase 55: Question Bank Edit
-**Goal:** Admin/HC can edit existing AssessmentQuestion text and options (Edit was missing — only Add/Delete existed)
+### ~~Phase 55: Question Bank Edit~~ — REMOVED
+Covered by Phase 61 (Assessment Management consolidation). Question edit will be added as enhancement to ManageQuestions within the consolidated Assessment Management page.
+
+### ~~Phase 56: Package Question Edit/Delete~~ — REMOVED
+Covered by Phase 61 (Assessment Management consolidation). Package question edit/delete will be added as enhancement to ManagePackages within the consolidated Assessment Management page.
+
+### ~~Phase 57: ProtonTrack Edit/Delete~~ — REMOVED
+Covered by Phase 60 (Proton Catalog consolidation). ProtonTrack already has full CRUD in /ProtonCatalog — Edit/Delete are already implemented.
+
+### ~~Phase 58: Password Reset Standalone~~ — REMOVED
+Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has password change fields — no standalone page needed.
+
+### Phase 59: Konsolidasi Kelola Pekerja
+**Goal:** Move ManageWorkers (CRUD pekerja, import/export, edit password) from CMP into Kelola Data — single hub for all user management, remove standalone navbar button
 **Depends on:** Phase 54
-**Requirements:** CRUD-01
+**Requirements:** CONS-01
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC can access Kelola Pekerja from Kelola Data hub page (Section B card)
+  2. All ManageWorkers functionality works from Admin section (list, create, edit, delete, import, export, password change)
+  3. Standalone "Kelola Pekerja" button removed from navbar
+  4. Old /CMP/ManageWorkers URL redirects to new location
 **Plans:** TBD
 
-### Phase 56: Package Question Edit/Delete
-**Goal:** Admin/HC can edit and delete individual PackageQuestion and PackageOption records (currently import-only, no inline edit/delete)
-**Depends on:** Phase 55
-**Requirements:** CRUD-02
+### Phase 60: Konsolidasi Proton Catalog
+**Goal:** Move Proton Catalog (master data Track/Kompetensi/SubKompetensi/Deliverable CRUD) from standalone /ProtonCatalog into Kelola Data Section A — all master data tables in one hub
+**Depends on:** Phase 59
+**Requirements:** CONS-02
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC can access Proton Catalog from Kelola Data hub page (Section A card)
+  2. All Proton Catalog CRUD functionality works from Admin section (tree view, add/edit/delete at all 4 levels)
+  3. Old /ProtonCatalog URL redirects to new location
 **Plans:** TBD
 
-### Phase 57: ProtonTrack Edit/Delete
-**Goal:** Admin can edit and delete ProtonTrack records (Create existed, Edit/Delete were missing)
-**Depends on:** Phase 56
-**Requirements:** CRUD-03
+### Phase 61: Konsolidasi Assessment Management
+**Goal:** Move Assessment Management (CRUD assessment, kelola soal, kelola paket, monitoring, export) from CMP into Kelola Data Section B — HC manages all assessment admin from one hub. Personal assessment view (take exam, results) stays in CMP.
+**Depends on:** Phase 60
+**Requirements:** CONS-03
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC can access Assessment Management from Kelola Data hub page (Section B card)
+  2. All assessment admin functions work from Admin section (create/edit/delete assessment, manage questions, manage packages, monitoring, export, audit log)
+  3. CMP/Assessment personal view (worker taking exams, viewing results) remains accessible and unchanged
+  4. Old /CMP/Assessment?view=manage URL redirects to new location
 **Plans:** TBD
 
-### Phase 58: Password Reset Standalone
-**Goal:** Admin can reset a worker's password from a standalone action without going through the full EditWorker form
-**Depends on:** Phase 57
-**Requirements:** CRUD-04
+### Phase 62: Update Kelola Data Hub
+**Goal:** Restructure Admin/Index.cshtml to reflect final consolidated layout — remove Section C (all items covered), update all card statuses and links, ensure hub is the single source of truth for admin navigation
+**Depends on:** Phase 61
+**Requirements:** CONS-04
+**Success Criteria** (what must be TRUE):
+  1. Section A (Master Data) shows: KKJ Matrix, CPDP Items, Proton Catalog, Assessment Competency Map — all with correct links and active/segera badges
+  2. Section B (Operasional) shows: Kelola Pekerja, Assessment Management, Coach-Coachee Mapping, Penugasan Coachee, Deliverable Override, Final Assessment Manager, Coaching Session Override — all with correct links
+  3. Section C (Kelengkapan CRUD) is removed entirely
+  4. All active cards link to working pages, all "Segera" cards are correctly badged
 **Plans:** TBD
 
 ## Progress
@@ -433,14 +476,18 @@ Plans:
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
 | 47. KKJ Matrix Manager | 4/5 | In Progress|  | - |
-| 48. CPDP Items Manager | v2.3 | 0/? | Not started | - |
+| 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 0/3 | Not started | - |
 | 49. Assessment Competency Map Manager | v2.3 | 0/? | Not started | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
 | 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
 | 53. Final Assessment Manager | v2.3 | 0/? | Not started | - |
 | 54. Coaching Session Override | v2.3 | 0/? | Not started | - |
-| 55. Question Bank Edit | v2.3 | 0/? | Not started | - |
-| 56. Package Question Edit/Delete | v2.3 | 0/? | Not started | - |
-| 57. ProtonTrack Edit/Delete | v2.3 | 0/? | Not started | - |
-| 58. Password Reset Standalone | v2.3 | 0/? | Not started | - |
+| 55. ~~Question Bank Edit~~ | v2.3 | - | Removed | - |
+| 56. ~~Package Question Edit/Delete~~ | v2.3 | - | Removed | - |
+| 57. ~~ProtonTrack Edit/Delete~~ | v2.3 | - | Removed | - |
+| 58. ~~Password Reset Standalone~~ | v2.3 | - | Removed | - |
+| 59. Konsolidasi Kelola Pekerja | v2.3 | 0/? | Not started | - |
+| 60. Konsolidasi Proton Catalog | v2.3 | 0/? | Not started | - |
+| 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
+| 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |

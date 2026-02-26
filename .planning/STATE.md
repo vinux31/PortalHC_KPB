@@ -80,11 +80,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (In Progress, 4/5 plans done)
-**Status:** In Progress
-**Last activity:** 2026-02-26 - Completed Plan 47-04: Expanded read-mode table to 21 columns (No, Indeks, Kompetensi, SkillGroup, SubSkillGroup, 15 Target_* with bagian.Label_* headers, Aksi); added 22nd Aksi column to edit-mode makeRow() with insert-below (insertBefore) and inline delete (DOM-only for Id=0, AJAX for Id>0)
+**Phase:** Phase 48 — CPDP Items Manager / KKJ-IDP Mapping Editor (Planned, 0/3 plans done)
+**Status:** Planning complete — ready for execution
+**Last activity:** 2026-02-26 - Planned Phase 48: 3 plans created (48-01: GET+read-mode+section-dropdown, 48-02: edit-mode+bulk-save+delete-guard+CMP-Mapping-dropdown, 48-03: multi-cell-clipboard+Excel-export)
 
-Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, 3/5 plans in Phase 47)
+Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, Phase 48 planning complete)
 
 ## Performance Metrics
 
@@ -125,6 +125,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
+- Phases 55-58 removed: Question Bank Edit, Package Question Edit/Delete, ProtonTrack Edit/Delete, Password Reset Standalone — all covered by consolidation phases
+- Phase 59 added: Konsolidasi Kelola Pekerja (move ManageWorkers to Kelola Data)
+- Phase 60 added: Konsolidasi Proton Catalog (move ProtonCatalog to Kelola Data)
+- Phase 61 added: Konsolidasi Assessment Management (move Assessment manage to Kelola Data)
+- Phase 62 added: Update Kelola Data Hub (restructure Index page, remove Section C)
 
 ### Pending Todos
 
@@ -147,5 +152,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-04-PLAN.md: Full 21-column read-mode table with bagian.Label_* headers; 22nd Aksi column in edit-mode makeRow() with insert-below and inline delete. Next: Plan 47-05.
+Stopped at: Planned Phase 48 (KKJ-IDP Mapping Editor) — 3 plans written. Note: Phase 47 still has Plan 47-05 (Excel multi-cell selection + save toast) pending — Phase 48 planning was explicitly requested ahead of 47-05. Next: Execute Phase 48 plans (48-01 → 48-02 → 48-03).
 Resume file: None.
