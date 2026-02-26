@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 47-kkj-matrix-manager
 source: [47-06-SUMMARY.md, 47-07-SUMMARY.md]
 started: 2026-02-26T12:30:00Z
@@ -98,17 +98,26 @@ skipped: 0
   reason: "User reported: tetap tidak bisa multi select cell"
   severity: major
   test: 9
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Guard on line 911 (`if (e.target.tagName === 'INPUT') return;`) permanently exits mousedown before setting isDragging=true. Because every td has a full-width input (100% width CSS), e.target is ALWAYS the INPUT — so the drag system is never activated. Single-cell click works via a separate click handler."
+  artifacts:
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "Line 911: `if (e.target.tagName === 'INPUT') return;` — remove this line; e.preventDefault() already handles unwanted caret behavior"
+  missing:
+    - "Delete line 911 from mousedown handler — no other changes needed"
+  debug_session: ".planning/debug/kkj-multi-cell-selection.md"
 
 - truth: "Edit mode hanya menampilkan tabel bagian yang sedang dipilih (sama seperti read mode — dropdown bagian mengontrol tabel mana yang tampil)"
   status: failed
   reason: "User reported: ketika edit mode, semua tabel bagian lain juga terlihat. seharusnya cuman bagian yang dipilih saja, terus fungsinya apa dropdown bagian"
   severity: major
   test: 5
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "renderEditRows() uses kkjBagians.forEach and appends ALL bagian sections as flat siblings into #editTablesContainer with no show/hide logic. Read mode uses renderReadTable(bagianName) that overwrites a single #readTablePanel. Edit mode never adopted a dropdown or single-panel pattern."
+  artifacts:
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "Lines 368-482 (renderEditRows): forEach appends all sections unconditionally — wrap each in a div.edit-bagian-section[data-bagian-name] and add a dropdown to show/hide"
+  missing:
+    - "Wrap each bagian's heading+table+addBtn in <div class='edit-bagian-section' data-bagian-name='...'> inside renderEditRows() forEach"
+    - "Add <select id='editBagianFilter'> populated from kkjBagians above the edit container"
+    - "Wire editBagianFilter change to hide all .edit-bagian-section then show matching data-bagian-name"
+    - "Apply initial selection on first render (show first bagian only)"
+  debug_session: ".planning/debug/kkj-edit-mode-all-tables-visible.md"
