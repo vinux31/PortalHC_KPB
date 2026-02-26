@@ -131,155 +131,30 @@
     <p class="text-muted">Belum ada data KKJ Matrix.</p>
 }
 
-@* Read-mode: per-bagian grouped sections *@
+@* Read-mode: dropdown filter + bagian CRUD toolbar + single table panel *@
 <div id="readTable">
     @{
         var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
     }
-    @foreach (var bagian in bagians)
-    {
-        var bagianItems = Model.Where(i => i.Bagian == bagian.Name).OrderBy(i => i.No).ToList();
-        <h6 class="fw-bold text-primary mt-3 mb-1">@bagian.Name
-            <span class="badge bg-secondary ms-1">@bagianItems.Count</span>
-        </h6>
-        <div class="table-responsive custom-scrollbar mb-3">
-            <table class="table table-sm table-bordered table-hover mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width:45px;">No</th>
-                        <th style="width:90px;">Indeks</th>
-                        <th style="min-width:180px;">Kompetensi</th>
-                        <th style="min-width:120px;">SkillGroup</th>
-                        <th style="min-width:120px;">SubSkillGroup</th>
-                        <th class="col-target">@bagian.Label_SectionHead</th>
-                        <th class="col-target">@bagian.Label_SrSpv_GSH</th>
-                        <th class="col-target">@bagian.Label_ShiftSpv_GSH</th>
-                        <th class="col-target">@bagian.Label_Panelman_GSH_12_13</th>
-                        <th class="col-target">@bagian.Label_Panelman_GSH_14</th>
-                        <th class="col-target">@bagian.Label_Operator_GSH_8_11</th>
-                        <th class="col-target">@bagian.Label_Operator_GSH_12_13</th>
-                        <th class="col-target">@bagian.Label_ShiftSpv_ARU</th>
-                        <th class="col-target">@bagian.Label_Panelman_ARU_12_13</th>
-                        <th class="col-target">@bagian.Label_Panelman_ARU_14</th>
-                        <th class="col-target">@bagian.Label_Operator_ARU_8_11</th>
-                        <th class="col-target">@bagian.Label_Operator_ARU_12_13</th>
-                        <th class="col-target">@bagian.Label_SrSpv_Facility</th>
-                        <th class="col-target">@bagian.Label_JrAnalyst</th>
-                        <th class="col-target">@bagian.Label_HSE</th>
-                        <th style="width:70px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in bagianItems)
-                    {
-                        <tr data-id="@item.Id">
-                            <td>@item.No</td>
-                            <td>@item.Indeks</td>
-                            <td>@item.Kompetensi</td>
-                            <td>@item.SkillGroup</td>
-                            <td>@item.SubSkillGroup</td>
-                            <td>@item.Target_SectionHead</td>
-                            <td>@item.Target_SrSpv_GSH</td>
-                            <td>@item.Target_ShiftSpv_GSH</td>
-                            <td>@item.Target_Panelman_GSH_12_13</td>
-                            <td>@item.Target_Panelman_GSH_14</td>
-                            <td>@item.Target_Operator_GSH_8_11</td>
-                            <td>@item.Target_Operator_GSH_12_13</td>
-                            <td>@item.Target_ShiftSpv_ARU</td>
-                            <td>@item.Target_Panelman_ARU_12_13</td>
-                            <td>@item.Target_Panelman_ARU_14</td>
-                            <td>@item.Target_Operator_ARU_8_11</td>
-                            <td>@item.Target_Operator_ARU_12_13</td>
-                            <td>@item.Target_SrSpv_Facility</td>
-                            <td>@item.Target_JrAnalyst</td>
-                            <td>@item.Target_HSE</td>
-                            <td>
-                                <button class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteRow(@item.Id, '@Html.Raw(item.Kompetensi.Replace("'", "\\'"))')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                    @if (!bagianItems.Any())
-                    {
-                        <tr><td colspan="21" class="text-muted text-center">Belum ada item di bagian ini.</td></tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
-    @{
-        var unassignedItems = Model.Where(i => string.IsNullOrEmpty(i.Bagian) || !bagians.Any(b => b.Name == i.Bagian)).ToList();
-    }
-    @if (unassignedItems.Any())
-    {
-        <h6 class="fw-bold text-warning mt-3 mb-1">Tidak Terkategori
-            <span class="badge bg-warning text-dark ms-1">@unassignedItems.Count</span>
-        </h6>
-        <div class="table-responsive custom-scrollbar mb-3">
-            <table class="table table-sm table-bordered table-hover mb-0">
-                <thead class="table-dark">
-                    <tr>
-                        <th style="width:45px;">No</th>
-                        <th style="width:90px;">Indeks</th>
-                        <th style="min-width:180px;">Kompetensi</th>
-                        <th style="min-width:120px;">SkillGroup</th>
-                        <th style="min-width:120px;">SubSkillGroup</th>
-                        <th class="col-target">Section Head</th>
-                        <th class="col-target">Sr Spv GSH</th>
-                        <th class="col-target">Shift Spv GSH</th>
-                        <th class="col-target">Panelman GSH 12-13</th>
-                        <th class="col-target">Panelman GSH 14</th>
-                        <th class="col-target">Op GSH 8-11</th>
-                        <th class="col-target">Op GSH 12-13</th>
-                        <th class="col-target">Shift Spv ARU</th>
-                        <th class="col-target">Panelman ARU 12-13</th>
-                        <th class="col-target">Panelman ARU 14</th>
-                        <th class="col-target">Op ARU 8-11</th>
-                        <th class="col-target">Op ARU 12-13</th>
-                        <th class="col-target">Sr Spv Facility</th>
-                        <th class="col-target">Jr Analyst</th>
-                        <th class="col-target">HSE</th>
-                        <th style="width:70px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in unassignedItems)
-                    {
-                        <tr data-id="@item.Id">
-                            <td>@item.No</td>
-                            <td>@item.Indeks</td>
-                            <td>@item.Kompetensi</td>
-                            <td>@item.SkillGroup</td>
-                            <td>@item.SubSkillGroup</td>
-                            <td>@item.Target_SectionHead</td>
-                            <td>@item.Target_SrSpv_GSH</td>
-                            <td>@item.Target_ShiftSpv_GSH</td>
-                            <td>@item.Target_Panelman_GSH_12_13</td>
-                            <td>@item.Target_Panelman_GSH_14</td>
-                            <td>@item.Target_Operator_GSH_8_11</td>
-                            <td>@item.Target_Operator_GSH_12_13</td>
-                            <td>@item.Target_ShiftSpv_ARU</td>
-                            <td>@item.Target_Panelman_ARU_12_13</td>
-                            <td>@item.Target_Panelman_ARU_14</td>
-                            <td>@item.Target_Operator_ARU_8_11</td>
-                            <td>@item.Target_Operator_ARU_12_13</td>
-                            <td>@item.Target_SrSpv_Facility</td>
-                            <td>@item.Target_JrAnalyst</td>
-                            <td>@item.Target_HSE</td>
-                            <td>
-                                <button class="btn btn-outline-danger btn-sm"
-                                        onclick="deleteRow(@item.Id, '@Html.Raw(item.Kompetensi.Replace("'", "\\'"))')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    }
+    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+        <label class="fw-semibold mb-0">Bagian:</label>
+        <select id="bagianFilter" class="form-select form-select-sm" style="max-width:160px;">
+            @foreach (var bagian in bagians)
+            {
+                <option value="@bagian.Name">@bagian.Name</option>
+            }
+        </select>
+        <button id="btnRenameBagian" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Ubah Nama
+        </button>
+        <button id="btnDeleteBagian" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-trash me-1"></i>Hapus
+        </button>
+        <button id="btnAddBagianRead" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-plus-square me-1"></i>Tambah Bagian
+        </button>
+    </div>
+    <div id="readTablePanel"></div>
 </div>
 
 @* Edit-mode: per-bagian sections (populated by JS) *@
@@ -289,6 +164,205 @@
 <script>
 // --- HELPERS ---
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// --- READ MODE RENDER ---
+var labelFieldKeys = [
+    { key:'Label_SectionHead',        prop:'Target_SectionHead'        },
+    { key:'Label_SrSpv_GSH',          prop:'Target_SrSpv_GSH'          },
+    { key:'Label_ShiftSpv_GSH',       prop:'Target_ShiftSpv_GSH'       },
+    { key:'Label_Panelman_GSH_12_13', prop:'Target_Panelman_GSH_12_13' },
+    { key:'Label_Panelman_GSH_14',    prop:'Target_Panelman_GSH_14'    },
+    { key:'Label_Operator_GSH_8_11',  prop:'Target_Operator_GSH_8_11'  },
+    { key:'Label_Operator_GSH_12_13', prop:'Target_Operator_GSH_12_13' },
+    { key:'Label_ShiftSpv_ARU',       prop:'Target_ShiftSpv_ARU'       },
+    { key:'Label_Panelman_ARU_12_13', prop:'Target_Panelman_ARU_12_13' },
+    { key:'Label_Panelman_ARU_14',    prop:'Target_Panelman_ARU_14'    },
+    { key:'Label_Operator_ARU_8_11',  prop:'Target_Operator_ARU_8_11'  },
+    { key:'Label_Operator_ARU_12_13', prop:'Target_Operator_ARU_12_13' },
+    { key:'Label_SrSpv_Facility',     prop:'Target_SrSpv_Facility'     },
+    { key:'Label_JrAnalyst',          prop:'Target_JrAnalyst'          },
+    { key:'Label_HSE',                prop:'Target_HSE'                },
+];
+
+function renderReadTable(bagianName) {
+    var panel = document.getElementById('readTablePanel');
+    if (!panel) return;
+
+    var bagian = kkjBagians.find(function(b) { return b.Name === bagianName; });
+    var knownNames = kkjBagians.map(function(b) { return b.Name; });
+
+    // Items for selected bagian; if bagianName is '__unassigned__' show orphans
+    var items;
+    if (bagianName === '__unassigned__') {
+        items = kkjItems.filter(function(i) {
+            return !i.Bagian || knownNames.indexOf(i.Bagian) === -1;
+        });
+        bagian = null; // no bagian object for orphans
+    } else {
+        items = kkjItems.filter(function(i) { return i.Bagian === bagianName; });
+    }
+    items = items.slice().sort(function(a, b) { return (a.No || 0) - (b.No || 0); });
+
+    // Build thead
+    var theadCells = '<th style="width:45px;">No</th>'
+        + '<th style="width:90px;">Indeks</th>'
+        + '<th style="min-width:180px;">Kompetensi</th>'
+        + '<th style="min-width:120px;">SkillGroup</th>'
+        + '<th style="min-width:120px;">SubSkillGroup</th>';
+
+    labelFieldKeys.forEach(function(lf) {
+        var label = bagian ? (bagian[lf.key] || lf.key) : lf.key;
+        theadCells += '<th class="col-target">' + escHtml(label) + '</th>';
+    });
+    theadCells += '<th style="width:70px;">Aksi</th>';
+
+    // Build tbody rows
+    var tbodyRows = '';
+    if (items.length === 0) {
+        tbodyRows = '<tr><td colspan="21" class="text-muted text-center">Belum ada item di bagian ini.</td></tr>';
+    } else {
+        items.forEach(function(item) {
+            var tds = '<td>' + escHtml(item.No) + '</td>'
+                + '<td>' + escHtml(item.Indeks) + '</td>'
+                + '<td>' + escHtml(item.Kompetensi) + '</td>'
+                + '<td>' + escHtml(item.SkillGroup) + '</td>'
+                + '<td>' + escHtml(item.SubSkillGroup) + '</td>';
+            labelFieldKeys.forEach(function(lf) {
+                tds += '<td>' + escHtml(item[lf.prop]) + '</td>';
+            });
+            var safeKomp = escHtml(item.Kompetensi).replace(/'/g, "\\'");
+            tds += '<td>'
+                + '<button class="btn btn-outline-danger btn-sm" onclick="deleteRow(' + item.Id + ', \'' + safeKomp + '\')">'
+                + '<i class="bi bi-trash"></i></button>'
+                + '</td>';
+            tbodyRows += '<tr data-id="' + item.Id + '">' + tds + '</tr>';
+        });
+    }
+
+    panel.innerHTML = '<div class="table-responsive custom-scrollbar mb-3">'
+        + '<table class="table table-sm table-bordered table-hover mb-0">'
+        + '<thead class="table-dark"><tr>' + theadCells + '</tr></thead>'
+        + '<tbody>' + tbodyRows + '</tbody>'
+        + '</table></div>';
+}
+
+// Wire dropdown change
+document.addEventListener('DOMContentLoaded', function() {
+    var filter = document.getElementById('bagianFilter');
+    if (filter) {
+        filter.addEventListener('change', function() {
+            renderReadTable(this.value);
+        });
+        // Initial render for first option
+        if (filter.value) renderReadTable(filter.value);
+    }
+});
+
+// Ubah Nama button
+document.getElementById('btnRenameBagian').addEventListener('click', function() {
+    var filter = document.getElementById('bagianFilter');
+    var currentName = filter ? filter.value : '';
+    if (!currentName) return;
+    var newName = prompt('Nama baru untuk bagian "' + currentName + '":', currentName);
+    if (!newName || newName.trim() === '' || newName.trim() === currentName) return;
+    newName = newName.trim();
+    var bagian = kkjBagians.find(function(b) { return b.Name === currentName; });
+    if (!bagian) return;
+    // Build bagian payload with new name, keeping all existing label values
+    var payload = Object.assign({}, bagian, { Name: newName });
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    $.ajax({
+        url: '/Admin/KkjBagianSave',
+        type: 'POST',
+        contentType: 'application/json',
+        headers: { 'RequestVerificationToken': token },
+        data: JSON.stringify([payload]),
+        success: function(resp) {
+            if (resp.success) {
+                bagian.Name = newName;
+                // Update kkjItems that had old bagian name
+                kkjItems.forEach(function(i) { if (i.Bagian === currentName) i.Bagian = newName; });
+                // Rebuild dropdown option
+                var opt = filter.querySelector('option[value="' + currentName + '"]');
+                if (opt) { opt.value = newName; opt.textContent = newName; }
+                filter.value = newName;
+                renderReadTable(newName);
+            } else {
+                alert('Error: ' + resp.message);
+            }
+        },
+        error: function(xhr) { alert('Server error: ' + xhr.statusText); }
+    });
+});
+
+// Hapus Bagian button
+document.getElementById('btnDeleteBagian').addEventListener('click', function() {
+    var filter = document.getElementById('bagianFilter');
+    var currentName = filter ? filter.value : '';
+    if (!currentName) return;
+    var bagian = kkjBagians.find(function(b) { return b.Name === currentName; });
+    if (!bagian) return;
+    if (!confirm('Hapus bagian "' + currentName + '"? Bagian tidak dapat dihapus jika masih ada item yang di-assign ke bagian ini.')) return;
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    $.ajax({
+        url: '/Admin/KkjBagianDelete',
+        type: 'POST',
+        data: { id: bagian.Id, __RequestVerificationToken: token },
+        success: function(resp) {
+            if (resp.success) {
+                kkjBagians = kkjBagians.filter(function(b) { return b.Id !== bagian.Id; });
+                var opt = filter.querySelector('option[value="' + currentName + '"]');
+                if (opt) opt.remove();
+                if (kkjBagians.length > 0) {
+                    filter.value = kkjBagians[0].Name;
+                    renderReadTable(kkjBagians[0].Name);
+                } else {
+                    document.getElementById('readTablePanel').innerHTML = '<p class="text-muted">Tidak ada bagian.</p>';
+                }
+            } else if (resp.blocked) {
+                alert(resp.message);
+            } else {
+                alert('Error: ' + resp.message);
+            }
+        },
+        error: function(xhr) { alert('Server error: ' + xhr.statusText); }
+    });
+});
+
+// Tambah Bagian (read-mode) button — creates bagian via server then adds to dropdown + JS array
+document.getElementById('btnAddBagianRead').addEventListener('click', function() {
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    $.ajax({
+        url: '/Admin/KkjBagianAdd',
+        type: 'POST',
+        data: { __RequestVerificationToken: token },
+        success: function(resp) {
+            if (resp.success) {
+                var newBagian = {
+                    Id: resp.id, Name: resp.name, DisplayOrder: resp.displayOrder,
+                    Label_SectionHead: 'Section Head', Label_SrSpv_GSH: 'Sr Spv GSH',
+                    Label_ShiftSpv_GSH: 'Shift Spv GSH', Label_Panelman_GSH_12_13: 'Panelman GSH 12-13',
+                    Label_Panelman_GSH_14: 'Panelman GSH 14', Label_Operator_GSH_8_11: 'Op GSH 8-11',
+                    Label_Operator_GSH_12_13: 'Op GSH 12-13', Label_ShiftSpv_ARU: 'Shift Spv ARU',
+                    Label_Panelman_ARU_12_13: 'Panelman ARU 12-13', Label_Panelman_ARU_14: 'Panelman ARU 14',
+                    Label_Operator_ARU_8_11: 'Op ARU 8-11', Label_Operator_ARU_12_13: 'Op ARU 12-13',
+                    Label_SrSpv_Facility: 'Sr Spv Facility', Label_JrAnalyst: 'Jr Analyst', Label_HSE: 'HSE'
+                };
+                kkjBagians.push(newBagian);
+                var filter = document.getElementById('bagianFilter');
+                var opt = document.createElement('option');
+                opt.value = resp.name;
+                opt.textContent = resp.name;
+                filter.appendChild(opt);
+                filter.value = resp.name;
+                renderReadTable(resp.name);
+            } else {
+                alert('Error: ' + resp.message);
+            }
+        },
+        error: function(xhr) { alert('Server error: ' + xhr.statusText); }
+    });
+});
 
 // --- EDIT MODE RENDER ---
 function renderEditRows() {
