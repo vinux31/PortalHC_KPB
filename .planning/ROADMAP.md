@@ -476,7 +476,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
 | 47. KKJ Matrix Manager | 4/5 | In Progress|  | - |
-| 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | 3/3 | Complete   | 2026-02-26 | - |
+| 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | 3/3 | Complete    | 2026-02-26 | - |
 | 49. Assessment Competency Map Manager | v2.3 | 0/? | Not started | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
