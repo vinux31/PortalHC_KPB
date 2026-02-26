@@ -116,3 +116,20 @@
 
 ---
 
+
+## v2.2 Attempt History (Shipped: 2026-02-26)
+
+**Phases completed:** 1 phase (46), 2 plans, 4 tasks
+**Files modified:** 15 | **Insertions:** 2,851 | **Deletions:** 82
+**Timeline:** 2026-02-26
+
+**Delivered:** HC and Admin can view a full chronological record of every assessment attempt per worker — including attempts previously erased by Reset — with sequential Attempt # numbering and dual Riwayat Assessment / Riwayat Training sub-tabs at /CMP/Records.
+
+**Key accomplishments:**
+1. AssessmentAttemptHistory model + EF Core migration — new SQL Server table preserving SessionId, Score, IsPassed, AttemptNumber, StartedAt, CompletedAt at archive time
+2. Archive-before-clear in ResetAssessment — Completed sessions archived with AttemptNumber = existing row count + 1 before wipe; unstarted sessions produce no history row
+3. Unified assessment history query — GetAllWorkersHistory() returns (assessment, training) tuple; batch GroupBy/ToDictionary computes Attempt # for current sessions without N+1
+4. Riwayat Assessment + Riwayat Training dual sub-tabs — Bootstrap nested nav-tabs; client-side worker/NIP text + title dropdown filter with no round-trip
+
+---
+

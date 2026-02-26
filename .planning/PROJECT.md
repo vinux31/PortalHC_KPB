@@ -21,17 +21,28 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - Operational admin: CoachCoacheeMapping, ProtonTrackAssignment, DeliverableProgress override, FinalAssessment manager
 - CRUD completions: QuestionBank edit, PackageQuestion edit/delete, ProtonTrack edit/delete, Password Reset standalone
 
-## Shipped: v2.2 - Attempt History
-
-**Goal:** HC dan Admin dapat melihat riwayat lengkap semua attempt assessment per worker, termasuk attempt yang sebelumnya dihapus saat Reset.
-
-**Target features:**
-- Preserve attempt data saat HC klik Reset (bukan overwrite)
-- Upgrade tab History di /CMP/Records: tabel semua attempt dengan kolom Attempt #, Score, Pass/Fail
-
-## Current State (v2.1 — shipped 2026-02-25)
+## Current State (v2.2 — shipped 2026-02-26)
 
 ## Shipped Milestones
+
+### ✅ v2.2 - Attempt History (2026-02-26)
+
+**Delivered:** HC and Admin can view a full chronological record of every assessment attempt per worker — including attempts previously erased by Reset — with sequential Attempt # numbering and dual sub-tabs (Riwayat Assessment / Riwayat Training) at /CMP/Records.
+
+**What Shipped:**
+1. **AssessmentAttemptHistory model + migration** — New SQL Server table capturing SessionId, UserId, Title, Category, Score, IsPassed, StartedAt, CompletedAt, AttemptNumber, ArchivedAt per archived attempt
+2. **Archive-before-clear in ResetAssessment** — Completed sessions archived with AttemptNumber = existing count + 1 before fields are wiped; shares one SaveChangesAsync; only Completed sessions (never unstarted) produce history rows
+3. **Unified history query with Attempt #** — GetAllWorkersHistory() returns (assessment, training) tuple; batch GroupBy/ToDictionary computes Attempt # for current sessions without N+1; archived rows carry stored AttemptNumber
+4. **Riwayat Assessment + Riwayat Training sub-tabs** — Bootstrap nested nav-tabs replace single History table; client-side worker/NIP text + assessment title dropdown filter with no round-trip
+
+**Metrics:**
+- 1 phase (46), 2 plans, 4 tasks
+- 15 files changed, 2,851 insertions / 82 deletions
+- 2026-02-26
+
+See `.planning/milestones/v2.2-ROADMAP.md` for full details.
+
+---
 
 ### ✅ v2.1 - Assessment Resilience & Real-Time Monitoring (2026-02-25)
 
@@ -414,6 +425,10 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | Cross-package per-position shuffle replaces single-package | BuildCrossPackageAssignment: 1 pkg = DB order, N pkgs = even distribution + Fisher-Yates; sentinel FK; option shuffle removed | v2.1 ✓ |
 | Import validation enforces equal question counts | Block import if count differs from existing non-empty packages; empty packages excluded from validation | v2.1 ✓ |
 | All consumers load questions by ShuffledQuestionIds | SubmitExam, ExamSummary, Results, CloseEarly all use shuffledIds.Contains — no AssessmentPackageId filter | v2.1 ✓ |
+| Archive-before-clear in ResetAssessment | Archival block placed before UserResponse deletion so Score/IsPassed are still intact; archive + reset share one SaveChangesAsync | v2.2 ✓ |
+| AttemptNumber as count+1 (no sequence column) | AttemptNumber = existing AssessmentAttemptHistory rows for (UserId, Title) + 1; simple count, no DB sequence needed | v2.2 ✓ |
+| GetAllWorkersHistory returns (assessment, training) tuple | Two lists have different sort orders and columns; tuple cleaner than single list with discriminator flag | v2.2 ✓ |
+| Batch GroupBy/ToDictionary for archived counts | Compute archived count per (UserId, Title) once via GroupBy; ToDictionary lookup per current session — avoids N+1 against AssessmentAttemptHistory | v2.2 ✓ |
 
 ## Technical Constraints
 
@@ -431,11 +446,11 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 **Limitations:**
 - No email notification system (yet)
 - No automated testing (manual QA only)
-- Large monolithic controllers (CMPController ~2600+ lines post-v1.7, CDPController 1000+ lines)
+- Large monolithic controllers (CMPController ~3200+ lines post-v2.2, CDPController ~1000+ lines, ProtonCatalogController ~400 lines)
 
 ## Shipped Requirements
 
-All requirements from v1.0–v2.1 are satisfied. See milestone archives for traceability:
+All requirements from v1.0–v2.2 are satisfied. See milestone archives for traceability:
 - `milestones/v1.0-REQUIREMENTS.md` — 6 requirements (Phases 1-3)
 - `milestones/v1.2-REQUIREMENTS.md` — 11 requirements (Phases 9-12, all ✅ Shipped)
 - `milestones/v1.3-REQUIREMENTS.md` — 9 requirements (Phases 13-15; 7 shipped, 2 cancelled)
@@ -444,6 +459,7 @@ All requirements from v1.0–v2.1 are satisfied. See milestone archives for trac
 - `milestones/v1.9-REQUIREMENTS.md` — 10 requirements (SCHEMA-01, CAT-01–09; 9 shipped, CAT-08 cancelled)
 - `milestones/v2.0-REQUIREMENTS.md` — 4 requirements (ASSESS-01–03, HIST-01, all ✅ Shipped)
 - `milestones/v2.1-REQUIREMENTS.md` — 11 requirements (SAVE-01–03, RESUME-01–03, POLL-01–02, MONITOR-01–03, all ✅ Shipped)
+- `milestones/v2.2-REQUIREMENTS.md` — 3 requirements (HIST-01–03, all ✅ Shipped)
 
 ## Users & Roles
 
@@ -503,7 +519,7 @@ All requirements from v1.0–v2.1 are satisfied. See milestone archives for trac
 - N+1 queries addressed in batch where identified but not systematically audited
 - No UI to re-assign packages or manually override shuffle — edge case with no workaround
 - `ShuffledOptionIdsPerQuestion` field on UserPackageAssignment is deprecated (always "{}") — kept for schema compatibility but unused since v2.1 cross-package shuffle removed option randomization
-- Close Early + SubmitExam concurrency race not hardened (CONCUR-01 deferred to v2.2)
+- Close Early + SubmitExam concurrency race not hardened (CONCUR-01 deferred; not in v2.3 scope)
 - Proton catalog drag-and-drop reorder removed (SortableJS incompatible with nested-table tree); no UI reordering for catalog items
 - Worker self-add training records deferred (WTRN-01, WTRN-02)
 
@@ -516,4 +532,4 @@ All requirements from v1.0–v2.1 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-25 after v2.1 milestone — all milestones complete, no active milestone*
+*Last updated: 2026-02-26 after v2.2 milestone — v2.3 Admin Portal active*
