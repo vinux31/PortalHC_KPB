@@ -289,6 +289,92 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [ ] **Phase 57: ProtonTrack Edit/Delete** — CRUD-03 (planned)
 - [ ] **Phase 58: Password Reset Standalone** — CRUD-04 (planned)
 
+### Phase Details
+
+### Phase 47: KKJ Matrix Manager
+**Goal:** Admin can view, create, edit, and delete KKJ Matrix items (KkjMatrixItem) through a dedicated management page — no database or code change required to manage master data
+**Depends on:** Phase 46 (v2.2 complete)
+**Requirements:** MDAT-01
+**Success Criteria** (what must be TRUE):
+  1. Admin can navigate to a KKJ Matrix management page that lists all KkjMatrixItem records
+  2. Admin can create a new KkjMatrixItem with all required fields (KKJ code, Kompetensi, SubKompetensi, Level) via an inline or modal form
+  3. Admin can edit an existing KkjMatrixItem's fields inline or via modal
+  4. Admin can delete a KkjMatrixItem with appropriate guard (show usage count or warn if in use)
+  5. All CRUD operations persist immediately to SQL Server and reflect in the list without full page reload
+**Plans:** TBD
+
+### Phase 48: CPDP Items Manager
+**Goal:** Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page
+**Depends on:** Phase 47
+**Requirements:** MDAT-02
+**Success Criteria** (what must be TRUE):
+  1. Admin can navigate to a CPDP Items management page that lists all CpdpItem records, filterable by section
+  2. Admin can create, edit, and delete CpdpItem records through the management UI
+**Plans:** TBD
+
+### Phase 49: Assessment Competency Map Manager
+**Goal:** Admin can view, create, edit, and delete Assessment Competency Maps (AssessmentCompetencyMap) — mapping assessment categories to KKJ items
+**Depends on:** Phase 48
+**Requirements:** MDAT-03
+**Success Criteria** (what must be TRUE):
+  1. Admin can view all AssessmentCompetencyMap records and their linked assessment category → KKJ item mappings
+  2. Admin can create, edit, and delete mappings through the management UI
+**Plans:** TBD
+
+### Phase 50: Coach-Coachee Mapping Manager
+**Goal:** Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) — assign and unassign coaches to coachees
+**Depends on:** Phase 49
+**Requirements:** OPER-01
+**Plans:** TBD
+
+### Phase 51: Proton Track Assignment Manager
+**Goal:** Admin can view, create, edit, and delete Proton Track Assignments (ProtonTrackAssignment) — assign workers to Proton tracks and manage active/inactive state
+**Depends on:** Phase 50
+**Requirements:** OPER-02
+**Plans:** TBD
+
+### Phase 52: DeliverableProgress Override
+**Goal:** Admin can view and override ProtonDeliverableProgress status — correct stuck or erroneous deliverable records
+**Depends on:** Phase 51
+**Requirements:** OPER-03
+**Plans:** TBD
+
+### Phase 53: Final Assessment Manager
+**Goal:** Admin can view, approve, reject, and edit ProtonFinalAssessment records — admin-level management of final assessments
+**Depends on:** Phase 52
+**Requirements:** OPER-04
+**Plans:** TBD
+
+### Phase 54: Coaching Session Override
+**Goal:** Admin can view all CoachingSession and ActionItem records and perform override edits or deletions
+**Depends on:** Phase 53
+**Requirements:** OPER-05
+**Plans:** TBD
+
+### Phase 55: Question Bank Edit
+**Goal:** Admin/HC can edit existing AssessmentQuestion text and options (Edit was missing — only Add/Delete existed)
+**Depends on:** Phase 54
+**Requirements:** CRUD-01
+**Plans:** TBD
+
+### Phase 56: Package Question Edit/Delete
+**Goal:** Admin/HC can edit and delete individual PackageQuestion and PackageOption records (currently import-only, no inline edit/delete)
+**Depends on:** Phase 55
+**Requirements:** CRUD-02
+**Plans:** TBD
+
+### Phase 57: ProtonTrack Edit/Delete
+**Goal:** Admin can edit and delete ProtonTrack records (Create existed, Edit/Delete were missing)
+**Depends on:** Phase 56
+**Requirements:** CRUD-03
+**Plans:** TBD
+
+### Phase 58: Password Reset Standalone
+**Goal:** Admin can reset a worker's password from a standalone action without going through the full EditWorker form
+**Depends on:** Phase 57
+**Requirements:** CRUD-04
+**Plans:** TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
