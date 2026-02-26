@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: completed
+last_updated: "2026-02-26T11:04:04.420Z"
+last_activity: "2026-02-26 - Completed Plan 47-05: Excel-like multi-cell selection (click+drag, Shift+click, Delete range-clear, Ctrl+C TSV copy, Ctrl+V anchor paste) and Bootstrap Toast "Data berhasil disimpan" on save success"
+progress:
+  total_phases: 41
+  completed_phases: 40
+  total_plans: 91
+  completed_plans: 90
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: executing
 last_updated: "2026-02-26T10:59:49.676Z"
 last_activity: "2026-02-26 - Completed Plan 47-04: Expanded read-mode table to 21 columns (No, Indeks, Kompetensi, SkillGroup, SubSkillGroup, 15 Target_* with bagian.Label_* headers, Aksi); added 22nd Aksi column to edit-mode makeRow() with insert-below (insertBefore) and inline delete (DOM-only for Id=0, AJAX for Id>0)"
@@ -95,7 +109,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Milestone:** v2.3 Admin Portal — In Progress
 **Phase:** Phase 47 — KKJ Matrix Manager (Complete, 5/5 plans done)
-**Status:** In Progress
+**Status:** Milestone complete
 **Last activity:** 2026-02-26 - Completed Plan 47-05: Excel-like multi-cell selection (click+drag, Shift+click, Delete range-clear, Ctrl+C TSV copy, Ctrl+V anchor paste) and Bootstrap Toast "Data berhasil disimpan" on save success
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
