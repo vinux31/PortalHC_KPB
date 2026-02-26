@@ -277,7 +277,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 ### Phases
 
 - [~] **Phase 47: KKJ Matrix Manager** — MDAT-01 (2/5 plans, 3 gap plans pending)
-- [x] **Phase 48: CPDP Items Manager** — MDAT-02 (planned) (completed 2026-02-26)
+- [~] **Phase 48: CPDP Items Manager** — MDAT-02 (3/3 plans done, 1 gap plan pending)
 - [ ] **Phase 49: Assessment Competency Map Manager** — MDAT-03 (planned)
 - [ ] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned)
 - [ ] **Phase 51: Proton Track Assignment Manager** — OPER-02 (planned)
@@ -320,16 +320,17 @@ Plans:
 **Requirements:** MDAT-02
 **Success Criteria** (what must be TRUE):
   1. Admin can navigate to a CPDP Items management page that lists all CpdpItem records, filterable by section dropdown (RFCC, GAST, NGP, DHT)
-  2. Admin can create, edit, and delete CpdpItem records through spreadsheet-style inline editing with bulk-save and reference guard
+  2. Admin can create, edit, and delete CpdpItem records through spreadsheet-style inline editing with bulk-save and no reference guard blocking deletion
   3. Admin can copy-paste data from Excel using multi-cell clipboard operations
   4. Admin can export filtered data to Excel
   5. CMP/Mapping section select page updated to use dropdown instead of card selection
-**Plans:** 3/3 plans complete
+**Plans:** 4 plans (3 complete + 1 gap)
 
 Plans:
-- [ ] 48-01-PLAN.md — GET action + read-mode table + section dropdown + Admin/Index link update
-- [ ] 48-02-PLAN.md — Edit mode table + CpdpItemsSave POST + CpdpItemDelete POST + CMP/Mapping dropdown update
-- [ ] 48-03-PLAN.md — Multi-cell selection (Ctrl+C/V, Delete range) + Excel export endpoint
+- [x] 48-01-PLAN.md — GET action + read-mode table + section dropdown + Admin/Index link update
+- [x] 48-02-PLAN.md — Edit mode table + CpdpItemsSave POST + CpdpItemDelete POST + CMP/Mapping dropdown update
+- [x] 48-03-PLAN.md — Multi-cell selection (Ctrl+C/V, Delete range) + Excel export endpoint
+- [ ] 48-04-PLAN.md — GAP: Read-mode 6 columns, remove delete guard, fix Delete-key operator precedence
 
 ### Phase 49: Assessment Competency Map Manager
 **Goal:** Admin can view, create, edit, and delete Assessment Competency Maps (AssessmentCompetencyMap) — mapping assessment categories to KKJ items
@@ -475,8 +476,8 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
-| 47. KKJ Matrix Manager | 4/5 | In Progress|  | - |
-| 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | 3/3 | Complete    | 2026-02-26 | - |
+| 47. KKJ Matrix Manager | v2.3 | 2/5 | In Progress | - |
+| 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 3/4 | Gap Closure | - |
 | 49. Assessment Competency Map Manager | v2.3 | 0/? | Not started | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
