@@ -35,7 +35,25 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> KkjMatrix()
         {
             ViewData["Title"] = "Kelola KKJ Matrix";
-            var items = await _context.KkjMatrices.OrderBy(k => k.No).ToListAsync();
+
+            // Seed default bagians if none exist yet
+            if (!await _context.KkjBagians.AnyAsync())
+            {
+                var defaults = new[]
+                {
+                    new KkjBagian { Name = "RFCC",    DisplayOrder = 1 },
+                    new KkjBagian { Name = "GAST",    DisplayOrder = 2 },
+                    new KkjBagian { Name = "NGP",     DisplayOrder = 3 },
+                    new KkjBagian { Name = "DHT/HMU", DisplayOrder = 4 },
+                };
+                _context.KkjBagians.AddRange(defaults);
+                await _context.SaveChangesAsync();
+            }
+
+            var bagians = await _context.KkjBagians.OrderBy(b => b.DisplayOrder).ToListAsync();
+            var items   = await _context.KkjMatrices.OrderBy(k => k.No).ToListAsync();
+
+            ViewBag.Bagians = bagians;
             return View(items);
         }
 
@@ -65,6 +83,7 @@ namespace HcPortal.Controllers
                             existing.SubSkillGroup = row.SubSkillGroup ?? "";
                             existing.Indeks = row.Indeks ?? "";
                             existing.Kompetensi = row.Kompetensi ?? "";
+                            existing.Bagian = row.Bagian ?? "";
                             existing.Target_SectionHead = row.Target_SectionHead ?? "-";
                             existing.Target_SrSpv_GSH = row.Target_SrSpv_GSH ?? "-";
                             existing.Target_ShiftSpv_GSH = row.Target_ShiftSpv_GSH ?? "-";
@@ -96,6 +115,79 @@ namespace HcPortal.Controllers
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        // POST /Admin/KkjBagianSave
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KkjBagianSave([FromBody] List<KkjBagian> bagians)
+        {
+            if (bagians == null || !bagians.Any())
+                return Json(new { success = false, message = "Tidak ada data bagian." });
+
+            try
+            {
+                foreach (var b in bagians)
+                {
+                    if (b.Id == 0)
+                    {
+                        _context.KkjBagians.Add(b);
+                    }
+                    else
+                    {
+                        var existing = await _context.KkjBagians.FindAsync(b.Id);
+                        if (existing != null)
+                        {
+                            existing.Name         = b.Name;
+                            existing.DisplayOrder = b.DisplayOrder;
+                            existing.Label_SectionHead        = b.Label_SectionHead        ?? "Section Head";
+                            existing.Label_SrSpv_GSH          = b.Label_SrSpv_GSH          ?? "Sr Spv GSH";
+                            existing.Label_ShiftSpv_GSH       = b.Label_ShiftSpv_GSH       ?? "Shift Spv GSH";
+                            existing.Label_Panelman_GSH_12_13 = b.Label_Panelman_GSH_12_13 ?? "Panelman GSH 12-13";
+                            existing.Label_Panelman_GSH_14    = b.Label_Panelman_GSH_14    ?? "Panelman GSH 14";
+                            existing.Label_Operator_GSH_8_11  = b.Label_Operator_GSH_8_11  ?? "Op GSH 8-11";
+                            existing.Label_Operator_GSH_12_13 = b.Label_Operator_GSH_12_13 ?? "Op GSH 12-13";
+                            existing.Label_ShiftSpv_ARU       = b.Label_ShiftSpv_ARU       ?? "Shift Spv ARU";
+                            existing.Label_Panelman_ARU_12_13 = b.Label_Panelman_ARU_12_13 ?? "Panelman ARU 12-13";
+                            existing.Label_Panelman_ARU_14    = b.Label_Panelman_ARU_14    ?? "Panelman ARU 14";
+                            existing.Label_Operator_ARU_8_11  = b.Label_Operator_ARU_8_11  ?? "Op ARU 8-11";
+                            existing.Label_Operator_ARU_12_13 = b.Label_Operator_ARU_12_13 ?? "Op ARU 12-13";
+                            existing.Label_SrSpv_Facility     = b.Label_SrSpv_Facility     ?? "Sr Spv Facility";
+                            existing.Label_JrAnalyst          = b.Label_JrAnalyst          ?? "Jr Analyst";
+                            existing.Label_HSE                = b.Label_HSE                ?? "HSE";
+                        }
+                    }
+                }
+                await _context.SaveChangesAsync();
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST /Admin/KkjBagianAdd
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KkjBagianAdd()
+        {
+            var maxOrder = await _context.KkjBagians.MaxAsync(b => (int?)b.DisplayOrder) ?? 0;
+            var newBagian = new KkjBagian
+            {
+                Name         = "Bagian Baru",
+                DisplayOrder = maxOrder + 1
+            };
+            _context.KkjBagians.Add(newBagian);
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success      = true,
+                id           = newBagian.Id,
+                name         = newBagian.Name,
+                displayOrder = newBagian.DisplayOrder
+            });
         }
 
         // POST /Admin/KkjMatrixDelete
