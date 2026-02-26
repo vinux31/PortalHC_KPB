@@ -277,7 +277,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 ### Phases
 
 - [~] **Phase 47: KKJ Matrix Manager** — MDAT-01 (2/5 plans, 3 gap plans pending)
-- [ ] **Phase 48: CPDP Items Manager** — MDAT-02 (planned)
+- [x] **Phase 48: CPDP Items Manager** — MDAT-02 (planned) (completed 2026-02-26)
 - [ ] **Phase 49: Assessment Competency Map Manager** — MDAT-03 (planned)
 - [ ] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned)
 - [ ] **Phase 51: Proton Track Assignment Manager** — OPER-02 (planned)
@@ -324,7 +324,7 @@ Plans:
   3. Admin can copy-paste data from Excel using multi-cell clipboard operations
   4. Admin can export filtered data to Excel
   5. CMP/Mapping section select page updated to use dropdown instead of card selection
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 48-01-PLAN.md — GET action + read-mode table + section dropdown + Admin/Index link update
@@ -476,7 +476,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
 | 47. KKJ Matrix Manager | 4/5 | In Progress|  | - |
-| 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | 2/3 | In Progress|  | - |
+| 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | 3/3 | Complete   | 2026-02-26 | - |
 | 49. Assessment Competency Map Manager | v2.3 | 0/? | Not started | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
