@@ -266,7 +266,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 
 ### Phases
 
-- [ ] **Phase 46: Attempt History** - Archive reset attempts and upgrade the History tab to show all attempt records per worker
+- [x] **Phase 46: Attempt History** - Archive reset attempts and upgrade the History tab to show all attempt records per worker (completed 2026-02-26)
 
 ### Phase Details
 
@@ -280,7 +280,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
   3. HC or Admin visiting /CMP/Records and clicking the History tab sees a table with columns: Nama Pekerja, NIP, Assessment Title, Attempt #, Score, Pass/Fail, Tanggal
   4. The Attempt # column shows sequential numbers per worker per assessment title (first attempt = 1, second = 2, etc.) so HC can distinguish retake progression
   5. Both archived historical attempts and current completed sessions appear together in the History tab, sorted by date descending
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 46-01-PLAN.md — Data foundation: AssessmentAttemptHistory model, DbContext, migration, archival logic in ResetAssessment
@@ -290,7 +290,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Attempt History | 1/2 | In Progress|  | - |
+| 46. Attempt History | 2/2 | Complete   | 2026-02-26 | - |
 
 ## Progress
 

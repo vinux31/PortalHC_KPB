@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Attempt History
 status: completed
-last_updated: "2026-02-26T01:32:26.810Z"
-last_activity: "2026-02-26 - Completed Plan 46-01: AssessmentAttemptHistory model + migration + ResetAssessment archival"
+last_updated: "2026-02-26T02:15:00.000Z"
+last_activity: "2026-02-26 - Completed Plan 46-02: History tab split into Riwayat Assessment + Riwayat Training sub-tabs with Attempt # sequencing"
 progress:
   total_phases: 41
   completed_phases: 39
   total_plans: 88
-  completed_plans: 86
+  completed_plans: 87
 ---
 
 # Project State
@@ -24,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.2 Attempt History — In Progress
-**Phase:** Phase 46 — Attempt History (Plan 1 of 3 complete)
-**Status:** Plan 46-01 complete — AssessmentAttemptHistory table live, archival logic in ResetAssessment
-**Last activity:** 2026-02-26 - Completed Plan 46-01: AssessmentAttemptHistory model + migration + ResetAssessment archival
+**Phase:** Phase 46 — Attempt History (Plan 2 of 3 complete)
+**Status:** Plan 46-02 complete — History tab at /CMP/Records has Riwayat Assessment + Riwayat Training sub-tabs with Attempt # sequencing
+**Last activity:** 2026-02-26 - Completed Plan 46-02: History tab split into Riwayat Assessment + Riwayat Training sub-tabs with Attempt # sequencing
 
-Progress: [███░░░░░░░░░░░░░░░░░] 33%
+Progress: [██████░░░░░░░░░░░░░░] 67%
 
 ## Performance Metrics
 
@@ -49,6 +49,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - AttemptNumber computed as count of existing rows for (UserId, Title) + 1
 - DeleteBehavior.Cascade on UserId FK so history rows clean up if user is deleted
 - EF migrations require `--configuration Release` while the app is running (Debug exe is locked)
+
+**Phase 46-02 decisions:**
+- GetAllWorkersHistory() returns tuple (assessment, training) — two lists have different sort orders and columns
+- Current session Attempt # = archived count for (UserId, Title) + 1, consistent with Plan 01 archival logic
+- Batch GroupBy/ToDictionary for archived counts avoids N+1 query per session row
+- Riwayat Assessment is default active sub-tab (show active) as it's the main new HIST-02/HIST-03 feature
 
 ### Roadmap Evolution
 
@@ -73,5 +79,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Plan 46-01 complete — AssessmentAttemptHistory table live in DB, ResetAssessment archives Completed sessions with AttemptNumber tracking.
+Stopped at: Plan 46-02 complete — History tab at /CMP/Records has Riwayat Assessment + Riwayat Training sub-tabs; HIST-02 and HIST-03 satisfied.
 Resume file: None.

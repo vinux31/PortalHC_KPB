@@ -8,8 +8,8 @@
 ### Attempt History
 
 - [x] **HIST-01**: When HC resets an assessment session, the current attempt data (score, pass/fail, started_at, completed_at, status) is archived as a historical record before the session is cleared
-- [ ] **HIST-02**: HC and Admin can view all historical attempts per worker per assessment in the History tab at /CMP/Records, with an Attempt # column showing sequential attempt number per worker per assessment title
-- [ ] **HIST-03**: The upgraded History tab displays columns: Nama Pekerja, NIP, Assessment Title, Attempt #, Score, Pass/Fail, Tanggal — showing both archived attempts and current completed sessions
+- [x] **HIST-02**: HC and Admin can view all historical attempts per worker per assessment in the History tab at /CMP/Records, with an Attempt # column showing sequential attempt number per worker per assessment title
+- [x] **HIST-03**: The upgraded History tab displays columns: Nama Pekerja, NIP, Assessment Title, Attempt #, Score, Pass/Fail, Tanggal — showing both archived attempts and current completed sessions
 
 ## Future Requirements
 
@@ -30,8 +30,8 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | HIST-01 | Phase 46 | Complete |
-| HIST-02 | Phase 46 | Pending |
-| HIST-03 | Phase 46 | Pending |
+| HIST-02 | Phase 46 | Complete |
+| HIST-03 | Phase 46 | Complete |
 
 **Coverage:**
 - v2.2 requirements: 3 total
