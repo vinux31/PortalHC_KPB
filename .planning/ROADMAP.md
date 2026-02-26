@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 CMP Assessment Completion** — Phases 1-3 (shipped 2026-02-17)
-- ✅ **v1.1 CDP Coaching Management** — Phases 4-7 (shipped 2026-02-18)
+- ✅ **v1.1 CDP Coaching Management** — Phases 4-8 (shipped 2026-02-18)
 - ✅ **Post-v1.1 Fix: Admin Role Switcher** — Phase 8 (shipped 2026-02-18)
 - ✅ **v1.2 UX Consolidation** — Phases 9-12 (shipped 2026-02-19)
 - ✅ **v1.3 Assessment Management UX** — Phases 13-15 (shipped 2026-02-19)
@@ -15,6 +15,7 @@
 - ✅ **v1.9 Proton Catalog Management** — Phases 33-37 (shipped 2026-02-24)
 - ✅ **v2.0 Assessment Management & Training History** — Phases 38-40 (shipped 2026-02-24)
 - ✅ **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-45 (shipped 2026-02-25)
+- **v2.2 Attempt History** — Phase 46 (in progress)
 
 ## Phases
 
@@ -261,6 +262,32 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 
 </details>
 
+## v2.2 Attempt History
+
+### Phases
+
+- [ ] **Phase 46: Attempt History** - Archive reset attempts and upgrade the History tab to show all attempt records per worker
+
+### Phase Details
+
+### Phase 46: Attempt History
+**Goal:** HC and Admin can see a complete chronological record of every assessment attempt per worker, including attempts that were previously cleared by Reset
+**Depends on:** Phase 45 (v2.1 complete)
+**Requirements:** HIST-01, HIST-02, HIST-03
+**Success Criteria** (what must be TRUE):
+  1. When HC clicks Reset on a session that has been started (has a score or StartedAt), the attempt data (score, pass/fail, status, started_at, completed_at) is preserved in a history table before the session is cleared
+  2. A session that was never started (no StartedAt, no score) produces no history row on Reset — only meaningful attempts are archived
+  3. HC or Admin visiting /CMP/Records and clicking the History tab sees a table with columns: Nama Pekerja, NIP, Assessment Title, Attempt #, Score, Pass/Fail, Tanggal
+  4. The Attempt # column shows sequential numbers per worker per assessment title (first attempt = 1, second = 2, etc.) so HC can distinguish retake progression
+  5. Both archived historical attempts and current completed sessions appear together in the History tab, sorted by date descending
+**Plans:** TBD
+
+### Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 46. Attempt History | v2.2 | 0/TBD | Not started | - |
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -310,3 +337,4 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
 | 43. Worker Polling | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
+| 46. Attempt History | v2.2 | 0/TBD | Not started | - |
