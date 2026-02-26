@@ -3,6 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
+last_updated: "2026-02-26T11:46:04.530Z"
+last_activity: "2026-02-26 - Completed Plan 47-06: Fixed renderEditRows() orphan filter (Bagian='' items now appear in first bagian tbody) and btnSave rows.length === 0 guard (header-only saves show toast without KkjMatrixSave error)"
+progress:
+  total_phases: 41
+  completed_phases: 40
+  total_plans: 93
+  completed_plans: 92
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
+status: completed
 last_updated: "2026-02-26T11:04:04.420Z"
 last_activity: "2026-02-26 - Completed Plan 47-05: Excel-like multi-cell selection (click+drag, Shift+click, Delete range-clear, Ctrl+C TSV copy, Ctrl+V anchor paste) and Bootstrap Toast "Data berhasil disimpan" on save success"
 progress:
@@ -108,9 +122,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 6/6 plans done)
+**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 7/7 plans done)
 **Status:** Milestone complete
-**Last activity:** 2026-02-26 - Completed Plan 47-06: Fixed renderEditRows() orphan filter (Bagian='' items now appear in first bagian tbody) and btnSave rows.length === 0 guard (header-only saves show toast without KkjMatrixSave error)
+**Last activity:** 2026-02-26 - Completed Plan 47-07: Replaced static Razor read-mode with JS-driven dropdown filter + single-panel table + bagian CRUD toolbar (Ubah Nama, Hapus, Tambah Bagian) and KkjBagianDelete POST action with assignment guard
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
@@ -157,6 +171,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - rows.length === 0 guard placed client-side only — AdminController.KkjMatrixSave guard left unchanged
 - Toast + reload for empty-rows path copied exactly from KkjMatrixSave success path (delay 1500ms, reload 1700ms)
 
+**Phase 47-07 decisions:**
+- renderReadTable() uses JS arrays (kkjItems/kkjBagians) already on page — no extra server round-trip for filter change
+- Rename reuses KkjBagianSave with single-element array payload — reuses existing endpoint without new action
+- KkjBagianDelete placed between KkjBagianAdd and KkjMatrixDelete for consistent controller action ordering
+- Hapus guard uses CountAsync on KkjMatrices.Bagian string match — consistent with string-FK-by-name pattern
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -179,6 +199,7 @@ None.
 | Phase 47-kkj-matrix-manager P01 | 3 | 3 tasks | 4 files |
 | Phase 47 P03 | 7 | 3 tasks | 6 files |
 | Phase 47-kkj-matrix-manager P05 | 5 | 2 tasks | 1 files |
+| Phase 47-kkj-matrix-manager P07 | 3 | 2 tasks | 2 files |
 
 ## Session Continuity
 
