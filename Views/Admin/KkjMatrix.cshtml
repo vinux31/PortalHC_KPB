@@ -74,6 +74,10 @@
     .bagian-label-input { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.4); }
     .bagian-label-input:focus { background: white; color: #212529; }
     .bagian-name-input { font-weight: bold; }
+    .cell-selected {
+        background-color: rgba(13, 110, 253, 0.15) !important;
+        outline: 1px solid rgba(13, 110, 253, 0.4);
+    }
 </style>
 
 @* Breadcrumb *@
@@ -514,6 +518,10 @@ document.getElementById('btnCancel').addEventListener('click', function() {
     document.getElementById('editActions').classList.add('d-none');
     document.getElementById('editActions').classList.remove('d-flex');
     document.getElementById('btnEdit').classList.remove('d-none');
+    selectedCells = [];
+    document.querySelectorAll('.cell-selected').forEach(function(el) {
+        el.classList.remove('cell-selected');
+    });
 });
 
 // --- ADD BAGIAN ---
@@ -730,6 +738,171 @@ document.getElementById('editTablesContainer').addEventListener('keydown', funct
     if (nextIdx >= 0 && nextIdx < inputs.length) {
         inputs[nextIdx].focus();
         inputs[nextIdx].select();
+    }
+});
+
+// ========== MULTI-CELL SELECTION ==========
+var selectedCells = [];
+var isDragging = false;
+var dragStartTd = null;
+
+function getCellCoords(td) {
+    // Returns { tbl, tbody, rowIdx, colIdx } for a given <td>
+    var tr = td.parentElement;
+    var tbody = tr.parentElement;
+    var rowIdx = Array.from(tbody.rows).indexOf(tr);
+    // colIdx: count only data-input tds (skip Aksi which has no input.edit-input)
+    var allTds = Array.from(tr.cells);
+    var colIdx = allTds.indexOf(td);
+    return { tbody: tbody, rowIdx: rowIdx, colIdx: colIdx };
+}
+
+function getRangeCells(startTd, endTd) {
+    // Returns all tds in the rectangular range between startTd and endTd
+    // Both must be in the same .kkj-edit-tbl
+    var tbl = startTd.closest('.kkj-edit-tbl');
+    if (!tbl || startTd.closest('.kkj-edit-tbl') !== endTd.closest('.kkj-edit-tbl')) return [startTd];
+
+    var startCoords = getCellCoords(startTd);
+    var endCoords   = getCellCoords(endTd);
+
+    var minRow = Math.min(startCoords.rowIdx, endCoords.rowIdx);
+    var maxRow = Math.max(startCoords.rowIdx, endCoords.rowIdx);
+    var minCol = Math.min(startCoords.colIdx, endCoords.colIdx);
+    var maxCol = Math.max(startCoords.colIdx, endCoords.colIdx);
+
+    var cells = [];
+    var tbody = startCoords.tbody;
+    for (var r = minRow; r <= maxRow; r++) {
+        if (r >= tbody.rows.length) break;
+        var tr = tbody.rows[r];
+        var tds = Array.from(tr.cells);
+        for (var c = minCol; c <= maxCol; c++) {
+            if (c >= tds.length) break;
+            var td = tds[c];
+            // Only include cells that have an edit-input (skip Aksi column)
+            if (td.querySelector('input.edit-input')) {
+                cells.push(td);
+            }
+        }
+    }
+    return cells;
+}
+
+function applySelection(cells) {
+    // Clear previous highlight
+    document.querySelectorAll('.cell-selected').forEach(function(el) {
+        el.classList.remove('cell-selected');
+    });
+    selectedCells = cells;
+    cells.forEach(function(td) { td.classList.add('cell-selected'); });
+}
+
+// Mousedown: start selection on a data-input td
+document.addEventListener('mousedown', function(e) {
+    var td = e.target.closest('.kkj-edit-tbl td');
+    if (!td || !td.querySelector('input.edit-input')) return;
+    if (e.target.tagName === 'INPUT') return; // Let input handle its own click for caret
+
+    isDragging = true;
+    dragStartTd = td;
+
+    if (e.shiftKey && selectedCells.length > 0) {
+        // Extend selection from existing anchor
+        var anchorTd = selectedCells[0];
+        applySelection(getRangeCells(anchorTd, td));
+    } else {
+        applySelection([td]);
+    }
+    e.preventDefault(); // Prevent text selection on drag
+});
+
+// Mousemove: extend selection while dragging
+document.addEventListener('mousemove', function(e) {
+    if (!isDragging || !dragStartTd) return;
+    var td = e.target.closest('.kkj-edit-tbl td');
+    if (!td || !td.querySelector('input.edit-input')) return;
+    applySelection(getRangeCells(dragStartTd, td));
+});
+
+// Mouseup: end drag
+document.addEventListener('mouseup', function() {
+    isDragging = false;
+});
+
+// Click on input inside a cell: select just that cell
+document.addEventListener('click', function(e) {
+    if (e.target.tagName !== 'INPUT' || !e.target.classList.contains('edit-input')) return;
+    var td = e.target.closest('td');
+    if (!td) return;
+    if (e.shiftKey && selectedCells.length > 0) {
+        applySelection(getRangeCells(selectedCells[0], td));
+    } else if (!e.ctrlKey) {
+        applySelection([td]);
+    }
+});
+
+// Keydown: Delete clears selected cells; Ctrl+C copies; Tab/Enter navigation unchanged
+document.addEventListener('keydown', function(e) {
+    // Only act if we're in the edit context
+    if (!document.getElementById('editTablesContainer') ||
+        document.getElementById('editTablesContainer').classList.contains('d-none')) return;
+
+    if (e.key === 'Delete' && selectedCells.length > 1) {
+        // Multi-cell delete: clear all selected inputs
+        e.preventDefault();
+        selectedCells.forEach(function(td) {
+            var inp = td.querySelector('input.edit-input');
+            if (inp) inp.value = '';
+        });
+        return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedCells.length > 0) {
+        // Ctrl+C: copy selected range as TSV
+        e.preventDefault();
+        var tbl = selectedCells[0].closest('.kkj-edit-tbl');
+        var startCoords = getCellCoords(selectedCells[0]);
+        var endCoords   = getCellCoords(selectedCells[selectedCells.length - 1]);
+        var minRow = Math.min(startCoords.rowIdx, endCoords.rowIdx);
+        var maxRow = Math.max(startCoords.rowIdx, endCoords.rowIdx);
+        var minCol = Math.min(startCoords.colIdx, endCoords.colIdx);
+        var maxCol = Math.max(startCoords.colIdx, endCoords.colIdx);
+
+        var lines = [];
+        var tbody = startCoords.tbody;
+        for (var r = minRow; r <= maxRow; r++) {
+            if (r >= tbody.rows.length) break;
+            var tr = tbody.rows[r];
+            var tds = Array.from(tr.cells);
+            var cols = [];
+            for (var c = minCol; c <= maxCol; c++) {
+                if (c >= tds.length) break;
+                var inp = tds[c].querySelector('input.edit-input');
+                cols.push(inp ? inp.value : '');
+            }
+            lines.push(cols.join('\t'));
+        }
+        navigator.clipboard.writeText(lines.join('\n')).catch(function() {
+            // Fallback for older browsers
+            var ta = document.createElement('textarea');
+            ta.value = lines.join('\n');
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        });
+        return;
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key === 'v' && selectedCells.length > 0) {
+        // Ctrl+V: paste to range starting from top-left selected cell
+        // The existing paste handler on #editTablesContainer handles TSV paste
+        // We only need to ensure the focused element is inside the selection anchor
+        var anchorInput = selectedCells[0].querySelector('input.edit-input');
+        if (anchorInput) anchorInput.focus();
+        // Do NOT preventDefault — let the paste event fire normally
+        return;
     }
 });
 </script>
