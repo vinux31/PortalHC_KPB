@@ -25,6 +25,8 @@
     .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+    td.cell-selected input.edit-input { background-color: #cfe9ff !important; border-color: #0d6efd !important; box-shadow: 0 0 0 1px #0d6efd; }
+    td.cell-selecting { outline: 2px solid #0d6efd; }
 </style>
 
 <nav aria-label="breadcrumb" class="mb-2">
@@ -312,5 +314,153 @@
             }
         })
         .catch(function() { alert('Koneksi error.'); });
+    }
+
+    // ── Multi-cell selection ───────────────────────────────────────────────
+    var selectedCells = [];
+    var startCell = null;
+
+    document.getElementById('editTable').addEventListener('mousedown', function(e) {
+        var input = e.target.closest('td input.edit-input');
+        if (!input) return;
+        var td = input.parentElement;
+
+        if (e.shiftKey && startCell) {
+            e.preventDefault();
+            selectRange(startCell, td);
+        } else {
+            clearSelection();
+            selectedCells = [td];
+            td.classList.add('cell-selected');
+            startCell = td;
+        }
+    });
+
+    function clearSelection() {
+        selectedCells.forEach(function(c) { c.classList.remove('cell-selected'); });
+        selectedCells = [];
+    }
+
+    function getTableCells() {
+        // Returns 2D array [row][col] of all td elements in editTable tbody
+        var result = [];
+        document.querySelectorAll('#editTable tbody tr').forEach(function(tr) {
+            var cells = [];
+            // Only data input cells (not hidden inputs) — columns 0-5 (not Aksi col)
+            tr.querySelectorAll('td').forEach(function(td, i) {
+                if (i < 6) cells.push(td);  // 6 data columns (No, NamaKompetensi, Indikator, Detail, Silabus, Target)
+            });
+            if (cells.length > 0) result.push(cells);
+        });
+        return result;
+    }
+
+    function getCellPos(td, allCells) {
+        for (var r = 0; r < allCells.length; r++) {
+            for (var c = 0; c < allCells[r].length; c++) {
+                if (allCells[r][c] === td) return { r: r, c: c };
+            }
+        }
+        return null;
+    }
+
+    function selectRange(cellA, cellB) {
+        var allCells = getTableCells();
+        var posA = getCellPos(cellA, allCells);
+        var posB = getCellPos(cellB, allCells);
+        if (!posA || !posB) return;
+
+        var r1 = Math.min(posA.r, posB.r), r2 = Math.max(posA.r, posB.r);
+        var c1 = Math.min(posA.c, posB.c), c2 = Math.max(posA.c, posB.c);
+
+        clearSelection();
+        for (var r = r1; r <= r2; r++) {
+            for (var c = c1; c <= c2; c++) {
+                if (allCells[r] && allCells[r][c]) {
+                    allCells[r][c].classList.add('cell-selected');
+                    selectedCells.push(allCells[r][c]);
+                }
+            }
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        // Only active in edit mode
+        if (document.getElementById('editTableWrapper').classList.contains('d-none')) return;
+        if (selectedCells.length === 0) return;
+
+        if ((e.ctrlKey || e.metaKey) && e.key === 'c') {
+            e.preventDefault();
+            copySelection();
+        } else if ((e.ctrlKey || e.metaKey) && e.key === 'v') {
+            e.preventDefault();
+            pasteFromClipboard();
+        } else if (e.key === 'Delete' || e.key === 'Backspace' && e.target.tagName !== 'INPUT') {
+            if (e.key === 'Delete' && e.target.tagName !== 'INPUT') {
+                e.preventDefault();
+                clearCellContents();
+            }
+        }
+    });
+
+    function copySelection() {
+        var allCells = getTableCells();
+        // Find bounding box of selection
+        var positions = selectedCells.map(function(td) { return getCellPos(td, allCells); }).filter(Boolean);
+        if (positions.length === 0) return;
+        var r1 = Math.min.apply(null, positions.map(function(p) { return p.r; }));
+        var r2 = Math.max.apply(null, positions.map(function(p) { return p.r; }));
+        var c1 = Math.min.apply(null, positions.map(function(p) { return p.c; }));
+        var c2 = Math.max.apply(null, positions.map(function(p) { return p.c; }));
+
+        var lines = [];
+        for (var r = r1; r <= r2; r++) {
+            var cols = [];
+            for (var c = c1; c <= c2; c++) {
+                var inp = allCells[r] && allCells[r][c] ? allCells[r][c].querySelector('input.edit-input') : null;
+                cols.push(inp ? inp.value : '');
+            }
+            lines.push(cols.join('\t'));
+        }
+        navigator.clipboard.writeText(lines.join('\n')).catch(function() {
+            // Fallback for older browsers
+            var ta = document.createElement('textarea');
+            ta.value = lines.join('\n');
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+        });
+    }
+
+    function pasteFromClipboard() {
+        var allCells = getTableCells();
+        if (selectedCells.length === 0 || allCells.length === 0) return;
+        var startPos = getCellPos(selectedCells[0], allCells);
+        if (!startPos) return;
+
+        navigator.clipboard.readText().then(function(text) {
+            var lines = text.split('\n');
+            lines.forEach(function(line, ri) {
+                var cols = line.split('\t');
+                cols.forEach(function(val, ci) {
+                    var r = startPos.r + ri;
+                    var c = startPos.c + ci;
+                    if (allCells[r] && allCells[r][c]) {
+                        var inp = allCells[r][c].querySelector('input.edit-input');
+                        if (inp) inp.value = val.replace(/\r$/, '');
+                    }
+                });
+            });
+        }).catch(function() {
+            alert('Clipboard access denied. Pastikan browser mengizinkan clipboard access.');
+        });
+    }
+
+    function clearCellContents() {
+        selectedCells.forEach(function(td) {
+            var inp = td.querySelector('input.edit-input');
+            if (inp) inp.value = '';
+        });
     }
 </script>
