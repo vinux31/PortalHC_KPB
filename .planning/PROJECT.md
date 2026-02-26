@@ -12,9 +12,15 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v2.1 — shipped 2026-02-25)
+## Current Milestone: v2.2 - Attempt History
 
-No active milestone. Planning next milestone.
+**Goal:** HC dan Admin dapat melihat riwayat lengkap semua attempt assessment per worker, termasuk attempt yang sebelumnya dihapus saat Reset.
+
+**Target features:**
+- Preserve attempt data saat HC klik Reset (bukan overwrite)
+- Upgrade tab History di /CMP/Records: tabel semua attempt dengan kolom Attempt #, Score, Pass/Fail
+
+## Current State (v2.1 — shipped 2026-02-25)
 
 ## Shipped Milestones
 
