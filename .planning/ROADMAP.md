@@ -276,7 +276,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 ### Phases
 
-- [x] **Phase 47: KKJ Matrix Manager** — MDAT-01 (complete 2026-02-26)
+- [~] **Phase 47: KKJ Matrix Manager** — MDAT-01 (2/5 plans, 3 gap plans pending)
 - [ ] **Phase 48: CPDP Items Manager** — MDAT-02 (planned)
 - [ ] **Phase 49: Assessment Competency Map Manager** — MDAT-03 (planned)
 - [ ] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned)
@@ -301,11 +301,14 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
   3. Admin can edit an existing KkjMatrixItem's fields inline or via modal
   4. Admin can delete a KkjMatrixItem with appropriate guard (show usage count or warn if in use)
   5. All CRUD operations persist immediately to SQL Server and reflect in the list without full page reload
-**Plans:** 2/2 plans complete
+**Plans:** 2 done + 3 gap-closure (in progress)
 
 Plans:
 - [x] 47-01-PLAN.md — Admin Portal infrastructure: AdminController, /Admin/Index hub page, /Admin/KkjMatrix read-mode table, Kelola Data nav link
 - [x] 47-02-PLAN.md — KKJ Matrix write operations: spreadsheet edit mode (all 20 cols), bulk-save POST, delete-with-guard, clipboard paste
+- [ ] 47-03-PLAN.md — GAP: Per-bagian tables + editable headers (KkjBagian entity, EF migration, grouped view, KkjBagianSave)
+- [ ] 47-04-PLAN.md — GAP: Full 21-column read-mode table + per-row insert/delete in edit mode
+- [ ] 47-05-PLAN.md — GAP: Excel multi-cell selection (drag, Ctrl+C/V, Delete range) + save toast
 
 ### Phase 48: CPDP Items Manager
 **Goal:** Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page
@@ -429,7 +432,7 @@ Plans:
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
-| 47. KKJ Matrix Manager | v2.3 | Complete    | 2026-02-26 | 2026-02-26 |
+| 47. KKJ Matrix Manager | v2.3 | 2/5 (3 gap plans pending) | In Progress | - |
 | 48. CPDP Items Manager | v2.3 | 0/? | Not started | - |
 | 49. Assessment Competency Map Manager | v2.3 | 0/? | Not started | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
