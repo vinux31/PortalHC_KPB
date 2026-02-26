@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: executing
+last_updated: "2026-02-26T10:59:49.676Z"
+last_activity: "2026-02-26 - Completed Plan 47-04: Expanded read-mode table to 21 columns (No, Indeks, Kompetensi, SkillGroup, SubSkillGroup, 15 Target_* with bagian.Label_* headers, Aksi); added 22nd Aksi column to edit-mode makeRow() with insert-below (insertBefore) and inline delete (DOM-only for Id=0, AJAX for Id>0)"
+progress:
+  total_phases: 41
+  completed_phases: 40
+  total_plans: 91
+  completed_plans: 90
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: completed
 last_updated: "2026-02-26T10:47:50.555Z"
 last_activity: "2026-02-26 - Completed Plan 47-02: KkjMatrix write operations (KkjMatrixSave, KkjMatrixDelete, edit mode table, clipboard paste, add-row)"
@@ -80,11 +94,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (In Progress, 4/5 plans done)
+**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 5/5 plans done)
 **Status:** In Progress
-**Last activity:** 2026-02-26 - Completed Plan 47-04: Expanded read-mode table to 21 columns (No, Indeks, Kompetensi, SkillGroup, SubSkillGroup, 15 Target_* with bagian.Label_* headers, Aksi); added 22nd Aksi column to edit-mode makeRow() with insert-below (insertBefore) and inline delete (DOM-only for Id=0, AJAX for Id>0)
+**Last activity:** 2026-02-26 - Completed Plan 47-05: Excel-like multi-cell selection (click+drag, Shift+click, Delete range-clear, Ctrl+C TSV copy, Ctrl+V anchor paste) and Bootstrap Toast "Data berhasil disimpan" on save success
 
-Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, 3/5 plans in Phase 47)
+Progress: [██░░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
 ## Performance Metrics
 
@@ -121,6 +135,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - EF upsert via FindAsync then update each property individually — avoids tracking conflicts with deserialized JSON objects
 - [Phase 47-03]: KkjBagian seeded on first GET rather than migration data seed; Bagian stored as string name (FK by name) consistent with CpdpItem.Section precedent; per-bagian add-row buttons replace single global btnAddRow
 - [Phase 47-04]: Read-mode Target_* column headers use bagian.Label_* values; inline delete for Id=0 rows is DOM-only (no server call); insert-below copies bagian name from current row's hidden Bagian input; Aksi th appended after 15 label inputs in renderEditRows() thead
+- [Phase 47-05]: selectedCells array tracks td elements (not coordinates) — simpler to apply/remove .cell-selected class directly
+- [Phase 47-05]: Toast delay 1500ms, reload after 1700ms — slight buffer ensures toast fade-out animation completes before reload
 
 ### Roadmap Evolution
 
@@ -143,9 +159,10 @@ None.
 | Phase 46-attempt-history P01 | 3 | 2 tasks | 6 files |
 | Phase 47-kkj-matrix-manager P01 | 3 | 3 tasks | 4 files |
 | Phase 47 P03 | 7 | 3 tasks | 6 files |
+| Phase 47-kkj-matrix-manager P05 | 5 | 2 tasks | 1 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-04-PLAN.md: Full 21-column read-mode table with bagian.Label_* headers; 22nd Aksi column in edit-mode makeRow() with insert-below and inline delete. Next: Plan 47-05.
+Stopped at: Completed 47-05-PLAN.md: Excel-like multi-cell selection and Bootstrap Toast on save success. Phase 47 complete (5/5 plans). Next: Phase 48.
 Resume file: None.
