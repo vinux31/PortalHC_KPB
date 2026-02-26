@@ -614,6 +614,29 @@ namespace HcPortal.Controllers
                 });
             }
 
+            // Phase 46: Archive attempt data if session was Completed
+            if (assessment.Status == "Completed")
+            {
+                int existingAttempts = await _context.AssessmentAttemptHistory
+                    .Where(h => h.UserId == assessment.UserId && h.Title == assessment.Title)
+                    .CountAsync();
+
+                var attemptHistory = new AssessmentAttemptHistory
+                {
+                    SessionId    = assessment.Id,
+                    UserId       = assessment.UserId,
+                    Title        = assessment.Title ?? "",
+                    Category     = assessment.Category ?? "",
+                    Score        = assessment.Score,
+                    IsPassed     = assessment.IsPassed,
+                    StartedAt    = assessment.StartedAt,
+                    CompletedAt  = assessment.CompletedAt,
+                    AttemptNumber = existingAttempts + 1,
+                    ArchivedAt   = DateTime.UtcNow
+                };
+                _context.AssessmentAttemptHistory.Add(attemptHistory);
+            }
+
             // 1. Delete UserResponse records for this session (legacy path answers)
             var responses = await _context.UserResponses
                 .Where(r => r.AssessmentSessionId == id)
