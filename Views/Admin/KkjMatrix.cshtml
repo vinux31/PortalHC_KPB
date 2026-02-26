@@ -908,7 +908,6 @@ function applySelection(cells) {
 document.addEventListener('mousedown', function(e) {
     var td = e.target.closest('.kkj-edit-tbl td');
     if (!td || !td.querySelector('input.edit-input')) return;
-    if (e.target.tagName === 'INPUT') return; // Let input handle its own click for caret
 
     isDragging = true;
     dragStartTd = td;
