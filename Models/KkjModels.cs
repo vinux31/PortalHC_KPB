@@ -78,6 +78,7 @@ namespace HcPortal.Models
         public string Silabus { get; set; } = "";
         public string TargetDeliverable { get; set; } = "";
         public string Status { get; set; } = "";
+        public string Section { get; set; } = "";   // RFCC | GAST | NGP | DHT
         // Removed old properties: Implementasi, KodeSub, SubOps, SubPanel
     }
 
