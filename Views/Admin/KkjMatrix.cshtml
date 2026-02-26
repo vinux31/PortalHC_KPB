@@ -127,11 +127,27 @@
             <table class="table table-sm table-bordered table-hover mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th style="width:50px;">No</th>
-                        <th style="width:100px;">Indeks</th>
-                        <th>Kompetensi</th>
-                        <th style="width:150px;">SkillGroup</th>
-                        <th style="width:80px;">Aksi</th>
+                        <th style="width:45px;">No</th>
+                        <th style="width:90px;">Indeks</th>
+                        <th style="min-width:180px;">Kompetensi</th>
+                        <th style="min-width:120px;">SkillGroup</th>
+                        <th style="min-width:120px;">SubSkillGroup</th>
+                        <th class="col-target">@bagian.Label_SectionHead</th>
+                        <th class="col-target">@bagian.Label_SrSpv_GSH</th>
+                        <th class="col-target">@bagian.Label_ShiftSpv_GSH</th>
+                        <th class="col-target">@bagian.Label_Panelman_GSH_12_13</th>
+                        <th class="col-target">@bagian.Label_Panelman_GSH_14</th>
+                        <th class="col-target">@bagian.Label_Operator_GSH_8_11</th>
+                        <th class="col-target">@bagian.Label_Operator_GSH_12_13</th>
+                        <th class="col-target">@bagian.Label_ShiftSpv_ARU</th>
+                        <th class="col-target">@bagian.Label_Panelman_ARU_12_13</th>
+                        <th class="col-target">@bagian.Label_Panelman_ARU_14</th>
+                        <th class="col-target">@bagian.Label_Operator_ARU_8_11</th>
+                        <th class="col-target">@bagian.Label_Operator_ARU_12_13</th>
+                        <th class="col-target">@bagian.Label_SrSpv_Facility</th>
+                        <th class="col-target">@bagian.Label_JrAnalyst</th>
+                        <th class="col-target">@bagian.Label_HSE</th>
+                        <th style="width:70px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -142,6 +158,22 @@
                             <td>@item.Indeks</td>
                             <td>@item.Kompetensi</td>
                             <td>@item.SkillGroup</td>
+                            <td>@item.SubSkillGroup</td>
+                            <td>@item.Target_SectionHead</td>
+                            <td>@item.Target_SrSpv_GSH</td>
+                            <td>@item.Target_ShiftSpv_GSH</td>
+                            <td>@item.Target_Panelman_GSH_12_13</td>
+                            <td>@item.Target_Panelman_GSH_14</td>
+                            <td>@item.Target_Operator_GSH_8_11</td>
+                            <td>@item.Target_Operator_GSH_12_13</td>
+                            <td>@item.Target_ShiftSpv_ARU</td>
+                            <td>@item.Target_Panelman_ARU_12_13</td>
+                            <td>@item.Target_Panelman_ARU_14</td>
+                            <td>@item.Target_Operator_ARU_8_11</td>
+                            <td>@item.Target_Operator_ARU_12_13</td>
+                            <td>@item.Target_SrSpv_Facility</td>
+                            <td>@item.Target_JrAnalyst</td>
+                            <td>@item.Target_HSE</td>
                             <td>
                                 <button class="btn btn-outline-danger btn-sm"
                                         onclick="deleteRow(@item.Id, '@Html.Raw(item.Kompetensi.Replace("'", "\\'"))')">
@@ -152,7 +184,7 @@
                     }
                     @if (!bagianItems.Any())
                     {
-                        <tr><td colspan="5" class="text-muted text-center">Belum ada item di bagian ini.</td></tr>
+                        <tr><td colspan="21" class="text-muted text-center">Belum ada item di bagian ini.</td></tr>
                     }
                 </tbody>
             </table>
@@ -170,11 +202,27 @@
             <table class="table table-sm table-bordered table-hover mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th style="width:50px;">No</th>
-                        <th style="width:100px;">Indeks</th>
-                        <th>Kompetensi</th>
-                        <th style="width:150px;">SkillGroup</th>
-                        <th style="width:80px;">Aksi</th>
+                        <th style="width:45px;">No</th>
+                        <th style="width:90px;">Indeks</th>
+                        <th style="min-width:180px;">Kompetensi</th>
+                        <th style="min-width:120px;">SkillGroup</th>
+                        <th style="min-width:120px;">SubSkillGroup</th>
+                        <th class="col-target">Section Head</th>
+                        <th class="col-target">Sr Spv GSH</th>
+                        <th class="col-target">Shift Spv GSH</th>
+                        <th class="col-target">Panelman GSH 12-13</th>
+                        <th class="col-target">Panelman GSH 14</th>
+                        <th class="col-target">Op GSH 8-11</th>
+                        <th class="col-target">Op GSH 12-13</th>
+                        <th class="col-target">Shift Spv ARU</th>
+                        <th class="col-target">Panelman ARU 12-13</th>
+                        <th class="col-target">Panelman ARU 14</th>
+                        <th class="col-target">Op ARU 8-11</th>
+                        <th class="col-target">Op ARU 12-13</th>
+                        <th class="col-target">Sr Spv Facility</th>
+                        <th class="col-target">Jr Analyst</th>
+                        <th class="col-target">HSE</th>
+                        <th style="width:70px;">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,6 +233,22 @@
                             <td>@item.Indeks</td>
                             <td>@item.Kompetensi</td>
                             <td>@item.SkillGroup</td>
+                            <td>@item.SubSkillGroup</td>
+                            <td>@item.Target_SectionHead</td>
+                            <td>@item.Target_SrSpv_GSH</td>
+                            <td>@item.Target_ShiftSpv_GSH</td>
+                            <td>@item.Target_Panelman_GSH_12_13</td>
+                            <td>@item.Target_Panelman_GSH_14</td>
+                            <td>@item.Target_Operator_GSH_8_11</td>
+                            <td>@item.Target_Operator_GSH_12_13</td>
+                            <td>@item.Target_ShiftSpv_ARU</td>
+                            <td>@item.Target_Panelman_ARU_12_13</td>
+                            <td>@item.Target_Panelman_ARU_14</td>
+                            <td>@item.Target_Operator_ARU_8_11</td>
+                            <td>@item.Target_Operator_ARU_12_13</td>
+                            <td>@item.Target_SrSpv_Facility</td>
+                            <td>@item.Target_JrAnalyst</td>
+                            <td>@item.Target_HSE</td>
                             <td>
                                 <button class="btn btn-outline-danger btn-sm"
                                         onclick="deleteRow(@item.Id, '@Html.Raw(item.Kompetensi.Replace("'", "\\'"))')">
