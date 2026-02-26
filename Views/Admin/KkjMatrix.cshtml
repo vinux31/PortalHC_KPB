@@ -369,6 +369,25 @@ function renderEditRows() {
     var container = document.getElementById('editTablesContainer');
     container.innerHTML = '';
 
+    // Build/update the editBagianFilter dropdown
+    var filterBar = document.getElementById('editBagianFilterBar');
+    if (!filterBar) {
+        filterBar = document.createElement('div');
+        filterBar.id = 'editBagianFilterBar';
+        filterBar.className = 'd-flex align-items-center gap-2 mb-2';
+        filterBar.innerHTML = '<label class="fw-bold text-primary mb-0">Bagian:</label>'
+            + '<select id="editBagianFilter" class="form-select form-select-sm" style="max-width:220px;"></select>';
+        container.parentNode.insertBefore(filterBar, container);
+    }
+    var editBagianFilter = document.getElementById('editBagianFilter');
+    editBagianFilter.innerHTML = '';
+    kkjBagians.forEach(function(b) {
+        var opt = document.createElement('option');
+        opt.value = b.Name;
+        opt.textContent = b.Name;
+        editBagianFilter.appendChild(opt);
+    });
+
     var knownBagianNames = kkjBagians.map(function(b) { return b.Name; });
     var bagianIndex = 0;
     kkjBagians.forEach(function(bagian) {
@@ -380,6 +399,11 @@ function renderEditRows() {
         });
         bagianIndex++;
 
+        // Wrap each bagian block in a section div
+        var sectionDiv = document.createElement('div');
+        sectionDiv.className = 'edit-bagian-section';
+        sectionDiv.dataset.bagianName = bagian.Name;
+
         // Section heading with editable bagian name input
         var heading = document.createElement('div');
         heading.className = 'mt-3 mb-1 d-flex align-items-center gap-2';
@@ -387,7 +411,6 @@ function renderEditRows() {
             + '<input type="text" class="form-control form-control-sm bagian-name-input" '
             + 'data-bagian-id="' + bagian.Id + '" data-bagian-order="' + bagian.DisplayOrder + '" '
             + 'value="' + escHtml(bagian.Name) + '" style="max-width:160px;" title="Nama Bagian">';
-        container.appendChild(heading);
 
         // Label fields mapping
         var labelFields = [
@@ -464,7 +487,6 @@ function renderEditRows() {
         });
         tbl.appendChild(tbody);
         tableWrapper.appendChild(tbl);
-        container.appendChild(tableWrapper);
 
         // "Add row to this bagian" button
         var addBtn = document.createElement('button');
@@ -478,8 +500,31 @@ function renderEditRows() {
                 capturedTbody.appendChild(emptyRow);
             });
         })(tbody, bagian.Name);
-        container.appendChild(addBtn);
+
+        sectionDiv.appendChild(heading);
+        sectionDiv.appendChild(tableWrapper);
+        sectionDiv.appendChild(addBtn);
+        container.appendChild(sectionDiv);
     });
+
+    // Show only selected bagian section
+    function showEditBagian(name) {
+        document.querySelectorAll('.edit-bagian-section').forEach(function(sec) {
+            sec.style.display = sec.dataset.bagianName === name ? '' : 'none';
+        });
+    }
+
+    // Re-wire change event (avoid duplicate listeners by replacing select)
+    var oldFilter = document.getElementById('editBagianFilter');
+    var newFilter = oldFilter.cloneNode(true);
+    oldFilter.parentNode.replaceChild(newFilter, oldFilter);
+    newFilter.addEventListener('change', function() { showEditBagian(this.value); });
+
+    // Show first bagian on initial render
+    if (kkjBagians.length > 0) {
+        newFilter.value = kkjBagians[0].Name;
+        showEditBagian(kkjBagians[0].Name);
+    }
 }
 
 function makeRow(item) {
