@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 47-kkj-matrix-manager
 source: [47-03-SUMMARY.md, 47-04-SUMMARY.md, 47-05-SUMMARY.md]
 started: 2026-02-26T12:00:00Z
@@ -91,9 +91,18 @@ skipped: 6
   reason: "User reported: maksut saya adalah page KKJMatrix tetap menampilkan hanya 1 tabel saja, nah tapi diatas ada fasilitas filter dropdown untuk memilih table bagian mana yang akan ditampilkan. dan juga di kanan filter ini ada fasilitas juga untuk mengedit,hapus,menambah bagian. jadi halaman KKJmatrix hanya menampilkan 1 tabel sesuai filter yang dipilih"
   severity: major
   test: 1
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Read-mode Razor @foreach renders all bagian sections simultaneously with no filter. No dropdown, no show/hide logic, no bagian CRUD controls in read mode. Controller already provides all needed data (ViewBag.Bagians + kkjBagians JS var) — only the view needs to change. A new KkjBagianDelete controller action is also needed."
+  artifacts:
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "#readTable uses static Razor @foreach — replace with dropdown toolbar + single #readTablePanel div populated by renderReadTable(bagianName) JS function"
+    - path: "Controllers/AdminController.cs"
+      issue: "Missing KkjBagianDelete POST action (needed for delete bagian CRUD control)"
+  missing:
+    - "Replace #readTable Razor multi-section block with dropdown filter + CRUD buttons toolbar + #readTablePanel div"
+    - "Add renderReadTable(bagianName) JS function that builds single table from kkjItems/kkjBagians arrays"
+    - "Wire bagianFilter change event to call renderReadTable"
+    - "Add KkjBagianDelete POST action to AdminController (with guard: block if items assigned to bagian)"
+    - "Wire Ubah Nama button to prompt + KkjBagianSave; wire Tambah Bagian to KkjBagianAdd; wire Hapus to KkjBagianDelete"
   debug_session: ""
 
 - truth: "Edit mode menampilkan semua baris data yang ada (kolom No, SkillGroup, SubSkillGroup, Indeks, Kompetensi, Target_* sebagai input fields) untuk setiap bagian"
@@ -101,9 +110,13 @@ skipped: 6
   reason: "User reported: ketika masuk edit mode, yang muncul dan bisa diedit cuman kolom target, kolom data tidak muncul"
   severity: major
   test: 7
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "renderEditRows() filters kkjItems with strict i.Bagian === bagian.Name. Existing KkjMatrixItem records have Bagian = '' (EF migration default) — they don't match any bagian name so zero rows are rendered in every tbody. Read-mode has a Razor 'Tidak Terkategori' fallback but edit-mode JS has no equivalent."
+  artifacts:
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "renderEditRows() line ~299: strict equality filter drops all items with Bagian='' — need to include orphan items on first bagian or in separate unassigned section"
+  missing:
+    - "In renderEditRows(), make the first bagian's filter also include items where Bagian is empty or not in any known bagian name (Strategy A — orphans appear in first bagian's edit table so user can assign them)"
+    - "Alternatively: after the kkjBagians.forEach loop, render a separate 'Tidak Terkategori' edit section for orphan items"
   debug_session: ""
 
 - truth: "Simpan berhasil menyimpan perubahan header kolom bagian (KkjBagianSave) dan data baris (KkjMatrixSave) tanpa error"
@@ -111,7 +124,10 @@ skipped: 6
   reason: "User reported: ketika edit Kolom Target, ke Section Leader, muncul error notif 'Error menyimpan baris: Tidak ada data yang diterima.'"
   severity: major
   test: 6
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "btnSave always calls KkjMatrixSave unconditionally after KkjBagianSave succeeds, even when collectRows() returns []. AdminController.KkjMatrixSave has a hard guard rejecting empty arrays with 'Tidak ada data yang diterima.' message. Fix is client-side: skip KkjMatrixSave when rows.length === 0 and show success toast directly."
+  artifacts:
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "btnSave handler calls KkjMatrixSave unconditionally — add rows.length === 0 guard before the AJAX call"
+  missing:
+    - "In btnSave success callback (after KkjBagianSave), add: if (rows.length === 0) { show toast then reload; return; } before firing KkjMatrixSave"
   debug_session: ""
