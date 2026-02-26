@@ -276,7 +276,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 ### Phases
 
-- [~] **Phase 47: KKJ Matrix Manager** — MDAT-01 (2/5 plans, 3 gap plans pending)
+- [x] **Phase 47: KKJ Matrix Manager** — MDAT-01 (complete 2026-02-26)
 - [x] **Phase 48: CPDP Items Manager** — MDAT-02 (complete 2026-02-26)
 - [ ] **Phase 49: Assessment Management Migration** — MDAT-03 (planned)
 - [ ] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned)
@@ -486,7 +486,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
-| 47. KKJ Matrix Manager | v2.3 | 4/5 | In Progress | - |
+| 47. KKJ Matrix Manager | v2.3 | 9/9 | Complete | 2026-02-26 |
 | 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 4/4 | Complete | 2026-02-26 |
 | 49. Assessment Management Migration | v2.3 | 0/4 | Not started | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
