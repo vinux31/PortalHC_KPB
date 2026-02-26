@@ -239,5 +239,16 @@ namespace HcPortal.Controllers
 
             return Json(new { success = true });
         }
+
+        // GET /Admin/CpdpItems
+        public async Task<IActionResult> CpdpItems()
+        {
+            ViewData["Title"] = "KKJ-IDP Mapping Editor";
+            var items = await _context.CpdpItems
+                .OrderBy(c => c.No)
+                .ThenBy(c => c.Id)
+                .ToListAsync();
+            return View(items);
+        }
     }
 }
