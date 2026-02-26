@@ -84,6 +84,7 @@ namespace HcPortal.Controllers
 
             // ✅ QUERY FROM DATABASE instead of hardcoded data
             var cpdpData = await _context.CpdpItems
+                .Where(c => c.Section == section)
                 .OrderBy(c => c.No)
                 .ToListAsync();
 
