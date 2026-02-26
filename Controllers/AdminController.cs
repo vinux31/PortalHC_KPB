@@ -337,5 +337,63 @@ namespace HcPortal.Controllers
 
             return Json(new { success = true });
         }
+
+        // GET /Admin/CpdpItemsExport?section=RFCC
+        public async Task<IActionResult> CpdpItemsExport(string? section)
+        {
+            var query = _context.CpdpItems.OrderBy(c => c.No).ThenBy(c => c.Id).AsQueryable();
+
+            if (!string.IsNullOrEmpty(section))
+                query = query.Where(c => c.Section == section);
+
+            var items = await query.ToListAsync();
+
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var ws = workbook.Worksheets.Add("CPDP Items");
+
+            // Header row
+            ws.Cell(1, 1).Value = "No";
+            ws.Cell(1, 2).Value = "Nama Kompetensi";
+            ws.Cell(1, 3).Value = "Indikator Perilaku";
+            ws.Cell(1, 4).Value = "Detail Indikator";
+            ws.Cell(1, 5).Value = "Silabus / IDP";
+            ws.Cell(1, 6).Value = "Target Deliverable";
+            ws.Cell(1, 7).Value = "Status";
+            ws.Cell(1, 8).Value = "Section";
+
+            var headerRow = ws.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromHtml("#343a40");
+            headerRow.Style.Font.FontColor = ClosedXML.Excel.XLColor.White;
+
+            // Data rows
+            for (int i = 0; i < items.Count; i++)
+            {
+                var row = items[i];
+                var r = i + 2;
+                ws.Cell(r, 1).Value = row.No;
+                ws.Cell(r, 2).Value = row.NamaKompetensi;
+                ws.Cell(r, 3).Value = row.IndikatorPerilaku;
+                ws.Cell(r, 4).Value = row.DetailIndikator;
+                ws.Cell(r, 5).Value = row.Silabus;
+                ws.Cell(r, 6).Value = row.TargetDeliverable;
+                ws.Cell(r, 7).Value = row.Status;
+                ws.Cell(r, 8).Value = row.Section;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = string.IsNullOrEmpty(section)
+                ? "CPDP_Items_All.xlsx"
+                : $"CPDP_Items_{section}.xlsx";
+
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
+        }
     }
 }
