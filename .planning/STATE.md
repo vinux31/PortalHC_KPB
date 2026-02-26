@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-26T11:49:08.613Z"
+last_updated: "2026-02-26T12:32:06.478Z"
 last_activity: "2026-02-26 - Completed Plan 47-07: Replaced static Razor read-mode with JS-driven dropdown filter + single-panel table + bagian CRUD toolbar (Ubah Nama, Hapus, Tambah Bagian) and KkjBagianDelete POST action with assignment guard"
 progress:
-  total_phases: 41
+  total_phases: 42
   completed_phases: 40
-  total_plans: 93
-  completed_plans: 92
+  total_plans: 94
+  completed_plans: 93
 ---
 
 ---
@@ -136,9 +136,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 7/7 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-26 - Completed Plan 47-07: Replaced static Razor read-mode with JS-driven dropdown filter + single-panel table + bagian CRUD toolbar (Ubah Nama, Hapus, Tambah Bagian) and KkjBagianDelete POST action with assignment guard
+**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 8/8 plans done)
+**Status:** Phase 47 complete — ready for Phase 48
+**Last activity:** 2026-02-26 - Completed Plan 47-08: Deleted INPUT guard from mousedown handler (drag selection fix) and added editBagianFilter dropdown with edit-bagian-section wrappers (edit-mode single-bagian filter). Phase 47 fully complete.
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
@@ -190,6 +190,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Rename reuses KkjBagianSave with single-element array payload — reuses existing endpoint without new action
 - KkjBagianDelete placed between KkjBagianAdd and KkjMatrixDelete for consistent controller action ordering
 - Hapus guard uses CountAsync on KkjMatrices.Bagian string match — consistent with string-FK-by-name pattern
+- [Phase 47-08]: INPUT guard deleted because every td in .kkj-edit-tbl contains a full-width input — e.target is always INPUT, permanently preventing isDragging from activating
+- [Phase 47-08]: cloneNode pattern used to re-wire editBagianFilter change event — prevents duplicate listeners accumulating across renderEditRows() re-renders
+- [Phase 47-08]: display:none bagian sections kept in DOM so collectRows() and collectBagians() still gather all bagians on save — no save logic changes needed
 
 ### Roadmap Evolution
 
@@ -214,9 +217,10 @@ None.
 | Phase 47 P03 | 7 | 3 tasks | 6 files |
 | Phase 47-kkj-matrix-manager P05 | 5 | 2 tasks | 1 files |
 | Phase 47-kkj-matrix-manager P07 | 3 | 2 tasks | 2 files |
+| Phase 47-kkj-matrix-manager P08 | 8 | 2 tasks | 1 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-06-PLAN.md: Fixed renderEditRows() orphan filter and btnSave empty-rows guard. Phase 47 complete (6/6 plans). Next: Phase 48.
+Stopped at: Completed 47-08-PLAN.md: Deleted INPUT guard (drag selection fix) + editBagianFilter dropdown + edit-bagian-section wrappers. Phase 47 fully complete (8/8 plans). Next: Phase 48.
 Resume file: None.
