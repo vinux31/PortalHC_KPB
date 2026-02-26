@@ -1,0 +1,121 @@
+@model List<HcPortal.Models.CpdpItem>
+@{
+    ViewData["ContainerClass"] = "container-fluid px-4";
+
+    var itemsJson = System.Text.Json.JsonSerializer.Serialize(Model,
+        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .table-sm td, .table-sm th { font-size: 0.85rem; padding: 0.4rem 0.5rem; vertical-align: middle; }
+    #readTableWrapper th, #readTableWrapper td:first-child { white-space: nowrap; }
+    #readTableWrapper td:nth-child(2) { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    #readTableWrapper td:nth-child(3) { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+</style>
+
+<nav aria-label="breadcrumb" class="mb-2">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/Admin">Kelola Data</a></li>
+        <li class="breadcrumb-item active">KKJ-IDP Mapping Editor</li>
+    </ol>
+</nav>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">KKJ-IDP Mapping Editor (CPDP Items)</h5>
+        <div id="readActions">
+            <button id="btnEdit" class="btn btn-sm btn-primary"><i class="bi bi-pencil me-1"></i>Edit</button>
+        </div>
+        <div id="editActions" class="d-none gap-2 d-flex">
+            <button id="btnSave" class="btn btn-sm btn-success"><i class="bi bi-check-lg me-1"></i>Simpan</button>
+            <button id="btnCancel" class="btn btn-sm btn-secondary"><i class="bi bi-x-lg me-1"></i>Batal</button>
+        </div>
+    </div>
+    <div class="card-body">
+
+        <div class="mb-3 d-flex align-items-center gap-2">
+            <label for="sectionFilter" class="form-label mb-0 fw-semibold">Filter Bagian:</label>
+            <select id="sectionFilter" class="form-select form-select-sm" style="max-width:180px;">
+                <option value="">Semua Bagian</option>
+                <option value="RFCC">RFCC</option>
+                <option value="GAST">GAST</option>
+                <option value="NGP">NGP</option>
+                <option value="DHT">DHT</option>
+            </select>
+            <span id="rowCount" class="text-muted small"></span>
+        </div>
+        <input type="hidden" id="selectedSection" value="" />
+
+        <div id="readTableWrapper">
+            <table class="table table-sm table-hover table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th>No</th>
+                        <th>Nama Kompetensi</th>
+                        <th>Indikator Perilaku</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr data-id="@item.Id" data-section="@item.Section">
+                            <td>@item.No</td>
+                            <td>@item.NamaKompetensi</td>
+                            <td>@item.IndikatorPerilaku</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger delete-btn"
+                                        data-id="@item.Id"
+                                        data-name="@item.NamaKompetensi">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div id="editTableWrapper" class="d-none"></div>
+
+    </div>
+</div>
+
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="saveToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body fw-semibold">Data berhasil disimpan.</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var cpdpItems = @Html.Raw(itemsJson);
+
+    var currentSection = '';
+
+    document.getElementById('sectionFilter').addEventListener('change', function(e) {
+        currentSection = e.target.value;
+        document.getElementById('selectedSection').value = currentSection;
+        filterTables();
+    });
+
+    function filterTables() {
+        var rows = document.querySelectorAll('#readTableWrapper tbody tr');
+        var visible = 0;
+        rows.forEach(function(row) {
+            var rowSection = (row.dataset.section || '').toUpperCase();
+            var sel = currentSection.toUpperCase();
+            var show = (sel === '' || rowSection === sel);
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+        document.getElementById('rowCount').textContent = rows.length > 0 ? visible + ' baris' : '';
+    }
+
+    // Initialize count on load
+    filterTables();
+</script>
