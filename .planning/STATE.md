@@ -66,11 +66,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (Plan 01 complete, Plan 02 next)
-**Status:** Phase 47 Plan 01 complete — AdminController + hub page + KkjMatrix read view; Plan 02 (write operations) is next
-**Last activity:** 2026-02-26 - Completed Plan 47-01: Admin Portal infrastructure (AdminController, Index hub, KkjMatrix read view, Kelola Data nav link)
+**Phase:** Phase 47 — KKJ Matrix Manager (Complete, all 2 plans done); Phase 48 (CPDP Items Manager) is next
+**Status:** Phase 47 complete — AdminController + hub page + KkjMatrix read+write (bulk upsert, delete guard, edit mode, clipboard paste)
+**Last activity:** 2026-02-26 - Completed Plan 47-02: KkjMatrix write operations (KkjMatrixSave, KkjMatrixDelete, edit mode table, clipboard paste, add-row)
 
-Progress: [█░░░░░░░░░░░░░░░░░░░] 5% (v2.3 — 1/12 phases started, 1/2 plans in Phase 47)
+Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 1/12 phases complete, 2/2 plans in Phase 47)
 
 ## Performance Metrics
 
@@ -100,6 +100,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 47-01]: AdminController uses class-level [Authorize(Roles='Admin')] — all 12+ admin tool actions inherit auth without per-action decorators
 - [Phase 47-01]: KkjMatrix view includes AntiForgeryToken + placeholder divs (editTable, editActions) for Plan 02 to inject without modifying the view
 
+**Phase 47-02 decisions:**
+- JS sends PascalCase property names matching C# model — avoids touching Program.cs (no PropertyNameCaseInsensitive config needed)
+- editActions buttons placed in header toolbar div alongside btnEdit, using d-none/d-flex toggling
+- deleteRow removes row from DOM and filters kkjItems array to keep JS state in sync without page reload
+- EF upsert via FindAsync then update each property individually — avoids tracking conflicts with deserialized JSON objects
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -124,5 +130,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-01-PLAN.md: Admin Portal infrastructure (AdminController, Index hub, KkjMatrix read view, Kelola Data nav); next is 47-02 (KkjMatrix write operations: save + delete).
+Stopped at: Completed 47-02-PLAN.md: KkjMatrix write operations (KkjMatrixSave POST, KkjMatrixDelete POST, edit-mode table, clipboard paste, add-row); Phase 47 complete. Next: Phase 48 CPDP Items Manager.
 Resume file: None.
