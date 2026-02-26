@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 48-cpdp-items-manager
 source: [48-01-SUMMARY.md, 48-02-SUMMARY.md, 48-03-SUMMARY.md]
 started: 2026-02-26T14:20:00Z
@@ -82,9 +82,13 @@ skipped: 0
   reason: "User reported: seharusnya tabelnya muncul 'No    Nama Kompetensi    Indikator Perilaku (Level)    Detail Indikator Perilaku    Individual Development Plan / Silabus    Target Deliverable'"
   severity: major
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "Read-mode table <thead> and <tbody> only have 4 columns (No, Nama Kompetensi, Indikator Perilaku, Aksi). DetailIndikator, Silabus, and TargetDeliverable are missing from both header row and foreach row template."
+  artifacts:
+    - path: "Views/Admin/CpdpItems.cshtml"
+      issue: "Read-mode thead lines 70-77 and tbody lines 78-95 missing 3 data columns"
+  missing:
+    - "Add <th>Detail Indikator Perilaku</th>, <th>Individual Development Plan / Silabus</th>, <th>Target Deliverable</th> to thead"
+    - "Add <td>@item.DetailIndikator</td>, <td>@item.Silabus</td>, <td>@item.TargetDeliverable</td> to each tbody row"
   debug_session: ""
 
 - truth: "HC (Admin) dapat menghapus CpdpItem meskipun direferensikan oleh IdpItem — tidak ada reference guard yang memblokir delete"
@@ -92,9 +96,12 @@ skipped: 0
   reason: "User reported: saya ingin HC tetap bisa delete meskipun item direferensikan oleh IDPItem"
   severity: major
   test: 6
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "CpdpItemDelete action (lines 315-339) has a CountAsync guard that returns {success:false, blocked:true} if any IdpItem.Kompetensi matches the item's NamaKompetensi. This was a design choice that the user wants removed."
+  artifacts:
+    - path: "Controllers/AdminController.cs"
+      issue: "Lines 321-327: reference guard CountAsync check blocks deletion when usageCount > 0"
+  missing:
+    - "Remove the CountAsync reference guard block (lines 321-327) from CpdpItemDelete"
   debug_session: ""
 
 - truth: "Menekan Delete pada multi-cell selection menghapus isi semua cell yang dipilih, bukan hanya cell pertama"
@@ -102,7 +109,10 @@ skipped: 0
   reason: "User reported: jika saya select lebih dari 1 cell terus tekan delete, yang terhapus adalah cell paling awal saja, lainnya tidak"
   severity: major
   test: 11
-  root_cause: ""
-  artifacts: []
-  missing: []
+  root_cause: "keydown handler for Delete key has malformed operator precedence: `e.key === 'Delete' || e.key === 'Backspace' && e.target.tagName !== 'INPUT'` — the && binds tighter than ||, so the outer condition always passes for Delete but inner nested if re-checks differently. clearCellContents() itself is correct; the bug is in the gating condition."
+  artifacts:
+    - path: "Views/Admin/CpdpItems.cshtml"
+      issue: "keydown handler Delete condition ~line 404: nested if with broken operator precedence"
+  missing:
+    - "Fix condition to: `(e.key === 'Delete' || e.key === 'Backspace') && e.target.tagName !== 'INPUT'` and remove nested if"
   debug_session: ""
