@@ -1,5 +1,5 @@
 ---
-status: complete
+status: diagnosed
 phase: 47-kkj-matrix-manager
 source: [47-08-SUMMARY.md]
 round: 3 (gap closure verification)
@@ -55,7 +55,16 @@ skipped: 0
   reason: "User reported: saya mau copy di excel 2 cell. dan saya paste di page tidak bisa. tidak berhasil tidak berubah"
   severity: major
   test: 5
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "Two compounding bugs: (1) e.preventDefault() in mousedown handler prevents input from receiving focus, so document.activeElement stays at body when Ctrl+V is pressed. (2) The keydown Ctrl+V handler calls anchorInput.focus() then returns — but the browser dispatches paste to the element focused AT keydown time (body), not after focus() call. The paste handler guard `e.target.closest('.kkj-edit-tbl')` correctly rejects the body-targeted event, causing silent failure."
+  artifacts:
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "Line ~967: e.preventDefault() in mousedown blocks input focus — add td.querySelector('input.edit-input')?.focus() after applySelection() calls"
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "Lines ~1048-1055: Ctrl+V keydown handler — replace focus-then-native-paste pattern with e.preventDefault() + navigator.clipboard.readText() to decouple from focus state"
+    - path: "Views/Admin/KkjMatrix.cshtml"
+      issue: "Lines ~847-848: paste handler row anchor uses document.activeElement — change to use selectedCells[0] instead"
+  missing:
+    - "After applySelection() in mousedown/mouseup, call .focus() on anchor input so document.activeElement is an edit-input"
+    - "In Ctrl+V keydown handler: call e.preventDefault() and use navigator.clipboard.readText() instead of relying on native paste event routing"
+    - "In paste handler: derive anchor row from selectedCells[0] instead of document.activeElement"
+  debug_session: ".planning/debug/ctrl-v-paste-excel-kkjmatrix.md"
