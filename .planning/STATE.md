@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: planning
-last_updated: "2026-02-26T12:37:06.596Z"
+last_updated: "2026-02-26T13:21:04.793Z"
 last_activity: "2026-02-26 - Completed Plan 47-08: Deleted INPUT guard from mousedown handler (drag selection fix) and added editBagianFilter dropdown with edit-bagian-section wrappers (edit-mode single-bagian filter). Phase 47 fully complete."
 progress:
   total_phases: 42
   completed_phases: 40
-  total_plans: 94
-  completed_plans: 93
+  total_plans: 95
+  completed_plans: 94
 ---
 
 ---
@@ -150,9 +150,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 8/8 plans done)
+**Phase:** Phase 47 — KKJ Matrix Manager (Complete, 9/9 plans done)
 **Status:** Ready to plan
-**Last activity:** 2026-02-26 - Completed Plan 47-08: Deleted INPUT guard from mousedown handler (drag selection fix) and added editBagianFilter dropdown with edit-bagian-section wrappers (edit-mode single-bagian filter). Phase 47 fully complete.
+**Last activity:** 2026-02-26 - Completed Plan 47-09: Fixed Ctrl+V paste from Excel — mousedown focuses anchor input, paste handler uses selectedCells[0] as anchor, Ctrl+V uses navigator.clipboard.readText() decoupled from focus state.
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
@@ -207,6 +207,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 47-08]: INPUT guard deleted because every td in .kkj-edit-tbl contains a full-width input — e.target is always INPUT, permanently preventing isDragging from activating
 - [Phase 47-08]: cloneNode pattern used to re-wire editBagianFilter change event — prevents duplicate listeners accumulating across renderEditRows() re-renders
 - [Phase 47-08]: display:none bagian sections kept in DOM so collectRows() and collectBagians() still gather all bagians on save — no save logic changes needed
+- [Phase 47-09]: Use navigator.clipboard.readText() for Ctrl+V paste — decoupled from focus/activeElement state caused by e.preventDefault() in mousedown
+- [Phase 47-09]: selectedCells[0] used as canonical paste anchor in both paste event handler and Ctrl+V handler — consistent with selection state, avoids activeElement issues
 
 ### Roadmap Evolution
 
@@ -232,9 +234,10 @@ None.
 | Phase 47-kkj-matrix-manager P05 | 5 | 2 tasks | 1 files |
 | Phase 47-kkj-matrix-manager P07 | 3 | 2 tasks | 2 files |
 | Phase 47-kkj-matrix-manager P08 | 8 | 2 tasks | 1 files |
+| Phase 47 P09 | 1 | 1 tasks | 1 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed 47-08-PLAN.md: Deleted INPUT guard (drag selection fix) + editBagianFilter dropdown + edit-bagian-section wrappers. Phase 47 fully complete (8/8 plans). Next: Phase 48.
+Stopped at: Completed 47-09-PLAN.md: Fixed Ctrl+V paste (mousedown focus + selectedCells[0] anchor + navigator.clipboard.readText). Phase 47 fully complete (9/9 plans). Next: Phase 48.
 Resume file: None.
