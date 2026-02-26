@@ -280,7 +280,7 @@ See `.planning/milestones/v2.1-ROADMAP.md` for full details.
   3. HC or Admin visiting /CMP/Records and clicking the History tab sees a table with columns: Nama Pekerja, NIP, Assessment Title, Attempt #, Score, Pass/Fail, Tanggal
   4. The Attempt # column shows sequential numbers per worker per assessment title (first attempt = 1, second = 2, etc.) so HC can distinguish retake progression
   5. Both archived historical attempts and current completed sessions appear together in the History tab, sorted by date descending
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 46-01-PLAN.md — Data foundation: AssessmentAttemptHistory model, DbContext, migration, archival logic in ResetAssessment
@@ -290,7 +290,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 46. Attempt History | v2.2 | 0/2 | Not started | - |
+| 46. Attempt History | 1/2 | In Progress|  | - |
 
 ## Progress
 

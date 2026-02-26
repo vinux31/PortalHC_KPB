@@ -1,3 +1,17 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Attempt History
+status: completed
+last_updated: "2026-02-26T01:32:26.810Z"
+last_activity: "2026-02-26 - Completed Plan 46-01: AssessmentAttemptHistory model + migration + ResetAssessment archival"
+progress:
+  total_phases: 41
+  completed_phases: 39
+  total_plans: 88
+  completed_plans: 86
+---
+
 # Project State
 
 ## Project Reference
@@ -10,11 +24,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.2 Attempt History — In Progress
-**Phase:** Phase 46 — Attempt History (not started)
-**Status:** Roadmap defined, ready for planning
-**Last activity:** 2026-02-26 - Completed quick task 14: Add Section column to CpdpItem, migration, populate data, filter Mapping() by section
+**Phase:** Phase 46 — Attempt History (Plan 1 of 3 complete)
+**Status:** Plan 46-01 complete — AssessmentAttemptHistory table live, archival logic in ResetAssessment
+**Last activity:** 2026-02-26 - Completed Plan 46-01: AssessmentAttemptHistory model + migration + ResetAssessment archival
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [███░░░░░░░░░░░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -28,6 +42,13 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**Phase 46-01 decisions:**
+- Archival block placed BEFORE UserResponse deletion so session field values are still intact
+- Archive and session reset share one existing SaveChangesAsync — no separate transaction call
+- AttemptNumber computed as count of existing rows for (UserId, Title) + 1
+- DeleteBehavior.Cascade on UserId FK so history rows clean up if user is deleted
+- EF migrations require `--configuration Release` while the app is running (Debug exe is locked)
 
 ### Roadmap Evolution
 
@@ -47,9 +68,10 @@ None.
 |---|-------------|------|--------|-----------|
 | 13 | Add bagian selection page for CMP KKJiDP CPDP mapping with RFCC GAST NGP DHT sections | 2026-02-26 | 1daecde | [13-add-bagian-selection-page-for-cmp-kkjidp](./quick/13-add-bagian-selection-page-for-cmp-kkjidp/) |
 | 14 | Add Section column to CpdpItem model and migration; filter Mapping() by section | 2026-02-26 | 58ec72d | [14-add-section-column-to-cpdpitem-model-mig](./quick/14-add-section-column-to-cpdpitem-model-mig/) |
+| Phase 46-attempt-history P01 | 3 | 2 tasks | 6 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Quick task 14 complete — Section column on CpdpItems, migration applied, Mapping() filters by section.
+Stopped at: Plan 46-01 complete — AssessmentAttemptHistory table live in DB, ResetAssessment archives Completed sessions with AttemptNumber tracking.
 Resume file: None.
