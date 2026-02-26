@@ -1,144 +1,40 @@
 @{
-    ViewData["Title"] = "Pilih Bagian - Mapping KKJ-IDP (CPDP)";
-    ViewData["ContainerClass"] = "container";
+    ViewData["Title"] = "Mapping KKJ - IDP (CPDP)";
 }
 
-<style>
-    .section-card {
-        transition: all 0.25s ease;
-        border: 1px solid #e9ecef;
-        border-left: 5px solid transparent;
-        cursor: pointer;
-    }
-
-    .section-card:hover {
-        transform: translateX(4px);
-        box-shadow: 0 6px 20px rgba(0,0,0,0.10) !important;
-    }
-
-    .section-card.rfcc  { border-left-color: #0d6efd; }
-    .section-card.gast  { border-left-color: #fd7e14; }
-    .section-card.ngp   { border-left-color: #198754; }
-    .section-card.dht   { border-left-color: #6f42c1; }
-
-    .section-icon-wrap {
-        width: 52px;
-        height: 52px;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.5rem;
-        flex-shrink: 0;
-    }
-
-    .icon-rfcc  { background-color: #dbeafe; color: #0d6efd; }
-    .icon-gast  { background-color: #fff3cd; color: #fd7e14; }
-    .icon-ngp   { background-color: #d1fae5; color: #198754; }
-    .icon-dht   { background-color: #ede9fe; color: #6f42c1; }
-
-    .btn-rfcc  { background-color: #0d6efd; color: #fff; border: none; }
-    .btn-gast  { background-color: #fd7e14; color: #fff; border: none; }
-    .btn-ngp   { background-color: #198754; color: #fff; border: none; }
-    .btn-dht   { background-color: #6f42c1; color: #fff; border: none; }
-
-    .btn-rfcc:hover  { background-color: #0a58ca; color: #fff; }
-    .btn-gast:hover  { background-color: #e96b00; color: #fff; }
-    .btn-ngp:hover   { background-color: #146c43; color: #fff; }
-    .btn-dht:hover   { background-color: #59359a; color: #fff; }
-</style>
-
-<div class="row justify-content-center mt-4">
-    <div class="col-lg-7 col-md-9">
-
-        <!-- Header -->
-        <div class="mb-4">
-            <h2 class="fw-bold text-dark mb-1">Mapping KKJ - IDP (CPDP)</h2>
-            <p class="text-muted mb-0">Pilih bagian untuk melihat mapping CPDP</p>
-        </div>
-
-        <!-- Cards -->
-        <div class="d-flex flex-column gap-3">
-
-            <!-- RFCC -->
-            <a href="@Url.Action("Mapping", "CMP", new { section = "RFCC" })" class="text-decoration-none">
-                <div class="card section-card rfcc shadow-sm">
-                    <div class="card-body d-flex align-items-center gap-3 py-3 px-4">
-                        <div class="section-icon-wrap icon-rfcc">
-                            <i class="bi bi-building"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark fs-5 mb-0">RFCC</div>
-                            <small class="text-muted">Residual Fluid Catalytic Cracking</small>
-                        </div>
-                        <button class="btn btn-sm btn-rfcc px-3">
-                            Lihat Mapping <i class="bi bi-arrow-right ms-1"></i>
-                        </button>
-                    </div>
-                </div>
-            </a>
-
-            <!-- GAST -->
-            <a href="@Url.Action("Mapping", "CMP", new { section = "GAST" })" class="text-decoration-none">
-                <div class="card section-card gast shadow-sm">
-                    <div class="card-body d-flex align-items-center gap-3 py-3 px-4">
-                        <div class="section-icon-wrap icon-gast">
-                            <i class="bi bi-fire"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark fs-5 mb-0">GAST</div>
-                            <small class="text-muted">GSH Alkylation & Sour Treating</small>
-                        </div>
-                        <button class="btn btn-sm btn-gast px-3">
-                            Lihat Mapping <i class="bi bi-arrow-right ms-1"></i>
-                        </button>
-                    </div>
-                </div>
-            </a>
-
-            <!-- NGP -->
-            <a href="@Url.Action("Mapping", "CMP", new { section = "NGP" })" class="text-decoration-none">
-                <div class="card section-card ngp shadow-sm">
-                    <div class="card-body d-flex align-items-center gap-3 py-3 px-4">
-                        <div class="section-icon-wrap icon-ngp">
-                            <i class="bi bi-droplet"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark fs-5 mb-0">NGP</div>
-                            <small class="text-muted">Naphtha Gas Processing</small>
-                        </div>
-                        <button class="btn btn-sm btn-ngp px-3">
-                            Lihat Mapping <i class="bi bi-arrow-right ms-1"></i>
-                        </button>
-                    </div>
-                </div>
-            </a>
-
-            <!-- DHT -->
-            <a href="@Url.Action("Mapping", "CMP", new { section = "DHT" })" class="text-decoration-none">
-                <div class="card section-card dht shadow-sm">
-                    <div class="card-body d-flex align-items-center gap-3 py-3 px-4">
-                        <div class="section-icon-wrap icon-dht">
-                            <i class="bi bi-gear-wide-connected"></i>
-                        </div>
-                        <div class="flex-grow-1">
-                            <div class="fw-bold text-dark fs-5 mb-0">DHT</div>
-                            <small class="text-muted">Diesel Hydrotreating/Hydrogen Manufacturing Unit</small>
-                        </div>
-                        <button class="btn btn-sm btn-dht px-3">
-                            Lihat Mapping <i class="bi bi-arrow-right ms-1"></i>
-                        </button>
-                    </div>
-                </div>
-            </a>
-
-        </div>
-
-        <div class="mt-4">
-            <a href="@Url.Action("Index", "CMP")" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-2"></i>Kembali ke Portal CMP
-            </a>
-        </div>
-
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold">Mapping KKJ - IDP (CPDP)</h2>
+        <p class="text-muted">Kurikulum Pengembangan Kompetensi per Bagian</p>
     </div>
 </div>
+
+<div class="card shadow-sm" style="max-width: 480px;">
+    <div class="card-body">
+        <label for="sectionSelect" class="form-label fw-semibold">Pilih Bagian:</label>
+        <div class="d-flex gap-2">
+            <select id="sectionSelect" class="form-select">
+                <option value="">-- Pilih Bagian --</option>
+                <option value="RFCC">RFCC — Unit RFCC</option>
+                <option value="GAST">GAST — GSH &amp; Alkylation</option>
+                <option value="NGP">NGP — Naphtha Gas Processing</option>
+                <option value="DHT">DHT — Diesel Hydrotreating/HMU</option>
+            </select>
+            <button id="btnLihat" class="btn btn-primary" onclick="goToSection()" disabled>
+                <i class="bi bi-arrow-right me-1"></i>Lihat
+            </button>
+        </div>
+        <div class="form-text mt-2 text-muted">Pilih bagian untuk melihat kurikulum pengembangan kompetensi.</div>
+    </div>
+</div>
+
+<script>
+document.getElementById('sectionSelect').addEventListener('change', function() {
+    document.getElementById('btnLihat').disabled = this.value === '';
+});
+
+function goToSection() {
+    var val = document.getElementById('sectionSelect').value;
+    if (val) window.location.href = '@Url.Action("Mapping", "CMP")?section=' + encodeURIComponent(val);
+}
+</script>
