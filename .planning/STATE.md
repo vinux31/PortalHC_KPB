@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: planning
+last_updated: "2026-02-26T13:50:52.951Z"
+last_activity: "2026-02-26 - Planned Phase 48: 3 plans created (48-01: GET+read-mode+section-dropdown, 48-02: edit-mode+bulk-save+delete-guard+CMP-Mapping-dropdown, 48-03: multi-cell-clipboard+Excel-export)"
+progress:
+  total_phases: 43
+  completed_phases: 40
+  total_plans: 98
+  completed_plans: 95
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: completed
 last_updated: "2026-02-26T10:47:50.555Z"
 last_activity: "2026-02-26 - Completed Plan 47-02: KkjMatrix write operations (KkjMatrixSave, KkjMatrixDelete, edit mode table, clipboard paste, add-row)"
@@ -80,9 +94,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 48 — CPDP Items Manager / KKJ-IDP Mapping Editor (Planned, 0/3 plans done)
-**Status:** Planning complete — ready for execution
-**Last activity:** 2026-02-26 - Planned Phase 48: 3 plans created (48-01: GET+read-mode+section-dropdown, 48-02: edit-mode+bulk-save+delete-guard+CMP-Mapping-dropdown, 48-03: multi-cell-clipboard+Excel-export)
+**Phase:** Phase 48 — CPDP Items Manager / KKJ-IDP Mapping Editor (In Progress, 1/3 plans done)
+**Status:** Executing — Plan 48-01 complete, 48-02 next
+**Last activity:** 2026-02-26 - Completed Plan 48-01: CpdpItems GET action, read-mode view with section dropdown, Admin/Index card activation
 
 Progress: [██░░░░░░░░░░░░░░░░░░] 8% (v2.3 — 0/12 phases complete, Phase 48 planning complete)
 
@@ -121,6 +135,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - EF upsert via FindAsync then update each property individually — avoids tracking conflicts with deserialized JSON objects
 - [Phase 47-03]: KkjBagian seeded on first GET rather than migration data seed; Bagian stored as string name (FK by name) consistent with CpdpItem.Section precedent; per-bagian add-row buttons replace single global btnAddRow
 - [Phase 47-04]: Read-mode Target_* column headers use bagian.Label_* values; inline delete for Id=0 rows is DOM-only (no server call); insert-below copies bagian name from current row's hidden Bagian input; Aksi th appended after 15 label inputs in renderEditRows() thead
+- [Phase 48-01]: data-name attribute uses Razor auto-encoding (@item.NamaKompetensi) instead of Html.AttributeEncode which is unavailable in typed Razor views
 
 ### Roadmap Evolution
 
@@ -148,6 +163,7 @@ None.
 | Phase 46-attempt-history P01 | 3 | 2 tasks | 6 files |
 | Phase 47-kkj-matrix-manager P01 | 3 | 3 tasks | 4 files |
 | Phase 47 P03 | 7 | 3 tasks | 6 files |
+| Phase 48-cpdp-items-manager P01 | 5 | 3 tasks | 3 files |
 
 ## Session Continuity
 

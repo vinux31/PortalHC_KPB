@@ -8,7 +8,7 @@
 ### Category A: Master Data Managers (seed-only → full UI)
 
 - [x] **MDAT-01**: Admin can view, create, edit, and delete KKJ Matrix items (KkjMatrixItem) through a dedicated management page — no database/code change required
-- [ ] **MDAT-02**: Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page
+- [x] **MDAT-02**: Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page
 - [ ] **MDAT-03**: Admin can view, create, edit, and delete Assessment Competency Maps (AssessmentCompetencyMap) — mapping assessment categories to KKJ items
 
 ### Category B: Operational Admin (no admin override existed)
@@ -46,7 +46,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | MDAT-01 | Phase 47 | Complete |
-| MDAT-02 | Phase 48 | Pending |
+| MDAT-02 | Phase 48 | Complete |
 | MDAT-03 | Phase 49 | Pending |
 | OPER-01 | Phase 50 | Pending |
 | OPER-02 | Phase 51 | Pending |
