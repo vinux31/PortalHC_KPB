@@ -1,6 +1,20 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
+milestone_name: Admin Portal
+status: planning
+last_updated: "2026-02-26T09:33:36.611Z"
+last_activity: 2026-02-26 - v2.2 Attempt History archived; v2.3 requirements defined (12 reqs, phases 47-58)
+progress:
+  total_phases: 41
+  completed_phases: 39
+  total_plans: 88
+  completed_plans: 86
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
 milestone_name: Attempt History
 status: completed
 last_updated: "2026-02-26T02:31:39.398Z"
@@ -51,12 +65,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-**Milestone:** v2.3 Admin Portal — Planning
-**Phase:** Phase 47 — KKJ Matrix Manager (not started)
-**Status:** v2.2 archived, v2.3 requirements defined, ready to plan Phase 47
-**Last activity:** 2026-02-26 - v2.2 Attempt History archived; v2.3 requirements defined (12 reqs, phases 47-58)
+**Milestone:** v2.3 Admin Portal — In Progress
+**Phase:** Phase 47 — KKJ Matrix Manager (Plan 01 complete, Plan 02 next)
+**Status:** Phase 47 Plan 01 complete — AdminController + hub page + KkjMatrix read view; Plan 02 (write operations) is next
+**Last activity:** 2026-02-26 - Completed Plan 47-01: Admin Portal infrastructure (AdminController, Index hub, KkjMatrix read view, Kelola Data nav link)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.3)
+Progress: [█░░░░░░░░░░░░░░░░░░░] 5% (v2.3 — 1/12 phases started, 1/2 plans in Phase 47)
 
 ## Performance Metrics
 
@@ -83,6 +97,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Current session Attempt # = archived count for (UserId, Title) + 1, consistent with Plan 01 archival logic
 - Batch GroupBy/ToDictionary for archived counts avoids N+1 query per session row
 - Riwayat Assessment is default active sub-tab (show active) as it's the main new HIST-02/HIST-03 feature
+- [Phase 47-01]: AdminController uses class-level [Authorize(Roles='Admin')] — all 12+ admin tool actions inherit auth without per-action decorators
+- [Phase 47-01]: KkjMatrix view includes AntiForgeryToken + placeholder divs (editTable, editActions) for Plan 02 to inject without modifying the view
 
 ### Roadmap Evolution
 
@@ -103,9 +119,10 @@ None.
 | 13 | Add bagian selection page for CMP KKJiDP CPDP mapping with RFCC GAST NGP DHT sections | 2026-02-26 | 1daecde | [13-add-bagian-selection-page-for-cmp-kkjidp](./quick/13-add-bagian-selection-page-for-cmp-kkjidp/) |
 | 14 | Add Section column to CpdpItem model and migration; filter Mapping() by section | 2026-02-26 | 58ec72d | [14-add-section-column-to-cpdpitem-model-mig](./quick/14-add-section-column-to-cpdpitem-model-mig/) |
 | Phase 46-attempt-history P01 | 3 | 2 tasks | 6 files |
+| Phase 47-kkj-matrix-manager P01 | 3 | 3 tasks | 4 files |
 
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: v2.2 milestone archived (Phase 46 complete, git tag v2.2 pending), v2.3 Admin Portal active — next: plan Phase 47 (MDAT-01 KKJ Matrix Manager).
+Stopped at: Completed 47-01-PLAN.md: Admin Portal infrastructure (AdminController, Index hub, KkjMatrix read view, Kelola Data nav); next is 47-02 (KkjMatrix write operations: save + delete).
 Resume file: None.
