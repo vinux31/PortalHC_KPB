@@ -301,7 +301,11 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
   3. Admin can edit an existing KkjMatrixItem's fields inline or via modal
   4. Admin can delete a KkjMatrixItem with appropriate guard (show usage count or warn if in use)
   5. All CRUD operations persist immediately to SQL Server and reflect in the list without full page reload
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 47-01-PLAN.md — Admin Portal infrastructure: AdminController, /Admin/Index hub page, /Admin/KkjMatrix read-mode table, Kelola Data nav link
+- [ ] 47-02-PLAN.md — KKJ Matrix write operations: spreadsheet edit mode (all 18 cols), bulk-save POST, delete-with-guard, clipboard paste
 
 ### Phase 48: CPDP Items Manager
 **Goal:** Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page
@@ -425,7 +429,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
-| 47. KKJ Matrix Manager | v2.3 | 0/? | Not started | - |
+| 47. KKJ Matrix Manager | v2.3 | 0/2 | Planned | - |
 | 48. CPDP Items Manager | v2.3 | 0/? | Not started | - |
 | 49. Assessment Competency Map Manager | v2.3 | 0/? | Not started | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
