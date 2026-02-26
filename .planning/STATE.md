@@ -3,6 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
+last_updated: "2026-02-26T11:49:08.613Z"
+last_activity: "2026-02-26 - Completed Plan 47-07: Replaced static Razor read-mode with JS-driven dropdown filter + single-panel table + bagian CRUD toolbar (Ubah Nama, Hapus, Tambah Bagian) and KkjBagianDelete POST action with assignment guard"
+progress:
+  total_phases: 41
+  completed_phases: 40
+  total_plans: 93
+  completed_plans: 92
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
+status: completed
 last_updated: "2026-02-26T11:46:04.530Z"
 last_activity: "2026-02-26 - Completed Plan 47-06: Fixed renderEditRows() orphan filter (Bagian='' items now appear in first bagian tbody) and btnSave rows.length === 0 guard (header-only saves show toast without KkjMatrixSave error)"
 progress:
