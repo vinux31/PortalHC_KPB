@@ -7,6 +7,14 @@
 
 @Html.AntiForgeryToken()
 
+@{
+    var itemsJson = System.Text.Json.JsonSerializer.Serialize(Model,
+        new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
+}
+<script>
+    var kkjItems = @Html.Raw(itemsJson);
+</script>
+
 <style>
     .custom-scrollbar::-webkit-scrollbar {
         height: 12px;
@@ -43,6 +51,24 @@
         padding: 0.5rem 0.6rem;
         vertical-align: middle;
     }
+
+    .edit-input {
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        padding: 2px 4px;
+        font-size: 0.75rem;
+        width: 100%;
+        min-width: 60px;
+    }
+    .edit-input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 2px rgba(13,110,253,0.15); }
+    .col-no    { min-width: 55px; }
+    .col-meta  { min-width: 120px; }
+    .col-target { min-width: 55px; }
+    /* Sticky first two columns in edit mode */
+    #editTable td:nth-child(1), #editTable th:nth-child(1) { position: sticky; left: 0; background: white; z-index: 5; border-right: 1px solid #dee2e6; }
+    #editTable td:nth-child(2), #editTable th:nth-child(2) { position: sticky; left: 57px; background: white; z-index: 5; border-right: 1px solid #dee2e6; }
+    #editTable thead th { position: sticky; top: 0; background: #343a40; color: white; z-index: 10; }
+    #editTable thead th:nth-child(1), #editTable thead th:nth-child(2) { z-index: 15; }
 </style>
 
 @* Breadcrumb *@
@@ -59,10 +85,15 @@
         <h4 class="fw-bold mb-0">KKJ Matrix</h4>
         <small class="text-muted">Kelola item KKJ Matrix (master kompetensi)</small>
     </div>
-    <div>
+    <div class="d-flex gap-2 align-items-center">
         <button id="btnEdit" class="btn btn-primary btn-sm">
             <i class="bi bi-pencil me-1"></i>Edit Mode
         </button>
+        <div id="editActions" class="d-none d-flex gap-2">
+            <button id="btnAddRow" class="btn btn-success btn-sm"><i class="bi bi-plus me-1"></i>Tambah Baris</button>
+            <button id="btnSave" class="btn btn-primary btn-sm"><i class="bi bi-save me-1"></i>Simpan</button>
+            <button id="btnCancel" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x me-1"></i>Batal</button>
+        </div>
     </div>
 </div>
 
@@ -109,8 +140,252 @@
     </div>
 </div>
 
-@* Edit-mode table placeholder — Plan 02 will inject content *@
-<div id="editTable" class="d-none"></div>
+@* Edit-mode table *@
+<div id="editTable" class="d-none table-responsive custom-scrollbar" style="max-height:80vh;">
+    <table class="table table-sm table-bordered align-middle mb-0" id="kkjEditTbl">
+        <thead class="table-dark">
+            <tr>
+                <th class="col-no">No</th>
+                <th class="col-meta">SkillGroup</th>
+                <th class="col-meta">SubSkillGroup</th>
+                <th class="col-meta">Indeks</th>
+                <th class="col-meta" style="min-width:180px;">Kompetensi</th>
+                <th class="col-target">SectionHead</th>
+                <th class="col-target">SrSpv GSH</th>
+                <th class="col-target">ShiftSpv GSH</th>
+                <th class="col-target">Panelman GSH 12-13</th>
+                <th class="col-target">Panelman GSH 14</th>
+                <th class="col-target">Op GSH 8-11</th>
+                <th class="col-target">Op GSH 12-13</th>
+                <th class="col-target">ShiftSpv ARU</th>
+                <th class="col-target">Panelman ARU 12-13</th>
+                <th class="col-target">Panelman ARU 14</th>
+                <th class="col-target">Op ARU 8-11</th>
+                <th class="col-target">Op ARU 12-13</th>
+                <th class="col-target">SrSpv Facility</th>
+                <th class="col-target">Jr Analyst</th>
+                <th class="col-target">HSE</th>
+            </tr>
+        </thead>
+        <tbody id="editTbody">
+            <!-- Populated by JS renderEditRows() -->
+        </tbody>
+    </table>
+</div>
 
-@* Edit action buttons placeholder — Plan 02 will inject content *@
-<div id="editActions" class="d-none"></div>
+@section Scripts {
+<script>
+// --- EDIT MODE TOGGLE ---
+function renderEditRows() {
+    var tbody = document.getElementById('editTbody');
+    tbody.innerHTML = '';
+    kkjItems.forEach(function(item) {
+        tbody.appendChild(makeRow(item));
+    });
+}
+
+function makeRow(item) {
+    var tr = document.createElement('tr');
+    tr.dataset.id = item.Id || 0;
+    var fields = [
+        { name:'No',                        val: item.No,                        cls:'col-no',    type:'number' },
+        { name:'SkillGroup',                val: item.SkillGroup,                cls:'col-meta' },
+        { name:'SubSkillGroup',             val: item.SubSkillGroup,             cls:'col-meta' },
+        { name:'Indeks',                    val: item.Indeks,                    cls:'col-meta' },
+        { name:'Kompetensi',                val: item.Kompetensi,                cls:'col-meta', style:'min-width:180px' },
+        { name:'Target_SectionHead',        val: item.Target_SectionHead,        cls:'col-target' },
+        { name:'Target_SrSpv_GSH',          val: item.Target_SrSpv_GSH,          cls:'col-target' },
+        { name:'Target_ShiftSpv_GSH',       val: item.Target_ShiftSpv_GSH,       cls:'col-target' },
+        { name:'Target_Panelman_GSH_12_13', val: item.Target_Panelman_GSH_12_13, cls:'col-target' },
+        { name:'Target_Panelman_GSH_14',    val: item.Target_Panelman_GSH_14,    cls:'col-target' },
+        { name:'Target_Operator_GSH_8_11',  val: item.Target_Operator_GSH_8_11,  cls:'col-target' },
+        { name:'Target_Operator_GSH_12_13', val: item.Target_Operator_GSH_12_13, cls:'col-target' },
+        { name:'Target_ShiftSpv_ARU',       val: item.Target_ShiftSpv_ARU,       cls:'col-target' },
+        { name:'Target_Panelman_ARU_12_13', val: item.Target_Panelman_ARU_12_13, cls:'col-target' },
+        { name:'Target_Panelman_ARU_14',    val: item.Target_Panelman_ARU_14,    cls:'col-target' },
+        { name:'Target_Operator_ARU_8_11',  val: item.Target_Operator_ARU_8_11,  cls:'col-target' },
+        { name:'Target_Operator_ARU_12_13', val: item.Target_Operator_ARU_12_13, cls:'col-target' },
+        { name:'Target_SrSpv_Facility',     val: item.Target_SrSpv_Facility,     cls:'col-target' },
+        { name:'Target_JrAnalyst',          val: item.Target_JrAnalyst,          cls:'col-target' },
+        { name:'Target_HSE',                val: item.Target_HSE,                cls:'col-target' },
+    ];
+    fields.forEach(function(f) {
+        var td = document.createElement('td');
+        td.className = f.cls || '';
+        if (f.style) td.style.cssText = f.style;
+        var input = document.createElement('input');
+        input.type = f.type || 'text';
+        input.name = f.name;
+        input.value = (f.val === null || f.val === undefined) ? '' : f.val;
+        input.className = 'edit-input';
+        td.appendChild(input);
+        tr.appendChild(td);
+    });
+    return tr;
+}
+
+function makeEmptyRow() {
+    return makeRow({
+        Id: 0, No: 0, SkillGroup: '', SubSkillGroup: '', Indeks: '', Kompetensi: '',
+        Target_SectionHead: '-', Target_SrSpv_GSH: '-', Target_ShiftSpv_GSH: '-',
+        Target_Panelman_GSH_12_13: '-', Target_Panelman_GSH_14: '-',
+        Target_Operator_GSH_8_11: '-', Target_Operator_GSH_12_13: '-',
+        Target_ShiftSpv_ARU: '-', Target_Panelman_ARU_12_13: '-',
+        Target_Panelman_ARU_14: '-', Target_Operator_ARU_8_11: '-',
+        Target_Operator_ARU_12_13: '-', Target_SrSpv_Facility: '-',
+        Target_JrAnalyst: '-', Target_HSE: '-'
+    });
+}
+
+document.getElementById('btnEdit').addEventListener('click', function() {
+    renderEditRows();
+    document.getElementById('readTable').classList.add('d-none');
+    document.getElementById('editTable').classList.remove('d-none');
+    document.getElementById('editActions').classList.remove('d-none');
+    document.getElementById('editActions').classList.remove('d-flex');
+    document.getElementById('editActions').classList.add('d-flex');
+    this.classList.add('d-none');
+});
+
+document.getElementById('btnCancel').addEventListener('click', function() {
+    document.getElementById('editTable').classList.add('d-none');
+    document.getElementById('readTable').classList.remove('d-none');
+    document.getElementById('editActions').classList.add('d-none');
+    document.getElementById('editActions').classList.remove('d-flex');
+    document.getElementById('btnEdit').classList.remove('d-none');
+});
+
+document.getElementById('btnAddRow').addEventListener('click', function() {
+    document.getElementById('editTbody').appendChild(makeEmptyRow());
+});
+
+// --- BULK SAVE ---
+document.getElementById('btnSave').addEventListener('click', function() {
+    var rows = [];
+    document.querySelectorAll('#editTbody tr').forEach(function(tr) {
+        var getVal = function(name) {
+            var el = tr.querySelector('[name="' + name + '"]');
+            return el ? el.value : '';
+        };
+        rows.push({
+            Id:                        parseInt(tr.dataset.id) || 0,
+            No:                        parseInt(getVal('No')) || 0,
+            SkillGroup:                getVal('SkillGroup'),
+            SubSkillGroup:             getVal('SubSkillGroup'),
+            Indeks:                    getVal('Indeks'),
+            Kompetensi:                getVal('Kompetensi'),
+            Target_SectionHead:        getVal('Target_SectionHead') || '-',
+            Target_SrSpv_GSH:          getVal('Target_SrSpv_GSH') || '-',
+            Target_ShiftSpv_GSH:       getVal('Target_ShiftSpv_GSH') || '-',
+            Target_Panelman_GSH_12_13: getVal('Target_Panelman_GSH_12_13') || '-',
+            Target_Panelman_GSH_14:    getVal('Target_Panelman_GSH_14') || '-',
+            Target_Operator_GSH_8_11:  getVal('Target_Operator_GSH_8_11') || '-',
+            Target_Operator_GSH_12_13: getVal('Target_Operator_GSH_12_13') || '-',
+            Target_ShiftSpv_ARU:       getVal('Target_ShiftSpv_ARU') || '-',
+            Target_Panelman_ARU_12_13: getVal('Target_Panelman_ARU_12_13') || '-',
+            Target_Panelman_ARU_14:    getVal('Target_Panelman_ARU_14') || '-',
+            Target_Operator_ARU_8_11:  getVal('Target_Operator_ARU_8_11') || '-',
+            Target_Operator_ARU_12_13: getVal('Target_Operator_ARU_12_13') || '-',
+            Target_SrSpv_Facility:     getVal('Target_SrSpv_Facility') || '-',
+            Target_JrAnalyst:          getVal('Target_JrAnalyst') || '-',
+            Target_HSE:                getVal('Target_HSE') || '-'
+        });
+    });
+
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    $.ajax({
+        url: '/Admin/KkjMatrixSave',
+        type: 'POST',
+        contentType: 'application/json',
+        headers: { 'RequestVerificationToken': token },
+        data: JSON.stringify(rows),
+        success: function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert('Error: ' + response.message);
+            }
+        },
+        error: function(xhr) {
+            alert('Server error: ' + xhr.statusText);
+        }
+    });
+});
+
+// --- DELETE ---
+function deleteRow(id, kompetensi) {
+    if (!confirm('Hapus "' + kompetensi + '"?')) return;
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    $.ajax({
+        url: '/Admin/KkjMatrixDelete',
+        type: 'POST',
+        data: { id: id, __RequestVerificationToken: token },
+        success: function(response) {
+            if (response.success) {
+                document.querySelector('tr[data-id="' + id + '"]').remove();
+                kkjItems = kkjItems.filter(function(i) { return i.Id !== id; });
+            } else if (response.blocked) {
+                alert(response.message);
+            } else {
+                alert('Error: ' + response.message);
+            }
+        }
+    });
+}
+
+// --- CLIPBOARD PASTE (TSV from Excel) ---
+document.getElementById('kkjEditTbl').addEventListener('paste', function(e) {
+    e.preventDefault();
+    var text = (e.clipboardData || window.clipboardData).getData('text');
+    if (!text) return;
+    var pastedRows = text.trim().split('\n');
+    var tbody = document.getElementById('editTbody');
+    var focusedRow = document.activeElement ? document.activeElement.closest('tr') : null;
+    var startIdx = focusedRow ? Array.from(tbody.rows).indexOf(focusedRow) : tbody.rows.length;
+    if (startIdx < 0) startIdx = tbody.rows.length;
+
+    var colNames = [
+        'No','SkillGroup','SubSkillGroup','Indeks','Kompetensi',
+        'Target_SectionHead','Target_SrSpv_GSH','Target_ShiftSpv_GSH',
+        'Target_Panelman_GSH_12_13','Target_Panelman_GSH_14',
+        'Target_Operator_GSH_8_11','Target_Operator_GSH_12_13',
+        'Target_ShiftSpv_ARU','Target_Panelman_ARU_12_13',
+        'Target_Panelman_ARU_14','Target_Operator_ARU_8_11',
+        'Target_Operator_ARU_12_13','Target_SrSpv_Facility',
+        'Target_JrAnalyst','Target_HSE'
+    ];
+
+    pastedRows.forEach(function(rowText, pasteRowIdx) {
+        var cols = rowText.split('\t');
+        var targetRowIdx = startIdx + pasteRowIdx;
+        var tr;
+        if (targetRowIdx < tbody.rows.length) {
+            tr = tbody.rows[targetRowIdx];
+        } else {
+            tr = makeEmptyRow();
+            tbody.appendChild(tr);
+        }
+        cols.forEach(function(cellVal, colIdx) {
+            if (colIdx >= colNames.length) return;
+            var input = tr.querySelector('[name="' + colNames[colIdx] + '"]');
+            if (input) input.value = cellVal.trim();
+        });
+    });
+});
+
+// --- TAB/ENTER KEYBOARD NAVIGATION ---
+document.getElementById('kkjEditTbl').addEventListener('keydown', function(e) {
+    if (e.key !== 'Tab' && e.key !== 'Enter') return;
+    var inputs = Array.from(document.querySelectorAll('#editTbody input.edit-input'));
+    var idx = inputs.indexOf(document.activeElement);
+    if (idx < 0) return;
+    e.preventDefault();
+    var nextIdx = e.shiftKey ? idx - 1 : idx + 1;
+    if (nextIdx >= 0 && nextIdx < inputs.length) {
+        inputs[nextIdx].focus();
+        inputs[nextIdx].select();
+    }
+});
+</script>
+}
