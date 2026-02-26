@@ -278,7 +278,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 - [~] **Phase 47: KKJ Matrix Manager** — MDAT-01 (2/5 plans, 3 gap plans pending)
 - [ ] **Phase 48: CPDP Items Manager** — MDAT-02 (planned)
-- [ ] **Phase 49: Assessment Competency Map Manager** — MDAT-03 (planned)
+- [ ] **Phase 49: Assessment Management Migration** — MDAT-03 (planned)
 - [ ] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned)
 - [ ] **Phase 51: Proton Track Assignment Manager** — OPER-02 (planned)
 - [ ] **Phase 52: DeliverableProgress Override** — OPER-03 (planned)
@@ -331,13 +331,17 @@ Plans:
 - [ ] 48-02-PLAN.md — Edit mode table + CpdpItemsSave POST + CpdpItemDelete POST + CMP/Mapping dropdown update
 - [ ] 48-03-PLAN.md — Multi-cell selection (Ctrl+C/V, Delete range) + Excel export endpoint
 
-### Phase 49: Assessment Competency Map Manager
-**Goal:** Admin can view, create, edit, and delete Assessment Competency Maps (AssessmentCompetencyMap) — mapping assessment categories to KKJ items
+### Phase 49: Assessment Management Migration
+**Goal:** Move Manage Assessments from CMP to Kelola Data (/Admin) — migrate all manage actions (Create, Edit, Delete, Reset, Force Close, Export, Monitoring, History) from CMPController to AdminController, move AuditLog to Admin, clean up CMP/Assessment to pure personal view
 **Depends on:** Phase 48
 **Requirements:** MDAT-03
 **Success Criteria** (what must be TRUE):
-  1. Admin can view all AssessmentCompetencyMap records and their linked assessment category → KKJ item mappings
-  2. Admin can create, edit, and delete mappings through the management UI
+  1. HC/Admin can access Manage Assessments from /Admin/ManageAssessment with all existing functionality (Create, Edit, Delete, Reset, Force Close, Export, Monitoring Detail, User History)
+  2. AuditLog page accessible at /Admin/AuditLog showing all global audit entries
+  3. CMP/Assessment is pure personal view — no manage toggle, no manage-related UI elements
+  4. Card 'Assessment Competency Map' in Admin/Index replaced with 'Manage Assessments' linking to /Admin/ManageAssessment
+  5. Card 'Manage Assessments' removed from CMP Index, card 'Assessment Lobby' renamed to 'My Assessments'
+  6. All manage-related actions removed from CMPController, AuditLog removed from CMPController
 **Plans:** TBD
 
 ### Phase 50: Coach-Coachee Mapping Manager
