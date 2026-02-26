@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 **Milestone:** v2.2 Attempt History — In Progress
 **Phase:** Phase 46 — Attempt History (not started)
 **Status:** Roadmap defined, ready for planning
-**Last activity:** 2026-02-26 — v2.2 roadmap created (Phase 46)
+**Last activity:** 2026-02-26 - Completed quick task 14: Add Section column to CpdpItem, migration, populate data, filter Mapping() by section
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 
