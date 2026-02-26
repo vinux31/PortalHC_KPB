@@ -250,5 +250,92 @@ namespace HcPortal.Controllers
                 .ToListAsync();
             return View(items);
         }
+
+        // POST /Admin/CpdpItemsSave
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CpdpItemsSave([FromBody] List<CpdpItem> rows)
+        {
+            if (rows == null || !rows.Any())
+                return Json(new { success = false, message = "Tidak ada data yang diterima." });
+
+            try
+            {
+                foreach (var row in rows)
+                {
+                    if (row.Id == 0)
+                    {
+                        _context.CpdpItems.Add(row);
+                    }
+                    else
+                    {
+                        var existing = await _context.CpdpItems.FindAsync(row.Id);
+                        if (existing != null)
+                        {
+                            // Warn if NamaKompetensi changed and IdpItems reference the old name
+                            if (existing.NamaKompetensi != row.NamaKompetensi)
+                            {
+                                var refCount = await _context.IdpItems
+                                    .CountAsync(i => i.Kompetensi == existing.NamaKompetensi);
+                                if (refCount > 0)
+                                    return Json(new { success = false,
+                                        message = $"Tidak bisa ubah NamaKompetensi '{existing.NamaKompetensi}' — {refCount} IDP record masih mereferensi nama ini." });
+                            }
+
+                            existing.No                 = row.No ?? "";
+                            existing.NamaKompetensi     = row.NamaKompetensi ?? "";
+                            existing.IndikatorPerilaku  = row.IndikatorPerilaku ?? "";
+                            existing.DetailIndikator    = row.DetailIndikator ?? "";
+                            existing.Silabus            = row.Silabus ?? "";
+                            existing.TargetDeliverable  = row.TargetDeliverable ?? "";
+                            existing.Status             = row.Status ?? "";
+                            existing.Section            = row.Section ?? "";
+                        }
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                var actor = await _userManager.GetUserAsync(User);
+                if (actor != null)
+                    await _auditLog.LogAsync(actor.Id, actor.FullName, "BulkUpdate",
+                        $"CPDP Items bulk-save: {rows.Count} rows", targetType: "CpdpItem");
+
+                return Json(new { success = true, message = $"{rows.Count} baris berhasil disimpan." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST /Admin/CpdpItemDelete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CpdpItemDelete(int id)
+        {
+            var item = await _context.CpdpItems.FindAsync(id);
+            if (item == null)
+                return Json(new { success = false, message = "CPDP item tidak ditemukan." });
+
+            // Reference guard: check IdpItem records that match by NamaKompetensi string
+            var usageCount = await _context.IdpItems
+                .CountAsync(i => i.Kompetensi == item.NamaKompetensi);
+
+            if (usageCount > 0)
+                return Json(new { success = false, blocked = true,
+                    message = $"Tidak dapat dihapus — digunakan oleh {usageCount} IDP record." });
+
+            _context.CpdpItems.Remove(item);
+            await _context.SaveChangesAsync();
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor != null)
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
+                    $"Deleted CpdpItem Id={id} ({item.NamaKompetensi})",
+                    targetId: id, targetType: "CpdpItem");
+
+            return Json(new { success = true });
+        }
     }
 }
