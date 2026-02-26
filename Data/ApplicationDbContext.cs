@@ -61,6 +61,9 @@ namespace HcPortal.Data
         // Audit Log — Phase 24
         public DbSet<AuditLog> AuditLogs { get; set; }
 
+        // Attempt History — Phase 46
+        public DbSet<AssessmentAttemptHistory> AssessmentAttemptHistory { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -415,6 +418,19 @@ namespace HcPortal.Data
                 entity.HasIndex(a => a.ActorUserId);
                 entity.HasIndex(a => a.ActionType);
                 entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // ========== Attempt History (Phase 46) ==========
+            builder.Entity<AssessmentAttemptHistory>(entity =>
+            {
+                entity.HasOne(h => h.User)
+                    .WithMany()
+                    .HasForeignKey(h => h.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(h => h.UserId);
+                entity.HasIndex(h => new { h.UserId, h.Title });
+                entity.Property(h => h.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
             });
         }
     }
