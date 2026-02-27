@@ -455,6 +455,8 @@
     }
 </style>
 
+<script type="application/json" id="createdAssessmentData">@Html.Raw(ViewBag.CreatedAssessment ?? "")</script>
+
 @section Scripts {
     <script>
         // Global variables for form validation
@@ -730,7 +732,8 @@
 
         // === Auto-show success modal (batch) ===
         (function() {
-            var createdData = '@Html.Raw(ViewBag.CreatedAssessment ?? "")';
+            var el = document.getElementById('createdAssessmentData');
+            var createdData = el ? el.textContent.trim() : '';
             if (createdData) {
                 try {
                     var a = JSON.parse(createdData);

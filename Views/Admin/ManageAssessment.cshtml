@@ -91,7 +91,7 @@ else
 {
     <!-- Assessment Table -->
     <div class="card shadow-sm border-0">
-        <div class="table-responsive" style="min-height: calc(100vh - 280px);">
+        <div class="table-responsive" style="min-height: calc(100vh - 380px); overflow-y: auto;">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
@@ -150,7 +150,13 @@ else
                                     <ul class="list-unstyled small text-muted mb-0">
                                         @foreach (var u in userList)
                                         {
-                                            <li><i class="bi bi-person me-1"></i>@u.UserFullName (@u.UserEmail)</li>
+                                            <li class="d-flex justify-content-between align-items-center">
+                                                <span><i class="bi bi-person me-1"></i>@u.UserFullName (@u.UserEmail)</span>
+                                                <a href="@Url.Action("UserAssessmentHistory", "Admin", new { userId = u.UserId })"
+                                                   class="btn btn-link btn-sm p-0 text-muted" title="Riwayat Assessment">
+                                                    <i class="bi bi-clock-history"></i>
+                                                </a>
+                                            </li>
                                         }
                                     </ul>
                                 </div>
@@ -180,12 +186,15 @@ else
                                                 <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
                                             </a>
                                         </li>
+                                        @if ((bool)group.IsTokenRequired)
+                                        {
                                         <li>
                                             <button type="button" class="dropdown-item text-warning btn-regenerate-token"
                                                     data-id="@group.RepresentativeId">
                                                 <i class="bi bi-arrow-repeat me-2"></i>Regenerate Token
                                             </button>
                                         </li>
+                                        }
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <form method="post" action="/Admin/DeleteAssessmentGroup/@group.RepresentativeId">
