@@ -46,8 +46,8 @@
 
 - [x] **ACTN-01**: SrSpv/SectionHead bisa approve deliverable dari Progress page, status tersimpan ke ProtonDeliverableProgress di database
 - [x] **ACTN-02**: SrSpv/SectionHead bisa reject deliverable dari Progress page dengan alasan tertulis
-- [ ] **ACTN-03**: Coach bisa submit laporan coaching dari modal, tersimpan sebagai CoachingSession record di database
-- [ ] **ACTN-04**: Upload evidence dan lihat evidence di Progress page tersambung ke existing Deliverable workflow
+- [x] **ACTN-03**: Coach bisa submit laporan coaching dari modal, tersimpan sebagai CoachingSession record di database
+- [x] **ACTN-04**: Upload evidence dan lihat evidence di Progress page tersambung ke existing Deliverable workflow
 - [ ] **ACTN-05**: Export data progress ke Excel (ClosedXML) dan PDF
 
 ### UI Polish
@@ -132,8 +132,8 @@
 | FILT-04 | Phase 64 | Complete |
 | ACTN-01 | Phase 65 | Complete |
 | ACTN-02 | Phase 65 | Complete |
-| ACTN-03 | Phase 65 | Pending |
-| ACTN-04 | Phase 65 | Pending |
+| ACTN-03 | Phase 65 | Complete |
+| ACTN-04 | Phase 65 | Complete |
 | ACTN-05 | Phase 65 | Pending |
 | UI-01   | Phase 64 | Complete |
 | UI-02   | Phase 66 | Pending |
