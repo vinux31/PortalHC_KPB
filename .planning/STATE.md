@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: executing
+last_updated: "2026-02-27T04:40:03.495Z"
+last_activity: "2026-02-27 - Completed Plan 49-05: UAT gap closure"
+progress:
+  total_phases: 49
+  completed_phases: 43
+  total_plans: 108
+  completed_plans: 106
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: completed
 last_updated: "2026-02-28T02:45:35.717Z"
 last_activity: "2026-02-28 - Completed Plan 69-02: CMPController ManageWorkers cleanup (11 actions removed), 5 CMP view files deleted, navbar Kelola Pekerja button removed, Manajemen Pekerja hub card added as first in Section A, zero stale references verified"
@@ -386,6 +400,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - GetMonitorData endpoint kept in CMPController (not in removal list, still used indirectly)
 - [Phase 49-05]: JSON island pattern (script type=application/json) used for success modal data to avoid quote conflicts in JS string literals
 - [Phase 49-05]: AssessmentMonitoringDetail, ExportAssessmentResults, ForceCloseAll, CloseEarly now accept composite key (title, category, scheduleDate) — resilient to deleted representative sessions
+- [Phase 64-01]: ProtonTrack ThenInclude added to deliverable query chain for Track/Tahun EF Where clause resolution
+- [Phase 64-01]: dataCoacheeIds defaults to all scopedCoacheeIds so multi-coachee aggregate view loads without selecting a specific coachee
+- [Phase 64-01]: Coach Track cascade narrows scopedCoacheeIds via ProtonTrackAssignments before dropdown population
 
 **Phase 50-01 decisions:**
 - Sequential loop counter (idx++) used for Bootstrap collapse HTML IDs — GUID hyphens break CSS selectors

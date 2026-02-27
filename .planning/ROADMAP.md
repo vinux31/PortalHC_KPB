@@ -546,7 +546,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   4. Typing in the search box hides non-matching competency rows client-side without a page reload
   5. Role-scoped data is enforced: Spv sees their unit, SrSpv/SectionHead see their section, HC/Admin see all — not based on filter selection alone
   6. Filter dropdowns show the currently selected value as selected on page reload (no incorrect HTML selected attribute behavior)
-**Plans:** TBD
+**Plans:** 1/2 plans executed
 
 ### Phase 65: Actions
 **Goal:** Approve, reject, coaching report, evidence, and export actions all persist to the database — no more console.log stubs or missing onclick handlers
