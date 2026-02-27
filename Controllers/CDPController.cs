@@ -815,6 +815,26 @@ namespace HcPortal.Controllers
             bool canApprove = isAtasanAccess && progress.Status == "Submitted";
             bool canHCReview = isHC && progress.HCApprovalStatus == "Pending";
 
+            // Phase 65-03: Load coaching sessions linked to this deliverable progress
+            var coachingSessions = await _context.CoachingSessions
+                .Where(cs => cs.ProtonDeliverableProgressId == id)
+                .OrderByDescending(cs => cs.CreatedAt)
+                .ToListAsync();
+            ViewBag.CoachingSessions = coachingSessions;
+
+            if (coachingSessions.Any())
+            {
+                var coachIds = coachingSessions.Select(cs => cs.CoachId).Distinct().ToList();
+                var coachNames = await _context.Users
+                    .Where(u => coachIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
+                ViewBag.CoachNames = coachNames;
+            }
+            else
+            {
+                ViewBag.CoachNames = new Dictionary<string, string>();
+            }
+
             var viewModel = new DeliverableViewModel
             {
                 Progress = progress,
