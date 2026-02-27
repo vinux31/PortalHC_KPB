@@ -356,10 +356,14 @@ Plans:
 **Completed:** 2026-02-27
 
 ### Phase 50: Coach-Coachee Mapping Manager
-**Goal:** Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) — assign and unassign coaches to coachees
+**Goal:** Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) through a grouped-by-coach management page with bulk assign, soft-delete, optional ProtonTrack assignment, section filter, Excel export, and AuditLog integration
 **Depends on:** Phase 49
 **Requirements:** OPER-01
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 50-01-PLAN.md — GET scaffold + grouped-by-coach view + filters/pagination + modal skeletons + Admin/Index card activation
+- [ ] 50-02-PLAN.md — Write endpoints (Assign/Edit/Deactivate/Reactivate) + ProtonTrack side-effect + AuditLog + Excel export + modal JS wiring
 
 ### Phase 51: Proton Track Assignment Manager
 **Goal:** Admin can view, create, edit, and delete Proton Track Assignments (ProtonTrackAssignment) — assign workers to Proton tracks and manage active/inactive state
@@ -493,7 +497,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 47. KKJ Matrix Manager | v2.3 | 9/9 | Complete | 2026-02-26 |
 | 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 4/4 | Complete | 2026-02-26 |
 | 49. Assessment Management Migration | 5/5 | Complete    | 2026-02-27 | - |
-| 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
+| 50. Coach-Coachee Mapping Manager | v2.3 | 0/2 | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
 | 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
 | 53. Final Assessment Manager | v2.3 | 0/? | Not started | - |
