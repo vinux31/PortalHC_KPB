@@ -511,7 +511,11 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |
 | 63. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
+<<<<<<< HEAD
 | 64. Functional Filters | v2.4 | 0/? | Not started | - |
+=======
+| 64. Functional Filters | 2/2 | Complete    | 2026-02-27 | - |
+>>>>>>> 0ddd4e6 (docs(phase-64): complete phase execution)
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
 
