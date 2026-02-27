@@ -32,6 +32,15 @@ namespace HcPortal.Controllers
         public int Id { get; set; }
     }
 
+    public class OverrideSaveRequest
+    {
+        public int ProgressId { get; set; }
+        public string NewStatus { get; set; } = "";
+        public string NewHCStatus { get; set; } = "";
+        public string? NewRejectionReason { get; set; }
+        public string OverrideReason { get; set; } = "";
+    }
+
     [Authorize(Roles = "Admin,HC")]
     public class ProtonDataController : Controller
     {
@@ -474,6 +483,184 @@ namespace HcPortal.Controllers
             await _auditLog.LogAsync(user.Id, user.FullName, "Delete",
                 $"Deleted guidance file '{fileName}'",
                 targetId: req.Id, targetType: "CoachingGuidanceFile");
+
+            return Json(new { success = true });
+        }
+
+        // GET: /ProtonData/OverrideList?bagian=X&unit=Y&trackId=Z&statusFilter=rejected|pendingHC
+        public async Task<IActionResult> OverrideList(string bagian, string unit, int trackId, string? statusFilter)
+        {
+            if (string.IsNullOrEmpty(bagian) || string.IsNullOrEmpty(unit) || trackId == 0)
+                return Json(new { success = true, coachees = new List<object>(), deliverableHeaders = new List<object>() });
+
+            // 1. Load all deliverables for this Bagian+Unit+Track scope
+            var deliverables = await _context.ProtonDeliverableList
+                .Include(d => d.ProtonSubKompetensi)
+                    .ThenInclude(s => s.ProtonKompetensi)
+                .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.Bagian == bagian
+                         && d.ProtonSubKompetensi.ProtonKompetensi.Unit == unit
+                         && d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == trackId)
+                .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
+                    .ThenBy(d => d.ProtonSubKompetensi.Urutan)
+                    .ThenBy(d => d.Urutan)
+                .ToListAsync();
+
+            var deliverableIds = deliverables.Select(d => d.Id).ToList();
+
+            // 2. Load all progress records for these deliverables
+            var allProgresses = await _context.ProtonDeliverableProgresses
+                .Where(p => deliverableIds.Contains(p.ProtonDeliverableId))
+                .ToListAsync();
+
+            // 3. Get coachee names as dictionary
+            var coacheeIds = allProgresses.Select(p => p.CoacheeId).Distinct().ToList();
+            var coacheeNames = await _context.Users
+                .Where(u => coacheeIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
+
+            // 4. Group progresses by coachee
+            var progressesByCoachee = allProgresses.GroupBy(p => p.CoacheeId).ToList();
+
+            // 5. Apply status filter in memory
+            var filteredGroups = progressesByCoachee.AsEnumerable();
+            if (statusFilter == "rejected")
+                filteredGroups = filteredGroups.Where(g => g.Any(p => p.Status == "Rejected"));
+            else if (statusFilter == "pendingHC")
+                filteredGroups = filteredGroups.Where(g => g.Any(p => p.HCApprovalStatus == "Pending" && p.Status == "Approved"));
+
+            // 6. Build response per coachee
+            var coachees = filteredGroups.Select(g =>
+            {
+                var coacheeId = g.Key;
+                var coacheeName = coacheeNames.TryGetValue(coacheeId, out var name) ? name : coacheeId;
+                var progressMap = g.ToDictionary(p => p.ProtonDeliverableId);
+
+                var badges = deliverables.Select(d =>
+                {
+                    if (progressMap.TryGetValue(d.Id, out var prog))
+                        return (object)new { progressId = prog.Id, deliverableId = d.Id, deliverableName = d.NamaDeliverable, status = prog.Status };
+                    else
+                        return (object)new { progressId = (int?)null, deliverableId = d.Id, deliverableName = d.NamaDeliverable, status = "—" };
+                }).ToList();
+
+                return (object)new { coacheeId, coacheeName, badges };
+            }).ToList();
+
+            // 7. Build deliverable headers for table columns
+            var deliverableHeaders = deliverables.Select(d => new { id = d.Id, name = d.NamaDeliverable }).ToList();
+
+            return Json(new { success = true, coachees, deliverableHeaders });
+        }
+
+        // GET: /ProtonData/OverrideDetail?id=X
+        public async Task<IActionResult> OverrideDetail(int id)
+        {
+            var progress = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (progress == null) return Json(new { success = false });
+
+            string? approverName = null;
+            if (!string.IsNullOrEmpty(progress.ApprovedById))
+            {
+                approverName = await _context.Users
+                    .Where(u => u.Id == progress.ApprovedById)
+                    .Select(u => u.FullName ?? u.UserName)
+                    .FirstOrDefaultAsync();
+            }
+
+            string? hcReviewerName = null;
+            if (!string.IsNullOrEmpty(progress.HCReviewedById))
+            {
+                hcReviewerName = await _context.Users
+                    .Where(u => u.Id == progress.HCReviewedById)
+                    .Select(u => u.FullName ?? u.UserName)
+                    .FirstOrDefaultAsync();
+            }
+
+            var deliverable = progress.ProtonDeliverable;
+            var subKomp = deliverable?.ProtonSubKompetensi;
+            var komp = subKomp?.ProtonKompetensi;
+
+            return Json(new
+            {
+                success = true,
+                id = progress.Id,
+                deliverableName = deliverable?.NamaDeliverable,
+                kompetensiName = komp?.NamaKompetensi,
+                subKompetensiName = subKomp?.NamaSubKompetensi,
+                coacheeId = progress.CoacheeId,
+                status = progress.Status,
+                hcApprovalStatus = progress.HCApprovalStatus,
+                evidenceFileName = progress.EvidenceFileName,
+                evidencePath = progress.EvidencePath,
+                submittedAt = progress.SubmittedAt?.ToString("dd MMM yyyy HH:mm"),
+                approvedAt = progress.ApprovedAt?.ToString("dd MMM yyyy HH:mm"),
+                rejectedAt = progress.RejectedAt?.ToString("dd MMM yyyy HH:mm"),
+                rejectionReason = progress.RejectionReason,
+                approvedByName = approverName,
+                hcReviewedAt = progress.HCReviewedAt?.ToString("dd MMM yyyy HH:mm"),
+                hcReviewedByName = hcReviewerName
+            });
+        }
+
+        // POST: /ProtonData/OverrideSave
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> OverrideSave([FromBody] OverrideSaveRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            if (string.IsNullOrWhiteSpace(req.OverrideReason))
+                return Json(new { success = false, message = "Alasan override wajib diisi." });
+
+            var validStatuses = new[] { "Active", "Submitted", "Approved", "Rejected" };
+            if (!validStatuses.Contains(req.NewStatus))
+                return Json(new { success = false, message = "Status tidak valid." });
+
+            var validHCStatuses = new[] { "Pending", "Reviewed" };
+            if (!validHCStatuses.Contains(req.NewHCStatus))
+                return Json(new { success = false, message = "HC Status tidak valid." });
+
+            var progress = await _context.ProtonDeliverableProgresses.FindAsync(req.ProgressId);
+            if (progress == null)
+                return Json(new { success = false, message = "Record tidak ditemukan." });
+
+            var oldStatus = progress.Status;
+
+            // Auto-fill timestamps based on new status
+            switch (req.NewStatus)
+            {
+                case "Approved":
+                    progress.ApprovedAt = DateTime.UtcNow;
+                    progress.ApprovedById = user.Id;
+                    break;
+                case "Rejected":
+                    progress.RejectedAt = DateTime.UtcNow;
+                    break;
+                case "Submitted":
+                    progress.SubmittedAt = DateTime.UtcNow;
+                    break;
+                case "Active":
+                    progress.ApprovedAt = null;
+                    progress.RejectedAt = null;
+                    progress.SubmittedAt = null;
+                    break;
+            }
+
+            progress.Status = req.NewStatus;
+            progress.HCApprovalStatus = req.NewHCStatus;
+            progress.RejectionReason = req.NewRejectionReason;
+
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(user.Id, user.FullName ?? user.UserName ?? user.Id, "Override",
+                $"Override deliverable progress #{progress.Id}: {oldStatus} → {req.NewStatus}. Alasan: {req.OverrideReason}",
+                targetId: progress.Id, targetType: "ProtonDeliverableProgress");
 
             return Json(new { success = true });
         }
