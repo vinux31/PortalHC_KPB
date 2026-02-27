@@ -18,6 +18,7 @@
 - ✅ **v2.2 Attempt History** — Phase 46 (shipped 2026-02-26)
 - 🚧 **v2.3 Admin Portal** — Phases 47-62 (in progress)
 - 🚧 **v2.4 CDP Progress** — Phases 63-66 (in progress)
+- 📋 **v2.5 User Infrastructure & AD Readiness** — Phases 67-73 (planned)
 
 ## Phases
 
@@ -289,10 +290,10 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [x] ~~**Phase 56: Package Question Edit/Delete**~~ — REMOVED (covered by Phase 61 Assessment Management consolidation)
 - [x] ~~**Phase 57: ProtonTrack Edit/Delete**~~ — REMOVED (covered by Phase 60 Proton Catalog consolidation)
 - [x] ~~**Phase 58: Password Reset Standalone**~~ — REMOVED (covered by Phase 59 Kelola Pekerja consolidation)
-- [ ] **Phase 59: Konsolidasi Kelola Pekerja** — CONS-01 (planned)
+- [~] **Phase 59: Konsolidasi Kelola Pekerja** — ~~CONS-01~~ Superseded by v2.5 Phase 69
 - [ ] **Phase 60: Konsolidasi Proton Catalog** — CONS-02 (planned)
 - [ ] **Phase 61: Konsolidasi Assessment Management** — CONS-03 (planned)
-- [ ] **Phase 62: Update Kelola Data Hub** — CONS-04 (planned)
+- [~] **Phase 62: Update Kelola Data Hub** — ~~CONS-04~~ Partially superseded by v2.5 Phase 70
 
 ### Phase Details
 
@@ -405,16 +406,9 @@ Covered by Phase 60 (Proton Catalog consolidation). ProtonTrack already has full
 ### ~~Phase 58: Password Reset Standalone~~ — REMOVED
 Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has password change fields — no standalone page needed.
 
-### Phase 59: Konsolidasi Kelola Pekerja
-**Goal:** Move ManageWorkers (CRUD pekerja, import/export, edit password) from CMP into Kelola Data — single hub for all user management, remove standalone navbar button
-**Depends on:** Phase 54
-**Requirements:** CONS-01
-**Success Criteria** (what must be TRUE):
-  1. Admin/HC can access Kelola Pekerja from Kelola Data hub page (Section B card)
-  2. All ManageWorkers functionality works from Admin section (list, create, edit, delete, import, export, password change)
-  3. Standalone "Kelola Pekerja" button removed from navbar
-  4. Old /CMP/ManageWorkers URL redirects to new location
-**Plans:** TBD
+### ~~Phase 59: Konsolidasi Kelola Pekerja~~ — Superseded by v2.5 Phase 69
+**Status:** Superseded — ManageWorkers migration to Admin is now covered by v2.5 Phase 69 (ManageWorkers Migration to Admin) with expanded scope including USTR-02 (GetDefaultView extraction).
+**Original Requirements:** CONS-01 → replaced by USR-01, USR-02, USR-03, USTR-02
 
 ### Phase 60: Konsolidasi Proton Catalog
 **Goal:** Move Proton Catalog (master data Track/Kompetensi/SubKompetensi/Deliverable CRUD) from standalone /ProtonCatalog into Kelola Data Section A — all master data tables in one hub
@@ -437,16 +431,9 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   4. Old /CMP/Assessment?view=manage URL redirects to new location
 **Plans:** TBD
 
-### Phase 62: Update Kelola Data Hub
-**Goal:** Restructure Admin/Index.cshtml to reflect final consolidated layout — remove Section C (all items covered), update all card statuses and links, ensure hub is the single source of truth for admin navigation
-**Depends on:** Phase 61
-**Requirements:** CONS-04
-**Success Criteria** (what must be TRUE):
-  1. Section A (Master Data) shows: KKJ Matrix, CPDP Items, Proton Catalog, Assessment Competency Map — all with correct links and active/segera badges
-  2. Section B (Operasional) shows: Kelola Pekerja, Assessment Management, Coach-Coachee Mapping, Penugasan Coachee, Deliverable Override, Final Assessment Manager, Coaching Session Override — all with correct links
-  3. Section C (Kelengkapan CRUD) is removed entirely
-  4. All active cards link to working pages, all "Segera" cards are correctly badged
-**Plans:** TBD
+### ~~Phase 62: Update Kelola Data Hub~~ — Partially superseded by v2.5 Phase 70
+**Status:** Partially superseded — Kelola Data hub reorganization (ManageWorkers card prominent, stale cleanup) is now covered by v2.5 Phase 70. Remaining consolidation items (Proton Catalog, Assessment Management cards) stay in v2.3 scope if Phase 60/61 are executed.
+**Original Requirements:** CONS-04 → partially replaced by USR-04
 
 ## Progress
 
@@ -510,14 +497,21 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 56. ~~Package Question Edit/Delete~~ | v2.3 | - | Removed | - |
 | 57. ~~ProtonTrack Edit/Delete~~ | v2.3 | - | Removed | - |
 | 58. ~~Password Reset Standalone~~ | v2.3 | - | Removed | - |
-| 59. Konsolidasi Kelola Pekerja | v2.3 | 0/? | Not started | - |
+| 59. ~~Konsolidasi Kelola Pekerja~~ | v2.3 | - | Superseded (v2.5 P69) | - |
 | 60. Konsolidasi Proton Catalog | v2.3 | 0/? | Not started | - |
 | 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
-| 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |
+| 62. ~~Update Kelola Data Hub~~ | v2.3 | - | Partially superseded (v2.5 P70) | - |
 | 63. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 64. Functional Filters | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
+| 67. Dynamic Profile Page | v2.5 | 0/1 | Not started | - |
+| 68. Functional Settings Page | v2.5 | 0/2 | Not started | - |
+| 69. ManageWorkers Migration to Admin | v2.5 | 0/2 | Not started | - |
+| 70. Kelola Data Hub Reorganization | v2.5 | 0/1 | Not started | - |
+| 71. LDAP Auth Service Foundation | v2.5 | 0/2 | Not started | - |
+| 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
+| 73. User Structure Polish | v2.5 | 0/1 | Not started | - |
 
 ## v2.4 CDP Progress
 
@@ -574,3 +568,106 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   1. When no deliverable data matches the current filter/role scope, the table shows a descriptive empty-state message instead of a blank table
   2. Large coachee/deliverable datasets are paginated so the page does not load hundreds of rows at once; user can navigate between pages
 **Plans:** TBD
+
+## v2.5 User Infrastructure & AD Readiness
+
+### Phases
+
+- [ ] **Phase 67: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned)
+- [ ] **Phase 68: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned)
+- [ ] **Phase 69: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 59
+- [ ] **Phase 70: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 62
+- [ ] **Phase 71: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned)
+- [ ] **Phase 72: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned)
+- [ ] **Phase 73: User Structure Polish** — USTR-02 completion (planned)
+
+### Phase Details
+
+### Phase 67: Dynamic Profile Page
+**Goal:** Profile page menampilkan data real user login — no more hardcoded placeholders
+**Depends on:** Phase 66 (v2.4 complete), or can start in parallel
+**Requirements:** PROF-01, PROF-02, PROF-03
+**Success Criteria** (what must be TRUE):
+  1. Profile page displays real user data: Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate from @Model
+  2. Empty/null fields show placeholder "Belum diisi" instead of blank space or error
+  3. Avatar initials are dynamically generated from user's FullName (not hardcoded "BS")
+**Plans:** 1 plan
+- [ ] 67-01: Rewrite Profile.cshtml with @Model binding, null-safe display, dynamic initials
+
+### Phase 68: Functional Settings Page
+**Goal:** Settings page functional — change password works, edit profile fields, cleanup non-functional items
+**Depends on:** Phase 67
+**Requirements:** PROF-04, PROF-05, PROF-06
+**Success Criteria** (what must be TRUE):
+  1. User can change password via ChangePasswordAsync with current/new/confirm fields and validation
+  2. User can edit FullName and Position fields; NIP, Email, Role, Section are displayed read-only
+  3. Non-functional items (2FA, Notifications, Language) are either removed or displayed as "Belum Tersedia" with disabled state
+**Plans:** 2 plans
+- [ ] 68-01: Backend — ChangePasswordViewModel, EditProfileViewModel, AccountController POST actions
+- [ ] 68-02: Frontend — Rewrite Settings.cshtml, 2 form sections, remove/disable placeholder items
+
+### Phase 69: ManageWorkers Migration to Admin
+**Goal:** Pindahkan ManageWorkers dari CMPController ke AdminController, redirect old URLs
+**Depends on:** Phase 68
+**Requirements:** USR-01, USR-02, USR-03, USTR-02
+**Supersedes:** v2.3 Phase 59 (Konsolidasi Kelola Pekerja)
+**Success Criteria** (what must be TRUE):
+  1. All ManageWorkers CRUD actions (list, create, edit, delete, import, export, detail) work from /Admin/ManageWorkers
+  2. Old /CMP/ManageWorkers returns 301 redirect to /Admin/ManageWorkers
+  3. Standalone "Kelola Pekerja" button removed from navbar — access only via Kelola Data hub
+  4. Role-to-SelectedView mapping extracted to shared helper UserRoles.GetDefaultView()
+**Plans:** 2 plans
+- [ ] 69-01: Backend — Copy 8 actions to AdminController, move 5 views, update references, add redirects, extract GetDefaultView()
+- [ ] 69-02: Remove from CMPController, remove navbar button, verify all internal links
+
+### Phase 70: Kelola Data Hub Reorganization
+**Goal:** Admin/Index.cshtml restructured — ManageWorkers prominent, stale items cleaned up
+**Depends on:** Phase 69
+**Requirements:** USR-04
+**Partially supersedes:** v2.3 Phase 62 (Update Kelola Data Hub)
+**Success Criteria** (what must be TRUE):
+  1. Kelola Data hub page (Admin/Index.cshtml) has ManageWorkers card in prominent position
+  2. Stale "Segera" items cleaned up — cards for implemented features show active status
+  3. Section C removed or reorganized
+**Plans:** 1 plan
+- [ ] 70-01: Rewrite Admin/Index.cshtml sections, add Kelola Pekerja card, remove Section C
+
+### Phase 71: LDAP Auth Service Foundation
+**Goal:** Infrastructure dual auth — NuGet, service interface, implementations, config toggle, AuthSource field. Login flow belum diubah.
+**Depends on:** Phase 70
+**Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01
+**Success Criteria** (what must be TRUE):
+  1. System.DirectoryServices NuGet package added to csproj
+  2. ApplicationUser has AuthSource field ("Local"/"AD") with EF migration
+  3. appsettings.json has `Authentication:UseActiveDirectory` toggle (dev=false)
+  4. IAuthService interface defined with AuthenticateAsync method
+  5. LocalAuthService wraps existing PasswordSignInAsync
+  6. LdapAuthService uses DirectoryEntry with Pertamina LDAP path and samaccountname filter
+  7. Program.cs registers IAuthService via DI based on config toggle
+**Plans:** 2 plans
+- [ ] 71-01: NuGet package, AuthSource migration, config sections, IAuthService interface, LocalAuthService
+- [ ] 71-02: LdapAuthService with Pertamina DirectoryEntry code + AD attribute extraction, Program.cs DI registration
+
+### Phase 72: Dual Auth Login Flow
+**Goal:** Login flow pakai IAuthService — AD mode dengan auto-provisioning & profile sync, local mode unchanged
+**Depends on:** Phase 71
+**Requirements:** AUTH-05, AUTH-06, AUTH-07
+**Success Criteria** (what must be TRUE):
+  1. Login POST uses IAuthService for authentication instead of direct PasswordSignInAsync
+  2. AD mode: login field shows "Username" with NIP placeholder; local mode: shows "Email" with email placeholder
+  3. First-time AD user auto-provisioned in local DB with role Coachee, RoleLevel=6, SelectedView="Coachee", AuthSource="AD"
+  4. Existing AD user: FullName/NIP/Position/Section synced from AD on login; Role and SelectedView never overwritten
+**Plans:** 2 plans
+- [ ] 72-01: Backend — Rewrite AccountController.Login POST with IAuthService, find-or-create AD user, profile sync
+- [ ] 72-02: Frontend — Login.cshtml adaptive (Username vs Email field), auth mode flag
+
+### Phase 73: User Structure Polish
+**Goal:** Finalize — consistent SelectedView mapping, SeedData update, documentation
+**Depends on:** Phase 72
+**Requirements:** USTR-02 (completion)
+**Success Criteria** (what must be TRUE):
+  1. All inline role-to-SelectedView switch/if statements replaced with UserRoles.GetDefaultView()
+  2. SeedData sets AuthSource="Local" for all seeded users
+  3. ARCHITECTURE.md updated with dual auth documentation
+**Plans:** 1 plan
+- [ ] 73-01: Replace all inline role-to-view switches with GetDefaultView(), SeedData AuthSource, ARCHITECTURE.md update

@@ -57,6 +57,40 @@
 - [ ] **UI-03**: HC/Admin bisa lihat data semua user lintas section, role-scoped (Spv=unit, SrSpv/SectionHead=section, HC/Admin=all)
 - [ ] **UI-04**: Tabel data dipaginasi (server-side atau client-side) agar tidak load semua sekaligus
 
+## v2.5 Requirements — User Infrastructure & AD Readiness
+
+### PROF — Profile & Settings
+
+- [ ] **PROF-01**: Profile page menampilkan data real user login (Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate)
+- [ ] **PROF-02**: Field kosong menampilkan placeholder "Belum diisi", bukan blank/error
+- [ ] **PROF-03**: Avatar initials dinamis dari FullName user (bukan hardcoded "BS")
+- [ ] **PROF-04**: Settings page: Change Password functional via ChangePasswordAsync
+- [ ] **PROF-05**: Settings page: User bisa edit FullName dan Position; NIP/Email/Role/Section read-only
+- [ ] **PROF-06**: Item non-functional (2FA, Notifications, Language) dihapus atau di-mark "Belum Tersedia" disabled
+
+### AUTH — Authentication
+
+- [ ] **AUTH-01**: Config toggle `Authentication:UseActiveDirectory` di appsettings.json (dev=false, prod=true)
+- [ ] **AUTH-02**: `IAuthService` interface + `LdapAuthService` menggunakan DirectoryEntry ke `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` dengan samaccountname filter
+- [ ] **AUTH-03**: `LocalAuthService` implementation wrapping existing PasswordSignInAsync
+- [ ] **AUTH-04**: Program.cs register IAuthService berdasarkan config toggle via DI
+- [ ] **AUTH-05**: Login page: "Username" + placeholder NIP (AD mode), "Email" + placeholder email (local mode)
+- [ ] **AUTH-06**: First-time AD user auto-provisioned di DB lokal: role Coachee, RoleLevel=6, SelectedView="Coachee", AuthSource="AD"
+- [ ] **AUTH-07**: Existing AD user: sync FullName/NIP/Position/Section dari AD; Role dan SelectedView TIDAK pernah diubah
+- [ ] **AUTH-08**: NuGet package System.DirectoryServices ditambahkan ke csproj
+
+### USR — Admin User Management
+
+- [ ] **USR-01**: ManageWorkers CRUD (list, create, edit, delete, import, export, detail) accessible dari /Admin/ManageWorkers
+- [ ] **USR-02**: Old /CMP/ManageWorkers redirect 301 ke /Admin/ManageWorkers
+- [ ] **USR-03**: Standalone "Kelola Pekerja" button di navbar dihapus — akses via Kelola Data hub
+- [ ] **USR-04**: Kelola Data hub di-reorganize: ManageWorkers card prominent, stale "Segera" items cleaned up
+
+### USTR — User Structure
+
+- [ ] **USTR-01**: ApplicationUser punya field AuthSource ("Local"/"AD") + EF migration
+- [ ] **USTR-02**: Role-to-SelectedView mapping di-extract ke shared helper UserRoles.GetDefaultView()
+
 ## Future Requirements
 
 *(None captured yet)*
@@ -105,6 +139,26 @@
 | UI-02   | Phase 66 | Pending |
 | UI-03   | Phase 64 | Pending |
 | UI-04   | Phase 66 | Pending |
+| PROF-01 | Phase 67 | Pending |
+| PROF-02 | Phase 67 | Pending |
+| PROF-03 | Phase 67 | Pending |
+| PROF-04 | Phase 68 | Pending |
+| PROF-05 | Phase 68 | Pending |
+| PROF-06 | Phase 68 | Pending |
+| AUTH-01 | Phase 71 | Pending |
+| AUTH-02 | Phase 71 | Pending |
+| AUTH-03 | Phase 71 | Pending |
+| AUTH-04 | Phase 71 | Pending |
+| AUTH-05 | Phase 72 | Pending |
+| AUTH-06 | Phase 72 | Pending |
+| AUTH-07 | Phase 72 | Pending |
+| AUTH-08 | Phase 71 | Pending |
+| USR-01  | Phase 69 | Pending |
+| USR-02  | Phase 69 | Pending |
+| USR-03  | Phase 69 | Pending |
+| USR-04  | Phase 70 | Pending |
+| USTR-01 | Phase 71 | Pending |
+| USTR-02 | Phase 69, 73 | Pending |
 
 **v2.3 Coverage:**
 - v2.3 requirements: 12 total
@@ -116,6 +170,11 @@
 - Mapped to phases: 17
 - Unmapped: 0 ✓
 
+**v2.5 Coverage:**
+- v2.5 requirements: 20 total (PROF: 6, AUTH: 8, USR: 4, USTR: 2)
+- Mapped to phases: 20
+- Unmapped: 0 ✓
+
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-27 after v2.4 CDP Progress roadmap defined (phases 63-66)*
+*Last updated: 2026-02-27 after v2.5 User Infrastructure & AD Readiness milestone setup (phases 67-73)*

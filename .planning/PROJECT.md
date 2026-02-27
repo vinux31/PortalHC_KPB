@@ -37,6 +37,19 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - Export: Excel dan PDF functional
 - UI polish: HTML selected attribute fix, empty state, pagination
 
+### v2.5 - User Infrastructure & AD Readiness (planned)
+
+**Goal:** Full user system overhaul — dual authentication (Active Directory + local), dynamic profile page, functional settings page, ManageWorkers migration to Admin, Kelola Data hub reorganization, and user structure improvements to prepare for Pertamina server deployment.
+
+**Target features:**
+- Dynamic profile page: Real user data (Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate), null-safe display, dynamic avatar initials
+- Functional settings: Change password via ChangePasswordAsync, edit FullName/Position, non-functional items removed/disabled
+- ManageWorkers migration: CRUD from /Admin/ManageWorkers, 301 redirect from old URL, standalone navbar button removed
+- Kelola Data reorganization: ManageWorkers card prominent, stale "Segera" items cleaned up
+- LDAP auth service: IAuthService interface, LdapAuthService (Pertamina DirectoryEntry), LocalAuthService, config toggle
+- Dual auth login: AD mode with auto-provisioning & profile sync, local mode unchanged, adaptive login UI
+- User structure: AuthSource field ("Local"/"AD"), role-to-SelectedView shared helper
+
 ## Current State (v2.2 — shipped 2026-02-26)
 
 ## Shipped Milestones
