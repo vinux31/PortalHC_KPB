@@ -1,0 +1,456 @@
+@{
+    ViewData["Title"] = "Coach-Coachee Mapping";
+    ViewData["ContainerClass"] = "container-fluid px-4";
+
+    var groupedCoaches = ViewBag.GroupedCoaches as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
+    var showAll = (bool)(ViewBag.ShowAll ?? false);
+    var searchTerm = ViewBag.SearchTerm as string ?? "";
+    var sectionFilter = ViewBag.SectionFilter as string ?? "";
+    var sections = ViewBag.Sections as List<string> ?? new List<string>();
+    var eligibleCoaches = ViewBag.EligibleCoaches as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var eligibleCoachees = ViewBag.EligibleCoachees as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var allUsers = ViewBag.AllUsers as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var protonTracks = ViewBag.ProtonTracks as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+@Html.AntiForgeryToken()
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Coach-Coachee Mapping</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            <i class="bi bi-people me-2 text-primary"></i>Coach-Coachee Mapping
+        </h2>
+        <span class="text-muted small">@totalCount coach group(s)</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/Admin/CoachCoacheeMappingExport" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+        </a>
+        <button class="btn btn-sm btn-primary" onclick="document.getElementById('assignModal').querySelector('[data-bs-dismiss]') && null" data-bs-toggle="modal" data-bs-target="#assignModal">
+            <i class="bi bi-plus-circle me-1"></i>Tambah Mapping
+        </button>
+    </div>
+</div>
+
+<!-- Filter Form -->
+<form method="get" asp-action="CoachCoacheeMapping" asp-controller="Admin" id="filterForm" class="mb-3">
+    <input type="hidden" name="page" id="pageInput" value="1" />
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label form-label-sm fw-semibold mb-1">Seksi</label>
+            <select name="section" class="form-select form-select-sm" id="sectionDropdown" onchange="resetPageAndSubmit()">
+                <option value="">— Semua Seksi —</option>
+                @foreach (var s in sections)
+                {
+                    <option value="@s" selected="@(sectionFilter == s ? "selected" : null)">@s</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label form-label-sm fw-semibold mb-1">Cari</label>
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0 ps-0" name="search"
+                       placeholder="Cari nama coach/coachee..." value="@searchTerm" id="searchInput" />
+                <button class="btn btn-primary btn-sm" type="submit">Cari</button>
+                @if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    <a href="@Url.Action("CoachCoacheeMapping", "Admin", new { section = sectionFilter, showAll = showAll })" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-x"></i>
+                    </a>
+                }
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="form-check mt-4">
+                <input class="form-check-input" type="checkbox" name="showAll" id="showAllCheck" value="true"
+                       @(showAll ? "checked" : "") onchange="resetPageAndSubmit()" />
+                <label class="form-check-label" for="showAllCheck">Tampilkan Semua (termasuk non-aktif)</label>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Grouped Table -->
+@if (!groupedCoaches.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-people fs-1 d-block mb-3 opacity-50"></i>
+        <p class="mb-0">Belum ada mapping coach-coachee.</p>
+        @if (!string.IsNullOrEmpty(searchTerm) || !string.IsNullOrEmpty(sectionFilter))
+        {
+            <small>Coba hapus filter untuk melihat semua data.</small>
+        }
+    </div>
+}
+else
+{
+    <table class="table table-bordered align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Nama</th>
+                <th>NIP</th>
+                <th>Seksi</th>
+                <th>Jabatan</th>
+                <th>Status</th>
+                <th>Mulai</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        @{ var idx = 0; }
+        @foreach (var group in groupedCoaches)
+        {
+            <!-- Coach header row -->
+            <tbody>
+                <tr class="table-primary" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-@idx">
+                    <td colspan="7" class="fw-semibold">
+                        <i class="bi bi-chevron-down me-2 small"></i>
+                        @group.CoachName
+                        @if (!string.IsNullOrEmpty((string)group.CoachSection))
+                        {
+                            <span class="text-muted fw-normal ms-1">— @group.CoachSection</span>
+                        }
+                        <span class="badge bg-primary ms-2">@group.ActiveCount coachee aktif</span>
+                    </td>
+                </tr>
+            </tbody>
+            <!-- Coachee rows -->
+            <tbody class="collapse show" id="collapse-@idx">
+                @foreach (var coachee in group.Coachees)
+                {
+                    <tr class="@(coachee.IsActive ? "" : "table-light text-muted")">
+                        <td>@coachee.CoacheeName</td>
+                        <td>@coachee.CoacheeNIP</td>
+                        <td>@coachee.CoacheeSection</td>
+                        <td>@coachee.CoacheePosition</td>
+                        <td>
+                            @if (coachee.IsActive)
+                            {
+                                <span class="badge bg-success">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Non-aktif</span>
+                            }
+                        </td>
+                        <td>@coachee.StartDate.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-outline-secondary"
+                                        onclick="openEditModal(@coachee.Id, '@coachee.CoachId', 0, '@coachee.StartDate.ToString("yyyy-MM-dd")', '@coachee.CoacheeName')">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                @if (coachee.IsActive)
+                                {
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            onclick="confirmDeactivate(@coachee.Id, '@coachee.CoacheeName')">
+                                        <i class="bi bi-x-circle"></i> Nonaktifkan
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-outline-success"
+                                            onclick="reactivateMapping(@coachee.Id)">
+                                        <i class="bi bi-arrow-repeat"></i> Aktifkan
+                                    </button>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            idx++;
+        }
+    </table>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Pagination" class="mt-3">
+            <ul class="pagination pagination-sm justify-content-center">
+                <li class="page-item @(currentPage <= 1 ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("CoachCoacheeMapping", "Admin", new { page = currentPage - 1, search = searchTerm, section = sectionFilter, showAll = showAll })">
+                        &laquo; Sebelumnya
+                    </a>
+                </li>
+                @for (int p = 1; p <= totalPages; p++)
+                {
+                    <li class="page-item @(p == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("CoachCoacheeMapping", "Admin", new { page = p, search = searchTerm, section = sectionFilter, showAll = showAll })">@p</a>
+                    </li>
+                }
+                <li class="page-item @(currentPage >= totalPages ? "disabled" : "")">
+                    <a class="page-link" href="@Url.Action("CoachCoacheeMapping", "Admin", new { page = currentPage + 1, search = searchTerm, section = sectionFilter, showAll = showAll })">
+                        Berikutnya &raquo;
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    }
+}
+
+<!-- ==================== ASSIGN MODAL ==================== -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-labelledby="assignModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignModalLabel">
+                    <i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Coach-Coachee Mapping
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Coach <span class="text-danger">*</span></label>
+                    <select id="assignCoachSelect" class="form-select">
+                        <option value="">— Pilih Coach —</option>
+                        @foreach (var coach in eligibleCoaches)
+                        {
+                            <option value="@coach.Id">@coach.FullName @(string.IsNullOrEmpty((string)coach.Section) ? "" : $"({coach.Section})")</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Filter Seksi Coachee</label>
+                    <select id="assignSectionFilter" class="form-select" onchange="filterCoacheesBySection()">
+                        <option value="">— Semua Seksi —</option>
+                        @foreach (var s in sections)
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Coachee (pilih satu atau lebih) <span class="text-danger">*</span></label>
+                    <div id="coacheeChecklist" style="max-height:200px; overflow-y:auto; border:1px solid #ced4da; border-radius:6px; padding:0.5rem;">
+                        @foreach (var coachee in eligibleCoachees)
+                        {
+                            <div class="form-check coachee-item" data-section="@coachee.Section">
+                                <input class="form-check-input coachee-checkbox" type="checkbox"
+                                       id="chk-@coachee.Id" value="@coachee.Id" />
+                                <label class="form-check-label" for="chk-@coachee.Id">
+                                    @coachee.FullName
+                                    @if (!string.IsNullOrEmpty((string)coachee.NIP))
+                                    {
+                                        <span class="text-muted small">(@coachee.NIP)</span>
+                                    }
+                                    @if (!string.IsNullOrEmpty((string)coachee.Section))
+                                    {
+                                        <span class="badge bg-light text-dark border ms-1 small">@coachee.Section</span>
+                                    }
+                                </label>
+                            </div>
+                        }
+                        @if (!eligibleCoachees.Any())
+                        {
+                            <p class="text-muted small mb-0">Tidak ada coachee yang tersedia (semua sudah memiliki coach aktif).</p>
+                        }
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Proton Track (opsional)</label>
+                    <select id="assignProtonTrack" class="form-select">
+                        <option value="">— Tanpa Track —</option>
+                        @foreach (var track in protonTracks)
+                        {
+                            <option value="@track.Id">@track.DisplayName</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tanggal Mulai <span class="text-danger">*</span></label>
+                    <input type="date" id="assignStartDate" class="form-control"
+                           value="@DateTime.Today.ToString("yyyy-MM-dd")" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitAssign()">
+                    <i class="bi bi-check-lg me-1"></i>Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== EDIT MODAL ==================== -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">
+                    <i class="bi bi-pencil me-2 text-secondary"></i>Edit Mapping
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMappingId" value="" />
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Coachee</label>
+                    <p id="editCoacheeName" class="form-control-plaintext fw-bold text-dark mb-0"></p>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Coach <span class="text-danger">*</span></label>
+                    <select id="editCoachSelect" class="form-select">
+                        <option value="">— Pilih Coach —</option>
+                        @foreach (var coach in eligibleCoaches)
+                        {
+                            <option value="@coach.Id">@coach.FullName @(string.IsNullOrEmpty((string)coach.Section) ? "" : $"({coach.Section})")</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Proton Track (opsional)</label>
+                    <select id="editProtonTrack" class="form-select">
+                        <option value="">— Tanpa Track —</option>
+                        @foreach (var track in protonTracks)
+                        {
+                            <option value="@track.Id">@track.DisplayName</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tanggal Mulai <span class="text-danger">*</span></label>
+                    <input type="date" id="editStartDate" class="form-control" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" onclick="submitEdit()">
+                    <i class="bi bi-check-lg me-1"></i>Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== DEACTIVATE CONFIRMATION MODAL ==================== -->
+<div class="modal fade" id="deactivateModal" tabindex="-1" aria-labelledby="deactivateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deactivateModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2 text-warning"></i>Konfirmasi Nonaktifkan
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="deactivateMappingId" value="" />
+                <p>Apakah Anda yakin ingin menonaktifkan mapping ini?</p>
+                <p>Coachee: <strong id="deactivateCoacheeName"></strong></p>
+                <p id="deactivateSessionInfo" class="text-muted small"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" onclick="submitDeactivate()">
+                    <i class="bi bi-x-circle me-1"></i>Nonaktifkan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    // ========== Filter helpers ==========
+
+    function resetPageAndSubmit() {
+        document.getElementById('pageInput').value = 1;
+        document.getElementById('filterForm').submit();
+    }
+
+    // ========== Assign Modal ==========
+
+    function filterCoacheesBySection() {
+        var selectedSection = document.getElementById('assignSectionFilter').value;
+        var items = document.querySelectorAll('#coacheeChecklist .coachee-item');
+        items.forEach(function (item) {
+            if (!selectedSection || item.getAttribute('data-section') === selectedSection) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function submitAssign() {
+        // Wired in Plan 02
+        var coachId = document.getElementById('assignCoachSelect').value;
+        var coacheeIds = Array.from(document.querySelectorAll('.coachee-checkbox:checked')).map(cb => cb.value);
+        var protonTrackId = document.getElementById('assignProtonTrack').value;
+        var startDate = document.getElementById('assignStartDate').value;
+
+        if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
+        if (coacheeIds.length === 0) { alert('Pilih minimal satu coachee.'); return; }
+        if (!startDate) { alert('Isi tanggal mulai.'); return; }
+
+        // Wired in Plan 02
+        console.log('submitAssign - Wired in Plan 02', { coachId, coacheeIds, protonTrackId, startDate });
+    }
+
+    // ========== Edit Modal ==========
+
+    function openEditModal(id, coachId, trackId, startDate, coacheeName) {
+        document.getElementById('editMappingId').value = id;
+        document.getElementById('editCoacheeName').textContent = coacheeName || '';
+        var coachSelect = document.getElementById('editCoachSelect');
+        coachSelect.value = coachId || '';
+        var trackSelect = document.getElementById('editProtonTrack');
+        trackSelect.value = (trackId && trackId > 0) ? String(trackId) : '';
+        document.getElementById('editStartDate').value = startDate || '';
+        var modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+    }
+
+    function submitEdit() {
+        // Wired in Plan 02
+        var id = document.getElementById('editMappingId').value;
+        var coachId = document.getElementById('editCoachSelect').value;
+        var protonTrackId = document.getElementById('editProtonTrack').value;
+        var startDate = document.getElementById('editStartDate').value;
+
+        if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
+        if (!startDate) { alert('Isi tanggal mulai.'); return; }
+
+        // Wired in Plan 02
+        console.log('submitEdit - Wired in Plan 02', { id, coachId, protonTrackId, startDate });
+    }
+
+    // ========== Deactivate Modal ==========
+
+    function confirmDeactivate(id, coacheeName) {
+        document.getElementById('deactivateMappingId').value = id;
+        document.getElementById('deactivateCoacheeName').textContent = coacheeName || '';
+        document.getElementById('deactivateSessionInfo').textContent = '';
+        var modal = new bootstrap.Modal(document.getElementById('deactivateModal'));
+        modal.show();
+    }
+
+    function submitDeactivate() {
+        // Wired in Plan 02
+        var id = document.getElementById('deactivateMappingId').value;
+        console.log('submitDeactivate - Wired in Plan 02', { id });
+    }
+
+    // ========== Reactivate ==========
+
+    function reactivateMapping(id) {
+        // Wired in Plan 02
+        console.log('reactivateMapping - Wired in Plan 02', { id });
+    }
+</script>
+}
