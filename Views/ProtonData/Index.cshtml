@@ -1,0 +1,215 @@
+@using HcPortal.Models
+@{
+    ViewData["Title"] = "Silabus & Coaching Guidance";
+    ViewData["ContainerClass"] = "container-fluid";
+
+    var allTracks = ViewBag.AllTracks as List<ProtonTrack> ?? new List<ProtonTrack>();
+    var selectedBagian = ViewBag.Bagian as string ?? "";
+    var selectedUnit = ViewBag.Unit as string ?? "";
+    var selectedTrackId = ViewBag.TrackId as int?;
+    var silabusRowsJson = ViewBag.SilabusRowsJson as string ?? "[]";
+}
+
+<div class="d-flex align-items-start mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1"><i class="bi bi-book me-2 text-primary"></i>Silabus &amp; Coaching Guidance</h2>
+        <p class="text-muted">Kelola silabus Proton dan file coaching guidance per Bagian, Unit, dan Track.</p>
+    </div>
+</div>
+
+@* AntiForgeryToken for POST actions in Plans 02/03 *@
+@Html.AntiForgeryToken()
+
+@* Bootstrap Nav Tabs *@
+<ul class="nav nav-tabs mb-4" id="protonDataTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="silabus-tab" data-bs-toggle="tab" data-bs-target="#silabusTabContent"
+                type="button" role="tab" aria-controls="silabusTabContent" aria-selected="true">
+            <i class="bi bi-list-ol me-1"></i>Silabus
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="guidance-tab" data-bs-toggle="tab" data-bs-target="#guidanceTabContent"
+                type="button" role="tab" aria-controls="guidanceTabContent" aria-selected="false">
+            <i class="bi bi-file-earmark-text me-1"></i>Coaching Guidance
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="protonDataTabContent">
+
+    @* ====== SILABUS TAB ====== *@
+    <div class="tab-pane fade show active" id="silabusTabContent" role="tabpanel" aria-labelledby="silabus-tab">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="fw-bold text-muted mb-3"><i class="bi bi-funnel me-1"></i>Filter Silabus</h6>
+                <form method="get" action="@Url.Action("Index", "ProtonData")" id="silabusFilterForm">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Bagian</label>
+                            <select class="form-select" id="silabusBagian" name="bagian" required>
+                                <option value="">-- Pilih Bagian --</option>
+                                @foreach (var bagian in OrganizationStructure.SectionUnits.Keys)
+                                {
+                                    <option value="@bagian" selected="@(selectedBagian == bagian ? "selected" : null)">@bagian</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Unit</label>
+                            <select class="form-select" id="silabusUnit" name="unit" required disabled="@(string.IsNullOrEmpty(selectedBagian) ? "disabled" : null)">
+                                <option value="">-- Pilih Unit --</option>
+                                @if (!string.IsNullOrEmpty(selectedBagian) && OrganizationStructure.SectionUnits.ContainsKey(selectedBagian))
+                                {
+                                    foreach (var unit in OrganizationStructure.SectionUnits[selectedBagian])
+                                    {
+                                        <option value="@unit" selected="@(selectedUnit == unit ? "selected" : null)">@unit</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Track</label>
+                            <select class="form-select" id="silabusTrack" name="trackId" required>
+                                <option value="">-- Pilih Track --</option>
+                                @foreach (var track in allTracks)
+                                {
+                                    <option value="@track.Id" selected="@(selectedTrackId == track.Id ? "selected" : null)">@track.DisplayName</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-search me-1"></i>Muat Data
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @* Silabus data display area *@
+        <div id="silabusTableContainer">
+            @if (!string.IsNullOrEmpty(selectedBagian) && !string.IsNullOrEmpty(selectedUnit) && selectedTrackId.HasValue)
+            {
+                var trackName = allTracks.FirstOrDefault(t => t.Id == selectedTrackId)?.DisplayName ?? "";
+                <div class="d-flex align-items-center mb-3">
+                    <span class="text-muted small">
+                        Menampilkan silabus untuk: <strong>@selectedUnit</strong> &mdash; Track: <strong>@trackName</strong>
+                    </span>
+                </div>
+                @* Plan 02 will render the actual edit table here *@
+                <div class="alert alert-info d-flex align-items-center" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <span>Data silabus untuk <strong>@selectedUnit</strong> - <strong>@trackName</strong>. Edit functionality akan diimplementasikan pada Plan 02.</span>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-funnel fs-1 mb-3 d-block opacity-50"></i>
+                    <p>Pilih Bagian, Unit, dan Track kemudian klik <strong>Muat Data</strong> untuk menampilkan silabus.</p>
+                </div>
+            }
+        </div>
+
+        @* JSON data island for JS consumption (Plan 02 will use this) *@
+        <script type="application/json" id="silabusData">@Html.Raw(silabusRowsJson)</script>
+    </div>
+
+    @* ====== COACHING GUIDANCE TAB ====== *@
+    <div class="tab-pane fade" id="guidanceTabContent" role="tabpanel" aria-labelledby="guidance-tab">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="fw-bold text-muted mb-3"><i class="bi bi-funnel me-1"></i>Filter Coaching Guidance</h6>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Bagian</label>
+                        <select class="form-select" id="guidanceBagian">
+                            <option value="">-- Pilih Bagian --</option>
+                            @foreach (var bagian in OrganizationStructure.SectionUnits.Keys)
+                            {
+                                <option value="@bagian">@bagian</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Unit</label>
+                        <select class="form-select" id="guidanceUnit" disabled>
+                            <option value="">-- Pilih Unit --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Track</label>
+                        <select class="form-select" id="guidanceTrack">
+                            <option value="">-- Pilih Track --</option>
+                            @foreach (var track in allTracks)
+                            {
+                                <option value="@track.Id">@track.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-primary w-100" id="btnLoadGuidance">
+                            <i class="bi bi-search me-1"></i>Muat Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Placeholder for guidance file table and upload form — Plan 03 will implement *@
+        <div id="guidanceTableContainer">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-file-earmark-text fs-1 mb-3 d-block opacity-50"></i>
+                <p>Pilih Bagian, Unit, dan Track kemudian klik <strong>Muat Data</strong> untuk menampilkan file coaching guidance.</p>
+                @* Plan 03 will implement guidance file CRUD *@
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+    // Organization structure from server
+    const orgStructure = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+        HcPortal.Models.OrganizationStructure.SectionUnits));
+
+    // ====== Silabus tab filter cascade ======
+    document.getElementById('silabusBagian').addEventListener('change', function () {
+        const bagian = this.value;
+        const unitSelect = document.getElementById('silabusUnit');
+        unitSelect.innerHTML = '<option value="">-- Pilih Unit --</option>';
+        if (bagian && orgStructure[bagian]) {
+            orgStructure[bagian].forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                unitSelect.appendChild(opt);
+            });
+        }
+        unitSelect.disabled = !bagian;
+    });
+
+    // ====== Coaching Guidance tab filter cascade ======
+    document.getElementById('guidanceBagian').addEventListener('change', function () {
+        const bagian = this.value;
+        const unitSelect = document.getElementById('guidanceUnit');
+        unitSelect.innerHTML = '<option value="">-- Pilih Unit --</option>';
+        if (bagian && orgStructure[bagian]) {
+            orgStructure[bagian].forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                unitSelect.appendChild(opt);
+            });
+        }
+        unitSelect.disabled = !bagian;
+    });
+
+    // ====== Preserve active tab on page reload (after filter apply) ======
+    // If query params present, stay on Silabus tab (default behavior is fine)
+    // Coaching Guidance tab will be activated by URL hash if needed in future plans
+</script>
+}
