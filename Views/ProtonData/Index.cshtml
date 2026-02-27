@@ -164,12 +164,52 @@
             </div>
         </div>
 
-        @* Placeholder for guidance file table and upload form — Plan 03 will implement *@
         <div id="guidanceTableContainer">
             <div class="text-center py-5 text-muted">
                 <i class="bi bi-file-earmark-text fs-1 mb-3 d-block opacity-50"></i>
-                <p>Pilih Bagian, Unit, dan Track kemudian klik <strong>Muat Data</strong> untuk menampilkan file coaching guidance.</p>
-                @* Plan 03 will implement guidance file CRUD *@
+                <p>Pilih Bagian, Unit, dan Track untuk menampilkan file coaching guidance.</p>
+            </div>
+        </div>
+    </div>
+
+    @* ====== Guidance Replace Modal ====== *@
+    <div class="modal fade" id="guidanceReplaceModal" tabindex="-1" aria-labelledby="guidanceReplaceModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="guidanceReplaceModalLabel">Ganti File</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Mengganti file: <strong id="guidanceReplaceFileName"></strong></p>
+                    <input type="file" class="form-control" id="guidanceReplaceFile"
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" />
+                    <div class="text-danger small mt-1" id="guidanceReplaceError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-warning" id="btnConfirmReplace">Ganti</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ====== Guidance Delete Modal ====== *@
+    <div class="modal fade" id="guidanceDeleteModal" tabindex="-1" aria-labelledby="guidanceDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="guidanceDeleteModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Hapus file <strong id="guidanceDeleteFileName"></strong>?</p>
+                    <p class="text-danger small">Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmGuidanceDelete">Hapus</button>
+                </div>
             </div>
         </div>
     </div>
@@ -550,6 +590,254 @@
             renderEditTable();
         } else {
             renderViewTable();
+        }
+    })();
+
+    // ====== Coaching Guidance CRUD (Plan 03) ======
+    (function () {
+        let guidanceReplaceId = -1;
+        let guidanceDeleteId = -1;
+        let currentGuidanceBagian = '';
+        let currentGuidanceUnit = '';
+        let currentGuidanceTrackId = '';
+
+        // --- Load files ---
+        async function loadGuidanceFiles() {
+            const bagian = document.getElementById('guidanceBagian').value;
+            const unit = document.getElementById('guidanceUnit').value;
+            const trackId = document.getElementById('guidanceTrack').value;
+
+            currentGuidanceBagian = bagian;
+            currentGuidanceUnit = unit;
+            currentGuidanceTrackId = trackId;
+
+            if (!bagian || !unit || !trackId) {
+                document.getElementById('guidanceTableContainer').innerHTML =
+                    '<p class="text-muted mt-3">Pilih Bagian, Unit, dan Track untuk melihat file.</p>';
+                return;
+            }
+
+            try {
+                const resp = await fetch(`/ProtonData/GuidanceList?bagian=${encodeURIComponent(bagian)}&unit=${encodeURIComponent(unit)}&trackId=${encodeURIComponent(trackId)}`);
+                const files = await resp.json();
+                renderGuidanceTable(files, bagian, unit, trackId);
+            } catch (err) {
+                document.getElementById('guidanceTableContainer').innerHTML =
+                    '<div class="alert alert-danger">Gagal memuat data file. Silakan coba lagi.</div>';
+            }
+        }
+
+        // --- Render table + upload form ---
+        function renderGuidanceTable(files, bagian, unit, trackId) {
+            const container = document.getElementById('guidanceTableContainer');
+            let html = '';
+
+            if (files.length === 0) {
+                html += '<p class="text-muted mt-3">Belum ada file coaching guidance.</p>';
+            } else {
+                html += `<div class="table-responsive mt-3"><table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nama File</th>
+                            <th style="width:120px;">Ukuran</th>
+                            <th style="width:170px;">Tanggal Upload</th>
+                            <th style="width:180px;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+                files.forEach(function (f) {
+                    html += `<tr>
+                        <td>${escapeHtml(f.fileName)}</td>
+                        <td>${formatFileSize(f.fileSize)}</td>
+                        <td>${escapeHtml(f.uploadedAt)}</td>
+                        <td>
+                            <a href="/ProtonData/GuidanceDownload?id=${f.id}" class="btn btn-sm btn-outline-primary me-1" title="Download"><i class="bi bi-download"></i></a>
+                            <button class="btn btn-sm btn-outline-warning me-1" onclick="showReplaceModal(${f.id}, '${escapeJs(f.fileName)}')" title="Ganti File"><i class="bi bi-arrow-repeat"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="showGuidanceDeleteModal(${f.id}, '${escapeJs(f.fileName)}')" title="Hapus"><i class="bi bi-trash"></i></button>
+                        </td>
+                    </tr>`;
+                });
+                html += '</tbody></table></div>';
+            }
+
+            // Upload form
+            html += `<div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="fw-semibold mb-2"><i class="bi bi-upload me-1"></i>Upload File Baru</h6>
+                    <form id="guidanceUploadForm" class="d-flex gap-2 align-items-end flex-wrap">
+                        <div class="flex-grow-1">
+                            <input type="file" class="form-control form-control-sm" id="guidanceFile"
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" required />
+                            <div class="text-muted small mt-1">PDF, Word, Excel, PowerPoint — maks. 10 MB</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bi bi-upload me-1"></i>Upload
+                        </button>
+                    </form>
+                    <div class="text-danger small mt-1" id="guidanceUploadError"></div>
+                </div>
+            </div>`;
+
+            container.innerHTML = html;
+
+            // Wire upload form submit
+            document.getElementById('guidanceUploadForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const fileInput = document.getElementById('guidanceFile');
+                const errorDiv = document.getElementById('guidanceUploadError');
+                errorDiv.textContent = '';
+
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    errorDiv.textContent = 'Pilih file terlebih dahulu.';
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('bagian', currentGuidanceBagian);
+                formData.append('unit', currentGuidanceUnit);
+                formData.append('trackId', currentGuidanceTrackId);
+                formData.append('file', fileInput.files[0]);
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+                const submitBtn = this.querySelector('[type=submit]');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Uploading...';
+
+                try {
+                    const resp = await fetch('/ProtonData/GuidanceUpload', {
+                        method: 'POST',
+                        headers: { 'RequestVerificationToken': token },
+                        body: formData
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        await loadGuidanceFiles();
+                    } else {
+                        errorDiv.textContent = data.error || 'Upload gagal.';
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="bi bi-upload me-1"></i>Upload';
+                    }
+                } catch (err) {
+                    errorDiv.textContent = 'Terjadi kesalahan jaringan. Silakan coba lagi.';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-upload me-1"></i>Upload';
+                }
+            });
+        }
+
+        // --- Replace modal ---
+        window.showReplaceModal = function (id, fileName) {
+            guidanceReplaceId = id;
+            document.getElementById('guidanceReplaceFileName').textContent = fileName;
+            document.getElementById('guidanceReplaceFile').value = '';
+            document.getElementById('guidanceReplaceError').textContent = '';
+            const modal = new bootstrap.Modal(document.getElementById('guidanceReplaceModal'));
+            modal.show();
+        };
+
+        document.getElementById('btnConfirmReplace').addEventListener('click', async function () {
+            const fileInput = document.getElementById('guidanceReplaceFile');
+            const errorDiv = document.getElementById('guidanceReplaceError');
+            errorDiv.textContent = '';
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errorDiv.textContent = 'Pilih file terlebih dahulu.';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('id', guidanceReplaceId);
+            formData.append('file', fileInput.files[0]);
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengganti...';
+
+            try {
+                const resp = await fetch('/ProtonData/GuidanceReplace', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token },
+                    body: formData
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('guidanceReplaceModal')).hide();
+                    await loadGuidanceFiles();
+                } else {
+                    errorDiv.textContent = data.error || 'Gagal mengganti file.';
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Terjadi kesalahan jaringan. Silakan coba lagi.';
+            }
+
+            this.disabled = false;
+            this.innerHTML = 'Ganti';
+        });
+
+        // --- Delete modal ---
+        window.showGuidanceDeleteModal = function (id, fileName) {
+            guidanceDeleteId = id;
+            document.getElementById('guidanceDeleteFileName').textContent = fileName;
+            const modal = new bootstrap.Modal(document.getElementById('guidanceDeleteModal'));
+            modal.show();
+        };
+
+        document.getElementById('btnConfirmGuidanceDelete').addEventListener('click', async function () {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';
+
+            try {
+                const resp = await fetch('/ProtonData/GuidanceDelete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ id: guidanceDeleteId })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('guidanceDeleteModal')).hide();
+                    await loadGuidanceFiles();
+                } else {
+                    alert('Gagal menghapus: ' + (data.error || 'Error tidak diketahui'));
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+            }
+
+            this.disabled = false;
+            this.innerHTML = 'Hapus';
+        });
+
+        // --- Filter cascade: wire load on change ---
+        document.getElementById('guidanceUnit').addEventListener('change', function () {
+            loadGuidanceFiles();
+        });
+        document.getElementById('guidanceTrack').addEventListener('change', function () {
+            loadGuidanceFiles();
+        });
+        document.getElementById('btnLoadGuidance').addEventListener('click', function () {
+            loadGuidanceFiles();
+        });
+
+        // --- Helper functions ---
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function escapeJs(str) {
+            if (!str) return '';
+            return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
         }
     })();
 </script>
