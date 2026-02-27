@@ -2423,5 +2423,305 @@ namespace HcPortal.Controllers
 
             return View();
         }
+
+        // POST /Admin/CoachCoacheeMappingAssign
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CoachCoacheeMappingAssign([FromBody] CoachAssignRequest req)
+        {
+            if (req == null || string.IsNullOrEmpty(req.CoachId) || req.CoacheeIds == null || req.CoacheeIds.Count == 0)
+                return Json(new { success = false, message = "Data tidak lengkap." });
+
+            if (req.CoacheeIds.Contains(req.CoachId))
+                return Json(new { success = false, message = "Coach tidak dapat menjadi coachee dirinya sendiri." });
+
+            // Check for duplicate active mappings
+            var existingMappings = await _context.CoachCoacheeMappings
+                .Where(m => req.CoacheeIds.Contains(m.CoacheeId) && m.IsActive)
+                .ToListAsync();
+
+            if (existingMappings.Any())
+            {
+                var allUsers = await _context.Users
+                    .Select(u => new { u.Id, FullName = u.FullName ?? u.Id })
+                    .ToDictionaryAsync(u => u.Id, u => u.FullName);
+
+                var names = existingMappings
+                    .Select(m => allUsers.GetValueOrDefault(m.CoacheeId, m.CoacheeId))
+                    .Distinct()
+                    .ToList();
+
+                return Json(new { success = false, message = $"Coachee sudah memiliki coach aktif: {string.Join(", ", names)}" });
+            }
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor == null)
+                return Json(new { success = false, message = "Sesi tidak valid." });
+
+            var startDate = req.StartDate ?? DateTime.Today;
+
+            var newMappings = req.CoacheeIds.Select(id => new CoachCoacheeMapping
+            {
+                CoachId = req.CoachId,
+                CoacheeId = id,
+                IsActive = true,
+                StartDate = startDate
+            }).ToList();
+
+            _context.CoachCoacheeMappings.AddRange(newMappings);
+
+            // ProtonTrack side-effect
+            if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
+            {
+                var existingTracks = await _context.ProtonTrackAssignments
+                    .Where(a => req.CoacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                    .ToListAsync();
+                foreach (var t in existingTracks)
+                    t.IsActive = false;
+
+                var newTracks = req.CoacheeIds.Select(id => new ProtonTrackAssignment
+                {
+                    CoacheeId = id,
+                    AssignedById = actor.Id,
+                    ProtonTrackId = req.ProtonTrackId.Value,
+                    IsActive = true,
+                    AssignedAt = DateTime.UtcNow
+                }).ToList();
+                _context.ProtonTrackAssignments.AddRange(newTracks);
+            }
+
+            await _context.SaveChangesAsync();
+
+            var count = newMappings.Count;
+            await _auditLog.LogAsync(actor.Id, actor.FullName, "Assign",
+                $"Assigned coach to {count} coachee(s)", targetType: "CoachCoacheeMapping");
+
+            return Json(new { success = true, message = $"{count} mapping berhasil dibuat." });
+        }
+
+        // POST /Admin/CoachCoacheeMappingEdit
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CoachCoacheeMappingEdit([FromBody] CoachEditRequest req)
+        {
+            if (req == null)
+                return Json(new { success = false, message = "Data tidak lengkap." });
+
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(req.MappingId);
+            if (mapping == null)
+                return Json(new { success = false, message = "Mapping tidak ditemukan." });
+
+            if (req.CoachId == mapping.CoacheeId)
+                return Json(new { success = false, message = "Coach tidak dapat menjadi coachee dirinya sendiri." });
+
+            // Check for duplicate: if changing coach, ensure no other active mapping exists for coachee with new coach
+            if (req.CoachId != mapping.CoachId)
+            {
+                var duplicate = await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoacheeId == mapping.CoacheeId && m.CoachId == req.CoachId && m.IsActive && m.Id != req.MappingId);
+                if (duplicate)
+                    return Json(new { success = false, message = "Sudah ada mapping aktif antara coach dan coachee ini." });
+            }
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor == null)
+                return Json(new { success = false, message = "Sesi tidak valid." });
+
+            mapping.CoachId = req.CoachId;
+            if (req.StartDate.HasValue)
+                mapping.StartDate = req.StartDate.Value;
+
+            // ProtonTrack side-effect
+            if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
+            {
+                var existingTracks = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                    .ToListAsync();
+                foreach (var t in existingTracks)
+                    t.IsActive = false;
+
+                _context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+                {
+                    CoacheeId = mapping.CoacheeId,
+                    AssignedById = actor.Id,
+                    ProtonTrackId = req.ProtonTrackId.Value,
+                    IsActive = true,
+                    AssignedAt = DateTime.UtcNow
+                });
+            }
+
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(actor.Id, actor.FullName, "Edit",
+                $"Edited coach-coachee mapping #{mapping.Id}", targetId: mapping.Id, targetType: "CoachCoacheeMapping");
+
+            return Json(new { success = true, message = "Mapping berhasil diperbarui." });
+        }
+
+        // POST /Admin/CoachCoacheeMappingGetSessionCount
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CoachCoacheeMappingGetSessionCount(int id)
+        {
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(id);
+            if (mapping == null)
+                return Json(new { success = false, message = "Mapping tidak ditemukan." });
+
+            var activeSessionCount = await _context.CoachingSessions
+                .CountAsync(s => s.CoachId == mapping.CoachId && s.CoacheeId == mapping.CoacheeId && s.Status == "Draft");
+
+            return Json(new { success = true, count = activeSessionCount });
+        }
+
+        // POST /Admin/CoachCoacheeMappingDeactivate
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CoachCoacheeMappingDeactivate(int id)
+        {
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(id);
+            if (mapping == null)
+                return Json(new { success = false, message = "Mapping tidak ditemukan." });
+            if (!mapping.IsActive)
+                return Json(new { success = false, message = "Mapping sudah tidak aktif." });
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor == null)
+                return Json(new { success = false, message = "Sesi tidak valid." });
+
+            mapping.IsActive = false;
+            mapping.EndDate = DateTime.Today;
+
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(actor.Id, actor.FullName, "Deactivate",
+                $"Deactivated coach-coachee mapping #{id}", targetId: id, targetType: "CoachCoacheeMapping");
+
+            return Json(new { success = true, message = "Mapping berhasil dinonaktifkan." });
+        }
+
+        // POST /Admin/CoachCoacheeMappingReactivate
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CoachCoacheeMappingReactivate(int id)
+        {
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(id);
+            if (mapping == null)
+                return Json(new { success = false, message = "Mapping tidak ditemukan." });
+            if (mapping.IsActive)
+                return Json(new { success = false, message = "Mapping sudah aktif." });
+
+            // Validate: no other active mapping for the same coachee
+            var duplicateActive = await _context.CoachCoacheeMappings
+                .AnyAsync(m => m.CoacheeId == mapping.CoacheeId && m.IsActive && m.Id != id);
+            if (duplicateActive)
+                return Json(new { success = false, message = "Coachee sudah memiliki coach aktif lain. Nonaktifkan dulu sebelum mengaktifkan mapping ini." });
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor == null)
+                return Json(new { success = false, message = "Sesi tidak valid." });
+
+            mapping.IsActive = true;
+            mapping.EndDate = null;
+
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(actor.Id, actor.FullName, "Reactivate",
+                $"Reactivated coach-coachee mapping #{id}", targetId: id, targetType: "CoachCoacheeMapping");
+
+            return Json(new { success = true, message = "Mapping berhasil diaktifkan kembali." });
+        }
+
+        // GET /Admin/CoachCoacheeMappingExport
+        public async Task<IActionResult> CoachCoacheeMappingExport()
+        {
+            var mappings = await _context.CoachCoacheeMappings
+                .OrderBy(m => m.CoachId)
+                .ThenBy(m => m.StartDate)
+                .ToListAsync();
+
+            var allUserIds = mappings.SelectMany(m => new[] { m.CoachId, m.CoacheeId }).Distinct().ToList();
+            var allUsers = await _context.Users
+                .Where(u => allUserIds.Contains(u.Id))
+                .Select(u => new {
+                    u.Id,
+                    FullName = u.FullName ?? "",
+                    NIP = u.NIP ?? "",
+                    Section = u.Section ?? "",
+                    Position = u.Position ?? ""
+                })
+                .ToDictionaryAsync(u => u.Id);
+
+            var coacheeIds = mappings.Select(m => m.CoacheeId).Distinct().ToList();
+            var activeTrackAssignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                .ToListAsync();
+            var trackByCoachee = activeTrackAssignments
+                .GroupBy(a => a.CoacheeId)
+                .ToDictionary(g => g.Key, g => g.First().ProtonTrack?.DisplayName ?? "");
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Coach-Coachee Mapping");
+
+            // Header row
+            var headers = new[] {
+                "Coach Name", "Coach Section", "Coachee Name", "Coachee NIP",
+                "Coachee Section", "Coachee Position", "Current Track", "Status", "Start Date", "End Date"
+            };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                var cell = ws.Cell(1, i + 1);
+                cell.Value = headers[i];
+                cell.Style.Font.Bold = true;
+                cell.Style.Fill.BackgroundColor = XLColor.DarkGray;
+                cell.Style.Font.FontColor = XLColor.White;
+            }
+
+            // Data rows
+            int row = 2;
+            foreach (var m in mappings)
+            {
+                var coach = allUsers.GetValueOrDefault(m.CoachId);
+                var coachee = allUsers.GetValueOrDefault(m.CoacheeId);
+                var track = trackByCoachee.GetValueOrDefault(m.CoacheeId, "");
+                var status = m.IsActive ? "Active" : "Inactive";
+
+                ws.Cell(row, 1).Value = coach?.FullName ?? m.CoachId;
+                ws.Cell(row, 2).Value = coach?.Section ?? "";
+                ws.Cell(row, 3).Value = coachee?.FullName ?? m.CoacheeId;
+                ws.Cell(row, 4).Value = coachee?.NIP ?? "";
+                ws.Cell(row, 5).Value = coachee?.Section ?? "";
+                ws.Cell(row, 6).Value = coachee?.Position ?? "";
+                ws.Cell(row, 7).Value = track;
+                ws.Cell(row, 8).Value = status;
+                ws.Cell(row, 9).Value = m.StartDate.ToString("yyyy-MM-dd");
+                ws.Cell(row, 10).Value = m.EndDate.HasValue ? m.EndDate.Value.ToString("yyyy-MM-dd") : "";
+                row++;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "CoachCoacheeMapping.xlsx");
+        }
     }
+}
+
+public class CoachAssignRequest
+{
+    public string CoachId { get; set; } = "";
+    public List<string> CoacheeIds { get; set; } = new();
+    public int? ProtonTrackId { get; set; }
+    public DateTime? StartDate { get; set; }
+}
+
+public class CoachEditRequest
+{
+    public int MappingId { get; set; }
+    public string CoachId { get; set; } = "";
+    public int? ProtonTrackId { get; set; }
+    public DateTime? StartDate { get; set; }
 }
