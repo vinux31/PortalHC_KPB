@@ -98,13 +98,111 @@ namespace HcPortal.Controllers
         }
 
         // 5. Halaman Settings
-        public IActionResult Settings()
+        public async Task<IActionResult> Settings()
         {
             if (User.Identity?.IsAuthenticated != true)
             {
                 return RedirectToAction("Login");
             }
-            return View();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var model = new SettingsViewModel
+            {
+                EditProfile = new EditProfileViewModel
+                {
+                    FullName = user.FullName,
+                    Position = user.Position,
+                    PhoneNumber = user.PhoneNumber
+                },
+                ChangePassword = new ChangePasswordViewModel(),
+                NIP = user.NIP,
+                Email = user.Email,
+                Role = roles.FirstOrDefault() ?? "—",
+                Section = user.Section,
+                Directorate = user.Directorate,
+                Unit = user.Unit
+            };
+
+            return View(model);
+        }
+
+        // 5a. Edit Profile POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProfile([Bind(Prefix = "EditProfile")] EditProfileViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["ProfileError"] = "Periksa kembali isian profil.";
+                return RedirectToAction("Settings");
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            user.FullName = model.FullName;
+            user.Position = model.Position;
+            user.PhoneNumber = model.PhoneNumber;
+
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                TempData["ProfileSuccess"] = "Profil berhasil diperbarui.";
+            }
+            else
+            {
+                TempData["ProfileError"] = string.Join("; ", result.Errors.Select(e => e.Description));
+            }
+
+            return RedirectToAction("Settings");
+        }
+
+        // 5b. Change Password POST
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword([Bind(Prefix = "ChangePassword")] ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                TempData["PasswordError"] = "Periksa kembali isian password.";
+                return RedirectToAction("Settings");
+            }
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+            if (result.Succeeded)
+            {
+                await _signInManager.RefreshSignInAsync(user);
+                TempData["PasswordSuccess"] = "Password berhasil diubah.";
+            }
+            else
+            {
+                if (result.Errors.Any(e => e.Code == "PasswordMismatch"))
+                {
+                    TempData["PasswordError"] = "Password lama salah.";
+                }
+                else
+                {
+                    TempData["PasswordError"] = string.Join("; ", result.Errors.Select(e => e.Description));
+                }
+            }
+
+            return RedirectToAction("Settings");
         }
 
         // 6. Access Denied Page
