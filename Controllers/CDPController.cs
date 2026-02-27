@@ -7,6 +7,8 @@ using HcPortal.Models.Competency;
 using HcPortal.Data;
 using HcPortal.Helpers;
 using ClosedXML.Excel;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
 
 namespace HcPortal.Controllers
 {
@@ -1947,6 +1949,179 @@ namespace HcPortal.Controllers
                 submittedIds,
                 hasEvidence = evidencePath != null
             });
+        }
+
+        // ===== Phase 65-03: Export endpoints =====
+
+        [HttpGet]
+        [Authorize(Roles = "Sr Supervisor, Section Head, HC, Admin")]
+        public async Task<IActionResult> ExportProgressExcel(string coacheeId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Load coachee user for filename
+            var coacheeUser = await _context.Users.FindAsync(coacheeId);
+            if (coacheeUser == null) return NotFound();
+
+            // Load deliverable progress for this specific coachee
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .Where(p => p.CoacheeId == coacheeId)
+                .OrderBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.Urutan)
+                    .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.Urutan)
+                    .ThenBy(p => p.ProtonDeliverable!.Urutan)
+                .ToListAsync();
+
+            // Load latest coaching session per deliverable progress
+            var progressIds = progresses.Select(p => p.Id).ToList();
+            var coachingSessions = await _context.CoachingSessions
+                .Where(cs => cs.CoacheeId == coacheeId && cs.ProtonDeliverableProgressId != null
+                              && progressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                .GroupBy(cs => cs.ProtonDeliverableProgressId)
+                .ToDictionaryAsync(g => g.Key!.Value, g => g.OrderByDescending(cs => cs.CreatedAt).First());
+
+            // Build Excel using ClosedXML
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Proton Progress");
+
+            // Header row (10 columns)
+            ws.Cell(1, 1).Value = "Kompetensi";
+            ws.Cell(1, 2).Value = "Sub Kompetensi";
+            ws.Cell(1, 3).Value = "Deliverable";
+            ws.Cell(1, 4).Value = "Evidence";
+            ws.Cell(1, 5).Value = "Approval SrSpv";
+            ws.Cell(1, 6).Value = "Approval SH";
+            ws.Cell(1, 7).Value = "Approval HC";
+            ws.Cell(1, 8).Value = "Catatan Coach";
+            ws.Cell(1, 9).Value = "Kesimpulan";
+            ws.Cell(1, 10).Value = "Result";
+
+            // Style header: bold, light blue background
+            var headerRange = ws.Range(1, 1, 1, 10);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            // Data rows
+            for (int i = 0; i < progresses.Count; i++)
+            {
+                var p = progresses[i];
+                var row = i + 2;
+                var cs = coachingSessions.ContainsKey(p.Id) ? coachingSessions[p.Id] : null;
+
+                ws.Cell(row, 1).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "";
+                ws.Cell(row, 2).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "";
+                ws.Cell(row, 3).Value = p.ProtonDeliverable?.NamaDeliverable ?? "";
+                ws.Cell(row, 4).Value = p.EvidencePath != null ? "Sudah Upload" : "Belum Upload";
+                ws.Cell(row, 5).Value = p.SrSpvApprovalStatus;
+                ws.Cell(row, 6).Value = p.ShApprovalStatus;
+                ws.Cell(row, 7).Value = p.HCApprovalStatus;
+                ws.Cell(row, 8).Value = cs?.CatatanCoach ?? "";
+                ws.Cell(row, 9).Value = cs?.Kesimpulan ?? "";
+                ws.Cell(row, 10).Value = cs?.Result ?? "";
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            var safeName = (coacheeUser.FullName ?? "Coachee").Replace(" ", "_");
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"{safeName}_Progress_{DateTime.Now:yyyy-MM-dd}.xlsx");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Sr Supervisor, Section Head, HC, Admin")]
+        public async Task<IActionResult> ExportProgressPdf(string coacheeId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Load coachee user for filename/header
+            var coacheeUser = await _context.Users.FindAsync(coacheeId);
+            if (coacheeUser == null) return NotFound();
+
+            // Load deliverable progress for this specific coachee
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .Where(p => p.CoacheeId == coacheeId)
+                .OrderBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.Urutan)
+                    .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.Urutan)
+                    .ThenBy(p => p.ProtonDeliverable!.Urutan)
+                .ToListAsync();
+
+            // Load latest coaching session per deliverable progress
+            var progressIds = progresses.Select(p => p.Id).ToList();
+            var coachingSessions = await _context.CoachingSessions
+                .Where(cs => cs.CoacheeId == coacheeId && cs.ProtonDeliverableProgressId != null
+                              && progressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                .GroupBy(cs => cs.ProtonDeliverableProgressId)
+                .ToDictionaryAsync(g => g.Key!.Value, g => g.OrderByDescending(cs => cs.CreatedAt).First());
+
+            var coacheeName = coacheeUser.FullName ?? "Coachee";
+
+            var pdf = QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(QuestPDF.Helpers.PageSizes.A4.Landscape());
+                    page.Margin(20);
+                    page.Content().Column(col =>
+                    {
+                        col.Item().Text($"Proton Progress — {coacheeName}").FontSize(14).Bold();
+                        col.Item().Text($"Export date: {DateTime.Now:dd MMM yyyy}").FontSize(9);
+                        col.Item().PaddingTop(10).Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.RelativeColumn(2);   // Kompetensi
+                                cols.RelativeColumn(2);   // Sub Kompetensi
+                                cols.RelativeColumn(2);   // Deliverable
+                                cols.RelativeColumn(1);   // Evidence
+                                cols.RelativeColumn(1);   // SrSpv
+                                cols.RelativeColumn(1);   // SH
+                                cols.RelativeColumn(1);   // HC
+                                cols.RelativeColumn(2);   // Catatan
+                                cols.RelativeColumn(1.5f);// Kesimpulan
+                                cols.RelativeColumn(1);   // Result
+                            });
+
+                            // Header row
+                            foreach (var header in new[] { "Kompetensi", "Sub Kompetensi", "Deliverable", "Evidence", "Approval SrSpv", "Approval SH", "Approval HC", "Catatan Coach", "Kesimpulan", "Result" })
+                            {
+                                table.Cell().Background(QuestPDF.Helpers.Colors.Blue.Lighten4).Padding(3).Text(header).FontSize(8).Bold();
+                            }
+
+                            // Data rows
+                            foreach (var p in progresses)
+                            {
+                                var cs = coachingSessions.ContainsKey(p.Id) ? coachingSessions[p.Id] : null;
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "").FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "").FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ProtonDeliverable?.NamaDeliverable ?? "").FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.EvidencePath != null ? "Sudah Upload" : "Belum Upload").FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.SrSpvApprovalStatus).FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ShApprovalStatus).FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.HCApprovalStatus).FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(cs?.CatatanCoach ?? "").FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(cs?.Kesimpulan ?? "").FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(cs?.Result ?? "").FontSize(7);
+                            }
+                        });
+                    });
+                });
+            });
+
+            var pdfStream = new MemoryStream();
+            pdf.GeneratePdf(pdfStream);
+            var safeName = coacheeName.Replace(" ", "_");
+            return File(pdfStream.ToArray(), "application/pdf",
+                $"{safeName}_Progress_{DateTime.Now:yyyy-MM-dd}.pdf");
         }
 
         [HttpGet]

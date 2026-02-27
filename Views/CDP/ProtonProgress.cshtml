@@ -258,6 +258,21 @@
         </div>
     }
 
+    @* Export buttons — SrSpv/SH/HC/Admin only, only when a specific coachee is selected *@
+    @if (userLevel <= 4 && !string.IsNullOrEmpty(selectedCoacheeId))
+    {
+        <div class="mb-3">
+            <a href="@Url.Action("ExportProgressExcel", "CDP", new { coacheeId = selectedCoacheeId })"
+               class="btn btn-sm btn-outline-success me-2">
+                <i class="bi bi-file-earmark-excel"></i> Export Excel
+            </a>
+            <a href="@Url.Action("ExportProgressPdf", "CDP", new { coacheeId = selectedCoacheeId })"
+               class="btn btn-sm btn-outline-danger">
+                <i class="bi bi-file-earmark-pdf"></i> Export PDF
+            </a>
+        </div>
+    }
+
     @* Empty state — no data matching current filters *@
     @if (Model.Count == 0 && !string.IsNullOrEmpty(ViewBag.EmptyMessage as string))
     {
