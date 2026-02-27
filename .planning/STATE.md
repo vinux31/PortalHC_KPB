@@ -136,9 +136,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 48 — CPDP Items Manager (Complete, 4/4 plans done)
-**Status:** Ready to plan
-**Last activity:** 2026-02-26 - Completed Plan 48-04: UAT gap closure (6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear)
+**Phase:** Phase 49 — Assessment Management Migration (In Progress, 1/4 plans done)
+**Status:** Executing
+**Last activity:** 2026-02-27 - Completed Plan 49-03: Monitoring, Reset, ForceClose, Export, User History migrated to AdminController (7 actions + 2 views)
 
 Progress: [███░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
@@ -191,6 +191,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 48-04]: CpdpItemDelete reference guard removed: HC Admin has full delete authority regardless of IdpItem string references
 - [Phase 48-04]: Backspace added alongside Delete for multi-cell clear: fixed (A || B) && C operator precedence, removed redundant nested if
 
+**Phase 49-03 decisions:**
+- View Results links remain pointing to CMP/Results since Results page stays in CMP controller
+- Reshuffle AJAX URLs updated to /Admin/ReshufflePackage and /Admin/ReshuffleAll for future migration consistency
+- CloseEarly form action points to Admin/CloseEarly (string-based asp-action compiles even without action existing yet)
+- Added `using ClosedXML.Excel;` import to AdminController for cleaner Excel export code
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -224,6 +230,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Completed 48-04-PLAN.md (gap closure: 6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear). Phase 48 fully complete (4/4 plans). Next: Phase 49.
+Last session: 2026-02-27
+Stopped at: Completed 49-03-PLAN.md (Monitoring, Reset, ForceClose, Export, User History migrated to AdminController — 7 actions + 2 views). Phase 49 in progress (1/4 plans done).
 Resume file: None.
