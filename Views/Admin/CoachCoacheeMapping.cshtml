@@ -388,18 +388,35 @@ else
     }
 
     function submitAssign() {
-        // Wired in Plan 02
         var coachId = document.getElementById('assignCoachSelect').value;
         var coacheeIds = Array.from(document.querySelectorAll('.coachee-checkbox:checked')).map(cb => cb.value);
-        var protonTrackId = document.getElementById('assignProtonTrack').value;
+        var trackId = document.getElementById('assignProtonTrack').value;
         var startDate = document.getElementById('assignStartDate').value;
 
         if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
         if (coacheeIds.length === 0) { alert('Pilih minimal satu coachee.'); return; }
-        if (!startDate) { alert('Isi tanggal mulai.'); return; }
 
-        // Wired in Plan 02
-        console.log('submitAssign - Wired in Plan 02', { coachId, coacheeIds, protonTrackId, startDate });
+        var payload = {
+            CoachId: coachId,
+            CoacheeIds: coacheeIds,
+            ProtonTrackId: trackId ? parseInt(trackId) : null,
+            StartDate: startDate || null
+        };
+
+        fetch('/Admin/CoachCoacheeMappingAssign', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.message);
+        })
+        .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
 
     // ========== Edit Modal ==========
@@ -417,40 +434,105 @@ else
     }
 
     function submitEdit() {
-        // Wired in Plan 02
-        var id = document.getElementById('editMappingId').value;
+        var mappingId = document.getElementById('editMappingId').value;
         var coachId = document.getElementById('editCoachSelect').value;
-        var protonTrackId = document.getElementById('editProtonTrack').value;
+        var trackId = document.getElementById('editProtonTrack').value;
         var startDate = document.getElementById('editStartDate').value;
 
         if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
         if (!startDate) { alert('Isi tanggal mulai.'); return; }
 
-        // Wired in Plan 02
-        console.log('submitEdit - Wired in Plan 02', { id, coachId, protonTrackId, startDate });
+        var payload = {
+            MappingId: parseInt(mappingId),
+            CoachId: coachId,
+            ProtonTrackId: trackId ? parseInt(trackId) : null,
+            StartDate: startDate || null
+        };
+
+        fetch('/Admin/CoachCoacheeMappingEdit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+            },
+            body: JSON.stringify(payload)
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.message);
+        })
+        .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
 
     // ========== Deactivate Modal ==========
 
+    var deactivateTargetId = null;
+
     function confirmDeactivate(id, coacheeName) {
-        document.getElementById('deactivateMappingId').value = id;
+        deactivateTargetId = id;
         document.getElementById('deactivateCoacheeName').textContent = coacheeName || '';
-        document.getElementById('deactivateSessionInfo').textContent = '';
-        var modal = new bootstrap.Modal(document.getElementById('deactivateModal'));
-        modal.show();
+        document.getElementById('deactivateSessionInfo').textContent = 'Memuat...';
+
+        fetch('/Admin/CoachCoacheeMappingGetSessionCount', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+            },
+            body: 'id=' + id
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                var msg = data.count > 0
+                    ? 'Coachee ini memiliki ' + data.count + ' sesi coaching aktif (Draft).'
+                    : 'Tidak ada sesi coaching aktif.';
+                document.getElementById('deactivateSessionInfo').textContent = msg;
+            }
+        });
+
+        new bootstrap.Modal(document.getElementById('deactivateModal')).show();
     }
 
     function submitDeactivate() {
-        // Wired in Plan 02
-        var id = document.getElementById('deactivateMappingId').value;
-        console.log('submitDeactivate - Wired in Plan 02', { id });
+        if (!deactivateTargetId) return;
+
+        fetch('/Admin/CoachCoacheeMappingDeactivate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+            },
+            body: 'id=' + deactivateTargetId
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.message);
+        })
+        .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
 
     // ========== Reactivate ==========
 
     function reactivateMapping(id) {
-        // Wired in Plan 02
-        console.log('reactivateMapping - Wired in Plan 02', { id });
+        if (!confirm('Aktifkan kembali mapping ini?')) return;
+
+        fetch('/Admin/CoachCoacheeMappingReactivate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+            },
+            body: 'id=' + id
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) location.reload();
+            else alert(data.message);
+        })
+        .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
 </script>
 }
