@@ -12,7 +12,9 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v2.3 - Admin Portal
+## Current Milestones
+
+### v2.3 - Admin Portal (in progress)
 
 **Goal:** Admin memiliki full CRUD control atas seluruh data sistem — master data, relasi operasional, dan partial CRUD yang belum lengkap — tanpa perlu akses database langsung.
 
@@ -20,6 +22,20 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - Master data managers: KKJ Matrix, CPDP Items, AssessmentCompetencyMap
 - Operational admin: CoachCoacheeMapping, ProtonTrackAssignment, DeliverableProgress override, FinalAssessment manager
 - CRUD completions: QuestionBank edit, PackageQuestion edit/delete, ProtonTrack edit/delete, Password Reset standalone
+
+### v2.4 - CDP Progress (in progress, parallel)
+
+**Goal:** CDP/Progress page menjadi fully functional — data dari ProtonDeliverableProgress (bukan IdpItems), semua filter berfungsi, approval workflow terkoneksi ke backend, coaching report tersimpan, evidence upload/view berfungsi, export berfungsi.
+
+**Target features:**
+- Data source fix: Query ProtonDeliverableProgress + ProtonTrackAssignment, bukan IdpItems
+- Real coachee data: Query CoachCoacheeMapping, bukan mock hardcoded
+- Functional filters: Bagian/Unit/Coachee/Tahun/Search benar-benar filter data
+- Approval workflow: Approve/Reject actions tersambung ke backend ProtonDeliverableProgress
+- Coaching report: Submit membuat CoachingSession record
+- Evidence integration: Upload/View evidence tersambung ke existing Deliverable workflow
+- Export: Excel dan PDF functional
+- UI polish: HTML selected attribute fix, empty state, pagination
 
 ## Current State (v2.2 — shipped 2026-02-26)
 
@@ -532,4 +548,4 @@ All requirements from v1.0–v2.2 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-26 after v2.2 milestone — v2.3 Admin Portal active*
+*Last updated: 2026-02-27 after v2.4 milestone start — v2.3 Admin Portal + v2.4 CDP Progress parallel*

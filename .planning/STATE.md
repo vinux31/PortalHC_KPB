@@ -131,16 +131,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.3 — Admin Portal
+**Current focus:** v2.3 — Admin Portal + v2.4 — CDP Progress (parallel)
 
 ## Current Position
 
-**Milestone:** v2.3 Admin Portal — In Progress
+### v2.3 Admin Portal — In Progress
 **Phase:** Phase 48 — CPDP Items Manager (Complete, 4/4 plans done)
-**Status:** Ready to plan
-**Last activity:** 2026-02-26 - Completed Plan 48-04: UAT gap closure (6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear)
+**Status:** Ready to plan next phase
+**Last activity:** 2026-02-26 - Completed Plan 48-04
 
 Progress: [███░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
+
+### v2.4 CDP Progress — Not Started
+**Phase:** Not started (defining requirements)
+**Status:** Defining requirements
+**Last activity:** 2026-02-27 — Milestone v2.4 started
+
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
