@@ -3,12 +3,40 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-27T02:27:50.820Z"
-last_activity: "2026-02-27 - Completed Phase 63: Data Source Fix (2/2 plans). Also: Phase 49 complete (5/5 plans incl UAT gap closure)"
+last_updated: "2026-02-27T04:27:16.883Z"
+last_activity: "2026-02-27 - Completed Plan 50-02: CoachCoacheeMapping write operations (bulk assign, edit, deactivate, reactivate, Excel export, AJAX modal wiring, AuditLog)"
 progress:
-  total_phases: 48
+  total_phases: 44
   completed_phases: 43
-  total_plans: 105
+  total_plans: 106
+  completed_plans: 105
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
+status: completed
+last_updated: "2026-02-27T01:58:14.665Z"
+last_activity: "2026-02-27 - Completed Plan 49-05: UAT gap closure (JSON island modal, composite key migration for 4 group actions, UserAssessmentHistory links, token guard)"
+progress:
+  total_phases: 43
+  completed_phases: 42
+  total_plans: 104
+  completed_plans: 103
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
+status: completed
+last_updated: "2026-02-27T01:53:54.921Z"
+last_activity: "2026-02-27 - Completed Plan 49-04: AuditLog migrated to Admin, CMPController cleaned (16 manage actions removed), CMP/Assessment stripped to personal-only, CMP/Index cards updated"
+progress:
+  total_phases: 43
+  completed_phases: 42
+  total_plans: 104
   completed_plans: 103
 ---
 
@@ -145,23 +173,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v2.3 — Admin Portal + v2.4 — CDP Progress (parallel)
+**Current focus:** v2.3 — Admin Portal
 
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
 **Phase:** Phase 50 — Coach-Coachee Mapping Manager (Complete, 2/2 plans done)
-**Status:** completed
+**Status:** Milestone complete
 **Last activity:** 2026-02-27 - Completed Plan 50-02: CoachCoacheeMapping write operations (bulk assign, edit, deactivate, reactivate, Excel export, AJAX modal wiring, AuditLog)
 
 Progress: [█████░░░░░░░░░░░░░░░] 29% (v2.3 — 4/12 phases complete)
-
-### v2.4 CDP Progress — Roadmap Defined
-**Phase:** Phase 63 — Data Source Fix (not started)
-**Status:** Ready to plan Phase 63
-**Last activity:** 2026-02-27 — Roadmap defined (4 phases: 63-66, 17 requirements mapped)
-
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.4 — 0/4 phases complete)
 
 ## Performance Metrics
 
@@ -211,11 +232,6 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 48-04]: Read-mode table mirrors edit-mode: 3 missing columns (DetailIndikator, Silabus, TargetDeliverable) added to thead and tbody
 - [Phase 48-04]: CpdpItemDelete reference guard removed: HC Admin has full delete authority regardless of IdpItem string references
 - [Phase 48-04]: Backspace added alongside Delete for multi-cell clear: fixed (A || B) && C operator precedence, removed redundant nested if
-- [Phase 63-01]: Progress() disabled (redirects to Index) per CONTEXT.md cut-over strategy
-- [Phase 63-01]: Coach coachee list ordered by ProtonTrack.Urutan then FullName per CONTEXT.md
-- [Phase 63-01]: Approval status derived from ProtonDeliverableProgress.Status (Claude discretion per CONTEXT.md)
-- [Phase 63-01]: GetCoacheeDeliverables returns error JSON for unauthorized instead of HTTP 403
-- [Phase 63-02]: RZ1031 fix: replaced ternary selected attribute with if/else block — Razor tag helper does not allow C# expressions in attribute declaration area
 
 **Phase 49-03 decisions:**
 - View Results links remain pointing to CMP/Results since Results page stays in CMP controller
@@ -253,11 +269,6 @@ All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), re
 - Phase 60 added: Konsolidasi Proton Catalog (move ProtonCatalog to Kelola Data)
 - Phase 61 added: Konsolidasi Assessment Management (move Assessment manage to Kelola Data)
 - Phase 62 added: Update Kelola Data Hub (restructure Index page, remove Section C)
-- v2.4 roadmap defined: 4 phases (63-66), 17 requirements (DATA-01-04, FILT-01-04, ACTN-01-05, UI-01-04)
-  - Phase 63: Data Source Fix (DATA-01-04) — replace IdpItems query, real coachee list, correct stats
-  - Phase 64: Functional Filters (FILT-01-04, UI-01, UI-03) — all filters wired to DB + role-scoped view
-  - Phase 65: Actions (ACTN-01-05) — approve/reject/coaching/evidence/export wired to backend
-  - Phase 66: UI Polish (UI-02, UI-04) — empty state, pagination
 
 ### Pending Todos
 
@@ -282,11 +293,9 @@ None.
 | Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
 | Phase 49-assessment-management-migration P04 | 15 | 3 tasks | 5 files |
 | Phase 49-assessment-management-migration P05 | 3 | 2 tasks | 4 files |
-| Phase 63-data-source-fix P01 | 164 | 2 tasks | 1 files |
-| Phase 63-data-source-fix P02 | 119 | 2 tasks | 2 files |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 63 (Data Source Fix) complete. v2.3 at Phase 49 (5/5 plans done). v2.4 Phase 63 complete (2/2 plans done). Phase 50 complete (2/2 plans done).
+Stopped at: Completed 50-02-PLAN.md (CoachCoacheeMapping write operations, AJAX modal wiring, Excel export). Phase 50 complete (2/2 plans done).
 Resume file: None.
