@@ -369,7 +369,7 @@ Plans:
 **Goal:** Admin/HC can manage Proton silabus data (Bagian > Unit > Track > Kompetensi > SubKompetensi > Deliverable) and coaching guidance files through /Admin/ProtonData with two tabs — replaces ProtonCatalog page
 **Depends on:** Phase 50
 **Requirements:** —
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 ### Phase 52: DeliverableProgress Override
 **Goal:** Admin can view and override ProtonDeliverableProgress status — correct stuck or erroneous deliverable records
@@ -498,7 +498,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 4/4 | Complete | 2026-02-26 |
 | 49. Assessment Management Migration | 5/5 | Complete    | 2026-02-27 | - |
 | 50. Coach-Coachee Mapping Manager | 2/2 | Complete    | 2026-02-27 | - |
-| 51. Proton Track Assignment Manager | 1/3 | In Progress|  | - |
+| 51. Proton Track Assignment Manager | 2/3 | In Progress|  | - |
 | 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
 | 53. Final Assessment Manager | v2.3 | 0/? | Not started | - |
 | 54. Coaching Session Override | v2.3 | 0/? | Not started | - |
