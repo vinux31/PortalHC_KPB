@@ -106,6 +106,7 @@ else
                 <th>NIP</th>
                 <th>Seksi</th>
                 <th>Jabatan</th>
+                <th>Proton Track</th>
                 <th>Status</th>
                 <th>Mulai</th>
                 <th>Aksi</th>
@@ -117,7 +118,7 @@ else
             <!-- Coach header row -->
             <tbody>
                 <tr class="table-primary" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-@idx">
-                    <td colspan="7" class="fw-semibold">
+                    <td colspan="8" class="fw-semibold">
                         <i class="bi bi-chevron-down me-2 small"></i>
                         @group.CoachName
                         @if (!string.IsNullOrEmpty((string)group.CoachSection))
@@ -137,6 +138,16 @@ else
                         <td>@coachee.CoacheeNIP</td>
                         <td>@coachee.CoacheeSection</td>
                         <td>@coachee.CoacheePosition</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty((string)coachee.ProtonTrack))
+                            {
+                                <span class="badge bg-info text-dark">@coachee.ProtonTrack</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
                         <td>
                             @if (coachee.IsActive)
                             {

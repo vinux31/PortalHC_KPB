@@ -2366,7 +2366,16 @@ namespace HcPortal.Controllers
                     .ToList();
             }
 
-            // 4. Group by Coach, paginate over coach groups
+            // 4. Load active ProtonTrack assignments keyed by CoacheeId
+            var activeTrackAssignments = await _context.ProtonTrackAssignments
+                .Where(a => a.IsActive)
+                .Include(a => a.ProtonTrack)
+                .ToListAsync();
+            var trackByCoachee = activeTrackAssignments
+                .GroupBy(a => a.CoacheeId)
+                .ToDictionary(g => g.Key, g => g.First().ProtonTrack?.DisplayName ?? "");
+
+            // 5. Group by Coach, paginate over coach groups
             var grouped = rows
                 .GroupBy(r => r.Mapping.CoachId)
                 .Select(g => new {
@@ -2384,7 +2393,8 @@ namespace HcPortal.Controllers
                         CoacheeNIP = r.Coachee?.NIP ?? "",
                         CoacheeSection = r.Coachee?.Section ?? "",
                         CoacheePosition = r.Coachee?.Position ?? "",
-                        r.Mapping.CoacheeId
+                        r.Mapping.CoacheeId,
+                        ProtonTrack = trackByCoachee.GetValueOrDefault(r.Mapping.CoacheeId, "")
                     }).OrderBy(c => c.CoacheeName).ToList()
                 })
                 .OrderBy(g => g.CoachName)
@@ -2396,7 +2406,7 @@ namespace HcPortal.Controllers
             if (page > totalPages && totalPages > 0) page = totalPages;
             var paged = grouped.Skip((page - 1) * pageSize).Take(pageSize).ToList();
 
-            // 5. Modal data: eligible coaches, eligible coachees, proton tracks
+            // 6. Modal data: eligible coaches, eligible coachees, proton tracks
             var activeCoacheeIds = await _context.CoachCoacheeMappings
                 .Where(m => m.IsActive)
                 .Select(m => m.CoacheeId)
