@@ -136,9 +136,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 48 — CPDP Items Manager (Complete, 4/4 plans done)
-**Status:** Ready to plan
-**Last activity:** 2026-02-26 - Completed Plan 48-04: UAT gap closure (6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear)
+**Phase:** Phase 49 — Assessment Management Migration (In Progress, 1/4 plans done)
+**Status:** Executing
+**Last activity:** 2026-02-27 - Completed Plan 49-01: ManageAssessment scaffold (GET action, grouped table view, Index card activation)
 
 Progress: [███░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
@@ -191,6 +191,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 48-04]: CpdpItemDelete reference guard removed: HC Admin has full delete authority regardless of IdpItem string references
 - [Phase 48-04]: Backspace added alongside Delete for multi-cell clear: fixed (A || B) && C operator precedence, removed redundant nested if
 
+**Phase 49-01 decisions:**
+- Reused exact CMPController grouped query pattern (GroupBy Title+Category+Schedule.Date) for consistency
+- Table layout instead of card layout for ManageAssessment (denser data, better for management)
+- ExamWindowCloseDate field confirmed on model — used in 7-day recency filter
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -221,9 +226,10 @@ None.
 | Phase 48-cpdp-items-manager P02 | 5 | 3 tasks | 3 files |
 | Phase 48-cpdp-items-manager P03 | 10 | 2 tasks | 2 files |
 | Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
+| Phase 49-assessment-management-migration P01 | 2 | 3 tasks | 3 files |
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Completed 48-04-PLAN.md (gap closure: 6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear). Phase 48 fully complete (4/4 plans). Next: Phase 49.
+Last session: 2026-02-27
+Stopped at: Completed 49-01-PLAN.md (ManageAssessment scaffold: GET action, grouped table view, Index card activation). Phase 49 in progress (1/4 plans). Next: 49-02.
 Resume file: None.
