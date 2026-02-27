@@ -68,19 +68,16 @@ result: pass
 ## Summary
 
 total: 13
-passed: 12
-issues: 1
+passed: 13
+issues: 0
 pending: 0
 skipped: 0
 
 ## Gaps
 
 - truth: "Coachee rows in grouped table show Proton Track column (e.g., Panelman Tahun X, Operator Tahun X)"
-  status: failed
+  status: resolved
   reason: "User requested: tambahkan di tabel kolom Proton Track (Panelman tahun x atau Operator tahun x)"
   severity: minor
   test: 3
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  fix: "a37061a — added ProtonTrack column to controller query and view table"
