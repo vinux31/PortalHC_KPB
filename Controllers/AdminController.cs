@@ -1689,18 +1689,50 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Results");
 
-            // Header row
-            int col = 1;
-            worksheet.Cell(1, col++).Value = "Name";
-            worksheet.Cell(1, col++).Value = "NIP";
-            worksheet.Cell(1, col++).Value = "Jumlah Soal";
-            worksheet.Cell(1, col++).Value = "Status";
-            worksheet.Cell(1, col++).Value = "Score";
-            worksheet.Cell(1, col++).Value = "Result";
-            worksheet.Cell(1, col).Value   = "Completed At";
-
+            var firstSession = sessions.First();
             int totalCols = 7;
-            var headerRange = worksheet.Range(1, 1, 1, totalCols);
+
+            // Assessment info header (rows 1-6)
+            worksheet.Cell(1, 1).Value = "Laporan Assessment";
+            worksheet.Range(1, 1, 1, totalCols).Merge();
+            worksheet.Cell(1, 1).Style.Font.Bold = true;
+            worksheet.Cell(1, 1).Style.Font.FontSize = 14;
+
+            worksheet.Cell(2, 1).Value = "Judul";
+            worksheet.Cell(2, 2).Value = title;
+            worksheet.Range(2, 2, 2, totalCols).Merge();
+
+            worksheet.Cell(3, 1).Value = "Kategori";
+            worksheet.Cell(3, 2).Value = category;
+            worksheet.Range(3, 2, 3, totalCols).Merge();
+
+            worksheet.Cell(4, 1).Value = "Jadwal";
+            worksheet.Cell(4, 2).Value = firstSession.Schedule.ToString("dd MMM yyyy HH:mm");
+            worksheet.Range(4, 2, 4, totalCols).Merge();
+
+            worksheet.Cell(5, 1).Value = "Durasi";
+            worksheet.Cell(5, 2).Value = $"{firstSession.DurationMinutes} menit";
+            worksheet.Range(5, 2, 5, totalCols).Merge();
+
+            worksheet.Cell(6, 1).Value = "Batas Kelulusan";
+            worksheet.Cell(6, 2).Value = $"{firstSession.PassPercentage}%";
+            worksheet.Range(6, 2, 6, totalCols).Merge();
+
+            // Bold the labels
+            worksheet.Range(2, 1, 6, 1).Style.Font.Bold = true;
+
+            // Row 7 is blank separator, column headers start at row 8
+            int headerRow = 8;
+            int col = 1;
+            worksheet.Cell(headerRow, col++).Value = "Name";
+            worksheet.Cell(headerRow, col++).Value = "NIP";
+            worksheet.Cell(headerRow, col++).Value = "Jumlah Soal";
+            worksheet.Cell(headerRow, col++).Value = "Status";
+            worksheet.Cell(headerRow, col++).Value = "Score";
+            worksheet.Cell(headerRow, col++).Value = "Result";
+            worksheet.Cell(headerRow, col).Value   = "Completed At";
+
+            var headerRange = worksheet.Range(headerRow, 1, headerRow, totalCols);
             headerRange.Style.Font.Bold = true;
             headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
 
@@ -1708,7 +1740,7 @@ namespace HcPortal.Controllers
             for (int i = 0; i < rows.Count; i++)
             {
                 var r = rows[i];
-                var row = i + 2;
+                var row = i + headerRow + 1;
                 int c = 1;
                 worksheet.Cell(row, c++).Value = r.UserFullName;
                 worksheet.Cell(row, c++).Value = r.UserNIP;

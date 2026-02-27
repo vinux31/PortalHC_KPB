@@ -94,13 +94,14 @@ else
         <div class="table-responsive" style="min-height: calc(100vh - 380px); overflow-y: auto;">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
-                    <tr>
+                    <tr class="text-center">
                         <th style="width:50px">No</th>
                         <th>Judul</th>
                         <th>Kategori</th>
                         <th>Jadwal</th>
                         <th>Durasi</th>
                         <th>Status</th>
+                        <th>Token</th>
                         <th>Peserta</th>
                         <th style="width:100px">Aksi</th>
                     </tr>
@@ -137,9 +138,19 @@ else
                             <td>@(rowNum++)</td>
                             <td class="fw-semibold">@group.Title</td>
                             <td><span class="badge @categoryBadge">@group.Category</span></td>
-                            <td>@((DateTime)group.Schedule).ToString("dd MMM yyyy HH:mm")</td>
+                            <td>@(((DateTime)group.Schedule).ToString("dd MMM yyyy HH:mm"))</td>
                             <td>@group.DurationMinutes menit</td>
                             <td><span class="badge @statusBadge">@group.Status</span></td>
+                            <td>
+                                @if ((bool)group.IsTokenRequired)
+                                {
+                                    <span class="badge bg-success">Ya</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Tidak</span>
+                                }
+                            </td>
                             <td>
                                 <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
                                         data-bs-toggle="collapse" data-bs-target="#@collapseId"
