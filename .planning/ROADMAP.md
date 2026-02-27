@@ -375,7 +375,7 @@ Plans:
 **Goal:** Admin/HC can view all ProtonDeliverableProgress records in a third /ProtonData tab and override stuck or erroneous statuses; sequential lock removed — all deliverables Active on assignment
 **Depends on:** Phase 51
 **Requirements:** OPER-03
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 52-01-PLAN.md — Override tab UI + OverrideList/OverrideDetail/OverrideSave endpoints + badge table + override modal + AuditLog
@@ -503,7 +503,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 49. Assessment Management Migration | 5/5 | Complete    | 2026-02-27 | - |
 | 50. Coach-Coachee Mapping Manager | 2/2 | Complete    | 2026-02-27 | - |
 | 51. Proton Track Assignment Manager | 3/3 | Complete    | 2026-02-27 | - |
-| 52. DeliverableProgress Override | v2.3 | 0/2 | Not started | - |
+| 52. DeliverableProgress Override | 1/2 | In Progress|  | - |
 | 53. Final Assessment Manager | v2.3 | 0/? | Not started | - |
 | 54. Coaching Session Override | v2.3 | 0/? | Not started | - |
 | 55. ~~Question Bank Edit~~ | v2.3 | - | Removed | - |

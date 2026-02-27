@@ -2,34 +2,28 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
-<<<<<<< HEAD
-status: planning
-last_updated: "2026-02-27T07:01:08.256Z"
-last_activity: "2026-02-27 - Completed Plan 51-03: Coaching Guidance file management (upload/download/replace/delete AJAX, 5 controller endpoints, ProtonCatalog redirect)"
-=======
-status: completed
-last_updated: "2026-02-27T04:50:24.524Z"
-last_activity: "2026-02-27 - Completed Plan 49-05: UAT gap closure"
+status: Ready to discuss/plan
+last_updated: "2026-02-27T10:21:29.813Z"
+last_activity: 2026-02-27 - Phase 51 UAT complete (13/13), Phase 64 synced from terminal-a (2/2 plans complete)
 progress:
-  total_phases: 49
-  completed_phases: 44
-  total_plans: 108
-  completed_plans: 107
+  total_phases: 48
+  completed_phases: 46
+  total_plans: 115
+  completed_plans: 113
 ---
 
 ---
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
-status: executing
-last_updated: "2026-02-27T04:45:42.287Z"
-last_activity: "2026-02-27 - Completed Plan 49-05: UAT gap closure"
->>>>>>> 0ddd4e6 (docs(phase-64): complete phase execution)
+status: planning
+last_updated: "2026-02-27T13:10:00.000Z"
+last_activity: "2026-02-27 - Synced Phase 64 (Functional Filters) from terminal-a; Phase 51 UAT complete (13/13 passed)"
 progress:
   total_phases: 46
   completed_phases: 45
-  total_plans: 111
-  completed_plans: 110
+  total_plans: 113
+  completed_plans: 112
 ---
 
 ---
@@ -240,17 +234,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-<<<<<<< HEAD
-**Phase:** Phase 51 — Proton Silabus & Coaching Guidance Manager (Complete, 3/3 plans done)
-**Status:** Ready to plan
-**Last activity:** 2026-02-27 - Completed Plan 51-03: Coaching Guidance file management (upload/download/replace/delete AJAX, 5 controller endpoints, ProtonCatalog redirect)
-=======
-**Phase:** Phase 49 — Assessment Management Migration (Complete, 5/5 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-27 - Completed Plan 49-05: UAT gap closure
->>>>>>> 0ddd4e6 (docs(phase-64): complete phase execution)
+**Phase:** Phase 52 — DeliverableProgress Override (Plan 02 complete, Phase complete)
+**Status:** Executing
+**Last activity:** 2026-02-27 - Completed Plan 52-02: Sequential lock removal (all deliverables Active on AssignTrack, lock checks removed from Deliverable()/ApproveDeliverable(), 4-status stats/charts, EF migration applied)
 
-Progress: [██████░░░░░░░░░░░░░░] 42% (v2.3 — 6/12 phases complete)
+Progress: [████████░░░░░░░░░░░░] 42% (v2.3 — 6/12 phases complete, v2.4 — 2/8 phases complete)
 
 ## Performance Metrics
 
@@ -333,6 +321,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 51-01]: CoachingGuidanceFile FK to ProtonTrack uses DeleteBehavior.Restrict; Proton Track Assignment card removed from Admin/Index Section B (absorbed by Phase 50)
 - [Phase 51]: SilabusRowDto/SilabusDeleteRequest DTOs at namespace level; SilabusSave flushes SaveChangesAsync per hierarchy level for EF-generated FK IDs; silabusFilter JSON island pattern for passing Razor state to IIFE JS; deleteTargetIndex in IIFE closure to avoid stale modal data
 - [Phase 51-03]: GuidanceDelete uses [FromBody] GuidanceDeleteRequest JSON DTO; upload files named {timestamp}_{GUID}{ext} with original filename stored in DB; GuidanceReplace deletes old physical file then saves new one in-place; ProtonCatalogController stripped to redirect-only with no DI constructor
+- [Phase 52-02]: Deliverable() allProgresses+orderedProgresses load removed entirely: isAccessible=true unconditionally eliminates unnecessary DB query
+- [Phase 52-02]: ApproveDeliverable() orderedProgresses load retained: still needed for allApproved check and HC notification trigger
+- [Phase 52-02]: EF migration Down() left empty: cannot reverse data migration that deleted Locked status semantics
 
 ### Roadmap Evolution
 
@@ -369,9 +360,10 @@ None.
 | Phase 51-proton-silabus-coaching-guidance-manager P01 | 25 | 2 tasks | 6 files |
 | Phase 51-proton-silabus-coaching-guidance-manager P02 | 3 | 2 tasks | 2 files |
 | Phase 51-proton-silabus-coaching-guidance-manager P03 | 3 | 2 tasks | 4 files |
+| Phase 52-deliverableprogress-override P02 | 2 | 2 tasks | 5 files |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 51-03-PLAN.md (Coaching Guidance file management: GuidanceUpload/Download/Replace/Delete endpoints, AJAX file table, Replace/Delete modals, ProtonCatalog redirect). Phase 51 complete (3/3 plans done).
+Stopped at: Completed 52-02-PLAN.md (Sequential lock removal from Proton deliverable system — all Active on assign, lock checks removed, 4-status charts, EF migration applied). Phase 52 complete (2/2 plans done).
 Resume file: None.
