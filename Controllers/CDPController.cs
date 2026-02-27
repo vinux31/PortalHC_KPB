@@ -733,12 +733,12 @@ namespace HcPortal.Controllers
                     .ThenBy(d => d.Urutan)
                 .ToListAsync();
 
-            // Create progress records — all deliverables start Active (no sequential lock)
-            var progressList = deliverables.Select(d => new ProtonDeliverableProgress
+            // Create progress records — all Pending (Locked/Active removed per Phase 65)
+            var progressList = deliverables.Select((d, index) => new ProtonDeliverableProgress
             {
                 CoacheeId = coacheeId,
                 ProtonDeliverableId = d.Id,
-                Status = "Active",
+                Status = "Pending",
                 CreatedAt = DateTime.UtcNow
             }).ToList();
 
@@ -881,7 +881,7 @@ namespace HcPortal.Controllers
             progress.ApprovedAt = DateTime.UtcNow;
             progress.ApprovedById = user.Id;
 
-            // Load ALL progress records for this coachee's track to unlock next deliverable
+            // Load ALL progress records for this coachee's track (for all-approved check only)
             var allProgresses = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
                     .ThenInclude(d => d.ProtonSubKompetensi)
@@ -895,6 +895,8 @@ namespace HcPortal.Controllers
                 .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
                 .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
                 .ToList();
+
+            // Phase 65: No more sequential unlock — Locked/Active statuses removed
 
             // Check all-approved: use in-memory state (current record already set to "Approved" above)
             bool allApproved = orderedProgresses.All(p => p.Status == "Approved");
@@ -1520,6 +1522,18 @@ namespace HcPortal.Controllers
             var coacheeNameDict = coacheeList?.ToDictionary(u => u.Id, u => u.FullName ?? "")
                 ?? new Dictionary<string, string>();
 
+            // Phase 65: Build approver name lookup for tooltips
+            var approverIds = progresses
+                .SelectMany(p => new[] { p.SrSpvApprovedById, p.ShApprovedById, p.HCReviewedById })
+                .Where(id => id != null)
+                .Distinct()
+                .ToList();
+            var approverNames = approverIds.Any()
+                ? await _context.Users
+                    .Where(u => approverIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id)
+                : new Dictionary<string, string>();
+
             // Map ProtonDeliverableProgress to TrackingItem
             data = progresses.Select(p => new TrackingItem
             {
@@ -1529,18 +1543,19 @@ namespace HcPortal.Controllers
                 Deliverable = p.ProtonDeliverable?.NamaDeliverable ?? "",
                 EvidenceStatus = p.EvidencePath != null ? "Uploaded" : "Pending",
                 FullEvidencePath = p.EvidencePath ?? "",
-                ApprovalSrSpv = p.Status == "Approved" ? "Approved"
-                              : p.Status == "Rejected" ? "Rejected"
-                              : p.Status == "Submitted" ? "Pending"
-                              : "Not Started",
-                ApprovalSectionHead = p.Status == "Approved" ? "Approved"
-                                    : p.Status == "Rejected" ? "Rejected"
-                                    : p.Status == "Submitted" ? "Pending"
-                                    : "Not Started",
-                ApprovalHC = p.HCApprovalStatus == "Reviewed" ? "Approved" : "Pending",
+                ApprovalSrSpv = p.SrSpvApprovalStatus,
+                ApprovalSectionHead = p.ShApprovalStatus,
+                ApprovalHC = p.HCApprovalStatus == "Reviewed" ? "Reviewed" : "Pending",
                 SupervisorComments = p.RejectionReason ?? "",
                 CoacheeId = p.CoacheeId,
                 CoacheeName = coacheeNameDict.TryGetValue(p.CoacheeId, out var name) ? name : "",
+                Status = p.Status,
+                SrSpvApproverName = p.SrSpvApprovedById != null && approverNames.ContainsKey(p.SrSpvApprovedById) ? approverNames[p.SrSpvApprovedById] : "",
+                SrSpvApprovedAt = p.SrSpvApprovedAt.HasValue ? p.SrSpvApprovedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "",
+                ShApproverName = p.ShApprovedById != null && approverNames.ContainsKey(p.ShApprovedById) ? approverNames[p.ShApprovedById] : "",
+                ShApprovedAt = p.ShApprovedAt.HasValue ? p.ShApprovedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "",
+                HcReviewerName = p.HCReviewedById != null && approverNames.ContainsKey(p.HCReviewedById) ? approverNames[p.HCReviewedById] : "",
+                HcReviewedAt = p.HCReviewedAt.HasValue ? p.HCReviewedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "",
             }).ToList();
 
             // Compute summary stats
@@ -1549,8 +1564,16 @@ namespace HcPortal.Controllers
                 p.Status == "Approved" ? 1.0 :
                 p.Status == "Submitted" ? 0.5 : 0.0);
             progressPercent = total > 0 ? (int)(weightedSum / total * 100) : 0;
-            pendingActions = progresses.Count(p => p.Status == "Active" || p.Status == "Rejected");
-            pendingApprovals = progresses.Count(p => p.Status == "Submitted");
+            pendingActions = progresses.Count(p => p.Status == "Pending" || p.Status == "Rejected");
+            // Role-aware pending approvals
+            if (userRole == UserRoles.SrSupervisor)
+                pendingApprovals = progresses.Count(p => p.Status == "Submitted" && p.SrSpvApprovalStatus == "Pending");
+            else if (userRole == UserRoles.SectionHead)
+                pendingApprovals = progresses.Count(p => p.Status == "Submitted" && p.ShApprovalStatus == "Pending");
+            else if (userRole == UserRoles.HC)
+                pendingApprovals = progresses.Count(p => p.Status == "Submitted" && p.HCApprovalStatus == "Pending");
+            else
+                pendingApprovals = progresses.Count(p => p.Status == "Submitted");
 
             // --- ViewBag: filter option lists ---
             ViewBag.AllBagian = OrganizationStructure.GetAllSections();

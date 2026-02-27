@@ -15,5 +15,14 @@ namespace HcPortal.Models
         public string SupervisorComments { get; set; } = ""; // Feedback from supervisor
         public string CoacheeId { get; set; } = "";
         public string CoacheeName { get; set; } = "";
+
+        // Phase 65: tooltip and per-role fields
+        public string SrSpvApproverName { get; set; } = "";
+        public string SrSpvApprovedAt { get; set; } = "";
+        public string ShApproverName { get; set; } = "";
+        public string ShApprovedAt { get; set; } = "";
+        public string HcReviewerName { get; set; } = "";
+        public string HcReviewedAt { get; set; } = "";
+        public string Status { get; set; } = "Pending"; // Overall deliverable status for button enable logic
     }
 }

@@ -87,8 +87,8 @@ public class ProtonDeliverableProgress
     public string CoacheeId { get; set; } = "";
     public int ProtonDeliverableId { get; set; }
     public ProtonDeliverable? ProtonDeliverable { get; set; }
-    /// <summary>Values: "Active", "Submitted", "Approved", "Rejected"</summary>
-    public string Status { get; set; } = "Active";
+    /// <summary>Values: "Pending", "Submitted", "Approved", "Rejected"</summary>
+    public string Status { get; set; } = "Pending";
     /// <summary>Relative web path like "/uploads/evidence/{id}/{filename}"</summary>
     public string? EvidencePath { get; set; }
     /// <summary>Original display name of uploaded file</summary>
@@ -113,6 +113,21 @@ public class ProtonDeliverableProgress
 
     /// <summary>HC user ID who reviewed. No FK — matches pattern.</summary>
     public string? HCReviewedById { get; set; }
+
+    // ===== Phase 65: Independent Per-Role Approval =====
+    /// <summary>SrSpv independent approval. Values: "Pending", "Approved", "Rejected"</summary>
+    public string SrSpvApprovalStatus { get; set; } = "Pending";
+    /// <summary>SrSpv approver user ID. No FK — matches pattern.</summary>
+    public string? SrSpvApprovedById { get; set; }
+    /// <summary>When SrSpv approved/rejected.</summary>
+    public DateTime? SrSpvApprovedAt { get; set; }
+
+    /// <summary>SectionHead independent approval. Values: "Pending", "Approved", "Rejected"</summary>
+    public string ShApprovalStatus { get; set; } = "Pending";
+    /// <summary>SectionHead approver user ID. No FK — matches pattern.</summary>
+    public string? ShApprovedById { get; set; }
+    /// <summary>When SectionHead approved/rejected.</summary>
+    public DateTime? ShApprovedAt { get; set; }
 }
 
 /// <summary>

@@ -16,6 +16,8 @@ namespace HcPortal.Models
         public string Status { get; set; } = "Draft";  // "Draft", "Submitted"
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
+        /// <summary>Links coaching session to a specific deliverable progress record. No FK constraint — matches project pattern.</summary>
+        public int? ProtonDeliverableProgressId { get; set; }
         public ICollection<ActionItem> ActionItems { get; set; } = new List<ActionItem>();
     }
 }
