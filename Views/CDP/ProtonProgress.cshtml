@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Proton Progress";
     var userLevel = (int)ViewBag.UserLevel;
+    var userRole = ViewBag.UserRole as string ?? "";
     var allBagian = ViewBag.AllBagian as List<string> ?? new List<string>();
     var allUnits = ViewBag.AllUnits as List<string> ?? new List<string>();
     var allTracks = ViewBag.AllTracks as List<string> ?? new List<string>();
@@ -16,6 +17,12 @@
     var pendingActions = (int)ViewBag.PendingActions;
     var pendingApprovals = (int)ViewBag.PendingApprovals;
     var showCoacheeColumn = string.IsNullOrEmpty(selectedCoacheeId) && userLevel < 6;
+
+    bool isSrSpv = userRole == "Sr Supervisor";
+    bool isSH = userRole == "Section Head";
+    bool isHC = userRole == "HC" || userRole == "Admin";
+    bool isCoach = userLevel == 5;
+    bool isCoachee = userLevel == 6;
 
     // Pre-compute groupings for table rendering
     var coacheeGroups = Model
@@ -280,7 +287,7 @@
                         <th>Approval Sr. Spv</th>
                         <th>Approval Section Head</th>
                         <th>Approval HC</th>
-                        <th>Aksi</th>
+                        <th>Detail</th>
                     </tr>
                 </thead>
                 <tbody id="progressTableBody">
@@ -315,28 +322,87 @@
                                                 firstSub = false;
                                             }
                                             <td>@item.Deliverable</td>
+                                            @* Evidence column *@
                                             <td class="text-center">
-                                                @if (item.EvidenceStatus == "Uploaded")
+                                                @if (isCoach && (item.Status == "Pending" || item.Status == "Rejected"))
                                                 {
-                                                    <span class="badge bg-success">Uploaded</span>
+                                                    <button class="btn btn-sm btn-primary" disabled title="Wired in Plan 02">Submit Evidence</button>
+                                                }
+                                                else if (item.EvidenceStatus == "Uploaded")
+                                                {
+                                                    <span class="badge bg-success">Sudah Upload</span>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-secondary">Pending</span>
+                                                    <span class="badge bg-secondary">Belum Upload</span>
                                                 }
                                             </td>
-                                            <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))</td>
-                                            <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))</td>
-                                            <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalHC))</td>
+                                            @* SrSpv approval column *@
+                                            <td class="text-center" id="srspv-@item.Id">
+                                                @if (!string.IsNullOrEmpty(item.SrSpvApproverName))
+                                                {
+                                                    @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSrSpv, item.SrSpvApproverName, item.SrSpvApprovedAt))
+                                                }
+                                                else
+                                                {
+                                                    @Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))
+                                                }
+                                                @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
+                                                {
+                                                    <br />
+                                                    <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
+                                                            data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                            data-progress-id="@item.Id"
+                                                            data-deliverable="@item.Deliverable"
+                                                            data-kompetensi="@item.Kompetensi"
+                                                            data-sub-kompetensi="@item.SubKompetensi"
+                                                            data-evidence-url="@item.FullEvidencePath"
+                                                            data-role="srspv">Tinjau</button>
+                                                }
+                                            </td>
+                                            @* SH approval column *@
+                                            <td class="text-center" id="sh-@item.Id">
+                                                @if (!string.IsNullOrEmpty(item.ShApproverName))
+                                                {
+                                                    @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSectionHead, item.ShApproverName, item.ShApprovedAt))
+                                                }
+                                                else
+                                                {
+                                                    @Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))
+                                                }
+                                                @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
+                                                {
+                                                    <br />
+                                                    <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
+                                                            data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                            data-progress-id="@item.Id"
+                                                            data-deliverable="@item.Deliverable"
+                                                            data-kompetensi="@item.Kompetensi"
+                                                            data-sub-kompetensi="@item.SubKompetensi"
+                                                            data-evidence-url="@item.FullEvidencePath"
+                                                            data-role="sh">Tinjau</button>
+                                                }
+                                            </td>
+                                            @* HC approval column *@
+                                            <td class="text-center" id="hc-@item.Id">
+                                                @if (!string.IsNullOrEmpty(item.HcReviewerName))
+                                                {
+                                                    @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalHC, item.HcReviewerName, item.HcReviewedAt))
+                                                }
+                                                else
+                                                {
+                                                    @Html.Raw(GetApprovalBadge(item.ApprovalHC))
+                                                }
+                                                @if (isHC && item.Status == "Submitted" && item.ApprovalHC == "Pending")
+                                                {
+                                                    <br />
+                                                    <button class="btn btn-sm btn-outline-success btnHcReview mt-1"
+                                                            data-progress-id="@item.Id">Review</button>
+                                                }
+                                            </td>
                                             <td class="text-center">
-                                                <div class="dropdown">
-                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                        <i class="bi bi-three-dots-vertical"></i>
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        <li><a class="dropdown-item" href="@Url.Action("Deliverable", "CDP", new { id = item.Id })"><i class="bi bi-eye me-1"></i>Lihat Detail</a></li>
-                                                    </ul>
-                                                </div>
+                                                <a asp-action="Deliverable" asp-route-id="@item.Id"
+                                                   class="btn btn-sm btn-outline-secondary">Lihat Detail</a>
                                             </td>
                                         </tr>
                                     }
@@ -367,28 +433,87 @@
                                             firstSub = false;
                                         }
                                         <td>@item.Deliverable</td>
+                                        @* Evidence column *@
                                         <td class="text-center">
-                                            @if (item.EvidenceStatus == "Uploaded")
+                                            @if (isCoach && (item.Status == "Pending" || item.Status == "Rejected"))
                                             {
-                                                <span class="badge bg-success">Uploaded</span>
+                                                <button class="btn btn-sm btn-primary" disabled title="Wired in Plan 02">Submit Evidence</button>
+                                            }
+                                            else if (item.EvidenceStatus == "Uploaded")
+                                            {
+                                                <span class="badge bg-success">Sudah Upload</span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-secondary">Pending</span>
+                                                <span class="badge bg-secondary">Belum Upload</span>
                                             }
                                         </td>
-                                        <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))</td>
-                                        <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))</td>
-                                        <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalHC))</td>
+                                        @* SrSpv approval column *@
+                                        <td class="text-center" id="srspv-@item.Id">
+                                            @if (!string.IsNullOrEmpty(item.SrSpvApproverName))
+                                            {
+                                                @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSrSpv, item.SrSpvApproverName, item.SrSpvApprovedAt))
+                                            }
+                                            else
+                                            {
+                                                @Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))
+                                            }
+                                            @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
+                                            {
+                                                <br />
+                                                <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
+                                                        data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                        data-progress-id="@item.Id"
+                                                        data-deliverable="@item.Deliverable"
+                                                        data-kompetensi="@item.Kompetensi"
+                                                        data-sub-kompetensi="@item.SubKompetensi"
+                                                        data-evidence-url="@item.FullEvidencePath"
+                                                        data-role="srspv">Tinjau</button>
+                                            }
+                                        </td>
+                                        @* SH approval column *@
+                                        <td class="text-center" id="sh-@item.Id">
+                                            @if (!string.IsNullOrEmpty(item.ShApproverName))
+                                            {
+                                                @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSectionHead, item.ShApproverName, item.ShApprovedAt))
+                                            }
+                                            else
+                                            {
+                                                @Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))
+                                            }
+                                            @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
+                                            {
+                                                <br />
+                                                <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
+                                                        data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                        data-progress-id="@item.Id"
+                                                        data-deliverable="@item.Deliverable"
+                                                        data-kompetensi="@item.Kompetensi"
+                                                        data-sub-kompetensi="@item.SubKompetensi"
+                                                        data-evidence-url="@item.FullEvidencePath"
+                                                        data-role="sh">Tinjau</button>
+                                            }
+                                        </td>
+                                        @* HC approval column *@
+                                        <td class="text-center" id="hc-@item.Id">
+                                            @if (!string.IsNullOrEmpty(item.HcReviewerName))
+                                            {
+                                                @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalHC, item.HcReviewerName, item.HcReviewedAt))
+                                            }
+                                            else
+                                            {
+                                                @Html.Raw(GetApprovalBadge(item.ApprovalHC))
+                                            }
+                                            @if (isHC && item.Status == "Submitted" && item.ApprovalHC == "Pending")
+                                            {
+                                                <br />
+                                                <button class="btn btn-sm btn-outline-success btnHcReview mt-1"
+                                                        data-progress-id="@item.Id">Review</button>
+                                            }
+                                        </td>
                                         <td class="text-center">
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                    <i class="bi bi-three-dots-vertical"></i>
-                                                </button>
-                                                <ul class="dropdown-menu">
-                                                    <li><a class="dropdown-item" href="@Url.Action("Deliverable", "CDP", new { id = item.Id })"><i class="bi bi-eye me-1"></i>Lihat Detail</a></li>
-                                                </ul>
-                                            </div>
+                                            <a asp-action="Deliverable" asp-route-id="@item.Id"
+                                               class="btn btn-sm btn-outline-secondary">Lihat Detail</a>
                                         </td>
                                     </tr>
                                 }
@@ -402,6 +527,52 @@
 
 </div> @* end container-fluid *@
 
+@* Tinjau Modal — shared for SrSpv and SH approve/reject *@
+<div class="modal fade" id="tinjaModal" tabindex="-1" aria-labelledby="tinjaModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tinjaModalLabel">Tinjau Deliverable</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modalProgressId" />
+                <input type="hidden" id="modalRole" />
+                <p><strong>Kompetensi:</strong> <span id="modalKompetensi"></span></p>
+                <p><strong>Sub-Kompetensi:</strong> <span id="modalSubKompetensi"></span></p>
+                <p><strong>Deliverable:</strong> <span id="modalDeliverableName"></span></p>
+                <p><strong>Evidence:</strong> <a id="modalEvidenceLink" href="#" target="_blank" rel="noopener">Lihat Evidence</a></p>
+                <div class="mb-3">
+                    <label class="form-label">Aksi</label>
+                    <select class="form-select" id="modalAction">
+                        <option value="">-- Pilih Aksi --</option>
+                        <option value="approve">Approve</option>
+                        <option value="reject">Reject</option>
+                    </select>
+                </div>
+                <div class="mb-3 d-none" id="commentGroup">
+                    <label class="form-label">Komentar <span id="commentRequired" class="text-danger d-none">*</span></label>
+                    <textarea class="form-control" id="modalComment" rows="3" placeholder="Masukkan alasan penolakan..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="btnSubmitTinja" disabled>Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Toast container *@
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+    <div id="actionToast" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="actionToastBody"></div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+</div>
+
 @functions {
     string GetApprovalBadge(string status)
     {
@@ -409,13 +580,40 @@
         {
             "Approved" => "<span class=\"badge bg-success\">Approved</span>",
             "Rejected" => "<span class=\"badge bg-danger\">Rejected</span>",
-            "Pending" => "<span class=\"badge bg-warning text-dark\">Pending</span>",
-            _ => "<span class=\"badge bg-secondary\">Not Started</span>",
+            "Reviewed" => "<span class=\"badge bg-success\">Reviewed</span>",
+            "Pending"  => "<span class=\"badge bg-secondary\">Pending</span>",
+            _ => "<span class=\"badge bg-light text-dark\">-</span>",
+        };
+    }
+
+    string GetApprovalBadgeWithTooltip(string status, string approverName, string approvedAt)
+    {
+        var tooltipText = $"{approverName} — {approvedAt}";
+        return status switch
+        {
+            "Approved" => $"<span class=\"badge bg-success\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Approved</span>",
+            "Rejected" => $"<span class=\"badge bg-danger\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Rejected</span>",
+            "Reviewed" => $"<span class=\"badge bg-success\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Reviewed</span>",
+            "Pending"  => "<span class=\"badge bg-secondary\">Pending</span>",
+            _ => "<span class=\"badge bg-light text-dark\">-</span>",
+        };
+    }
+
+    string GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "Pending"   => "<span class=\"badge bg-secondary\">Pending</span>",
+            "Submitted" => "<span class=\"badge bg-primary\">Submitted</span>",
+            "Approved"  => "<span class=\"badge bg-success\">Approved</span>",
+            "Rejected"  => "<span class=\"badge bg-danger\">Rejected</span>",
+            _ => "<span class=\"badge bg-light text-dark\">-</span>",
         };
     }
 }
 
 @section Scripts {
+@Html.AntiForgeryToken()
 <script>
 // === Bagian -> Unit cascade ===
 const unitsByBagian = {
@@ -428,7 +626,6 @@ const unitsByBagian = {
 function onBagianChange(select) {
     const unitSelect = document.getElementById('unitSelect');
     if (unitSelect) {
-        // Clear unit selection to prevent stale cascade
         unitSelect.innerHTML = '<option value="">Semua Unit</option>';
         const bagian = select.value;
         if (bagian && unitsByBagian[bagian]) {
@@ -443,11 +640,174 @@ function onBagianChange(select) {
     select.form.submit();
 }
 
-// === Reset all filters ===
 function clearFilters() {
-    // Navigate to ProtonProgress with no params
     window.location.href = '@Url.Action("ProtonProgress", "CDP")';
 }
+
+// === AJAX helpers ===
+function getAntiForgeryToken() {
+    const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+    return tokenEl ? tokenEl.value : '';
+}
+
+function showToast(message, type) {
+    const toast = document.getElementById('actionToast');
+    const toastBody = document.getElementById('actionToastBody');
+    if (!toast || !toastBody) return;
+    toastBody.textContent = message;
+    toast.className = 'toast align-items-center border-0 text-white';
+    toast.classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+    const bsToast = bootstrap.Toast.getOrCreateInstance(toast, { delay: 3500 });
+    bsToast.show();
+}
+
+// === Tinjau Modal logic ===
+const tinjaModal = document.getElementById('tinjaModal');
+const modalAction = document.getElementById('modalAction');
+const commentGroup = document.getElementById('commentGroup');
+const commentRequired = document.getElementById('commentRequired');
+const btnSubmitTinja = document.getElementById('btnSubmitTinja');
+const modalComment = document.getElementById('modalComment');
+
+if (tinjaModal) {
+    tinjaModal.addEventListener('show.bs.modal', function(event) {
+        const btn = event.relatedTarget;
+        if (!btn) return;
+        document.getElementById('modalProgressId').value = btn.dataset.progressId || '';
+        document.getElementById('modalRole').value = btn.dataset.role || '';
+        document.getElementById('modalKompetensi').textContent = btn.dataset.kompetensi || '';
+        document.getElementById('modalSubKompetensi').textContent = btn.dataset.subKompetensi || '';
+        document.getElementById('modalDeliverableName').textContent = btn.dataset.deliverable || '';
+        const evidenceUrl = btn.dataset.evidenceUrl || '';
+        const evidenceLink = document.getElementById('modalEvidenceLink');
+        if (evidenceUrl) {
+            evidenceLink.href = evidenceUrl;
+            evidenceLink.textContent = 'Lihat Evidence';
+        } else {
+            evidenceLink.href = '#';
+            evidenceLink.textContent = 'Tidak ada evidence';
+        }
+        // Reset action dropdown and comment
+        if (modalAction) modalAction.value = '';
+        if (commentGroup) commentGroup.classList.add('d-none');
+        if (modalComment) modalComment.value = '';
+        if (btnSubmitTinja) btnSubmitTinja.disabled = true;
+    });
+}
+
+if (modalAction) {
+    modalAction.addEventListener('change', function() {
+        const action = this.value;
+        if (action === 'reject') {
+            if (commentGroup) commentGroup.classList.remove('d-none');
+            if (commentRequired) commentRequired.classList.remove('d-none');
+        } else if (action === 'approve') {
+            if (commentGroup) commentGroup.classList.remove('d-none');
+            if (commentRequired) commentRequired.classList.add('d-none');
+        } else {
+            if (commentGroup) commentGroup.classList.add('d-none');
+        }
+        if (btnSubmitTinja) btnSubmitTinja.disabled = !action;
+    });
+}
+
+if (btnSubmitTinja) {
+    btnSubmitTinja.addEventListener('click', async function() {
+        const progressId = document.getElementById('modalProgressId').value;
+        const role = document.getElementById('modalRole').value;
+        const action = modalAction ? modalAction.value : '';
+        const comment = modalComment ? modalComment.value.trim() : '';
+
+        if (!action) { showToast('Pilih aksi terlebih dahulu.', 'danger'); return; }
+        if (action === 'reject' && !comment) { showToast('Alasan penolakan wajib diisi.', 'danger'); return; }
+
+        const url = action === 'approve'
+            ? '/CDP/ApproveFromProgress'
+            : '/CDP/RejectFromProgress';
+
+        const formData = new FormData();
+        formData.append('progressId', progressId);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+        if (action === 'approve') {
+            formData.append('comment', comment);
+        } else {
+            formData.append('rejectionReason', comment);
+        }
+
+        btnSubmitTinja.disabled = true;
+        btnSubmitTinja.textContent = 'Menyimpan...';
+
+        try {
+            const resp = await fetch(url, { method: 'POST', body: formData });
+            const data = await resp.json();
+
+            // Dismiss modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('tinjaModal'));
+            if (modal) modal.hide();
+
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Update badge in-place
+                const colId = role === 'srspv' ? `srspv-${progressId}` : `sh-${progressId}`;
+                const cell = document.getElementById(colId);
+                if (cell) {
+                    const tooltip = `${data.approverName} \u2014 ${data.approvedAt}`;
+                    const badgeClass = data.newStatus === 'Approved' ? 'bg-success' : 'bg-danger';
+                    cell.innerHTML = `<span class="badge ${badgeClass}" data-bs-toggle="tooltip" title="${tooltip}">${data.newStatus}</span>`;
+                    // Re-init tooltip on new badge
+                    const newBadge = cell.querySelector('[data-bs-toggle="tooltip"]');
+                    if (newBadge) new bootstrap.Tooltip(newBadge);
+                }
+            } else {
+                showToast(data.message || 'Terjadi kesalahan.', 'danger');
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan jaringan.', 'danger');
+        } finally {
+            btnSubmitTinja.disabled = false;
+            btnSubmitTinja.textContent = 'Submit';
+        }
+    });
+}
+
+// === HC Review buttons ===
+document.querySelectorAll('.btnHcReview').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const progressId = this.dataset.progressId;
+        if (!confirm('Tandai sebagai sudah direview?')) return;
+
+        const formData = new FormData();
+        formData.append('progressId', progressId);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        this.disabled = true;
+        try {
+            const resp = await fetch('/CDP/HCReviewFromProgress', { method: 'POST', body: formData });
+            const data = await resp.json();
+            if (data.success) {
+                showToast(data.message, 'success');
+                const cell = document.getElementById(`hc-${progressId}`);
+                if (cell) {
+                    const tooltip = `${data.reviewerName} \u2014 ${data.reviewedAt}`;
+                    cell.innerHTML = `<span class="badge bg-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
+                    const newBadge = cell.querySelector('[data-bs-toggle="tooltip"]');
+                    if (newBadge) new bootstrap.Tooltip(newBadge);
+                }
+            } else {
+                showToast(data.message || 'Terjadi kesalahan.', 'danger');
+                this.disabled = false;
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan jaringan.', 'danger');
+            this.disabled = false;
+        }
+    });
+});
+
+// === Initialize tooltips ===
+document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+    new bootstrap.Tooltip(el);
+});
 
 // === Client-side search ===
 let searchTimer;
@@ -461,7 +821,6 @@ if (searchInput) {
         clearTimeout(searchTimer);
         const query = this.value.trim();
 
-        // Toggle clear button visibility
         if (searchClear) {
             searchClear.classList.toggle('d-none', !query);
         }
@@ -479,7 +838,6 @@ if (searchInput) {
                 if (match) visibleCount++;
             });
 
-            // Show/hide no-results message
             if (searchNoResults) {
                 if (q && visibleCount === 0) {
                     searchNoResults.classList.remove('d-none');

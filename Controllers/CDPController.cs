@@ -1638,6 +1638,179 @@ namespace HcPortal.Controllers
 
         public IActionResult Progress() => RedirectToAction("Index");
 
+        // ===== Phase 65: AJAX approval endpoints =====
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveFromProgress(int progressId, string? comment)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Json(new { success = false, message = "Tidak terautentikasi." });
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
+
+            bool isSrSpv = userRole == UserRoles.SrSupervisor;
+            bool isSH = userRole == UserRoles.SectionHead;
+            if (!isSrSpv && !isSH)
+                return Json(new { success = false, message = "Akses tidak diizinkan." });
+
+            var progress = await _context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+            if (progress == null)
+                return Json(new { success = false, message = "Data tidak ditemukan." });
+
+            if (progress.Status != "Submitted")
+                return Json(new { success = false, message = "Hanya deliverable dengan status Submitted yang dapat disetujui." });
+
+            // Section check
+            var coacheeUser = await _context.Users
+                .Where(u => u.Id == progress.CoacheeId)
+                .Select(u => new { u.Section })
+                .FirstOrDefaultAsync();
+            if (coacheeUser == null || coacheeUser.Section != user.Section)
+                return Json(new { success = false, message = "Tidak dapat menyetujui deliverable dari seksi berbeda." });
+
+            var now = DateTime.UtcNow;
+            if (isSrSpv)
+            {
+                progress.SrSpvApprovalStatus = "Approved";
+                progress.SrSpvApprovedById = user.Id;
+                progress.SrSpvApprovedAt = now;
+            }
+            else
+            {
+                progress.ShApprovalStatus = "Approved";
+                progress.ShApprovedById = user.Id;
+                progress.ShApprovedAt = now;
+            }
+
+            // Set overall status to Approved
+            progress.Status = "Approved";
+            progress.ApprovedAt = now;
+            progress.ApprovedById = user.Id;
+
+            await _context.SaveChangesAsync();
+
+            var approverName = user.FullName ?? user.UserName ?? user.Id;
+            var approvedAtLocal = now.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+
+            return Json(new
+            {
+                success = true,
+                message = "Deliverable berhasil disetujui.",
+                newStatus = isSrSpv ? progress.SrSpvApprovalStatus : progress.ShApprovalStatus,
+                approverName,
+                approvedAt = approvedAtLocal
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectFromProgress(int progressId, string rejectionReason)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Json(new { success = false, message = "Tidak terautentikasi." });
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
+
+            bool isSrSpv = userRole == UserRoles.SrSupervisor;
+            bool isSH = userRole == UserRoles.SectionHead;
+            if (!isSrSpv && !isSH)
+                return Json(new { success = false, message = "Akses tidak diizinkan." });
+
+            if (string.IsNullOrWhiteSpace(rejectionReason))
+                return Json(new { success = false, message = "Alasan penolakan tidak boleh kosong." });
+
+            var progress = await _context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+            if (progress == null)
+                return Json(new { success = false, message = "Data tidak ditemukan." });
+
+            if (progress.Status != "Submitted")
+                return Json(new { success = false, message = "Hanya deliverable dengan status Submitted yang dapat ditolak." });
+
+            // Section check
+            var coacheeUser = await _context.Users
+                .Where(u => u.Id == progress.CoacheeId)
+                .Select(u => new { u.Section })
+                .FirstOrDefaultAsync();
+            if (coacheeUser == null || coacheeUser.Section != user.Section)
+                return Json(new { success = false, message = "Tidak dapat menolak deliverable dari seksi berbeda." });
+
+            var now = DateTime.UtcNow;
+            if (isSrSpv)
+            {
+                progress.SrSpvApprovalStatus = "Rejected";
+                progress.SrSpvApprovedById = user.Id;
+                progress.SrSpvApprovedAt = now;
+            }
+            else
+            {
+                progress.ShApprovalStatus = "Rejected";
+                progress.ShApprovedById = user.Id;
+                progress.ShApprovedAt = now;
+            }
+
+            // Rejection takes precedence — overall status becomes Rejected
+            progress.Status = "Rejected";
+            progress.RejectionReason = rejectionReason;
+            progress.RejectedAt = now;
+
+            await _context.SaveChangesAsync();
+
+            var approverName = user.FullName ?? user.UserName ?? user.Id;
+            var approvedAtLocal = now.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+
+            return Json(new
+            {
+                success = true,
+                message = "Deliverable ditolak.",
+                newStatus = isSrSpv ? progress.SrSpvApprovalStatus : progress.ShApprovalStatus,
+                approverName,
+                approvedAt = approvedAtLocal
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> HCReviewFromProgress(int progressId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Json(new { success = false, message = "Tidak terautentikasi." });
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
+
+            bool isHC = userRole == UserRoles.HC || userRole == UserRoles.Admin;
+            if (!isHC)
+                return Json(new { success = false, message = "Akses tidak diizinkan." });
+
+            var progress = await _context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+            if (progress == null)
+                return Json(new { success = false, message = "Data tidak ditemukan." });
+
+            var now = DateTime.UtcNow;
+            progress.HCApprovalStatus = "Reviewed";
+            progress.HCReviewedAt = now;
+            progress.HCReviewedById = user.Id;
+
+            await _context.SaveChangesAsync();
+
+            var reviewerName = user.FullName ?? user.UserName ?? user.Id;
+            var reviewedAtLocal = now.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+
+            return Json(new
+            {
+                success = true,
+                message = "Deliverable telah direview.",
+                reviewerName,
+                reviewedAt = reviewedAtLocal
+            });
+        }
+
         [HttpGet]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> GetCoacheeDeliverables(string coacheeId)
