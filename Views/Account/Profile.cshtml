@@ -1,57 +1,100 @@
+@model HcPortal.Models.ApplicationUser
 @{
-    ViewData["Title"] = "My Profile";
+    ViewData["Title"] = "Profil Saya";
+    var userRole = ViewBag.UserRole as string ?? "—";
+    var fullName = string.IsNullOrEmpty(Model.FullName) ? "" : Model.FullName;
+    var nameParts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+    var initials = nameParts.Length >= 2
+        ? $"{nameParts[0][0]}{nameParts[1][0]}".ToUpper()
+        : (fullName.Length >= 2 ? fullName.Substring(0, 2).ToUpper() : "?");
 }
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm border-0">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-person-circle me-2"></i> My Profile</h5>
-            </div>
-            <div class="card-body">
-                <div class="row align-items-center mb-4">
-                    <div class="col-auto">
-                        <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold fs-1" 
-                             style="width: 100px; height: 100px;">BS</div>
-                    </div>
-                    <div class="col">
-                        <h2 class="fw-bold mb-0">Budi Santoso</h2>
-                        <p class="text-muted mb-0">Engineer - Structural Reliability Unit (SRU)</p>
-                        <span class="badge bg-success mt-2">Active Employee</span>
-                    </div>
-                </div>
+    <div class="col-md-8 col-lg-7">
 
-                <hr />
-
-                <h5 class="fw-bold text-primary mb-3">Employee Information</h5>
-                
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Employee ID (NIP)</div>
-                    <div class="col-sm-8">759921</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Email</div>
-                    <div class="col-sm-8">budi.santoso@hcportal.com</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Phone</div>
-                    <div class="col-sm-8">+62 812 3456 7890</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Join Date</div>
-                    <div class="col-sm-8">15 August 2018</div>
-                </div>
-                <div class="row mb-3">
-                    <div class="col-sm-4 fw-bold">Location</div>
-                    <div class="col-sm-8">Head Office, Jakarta</div>
-                </div>
-
-                <div class="d-flex justify-content-end mt-4">
-                    <a asp-controller="Account" asp-action="Settings" class="btn btn-outline-secondary">
-                        <i class="bi bi-gear me-1"></i> Edit Profile
-                    </a>
-                </div>
+        @* Profile Header *@
+        <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+            <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold flex-shrink-0 me-4"
+                 style="width: 90px; height: 90px; font-size: 2rem;">@initials</div>
+            <div>
+                <h3 class="fw-bold mb-1">
+                    @if (!string.IsNullOrEmpty(Model.FullName)) { @Model.FullName } else { <span class="text-muted">—</span> }
+                </h3>
+                <p class="text-muted mb-0 small">
+                    @if (!string.IsNullOrEmpty(Model.Position)) { @Model.Position } else { <span class="fst-italic">Jabatan belum diatur</span> }
+                </p>
             </div>
         </div>
+
+        @* Section: Identitas *@
+        <p class="text-uppercase fw-bold small text-muted mb-3">Identitas</p>
+
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Nama Lengkap</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.FullName)) { @Model.FullName } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">NIP</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.NIP)) { @Model.NIP } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Email</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.Email)) { @Model.Email } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Telepon</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.PhoneNumber)) { @Model.PhoneNumber } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        @* Section: Organisasi *@
+        <p class="text-uppercase fw-bold small text-muted mb-3">Organisasi</p>
+
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Direktorat</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.Directorate)) { @Model.Directorate } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Bagian</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.Section)) { @Model.Section } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Unit</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.Unit)) { @Model.Unit } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Jabatan</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(Model.Position)) { @Model.Position } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+        <div class="row mb-2 py-1">
+            <div class="col-sm-4 text-muted small fw-medium">Role</div>
+            <div class="col-sm-8">
+                @if (!string.IsNullOrEmpty(userRole) && userRole != "No Role") { @userRole } else { <span class="text-muted">—</span> }
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            <a asp-controller="Account" asp-action="Settings" class="btn btn-outline-secondary">
+                <i class="bi bi-gear me-1"></i> Edit Profile
+            </a>
+        </div>
+
     </div>
 </div>
