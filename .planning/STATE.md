@@ -206,11 +206,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 51 — Proton Silabus & Coaching Guidance Manager (In Progress, 2/3 plans done)
+**Phase:** Phase 51 — Proton Silabus & Coaching Guidance Manager (Complete, 3/3 plans done)
 **Status:** Executing
-**Last activity:** 2026-02-27 - Completed Plan 51-02: Silabus tab CRUD (SilabusSave/SilabusDelete endpoints, view/edit mode, rowspan table, inline add/delete, Save All)
+**Last activity:** 2026-02-27 - Completed Plan 51-03: Coaching Guidance file management (upload/download/replace/delete AJAX, 5 controller endpoints, ProtonCatalog redirect)
 
-Progress: [█████░░░░░░░░░░░░░░░] 33% (v2.3 — 5/12 phases complete, 51 in progress)
+Progress: [██████░░░░░░░░░░░░░░] 42% (v2.3 — 6/12 phases complete)
 
 ## Performance Metrics
 
@@ -292,6 +292,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 51-01]: EF migration cleanup SQL ordered to respect FK dependencies: progresses -> deliverables -> sub-kompetensi -> kompetensi
 - [Phase 51-01]: CoachingGuidanceFile FK to ProtonTrack uses DeleteBehavior.Restrict; Proton Track Assignment card removed from Admin/Index Section B (absorbed by Phase 50)
 - [Phase 51]: SilabusRowDto/SilabusDeleteRequest DTOs at namespace level; SilabusSave flushes SaveChangesAsync per hierarchy level for EF-generated FK IDs; silabusFilter JSON island pattern for passing Razor state to IIFE JS; deleteTargetIndex in IIFE closure to avoid stale modal data
+- [Phase 51-03]: GuidanceDelete uses [FromBody] GuidanceDeleteRequest JSON DTO; upload files named {timestamp}_{GUID}{ext} with original filename stored in DB; GuidanceReplace deletes old physical file then saves new one in-place; ProtonCatalogController stripped to redirect-only with no DI constructor
 
 ### Roadmap Evolution
 
@@ -327,9 +328,10 @@ None.
 | Phase 49-assessment-management-migration P05 | 3 | 2 tasks | 4 files |
 | Phase 51-proton-silabus-coaching-guidance-manager P01 | 25 | 2 tasks | 6 files |
 | Phase 51-proton-silabus-coaching-guidance-manager P02 | 3 | 2 tasks | 2 files |
+| Phase 51-proton-silabus-coaching-guidance-manager P03 | 3 | 2 tasks | 4 files |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 51-02-PLAN.md (Silabus tab CRUD: SilabusSave/SilabusDelete endpoints, view/edit mode, rowspan table, inline add/delete, Save All). Phase 51 in progress (2/3 plans done).
+Stopped at: Completed 51-03-PLAN.md (Coaching Guidance file management: GuidanceUpload/Download/Replace/Delete endpoints, AJAX file table, Replace/Delete modals, ProtonCatalog redirect). Phase 51 complete (3/3 plans done).
 Resume file: None.

@@ -281,7 +281,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [x] **Phase 48: CPDP Items Manager** — MDAT-02 (complete 2026-02-26)
 - [x] **Phase 49: Assessment Management Migration** — MDAT-03 (planned) (completed 2026-02-27)
 - [x] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned) (completed 2026-02-27)
-- [ ] **Phase 51: Proton Silabus & Coaching Guidance Manager** — (planned)
+- [x] **Phase 51: Proton Silabus & Coaching Guidance Manager** — (planned) (completed 2026-02-27)
 - [ ] **Phase 52: DeliverableProgress Override** — OPER-03 (planned)
 - [ ] **Phase 53: Final Assessment Manager** — OPER-04 (planned)
 - [ ] **Phase 54: Coaching Session Override** — OPER-05 (planned)
@@ -369,7 +369,7 @@ Plans:
 **Goal:** Admin/HC can manage Proton silabus data (Bagian > Unit > Track > Kompetensi > SubKompetensi > Deliverable) and coaching guidance files through /Admin/ProtonData with two tabs — replaces ProtonCatalog page
 **Depends on:** Phase 50
 **Requirements:** —
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 ### Phase 52: DeliverableProgress Override
 **Goal:** Admin can view and override ProtonDeliverableProgress status — correct stuck or erroneous deliverable records
@@ -498,7 +498,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 4/4 | Complete | 2026-02-26 |
 | 49. Assessment Management Migration | 5/5 | Complete    | 2026-02-27 | - |
 | 50. Coach-Coachee Mapping Manager | 2/2 | Complete    | 2026-02-27 | - |
-| 51. Proton Track Assignment Manager | 2/3 | In Progress|  | - |
+| 51. Proton Track Assignment Manager | 3/3 | Complete   | 2026-02-27 | - |
 | 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
 | 53. Final Assessment Manager | v2.3 | 0/? | Not started | - |
 | 54. Coaching Session Override | v2.3 | 0/? | Not started | - |
