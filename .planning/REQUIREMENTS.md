@@ -26,9 +26,40 @@
 - [ ] **CRUD-03**: Admin can edit and delete ProtonTrack records (Create existed, Edit/Delete were missing)
 - [ ] **CRUD-04**: Admin can reset a worker's password from a standalone action without going through the full EditWorker form
 
+## v2.4 Requirements — CDP Progress
+
+### Data Source
+
+- [ ] **DATA-01**: Progress page menampilkan data dari ProtonDeliverableProgress + ProtonTrackAssignment dengan konteks track (Panelman/Operator, Tahun 1/2/3), bukan dari IdpItems
+- [ ] **DATA-02**: Coach melihat daftar coachee asli dari CoachCoacheeMapping, bukan hardcoded mock data
+- [ ] **DATA-03**: Summary stats (progress %, pending actions, pending approvals) dihitung dari ProtonDeliverableProgress yang benar
+- [ ] **DATA-04**: Data di Progress page tersinkron otomatis dengan database — perubahan approval/evidence di Deliverable page langsung terlihat di Progress
+
+### Filter
+
+- [ ] **FILT-01**: HC/Admin bisa filter data per Bagian dan Unit, query benar-benar memfilter data dari database
+- [ ] **FILT-02**: Coach bisa memilih coachee dari dropdown dan melihat data deliverable spesifik coachee tersebut
+- [ ] **FILT-03**: User bisa filter berdasarkan Proton Track (Panelman/Operator) dan Tahun (1/2/3)
+- [ ] **FILT-04**: Search box berfungsi memfilter tabel kompetensi secara client-side
+
+### Actions
+
+- [ ] **ACTN-01**: SrSpv/SectionHead bisa approve deliverable dari Progress page, status tersimpan ke ProtonDeliverableProgress di database
+- [ ] **ACTN-02**: SrSpv/SectionHead bisa reject deliverable dari Progress page dengan alasan tertulis
+- [ ] **ACTN-03**: Coach bisa submit laporan coaching dari modal, tersimpan sebagai CoachingSession record di database
+- [ ] **ACTN-04**: Upload evidence dan lihat evidence di Progress page tersambung ke existing Deliverable workflow
+- [ ] **ACTN-05**: Export data progress ke Excel (ClosedXML) dan PDF
+
+### UI Polish
+
+- [ ] **UI-01**: HTML selected attribute pada dropdown filter menggunakan conditional rendering yang benar
+- [ ] **UI-02**: Tampilkan pesan empty state ketika tidak ada data deliverable
+- [ ] **UI-03**: HC/Admin bisa lihat data semua user lintas section, role-scoped (Spv=unit, SrSpv/SectionHead=section, HC/Admin=all)
+- [ ] **UI-04**: Tabel data dipaginasi (server-side atau client-side) agar tidak load semua sekaligus
+
 ## Future Requirements
 
-*(None captured yet — all gaps included in v2.3)*
+*(None captured yet)*
 
 ## Out of Scope
 
@@ -58,11 +89,16 @@
 | CRUD-03 | Phase 57 | Pending |
 | CRUD-04 | Phase 58 | Pending |
 
-**Coverage:**
+**v2.3 Coverage:**
 - v2.3 requirements: 12 total
 - Mapped to phases: 12
 - Unmapped: 0 ✓
 
+**v2.4 Coverage:**
+- v2.4 requirements: 17 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 17 ⚠️
+
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-26 after initial definition*
+*Last updated: 2026-02-27 after v2.4 CDP Progress requirements added*
