@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
 using HcPortal.Data;
 using HcPortal.Services;
+using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
@@ -386,6 +387,198 @@ namespace HcPortal.Controllers
             return File(stream.ToArray(),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 fileName);
+        }
+
+        // --- ASSESSMENT MONITORING DETAIL ---
+        [HttpGet]
+        public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate)
+        {
+            var sessions = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!sessions.Any())
+            {
+                TempData["Error"] = "Assessment group not found.";
+                return RedirectToAction("ManageAssessment");
+            }
+
+            // Detect package mode: check if any sibling session has packages attached
+            var siblingIds = sessions.Select(s => s.Id).ToList();
+            var packageCount = await _context.AssessmentPackages
+                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+            var isPackageMode = packageCount > 0;
+
+            // Build question count map per session
+            Dictionary<int, int> questionCountMap = new();
+            if (isPackageMode)
+            {
+                // Package mode: count PackageQuestion rows via UserPackageAssignment -> AssessmentPackage
+                questionCountMap = await _context.UserPackageAssignments
+                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
+                    .Join(_context.AssessmentPackages.Include(p => p.Questions),
+                        a => a.AssessmentPackageId,
+                        p => p.Id,
+                        (a, p) => new { a.AssessmentSessionId, QuestionCount = p.Questions.Count })
+                    .ToDictionaryAsync(
+                        x => x.AssessmentSessionId,
+                        x => x.QuestionCount);
+            }
+            else
+            {
+                // Legacy mode: count AssessmentQuestion rows per session
+                questionCountMap = await _context.AssessmentQuestions
+                    .Where(q => siblingIds.Contains(q.AssessmentSessionId))
+                    .GroupBy(q => q.AssessmentSessionId)
+                    .ToDictionaryAsync(
+                        g => g.Key,
+                        g => g.Count());
+            }
+
+            var sessionViewModels = sessions.Select(a =>
+            {
+                string userStatus;
+                if (a.CompletedAt != null || a.Score != null)
+                    userStatus = "Completed";
+                else if (a.Status == "Abandoned")
+                    userStatus = "Abandoned";
+                else if (a.StartedAt != null)
+                    userStatus = "InProgress";
+                else
+                    userStatus = "Not started";
+
+                return new MonitoringSessionViewModel
+                {
+                    Id           = a.Id,
+                    UserFullName = a.User?.FullName ?? "Unknown",
+                    UserNIP      = a.User?.NIP ?? "",
+                    UserStatus   = userStatus,
+                    Score        = a.Score,
+                    IsPassed     = a.IsPassed,
+                    CompletedAt  = a.CompletedAt,
+                    StartedAt    = a.StartedAt,
+                    QuestionCount = questionCountMap.ContainsKey(a.Id) ? questionCountMap[a.Id] : 0
+                };
+            })
+            .OrderBy(s => s.UserStatus)   // Not started before Completed
+            .ThenBy(s => s.UserFullName)
+            .ToList();
+
+            var model = new MonitoringGroupViewModel
+            {
+                Title    = title,
+                Category = category,
+                Schedule = sessions.First().Schedule,
+                Sessions = sessionViewModels,
+                TotalCount     = sessionViewModels.Count,
+                CompletedCount = sessionViewModels.Count(s => s.UserStatus == "Completed"),
+                PassedCount    = sessionViewModels.Count(s => s.IsPassed == true),
+                GroupStatus    = sessions.Any(a => a.Status == "Open" || a.Status == "InProgress") ? "Open"
+                               : sessions.Any(a => a.Status == "Upcoming") ? "Upcoming" : "Closed",
+                IsPackageMode  = isPackageMode,
+                PendingCount   = sessionViewModels.Count(s => s.UserStatus == "Not started")
+            };
+
+            ViewBag.BackUrl = Url.Action("ManageAssessment", "Admin");
+            return View(model);
+        }
+
+        // --- GET MONITORING PROGRESS (polling endpoint for real-time monitoring) ---
+        [HttpGet]
+        public async Task<IActionResult> GetMonitoringProgress(string title, string category, DateTime scheduleDate)
+        {
+            // Step 1: load sessions (same filter as AssessmentMonitoringDetail)
+            var sessions = await _context.AssessmentSessions
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!sessions.Any())
+                return Json(Array.Empty<object>());
+
+            var siblingIds = sessions.Select(s => s.Id).ToList();
+
+            // Step 2: detect package mode
+            var packageCount = await _context.AssessmentPackages
+                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+            var isPackageMode = packageCount > 0;
+
+            // Step 3: build total question count map per session (reuse pattern from AssessmentMonitoringDetail)
+            Dictionary<int, int> questionCountMap;
+            if (isPackageMode)
+            {
+                questionCountMap = await _context.UserPackageAssignments
+                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
+                    .Join(_context.AssessmentPackages.Include(p => p.Questions),
+                        a => a.AssessmentPackageId,
+                        p => p.Id,
+                        (a, p) => new { a.AssessmentSessionId, QuestionCount = p.Questions.Count })
+                    .ToDictionaryAsync(
+                        x => x.AssessmentSessionId,
+                        x => x.QuestionCount);
+            }
+            else
+            {
+                questionCountMap = await _context.AssessmentQuestions
+                    .Where(q => siblingIds.Contains(q.AssessmentSessionId))
+                    .GroupBy(q => q.AssessmentSessionId)
+                    .ToDictionaryAsync(g => g.Key, g => g.Count());
+            }
+
+            // Step 4: build answered count map (single GROUP BY query, not N+1)
+            Dictionary<int, int> answeredCountMap;
+            if (isPackageMode)
+            {
+                answeredCountMap = await _context.PackageUserResponses
+                    .Where(p => siblingIds.Contains(p.AssessmentSessionId))
+                    .GroupBy(p => p.AssessmentSessionId)
+                    .ToDictionaryAsync(g => g.Key, g => g.Count());
+            }
+            else
+            {
+                answeredCountMap = await _context.UserResponses
+                    .Where(r => siblingIds.Contains(r.AssessmentSessionId))
+                    .GroupBy(r => r.AssessmentSessionId)
+                    .ToDictionaryAsync(g => g.Key, g => g.Count());
+            }
+
+            // Step 5: project to DTOs
+            var dtos = sessions.Select(a =>
+            {
+                string status;
+                if (a.CompletedAt != null || a.Score != null)
+                    status = "Completed";
+                else if (a.Status == "Abandoned")
+                    status = "Abandoned";
+                else if (a.StartedAt != null)
+                    status = "InProgress";
+                else
+                    status = "Not started";
+
+                int? remainingSeconds = null;
+                if (status == "InProgress")
+                    remainingSeconds = Math.Max(0, (a.DurationMinutes * 60) - a.ElapsedSeconds);
+
+                string? result = a.IsPassed == true ? "Pass" : a.IsPassed == false ? "Fail" : null;
+
+                return new
+                {
+                    sessionId      = a.Id,
+                    status,
+                    progress       = answeredCountMap.TryGetValue(a.Id, out var ans) ? ans : 0,
+                    totalQuestions = questionCountMap.TryGetValue(a.Id, out var total) ? total : 0,
+                    score          = a.Score,
+                    result,
+                    remainingSeconds,
+                    completedAt    = a.CompletedAt
+                };
+            }).ToList();
+
+            return Json(dtos);
         }
     }
 }
