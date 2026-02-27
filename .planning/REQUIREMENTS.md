@@ -88,6 +88,23 @@
 | CRUD-02 | Phase 56 | Pending |
 | CRUD-03 | Phase 57 | Pending |
 | CRUD-04 | Phase 58 | Pending |
+| DATA-01 | Phase 63 | Pending |
+| DATA-02 | Phase 63 | Pending |
+| DATA-03 | Phase 63 | Pending |
+| DATA-04 | Phase 63 | Pending |
+| FILT-01 | Phase 64 | Pending |
+| FILT-02 | Phase 64 | Pending |
+| FILT-03 | Phase 64 | Pending |
+| FILT-04 | Phase 64 | Pending |
+| ACTN-01 | Phase 65 | Pending |
+| ACTN-02 | Phase 65 | Pending |
+| ACTN-03 | Phase 65 | Pending |
+| ACTN-04 | Phase 65 | Pending |
+| ACTN-05 | Phase 65 | Pending |
+| UI-01   | Phase 64 | Pending |
+| UI-02   | Phase 66 | Pending |
+| UI-03   | Phase 64 | Pending |
+| UI-04   | Phase 66 | Pending |
 
 **v2.3 Coverage:**
 - v2.3 requirements: 12 total
@@ -96,9 +113,9 @@
 
 **v2.4 Coverage:**
 - v2.4 requirements: 17 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-27 after v2.4 CDP Progress requirements added*
+*Last updated: 2026-02-27 after v2.4 CDP Progress roadmap defined (phases 63-66)*

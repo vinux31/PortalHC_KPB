@@ -1,5 +1,19 @@
 ---
 gsd_state_version: 1.0
+milestone: v2.4
+milestone_name: CDP Progress
+status: planning
+last_updated: "2026-02-27T00:00:00.000Z"
+last_activity: "2026-02-27 - v2.4 CDP Progress roadmap defined (phases 63-66, 17 requirements)"
+progress:
+  total_phases: 4
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+---
+
+---
+gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: planning
@@ -142,12 +156,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 Progress: [███░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
 
-### v2.4 CDP Progress — Not Started
-**Phase:** Not started (defining requirements)
-**Status:** Defining requirements
-**Last activity:** 2026-02-27 — Milestone v2.4 started
+### v2.4 CDP Progress — Roadmap Defined
+**Phase:** Phase 63 — Data Source Fix (not started)
+**Status:** Ready to plan Phase 63
+**Last activity:** 2026-02-27 — Roadmap defined (4 phases: 63-66, 17 requirements mapped)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (v2.4 — 0/4 phases complete)
 
 ## Performance Metrics
 
@@ -206,6 +220,11 @@ All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), re
 - Phase 60 added: Konsolidasi Proton Catalog (move ProtonCatalog to Kelola Data)
 - Phase 61 added: Konsolidasi Assessment Management (move Assessment manage to Kelola Data)
 - Phase 62 added: Update Kelola Data Hub (restructure Index page, remove Section C)
+- v2.4 roadmap defined: 4 phases (63-66), 17 requirements (DATA-01-04, FILT-01-04, ACTN-01-05, UI-01-04)
+  - Phase 63: Data Source Fix (DATA-01-04) — replace IdpItems query, real coachee list, correct stats
+  - Phase 64: Functional Filters (FILT-01-04, UI-01, UI-03) — all filters wired to DB + role-scoped view
+  - Phase 65: Actions (ACTN-01-05) — approve/reject/coaching/evidence/export wired to backend
+  - Phase 66: UI Polish (UI-02, UI-04) — empty state, pagination
 
 ### Pending Todos
 
@@ -231,6 +250,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Completed 48-04-PLAN.md (gap closure: 6-column read-mode table, unrestricted CpdpItem delete, fixed Delete/Backspace multi-cell clear). Phase 48 fully complete (4/4 plans). Next: Phase 49.
+Last session: 2026-02-27
+Stopped at: v2.4 CDP Progress roadmap defined (phases 63-66, 17 requirements mapped). v2.3 continues from Phase 49. v2.4 can start at Phase 63 independently.
 Resume file: None.

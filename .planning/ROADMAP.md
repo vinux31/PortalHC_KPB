@@ -17,6 +17,7 @@
 - ✅ **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-45 (shipped 2026-02-25)
 - ✅ **v2.2 Attempt History** — Phase 46 (shipped 2026-02-26)
 - 🚧 **v2.3 Admin Portal** — Phases 47-62 (in progress)
+- 🚧 **v2.4 CDP Progress** — Phases 63-66 (in progress)
 
 ## Phases
 
@@ -502,3 +503,63 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 60. Konsolidasi Proton Catalog | v2.3 | 0/? | Not started | - |
 | 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |
+| 63. Data Source Fix | v2.4 | 0/? | Not started | - |
+| 64. Functional Filters | v2.4 | 0/? | Not started | - |
+| 65. Actions | v2.4 | 0/? | Not started | - |
+| 66. UI Polish | v2.4 | 0/? | Not started | - |
+
+## v2.4 CDP Progress
+
+### Phases
+
+- [ ] **Phase 63: Data Source Fix** — DATA-01, DATA-02, DATA-03, DATA-04
+- [ ] **Phase 64: Functional Filters** — FILT-01, FILT-02, FILT-03, FILT-04, UI-01, UI-03
+- [ ] **Phase 65: Actions** — ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05
+- [ ] **Phase 66: UI Polish** — UI-02, UI-04
+
+### Phase Details
+
+### Phase 63: Data Source Fix
+**Goal:** Progress page queries ProtonDeliverableProgress + ProtonTrackAssignment (not IdpItems), displays real coachee list from CoachCoacheeMapping, and computes correct summary stats — the data foundation is accurate
+**Depends on:** Phase 62 (v2.3 complete) — runs in parallel, independent of v2.3 progress
+**Requirements:** DATA-01, DATA-02, DATA-03, DATA-04
+**Success Criteria** (what must be TRUE):
+  1. Progress page table rows come from ProtonDeliverableProgress joined with ProtonTrackAssignment — no IdpItems data appears
+  2. Coach sees their real coachees in the dropdown, populated from CoachCoacheeMapping, not hardcoded mock values
+  3. Summary stats (progress %, pending actions, pending approvals) match the actual ProtonDeliverableProgress records in the database
+  4. Approving or updating evidence on the Deliverable page is immediately reflected on the Progress page with no stale cache
+**Plans:** TBD
+
+### Phase 64: Functional Filters
+**Goal:** Every filter on the Progress page (Bagian/Unit, Coachee, Track, Tahun, Search) genuinely narrows the data returned — parameters are wired to queries and roles scope what users can see
+**Depends on:** Phase 63
+**Requirements:** FILT-01, FILT-02, FILT-03, FILT-04, UI-01, UI-03
+**Success Criteria** (what must be TRUE):
+  1. HC/Admin selecting a Bagian or Unit filter receives only deliverable rows for workers in that Bagian/Unit
+  2. Coach selecting a coachee from the dropdown sees only that coachee's deliverable rows — other coachees' data disappears
+  3. Selecting Proton Track (Panelman/Operator) and/or Tahun (1/2/3) filters rows to matching assignments only
+  4. Typing in the search box hides non-matching competency rows client-side without a page reload
+  5. Role-scoped data is enforced: Spv sees their unit, SrSpv/SectionHead see their section, HC/Admin see all — not based on filter selection alone
+  6. Filter dropdowns show the currently selected value as selected on page reload (no incorrect HTML selected attribute behavior)
+**Plans:** TBD
+
+### Phase 65: Actions
+**Goal:** Approve, reject, coaching report, evidence, and export actions all persist to the database — no more console.log stubs or missing onclick handlers
+**Depends on:** Phase 64
+**Requirements:** ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05
+**Success Criteria** (what must be TRUE):
+  1. SrSpv or SectionHead clicking Approve on a deliverable row updates ProtonDeliverableProgress.Status to Approved in the database and the row reflects the new status on reload
+  2. SrSpv or SectionHead clicking Reject opens a rejection reason input; submitting it saves the reason to ProtonDeliverableProgress and status becomes Rejected
+  3. Coach submitting a coaching report modal creates a new CoachingSession record in the database with the entered details
+  4. Clicking Upload Evidence on a deliverable row opens the existing Deliverable workflow (or inline upload); the file is saved and viewable from the Progress page
+  5. Export Excel and Export PDF buttons generate and download the current filtered data as a file
+**Plans:** TBD
+
+### Phase 66: UI Polish
+**Goal:** Progress page handles edge cases gracefully — empty states communicate clearly, and large datasets do not load all rows at once
+**Depends on:** Phase 65
+**Requirements:** UI-02, UI-04
+**Success Criteria** (what must be TRUE):
+  1. When no deliverable data matches the current filter/role scope, the table shows a descriptive empty-state message instead of a blank table
+  2. Large coachee/deliverable datasets are paginated so the page does not load hundreds of rows at once; user can navigate between pages
+**Plans:** TBD
