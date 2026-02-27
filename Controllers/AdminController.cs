@@ -2320,5 +2320,108 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        // ==================== COACH-COACHEE MAPPING ====================
+
+        // GET /Admin/CoachCoacheeMapping
+        [HttpGet]
+        public async Task<IActionResult> CoachCoacheeMapping(
+            string? search, string? section, bool showAll = false, int page = 1)
+        {
+            const int pageSize = 20;
+
+            // 1. Load all users once (avoid N+1)
+            var allUsers = await _context.Users
+                .Select(u => new { u.Id, u.FullName, u.NIP, u.Section, u.Position, u.RoleLevel })
+                .ToListAsync();
+            var userDict = allUsers.ToDictionary(u => u.Id);
+
+            // 2. Load mappings
+            var query = _context.CoachCoacheeMappings.AsQueryable();
+            if (!showAll)
+                query = query.Where(m => m.IsActive);
+            var mappings = await query.ToListAsync();
+
+            // 3. Join with user data + apply filters
+            var rows = mappings.Select(m => new {
+                Mapping = m,
+                Coach = userDict.GetValueOrDefault(m.CoachId),
+                Coachee = userDict.GetValueOrDefault(m.CoacheeId)
+            }).ToList();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var lower = search.ToLower();
+                rows = rows.Where(r =>
+                    (r.Coach?.FullName?.ToLower().Contains(lower) ?? false) ||
+                    (r.Coachee?.FullName?.ToLower().Contains(lower) ?? false) ||
+                    (r.Coachee?.NIP?.ToLower().Contains(lower) ?? false))
+                    .ToList();
+            }
+            if (!string.IsNullOrEmpty(section))
+            {
+                rows = rows.Where(r =>
+                    r.Coach?.Section == section ||
+                    r.Coachee?.Section == section)
+                    .ToList();
+            }
+
+            // 4. Group by Coach, paginate over coach groups
+            var grouped = rows
+                .GroupBy(r => r.Mapping.CoachId)
+                .Select(g => new {
+                    CoachId = g.Key,
+                    CoachName = g.First().Coach?.FullName ?? g.Key,
+                    CoachSection = g.First().Coach?.Section ?? "",
+                    ActiveCount = g.Count(r => r.Mapping.IsActive),
+                    Coachees = g.Select(r => new {
+                        r.Mapping.Id,
+                        r.Mapping.IsActive,
+                        r.Mapping.StartDate,
+                        r.Mapping.EndDate,
+                        r.Mapping.CoachId,
+                        CoacheeName = r.Coachee?.FullName ?? r.Mapping.CoacheeId,
+                        CoacheeNIP = r.Coachee?.NIP ?? "",
+                        CoacheeSection = r.Coachee?.Section ?? "",
+                        CoacheePosition = r.Coachee?.Position ?? "",
+                        r.Mapping.CoacheeId
+                    }).OrderBy(c => c.CoacheeName).ToList()
+                })
+                .OrderBy(g => g.CoachName)
+                .ToList();
+
+            var totalCoachGroups = grouped.Count;
+            var totalPages = (int)Math.Ceiling(totalCoachGroups / (double)pageSize);
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+            var paged = grouped.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+            // 5. Modal data: eligible coaches, eligible coachees, proton tracks
+            var activeCoacheeIds = await _context.CoachCoacheeMappings
+                .Where(m => m.IsActive)
+                .Select(m => m.CoacheeId)
+                .Distinct()
+                .ToListAsync();
+
+            ViewBag.GroupedCoaches = paged;
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCoachGroups;
+            ViewBag.ShowAll = showAll;
+            ViewBag.SearchTerm = search;
+            ViewBag.SectionFilter = section;
+            ViewBag.Sections = OrganizationStructure.GetAllSections();
+            ViewBag.EligibleCoaches = allUsers
+                .Where(u => u.RoleLevel <= 5)
+                .OrderBy(u => u.FullName).ToList();
+            ViewBag.EligibleCoachees = allUsers
+                .Where(u => !activeCoacheeIds.Contains(u.Id))
+                .OrderBy(u => u.FullName).ToList();
+            ViewBag.AllUsers = allUsers.OrderBy(u => u.FullName).ToList();
+            ViewBag.ProtonTracks = await _context.ProtonTracks
+                .OrderBy(t => t.Urutan).ToListAsync();
+
+            return View();
+        }
     }
 }
