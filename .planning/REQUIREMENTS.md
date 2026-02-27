@@ -40,7 +40,7 @@
 - [x] **FILT-01**: HC/Admin bisa filter data per Bagian dan Unit, query benar-benar memfilter data dari database
 - [x] **FILT-02**: Coach bisa memilih coachee dari dropdown dan melihat data deliverable spesifik coachee tersebut
 - [x] **FILT-03**: User bisa filter berdasarkan Proton Track (Panelman/Operator) dan Tahun (1/2/3)
-- [ ] **FILT-04**: Search box berfungsi memfilter tabel kompetensi secara client-side
+- [x] **FILT-04**: Search box berfungsi memfilter tabel kompetensi secara client-side
 
 ### Actions
 
@@ -52,7 +52,7 @@
 
 ### UI Polish
 
-- [ ] **UI-01**: HTML selected attribute pada dropdown filter menggunakan conditional rendering yang benar
+- [x] **UI-01**: HTML selected attribute pada dropdown filter menggunakan conditional rendering yang benar
 - [ ] **UI-02**: Tampilkan pesan empty state ketika tidak ada data deliverable
 - [x] **UI-03**: HC/Admin bisa lihat data semua user lintas section, role-scoped (Spv=unit, SrSpv/SectionHead=section, HC/Admin=all)
 - [ ] **UI-04**: Tabel data dipaginasi (server-side atau client-side) agar tidak load semua sekaligus
@@ -129,13 +129,13 @@
 | FILT-01 | Phase 64 | Complete |
 | FILT-02 | Phase 64 | Complete |
 | FILT-03 | Phase 64 | Complete |
-| FILT-04 | Phase 64 | Pending |
+| FILT-04 | Phase 64 | Complete |
 | ACTN-01 | Phase 65 | Pending |
 | ACTN-02 | Phase 65 | Pending |
 | ACTN-03 | Phase 65 | Pending |
 | ACTN-04 | Phase 65 | Pending |
 | ACTN-05 | Phase 65 | Pending |
-| UI-01   | Phase 64 | Pending |
+| UI-01   | Phase 64 | Complete |
 | UI-02   | Phase 66 | Pending |
 | UI-03   | Phase 64 | Complete |
 | UI-04   | Phase 66 | Pending |
