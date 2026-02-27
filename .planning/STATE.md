@@ -3,6 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
+last_updated: "2026-02-27T06:45:11.106Z"
+last_activity: "2026-02-27 - Completed Plan 50-02: CoachCoacheeMapping write operations (bulk assign, edit, deactivate, reactivate, Excel export, AJAX modal wiring, AuditLog)"
+progress:
+  total_phases: 46
+  completed_phases: 44
+  total_plans: 111
+  completed_plans: 108
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
+status: completed
 last_updated: "2026-02-27T04:27:16.883Z"
 last_activity: "2026-02-27 - Completed Plan 50-02: CoachCoacheeMapping write operations (bulk assign, edit, deactivate, reactivate, Excel export, AJAX modal wiring, AuditLog)"
 progress:
@@ -178,11 +192,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 50 — Coach-Coachee Mapping Manager (Complete, 2/2 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-27 - Completed Plan 50-02: CoachCoacheeMapping write operations (bulk assign, edit, deactivate, reactivate, Excel export, AJAX modal wiring, AuditLog)
+**Phase:** Phase 51 — Proton Silabus & Coaching Guidance Manager (In Progress, 1/3 plans done)
+**Status:** Executing
+**Last activity:** 2026-02-27 - Completed Plan 51-01: Data foundation (EF migration Bagian+Unit+CoachingGuidanceFiles), ProtonDataController, ProtonData two-tab view, Admin/Index card update
 
-Progress: [█████░░░░░░░░░░░░░░░] 29% (v2.3 — 4/12 phases complete)
+Progress: [█████░░░░░░░░░░░░░░░] 33% (v2.3 — 5/12 phases complete, 51 in progress)
 
 ## Performance Metrics
 
@@ -260,6 +274,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Simple int id params (Deactivate/Reactivate/GetSessionCount) use form-urlencoded; complex objects use [FromBody] JSON
 - Export uses MemoryStream with ToArray() — stream disposed after SaveAs, bytes already in memory
 - deactivateTargetId stored as JS var — avoids hidden input race conditions when modal fires multiple times
+- [Phase 51-01]: Razor selected/disabled uses '? value : null' pattern to avoid RZ1031 tag helper error
+- [Phase 51-01]: EF migration cleanup SQL ordered to respect FK dependencies: progresses -> deliverables -> sub-kompetensi -> kompetensi
+- [Phase 51-01]: CoachingGuidanceFile FK to ProtonTrack uses DeleteBehavior.Restrict; Proton Track Assignment card removed from Admin/Index Section B (absorbed by Phase 50)
 
 ### Roadmap Evolution
 
@@ -293,9 +310,10 @@ None.
 | Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
 | Phase 49-assessment-management-migration P04 | 15 | 3 tasks | 5 files |
 | Phase 49-assessment-management-migration P05 | 3 | 2 tasks | 4 files |
+| Phase 51-proton-silabus-coaching-guidance-manager P01 | 25 | 2 tasks | 6 files |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 50-02-PLAN.md (CoachCoacheeMapping write operations, AJAX modal wiring, Excel export). Phase 50 complete (2/2 plans done).
+Stopped at: Completed 51-01-PLAN.md (data foundation + page scaffold: EF migration Bagian+Unit+CoachingGuidanceFiles, ProtonDataController, ProtonData two-tab view, Admin/Index card update). Phase 51 in progress (1/3 plans done).
 Resume file: None.
