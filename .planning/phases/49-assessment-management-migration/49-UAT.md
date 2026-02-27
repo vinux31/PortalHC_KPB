@@ -1,9 +1,9 @@
 ---
 status: complete
 phase: 49-assessment-management-migration
-source: 49-01-SUMMARY.md, 49-02-SUMMARY.md, 49-03-SUMMARY.md, 49-04-SUMMARY.md
-started: 2026-02-27T01:00:00Z
-updated: 2026-02-27T01:15:00Z
+source: 49-01-SUMMARY.md, 49-02-SUMMARY.md, 49-03-SUMMARY.md, 49-04-SUMMARY.md, 49-05-SUMMARY.md
+started: 2026-02-27T03:00:00Z
+updated: 2026-02-27T03:30:00Z
 ---
 
 ## Current Test
@@ -12,159 +12,52 @@ updated: 2026-02-27T01:15:00Z
 
 ## Tests
 
-### 1. Admin Index — Manage Assessments Card
-expected: Navigate to /Admin/Index. A "Manage Assessments" card is visible (replacing the old stub). Clicking it navigates to /Admin/ManageAssessment.
+### 1. Create Assessment — Success Modal
+expected: Buat assessment baru di /Admin/CreateAssessment. Setelah submit dengan data valid, success modal muncul menampilkan detail assessment yang dibuat. Tidak ada error di console browser.
 result: pass
 
-### 2. ManageAssessment Page Layout
-expected: /Admin/ManageAssessment shows breadcrumb navigation, a search bar, a grouped assessment table (Title, Category, Schedule Date, status/category badges, collapsible user lists), action dropdown per row (Edit/Monitoring/Export/Delete), and pagination (20 per page).
+### 2. Delete Single Assessment
+expected: Dari dropdown aksi di /Admin/ManageAssessment, klik "Delete" pada satu assessment. Assessment terhapus dan redirect kembali ke /Admin/ManageAssessment (bukan ke halaman error /Admin/DeleteAssessmentGroup/...).
 result: pass
 
-### 3. Create Assessment Form
-expected: From ManageAssessment, clicking "Create" opens /Admin/CreateAssessment with a multi-user selection form, section filter, token toggle, and validation. Submitting with valid data creates the assessment and shows a success modal.
-result: issue
-reported: "1. setelah submit new assessment modal tidak muncul 2. Assessment Table tingginya sangat kurang, bisa di fullkan 1 layar"
-severity: major
-
-### 4. Edit Assessment Form
-expected: From ManageAssessment action dropdown, clicking "Edit" opens /Admin/EditAssessment showing the assessment details, assigned users table, add-more-users picker, and schedule-change warning when dates are modified.
+### 3. Delete Assessment Group
+expected: Dari dropdown aksi, klik "Delete Group" untuk menghapus semua assessment dalam grup yang sama (Title+Category+Schedule). Semua sesi terhapus, redirect ke ManageAssessment.
 result: pass
 
-### 5. Delete Assessment (Single Session)
-expected: From ManageAssessment action dropdown, clicking "Delete" on a single assessment removes that session. The page redirects back to ManageAssessment with the item gone.
-result: issue
-reported: "setelah delete 1 assessment redirect ke /Admin/DeleteAssessmentGroup/1 dengan pesan success: false, message: Assessment not found"
-severity: major
+### 4. Regenerate Token — Conditional Display
+expected: Buka /Admin/ManageAssessment. Assessment yang token-enabled menampilkan tombol "Regenerate Token" di dropdown aksi. Assessment yang TIDAK token-enabled TIDAK menampilkan tombol tersebut.
+result: pass
+notes: "UI improvements requested: (1) format jadwal dd MMM yyyy HH:mm, (2) header tabel center, (3) kolom baru token enabled/disabled"
 
-### 6. Delete Assessment Group
-expected: The "Delete Group" option removes all sibling sessions sharing the same Title+Category+Schedule.Date grouping.
-result: skipped
-reason: Depends on Test 5 delete fix
-
-### 7. Regenerate Token
-expected: Clicking "Regenerate Token" from the action dropdown generates a new access token for the assessment session.
-result: issue
-reported: "TIDAK ditemukan tombol regenerate Token"
-severity: major
-
-### 8. Assessment Monitoring Detail
-expected: Clicking "Monitoring" from the action dropdown opens /Admin/AssessmentMonitoringDetail with live-polling status, per-user progress table, countdown timers, and Reset/ForceClose/Export controls. Admin breadcrumbs show (Kelola Data > Manage Assessments > Monitoring).
-result: issue
-reported: "muncul notif merah, Error: Assessment group not found."
-severity: major
-
-### 9. Export Assessment Results
-expected: Clicking "Export" downloads an Excel (.xlsx) file containing assessment results for the selected assessment.
-result: issue
-reported: "muncul error Error: No sessions found for this assessment group."
-severity: major
-
-### 10. User Assessment History
-expected: /Admin/UserAssessmentHistory shows an individual worker's assessment history with statistics cards and a history table. Breadcrumbs show (Kelola Data > Manage Assessments > Riwayat Assessment).
-result: issue
-reported: "404 - localhost page can't be found for /Admin/UserAssessmentHistory"
-severity: major
-
-### 11. Audit Log Page
-expected: /Admin/AuditLog shows a paginated table of audit log entries with Admin breadcrumbs (Kelola Data > Manage Assessments > Audit Log).
-result: issue
-reported: "kolom Aktor menampilkan '? - Rino' (logic broken), ganti nama kolom Aktor jadi User"
-severity: minor
-
-### 12. CMP Assessment — Personal Only
-expected: /CMP/Assessment no longer shows manage-mode tabs, toggle, or manage UI. Only the personal assessment view is displayed — no viewMode parameter, no "Manage" tab.
+### 5. Assessment Monitoring Detail
+expected: Dari dropdown aksi, klik "Monitoring". Halaman /Admin/AssessmentMonitoringDetail terbuka dengan status per-user, timer countdown, dan kontrol Reset/ForceClose/Export. TIDAK ada error "Assessment group not found".
 result: pass
 
-### 13. CMP Index — Card Rename
-expected: /CMP/Index shows "My Assessments" card (not "Assessment Lobby"). The old "Manage Assessments" card is completely removed.
+### 6. Export Assessment Results
+expected: Dari dropdown aksi di ManageAssessment ATAU dari halaman Monitoring Detail, klik "Export". File Excel (.xlsx) terdownload berisi hasil assessment. TIDAK ada error "No sessions found".
+result: pass
+notes: "Enhancement request: tambahkan detail informasi assessment di file Excel"
+
+### 7. User Assessment History
+expected: Di /Admin/ManageAssessment, expand daftar peserta di sebuah grup. Setiap peserta memiliki icon history (jam). Klik icon tersebut membuka /Admin/UserAssessmentHistory?userId=... menampilkan riwayat assessment user tersebut.
+result: pass
+
+### 8. Audit Log — Actor & Column Name
+expected: Buka /Admin/AuditLog. Kolom header menampilkan "User" (bukan "Aktor"). Setiap entry menampilkan nama user yang benar (bukan "? - NamaUser").
+result: pass
+
+### 9. Force Close All from Monitoring
+expected: Di halaman Assessment Monitoring Detail, klik "Force Close All". Semua assessment open/in-progress dalam grup ter-close. Halaman refresh menampilkan status updated. TIDAK ada error.
 result: pass
 
 ## Summary
 
-total: 13
-passed: 5
-issues: 7
+total: 9
+passed: 9
+issues: 0
 pending: 0
-skipped: 1
+skipped: 0
 
 ## Gaps
 
-- truth: "Success modal appears after submitting new assessment"
-  status: failed
-  reason: "User reported: setelah submit new assessment modal tidak muncul"
-  severity: major
-  test: 3
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "Assessment table uses full screen height"
-  status: failed
-  reason: "User reported: Assessment Table tingginya sangat kurang, bisa di fullkan 1 layar"
-  severity: cosmetic
-  test: 3
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "Delete single assessment redirects back to ManageAssessment"
-  status: failed
-  reason: "User reported: redirect ke /Admin/DeleteAssessmentGroup/1 dengan pesan success: false, message: Assessment not found"
-  severity: major
-  test: 5
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "Regenerate Token button visible in action dropdown"
-  status: failed
-  reason: "User reported: TIDAK ditemukan tombol regenerate Token"
-  severity: major
-  test: 7
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "Assessment Monitoring Detail loads with live status"
-  status: failed
-  reason: "User reported: muncul notif merah, Error: Assessment group not found."
-  severity: major
-  test: 8
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "Export downloads Excel file with assessment results"
-  status: failed
-  reason: "User reported: muncul error Error: No sessions found for this assessment group."
-  severity: major
-  test: 9
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "UserAssessmentHistory page accessible at /Admin/UserAssessmentHistory"
-  status: failed
-  reason: "User reported: 404 - localhost page can't be found"
-  severity: major
-  test: 10
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
-
-- truth: "Audit Log Aktor column shows correct actor name"
-  status: failed
-  reason: "User reported: kolom Aktor menampilkan '? - Rino' (logic broken), ganti nama kolom Aktor jadi User"
-  severity: minor
-  test: 11
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+[none yet]
