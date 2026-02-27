@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using HcPortal.Models;
+using HcPortal.Models.Competency;
 using HcPortal.Data;
+using HcPortal.Helpers;
 using HcPortal.Services;
 using ClosedXML.Excel;
 
@@ -15,15 +18,18 @@ namespace HcPortal.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly AuditLogService _auditLog;
+        private readonly IMemoryCache _cache;
 
         public AdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            AuditLogService auditLog)
+            AuditLogService auditLog,
+            IMemoryCache cache)
         {
             _context = context;
             _userManager = userManager;
             _auditLog = auditLog;
+            _cache = cache;
         }
 
         // GET /Admin/Index
@@ -1801,5 +1807,483 @@ namespace HcPortal.Controllers
 
             return View(logs);
         }
+
+        // POST /Admin/CloseEarly — score InProgress sessions from submitted answers, lock all
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseEarly(string title, string category, DateTime scheduleDate)
+        {
+            // Step 1 — Load all sibling sessions
+            var allSessions = await _context.AssessmentSessions
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!allSessions.Any())
+            {
+                TempData["Error"] = "Assessment group not found.";
+                return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+            }
+
+            // Step 2 — Detect package mode
+            var siblingIds = allSessions.Select(s => s.Id).ToList();
+            var packageCount = await _context.AssessmentPackages
+                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
+            var isPackageMode = packageCount > 0;
+
+            // Step 3 — For package mode: preload all packages + questions + options + assignments in bulk
+            Dictionary<int, UserPackageAssignment> sessionAssignmentMap = new();
+            Dictionary<int, PackageQuestion> allQuestionLookup = new();
+
+            if (isPackageMode)
+            {
+                var assignments = await _context.UserPackageAssignments
+                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
+                    .ToListAsync();
+                foreach (var a in assignments)
+                    sessionAssignmentMap[a.AssessmentSessionId] = a;
+
+                var allSiblingPackages = await _context.AssessmentPackages
+                    .Include(p => p.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Where(p => siblingIds.Contains(p.AssessmentSessionId))
+                    .ToListAsync();
+                allQuestionLookup = allSiblingPackages
+                    .SelectMany(p => p.Questions)
+                    .ToDictionary(q => q.Id);
+            }
+
+            // Step 4 — For legacy mode: preload questions + options
+            List<AssessmentQuestion> legacyQuestions = new();
+            if (!isPackageMode)
+            {
+                var siblingWithQuestions = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Where(a => siblingIds.Contains(a.Id) && a.Questions.Any())
+                    .FirstOrDefaultAsync();
+                legacyQuestions = siblingWithQuestions?.Questions?.ToList() ?? new();
+            }
+
+            // Step 5 — Loop over all sessions, set ExamWindowCloseDate, score InProgress sessions
+            int inProgressCount = 0;
+
+            foreach (var session in allSessions)
+            {
+                session.ExamWindowCloseDate = DateTime.UtcNow;
+                session.UpdatedAt = DateTime.UtcNow;
+
+                bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
+                if (!isInProgress) continue;
+
+                inProgressCount++;
+
+                if (isPackageMode)
+                {
+                    if (!sessionAssignmentMap.TryGetValue(session.Id, out var assignment)) continue;
+                    var sessionShuffledIds = assignment.GetShuffledQuestionIds();
+                    if (!sessionShuffledIds.Any()) continue;
+
+                    var responses = await _context.PackageUserResponses
+                        .Where(r => r.AssessmentSessionId == session.Id)
+                        .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
+
+                    int totalScore = 0;
+                    int maxScore = 0;
+
+                    foreach (var qId in sessionShuffledIds)
+                    {
+                        if (!allQuestionLookup.TryGetValue(qId, out var q)) continue;
+                        maxScore += q.ScoreValue;
+                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                        {
+                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += q.ScoreValue;
+                        }
+                    }
+
+                    int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+                    session.Score = finalPercentage;
+                    session.Status = "Completed";
+                    session.Progress = 100;
+                    session.IsPassed = finalPercentage >= session.PassPercentage;
+                    session.CompletedAt = DateTime.UtcNow;
+                    assignment.IsCompleted = true;
+
+                    if (session.IsPassed == true)
+                    {
+                        var mappedCompetencies = await _context.AssessmentCompetencyMaps
+                            .Include(m => m.KkjMatrixItem)
+                            .Where(m => m.AssessmentCategory == session.Category &&
+                                        (m.TitlePattern == null || session.Title.Contains(m.TitlePattern)))
+                            .ToListAsync();
+
+                        if (mappedCompetencies.Any())
+                        {
+                            var sessionUser = await _context.Users.FindAsync(session.UserId);
+                            foreach (var mapping in mappedCompetencies)
+                            {
+                                if (mapping.MinimumScoreRequired.HasValue && session.Score < mapping.MinimumScoreRequired.Value)
+                                    continue;
+
+                                var existingLevel = await _context.UserCompetencyLevels
+                                    .FirstOrDefaultAsync(c => c.UserId == session.UserId &&
+                                                              c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+                                if (existingLevel == null)
+                                {
+                                    int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, sessionUser?.Position);
+                                    _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                                    {
+                                        UserId = session.UserId,
+                                        KkjMatrixItemId = mapping.KkjMatrixItemId,
+                                        CurrentLevel = mapping.LevelGranted,
+                                        TargetLevel = targetLevel,
+                                        Source = "Assessment",
+                                        AssessmentSessionId = session.Id,
+                                        AchievedAt = DateTime.UtcNow
+                                    });
+                                }
+                                else if (mapping.LevelGranted > existingLevel.CurrentLevel)
+                                {
+                                    existingLevel.CurrentLevel = mapping.LevelGranted;
+                                    existingLevel.Source = "Assessment";
+                                    existingLevel.AssessmentSessionId = session.Id;
+                                    existingLevel.UpdatedAt = DateTime.UtcNow;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    var userResponses = await _context.UserResponses
+                        .Where(r => r.AssessmentSessionId == session.Id)
+                        .ToDictionaryAsync(r => r.AssessmentQuestionId, r => r.SelectedOptionId);
+
+                    int totalScore = 0;
+                    int maxScore = 0;
+
+                    foreach (var question in legacyQuestions)
+                    {
+                        maxScore += question.ScoreValue;
+                        if (userResponses.TryGetValue(question.Id, out var selectedOptionId) && selectedOptionId.HasValue)
+                        {
+                            var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId.Value);
+                            if (selectedOption != null && selectedOption.IsCorrect)
+                                totalScore += question.ScoreValue;
+                        }
+                    }
+
+                    int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+                    session.Score = finalPercentage;
+                    session.Status = "Completed";
+                    session.Progress = 100;
+                    session.IsPassed = finalPercentage >= session.PassPercentage;
+                    session.CompletedAt = DateTime.UtcNow;
+
+                    if (session.IsPassed == true)
+                    {
+                        var mappedCompetencies = await _context.AssessmentCompetencyMaps
+                            .Include(m => m.KkjMatrixItem)
+                            .Where(m => m.AssessmentCategory == session.Category &&
+                                        (m.TitlePattern == null || session.Title.Contains(m.TitlePattern)))
+                            .ToListAsync();
+
+                        if (mappedCompetencies.Any())
+                        {
+                            var sessionUser = await _context.Users.FindAsync(session.UserId);
+                            foreach (var mapping in mappedCompetencies)
+                            {
+                                if (mapping.MinimumScoreRequired.HasValue && session.Score < mapping.MinimumScoreRequired.Value)
+                                    continue;
+
+                                var existingLevel = await _context.UserCompetencyLevels
+                                    .FirstOrDefaultAsync(c => c.UserId == session.UserId &&
+                                                              c.KkjMatrixItemId == mapping.KkjMatrixItemId);
+                                if (existingLevel == null)
+                                {
+                                    int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, sessionUser?.Position);
+                                    _context.UserCompetencyLevels.Add(new UserCompetencyLevel
+                                    {
+                                        UserId = session.UserId,
+                                        KkjMatrixItemId = mapping.KkjMatrixItemId,
+                                        CurrentLevel = mapping.LevelGranted,
+                                        TargetLevel = targetLevel,
+                                        Source = "Assessment",
+                                        AssessmentSessionId = session.Id,
+                                        AchievedAt = DateTime.UtcNow
+                                    });
+                                }
+                                else if (mapping.LevelGranted > existingLevel.CurrentLevel)
+                                {
+                                    existingLevel.CurrentLevel = mapping.LevelGranted;
+                                    existingLevel.Source = "Assessment";
+                                    existingLevel.AssessmentSessionId = session.Id;
+                                    existingLevel.UpdatedAt = DateTime.UtcNow;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Step 6 — SaveChangesAsync + cache invalidation + audit log + redirect
+            await _context.SaveChangesAsync();
+
+            foreach (var s in allSessions)
+                _cache.Remove($"exam-status-{s.Id}");
+
+            var actor = await _userManager.GetUserAsync(User);
+            var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+            await _auditLog.LogAsync(
+                actor?.Id ?? "",
+                actorName,
+                "CloseEarly",
+                $"Closed early assessment group '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) — {inProgressCount} session(s) scored from answers, {allSessions.Count} total session(s) locked",
+                null,
+                "AssessmentSession");
+
+            TempData["Success"] = $"Assessment group ditutup lebih awal. {inProgressCount} sesi diberi skor berdasarkan jawaban yang sudah dikerjakan.";
+            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+        }
+
+        // POST /Admin/ReshufflePackage — reshuffle package for single worker
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReshufflePackage(int sessionId)
+        {
+            var assessment = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(a => a.Id == sessionId);
+
+            if (assessment == null)
+                return Json(new { success = false, message = "Session not found." });
+
+            string userStatus;
+            if (assessment.CompletedAt != null || assessment.Score != null)
+                userStatus = "Completed";
+            else if (assessment.Status == "Abandoned")
+                userStatus = "Abandoned";
+            else if (assessment.StartedAt != null)
+                userStatus = "InProgress";
+            else
+                userStatus = "Not started";
+
+            if (userStatus != "Not started" && userStatus != "Abandoned")
+                return Json(new { success = false, message = "Hanya peserta yang belum mulai atau sesi yang ditinggalkan yang dapat di-reshuffle." });
+
+            var siblingSessionIds = await _context.AssessmentSessions
+                .Where(s => s.Title == assessment.Title &&
+                            s.Category == assessment.Category &&
+                            s.Schedule.Date == assessment.Schedule.Date)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            if (!packages.Any())
+                return Json(new { success = false, message = "Assessment ini tidak menggunakan mode paket." });
+
+            var currentAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+
+            if (currentAssignment != null)
+                _context.UserPackageAssignments.Remove(currentAssignment);
+
+            var rng = new Random();
+            var shuffledIds = BuildCrossPackageAssignment(packages, rng);
+            var sentinelPackage = packages.First();
+
+            var newAssignment = new UserPackageAssignment
+            {
+                AssessmentSessionId = sessionId,
+                AssessmentPackageId = sentinelPackage.Id,
+                UserId = assessment.UserId,
+                ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(shuffledIds),
+                ShuffledOptionIdsPerQuestion = "{}"
+            };
+            _context.UserPackageAssignments.Add(newAssignment);
+
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = $"{hcUser?.NIP ?? "?"} - {hcUser?.FullName ?? "Unknown"}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorNameStr,
+                    "ReshufflePackage",
+                    $"Reshuffled package (cross-package) for user {assessment.UserId} on assessment '{assessment.Title}' [SessionID={sessionId}]: {shuffledIds.Count} questions from {packages.Count} packages",
+                    sessionId,
+                    "AssessmentSession");
+            }
+            catch { /* audit failure must not roll back the successful reshuffle */ }
+
+            return Json(new { success = true, packageName = $"Cross-package ({packages.Count} paket)", assignmentId = newAssignment.Id });
+        }
+
+        // POST /Admin/ReshuffleAll — bulk reshuffle for all workers in assessment group
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReshuffleAll(string title, string category, DateTime scheduleDate)
+        {
+            var sessions = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Title == title &&
+                            a.Category == category &&
+                            a.Schedule.Date == scheduleDate.Date)
+                .ToListAsync();
+
+            if (!sessions.Any())
+                return Json(new { success = false, message = "Assessment group not found." });
+
+            var siblingSessionIds = sessions.Select(s => s.Id).ToList();
+            var packages = await _context.AssessmentPackages
+                .Include(p => p.Questions)
+                    .ThenInclude(q => q.Options)
+                .Where(p => siblingSessionIds.Contains(p.AssessmentSessionId))
+                .OrderBy(p => p.PackageNumber)
+                .ToListAsync();
+
+            if (!packages.Any())
+                return Json(new { success = false, message = "Assessment ini tidak menggunakan mode paket." });
+
+            var existingAssignments = await _context.UserPackageAssignments
+                .Where(a => siblingSessionIds.Contains(a.AssessmentSessionId))
+                .ToDictionaryAsync(a => a.AssessmentSessionId);
+
+            var rng = new Random();
+            var results = new List<object>();
+            int reshuffledCount = 0;
+
+            foreach (var session in sessions)
+            {
+                string userName = session.User?.FullName ?? "Unknown";
+
+                string userStatus;
+                if (session.CompletedAt != null || session.Score != null)
+                    userStatus = "Completed";
+                else if (session.Status == "Abandoned")
+                    userStatus = "Abandoned";
+                else if (session.StartedAt != null)
+                    userStatus = "InProgress";
+                else
+                    userStatus = "Not started";
+
+                if (userStatus != "Not started")
+                {
+                    string reason = userStatus == "InProgress" ? "sedang mengerjakan"
+                                  : userStatus == "Completed" ? "sudah selesai"
+                                  : "dibatalkan";
+                    results.Add(new { name = userName, status = $"Dilewati — {reason}" });
+                    continue;
+                }
+
+                existingAssignments.TryGetValue(session.Id, out var existingAssignment);
+                var sessionShuffledIds = BuildCrossPackageAssignment(packages, rng);
+                var sentinelPackage = packages.First();
+
+                if (existingAssignment != null)
+                    _context.UserPackageAssignments.Remove(existingAssignment);
+
+                _context.UserPackageAssignments.Add(new UserPackageAssignment
+                {
+                    AssessmentSessionId = session.Id,
+                    AssessmentPackageId = sentinelPackage.Id,
+                    UserId = session.UserId,
+                    ShuffledQuestionIds = System.Text.Json.JsonSerializer.Serialize(sessionShuffledIds),
+                    ShuffledOptionIdsPerQuestion = "{}"
+                });
+
+                results.Add(new { name = userName, status = $"Reshuffled (cross-package, {packages.Count} paket)" });
+                reshuffledCount++;
+            }
+
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var hcUser = await _userManager.GetUserAsync(User);
+                var actorNameStr = $"{hcUser?.NIP ?? "?"} - {hcUser?.FullName ?? "Unknown"}";
+                await _auditLog.LogAsync(
+                    hcUser?.Id ?? "",
+                    actorNameStr,
+                    "ReshuffleAll",
+                    $"Bulk reshuffled {reshuffledCount} worker(s) on assessment '{title}' [{category}] scheduled {scheduleDate:yyyy-MM-dd}",
+                    null,
+                    "AssessmentSession");
+            }
+            catch { /* audit failure must not roll back successful reshuffles */ }
+
+            return Json(new { success = true, results, reshuffledCount });
+        }
+
+        #region Helper Methods
+
+        private static void Shuffle<T>(List<T> list, Random rng)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
+        }
+
+        private static List<int> BuildCrossPackageAssignment(List<AssessmentPackage> packages, Random rng)
+        {
+            if (packages.Count == 0)
+                return new List<int>();
+
+            if (packages.Count == 1)
+                return packages[0].Questions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
+
+            int K = packages.Min(p => p.Questions.Count);
+            if (K == 0)
+                return new List<int>();
+
+            int N = packages.Count;
+            int baseCount = K / N;
+            int remainder = K % N;
+
+            var remainderIndices = Enumerable.Range(0, N)
+                .OrderBy(_ => rng.Next())
+                .Take(remainder)
+                .ToHashSet();
+
+            var slots = new List<int>();
+            for (int i = 0; i < N; i++)
+            {
+                int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
+                for (int j = 0; j < count; j++)
+                    slots.Add(i);
+            }
+
+            Shuffle(slots, rng);
+
+            var pkgCounter = new int[N];
+            var shuffledIds = new List<int>();
+            var orderedQuestions = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
+
+            for (int pos = 0; pos < K; pos++)
+            {
+                int pkgIdx = slots[pos];
+                var question = orderedQuestions[pkgIdx][pkgCounter[pkgIdx]];
+                pkgCounter[pkgIdx]++;
+                shuffledIds.Add(question.Id);
+            }
+
+            return shuffledIds;
+        }
+
+        #endregion
     }
 }
