@@ -34,6 +34,12 @@
             <i class="bi bi-file-earmark-text me-1"></i>Coaching Guidance
         </button>
     </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="override-tab" data-bs-toggle="tab" data-bs-target="#overrideTabContent"
+                type="button" role="tab" aria-controls="overrideTabContent" aria-selected="false">
+            <i class="bi bi-shield-exclamation me-1"></i>Coaching Proton Override
+        </button>
+    </li>
 </ul>
 
 <div class="tab-content" id="protonDataTabContent">
@@ -209,6 +215,156 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                     <button type="button" class="btn btn-danger" id="btnConfirmGuidanceDelete">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ====== COACHING PROTON OVERRIDE TAB ====== *@
+    <div class="tab-pane fade" id="overrideTabContent" role="tabpanel" aria-labelledby="override-tab">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="fw-bold text-muted mb-3"><i class="bi bi-funnel me-1"></i>Filter Override</h6>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Bagian</label>
+                        <select class="form-select" id="overrideBagian">
+                            <option value="">-- Pilih Bagian --</option>
+                            @foreach (var bagian in HcPortal.Models.OrganizationStructure.SectionUnits.Keys)
+                            {
+                                <option value="@bagian">@bagian</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Unit</label>
+                        <select class="form-select" id="overrideUnit" disabled>
+                            <option value="">-- Pilih Unit --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Track</label>
+                        <select class="form-select" id="overrideTrack" disabled>
+                            <option value="">-- Pilih Track --</option>
+                            @foreach (var track in allTracks)
+                            {
+                                <option value="@track.Id">@track.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Status Filter</label>
+                        <select class="form-select" id="overrideStatusFilter">
+                            <option value="">Semua</option>
+                            <option value="rejected">Hanya Rejected</option>
+                            <option value="pendingHC">Hanya Pending HC</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" class="btn btn-primary w-100" id="btnLoadOverride" disabled>
+                            <i class="bi bi-search me-1"></i>Muat Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="overrideTableContainer">
+            <div class="text-center py-5 text-muted">
+                <i class="bi bi-shield-exclamation fs-1 mb-3 d-block opacity-50"></i>
+                <p>Pilih Bagian, Unit, dan Track untuk menampilkan data override.</p>
+            </div>
+        </div>
+    </div>
+
+    @* ====== Override Modal ====== *@
+    <div class="modal fade" id="overrideModal" tabindex="-1" aria-labelledby="overrideModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="overrideModalLabel"><i class="bi bi-shield-exclamation me-1"></i>Override Deliverable Progress</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="overrideProgressId" value="">
+
+                    @* Context display (read-only) *@
+                    <div class="bg-light rounded p-3 mb-3">
+                        <h6 class="fw-bold mb-2" id="overrideDeliverableName"></h6>
+                        <div class="text-muted small mb-2" id="overrideKompetensiPath"></div>
+                        <div class="mb-2">
+                            <span class="fw-semibold">Status Saat Ini:</span>
+                            <span id="overrideCurrentStatusBadge" class="badge ms-1"></span>
+                        </div>
+                        <div class="mb-2">
+                            <span class="fw-semibold">Bukti Pengerjaan:</span>
+                            <span id="overrideEvidenceLink" class="ms-1"></span>
+                        </div>
+                        <div class="row g-2 small">
+                            <div class="col-md-4">
+                                <span class="fw-semibold">Submitted:</span>
+                                <span id="overrideSubmittedAt" class="text-muted">—</span>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="fw-semibold">Approved:</span>
+                                <span id="overrideApprovedAt" class="text-muted">—</span>
+                                <span id="overrideApprovedBy" class="text-muted fst-italic"></span>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="fw-semibold">Rejected:</span>
+                                <span id="overrideRejectedAt" class="text-muted">—</span>
+                            </div>
+                        </div>
+                        <div class="row g-2 small mt-1">
+                            <div class="col-md-6">
+                                <span class="fw-semibold">HC Review Status:</span>
+                                <span id="overrideHCStatus" class="text-muted">—</span>
+                                <span id="overrideHCReviewedAt" class="text-muted"></span>
+                                <span id="overrideHCReviewer" class="text-muted fst-italic"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="fw-semibold">Alasan Penolakan:</span>
+                                <span id="overrideExistingRejection" class="text-muted">—</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Override form *@
+                    <hr>
+                    <h6 class="fw-bold mb-3">Form Override</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Status Baru</label>
+                            <select class="form-select" id="overrideStatusSelect">
+                                <option value="Active">Active</option>
+                                <option value="Submitted">Submitted</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">HC Status Baru</label>
+                            <select class="form-select" id="overrideHCStatusSelect">
+                                <option value="Pending">Pending</option>
+                                <option value="Reviewed">Reviewed</option>
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold">Alasan Penolakan (opsional)</label>
+                            <textarea class="form-control" id="overrideRejectionReason" rows="2" placeholder="Kosongkan jika tidak ada alasan penolakan"></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label fw-semibold text-danger">Alasan Override <span class="text-danger">*</span></label>
+                            <textarea class="form-control" id="overrideAlasan" rows="2" placeholder="Wajib diisi — jelaskan mengapa override ini perlu dilakukan"></textarea>
+                            <div class="text-danger small mt-1" id="overrideAlasanError"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="btnSaveOverride">
+                        <i class="bi bi-save me-1"></i>Simpan Override
+                    </button>
                 </div>
             </div>
         </div>
@@ -838,6 +994,252 @@
         function escapeJs(str) {
             if (!str) return '';
             return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+    })();
+
+    // ====== Coaching Proton Override (Plan 52-01) ======
+    (function () {
+        var overrideModal = null;
+        var currentLoadParams = null;
+
+        // --- Filter cascade ---
+        document.getElementById('overrideBagian').addEventListener('change', function () {
+            var bagian = this.value;
+            var unitSelect = document.getElementById('overrideUnit');
+            unitSelect.innerHTML = '<option value="">-- Pilih Unit --</option>';
+            if (bagian && orgStructure[bagian]) {
+                orgStructure[bagian].forEach(function (u) {
+                    var opt = document.createElement('option');
+                    opt.value = u;
+                    opt.textContent = u;
+                    unitSelect.appendChild(opt);
+                });
+            }
+            unitSelect.disabled = !bagian;
+            document.getElementById('overrideTrack').disabled = true;
+            document.getElementById('overrideTrack').value = '';
+            document.getElementById('btnLoadOverride').disabled = true;
+        });
+
+        document.getElementById('overrideUnit').addEventListener('change', function () {
+            var hasUnit = !!this.value;
+            var trackSelect = document.getElementById('overrideTrack');
+            trackSelect.disabled = !hasUnit;
+            trackSelect.value = '';
+            document.getElementById('btnLoadOverride').disabled = true;
+        });
+
+        document.getElementById('overrideTrack').addEventListener('change', function () {
+            document.getElementById('btnLoadOverride').disabled = !this.value;
+        });
+
+        document.getElementById('btnLoadOverride').addEventListener('click', function () {
+            loadOverrideData();
+        });
+
+        // --- Load override data ---
+        async function loadOverrideData() {
+            var bagian = document.getElementById('overrideBagian').value;
+            var unit = document.getElementById('overrideUnit').value;
+            var trackId = document.getElementById('overrideTrack').value;
+            var statusFilter = document.getElementById('overrideStatusFilter').value;
+
+            currentLoadParams = { bagian, unit, trackId, statusFilter };
+
+            var container = document.getElementById('overrideTableContainer');
+            container.innerHTML = '<div class="text-center py-4"><span class="spinner-border text-primary"></span></div>';
+
+            try {
+                var url = '/ProtonData/OverrideList?bagian=' + encodeURIComponent(bagian)
+                    + '&unit=' + encodeURIComponent(unit)
+                    + '&trackId=' + encodeURIComponent(trackId)
+                    + '&statusFilter=' + encodeURIComponent(statusFilter);
+                var resp = await fetch(url);
+                var data = await resp.json();
+                if (data.success) {
+                    renderOverrideTable(data.coachees, data.deliverableHeaders);
+                } else {
+                    container.innerHTML = '<div class="alert alert-danger">Gagal memuat data override.</div>';
+                }
+            } catch (err) {
+                container.innerHTML = '<div class="alert alert-danger">Terjadi kesalahan jaringan. Silakan coba lagi.</div>';
+            }
+        }
+
+        // --- Render override table ---
+        function renderOverrideTable(coachees, headers) {
+            var container = document.getElementById('overrideTableContainer');
+
+            if (!coachees || coachees.length === 0) {
+                container.innerHTML = '<div class="alert alert-info mt-3">Tidak ada data untuk filter ini.</div>';
+                return;
+            }
+
+            var html = '<div class="table-responsive mt-3"><table class="table table-sm table-bordered align-middle">';
+            html += '<thead class="table-light"><tr>';
+            html += '<th style="min-width:180px;position:sticky;left:0;background:#f8f9fa;z-index:2;">Nama Pekerja</th>';
+            headers.forEach(function (h) {
+                var shortName = h.name.length > 18 ? h.name.substring(0, 18) + '...' : h.name;
+                html += '<th style="min-width:60px;text-align:center;" title="' + escHtml(h.name) + '">' + escHtml(shortName) + '</th>';
+            });
+            html += '</tr></thead>';
+            html += '<tbody>';
+
+            coachees.forEach(function (coachee) {
+                html += '<tr>';
+                html += '<td style="position:sticky;left:0;background:#fff;z-index:1;" class="fw-semibold">' + escHtml(coachee.coacheeName) + '</td>';
+                coachee.badges.forEach(function (badge) {
+                    if (badge.progressId === null || badge.progressId === undefined) {
+                        html += '<td class="text-center"><span class="badge bg-secondary" style="font-size:0.8em;">—</span></td>';
+                    } else {
+                        var badgeClass, letter;
+                        switch (badge.status) {
+                            case 'Active':    badgeClass = 'bg-primary';   letter = 'A'; break;
+                            case 'Submitted': badgeClass = 'bg-warning text-dark'; letter = 'S'; break;
+                            case 'Approved':  badgeClass = 'bg-success';   letter = 'V'; break;
+                            case 'Rejected':  badgeClass = 'bg-danger';    letter = 'R'; break;
+                            default:          badgeClass = 'bg-secondary'; letter = '?'; break;
+                        }
+                        html += '<td class="text-center"><button class="badge border-0 btn-override ' + badgeClass + '" style="cursor:pointer;font-size:0.85em;" data-progress-id="' + badge.progressId + '" title="' + escHtml(badge.deliverableName) + '">' + letter + '</button></td>';
+                    }
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        // --- Badge click → modal ---
+        document.getElementById('overrideTableContainer').addEventListener('click', async function (e) {
+            var btn = e.target.closest('.btn-override');
+            if (!btn) return;
+
+            var progressId = btn.dataset.progressId;
+            if (!progressId) return;
+
+            try {
+                var resp = await fetch('/ProtonData/OverrideDetail?id=' + encodeURIComponent(progressId));
+                var data = await resp.json();
+                if (!data.success) {
+                    alert('Gagal memuat detail record.');
+                    return;
+                }
+                populateOverrideModal(data);
+                overrideModal = new bootstrap.Modal(document.getElementById('overrideModal'));
+                overrideModal.show();
+            } catch (err) {
+                alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+            }
+        });
+
+        // --- Populate override modal ---
+        function populateOverrideModal(data) {
+            document.getElementById('overrideProgressId').value = data.id;
+
+            // Context display
+            document.getElementById('overrideDeliverableName').textContent = data.deliverableName || '—';
+            document.getElementById('overrideKompetensiPath').textContent =
+                (data.kompetensiName || '') + (data.subKompetensiName ? ' > ' + data.subKompetensiName : '');
+
+            // Status badge
+            var statusBadge = document.getElementById('overrideCurrentStatusBadge');
+            statusBadge.textContent = data.status || '—';
+            statusBadge.className = 'badge ms-1 ' + statusToBadgeClass(data.status);
+
+            // Evidence
+            var evidenceEl = document.getElementById('overrideEvidenceLink');
+            if (data.evidenceFileName && data.evidencePath) {
+                evidenceEl.innerHTML = '<a href="' + escHtml(data.evidencePath) + '" target="_blank" class="text-decoration-none"><i class="bi bi-paperclip me-1"></i>' + escHtml(data.evidenceFileName) + '</a>';
+            } else {
+                evidenceEl.textContent = 'Tidak ada';
+            }
+
+            // Timestamps
+            document.getElementById('overrideSubmittedAt').textContent = data.submittedAt || '—';
+            document.getElementById('overrideApprovedAt').textContent = data.approvedAt || '—';
+            document.getElementById('overrideApprovedBy').textContent = data.approvedByName ? ' (' + data.approvedByName + ')' : '';
+            document.getElementById('overrideRejectedAt').textContent = data.rejectedAt || '—';
+
+            // HC review
+            document.getElementById('overrideHCStatus').textContent = data.hcApprovalStatus || '—';
+            document.getElementById('overrideHCReviewedAt').textContent = data.hcReviewedAt ? ' (' + data.hcReviewedAt + ')' : '';
+            document.getElementById('overrideHCReviewer').textContent = data.hcReviewedByName ? ' — ' + data.hcReviewedByName : '';
+
+            // Rejection reason
+            document.getElementById('overrideExistingRejection').textContent = data.rejectionReason || '—';
+
+            // Form defaults
+            document.getElementById('overrideStatusSelect').value = data.status || 'Active';
+            document.getElementById('overrideHCStatusSelect').value = data.hcApprovalStatus || 'Pending';
+            document.getElementById('overrideRejectionReason').value = data.rejectionReason || '';
+            document.getElementById('overrideAlasan').value = '';
+            document.getElementById('overrideAlasanError').textContent = '';
+        }
+
+        function statusToBadgeClass(status) {
+            switch (status) {
+                case 'Active':    return 'bg-primary';
+                case 'Submitted': return 'bg-warning text-dark';
+                case 'Approved':  return 'bg-success';
+                case 'Rejected':  return 'bg-danger';
+                default:          return 'bg-secondary';
+            }
+        }
+
+        // --- Save override ---
+        document.getElementById('btnSaveOverride').addEventListener('click', async function () {
+            var alasan = document.getElementById('overrideAlasan').value.trim();
+            var errorEl = document.getElementById('overrideAlasanError');
+            errorEl.textContent = '';
+
+            if (!alasan) {
+                errorEl.textContent = 'Alasan override wajib diisi.';
+                return;
+            }
+
+            var payload = {
+                ProgressId: parseInt(document.getElementById('overrideProgressId').value),
+                NewStatus: document.getElementById('overrideStatusSelect').value,
+                NewHCStatus: document.getElementById('overrideHCStatusSelect').value,
+                NewRejectionReason: document.getElementById('overrideRejectionReason').value.trim() || null,
+                OverrideReason: alasan
+            };
+
+            var btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+
+            try {
+                var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                var resp = await fetch('/ProtonData/OverrideSave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify(payload)
+                });
+                var data = await resp.json();
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('overrideModal')).hide();
+                    await loadOverrideData();
+                } else {
+                    errorEl.textContent = data.message || 'Gagal menyimpan override.';
+                }
+            } catch (err) {
+                errorEl.textContent = 'Terjadi kesalahan jaringan. Silakan coba lagi.';
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan Override';
+        });
+
+        // --- HTML escape helper (scoped) ---
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
         }
     })();
 </script>
