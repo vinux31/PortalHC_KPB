@@ -1031,7 +1031,7 @@ namespace HcPortal.Controllers
         // --- DELETE ASSESSMENT GROUP ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteAssessmentGroup(int representativeId)
+        public async Task<IActionResult> DeleteAssessmentGroup(int id)
         {
             var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
 
@@ -1039,11 +1039,11 @@ namespace HcPortal.Controllers
             {
                 // Load representative to get grouping key
                 var rep = await _context.AssessmentSessions
-                    .FirstOrDefaultAsync(a => a.Id == representativeId);
+                    .FirstOrDefaultAsync(a => a.Id == id);
 
                 if (rep == null)
                 {
-                    logger.LogWarning($"DeleteAssessmentGroup: representative session {representativeId} not found");
+                    logger.LogWarning($"DeleteAssessmentGroup: representative session {id} not found");
                     TempData["Error"] = "Assessment not found.";
                     return RedirectToAction("ManageAssessment");
                 }
@@ -1090,12 +1090,12 @@ namespace HcPortal.Controllers
                         dgActorName,
                         "DeleteAssessmentGroup",
                         $"Deleted assessment group '{rep.Title}' ({rep.Category}) — {siblings.Count} session(s)",
-                        representativeId,
+                        id,
                         "AssessmentSession");
                 }
                 catch (Exception auditEx)
                 {
-                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentGroup {Id}", representativeId);
+                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentGroup {Id}", id);
                 }
 
                 logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}'");
@@ -1104,7 +1104,7 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"DeleteAssessmentGroup error for representative {representativeId}: {ex.Message}");
+                logger.LogError(ex, $"DeleteAssessmentGroup error for representative {id}: {ex.Message}");
                 TempData["Error"] = $"Failed to delete assessment group: {ex.Message}";
                 return RedirectToAction("ManageAssessment");
             }
