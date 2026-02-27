@@ -125,6 +125,7 @@ namespace HcPortal.Controllers
             // Keep a dictionary of seen Kompetensi text → entity to avoid duplicates within same save
             var kompDict = new Dictionary<string, ProtonKompetensi>();
             var subKompDict = new Dictionary<string, ProtonSubKompetensi>();
+            var newDelivIds = new List<int>(); // Track newly created deliverable IDs for orphan cleanup
 
             foreach (var row in rows)
             {
@@ -214,6 +215,8 @@ namespace HcPortal.Controllers
                         Urutan = urutan
                     };
                     _context.ProtonDeliverableList.Add(deliv);
+                    await _context.SaveChangesAsync(); // Flush to get Id for orphan tracking
+                    newDelivIds.Add(deliv.Id);
                     created++;
                 }
                 urutan++;
@@ -226,9 +229,10 @@ namespace HcPortal.Controllers
             var savedSubIds = rows.Where(r => r.SubKompetensiId > 0).Select(r => r.SubKompetensiId).Distinct().ToList();
             var savedDelivIds = rows.Where(r => r.DeliverableId > 0).Select(r => r.DeliverableId).Distinct().ToList();
 
-            // Also include newly-created IDs from kompDict/subKompDict
+            // Also include newly-created IDs from kompDict/subKompDict/newDelivIds
             savedKompIds.AddRange(kompDict.Values.Select(k => k.Id));
             savedSubIds.AddRange(subKompDict.Values.Select(s => s.Id));
+            savedDelivIds.AddRange(newDelivIds);
 
             // Find orphaned deliverables for this scope
             var scopeKomps = await _context.ProtonKompetensiList
