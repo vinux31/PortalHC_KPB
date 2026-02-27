@@ -136,11 +136,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 49 — Assessment Management Migration (In Progress, 1/4 plans done)
+**Phase:** Phase 49 — Assessment Management Migration (Complete, 4/4 plans done)
 **Status:** Executing
-**Last activity:** 2026-02-27 - Completed Plan 49-03: Monitoring, Reset, ForceClose, Export, User History migrated to AdminController (7 actions + 2 views)
+**Last activity:** 2026-02-27 - Completed Plan 49-04: AuditLog migrated to Admin, CMPController cleaned (16 manage actions removed), CMP/Assessment stripped to personal-only, CMP/Index cards updated
 
-Progress: [███░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
+Progress: [█████░░░░░░░░░░░░░░░] 25% (v2.3 — 3/12 phases complete)
 
 ## Performance Metrics
 
@@ -197,6 +197,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - CloseEarly form action points to Admin/CloseEarly (string-based asp-action compiles even without action existing yet)
 - Added `using ClosedXML.Excel;` import to AdminController for cleaner Excel export code
 
+**Phase 49-04 decisions:**
+- CloseEarly, ReshufflePackage, ReshuffleAll added to AdminController (not in original plan) because Admin views from Plan 03 reference /Admin/CloseEarly, /Admin/ReshufflePackage, /Admin/ReshuffleAll
+- IMemoryCache injected into AdminController constructor for CloseEarly cache invalidation
+- BuildCrossPackageAssignment + Shuffle helper methods duplicated in AdminController (same approach as GenerateSecureToken from Plan 02)
+- GetMonitorData endpoint kept in CMPController (not in removal list, still used indirectly)
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -227,9 +233,10 @@ None.
 | Phase 48-cpdp-items-manager P02 | 5 | 3 tasks | 3 files |
 | Phase 48-cpdp-items-manager P03 | 10 | 2 tasks | 2 files |
 | Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
+| Phase 49-assessment-management-migration P04 | 15 | 3 tasks | 5 files |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 49-03-PLAN.md (Monitoring, Reset, ForceClose, Export, User History migrated to AdminController — 7 actions + 2 views). Phase 49 in progress (1/4 plans done).
+Stopped at: Completed 49-04-PLAN.md (AuditLog migration + CMP cleanup + personal-only Assessment view). Phase 49 complete (4/4 plans done).
 Resume file: None.
