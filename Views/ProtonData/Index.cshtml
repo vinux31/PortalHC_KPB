@@ -554,7 +554,7 @@
                 });
                 const data = await resp.json();
                 if (data.success) {
-                    window.location.href = `/ProtonData?bagian=${encodeURIComponent(currentBagian)}&unit=${encodeURIComponent(currentUnit)}&trackId=${currentTrackId}`;
+                    window.location.href = `/ProtonData/Index?bagian=${encodeURIComponent(currentBagian)}&unit=${encodeURIComponent(currentUnit)}&trackId=${currentTrackId}`;
                 } else {
                     alert('Gagal menyimpan: ' + (data.message || 'Error tidak diketahui'));
                     btn.disabled = false;
