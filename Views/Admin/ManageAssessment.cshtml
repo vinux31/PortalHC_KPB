@@ -175,14 +175,12 @@ else
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" asp-action="AssessmentMonitoringDetail" asp-controller="Admin"
-                                               asp-route-id="@group.RepresentativeId">
+                                            <a class="dropdown-item" href="@Url.Action("AssessmentMonitoringDetail", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
                                                 <i class="bi bi-binoculars me-2"></i>Monitoring
                                             </a>
                                         </li>
                                         <li>
-                                            <a class="dropdown-item" asp-action="ExportAssessmentResults" asp-controller="Admin"
-                                               asp-route-id="@group.RepresentativeId">
+                                            <a class="dropdown-item" href="@Url.Action("ExportAssessmentResults", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
                                                 <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
                                             </a>
                                         </li>

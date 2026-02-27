@@ -132,7 +132,9 @@
                 <form asp-action="ForceCloseAll" asp-controller="Admin" method="post" class="d-inline"
                       onsubmit="return confirm('Tutup paksa semua sesi Open/InProgress? Sesi akan ditandai Abandoned dan tidak dapat dikembalikan.')">
                     @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" value="@Model.RepresentativeId" />
+                    <input type="hidden" name="title" value="@Model.Title" />
+                    <input type="hidden" name="category" value="@Model.Category" />
+                    <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
                     <button type="submit" class="btn btn-danger btn-sm">
                         <i class="bi bi-x-circle me-1"></i>Force Close All
                     </button>
@@ -344,7 +346,9 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                         <form asp-action="CloseEarly" asp-controller="Admin" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="id" value="@Model.RepresentativeId" />
+                            <input type="hidden" name="title" value="@Model.Title" />
+                            <input type="hidden" name="category" value="@Model.Category" />
+                            <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
                             <button type="submit" class="btn btn-warning">
                                 <i class="bi bi-clock-history me-1"></i>Ya, Submit Assessment
                             </button>
