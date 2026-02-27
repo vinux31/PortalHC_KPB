@@ -25,6 +25,8 @@ public class ProtonTrack
 public class ProtonKompetensi
 {
     public int Id { get; set; }
+    public string Bagian { get; set; } = "";
+    public string Unit { get; set; } = "";
     public string NamaKompetensi { get; set; } = "";
     public int Urutan { get; set; }
     public int ProtonTrackId { get; set; }
@@ -131,6 +133,23 @@ public class ProtonNotification
     public bool IsRead { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReadAt { get; set; }
+}
+
+/// <summary>
+/// Coaching guidance file — learning materials (PDF, Word, Excel, PPT) per Bagian+Unit+Track
+/// </summary>
+public class CoachingGuidanceFile
+{
+    public int Id { get; set; }
+    public string Bagian { get; set; } = "";
+    public string Unit { get; set; } = "";
+    public int ProtonTrackId { get; set; }
+    public ProtonTrack? ProtonTrack { get; set; }
+    public string FileName { get; set; } = "";       // Original display name
+    public string FilePath { get; set; } = "";       // Web-relative path e.g. /uploads/guidance/...
+    public long FileSize { get; set; }
+    public DateTime UploadedAt { get; set; } = DateTime.UtcNow;
+    public string UploadedById { get; set; } = "";
 }
 
 /// <summary>

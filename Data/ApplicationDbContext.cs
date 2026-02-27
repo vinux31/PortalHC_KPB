@@ -52,6 +52,9 @@ namespace HcPortal.Data
         // Proton Track (Phase 33 — normalized track entity)
         public DbSet<ProtonTrack> ProtonTracks { get; set; }
 
+        // Coaching Guidance Files (Phase 51)
+        public DbSet<CoachingGuidanceFile> CoachingGuidanceFiles { get; set; }
+
         // Test Packages — Phase 17
         public DbSet<AssessmentPackage> AssessmentPackages { get; set; }
         public DbSet<PackageQuestion> PackageQuestions { get; set; }
@@ -333,6 +336,16 @@ namespace HcPortal.Data
                 entity.HasIndex(n => n.RecipientId);
                 entity.HasIndex(n => new { n.RecipientId, n.IsRead });
                 entity.HasIndex(n => n.CoacheeId);
+            });
+
+            // CoachingGuidanceFile -> ProtonTrack (Phase 51)
+            builder.Entity<CoachingGuidanceFile>(entity =>
+            {
+                entity.HasOne(f => f.ProtonTrack)
+                    .WithMany()
+                    .HasForeignKey(f => f.ProtonTrackId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(f => new { f.Bagian, f.Unit, f.ProtonTrackId });
             });
 
             // ProtonDeliverableProgress HCApprovalStatus default (Phase 6)
