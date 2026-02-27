@@ -27,6 +27,11 @@ namespace HcPortal.Controllers
         public int DeliverableId { get; set; }
     }
 
+    public class GuidanceDeleteRequest
+    {
+        public int Id { get; set; }
+    }
+
     [Authorize(Roles = "Admin,HC")]
     public class ProtonDataController : Controller
     {
@@ -300,6 +305,192 @@ namespace HcPortal.Controllers
                 targetId: req.DeliverableId, targetType: "ProtonDeliverable");
 
             return Json(new { success = true });
+        }
+
+        // GET: /ProtonData/GuidanceList?bagian=X&unit=Y&trackId=Z
+        public async Task<IActionResult> GuidanceList(string bagian, string unit, int trackId)
+        {
+            var files = await _context.CoachingGuidanceFiles
+                .Where(f => f.Bagian == bagian && f.Unit == unit && f.ProtonTrackId == trackId)
+                .OrderByDescending(f => f.UploadedAt)
+                .Select(f => new {
+                    f.Id,
+                    f.FileName,
+                    f.FileSize,
+                    UploadedAt = f.UploadedAt.ToString("dd MMM yyyy HH:mm")
+                })
+                .ToListAsync();
+
+            return Json(files);
+        }
+
+        // POST: /ProtonData/GuidanceUpload
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GuidanceUpload(string bagian, string unit, int trackId, IFormFile? file)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            if (file == null || file.Length == 0)
+                return Json(new { success = false, error = "File tidak boleh kosong." });
+
+            var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(ext))
+                return Json(new { success = false, error = "Tipe file tidak diperbolehkan. Gunakan PDF, Word, Excel, atau PowerPoint." });
+
+            if (file.Length > 10 * 1024 * 1024)
+                return Json(new { success = false, error = "Ukuran file maksimal 10 MB." });
+
+            var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "guidance");
+            Directory.CreateDirectory(uploadDir);
+
+            var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
+            var filePath = Path.Combine(uploadDir, safeFileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var record = new CoachingGuidanceFile
+            {
+                Bagian = bagian,
+                Unit = unit,
+                ProtonTrackId = trackId,
+                FileName = file.FileName,
+                FilePath = $"/uploads/guidance/{safeFileName}",
+                FileSize = file.Length,
+                UploadedById = user.Id
+            };
+            _context.CoachingGuidanceFiles.Add(record);
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(user.Id, user.FullName, "Upload",
+                $"Uploaded guidance file '{file.FileName}' ({FormatFileSize(file.Length)}) for {bagian}/{unit}/Track {trackId}",
+                targetId: record.Id, targetType: "CoachingGuidanceFile");
+
+            return Json(new { success = true });
+        }
+
+        // GET: /ProtonData/GuidanceDownload?id=X
+        public async Task<IActionResult> GuidanceDownload(int id)
+        {
+            var record = await _context.CoachingGuidanceFiles.FindAsync(id);
+            if (record == null) return NotFound();
+
+            var physicalPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (!System.IO.File.Exists(physicalPath)) return NotFound();
+
+            var contentType = GetContentType(Path.GetExtension(record.FilePath));
+            return PhysicalFile(physicalPath, contentType, record.FileName);
+        }
+
+        // POST: /ProtonData/GuidanceReplace
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GuidanceReplace(int id, IFormFile? file)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var record = await _context.CoachingGuidanceFiles.FindAsync(id);
+            if (record == null) return Json(new { success = false, error = "Record tidak ditemukan." });
+
+            if (file == null || file.Length == 0)
+                return Json(new { success = false, error = "File tidak boleh kosong." });
+
+            var allowedExtensions = new[] { ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(ext))
+                return Json(new { success = false, error = "Tipe file tidak diperbolehkan." });
+
+            if (file.Length > 10 * 1024 * 1024)
+                return Json(new { success = false, error = "Ukuran file maksimal 10 MB." });
+
+            // Delete old physical file
+            var oldPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (System.IO.File.Exists(oldPath))
+            {
+                System.IO.File.Delete(oldPath);
+            }
+
+            // Save new file
+            var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "guidance");
+            var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
+            var newFilePath = Path.Combine(uploadDir, safeFileName);
+
+            using (var stream = new FileStream(newFilePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var oldFileName = record.FileName;
+            record.FileName = file.FileName;
+            record.FilePath = $"/uploads/guidance/{safeFileName}";
+            record.FileSize = file.Length;
+            record.UploadedAt = DateTime.UtcNow;
+            record.UploadedById = user.Id;
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(user.Id, user.FullName, "Update",
+                $"Replaced guidance file '{oldFileName}' with '{file.FileName}' ({FormatFileSize(file.Length)})",
+                targetId: record.Id, targetType: "CoachingGuidanceFile");
+
+            return Json(new { success = true });
+        }
+
+        // POST: /ProtonData/GuidanceDelete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GuidanceDelete([FromBody] GuidanceDeleteRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var record = await _context.CoachingGuidanceFiles.FindAsync(req.Id);
+            if (record == null) return Json(new { success = false, error = "Record tidak ditemukan." });
+
+            var fileName = record.FileName;
+
+            // Delete DB record first
+            _context.CoachingGuidanceFiles.Remove(record);
+            await _context.SaveChangesAsync();
+
+            // Then delete physical file (non-critical if fails)
+            var physicalPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            try
+            {
+                if (System.IO.File.Exists(physicalPath))
+                    System.IO.File.Delete(physicalPath);
+            }
+            catch { /* log but don't fail */ }
+
+            await _auditLog.LogAsync(user.Id, user.FullName, "Delete",
+                $"Deleted guidance file '{fileName}'",
+                targetId: req.Id, targetType: "CoachingGuidanceFile");
+
+            return Json(new { success = true });
+        }
+
+        private static string GetContentType(string extension) => extension.ToLowerInvariant() switch
+        {
+            ".pdf" => "application/pdf",
+            ".doc" => "application/msword",
+            ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xls" => "application/vnd.ms-excel",
+            ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".ppt" => "application/vnd.ms-powerpoint",
+            ".pptx" => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            _ => "application/octet-stream"
+        };
+
+        private static string FormatFileSize(long bytes)
+        {
+            if (bytes < 1024) return $"{bytes} B";
+            if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+            return $"{bytes / (1024.0 * 1024.0):F1} MB";
         }
     }
 }
