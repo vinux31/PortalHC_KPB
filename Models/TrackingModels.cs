@@ -13,5 +13,7 @@ namespace HcPortal.Models
         public string ApprovalSectionHead { get; set; } = "Not Started";
         public string ApprovalHC { get; set; } = "Not Started";
         public string SupervisorComments { get; set; } = ""; // Feedback from supervisor
+        public string CoacheeId { get; set; } = "";
+        public string CoacheeName { get; set; } = "";
     }
 }

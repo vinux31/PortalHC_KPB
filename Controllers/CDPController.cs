@@ -1410,7 +1410,12 @@ namespace HcPortal.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public async Task<IActionResult> ProtonProgress(string? coacheeId = null)
+        public async Task<IActionResult> ProtonProgress(
+            string? coacheeId = null,
+            string? bagian = null,
+            string? unit = null,
+            string? trackType = null,
+            string? tahun = null)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -1418,155 +1423,233 @@ namespace HcPortal.Controllers
             var userRole = roles.FirstOrDefault() ?? "";
             int userLevel = user.RoleLevel;
 
-            string? targetCoacheeId = null;
+            // --- STEP 1: Role-scoped coachee IDs (SERVER ENFORCEMENT) ---
+            List<string> scopedCoacheeIds;
+            List<ApplicationUser>? coacheeList = null;
 
-            if (userLevel == 6) // Coachee
+            if (userLevel <= 2) // HC/Admin — see all coachees
             {
-                // No dropdown — always own data
-                targetCoacheeId = user.Id;
-                ViewBag.Coachees = null;
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => u.RoleLevel == 6)
+                    .Select(u => u.Id).ToListAsync();
             }
-            else if (userLevel == 5) // Coach
+            else if (userLevel == 4) // SrSpv/SectionHead — same section only
             {
-                var coacheeIds = await _context.CoachCoacheeMappings
-                    .Where(m => m.CoachId == user.Id && m.IsActive)
-                    .Select(m => m.CoacheeId)
-                    .ToListAsync();
-
-                var coachees = await _context.Users
-                    .Where(u => coacheeIds.Contains(u.Id))
-                    .ToListAsync();
-
-                // Order by track first, then alphabetically
-                var assignments = await _context.ProtonTrackAssignments
-                    .Include(a => a.ProtonTrack)
-                    .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
-                    .ToDictionaryAsync(a => a.CoacheeId, a => a);
-
-                var orderedCoachees = coachees
-                    .OrderBy(u => assignments.TryGetValue(u.Id, out var a) ? a.ProtonTrack?.Urutan ?? 999 : 999)
-                    .ThenBy(u => u.FullName)
-                    .ToList();
-
-                ViewBag.Coachees = orderedCoachees;
-
-                // Validate the requested coacheeId
-                if (!string.IsNullOrEmpty(coacheeId) && coacheeIds.Contains(coacheeId))
-                    targetCoacheeId = coacheeId;
-            }
-            else if (userLevel == 4) // SrSpv / SectionHead
-            {
-                var sectionCoachees = await _context.Users
+                scopedCoacheeIds = await _context.Users
                     .Where(u => u.Section == user.Section && u.RoleLevel == 6)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync();
+                    .Select(u => u.Id).ToListAsync();
+            }
+            else if (userLevel == 5) // Coach — CoachCoacheeMapping only
+            {
+                scopedCoacheeIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Select(m => m.CoacheeId).ToListAsync();
+            }
+            else // Level 6 (Coachee)
+            {
+                scopedCoacheeIds = new List<string> { user.Id };
+            }
 
-                ViewBag.Coachees = sectionCoachees;
-
-                if (!string.IsNullOrEmpty(coacheeId))
+            // --- STEP 2: Apply Bagian filter (HC/Admin only) ---
+            if (userLevel <= 2 && !string.IsNullOrEmpty(bagian))
+            {
+                var validSections = OrganizationStructure.GetAllSections();
+                if (validSections.Contains(bagian))
                 {
-                    var coacheeUser = sectionCoachees.FirstOrDefault(u => u.Id == coacheeId);
-                    if (coacheeUser != null)
-                        targetCoacheeId = coacheeId;
+                    scopedCoacheeIds = await _context.Users
+                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Section == bagian)
+                        .Select(u => u.Id).ToListAsync();
+                }
+                else
+                {
+                    bagian = null; // silently ignore invalid bagian
                 }
             }
-            else // HC (Level 2) / Admin (Level 1)
+
+            // --- STEP 3: Apply Unit filter ---
+            if (!string.IsNullOrEmpty(unit))
             {
-                var allCoachees = await _context.Users
-                    .Where(u => u.RoleLevel == 6)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync();
-
-                ViewBag.Coachees = allCoachees;
-
-                if (!string.IsNullOrEmpty(coacheeId))
-                    targetCoacheeId = coacheeId;
+                if (userLevel <= 2)
+                {
+                    // HC/Admin: any unit (but must be within selected bagian if set)
+                    scopedCoacheeIds = await _context.Users
+                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
+                        .Select(u => u.Id).ToListAsync();
+                }
+                else if (userLevel == 4)
+                {
+                    // SrSpv/SectionHead: validate unit is in their section
+                    var allowedUnits = OrganizationStructure.GetUnitsForSection(user.Section ?? "");
+                    if (allowedUnits.Contains(unit))
+                    {
+                        scopedCoacheeIds = await _context.Users
+                            .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
+                            .Select(u => u.Id).ToListAsync();
+                    }
+                    else
+                    {
+                        unit = null; // silently ignore unauthorized unit
+                    }
+                }
+                // Level 5/6: unit param ignored (implicit scope)
             }
+
+            // --- STEP 4: Apply Track filter to Coach's coachee list (FILT-03 cascade for Coach role) ---
+            if (userLevel == 5 && !string.IsNullOrEmpty(trackType))
+            {
+                var trackFilteredIds = await _context.ProtonTrackAssignments
+                    .Where(a => scopedCoacheeIds.Contains(a.CoacheeId) && a.IsActive
+                                 && a.ProtonTrack!.TrackType == trackType)
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
+                // Keep only coachees that have the selected track
+                scopedCoacheeIds = scopedCoacheeIds.Where(id => trackFilteredIds.Contains(id)).ToList();
+            }
+
+            // --- STEP 5: Build coachee dropdown list (after scope narrowing) ---
+            coacheeList = await _context.Users
+                .Where(u => scopedCoacheeIds.Contains(u.Id))
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            // --- STEP 6: Apply single coachee filter ---
+            string? targetCoacheeId = null;
+            if (!string.IsNullOrEmpty(coacheeId) && scopedCoacheeIds.Contains(coacheeId))
+            {
+                targetCoacheeId = coacheeId;
+            }
+            // For Level 6 (Coachee): always own data
+            if (userLevel == 6)
+            {
+                targetCoacheeId = user.Id;
+            }
+
+            // Determine which coachee IDs to load data for
+            var dataCoacheeIds = !string.IsNullOrEmpty(targetCoacheeId)
+                ? new List<string> { targetCoacheeId }
+                : scopedCoacheeIds;
 
             // Load deliverable progress data
             List<TrackingItem> data = new();
             int progressPercent = 0;
             int pendingActions = 0;
             int pendingApprovals = 0;
-            string trackLabel = "";
 
-            if (!string.IsNullOrEmpty(targetCoacheeId))
+            // Build base query
+            var query = _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                            .ThenInclude(k => k!.ProtonTrack)
+                .Where(p => dataCoacheeIds.Contains(p.CoacheeId));
+
+            // Apply Track filter (FILT-03)
+            if (!string.IsNullOrEmpty(trackType))
+                query = query.Where(p =>
+                    p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrack!.TrackType == trackType);
+
+            // Apply Tahun filter (FILT-03)
+            if (!string.IsNullOrEmpty(tahun))
+                query = query.Where(p =>
+                    p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrack!.TahunKe == tahun);
+
+            var progresses = await query
+                .OrderBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.Urutan)
+                .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.Urutan)
+                .ThenBy(p => p.ProtonDeliverable!.Urutan)
+                .ToListAsync();
+
+            // Build coachee name lookup dictionary
+            var coacheeNameDict = coacheeList?.ToDictionary(u => u.Id, u => u.FullName ?? "")
+                ?? new Dictionary<string, string>();
+
+            // Map ProtonDeliverableProgress to TrackingItem
+            data = progresses.Select(p => new TrackingItem
             {
-                var progresses = await _context.ProtonDeliverableProgresses
-                    .Include(p => p.ProtonDeliverable)
-                        .ThenInclude(d => d!.ProtonSubKompetensi)
-                            .ThenInclude(s => s!.ProtonKompetensi)
-                    .Where(p => p.CoacheeId == targetCoacheeId)
-                    .OrderBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.Urutan)
-                        .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.Urutan)
-                        .ThenBy(p => p.ProtonDeliverable!.Urutan)
-                    .ToListAsync();
+                Id = p.Id,
+                Kompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
+                SubKompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
+                Deliverable = p.ProtonDeliverable?.NamaDeliverable ?? "",
+                EvidenceStatus = p.EvidencePath != null ? "Uploaded" : "Pending",
+                FullEvidencePath = p.EvidencePath ?? "",
+                ApprovalSrSpv = p.Status == "Approved" ? "Approved"
+                              : p.Status == "Rejected" ? "Rejected"
+                              : p.Status == "Submitted" ? "Pending"
+                              : "Not Started",
+                ApprovalSectionHead = p.Status == "Approved" ? "Approved"
+                                    : p.Status == "Rejected" ? "Rejected"
+                                    : p.Status == "Submitted" ? "Pending"
+                                    : "Not Started",
+                ApprovalHC = p.HCApprovalStatus == "Reviewed" ? "Approved" : "Pending",
+                SupervisorComments = p.RejectionReason ?? "",
+                CoacheeId = p.CoacheeId,
+                CoacheeName = coacheeNameDict.TryGetValue(p.CoacheeId, out var name) ? name : "",
+            }).ToList();
 
-                // Map ProtonDeliverableProgress to TrackingItem
-                data = progresses.Select(p => new TrackingItem
-                {
-                    Id = p.Id,
-                    Kompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
-                    SubKompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
-                    Deliverable = p.ProtonDeliverable?.NamaDeliverable ?? "",
-                    EvidenceStatus = p.EvidencePath != null ? "Uploaded" : "Pending",
-                    FullEvidencePath = p.EvidencePath ?? "",
-                    ApprovalSrSpv = p.Status == "Approved" ? "Approved"
-                                  : p.Status == "Rejected" ? "Rejected"
-                                  : p.Status == "Submitted" ? "Pending"
-                                  : "Not Started",
-                    ApprovalSectionHead = p.Status == "Approved" ? "Approved"
-                                        : p.Status == "Rejected" ? "Rejected"
-                                        : p.Status == "Submitted" ? "Pending"
-                                        : "Not Started",
-                    ApprovalHC = p.HCApprovalStatus == "Reviewed" ? "Approved" : "Pending",
-                    SupervisorComments = p.RejectionReason ?? "",
-                }).ToList();
+            // Compute summary stats
+            int total = progresses.Count;
+            double weightedSum = progresses.Sum(p =>
+                p.Status == "Approved" ? 1.0 :
+                p.Status == "Submitted" ? 0.5 : 0.0);
+            progressPercent = total > 0 ? (int)(weightedSum / total * 100) : 0;
+            pendingActions = progresses.Count(p => p.Status == "Active" || p.Status == "Rejected");
+            pendingApprovals = progresses.Count(p => p.Status == "Submitted");
 
-                // Compute summary stats (DATA-03)
-                int total = progresses.Count;
-                double weightedSum = progresses.Sum(p =>
-                    p.Status == "Approved" ? 1.0 :
-                    p.Status == "Submitted" ? 0.5 : 0.0);
-                progressPercent = total > 0 ? (int)(weightedSum / total * 100) : 0;
-                pendingActions = progresses.Count(p => p.Status == "Active" || p.Status == "Rejected");
-                pendingApprovals = progresses.Count(p => p.Status == "Submitted");
+            // --- ViewBag: filter option lists ---
+            ViewBag.AllBagian = OrganizationStructure.GetAllSections();
+            ViewBag.AllUnits = !string.IsNullOrEmpty(bagian)
+                ? OrganizationStructure.GetUnitsForSection(bagian)
+                : new List<string>();
+            ViewBag.AllTracks = new List<string> { "Panelman", "Operator" };
+            ViewBag.AllTahun = new List<string> { "Tahun 1", "Tahun 2", "Tahun 3" };
+            ViewBag.Coachees = (userLevel == 6) ? null : coacheeList;
 
-                // Get track label for display outside table
-                var assignment = await _context.ProtonTrackAssignments
-                    .Include(a => a.ProtonTrack)
-                    .FirstOrDefaultAsync(a => a.CoacheeId == targetCoacheeId && a.IsActive);
-                if (assignment?.ProtonTrack != null)
-                {
-                    trackLabel = $"{assignment.ProtonTrack.TrackType} Tahun {assignment.ProtonTrack.TahunKe}";
-                }
+            // --- ViewBag: selected filter values ---
+            ViewBag.SelectedBagian = bagian;
+            ViewBag.SelectedUnit = unit;
+            ViewBag.SelectedTrackType = trackType;
+            ViewBag.SelectedTahun = tahun;
+            ViewBag.SelectedCoacheeId = targetCoacheeId;
 
-                // Handle error cases
-                if (data.Count == 0 && string.IsNullOrEmpty(trackLabel))
-                {
-                    ViewBag.NoTrackMessage = "Coachee ini belum memiliki penugasan track";
-                }
-                else if (data.Count == 0 && !string.IsNullOrEmpty(trackLabel))
-                {
-                    ViewBag.NoProgressMessage = "Data progress tidak ditemukan";
-                }
-            }
+            // --- ViewBag: result counts ---
+            var totalBeforeFilter = scopedCoacheeIds.Count > 0
+                ? await _context.ProtonDeliverableProgresses
+                    .CountAsync(p => scopedCoacheeIds.Contains(p.CoacheeId))
+                : 0;
+            ViewBag.TotalCount = totalBeforeFilter;
+            ViewBag.FilteredCount = data.Count;
 
+            // --- ViewBag: existing values ---
             ViewBag.UserRole = userRole;
             ViewBag.UserLevel = userLevel;
             ViewBag.UserSection = user.Section;
             ViewBag.UserUnit = user.Unit;
             ViewBag.UserFullName = user.FullName;
-            ViewBag.SelectedCoacheeId = targetCoacheeId;
             ViewBag.ProgressPercent = progressPercent;
             ViewBag.PendingActions = pendingActions;
             ViewBag.PendingApprovals = pendingApprovals;
-            ViewBag.TrackLabel = trackLabel;
 
+            // Track label: only meaningful for single coachee
             if (!string.IsNullOrEmpty(targetCoacheeId))
             {
+                var assignment = await _context.ProtonTrackAssignments
+                    .Include(a => a.ProtonTrack)
+                    .FirstOrDefaultAsync(a => a.CoacheeId == targetCoacheeId && a.IsActive);
+                ViewBag.TrackLabel = assignment?.ProtonTrack != null
+                    ? $"{assignment.ProtonTrack.TrackType} {assignment.ProtonTrack.TahunKe}"
+                    : "";
                 var coacheeUser = await _context.Users.FindAsync(targetCoacheeId);
                 ViewBag.CoacheeName = coacheeUser?.FullName ?? "";
+            }
+            else
+            {
+                ViewBag.TrackLabel = "";
+                ViewBag.CoacheeName = "";
+            }
+
+            // Empty result message
+            if (data.Count == 0)
+            {
+                ViewBag.EmptyMessage = "Tidak ada data yang sesuai filter";
             }
 
             return View(data);
