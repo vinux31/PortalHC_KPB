@@ -2,14 +2,52 @@
 @{
     ViewData["Title"] = "Proton Progress";
     var userLevel = (int)ViewBag.UserLevel;
-    var userRole = (string)ViewBag.UserRole;
+    var allBagian = ViewBag.AllBagian as List<string> ?? new List<string>();
+    var allUnits = ViewBag.AllUnits as List<string> ?? new List<string>();
+    var allTracks = ViewBag.AllTracks as List<string> ?? new List<string>();
+    var allTahun = ViewBag.AllTahun as List<string> ?? new List<string>();
     var coachees = ViewBag.Coachees as List<HcPortal.Models.ApplicationUser>;
-    var selectedCoacheeId = ViewBag.SelectedCoacheeId as string;
+    var selectedBagian = ViewBag.SelectedBagian as string ?? "";
+    var selectedUnit = ViewBag.SelectedUnit as string ?? "";
+    var selectedTrackType = ViewBag.SelectedTrackType as string ?? "";
+    var selectedTahun = ViewBag.SelectedTahun as string ?? "";
+    var selectedCoacheeId = ViewBag.SelectedCoacheeId as string ?? "";
     var progressPercent = (int)ViewBag.ProgressPercent;
     var pendingActions = (int)ViewBag.PendingActions;
     var pendingApprovals = (int)ViewBag.PendingApprovals;
-    var trackLabel = ViewBag.TrackLabel as string ?? "";
-    var coacheeName = ViewBag.CoacheeName as string ?? "";
+    var showCoacheeColumn = string.IsNullOrEmpty(selectedCoacheeId) && userLevel < 6;
+
+    // Pre-compute groupings for table rendering
+    var coacheeGroups = Model
+        .GroupBy(x => x.CoacheeName)
+        .Select(cg => new {
+            CoacheeName = cg.Key,
+            RowCount = cg.Count(),
+            KompGroups = cg.GroupBy(x => x.Kompetensi)
+                .Select(kg => new {
+                    Kompetensi = kg.Key,
+                    RowCount = kg.Count(),
+                    SubGroups = kg.GroupBy(x => x.SubKompetensi)
+                        .Select(sg => new {
+                            SubKompetensi = sg.Key,
+                            RowCount = sg.Count(),
+                            Items = sg.ToList()
+                        }).ToList()
+                }).ToList()
+        }).ToList();
+
+    var kompetensiGroups = Model
+        .GroupBy(x => x.Kompetensi)
+        .Select(g => new {
+            Kompetensi = g.Key,
+            RowCount = g.Count(),
+            SubGroups = g.GroupBy(x => x.SubKompetensi)
+                .Select(sg => new {
+                    SubKompetensi = sg.Key,
+                    RowCount = sg.Count(),
+                    Items = sg.ToList()
+                }).ToList()
+        }).ToList();
 }
 
 <div class="container-fluid py-4">
@@ -23,159 +61,218 @@
         </a>
     </div>
 
-    @* Coachee info / dropdown section *@
+    @* Filter bar — GET form, auto-submits on dropdown change *@
+    <form method="get" asp-action="ProtonProgress" asp-controller="CDP" id="filterForm"
+          class="d-flex flex-wrap gap-2 align-items-center mb-3">
+
+        @* Bagian dropdown — HC/Admin only (Level 1-2) *@
+        @if (userLevel <= 2)
+        {
+            <select name="bagian" class="form-select form-select-sm" style="width:auto;min-width:150px"
+                    onchange="onBagianChange(this)">
+                <option value="">Semua Bagian</option>
+                @foreach (var b in allBagian)
+                {
+                    if (b == selectedBagian)
+                    {
+                        <option value="@b" selected>@b</option>
+                    }
+                    else
+                    {
+                        <option value="@b">@b</option>
+                    }
+                }
+            </select>
+        }
+
+        @* Unit dropdown — HC/Admin (Level 1-2) and SrSpv/SectionHead (Level 4) *@
+        @if (userLevel <= 2 || userLevel == 4)
+        {
+            <select name="unit" id="unitSelect" class="form-select form-select-sm" style="width:auto;min-width:180px"
+                    onchange="this.form.submit()">
+                <option value="">Semua Unit</option>
+                @foreach (var u in allUnits)
+                {
+                    if (u == selectedUnit)
+                    {
+                        <option value="@u" selected>@u</option>
+                    }
+                    else
+                    {
+                        <option value="@u">@u</option>
+                    }
+                }
+            </select>
+        }
+
+        @* Coachee dropdown — Coach (Level 5) and HC/Admin (Level 1-2) *@
+        @if (coachees != null && (userLevel == 5 || userLevel <= 2))
+        {
+            <select name="coacheeId" class="form-select form-select-sm" style="width:auto;min-width:180px"
+                    onchange="this.form.submit()">
+                <option value="">Semua Coachee</option>
+                @foreach (var c in coachees)
+                {
+                    if (c.Id == selectedCoacheeId)
+                    {
+                        <option value="@c.Id" selected>@c.FullName</option>
+                    }
+                    else
+                    {
+                        <option value="@c.Id">@c.FullName</option>
+                    }
+                }
+            </select>
+        }
+
+        @* Track dropdown — all roles except Coachee (Level 6) *@
+        @if (userLevel < 6)
+        {
+            <select name="trackType" class="form-select form-select-sm" style="width:auto;min-width:140px"
+                    onchange="this.form.submit()">
+                <option value="">Semua Track</option>
+                @foreach (var t in allTracks)
+                {
+                    if (t == selectedTrackType)
+                    {
+                        <option value="@t" selected>@t</option>
+                    }
+                    else
+                    {
+                        <option value="@t">@t</option>
+                    }
+                }
+            </select>
+        }
+
+        @* Tahun dropdown — all roles except Coachee (Level 6) *@
+        @if (userLevel < 6)
+        {
+            <select name="tahun" class="form-select form-select-sm" style="width:auto;min-width:130px"
+                    onchange="this.form.submit()">
+                <option value="">Semua Tahun</option>
+                @foreach (var th in allTahun)
+                {
+                    if (th == selectedTahun)
+                    {
+                        <option value="@th" selected>@th</option>
+                    }
+                    else
+                    {
+                        <option value="@th">@th</option>
+                    }
+                }
+            </select>
+        }
+
+        @* Search box — client-side only, NOT a form field (no name attribute) *@
+        @if (userLevel < 6)
+        {
+            <div class="position-relative" style="min-width:200px">
+                <span class="position-absolute top-50 start-0 translate-middle-y ps-2 text-muted">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input type="text" id="searchInput" class="form-control form-control-sm ps-4"
+                       placeholder="Cari kompetensi..." autocomplete="off">
+                <button type="button" id="searchClear"
+                        class="btn btn-sm position-absolute top-50 end-0 translate-middle-y d-none"
+                        style="border:none;background:none;color:#6c757d"
+                        onclick="clearSearch()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        }
+
+        @* Reset button *@
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearFilters()">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+        </button>
+    </form>
+
+    @* Result count *@
+    <small class="text-muted mb-2 d-block">Menampilkan @ViewBag.FilteredCount dari @ViewBag.TotalCount data</small>
+
+    @* Summary stat cards *@
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">Progress</h6>
+                    <h3 class="mb-0 text-primary">@progressPercent%</h3>
+                    <div class="progress mt-2" style="height: 6px;">
+                        <div class="progress-bar" role="progressbar" style="width: @progressPercent%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">Pending Actions</h6>
+                    <h3 class="mb-0 text-warning">@pendingActions</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <h6 class="text-muted mb-1">Pending Approvals</h6>
+                    <h3 class="mb-0 text-info">@pendingApprovals</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* Coachee info — when single coachee selected *@
+    @if (!string.IsNullOrEmpty(ViewBag.SelectedCoacheeId as string))
+    {
+        <div class="card mb-3">
+            <div class="card-body py-2">
+                <strong>@ViewBag.CoacheeName</strong>
+                @if (!string.IsNullOrEmpty(ViewBag.TrackLabel as string))
+                {
+                    <span class="badge bg-primary ms-2">@ViewBag.TrackLabel</span>
+                }
+            </div>
+        </div>
+    }
+
+    @* Coachee info for Level 6 — own data *@
     @if (userLevel == 6)
     {
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="mb-1">@ViewBag.UserFullName</h5>
-                @if (!string.IsNullOrEmpty(trackLabel))
+                @if (!string.IsNullOrEmpty(ViewBag.TrackLabel as string))
                 {
-                    <span class="badge bg-info">@trackLabel</span>
+                    <span class="badge bg-info">@ViewBag.TrackLabel</span>
                 }
             </div>
         </div>
     }
-    else if (userLevel == 5)
+
+    @* Empty state — no data matching current filters *@
+    @if (Model.Count == 0 && !string.IsNullOrEmpty(ViewBag.EmptyMessage as string))
     {
-        <div class="card mb-3">
-            <div class="card-body">
-                <label class="form-label fw-bold">Pilih Coachee</label>
-                @if (coachees != null && coachees.Count > 0)
-                {
-                    <select id="coacheeSelect" class="form-select">
-                        <option value="">-- Pilih Coachee --</option>
-                        @foreach (var c in coachees)
-                        {
-                            if (c.Id == selectedCoacheeId)
-                            {
-                                <option value="@c.Id" selected>@c.FullName</option>
-                            }
-                            else
-                            {
-                                <option value="@c.Id">@c.FullName</option>
-                            }
-                        }
-                    </select>
-                }
-                else
-                {
-                    <select class="form-select" disabled>
-                        <option>Tidak ada coachee</option>
-                    </select>
-                }
-            </div>
-        </div>
-    }
-    else if (userLevel == 4 || userLevel == 2 || userLevel == 1)
-    {
-        <div class="card mb-3">
-            <div class="card-body">
-                <label class="form-label fw-bold">Pilih Coachee</label>
-                @if (coachees != null && coachees.Count > 0)
-                {
-                    <select id="coacheeSelect" class="form-select">
-                        <option value="">-- Pilih Coachee --</option>
-                        @foreach (var c in coachees)
-                        {
-                            if (c.Id == selectedCoacheeId)
-                            {
-                                <option value="@c.Id" selected>@c.FullName</option>
-                            }
-                            else
-                            {
-                                <option value="@c.Id">@c.FullName</option>
-                            }
-                        }
-                    </select>
-                }
-                else
-                {
-                    <select class="form-select" disabled>
-                        <option>Tidak ada coachee</option>
-                    </select>
-                }
-            </div>
-        </div>
+        <div class="alert alert-info">@ViewBag.EmptyMessage</div>
     }
 
-    @* Coachee name + track label (when coachee selected, for non-level-6 roles) *@
-    @if (userLevel != 6)
-    {
-        <div id="coacheeInfo" class="@(string.IsNullOrEmpty(selectedCoacheeId) ? "d-none" : "")">
-            <div class="d-flex align-items-center mb-3">
-                <h5 class="mb-0 me-2" id="coacheeNameDisplay">@coacheeName</h5>
-                @if (!string.IsNullOrEmpty(trackLabel))
-                {
-                    <span class="badge bg-info" id="trackLabelDisplay">@trackLabel</span>
-                }
-                else
-                {
-                    <span class="badge bg-info d-none" id="trackLabelDisplay"></span>
-                }
-            </div>
-        </div>
-    }
-
-    @* Summary stat cards *@
-    <div id="statsSection" class="@(string.IsNullOrEmpty(selectedCoacheeId) && userLevel != 6 ? "d-none" : "")">
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h6 class="text-muted mb-1">Progress</h6>
-                        <h3 id="statProgress" class="mb-0 text-primary">@progressPercent%</h3>
-                        <div class="progress mt-2" style="height: 6px;">
-                            <div class="progress-bar" id="progressBar" role="progressbar" style="width: @progressPercent%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h6 class="text-muted mb-1">Pending Actions</h6>
-                        <h3 id="statPendingActions" class="mb-0 text-warning">@pendingActions</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body text-center">
-                        <h6 class="text-muted mb-1">Pending Approvals</h6>
-                        <h3 id="statPendingApprovals" class="mb-0 text-info">@pendingApprovals</h3>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @* Error / info messages *@
-    <div id="messageArea">
-        @if (ViewBag.NoTrackMessage != null)
-        {
-            <div class="alert alert-warning">@ViewBag.NoTrackMessage</div>
-        }
-        @if (ViewBag.NoProgressMessage != null)
-        {
-            <div class="alert alert-info">@ViewBag.NoProgressMessage</div>
-        }
-    </div>
-
-    @* Loading spinner *@
-    <div id="loadingSpinner" class="text-center py-5 d-none">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-        <p class="text-muted mt-2">Memuat data...</p>
+    @* Search no-results message (hidden by default, shown by JS) *@
+    <div id="searchNoResults" class="alert alert-warning d-none">
+        Tidak ditemukan kompetensi untuk '<span id="searchQuery"></span>'
     </div>
 
     @* Deliverable table *@
-    <div id="tableSection" class="@(Model.Count == 0 && userLevel != 6 ? "d-none" : "")">
+    @if (Model.Count > 0)
+    {
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="progressTable">
                 <thead class="table-light">
                     <tr>
+                        @if (showCoacheeColumn)
+                        {
+                            <th>Coachee</th>
+                        }
                         <th>Kompetensi</th>
                         <th>Sub Kompetensi</th>
                         <th>Deliverable</th>
@@ -187,72 +284,121 @@
                     </tr>
                 </thead>
                 <tbody id="progressTableBody">
-                    @{
-                        var kompetensiGroups = Model
-                            .GroupBy(x => x.Kompetensi)
-                            .Select(g => new {
-                                Kompetensi = g.Key,
-                                RowCount = g.Count(),
-                                SubGroups = g.GroupBy(x => x.SubKompetensi)
-                                    .Select(sg => new {
-                                        SubKompetensi = sg.Key,
-                                        RowCount = sg.Count(),
-                                        Items = sg.ToList()
-                                    }).ToList()
-                            }).ToList();
-                    }
-
-                    @foreach (var kompGroup in kompetensiGroups)
+                    @if (showCoacheeColumn)
                     {
-                        bool firstKomp = true;
-                        foreach (var subGroup in kompGroup.SubGroups)
+                        @* Multi-coachee view: group by CoacheeName, then Kompetensi, then SubKompetensi *@
+                        @foreach (var coacheeGroup in coacheeGroups)
                         {
-                            bool firstSub = true;
-                            foreach (var item in subGroup.Items)
+                            bool firstCoacheeRow = true;
+                            foreach (var kompGroup in coacheeGroup.KompGroups)
                             {
-                                <tr>
-                                    @if (firstKomp)
+                                bool firstKomp = true;
+                                foreach (var subGroup in kompGroup.SubGroups)
+                                {
+                                    bool firstSub = true;
+                                    foreach (var item in subGroup.Items)
                                     {
-                                        <td rowspan="@kompGroup.RowCount" class="align-middle fw-bold">@kompGroup.Kompetensi</td>
-                                        firstKomp = false;
+                                        <tr data-kompetensi="@item.Kompetensi" data-deliverable="@item.Deliverable">
+                                            @if (firstCoacheeRow)
+                                            {
+                                                <td rowspan="@coacheeGroup.RowCount" class="align-middle fw-bold">@coacheeGroup.CoacheeName</td>
+                                                firstCoacheeRow = false;
+                                            }
+                                            @if (firstKomp)
+                                            {
+                                                <td rowspan="@kompGroup.RowCount" class="align-middle fw-bold">@kompGroup.Kompetensi</td>
+                                                firstKomp = false;
+                                            }
+                                            @if (firstSub)
+                                            {
+                                                <td rowspan="@subGroup.RowCount" class="align-middle">@subGroup.SubKompetensi</td>
+                                                firstSub = false;
+                                            }
+                                            <td>@item.Deliverable</td>
+                                            <td class="text-center">
+                                                @if (item.EvidenceStatus == "Uploaded")
+                                                {
+                                                    <span class="badge bg-success">Uploaded</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Pending</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))</td>
+                                            <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))</td>
+                                            <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalHC))</td>
+                                            <td class="text-center">
+                                                <div class="dropdown">
+                                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                        <i class="bi bi-three-dots-vertical"></i>
+                                                    </button>
+                                                    <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="@Url.Action("Deliverable", "CDP", new { id = item.Id })"><i class="bi bi-eye me-1"></i>Lihat Detail</a></li>
+                                                    </ul>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     }
-                                    @if (firstSub)
-                                    {
-                                        <td rowspan="@subGroup.RowCount" class="align-middle">@subGroup.SubKompetensi</td>
-                                        firstSub = false;
-                                    }
-                                    <td>@item.Deliverable</td>
-                                    <td class="text-center">
-                                        @if (item.EvidenceStatus == "Uploaded")
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        @* Single-coachee view: group by Kompetensi, then SubKompetensi *@
+                        @foreach (var kompGroup in kompetensiGroups)
+                        {
+                            bool firstKomp = true;
+                            foreach (var subGroup in kompGroup.SubGroups)
+                            {
+                                bool firstSub = true;
+                                foreach (var item in subGroup.Items)
+                                {
+                                    <tr data-kompetensi="@item.Kompetensi" data-deliverable="@item.Deliverable">
+                                        @if (firstKomp)
                                         {
-                                            <span class="badge bg-success">Uploaded</span>
+                                            <td rowspan="@kompGroup.RowCount" class="align-middle fw-bold">@kompGroup.Kompetensi</td>
+                                            firstKomp = false;
                                         }
-                                        else
+                                        @if (firstSub)
                                         {
-                                            <span class="badge bg-secondary">Pending</span>
+                                            <td rowspan="@subGroup.RowCount" class="align-middle">@subGroup.SubKompetensi</td>
+                                            firstSub = false;
                                         }
-                                    </td>
-                                    <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))</td>
-                                    <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))</td>
-                                    <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalHC))</td>
-                                    <td class="text-center">
-                                        <div class="dropdown">
-                                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                                <i class="bi bi-three-dots-vertical"></i>
-                                            </button>
-                                            <ul class="dropdown-menu">
-                                                <li><a class="dropdown-item" href="@Url.Action("Deliverable", "CDP", new { id = item.Id })"><i class="bi bi-eye me-1"></i>Lihat Detail</a></li>
-                                            </ul>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        <td>@item.Deliverable</td>
+                                        <td class="text-center">
+                                            @if (item.EvidenceStatus == "Uploaded")
+                                            {
+                                                <span class="badge bg-success">Uploaded</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Pending</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))</td>
+                                        <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))</td>
+                                        <td class="text-center">@Html.Raw(GetApprovalBadge(item.ApprovalHC))</td>
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                                    <i class="bi bi-three-dots-vertical"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="@Url.Action("Deliverable", "CDP", new { id = item.Id })"><i class="bi bi-eye me-1"></i>Lihat Detail</a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         }
                     }
                 </tbody>
             </table>
         </div>
-    </div>
+    }
 
 </div> @* end container-fluid *@
 
@@ -271,154 +417,86 @@
 
 @section Scripts {
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const coacheeSelect = document.getElementById('coacheeSelect');
-    if (!coacheeSelect) return;
+// === Bagian -> Unit cascade ===
+const unitsByBagian = {
+    "RFCC": ["RFCC LPG Treating Unit (062)", "Propylene Recovery Unit (063)"],
+    "DHT / HMU": ["Diesel Hydrotreating Unit I & II (054 & 083)", "Hydrogen Manufacturing Unit (068)", "Common DHT H2 Compressor (085)"],
+    "NGP": ["Saturated Gas Concentration Unit (060)", "Saturated LPG Treating Unit (064)", "Isomerization Unit (082)", "Common Facilities For NLP (160)", "Naphtha Hydrotreating Unit II (084)"],
+    "GAST": ["RFCC NHT (053)", "Alkylation Unit (065)", "Wet Gas Sulfuric Acid Unit (066)", "SWS RFCC & Non RFCC (067 & 167)", "Amine Regeneration Unit I & II (069 & 079)", "Flare System (319)", "Sulfur Recovery Unit (169)"]
+};
 
-    coacheeSelect.addEventListener('change', async function() {
-        const coacheeId = this.value;
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const tableSection = document.getElementById('tableSection');
-        const statsSection = document.getElementById('statsSection');
-        const coacheeInfo = document.getElementById('coacheeInfo');
-        const messageArea = document.getElementById('messageArea');
+function onBagianChange(select) {
+    const unitSelect = document.getElementById('unitSelect');
+    if (unitSelect) {
+        // Clear unit selection to prevent stale cascade
+        unitSelect.innerHTML = '<option value="">Semua Unit</option>';
+        const bagian = select.value;
+        if (bagian && unitsByBagian[bagian]) {
+            unitsByBagian[bagian].forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                unitSelect.appendChild(opt);
+            });
+        }
+    }
+    select.form.submit();
+}
 
-        // Clear messages
-        messageArea.innerHTML = '';
+// === Reset all filters ===
+function clearFilters() {
+    // Navigate to ProtonProgress with no params
+    window.location.href = '@Url.Action("ProtonProgress", "CDP")';
+}
 
-        if (!coacheeId) {
-            tableSection.classList.add('d-none');
-            statsSection.classList.add('d-none');
-            if (coacheeInfo) coacheeInfo.classList.add('d-none');
-            return;
+// === Client-side search ===
+let searchTimer;
+const searchInput = document.getElementById('searchInput');
+const searchClear = document.getElementById('searchClear');
+const searchNoResults = document.getElementById('searchNoResults');
+const searchQuerySpan = document.getElementById('searchQuery');
+
+if (searchInput) {
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimer);
+        const query = this.value.trim();
+
+        // Toggle clear button visibility
+        if (searchClear) {
+            searchClear.classList.toggle('d-none', !query);
         }
 
-        // Show loading
-        loadingSpinner.classList.remove('d-none');
-        tableSection.classList.add('d-none');
-        statsSection.classList.add('d-none');
+        searchTimer = setTimeout(() => {
+            const q = query.toLowerCase();
+            const rows = document.querySelectorAll('#progressTableBody tr');
+            let visibleCount = 0;
 
-        try {
-            const response = await fetch(`@Url.Action("GetCoacheeDeliverables", "CDP")?coacheeId=${encodeURIComponent(coacheeId)}`);
-            const result = await response.json();
-
-            if (result.error) {
-                messageArea.innerHTML = '<div class="alert alert-danger">Akses tidak diizinkan</div>';
-                loadingSpinner.classList.add('d-none');
-                return;
-            }
-
-            // Update coachee info
-            if (coacheeInfo) {
-                document.getElementById('coacheeNameDisplay').textContent = result.coacheeName;
-                const trackBadge = document.getElementById('trackLabelDisplay');
-                if (result.trackLabel) {
-                    trackBadge.textContent = result.trackLabel;
-                    trackBadge.classList.remove('d-none');
-                } else {
-                    trackBadge.classList.add('d-none');
-                }
-                coacheeInfo.classList.remove('d-none');
-            }
-
-            // Handle error states
-            if (result.noTrack) {
-                messageArea.innerHTML = '<div class="alert alert-warning">Coachee ini belum memiliki penugasan track</div>';
-                loadingSpinner.classList.add('d-none');
-                return;
-            }
-            if (result.noProgress) {
-                messageArea.innerHTML = '<div class="alert alert-info">Data progress tidak ditemukan</div>';
-                loadingSpinner.classList.add('d-none');
-                return;
-            }
-
-            // Update stats
-            document.getElementById('statProgress').textContent = result.stats.progressPercent + '%';
-            document.getElementById('progressBar').style.width = result.stats.progressPercent + '%';
-            document.getElementById('statPendingActions').textContent = result.stats.pendingActions;
-            document.getElementById('statPendingApprovals').textContent = result.stats.pendingApprovals;
-            statsSection.classList.remove('d-none');
-
-            // Build table rows with rowspan merging
-            const tbody = document.getElementById('progressTableBody');
-            tbody.innerHTML = '';
-
-            // Group items by kompetensi then subKompetensi for rowspan
-            const kompGroups = {};
-            result.items.forEach(item => {
-                if (!kompGroups[item.kompetensi]) kompGroups[item.kompetensi] = {};
-                if (!kompGroups[item.kompetensi][item.subKompetensi])
-                    kompGroups[item.kompetensi][item.subKompetensi] = [];
-                kompGroups[item.kompetensi][item.subKompetensi].push(item);
+            rows.forEach(row => {
+                const kompetensi = (row.dataset.kompetensi || '').toLowerCase();
+                const deliverable = (row.dataset.deliverable || '').toLowerCase();
+                const match = !q || kompetensi.includes(q) || deliverable.includes(q);
+                row.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
             });
 
-            for (const [komp, subGroups] of Object.entries(kompGroups)) {
-                let kompRowCount = 0;
-                for (const items of Object.values(subGroups)) kompRowCount += items.length;
-                let firstKomp = true;
-
-                for (const [sub, items] of Object.entries(subGroups)) {
-                    let firstSub = true;
-                    items.forEach(item => {
-                        const tr = document.createElement('tr');
-                        let cells = '';
-
-                        if (firstKomp) {
-                            cells += `<td rowspan="${kompRowCount}" class="align-middle fw-bold">${escapeHtml(komp)}</td>`;
-                            firstKomp = false;
-                        }
-                        if (firstSub) {
-                            cells += `<td rowspan="${items.length}" class="align-middle">${escapeHtml(sub)}</td>`;
-                            firstSub = false;
-                        }
-
-                        cells += `<td>${escapeHtml(item.deliverable)}</td>`;
-                        cells += `<td class="text-center">${item.evidenceStatus === 'Uploaded'
-                            ? '<span class="badge bg-success">Uploaded</span>'
-                            : '<span class="badge bg-secondary">Pending</span>'}</td>`;
-                        cells += `<td class="text-center">${getApprovalBadge(item.approvalSrSpv)}</td>`;
-                        cells += `<td class="text-center">${getApprovalBadge(item.approvalSectionHead)}</td>`;
-                        cells += `<td class="text-center">${getApprovalBadge(item.approvalHC)}</td>`;
-                        cells += `<td class="text-center">
-                            <div class="dropdown">
-                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                                    <i class="bi bi-three-dots-vertical"></i>
-                                </button>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="/CDP/Deliverable/${item.id}"><i class="bi bi-eye me-1"></i>Lihat Detail</a></li>
-                                </ul>
-                            </div>
-                        </td>`;
-
-                        tr.innerHTML = cells;
-                        tbody.appendChild(tr);
-                    });
+            // Show/hide no-results message
+            if (searchNoResults) {
+                if (q && visibleCount === 0) {
+                    searchNoResults.classList.remove('d-none');
+                    if (searchQuerySpan) searchQuerySpan.textContent = query;
+                } else {
+                    searchNoResults.classList.add('d-none');
                 }
             }
-
-            tableSection.classList.remove('d-none');
-        } catch (err) {
-            messageArea.innerHTML = '<div class="alert alert-danger">Terjadi kesalahan saat memuat data. Silakan coba lagi.</div>';
-        } finally {
-            loadingSpinner.classList.add('d-none');
-        }
+        }, 300);
     });
+}
 
-    function getApprovalBadge(status) {
-        switch (status) {
-            case 'Approved': return '<span class="badge bg-success">Approved</span>';
-            case 'Rejected': return '<span class="badge bg-danger">Rejected</span>';
-            case 'Pending': return '<span class="badge bg-warning text-dark">Pending</span>';
-            default: return '<span class="badge bg-secondary">Not Started</span>';
-        }
+function clearSearch() {
+    if (searchInput) {
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input'));
     }
-
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-});
+}
 </script>
 }
