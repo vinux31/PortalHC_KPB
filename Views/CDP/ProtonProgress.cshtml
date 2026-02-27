@@ -323,10 +323,15 @@
                                             }
                                             <td>@item.Deliverable</td>
                                             @* Evidence column *@
-                                            <td class="text-center">
+                                            <td class="text-center" id="evidence-@item.Id">
                                                 @if (isCoach && (item.Status == "Pending" || item.Status == "Rejected"))
                                                 {
-                                                    <button class="btn btn-sm btn-primary" disabled title="Wired in Plan 02">Submit Evidence</button>
+                                                    <button class="btn btn-sm btn-primary btnSubmitEvidence"
+                                                            data-progress-id="@item.Id"
+                                                            data-deliverable="@item.Deliverable"
+                                                            data-kompetensi="@item.Kompetensi"
+                                                            data-sub-kompetensi="@item.SubKompetensi"
+                                                            data-status="@item.Status">Submit Evidence</button>
                                                 }
                                                 else if (item.EvidenceStatus == "Uploaded")
                                                 {
@@ -434,10 +439,15 @@
                                         }
                                         <td>@item.Deliverable</td>
                                         @* Evidence column *@
-                                        <td class="text-center">
+                                        <td class="text-center" id="evidence-@item.Id">
                                             @if (isCoach && (item.Status == "Pending" || item.Status == "Rejected"))
                                             {
-                                                <button class="btn btn-sm btn-primary" disabled title="Wired in Plan 02">Submit Evidence</button>
+                                                <button class="btn btn-sm btn-primary btnSubmitEvidence"
+                                                        data-progress-id="@item.Id"
+                                                        data-deliverable="@item.Deliverable"
+                                                        data-kompetensi="@item.Kompetensi"
+                                                        data-sub-kompetensi="@item.SubKompetensi"
+                                                        data-status="@item.Status">Submit Evidence</button>
                                             }
                                             else if (item.EvidenceStatus == "Uploaded")
                                             {
@@ -558,6 +568,72 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 <button type="button" class="btn btn-primary" id="btnSubmitTinja" disabled>Submit</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Evidence + Coaching Modal — Plan 02 *@
+<div class="modal fade" id="evidenceModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Submit Evidence &amp; Coaching Report</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                @* Deliverable selector (batch) *@
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Deliverable</label>
+                    <div id="deliverableSelector" class="border rounded p-2" style="max-height:200px;overflow-y:auto">
+                        @* Populated by JS *@
+                    </div>
+                </div>
+                <hr/>
+                @* Date *@
+                <div class="mb-3">
+                    <label class="form-label">Tanggal</label>
+                    <input type="date" class="form-control" id="evidenceDate" />
+                </div>
+                @* Kompetensi Coachee (free-text) *@
+                <div class="mb-3">
+                    <label class="form-label">Kompetensi Coachee</label>
+                    <textarea class="form-control" id="evidenceKoacheeComp" rows="2" placeholder="Coach menuliskan competencies yang harus dipenuhi sesuai dengan workbook"></textarea>
+                </div>
+                @* Catatan Coach *@
+                <div class="mb-3">
+                    <label class="form-label">Catatan Coach</label>
+                    <textarea class="form-control" id="evidenceCatatan" rows="3"></textarea>
+                </div>
+                @* Kesimpulan dropdown *@
+                <div class="mb-3">
+                    <label class="form-label">Kesimpulan</label>
+                    <select class="form-select" id="evidenceKesimpulan">
+                        <option value="">-- Pilih --</option>
+                        <option value="Kompeten secara mandiri">Kompeten secara mandiri</option>
+                        <option value="Masih perlu dikembangkan">Masih perlu dikembangkan</option>
+                    </select>
+                </div>
+                @* Result dropdown *@
+                <div class="mb-3">
+                    <label class="form-label">Result</label>
+                    <select class="form-select" id="evidenceResult">
+                        <option value="">-- Pilih --</option>
+                        <option value="Need Improvement">Need Improvement</option>
+                        <option value="Suitable">Suitable</option>
+                        <option value="Good">Good</option>
+                        <option value="Excellence">Excellence</option>
+                    </select>
+                </div>
+                @* File upload *@
+                <div class="mb-3">
+                    <label class="form-label">File Evidence (opsional, PDF/JPG/PNG, max 10MB)</label>
+                    <input type="file" class="form-control" id="evidenceFile" accept=".pdf,.jpg,.jpeg,.png" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary" id="btnSubmitEvidence">Submit</button>
             </div>
         </div>
     </div>
@@ -855,6 +931,226 @@ function clearSearch() {
         searchInput.value = '';
         searchInput.dispatchEvent(new Event('input'));
     }
+}
+
+// === Evidence + Coaching Modal (Plan 02) ===
+
+// Build deliverable data from table rows
+function buildDeliverableData() {
+    const rows = document.querySelectorAll('#progressTableBody tr');
+    const items = [];
+    rows.forEach(row => {
+        const btn = row.querySelector('.btnSubmitEvidence');
+        if (btn) {
+            items.push({
+                progressId: btn.dataset.progressId,
+                kompetensi: btn.dataset.kompetensi || '',
+                subKompetensi: btn.dataset.subKompetensi || '',
+                deliverable: btn.dataset.deliverable || '',
+                status: btn.dataset.status || ''
+            });
+        }
+    });
+    return items;
+}
+
+// Render deliverable selector as nested checkboxes
+function renderDeliverableSelector(items, preCheckId) {
+    const container = document.getElementById('deliverableSelector');
+    if (!container) return;
+    container.innerHTML = '';
+
+    // Group by Kompetensi > SubKompetensi > Deliverable
+    const grouped = {};
+    items.forEach(item => {
+        if (!grouped[item.kompetensi]) grouped[item.kompetensi] = {};
+        if (!grouped[item.kompetensi][item.subKompetensi]) grouped[item.kompetensi][item.subKompetensi] = [];
+        grouped[item.kompetensi][item.subKompetensi].push(item);
+    });
+
+    Object.keys(grouped).forEach(komp => {
+        const kompDiv = document.createElement('div');
+        kompDiv.className = 'mb-1';
+        kompDiv.innerHTML = `<strong class="d-block text-primary small">${komp}</strong>`;
+        Object.keys(grouped[komp]).forEach(sub => {
+            const subDiv = document.createElement('div');
+            subDiv.className = 'ms-2 mb-1';
+            subDiv.innerHTML = `<em class="d-block text-muted small">${sub}</em>`;
+            grouped[komp][sub].forEach(item => {
+                const checked = preCheckId && item.progressId == preCheckId ? 'checked' : '';
+                const label = document.createElement('label');
+                label.className = 'form-check ms-3 small';
+                label.innerHTML = `<input type="checkbox" class="form-check-input deliverableCheck" value="${item.progressId}" ${checked}> <span class="form-check-label">${item.deliverable}</span>`;
+                subDiv.appendChild(label);
+            });
+            kompDiv.appendChild(subDiv);
+        });
+        container.appendChild(kompDiv);
+    });
+}
+
+// Show modal when Submit Evidence button is clicked
+document.querySelectorAll('.btnSubmitEvidence').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const progressId = this.dataset.progressId;
+        const items = buildDeliverableData();
+        renderDeliverableSelector(items, progressId);
+
+        // Set today's date
+        const today = new Date().toISOString().split('T')[0];
+        const dateInput = document.getElementById('evidenceDate');
+        if (dateInput) dateInput.value = today;
+
+        // Clear all fields
+        const koacheeComp = document.getElementById('evidenceKoacheeComp');
+        const catatan = document.getElementById('evidenceCatatan');
+        const kesimpulan = document.getElementById('evidenceKesimpulan');
+        const resultSel = document.getElementById('evidenceResult');
+        const fileInput = document.getElementById('evidenceFile');
+        if (koacheeComp) koacheeComp.value = '';
+        if (catatan) catatan.value = '';
+        if (kesimpulan) kesimpulan.value = '';
+        if (resultSel) resultSel.value = '';
+        if (fileInput) fileInput.value = '';
+
+        const modal = new bootstrap.Modal(document.getElementById('evidenceModal'));
+        modal.show();
+    });
+});
+
+// Submit handler
+const btnSubmitEvidence = document.getElementById('btnSubmitEvidence');
+if (btnSubmitEvidence) {
+    btnSubmitEvidence.addEventListener('click', async function() {
+        const checked = document.querySelectorAll('.deliverableCheck:checked');
+        if (checked.length === 0) {
+            showToast('Pilih minimal satu deliverable.', 'danger');
+            return;
+        }
+
+        const kesimpulan = document.getElementById('evidenceKesimpulan').value;
+        const result = document.getElementById('evidenceResult').value;
+        if (!kesimpulan) { showToast('Kesimpulan wajib dipilih.', 'danger'); return; }
+        if (!result) { showToast('Result wajib dipilih.', 'danger'); return; }
+
+        const fileInput = document.getElementById('evidenceFile');
+        if (fileInput && fileInput.files[0] && fileInput.files[0].size > 10 * 1024 * 1024) {
+            showToast('Ukuran file melebihi 10MB.', 'danger');
+            return;
+        }
+
+        const selectedIds = Array.from(checked).map(cb => parseInt(cb.value));
+        const formData = new FormData();
+        formData.append('progressIdsJson', JSON.stringify(selectedIds));
+        formData.append('date', document.getElementById('evidenceDate').value);
+        formData.append('koacheeCompetencies', document.getElementById('evidenceKoacheeComp').value);
+        formData.append('catatanCoach', document.getElementById('evidenceCatatan').value);
+        formData.append('kesimpulan', kesimpulan);
+        formData.append('result', result);
+        if (fileInput && fileInput.files[0]) {
+            formData.append('evidenceFile', fileInput.files[0]);
+        }
+
+        // DO NOT set Content-Type header — browser sets multipart boundary automatically
+        const token = getAntiForgeryToken();
+
+        btnSubmitEvidence.disabled = true;
+        btnSubmitEvidence.textContent = 'Menyimpan...';
+
+        try {
+            const resp = await fetch('/CDP/SubmitEvidenceWithCoaching', {
+                method: 'POST',
+                headers: { 'RequestVerificationToken': token },
+                body: formData
+            });
+            const data = await resp.json();
+
+            if (data.success) {
+                // Dismiss modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('evidenceModal'));
+                if (modal) modal.hide();
+
+                showToast(data.message, 'success');
+
+                // Update each submitted row in-place
+                (data.submittedIds || []).forEach(id => {
+                    // Update Evidence column
+                    const evidenceCell = document.getElementById(`evidence-${id}`);
+                    if (evidenceCell) {
+                        evidenceCell.innerHTML = data.hasEvidence
+                            ? '<span class="badge bg-success">Sudah Upload</span>'
+                            : '<span class="badge bg-secondary">Belum Upload</span>';
+                    }
+                    // Update Status in SrSpv / SH cells — reset to Pending badge
+                    const srspvCell = document.getElementById(`srspv-${id}`);
+                    if (srspvCell) {
+                        srspvCell.innerHTML = '<span class="badge bg-secondary">Pending</span>';
+                    }
+                    const shCell = document.getElementById(`sh-${id}`);
+                    if (shCell) {
+                        shCell.innerHTML = '<span class="badge bg-secondary">Pending</span>';
+                    }
+                });
+
+                // Update stat cards
+                updateStatCards();
+            } else {
+                showToast(data.message || 'Terjadi kesalahan.', 'danger');
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan jaringan.', 'danger');
+        } finally {
+            btnSubmitEvidence.disabled = false;
+            btnSubmitEvidence.textContent = 'Submit';
+        }
+    });
+}
+
+// Recalculate stat cards from table state
+function updateStatCards() {
+    const rows = document.querySelectorAll('#progressTableBody tr');
+    let total = 0;
+    let weightedSum = 0;
+    let pendingEvidence = 0;
+    let pendingApprovals = 0;
+
+    rows.forEach(row => {
+        // Only count rows that have an evidence cell (deliverable rows)
+        const evidenceCell = row.querySelector('[id^="evidence-"]');
+        if (!evidenceCell) return;
+        total++;
+
+        const srspvCell = row.querySelector('[id^="srspv-"]');
+        const isApproved = srspvCell && srspvCell.querySelector('.badge.bg-success') !== null;
+        const isSubmitted = srspvCell && srspvCell.querySelector('.badge.bg-secondary') !== null && !isApproved;
+
+        if (isApproved) {
+            weightedSum += 1.0;
+        } else if (isSubmitted) {
+            weightedSum += 0.5;
+            pendingApprovals++;
+        }
+
+        // Pending evidence: if Submit Evidence button still present or no badge
+        const submitBtn = evidenceCell.querySelector('.btnSubmitEvidence');
+        if (submitBtn) pendingEvidence++;
+    });
+
+    const progressPercent = total > 0 ? Math.round(weightedSum / total * 100) : 0;
+
+    // Update stat card display
+    const progressEl = document.querySelector('.card .text-primary.mb-0');
+    if (progressEl) {
+        progressEl.textContent = progressPercent + '%';
+        const progressBar = document.querySelector('.progress-bar');
+        if (progressBar) progressBar.style.width = progressPercent + '%';
+    }
+
+    const pendingActionsEl = document.querySelector('.card .text-warning.mb-0');
+    if (pendingActionsEl) pendingActionsEl.textContent = pendingEvidence;
+
+    const pendingApprovalsEl = document.querySelector('.card .text-info.mb-0');
+    if (pendingApprovalsEl) pendingApprovalsEl.textContent = pendingApprovals;
 }
 </script>
 }

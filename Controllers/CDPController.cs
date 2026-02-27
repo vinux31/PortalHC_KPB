@@ -1811,6 +1811,144 @@ namespace HcPortal.Controllers
             });
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitEvidenceWithCoaching(
+            [FromForm] string progressIdsJson,
+            [FromForm] DateTime date,
+            [FromForm] string koacheeCompetencies,
+            [FromForm] string catatanCoach,
+            [FromForm] string kesimpulan,
+            [FromForm] string result,
+            IFormFile? evidenceFile)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Json(new { success = false, message = "Tidak terautentikasi." });
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
+            bool isCoach = user.RoleLevel == 5;
+            if (!isCoach)
+                return Json(new { success = false, message = "Akses tidak diizinkan. Hanya Coach yang dapat submit evidence." });
+
+            // Parse progress IDs
+            List<int> progressIds;
+            try
+            {
+                progressIds = System.Text.Json.JsonSerializer.Deserialize<List<int>>(progressIdsJson) ?? new List<int>();
+            }
+            catch
+            {
+                return Json(new { success = false, message = "Format data tidak valid." });
+            }
+
+            if (!progressIds.Any())
+                return Json(new { success = false, message = "Tidak ada deliverable yang dipilih." });
+
+            // Load progress records with full include chain
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .Where(p => progressIds.Contains(p.Id))
+                .ToListAsync();
+
+            if (!progresses.Any())
+                return Json(new { success = false, message = "Data tidak ditemukan." });
+
+            // Validate all belong to coach's coachees
+            var coacheeIds = progresses.Select(p => p.CoacheeId).Distinct().ToList();
+            var validCoacheeIds = await _context.CoachCoacheeMappings
+                .Where(m => m.CoachId == user.Id && coacheeIds.Contains(m.CoacheeId) && m.IsActive)
+                .Select(m => m.CoacheeId)
+                .ToListAsync();
+            if (progresses.Any(p => !validCoacheeIds.Contains(p.CoacheeId)))
+                return Json(new { success = false, message = "Akses tidak diizinkan untuk beberapa deliverable." });
+
+            // Validate all statuses are Pending or Rejected
+            if (progresses.Any(p => p.Status != "Pending" && p.Status != "Rejected"))
+                return Json(new { success = false, message = "Hanya deliverable berstatus Pending atau Rejected yang dapat disubmit." });
+
+            // Handle optional file upload
+            string? evidencePath = null;
+            string? evidenceFileName = null;
+            if (evidenceFile != null && evidenceFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                var ext = Path.GetExtension(evidenceFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                    return Json(new { success = false, message = "Format file tidak valid. Gunakan PDF, JPG, atau PNG." });
+                if (evidenceFile.Length > 10 * 1024 * 1024)
+                    return Json(new { success = false, message = "Ukuran file melebihi 10MB." });
+
+                int firstProgressId = progressIds.First();
+                var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+                var safeFileName = $"{timestamp}_{Path.GetFileName(evidenceFile.FileName)}";
+                var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "evidence", firstProgressId.ToString());
+                Directory.CreateDirectory(uploadFolder);
+                var filePath = Path.Combine(uploadFolder, safeFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await evidenceFile.CopyToAsync(stream);
+                }
+                evidencePath = $"/uploads/evidence/{firstProgressId}/{safeFileName}";
+                evidenceFileName = evidenceFile.FileName;
+            }
+
+            // Process each progress record
+            var now = DateTime.UtcNow;
+            var submittedIds = new List<int>();
+            foreach (var progress in progresses)
+            {
+                progress.Status = "Submitted";
+                progress.SubmittedAt = now;
+                // Reset approval columns for fresh review cycle
+                progress.SrSpvApprovalStatus = "Pending";
+                progress.SrSpvApprovedById = null;
+                progress.SrSpvApprovedAt = null;
+                progress.ShApprovalStatus = "Pending";
+                progress.ShApprovedById = null;
+                progress.ShApprovedAt = null;
+
+                // Apply file upload if provided; otherwise keep existing EvidencePath
+                if (evidencePath != null)
+                {
+                    progress.EvidencePath = evidencePath;
+                    progress.EvidenceFileName = evidenceFileName;
+                }
+
+                // Create CoachingSession record
+                var session = new CoachingSession
+                {
+                    CoachId = user.Id,
+                    CoacheeId = progress.CoacheeId,
+                    Date = date,
+                    Kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
+                    SubKompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
+                    Deliverable = progress.ProtonDeliverable?.NamaDeliverable ?? "",
+                    CoacheeCompetencies = koacheeCompetencies,
+                    CatatanCoach = catatanCoach,
+                    Kesimpulan = kesimpulan,
+                    Result = result,
+                    Status = "Submitted",
+                    ProtonDeliverableProgressId = progress.Id,
+                    CreatedAt = now
+                };
+                _context.CoachingSessions.Add(session);
+                submittedIds.Add(progress.Id);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Json(new
+            {
+                success = true,
+                message = $"{submittedIds.Count} deliverable berhasil disubmit",
+                submittedIds,
+                hasEvidence = evidencePath != null
+            });
+        }
+
         [HttpGet]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> GetCoacheeDeliverables(string coacheeId)
