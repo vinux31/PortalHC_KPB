@@ -290,7 +290,6 @@ namespace HcPortal.Controllers
                     Submitted = progresses.Count(p => p.Status == "Submitted"),
                     Rejected = progresses.Count(p => p.Status == "Rejected"),
                     Active = progresses.Count(p => p.Status == "Active"),
-                    Locked = progresses.Count(p => p.Status == "Locked"),
                     HasFinalAssessment = finalAssessment != null,
                     CompetencyLevelGranted = finalAssessment?.CompetencyLevelGranted
                 });
@@ -324,14 +323,13 @@ namespace HcPortal.Controllers
             }
 
             // Doughnut chart: status distribution
-            var statusLabels = new List<string> { "Approved", "Submitted", "Active", "Rejected", "Locked" };
+            var statusLabels = new List<string> { "Approved", "Submitted", "Active", "Rejected" };
             var statusData = new List<int>
             {
                 allProgresses.Count(p => p.Status == "Approved"),
                 allProgresses.Count(p => p.Status == "Submitted"),
                 allProgresses.Count(p => p.Status == "Active"),
-                allProgresses.Count(p => p.Status == "Rejected"),
-                allProgresses.Count(p => p.Status == "Locked")
+                allProgresses.Count(p => p.Status == "Rejected")
             };
 
             var subModel = new ProtonProgressSubModel
@@ -735,12 +733,12 @@ namespace HcPortal.Controllers
                     .ThenBy(d => d.Urutan)
                 .ToListAsync();
 
-            // Create progress records — first Active, rest Locked
-            var progressList = deliverables.Select((d, index) => new ProtonDeliverableProgress
+            // Create progress records — all deliverables start Active (no sequential lock)
+            var progressList = deliverables.Select(d => new ProtonDeliverableProgress
             {
                 CoacheeId = coacheeId,
                 ProtonDeliverableId = d.Id,
-                Status = index == 0 ? "Active" : "Locked",
+                Status = "Active",
                 CreatedAt = DateTime.UtcNow
             }).ToList();
 
@@ -792,42 +790,13 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            // Load ALL progress records for this coachee in one query (avoid N+1)
-            var allProgresses = await _context.ProtonDeliverableProgresses
-                .Include(p => p.ProtonDeliverable)
-                    .ThenInclude(d => d.ProtonSubKompetensi)
-                        .ThenInclude(s => s.ProtonKompetensi)
-                .Where(p => p.CoacheeId == progress.CoacheeId)
-                .ToListAsync();
-
             // Get track info from current deliverable's hierarchy
             var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
-            int trackId = kompetensi?.ProtonTrackId ?? 0;
             string trackType = kompetensi?.ProtonTrack?.TrackType ?? "";
             string tahunKe = kompetensi?.ProtonTrack?.TahunKe ?? "";
 
-            // Order all deliverables for this track by Kompetensi.Urutan, SubKompetensi.Urutan, Deliverable.Urutan
-            var orderedProgresses = allProgresses
-                .Where(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrackId == trackId)
-                .OrderBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0)
-                .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
-                .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
-                .ToList();
-
-            // Sequential lock check
-            int currentIndex = orderedProgresses.FindIndex(p => p.Id == progress.Id);
-            bool isAccessible;
-            if (currentIndex <= 0)
-            {
-                // First deliverable — always accessible
-                isAccessible = true;
-            }
-            else
-            {
-                // Check if previous deliverable is Approved
-                var previousProgress = orderedProgresses[currentIndex - 1];
-                isAccessible = previousProgress.Status == "Approved";
-            }
+            // All deliverables accessible — no sequential lock
+            bool isAccessible = true;
 
             // Get coachee name
             string coacheeName = await _context.Users
@@ -926,17 +895,6 @@ namespace HcPortal.Controllers
                 .ThenBy(p => p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0)
                 .ThenBy(p => p.ProtonDeliverable?.Urutan ?? 0)
                 .ToList();
-
-            // Unlock next deliverable: find index of just-approved record and set next to Active
-            int currentIndex = orderedProgresses.FindIndex(p => p.Id == progress.Id);
-            if (currentIndex >= 0 && currentIndex < orderedProgresses.Count - 1)
-            {
-                var nextProgress = orderedProgresses[currentIndex + 1];
-                if (nextProgress.Status == "Locked")
-                {
-                    nextProgress.Status = "Active";
-                }
-            }
 
             // Check all-approved: use in-memory state (current record already set to "Approved" above)
             bool allApproved = orderedProgresses.All(p => p.Status == "Approved");
