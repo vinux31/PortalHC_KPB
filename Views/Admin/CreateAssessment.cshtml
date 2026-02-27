@@ -1,0 +1,850 @@
+@model HcPortal.Models.AssessmentSession
+
+@{
+    ViewData["Title"] = "Create Assessment";
+    ViewData["ContainerClass"] = "container-fluid";
+    // Get list of categories for dropdown
+    var categories = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "OJT", Text = "OJT" },
+        new SelectListItem { Value = "IHT", Text = "IHT" },
+        new SelectListItem { Value = "Training Licencor", Text = "Training Licencor" },
+        new SelectListItem { Value = "OTS", Text = "OTS" },
+        new SelectListItem { Value = "Mandatory HSSE Training", Text = "Mandatory HSSE Training" },
+        new SelectListItem { Value = "Proton", Text = "Proton" }
+    };
+
+    // Status options
+    var statuses = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Open", Text = "Open" },
+        new SelectListItem { Value = "Upcoming", Text = "Upcoming" },
+        new SelectListItem { Value = "Completed", Text = "Completed" }
+    };
+
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("ManageAssessment", "Admin")">Manage Assessments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Buat Assessment</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">Create New Assessment</h2>
+                <p class="text-muted mb-0">Create a new competency assessment for employees</p>
+            </div>
+            <a href="@Url.Action("ManageAssessment", "Admin")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Manage Assessments
+            </a>
+        </div>
+    </div>
+
+    <!-- Success Message -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Error Alert -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Create Assessment Form -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+            <form id="createAssessmentForm" asp-action="CreateAssessment" asp-controller="Admin" method="post" class="needs-validation" novalidate>
+                @Html.AntiForgeryToken()
+
+                @* Server-side validation summary *@
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>Please fix the following errors:</strong>
+                        <ul class="mb-0 mt-2">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- User Selection (Multi-Select Checkboxes) -->
+                <div class="row mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">
+                            Assign to Users <span class="text-danger">*</span>
+                        </label>
+                        <!-- Section Filter + Search + Controls -->
+                        <div class="d-flex gap-2 mb-2 align-items-center flex-wrap">
+                            <select id="sectionFilter" class="form-select form-select-sm" style="max-width: 220px;">
+                                <option value="">Semua Bagian</option>
+                                @if (ViewBag.Sections != null)
+                                {
+                                    foreach (var sec in (List<string>)ViewBag.Sections)
+                                    {
+                                        <option value="@sec">@sec</option>
+                                    }
+                                }
+                                <option value="__none__">Lainnya (Tanpa Bagian)</option>
+                            </select>
+                            <div class="input-group input-group-sm" style="max-width: 300px;">
+                                <input type="text" id="userSearchInput" class="form-control" placeholder="Search by name or email..." />
+                                <button type="button" class="btn btn-outline-secondary" id="clearSearchBtn" title="Clear search">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="selectAllBtn">Select All</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAllBtn">Deselect All</button>
+                            <span class="badge bg-primary ms-auto" id="selectedCountBadge">0 selected</span>
+                        </div>
+                        <!-- Scrollable Checkbox Container -->
+                        <div id="userCheckboxContainer" class="border rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                            @if (ViewBag.Users != null)
+                            {
+                                var selectedIds = (List<string>)ViewBag.SelectedUserIds;
+                                @foreach (var user in ViewBag.Users)
+                                {
+                                    var isChecked = selectedIds != null && selectedIds.Contains((string)user.Id);
+                                    <div class="form-check user-check-item mb-1" data-name="@user.FullName" data-email="@user.Email" data-section="@user.Section">
+                                        <input class="form-check-input user-checkbox" type="checkbox" name="UserIds" value="@user.Id" id="user_@user.Id" @(isChecked ? "checked" : "") />
+                                        <label class="form-check-label" for="user_@user.Id">
+                                            <strong>@user.FullName</strong> <span class="text-muted">(@user.Email)</span>
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <span class="text-danger" id="userIdsValidation">
+                            @if (ViewData.ModelState.ContainsKey("UserIds"))
+                            {
+                                @ViewData.ModelState["UserIds"]?.Errors.FirstOrDefault()?.ErrorMessage
+                            }
+                        </span>
+                        <div class="form-text">Select one or more users. Each user will get their own assessment session.</div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Title -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Title" class="form-label fw-semibold">
+                            Assessment Title <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="Title" class="form-control" placeholder="Enter assessment title" required maxlength="255" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Category" class="form-label fw-semibold">
+                            Category <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Category" class="form-select" asp-items="categories" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Schedule -->
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-semibold">
+                            Schedule Date &amp; Time <span class="text-danger">*</span>
+                        </label>
+                        <div class="d-flex gap-2 align-items-start">
+                            <div class="flex-grow-1">
+                                <input type="date" id="ScheduleDate" class="form-control" required />
+                                <div class="form-text text-muted">Date (WIB)</div>
+                            </div>
+                            <div style="width:130px">
+                                <input type="time" id="ScheduleTime" class="form-control" value="08:00" required />
+                                <div class="form-text text-muted">Time (WIB)</div>
+                            </div>
+                        </div>
+                        <input asp-for="Schedule" type="hidden" id="ScheduleHidden" />
+                        <span asp-validation-for="Schedule" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Duration Minutes -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DurationMinutes" class="form-label fw-semibold">
+                            Duration (Minutes) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DurationMinutes" type="number" class="form-control" min="1" max="480" required />
+                        <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+                        <div class="form-text text-muted">Duration in minutes (1-480 minutes / max 8 hours)</div>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Status" class="form-label fw-semibold">Initial Status</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="Open">Open</option>
+                            <option value="Upcoming">Upcoming</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                        <div class="form-text text-muted">Default: Open (available immediately)</div>
+                    </div>
+                </div>
+
+                <!-- Security Token Section -->
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <div class="d-flex align-items-center gap-5 mb-2">
+                            <label class="form-label fw-semibold mb-0">
+                                <i class="bi bi-shield-lock text-primary me-1"></i>
+                                Requires Security Token
+                            </label>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" asp-for="IsTokenRequired" id="IsTokenRequired">
+                            </div>
+                        </div>
+                        <div class="form-text text-muted mb-2">If checked, user must enter 6-digit token to start</div>
+                        <!-- Token Input (Hidden by default) -->
+                        <div class="col-md-6 d-none" id="tokenInputContainer">
+                            <label asp-for="AccessToken" class="form-label fw-semibold">Access Token</label>
+                            <div class="input-group">
+                                <input asp-for="AccessToken" class="form-control font-monospace" placeholder="e.g. A1B2C3" maxlength="6" id="AccessToken" style="text-transform: uppercase;" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="generateToken()">
+                                    <i class="bi bi-shuffle"></i> Generate
+                                </button>
+                            </div>
+                            <span asp-validation-for="AccessToken" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assessment Settings Section -->
+                <div class="card border-secondary mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Assessment Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Pass Percentage -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PassPercentage" class="form-label fw-semibold">
+                                    Pass Percentage (%) <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="PassPercentage" type="number" class="form-control" min="0" max="100" required />
+                                <span asp-validation-for="PassPercentage" class="text-danger"></span>
+                                <div class="form-text text-muted">Minimum score required to pass this assessment (0-100)</div>
+                            </div>
+
+                            <!-- Allow Answer Review Toggle -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Allow Answer Review
+                                </label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="AllowAnswerReview" class="form-check-input" type="checkbox" id="AllowAnswerReview">
+                                    <label class="form-check-label" for="AllowAnswerReview">
+                                        Enable answer review
+                                    </label>
+                                </div>
+                                <div class="form-text text-muted">When enabled, users can see which questions they answered correctly after completing the assessment</div>
+                            </div>
+                        </div>
+
+                        <!-- Exam Window Close Date -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="ExamWindowCloseDate" class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-x text-danger me-1"></i>
+                                    Tanggal Tutup Ujian (Opsional)
+                                </label>
+                                <input asp-for="ExamWindowCloseDate" type="date" class="form-control" />
+                                <div class="form-text text-muted">
+                                    Jika diisi, peserta tidak dapat memulai ujian setelah tanggal ini.
+                                    Kosongkan jika tidak ada batas waktu.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="d-flex gap-2 align-items-center">
+                            <button type="submit" class="btn btn-primary px-4" id="submitBtn">
+                                <span class="btn-text"><i class="bi bi-plus-circle me-1"></i> Create Assessment</span>
+                                <span class="btn-spinner d-none">
+                                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                    Creating...
+                                </span>
+                            </button>
+                            <a href="@Url.Action("ManageAssessment", "Admin")" class="btn btn-outline-secondary px-4">
+                                <i class="bi bi-x-circle me-1"></i> Cancel
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Success Modal (Batch) -->
+    <div class="modal fade" id="successModal" tabindex="-1" aria-labelledby="successModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title" id="successModalLabel">
+                        <i class="bi bi-check-circle-fill me-2"></i> <span id="modal-header-text">Assessment Created Successfully</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <table class="table table-borderless mb-3">
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold text-muted" style="width:140px;">Title</td>
+                                <td id="modal-title"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Category</td>
+                                <td id="modal-category"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Schedule</td>
+                                <td id="modal-schedule"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Duration</td>
+                                <td id="modal-duration"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Status</td>
+                                <td id="modal-status"></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold text-muted">Token</td>
+                                <td id="modal-token"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <!-- Assigned Users Table -->
+                    <h6 class="fw-semibold mb-2"><i class="bi bi-people-fill me-1"></i> Assigned Users</h6>
+                    <div style="max-height: 200px; overflow-y: auto;">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="modal-users-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <div>
+                        <a id="modal-manage-btn" href="#" class="btn btn-primary">
+                            <i class="bi bi-list-check me-1"></i> Manage Questions
+                        </a>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="modal-create-another-btn">
+                            <i class="bi bi-plus-circle me-1"></i> Create Another
+                        </button>
+                        <a href="@Url.Action("ManageAssessment", "Admin")" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i> Back to Manage Assessments
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="position-fixed top-0 end-0 p-3" style="z-index: 1090;">
+        <div id="successToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="bi bi-check-circle-fill me-1"></i> Assessment created successfully!
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Help Section (Collapsible) -->
+    <div class="card mt-4 border-0">
+        <div class="card-header bg-light border-0" style="cursor: pointer;" data-bs-toggle="collapse" data-bs-target="#helpContent" aria-expanded="false">
+            <h6 class="mb-0 d-flex align-items-center justify-content-between">
+                <span><i class="bi bi-info-circle text-primary me-2"></i> Assessment Creation Guide</span>
+                <i class="bi bi-chevron-down" id="helpChevron"></i>
+            </h6>
+        </div>
+        <div class="collapse" id="helpContent">
+            <div class="card-body bg-light">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="fw-semibold small">Category Types</h6>
+                        <ul class="list-unstyled small mb-0">
+                            <li><span class="badge bg-primary me-1">OJT</span> On Job Training</li>
+                            <li><span class="badge bg-success me-1">IHT</span> Internal Training</li>
+                            <li><span class="badge bg-danger me-1">Training Licencor</span> Licensed Training</li>
+                            <li><span class="badge bg-warning text-dark me-1">OTS</span> Operator Training Simulator</li>
+                            <li><span class="badge bg-info me-1">Mandatory HSSE</span> Health & Safety Training</li>
+                            <li><span class="badge bg-purple text-white me-1">Proton</span> Specialized Assessment</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="fw-semibold small">Best Practices</h6>
+                        <ul class="list-unstyled small mb-0">
+                            <li><i class="bi bi-check2 text-success me-1"></i> Set clear, descriptive titles</li>
+                            <li><i class="bi bi-check2 text-success me-1"></i> Duration: 1-480 minutes (max 8 hours)</li>
+                            <li><i class="bi bi-shield-lock text-primary me-1"></i> Use tokens for sensitive assessments</li>
+                            <li><i class="bi bi-calendar text-info me-1"></i> Schedule appropriately for users</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-switch .form-check-input {
+        width: 3em;
+        height: 1.5em;
+    }
+
+    .form-check-label {
+        cursor: pointer;
+    }
+
+    .form-switch {
+        padding-left: 0;
+    }
+
+    .card {
+        border-radius: 8px;
+    }
+
+    .alert {
+        border-radius: 8px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Global variables for form validation
+        var categorySelect;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('=== Page loaded - Pure JavaScript validation ===');
+
+            // Get the correct form (not the logout form in header!)
+            var form = document.getElementById('createAssessmentForm');
+            console.log('Target form:', form);
+
+            // === Get category select ===
+            categorySelect = document.getElementById('Category');
+
+            // === Category-based PassPercentage defaults ===
+            var passPercentageInput = document.getElementById('PassPercentage');
+            var passPercentageManuallySet = false;
+
+            // Track manual changes
+            passPercentageInput.addEventListener('input', function() {
+                passPercentageManuallySet = true;
+            });
+
+            // Category defaults mapping
+            var categoryDefaults = {
+                'OJT': 70,
+                'IHT': 70,
+                'Training Licencor': 80,
+                'OTS': 70,
+                'Mandatory HSSE Training': 100,
+                'Proton': 85
+            };
+
+            // Update PassPercentage when category changes
+            categorySelect.addEventListener('change', function() {
+                if (!passPercentageManuallySet && categoryDefaults[this.value]) {
+                    passPercentageInput.value = categoryDefaults[this.value];
+                }
+            });
+
+            // === Token toggle ===
+            var tokenCheckbox = document.getElementById('IsTokenRequired');
+            var tokenContainer = document.getElementById('tokenInputContainer');
+            var tokenInput = document.getElementById('AccessToken');
+
+            toggleTokenInput();
+            tokenCheckbox.addEventListener('change', toggleTokenInput);
+
+            function toggleTokenInput() {
+                if (tokenCheckbox.checked) {
+                    tokenContainer.classList.remove('d-none');
+                    tokenInput.setAttribute('required', 'required');
+                } else {
+                    tokenContainer.classList.add('d-none');
+                    tokenInput.removeAttribute('required');
+                    tokenInput.value = '';
+                }
+            }
+
+            // === Combined filter: section dropdown + text search ===
+            var searchInput = document.getElementById('userSearchInput');
+            var sectionFilter = document.getElementById('sectionFilter');
+
+            function applyFilters() {
+                var query = searchInput.value.toLowerCase();
+                var selectedSection = sectionFilter.value;
+
+                document.querySelectorAll('.user-check-item').forEach(function(item) {
+                    var name = (item.dataset.name || '').toLowerCase();
+                    var email = (item.dataset.email || '').toLowerCase();
+                    var section = item.dataset.section || '';
+
+                    // Section filter
+                    var sectionMatch = true;
+                    if (selectedSection === '__none__') {
+                        sectionMatch = (section === '');
+                    } else if (selectedSection !== '') {
+                        sectionMatch = (section === selectedSection);
+                    }
+
+                    // Text search filter
+                    var textMatch = (query === '') || name.includes(query) || email.includes(query);
+
+                    item.style.display = (sectionMatch && textMatch) ? '' : 'none';
+                });
+            }
+
+            searchInput.addEventListener('input', applyFilters);
+            sectionFilter.addEventListener('change', applyFilters);
+
+            // Clear search button
+            document.getElementById('clearSearchBtn').addEventListener('click', function() {
+                searchInput.value = '';
+                applyFilters();
+            });
+
+            // === Select All / Deselect All (only visible items) ===
+            document.getElementById('selectAllBtn').addEventListener('click', function() {
+                document.querySelectorAll('.user-check-item').forEach(function(item) {
+                    if (item.style.display !== 'none') {
+                        item.querySelector('.user-checkbox').checked = true;
+                    }
+                });
+                updateSelectedCount();
+            });
+
+            document.getElementById('deselectAllBtn').addEventListener('click', function() {
+                document.querySelectorAll('.user-check-item').forEach(function(item) {
+                    if (item.style.display !== 'none') {
+                        item.querySelector('.user-checkbox').checked = false;
+                    }
+                });
+                updateSelectedCount();
+            });
+
+            // === Selected count badge ===
+            document.getElementById('userCheckboxContainer').addEventListener('change', updateSelectedCount);
+            updateSelectedCount(); // init on load
+
+            function updateSelectedCount() {
+                var count = document.querySelectorAll('.user-checkbox:checked').length;
+                document.getElementById('selectedCountBadge').textContent = count + ' selected';
+            }
+
+            // === Client-side validation: at least 1 user ===
+            // Form already declared at top of DOMContentLoaded
+            if (!form) {
+                console.error('Form not found!');
+                return;
+            }
+            form.addEventListener('submit', function(e) {
+                try {
+                    console.log('=== Form Submit Triggered ===');
+
+                    var count = document.querySelectorAll('.user-checkbox:checked').length;
+                    var validationSpan = document.getElementById('userIdsValidation');
+
+                    // Check user selection
+                    if (count === 0) {
+                        e.preventDefault();
+                        validationSpan.textContent = 'Please select at least one user.';
+                        console.error('Validation failed: No users selected');
+                        alert('Please select at least one user.');
+                        return false;
+                    } else {
+                        validationSpan.textContent = '';
+                    }
+
+                    // Check required fields (use name attribute for ASP.NET compatibility)
+                    var titleField = document.querySelector('input[name="Title"]') || document.getElementById('Title');
+                    var title = titleField ? titleField.value.trim() : '';
+                    var category = categorySelect ? categorySelect.value : '';
+                    var schedDateInput = document.getElementById('ScheduleDate');
+                    var schedTimeInput = document.getElementById('ScheduleTime');
+                    var schedHidden   = document.getElementById('ScheduleHidden');
+                    var schedule = schedDateInput ? schedDateInput.value : '';
+                    var durationField = document.querySelector('input[name="DurationMinutes"]');
+                    var duration = durationField ? durationField.value : '';
+
+                    console.log('Form data:', {
+                        title: title,
+                        category: category,
+                        schedule: schedule,
+                        duration: duration,
+                        usersCount: count
+                    });
+
+                    // Validate required fields
+                    if (!title) {
+                        e.preventDefault();
+                        alert('Please enter an Assessment Title');
+                        console.error('Validation failed: Title is empty');
+                        return false;
+                    }
+
+                    if (!category) {
+                        e.preventDefault();
+                        alert('Please select a Category');
+                        console.error('Validation failed: Category not selected');
+                        return false;
+                    }
+
+                    if (!schedule) {
+                        e.preventDefault();
+                        alert('Please select a Schedule Date');
+                        console.error('Validation failed: Schedule date is empty');
+                        return false;
+                    }
+
+                    if (!duration || duration <= 0) {
+                        e.preventDefault();
+                        alert('Please enter a valid Duration (1-480 minutes)');
+                        console.error('Validation failed: Invalid duration');
+                        return false;
+                    }
+
+                    // Check token if required
+                    var tokenCheckbox = document.getElementById('IsTokenRequired');
+                    if (tokenCheckbox && tokenCheckbox.checked) {
+                        var tokenInput = document.getElementById('AccessToken');
+                        var token = tokenInput ? tokenInput.value.trim().toUpperCase() : '';
+                        var tokenPattern = /^[A-Z0-9]{6}$/;
+
+                        if (!token || !tokenPattern.test(token)) {
+                            e.preventDefault();
+                            alert('Please enter a valid 6-character alphanumeric Access Token (A-Z, 0-9)');
+                            console.error('Validation failed: Invalid token format');
+                            return false;
+                        }
+                    }
+
+                    console.log('All validations passed. Submitting form...');
+
+                    // Combine ScheduleDate + ScheduleTime into Schedule hidden field
+                    if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
+                        schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                    }
+
+                    // Show loading spinner
+                    var submitBtn = document.getElementById('submitBtn');
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.querySelector('.btn-text').classList.add('d-none');
+                        submitBtn.querySelector('.btn-spinner').classList.remove('d-none');
+                    }
+
+                    // Form will submit normally
+                    return true;
+                } catch (error) {
+                    console.error('Validation error caught:', error);
+                    // Allow form to submit even if validation fails
+                    console.warn('Allowing form submit despite validation error');
+                    return true;
+                }
+            });
+
+            // Add button click handler for additional debugging
+            var submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', function(e) {
+                    console.log('Submit button clicked');
+                });
+            }
+
+            console.log('=== Form initialization complete ===');
+            console.log('Form element:', form);
+            console.log('Submit button:', submitBtn);
+
+            // Handle help section collapse chevron rotation
+            var helpContent = document.getElementById('helpContent');
+            var helpChevron = document.getElementById('helpChevron');
+            if (helpContent && helpChevron) {
+                helpContent.addEventListener('show.bs.collapse', function() {
+                    helpChevron.classList.remove('bi-chevron-down');
+                    helpChevron.classList.add('bi-chevron-up');
+                });
+                helpContent.addEventListener('hide.bs.collapse', function() {
+                    helpChevron.classList.remove('bi-chevron-up');
+                    helpChevron.classList.add('bi-chevron-down');
+                });
+            }
+        });
+
+        function generateToken() {
+            var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            var token = "";
+            for (var i = 0; i < 6; i++) {
+                token += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('AccessToken').value = token;
+        }
+
+        // === Auto-show success modal (batch) ===
+        (function() {
+            var createdData = '@Html.Raw(ViewBag.CreatedAssessment ?? "")';
+            if (createdData) {
+                try {
+                    var a = JSON.parse(createdData);
+
+                    // Header with count
+                    var headerText = a.Count + ' assessment(s) created successfully';
+                    document.getElementById('modal-header-text').textContent = headerText;
+
+                    // Populate info fields (use textContent to prevent XSS)
+                    document.getElementById('modal-title').textContent = a.Title;
+
+                    var categoryBadge = document.createElement('span');
+                    categoryBadge.className = 'badge bg-primary';
+                    categoryBadge.textContent = a.Category;
+                    var categoryEl = document.getElementById('modal-category');
+                    categoryEl.textContent = '';
+                    categoryEl.appendChild(categoryBadge);
+
+                    document.getElementById('modal-schedule').textContent = a.Schedule;
+                    document.getElementById('modal-duration').textContent = a.DurationMinutes + ' minutes';
+
+                    var statusBadge = document.createElement('span');
+                    statusBadge.className = 'badge bg-success';
+                    statusBadge.textContent = a.Status;
+                    var statusEl = document.getElementById('modal-status');
+                    statusEl.textContent = '';
+                    statusEl.appendChild(statusBadge);
+
+                    if (a.IsTokenRequired && a.AccessToken) {
+                        var tokenEl = document.getElementById('modal-token');
+                        tokenEl.textContent = '';
+                        var icon = document.createElement('i');
+                        icon.className = 'bi bi-shield-lock-fill text-primary me-1';
+                        var code = document.createElement('code');
+                        code.className = 'fs-6';
+                        code.textContent = a.AccessToken;
+                        tokenEl.appendChild(icon);
+                        tokenEl.appendChild(document.createTextNode(' '));
+                        tokenEl.appendChild(code);
+                    } else {
+                        var tokenEl = document.getElementById('modal-token');
+                        tokenEl.textContent = '';
+                        var span = document.createElement('span');
+                        span.className = 'text-muted';
+                        span.textContent = 'Not Required';
+                        tokenEl.appendChild(span);
+                    }
+
+                    // Populate users table (create elements to prevent XSS)
+                    var tbody = document.getElementById('modal-users-tbody');
+                    tbody.textContent = '';
+                    if (a.Sessions && a.Sessions.length > 0) {
+                        a.Sessions.forEach(function(s, idx) {
+                            var tr = document.createElement('tr');
+
+                            var tdNum = document.createElement('td');
+                            tdNum.textContent = idx + 1;
+                            tr.appendChild(tdNum);
+
+                            var tdName = document.createElement('td');
+                            tdName.textContent = s.UserName;
+                            tr.appendChild(tdName);
+
+                            var tdEmail = document.createElement('td');
+                            tdEmail.className = 'text-muted';
+                            tdEmail.textContent = s.UserEmail;
+                            tr.appendChild(tdEmail);
+
+                            var tdAction = document.createElement('td');
+                            var link = document.createElement('a');
+                            link.href = '/CMP/ManageQuestions?id=' + s.Id;
+                            link.className = 'btn btn-sm btn-outline-primary';
+                            link.textContent = 'Manage Questions';
+                            tdAction.appendChild(link);
+                            tr.appendChild(tdAction);
+
+                            tbody.appendChild(tr);
+                        });
+
+                        // Main "Manage Questions" button links to first session
+                        var firstId = a.Sessions[0].Id;
+                        var manageBtn = document.getElementById('modal-manage-btn');
+                        manageBtn.href = '/CMP/ManageQuestions?id=' + firstId;
+                        if (a.Sessions.length > 1) {
+                            manageBtn.innerHTML = '<i class="bi bi-list-check me-1"></i> Manage Questions (First)';
+                        }
+                    }
+
+                    // Show modal
+                    var modal = new bootstrap.Modal(document.getElementById('successModal'));
+                    modal.show();
+
+                    // Show toast
+                    var toast = new bootstrap.Toast(document.getElementById('successToast'), { delay: 4000 });
+                    toast.show();
+
+                    // Reset form + checkboxes on "Create Another"
+                    document.getElementById('modal-create-another-btn').addEventListener('click', function() {
+                        var form = document.querySelector('form');
+                        if (form) form.reset();
+                        document.getElementById('tokenInputContainer').classList.add('d-none');
+                        // Uncheck all user checkboxes and reset count
+                        document.querySelectorAll('.user-checkbox').forEach(function(cb) { cb.checked = false; });
+                        document.getElementById('selectedCountBadge').textContent = '0 selected';
+                        document.getElementById('userSearchInput').value = '';
+                        // Reset section filter to "Semua Bagian"
+                        document.getElementById('sectionFilter').value = '';
+                        // Show all items again
+                        document.querySelectorAll('.user-check-item').forEach(function(item) { item.style.display = ''; });
+                    });
+                } catch(e) {
+                    console.error('Error parsing created assessment data:', e);
+                }
+            }
+        })();
+    </script>
+}
