@@ -503,7 +503,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 60. Konsolidasi Proton Catalog | v2.3 | 0/? | Not started | - |
 | 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |
-| 63. Data Source Fix | v2.4 | 0/2 | Planned | - |
+| 63. Data Source Fix | 1/2 | In Progress|  | - |
 | 64. Functional Filters | v2.4 | 0/? | Not started | - |
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
@@ -528,7 +528,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   2. Coach sees their real coachees in the dropdown, populated from CoachCoacheeMapping, not hardcoded mock values
   3. Summary stats (progress %, pending actions, pending approvals) match the actual ProtonDeliverableProgress records in the database
   4. Approving or updating evidence on the Deliverable page is immediately reflected on the Progress page with no stale cache
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 63-01-PLAN.md — CDPController: ProtonProgress GET + GetCoacheeDeliverables JSON + disable old Progress

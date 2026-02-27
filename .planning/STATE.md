@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.4
-milestone_name: CDP Progress
+milestone: v1.0
+milestone_name: Admin Portal
 status: planning
-last_updated: "2026-02-27T00:00:00.000Z"
-last_activity: "2026-02-27 - v2.4 CDP Progress roadmap defined (phases 63-66, 17 requirements)"
+last_updated: "2026-02-27T02:14:41.054Z"
+last_activity: 2026-02-26 - Completed Plan 48-04
 progress:
-  total_phases: 4
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 48
+  completed_phases: 41
+  total_plans: 105
+  completed_plans: 99
 ---
 
 ---
@@ -211,6 +211,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 48-04]: Read-mode table mirrors edit-mode: 3 missing columns (DetailIndikator, Silabus, TargetDeliverable) added to thead and tbody
 - [Phase 48-04]: CpdpItemDelete reference guard removed: HC Admin has full delete authority regardless of IdpItem string references
 - [Phase 48-04]: Backspace added alongside Delete for multi-cell clear: fixed (A || B) && C operator precedence, removed redundant nested if
+- [Phase 63-01]: Progress() disabled (redirects to Index) per CONTEXT.md cut-over strategy
+- [Phase 63-01]: Coach coachee list ordered by ProtonTrack.Urutan then FullName per CONTEXT.md
+- [Phase 63-01]: Approval status derived from ProtonDeliverableProgress.Status (Claude discretion per CONTEXT.md)
+- [Phase 63-01]: GetCoacheeDeliverables returns error JSON for unauthorized instead of HTTP 403
 
 ### Roadmap Evolution
 
@@ -247,6 +251,7 @@ None.
 | Phase 48-cpdp-items-manager P02 | 5 | 3 tasks | 3 files |
 | Phase 48-cpdp-items-manager P03 | 10 | 2 tasks | 2 files |
 | Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
+| Phase 63-data-source-fix P01 | 164 | 2 tasks | 1 files |
 
 ## Session Continuity
 

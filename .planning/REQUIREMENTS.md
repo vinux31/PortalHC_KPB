@@ -30,10 +30,10 @@
 
 ### Data Source
 
-- [ ] **DATA-01**: Progress page menampilkan data dari ProtonDeliverableProgress + ProtonTrackAssignment dengan konteks track (Panelman/Operator, Tahun 1/2/3), bukan dari IdpItems
-- [ ] **DATA-02**: Coach melihat daftar coachee asli dari CoachCoacheeMapping, bukan hardcoded mock data
-- [ ] **DATA-03**: Summary stats (progress %, pending actions, pending approvals) dihitung dari ProtonDeliverableProgress yang benar
-- [ ] **DATA-04**: Data di Progress page tersinkron otomatis dengan database — perubahan approval/evidence di Deliverable page langsung terlihat di Progress
+- [x] **DATA-01**: Progress page menampilkan data dari ProtonDeliverableProgress + ProtonTrackAssignment dengan konteks track (Panelman/Operator, Tahun 1/2/3), bukan dari IdpItems
+- [x] **DATA-02**: Coach melihat daftar coachee asli dari CoachCoacheeMapping, bukan hardcoded mock data
+- [x] **DATA-03**: Summary stats (progress %, pending actions, pending approvals) dihitung dari ProtonDeliverableProgress yang benar
+- [x] **DATA-04**: Data di Progress page tersinkron otomatis dengan database — perubahan approval/evidence di Deliverable page langsung terlihat di Progress
 
 ### Filter
 
@@ -88,10 +88,10 @@
 | CRUD-02 | Phase 56 | Pending |
 | CRUD-03 | Phase 57 | Pending |
 | CRUD-04 | Phase 58 | Pending |
-| DATA-01 | Phase 63 | Pending |
-| DATA-02 | Phase 63 | Pending |
-| DATA-03 | Phase 63 | Pending |
-| DATA-04 | Phase 63 | Pending |
+| DATA-01 | Phase 63 | Complete |
+| DATA-02 | Phase 63 | Complete |
+| DATA-03 | Phase 63 | Complete |
+| DATA-04 | Phase 63 | Complete |
 | FILT-01 | Phase 64 | Pending |
 | FILT-02 | Phase 64 | Pending |
 | FILT-03 | Phase 64 | Pending |
