@@ -278,7 +278,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 - [x] **Phase 47: KKJ Matrix Manager** — MDAT-01 (complete 2026-02-26)
 - [x] **Phase 48: CPDP Items Manager** — MDAT-02 (complete 2026-02-26)
-- [ ] **Phase 49: Assessment Management Migration** — MDAT-03 (planned)
+- [x] **Phase 49: Assessment Management Migration** — MDAT-03 (planned) (completed 2026-02-27)
 - [ ] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned)
 - [ ] **Phase 51: Proton Track Assignment Manager** — OPER-02 (planned)
 - [ ] **Phase 52: DeliverableProgress Override** — OPER-03 (planned)
@@ -490,7 +490,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
 | 47. KKJ Matrix Manager | v2.3 | 9/9 | Complete | 2026-02-26 |
 | 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 4/4 | Complete | 2026-02-26 |
-| 49. Assessment Management Migration | v2.3 | 4/4 | Complete | 2026-02-27 |
+| 49. Assessment Management Migration | v2.3 | Complete    | 2026-02-27 | 2026-02-27 |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
 | 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
