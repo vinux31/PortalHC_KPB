@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: executing
+last_updated: "2026-02-27T10:22:24.536Z"
+last_activity: "2026-02-27 - Completed Plan 52-02: Sequential lock removal (all deliverables Active on AssignTrack, lock checks removed from Deliverable()/ApproveDeliverable(), 4-status stats/charts, EF migration applied)"
+progress:
+  total_phases: 48
+  completed_phases: 47
+  total_plans: 115
+  completed_plans: 114
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: Ready to discuss/plan
 last_updated: "2026-02-27T10:21:29.813Z"
 last_activity: 2026-02-27 - Phase 51 UAT complete (13/13), Phase 64 synced from terminal-a (2/2 plans complete)
@@ -324,6 +338,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 52-02]: Deliverable() allProgresses+orderedProgresses load removed entirely: isAccessible=true unconditionally eliminates unnecessary DB query
 - [Phase 52-02]: ApproveDeliverable() orderedProgresses load retained: still needed for allApproved check and HC notification trigger
 - [Phase 52-02]: EF migration Down() left empty: cannot reverse data migration that deleted Locked status semantics
+- [Phase 52-01]: statusFilter applied in-memory after loading full scope data — small dataset per unit (10-30 coachees), no performance issue
+- [Phase 52-01]: Badge click uses AJAX OverrideDetail endpoint rather than pre-loading all record data — avoids large data island
 
 ### Roadmap Evolution
 
@@ -361,9 +377,10 @@ None.
 | Phase 51-proton-silabus-coaching-guidance-manager P02 | 3 | 2 tasks | 2 files |
 | Phase 51-proton-silabus-coaching-guidance-manager P03 | 3 | 2 tasks | 4 files |
 | Phase 52-deliverableprogress-override P02 | 2 | 2 tasks | 5 files |
+| Phase 52-deliverableprogress-override P01 | 3 | 2 tasks | 2 files |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 52-02-PLAN.md (Sequential lock removal from Proton deliverable system — all Active on assign, lock checks removed, 4-status charts, EF migration applied). Phase 52 complete (2/2 plans done).
+Stopped at: Completed 52-01-PLAN.md (Override tab: OverrideList/OverrideDetail/OverrideSave endpoints, third Bootstrap tab with per-worker badge grid and override modal in ProtonData/Index.cshtml). Phase 52 Plan 01 complete.
 Resume file: None.
