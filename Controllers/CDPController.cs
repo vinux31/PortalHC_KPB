@@ -1574,6 +1574,92 @@ namespace HcPortal.Controllers
 
         public IActionResult Progress() => RedirectToAction("Index");
 
+        [HttpGet]
+        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        public async Task<IActionResult> GetCoacheeDeliverables(string coacheeId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var roles = await _userManager.GetRolesAsync(user);
+            int userLevel = user.RoleLevel;
+
+            // Access control validation — prevents URL manipulation
+            if (userLevel == 6) // Coachee
+            {
+                // Silently redirect to own data
+                if (coacheeId != user.Id) coacheeId = user.Id;
+            }
+            else if (userLevel == 5) // Coach
+            {
+                var hasAccess = await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == coacheeId && m.IsActive);
+                if (!hasAccess) return Json(new { error = "unauthorized", data = (object?)null });
+            }
+            else if (userLevel == 4) // SrSpv / SectionHead
+            {
+                var coacheeUser = await _context.Users.FindAsync(coacheeId);
+                if (coacheeUser == null || coacheeUser.Section != user.Section)
+                    return Json(new { error = "unauthorized", data = (object?)null });
+            }
+            // Level 1-2 (HC/Admin): allow all
+
+            // Load deliverable progress
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .Where(p => p.CoacheeId == coacheeId)
+                .OrderBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.Urutan)
+                    .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.Urutan)
+                    .ThenBy(p => p.ProtonDeliverable!.Urutan)
+                .ToListAsync();
+
+            // Map to anonymous JSON objects (camelCase for JavaScript)
+            var items = progresses.Select(p => new
+            {
+                id = p.Id,
+                kompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
+                subKompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
+                deliverable = p.ProtonDeliverable?.NamaDeliverable ?? "",
+                evidenceStatus = p.EvidencePath != null ? "Uploaded" : "Pending",
+                approvalSrSpv = p.Status == "Approved" ? "Approved" : p.Status == "Rejected" ? "Rejected" : p.Status == "Submitted" ? "Pending" : "Not Started",
+                approvalSectionHead = p.Status == "Approved" ? "Approved" : p.Status == "Rejected" ? "Rejected" : p.Status == "Submitted" ? "Pending" : "Not Started",
+                approvalHC = p.HCApprovalStatus == "Reviewed" ? "Approved" : "Pending",
+                supervisorComments = p.RejectionReason ?? "",
+                deliverableId = p.ProtonDeliverableId,
+            }).ToList();
+
+            // Compute summary stats
+            int total = progresses.Count;
+            double weightedSum = progresses.Sum(p =>
+                p.Status == "Approved" ? 1.0 :
+                p.Status == "Submitted" ? 0.5 : 0.0);
+            int progressPercent = total > 0 ? (int)(weightedSum / total * 100) : 0;
+            int pendingActions = progresses.Count(p => p.Status == "Active" || p.Status == "Rejected");
+            int pendingApprovals = progresses.Count(p => p.Status == "Submitted");
+
+            // Get track label and coachee name
+            var assignment = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .FirstOrDefaultAsync(a => a.CoacheeId == coacheeId && a.IsActive);
+            string trackLabel = assignment?.ProtonTrack != null
+                ? $"{assignment.ProtonTrack.TrackType} Tahun {assignment.ProtonTrack.TahunKe}"
+                : "";
+
+            var coacheeDbUser = await _context.Users.FindAsync(coacheeId);
+            string coacheeName = coacheeDbUser?.FullName ?? "";
+
+            return Json(new
+            {
+                items,
+                stats = new { progressPercent, pendingActions, pendingApprovals },
+                trackLabel,
+                coacheeName,
+                noTrack = string.IsNullOrEmpty(trackLabel) && total == 0,
+                noProgress = !string.IsNullOrEmpty(trackLabel) && total == 0,
+            });
+        }
+
 
     }
 }
