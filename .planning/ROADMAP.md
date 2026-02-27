@@ -505,7 +505,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 64. Functional Filters | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
-| 67. Dynamic Profile Page | v2.5 | 0/1 | Not started | - |
+| 67. Dynamic Profile Page | 1/1 | Complete   | 2026-02-27 | - |
 | 68. Functional Settings Page | v2.5 | 0/2 | Not started | - |
 | 69. ManageWorkers Migration to Admin | v2.5 | 0/2 | Not started | - |
 | 70. Kelola Data Hub Reorganization | v2.5 | 0/1 | Not started | - |
@@ -573,7 +573,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 
 ### Phases
 
-- [ ] **Phase 67: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned)
+- [x] **Phase 67: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned) (completed 2026-02-27)
 - [ ] **Phase 68: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned)
 - [ ] **Phase 69: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 59
 - [ ] **Phase 70: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 62
@@ -591,7 +591,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   1. Profile page displays real user data: Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate from @Model
   2. Empty/null fields show placeholder "Belum diisi" instead of blank space or error
   3. Avatar initials are dynamically generated from user's FullName (not hardcoded "BS")
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 - [ ] 67-01: Rewrite Profile.cshtml with @Model binding, null-safe display, dynamic initials
 
 ### Phase 68: Functional Settings Page

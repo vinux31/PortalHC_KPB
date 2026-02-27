@@ -262,9 +262,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 52 — DeliverableProgress Override (Plan 02 complete, Phase complete)
+**Phase:** Phase 67 — Dynamic Profile Page (Plan 01 complete)
 **Status:** Ready to plan
-**Last activity:** 2026-02-27 - Completed Plan 52-02: Sequential lock removal (all deliverables Active on AssignTrack, lock checks removed from Deliverable()/ApproveDeliverable(), 4-status stats/charts, EF migration applied)
+**Last activity:** 2026-02-27 - Completed Plan 67-01: Profile.cshtml rewritten with @model ApplicationUser, two-section layout (Identitas+Organisasi), null-safe em dash fallback, dynamic avatar initials
 
 Progress: [████████░░░░░░░░░░░░] 42% (v2.3 — 6/12 phases complete, v2.4 — 2/8 phases complete)
 
@@ -355,6 +355,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 52-01]: statusFilter applied in-memory after loading full scope data — small dataset per unit (10-30 coachees), no performance issue
 - [Phase 52-01]: Badge click uses AJAX OverrideDetail endpoint rather than pre-loading all record data — avoids large data island
 
+**Phase 67-01 decisions:**
+- string.IsNullOrEmpty() used for ALL fields — FullName defaults to string.Empty (never null but may be empty), so ?? alone would NOT catch it
+- Role display: userRole variable with special case — if "No Role", show em dash (consistent with controller fallback behavior)
+- Profile header subtitle shows Position with italic muted fallback text (not em dash) to visually distinguish header area from field rows
+- No cards per CONTEXT locked decisions — flat col-md-8 container with border-bottom header divider and hr between sections
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -396,5 +402,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 52-01-PLAN.md (Override tab: OverrideList/OverrideDetail/OverrideSave endpoints, third Bootstrap tab with per-worker badge grid and override modal in ProtonData/Index.cshtml). Phase 52 Plan 01 complete.
+Stopped at: Completed 67-01-PLAN.md (Profile.cshtml rewritten with @model ApplicationUser, two-section Identitas+Organisasi layout, null-safe em dash, dynamic avatar initials). Phase 67 Plan 01 complete.
 Resume file: None.

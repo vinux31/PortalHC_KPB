@@ -61,9 +61,9 @@
 
 ### PROF — Profile & Settings
 
-- [ ] **PROF-01**: Profile page menampilkan data real user login (Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate)
-- [ ] **PROF-02**: Field kosong menampilkan placeholder "Belum diisi", bukan blank/error
-- [ ] **PROF-03**: Avatar initials dinamis dari FullName user (bukan hardcoded "BS")
+- [x] **PROF-01**: Profile page menampilkan data real user login (Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate)
+- [x] **PROF-02**: Field kosong menampilkan placeholder "Belum diisi", bukan blank/error
+- [x] **PROF-03**: Avatar initials dinamis dari FullName user (bukan hardcoded "BS")
 - [ ] **PROF-04**: Settings page: Change Password functional via ChangePasswordAsync
 - [ ] **PROF-05**: Settings page: User bisa edit FullName dan Position; NIP/Email/Role/Section read-only
 - [ ] **PROF-06**: Item non-functional (2FA, Notifications, Language) dihapus atau di-mark "Belum Tersedia" disabled
@@ -139,9 +139,9 @@
 | UI-02   | Phase 66 | Pending |
 | UI-03   | Phase 64 | Pending |
 | UI-04   | Phase 66 | Pending |
-| PROF-01 | Phase 67 | Pending |
-| PROF-02 | Phase 67 | Pending |
-| PROF-03 | Phase 67 | Pending |
+| PROF-01 | Phase 67 | Complete |
+| PROF-02 | Phase 67 | Complete |
+| PROF-03 | Phase 67 | Complete |
 | PROF-04 | Phase 68 | Pending |
 | PROF-05 | Phase 68 | Pending |
 | PROF-06 | Phase 68 | Pending |
