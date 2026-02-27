@@ -240,6 +240,94 @@ namespace HcPortal.Controllers
             return Json(new { success = true });
         }
 
+        // GET /Admin/ManageAssessment
+        [HttpGet]
+        public async Task<IActionResult> ManageAssessment(string? search, int page = 1, int pageSize = 20)
+        {
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+            var managementQuery = _context.AssessmentSessions
+                .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var lowerSearch = search.ToLower();
+                managementQuery = managementQuery.Where(a =>
+                    a.Title.ToLower().Contains(lowerSearch) ||
+                    a.Category.ToLower().Contains(lowerSearch) ||
+                    (a.User != null && (
+                        a.User.FullName.ToLower().Contains(lowerSearch) ||
+                        (a.User.NIP != null && a.User.NIP.Contains(lowerSearch))
+                    ))
+                );
+            }
+
+            var allSessions = await managementQuery
+                .Include(a => a.User)
+                .OrderByDescending(a => a.Schedule)
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Title,
+                    a.Category,
+                    a.Schedule,
+                    a.ExamWindowCloseDate,
+                    a.DurationMinutes,
+                    a.Status,
+                    a.IsTokenRequired,
+                    a.AccessToken,
+                    a.PassPercentage,
+                    a.AllowAnswerReview,
+                    a.CreatedAt,
+                    UserFullName = a.User != null ? a.User.FullName : "Unknown",
+                    UserEmail = a.User != null ? a.User.Email : "",
+                    UserId = a.User != null ? a.User.Id : ""
+                })
+                .ToListAsync();
+
+            // Group by (Title, Category, Schedule.Date) — identical to CMPController manage branch
+            var grouped = allSessions
+                .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
+                .Select(g =>
+                {
+                    var rep = g.OrderBy(a => a.CreatedAt).First();
+                    return new
+                    {
+                        rep.Title,
+                        rep.Category,
+                        rep.Schedule,
+                        rep.ExamWindowCloseDate,
+                        rep.DurationMinutes,
+                        rep.Status,
+                        rep.IsTokenRequired,
+                        rep.AccessToken,
+                        rep.PassPercentage,
+                        rep.AllowAnswerReview,
+                        RepresentativeId = rep.Id,
+                        Users = g.Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList(),
+                        AllIds = g.Select(a => a.Id).ToList(),
+                        UserCount = g.Count()
+                    };
+                })
+                .OrderByDescending(g => g.Schedule)
+                .ToList();
+
+            var totalCount = grouped.Count;
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            ViewBag.ManagementData = grouped
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            ViewBag.SearchTerm = search;
+
+            return View();
+        }
+
         // GET /Admin/CpdpItems
         public async Task<IActionResult> CpdpItems()
         {
