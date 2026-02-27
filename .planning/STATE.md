@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-27T00:53:14.017Z"
+last_updated: "2026-02-27T01:53:54.921Z"
 last_activity: "2026-02-27 - Completed Plan 49-04: AuditLog migrated to Admin, CMPController cleaned (16 manage actions removed), CMP/Assessment stripped to personal-only, CMP/Index cards updated"
 progress:
   total_phases: 43
   completed_phases: 42
-  total_plans: 103
-  completed_plans: 102
+  total_plans: 104
+  completed_plans: 103
 ---
 
 ---
@@ -150,9 +150,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 49 — Assessment Management Migration (Complete, 4/4 plans done)
+**Phase:** Phase 49 — Assessment Management Migration (Complete, 5/5 plans done)
 **Status:** Milestone complete
-**Last activity:** 2026-02-27 - Completed Plan 49-04: AuditLog migrated to Admin, CMPController cleaned (16 manage actions removed), CMP/Assessment stripped to personal-only, CMP/Index cards updated
+**Last activity:** 2026-02-27 - Completed Plan 49-05: UAT gap closure (JSON island modal, composite key migration for 4 group actions, UserAssessmentHistory links, token guard)
 
 Progress: [█████░░░░░░░░░░░░░░░] 25% (v2.3 — 3/12 phases complete)
 
@@ -216,6 +216,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - IMemoryCache injected into AdminController constructor for CloseEarly cache invalidation
 - BuildCrossPackageAssignment + Shuffle helper methods duplicated in AdminController (same approach as GenerateSecureToken from Plan 02)
 - GetMonitorData endpoint kept in CMPController (not in removal list, still used indirectly)
+- [Phase 49-05]: JSON island pattern (script type=application/json) used for success modal data to avoid quote conflicts in JS string literals
+- [Phase 49-05]: AssessmentMonitoringDetail, ExportAssessmentResults, ForceCloseAll, CloseEarly now accept composite key (title, category, scheduleDate) — resilient to deleted representative sessions
 
 ### Roadmap Evolution
 
@@ -248,6 +250,7 @@ None.
 | Phase 48-cpdp-items-manager P03 | 10 | 2 tasks | 2 files |
 | Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
 | Phase 49-assessment-management-migration P04 | 15 | 3 tasks | 5 files |
+| Phase 49-assessment-management-migration P05 | 3 | 2 tasks | 4 files |
 
 ## Session Continuity
 

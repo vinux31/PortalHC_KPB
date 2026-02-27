@@ -343,7 +343,7 @@ Plans:
   4. Card 'Assessment Competency Map' in Admin/Index replaced with 'Manage Assessments' linking to /Admin/ManageAssessment
   5. Card 'Manage Assessments' removed from CMP Index, card 'Assessment Lobby' renamed to 'My Assessments'
   6. All manage-related actions removed from CMPController, AuditLog removed from CMPController
-**Plans:** 5 plans (4 + 1 gap closure)
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 49-01-PLAN.md — AdminController ManageAssessment GET + ManageAssessment.cshtml + Admin/Index card update
@@ -491,7 +491,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
 | 47. KKJ Matrix Manager | v2.3 | 9/9 | Complete | 2026-02-26 |
 | 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 4/4 | Complete | 2026-02-26 |
-| 49. Assessment Management Migration | v2.3 | 4/5 | In Progress | - |
+| 49. Assessment Management Migration | 5/5 | Complete   | 2026-02-27 | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
 | 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
