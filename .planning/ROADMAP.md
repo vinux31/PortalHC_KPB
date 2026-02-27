@@ -503,7 +503,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 60. Konsolidasi Proton Catalog | v2.3 | 0/? | Not started | - |
 | 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |
-| 63. Data Source Fix | 2/2 | Complete   | 2026-02-27 | - |
+| 63. Data Source Fix | 2/2 | Complete    | 2026-02-27 | - |
 | 64. Functional Filters | v2.4 | 0/? | Not started | - |
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
