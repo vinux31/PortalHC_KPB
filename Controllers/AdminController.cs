@@ -640,7 +640,7 @@ namespace HcPortal.Controllers
                     await transaction.CommitAsync();
 
                     // Audit log
-                    var actorName = $"{currentUser?.NIP ?? "?"} - {currentUser?.FullName ?? "Unknown"}";
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
                     await _auditLog.LogAsync(
                         currentUser?.Id ?? "",
                         actorName,
@@ -703,7 +703,7 @@ namespace HcPortal.Controllers
                 Sessions = createdSessions
             });
 
-            return RedirectToAction("ManageAssessment");
+            return RedirectToAction("CreateAssessment");
         }
 
         // --- EDIT ASSESSMENT ---
@@ -821,7 +821,7 @@ namespace HcPortal.Controllers
 
             // Fetch actor info before try block so it is available for both edit and bulk-assign audit calls
             var editUser = await _userManager.GetUserAsync(User);
-            var editActorName = $"{editUser?.NIP ?? "?"} - {editUser?.FullName ?? "Unknown"}";
+            var editActorName = string.IsNullOrWhiteSpace(editUser?.NIP) ? (editUser?.FullName ?? "Unknown") : $"{editUser.NIP} - {editUser.FullName}";
 
             try
             {
@@ -963,7 +963,8 @@ namespace HcPortal.Controllers
                 if (assessment == null)
                 {
                     logger.LogWarning($"Delete attempt failed: Assessment {id} not found");
-                    return Json(new { success = false, message = "Assessment not found." });
+                    TempData["Error"] = "Assessment not found.";
+                    return RedirectToAction("ManageAssessment");
                 }
 
                 var assessmentTitle = assessment.Title;
@@ -1001,7 +1002,7 @@ namespace HcPortal.Controllers
                 try
                 {
                     var deleteUser = await _userManager.GetUserAsync(User);
-                    var deleteActorName = $"{deleteUser?.NIP ?? "?"} - {deleteUser?.FullName ?? "Unknown"}";
+                    var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
                     await _auditLog.LogAsync(
                         deleteUser?.Id ?? "",
                         deleteActorName,
@@ -1016,12 +1017,14 @@ namespace HcPortal.Controllers
                 }
 
                 logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle}");
-                return Json(new { success = true, message = $"Assessment '{assessmentTitle}' has been deleted successfully." });
+                TempData["Success"] = $"Assessment '{assessmentTitle}' has been deleted successfully.";
+                return RedirectToAction("ManageAssessment");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"Error deleting assessment {id}: {ex.Message}");
-                return Json(new { success = false, message = $"Failed to delete assessment: {ex.Message}" });
+                TempData["Error"] = $"Failed to delete assessment: {ex.Message}";
+                return RedirectToAction("ManageAssessment");
             }
         }
 
@@ -1041,7 +1044,8 @@ namespace HcPortal.Controllers
                 if (rep == null)
                 {
                     logger.LogWarning($"DeleteAssessmentGroup: representative session {representativeId} not found");
-                    return Json(new { success = false, message = "Assessment not found." });
+                    TempData["Error"] = "Assessment not found.";
+                    return RedirectToAction("ManageAssessment");
                 }
 
                 var scheduleDate = rep.Schedule.Date;
@@ -1080,7 +1084,7 @@ namespace HcPortal.Controllers
                 try
                 {
                     var dgUser = await _userManager.GetUserAsync(User);
-                    var dgActorName = $"{dgUser?.NIP ?? "?"} - {dgUser?.FullName ?? "Unknown"}";
+                    var dgActorName = string.IsNullOrWhiteSpace(dgUser?.NIP) ? (dgUser?.FullName ?? "Unknown") : $"{dgUser.NIP} - {dgUser.FullName}";
                     await _auditLog.LogAsync(
                         dgUser?.Id ?? "",
                         dgActorName,
@@ -1095,12 +1099,14 @@ namespace HcPortal.Controllers
                 }
 
                 logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}'");
-                return Json(new { success = true, message = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted." });
+                TempData["Success"] = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted.";
+                return RedirectToAction("ManageAssessment");
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, $"DeleteAssessmentGroup error for representative {representativeId}: {ex.Message}");
-                return Json(new { success = false, message = $"Failed to delete assessment group: {ex.Message}" });
+                TempData["Error"] = $"Failed to delete assessment group: {ex.Message}";
+                return RedirectToAction("ManageAssessment");
             }
         }
 
@@ -1216,13 +1222,20 @@ namespace HcPortal.Controllers
 
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
-        public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> AssessmentMonitoringDetail(int id)
         {
+            var rep = await _context.AssessmentSessions.FindAsync(id);
+            if (rep == null)
+            {
+                TempData["Error"] = "Assessment group not found.";
+                return RedirectToAction("ManageAssessment");
+            }
+
             var sessions = await _context.AssessmentSessions
                 .Include(a => a.User)
-                .Where(a => a.Title == title
-                         && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date)
+                .Where(a => a.Title == rep.Title
+                         && a.Category == rep.Category
+                         && a.Schedule.Date == rep.Schedule.Date)
                 .ToListAsync();
 
             if (!sessions.Any())
@@ -1294,8 +1307,9 @@ namespace HcPortal.Controllers
 
             var model = new MonitoringGroupViewModel
             {
-                Title    = title,
-                Category = category,
+                RepresentativeId = rep.Id,
+                Title    = rep.Title,
+                Category = rep.Category,
                 Schedule = sessions.First().Schedule,
                 Sessions = sessionViewModels,
                 TotalCount     = sessionViewModels.Count,
@@ -1420,12 +1434,7 @@ namespace HcPortal.Controllers
             if (assessment.Status != "Open" && assessment.Status != "InProgress" && assessment.Status != "Completed" && assessment.Status != "Abandoned")
             {
                 TempData["Error"] = "Status sesi tidak valid untuk direset.";
-                return RedirectToAction("AssessmentMonitoringDetail", new
-                {
-                    title = assessment.Title,
-                    category = assessment.Category,
-                    scheduleDate = assessment.Schedule
-                });
+                return RedirectToAction("AssessmentMonitoringDetail", new { id });
             }
 
             // Phase 46: Archive attempt data if session was Completed
@@ -1487,7 +1496,7 @@ namespace HcPortal.Controllers
 
             // Audit log
             var rsUser = await _userManager.GetUserAsync(User);
-            var rsActorName = $"{rsUser?.NIP ?? "?"} - {rsUser?.FullName ?? "Unknown"}";
+            var rsActorName = string.IsNullOrWhiteSpace(rsUser?.NIP) ? (rsUser?.FullName ?? "Unknown") : $"{rsUser.NIP} - {rsUser.FullName}";
             await _auditLog.LogAsync(
                 rsUser?.Id ?? "",
                 rsActorName,
@@ -1497,12 +1506,7 @@ namespace HcPortal.Controllers
                 "AssessmentSession");
 
             TempData["Success"] = "Sesi ujian telah direset. Peserta dapat mengikuti ujian kembali.";
-            return RedirectToAction("AssessmentMonitoringDetail", new
-            {
-                title = assessment.Title,
-                category = assessment.Category,
-                scheduleDate = assessment.Schedule
-            });
+            return RedirectToAction("AssessmentMonitoringDetail", new { id });
         }
 
         // --- FORCE CLOSE ASSESSMENT ---
@@ -1519,12 +1523,7 @@ namespace HcPortal.Controllers
             if (assessment.Status != "Open" && assessment.Status != "InProgress")
             {
                 TempData["Error"] = "Force Close hanya dapat dilakukan pada sesi yang berstatus Open atau InProgress.";
-                return RedirectToAction("AssessmentMonitoringDetail", new
-                {
-                    title = assessment.Title,
-                    category = assessment.Category,
-                    scheduleDate = assessment.Schedule
-                });
+                return RedirectToAction("AssessmentMonitoringDetail", new { id });
             }
 
             // Mark as Completed with system score of 0
@@ -1539,7 +1538,7 @@ namespace HcPortal.Controllers
 
             // Audit log
             var fcUser = await _userManager.GetUserAsync(User);
-            var fcActorName = $"{fcUser?.NIP ?? "?"} - {fcUser?.FullName ?? "Unknown"}";
+            var fcActorName = string.IsNullOrWhiteSpace(fcUser?.NIP) ? (fcUser?.FullName ?? "Unknown") : $"{fcUser.NIP} - {fcUser.FullName}";
             await _auditLog.LogAsync(
                 fcUser?.Id ?? "",
                 fcActorName,
@@ -1549,31 +1548,29 @@ namespace HcPortal.Controllers
                 "AssessmentSession");
 
             TempData["Success"] = "Sesi ujian telah ditutup paksa oleh sistem dengan skor 0.";
-            return RedirectToAction("AssessmentMonitoringDetail", new
-            {
-                title = assessment.Title,
-                category = assessment.Category,
-                scheduleDate = assessment.Schedule
-            });
+            return RedirectToAction("AssessmentMonitoringDetail", new { id });
         }
 
         // --- FORCE CLOSE ALL SESSIONS IN GROUP ---
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForceCloseAll(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> ForceCloseAll(int id)
         {
+            var rep = await _context.AssessmentSessions.FindAsync(id);
+            if (rep == null) return NotFound();
+
             // Find all Open or InProgress sessions in this assessment group
             var sessionsToClose = await _context.AssessmentSessions
-                .Where(a => a.Title == title
-                         && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date
+                .Where(a => a.Title == rep.Title
+                         && a.Category == rep.Category
+                         && a.Schedule.Date == rep.Schedule.Date
                          && (a.Status == "Open" || a.Status == "InProgress"))
                 .ToListAsync();
 
             if (!sessionsToClose.Any())
             {
                 TempData["Error"] = "No Open or InProgress sessions to close.";
-                return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+                return RedirectToAction("AssessmentMonitoringDetail", new { id });
             }
 
             // Bulk-transition to Abandoned (session period ended -- no score recorded)
@@ -1587,29 +1584,36 @@ namespace HcPortal.Controllers
 
             // Audit log -- one summary entry for the bulk action (AuditLogService saves immediately)
             var actor = await _userManager.GetUserAsync(User);
-            var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+            var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
             await _auditLog.LogAsync(
                 actor?.Id ?? "",
                 actorName,
                 "ForceCloseAll",
-                $"Force-closed all Open/InProgress sessions for '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) -- {sessionsToClose.Count} session(s) closed",
+                $"Force-closed all Open/InProgress sessions for '{rep.Title}' (Category: {rep.Category}, Date: {rep.Schedule:yyyy-MM-dd}) -- {sessionsToClose.Count} session(s) closed",
                 null,
                 "AssessmentSession");
 
             TempData["Success"] = $"Berhasil menutup {sessionsToClose.Count} sesi ujian.";
-            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+            return RedirectToAction("AssessmentMonitoringDetail", new { id });
         }
 
         // --- EXPORT ASSESSMENT RESULTS ---
         [HttpGet]
-        public async Task<IActionResult> ExportAssessmentResults(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> ExportAssessmentResults(int id)
         {
+            var rep = await _context.AssessmentSessions.FindAsync(id);
+            if (rep == null)
+            {
+                TempData["Error"] = "No sessions found for this assessment group.";
+                return RedirectToAction("ManageAssessment");
+            }
+
             // Query all sessions in this group (all workers assigned, regardless of completion status)
             var sessions = await _context.AssessmentSessions
                 .Include(a => a.User)
-                .Where(a => a.Title == title
-                         && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date)
+                .Where(a => a.Title == rep.Title
+                         && a.Category == rep.Category
+                         && a.Schedule.Date == rep.Schedule.Date)
                 .ToListAsync();
 
             if (!sessions.Any())
@@ -1722,8 +1726,8 @@ namespace HcPortal.Controllers
             workbook.SaveAs(stream);
             var content = stream.ToArray();
             // Sanitize title for filename: replace non-alphanumeric with _
-            var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
-            var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Results.xlsx";
+            var safeTitle = System.Text.RegularExpressions.Regex.Replace(rep.Title, @"[^\w]", "_");
+            var fileName = $"{safeTitle}_{rep.Schedule:yyyyMMdd}_Results.xlsx";
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
@@ -1811,19 +1815,26 @@ namespace HcPortal.Controllers
         // POST /Admin/CloseEarly — score InProgress sessions from submitted answers, lock all
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CloseEarly(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> CloseEarly(int id)
         {
+            var rep = await _context.AssessmentSessions.FindAsync(id);
+            if (rep == null)
+            {
+                TempData["Error"] = "Assessment group not found.";
+                return RedirectToAction("ManageAssessment");
+            }
+
             // Step 1 — Load all sibling sessions
             var allSessions = await _context.AssessmentSessions
-                .Where(a => a.Title == title
-                         && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date)
+                .Where(a => a.Title == rep.Title
+                         && a.Category == rep.Category
+                         && a.Schedule.Date == rep.Schedule.Date)
                 .ToListAsync();
 
             if (!allSessions.Any())
             {
                 TempData["Error"] = "Assessment group not found.";
-                return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+                return RedirectToAction("AssessmentMonitoringDetail", new { id });
             }
 
             // Step 2 — Detect package mode
@@ -2038,17 +2049,17 @@ namespace HcPortal.Controllers
                 _cache.Remove($"exam-status-{s.Id}");
 
             var actor = await _userManager.GetUserAsync(User);
-            var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+            var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
             await _auditLog.LogAsync(
                 actor?.Id ?? "",
                 actorName,
                 "CloseEarly",
-                $"Closed early assessment group '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) — {inProgressCount} session(s) scored from answers, {allSessions.Count} total session(s) locked",
+                $"Closed early assessment group '{rep.Title}' (Category: {rep.Category}, Date: {rep.Schedule:yyyy-MM-dd}) — {inProgressCount} session(s) scored from answers, {allSessions.Count} total session(s) locked",
                 null,
                 "AssessmentSession");
 
             TempData["Success"] = $"Assessment group ditutup lebih awal. {inProgressCount} sesi diberi skor berdasarkan jawaban yang sudah dikerjakan.";
-            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+            return RedirectToAction("AssessmentMonitoringDetail", new { id });
         }
 
         // POST /Admin/ReshufflePackage — reshuffle package for single worker
@@ -2117,7 +2128,7 @@ namespace HcPortal.Controllers
             try
             {
                 var hcUser = await _userManager.GetUserAsync(User);
-                var actorNameStr = $"{hcUser?.NIP ?? "?"} - {hcUser?.FullName ?? "Unknown"}";
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
                 await _auditLog.LogAsync(
                     hcUser?.Id ?? "",
                     actorNameStr,
@@ -2213,7 +2224,7 @@ namespace HcPortal.Controllers
             try
             {
                 var hcUser = await _userManager.GetUserAsync(User);
-                var actorNameStr = $"{hcUser?.NIP ?? "?"} - {hcUser?.FullName ?? "Unknown"}";
+                var actorNameStr = string.IsNullOrWhiteSpace(hcUser?.NIP) ? (hcUser?.FullName ?? "Unknown") : $"{hcUser.NIP} - {hcUser.FullName}";
                 await _auditLog.LogAsync(
                     hcUser?.Id ?? "",
                     actorNameStr,

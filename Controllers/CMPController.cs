@@ -2316,7 +2316,7 @@ namespace HcPortal.Controllers
             try
             {
                 var delUser = await _userManager.GetUserAsync(User);
-                var delActorName = $"{delUser?.NIP ?? "?"} - {delUser?.FullName ?? "Unknown"}";
+                var delActorName = string.IsNullOrWhiteSpace(delUser?.NIP) ? (delUser?.FullName ?? "Unknown") : $"{delUser.NIP} - {delUser.FullName}";
                 await _auditLog.LogAsync(
                     delUser?.Id ?? "",
                     delActorName,
@@ -2887,7 +2887,7 @@ namespace HcPortal.Controllers
                 try
                 {
                     var actor = await _userManager.GetUserAsync(User);
-                    var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+                    var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
                     await _auditLog.LogAsync(
                         actor?.Id ?? "",
                         actorName,
@@ -3049,7 +3049,7 @@ namespace HcPortal.Controllers
             try
             {
                 var actor = await _userManager.GetUserAsync(User);
-                var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+                var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
                 await _auditLog.LogAsync(
                     actor?.Id ?? "",
                     actorName,
@@ -3178,7 +3178,7 @@ namespace HcPortal.Controllers
                 // Audit log
                 try
                 {
-                    var actorName = $"{currentUser.NIP ?? "?"} - {currentUser.FullName}";
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
                     await _auditLog.LogAsync(
                         currentUser.Id,
                         actorName,
@@ -3451,7 +3451,7 @@ namespace HcPortal.Controllers
             try
             {
                 var actor = await _userManager.GetUserAsync(User);
-                var actorName = $"{actor?.NIP ?? "?"} - {actor?.FullName ?? "Unknown"}";
+                var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
                 var successCount = results.Count(r => r.Status == "Success");
                 await _auditLog.LogAsync(actor?.Id ?? "", actorName, "ImportWorkers",
                     $"Bulk import: {successCount} berhasil, {results.Count(r => r.Status == "Error")} error, {results.Count(r => r.Status == "Skip")} dilewati",

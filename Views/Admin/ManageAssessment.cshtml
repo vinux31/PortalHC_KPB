@@ -9,6 +9,8 @@
     var searchTerm = ViewBag.SearchTerm as string;
 }
 
+@Html.AntiForgeryToken()
+
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
@@ -89,7 +91,7 @@ else
 {
     <!-- Assessment Table -->
     <div class="card shadow-sm border-0">
-        <div class="table-responsive">
+        <div class="table-responsive" style="min-height: calc(100vh - 280px);">
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
@@ -168,17 +170,21 @@ else
                                         </li>
                                         <li>
                                             <a class="dropdown-item" asp-action="AssessmentMonitoringDetail" asp-controller="Admin"
-                                               asp-route-title="@group.Title" asp-route-category="@group.Category"
-                                               asp-route-scheduleDate="@((DateTime)group.Schedule).ToString("yyyy-MM-dd")">
+                                               asp-route-id="@group.RepresentativeId">
                                                 <i class="bi bi-binoculars me-2"></i>Monitoring
                                             </a>
                                         </li>
                                         <li>
                                             <a class="dropdown-item" asp-action="ExportAssessmentResults" asp-controller="Admin"
-                                               asp-route-title="@group.Title" asp-route-category="@group.Category"
-                                               asp-route-scheduleDate="@((DateTime)group.Schedule).ToString("yyyy-MM-dd")">
+                                               asp-route-id="@group.RepresentativeId">
                                                 <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
                                             </a>
+                                        </li>
+                                        <li>
+                                            <button type="button" class="dropdown-item text-warning btn-regenerate-token"
+                                                    data-id="@group.RepresentativeId">
+                                                <i class="bi bi-arrow-repeat me-2"></i>Regenerate Token
+                                            </button>
                                         </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
@@ -248,4 +254,31 @@ else
             </div>
         </nav>
     }
+}
+
+@section Scripts {
+<script>
+document.querySelectorAll('.btn-regenerate-token').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const id = this.dataset.id;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            || document.querySelector('[name="__RequestVerificationToken"]')?.value;
+        try {
+            const res = await fetch(`/Admin/RegenerateToken/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: '__RequestVerificationToken=' + encodeURIComponent(token)
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Token baru: ' + data.token);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            alert('Gagal regenerate token.');
+        }
+    });
+});
+</script>
 }

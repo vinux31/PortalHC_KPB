@@ -2,6 +2,7 @@ namespace HcPortal.Models
 {
     public class MonitoringGroupViewModel
     {
+        public int RepresentativeId { get; set; }
         public string Title { get; set; } = "";
         public string Category { get; set; } = "";
         public DateTime Schedule { get; set; }          // representative Schedule (with time)
