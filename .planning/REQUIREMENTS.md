@@ -66,7 +66,7 @@
 - [x] **PROF-03**: Avatar initials dinamis dari FullName user (bukan hardcoded "BS")
 - [x] **PROF-04**: Settings page: Change Password functional via ChangePasswordAsync
 - [x] **PROF-05**: Settings page: User bisa edit FullName dan Position; NIP/Email/Role/Section read-only
-- [ ] **PROF-06**: Item non-functional (2FA, Notifications, Language) dihapus atau di-mark "Belum Tersedia" disabled
+- [x] **PROF-06**: Item non-functional (2FA, Notifications, Language) dihapus atau di-mark "Belum Tersedia" disabled
 
 ### AUTH — Authentication
 
@@ -144,7 +144,7 @@
 | PROF-03 | Phase 67 | Complete |
 | PROF-04 | Phase 68 | Complete |
 | PROF-05 | Phase 68 | Complete |
-| PROF-06 | Phase 68 | Pending |
+| PROF-06 | Phase 68 | Complete |
 | AUTH-01 | Phase 71 | Pending |
 | AUTH-02 | Phase 71 | Pending |
 | AUTH-03 | Phase 71 | Pending |

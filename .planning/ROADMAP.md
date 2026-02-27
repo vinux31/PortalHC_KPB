@@ -506,7 +506,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
 | 67. Dynamic Profile Page | 1/1 | Complete    | 2026-02-27 | - |
-| 68. Functional Settings Page | 1/2 | In Progress|  | - |
+| 68. Functional Settings Page | 2/2 | Complete   | 2026-02-27 | - |
 | 69. ManageWorkers Migration to Admin | v2.5 | 0/2 | Not started | - |
 | 70. Kelola Data Hub Reorganization | v2.5 | 0/1 | Not started | - |
 | 71. LDAP Auth Service Foundation | v2.5 | 0/2 | Not started | - |
@@ -574,7 +574,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 ### Phases
 
 - [x] **Phase 67: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned) (completed 2026-02-27)
-- [ ] **Phase 68: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned)
+- [x] **Phase 68: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned) (completed 2026-02-27)
 - [ ] **Phase 69: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 59
 - [ ] **Phase 70: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 62
 - [ ] **Phase 71: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned)
@@ -602,7 +602,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   1. User can change password via ChangePasswordAsync with current/new/confirm fields and validation
   2. User can edit FullName and Position fields; NIP, Email, Role, Section are displayed read-only
   3. Non-functional items (2FA, Notifications, Language) are either removed or displayed as "Belum Tersedia" with disabled state
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 - [ ] 68-01: Backend — ChangePasswordViewModel, EditProfileViewModel, AccountController POST actions
 - [ ] 68-02: Frontend — Rewrite Settings.cshtml, 2 form sections, remove/disable placeholder items
 
