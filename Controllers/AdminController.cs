@@ -850,6 +850,200 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageAssessment");
         }
 
+        // --- DELETE ASSESSMENT ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssessment(int id)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+
+            try
+            {
+                var assessment = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Include(a => a.Responses)
+                    .FirstOrDefaultAsync(a => a.Id == id);
+
+                if (assessment == null)
+                {
+                    logger.LogWarning($"Delete attempt failed: Assessment {id} not found");
+                    return Json(new { success = false, message = "Assessment not found." });
+                }
+
+                var assessmentTitle = assessment.Title;
+                logger.LogInformation($"Attempting to delete assessment {id}: {assessmentTitle}");
+
+                // Delete in correct order to avoid FK constraint violations
+                // 1. Delete UserResponses first
+                if (assessment.Responses.Any())
+                {
+                    logger.LogInformation($"Deleting {assessment.Responses.Count} user responses");
+                    _context.UserResponses.RemoveRange(assessment.Responses);
+                }
+
+                // 2. Delete Options (child of Questions)
+                if (assessment.Questions.Any())
+                {
+                    var allOptions = assessment.Questions.SelectMany(q => q.Options).ToList();
+                    if (allOptions.Any())
+                    {
+                        logger.LogInformation($"Deleting {allOptions.Count} question options");
+                        _context.AssessmentOptions.RemoveRange(allOptions);
+                    }
+
+                    // 3. Delete Questions
+                    logger.LogInformation($"Deleting {assessment.Questions.Count} questions");
+                    _context.AssessmentQuestions.RemoveRange(assessment.Questions);
+                }
+
+                // 4. Finally delete the assessment itself
+                _context.AssessmentSessions.Remove(assessment);
+
+                await _context.SaveChangesAsync();
+
+                // Audit log
+                try
+                {
+                    var deleteUser = await _userManager.GetUserAsync(User);
+                    var deleteActorName = $"{deleteUser?.NIP ?? "?"} - {deleteUser?.FullName ?? "Unknown"}";
+                    await _auditLog.LogAsync(
+                        deleteUser?.Id ?? "",
+                        deleteActorName,
+                        "DeleteAssessment",
+                        $"Deleted assessment '{assessmentTitle}' [ID={id}]",
+                        id,
+                        "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessment {Id}", id);
+                }
+
+                logger.LogInformation($"Successfully deleted assessment {id}: {assessmentTitle}");
+                return Json(new { success = true, message = $"Assessment '{assessmentTitle}' has been deleted successfully." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error deleting assessment {id}: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to delete assessment: {ex.Message}" });
+            }
+        }
+
+        // --- DELETE ASSESSMENT GROUP ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAssessmentGroup(int representativeId)
+        {
+            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+
+            try
+            {
+                // Load representative to get grouping key
+                var rep = await _context.AssessmentSessions
+                    .FirstOrDefaultAsync(a => a.Id == representativeId);
+
+                if (rep == null)
+                {
+                    logger.LogWarning($"DeleteAssessmentGroup: representative session {representativeId} not found");
+                    return Json(new { success = false, message = "Assessment not found." });
+                }
+
+                var scheduleDate = rep.Schedule.Date;
+
+                // Find all siblings (same Title + Category + Schedule.Date)
+                var siblings = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Include(a => a.Responses)
+                    .Where(a =>
+                        a.Title == rep.Title &&
+                        a.Category == rep.Category &&
+                        a.Schedule.Date == scheduleDate)
+                    .ToListAsync();
+
+                logger.LogInformation($"DeleteAssessmentGroup: deleting {siblings.Count} sessions for '{rep.Title}'");
+
+                foreach (var session in siblings)
+                {
+                    if (session.Responses.Any())
+                        _context.UserResponses.RemoveRange(session.Responses);
+
+                    if (session.Questions.Any())
+                    {
+                        var opts = session.Questions.SelectMany(q => q.Options).ToList();
+                        if (opts.Any()) _context.AssessmentOptions.RemoveRange(opts);
+                        _context.AssessmentQuestions.RemoveRange(session.Questions);
+                    }
+
+                    _context.AssessmentSessions.Remove(session);
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Audit log
+                try
+                {
+                    var dgUser = await _userManager.GetUserAsync(User);
+                    var dgActorName = $"{dgUser?.NIP ?? "?"} - {dgUser?.FullName ?? "Unknown"}";
+                    await _auditLog.LogAsync(
+                        dgUser?.Id ?? "",
+                        dgActorName,
+                        "DeleteAssessmentGroup",
+                        $"Deleted assessment group '{rep.Title}' ({rep.Category}) — {siblings.Count} session(s)",
+                        representativeId,
+                        "AssessmentSession");
+                }
+                catch (Exception auditEx)
+                {
+                    logger.LogWarning(auditEx, "Audit log write failed for DeleteAssessmentGroup {Id}", representativeId);
+                }
+
+                logger.LogInformation($"DeleteAssessmentGroup: successfully deleted group '{rep.Title}'");
+                return Json(new { success = true, message = $"Assessment '{rep.Title}' and all {siblings.Count} assignment(s) deleted." });
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"DeleteAssessmentGroup error for representative {representativeId}: {ex.Message}");
+                return Json(new { success = false, message = $"Failed to delete assessment group: {ex.Message}" });
+            }
+        }
+
+        // --- REGENERATE TOKEN ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegenerateToken(int id)
+        {
+            var assessment = await _context.AssessmentSessions.FindAsync(id);
+            if (assessment == null)
+            {
+                return Json(new { success = false, message = "Assessment not found." });
+            }
+
+            if (!assessment.IsTokenRequired)
+            {
+                return Json(new { success = false, message = "This assessment does not require a token." });
+            }
+
+            try
+            {
+                // Generate new token
+                assessment.AccessToken = GenerateSecureToken();
+                assessment.UpdatedAt = DateTime.UtcNow;
+
+                _context.AssessmentSessions.Update(assessment);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, token = assessment.AccessToken, message = "Token regenerated successfully." });
+            }
+            catch (Exception ex)
+            {
+                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
+                logger.LogError(ex, "Error regenerating token");
+                return Json(new { success = false, message = $"Failed to regenerate token: {ex.Message}" });
+            }
+        }
+
         // GET /Admin/CpdpItemsExport?section=RFCC
         public async Task<IActionResult> CpdpItemsExport(string? section)
         {
