@@ -150,11 +150,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 49 — Assessment Management Migration (Complete, 5/5 plans done)
-**Status:** Milestone in progress
-**Last activity:** 2026-02-27 - Completed Plan 49-05: UAT gap closure
+**Phase:** Phase 50 — Coach-Coachee Mapping Manager (In Progress, 1/2 plans done)
+**Status:** executing
+**Last activity:** 2026-02-27 - Completed Plan 50-01: CoachCoacheeMapping scaffold (GET action, grouped table view, Bootstrap collapse, filters, modals, pagination)
 
-Progress: [█████░░░░░░░░░░░░░░░] 25% (v2.3 — 3/12 phases complete)
+Progress: [█████░░░░░░░░░░░░░░░] 29% (v2.3 — 4/12 phases complete)
 
 ### v2.4 CDP Progress — Roadmap Defined
 **Phase:** Phase 63 — Data Source Fix (not started)
@@ -230,6 +230,13 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - GetMonitorData endpoint kept in CMPController (not in removal list, still used indirectly)
 - [Phase 49-05]: JSON island pattern (script type=application/json) used for success modal data to avoid quote conflicts in JS string literals
 - [Phase 49-05]: AssessmentMonitoringDetail, ExportAssessmentResults, ForceCloseAll, CloseEarly now accept composite key (title, category, scheduleDate) — resilient to deleted representative sessions
+
+**Phase 50-01 decisions:**
+- Sequential loop counter (idx++) used for Bootstrap collapse HTML IDs — GUID hyphens break CSS selectors
+- AllUsers loaded once as anonymous projection to avoid N+1 queries; grouping/pagination done in memory
+- EligibleCoachees excludes users with active mappings (1 coach per coachee constraint)
+- Modal submit stubs use console.log with "Wired in Plan 02" comment — write endpoints deferred to Plan 02
+- Razor auto-encoding (@item.Property) used in data attributes — consistent with Phase 48 precedent
 
 ### Roadmap Evolution
 

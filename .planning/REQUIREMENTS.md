@@ -13,7 +13,7 @@
 
 ### Category B: Operational Admin (no admin override existed)
 
-- [ ] **OPER-01**: Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) — assign and unassign coaches to coachees
+- [x] **OPER-01**: Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) — assign and unassign coaches to coachees
 - [ ] **OPER-02**: Admin can view, create, edit, and delete Proton Track Assignments (ProtonTrackAssignment) — assign workers to Proton tracks and manage active/inactive state
 - [ ] **OPER-03**: Admin can view and override ProtonDeliverableProgress status — correct stuck or erroneous deliverable records
 - [ ] **OPER-04**: Admin can view, approve, reject, and edit ProtonFinalAssessment records — admin-level management of final assessments
@@ -79,7 +79,7 @@
 | MDAT-01 | Phase 47 | Complete |
 | MDAT-02 | Phase 48 | Complete |
 | MDAT-03 | Phase 49 | Complete |
-| OPER-01 | Phase 50 | Pending |
+| OPER-01 | Phase 50 | Complete |
 | OPER-02 | Phase 51 | Pending |
 | OPER-03 | Phase 52 | Pending |
 | OPER-04 | Phase 53 | Pending |
