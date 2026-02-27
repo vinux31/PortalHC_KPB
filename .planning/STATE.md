@@ -150,9 +150,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 50 — Coach-Coachee Mapping Manager (In Progress, 1/2 plans done)
-**Status:** executing
-**Last activity:** 2026-02-27 - Completed Plan 50-01: CoachCoacheeMapping scaffold (GET action, grouped table view, Bootstrap collapse, filters, modals, pagination)
+**Phase:** Phase 50 — Coach-Coachee Mapping Manager (Complete, 2/2 plans done)
+**Status:** completed
+**Last activity:** 2026-02-27 - Completed Plan 50-02: CoachCoacheeMapping write operations (bulk assign, edit, deactivate, reactivate, Excel export, AJAX modal wiring, AuditLog)
 
 Progress: [█████░░░░░░░░░░░░░░░] 29% (v2.3 — 4/12 phases complete)
 
@@ -238,6 +238,13 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Modal submit stubs use console.log with "Wired in Plan 02" comment — write endpoints deferred to Plan 02
 - Razor auto-encoding (@item.Property) used in data attributes — consistent with Phase 48 precedent
 
+**Phase 50-02 decisions:**
+- CoachAssignRequest and CoachEditRequest DTOs placed at namespace level (outside class, inside namespace)
+- Deactivate does NOT touch ProtonTrackAssignment — track stays when coaching relationship ends (per plan spec)
+- Simple int id params (Deactivate/Reactivate/GetSessionCount) use form-urlencoded; complex objects use [FromBody] JSON
+- Export uses MemoryStream with ToArray() — stream disposed after SaveAs, bytes already in memory
+- deactivateTargetId stored as JS var — avoids hidden input race conditions when modal fires multiple times
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -281,5 +288,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Phase 63 (Data Source Fix) complete. v2.3 at Phase 49 (5/5 plans done). v2.4 Phase 63 complete (2/2 plans done).
+Stopped at: Phase 63 (Data Source Fix) complete. v2.3 at Phase 49 (5/5 plans done). v2.4 Phase 63 complete (2/2 plans done). Phase 50 complete (2/2 plans done).
 Resume file: None.
