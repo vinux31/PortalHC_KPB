@@ -87,8 +87,8 @@ public class ProtonDeliverableProgress
     public string CoacheeId { get; set; } = "";
     public int ProtonDeliverableId { get; set; }
     public ProtonDeliverable? ProtonDeliverable { get; set; }
-    /// <summary>Values: "Locked", "Active", "Submitted", "Approved", "Rejected"</summary>
-    public string Status { get; set; } = "Locked";
+    /// <summary>Values: "Active", "Submitted", "Approved", "Rejected"</summary>
+    public string Status { get; set; } = "Active";
     /// <summary>Relative web path like "/uploads/evidence/{id}/{filename}"</summary>
     public string? EvidencePath { get; set; }
     /// <summary>Original display name of uploaded file</summary>

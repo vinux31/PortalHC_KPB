@@ -101,7 +101,6 @@ public class CoacheeProgressRow
     public int Submitted { get; set; }
     public int Rejected { get; set; }
     public int Active { get; set; }
-    public int Locked { get; set; }
     public bool HasFinalAssessment { get; set; }
     public int? CompetencyLevelGranted { get; set; }
 
