@@ -1,0 +1,538 @@
+@model HcPortal.Models.AssessmentSession
+
+@{
+    ViewData["Title"] = "Edit Assessment";
+    ViewData["ContainerClass"] = "container-fluid";
+    var packageCount = (int)(ViewBag.PackageCount ?? 0);
+    var originalSchedule = (string)(ViewBag.OriginalSchedule ?? "");
+    // Get list of categories for dropdown
+    var categories = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "OJT", Text = "OJT" },
+        new SelectListItem { Value = "IHT", Text = "IHT" },
+        new SelectListItem { Value = "Training Licencor", Text = "Training Licencor" },
+        new SelectListItem { Value = "OTS", Text = "OTS" },
+        new SelectListItem { Value = "Mandatory HSSE Training", Text = "Mandatory HSSE Training" },
+        new SelectListItem { Value = "Proton", Text = "Proton" }
+    };
+
+    // Status options
+    var statuses = new List<SelectListItem>
+    {
+        new SelectListItem { Value = "Open", Text = "Open" },
+        new SelectListItem { Value = "Upcoming", Text = "Upcoming" },
+        new SelectListItem { Value = "Completed", Text = "Completed" }
+    };
+
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("ManageAssessment", "Admin")">Manage Assessments</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Edit Assessment</li>
+        </ol>
+    </nav>
+
+    <!-- Page Header -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">Edit Assessment</h2>
+                <p class="text-muted mb-0">Update assessment details and configuration</p>
+            </div>
+            <a href="@Url.Action("ManageAssessment", "Admin")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Manage Assessments
+            </a>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Edit Assessment Form -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <form asp-action="EditAssessment" asp-controller="Admin" asp-route-id="@Model.Id" method="post" class="needs-validation" novalidate id="editAssessmentForm">
+                @Html.AntiForgeryToken()
+
+                @* Server-side validation summary *@
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>Please fix the following errors:</strong>
+                        <ul class="mb-0 mt-2">
+                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                }
+
+                <!-- Assessment Info (Read-Only) -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="fw-bold mb-3">Assessment Information</h6>
+                                <div class="mb-2">
+                                    <small class="text-muted">Assigned to:</small>
+                                    <div class="fw-semibold">@(Model.User?.FullName ?? "Unknown")</div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">Created:</small>
+                                    <div>@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                                </div>
+                                @if (Model.UpdatedAt.HasValue)
+                                {
+                                    <div>
+                                        <small class="text-muted">Last Updated:</small>
+                                        <div>@Model.UpdatedAt.Value.ToString("dd MMM yyyy HH:mm")</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label fw-semibold">
+                        Assessment Title <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Title" class="form-control" placeholder="e.g., OJT Basic Operator Training" required />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+
+                <!-- Category & Status -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="Category" class="form-label fw-semibold">
+                            Category <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Category" asp-items="categories" class="form-select" required>
+                            <option value="">-- Select Category --</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label fw-semibold">
+                            Status <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Status" asp-items="statuses" class="form-select" required>
+                            <option value="">-- Select Status --</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Schedule & Duration -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            Schedule Date &amp; Time <span class="text-danger">*</span>
+                        </label>
+                        <div class="d-flex gap-2 align-items-start">
+                            <div class="flex-grow-1">
+                                <input type="date" id="ScheduleDate"
+                                       value="@Model.Schedule.ToString("yyyy-MM-dd")"
+                                       class="form-control" required />
+                                <div class="form-text text-muted">Date (WIB)</div>
+                            </div>
+                            <div style="width:130px">
+                                <input type="time" id="ScheduleTime"
+                                       value="@Model.Schedule.ToString("HH:mm")"
+                                       class="form-control" required />
+                                <div class="form-text text-muted">Time (WIB)</div>
+                            </div>
+                        </div>
+                        <input asp-for="Schedule" type="hidden" id="ScheduleHidden"
+                               value="@Model.Schedule.ToString("yyyy-MM-ddTHH:mm:ss")" />
+                        <span asp-validation-for="Schedule" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="DurationMinutes" class="form-label fw-semibold">
+                            Duration (minutes) <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="DurationMinutes" type="number" class="form-control" placeholder="e.g., 60" min="1" max="480" required />
+                        <span asp-validation-for="DurationMinutes" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Assessment Settings Section -->
+                <div class="card border-info mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Assessment Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <!-- Pass Percentage -->
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="PassPercentage" class="form-label fw-semibold">
+                                    Pass Percentage (%) <span class="text-danger">*</span>
+                                </label>
+                                <input asp-for="PassPercentage" type="number" class="form-control" min="0" max="100" required />
+                                <span asp-validation-for="PassPercentage" class="text-danger"></span>
+                                <div class="form-text text-muted">Minimum score required to pass (0-100)</div>
+                            </div>
+
+                            <!-- Allow Answer Review Toggle -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-semibold">
+                                    Allow Answer Review
+                                </label>
+                                <div class="form-check form-switch">
+                                    <input asp-for="AllowAnswerReview" class="form-check-input" type="checkbox" id="AllowAnswerReviewToggle">
+                                    <label class="form-check-label" for="AllowAnswerReviewToggle">
+                                        Enable answer review
+                                    </label>
+                                </div>
+                                <div class="form-text text-muted">Allow users to review correct/incorrect answers after completion</div>
+                            </div>
+                        </div>
+
+                        <!-- Exam Window Close Date -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label asp-for="ExamWindowCloseDate" class="form-label fw-semibold">
+                                    <i class="bi bi-calendar-x text-danger me-1"></i>
+                                    Tanggal Tutup Ujian (Opsional)
+                                </label>
+                                <input asp-for="ExamWindowCloseDate" type="date" class="form-control" />
+                                <div class="form-text text-muted">
+                                    Jika diisi, peserta tidak dapat memulai ujian setelah tanggal ini.
+                                    Kosongkan jika tidak ada batas waktu.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Security Token Section -->
+                <div class="card border-primary mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="bi bi-shield-lock me-2"></i>Security Token Settings</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-3">
+                            <input asp-for="IsTokenRequired" class="form-check-input" type="checkbox" id="tokenToggle" />
+                            <label class="form-check-label fw-semibold" for="tokenToggle">
+                                Require Access Token
+                            </label>
+                            <div class="text-muted small">Enable this if assessment should be protected with a 6-digit access token</div>
+                        </div>
+
+                        <div id="tokenInputGroup" style="display: @(Model.IsTokenRequired ? "block" : "none");">
+                            <label asp-for="AccessToken" class="form-label fw-semibold">
+                                Access Token (6 characters) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="AccessToken" class="form-control text-uppercase fw-bold"
+                                       placeholder="e.g., ABC123" maxlength="6"
+                                       style="letter-spacing: 0.2em;" />
+                                <button type="button" class="btn btn-outline-secondary" onclick="generateRandomToken()">
+                                    <i class="bi bi-arrow-clockwise"></i> Generate
+                                </button>
+                            </div>
+                            <span asp-validation-for="AccessToken" class="text-danger"></span>
+                            <small class="text-muted">Only alphanumeric characters. Leave blank to keep current token.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Currently Assigned Users (Read-Only) -->
+                <div class="card border-success mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>Currently Assigned Users</h6>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var assignedUsers = ViewBag.AssignedUsers as IEnumerable<dynamic>;
+                            var assignedCount = assignedUsers != null ? System.Linq.Enumerable.Count(assignedUsers) : 0;
+                        }
+                        @if (assignedUsers != null && assignedCount > 0)
+                        {
+                            <div style="max-height: 250px; overflow-y: auto;">
+                                <table class="table table-sm table-hover mb-2">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Section</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @{int rowNum = 0;}
+                                        @foreach (var au in assignedUsers)
+                                        {
+                                            rowNum++;
+                                            <tr>
+                                                <td>@rowNum</td>
+                                                <td>@au.FullName</td>
+                                                <td>@au.Email</td>
+                                                <td>@(string.IsNullOrEmpty((string)au.Section) ? "-" : au.Section)</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            <span class="badge bg-success">@assignedCount user(s) currently assigned</span>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0">No users currently assigned to this assessment.</p>
+                        }
+                    </div>
+                </div>
+
+                <!-- Add More Users (Multi-Select Picker) -->
+                <div class="card border-warning mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-person-plus-fill me-2"></i>Add More Users</h6>
+                    </div>
+                    <div class="card-body">
+                        @{
+                            var assignedUserIds = ViewBag.AssignedUserIds as List<string> ?? new List<string>();
+                        }
+
+                        <!-- Section Filter + Search + Controls -->
+                        <div class="d-flex gap-2 mb-2 align-items-center flex-wrap">
+                            <select id="newSectionFilter" class="form-select form-select-sm" style="max-width: 220px;">
+                                <option value="">Semua Bagian</option>
+                                @if (ViewBag.Sections != null)
+                                {
+                                    foreach (var sec in (List<string>)ViewBag.Sections)
+                                    {
+                                        <option value="@sec">@sec</option>
+                                    }
+                                }
+                                <option value="__none__">Lainnya (Tanpa Bagian)</option>
+                            </select>
+                            <div class="input-group input-group-sm" style="max-width: 300px;">
+                                <input type="text" id="newUserSearchInput" class="form-control" placeholder="Search by name or email..." />
+                                <button type="button" class="btn btn-outline-secondary" id="newClearSearchBtn" title="Clear search">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                            <button type="button" class="btn btn-outline-warning btn-sm" id="newSelectAllBtn">Select All</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" id="newDeselectAllBtn">Deselect All</button>
+                            <span class="badge bg-warning text-dark ms-auto" id="newSelectedCountBadge">0 selected</span>
+                        </div>
+
+                        <!-- Scrollable Checkbox Container -->
+                        <div id="newUserCheckboxContainer" class="border rounded p-2" style="max-height: 300px; overflow-y: auto;">
+                            @if (ViewBag.Users != null)
+                            {
+                                @foreach (var user in ViewBag.Users)
+                                {
+                                    // Skip users already assigned
+                                    if (assignedUserIds.Contains((string)user.Id))
+                                    {
+                                        continue;
+                                    }
+                                    <div class="form-check new-user-check-item mb-1" data-name="@user.FullName" data-email="@user.Email" data-section="@user.Section">
+                                        <input class="form-check-input new-user-checkbox" type="checkbox" name="NewUserIds" value="@user.Id" id="newuser_@user.Id" />
+                                        <label class="form-check-label" for="newuser_@user.Id">
+                                            <strong>@user.FullName</strong>
+                                            @if (!string.IsNullOrEmpty((string)user.Email))
+                                            {
+                                                <span class="text-muted small ms-1">@user.Email</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty((string)user.Section))
+                                            {
+                                                <span class="badge bg-light text-secondary ms-1" style="font-size: 0.7em;">@user.Section</span>
+                                            }
+                                        </label>
+                                    </div>
+                                }
+                            }
+                        </div>
+
+                        <small class="text-muted mt-2 d-block">Select users to add to this assessment. Already-assigned users are excluded.</small>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="d-flex gap-2 justify-content-end">
+                    <a href="@Url.Action("ManageAssessment", "Admin")" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // Schedule-change warning when packages are attached
+        (function() {
+            var packageCount = @packageCount;
+            var originalSchedule = '@originalSchedule';
+            if (packageCount <= 0) return; // No packages — no warning needed
+
+            var form = document.getElementById('editAssessmentForm');
+            if (!form) return;
+
+            form.addEventListener('submit', function(e) {
+                var schedDateInput = document.getElementById('ScheduleDate');
+                var schedTimeInput = document.getElementById('ScheduleTime');
+                var schedHidden   = document.getElementById('ScheduleHidden');
+
+                // Combine ScheduleDate + ScheduleTime into Schedule hidden field
+                if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
+                    schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                }
+
+                if (!schedDateInput) return;
+
+                var newSchedule = schedDateInput.value;
+                if (newSchedule !== originalSchedule) {
+                    var msg = 'PERINGATAN: Assessment ini memiliki ' + packageCount + ' paket ujian yang terkait. ' +
+                              'Mengubah tanggal jadwal dapat mempengaruhi penugasan paket peserta.\n\n' +
+                              'Lanjutkan simpan perubahan?';
+                    if (!confirm(msg)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                    }
+                }
+            });
+        })();
+
+        // Toggle token input visibility
+        document.getElementById('tokenToggle').addEventListener('change', function() {
+            var tokenGroup = document.getElementById('tokenInputGroup');
+            if (this.checked) {
+                tokenGroup.style.display = 'block';
+            } else {
+                tokenGroup.style.display = 'none';
+            }
+        });
+
+        // Generate random token
+        function generateRandomToken() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let token = '';
+            for (let i = 0; i < 6; i++) {
+                token += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('AccessToken').value = token;
+        }
+
+        // Always combine ScheduleDate + ScheduleTime -> ScheduleHidden on submit
+        // (runs regardless of packageCount; the package-warning block handles it when packageCount > 0)
+        (function() {
+            var form = document.getElementById('editAssessmentForm');
+            if (!form) return;
+            form.addEventListener('submit', function() {
+                var schedDateInput = document.getElementById('ScheduleDate');
+                var schedTimeInput = document.getElementById('ScheduleTime');
+                var schedHidden   = document.getElementById('ScheduleHidden');
+                if (schedDateInput && schedDateInput.value && schedTimeInput && schedHidden) {
+                    schedHidden.value = schedDateInput.value + 'T' + (schedTimeInput.value || '08:00') + ':00';
+                }
+            });
+        })();
+
+        // Bootstrap form validation
+        (function () {
+            'use strict'
+            var forms = document.querySelectorAll('.needs-validation')
+            Array.prototype.slice.call(forms).forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+                }, false)
+            })
+        })()
+
+        // === Add More Users picker: section filter + text search ===
+        (function () {
+            var newSearchInput = document.getElementById('newUserSearchInput');
+            var newSectionFilter = document.getElementById('newSectionFilter');
+            var newContainer = document.getElementById('newUserCheckboxContainer');
+
+            if (!newSearchInput || !newSectionFilter || !newContainer) return;
+
+            function applyNewFilters() {
+                var query = newSearchInput.value.toLowerCase();
+                var selectedSection = newSectionFilter.value;
+
+                newContainer.querySelectorAll('.new-user-check-item').forEach(function(item) {
+                    var name = (item.dataset.name || '').toLowerCase();
+                    var email = (item.dataset.email || '').toLowerCase();
+                    var section = item.dataset.section || '';
+
+                    var sectionMatch = true;
+                    if (selectedSection === '__none__') {
+                        sectionMatch = (section === '');
+                    } else if (selectedSection !== '') {
+                        sectionMatch = (section === selectedSection);
+                    }
+
+                    var textMatch = (query === '') || name.includes(query) || email.includes(query);
+
+                    item.style.display = (sectionMatch && textMatch) ? '' : 'none';
+                });
+            }
+
+            newSearchInput.addEventListener('input', applyNewFilters);
+            newSectionFilter.addEventListener('change', applyNewFilters);
+
+            document.getElementById('newClearSearchBtn').addEventListener('click', function() {
+                newSearchInput.value = '';
+                applyNewFilters();
+            });
+
+            // === Select All / Deselect All (visible items only) ===
+            document.getElementById('newSelectAllBtn').addEventListener('click', function() {
+                newContainer.querySelectorAll('.new-user-check-item').forEach(function(item) {
+                    if (item.style.display !== 'none') {
+                        item.querySelector('.new-user-checkbox').checked = true;
+                    }
+                });
+                updateNewSelectedCount();
+            });
+
+            document.getElementById('newDeselectAllBtn').addEventListener('click', function() {
+                newContainer.querySelectorAll('.new-user-check-item').forEach(function(item) {
+                    if (item.style.display !== 'none') {
+                        item.querySelector('.new-user-checkbox').checked = false;
+                    }
+                });
+                updateNewSelectedCount();
+            });
+
+            // === Selected count badge ===
+            newContainer.addEventListener('change', updateNewSelectedCount);
+
+            function updateNewSelectedCount() {
+                var count = newContainer.querySelectorAll('.new-user-checkbox:checked').length;
+                document.getElementById('newSelectedCountBadge').textContent = count + ' selected';
+            }
+
+            updateNewSelectedCount(); // init on load
+        })();
+    </script>
+}

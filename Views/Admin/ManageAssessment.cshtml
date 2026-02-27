@@ -1,0 +1,302 @@
+@{
+    ViewData["Title"] = "Manage Assessments";
+    ViewData["ContainerClass"] = "container-fluid";
+
+    var managementData = ViewBag.ManagementData as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalCount = (int)(ViewBag.TotalCount ?? 0);
+    var searchTerm = ViewBag.SearchTerm as string;
+}
+
+@Html.AntiForgeryToken()
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Manage Assessments</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold text-dark mb-0">
+        <i class="bi bi-sliders me-2 text-primary"></i>Manage Assessments
+    </h2>
+    <div class="d-flex gap-2">
+        <a href="@Url.Action("CreateAssessment", "Admin")" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Buat Assessment
+        </a>
+        <a href="@Url.Action("AuditLog", "Admin")" class="btn btn-outline-secondary">
+            <i class="bi bi-clock-history me-1"></i> Audit Log
+        </a>
+    </div>
+</div>
+
+<!-- Search Form -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <form method="get" asp-action="ManageAssessment" asp-controller="Admin">
+            <div class="input-group">
+                <span class="input-group-text bg-white border-end-0">
+                    <i class="bi bi-search text-muted"></i>
+                </span>
+                <input type="text" class="form-control border-start-0 ps-0" name="search"
+                       placeholder="Cari berdasarkan judul, kategori, nama, atau NIP..." value="@searchTerm">
+                <button class="btn btn-primary" type="submit">Cari</button>
+                @if (!string.IsNullOrEmpty(searchTerm))
+                {
+                    <a asp-action="ManageAssessment" asp-controller="Admin" class="btn btn-outline-secondary" title="Hapus pencarian">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats Badge -->
+<div class="mb-3">
+    <span class="badge bg-secondary fs-6">@totalCount grup assessment</span>
+</div>
+
+@if (!managementData.Any())
+{
+    <!-- Empty State -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-inbox text-muted mb-3" style="font-size: 4rem;"></i>
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <h5 class="text-muted">Tidak ada assessment ditemukan untuk "@searchTerm"</h5>
+                <p class="text-muted small">Coba sesuaikan kata kunci pencarian atau lihat semua assessment.</p>
+                <a asp-action="ManageAssessment" asp-controller="Admin" class="btn btn-sm btn-outline-primary mt-2">
+                    <i class="bi bi-arrow-left me-1"></i> Hapus Pencarian
+                </a>
+            }
+            else
+            {
+                <h5 class="text-muted">Tidak ada assessment ditemukan</h5>
+                <p class="text-muted small">Buat assessment pertama untuk memulai.</p>
+                <a href="@Url.Action("CreateAssessment", "Admin")" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle me-1"></i> Buat Assessment
+                </a>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <!-- Assessment Table -->
+    <div class="card shadow-sm border-0">
+        <div class="table-responsive" style="min-height: calc(100vh - 380px); overflow-y: auto;">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-dark">
+                    <tr class="text-center">
+                        <th style="width:50px">No</th>
+                        <th>Judul</th>
+                        <th>Kategori</th>
+                        <th>Jadwal</th>
+                        <th>Durasi</th>
+                        <th>Status</th>
+                        <th>Token</th>
+                        <th>Peserta</th>
+                        <th style="width:100px">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var rowNum = (currentPage - 1) * 20 + 1;
+                    }
+                    @foreach (var group in managementData)
+                    {
+                        var categoryBadge = (string)group.Category switch
+                        {
+                            "OJT"                     => "bg-primary",
+                            "IHT"                     => "bg-success",
+                            "Training Licencor"       => "bg-danger",
+                            "OTS"                     => "bg-warning text-dark",
+                            "Mandatory HSSE Training" => "bg-info",
+                            "Proton"                  => "bg-purple",
+                            _                         => "bg-secondary"
+                        };
+                        var statusBadge = (string)group.Status switch
+                        {
+                            "Open"      => "bg-success",
+                            "Completed" => "bg-secondary",
+                            "Upcoming"  => "bg-info",
+                            _           => "bg-secondary"
+                        };
+
+                        var collapseId = "users-" + (int)group.RepresentativeId;
+                        var userList = (IEnumerable<dynamic>)group.Users;
+                        var userCount = (int)group.UserCount;
+
+                        <tr>
+                            <td>@(rowNum++)</td>
+                            <td class="fw-semibold">@group.Title</td>
+                            <td><span class="badge @categoryBadge">@group.Category</span></td>
+                            <td>@(((DateTime)group.Schedule).ToString("dd MMM yyyy HH:mm"))</td>
+                            <td>@group.DurationMinutes menit</td>
+                            <td><span class="badge @statusBadge">@group.Status</span></td>
+                            <td>
+                                @if ((bool)group.IsTokenRequired)
+                                {
+                                    <span class="badge bg-success">Ya</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">Tidak</span>
+                                }
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-link text-decoration-none p-0" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#@collapseId"
+                                        aria-expanded="false" aria-controls="@collapseId">
+                                    <i class="bi bi-people me-1"></i>@userCount peserta
+                                </button>
+                                <div class="collapse mt-1" id="@collapseId">
+                                    <ul class="list-unstyled small text-muted mb-0">
+                                        @foreach (var u in userList)
+                                        {
+                                            <li class="d-flex justify-content-between align-items-center">
+                                                <span><i class="bi bi-person me-1"></i>@u.UserFullName (@u.UserEmail)</span>
+                                                <a href="@Url.Action("UserAssessmentHistory", "Admin", new { userId = u.UserId })"
+                                                   class="btn btn-link btn-sm p-0 text-muted" title="Riwayat Assessment">
+                                                    <i class="bi bi-clock-history"></i>
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-three-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" asp-action="EditAssessment" asp-controller="Admin"
+                                               asp-route-id="@group.RepresentativeId">
+                                                <i class="bi bi-pencil me-2"></i>Edit
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="@Url.Action("AssessmentMonitoringDetail", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
+                                                <i class="bi bi-binoculars me-2"></i>Monitoring
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="@Url.Action("ExportAssessmentResults", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
+                                                <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
+                                            </a>
+                                        </li>
+                                        @if ((bool)group.IsTokenRequired)
+                                        {
+                                        <li>
+                                            <button type="button" class="dropdown-item text-warning btn-regenerate-token"
+                                                    data-id="@group.RepresentativeId">
+                                                <i class="bi bi-arrow-repeat me-2"></i>Regenerate Token
+                                            </button>
+                                        </li>
+                                        }
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form method="post" action="/Admin/DeleteAssessmentGroup/@group.RepresentativeId">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="dropdown-item text-danger"
+                                                        onclick="return confirm('Hapus semua assessment dalam grup ini?')">
+                                                    <i class="bi bi-trash me-2"></i>Hapus Grup
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <nav aria-label="Assessment pagination" class="mt-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="text-muted small">
+                    Menampilkan @((currentPage - 1) * 20 + 1) - @(Math.Min(currentPage * 20, totalCount)) dari @totalCount grup
+                </div>
+                <ul class="pagination pagination-sm mb-0">
+                    @* First Page *@
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=1@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </a>
+                    </li>
+                    @* Previous Page *@
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(currentPage - 1)@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                            <i class="bi bi-chevron-left"></i>
+                        </a>
+                    </li>
+                    @* Page Numbers *@
+                    @{
+                        var startPage = Math.Max(1, currentPage - 2);
+                        var endPage = Math.Min(totalPages, currentPage + 2);
+                        for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == currentPage ? "active" : "")">
+                                <a class="page-link" href="?page=@i@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">@i</a>
+                            </li>
+                        }
+                    }
+                    @* Next Page *@
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(currentPage + 1)@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                            <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    @* Last Page *@
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <a class="page-link" href="?page=@totalPages@(string.IsNullOrEmpty(searchTerm) ? "" : "&search=" + searchTerm)">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    }
+}
+
+@section Scripts {
+<script>
+document.querySelectorAll('.btn-regenerate-token').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const id = this.dataset.id;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value
+            || document.querySelector('[name="__RequestVerificationToken"]')?.value;
+        try {
+            const res = await fetch(`/Admin/RegenerateToken/${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: '__RequestVerificationToken=' + encodeURIComponent(token)
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert('Token baru: ' + data.token);
+            } else {
+                alert('Error: ' + data.message);
+            }
+        } catch (e) {
+            alert('Gagal regenerate token.');
+        }
+    });
+});
+</script>
+}

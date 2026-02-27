@@ -55,7 +55,7 @@
             </div>
         </div>
 
-        <!-- Assessment Lobby (all roles) -->
+        <!-- My Assessments (all roles) -->
         <div class="col-12 col-md-6 col-lg-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-body">
@@ -64,46 +64,17 @@
                             <i class="bi bi-clipboard-check fs-3"></i>
                         </div>
                         <div>
-                            <h5 class="mb-0">Assessment Lobby</h5>
+                            <h5 class="mb-0">My Assessments</h5>
                             <small class="text-muted">Tests & Evaluations</small>
                         </div>
                     </div>
                     <p class="text-muted mb-3">Take assessments, view results, and track your evaluation history</p>
                     <a href="@Url.Action("Assessment", "CMP")" class="btn btn-info w-100">
-                        <i class="bi bi-arrow-right-circle me-2"></i>Assessment Lobby
+                        <i class="bi bi-arrow-right-circle me-2"></i>My Assessments
                     </a>
                 </div>
             </div>
         </div>
-
-        <!-- Manage Assessments (HC / Admin only) -->
-        @if (User.IsInRole("HC") || User.IsInRole("Admin"))
-        {
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="icon-box bg-warning bg-opacity-10 text-warning rounded-3 p-3 me-3">
-                                <i class="bi bi-sliders fs-3"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-0">Manage Assessments</h5>
-                                <small class="text-muted">Assessment Administration</small>
-                            </div>
-                        </div>
-                        <p class="text-muted mb-3">Create, edit, and manage assessment sessions for all employees</p>
-                        <div class="d-flex gap-2">
-                            <a href="@Url.Action("CreateAssessment", "CMP")" class="btn btn-success flex-fill">
-                                <i class="bi bi-plus-circle me-1"></i>Create New
-                            </a>
-                            <a href="@Url.Action("Assessment", "CMP", new { view = "manage" })" class="btn btn-primary flex-fill">
-                                <i class="bi bi-sliders me-1"></i>Manage
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }
 
         <!-- Training Records -->
         <div class="col-12 col-md-6 col-lg-4">

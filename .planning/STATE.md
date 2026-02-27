@@ -4,12 +4,12 @@ milestone: v1.0
 milestone_name: Admin Portal
 status: completed
 last_updated: "2026-02-27T02:27:50.820Z"
-last_activity: 2026-02-26 - Completed Plan 48-04
+last_activity: "2026-02-27 - Completed Phase 63: Data Source Fix (2/2 plans). Also: Phase 49 complete (5/5 plans incl UAT gap closure)"
 progress:
   total_phases: 48
-  completed_phases: 42
+  completed_phases: 43
   total_plans: 105
-  completed_plans: 100
+  completed_plans: 103
 ---
 
 ---
@@ -149,12 +149,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-### v2.3 Admin Portal — In Progress
-**Phase:** Phase 48 — CPDP Items Manager (Complete, 4/4 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-26 - Completed Plan 48-04
+**Milestone:** v2.3 Admin Portal — In Progress
+**Phase:** Phase 49 — Assessment Management Migration (Complete, 5/5 plans done)
+**Status:** Milestone in progress
+**Last activity:** 2026-02-27 - Completed Plan 49-05: UAT gap closure
 
-Progress: [███░░░░░░░░░░░░░░░░░] 9% (v2.3 — 1/12 phases complete)
+Progress: [█████░░░░░░░░░░░░░░░] 25% (v2.3 — 3/12 phases complete)
 
 ### v2.4 CDP Progress — Roadmap Defined
 **Phase:** Phase 63 — Data Source Fix (not started)
@@ -217,6 +217,20 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 63-01]: GetCoacheeDeliverables returns error JSON for unauthorized instead of HTTP 403
 - [Phase 63-02]: RZ1031 fix: replaced ternary selected attribute with if/else block — Razor tag helper does not allow C# expressions in attribute declaration area
 
+**Phase 49-03 decisions:**
+- View Results links remain pointing to CMP/Results since Results page stays in CMP controller
+- Reshuffle AJAX URLs updated to /Admin/ReshufflePackage and /Admin/ReshuffleAll for future migration consistency
+- CloseEarly form action points to Admin/CloseEarly (string-based asp-action compiles even without action existing yet)
+- Added `using ClosedXML.Excel;` import to AdminController for cleaner Excel export code
+
+**Phase 49-04 decisions:**
+- CloseEarly, ReshufflePackage, ReshuffleAll added to AdminController (not in original plan) because Admin views from Plan 03 reference /Admin/CloseEarly, /Admin/ReshufflePackage, /Admin/ReshuffleAll
+- IMemoryCache injected into AdminController constructor for CloseEarly cache invalidation
+- BuildCrossPackageAssignment + Shuffle helper methods duplicated in AdminController (same approach as GenerateSecureToken from Plan 02)
+- GetMonitorData endpoint kept in CMPController (not in removal list, still used indirectly)
+- [Phase 49-05]: JSON island pattern (script type=application/json) used for success modal data to avoid quote conflicts in JS string literals
+- [Phase 49-05]: AssessmentMonitoringDetail, ExportAssessmentResults, ForceCloseAll, CloseEarly now accept composite key (title, category, scheduleDate) — resilient to deleted representative sessions
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -252,11 +266,13 @@ None.
 | Phase 48-cpdp-items-manager P02 | 5 | 3 tasks | 3 files |
 | Phase 48-cpdp-items-manager P03 | 10 | 2 tasks | 2 files |
 | Phase 48-cpdp-items-manager P04 | 3 | 3 tasks | 2 files |
+| Phase 49-assessment-management-migration P04 | 15 | 3 tasks | 5 files |
+| Phase 49-assessment-management-migration P05 | 3 | 2 tasks | 4 files |
 | Phase 63-data-source-fix P01 | 164 | 2 tasks | 1 files |
 | Phase 63-data-source-fix P02 | 119 | 2 tasks | 2 files |
 
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: v2.4 CDP Progress roadmap defined (phases 63-66, 17 requirements mapped). v2.3 continues from Phase 49. v2.4 can start at Phase 63 independently.
+Stopped at: Phase 63 (Data Source Fix) complete. v2.3 at Phase 49 (5/5 plans done). v2.4 Phase 63 complete (2/2 plans done).
 Resume file: None.

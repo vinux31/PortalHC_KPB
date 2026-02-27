@@ -277,9 +277,9 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 ### Phases
 
-- [~] **Phase 47: KKJ Matrix Manager** — MDAT-01 (2/5 plans, 3 gap plans pending)
+- [x] **Phase 47: KKJ Matrix Manager** — MDAT-01 (complete 2026-02-26)
 - [x] **Phase 48: CPDP Items Manager** — MDAT-02 (complete 2026-02-26)
-- [ ] **Phase 49: Assessment Management Migration** — MDAT-03 (planned)
+- [x] **Phase 49: Assessment Management Migration** — MDAT-03 (planned) (completed 2026-02-27)
 - [ ] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned)
 - [ ] **Phase 51: Proton Track Assignment Manager** — OPER-02 (planned)
 - [ ] **Phase 52: DeliverableProgress Override** — OPER-03 (planned)
@@ -344,13 +344,16 @@ Plans:
   4. Card 'Assessment Competency Map' in Admin/Index replaced with 'Manage Assessments' linking to /Admin/ManageAssessment
   5. Card 'Manage Assessments' removed from CMP Index, card 'Assessment Lobby' renamed to 'My Assessments'
   6. All manage-related actions removed from CMPController, AuditLog removed from CMPController
-**Plans:** 4 plans
+**Plans:** 5/5 plans complete
 
 Plans:
-- [ ] 49-01-PLAN.md — AdminController ManageAssessment GET + ManageAssessment.cshtml + Admin/Index card update
-- [ ] 49-02-PLAN.md — Create/Edit/Delete/RegenerateToken actions + CreateAssessment.cshtml + EditAssessment.cshtml
-- [ ] 49-03-PLAN.md — Monitoring, Reset, ForceClose, Export, UserHistory actions + view files
-- [ ] 49-04-PLAN.md — AuditLog migration + CMPController cleanup + CMP/Assessment personal-only + CMP/Index card updates
+- [x] 49-01-PLAN.md — AdminController ManageAssessment GET + ManageAssessment.cshtml + Admin/Index card update
+- [x] 49-02-PLAN.md — Create/Edit/Delete/RegenerateToken actions + CreateAssessment.cshtml + EditAssessment.cshtml
+- [x] 49-03-PLAN.md — Monitoring, Reset, ForceClose, Export, UserHistory actions + view files
+- [x] 49-04-PLAN.md — AuditLog migration + CMPController cleanup + CMP/Assessment personal-only + CMP/Index card updates
+- [ ] 49-05-PLAN.md — GAP: Fix success modal, composite key migration, UserAssessmentHistory link, token guard
+
+**Completed:** 2026-02-27
 
 ### Phase 50: Coach-Coachee Mapping Manager
 **Goal:** Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) — assign and unassign coaches to coachees
@@ -487,9 +490,9 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 44. Real-Time Monitoring | v2.1 | 2/2 | Complete | 2026-02-25 |
 | 45. Cross-Package Per-Position Shuffle | v2.1 | 3/3 | Complete | 2026-02-25 |
 | 46. Attempt History | v2.2 | 2/2 | Complete | 2026-02-26 |
-| 47. KKJ Matrix Manager | v2.3 | 4/5 | In Progress | - |
+| 47. KKJ Matrix Manager | v2.3 | 9/9 | Complete | 2026-02-26 |
 | 48. CPDP Items Manager (KKJ-IDP Mapping Editor) | v2.3 | 4/4 | Complete | 2026-02-26 |
-| 49. Assessment Management Migration | v2.3 | 0/4 | Not started | - |
+| 49. Assessment Management Migration | 5/5 | Complete    | 2026-02-27 | - |
 | 50. Coach-Coachee Mapping Manager | v2.3 | 0/? | Not started | - |
 | 51. Proton Track Assignment Manager | v2.3 | 0/? | Not started | - |
 | 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
@@ -503,7 +506,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 60. Konsolidasi Proton Catalog | v2.3 | 0/? | Not started | - |
 | 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |
-| 63. Data Source Fix | 2/2 | Complete    | 2026-02-27 | - |
+| 63. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 64. Functional Filters | v2.4 | 0/? | Not started | - |
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
@@ -512,7 +515,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 
 ### Phases
 
-- [x] **Phase 63: Data Source Fix** — DATA-01, DATA-02, DATA-03, DATA-04 (completed 2026-02-27)
+- [x] **Phase 63: Data Source Fix** — DATA-01, DATA-02, DATA-03, DATA-04 (completed 2026-02-27)
 - [ ] **Phase 64: Functional Filters** — FILT-01, FILT-02, FILT-03, FILT-04, UI-01, UI-03
 - [ ] **Phase 65: Actions** — ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05
 - [ ] **Phase 66: UI Polish** — UI-02, UI-04
@@ -529,10 +532,6 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   3. Summary stats (progress %, pending actions, pending approvals) match the actual ProtonDeliverableProgress records in the database
   4. Approving or updating evidence on the Deliverable page is immediately reflected on the Progress page with no stale cache
 **Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 63-01-PLAN.md — CDPController: ProtonProgress GET + GetCoacheeDeliverables JSON + disable old Progress
-- [ ] 63-02-PLAN.md — ProtonProgress.cshtml view (rowspan table, stats, AJAX dropdown) + CDP Index card update
 
 ### Phase 64: Functional Filters
 **Goal:** Every filter on the Progress page (Bagian/Unit, Coachee, Track, Tahun, Search) genuinely narrows the data returned — parameters are wired to queries and roles scope what users can see
