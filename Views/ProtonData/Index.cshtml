@@ -88,33 +88,39 @@
             </div>
         </div>
 
-        @* Silabus data display area *@
-        <div id="silabusTableContainer">
-            @if (!string.IsNullOrEmpty(selectedBagian) && !string.IsNullOrEmpty(selectedUnit) && selectedTrackId.HasValue)
-            {
-                var trackName = allTracks.FirstOrDefault(t => t.Id == selectedTrackId)?.DisplayName ?? "";
-                <div class="d-flex align-items-center mb-3">
-                    <span class="text-muted small">
-                        Menampilkan silabus untuk: <strong>@selectedUnit</strong> &mdash; Track: <strong>@trackName</strong>
-                    </span>
-                </div>
-                @* Plan 02 will render the actual edit table here *@
-                <div class="alert alert-info d-flex align-items-center" role="alert">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <span>Data silabus untuk <strong>@selectedUnit</strong> - <strong>@trackName</strong>. Edit functionality akan diimplementasikan pada Plan 02.</span>
-                </div>
-            }
-            else
-            {
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-funnel fs-1 mb-3 d-block opacity-50"></i>
-                    <p>Pilih Bagian, Unit, dan Track kemudian klik <strong>Muat Data</strong> untuk menampilkan silabus.</p>
-                </div>
-            }
-        </div>
+        @* Silabus data display area — rendered by JS *@
+        <div id="silabusTableContainer"></div>
 
-        @* JSON data island for JS consumption (Plan 02 will use this) *@
+        @* JSON data island for JS consumption *@
         <script type="application/json" id="silabusData">@Html.Raw(silabusRowsJson)</script>
+
+        @* Filter state for JS *@
+        <script type="application/json" id="silabusFilter">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+            bagian = selectedBagian,
+            unit = selectedUnit,
+            trackId = selectedTrackId,
+            hasFilter = !string.IsNullOrEmpty(selectedBagian) && !string.IsNullOrEmpty(selectedUnit) && selectedTrackId.HasValue
+        }))</script>
+    </div>
+
+    @* ====== Delete confirmation modal (shared for Silabus tab) ====== *@
+    <div class="modal fade" id="silabusDeleteModal" tabindex="-1" aria-labelledby="silabusDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="silabusDeleteModalLabel">Konfirmasi Hapus</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Hapus deliverable <strong id="silabusDeleteName"></strong>?</p>
+                    <p class="text-danger small">Tindakan ini tidak dapat dibatalkan.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmSilabusDelete">Hapus</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     @* ====== COACHING GUIDANCE TAB ====== *@
@@ -208,8 +214,343 @@
         unitSelect.disabled = !bagian;
     });
 
-    // ====== Preserve active tab on page reload (after filter apply) ======
-    // If query params present, stay on Silabus tab (default behavior is fine)
-    // Coaching Guidance tab will be activated by URL hash if needed in future plans
+    // ====== Silabus CRUD (Plan 02) ======
+    (function () {
+        // State
+        let silabusRows = JSON.parse(document.getElementById('silabusData').textContent || '[]');
+        let isEditMode = false;
+        let deleteTargetIndex = -1;
+
+        // Filter context
+        const filterRaw = document.getElementById('silabusFilter').textContent;
+        const silabusFilter = JSON.parse(filterRaw);
+        const currentBagian = silabusFilter.bagian || '';
+        const currentUnit = silabusFilter.unit || '';
+        const currentTrackId = silabusFilter.trackId || 0;
+        const hasFilter = silabusFilter.hasFilter;
+
+        const container = document.getElementById('silabusTableContainer');
+
+        // ---- Render: View mode with rowspan merge ----
+        function renderViewTable() {
+            if (!hasFilter) {
+                container.innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-funnel fs-1 mb-3 d-block opacity-50"></i>
+                        <p>Pilih Bagian, Unit, dan Track kemudian klik <strong>Muat Data</strong> untuk menampilkan silabus.</p>
+                    </div>`;
+                return;
+            }
+
+            let html = `<div class="d-flex align-items-center justify-content-between mb-3">
+                <span class="text-muted small">Menampilkan silabus untuk: <strong>${escHtml(currentUnit)}</strong></span>
+                <button id="btnEdit" class="btn btn-warning btn-sm"><i class="bi bi-pencil me-1"></i>Edit</button>
+            </div>`;
+
+            if (silabusRows.length === 0) {
+                html += `<div class="alert alert-info">Belum ada data silabus. Klik 'Edit' untuk mulai menambahkan data.</div>`;
+            } else {
+                html += `<div class="table-responsive"><table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:60px">No</th>
+                            <th>Kompetensi</th>
+                            <th>Sub Kompetensi</th>
+                            <th>Deliverable</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+                let i = 0;
+                while (i < silabusRows.length) {
+                    const row = silabusRows[i];
+                    // Compute kompetensi rowspan
+                    let kompSpan = 1;
+                    while (i + kompSpan < silabusRows.length && silabusRows[i + kompSpan].Kompetensi === row.Kompetensi) kompSpan++;
+
+                    // Render rows for this kompetensi group
+                    let j = i;
+                    while (j < i + kompSpan) {
+                        const subRow = silabusRows[j];
+                        // Compute sub-kompetensi rowspan within this kompetensi group
+                        let subSpan = 1;
+                        while (j + subSpan < i + kompSpan && silabusRows[j + subSpan].SubKompetensi === subRow.SubKompetensi) subSpan++;
+
+                        // Render rows for this sub-kompetensi group
+                        for (let k = j; k < j + subSpan; k++) {
+                            const dRow = silabusRows[k];
+                            html += '<tr>';
+                            if (k === i) {
+                                html += `<td rowspan="${kompSpan}" class="align-middle fw-semibold text-center" style="background:#f8f9fa">${escHtml(dRow.No)}</td>`;
+                                html += `<td rowspan="${kompSpan}" class="align-middle fw-semibold">${escHtml(dRow.Kompetensi)}</td>`;
+                            }
+                            if (k === j) {
+                                html += `<td rowspan="${subSpan}" class="align-middle">${escHtml(dRow.SubKompetensi)}</td>`;
+                            }
+                            html += `<td>${escHtml(dRow.Deliverable)}</td>`;
+                            html += '</tr>';
+                        }
+                        j += subSpan;
+                    }
+                    i += kompSpan;
+                }
+
+                html += `</tbody></table></div>`;
+            }
+
+            container.innerHTML = html;
+            document.getElementById('btnEdit').addEventListener('click', function () {
+                isEditMode = true;
+                renderEditTable();
+            });
+        }
+
+        // ---- Render: Edit mode (expanded rows with inputs) ----
+        function renderEditTable() {
+            let html = `<div class="d-flex align-items-center justify-content-between mb-3" id="silabusEditToolbar">
+                <span class="text-muted small">Mode Edit — <strong>${escHtml(currentUnit)}</strong></span>
+                <div class="d-flex gap-2">
+                    <button id="btnBatal" class="btn btn-secondary btn-sm"><i class="bi bi-x-circle me-1"></i>Batal</button>
+                    <button id="btnSaveAll" class="btn btn-success btn-sm"><i class="bi bi-save me-1"></i>Simpan Semua</button>
+                </div>
+            </div>`;
+
+            html += `<div class="table-responsive"><table class="table table-bordered table-sm" id="silabusEditTable">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:60px">No</th>
+                        <th>Kompetensi</th>
+                        <th>Sub Kompetensi</th>
+                        <th>Deliverable</th>
+                        <th style="width:90px">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            if (silabusRows.length === 0) {
+                html += `<tr id="emptyRow"><td colspan="5" class="text-center text-muted py-3">Belum ada baris. Klik tombol "Tambah Baris" di bawah.</td></tr>`;
+            } else {
+                silabusRows.forEach(function (row, idx) {
+                    html += renderEditRow(row, idx);
+                });
+            }
+
+            html += `</tbody></table></div>`;
+            html += `<div class="mt-2">
+                <button class="btn btn-outline-primary btn-sm" id="btnTambahBaris">
+                    <i class="bi bi-plus-circle me-1"></i>Tambah Baris
+                </button>
+            </div>`;
+
+            container.innerHTML = html;
+
+            // Wire toolbar buttons
+            document.getElementById('btnBatal').addEventListener('click', function () {
+                isEditMode = false;
+                // Reload original data from server
+                window.location.reload();
+            });
+
+            document.getElementById('btnSaveAll').addEventListener('click', saveAll);
+
+            document.getElementById('btnTambahBaris').addEventListener('click', function () {
+                const lastIdx = silabusRows.length - 1;
+                const newRow = {
+                    KompetensiId: 0, Kompetensi: '',
+                    SubKompetensiId: 0, SubKompetensi: '',
+                    DeliverableId: 0, Deliverable: '', No: ''
+                };
+                silabusRows.push(newRow);
+                renderEditTable();
+            });
+
+            // Wire row-level buttons
+            wireEditTableEvents();
+        }
+
+        function renderEditRow(row, idx) {
+            return `<tr data-idx="${idx}">
+                <td><input type="text" class="form-control form-control-sm" data-field="No" value="${escAttr(row.No)}"></td>
+                <td><input type="text" class="form-control form-control-sm" data-field="Kompetensi" value="${escAttr(row.Kompetensi)}"></td>
+                <td><input type="text" class="form-control form-control-sm" data-field="SubKompetensi" value="${escAttr(row.SubKompetensi)}"></td>
+                <td><input type="text" class="form-control form-control-sm" data-field="Deliverable" value="${escAttr(row.Deliverable)}"></td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-primary btn-insert-row me-1" title="Sisipkan baris setelah ini" data-idx="${idx}">
+                        <i class="bi bi-plus-circle"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger btn-delete-row" title="Hapus baris" data-idx="${idx}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }
+
+        function wireEditTableEvents() {
+            const tbody = document.querySelector('#silabusEditTable tbody');
+            if (!tbody) return;
+
+            // Input changes → update silabusRows array
+            tbody.addEventListener('input', function (e) {
+                const input = e.target;
+                if (input.tagName !== 'INPUT') return;
+                const tr = input.closest('tr');
+                if (!tr) return;
+                const idx = parseInt(tr.dataset.idx);
+                const field = input.dataset.field;
+                if (!isNaN(idx) && field && silabusRows[idx] !== undefined) {
+                    silabusRows[idx][field] = input.value;
+                }
+            });
+
+            // Insert row (+ button)
+            tbody.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-insert-row');
+                if (!btn) return;
+                const idx = parseInt(btn.dataset.idx);
+                const currRow = silabusRows[idx] || {};
+                const newRow = {
+                    KompetensiId: 0, Kompetensi: currRow.Kompetensi || '',
+                    SubKompetensiId: 0, SubKompetensi: currRow.SubKompetensi || '',
+                    DeliverableId: 0, Deliverable: '', No: ''
+                };
+                silabusRows.splice(idx + 1, 0, newRow);
+                renderEditTable();
+            });
+
+            // Delete row (trash button)
+            tbody.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-delete-row');
+                if (!btn) return;
+                const idx = parseInt(btn.dataset.idx);
+                const row = silabusRows[idx];
+                if (!row) return;
+
+                if (row.DeliverableId > 0) {
+                    // Saved row — show modal confirmation
+                    deleteTargetIndex = idx;
+                    document.getElementById('silabusDeleteName').textContent = row.Deliverable || '(tanpa nama)';
+                    const modal = new bootstrap.Modal(document.getElementById('silabusDeleteModal'));
+                    modal.show();
+                } else {
+                    // Unsaved row — remove directly
+                    silabusRows.splice(idx, 1);
+                    renderEditTable();
+                }
+            });
+        }
+
+        // ---- Delete modal confirm ----
+        document.getElementById('btnConfirmSilabusDelete').addEventListener('click', async function () {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('silabusDeleteModal'));
+            modal.hide();
+
+            if (deleteTargetIndex < 0 || deleteTargetIndex >= silabusRows.length) return;
+            const row = silabusRows[deleteTargetIndex];
+
+            if (row.DeliverableId > 0) {
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                    const resp = await fetch('/ProtonData/SilabusDelete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify({ DeliverableId: row.DeliverableId })
+                    });
+                    const data = await resp.json();
+                    if (!data.success) {
+                        alert('Gagal menghapus: ' + (data.message || 'Error tidak diketahui'));
+                        return;
+                    }
+                } catch (err) {
+                    alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+                    return;
+                }
+            }
+
+            silabusRows.splice(deleteTargetIndex, 1);
+            deleteTargetIndex = -1;
+            renderEditTable();
+        });
+
+        // ---- Save All ----
+        async function saveAll() {
+            // Read current input values from DOM into silabusRows
+            const rows = document.querySelectorAll('#silabusEditTable tbody tr[data-idx]');
+            rows.forEach(function (tr) {
+                const idx = parseInt(tr.dataset.idx);
+                if (isNaN(idx) || !silabusRows[idx]) return;
+                tr.querySelectorAll('input[data-field]').forEach(function (inp) {
+                    silabusRows[idx][inp.dataset.field] = inp.value;
+                });
+            });
+
+            // Validate
+            for (let i = 0; i < silabusRows.length; i++) {
+                const r = silabusRows[i];
+                if (!r.Kompetensi || !r.Kompetensi.trim()) {
+                    alert(`Baris ${i + 1}: Kolom Kompetensi tidak boleh kosong.`);
+                    return;
+                }
+                if (!r.Deliverable || !r.Deliverable.trim()) {
+                    alert(`Baris ${i + 1}: Kolom Deliverable tidak boleh kosong.`);
+                    return;
+                }
+            }
+
+            // Enrich with filter context
+            const payload = silabusRows.map(function (r) {
+                return Object.assign({}, r, { Bagian: currentBagian, Unit: currentUnit, TrackId: currentTrackId });
+            });
+
+            const btn = document.getElementById('btnSaveAll');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menyimpan...';
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                const resp = await fetch('/ProtonData/SilabusSave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify(payload)
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    window.location.href = `/ProtonData?bagian=${encodeURIComponent(currentBagian)}&unit=${encodeURIComponent(currentUnit)}&trackId=${currentTrackId}`;
+                } else {
+                    alert('Gagal menyimpan: ' + (data.message || 'Error tidak diketahui'));
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan Semua';
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-save me-1"></i>Simpan Semua';
+            }
+        }
+
+        // ---- Utilities ----
+        function escHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+        function escAttr(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        // ---- Initial render ----
+        if (isEditMode) {
+            renderEditTable();
+        } else {
+            renderViewTable();
+        }
+    })();
 </script>
 }
