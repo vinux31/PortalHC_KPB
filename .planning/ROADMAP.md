@@ -372,10 +372,14 @@ Plans:
 **Plans:** 3/3 plans complete
 
 ### Phase 52: DeliverableProgress Override
-**Goal:** Admin can view and override ProtonDeliverableProgress status — correct stuck or erroneous deliverable records
+**Goal:** Admin/HC can view all ProtonDeliverableProgress records in a third /ProtonData tab and override stuck or erroneous statuses; sequential lock removed — all deliverables Active on assignment
 **Depends on:** Phase 51
 **Requirements:** OPER-03
-**Plans:** TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 52-01-PLAN.md — Override tab UI + OverrideList/OverrideDetail/OverrideSave endpoints + badge table + override modal + AuditLog
+- [ ] 52-02-PLAN.md — Lock removal: CDPController AssignTrack/Deliverable/ApproveDeliverable cleanup + CoacheeProgressRow.Locked removal + EF data migration
 
 ### Phase 53: Final Assessment Manager
 **Goal:** Admin can view, approve, reject, and edit ProtonFinalAssessment records — admin-level management of final assessments
@@ -499,7 +503,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 49. Assessment Management Migration | 5/5 | Complete    | 2026-02-27 | - |
 | 50. Coach-Coachee Mapping Manager | 2/2 | Complete    | 2026-02-27 | - |
 | 51. Proton Track Assignment Manager | 3/3 | Complete    | 2026-02-27 | - |
-| 52. DeliverableProgress Override | v2.3 | 0/? | Not started | - |
+| 52. DeliverableProgress Override | v2.3 | 0/2 | Not started | - |
 | 53. Final Assessment Manager | v2.3 | 0/? | Not started | - |
 | 54. Coaching Session Override | v2.3 | 0/? | Not started | - |
 | 55. ~~Question Bank Edit~~ | v2.3 | - | Removed | - |
@@ -511,11 +515,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 61. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 62. Update Kelola Data Hub | v2.3 | 0/? | Not started | - |
 | 63. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
-<<<<<<< HEAD
-| 64. Functional Filters | v2.4 | 0/? | Not started | - |
-=======
-| 64. Functional Filters | 2/2 | Complete    | 2026-02-27 | - |
->>>>>>> 0ddd4e6 (docs(phase-64): complete phase execution)
+| 64. Functional Filters | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 65. Actions | v2.4 | 0/? | Not started | - |
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
 
