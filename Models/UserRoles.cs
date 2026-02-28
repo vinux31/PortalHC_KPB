@@ -66,5 +66,21 @@ namespace HcPortal.Models
         /// Check if role is coaching-related
         /// </summary>
         public static bool IsCoachingRole(int level) => level >= 5;
+
+        /// <summary>
+        /// Get the default SelectedView for a given role name.
+        /// Mapping: Admin→"Admin", HC→"HC", Coach→"Coach", management roles→"Atasan", default→"Coachee"
+        /// </summary>
+        public static string GetDefaultView(string roleName)
+        {
+            return roleName switch
+            {
+                Admin => "Admin",
+                HC => "HC",
+                Coach => "Coach",
+                Direktur or VP or Manager or SectionHead or SrSupervisor => "Atasan",
+                _ => "Coachee"
+            };
+        }
     }
 }

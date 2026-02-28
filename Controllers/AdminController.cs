@@ -12,7 +12,7 @@ using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class AdminController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -33,12 +33,14 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/Index
+        [Authorize(Roles = "Admin, HC")]
         public IActionResult Index()
         {
             return View();
         }
 
         // GET /Admin/KkjMatrix
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> KkjMatrix()
         {
             ViewData["Title"] = "Kelola KKJ Matrix";
@@ -66,6 +68,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjMatrixSave
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjMatrixSave([FromBody] List<KkjMatrixItem> rows)
         {
@@ -126,6 +129,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjBagianSave
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianSave([FromBody] List<KkjBagian> bagians)
         {
@@ -176,6 +180,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjBagianAdd
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianAdd()
         {
@@ -199,6 +204,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjBagianDelete
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianDelete(int id)
         {
@@ -221,6 +227,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjMatrixDelete
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjMatrixDelete(int id)
         {
@@ -249,6 +256,7 @@ namespace HcPortal.Controllers
 
         // GET /Admin/ManageAssessment
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ManageAssessment(string? search, int page = 1, int pageSize = 20)
         {
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
@@ -336,6 +344,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/CpdpItems
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CpdpItems()
         {
             ViewData["Title"] = "KKJ-IDP Mapping Editor";
@@ -348,6 +357,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CpdpItemsSave
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CpdpItemsSave([FromBody] List<CpdpItem> rows)
         {
@@ -406,6 +416,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CpdpItemDelete
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CpdpItemDelete(int id)
         {
@@ -428,6 +439,7 @@ namespace HcPortal.Controllers
         // --- CREATE ASSESSMENT ---
         // GET: Show create assessment form
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateAssessment()
         {
             // Get list of users for dropdown
@@ -460,6 +472,7 @@ namespace HcPortal.Controllers
 
         // POST: Process form submission (multi-user)
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAssessment(AssessmentSession model, List<string> UserIds)
         {
@@ -709,6 +722,7 @@ namespace HcPortal.Controllers
         // --- EDIT ASSESSMENT ---
         // GET: Show edit form
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> EditAssessment(int id)
         {
             var assessment = await _context.AssessmentSessions
@@ -771,6 +785,7 @@ namespace HcPortal.Controllers
 
         // POST: Update assessment
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds)
         {
@@ -947,6 +962,7 @@ namespace HcPortal.Controllers
 
         // --- DELETE ASSESSMENT ---
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAssessment(int id)
         {
@@ -1030,6 +1046,7 @@ namespace HcPortal.Controllers
 
         // --- DELETE ASSESSMENT GROUP ---
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAssessmentGroup(int id)
         {
@@ -1112,6 +1129,7 @@ namespace HcPortal.Controllers
 
         // --- REGENERATE TOKEN ---
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegenerateToken(int id)
         {
@@ -1146,6 +1164,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/CpdpItemsExport?section=RFCC
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CpdpItemsExport(string? section)
         {
             var query = _context.CpdpItems.OrderBy(c => c.No).ThenBy(c => c.Id).AsQueryable();
@@ -1222,6 +1241,7 @@ namespace HcPortal.Controllers
 
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate)
         {
             var sessions = await _context.AssessmentSessions
@@ -1320,6 +1340,7 @@ namespace HcPortal.Controllers
 
         // --- GET MONITORING PROGRESS (polling endpoint for real-time monitoring) ---
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetMonitoringProgress(string title, string category, DateTime scheduleDate)
         {
             // Step 1: load sessions (same filter as AssessmentMonitoringDetail)
@@ -1415,6 +1436,7 @@ namespace HcPortal.Controllers
 
         // --- RESET ASSESSMENT ---
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetAssessment(int id)
         {
@@ -1512,6 +1534,7 @@ namespace HcPortal.Controllers
 
         // --- FORCE CLOSE ASSESSMENT ---
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForceCloseAssessment(int id)
         {
@@ -1562,6 +1585,7 @@ namespace HcPortal.Controllers
 
         // --- FORCE CLOSE ALL SESSIONS IN GROUP ---
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForceCloseAll(string title, string category, DateTime scheduleDate)
         {
@@ -1605,6 +1629,7 @@ namespace HcPortal.Controllers
 
         // --- EXPORT ASSESSMENT RESULTS ---
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ExportAssessmentResults(string title, string category, DateTime scheduleDate)
         {
             // Query all sessions in this group (all workers assigned, regardless of completion status)
@@ -1764,6 +1789,7 @@ namespace HcPortal.Controllers
 
         // --- USER ASSESSMENT HISTORY ---
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> UserAssessmentHistory(string userId)
         {
             // Load the target user
@@ -1819,6 +1845,7 @@ namespace HcPortal.Controllers
 
         // GET /Admin/AuditLog
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AuditLog(int page = 1)
         {
             const int pageSize = 25;
@@ -1845,6 +1872,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CloseEarly — score InProgress sessions from submitted answers, lock all
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseEarly(string title, string category, DateTime scheduleDate)
         {
@@ -2088,6 +2116,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/ReshufflePackage — reshuffle package for single worker
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReshufflePackage(int sessionId)
         {
@@ -2168,6 +2197,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/ReshuffleAll — bulk reshuffle for all workers in assessment group
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReshuffleAll(string title, string category, DateTime scheduleDate)
         {
@@ -2325,6 +2355,7 @@ namespace HcPortal.Controllers
 
         // GET /Admin/CoachCoacheeMapping
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CoachCoacheeMapping(
             string? search, string? section, bool showAll = false, int page = 1)
         {
@@ -2436,6 +2467,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingAssign
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingAssign([FromBody] CoachAssignRequest req)
         {
@@ -2511,6 +2543,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingEdit
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingEdit([FromBody] CoachEditRequest req)
         {
@@ -2570,6 +2603,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingGetSessionCount
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingGetSessionCount(int id)
         {
@@ -2585,6 +2619,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingDeactivate
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingDeactivate(int id)
         {
@@ -2611,6 +2646,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingReactivate
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingReactivate(int id)
         {
@@ -2641,7 +2677,698 @@ namespace HcPortal.Controllers
             return Json(new { success = true, message = "Mapping berhasil diaktifkan kembali." });
         }
 
+        // ==================== MANAGE WORKERS (migrated from CMP) ====================
+
+        // GET /Admin/ManageWorkers
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ManageWorkers(string? search, string? sectionFilter, string? roleFilter)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Challenge();
+
+            var query = _context.Users.AsQueryable();
+
+            // Search by name, email, or NIP
+            if (!string.IsNullOrEmpty(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(u =>
+                    u.FullName.ToLower().Contains(s) ||
+                    u.Email!.ToLower().Contains(s) ||
+                    (u.NIP != null && u.NIP.Contains(s))
+                );
+            }
+
+            // Filter by section
+            if (!string.IsNullOrEmpty(sectionFilter))
+            {
+                query = query.Where(u => u.Section == sectionFilter);
+            }
+
+            // Filter by role level
+            if (!string.IsNullOrEmpty(roleFilter))
+            {
+                var roleLevel = UserRoles.GetRoleLevel(roleFilter);
+                query = query.Where(u => u.RoleLevel == roleLevel);
+            }
+
+            var users = await query.OrderBy(u => u.FullName).ToListAsync();
+
+            // Get roles for each user
+            var userRolesDict = new Dictionary<string, string>();
+            foreach (var u in users)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                userRolesDict[u.Id] = roles.FirstOrDefault() ?? "No Role";
+            }
+            ViewBag.UserRoles = userRolesDict;
+
+            // Stats
+            ViewBag.TotalUsers = await _context.Users.CountAsync();
+            ViewBag.AdminCount = await _context.Users.CountAsync(u => u.RoleLevel == 1);
+            ViewBag.HcCount = await _context.Users.CountAsync(u => u.RoleLevel == 2);
+            ViewBag.WorkerCount = await _context.Users.CountAsync(u => u.RoleLevel >= 5);
+
+            // Filters state
+            ViewBag.Search = search;
+            ViewBag.SectionFilter = sectionFilter;
+            ViewBag.RoleFilter = roleFilter;
+
+            return View(users);
+        }
+
+        // GET /Admin/CreateWorker
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult CreateWorker()
+        {
+            var model = new ManageUserViewModel
+            {
+                Role = "Coachee"
+            };
+            return View(model);
+        }
+
+        // POST /Admin/CreateWorker
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateWorker(ManageUserViewModel model)
+        {
+            // Password is required for create
+            if (string.IsNullOrWhiteSpace(model.Password))
+            {
+                ModelState.AddModelError("Password", "Password harus diisi untuk user baru");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Check if email already exists
+            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "Email sudah terdaftar di sistem");
+                return View(model);
+            }
+
+            var roleLevel = UserRoles.GetRoleLevel(model.Role);
+
+            // Determine default SelectedView based on role
+            var selectedView = UserRoles.GetDefaultView(model.Role);
+
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                EmailConfirmed = true,
+                FullName = model.FullName,
+                NIP = model.NIP,
+                Position = model.Position,
+                Section = model.Section,
+                Unit = model.Unit,
+                Directorate = model.Directorate,
+                JoinDate = model.JoinDate,
+                RoleLevel = roleLevel,
+                SelectedView = selectedView
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password!);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, model.Role);
+
+                // Audit log
+                try
+                {
+                    var actor = await _userManager.GetUserAsync(User);
+                    var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
+                    await _auditLog.LogAsync(
+                        actor?.Id ?? "",
+                        actorName,
+                        "CreateWorker",
+                        $"Created user '{model.FullName}' ({model.Email}) with role '{model.Role}'",
+                        null,
+                        "ApplicationUser");
+                }
+                catch { /* audit failure must not block creation */ }
+
+                TempData["Success"] = $"User '{model.FullName}' berhasil ditambahkan dengan role '{model.Role}'.";
+                return RedirectToAction("ManageWorkers");
+            }
+
+            // Identity errors
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError("", error.Description);
+            }
+            return View(model);
+        }
+
+        // GET /Admin/EditWorker
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditWorker(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return BadRequest();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var model = new ManageUserViewModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email!,
+                NIP = user.NIP,
+                Position = user.Position,
+                Section = user.Section,
+                Unit = user.Unit,
+                Directorate = user.Directorate,
+                JoinDate = user.JoinDate,
+                Role = roles.FirstOrDefault() ?? "Coachee"
+            };
+
+            return View(model);
+        }
+
+        // POST /Admin/EditWorker
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditWorker(ManageUserViewModel model)
+        {
+            if (string.IsNullOrEmpty(model.Id)) return BadRequest();
+
+            // Password is optional for edit — remove validation if blank
+            if (string.IsNullOrWhiteSpace(model.Password))
+            {
+                ModelState.Remove("Password");
+                ModelState.Remove("ConfirmPassword");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = await _userManager.FindByIdAsync(model.Id);
+            if (user == null) return NotFound();
+
+            // Check if email changed and already in use by another user
+            if (user.Email != model.Email)
+            {
+                var emailUser = await _userManager.FindByEmailAsync(model.Email);
+                if (emailUser != null && emailUser.Id != user.Id)
+                {
+                    ModelState.AddModelError("Email", "Email sudah digunakan oleh user lain");
+                    return View(model);
+                }
+                user.UserName = model.Email;
+                user.Email = model.Email;
+            }
+
+            // Track changes for audit
+            var changes = new List<string>();
+            if (user.FullName != model.FullName) changes.Add($"Name: '{user.FullName}' → '{model.FullName}'");
+            if (user.NIP != model.NIP) changes.Add($"NIP: '{user.NIP}' → '{model.NIP}'");
+            if (user.Position != model.Position) changes.Add($"Position: '{user.Position}' → '{model.Position}'");
+            if (user.Section != model.Section) changes.Add($"Section: '{user.Section}' → '{model.Section}'");
+            if (user.Unit != model.Unit) changes.Add($"Unit: '{user.Unit}' → '{model.Unit}'");
+
+            // Update fields
+            user.FullName = model.FullName;
+            user.NIP = model.NIP;
+            user.Position = model.Position;
+            user.Section = model.Section;
+            user.Unit = model.Unit;
+            user.Directorate = model.Directorate;
+            user.JoinDate = model.JoinDate;
+
+            // Update role if changed
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            var currentRole = currentRoles.FirstOrDefault();
+            if (currentRole != model.Role)
+            {
+                if (currentRole != null)
+                {
+                    await _userManager.RemoveFromRoleAsync(user, currentRole);
+                }
+                await _userManager.AddToRoleAsync(user, model.Role);
+
+                var newRoleLevel = UserRoles.GetRoleLevel(model.Role);
+                user.RoleLevel = newRoleLevel;
+
+                // Update SelectedView based on new role
+                user.SelectedView = UserRoles.GetDefaultView(model.Role);
+
+                changes.Add($"Role: '{currentRole}' → '{model.Role}'");
+            }
+
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                foreach (var error in updateResult.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(model);
+            }
+
+            // Update password if provided
+            if (!string.IsNullOrWhiteSpace(model.Password))
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var passwordResult = await _userManager.ResetPasswordAsync(user, token, model.Password);
+                if (!passwordResult.Succeeded)
+                {
+                    foreach (var error in passwordResult.Errors)
+                    {
+                        ModelState.AddModelError("Password", error.Description);
+                    }
+                    return View(model);
+                }
+                changes.Add("Password: reset");
+            }
+
+            // Audit log
+            try
+            {
+                var actor = await _userManager.GetUserAsync(User);
+                var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
+                await _auditLog.LogAsync(
+                    actor?.Id ?? "",
+                    actorName,
+                    "EditWorker",
+                    $"Updated user '{model.FullName}' ({model.Email}). Changes: {(changes.Any() ? string.Join("; ", changes) : "none")}",
+                    null,
+                    "ApplicationUser");
+            }
+            catch { /* audit failure must not block update */ }
+
+            TempData["Success"] = $"Data user '{model.FullName}' berhasil diperbarui.";
+            return RedirectToAction("ManageWorkers");
+        }
+
+        // POST /Admin/DeleteWorker
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteWorker(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return BadRequest();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Challenge();
+
+            // Prevent self-deletion
+            if (currentUser.Id == id)
+            {
+                TempData["Error"] = "Anda tidak dapat menghapus akun Anda sendiri!";
+                return RedirectToAction("ManageWorkers");
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                TempData["Error"] = "User tidak ditemukan.";
+                return RedirectToAction("ManageWorkers");
+            }
+
+            var userName = user.FullName;
+            var userEmail = user.Email;
+
+            // Delete related data that uses Restrict delete behavior
+            // UserResponses (Restrict on AssessmentSession)
+            var userAssessmentIds = await _context.AssessmentSessions
+                .Where(a => a.UserId == id)
+                .Select(a => a.Id)
+                .ToListAsync();
+
+            if (userAssessmentIds.Any())
+            {
+                var userResponses = await _context.UserResponses
+                    .Where(r => userAssessmentIds.Contains(r.AssessmentSessionId))
+                    .ToListAsync();
+                if (userResponses.Any())
+                    _context.UserResponses.RemoveRange(userResponses);
+
+                var packageUserResponses = await _context.PackageUserResponses
+                    .Where(r => userAssessmentIds.Contains(r.AssessmentSessionId))
+                    .ToListAsync();
+                if (packageUserResponses.Any())
+                    _context.PackageUserResponses.RemoveRange(packageUserResponses);
+
+                var packageAssignments = await _context.UserPackageAssignments
+                    .Where(a => userAssessmentIds.Contains(a.AssessmentSessionId))
+                    .ToListAsync();
+                if (packageAssignments.Any())
+                    _context.UserPackageAssignments.RemoveRange(packageAssignments);
+            }
+
+            // UserCompetencyLevels (Restrict)
+            var competencyLevels = await _context.UserCompetencyLevels
+                .Where(c => c.UserId == id)
+                .ToListAsync();
+            if (competencyLevels.Any())
+                _context.UserCompetencyLevels.RemoveRange(competencyLevels);
+
+            // ProtonDeliverableProgress (references CoacheeId as string)
+            var protonProgress = await _context.ProtonDeliverableProgresses
+                .Where(p => p.CoacheeId == id)
+                .ToListAsync();
+            if (protonProgress.Any())
+                _context.ProtonDeliverableProgresses.RemoveRange(protonProgress);
+
+            // ProtonTrackAssignments
+            var protonAssignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == id)
+                .ToListAsync();
+            if (protonAssignments.Any())
+                _context.ProtonTrackAssignments.RemoveRange(protonAssignments);
+
+            // ProtonNotifications
+            var protonNotifs = await _context.ProtonNotifications
+                .Where(n => n.RecipientId == id || n.CoacheeId == id)
+                .ToListAsync();
+            if (protonNotifs.Any())
+                _context.ProtonNotifications.RemoveRange(protonNotifs);
+
+            // CoachCoacheeMappings
+            var coachMappings = await _context.CoachCoacheeMappings
+                .Where(m => m.CoachId == id || m.CoacheeId == id)
+                .ToListAsync();
+            if (coachMappings.Any())
+                _context.CoachCoacheeMappings.RemoveRange(coachMappings);
+
+            // CoachingSessions
+            var coachSessions = await _context.CoachingSessions
+                .Where(s => s.CoachId == id || s.CoacheeId == id)
+                .ToListAsync();
+            if (coachSessions.Any())
+                _context.CoachingSessions.RemoveRange(coachSessions);
+
+            // CoachingLogs
+            var coachLogs = await _context.CoachingLogs
+                .Where(l => l.CoachId == id || l.CoacheeId == id)
+                .ToListAsync();
+            if (coachLogs.Any())
+                _context.CoachingLogs.RemoveRange(coachLogs);
+
+            await _context.SaveChangesAsync();
+
+            // Now delete the user (cascade will handle TrainingRecords, AssessmentSessions, IdpItems)
+            var result = await _userManager.DeleteAsync(user);
+            if (result.Succeeded)
+            {
+                // Audit log
+                try
+                {
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(
+                        currentUser.Id,
+                        actorName,
+                        "DeleteWorker",
+                        $"Deleted user '{userName}' ({userEmail})",
+                        null,
+                        "ApplicationUser");
+                }
+                catch { /* audit failure must not block deletion */ }
+
+                TempData["Success"] = $"User '{userName}' berhasil dihapus dari sistem.";
+            }
+            else
+            {
+                TempData["Error"] = $"Gagal menghapus user: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            }
+
+            return RedirectToAction("ManageWorkers");
+        }
+
+        // GET /Admin/ExportWorkers
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportWorkers(string? search, string? sectionFilter, string? roleFilter)
+        {
+            var query = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(u =>
+                    u.FullName.ToLower().Contains(s) ||
+                    u.Email!.ToLower().Contains(s) ||
+                    (u.NIP != null && u.NIP.Contains(s)));
+            }
+            if (!string.IsNullOrEmpty(sectionFilter))
+                query = query.Where(u => u.Section == sectionFilter);
+            if (!string.IsNullOrEmpty(roleFilter))
+            {
+                var level = UserRoles.GetRoleLevel(roleFilter);
+                query = query.Where(u => u.RoleLevel == level);
+            }
+
+            var users = await query.OrderBy(u => u.FullName).ToListAsync();
+
+            var roleDict = new Dictionary<string, string>();
+            foreach (var u in users)
+            {
+                var roles = await _userManager.GetRolesAsync(u);
+                roleDict[u.Id] = roles.FirstOrDefault() ?? "-";
+            }
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Workers");
+
+            var headers = new[] { "No", "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Directorate", "Role", "Tgl Bergabung" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#2563EB");
+                ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
+            }
+
+            int row = 2, no = 1;
+            foreach (var u in users)
+            {
+                ws.Cell(row, 1).Value = no++;
+                ws.Cell(row, 2).Value = u.FullName;
+                ws.Cell(row, 3).Value = u.Email;
+                ws.Cell(row, 4).Value = u.NIP ?? "";
+                ws.Cell(row, 5).Value = u.Position ?? "";
+                ws.Cell(row, 6).Value = u.Section ?? "";
+                ws.Cell(row, 7).Value = u.Unit ?? "";
+                ws.Cell(row, 8).Value = u.Directorate ?? "";
+                ws.Cell(row, 9).Value = roleDict.ContainsKey(u.Id) ? roleDict[u.Id] : "-";
+                ws.Cell(row, 10).Value = u.JoinDate.HasValue ? u.JoinDate.Value.ToString("yyyy-MM-dd") : "";
+                row++;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new System.IO.MemoryStream();
+            workbook.SaveAs(stream);
+            var fileName = $"workers_export_{DateTime.Now:yyyyMMdd}.xlsx";
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
+        }
+
+        // GET /Admin/WorkerDetail
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> WorkerDetail(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return BadRequest();
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            ViewBag.Role = roles.FirstOrDefault() ?? "No Role";
+
+            return View(user);
+        }
+
+        // GET /Admin/ImportWorkers
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult ImportWorkers()
+        {
+            return View();
+        }
+
+        // GET /Admin/DownloadImportTemplate
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult DownloadImportTemplate()
+        {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Import Workers");
+
+            var headers = new[] { "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Directorate", "Role", "Tgl Bergabung (YYYY-MM-DD)", "Password" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#16A34A");
+                ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
+            }
+
+            var example = new[] { "Ahmad Fauzi", "ahmad.fauzi@pertamina.com", "123456", "Operator", "RFCC", "RFCC LPG Treating Unit (062)", "CSU Process", "Coachee", "2024-01-15", "Password123!" };
+            for (int i = 0; i < example.Length; i++)
+            {
+                ws.Cell(2, i + 1).Value = example[i];
+                ws.Cell(2, i + 1).Style.Font.Italic = true;
+                ws.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray;
+            }
+
+            ws.Cell(3, 1).Value = "Kolom Bagian: RFCC / DHT / HMU / NGP / GAST";
+            ws.Cell(3, 1).Style.Font.Italic = true;
+            ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+            ws.Cell(4, 1).Value = $"Kolom Role: {string.Join(" / ", UserRoles.AllRoles)}";
+            ws.Cell(4, 1).Style.Font.Italic = true;
+            ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new System.IO.MemoryStream();
+            workbook.SaveAs(stream);
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "workers_import_template.xlsx");
+        }
+
+        // POST /Admin/ImportWorkers
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportWorkers(IFormFile? excelFile)
+        {
+            if (excelFile == null || excelFile.Length == 0)
+            {
+                TempData["Error"] = "Pilih file Excel terlebih dahulu.";
+                return View();
+            }
+
+            var results = new List<ImportWorkerResult>();
+
+            try
+            {
+                using var fileStream = excelFile.OpenReadStream();
+                using var workbook = new XLWorkbook(fileStream);
+                var ws = workbook.Worksheets.First();
+
+                foreach (var row in ws.RowsUsed().Skip(1))
+                {
+                    var nama = row.Cell(1).GetString().Trim();
+                    var email = row.Cell(2).GetString().Trim();
+                    var nip = row.Cell(3).GetString().Trim();
+                    var jabatan = row.Cell(4).GetString().Trim();
+                    var bagian = row.Cell(5).GetString().Trim();
+                    var unit = row.Cell(6).GetString().Trim();
+                    var directorate = row.Cell(7).GetString().Trim();
+                    var role = row.Cell(8).GetString().Trim();
+                    var tglStr = row.Cell(9).GetString().Trim();
+                    var password = row.Cell(10).GetString().Trim();
+
+                    // Skip blank rows (e.g. notes/example rows)
+                    if (string.IsNullOrWhiteSpace(nama) && string.IsNullOrWhiteSpace(email)) continue;
+
+                    var result = new ImportWorkerResult { Nama = nama, Email = email, Role = role };
+
+                    var errors = new List<string>();
+                    if (string.IsNullOrWhiteSpace(nama)) errors.Add("Nama kosong");
+                    if (string.IsNullOrWhiteSpace(email)) errors.Add("Email kosong");
+                    if (string.IsNullOrWhiteSpace(password)) errors.Add("Password kosong");
+                    if (string.IsNullOrWhiteSpace(role) || !UserRoles.AllRoles.Contains(role))
+                        errors.Add($"Role tidak valid");
+
+                    if (errors.Any())
+                    {
+                        result.Status = "Error";
+                        result.Message = string.Join("; ", errors);
+                        results.Add(result);
+                        continue;
+                    }
+
+                    var existing = await _userManager.FindByEmailAsync(email);
+                    if (existing != null)
+                    {
+                        result.Status = "Skip";
+                        result.Message = "Email sudah terdaftar, dilewati";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    DateTime? joinDate = null;
+                    if (!string.IsNullOrWhiteSpace(tglStr) && DateTime.TryParse(tglStr, out var parsedDate))
+                        joinDate = parsedDate;
+
+                    var roleLevel = UserRoles.GetRoleLevel(role);
+                    var selectedView = UserRoles.GetDefaultView(role);
+
+                    var newUser = new ApplicationUser
+                    {
+                        UserName = email,
+                        Email = email,
+                        EmailConfirmed = true,
+                        FullName = nama,
+                        NIP = string.IsNullOrWhiteSpace(nip) ? null : nip,
+                        Position = string.IsNullOrWhiteSpace(jabatan) ? null : jabatan,
+                        Section = string.IsNullOrWhiteSpace(bagian) ? null : bagian,
+                        Unit = string.IsNullOrWhiteSpace(unit) ? null : unit,
+                        Directorate = string.IsNullOrWhiteSpace(directorate) ? null : directorate,
+                        JoinDate = joinDate,
+                        RoleLevel = roleLevel,
+                        SelectedView = selectedView
+                    };
+
+                    var createResult = await _userManager.CreateAsync(newUser, password);
+                    if (createResult.Succeeded)
+                    {
+                        await _userManager.AddToRoleAsync(newUser, role);
+                        result.Status = "Success";
+                        result.Message = "Berhasil dibuat";
+                    }
+                    else
+                    {
+                        result.Status = "Error";
+                        result.Message = string.Join("; ", createResult.Errors.Select(e => e.Description));
+                    }
+
+                    results.Add(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Gagal membaca file: {ex.Message}";
+                return View();
+            }
+
+            // Audit log
+            try
+            {
+                var actor = await _userManager.GetUserAsync(User);
+                var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
+                var successCount = results.Count(r => r.Status == "Success");
+                await _auditLog.LogAsync(actor?.Id ?? "", actorName, "ImportWorkers",
+                    $"Bulk import: {successCount} berhasil, {results.Count(r => r.Status == "Error")} error, {results.Count(r => r.Status == "Skip")} dilewati",
+                    null, "ApplicationUser");
+            }
+            catch { }
+
+            ViewBag.ImportResults = results;
+            return View();
+        }
+
         // GET /Admin/CoachCoacheeMappingExport
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CoachCoacheeMappingExport()
         {
             var mappings = await _context.CoachCoacheeMappings
