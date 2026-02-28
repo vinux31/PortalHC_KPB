@@ -156,7 +156,15 @@
                 <form method="post" asp-controller="Account" asp-action="Login">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-                    
+
+                    @if (isAdMode)
+                    {
+                        <div class="alert alert-info d-flex align-items-center mb-4" role="alert">
+                            <i class="bi bi-shield-lock-fill me-2"></i>
+                            <strong>Login menggunakan akun Pertamina</strong>
+                        </div>
+                    }
+
                     <div class="mb-4">
                         <label class="custom-label">Email</label>
                         <div class="input-group input-group-lg border rounded">
@@ -183,13 +191,6 @@
                             MASUK KE SISTEM <i class="bi bi-arrow-right ms-2"></i>
                         </button>
                     </div>
-
-                    @if (isAdMode)
-                    {
-                        <div class="text-center mb-3">
-                            <small class="text-muted">Login menggunakan akun Pertamina</small>
-                        </div>
-                    }
 
                     <div class="text-center">
                         <a href="#" class="text-decoration-none text-muted fw-bold" onclick="alert('Hubungi IT Helpdesk Ext. 5000')">Lupa Password?</a>
