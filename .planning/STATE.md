@@ -388,9 +388,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
-**Phase:** Phase 72 — Dual Auth Login Flow (Complete — 1/1 plans done)
-**Status:** Executing
-**Last activity:** 2026-02-28 - Completed Plan 72-01: AccountController.Login POST rewritten with IAuthService abstraction (Local + AD transparent), AD profile sync (FullName/Email null-safe before SignInAsync), unknown-user rejection with Indonesian message, AuthSource removed from ApplicationUser model and SQL Users table via EF migration
+**Phase:** Phase 72 — Dual Auth Login Flow (Complete — 3/3 plans done)
+**Status:** Complete
+**Last activity:** 2026-02-28 - Completed Plan 72-03: AdminController AD mode adaptation (CreateWorker POST auto-generates password, EditWorker POST skips password change, DownloadImportTemplate dynamic columns, ImportWorkers POST conditional password read/generate). Phase 72 fully complete.
 
 Progress: [████████████░░░░░░░░] 60% (v2.5 — 3/4 phases in progress)
 
