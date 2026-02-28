@@ -607,18 +607,20 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 - [ ] 68-02: Frontend — Rewrite Settings.cshtml, 2 form sections, remove/disable placeholder items
 
 ### Phase 69: ManageWorkers Migration to Admin
-**Goal:** Pindahkan ManageWorkers dari CMPController ke AdminController, redirect old URLs
+**Goal:** Pindahkan seluruh fitur ManageWorkers (CRUD, import, export, detail) dari CMPController ke AdminController — clean break tanpa redirect, akses via Kelola Data hub card, GetDefaultView() helper extraction
 **Depends on:** Phase 68
 **Requirements:** USR-01, USR-02, USR-03, USTR-02
 **Supersedes:** v2.3 Phase 59 (Konsolidasi Kelola Pekerja)
 **Success Criteria** (what must be TRUE):
   1. All ManageWorkers CRUD actions (list, create, edit, delete, import, export, detail) work from /Admin/ManageWorkers
-  2. Old /CMP/ManageWorkers returns 301 redirect to /Admin/ManageWorkers
+  2. Old /CMP/ManageWorkers deleted — no redirect (clean break per user decision, overrides roadmap SC #2)
   3. Standalone "Kelola Pekerja" button removed from navbar — access only via Kelola Data hub
   4. Role-to-SelectedView mapping extracted to shared helper UserRoles.GetDefaultView()
 **Plans:** 2 plans
-- [ ] 69-01: Backend — Copy 8 actions to AdminController, move 5 views, update references, add redirects, extract GetDefaultView()
-- [ ] 69-02: Remove from CMPController, remove navbar button, verify all internal links
+
+Plans:
+- [ ] 69-01-PLAN.md — Backend migration: 11 actions to AdminController with HC+Admin auth, GetDefaultView() extraction, 5 views copied to Views/Admin/ with all CMP references updated
+- [ ] 69-02-PLAN.md — Cleanup: delete from CMPController, delete old CMP views, remove navbar button, add hub card, update RecordsWorkerList, full stale reference verification
 
 ### Phase 70: Kelola Data Hub Reorganization
 **Goal:** Admin/Index.cshtml restructured — ManageWorkers prominent, stale items cleaned up
