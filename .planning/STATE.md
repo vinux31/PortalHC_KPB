@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-28T02:33:49.591Z"
+last_updated: "2026-02-28T02:40:18.769Z"
 last_activity: "2026-02-27 - Completed Plan 68-02: Settings.cshtml rewritten with Edit Profil form (3 editable + 6 read-only fields), Change Password form with confirm() dialog, Pengaturan Lainnya disabled section with Segera Hadir badges, section-specific TempData alerts"
 progress:
   total_phases: 52
-  completed_phases: 49
+  completed_phases: 50
   total_plans: 120
-  completed_plans: 118
+  completed_plans: 119
 ---
 
 ---
@@ -304,9 +304,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 68 — Functional Settings Page (Complete — 2/2 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-27 - Completed Plan 68-02: Settings.cshtml rewritten with Edit Profil form (3 editable + 6 read-only fields), Change Password form with confirm() dialog, Pengaturan Lainnya disabled section with Segera Hadir badges, section-specific TempData alerts
+**Phase:** Phase 69 — ManageWorkers Migration to Admin (Complete — 2/2 plans done)
+**Status:** Phase complete
+**Last activity:** 2026-02-28 - Completed Plan 69-02: CMPController ManageWorkers cleanup (11 actions removed), 5 CMP view files deleted, navbar Kelola Pekerja button removed, Manajemen Pekerja hub card added as first in Section A, zero stale references verified
 
 Progress: [████████░░░░░░░░░░░░] 42% (v2.3 — 6/12 phases complete, v2.4 — 2/8 phases complete)
 
@@ -408,6 +408,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 68-02]: Native confirm() dialog on password submit — onclick='return confirm()' requires zero JS setup
 - [Phase 69-01]: Changed AdminController class-level [Authorize(Roles='Admin')] to [Authorize] + per-action [Authorize(Roles='Admin')] on all existing actions + [Authorize(Roles='Admin,HC')] on ManageWorkers actions and Index()
 - [Phase 69-01]: GetDefaultView() extracted to UserRoles.cs using existing role constants — replaces 3 duplicated inline switch statements in CreateWorker/EditWorker/ImportWorkers POST actions
+- [Phase 69-02]: Clean break migration — /CMP/ManageWorkers returns 404, no redirects; Manajemen Pekerja hub card first in Section A; training records WorkerDetail preserved at CMPController
 
 ### Roadmap Evolution
 
@@ -448,9 +449,10 @@ None.
 | Phase 52-deliverableprogress-override P01 | 3 | 2 tasks | 2 files |
 | Phase 68-functional-settings-page P01 | 3 | 2 tasks | 2 files |
 | Phase 68-functional-settings-page P02 | 2 | 1 tasks | 1 files |
+| Phase 69-manageworkers-migration-to-admin P02 | 8 | 2 tasks | 8 files |
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: Completed 68-02-PLAN.md (Settings.cshtml rewritten: Edit Profil form 3 editable+6 read-only, ChangePassword form with confirm(), Pengaturan Lainnya disabled with Segera Hadir badges). Phase 68 complete (2/2 plans).
+Last session: 2026-02-28
+Stopped at: Completed 69-02-PLAN.md (ManageWorkers cleanup: 11 CMP actions removed, 5 CMP views deleted, navbar button removed, hub card added, zero stale references). Phase 69 complete (2/2 plans).
 Resume file: None.

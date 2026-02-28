@@ -507,7 +507,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
 | 67. Dynamic Profile Page | 1/1 | Complete    | 2026-02-27 | - |
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
-| 69. ManageWorkers Migration to Admin | 1/2 | In Progress|  | - |
+| 69. ManageWorkers Migration to Admin | 2/2 | Complete   | 2026-02-28 | - |
 | 70. Kelola Data Hub Reorganization | v2.5 | 0/1 | Not started | - |
 | 71. LDAP Auth Service Foundation | v2.5 | 0/2 | Not started | - |
 | 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
@@ -575,7 +575,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 
 - [x] **Phase 67: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned) (completed 2026-02-27)
 - [x] **Phase 68: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned) (completed 2026-02-27)
-- [ ] **Phase 69: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 59
+- [x] **Phase 69: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 59 (completed 2026-02-28)
 - [ ] **Phase 70: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 62
 - [ ] **Phase 71: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned)
 - [ ] **Phase 72: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned)
@@ -616,7 +616,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   2. Old /CMP/ManageWorkers deleted — no redirect (clean break per user decision, overrides roadmap SC #2)
   3. Standalone "Kelola Pekerja" button removed from navbar — access only via Kelola Data hub
   4. Role-to-SelectedView mapping extracted to shared helper UserRoles.GetDefaultView()
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 69-01-PLAN.md — Backend migration: 11 actions to AdminController with HC+Admin auth, GetDefaultView() extraction, 5 views copied to Views/Admin/ with all CMP references updated
