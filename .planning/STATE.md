@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-27T13:19:46.190Z"
+last_updated: "2026-02-28T02:33:49.591Z"
 last_activity: "2026-02-27 - Completed Plan 68-02: Settings.cshtml rewritten with Edit Profil form (3 editable + 6 read-only fields), Change Password form with confirm() dialog, Pengaturan Lainnya disabled section with Segera Hadir badges, section-specific TempData alerts"
 progress:
-  total_phases: 51
+  total_phases: 52
   completed_phases: 49
-  total_plans: 118
-  completed_plans: 117
+  total_plans: 120
+  completed_plans: 118
 ---
 
 ---
@@ -406,6 +406,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 68-02]: Section-specific TempData alerts placed ABOVE their respective form section headings for adjacency with submitted form
 - [Phase 68-02]: Read-only admin-managed fields use disabled HTML inputs with 'Dikelola oleh admin' hint text for consistent form layout
 - [Phase 68-02]: Native confirm() dialog on password submit — onclick='return confirm()' requires zero JS setup
+- [Phase 69-01]: Changed AdminController class-level [Authorize(Roles='Admin')] to [Authorize] + per-action [Authorize(Roles='Admin')] on all existing actions + [Authorize(Roles='Admin,HC')] on ManageWorkers actions and Index()
+- [Phase 69-01]: GetDefaultView() extracted to UserRoles.cs using existing role constants — replaces 3 duplicated inline switch statements in CreateWorker/EditWorker/ImportWorkers POST actions
 
 ### Roadmap Evolution
 

@@ -507,7 +507,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 66. UI Polish | v2.4 | 0/? | Not started | - |
 | 67. Dynamic Profile Page | 1/1 | Complete    | 2026-02-27 | - |
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
-| 69. ManageWorkers Migration to Admin | v2.5 | 0/2 | Not started | - |
+| 69. ManageWorkers Migration to Admin | 1/2 | In Progress|  | - |
 | 70. Kelola Data Hub Reorganization | v2.5 | 0/1 | Not started | - |
 | 71. LDAP Auth Service Foundation | v2.5 | 0/2 | Not started | - |
 | 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
@@ -616,7 +616,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
   2. Old /CMP/ManageWorkers deleted — no redirect (clean break per user decision, overrides roadmap SC #2)
   3. Standalone "Kelola Pekerja" button removed from navbar — access only via Kelola Data hub
   4. Role-to-SelectedView mapping extracted to shared helper UserRoles.GetDefaultView()
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 69-01-PLAN.md — Backend migration: 11 actions to AdminController with HC+Admin auth, GetDefaultView() extraction, 5 views copied to Views/Admin/ with all CMP references updated

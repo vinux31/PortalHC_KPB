@@ -81,7 +81,7 @@
 
 ### USR — Admin User Management
 
-- [ ] **USR-01**: ManageWorkers CRUD (list, create, edit, delete, import, export, detail) accessible dari /Admin/ManageWorkers
+- [x] **USR-01**: ManageWorkers CRUD (list, create, edit, delete, import, export, detail) accessible dari /Admin/ManageWorkers
 - [ ] **USR-02**: Old /CMP/ManageWorkers redirect 301 ke /Admin/ManageWorkers
 - [ ] **USR-03**: Standalone "Kelola Pekerja" button di navbar dihapus — akses via Kelola Data hub
 - [ ] **USR-04**: Kelola Data hub di-reorganize: ManageWorkers card prominent, stale "Segera" items cleaned up
@@ -89,7 +89,7 @@
 ### USTR — User Structure
 
 - [ ] **USTR-01**: ApplicationUser punya field AuthSource ("Local"/"AD") + EF migration
-- [ ] **USTR-02**: Role-to-SelectedView mapping di-extract ke shared helper UserRoles.GetDefaultView()
+- [x] **USTR-02**: Role-to-SelectedView mapping di-extract ke shared helper UserRoles.GetDefaultView()
 
 ## Future Requirements
 
@@ -153,12 +153,12 @@
 | AUTH-06 | Phase 72 | Pending |
 | AUTH-07 | Phase 72 | Pending |
 | AUTH-08 | Phase 71 | Pending |
-| USR-01  | Phase 69 | Pending |
+| USR-01  | Phase 69 | Complete |
 | USR-02  | Phase 69 | Pending |
 | USR-03  | Phase 69 | Pending |
 | USR-04  | Phase 70 | Pending |
 | USTR-01 | Phase 71 | Pending |
-| USTR-02 | Phase 69, 73 | Pending |
+| USTR-02 | Phase 69, 73 | Complete |
 
 **v2.3 Coverage:**
 - v2.3 requirements: 12 total
