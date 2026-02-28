@@ -18,6 +18,13 @@
     var pendingApprovals = (int)ViewBag.PendingApprovals;
     var showCoacheeColumn = string.IsNullOrEmpty(selectedCoacheeId) && userLevel < 6;
 
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var pageFirstRow = (int)(ViewBag.PageFirstRow ?? 0);
+    var pageLastRow = (int)(ViewBag.PageLastRow ?? 0);
+    var filteredCount = (int)(ViewBag.FilteredCount ?? 0);
+    var emptyScenario = ViewBag.EmptyScenario as string ?? "";
+
     bool isSrSpv = userRole == "Sr Supervisor";
     bool isSH = userRole == "Section Head";
     bool isHC = userRole == "HC" || userRole == "Admin";
@@ -196,8 +203,25 @@
         </button>
     </form>
 
+    @* Loading spinner overlay — shown on filter/page navigation, hidden on DOMContentLoaded *@
+    <div id="loadingSpinner" class="d-none"
+         style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+        <div class="spinner-border text-primary" role="status" style="width:3rem;height:3rem;">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
     @* Result count *@
-    <small class="text-muted mb-2 d-block">Menampilkan @ViewBag.FilteredCount dari @ViewBag.TotalCount data</small>
+    <small class="text-muted mb-2 d-block">
+        @if (Model.Count > 0)
+        {
+            <span>Menampilkan @pageFirstRow–@pageLastRow dari @filteredCount deliverable</span>
+        }
+        else
+        {
+            <span>@filteredCount deliverable total</span>
+        }
+    </small>
 
     @* Summary stat cards *@
     <div class="row g-3 mb-4">
@@ -273,10 +297,56 @@
         </div>
     }
 
-    @* Empty state — no data matching current filters *@
-    @if (Model.Count == 0 && !string.IsNullOrEmpty(ViewBag.EmptyMessage as string))
+    @* Empty state — scenario-aware icon + message (UI-02) *@
+    @if (Model.Count == 0)
     {
-        <div class="alert alert-info">@ViewBag.EmptyMessage</div>
+        <div id="emptyStateContainer" class="text-center py-5 border rounded bg-light">
+            @if (emptyScenario == "no_coachees")
+            {
+                <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
+                @if (isHC)
+                {
+                    <h5 class="text-muted mb-1">Belum ada coachee yang ditugaskan</h5>
+                    <p class="text-muted small">Tambahkan mapping Coach-Coachee di menu Kelola Data untuk memulai.</p>
+                }
+                else
+                {
+                    <h5 class="text-muted mb-1">Belum ada coachee yang ditugaskan</h5>
+                }
+            }
+            else if (emptyScenario == "no_filter_match")
+            {
+                <i class="bi bi-funnel fs-1 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted mb-1">Tidak ada deliverable yang sesuai filter</h5>
+                <p class="text-muted small">Coba ubah atau hapus filter yang aktif.</p>
+                <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="clearFilters()">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Hapus Filter
+                </button>
+            }
+            else if (emptyScenario == "no_deliverables")
+            {
+                <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+                @if (isHC)
+                {
+                    <h5 class="text-muted mb-1">Belum ada data deliverable</h5>
+                    <p class="text-muted small">Pastikan coachee sudah ditugaskan ke Proton Track.</p>
+                }
+                else if (isCoach)
+                {
+                    <h5 class="text-muted mb-1">Coachee ini belum memiliki deliverable</h5>
+                }
+                else
+                {
+                    <h5 class="text-muted mb-1">Belum ada data deliverable</h5>
+                }
+            }
+            else
+            {
+                @* Fallback for any unclassified empty state *@
+                <i class="bi bi-inbox fs-1 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted mb-1">Tidak ada data</h5>
+            }
+        </div>
     }
 
     @* Search no-results message (hidden by default, shown by JS) *@
@@ -548,6 +618,104 @@
                 </tbody>
             </table>
         </div>
+
+        @* Pagination controls (UI-04) — numbered navigation, positioned at bottom of table only *@
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Navigasi halaman" class="mt-4 d-flex justify-content-between align-items-center">
+                <small class="text-muted">Halaman @currentPage dari @totalPages</small>
+                <ul class="pagination pagination-sm mb-0">
+                    @* Previous button *@
+                    @if (currentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                                bagian = selectedBagian,
+                                unit = selectedUnit,
+                                trackType = selectedTrackType,
+                                tahun = selectedTahun,
+                                coacheeId = selectedCoacheeId,
+                                page = currentPage - 1
+                            })">«</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled"><span class="page-link">«</span></li>
+                    }
+
+                    @* Numbered pages (window of ±2 around current) *@
+                    @{
+                        int startPage = Math.Max(1, currentPage - 2);
+                        int endPage = Math.Min(totalPages, currentPage + 2);
+                    }
+                    @if (startPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                                bagian = selectedBagian, unit = selectedUnit,
+                                trackType = selectedTrackType, tahun = selectedTahun,
+                                coacheeId = selectedCoacheeId, page = 1
+                            })">1</a>
+                        </li>
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        }
+                    }
+                    @for (int p = startPage; p <= endPage; p++)
+                    {
+                        if (p == currentPage)
+                        {
+                            <li class="page-item active" aria-current="page"><span class="page-link">@p</span></li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                                    bagian = selectedBagian, unit = selectedUnit,
+                                    trackType = selectedTrackType, tahun = selectedTahun,
+                                    coacheeId = selectedCoacheeId, page = p
+                                })">@p</a>
+                            </li>
+                        }
+                    }
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">…</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                                bagian = selectedBagian, unit = selectedUnit,
+                                trackType = selectedTrackType, tahun = selectedTahun,
+                                coacheeId = selectedCoacheeId, page = totalPages
+                            })">@totalPages</a>
+                        </li>
+                    }
+
+                    @* Next button *@
+                    @if (currentPage < totalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                                bagian = selectedBagian,
+                                unit = selectedUnit,
+                                trackType = selectedTrackType,
+                                tahun = selectedTahun,
+                                coacheeId = selectedCoacheeId,
+                                page = currentPage + 1
+                            })">»</a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled"><span class="page-link">»</span></li>
+                    }
+                </ul>
+            </nav>
+        }
     }
 
 </div> @* end container-fluid *@
@@ -1167,5 +1335,51 @@ function updateStatCards() {
     const pendingApprovalsEl = document.querySelector('.card .text-info.mb-0');
     if (pendingApprovalsEl) pendingApprovalsEl.textContent = pendingApprovals;
 }
+
+// === Spinner overlay: show on filter change and pagination navigation ===
+(function() {
+    const spinner = document.getElementById('loadingSpinner');
+
+    // Show spinner when any filter dropdown changes (filter form auto-submits)
+    const filterForm = document.getElementById('filterForm');
+    if (filterForm) {
+        filterForm.addEventListener('submit', function() {
+            if (spinner) {
+                spinner.classList.remove('d-none');
+                spinner.style.display = 'flex';
+            }
+        });
+    }
+
+    // Show spinner on pagination link click
+    document.querySelectorAll('.page-nav-link').forEach(function(link) {
+        link.addEventListener('click', function() {
+            if (spinner) {
+                spinner.classList.remove('d-none');
+                spinner.style.display = 'flex';
+            }
+        });
+    });
+
+    // Hide spinner on DOMContentLoaded (page fully loaded)
+    if (spinner) {
+        spinner.classList.add('d-none');
+    }
+})();
+
+// === Auto-scroll to table after page navigation ===
+(function() {
+    // Only scroll if navigated via pagination (page param present in URL)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('page')) {
+        const table = document.getElementById('progressTable');
+        if (table) {
+            // Small delay to ensure layout is complete before scrolling
+            setTimeout(function() {
+                table.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }
+})();
 </script>
 }
