@@ -508,7 +508,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 67. Dynamic Profile Page | 1/1 | Complete    | 2026-02-27 | - |
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
-| 70. Kelola Data Hub Reorganization | v2.5 | 0/1 | Not started | - |
+| 70. Kelola Data Hub Reorganization | v2.5 | 0/1 | Planned | - |
 | 71. LDAP Auth Service Foundation | v2.5 | 0/2 | Not started | - |
 | 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
 | 73. User Structure Polish | v2.5 | 0/1 | Not started | - |
@@ -632,7 +632,9 @@ Plans:
   2. Stale "Segera" items cleaned up — cards for implemented features show active status
   3. Section C removed or reorganized
 **Plans:** 1 plan
-- [ ] 70-01: Rewrite Admin/Index.cshtml sections, add Kelola Pekerja card, remove Section C
+
+Plans:
+- [ ] 70-01-PLAN.md — Rewrite Admin/Index.cshtml (3 domain sections: Data Management, Proton, Assessment & Training), activate Deliverable Progress Override card, remove old Kelengkapan CRUD section, update navbar HC visibility
 
 ### Phase 71: LDAP Auth Service Foundation
 **Goal:** Infrastructure dual auth — NuGet, service interface, implementations, config toggle, AuthSource field. Login flow belum diubah.
