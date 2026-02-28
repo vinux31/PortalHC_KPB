@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-28T11:45:17.696Z"
+last_updated: "2026-02-28T12:54:36.201Z"
 last_activity: "2026-02-28 - Completed Plan 72-03: AdminController AD mode adaptation (CreateWorker POST auto-generates password, EditWorker POST skips password change, DownloadImportTemplate dynamic columns, ImportWorkers POST conditional password read/generate). Phase 72 fully complete."
 progress:
-  total_phases: 57
-  completed_phases: 55
-  total_plans: 131
-  completed_plans: 130
+  total_phases: 58
+  completed_phases: 56
+  total_plans: 132
+  completed_plans: 131
 ---
 
 ---
@@ -401,12 +401,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-**Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
-**Phase:** Phase 72 — Dual Auth Login Flow (Complete — 3/3 plans done)
+**Milestone:** v2.5 User Infrastructure & AD Readiness — Complete
+**Phase:** Phase 73 — User Structure Polish (Complete — 1/1 plans done)
 **Status:** Milestone complete
-**Last activity:** 2026-02-28 - Completed Plan 72-03: AdminController AD mode adaptation (CreateWorker POST auto-generates password, EditWorker POST skips password change, DownloadImportTemplate dynamic columns, ImportWorkers POST conditional password read/generate). Phase 72 fully complete.
+**Last activity:** 2026-02-28 - Completed Plan 73-01: SeedData GetDefaultView modernization (9 users), Rino dual-role Admin+Coachee + Position=Operator, Rustam Position=Shift Supervisor, service comment updates removing AuthSource references, ARCHITECTURE.md dual-auth section with service/flow diagrams + Developer + Operations guides.
 
-Progress: [████████████░░░░░░░░] 60% (v2.5 — 3/4 phases in progress)
+Progress: [████████████████░░░░] 80% (v2.5 — 4/4 phases complete)
 
 ## Performance Metrics
 
@@ -532,6 +532,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 72]: IConfiguration injected directly into AccountController for UseActiveDirectory read (no POCO)
 - [Phase 72-03]: useAD declared per-method (not class-level) — reads config fresh each request, correct for runtime config changes
 - [Phase 72-03]: GenerateRandomPassword uses RandomNumberGenerator (12 bytes -> base64 ~16 chars) — satisfies Identity RequiredLength and character class requirements
+- [Phase 73]: GetDefaultView() in SeedData eliminates role-to-view string duplication — UserRoles.cs is now the single source of truth
+- [Phase 73]: Rino dual-role block placed after foreach with IsInRoleAsync guard (idempotent on repeated seed runs); SelectedView stays GetDefaultView(Admin)='Admin' — multi-role view selection is Phase 74
+- [Phase 73]: AuthSource field fully removed from service file comments — UseActiveDirectory global config is now the sole auth mode indicator
 
 ### Roadmap Evolution
 
@@ -577,9 +580,10 @@ None.
 | Phase 72-dual-auth-login-flow P02 | 112s | 2 tasks | 3 files |
 | Phase 72 P01 | 15 | 2 tasks | 5 files |
 | Phase 72-dual-auth-login-flow P03 | 8 | 2 tasks | 1 files |
+| Phase 73 P01 | 3m | 2 tasks | 4 files |
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 72-01-PLAN.md (AccountController.Login POST rewritten with IAuthService + AD profile sync; AuthSource removed from model and DB). Phase 72 complete (1/1 plans done).
+Stopped at: Completed 73-01-PLAN.md (SeedData GetDefaultView modernization, Rino dual-role Admin+Coachee, Rustam position fix, service comment updates, ARCHITECTURE.md dual-auth section). Phase 73 complete (1/1 plans done). v2.5 milestone complete.
 Resume file: None.

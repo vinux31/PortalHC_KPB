@@ -511,7 +511,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 70. Kelola Data Hub Reorganization | 1/1 | Complete    | 2026-02-28 | - |
 | 71. LDAP Auth Service Foundation | 2/2 | Complete    | 2026-02-28 | - |
 | 72. Dual Auth Login Flow | 3/3 | Complete    | 2026-02-28 | - |
-| 73. User Structure Polish | v2.5 | 0/1 | Not started | - |
+| 73. User Structure Polish | 1/1 | Complete   | 2026-02-28 | - |
 
 ## v2.4 CDP Progress
 
@@ -579,7 +579,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 - [x] **Phase 70: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 62 (completed 2026-02-28)
 - [x] **Phase 71: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned) (completed 2026-02-28)
 - [x] **Phase 72: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned) (completed 2026-02-28)
-- [ ] **Phase 73: User Structure Polish** — USTR-02 completion (planned)
+- [x] **Phase 73: User Structure Polish** — USTR-02 completion (planned) (completed 2026-02-28)
 
 ### Phase Details
 
@@ -678,5 +678,5 @@ Plans:
   1. All inline role-to-SelectedView switch/if statements replaced with UserRoles.GetDefaultView()
   2. SeedData cleaned up (AuthSource references removed since field dropped in Phase 72)
   3. ARCHITECTURE.md updated with dual auth documentation
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 - [ ] 73-01: Replace all inline role-to-view switches with GetDefaultView(), SeedData AuthSource, ARCHITECTURE.md update
