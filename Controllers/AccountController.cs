@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HcPortal.Models;
+using HcPortal.Services;
+using Microsoft.Extensions.Configuration;
 
 namespace HcPortal.Controllers
 {
@@ -8,13 +10,19 @@ namespace HcPortal.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IAuthService _authService;
+        private readonly IConfiguration _config;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            IAuthService authService,
+            IConfiguration config)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _authService = authService;
+            _config = config;
         }
 
         // 1. Tampilkan Halaman Login (GET)
@@ -43,29 +51,63 @@ namespace HcPortal.Controllers
                 return View();
             }
 
-            // Cari user berdasarkan email
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
+            // Step 1: Authenticate via IAuthService (Local or AD per DI factory from Program.cs)
+            var authResult = await _authService.AuthenticateAsync(email, password);
+
+            if (!authResult.Success)
             {
-                ViewBag.Error = "Email atau Password salah!";
+                ViewBag.Error = authResult.ErrorMessage;
                 return View();
             }
 
-            // Coba login
-            var result = await _signInManager.PasswordSignInAsync(user, password, rememberMe, lockoutOnFailure: false);
-            
-            if (result.Succeeded)
+            // Step 2: Find user in DB — HC must pre-register all users
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
             {
-                // Login berhasil
-                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-                {
-                    return Redirect(returnUrl);
-                }
-                return RedirectToAction("Index", "Home");
+                ViewBag.Error = "Akun Anda belum terdaftar. Hubungi HC.";
+                return View();
             }
 
-            ViewBag.Error = "Email atau Password salah!";
-            return View();
+            // Step 3: AD mode — sync FullName and Email from AuthResult (null-safe, skip nulls)
+            var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
+            if (useAD)
+            {
+                bool profileChanged = false;
+
+                if (!string.IsNullOrEmpty(authResult.FullName) && authResult.FullName != user.FullName)
+                {
+                    user.FullName = authResult.FullName;
+                    profileChanged = true;
+                }
+
+                if (!string.IsNullOrEmpty(authResult.Email) && authResult.Email != user.Email)
+                {
+                    user.Email = authResult.Email;
+                    profileChanged = true;
+                }
+
+                if (profileChanged)
+                {
+                    try
+                    {
+                        await _userManager.UpdateAsync(user);
+                    }
+                    catch
+                    {
+                        // Sync failure is non-fatal — auth succeeded, login continues
+                    }
+                }
+            }
+
+            // Step 4: Create session cookie
+            await _signInManager.SignInAsync(user, rememberMe);
+
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction("Index", "Home");
         }
 
         // 3. Proses Logout
