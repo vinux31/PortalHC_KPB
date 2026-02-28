@@ -1,5 +1,7 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
 @{
     Layout = null;
+    var isAdMode = Config.GetValue<bool>("Authentication:UseActiveDirectory", false);
 }
 
 <!DOCTYPE html>
@@ -181,6 +183,13 @@
                             MASUK KE SISTEM <i class="bi bi-arrow-right ms-2"></i>
                         </button>
                     </div>
+
+                    @if (isAdMode)
+                    {
+                        <div class="text-center mb-3">
+                            <small class="text-muted">Login menggunakan akun Pertamina</small>
+                        </div>
+                    }
 
                     <div class="text-center">
                         <a href="#" class="text-decoration-none text-muted fw-bold" onclick="alert('Hubungi IT Helpdesk Ext. 5000')">Lupa Password?</a>
