@@ -43,11 +43,11 @@ namespace HcPortal.Data
                     Email = "rino.prasetyo@pertamina.com",
                     EmailConfirmed = true,
                     FullName = "Rino",
-                    Position = "System Administrator",
+                    Position = "Operator",
                     Section = null,
                     Unit = null,
                     RoleLevel = 1,
-                    SelectedView = "Admin"  // Admin default view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.Admin)
                 }, "123456", UserRoles.Admin),
 
                 (new ApplicationUser
@@ -60,7 +60,7 @@ namespace HcPortal.Data
                     Section = null, // HC can access all sections
                     Unit = null,
                     RoleLevel = 2,
-                    SelectedView = "HC"  // HC view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.HC)
                 }, "123456", UserRoles.HC),
 
                 // Level 3 - Management (NEW)
@@ -74,7 +74,7 @@ namespace HcPortal.Data
                     Section = null, // Full access
                     Unit = null,
                     RoleLevel = 3,
-                    SelectedView = "Atasan"  // Atasan view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.Direktur)
                 }, "123456", UserRoles.Direktur),
 
                 (new ApplicationUser
@@ -87,7 +87,7 @@ namespace HcPortal.Data
                     Section = null, // Full access
                     Unit = null,
                     RoleLevel = 3,
-                    SelectedView = "Atasan"  // Atasan view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.VP)
                 }, "123456", UserRoles.VP),
 
                 (new ApplicationUser
@@ -100,7 +100,7 @@ namespace HcPortal.Data
                     Section = null, // Full access
                     Unit = null,
                     RoleLevel = 3,
-                    SelectedView = "Atasan"  // Atasan view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.Manager)
                 }, "123456", UserRoles.Manager),
 
                 (new ApplicationUser
@@ -113,7 +113,7 @@ namespace HcPortal.Data
                     Section = "GAST",
                     Unit = null, // Section Head can access all units in their section
                     RoleLevel = 4,
-                    SelectedView = "Atasan"  // Atasan view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.SectionHead)
                 }, "123456", UserRoles.SectionHead),
 
                 (new ApplicationUser
@@ -126,7 +126,7 @@ namespace HcPortal.Data
                     Section = "GAST",
                     Unit = "Alkylation Unit (065)",
                     RoleLevel = 4,
-                    SelectedView = "Atasan"  // Atasan view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.SrSupervisor)
                 }, "123456", UserRoles.SrSupervisor),
 
                 (new ApplicationUser
@@ -135,11 +135,11 @@ namespace HcPortal.Data
                     Email = "rustam.nugroho@pertamina.com",
                     EmailConfirmed = true,
                     FullName = "Rustam Santiko",
-                    Position = "Coach",
+                    Position = "Shift Supervisor",
                     Section = "GAST",
                     Unit = "Alkylation Unit (065)",
                     RoleLevel = 5,
-                    SelectedView = "Coach"  // Coach view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.Coach)
                 }, "123456", UserRoles.Coach),
 
                 (new ApplicationUser
@@ -152,7 +152,7 @@ namespace HcPortal.Data
                     Section = "GAST",
                     Unit = "Alkylation Unit (065)",
                     RoleLevel = 6,
-                    SelectedView = "Coachee"  // Coachee view
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.Coachee)
                 }, "123456", UserRoles.Coachee)
             };
 
@@ -177,6 +177,14 @@ namespace HcPortal.Data
                 {
                     Console.WriteLine($"ℹ️ User '{user.Email}' already exists.");
                 }
+            }
+
+            // Rino dual role: Admin + Coachee (Admin is primary/highest, Coachee is secondary)
+            var rinoUser = await userManager.FindByEmailAsync("rino.prasetyo@pertamina.com");
+            if (rinoUser != null && !await userManager.IsInRoleAsync(rinoUser, UserRoles.Coachee))
+            {
+                await userManager.AddToRoleAsync(rinoUser, UserRoles.Coachee);
+                Console.WriteLine("✅ Rino dual role: Coachee role added.");
             }
         }
     }
