@@ -690,7 +690,7 @@ Plans:
   2. _Layout.cshtml and AccountController use SelectedView (or role priority) instead of GetRolesAsync().FirstOrDefault() for role display
   3. RoleLevel restructuring: SectionHead level 3, SrSupervisor stays level 4
   4. Upload evidence access restricted to Coach only (not SrSupervisor)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 74-01-PLAN.md — HybridAuthService (AD+local fallback for admin@pertamina.com), Program.cs DI update, UserRoles.cs restructuring (Supervisor role + SectionHead level 3)

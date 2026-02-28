@@ -415,12 +415,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-**Milestone:** v2.6 Hybrid Auth & Role Restructuring — In Progress
-**Phase:** Phase 74 — Hybrid Auth & Role Restructuring (In Progress — 1/2 plans done)
-**Status:** Executing
-**Last activity:** 2026-02-28 - Completed Plan 74-01: HybridAuthService (AD-first + local fallback for admin@pertamina.com), Program.cs DI updated (useActiveDirectory=true now uses HybridAuthService), UserRoles Supervisor role added (level 5, Coach view), SectionHead demoted to level 3 (full access), AllRoles 10 entries.
+**Milestone:** v2.6 Hybrid Auth & Role Restructuring — Complete
+**Phase:** Phase 74 — Hybrid Auth & Role Restructuring (Complete — 2/2 plans done)
+**Status:** Complete
+**Last activity:** 2026-02-28 - Completed Plan 74-02: _Layout SelectedView optimization (no GetRolesAsync in shared view), CDPController upload gated on Coach role name (not RoleLevel), AdminController EligibleCoaches uses GetUsersInRoleAsync("Coach"), EF migration UpdateSectionHeadRoleLevelAndAddSupervisorRole applied (SectionHead RoleLevel 4→3 in DB).
 
-Progress: [█████████████████░░░] 85% (v2.6 — Phase 74 plan 1/2 done)
+Progress: [████████████████████] 100% (v2.6 — Phase 74 complete, 2/2 plans done)
 
 ## Performance Metrics
 
@@ -551,6 +551,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 73]: AuthSource field fully removed from service file comments — UseActiveDirectory global config is now the sole auth mode indicator
 - [Phase 74-01]: HybridAuthService: AD-first with local fallback for admin@pertamina.com; email comparison uses OrdinalIgnoreCase; any AD failure (!Success) triggers fallback
 - [Phase 74-01]: UserRoles: Supervisor at level 5 (Coach view), SectionHead demoted to level 3 (full access); AllRoles now 10 entries; SeedData unchanged (inherits via loop)
+- [Phase 74-02]: canUpload and UploadEvidence POST check role name "Coach" via string equality — Supervisor (also level 5) deliberately excluded from evidence upload
+- [Phase 74-02]: EligibleCoaches uses GetUsersInRoleAsync(UserRoles.Coach) — explicit role membership query, not level filter; cleanly excludes Supervisor from coach dropdown
+- [Phase 74-02]: _Layout uses currentUser?.SelectedView (stored field) — eliminates async GetRolesAsync from shared view, consistent with Phase 73 SelectedView-as-display-mode pattern
+- [Phase 74-02]: EF data migration uses SQL JOIN to AspNetUserRoles+AspNetRoles to find SectionHead users; table name is "Users" (custom ToTable in DbContext)
 
 ### Roadmap Evolution
 
@@ -598,9 +602,10 @@ None.
 | Phase 72-dual-auth-login-flow P03 | 8 | 2 tasks | 1 files |
 | Phase 73 P01 | 3m | 2 tasks | 4 files |
 | Phase 74-hybrid-auth-role-restructuring P01 | 2 | 2 tasks | 3 files |
+| Phase 74-hybrid-auth-role-restructuring P02 | 3m | 2 tasks | 5 files |
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 74-01-PLAN.md (HybridAuthService AD-first+local fallback for admin@pertamina.com, Program.cs DI updated, Supervisor role level 5, SectionHead demoted level 3). Phase 74 in progress (1/2 plans done).
+Stopped at: Completed 74-02-PLAN.md (_Layout SelectedView, CDPController Coach-only upload, AdminController GetUsersInRoleAsync, EF migration SectionHead RoleLevel 4→3). Phase 74 complete (2/2 plans done).
 Resume file: None.
