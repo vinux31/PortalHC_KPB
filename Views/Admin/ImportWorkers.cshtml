@@ -1,0 +1,244 @@
+@{
+    ViewData["Title"] = "Import Pekerja dari Excel";
+    var importResults = ViewBag.ImportResults as List<HcPortal.Models.ImportWorkerResult>;
+    var successCount = importResults?.Count(r => r.Status == "Success") ?? 0;
+    var errorCount = importResults?.Count(r => r.Status == "Error") ?? 0;
+    var skipCount = importResults?.Count(r => r.Status == "Skip") ?? 0;
+}
+
+<div class="container py-4" style="max-width: 860px;">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("ManageWorkers", "Admin")">Manajemen Pekerja</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Import Pekerja</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-file-earmark-arrow-up me-2 text-success"></i>Import Pekerja dari Excel
+            </h2>
+            <p class="text-muted mb-0">Tambah banyak pekerja sekaligus dengan upload file Excel</p>
+        </div>
+        <a href="@Url.Action("ManageWorkers", "Admin")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Kembali
+        </a>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Results Summary (shown after upload) -->
+    @if (importResults != null)
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-2 fw-bold text-success">@successCount</div>
+                    <div class="small text-muted">Berhasil Dibuat</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-2 fw-bold text-warning">@skipCount</div>
+                    <div class="small text-muted">Dilewati (duplikat)</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-2 fw-bold text-danger">@errorCount</div>
+                    <div class="small text-muted">Error / Gagal</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header border-0">
+                <h6 class="mb-0 fw-bold">Hasil Import — @importResults.Count baris diproses</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm align-middle mb-0">
+                        <thead class="sticky-top bg-white">
+                            <tr>
+                                <th class="p-3">Nama</th>
+                                <th class="p-3">Email</th>
+                                <th class="p-3">Role</th>
+                                <th class="p-3 text-center">Status</th>
+                                <th class="p-3">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in importResults)
+                            {
+                                var rowClass = r.Status switch
+                                {
+                                    "Success" => "table-success",
+                                    "Error" => "table-danger",
+                                    "Skip" => "table-warning",
+                                    _ => ""
+                                };
+                                var statusBadge = r.Status switch
+                                {
+                                    "Success" => "<span class=\"badge bg-success\"><i class=\"bi bi-check-lg me-1\"></i>Berhasil</span>",
+                                    "Error" => "<span class=\"badge bg-danger\"><i class=\"bi bi-x-lg me-1\"></i>Error</span>",
+                                    "Skip" => "<span class=\"badge bg-warning text-dark\"><i class=\"bi bi-skip-forward me-1\"></i>Skip</span>",
+                                    _ => "<span class=\"badge bg-secondary\">?</span>"
+                                };
+                                <tr class="@rowClass">
+                                    <td class="p-3 fw-semibold">@r.Nama</td>
+                                    <td class="p-3"><small>@r.Email</small></td>
+                                    <td class="p-3"><small>@r.Role</small></td>
+                                    <td class="p-3 text-center">@Html.Raw(statusBadge)</td>
+                                    <td class="p-3"><small>@r.Message</small></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Upload Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-primary bg-opacity-10 border-0">
+            <h6 class="mb-0 fw-bold text-primary">
+                <i class="bi bi-upload me-2"></i>Upload File Excel
+            </h6>
+        </div>
+        <div class="card-body">
+
+            <!-- Step 1: Download Template -->
+            <div class="alert alert-info d-flex align-items-center gap-3 mb-4">
+                <i class="bi bi-info-circle-fill fs-4 flex-shrink-0"></i>
+                <div>
+                    <strong>Langkah 1 — Download Template</strong><br />
+                    <span class="small">Download template Excel, isi data pekerja sesuai format, lalu upload kembali.</span>
+                </div>
+                <a href="@Url.Action("DownloadImportTemplate", "Admin")" class="btn btn-success btn-sm ms-auto flex-shrink-0" id="btnDownloadTemplate">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Download Template
+                </a>
+            </div>
+
+            <!-- Step 2: Upload -->
+            <p class="fw-semibold mb-2"><strong>Langkah 2 — Upload File yang Sudah Diisi</strong></p>
+
+            <form asp-action="ImportWorkers" asp-controller="Admin" method="post" enctype="multipart/form-data" id="importForm">
+                @Html.AntiForgeryToken()
+
+                <div class="upload-zone border-2 border-dashed rounded-3 p-5 text-center mb-3"
+                     id="uploadZone"
+                     style="border-color: #d1d5db; cursor: pointer; transition: all 0.2s;"
+                     onclick="document.getElementById('excelFileInput').click()">
+                    <i class="bi bi-cloud-arrow-up fs-1 text-muted mb-3 d-block"></i>
+                    <p class="fw-semibold mb-1" id="dropText">Klik atau drag &amp; drop file Excel di sini</p>
+                    <p class="small text-muted mb-0">Format yang didukung: .xlsx</p>
+                </div>
+
+                <input type="file" name="excelFile" id="excelFileInput" accept=".xlsx" class="d-none" />
+
+                <div class="d-flex justify-content-end gap-2 mt-3">
+                    <a href="@Url.Action("ManageWorkers", "Admin")" class="btn btn-light">Batal</a>
+                    <button type="submit" class="btn btn-primary px-4" id="btnImport" disabled>
+                        <i class="bi bi-check2-all me-2"></i>Proses Import
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Format Notes -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header border-0">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>Format Kolom Template</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-sm table-striped mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="px-3">Kolom</th>
+                            <th class="px-3">Keterangan</th>
+                            <th class="px-3">Wajib?</th>
+                            <th class="px-3">Contoh</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="px-3">Nama</td><td class="px-3">Nama lengkap</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Ahmad Fauzi</td></tr>
+                        <tr><td class="px-3">Email</td><td class="px-3">Email (untuk login)</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">ahmad@pertamina.com</td></tr>
+                        <tr><td class="px-3">NIP</td><td class="px-3">Nomor induk pegawai</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">123456</td></tr>
+                        <tr><td class="px-3">Jabatan</td><td class="px-3">Posisi/jabatan</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Operator</td></tr>
+                        <tr><td class="px-3">Bagian</td><td class="px-3">RFCC / DHT / HMU / NGP / GAST</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">RFCC</td></tr>
+                        <tr><td class="px-3">Unit</td><td class="px-3">Unit kerja spesifik</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">RFCC LPG Treating...</td></tr>
+                        <tr><td class="px-3">Directorate</td><td class="px-3">Direktorat</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">CSU Process</td></tr>
+                        <tr><td class="px-3">Role</td><td class="px-3">Admin / HC / Direktur / VP / Manager / Section Head / Sr Supervisor / Coach / Coachee</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Coachee</td></tr>
+                        <tr><td class="px-3">Tgl Bergabung</td><td class="px-3">Format YYYY-MM-DD</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">2024-01-15</td></tr>
+                        <tr><td class="px-3">Password</td><td class="px-3">Min. 6 karakter, harus ada huruf kapital, angka, dan karakter khusus</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Password123!</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .upload-zone:hover, .upload-zone.drag-over {
+        border-color: #2563eb !important;
+        background-color: #eff6ff;
+    }
+    .border-dashed {
+        border-style: dashed !important;
+    }
+</style>
+
+<script>
+    const fileInput = document.getElementById('excelFileInput');
+    const dropZone = document.getElementById('uploadZone');
+    const dropText = document.getElementById('dropText');
+    const btnImport = document.getElementById('btnImport');
+
+    fileInput.addEventListener('change', function () {
+        if (this.files.length > 0) {
+            dropText.textContent = `File dipilih: ${this.files[0].name}`;
+            dropZone.style.borderColor = '#16a34a';
+            dropZone.style.backgroundColor = '#f0fdf4';
+            btnImport.disabled = false;
+        }
+    });
+
+    // Drag & drop
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+    dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && file.name.endsWith('.xlsx')) {
+            // Set file to input
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            dropText.textContent = `File dipilih: ${file.name}`;
+            dropZone.style.borderColor = '#16a34a';
+            dropZone.style.backgroundColor = '#f0fdf4';
+            btnImport.disabled = false;
+        } else {
+            dropText.textContent = 'Hanya file .xlsx yang didukung!';
+            dropZone.style.borderColor = '#dc2626';
+        }
+    });
+</script>
