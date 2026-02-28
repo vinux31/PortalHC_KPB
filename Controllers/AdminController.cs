@@ -19,17 +19,20 @@ namespace HcPortal.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly AuditLogService _auditLog;
         private readonly IMemoryCache _cache;
+        private readonly IConfiguration _config;
 
         public AdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             AuditLogService auditLog,
-            IMemoryCache cache)
+            IMemoryCache cache,
+            IConfiguration config)
         {
             _context = context;
             _userManager = userManager;
             _auditLog = auditLog;
             _cache = cache;
+            _config = config;
         }
 
         // GET /Admin/Index
@@ -3443,6 +3446,18 @@ namespace HcPortal.Controllers
             return File(stream.ToArray(),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "CoachCoacheeMapping.xlsx");
+        }
+
+        // Helper: Crypto-random 16-char password for AD mode auto-generation
+        private static string GenerateRandomPassword()
+        {
+            var bytes = new byte[12];
+            using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(bytes);
+            }
+            // Base64 ensures uppercase + lowercase + digits, no special chars that break Identity validation
+            return Convert.ToBase64String(bytes);
         }
     }
 }
