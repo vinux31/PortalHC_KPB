@@ -2759,8 +2759,9 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateWorker(ManageUserViewModel model)
         {
-            // Password is required for create
-            if (string.IsNullOrWhiteSpace(model.Password))
+            // Password required only in local mode; AD mode auto-generates
+            var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
+            if (!useAD && string.IsNullOrWhiteSpace(model.Password))
             {
                 ModelState.AddModelError("Password", "Password harus diisi untuk user baru");
             }
@@ -2799,7 +2800,9 @@ namespace HcPortal.Controllers
                 SelectedView = selectedView
             };
 
-            var result = await _userManager.CreateAsync(user, model.Password!);
+            // AD mode auto-generates password; local mode uses form value
+            var password = useAD ? GenerateRandomPassword() : model.Password!;
+            var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, model.Role);
@@ -2943,8 +2946,9 @@ namespace HcPortal.Controllers
                 return View(model);
             }
 
-            // Update password if provided
-            if (!string.IsNullOrWhiteSpace(model.Password))
+            // AD mode: password managed via Pertamina portal — never change it here
+            var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
+            if (!useAD && !string.IsNullOrWhiteSpace(model.Password))
             {
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var passwordResult = await _userManager.ResetPasswordAsync(user, token, model.Password);
@@ -3214,8 +3218,17 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Import Workers");
 
-            var headers = new[] { "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Directorate", "Role", "Tgl Bergabung (YYYY-MM-DD)", "Password" };
-            for (int i = 0; i < headers.Length; i++)
+            // Dynamic headers based on auth mode
+            var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
+            var headers = new List<string>
+            {
+                "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Directorate", "Role", "Tgl Bergabung (YYYY-MM-DD)"
+            };
+            if (!useAD)
+            {
+                headers.Add("Password");
+            }
+            for (int i = 0; i < headers.Count; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
                 ws.Cell(1, i + 1).Style.Font.Bold = true;
@@ -3223,10 +3236,15 @@ namespace HcPortal.Controllers
                 ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
             }
 
-            var example = new[] { "Ahmad Fauzi", "ahmad.fauzi@pertamina.com", "123456", "Operator", "RFCC", "RFCC LPG Treating Unit (062)", "CSU Process", "Coachee", "2024-01-15", "Password123!" };
-            for (int i = 0; i < example.Length; i++)
+            var example = new List<object>
             {
-                ws.Cell(2, i + 1).Value = example[i];
+                "Ahmad Fauzi", "ahmad.fauzi@pertamina.com", "123456", "Operator",
+                "RFCC", "RFCC LPG Treating Unit (062)", "CSU Process", "Coachee", "2024-01-15"
+            };
+            if (!useAD) { example.Add("Password123!"); }
+            for (int i = 0; i < example.Count; i++)
+            {
+                ws.Cell(2, i + 1).Value = example[i]?.ToString();
                 ws.Cell(2, i + 1).Style.Font.Italic = true;
                 ws.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray;
             }
@@ -3237,6 +3255,12 @@ namespace HcPortal.Controllers
             ws.Cell(4, 1).Value = $"Kolom Role: {string.Join(" / ", UserRoles.AllRoles)}";
             ws.Cell(4, 1).Style.Font.Italic = true;
             ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
+            if (useAD)
+            {
+                ws.Cell(5, 1).Value = "Mode AD aktif: Kolom Password tidak diperlukan. Sistem akan membuat password acak.";
+                ws.Cell(5, 1).Style.Font.Italic = true;
+                ws.Cell(5, 1).Style.Font.FontColor = XLColor.DarkBlue;
+            }
 
             ws.Columns().AdjustToContents();
 
@@ -3260,6 +3284,7 @@ namespace HcPortal.Controllers
             }
 
             var results = new List<ImportWorkerResult>();
+            var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
 
             try
             {
@@ -3278,17 +3303,27 @@ namespace HcPortal.Controllers
                     var directorate = row.Cell(7).GetString().Trim();
                     var role = row.Cell(8).GetString().Trim();
                     var tglStr = row.Cell(9).GetString().Trim();
-                    var password = row.Cell(10).GetString().Trim();
 
                     // Skip blank rows (e.g. notes/example rows)
                     if (string.IsNullOrWhiteSpace(nama) && string.IsNullOrWhiteSpace(email)) continue;
 
                     var result = new ImportWorkerResult { Nama = nama, Email = email, Role = role };
 
+                    // AD mode generates password; local mode reads from column 10
+                    string password;
+                    if (useAD)
+                    {
+                        password = GenerateRandomPassword();
+                    }
+                    else
+                    {
+                        password = row.Cell(10).GetString().Trim();
+                    }
+
                     var errors = new List<string>();
                     if (string.IsNullOrWhiteSpace(nama)) errors.Add("Nama kosong");
                     if (string.IsNullOrWhiteSpace(email)) errors.Add("Email kosong");
-                    if (string.IsNullOrWhiteSpace(password)) errors.Add("Password kosong");
+                    if (!useAD && string.IsNullOrWhiteSpace(password)) errors.Add("Password kosong");
                     if (string.IsNullOrWhiteSpace(role) || !UserRoles.AllRoles.Contains(role))
                         errors.Add($"Role tidak valid");
 
