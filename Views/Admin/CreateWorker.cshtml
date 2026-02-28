@@ -1,7 +1,9 @@
 @model HcPortal.Models.ManageUserViewModel
+@inject Microsoft.Extensions.Configuration.IConfiguration Config
 
 @{
     ViewData["Title"] = "Tambah Pekerja Baru";
+    var isAdMode = Config.GetValue<bool>("Authentication:UseActiveDirectory", false);
 }
 
 <div class="container py-4" style="max-width: 800px;">
@@ -57,12 +59,24 @@
                 <div class="row g-3">
                     <div class="col-md-6">
                         <label asp-for="FullName" class="form-label fw-semibold"></label>
-                        <input asp-for="FullName" class="form-control" placeholder="Masukkan nama lengkap" />
+                        <input asp-for="FullName" class="form-control @(isAdMode ? "bg-light" : "")"
+                               placeholder="Masukkan nama lengkap"
+                               readonly="@(isAdMode ? "readonly" : null)" />
+                        @if (isAdMode)
+                        {
+                            <div class="form-text text-info"><i class="bi bi-info-circle me-1"></i>Dikelola oleh AD — akan disinkronkan saat login</div>
+                        }
                         <span asp-validation-for="FullName" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
                         <label asp-for="Email" class="form-label fw-semibold"></label>
-                        <input asp-for="Email" class="form-control" placeholder="contoh@pertamina.com" />
+                        <input asp-for="Email" class="form-control @(isAdMode ? "bg-light" : "")"
+                               placeholder="contoh@pertamina.com"
+                               readonly="@(isAdMode ? "readonly" : null)" />
+                        @if (isAdMode)
+                        {
+                            <div class="form-text text-info"><i class="bi bi-info-circle me-1"></i>Dikelola oleh AD — akan disinkronkan saat login</div>
+                        }
                         <span asp-validation-for="Email" class="text-danger small"></span>
                     </div>
                     <div class="col-md-6">
@@ -135,26 +149,38 @@
                         </select>
                         <div class="form-text">Role menentukan hak akses dan tampilan default user</div>
                     </div>
-                    <div class="col-md-6">
-                        <label asp-for="Password" class="form-label fw-semibold"></label>
-                        <div class="input-group">
-                            <input asp-for="Password" type="password" class="form-control" id="passwordField" placeholder="Minimal 6 karakter" />
-                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('passwordField', this)">
-                                <i class="bi bi-eye"></i>
-                            </button>
+                    @if (!isAdMode)
+                    {
+                        <div class="col-md-6">
+                            <label asp-for="Password" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <input asp-for="Password" type="password" class="form-control" id="passwordField" placeholder="Minimal 6 karakter" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('passwordField', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" class="text-danger small"></span>
                         </div>
-                        <span asp-validation-for="Password" class="text-danger small"></span>
-                    </div>
-                    <div class="col-md-6">
-                        <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
-                        <div class="input-group">
-                            <input asp-for="ConfirmPassword" type="password" class="form-control" id="confirmPasswordField" placeholder="Ketik ulang password" />
-                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPasswordField', this)">
-                                <i class="bi bi-eye"></i>
-                            </button>
+                        <div class="col-md-6">
+                            <label asp-for="ConfirmPassword" class="form-label fw-semibold"></label>
+                            <div class="input-group">
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" id="confirmPasswordField" placeholder="Ketik ulang password" />
+                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPasswordField', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
                         </div>
-                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 mb-0">
+                                <i class="bi bi-info-circle me-2"></i>
+                                <small>Password dikelola melalui portal Pertamina. Sistem akan membuat password acak untuk akun ini.</small>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
