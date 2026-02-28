@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
 namespace HcPortal.Models
@@ -60,14 +59,6 @@ namespace HcPortal.Models
         /// Only Admin (Level 1) can change this setting
         /// </summary>
         public string SelectedView { get; set; } = "Coachee";
-
-        /// <summary>
-        /// Authentication source: "Local" (password hash) or "AD" (LDAP query to Pertamina Active Directory).
-        /// Determines which IAuthService implementation to use at login.
-        /// Default "Local" ensures backward compatibility for all existing users.
-        /// </summary>
-        [MaxLength(10)]
-        public string AuthSource { get; set; } = "Local";
 
         /// <summary>
         /// Navigation property for TrainingRecords
