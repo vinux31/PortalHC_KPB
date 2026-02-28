@@ -510,7 +510,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
 | 70. Kelola Data Hub Reorganization | 1/1 | Complete    | 2026-02-28 | - |
 | 71. LDAP Auth Service Foundation | 2/2 | Complete    | 2026-02-28 | - |
-| 72. Dual Auth Login Flow | 2/3 | In Progress|  | - |
+| 72. Dual Auth Login Flow | 3/3 | Complete   | 2026-02-28 | - |
 | 73. User Structure Polish | v2.5 | 0/1 | Not started | - |
 
 ## v2.4 CDP Progress
@@ -578,7 +578,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 - [x] **Phase 69: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 59 (completed 2026-02-28)
 - [x] **Phase 70: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 62 (completed 2026-02-28)
 - [x] **Phase 71: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned) (completed 2026-02-28)
-- [ ] **Phase 72: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned)
+- [x] **Phase 72: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned) (completed 2026-02-28)
 - [ ] **Phase 73: User Structure Polish** — USTR-02 completion (planned)
 
 ### Phase Details
@@ -665,7 +665,7 @@ Plans:
   6. AD login: sync FullName + Email from AuthResult before SignInAsync; skip null values
   7. ManageWorkers: password field hidden + auto-generate in AD mode; FullName/Email read-only for AD users
   8. Import template dynamic: AD mode → no Password column (auto-generate); local mode → with Password column
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 - [ ] 72-01: Backend — Rewrite AccountController.Login POST with IAuthService, profile sync, remove AuthSource migration
 - [ ] 72-02: Frontend — Login.cshtml hint, ManageWorkers form adaptation (password hide, read-only fields)
 - [ ] 72-03: Import — Dynamic template generation, import logic adaptation for AD mode

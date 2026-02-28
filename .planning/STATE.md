@@ -2,14 +2,28 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: executing
+last_updated: "2026-02-28T11:40:19.531Z"
+last_activity: "2026-02-28 - Completed Plan 72-01: AccountController.Login POST rewritten with IAuthService abstraction (Local + AD transparent), AD profile sync (FullName/Email null-safe before SignInAsync), unknown-user rejection with Indonesian message, AuthSource removed from ApplicationUser model and SQL Users table via EF migration"
+progress:
+  total_phases: 57
+  completed_phases: 55
+  total_plans: 131
+  completed_plans: 130
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-28T11:39:23.966Z"
+last_updated: "2026-02-28T11:39:55.451Z"
 last_activity: "2026-02-28 - Completed Plan 71-02: LdapAuthService implementation (DirectoryEntry LDAP bind + samaccountname search + RFC 4515 LDAP escaping + 5-second COM timeout) + Program.cs IAuthService factory DI registration (conditional Local/AD selection at startup)"
 progress:
   total_phases: 57
-  completed_phases: 54
+  completed_phases: 55
   total_plans: 131
-  completed_plans: 129
+  completed_plans: 130
 ---
 
 ---
@@ -374,11 +388,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
-**Phase:** Phase 71 — LDAP Auth Service Foundation (In Progress — 2/3 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-28 - Completed Plan 71-02: LdapAuthService implementation (DirectoryEntry LDAP bind + samaccountname search + RFC 4515 LDAP escaping + 5-second COM timeout) + Program.cs IAuthService factory DI registration (conditional Local/AD selection at startup)
+**Phase:** Phase 72 — Dual Auth Login Flow (Complete — 1/1 plans done)
+**Status:** Executing
+**Last activity:** 2026-02-28 - Completed Plan 72-01: AccountController.Login POST rewritten with IAuthService abstraction (Local + AD transparent), AD profile sync (FullName/Email null-safe before SignInAsync), unknown-user rejection with Indonesian message, AuthSource removed from ApplicationUser model and SQL Users table via EF migration
 
-Progress: [██████████░░░░░░░░░░] 50% (v2.5 — 2/4 phases in progress)
+Progress: [████████████░░░░░░░░] 60% (v2.5 — 3/4 phases in progress)
 
 ## Performance Metrics
 
@@ -499,6 +513,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 71-02]: IAuthService registered as Scoped (not Singleton) to match SignInManager Scoped lifetime
 - [Phase 72-02]: readonly not disabled for FullName/Email: disabled inputs excluded from form POST; readonly preserves value binding for controller model
 - [Phase 72-02]: @if server-side conditional used (not CSS d-none) for password fields: zero DOM presence in AD mode prevents accidental empty password submission
+- [Phase 72]: AuthSource field removed from ApplicationUser — global config (Authentication:UseActiveDirectory) is the sole routing mechanism
+- [Phase 72]: Login POST: FindByEmailAsync after IAuthService success, AD sync before SignInAsync, sync failure non-fatal
+- [Phase 72]: IConfiguration injected directly into AccountController for UseActiveDirectory read (no POCO)
+- [Phase 72-03]: useAD declared per-method (not class-level) — reads config fresh each request, correct for runtime config changes
+- [Phase 72-03]: GenerateRandomPassword uses RandomNumberGenerator (12 bytes -> base64 ~16 chars) — satisfies Identity RequiredLength and character class requirements
 
 ### Roadmap Evolution
 
@@ -542,9 +561,11 @@ None.
 | Phase 69-manageworkers-migration-to-admin P02 | 8 | 2 tasks | 8 files |
 | Phase 71 P02 | 2 | 2 tasks | 2 files |
 | Phase 72-dual-auth-login-flow P02 | 112s | 2 tasks | 3 files |
+| Phase 72 P01 | 15 | 2 tasks | 5 files |
+| Phase 72-dual-auth-login-flow P03 | 8 | 2 tasks | 1 files |
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 71-02-PLAN.md (LdapAuthService implementation + Program.cs IAuthService factory DI registration). Phase 71 in progress (2/3 plans done).
+Stopped at: Completed 72-01-PLAN.md (AccountController.Login POST rewritten with IAuthService + AD profile sync; AuthSource removed from model and DB). Phase 72 complete (1/1 plans done).
 Resume file: None.
