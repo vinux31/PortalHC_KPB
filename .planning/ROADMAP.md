@@ -511,7 +511,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 70. Kelola Data Hub Reorganization | 1/1 | Complete    | 2026-02-28 | - |
 | 71. LDAP Auth Service Foundation | 2/2 | Complete    | 2026-02-28 | - |
 | 72. Dual Auth Login Flow | 3/3 | Complete    | 2026-02-28 | - |
-| 73. User Structure Polish | 1/1 | Complete   | 2026-02-28 | - |
+| 73. User Structure Polish | 1/1 | Complete    | 2026-02-28 | - |
 
 ## v2.4 CDP Progress
 
