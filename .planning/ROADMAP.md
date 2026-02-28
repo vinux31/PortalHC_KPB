@@ -504,7 +504,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 63. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 64. Functional Filters | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 65. Actions | v2.4 | 0/? | Not started | - |
-| 66. UI Polish | 2/2 | Complete   | 2026-02-28 | - |
+| 66. UI Polish | 2/2 | Complete    | 2026-02-28 | - |
 | 67. Dynamic Profile Page | 1/1 | Complete    | 2026-02-27 | - |
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
