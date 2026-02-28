@@ -346,11 +346,11 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
-**Phase:** Phase 70 — Kelola Data Hub Reorganization (Complete — 1/1 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-28 - Completed Plan 70-01: Admin/Index.cshtml rewritten into 3 domain sections (Data Management / Proton / Assessment & Training), 4 stale Kelengkapan CRUD placeholders removed, Deliverable Progress Override activated, Manage Assessments moved to Section C, HC navbar access enabled
+**Phase:** Phase 71 — LDAP Auth Service Foundation (In Progress — 1/3 plans done)
+**Status:** Executing
+**Last activity:** 2026-02-28 - Completed Plan 71-01: IAuthService interface + LocalAuthService + AuthResult DTO + AuthenticationConfig POCO + ApplicationUser.AuthSource field with EF migration and System.DirectoryServices NuGet package
 
-Progress: [████████░░░░░░░░░░░░] 44% (v2.5 — 1/4 phases complete)
+Progress: [██████████░░░░░░░░░░] 50% (v2.5 — 2/4 phases in progress)
 
 ## Performance Metrics
 
@@ -459,6 +459,13 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - HC role added to navbar Kelola Data condition using || in Razor @if — view logic, not ASP.NET Core attribute logic, so no AND-ing issue
 - Placeholder cards (Coaching Session Override, Final Assessment Manager) kept with opacity-75 + Segera badge — honest representation of upcoming features
 - Deliverable Progress Override activated (Phase 52 built endpoint; card was the only thing blocking access)
+
+**Phase 71-01 decisions:**
+- LocalAuthService uses CheckPasswordSignInAsync not PasswordSignInAsync — controller retains full control over session cookie creation (Phase 72 calls SignInAsync separately after IAuthService returns success)
+- IAuthService DI registration intentionally omitted from Program.cs — Plan 02 responsibility (requires LdapAuthService and conditional registration logic)
+- EF migration defaultValue corrected from "" to "Local" — EF Core generates empty string when default is set via C# property initializer only; manual SQL update applied to 11 existing users
+- Table name is "Users" (custom via ToTable in DbContext), not "AspNetUsers" — migration reflects this correctly
+- Authentication section added to both appsettings.json (full LDAP config) and appsettings.Development.json (UseActiveDirectory=false override only)
 
 ### Roadmap Evolution
 

@@ -70,14 +70,14 @@
 
 ### AUTH — Authentication
 
-- [ ] **AUTH-01**: Config toggle `Authentication:UseActiveDirectory` di appsettings.json (dev=false, prod=true)
+- [x] **AUTH-01**: Config toggle `Authentication:UseActiveDirectory` di appsettings.json (dev=false, prod=true)
 - [ ] **AUTH-02**: `IAuthService` interface + `LdapAuthService` menggunakan DirectoryEntry ke `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` dengan samaccountname filter
-- [ ] **AUTH-03**: `LocalAuthService` implementation wrapping existing PasswordSignInAsync
+- [x] **AUTH-03**: `LocalAuthService` implementation wrapping existing PasswordSignInAsync
 - [ ] **AUTH-04**: Program.cs register IAuthService berdasarkan config toggle via DI
 - [ ] **AUTH-05**: Login page: "Username" + placeholder NIP (AD mode), "Email" + placeholder email (local mode)
 - [ ] **AUTH-06**: First-time AD user auto-provisioned di DB lokal: role Coachee, RoleLevel=6, SelectedView="Coachee", AuthSource="AD"
 - [ ] **AUTH-07**: Existing AD user: sync FullName/NIP/Position/Section dari AD; Role dan SelectedView TIDAK pernah diubah
-- [ ] **AUTH-08**: NuGet package System.DirectoryServices ditambahkan ke csproj
+- [x] **AUTH-08**: NuGet package System.DirectoryServices ditambahkan ke csproj
 
 ### USR — Admin User Management
 
@@ -88,7 +88,7 @@
 
 ### USTR — User Structure
 
-- [ ] **USTR-01**: ApplicationUser punya field AuthSource ("Local"/"AD") + EF migration
+- [x] **USTR-01**: ApplicationUser punya field AuthSource ("Local"/"AD") + EF migration
 - [x] **USTR-02**: Role-to-SelectedView mapping di-extract ke shared helper UserRoles.GetDefaultView()
 
 ## Future Requirements
@@ -145,19 +145,19 @@
 | PROF-04 | Phase 68 | Complete |
 | PROF-05 | Phase 68 | Complete |
 | PROF-06 | Phase 68 | Complete |
-| AUTH-01 | Phase 71 | Pending |
+| AUTH-01 | Phase 71 | Complete |
 | AUTH-02 | Phase 71 | Pending |
-| AUTH-03 | Phase 71 | Pending |
+| AUTH-03 | Phase 71 | Complete |
 | AUTH-04 | Phase 71 | Pending |
 | AUTH-05 | Phase 72 | Pending |
 | AUTH-06 | Phase 72 | Pending |
 | AUTH-07 | Phase 72 | Pending |
-| AUTH-08 | Phase 71 | Pending |
+| AUTH-08 | Phase 71 | Complete |
 | USR-01  | Phase 69 | Complete |
 | USR-02  | Phase 69 | Complete |
 | USR-03  | Phase 69 | Complete |
 | USR-04  | Phase 70 | Complete |
-| USTR-01 | Phase 71 | Pending |
+| USTR-01 | Phase 71 | Complete |
 | USTR-02 | Phase 69, 73 | Complete |
 
 **v2.3 Coverage:**

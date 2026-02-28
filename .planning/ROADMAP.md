@@ -509,7 +509,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
 | 70. Kelola Data Hub Reorganization | 1/1 | Complete    | 2026-02-28 | - |
-| 71. LDAP Auth Service Foundation | v2.5 | 0/2 | Not started | - |
+| 71. LDAP Auth Service Foundation | 1/2 | In Progress|  | - |
 | 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
 | 73. User Structure Polish | v2.5 | 0/1 | Not started | - |
 
@@ -648,7 +648,7 @@ Plans:
   5. LocalAuthService wraps existing PasswordSignInAsync
   6. LdapAuthService uses DirectoryEntry with Pertamina LDAP path and samaccountname filter
   7. Program.cs registers IAuthService via DI based on config toggle
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 - [ ] 71-01: NuGet package, AuthSource migration, config sections, IAuthService interface, LocalAuthService
 - [ ] 71-02: LdapAuthService with Pertamina DirectoryEntry code + AD attribute extraction, Program.cs DI registration
 
