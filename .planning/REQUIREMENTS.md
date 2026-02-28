@@ -74,9 +74,9 @@
 - [x] **AUTH-02**: `IAuthService` interface + `LdapAuthService` menggunakan DirectoryEntry ke `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` dengan samaccountname filter
 - [x] **AUTH-03**: `LocalAuthService` implementation wrapping existing PasswordSignInAsync
 - [x] **AUTH-04**: Program.cs register IAuthService berdasarkan config toggle via DI
-- [ ] **AUTH-05**: Login page: "Username" + placeholder NIP (AD mode), "Email" + placeholder email (local mode)
-- [ ] **AUTH-06**: First-time AD user auto-provisioned di DB lokal: role Coachee, RoleLevel=6, SelectedView="Coachee", AuthSource="AD"
-- [ ] **AUTH-07**: Existing AD user: sync FullName/NIP/Position/Section dari AD; Role dan SelectedView TIDAK pernah diubah
+- [ ] **AUTH-05**: Login page: Email + Password (identik kedua mode); AD mode tampilkan hint kecil "Login menggunakan akun Pertamina" di bawah form
+- [ ] **AUTH-06**: User belum terdaftar di DB → ditolak: "Akun Anda belum terdaftar. Hubungi HC." (no auto-provisioning, HC pre-registers via ManageWorkers)
+- [ ] **AUTH-07**: AD user login: sync FullName (displayName) dan Email (mail) saja; skip null values; Role/SelectedView TIDAK pernah diubah
 - [x] **AUTH-08**: NuGet package System.DirectoryServices ditambahkan ke csproj
 
 ### USR — Admin User Management
@@ -88,7 +88,7 @@
 
 ### USTR — User Structure
 
-- [x] **USTR-01**: ApplicationUser punya field AuthSource ("Local"/"AD") + EF migration
+- [x] **USTR-01**: ~~ApplicationUser punya field AuthSource ("Local"/"AD") + EF migration~~ — Created in Phase 71, removed in Phase 72 (global config routing replaces per-user AuthSource)
 - [x] **USTR-02**: Role-to-SelectedView mapping di-extract ke shared helper UserRoles.GetDefaultView()
 
 ## Future Requirements

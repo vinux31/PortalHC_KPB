@@ -653,25 +653,30 @@ Plans:
 - [ ] 71-02: LdapAuthService with Pertamina DirectoryEntry code + AD attribute extraction, Program.cs DI registration
 
 ### Phase 72: Dual Auth Login Flow
-**Goal:** Login flow pakai IAuthService — AD mode dengan auto-provisioning & profile sync, local mode unchanged
+**Goal:** Login flow pakai IAuthService — global config routing (no per-user AuthSource), profile sync FullName/Email, ManageWorkers + import adaptation for AD mode
 **Depends on:** Phase 71
 **Requirements:** AUTH-05, AUTH-06, AUTH-07
 **Success Criteria** (what must be TRUE):
-  1. Login POST uses IAuthService for authentication instead of direct PasswordSignInAsync
-  2. AD mode: login field shows "Username" with NIP placeholder; local mode: shows "Email" with email placeholder
-  3. First-time AD user auto-provisioned in local DB with role Coachee, RoleLevel=6, SelectedView="Coachee", AuthSource="AD"
-  4. Existing AD user: FullName/NIP/Position/Section synced from AD on login; Role and SelectedView never overwritten
-**Plans:** 2 plans
-- [ ] 72-01: Backend — Rewrite AccountController.Login POST with IAuthService, find-or-create AD user, profile sync
-- [ ] 72-02: Frontend — Login.cshtml adaptive (Username vs Email field), auth mode flag
+  1. Login POST uses IAuthService.AuthenticateAsync instead of direct PasswordSignInAsync
+  2. Global config routing: UseActiveDirectory=true → all users via LDAP, false → all users via local Identity
+  3. AuthSource field removed from ApplicationUser (EF migration DROP column) — routing is global, not per-user
+  4. Login page identical both modes; AD mode shows hint "Login menggunakan akun Pertamina" below form
+  5. User not in DB → rejected with "Akun Anda belum terdaftar. Hubungi HC." (no auto-provisioning)
+  6. AD login: sync FullName + Email from AuthResult before SignInAsync; skip null values
+  7. ManageWorkers: password field hidden + auto-generate in AD mode; FullName/Email read-only for AD users
+  8. Import template dynamic: AD mode → no Password column (auto-generate); local mode → with Password column
+**Plans:** 3 plans
+- [ ] 72-01: Backend — Rewrite AccountController.Login POST with IAuthService, profile sync, remove AuthSource migration
+- [ ] 72-02: Frontend — Login.cshtml hint, ManageWorkers form adaptation (password hide, read-only fields)
+- [ ] 72-03: Import — Dynamic template generation, import logic adaptation for AD mode
 
 ### Phase 73: User Structure Polish
-**Goal:** Finalize — consistent SelectedView mapping, SeedData update, documentation
+**Goal:** Finalize — consistent SelectedView mapping, SeedData cleanup, documentation
 **Depends on:** Phase 72
 **Requirements:** USTR-02 (completion)
 **Success Criteria** (what must be TRUE):
   1. All inline role-to-SelectedView switch/if statements replaced with UserRoles.GetDefaultView()
-  2. SeedData sets AuthSource="Local" for all seeded users
+  2. SeedData cleaned up (AuthSource references removed since field dropped in Phase 72)
   3. ARCHITECTURE.md updated with dual auth documentation
 **Plans:** 1 plan
 - [ ] 73-01: Replace all inline role-to-view switches with GetDefaultView(), SeedData AuthSource, ARCHITECTURE.md update
