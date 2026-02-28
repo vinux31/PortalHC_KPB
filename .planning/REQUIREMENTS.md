@@ -53,9 +53,9 @@
 ### UI Polish
 
 - [x] **UI-01**: HTML selected attribute pada dropdown filter menggunakan conditional rendering yang benar
-- [ ] **UI-02**: Tampilkan pesan empty state ketika tidak ada data deliverable
+- [x] **UI-02**: Tampilkan pesan empty state ketika tidak ada data deliverable
 - [x] **UI-03**: HC/Admin bisa lihat data semua user lintas section, role-scoped (Spv=unit, SrSpv/SectionHead=section, HC/Admin=all)
-- [ ] **UI-04**: Tabel data dipaginasi (server-side atau client-side) agar tidak load semua sekaligus
+- [x] **UI-04**: Tabel data dipaginasi (server-side atau client-side) agar tidak load semua sekaligus
 
 ## v2.5 Requirements — User Infrastructure & AD Readiness
 
@@ -136,9 +136,9 @@
 | ACTN-04 | Phase 65 | Complete |
 | ACTN-05 | Phase 65 | Complete |
 | UI-01   | Phase 64 | Complete |
-| UI-02   | Phase 66 | Pending |
+| UI-02   | Phase 66 | Complete |
 | UI-03   | Phase 64 | Complete |
-| UI-04   | Phase 66 | Pending |
+| UI-04   | Phase 66 | Complete |
 | PROF-01 | Phase 67 | Complete |
 | PROF-02 | Phase 67 | Complete |
 | PROF-03 | Phase 67 | Complete |
