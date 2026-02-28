@@ -3,6 +3,20 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
+last_updated: "2026-02-28T14:35:33.289Z"
+last_activity: "2026-02-28 - Completed Plan 74-02: _Layout SelectedView optimization (no GetRolesAsync in shared view), CDPController upload gated on Coach role name (not RoleLevel), AdminController EligibleCoaches uses GetUsersInRoleAsync("Coach"), EF migration UpdateSectionHeadRoleLevelAndAddSupervisorRole applied (SectionHead RoleLevel 4→3 in DB)."
+progress:
+  total_phases: 59
+  completed_phases: 57
+  total_plans: 134
+  completed_plans: 133
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
+status: completed
 last_updated: "2026-02-28T14:26:00.415Z"
 last_activity: "2026-02-28 - Completed Plan 73-01: SeedData GetDefaultView modernization (9 users), Rino dual-role Admin+Coachee + Position=Operator, Rustam Position=Shift Supervisor, service comment updates removing AuthSource references, ARCHITECTURE.md dual-auth section with service/flow diagrams + Developer + Operations guides."
 progress:
@@ -417,7 +431,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Milestone:** v2.6 Hybrid Auth & Role Restructuring — Complete
 **Phase:** Phase 74 — Hybrid Auth & Role Restructuring (Complete — 2/2 plans done)
-**Status:** Complete
+**Status:** Milestone complete
 **Last activity:** 2026-02-28 - Completed Plan 74-02: _Layout SelectedView optimization (no GetRolesAsync in shared view), CDPController upload gated on Coach role name (not RoleLevel), AdminController EligibleCoaches uses GetUsersInRoleAsync("Coach"), EF migration UpdateSectionHeadRoleLevelAndAddSupervisorRole applied (SectionHead RoleLevel 4→3 in DB).
 
 Progress: [████████████████████] 100% (v2.6 — Phase 74 complete, 2/2 plans done)
