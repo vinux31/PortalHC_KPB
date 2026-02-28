@@ -1397,7 +1397,8 @@ namespace HcPortal.Controllers
             string? bagian = null,
             string? unit = null,
             string? trackType = null,
-            string? tahun = null)
+            string? tahun = null,
+            int page = 1)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -1580,6 +1581,60 @@ namespace HcPortal.Controllers
                 HcReviewedAt = p.HCReviewedAt.HasValue ? p.HCReviewedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "",
             }).ToList();
 
+            // --- PAGINATION: Group-boundary slicing (UI-04) ---
+            const int targetRowsPerPage = 20;
+            int pageNumber = Math.Max(1, page);
+
+            // Group data by Kompetensi (then SubKompetensi) to build pages that never split a group
+            // For multi-coachee view: group by CoacheeName > Kompetensi > SubKompetensi
+            // For single-coachee view: group by Kompetensi > SubKompetensi
+            // Group key: (CoacheeName, Kompetensi, SubKompetensi) — finest grouping unit for boundary check
+            var finestGroups = data
+                .GroupBy(item => new { item.CoacheeName, item.Kompetensi, item.SubKompetensi })
+                .ToList();
+
+            // Slice groups into pages, never splitting a group
+            var pagesGroups = new List<List<TrackingItem>>();
+            var currentPageItems = new List<TrackingItem>();
+            int currentRowCount = 0;
+
+            foreach (var group in finestGroups)
+            {
+                int groupSize = group.Count();
+                // Start a new page if adding this group would exceed target AND we already have rows
+                if (currentRowCount > 0 && currentRowCount + groupSize > targetRowsPerPage)
+                {
+                    pagesGroups.Add(new List<TrackingItem>(currentPageItems));
+                    currentPageItems = new List<TrackingItem>();
+                    currentRowCount = 0;
+                }
+                currentPageItems.AddRange(group);
+                currentRowCount += groupSize;
+            }
+            if (currentPageItems.Count > 0)
+                pagesGroups.Add(currentPageItems);
+
+            int totalPages = Math.Max(1, pagesGroups.Count);
+            // Clamp page number
+            if (pageNumber > totalPages) pageNumber = totalPages;
+
+            // Slice data to current page
+            var paginatedData = pageNumber >= 1 && pageNumber <= pagesGroups.Count
+                ? pagesGroups[pageNumber - 1]
+                : new List<TrackingItem>();
+
+            // Compute display row range (1-based, based on full data positions)
+            int pageFirstRow = 0;
+            int pageLastRow = 0;
+            if (pagesGroups.Count > 0 && pageNumber >= 1 && pageNumber <= pagesGroups.Count)
+            {
+                pageFirstRow = pagesGroups.Take(pageNumber - 1).Sum(p => p.Count) + 1;
+                pageLastRow = pageFirstRow + paginatedData.Count - 1;
+            }
+
+            // Replace data with paginated slice (summary stats already computed from full `progresses`)
+            data = paginatedData;
+
             // Compute summary stats
             int total = progresses.Count;
             double weightedSum = progresses.Sum(p =>
@@ -1596,6 +1651,13 @@ namespace HcPortal.Controllers
                 pendingApprovals = progresses.Count(p => p.Status == "Submitted" && p.HCApprovalStatus == "Pending");
             else
                 pendingApprovals = progresses.Count(p => p.Status == "Submitted");
+
+            // --- ViewBag: pagination state (UI-04) ---
+            ViewBag.CurrentPage = pageNumber;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.PageFirstRow = pageFirstRow;
+            ViewBag.PageLastRow = pageLastRow;
+            // FilteredCount = total rows across all pages (before pagination); keep existing assignment below
 
             // --- ViewBag: filter option lists ---
             ViewBag.AllBagian = OrganizationStructure.GetAllSections();
@@ -1619,7 +1681,7 @@ namespace HcPortal.Controllers
                     .CountAsync(p => scopedCoacheeIds.Contains(p.CoacheeId))
                 : 0;
             ViewBag.TotalCount = totalBeforeFilter;
-            ViewBag.FilteredCount = data.Count;
+            ViewBag.FilteredCount = progresses.Count; // total rows across all pages (for "Menampilkan X-Y dari Z" display)
 
             // --- ViewBag: existing values ---
             ViewBag.UserRole = userRole;
@@ -1649,11 +1711,32 @@ namespace HcPortal.Controllers
                 ViewBag.CoacheeName = "";
             }
 
-            // Empty result message
-            if (data.Count == 0)
+            // --- Empty state scenario detection (UI-02) ---
+            // Detect BEFORE pagination so we check the full dataset count
+            // `progresses.Count` = full filtered dataset (0 means no results for current filter)
+            // `scopedCoacheeIds.Count` = whether the user has any coachees in scope at all
+            string emptyScenario = "";
+            if (progresses.Count == 0)
             {
-                ViewBag.EmptyMessage = "Tidak ada data yang sesuai filter";
+                if (scopedCoacheeIds.Count == 0)
+                {
+                    // No coachees assigned at all (role scope is empty)
+                    emptyScenario = "no_coachees";
+                }
+                else if (!string.IsNullOrEmpty(bagian) || !string.IsNullOrEmpty(unit) ||
+                         !string.IsNullOrEmpty(trackType) || !string.IsNullOrEmpty(tahun) ||
+                         !string.IsNullOrEmpty(targetCoacheeId))
+                {
+                    // Coachees exist but active filters narrow to zero results
+                    emptyScenario = "no_filter_match";
+                }
+                else
+                {
+                    // Coachees exist, no filters active, but no deliverables yet
+                    emptyScenario = "no_deliverables";
+                }
             }
+            ViewBag.EmptyScenario = emptyScenario;
 
             return View(data);
         }
