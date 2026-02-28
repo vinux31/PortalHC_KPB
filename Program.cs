@@ -49,6 +49,30 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // Audit log service
 builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 
+// Auth service — factory delegates based on Authentication:UseActiveDirectory config toggle
+// dev (false) -> LocalAuthService (Identity PasswordHash)
+// prod (true)  -> LdapAuthService (Pertamina AD LDAP)
+// Environment variable override: Authentication__UseActiveDirectory=true
+var useActiveDirectory = builder.Configuration.GetValue<bool>("Authentication:UseActiveDirectory", false);
+if (useActiveDirectory)
+{
+    builder.Services.AddScoped<HcPortal.Services.IAuthService>(sp =>
+        new HcPortal.Services.LdapAuthService(
+            sp.GetRequiredService<IConfiguration>(),
+            sp.GetRequiredService<ILogger<HcPortal.Services.LdapAuthService>>()
+        )
+    );
+}
+else
+{
+    builder.Services.AddScoped<HcPortal.Services.IAuthService>(sp =>
+        new HcPortal.Services.LocalAuthService(
+            sp.GetRequiredService<SignInManager<ApplicationUser>>(),
+            sp.GetRequiredService<ILogger<HcPortal.Services.LocalAuthService>>()
+        )
+    );
+}
+
 // 4. Konfigurasi Cookie Authentication
 builder.Services.ConfigureApplicationCookie(options =>
 {
