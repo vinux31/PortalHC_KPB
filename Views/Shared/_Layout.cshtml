@@ -64,7 +64,7 @@
                             <a class="nav-link text-dark" asp-controller="BP" asp-action="Index">BP</a>
                         </li>
 
-                        @if (userRole == "Admin")
+                        @if (userRole == "Admin" || userRole == "HC")
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">

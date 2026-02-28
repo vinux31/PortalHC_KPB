@@ -6,14 +6,14 @@
 <div class="d-flex align-items-start mb-4">
     <div>
         <h2 class="fw-bold text-dark mb-1"><i class="bi bi-gear-fill me-2 text-primary"></i>Kelola Data</h2>
-        <p class="text-muted">Panel admin untuk mengelola data master, operasional, dan konfigurasi sistem.</p>
+        <p class="text-muted">Panel untuk mengelola data master, proton, dan assessment &amp; training.</p>
     </div>
 </div>
 
-@* Section A: Master Data *@
+@* Section A: Data Management *@
 <div class="d-flex align-items-center mb-3">
     <span class="badge bg-primary me-2">A</span>
-    <h5 class="fw-bold text-primary mb-0">Master Data</h5>
+    <h5 class="fw-bold text-primary mb-0">Data Management</h5>
 </div>
 <div class="row g-3 mb-2">
     <div class="col-md-4">
@@ -48,22 +48,9 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-list-check fs-5 text-primary"></i>
-                        <span class="fw-bold">KKJ-IDP Mapping Editor</span>
+                        <span class="fw-bold">KKJ-IDP Mapping</span>
                     </div>
                     <small class="text-muted">Kelola item CPDP (kompetensi-deliverable mapping)</small>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="@Url.Action("ManageAssessment", "Admin")" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-sliders fs-5 text-primary"></i>
-                        <span class="fw-bold">Manage Assessments</span>
-                    </div>
-                    <small class="text-muted">Kelola assessment (buat, edit, hapus, monitoring)</small>
                 </div>
             </div>
         </a>
@@ -85,10 +72,10 @@
 
 <hr class="my-4">
 
-@* Section B: Operasional *@
+@* Section B: Proton *@
 <div class="d-flex align-items-center mb-3">
     <span class="badge bg-warning text-dark me-2">B</span>
-    <h5 class="fw-bold text-warning mb-0">Operasional</h5>
+    <h5 class="fw-bold text-warning mb-0">Proton</h5>
 </div>
 <div class="row g-3 mb-2">
     <div class="col-md-4">
@@ -105,29 +92,14 @@
         </a>
     </div>
     <div class="col-md-4">
-        <a href="#" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0 opacity-75">
+        <a href="/ProtonData/OverrideList" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <i class="bi bi-pencil-square fs-5 text-primary"></i>
                         <span class="fw-bold">Deliverable Progress Override</span>
-                        <span class="badge bg-secondary ms-auto" style="font-size:0.6rem;">Segera</span>
                     </div>
                     <small class="text-muted">Override status progress deliverable</small>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="#" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0 opacity-75">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-clipboard-check fs-5 text-primary"></i>
-                        <span class="fw-bold">Final Assessment Manager</span>
-                        <span class="badge bg-secondary ms-auto" style="font-size:0.6rem;">Segera</span>
-                    </div>
-                    <small class="text-muted">Kelola final assessment Proton</small>
                 </div>
             </div>
         </a>
@@ -150,22 +122,21 @@
 
 <hr class="my-4">
 
-@* Section C: Kelengkapan CRUD *@
+@* Section C: Assessment & Training *@
 <div class="d-flex align-items-center mb-3">
     <span class="badge bg-success me-2">C</span>
-    <h5 class="fw-bold text-success mb-0">Kelengkapan CRUD</h5>
+    <h5 class="fw-bold text-success mb-0">Assessment &amp; Training</h5>
 </div>
 <div class="row g-3 mb-2">
     <div class="col-md-4">
-        <a href="#" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0 opacity-75">
+        <a href="@Url.Action("ManageAssessment", "Admin")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-question-circle fs-5 text-primary"></i>
-                        <span class="fw-bold">Question Bank Edit</span>
-                        <span class="badge bg-secondary ms-auto" style="font-size:0.6rem;">Segera</span>
+                        <i class="bi bi-sliders fs-5 text-primary"></i>
+                        <span class="fw-bold">Manage Assessments</span>
                     </div>
-                    <small class="text-muted">Edit soal assessment yang sudah ada</small>
+                    <small class="text-muted">Kelola assessment (buat, edit, hapus, monitoring)</small>
                 </div>
             </div>
         </a>
@@ -175,39 +146,11 @@
             <div class="card shadow-sm h-100 border-0 opacity-75">
                 <div class="card-body">
                     <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-file-earmark-text fs-5 text-primary"></i>
-                        <span class="fw-bold">Package Question Edit/Delete</span>
+                        <i class="bi bi-clipboard-check fs-5 text-primary"></i>
+                        <span class="fw-bold">Final Assessment Manager</span>
                         <span class="badge bg-secondary ms-auto" style="font-size:0.6rem;">Segera</span>
                     </div>
-                    <small class="text-muted">Edit/hapus soal dalam paket ujian</small>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="#" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0 opacity-75">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-tools fs-5 text-primary"></i>
-                        <span class="fw-bold">ProtonTrack Edit/Delete</span>
-                        <span class="badge bg-secondary ms-auto" style="font-size:0.6rem;">Segera</span>
-                    </div>
-                    <small class="text-muted">Edit/hapus ProtonTrack</small>
-                </div>
-            </div>
-        </a>
-    </div>
-    <div class="col-md-4">
-        <a href="#" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0 opacity-75">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-key fs-5 text-primary"></i>
-                        <span class="fw-bold">Password Reset</span>
-                        <span class="badge bg-secondary ms-auto" style="font-size:0.6rem;">Segera</span>
-                    </div>
-                    <small class="text-muted">Reset password pekerja secara mandiri</small>
+                    <small class="text-muted">Kelola final assessment Proton</small>
                 </div>
             </div>
         </a>
