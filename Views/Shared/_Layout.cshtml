@@ -85,18 +85,6 @@
                                 </div>
                             </div>
 
-                            @* Manage Workers button — Admin & HC only *@
-                            @if (currentUser.RoleLevel <= 2)
-                            {
-                                <a href="/CMP/ManageWorkers" class="btn btn-outline-primary btn-sm me-3 d-flex align-items-center gap-2" 
-                                   title="Kelola Pekerja" id="btnNavManageWorkers">
-                                    <i class="bi bi-people-fill"></i>
-                                    <span class="d-none d-xl-inline">Kelola Pekerja</span>
-                                </a>
-                            }
-
-
-
                             <div class="dropdown">
                                 <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" data-bs-toggle="dropdown">
                                     <div class="bg-primary text-white rounded-circle d-flex justify-content-center align-items-center fw-bold" 
