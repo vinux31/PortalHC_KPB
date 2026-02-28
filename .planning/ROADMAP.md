@@ -508,7 +508,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 67. Dynamic Profile Page | 1/1 | Complete    | 2026-02-27 | - |
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
-| 70. Kelola Data Hub Reorganization | 1/1 | Complete   | 2026-02-28 | - |
+| 70. Kelola Data Hub Reorganization | 1/1 | Complete    | 2026-02-28 | - |
 | 71. LDAP Auth Service Foundation | v2.5 | 0/2 | Not started | - |
 | 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
 | 73. User Structure Polish | v2.5 | 0/1 | Not started | - |

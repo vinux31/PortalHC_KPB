@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: completed
+last_updated: "2026-02-28T05:59:56.234Z"
+last_activity: "2026-02-28 - Completed Plan 70-01: Admin/Index.cshtml rewritten into 3 domain sections (Data Management / Proton / Assessment & Training), 4 stale Kelengkapan CRUD placeholders removed, Deliverable Progress Override activated, Manage Assessments moved to Section C, HC navbar access enabled"
+progress:
+  total_phases: 55
+  completed_phases: 53
+  total_plans: 126
+  completed_plans: 125
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: executing
 last_updated: "2026-02-27T04:40:03.495Z"
 last_activity: "2026-02-27 - Completed Plan 49-05: UAT gap closure"
@@ -333,7 +347,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
 **Phase:** Phase 70 — Kelola Data Hub Reorganization (Complete — 1/1 plans done)
-**Status:** Phase complete
+**Status:** Milestone complete
 **Last activity:** 2026-02-28 - Completed Plan 70-01: Admin/Index.cshtml rewritten into 3 domain sections (Data Management / Proton / Assessment & Training), 4 stale Kelengkapan CRUD placeholders removed, Deliverable Progress Override activated, Manage Assessments moved to Section C, HC navbar access enabled
 
 Progress: [████████░░░░░░░░░░░░] 44% (v2.5 — 1/4 phases complete)
