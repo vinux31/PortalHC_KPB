@@ -2455,8 +2455,9 @@ namespace HcPortal.Controllers
             ViewBag.SearchTerm = search;
             ViewBag.SectionFilter = section;
             ViewBag.Sections = OrganizationStructure.GetAllSections();
-            ViewBag.EligibleCoaches = allUsers
-                .Where(u => u.RoleLevel <= 5)
+            // Phase 74: Coach role only — not level (Supervisor is level 5 but never a coach)
+            var coachRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coach);
+            ViewBag.EligibleCoaches = coachRoleUsers
                 .OrderBy(u => u.FullName).ToList();
             ViewBag.EligibleCoachees = allUsers
                 .Where(u => !activeCoacheeIds.Contains(u.Id))
