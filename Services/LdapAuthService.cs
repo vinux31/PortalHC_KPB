@@ -6,7 +6,7 @@ namespace HcPortal.Services
 {
     /// <summary>
     /// LDAP authentication service for Pertamina Active Directory.
-    /// Used in production (UseActiveDirectory=true) for AuthSource="AD" users.
+    /// Used in production when Authentication:UseActiveDirectory=true (global config toggle — no per-user flag).
     /// Connects to OU=KPB,OU=KPI,DC=pertamina,DC=com via System.DirectoryServices.
     ///
     /// Design decisions:

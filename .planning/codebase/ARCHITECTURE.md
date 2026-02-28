@@ -212,6 +212,153 @@ if (user == null) return Challenge(); // Redirect to auth challenge
 - Purpose: Maintain user state across requests
 - Cleanup: Automatic session expiration after timeout
 
+## Dual Authentication (Local + Active Directory)
+
+**Implemented:** 2026-02-28 (Phases 71-72)
+**Status:** Production-ready. Toggle via appsettings.json.
+
+The portal supports two authentication modes controlled by a single config flag:
+- **Local mode** (default): Credentials validated against ASP.NET Core Identity (password hash in SQL Server)
+- **AD mode**: Credentials validated against Pertamina LDAP (`OU=KPB,OU=KPI,DC=pertamina,DC=com`)
+
+Switching modes requires an application restart (config read at startup). No per-user flag exists — the toggle applies to all users globally.
+
+### Service Architecture
+
+```
+IAuthService (interface)
+├── LocalAuthService  — wraps Identity CheckPasswordSignInAsync
+└── LdapAuthService   — DirectoryEntry bind to Pertamina LDAP OU
+```
+
+`Program.cs` registers the correct implementation at startup via a factory delegate:
+```csharp
+services.AddScoped<IAuthService>(sp =>
+    config.GetValue<bool>("Authentication:UseActiveDirectory", false)
+        ? (IAuthService)sp.GetRequiredService<LdapAuthService>()
+        : sp.GetRequiredService<LocalAuthService>()
+);
+```
+
+### Login Flow
+
+```
+User submits login form (email + password)
+        |
+        v
+AccountController.Login POST
+        |
+        v
+IAuthService.AuthenticateAsync(email, password)
+        |
+  [UseActiveDirectory?]
+  /              \
+false           true
+  |               |
+LocalAuth       LdapAuth
+(Identity)      (DirectoryEntry bind)
+  \               /
+   \             /
+    v           v
+    AuthResult { Success, Email, FullName }
+        |
+  [Success?]
+  /         \
+No           Yes
+  |           |
+Show error   FindByEmailAsync(email)
+              |
+        [User in DB?]
+        /           \
+      No            Yes
+        |             |
+    Reject           Sync FullName + Email
+    "Akun belum      (null-safe, AD-only)
+     terdaftar"            |
+                      SignInAsync (cookie)
+                           |
+                      Redirect to dashboard
+```
+
+**Key decision — no auto-provisioning:** AD users must be pre-registered by HC via ManageWorkers. If LDAP auth succeeds but user is not in DB, login is rejected with "Akun Anda belum terdaftar. Hubungi HC."
+
+**Key decision — AuthSource removed:** An `AuthSource` field was added in Phase 71 and removed in Phase 72. Reason: global config toggle is simpler — no per-user migration needed when switching auth modes, and the `Authentication:UseActiveDirectory` config already specifies the desired auth mode. The field introduced unnecessary per-user state.
+
+### AuthResult DTO
+
+```csharp
+public class AuthResult
+{
+    public bool Success { get; set; }
+    public string? UserId { get; set; }    // Set by LocalAuthService; null for LDAP (DB lookup instead)
+    public string? Email { get; set; }     // Returned by both services for profile sync
+    public string? FullName { get; set; }  // From AD displayName attribute (LDAP) or Identity (local)
+    public string? ErrorMessage { get; set; }
+}
+```
+
+### For Developers
+
+**Adding a new auth provider:**
+1. Implement `IAuthService` in `Services/`
+2. Register in Program.cs factory delegate (add condition to the config check)
+3. No controller changes needed — `AccountController.Login` depends only on `IAuthService`
+
+**LDAP attribute mapping** is configurable in `appsettings.json`:
+```json
+"Authentication": {
+    "AttributeMapping": {
+        "Email": "mail",
+        "FullName": "displayName"
+    }
+}
+```
+Change `mail` or `displayName` if your AD schema uses different attribute names.
+
+**Relevant files:**
+- `Services/IAuthService.cs` — interface
+- `Services/LocalAuthService.cs` — local implementation
+- `Services/LdapAuthService.cs` — LDAP implementation
+- `Controllers/AccountController.cs` — `Login` POST action (search for "IAuthService")
+- `Program.cs` — DI registration factory (search for "UseActiveDirectory")
+
+### For Operations / Deployment
+
+**Switching to AD mode (production):**
+
+1. Open `appsettings.json` (or set environment variable `Authentication__UseActiveDirectory=true`)
+2. Set `"UseActiveDirectory": true`
+3. Verify LDAP path matches your AD OU: `"LdapPath": "LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com"`
+4. Restart the application — the factory delegate reads this at startup
+
+**Switching back to local mode (fallback / development):**
+
+Set `"UseActiveDirectory": false` (or override in `appsettings.Development.json`) and restart.
+
+**LDAP connectivity test:**
+
+From the application server, verify LDAP port 389 is reachable:
+```
+Test-NetConnection -ComputerName pertamina.com -Port 389
+```
+If port 389 is blocked, LDAP auth will time out after `LdapTimeout` milliseconds (default 5000ms).
+
+**Configuration reference:**
+
+```json
+"Authentication": {
+    "UseActiveDirectory": false,         // true = LDAP, false = local Identity
+    "LdapPath": "LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com",
+    "LdapTimeout": 5000,                 // Milliseconds before LDAP auth times out
+    "AttributeMapping": {
+        "Email": "mail",                 // AD attribute for email (standard: 'mail')
+        "FullName": "displayName"        // AD attribute for full name (standard: 'displayName')
+    }
+}
+```
+
+**Pre-requisite for AD users:** HC must pre-register each AD user via Kelola Data > Manajemen Pekerja before they can log in. The email registered in the portal must match the AD account's `mail` attribute.
+
 ---
 
 *Architecture analysis: 2026-02-13*

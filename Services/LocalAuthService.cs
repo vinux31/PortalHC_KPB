@@ -5,8 +5,8 @@ namespace HcPortal.Services
 {
     /// <summary>
     /// Local authentication service wrapping ASP.NET Core Identity SignInManager.
-    /// Used in development (UseActiveDirectory=false) and for AuthSource="Local" users in AD mode.
-    /// Phase 72 will inject this via IAuthService DI registration.
+    /// Used when Authentication:UseActiveDirectory=false (development and local-only deployments).
+    /// Registered via IAuthService DI in Program.cs (see Phase 71-72).
     /// </summary>
     public class LocalAuthService : IAuthService
     {
