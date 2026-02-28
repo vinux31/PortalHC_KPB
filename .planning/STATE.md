@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: completed
+last_updated: "2026-02-28T07:27:07.735Z"
+last_activity: "2026-02-28 - Completed Plan 71-02: LdapAuthService implementation (DirectoryEntry LDAP bind + samaccountname search + RFC 4515 LDAP escaping + 5-second COM timeout) + Program.cs IAuthService factory DI registration (conditional Local/AD selection at startup)"
+progress:
+  total_phases: 56
+  completed_phases: 54
+  total_plans: 128
+  completed_plans: 127
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: executing
 last_updated: "2026-02-28T07:23:57.428Z"
 last_activity: "2026-02-28 - Completed Plan 71-01: IAuthService interface + LocalAuthService + AuthResult DTO + AuthenticationConfig POCO + ApplicationUser.AuthSource field with EF migration and System.DirectoryServices NuGet package"
@@ -361,7 +375,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
 **Phase:** Phase 71 — LDAP Auth Service Foundation (In Progress — 2/3 plans done)
-**Status:** Executing
+**Status:** Milestone complete
 **Last activity:** 2026-02-28 - Completed Plan 71-02: LdapAuthService implementation (DirectoryEntry LDAP bind + samaccountname search + RFC 4515 LDAP escaping + 5-second COM timeout) + Program.cs IAuthService factory DI registration (conditional Local/AD selection at startup)
 
 Progress: [██████████░░░░░░░░░░] 50% (v2.5 — 2/4 phases in progress)
