@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-28T07:27:07.735Z"
+last_updated: "2026-02-28T11:39:23.966Z"
 last_activity: "2026-02-28 - Completed Plan 71-02: LdapAuthService implementation (DirectoryEntry LDAP bind + samaccountname search + RFC 4515 LDAP escaping + 5-second COM timeout) + Program.cs IAuthService factory DI registration (conditional Local/AD selection at startup)"
 progress:
-  total_phases: 56
+  total_phases: 57
   completed_phases: 54
-  total_plans: 128
-  completed_plans: 127
+  total_plans: 131
+  completed_plans: 129
 ---
 
 ---
@@ -497,6 +497,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 71-02]: LdapAuthService does NOT set UserId in AuthResult — Phase 72 AccountController looks up ApplicationUser by email from DB after successful LDAP auth
 - [Phase 71-02]: Program.cs factory delegate reads UseActiveDirectory at app startup (build time) — config change requires restart, correct behavior for auth infrastructure
 - [Phase 71-02]: IAuthService registered as Scoped (not Singleton) to match SignInManager Scoped lifetime
+- [Phase 72-02]: readonly not disabled for FullName/Email: disabled inputs excluded from form POST; readonly preserves value binding for controller model
+- [Phase 72-02]: @if server-side conditional used (not CSS d-none) for password fields: zero DOM presence in AD mode prevents accidental empty password submission
 
 ### Roadmap Evolution
 
@@ -539,6 +541,7 @@ None.
 | Phase 68-functional-settings-page P02 | 2 | 1 tasks | 1 files |
 | Phase 69-manageworkers-migration-to-admin P02 | 8 | 2 tasks | 8 files |
 | Phase 71 P02 | 2 | 2 tasks | 2 files |
+| Phase 72-dual-auth-login-flow P02 | 112s | 2 tasks | 3 files |
 
 ## Session Continuity
 

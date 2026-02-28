@@ -510,7 +510,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
 | 70. Kelola Data Hub Reorganization | 1/1 | Complete    | 2026-02-28 | - |
 | 71. LDAP Auth Service Foundation | 2/2 | Complete    | 2026-02-28 | - |
-| 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
+| 72. Dual Auth Login Flow | 2/3 | In Progress|  | - |
 | 73. User Structure Polish | v2.5 | 0/1 | Not started | - |
 
 ## v2.4 CDP Progress
@@ -665,7 +665,7 @@ Plans:
   6. AD login: sync FullName + Email from AuthResult before SignInAsync; skip null values
   7. ManageWorkers: password field hidden + auto-generate in AD mode; FullName/Email read-only for AD users
   8. Import template dynamic: AD mode → no Password column (auto-generate); local mode → with Password column
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 - [ ] 72-01: Backend — Rewrite AccountController.Login POST with IAuthService, profile sync, remove AuthSource migration
 - [ ] 72-02: Frontend — Login.cshtml hint, ManageWorkers form adaptation (password hide, read-only fields)
 - [ ] 72-03: Import — Dynamic template generation, import logic adaptation for AD mode

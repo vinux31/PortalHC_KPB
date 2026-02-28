@@ -74,7 +74,7 @@
 - [x] **AUTH-02**: `IAuthService` interface + `LdapAuthService` menggunakan DirectoryEntry ke `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` dengan samaccountname filter
 - [x] **AUTH-03**: `LocalAuthService` implementation wrapping existing PasswordSignInAsync
 - [x] **AUTH-04**: Program.cs register IAuthService berdasarkan config toggle via DI
-- [ ] **AUTH-05**: Login page: Email + Password (identik kedua mode); AD mode tampilkan hint kecil "Login menggunakan akun Pertamina" di bawah form
+- [x] **AUTH-05**: Login page: Email + Password (identik kedua mode); AD mode tampilkan hint kecil "Login menggunakan akun Pertamina" di bawah form
 - [ ] **AUTH-06**: User belum terdaftar di DB → ditolak: "Akun Anda belum terdaftar. Hubungi HC." (no auto-provisioning, HC pre-registers via ManageWorkers)
 - [ ] **AUTH-07**: AD user login: sync FullName (displayName) dan Email (mail) saja; skip null values; Role/SelectedView TIDAK pernah diubah
 - [x] **AUTH-08**: NuGet package System.DirectoryServices ditambahkan ke csproj
@@ -149,7 +149,7 @@
 | AUTH-02 | Phase 71 | Complete |
 | AUTH-03 | Phase 71 | Complete |
 | AUTH-04 | Phase 71 | Complete |
-| AUTH-05 | Phase 72 | Pending |
+| AUTH-05 | Phase 72 | Complete |
 | AUTH-06 | Phase 72 | Pending |
 | AUTH-07 | Phase 72 | Pending |
 | AUTH-08 | Phase 71 | Complete |
