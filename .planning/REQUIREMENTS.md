@@ -82,7 +82,7 @@
 ### USR — Admin User Management
 
 - [x] **USR-01**: ManageWorkers CRUD (list, create, edit, delete, import, export, detail) accessible dari /Admin/ManageWorkers
-- [x] **USR-02**: Old /CMP/ManageWorkers redirect 301 ke /Admin/ManageWorkers
+- [x] **USR-02**: Old /CMP/ManageWorkers dihapus — clean break, no redirect (override per CONTEXT decision Phase 69)
 - [x] **USR-03**: Standalone "Kelola Pekerja" button di navbar dihapus — akses via Kelola Data hub
 - [ ] **USR-04**: Kelola Data hub di-reorganize: ManageWorkers card prominent, stale "Segera" items cleaned up
 
