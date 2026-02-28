@@ -22,7 +22,8 @@ namespace HcPortal.Models
         
         // Level 5 - Coaching
         public const string Coach = "Coach";
-        
+        public const string Supervisor = "Supervisor";  // same access as Coach, no coachee mapping
+
         // Level 6 - Operational
         public const string Coachee = "Coachee";
 
@@ -31,8 +32,8 @@ namespace HcPortal.Models
         /// </summary>
         public static List<string> AllRoles => new List<string>
         {
-            Admin, HC, Direktur, VP, Manager, 
-            SectionHead, SrSupervisor, Coach, Coachee
+            Admin, HC, Direktur, VP, Manager,
+            SectionHead, SrSupervisor, Coach, Supervisor, Coachee
         };
 
         /// <summary>
@@ -44,9 +45,9 @@ namespace HcPortal.Models
             {
                 Admin => 1,
                 HC => 2,
-                Direktur or VP or Manager => 3,
-                SectionHead or SrSupervisor => 4,
-                Coach => 5,
+                Direktur or VP or Manager or SectionHead => 3,  // SectionHead: 4 → 3 (full access)
+                SrSupervisor => 4,
+                Coach or Supervisor => 5,                        // Supervisor: new at level 5
                 Coachee => 6,
                 _ => 6 // Default to lowest level
             };
@@ -77,7 +78,7 @@ namespace HcPortal.Models
             {
                 Admin => "Admin",
                 HC => "HC",
-                Coach => "Coach",
+                Coach or Supervisor => "Coach",                              // Supervisor: "Coach" view
                 Direktur or VP or Manager or SectionHead or SrSupervisor => "Atasan",
                 _ => "Coachee"
             };

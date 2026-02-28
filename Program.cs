@@ -51,15 +51,23 @@ builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 
 // Auth service — factory delegates based on Authentication:UseActiveDirectory config toggle
 // dev (false) -> LocalAuthService (Identity PasswordHash)
-// prod (true)  -> LdapAuthService (Pertamina AD LDAP)
+// prod (true)  -> HybridAuthService (AD for all users, local fallback for admin@pertamina.com)
 // Environment variable override: Authentication__UseActiveDirectory=true
 var useActiveDirectory = builder.Configuration.GetValue<bool>("Authentication:UseActiveDirectory", false);
 if (useActiveDirectory)
 {
+    // Hybrid mode: AD for all users, local fallback for admin@pertamina.com only
     builder.Services.AddScoped<HcPortal.Services.IAuthService>(sp =>
-        new HcPortal.Services.LdapAuthService(
-            sp.GetRequiredService<IConfiguration>(),
-            sp.GetRequiredService<ILogger<HcPortal.Services.LdapAuthService>>()
+        new HcPortal.Services.HybridAuthService(
+            new HcPortal.Services.LdapAuthService(
+                sp.GetRequiredService<IConfiguration>(),
+                sp.GetRequiredService<ILogger<HcPortal.Services.LdapAuthService>>()
+            ),
+            new HcPortal.Services.LocalAuthService(
+                sp.GetRequiredService<SignInManager<ApplicationUser>>(),
+                sp.GetRequiredService<ILogger<HcPortal.Services.LocalAuthService>>()
+            ),
+            sp.GetRequiredService<ILogger<HcPortal.Services.HybridAuthService>>()
         )
     );
 }
