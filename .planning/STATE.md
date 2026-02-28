@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: completed
+last_updated: "2026-02-28T11:45:17.696Z"
+last_activity: "2026-02-28 - Completed Plan 72-03: AdminController AD mode adaptation (CreateWorker POST auto-generates password, EditWorker POST skips password change, DownloadImportTemplate dynamic columns, ImportWorkers POST conditional password read/generate). Phase 72 fully complete."
+progress:
+  total_phases: 57
+  completed_phases: 55
+  total_plans: 131
+  completed_plans: 130
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: executing
 last_updated: "2026-02-28T11:40:19.531Z"
 last_activity: "2026-02-28 - Completed Plan 72-01: AccountController.Login POST rewritten with IAuthService abstraction (Local + AD transparent), AD profile sync (FullName/Email null-safe before SignInAsync), unknown-user rejection with Indonesian message, AuthSource removed from ApplicationUser model and SQL Users table via EF migration"
@@ -389,7 +403,7 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 **Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
 **Phase:** Phase 72 — Dual Auth Login Flow (Complete — 3/3 plans done)
-**Status:** Complete
+**Status:** Milestone complete
 **Last activity:** 2026-02-28 - Completed Plan 72-03: AdminController AD mode adaptation (CreateWorker POST auto-generates password, EditWorker POST skips password change, DownloadImportTemplate dynamic columns, ImportWorkers POST conditional password read/generate). Phase 72 fully complete.
 
 Progress: [████████████░░░░░░░░] 60% (v2.5 — 3/4 phases in progress)
