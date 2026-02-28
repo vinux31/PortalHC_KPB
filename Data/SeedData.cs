@@ -39,16 +39,29 @@ namespace HcPortal.Data
             {
                 (new ApplicationUser
                 {
-                    UserName = "rino.prasetyo@pertamina.com",
-                    Email = "rino.prasetyo@pertamina.com",
+                    UserName = "admin@pertamina.com",
+                    Email = "admin@pertamina.com",
                     EmailConfirmed = true,
-                    FullName = "Rino",
-                    Position = "Operator",
+                    FullName = "Admin KPB",
+                    Position = "System Administrator",
                     Section = null,
                     Unit = null,
                     RoleLevel = 1,
                     SelectedView = UserRoles.GetDefaultView(UserRoles.Admin)
                 }, "123456", UserRoles.Admin),
+
+                (new ApplicationUser
+                {
+                    UserName = "rino.prasetyo@pertamina.com",
+                    Email = "rino.prasetyo@pertamina.com",
+                    EmailConfirmed = true,
+                    FullName = "Rino",
+                    Position = "Operator",
+                    Section = "GAST",
+                    Unit = "Alkylation Unit (065)",
+                    RoleLevel = 6,
+                    SelectedView = UserRoles.GetDefaultView(UserRoles.Coachee)
+                }, "123456", UserRoles.Coachee),
 
                 (new ApplicationUser
                 {
@@ -179,13 +192,6 @@ namespace HcPortal.Data
                 }
             }
 
-            // Rino dual role: Admin + Coachee (Admin is primary/highest, Coachee is secondary)
-            var rinoUser = await userManager.FindByEmailAsync("rino.prasetyo@pertamina.com");
-            if (rinoUser != null && !await userManager.IsInRoleAsync(rinoUser, UserRoles.Coachee))
-            {
-                await userManager.AddToRoleAsync(rinoUser, UserRoles.Coachee);
-                Console.WriteLine("✅ Rino dual role: Coachee role added.");
-            }
         }
     }
 }
