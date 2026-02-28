@@ -331,12 +331,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-**Milestone:** v2.3 Admin Portal — In Progress
-**Phase:** Phase 69 — ManageWorkers Migration to Admin (Complete — 2/2 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-28 - Completed Plan 69-02: CMPController ManageWorkers cleanup (11 actions removed), 5 CMP view files deleted, navbar Kelola Pekerja button removed, Manajemen Pekerja hub card added as first in Section A, zero stale references verified
+**Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
+**Phase:** Phase 70 — Kelola Data Hub Reorganization (Complete — 1/1 plans done)
+**Status:** Phase complete
+**Last activity:** 2026-02-28 - Completed Plan 70-01: Admin/Index.cshtml rewritten into 3 domain sections (Data Management / Proton / Assessment & Training), 4 stale Kelengkapan CRUD placeholders removed, Deliverable Progress Override activated, Manage Assessments moved to Section C, HC navbar access enabled
 
-Progress: [████████░░░░░░░░░░░░] 42% (v2.3 — 6/12 phases complete, v2.4 — 2/8 phases complete)
+Progress: [████████░░░░░░░░░░░░] 44% (v2.5 — 1/4 phases complete)
 
 ## Performance Metrics
 
@@ -441,6 +441,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 69-01]: GetDefaultView() extracted to UserRoles.cs using existing role constants — replaces 3 duplicated inline switch statements in CreateWorker/EditWorker/ImportWorkers POST actions
 - [Phase 69-02]: Clean break migration — /CMP/ManageWorkers returns 404, no redirects; Manajemen Pekerja hub card first in Section A; training records WorkerDetail preserved at CMPController
 
+**Phase 70-01 decisions:**
+- HC role added to navbar Kelola Data condition using || in Razor @if — view logic, not ASP.NET Core attribute logic, so no AND-ing issue
+- Placeholder cards (Coaching Session Override, Final Assessment Manager) kept with opacity-75 + Segera badge — honest representation of upcoming features
+- Deliverable Progress Override activated (Phase 52 built endpoint; card was the only thing blocking access)
+
 ### Roadmap Evolution
 
 All milestones through v2.2 shipped. v2.3 roadmap defined: 12 phases (47-58), requirements documented in REQUIREMENTS.md.
@@ -485,5 +490,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 69-02-PLAN.md (ManageWorkers cleanup: 11 CMP actions removed, 5 CMP views deleted, navbar button removed, hub card added, zero stale references). Phase 69 complete (2/2 plans).
+Stopped at: Completed 70-01-PLAN.md (Kelola Data hub rewritten into 3 domain sections, stale CRUD cards removed, HC navbar access enabled, Deliverable Progress Override activated). Phase 70 complete (1/1 plans).
 Resume file: None.

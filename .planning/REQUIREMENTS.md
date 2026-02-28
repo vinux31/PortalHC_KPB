@@ -84,7 +84,7 @@
 - [x] **USR-01**: ManageWorkers CRUD (list, create, edit, delete, import, export, detail) accessible dari /Admin/ManageWorkers
 - [x] **USR-02**: Old /CMP/ManageWorkers dihapus — clean break, no redirect (override per CONTEXT decision Phase 69)
 - [x] **USR-03**: Standalone "Kelola Pekerja" button di navbar dihapus — akses via Kelola Data hub
-- [ ] **USR-04**: Kelola Data hub di-reorganize: ManageWorkers card prominent, stale "Segera" items cleaned up
+- [x] **USR-04**: Kelola Data hub di-reorganize: ManageWorkers card prominent, stale "Segera" items cleaned up
 
 ### USTR — User Structure
 
@@ -156,7 +156,7 @@
 | USR-01  | Phase 69 | Complete |
 | USR-02  | Phase 69 | Complete |
 | USR-03  | Phase 69 | Complete |
-| USR-04  | Phase 70 | Pending |
+| USR-04  | Phase 70 | Complete |
 | USTR-01 | Phase 71 | Pending |
 | USTR-02 | Phase 69, 73 | Complete |
 
