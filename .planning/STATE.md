@@ -2,6 +2,20 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
+status: executing
+last_updated: "2026-02-28T07:23:57.428Z"
+last_activity: "2026-02-28 - Completed Plan 71-01: IAuthService interface + LocalAuthService + AuthResult DTO + AuthenticationConfig POCO + ApplicationUser.AuthSource field with EF migration and System.DirectoryServices NuGet package"
+progress:
+  total_phases: 56
+  completed_phases: 54
+  total_plans: 128
+  completed_plans: 127
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Admin Portal
 status: completed
 last_updated: "2026-02-28T05:59:56.234Z"
 last_activity: "2026-02-28 - Completed Plan 70-01: Admin/Index.cshtml rewritten into 3 domain sections (Data Management / Proton / Assessment & Training), 4 stale Kelengkapan CRUD placeholders removed, Deliverable Progress Override activated, Manage Assessments moved to Section C, HC navbar access enabled"
@@ -346,9 +360,9 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 ## Current Position
 
 **Milestone:** v2.5 User Infrastructure & AD Readiness — In Progress
-**Phase:** Phase 71 — LDAP Auth Service Foundation (In Progress — 1/3 plans done)
+**Phase:** Phase 71 — LDAP Auth Service Foundation (In Progress — 2/3 plans done)
 **Status:** Executing
-**Last activity:** 2026-02-28 - Completed Plan 71-01: IAuthService interface + LocalAuthService + AuthResult DTO + AuthenticationConfig POCO + ApplicationUser.AuthSource field with EF migration and System.DirectoryServices NuGet package
+**Last activity:** 2026-02-28 - Completed Plan 71-02: LdapAuthService implementation (DirectoryEntry LDAP bind + samaccountname search + RFC 4515 LDAP escaping + 5-second COM timeout) + Program.cs IAuthService factory DI registration (conditional Local/AD selection at startup)
 
 Progress: [██████████░░░░░░░░░░] 50% (v2.5 — 2/4 phases in progress)
 
@@ -466,6 +480,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - EF migration defaultValue corrected from "" to "Local" — EF Core generates empty string when default is set via C# property initializer only; manual SQL update applied to 11 existing users
 - Table name is "Users" (custom via ToTable in DbContext), not "AspNetUsers" — migration reflects this correctly
 - Authentication section added to both appsettings.json (full LDAP config) and appsettings.Development.json (UseActiveDirectory=false override only)
+- [Phase 71-02]: LdapAuthService does NOT set UserId in AuthResult — Phase 72 AccountController looks up ApplicationUser by email from DB after successful LDAP auth
+- [Phase 71-02]: Program.cs factory delegate reads UseActiveDirectory at app startup (build time) — config change requires restart, correct behavior for auth infrastructure
+- [Phase 71-02]: IAuthService registered as Scoped (not Singleton) to match SignInManager Scoped lifetime
 
 ### Roadmap Evolution
 
@@ -507,9 +524,10 @@ None.
 | Phase 68-functional-settings-page P01 | 3 | 2 tasks | 2 files |
 | Phase 68-functional-settings-page P02 | 2 | 1 tasks | 1 files |
 | Phase 69-manageworkers-migration-to-admin P02 | 8 | 2 tasks | 8 files |
+| Phase 71 P02 | 2 | 2 tasks | 2 files |
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 70-01-PLAN.md (Kelola Data hub rewritten into 3 domain sections, stale CRUD cards removed, HC navbar access enabled, Deliverable Progress Override activated). Phase 70 complete (1/1 plans).
+Stopped at: Completed 71-02-PLAN.md (LdapAuthService implementation + Program.cs IAuthService factory DI registration). Phase 71 in progress (2/3 plans done).
 Resume file: None.

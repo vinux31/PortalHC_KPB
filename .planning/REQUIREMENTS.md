@@ -71,9 +71,9 @@
 ### AUTH — Authentication
 
 - [x] **AUTH-01**: Config toggle `Authentication:UseActiveDirectory` di appsettings.json (dev=false, prod=true)
-- [ ] **AUTH-02**: `IAuthService` interface + `LdapAuthService` menggunakan DirectoryEntry ke `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` dengan samaccountname filter
+- [x] **AUTH-02**: `IAuthService` interface + `LdapAuthService` menggunakan DirectoryEntry ke `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` dengan samaccountname filter
 - [x] **AUTH-03**: `LocalAuthService` implementation wrapping existing PasswordSignInAsync
-- [ ] **AUTH-04**: Program.cs register IAuthService berdasarkan config toggle via DI
+- [x] **AUTH-04**: Program.cs register IAuthService berdasarkan config toggle via DI
 - [ ] **AUTH-05**: Login page: "Username" + placeholder NIP (AD mode), "Email" + placeholder email (local mode)
 - [ ] **AUTH-06**: First-time AD user auto-provisioned di DB lokal: role Coachee, RoleLevel=6, SelectedView="Coachee", AuthSource="AD"
 - [ ] **AUTH-07**: Existing AD user: sync FullName/NIP/Position/Section dari AD; Role dan SelectedView TIDAK pernah diubah
@@ -146,9 +146,9 @@
 | PROF-05 | Phase 68 | Complete |
 | PROF-06 | Phase 68 | Complete |
 | AUTH-01 | Phase 71 | Complete |
-| AUTH-02 | Phase 71 | Pending |
+| AUTH-02 | Phase 71 | Complete |
 | AUTH-03 | Phase 71 | Complete |
-| AUTH-04 | Phase 71 | Pending |
+| AUTH-04 | Phase 71 | Complete |
 | AUTH-05 | Phase 72 | Pending |
 | AUTH-06 | Phase 72 | Pending |
 | AUTH-07 | Phase 72 | Pending |

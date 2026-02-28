@@ -509,7 +509,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
 | 70. Kelola Data Hub Reorganization | 1/1 | Complete    | 2026-02-28 | - |
-| 71. LDAP Auth Service Foundation | 1/2 | In Progress|  | - |
+| 71. LDAP Auth Service Foundation | 2/2 | Complete   | 2026-02-28 | - |
 | 72. Dual Auth Login Flow | v2.5 | 0/2 | Not started | - |
 | 73. User Structure Polish | v2.5 | 0/1 | Not started | - |
 
@@ -577,7 +577,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 - [x] **Phase 68: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned) (completed 2026-02-27)
 - [x] **Phase 69: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 59 (completed 2026-02-28)
 - [x] **Phase 70: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 62 (completed 2026-02-28)
-- [ ] **Phase 71: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned)
+- [x] **Phase 71: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned) (completed 2026-02-28)
 - [ ] **Phase 72: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned)
 - [ ] **Phase 73: User Structure Polish** — USTR-02 completion (planned)
 
@@ -648,7 +648,7 @@ Plans:
   5. LocalAuthService wraps existing PasswordSignInAsync
   6. LdapAuthService uses DirectoryEntry with Pertamina LDAP path and samaccountname filter
   7. Program.cs registers IAuthService via DI based on config toggle
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 - [ ] 71-01: NuGet package, AuthSource migration, config sections, IAuthService interface, LocalAuthService
 - [ ] 71-02: LdapAuthService with Pertamina DirectoryEntry code + AD attribute extraction, Program.cs DI registration
 
