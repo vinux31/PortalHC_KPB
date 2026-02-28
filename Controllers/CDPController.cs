@@ -806,8 +806,8 @@ namespace HcPortal.Controllers
                 .Select(u => u.FullName ?? u.UserName ?? u.Id)
                 .FirstOrDefaultAsync() ?? progress.CoacheeId;
 
-            // CanUpload: status is Active or Rejected AND current user is coach/supervisor
-            bool canUpload = (progress.Status == "Active" || progress.Status == "Rejected") && user.RoleLevel <= 5;
+            // Phase 74: upload restricted to Coach role only (not level — SrSupervisor must not upload)
+            bool canUpload = (progress.Status == "Active" || progress.Status == "Rejected") && userRole == UserRoles.Coach;
 
             // Phase 6: approval context
             bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
@@ -1347,8 +1347,10 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(p => p.Id == progressId);
             if (progress == null) return NotFound();
 
-            // Authorization: only coach/supervisor (RoleLevel <= 5) can upload
-            if (user.RoleLevel > 5)
+            // Phase 74: upload restricted to Coach role only
+            var uploadRoles = await _userManager.GetRolesAsync(user);
+            var uploadUserRole = uploadRoles.FirstOrDefault();
+            if (uploadUserRole != UserRoles.Coach)
             {
                 return Forbid();
             }
