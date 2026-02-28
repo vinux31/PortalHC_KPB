@@ -383,10 +383,15 @@ Plans:
 - [ ] 52-02-PLAN.md — Lock removal: CDPController AssignTrack/Deliverable/ApproveDeliverable cleanup + CoacheeProgressRow.Locked removal + EF data migration
 
 ### Phase 53: Final Assessment Manager
-**Goal:** Admin can view, approve, reject, and edit ProtonFinalAssessment records — admin-level management of final assessments
+**Goal:** Add "Assessment Proton" exam category to the assessment system — HC can create Proton exams (Tahun 1-2 online, Tahun 3 interview), with eligibility-gated coachee picker, Tahun 3 interview result input in MonitoringDetail; legacy HCApprovals and CreateFinalAssessment pages removed
 **Depends on:** Phase 52
 **Requirements:** OPER-04
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 53-01-PLAN.md — Data model extension: AssessmentSession ProtonTrackId/TahunKe/InterviewResultsJson fields + InterviewResultsDto POCO + EF migration
+- [ ] 53-02-PLAN.md — Adaptive CreateAssessment form + GetEligibleCoachees AJAX endpoint + badge display in ManageAssessment/CMP/Assessment
+- [ ] 53-03-PLAN.md — Tahun 3 interview form in MonitoringDetail + SubmitInterviewResults POST + delete HCApprovals/CreateFinalAssessment + legacy data cleanup
 
 ### Phase 54: Coaching Session Override
 **Goal:** Admin can view all CoachingSession and ActionItem records and perform override edits or deletions
@@ -491,7 +496,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 50. Coach-Coachee Mapping Manager | 2/2 | Complete    | 2026-02-27 | - |
 | 51. Proton Track Assignment Manager | 3/3 | Complete    | 2026-02-27 | - |
 | 52. DeliverableProgress Override | 2/2 | Complete    | 2026-02-27 | - |
-| 53. Final Assessment Manager | v2.3 | 0/? | Not started | - |
+| 53. Final Assessment Manager | v2.3 | 0/3 | Planned | - |
 | 54. Coaching Session Override | v2.3 | 0/? | Not started | - |
 | 55. ~~Question Bank Edit~~ | v2.3 | - | Removed | - |
 | 56. ~~Package Question Edit/Delete~~ | v2.3 | - | Removed | - |
