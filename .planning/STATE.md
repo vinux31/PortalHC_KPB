@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-28T12:57:53.091Z"
+last_updated: "2026-02-28T14:26:00.415Z"
 last_activity: "2026-02-28 - Completed Plan 73-01: SeedData GetDefaultView modernization (9 users), Rino dual-role Admin+Coachee + Position=Operator, Rustam Position=Shift Supervisor, service comment updates removing AuthSource references, ARCHITECTURE.md dual-auth section with service/flow diagrams + Developer + Operations guides."
 progress:
-  total_phases: 58
+  total_phases: 59
   completed_phases: 56
-  total_plans: 132
-  completed_plans: 131
+  total_plans: 134
+  completed_plans: 132
 ---
 
 ---
@@ -415,12 +415,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-**Milestone:** v2.5 User Infrastructure & AD Readiness — Complete
-**Phase:** Phase 73 — User Structure Polish (Complete — 1/1 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-28 - Completed Plan 73-01: SeedData GetDefaultView modernization (9 users), Rino dual-role Admin+Coachee + Position=Operator, Rustam Position=Shift Supervisor, service comment updates removing AuthSource references, ARCHITECTURE.md dual-auth section with service/flow diagrams + Developer + Operations guides.
+**Milestone:** v2.6 Hybrid Auth & Role Restructuring — In Progress
+**Phase:** Phase 74 — Hybrid Auth & Role Restructuring (In Progress — 1/2 plans done)
+**Status:** Executing
+**Last activity:** 2026-02-28 - Completed Plan 74-01: HybridAuthService (AD-first + local fallback for admin@pertamina.com), Program.cs DI updated (useActiveDirectory=true now uses HybridAuthService), UserRoles Supervisor role added (level 5, Coach view), SectionHead demoted to level 3 (full access), AllRoles 10 entries.
 
-Progress: [████████████████░░░░] 80% (v2.5 — 4/4 phases complete)
+Progress: [█████████████████░░░] 85% (v2.6 — Phase 74 plan 1/2 done)
 
 ## Performance Metrics
 
@@ -549,6 +549,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 73]: GetDefaultView() in SeedData eliminates role-to-view string duplication — UserRoles.cs is now the single source of truth
 - [Phase 73]: Rino dual-role block placed after foreach with IsInRoleAsync guard (idempotent on repeated seed runs); SelectedView stays GetDefaultView(Admin)='Admin' — multi-role view selection is Phase 74
 - [Phase 73]: AuthSource field fully removed from service file comments — UseActiveDirectory global config is now the sole auth mode indicator
+- [Phase 74-01]: HybridAuthService: AD-first with local fallback for admin@pertamina.com; email comparison uses OrdinalIgnoreCase; any AD failure (!Success) triggers fallback
+- [Phase 74-01]: UserRoles: Supervisor at level 5 (Coach view), SectionHead demoted to level 3 (full access); AllRoles now 10 entries; SeedData unchanged (inherits via loop)
 
 ### Roadmap Evolution
 
@@ -595,9 +597,10 @@ None.
 | Phase 72 P01 | 15 | 2 tasks | 5 files |
 | Phase 72-dual-auth-login-flow P03 | 8 | 2 tasks | 1 files |
 | Phase 73 P01 | 3m | 2 tasks | 4 files |
+| Phase 74-hybrid-auth-role-restructuring P01 | 2 | 2 tasks | 3 files |
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 73-01-PLAN.md (SeedData GetDefaultView modernization, Rino dual-role Admin+Coachee, Rustam position fix, service comment updates, ARCHITECTURE.md dual-auth section). Phase 73 complete (1/1 plans done). v2.5 milestone complete.
+Stopped at: Completed 74-01-PLAN.md (HybridAuthService AD-first+local fallback for admin@pertamina.com, Program.cs DI updated, Supervisor role level 5, SectionHead demoted level 3). Phase 74 in progress (1/2 plans done).
 Resume file: None.
