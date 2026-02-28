@@ -680,3 +680,15 @@ Plans:
   3. ARCHITECTURE.md updated with dual auth documentation
 **Plans:** 1/1 plans complete
 - [ ] 73-01: Replace all inline role-to-view switches with GetDefaultView(), SeedData AuthSource, ARCHITECTURE.md update
+
+### Phase 74: Hybrid Auth & Role Restructuring
+**Goal:** Enable hybrid authentication (AD fallback to local) so dedicated Admin KPB user works in production AD mode, plus role/access fixes
+**Depends on:** Phase 73
+**Requirements:** AUTH-HYBRID (new)
+**Success Criteria** (what must be TRUE):
+  1. Login flow tries AD first, falls back to local auth if AD fails — dedicated Admin KPB (admin@pertamina.com) can login in AD mode
+  2. _Layout.cshtml and AccountController use SelectedView (or role priority) instead of GetRolesAsync().FirstOrDefault() for role display
+  3. RoleLevel restructuring: SectionHead level 3, SrSupervisor stays level 4
+  4. Upload evidence access restricted to Coach only (not SrSupervisor)
+**Plans:** 0 plans
+- [ ] 74-01: TBD
