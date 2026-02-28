@@ -504,7 +504,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 63. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 64. Functional Filters | v2.4 | 2/2 | Complete | 2026-02-27 |
 | 65. Actions | v2.4 | 0/? | Not started | - |
-| 66. UI Polish | 1/2 | In Progress|  | - |
+| 66. UI Polish | 2/2 | Complete   | 2026-02-28 | - |
 | 67. Dynamic Profile Page | 1/1 | Complete    | 2026-02-27 | - |
 | 68. Functional Settings Page | 2/2 | Complete    | 2026-02-27 | - |
 | 69. ManageWorkers Migration to Admin | 2/2 | Complete    | 2026-02-28 | - |
@@ -520,7 +520,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 - [x] **Phase 63: Data Source Fix** — DATA-01, DATA-02, DATA-03, DATA-04 (completed 2026-02-27)
 - [ ] **Phase 64: Functional Filters** — FILT-01, FILT-02, FILT-03, FILT-04, UI-01, UI-03
 - [ ] **Phase 65: Actions** — ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05
-- [ ] **Phase 66: UI Polish** — UI-02, UI-04
+- [x] **Phase 66: UI Polish** — UI-02, UI-04 (completed 2026-02-28)
 
 ### Phase Details
 
@@ -567,7 +567,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 **Success Criteria** (what must be TRUE):
   1. When no deliverable data matches the current filter/role scope, the table shows a descriptive empty-state message instead of a blank table
   2. Large coachee/deliverable datasets are paginated so the page does not load hundreds of rows at once; user can navigate between pages
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 ## v2.5 User Infrastructure & AD Readiness
 
