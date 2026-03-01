@@ -20,19 +20,22 @@ namespace HcPortal.Controllers
         private readonly AuditLogService _auditLog;
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _env;
 
         public AdminController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             AuditLogService auditLog,
             IMemoryCache cache,
-            IConfiguration config)
+            IConfiguration config,
+            IWebHostEnvironment env)
         {
             _context = context;
             _userManager = userManager;
             _auditLog = auditLog;
             _cache = cache;
             _config = config;
+            _env = env;
         }
 
         // GET /Admin/Index
@@ -259,8 +262,10 @@ namespace HcPortal.Controllers
 
         // GET /Admin/ManageAssessment
         [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> ManageAssessment(string? search, int page = 1, int pageSize = 20)
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ManageAssessment(string? search, int page = 1, int pageSize = 20,
+            string? tab = null, string? section = null, string? unit = null,
+            string? category = null, string? statusFilter = null, string? isFiltered = null)
         {
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
@@ -342,6 +347,36 @@ namespace HcPortal.Controllers
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalCount = totalCount;
             ViewBag.SearchTerm = search;
+
+            // Tab routing — default to "assessment"
+            var activeTab = tab switch { "training" => "training", "history" => "history", _ => "assessment" };
+            ViewBag.ActiveTab = activeTab;
+
+            // Training tab data (lazy — only fetch when tab=training or tab=history)
+            if (activeTab == "training" || activeTab == "history")
+            {
+                bool isInitialState = string.IsNullOrEmpty(isFiltered);
+                ViewBag.IsInitialState = isInitialState;
+                ViewBag.SelectedSection = section;
+                ViewBag.SelectedUnit = unit;
+                ViewBag.SelectedCategory = category;
+                ViewBag.SelectedStatus = statusFilter;
+
+                List<WorkerTrainingStatus> workers;
+                if (isInitialState)
+                    workers = new List<WorkerTrainingStatus>();
+                else
+                    workers = await GetWorkersInSection(section, unit, category, search, statusFilter);
+
+                var (assessmentHistory, trainingHistory) = await GetAllWorkersHistory();
+                ViewBag.Workers = workers;
+                ViewBag.AssessmentHistory = assessmentHistory;
+                ViewBag.TrainingHistory = trainingHistory;
+                ViewBag.AssessmentTitles = assessmentHistory
+                    .Select(r => r.Title)
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .Distinct().OrderBy(t => t).ToList();
+            }
 
             return View();
         }
@@ -442,7 +477,7 @@ namespace HcPortal.Controllers
         // --- CREATE ASSESSMENT ---
         // GET: Show create assessment form
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CreateAssessment()
         {
             // Get list of users for dropdown
@@ -476,7 +511,7 @@ namespace HcPortal.Controllers
 
         // POST: Process form submission (multi-user)
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateAssessment(AssessmentSession model, List<string> UserIds)
         {
@@ -752,7 +787,7 @@ namespace HcPortal.Controllers
         // --- EDIT ASSESSMENT ---
         // GET: Show edit form
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> EditAssessment(int id)
         {
             var assessment = await _context.AssessmentSessions
@@ -815,7 +850,7 @@ namespace HcPortal.Controllers
 
         // POST: Update assessment
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> EditAssessment(int id, AssessmentSession model, List<string> NewUserIds)
         {
@@ -1076,7 +1111,7 @@ namespace HcPortal.Controllers
 
         // --- DELETE ASSESSMENT GROUP ---
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAssessmentGroup(int id)
         {
@@ -1159,7 +1194,7 @@ namespace HcPortal.Controllers
 
         // --- REGENERATE TOKEN ---
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RegenerateToken(int id)
         {
@@ -1271,7 +1306,7 @@ namespace HcPortal.Controllers
 
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> AssessmentMonitoringDetail(string title, string category, DateTime scheduleDate)
         {
             var sessions = await _context.AssessmentSessions
@@ -1782,7 +1817,7 @@ namespace HcPortal.Controllers
 
         // --- EXPORT ASSESSMENT RESULTS ---
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ExportAssessmentResults(string title, string category, DateTime scheduleDate)
         {
             // Query all sessions in this group (all workers assigned, regardless of completion status)
@@ -1942,7 +1977,7 @@ namespace HcPortal.Controllers
 
         // --- USER ASSESSMENT HISTORY ---
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> UserAssessmentHistory(string userId)
         {
             // Load the target user
@@ -1998,7 +2033,7 @@ namespace HcPortal.Controllers
 
         // GET /Admin/AuditLog
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> AuditLog(int page = 1)
         {
             const int pageSize = 25;
@@ -3700,6 +3735,462 @@ namespace HcPortal.Controllers
             }
             // Base64 ensures uppercase + lowercase + digits, no special chars that break Identity validation
             return Convert.ToBase64String(bytes);
+        }
+
+        // --- TRAINING CRUD (moved from CMPController, redirects to ManageAssessment?tab=training) ---
+
+        // GET /Admin/AddTraining
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AddTraining()
+        {
+            var workers = await _context.Users
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, u.FullName, u.NIP })
+                .ToListAsync();
+
+            ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+            {
+                Value = w.Id,
+                Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
+            }).ToList();
+
+            return View(new CreateTrainingRecordViewModel());
+        }
+
+        // POST /Admin/AddTraining
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AddTraining(CreateTrainingRecordViewModel model)
+        {
+            // File validation
+            string? sertifikatUrl = null;
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                {
+                    ModelState.AddModelError("CertificateFile", "Hanya file PDF, JPG, dan PNG yang diperbolehkan.");
+                }
+                if (model.CertificateFile.Length > 10 * 1024 * 1024)
+                {
+                    ModelState.AddModelError("CertificateFile", "Ukuran file maksimal 10MB.");
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var workersList = await _context.Users
+                    .OrderBy(u => u.FullName)
+                    .Select(u => new { u.Id, u.FullName, u.NIP })
+                    .ToListAsync();
+                ViewBag.Workers = workersList.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = w.Id,
+                    Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
+                }).ToList();
+                return View(model);
+            }
+
+            // Handle file upload
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
+                Directory.CreateDirectory(uploadDir);
+                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
+                var filePath = Path.Combine(uploadDir, safeFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.CertificateFile.CopyToAsync(stream);
+                }
+                sertifikatUrl = $"/uploads/certificates/{safeFileName}";
+            }
+
+            var record = new TrainingRecord
+            {
+                UserId = model.UserId,
+                Judul = model.Judul,
+                Penyelenggara = model.Penyelenggara,
+                Kota = model.Kota,
+                Kategori = model.Kategori,
+                Tanggal = model.Tanggal,
+                TanggalMulai = model.TanggalMulai,
+                TanggalSelesai = model.TanggalSelesai,
+                Status = model.Status,
+                NomorSertifikat = model.NomorSertifikat,
+                ValidUntil = model.ValidUntil,
+                CertificateType = model.CertificateType,
+                SertifikatUrl = sertifikatUrl
+            };
+
+            _context.TrainingRecords.Add(record);
+            await _context.SaveChangesAsync();
+
+            var actor = await _userManager.GetUserAsync(User);
+            var workerName = (await _context.Users.FindAsync(model.UserId))?.FullName ?? model.UserId;
+            if (actor != null)
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Create",
+                    $"Training record ditambahkan: {model.Judul} untuk {workerName}", record.Id, "TrainingRecord");
+
+            TempData["Success"] = "Training record berhasil dibuat.";
+            return RedirectToAction("ManageAssessment", new { tab = "training" });
+        }
+
+        // GET /Admin/EditTraining/{id}
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditTraining(int id)
+        {
+            var record = await _context.TrainingRecords
+                .Include(r => r.User)
+                .FirstOrDefaultAsync(r => r.Id == id);
+            if (record == null) return NotFound();
+
+            var model = new EditTrainingRecordViewModel
+            {
+                Id = record.Id,
+                WorkerId = record.UserId,
+                WorkerName = record.User?.FullName ?? "",
+                Judul = record.Judul,
+                Penyelenggara = record.Penyelenggara,
+                Kota = record.Kota,
+                Kategori = record.Kategori,
+                Tanggal = record.Tanggal,
+                TanggalMulai = record.TanggalMulai,
+                TanggalSelesai = record.TanggalSelesai,
+                Status = record.Status,
+                NomorSertifikat = record.NomorSertifikat,
+                ValidUntil = record.ValidUntil,
+                CertificateType = record.CertificateType,
+                ExistingSertifikatUrl = record.SertifikatUrl,
+            };
+            return View(model);
+        }
+
+        // POST /Admin/EditTraining
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditTraining(EditTrainingRecordViewModel model)
+        {
+            // File validation
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
+                if (!allowedExtensions.Contains(ext))
+                {
+                    TempData["Error"] = "Hanya file PDF, JPG, dan PNG yang diperbolehkan.";
+                    return RedirectToAction("ManageAssessment", new { tab = "training" });
+                }
+                if (model.CertificateFile.Length > 10 * 1024 * 1024)
+                {
+                    TempData["Error"] = "Ukuran file maksimal 10MB.";
+                    return RedirectToAction("ManageAssessment", new { tab = "training" });
+                }
+            }
+
+            if (!ModelState.IsValid)
+            {
+                var firstError = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .FirstOrDefault() ?? "Data tidak valid.";
+                TempData["Error"] = firstError;
+                return RedirectToAction("ManageAssessment", new { tab = "training" });
+            }
+
+            var record = await _context.TrainingRecords.FindAsync(model.Id);
+            if (record == null) return NotFound();
+
+            // Handle file upload — replace old file if new file provided
+            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            {
+                if (!string.IsNullOrEmpty(record.SertifikatUrl))
+                {
+                    var oldPath = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
+                }
+
+                var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
+                Directory.CreateDirectory(uploadDir);
+                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
+                var filePath = Path.Combine(uploadDir, safeFileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.CertificateFile.CopyToAsync(stream);
+                }
+                record.SertifikatUrl = $"/uploads/certificates/{safeFileName}";
+            }
+
+            record.Judul = model.Judul;
+            record.Penyelenggara = model.Penyelenggara;
+            record.Kota = model.Kota;
+            record.Kategori = model.Kategori;
+            record.Tanggal = model.Tanggal;
+            record.TanggalMulai = model.TanggalMulai;
+            record.TanggalSelesai = model.TanggalSelesai;
+            record.Status = model.Status;
+            record.NomorSertifikat = model.NomorSertifikat;
+            record.ValidUntil = model.ValidUntil;
+            record.CertificateType = model.CertificateType;
+
+            await _context.SaveChangesAsync();
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor != null)
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Update",
+                    $"Training record diperbarui: {model.Judul}", model.Id, "TrainingRecord");
+
+            TempData["Success"] = "Training record berhasil diperbarui.";
+            return RedirectToAction("ManageAssessment", new { tab = "training" });
+        }
+
+        // POST /Admin/DeleteTraining
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> DeleteTraining(int id)
+        {
+            var record = await _context.TrainingRecords.FindAsync(id);
+            if (record == null) return NotFound();
+
+            if (!string.IsNullOrEmpty(record.SertifikatUrl))
+            {
+                var path = Path.Combine(_env.WebRootPath, record.SertifikatUrl.TrimStart('/'));
+                if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
+            }
+
+            var actor = await _userManager.GetUserAsync(User);
+            _context.TrainingRecords.Remove(record);
+            await _context.SaveChangesAsync();
+
+            if (actor != null)
+                await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
+                    $"Training record dihapus: {record.Judul}", record.Id, "TrainingRecord");
+
+            TempData["Success"] = "Training record berhasil dihapus.";
+            return RedirectToAction("ManageAssessment", new { tab = "training" });
+        }
+
+        // --- WORKER TRAINING HELPERS (duplicated from CMPController for AdminController use) ---
+
+        private async Task<List<UnifiedTrainingRecord>> GetUnifiedRecords(string userId)
+        {
+            var assessments = await _context.AssessmentSessions
+                .Where(a => a.UserId == userId && a.Status == "Completed")
+                .ToListAsync();
+
+            var trainings = await _context.TrainingRecords
+                .Where(t => t.UserId == userId)
+                .ToListAsync();
+
+            var unified = new List<UnifiedTrainingRecord>();
+
+            unified.AddRange(assessments.Select(a => new UnifiedTrainingRecord
+            {
+                Date = a.CompletedAt ?? a.Schedule,
+                RecordType = "Assessment Online",
+                Title = a.Title,
+                Score = a.Score,
+                IsPassed = a.IsPassed,
+                Status = a.IsPassed == true ? "Passed" : "Failed",
+                SortPriority = 0
+            }));
+
+            unified.AddRange(trainings.Select(t => new UnifiedTrainingRecord
+            {
+                Date = t.Tanggal,
+                RecordType = "Training Manual",
+                Title = t.Judul ?? "",
+                Penyelenggara = t.Penyelenggara,
+                CertificateType = t.CertificateType,
+                ValidUntil = t.ValidUntil,
+                Status = t.Status,
+                SertifikatUrl = t.SertifikatUrl,
+                SortPriority = 1,
+                TrainingRecordId = t.Id,
+                Kategori = t.Kategori,
+                Kota = t.Kota,
+                NomorSertifikat = t.NomorSertifikat,
+                TanggalMulai = t.TanggalMulai,
+                TanggalSelesai = t.TanggalSelesai
+            }));
+
+            return unified
+                .OrderByDescending(r => r.Date)
+                .ThenBy(r => r.SortPriority)
+                .ToList();
+        }
+
+        private async Task<(List<AllWorkersHistoryRow> assessment, List<AllWorkersHistoryRow> training)> GetAllWorkersHistory()
+        {
+            var archivedCounts = await _context.AssessmentAttemptHistory
+                .GroupBy(h => new { h.UserId, h.Title })
+                .Select(g => new { g.Key.UserId, g.Key.Title, Count = g.Count() })
+                .ToListAsync();
+
+            var archivedCountLookup = archivedCounts
+                .ToDictionary(x => (x.UserId, x.Title), x => x.Count);
+
+            var archivedAttempts = await _context.AssessmentAttemptHistory
+                .Include(h => h.User)
+                .ToListAsync();
+
+            var assessmentRows = new List<AllWorkersHistoryRow>();
+
+            assessmentRows.AddRange(archivedAttempts.Select(h => new AllWorkersHistoryRow
+            {
+                WorkerName    = h.User?.FullName ?? h.UserId,
+                WorkerNIP     = h.User?.NIP,
+                RecordType    = "Assessment Online",
+                Title         = h.Title,
+                Date          = h.CompletedAt ?? h.StartedAt ?? h.ArchivedAt,
+                Score         = h.Score,
+                IsPassed      = h.IsPassed,
+                AttemptNumber = h.AttemptNumber
+            }));
+
+            var currentCompleted = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.Status == "Completed")
+                .ToListAsync();
+
+            assessmentRows.AddRange(currentCompleted.Select(a =>
+            {
+                var key = (a.UserId, a.Title ?? "");
+                int archived = archivedCountLookup.TryGetValue(key, out var c) ? c : 0;
+                return new AllWorkersHistoryRow
+                {
+                    WorkerName    = a.User?.FullName ?? a.UserId,
+                    WorkerNIP     = a.User?.NIP,
+                    RecordType    = "Assessment Online",
+                    Title         = a.Title ?? "",
+                    Date          = a.CompletedAt ?? a.Schedule,
+                    Score         = a.Score,
+                    IsPassed      = a.IsPassed,
+                    AttemptNumber = archived + 1
+                };
+            }));
+
+            assessmentRows = assessmentRows
+                .OrderBy(r => r.Title)
+                .ThenByDescending(r => r.Date)
+                .ToList();
+
+            var trainings = await _context.TrainingRecords
+                .Include(t => t.User)
+                .ToListAsync();
+
+            var trainingRows = trainings.Select(t => new AllWorkersHistoryRow
+            {
+                WorkerName    = t.User?.FullName ?? t.UserId,
+                WorkerNIP     = t.User?.NIP,
+                RecordType    = "Manual",
+                Title         = t.Judul ?? "",
+                Date          = t.TanggalMulai ?? t.Tanggal,
+                Penyelenggara = t.Penyelenggara
+            })
+            .OrderByDescending(r => r.Date)
+            .ToList();
+
+            return (assessmentRows, trainingRows);
+        }
+
+        private async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null)
+        {
+            var usersQuery = _context.Users
+                .Include(u => u.TrainingRecords)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(section))
+                usersQuery = usersQuery.Where(u => u.Section == section);
+
+            if (!string.IsNullOrEmpty(unitFilter))
+                usersQuery = usersQuery.Where(u => u.Unit == unitFilter);
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                search = search.ToLower();
+                usersQuery = usersQuery.Where(u =>
+                    u.FullName.ToLower().Contains(search) ||
+                    (u.NIP != null && u.NIP.Contains(search))
+                );
+            }
+
+            var users = await usersQuery.ToListAsync();
+
+            var userIds = users.Select(u => u.Id).ToList();
+            var passedAssessmentsByUser = await _context.AssessmentSessions
+                .Where(a => userIds.Contains(a.UserId) && a.IsPassed == true)
+                .GroupBy(a => a.UserId)
+                .Select(g => new { UserId = g.Key, Count = g.Count() })
+                .ToListAsync();
+            var passedAssessmentLookup = passedAssessmentsByUser
+                .ToDictionary(x => x.UserId, x => x.Count);
+
+            var workerList = new List<WorkerTrainingStatus>();
+
+            foreach (var user in users)
+            {
+                var trainingRecords = user.TrainingRecords.ToList();
+                int completedAssessments = passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0;
+
+                var totalTrainings = trainingRecords.Count;
+                var completedTrainings = trainingRecords.Count(tr =>
+                    tr.Status == "Passed" || tr.Status == "Valid"
+                );
+                var pendingTrainings = trainingRecords.Count(tr =>
+                    tr.Status == "Wait Certificate" || tr.Status == "Pending"
+                );
+                var expiringTrainings = trainingRecords.Count(tr => tr.IsExpiringSoon);
+
+                var worker = new WorkerTrainingStatus
+                {
+                    WorkerId = user.Id,
+                    WorkerName = user.FullName,
+                    NIP = user.NIP,
+                    Position = user.Position ?? "Staff",
+                    Section = user.Section ?? "",
+                    Unit = user.Unit ?? "",
+                    TotalTrainings = totalTrainings,
+                    CompletedTrainings = completedTrainings,
+                    PendingTrainings = pendingTrainings,
+                    ExpiringSoonTrainings = expiringTrainings,
+                    TrainingRecords = trainingRecords,
+                    CompletedAssessments = completedAssessments
+                };
+
+                if (!string.IsNullOrEmpty(category))
+                {
+                    bool isCompleted = trainingRecords.Any(r =>
+                        !string.IsNullOrEmpty(r.Kategori) &&
+                        r.Kategori.Contains(category, StringComparison.OrdinalIgnoreCase) &&
+                        (r.Status == "Passed" || r.Status == "Valid" || r.Status == "Permanent")
+                    );
+                    worker.CompletionPercentage = isCompleted ? 100 : 0;
+                }
+                else
+                {
+                    worker.CompletionPercentage = totalTrainings > 0
+                        ? (int)((double)completedTrainings / totalTrainings * 100)
+                        : 0;
+                }
+
+                workerList.Add(worker);
+            }
+
+            if (!string.IsNullOrEmpty(statusFilter) && !string.IsNullOrEmpty(category))
+            {
+                if (statusFilter == "Sudah")
+                    workerList = workerList.Where(w => w.CompletionPercentage == 100).ToList();
+                else if (statusFilter == "Belum")
+                    workerList = workerList.Where(w => w.CompletionPercentage != 100).ToList();
+            }
+
+            return workerList;
         }
     }
 }
