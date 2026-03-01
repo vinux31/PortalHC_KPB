@@ -327,4 +327,14 @@ Plans:
 
 **Completed:** —
 
+### Phase 78: Deduplicate CMP page — remove CDP/ProtonMain if identical to Admin/CoachCoacheeMapping
+
+**Goal:** CDP/ProtonMain and its controller actions are removed; Kelola Data hub gains a Training Records shortcut for Admin/HC users
+**Requirements:** NAV-01
+**Depends on:** Phase 77
+**Plans:** 1 plan
+
+Plans:
+- [ ] 78-01-PLAN.md — Remove ProtonMain/AssignTrack actions + view + ProtonMainViewModel; add Training Records card to Kelola Data hub
+
 ---
