@@ -136,3 +136,29 @@ public class ProtonCatalogViewModel
     /// </summary>
     public List<ProtonKompetensi> KompetensiList { get; set; } = new();
 }
+
+/// <summary>
+/// POCO for Tahun 3 interview results stored as JSON in AssessmentSession.InterviewResultsJson.
+/// HC inputs this form in AssessmentMonitoringDetail after the offline interview is conducted.
+/// </summary>
+public class InterviewResultsDto
+{
+    /// <summary>Comma-separated names of judges present at the interview</summary>
+    public string Judges { get; set; } = "";
+
+    /// <summary>
+    /// Per-aspect score. Fixed aspects (Claude's discretion per CONTEXT.md):
+    /// "Pengetahuan Teknis", "Kemampuan Operasional", "Keselamatan Kerja", "Komunikasi &amp; Kerjasama", "Sikap Profesional"
+    /// Score values: 1 (Kurang) through 5 (Luar Biasa). Informational only — pass/fail is HC's manual decision.
+    /// </summary>
+    public Dictionary<string, int> AspectScores { get; set; } = new();
+
+    /// <summary>HC free-text notes about interview performance</summary>
+    public string Notes { get; set; } = "";
+
+    /// <summary>Web-relative path to uploaded supporting document. Format: /uploads/interviews/{filename}. Null if not uploaded.</summary>
+    public string? SupportingDocPath { get; set; }
+
+    /// <summary>HC manual pass/fail decision — not computed from AspectScores (per CONTEXT.md locked decision)</summary>
+    public bool IsPassed { get; set; }
+}

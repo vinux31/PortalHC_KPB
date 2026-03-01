@@ -63,6 +63,25 @@ namespace HcPortal.Models
         public DateTime? UpdatedAt { get; set; }
         public string? CreatedBy { get; set; }
 
+        // ===== Phase 53: Proton Assessment Exam =====
+        /// <summary>
+        /// FK to ProtonTrack (nullable). Only set when Category == "Assessment Proton".
+        /// No EF navigation property — avoids cascade complications; query ProtonTracks separately when needed.
+        /// </summary>
+        public int? ProtonTrackId { get; set; }
+
+        /// <summary>
+        /// Proton year: "Tahun 1", "Tahun 2", or "Tahun 3". Only set when Category == "Assessment Proton".
+        /// Tahun 1-2 = online multiple-choice exam (existing engine). Tahun 3 = offline interview (HC inputs manually).
+        /// </summary>
+        public string? TahunKe { get; set; }
+
+        /// <summary>
+        /// JSON-serialized InterviewResultsDto. Only populated for Tahun 3 sessions after HC inputs interview results.
+        /// Null until HC submits via SubmitInterviewResults action.
+        /// </summary>
+        public string? InterviewResultsJson { get; set; }
+
         // Navigation Properties for Exam Engine
         public virtual ICollection<AssessmentQuestion> Questions { get; set; } = new List<AssessmentQuestion>();
         public virtual ICollection<UserResponse> Responses { get; set; } = new List<UserResponse>();
