@@ -23,8 +23,8 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 ### Dead Action Cleanup
 
-- [ ] **ACTN-01**: `CMPController.GetMonitorData` action removed (zero references, replaced by Admin/GetMonitoringProgress)
-- [ ] **ACTN-02**: `CDPController.Progress` redirect stub removed (no inbound links)
+- [x] **ACTN-01**: `CMPController.GetMonitorData` action removed (zero references, replaced by Admin/GetMonitoringProgress)
+- [x] **ACTN-02**: `CDPController.Progress` redirect stub removed (no inbound links)
 
 ### Placeholder Cleanup
 
@@ -36,8 +36,8 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 ### Dead Files
 
-- [ ] **FILE-01**: `wwwroot/css/site.css` deleted (unreferenced by any view)
-- [ ] **FILE-02**: `wwwroot/js/site.js` deleted (unreferenced by any view)
+- [x] **FILE-01**: `wwwroot/css/site.css` deleted (unreferenced by any view)
+- [x] **FILE-02**: `wwwroot/js/site.js` deleted (unreferenced by any view)
 
 ### HC Role Fix
 
@@ -76,15 +76,15 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 | VIEW-04 | Phase 74 | Complete |
 | VIEW-05 | Phase 74 | Complete |
 | VIEW-06 | Phase 74 | Complete |
-| ACTN-01 | Phase 74 | Pending |
-| ACTN-02 | Phase 74 | Pending |
+| ACTN-01 | Phase 74 | Complete |
+| ACTN-02 | Phase 74 | Complete |
 | STUB-01 | Phase 75 | Pending |
 | STUB-02 | Phase 75 | Pending |
 | STUB-03 | Phase 75 | Pending |
 | STUB-04 | Phase 75 | Pending |
 | STUB-05 | Phase 75 | Pending |
-| FILE-01 | Phase 74 | Pending |
-| FILE-02 | Phase 74 | Pending |
+| FILE-01 | Phase 74 | Complete |
+| FILE-02 | Phase 74 | Complete |
 | ROLE-01 | Phase 76 | Pending |
 | ROLE-02 | Phase 76 | Pending |
 | LINK-01 | Phase 76 | Pending |

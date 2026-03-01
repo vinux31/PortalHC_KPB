@@ -39,9 +39,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 74 (plan 01 complete — plan 02 next)
+**Current phase:** Phase 74 (complete — both plans done)
 **Status:** In progress
-**Last activity:** 2026-03-01 — 74-01: six orphaned CMP/CDP views deleted (VIEW-01 through VIEW-06)
+**Last activity:** 2026-03-01 — 74-02: GetMonitorData action removed, CDPController.Progress stub deleted, site.css and site.js deleted (ACTN-01, ACTN-02, FILE-01, FILE-02)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases complete)
 
@@ -50,7 +50,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
 | 73 | Critical Fixes | CRIT-01, CRIT-02 | Complete |
-| 74 | Dead Code Removal | VIEW-01–06, ACTN-01–02, FILE-01–02 | Not started |
+| 74 | Dead Code Removal | VIEW-01–06, ACTN-01–02, FILE-01–02 | Complete |
 | 75 | Placeholder Cleanup | STUB-01–05 | Not started |
 | 76 | Role Fixes & Broken Link | ROLE-01, ROLE-02, LINK-01 | Not started |
 
@@ -76,6 +76,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 73-critical-fixes]: 73-01: Used javascript:history.back() for AccessDenied Kembali button — works from any 403-triggering route
 - [Phase 73-critical-fixes]: 73-01: AccessDenied view does NOT set Layout = null — inherits portal navbar via _ViewStart (same pattern as Settings.cshtml)
 - [Phase 74-dead-code-removal]: 74-01: Deleted six orphaned Razor views (5 CMP migrated to Admin in Phase 49, 1 CDP never rendered) — build verified 0 errors
+- [Phase 74-dead-code-removal]: 74-02: Deleted CMPController.GetMonitorData (replaced by Admin/GetMonitoringProgress Phase 49), CDPController.Progress stub, site.css and site.js (ASP.NET template remnants with zero view refs)
 
 ### Roadmap Evolution
 
@@ -92,5 +93,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 74-01-PLAN.md — six orphaned views deleted (VIEW-01–VIEW-06)
-Resume file: .planning/phases/74-dead-code-removal/74-01-SUMMARY.md
+Stopped at: Completed 74-02-PLAN.md — GetMonitorData action, Progress stub, site.css, site.js removed (ACTN-01, ACTN-02, FILE-01, FILE-02)
+Resume file: .planning/phases/74-dead-code-removal/74-02-SUMMARY.md
