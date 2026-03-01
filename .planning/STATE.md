@@ -429,12 +429,12 @@ See: .planning/PROJECT.md (updated 2026-02-26)
 
 ## Current Position
 
-**Milestone:** v2.6 Hybrid Auth & Role Restructuring — Complete
-**Phase:** Phase 74 — Hybrid Auth & Role Restructuring (Complete — 2/2 plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-02-28 - Completed Plan 74-02: _Layout SelectedView optimization (no GetRolesAsync in shared view), CDPController upload gated on Coach role name (not RoleLevel), AdminController EligibleCoaches uses GetUsersInRoleAsync("Coach"), EF migration UpdateSectionHeadRoleLevelAndAddSupervisorRole applied (SectionHead RoleLevel 4→3 in DB).
+**Milestone:** v2.3 Admin Portal — In Progress
+**Phase:** Phase 53 — Final Assessment Manager (In Progress — 2/3 plans done)
+**Status:** Executing
+**Last activity:** 2026-03-01 - Completed Plan 53-02: CreateAssessment adaptive Proton form (Track dropdown + AJAX eligible coachee loader + Tahun 3 interview mode), GetEligibleCoachees endpoint, ProtonTrackId+TahunKe POST binding, bg-purple badge for Assessment Proton in all assessment views, Tahun 3 Interview Dijadwalkan status in CMP/Assessment.
 
-Progress: [████████████████████] 100% (v2.6 — Phase 74 complete, 2/2 plans done)
+Progress: [█████████████████░░░] 67% (v2.3 — Phase 53, Plan 2/3 done)
 
 ## Performance Metrics
 
@@ -572,6 +572,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 53-01]: No EF navigation property on ProtonTrackId — avoids cascade complications; caller queries ProtonTracks separately when needed
 - [Phase 53-01]: InterviewResultsJson configured as TEXT column — unrestricted length for JSON payload
 - [Phase 53-01]: IsPassed is HC manual decision in InterviewResultsDto — not computed from AspectScores per locked CONTEXT.md decision
+- [Phase 53-02]: Assessment Proton replaces "Proton" in CreateAssessment category list; old "Proton" badge cases kept in switch statements for existing DB records
+- [Phase 53-02]: DurationMinutes==0 sentinel value skips duration > 0 validation for Tahun 3; JS capture listener sets value=0 before standard submit handler fires
+- [Phase 53-02]: protonTrackSelect name=ProtonTrackId binds directly to AssessmentSession.ProtonTrackId via ASP.NET model binding — no extra POST parameter needed
+- [Phase 53-02]: ViewBag.ProtonTracks added to all POST error-return paths so Track dropdown restores on validation failure
 
 ### Roadmap Evolution
 
@@ -621,9 +625,10 @@ None.
 | Phase 74-hybrid-auth-role-restructuring P01 | 2 | 2 tasks | 3 files |
 | Phase 74-hybrid-auth-role-restructuring P02 | 3m | 2 tasks | 5 files |
 | Phase 53-final-assessment-manager P01 | 2 | 2 tasks | 6 files |
+| Phase 53-final-assessment-manager P02 | 15min | 3 tasks | 5 files |
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: Completed 74-02-PLAN.md (_Layout SelectedView, CDPController Coach-only upload, AdminController GetUsersInRoleAsync, EF migration SectionHead RoleLevel 4→3). Phase 74 complete (2/2 plans done).
+Last session: 2026-03-01
+Stopped at: Completed 53-02-PLAN.md (adaptive Proton form, GetEligibleCoachees endpoint, badge updates across 3 views). Phase 53 at 2/3 plans done.
 Resume file: None.

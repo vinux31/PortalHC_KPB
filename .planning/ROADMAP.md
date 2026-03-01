@@ -386,7 +386,7 @@ Plans:
 **Goal:** Add "Assessment Proton" exam category to the assessment system — HC can create Proton exams (Tahun 1-2 online, Tahun 3 interview), with eligibility-gated coachee picker, Tahun 3 interview result input in MonitoringDetail; legacy HCApprovals and CreateFinalAssessment pages removed
 **Depends on:** Phase 52
 **Requirements:** OPER-04
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 53-01-PLAN.md — Data model extension: AssessmentSession ProtonTrackId/TahunKe/InterviewResultsJson fields + InterviewResultsDto POCO + EF migration
@@ -496,7 +496,7 @@ Covered by Phase 59 (Kelola Pekerja consolidation). EditWorker already has passw
 | 50. Coach-Coachee Mapping Manager | 2/2 | Complete    | 2026-02-27 | - |
 | 51. Proton Track Assignment Manager | 3/3 | Complete    | 2026-02-27 | - |
 | 52. DeliverableProgress Override | 2/2 | Complete    | 2026-02-27 | - |
-| 53. Final Assessment Manager | 1/3 | In Progress|  | - |
+| 53. Final Assessment Manager | 2/3 | In Progress|  | - |
 | 54. Coaching Session Override | v2.3 | 0/? | Not started | - |
 | 55. ~~Question Bank Edit~~ | v2.3 | - | Removed | - |
 | 56. ~~Package Question Edit/Delete~~ | v2.3 | - | Removed | - |
