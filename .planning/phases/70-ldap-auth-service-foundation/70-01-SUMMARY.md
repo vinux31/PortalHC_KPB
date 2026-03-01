@@ -129,6 +129,14 @@ None - no external service configuration required.
 - Phase 72 (login controller) can inject IAuthService and use AuthResult.UserId for SignInAsync
 - AuthSource field on ApplicationUser allows Plan 02 to route Local users through LocalAuthService even when AD mode is active
 
+## Self-Check: PASSED
+
+All created files verified present on disk. All task commits verified in git log:
+- 79b1921: feat(71-01): add NuGet package, AuthSource field, and EF migration
+- 24f75d0: feat(71-01): create service contracts and config POCO
+- 5ea9a5d: feat(71-01): implement LocalAuthService and update appsettings
+- cfb657e: docs(71-01): complete LDAP auth service foundation plan
+
 ---
 *Phase: 71-ldap-auth-service-foundation*
 *Completed: 2026-02-28*
