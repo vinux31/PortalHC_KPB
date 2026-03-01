@@ -3,24 +3,6 @@ using HcPortal.Models.Competency;
 namespace HcPortal.Models;
 
 /// <summary>
-/// ViewModel for ProtonMain page (PROTN-01) — coach views coachees and their track assignments
-/// </summary>
-public class ProtonMainViewModel
-{
-    /// <summary>Coachees in the coach's section</summary>
-    public List<ApplicationUser> Coachees { get; set; } = new();
-
-    /// <summary>Existing active track assignments for coachees</summary>
-    public List<ProtonTrackAssignment> Assignments { get; set; } = new();
-
-    /// <summary>
-    /// Active progress records for each coachee (Status == "Active").
-    /// Used to render "Lihat Deliverable" link buttons per coachee row.
-    /// </summary>
-    public List<ProtonDeliverableProgress> ActiveProgresses { get; set; } = new();
-}
-
-/// <summary>
 /// ViewModel for PlanIdp Coachee view (PROTN-02) — coachee views their full deliverable plan
 /// </summary>
 public class ProtonPlanViewModel

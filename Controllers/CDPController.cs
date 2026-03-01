@@ -28,10 +28,8 @@ namespace HcPortal.Controllers
             _env = env;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var user = await _userManager.GetUserAsync(User);
-            ViewBag.CanAccessProton = user != null && user.RoleLevel <= 5;
             return View();
         }
 
@@ -619,136 +617,6 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             return Json(users);
-        }
-
-        public async Task<IActionResult> ProtonMain()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var userRole = roles.FirstOrDefault();
-
-            // Only RoleLevel <= 5 or SrSupervisor can access
-            if (user.RoleLevel > 5 && userRole != UserRoles.SrSupervisor)
-            {
-                return Forbid();
-            }
-
-            var coachees = await _context.Users
-                .Where(u => (string.IsNullOrEmpty(user.Section) || u.Section == user.Section)
-                            && u.RoleLevel == 6)
-                .OrderBy(u => u.FullName)
-                .ToListAsync();
-
-            var coacheeIds = coachees.Select(c => c.Id).ToList();
-
-            var assignments = await _context.ProtonTrackAssignments
-                .Include(a => a.ProtonTrack)
-                .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
-                .ToListAsync();
-
-            var activeProgresses = await _context.ProtonDeliverableProgresses
-                .Where(p => coacheeIds.Contains(p.CoacheeId) && p.Status == "Active")
-                .ToListAsync();
-
-            // Load ProtonTracks for assignment dropdown (Phase 33)
-            var protonTracks = await _context.ProtonTracks
-                .OrderBy(t => t.Urutan)
-                .ToListAsync();
-            ViewBag.ProtonTracks = protonTracks;
-
-            var viewModel = new ProtonMainViewModel
-            {
-                Coachees = coachees,
-                Assignments = assignments,
-                ActiveProgresses = activeProgresses
-            };
-
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AssignTrack(string coacheeId, int protonTrackId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var userRole = roles.FirstOrDefault();
-
-            // Only RoleLevel <= 5 or SrSupervisor can access
-            if (user.RoleLevel > 5 && userRole != UserRoles.SrSupervisor)
-            {
-                return Forbid();
-            }
-
-            if (string.IsNullOrEmpty(coacheeId) || protonTrackId <= 0)
-            {
-                TempData["Error"] = "Data tidak lengkap.";
-                return RedirectToAction("ProtonMain");
-            }
-
-            // Validate ProtonTrack exists
-            var protonTrack = await _context.ProtonTracks.FindAsync(protonTrackId);
-            if (protonTrack == null)
-            {
-                TempData["Error"] = "Track tidak ditemukan.";
-                return RedirectToAction("ProtonMain");
-            }
-
-            // Deactivate existing assignments
-            var existingAssignments = await _context.ProtonTrackAssignments
-                .Where(a => a.CoacheeId == coacheeId && a.IsActive)
-                .ToListAsync();
-            foreach (var assignment in existingAssignments)
-            {
-                assignment.IsActive = false;
-            }
-
-            // Delete existing progress records for this coachee
-            var existingProgresses = await _context.ProtonDeliverableProgresses
-                .Where(p => p.CoacheeId == coacheeId)
-                .ToListAsync();
-            _context.ProtonDeliverableProgresses.RemoveRange(existingProgresses);
-
-            // Create new assignment
-            var newAssignment = new ProtonTrackAssignment
-            {
-                CoacheeId = coacheeId,
-                AssignedById = user.Id,
-                ProtonTrackId = protonTrackId,
-                IsActive = true,
-                AssignedAt = DateTime.UtcNow
-            };
-            _context.ProtonTrackAssignments.Add(newAssignment);
-            await _context.SaveChangesAsync();
-
-            // Query all deliverables for the track
-            var deliverables = await _context.ProtonDeliverableList
-                .Include(d => d.ProtonSubKompetensi)
-                    .ThenInclude(s => s.ProtonKompetensi)
-                .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == protonTrackId)
-                .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
-                    .ThenBy(d => d.ProtonSubKompetensi.Urutan)
-                    .ThenBy(d => d.Urutan)
-                .ToListAsync();
-
-            // Create progress records — all Pending (Locked/Active removed per Phase 65)
-            var progressList = deliverables.Select((d, index) => new ProtonDeliverableProgress
-            {
-                CoacheeId = coacheeId,
-                ProtonDeliverableId = d.Id,
-                Status = "Pending",
-                CreatedAt = DateTime.UtcNow
-            }).ToList();
-
-            _context.ProtonDeliverableProgresses.AddRange(progressList);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Track Proton berhasil ditetapkan.";
-            return RedirectToAction("ProtonMain");
         }
 
         public async Task<IActionResult> Deliverable(int id)

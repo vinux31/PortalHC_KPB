@@ -78,42 +78,7 @@
 
     </div>
 
-    @if (ViewBag.CanAccessProton == true)
-    {
-        <!-- Setting Proton section -->
-        <div class="row mb-3 mt-4">
-            <div class="col">
-                <h5 class="text-muted fw-semibold">
-                    <i class="bi bi-layers me-2"></i>Setting Proton
-                </h5>
-                <hr class="mt-1 mb-3">
-            </div>
-        </div>
 
-        <div class="row g-4">
-            <!-- Penugasan Coachee -->
-            <div class="col-12 col-md-6 col-lg-3">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center mb-3">
-                            <div class="icon-box bg-secondary bg-opacity-10 text-secondary rounded-3 p-3 me-3">
-                                <i class="bi bi-clipboard-check fs-3"></i>
-                            </div>
-                            <div>
-                                <h5 class="mb-0">Penugasan Coachee</h5>
-                                <small class="text-muted">Track Assignment</small>
-                            </div>
-                        </div>
-                        <p class="text-muted mb-3">Kelola Penugasan Coachee</p>
-                        <a href="@Url.Action("ProtonMain", "CDP")" class="btn btn-secondary w-100">
-                            <i class="bi bi-arrow-right-circle me-2"></i>Lihat Penugasan
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    }
 </div>
 
 <style>
