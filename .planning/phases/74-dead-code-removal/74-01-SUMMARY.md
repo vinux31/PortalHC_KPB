@@ -102,3 +102,11 @@ None - no external service configuration required.
 ---
 *Phase: 74-dead-code-removal*
 *Completed: 2026-03-01*
+
+## Self-Check: PASSED
+
+- All 6 deleted files confirmed absent on disk
+- Commit bcdd6af confirmed in git log
+- SUMMARY.md confirmed at .planning/phases/74-dead-code-removal/74-01-SUMMARY.md
+- Admin counterpart views (5) confirmed present
+- Build: 0 errors, 57 pre-existing warnings
