@@ -112,6 +112,11 @@ namespace HcPortal.Data
                 entity.Property(a => a.PassPercentage).HasDefaultValue(70);
                 entity.Property(a => a.AllowAnswerReview).HasDefaultValue(true);
                 entity.Property(a => a.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+
+                // AssessmentSession: Proton exam fields (Phase 53)
+                entity.Property(a => a.ProtonTrackId).IsRequired(false);
+                entity.Property(a => a.TahunKe).HasMaxLength(20).IsRequired(false);
+                entity.Property(a => a.InterviewResultsJson).HasColumnType("TEXT").IsRequired(false);
             });
 
             // UserResponse -> AssessmentSession (Restrict Delete to avoid Cycles)
