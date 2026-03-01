@@ -62,7 +62,7 @@ namespace HcPortal.Controllers
         }
 
         // GET: /ProtonData
-        public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId)
+        public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId, string? tab)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -72,6 +72,7 @@ namespace HcPortal.Controllers
             ViewBag.Bagian = bagian;
             ViewBag.Unit = unit;
             ViewBag.TrackId = trackId;
+            ViewBag.ActiveTab = tab;
 
             // Build flat silabus rows for JSON serialization to JS
             var silabusRows = new List<object>();

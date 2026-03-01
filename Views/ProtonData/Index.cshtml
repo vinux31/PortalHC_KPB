@@ -8,6 +8,7 @@
     var selectedUnit = ViewBag.Unit as string ?? "";
     var selectedTrackId = ViewBag.TrackId as int?;
     var silabusRowsJson = ViewBag.SilabusRowsJson as string ?? "[]";
+    var activeTab = ViewBag.ActiveTab as string ?? "";
 }
 
 <div class="d-flex align-items-start mb-4">
@@ -378,13 +379,22 @@
     const orgStructure = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         HcPortal.Models.OrganizationStructure.SectionUnits));
 
-    // ====== Hash-based tab activation (e.g. /ProtonData#override) ======
-    if (window.location.hash === '#override') {
+    // ====== Query-param based tab activation (e.g. /ProtonData?tab=override) ======
+    var activeTabParam = '@Html.Raw(activeTab)';
+    if (activeTabParam === 'override') {
         var overrideTab = document.getElementById('override-tab');
         if (overrideTab) new bootstrap.Tab(overrideTab).show();
-    } else if (window.location.hash === '#guidance') {
+    } else if (activeTabParam === 'guidance') {
         var guidanceTab = document.getElementById('guidance-tab');
         if (guidanceTab) new bootstrap.Tab(guidanceTab).show();
+    }
+    // Fallback: hash-based activation for any existing bookmarks
+    if (!activeTabParam && window.location.hash === '#override') {
+        var overrideTabHash = document.getElementById('override-tab');
+        if (overrideTabHash) new bootstrap.Tab(overrideTabHash).show();
+    } else if (!activeTabParam && window.location.hash === '#guidance') {
+        var guidanceTabHash = document.getElementById('guidance-tab');
+        if (guidanceTabHash) new bootstrap.Tab(guidanceTabHash).show();
     }
 
     // ====== Silabus tab filter cascade ======
