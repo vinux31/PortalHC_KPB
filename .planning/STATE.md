@@ -2,6 +2,21 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Codebase Cleanup
+current_phase: Phase 77 (complete — all 3 plans done)
+status: executing
+last_updated: "2026-03-01T06:57:48.326Z"
+last_activity: "2026-03-01 — 77-03: Hub card updated to "Manage Assessment & Training" with HC visibility; breadcrumbs updated in 6 related views (REDIR-01)"
+progress:
+  total_phases: 45
+  completed_phases: 44
+  total_plans: 97
+  completed_plans: 96
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Codebase Cleanup
 current_phase: Phase 76 (plan 01 complete, plan 02 pending)
 status: completed
 last_updated: "2026-03-01T06:50:02.005Z"
@@ -99,9 +114,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 77 (complete — all 3 plans done)
+**Current phase:** Phase 77 (plan 02 complete)
 **Status:** In progress
-**Last activity:** 2026-03-01 — 77-03: Hub card updated to "Manage Assessment & Training" with HC visibility; breadcrumbs updated in 6 related views (REDIR-01)
+**Last activity:** 2026-03-01 — 77-02: ManageAssessment 3-tab view rewrite, AddTraining + EditTraining standalone forms created, RecordsWorkerList.cshtml deleted (REDIR-01)
 
 Progress: [████████████████████] 100% (4/4 phases complete)
 
@@ -145,6 +160,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 76-role-fixes-broken-link]: Admin hub cards gated with User.IsInRole("Admin") Razor conditionals; Deliverable Progress Override link uses query param tab=override for reliable cross-page tab activation
 - [Phase 77-training-record-redirect-fix]: Added IWebHostEnvironment _env to AdminController constructor — required for certificate file operations in training CRUD actions
 - [Phase 77-training-record-redirect-fix]: Duplicated CMPController helpers into AdminController — GetWorkersInSection, GetAllWorkersHistory, GetUnifiedRecords needed for ManageAssessment tab data without making CMPController methods public
+- [Phase 77-training-record-redirect-fix]: Used Razor foreach/if blocks for dropdown selected state — RZ1031 prevents C# ternary in tag helper option attributes
+- [Phase 77-training-record-redirect-fix]: ManageAssessment expanded rows show only manual TrainingRecords — Assessment records omitted (require separate query); documented with TODO comment in view
 
 ### Roadmap Evolution
 
@@ -161,5 +178,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 77-03-PLAN.md — hub card + breadcrumb labels updated to "Manage Assessment & Training", HC visibility added to Index hub card (REDIR-01)
-Resume file: .planning/phases/77-training-record-redirect-fix/77-03-SUMMARY.md
+Stopped at: Completed 77-02-PLAN.md — ManageAssessment 3-tab view rewrite, AddTraining + EditTraining views created, RecordsWorkerList deleted (REDIR-01)
+Resume file: .planning/phases/77-training-record-redirect-fix/77-02-SUMMARY.md
