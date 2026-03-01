@@ -50,7 +50,7 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 ### Training Record Redirect Fix
 
-- [ ] **REDIR-01**: `EditTrainingRecord` and `DeleteTrainingRecord` redirect to `CMP/Records` instead of `Admin/WorkerDetail` (which shows no training data)
+- [x] **REDIR-01**: `EditTrainingRecord` and `DeleteTrainingRecord` redirect to `CMP/Records` instead of `Admin/WorkerDetail` (which shows no training data)
 
 ### Navigation Improvement
 

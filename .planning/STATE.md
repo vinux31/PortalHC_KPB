@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Codebase Cleanup
 current_phase: Phase 76 (plan 01 complete, plan 02 pending)
 status: completed
-last_updated: "2026-03-01T05:31:14.311Z"
+last_updated: "2026-03-01T06:50:02.005Z"
 last_activity: "2026-03-01 — 76-01: HC-only card visibility in Admin hub fixed, Deliverable Progress Override link fixed (ROLE-01, LINK-01)"
 progress:
-  total_phases: 44
+  total_phases: 45
   completed_phases: 43
-  total_plans: 94
-  completed_plans: 93
+  total_plans: 97
+  completed_plans: 94
 ---
 
 ---
@@ -99,9 +99,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 76 (plan 01 complete, plan 02 pending)
-**Status:** Milestone complete
-**Last activity:** 2026-03-01 — 76-01: HC-only card visibility in Admin hub fixed, Deliverable Progress Override link fixed (ROLE-01, LINK-01)
+**Current phase:** Phase 77 (plan 01 complete)
+**Status:** In progress
+**Last activity:** 2026-03-01 — 77-01: AdminController training CRUD + ManageAssessment tab routing added; CMPController Records simplified to personal-only, redirect dead-ends fixed (REDIR-01)
 
 Progress: [███████████████░░░░░] 75% (3/4 phases complete)
 
@@ -143,6 +143,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 75-placeholder-cleanup]: 75-02: Removed entire Pengaturan Lainnya section including preceding hr — no functional content remained in Section 3
 - [Phase 76-role-fixes-broken-link]: 76-02: Used User.IsInRole() for Kelola Data nav visibility — SelectedView is a profile field; HC users with SelectedView set to a unit name would otherwise lose nav access despite holding the HC Identity role
 - [Phase 76-role-fixes-broken-link]: Admin hub cards gated with User.IsInRole("Admin") Razor conditionals; Deliverable Progress Override link uses query param tab=override for reliable cross-page tab activation
+- [Phase 77-training-record-redirect-fix]: Added IWebHostEnvironment _env to AdminController constructor — required for certificate file operations in training CRUD actions
+- [Phase 77-training-record-redirect-fix]: Duplicated CMPController helpers into AdminController — GetWorkersInSection, GetAllWorkersHistory, GetUnifiedRecords needed for ManageAssessment tab data without making CMPController methods public
 
 ### Roadmap Evolution
 
@@ -159,5 +161,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 76-01-PLAN.md — HC-only card visibility in Admin hub fixed, Deliverable Progress Override link fixed (ROLE-01, LINK-01)
-Resume file: .planning/phases/76-role-fixes-broken-link/76-01-SUMMARY.md
+Stopped at: Completed 77-01-PLAN.md — AdminController training CRUD + ManageAssessment tab routing, CMPController Records simplified, redirects fixed (REDIR-01)
+Resume file: .planning/phases/77-training-record-redirect-fix/77-01-SUMMARY.md
