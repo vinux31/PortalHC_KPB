@@ -275,7 +275,10 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
   2. The monitoring page lists all assessment groups with real-time stats: participant count, completed count, passed count, and assessment status badge
   3. The user can type in a search box or use a filter to narrow the group list by assessment name, status, or date — the list updates without a full page reload or with a filtered server response
   4. A "Regenerate Token" action is available on the group list page (per group) and functions correctly
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 79-01-PLAN.md — Extend ViewModel, add AssessmentMonitoring controller action with filters, add hub card, build group list view
 
 ---
 
@@ -315,6 +318,6 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 | 76. Role Fixes & Broken Link | v2.6 | 2/2 | Complete | 2026-03-01 |
 | 77. Merge Training Records | v2.6 | 3/3 | Complete | 2026-03-01 |
 | 78. Deduplicate CMP page | v2.6 | 1/1 | Complete | 2026-03-01 |
-| 79. Assessment Monitoring Page — Group List | v2.7 | 0/? | Not started | - |
+| 79. Assessment Monitoring Page — Group List | v2.7 | 0/1 | Not started | - |
 | 80. Per-Participant Monitoring Detail & HC Actions | v2.7 | 0/? | Not started | - |
 | 81. Cleanup — Remove Old Entry Points | v2.7 | 0/? | Not started | - |
