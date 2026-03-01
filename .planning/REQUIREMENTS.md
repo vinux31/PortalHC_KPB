@@ -74,6 +74,8 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 - **MOBILE-01**: Mobile-responsive assessment forms
 - **NOTIF-01**: Email notifications for assessment assignments and coaching approvals
 - **ESCAL-01**: Approval auto-escalation after timeout period
+- **ACCT-01**: QA Account/Profile page (view and edit FullName, Position)
+- **ACCT-02**: QA Account/Settings page (change password)
 
 ## Out of Scope
 
@@ -89,54 +91,54 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLN-01 | TBD | Pending |
-| CLN-02 | TBD | Pending |
-| CLN-03 | TBD | Pending |
-| CLN-04 | TBD | Pending |
-| CLN-05 | TBD | Pending |
-| CLN-06 | TBD | Pending |
-| ASSESS-01 | TBD | Pending |
-| ASSESS-02 | TBD | Pending |
-| ASSESS-03 | TBD | Pending |
-| ASSESS-04 | TBD | Pending |
-| ASSESS-05 | TBD | Pending |
-| ASSESS-06 | TBD | Pending |
-| ASSESS-07 | TBD | Pending |
-| ASSESS-08 | TBD | Pending |
-| ASSESS-09 | TBD | Pending |
-| ASSESS-10 | TBD | Pending |
-| COACH-01 | TBD | Pending |
-| COACH-02 | TBD | Pending |
-| COACH-03 | TBD | Pending |
-| COACH-04 | TBD | Pending |
-| COACH-05 | TBD | Pending |
-| COACH-06 | TBD | Pending |
-| COACH-07 | TBD | Pending |
-| COACH-08 | TBD | Pending |
-| DATA-01 | TBD | Pending |
-| DATA-02 | TBD | Pending |
-| DATA-03 | TBD | Pending |
-| DATA-04 | TBD | Pending |
-| DATA-05 | TBD | Pending |
-| DATA-06 | TBD | Pending |
-| DATA-07 | TBD | Pending |
-| IDP-01 | TBD | Pending |
-| IDP-02 | TBD | Pending |
-| IDP-03 | TBD | Pending |
-| DASH-01 | TBD | Pending |
-| DASH-02 | TBD | Pending |
-| DASH-03 | TBD | Pending |
-| DASH-04 | TBD | Pending |
-| DASH-05 | TBD | Pending |
-| DASH-06 | TBD | Pending |
-| DASH-07 | TBD | Pending |
-| DASH-08 | TBD | Pending |
+| CLN-01 | Phase 82 | Pending |
+| CLN-02 | Phase 82 | Pending |
+| CLN-03 | Phase 82 | Pending |
+| CLN-04 | Phase 82 | Pending |
+| CLN-05 | Phase 82 | Pending |
+| CLN-06 | Phase 82 | Pending |
+| ASSESS-01 | Phase 84 | Pending |
+| ASSESS-02 | Phase 84 | Pending |
+| ASSESS-03 | Phase 84 | Pending |
+| ASSESS-04 | Phase 84 | Pending |
+| ASSESS-05 | Phase 84 | Pending |
+| ASSESS-06 | Phase 84 | Pending |
+| ASSESS-07 | Phase 84 | Pending |
+| ASSESS-08 | Phase 84 | Pending |
+| ASSESS-09 | Phase 84 | Pending |
+| ASSESS-10 | Phase 84 | Pending |
+| COACH-01 | Phase 85 | Pending |
+| COACH-02 | Phase 85 | Pending |
+| COACH-03 | Phase 85 | Pending |
+| COACH-04 | Phase 85 | Pending |
+| COACH-05 | Phase 85 | Pending |
+| COACH-06 | Phase 85 | Pending |
+| COACH-07 | Phase 85 | Pending |
+| COACH-08 | Phase 85 | Pending |
+| DATA-01 | Phase 83 | Pending |
+| DATA-02 | Phase 83 | Pending |
+| DATA-03 | Phase 83 | Pending |
+| DATA-04 | Phase 83 | Pending |
+| DATA-05 | Phase 83 | Pending |
+| DATA-06 | Phase 83 | Pending |
+| DATA-07 | Phase 83 | Pending |
+| IDP-01 | Phase 86 | Pending |
+| IDP-02 | Phase 86 | Pending |
+| IDP-03 | Phase 86 | Pending |
+| DASH-01 | Phase 87 | Pending |
+| DASH-02 | Phase 87 | Pending |
+| DASH-03 | Phase 87 | Pending |
+| DASH-04 | Phase 87 | Pending |
+| DASH-05 | Phase 87 | Pending |
+| DASH-06 | Phase 87 | Pending |
+| DASH-07 | Phase 87 | Pending |
+| DASH-08 | Phase 87 | Pending |
 
 **Coverage:**
-- v3.0 requirements: 39 total
-- Mapped to phases: 0
-- Unmapped: 39 ⚠️
+- v3.0 requirements: 42 total
+- Mapped to phases: 42
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 after initial definition*
+*Last updated: 2026-03-01 — Traceability complete after roadmap creation*

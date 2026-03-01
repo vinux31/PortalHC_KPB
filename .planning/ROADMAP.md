@@ -21,6 +21,7 @@
 - ✅ **v2.5 User Infrastructure & AD Readiness** — Phases 65-72 (shipped 2026-03-01)
 - ✅ **v2.6 Codebase Cleanup** — Phases 73-78 (shipped 2026-03-01)
 - ✅ **v2.7 Assessment Monitoring** — Phases 79-81 (shipped 2026-03-01)
+- 🚧 **v3.0 Full QA & Feature Completion** — Phases 82-87 (in progress)
 
 ## Phases
 
@@ -271,3 +272,140 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 See `.planning/milestones/v2.7-ROADMAP.md` for full details.
 
 </details>
+
+---
+
+### 🚧 v3.0 Full QA & Feature Completion (In Progress)
+
+**Milestone Goal:** Comprehensive end-to-end QA of all portal flows organized by use-case (not page-by-page), code cleanup to remove orphaned/duplicate paths, UI rename from "Proton Progress" to "Coaching Proton" throughout, and Plan IDP new feature development.
+
+## Phase Checklist
+
+- [ ] **Phase 82: Cleanup & Rename** - Remove orphaned pages, duplicate CMP paths, add AuditLog card, rename "Proton Progress" to "Coaching Proton"
+- [ ] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC
+- [ ] **Phase 84: Assessment Flow QA** - End-to-end QA of the full assessment lifecycle from creation to history
+- [ ] **Phase 85: Coaching Proton Flow QA** - End-to-end QA of the full coaching workflow from mapping to export
+- [ ] **Phase 86: Plan IDP Development** - Build the new Plan IDP page where coachees view silabus and download guidance docs
+- [ ] **Phase 87: Dashboard & Navigation QA** - Verify all dashboards, login flow, role-based navigation, and audit log page
+
+## Phase Details
+
+### Phase 82: Cleanup & Rename
+**Goal**: The portal is free of orphaned/duplicate pages and "Coaching Proton" is the consistent terminology everywhere
+**Depends on**: Nothing (first phase of v3.0)
+**Requirements**: CLN-01, CLN-02, CLN-03, CLN-04, CLN-05, CLN-06
+**Success Criteria** (what must be TRUE):
+  1. Every page title, nav entry, hub card, breadcrumb, and button that previously said "Proton Progress" now says "Coaching Proton"
+  2. Navigating to CMP/CpdpProgress, CMP/CreateTrainingRecord, or CMP/ManageQuestions returns 404 or redirects correctly — no orphaned views remain
+  3. The Kelola Data hub shows an AuditLog card visible to Admin and HC only; Worker role does not see it
+  4. A decision is documented for Override Silabus and Coaching Guidance tabs (either removed with justification or kept with rationale recorded in PROJECT.md)
+**Plans**: TBD
+
+Plans:
+- [ ] 82-01: Rename "Proton Progress" → "Coaching Proton" across all views, layouts, and nav entries (CLN-01)
+- [ ] 82-02: Remove orphaned CMP/CpdpProgress, CMP/CreateTrainingRecord, CMP/ManageQuestions pages and verify no dead links (CLN-02, CLN-03, CLN-04)
+- [ ] 82-03: Add AuditLog card to Kelola Data hub + analyze and resolve Override Silabus/Coaching Guidance tabs (CLN-05, CLN-06)
+
+### Phase 83: Master Data QA
+**Goal**: All master data management features in the Kelola Data hub work correctly end-to-end for Admin and HC roles
+**Depends on**: Phase 82
+**Requirements**: DATA-01, DATA-02, DATA-03, DATA-04, DATA-05, DATA-06, DATA-07
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC can create, edit, and delete KKJ Matrix rows via the spreadsheet editor and see changes reflected in the CMP/Kkj view
+  2. Admin/HC can create, edit, and delete KKJ-IDP Mapping entries, export them to Excel, and see changes reflected in the CMP/Mapping view
+  3. Admin/HC can create, edit, and delete Silabus entries; new Silabus items appear as options in Plan IDP and Coaching Proton pages
+  4. Admin/HC can upload, replace, and delete Coaching Guidance files; download links function correctly
+  5. Admin/HC can create, edit, delete, and view Worker details; Worker import with Excel template succeeds and validation errors are shown; Worker export with active filters produces correct Excel output
+**Plans**: TBD
+
+Plans:
+- [ ] 83-01: QA KKJ Matrix editor (CRUD, bulk save, bagian management, CMP/Kkj link) (DATA-01)
+- [ ] 83-02: QA KKJ-IDP Mapping editor (CRUD, bulk save, export, CMP/Mapping link) (DATA-02)
+- [ ] 83-03: QA Silabus CRUD and verify data links to Plan IDP and Coaching Proton (DATA-03)
+- [ ] 83-04: QA Coaching Guidance file management (upload, download, replace, delete, Plan IDP links) (DATA-04)
+- [ ] 83-05: QA Worker management CRUD, import from Excel template, and export with filters (DATA-05, DATA-06, DATA-07)
+
+### Phase 84: Assessment Flow QA
+**Goal**: The complete assessment lifecycle works correctly for all applicable roles — from HC creating an assessment to workers taking the exam and seeing results
+**Depends on**: Phase 83
+**Requirements**: ASSESS-01, ASSESS-02, ASSESS-03, ASSESS-04, ASSESS-05, ASSESS-06, ASSESS-07, ASSESS-08, ASSESS-09, ASSESS-10
+**Success Criteria** (what must be TRUE):
+  1. HC/Admin can create an assessment with all fields, edit it with schedule-change warnings, delete it with cascade cleanup, and assign workers — all without errors
+  2. HC/Admin can create packages, import questions via Excel or paste, and preview; cross-package shuffle distributes questions correctly across workers
+  3. Worker can verify token, start exam, see answers auto-saved per click, submit, and resume from the exact page with accurate time remaining after a disconnect
+  4. Worker sees results with correct score, pass/fail status, conditional answer review, earned competencies, and certificate link after passing
+  5. HC sees live per-participant progress in the monitoring view and can execute all actions (force close, reset, bulk close, regenerate token, reshuffle)
+  6. Training Records page shows the worker's correct personal assessment and training history with working filters; Admin 3-tab ManageAssessment view renders all tabs correctly
+**Plans**: TBD
+
+Plans:
+- [ ] 84-01: QA assessment creation, edit, delete, and worker assignment flows (ASSESS-01, ASSESS-02)
+- [ ] 84-02: QA package management and question import (ASSESS-08)
+- [ ] 84-03: QA worker exam flow: token verification, start, auto-save, resume, submit (ASSESS-03)
+- [ ] 84-04: QA results page, certificate, and earned competencies display (ASSESS-04, ASSESS-05)
+- [ ] 84-05: QA HC real-time monitoring and all HC action buttons (ASSESS-06, ASSESS-07)
+- [ ] 84-06: QA Training Records page and Admin 3-tab ManageAssessment view (ASSESS-09, ASSESS-10)
+
+### Phase 85: Coaching Proton Flow QA
+**Goal**: The complete Coaching Proton workflow works correctly for all applicable roles — from coach-coachee mapping through evidence, approval, and export
+**Depends on**: Phase 83
+**Requirements**: COACH-01, COACH-02, COACH-03, COACH-04, COACH-05, COACH-06, COACH-07, COACH-08
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC can assign, edit, deactivate, and reactivate coach-coachee mappings with validation; export to Excel produces correct data
+  2. Coachee sees their coaching progress page with deliverable statuses, evidence uploads, and approval states correctly displayed
+  3. Coach can select a coachee, upload evidence with a coaching log, and view current approval statuses
+  4. SrSpv, SectionHead, and HC can each approve or reject deliverables within their role scope; the correct approval chain is enforced
+  5. The deliverable detail page shows complete information — status, evidence file, coaching report, and full approval history
+  6. HC/Admin can override a stuck deliverable from the Coaching Proton Override tab; Excel and PDF exports work for authorized roles
+**Plans**: TBD
+
+Plans:
+- [ ] 85-01: QA coach-coachee mapping CRUD and Excel export (COACH-01, COACH-02)
+- [ ] 85-02: QA coachee progress view and coach evidence upload flow (COACH-03, COACH-04)
+- [ ] 85-03: QA approval chain and deliverable detail page (COACH-05, COACH-06)
+- [ ] 85-04: QA Override tab and progress exports (COACH-07, COACH-08)
+
+### Phase 86: Plan IDP Development
+**Goal**: Coachees can view the silabus items assigned to their track and download the relevant coaching guidance documents
+**Depends on**: Phase 83
+**Requirements**: IDP-01, IDP-02, IDP-03
+**Success Criteria** (what must be TRUE):
+  1. A coachee logging in sees a Plan IDP page that lists the silabus items matching their assigned Operator Tahun, Unit, and Bagian
+  2. Each silabus item with a linked coaching guidance file shows a download button; clicking it downloads the correct file
+  3. The Plan IDP page supports filtering by Bagian, Unit, and Level so coachees (and HC reviewing) can narrow displayed silabus items
+**Plans**: TBD
+
+Plans:
+- [ ] 86-01: Build Plan IDP controller action and ViewModel (query silabus by track assignment, support Bagian/Unit/Level filters) (IDP-01, IDP-03)
+- [ ] 86-02: Build Plan IDP Razor view (silabus list, filter bar, guidance file download links) and wire Coaching Guidance downloads (IDP-02)
+
+### Phase 87: Dashboard & Navigation QA
+**Goal**: All dashboards show correct role-scoped data, login and navigation work without errors, and authorization boundaries are enforced
+**Depends on**: Phase 82, Phase 86
+**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06, DASH-07, DASH-08
+**Success Criteria** (what must be TRUE):
+  1. Home/Index dashboard shows correct stats per role (IDP progress for coachees, assessment summary for HC, training completion for workers)
+  2. CDP Dashboard Coaching Proton tab shows accurate progress data across all bagian/unit; Assessment Analytics tab shows correct assessment and training data with working export
+  3. Login flow completes without error for local auth; role-based navigation shows Kelola Data only to Admin/HC and hides it from other roles
+  4. Section selectors (KkjSectionSelect, MappingSectionSelect) function correctly for Admin/HC; the AccessDenied page renders when an unauthorized user attempts a restricted action
+  5. The AuditLog page shows the assessment management audit trail with correct entries and is visible to Admin and HC only
+**Plans**: TBD
+
+Plans:
+- [ ] 87-01: QA Home/Index dashboard per role and CDP Dashboard both tabs (DASH-01, DASH-02, DASH-03)
+- [ ] 87-02: QA login flow and role-based navigation visibility (DASH-04, DASH-05)
+- [ ] 87-03: QA section selectors, AccessDenied page, and AuditLog page (DASH-06, DASH-07, DASH-08)
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 82. Cleanup & Rename | v3.0 | 0/3 | Not started | - |
+| 83. Master Data QA | v3.0 | 0/5 | Not started | - |
+| 84. Assessment Flow QA | v3.0 | 0/6 | Not started | - |
+| 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |
+| 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
+| 87. Dashboard & Navigation QA | v3.0 | 0/3 | Not started | - |
