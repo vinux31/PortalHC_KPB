@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Codebase Cleanup
 current_phase: Phase 73 (complete — both plans done)
 status: completed
-last_updated: "2026-03-01T04:42:37.752Z"
+last_updated: "2026-03-01T04:54:58.667Z"
 last_activity: "2026-03-01 — 73-02: dead CMPController.WorkerDetail removed, 5 redirects fixed (CRIT-02)"
 progress:
-  total_phases: 41
+  total_phases: 42
   completed_phases: 40
-  total_plans: 88
-  completed_plans: 87
+  total_plans: 90
+  completed_plans: 88
 ---
 
 ---
@@ -39,9 +39,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 73 (complete — both plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-03-01 — 73-02: dead CMPController.WorkerDetail removed, 5 redirects fixed (CRIT-02)
+**Current phase:** Phase 74 (plan 01 complete — plan 02 next)
+**Status:** In progress
+**Last activity:** 2026-03-01 — 74-01: six orphaned CMP/CDP views deleted (VIEW-01 through VIEW-06)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases complete)
 
@@ -75,6 +75,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 73-critical-fixes]: Deleted CMPController.WorkerDetail entirely — Admin/WorkerDetail owns this functionality since Phase 67, no valid use case remains
 - [Phase 73-critical-fixes]: 73-01: Used javascript:history.back() for AccessDenied Kembali button — works from any 403-triggering route
 - [Phase 73-critical-fixes]: 73-01: AccessDenied view does NOT set Layout = null — inherits portal navbar via _ViewStart (same pattern as Settings.cshtml)
+- [Phase 74-dead-code-removal]: 74-01: Deleted six orphaned Razor views (5 CMP migrated to Admin in Phase 49, 1 CDP never rendered) — build verified 0 errors
 
 ### Roadmap Evolution
 
@@ -91,5 +92,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 73-02-PLAN.md — Phase 73 fully done (CRIT-01, CRIT-02)
-Resume file: .planning/phases/73-critical-fixes/73-02-SUMMARY.md
+Stopped at: Completed 74-01-PLAN.md — six orphaned views deleted (VIEW-01–VIEW-06)
+Resume file: .planning/phases/74-dead-code-removal/74-01-SUMMARY.md

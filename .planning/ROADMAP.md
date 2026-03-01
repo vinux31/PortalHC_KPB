@@ -272,7 +272,7 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
   1. The six `Views/CMP/` and `Views/CDP/` orphan files no longer exist on disk — no dangling Razor views from the CMP-to-Admin migration remain
   2. `CMPController.GetMonitorData` and `CDPController.Progress` actions are removed — zero references remain in the codebase
   3. `wwwroot/css/site.css` and `wwwroot/js/site.js` are deleted — no view links to them and no 404s are generated for these paths
-**Plans:** TBD
+**Plans:** 1/2 plans executed
 
 **Completed:** —
 
@@ -328,6 +328,6 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 | 61-64 | v2.4 | 9/9 | Complete | 2026-02-28 |
 | 65-72 | v2.5 | 14/14 | Complete | 2026-02-28 |
 | 73 | 2/2 | Complete    | 2026-03-01 | — |
-| 74 | v2.6 | 0/TBD | Not started | — |
+| 74 | 1/2 | In Progress|  | — |
 | 75 | v2.6 | 0/TBD | Not started | — |
 | 76 | v2.6 | 0/TBD | Not started | — |

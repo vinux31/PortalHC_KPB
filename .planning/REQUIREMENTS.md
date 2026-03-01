@@ -14,12 +14,12 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 ### Dead View Cleanup
 
-- [ ] **VIEW-01**: Orphaned `Views/CMP/CreateAssessment.cshtml` deleted (migrated to Admin)
-- [ ] **VIEW-02**: Orphaned `Views/CMP/EditAssessment.cshtml` deleted (migrated to Admin)
-- [ ] **VIEW-03**: Orphaned `Views/CMP/UserAssessmentHistory.cshtml` deleted (migrated to Admin)
-- [ ] **VIEW-04**: Orphaned `Views/CMP/AuditLog.cshtml` deleted (migrated to Admin)
-- [ ] **VIEW-05**: Orphaned `Views/CMP/AssessmentMonitoringDetail.cshtml` deleted (migrated to Admin)
-- [ ] **VIEW-06**: Orphaned `Views/CDP/Progress.cshtml` deleted (controller redirects, view never rendered)
+- [x] **VIEW-01**: Orphaned `Views/CMP/CreateAssessment.cshtml` deleted (migrated to Admin)
+- [x] **VIEW-02**: Orphaned `Views/CMP/EditAssessment.cshtml` deleted (migrated to Admin)
+- [x] **VIEW-03**: Orphaned `Views/CMP/UserAssessmentHistory.cshtml` deleted (migrated to Admin)
+- [x] **VIEW-04**: Orphaned `Views/CMP/AuditLog.cshtml` deleted (migrated to Admin)
+- [x] **VIEW-05**: Orphaned `Views/CMP/AssessmentMonitoringDetail.cshtml` deleted (migrated to Admin)
+- [x] **VIEW-06**: Orphaned `Views/CDP/Progress.cshtml` deleted (controller redirects, view never rendered)
 
 ### Dead Action Cleanup
 
@@ -70,12 +70,12 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 |-------------|-------|--------|
 | CRIT-01 | Phase 73 | Complete |
 | CRIT-02 | Phase 73 | Complete |
-| VIEW-01 | Phase 74 | Pending |
-| VIEW-02 | Phase 74 | Pending |
-| VIEW-03 | Phase 74 | Pending |
-| VIEW-04 | Phase 74 | Pending |
-| VIEW-05 | Phase 74 | Pending |
-| VIEW-06 | Phase 74 | Pending |
+| VIEW-01 | Phase 74 | Complete |
+| VIEW-02 | Phase 74 | Complete |
+| VIEW-03 | Phase 74 | Complete |
+| VIEW-04 | Phase 74 | Complete |
+| VIEW-05 | Phase 74 | Complete |
+| VIEW-06 | Phase 74 | Complete |
 | ACTN-01 | Phase 74 | Pending |
 | ACTN-02 | Phase 74 | Pending |
 | STUB-01 | Phase 75 | Pending |
