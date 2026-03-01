@@ -62,7 +62,7 @@ namespace HcPortal.Controllers
         }
 
         // GET: /ProtonData
-        public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId, string? tab)
+        public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -72,7 +72,6 @@ namespace HcPortal.Controllers
             ViewBag.Bagian = bagian;
             ViewBag.Unit = unit;
             ViewBag.TrackId = trackId;
-            ViewBag.ActiveTab = tab;
 
             // Build flat silabus rows for JSON serialization to JS
             var silabusRows = new List<object>();
@@ -108,6 +107,18 @@ namespace HcPortal.Controllers
 
             ViewBag.SilabusRowsJson = System.Text.Json.JsonSerializer.Serialize(silabusRows,
                 new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
+
+            return View();
+        }
+
+        // GET: /ProtonData/Override
+        public async Task<IActionResult> Override()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var tracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+            ViewBag.AllTracks = tracks;
 
             return View();
         }
