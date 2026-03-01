@@ -304,7 +304,7 @@ Plans:
   1. The ManageAssessment Assessment Groups tab no longer shows a "Monitoring" dropdown action — the row action menu contains only non-monitoring actions
   2. The Kelola Data hub Section C no longer shows a "Training Records" card — only the Assessment Monitoring card (and other remaining cards) are visible
   3. Direct navigation to the old monitoring URL (if it existed as a dropdown target) either redirects to the new dedicated page or returns 404 — no orphaned route remains
-**Plans:** TBD
+**Plans:** 1/2 plans executed
 
 ---
 
@@ -320,4 +320,4 @@ Plans:
 | 78. Deduplicate CMP page | v2.6 | 1/1 | Complete | 2026-03-01 |
 | 79. Assessment Monitoring Page — Group List | 1/1 | Complete    | 2026-03-01 | - |
 | 80. Per-Participant Monitoring Detail & HC Actions | 1/1 | Complete    | 2026-03-01 | - |
-| 81. Cleanup — Remove Old Entry Points | v2.7 | 0/? | Not started | - |
+| 81. Cleanup — Remove Old Entry Points | 1/2 | In Progress|  | - |

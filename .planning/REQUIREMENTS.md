@@ -17,8 +17,8 @@ Requirements for v2.7 Assessment Monitoring. Each maps to roadmap phases.
 
 ### Cleanup
 
-- [ ] **CLN-01**: Monitoring dropdown action removed from ManageAssessment Assessment Groups tab
-- [ ] **CLN-02**: Training Records hub card removed from Kelola Data Section C
+- [x] **CLN-01**: Monitoring dropdown action removed from ManageAssessment Assessment Groups tab
+- [x] **CLN-02**: Training Records hub card removed from Kelola Data Section C
 
 ## Future Requirements
 
@@ -44,8 +44,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MON-05 | Phase 79 | Complete |
 | MON-03 | Phase 80 | Complete |
 | MON-04 | Phase 80 | Complete |
-| CLN-01 | Phase 81 | Pending |
-| CLN-02 | Phase 81 | Pending |
+| CLN-01 | Phase 81 | Complete |
+| CLN-02 | Phase 81 | Complete |
 
 **Coverage:**
 - v2.7 requirements: 7 total

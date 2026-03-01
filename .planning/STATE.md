@@ -64,17 +64,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 80 — Per-Participant Monitoring Detail & HC Actions
+**Current focus:** Phase 81 — Cleanup — Remove Old Entry Points
 
 ## Current Position
 
 **Milestone:** v2.7 Assessment Monitoring
-**Current phase:** 80 of 81 — Per-Participant Monitoring Detail & HC Actions
-**Plan:** 1 of 1 in current phase (complete)
-**Status:** Milestone complete
-**Last activity:** 2026-03-01 — Plan 80-01 complete: checkpoint approved, detail page wired to Assessment Monitoring nav + token card verified
+**Current phase:** 81 of 81 — Cleanup — Remove Old Entry Points
+**Plan:** 1 of 1 in current phase (awaiting human-verify checkpoint)
+**Status:** In progress — checkpoint pending
+**Last activity:** 2026-03-01 — Plan 81-01 tasks complete: Monitoring dropdown removed, Training Records card removed, AssessmentMonitoring table height fixed — awaiting human verify
 
-Progress: [██████░░░░] 67% (v2.7)
+Progress: [█████████░] 90% (v2.7)
 
 ## Accumulated Context
 
@@ -90,6 +90,8 @@ Progress: [██████░░░░] 67% (v2.7)
 - [80-01]: Token fields read from sessions.First() already in memory — no extra DB round-trip needed.
 - [80-01]: Regenerate JS updates DOM in-place without page reload — preserves polling state and countdown timers.
 - [Phase 80]: Checkpoint approved with out-of-scope notes: manage question and table height — deferred
+- [81-01]: CLN-01 and CLN-02 implemented as surgical view edits — no controller changes needed
+- [81-01]: AssessmentMonitoring table min-height matches ManageAssessment pattern (calc(100vh - 420px))
 
 ### Pending Todos
 
@@ -102,5 +104,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 80-01-PLAN.md — checkpoint approved by user
-Resume file: .planning/phases/81-cleanup-remove-old-entry-points/
+Stopped at: 81-01-PLAN.md — Task 3 checkpoint:human-verify (tasks 1+2 complete, awaiting user verification)
+Resume file: .planning/phases/81-cleanup-remove-old-entry-points/81-01-PLAN.md
