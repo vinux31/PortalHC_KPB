@@ -57,7 +57,9 @@
       "Bash(/dev/null:*)",
       "Skill(gsd:pause-work)",
       "Bash(dir:*)",
-      "Bash(\"C:/Users/rinoa/Desktop/PortalHC_KPB/.planning/phases/08-fix-admin-role-switcher-and-add-admin-to-supported-roles/08-VERIFICATION.md\":*)"
+      "Bash(\"C:/Users/rinoa/Desktop/PortalHC_KPB/.planning/phases/08-fix-admin-role-switcher-and-add-admin-to-supported-roles/08-VERIFICATION.md\":*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(claude:*)"
     ],
     "deny": [],
     "ask": []
