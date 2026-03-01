@@ -511,26 +511,6 @@ namespace HcPortal.Controllers
             });
         }
 
-        // WORKER DETAIL PAGE - Show individual worker's training records
-        public async Task<IActionResult> WorkerDetail(string workerId, string name)
-        {
-            // Get current user info
-            var user = await _userManager.GetUserAsync(User);
-            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
-            var userRole = userRoles.FirstOrDefault();
-            int userLevel = user?.RoleLevel ?? 6;
-
-            ViewBag.UserRole = userRole;
-            ViewBag.UserLevel = userLevel;
-            ViewBag.WorkerId = workerId;
-            ViewBag.WorkerName = name;
-
-            // Phase 10: Get worker's unified records (assessments + trainings)
-            var unified = await GetUnifiedRecords(workerId);
-
-            return View("WorkerDetail", unified);
-        }
-        
         // Phase 19: HC Create Training Record — GET
         [HttpGet]
         public async Task<IActionResult> CreateTrainingRecord()
@@ -659,12 +639,12 @@ namespace HcPortal.Controllers
                 if (!allowedExtensions.Contains(ext))
                 {
                     TempData["Error"] = "Hanya file PDF, JPG, dan PNG yang diperbolehkan.";
-                    return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+                    return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
                 }
                 if (model.CertificateFile.Length > 10 * 1024 * 1024)
                 {
                     TempData["Error"] = "Ukuran file maksimal 10MB.";
-                    return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+                    return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
                 }
             }
 
@@ -675,7 +655,7 @@ namespace HcPortal.Controllers
                     .Select(e => e.ErrorMessage)
                     .FirstOrDefault() ?? "Data tidak valid.";
                 TempData["Error"] = firstError;
-                return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+                return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
             }
 
             var record = await _context.TrainingRecords.FindAsync(model.Id);
@@ -720,7 +700,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Training record berhasil diperbarui.";
-            return RedirectToAction("WorkerDetail", new { workerId = model.WorkerId, name = model.WorkerName });
+            return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
         }
 
         // Phase 20: HC Delete Training Record — POST only
@@ -749,7 +729,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Training record berhasil dihapus.";
-            return RedirectToAction("WorkerDetail", new { workerId = workerId, name = workerName });
+            return RedirectToAction("WorkerDetail", "Admin", new { id = workerId });
         }
 
         // Helper method: Get personal training records for Coach/Coachee
