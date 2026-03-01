@@ -378,6 +378,15 @@
     const orgStructure = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         HcPortal.Models.OrganizationStructure.SectionUnits));
 
+    // ====== Hash-based tab activation (e.g. /ProtonData#override) ======
+    if (window.location.hash === '#override') {
+        var overrideTab = document.getElementById('override-tab');
+        if (overrideTab) new bootstrap.Tab(overrideTab).show();
+    } else if (window.location.hash === '#guidance') {
+        var guidanceTab = document.getElementById('guidance-tab');
+        if (guidanceTab) new bootstrap.Tab(guidanceTab).show();
+    }
+
     // ====== Silabus tab filter cascade ======
     document.getElementById('silabusBagian').addEventListener('change', function () {
         const bagian = this.value;

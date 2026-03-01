@@ -1,14 +1,17 @@
 # Phase 52: DeliverableProgress Override - Context
 
 **Gathered:** 2026-02-27
+**Updated:** 2026-03-01
 **Status:** Ready for planning
 
 <domain>
 ## Phase Boundary
 
-Admin/HC can view all ProtonDeliverableProgress records and override stuck or erroneous statuses. Also removes sequential lock logic (parallel with Phase 65 v2.4 work) — all deliverables become Active on assignment instead of Locked.
+Admin/HC can view all ProtonDeliverableProgress records and override stuck or erroneous statuses. Also removes sequential lock logic — all deliverables become Active on assignment instead of Locked.
 
-Scope: Override page + lock removal. New approval actions on Progress page are Phase 65.
+**Phase 54 merged here:** Admin can also view, edit, and delete CoachingSession records from a new tab on the same /ProtonData page. This absorbs Phase 54 (Coaching Session Override) entirely.
+
+Scope: Override page + lock removal + CoachingSession override tab.
 
 </domain>
 
@@ -63,6 +66,31 @@ Scope: Override page + lock removal. New approval actions on Progress page are P
 - AJAX vs full page reload on save
 - Loading spinner behavior
 - Error message display format
+
+### CoachingSession Override — Tab Placement (Phase 54 merged)
+- Tab ke-4 di /ProtonData: "Coaching Session Override" (after existing Override tab)
+- Same role visibility: Admin + HC
+- Gabung di halaman ProtonData yang sudah ada, bukan halaman terpisah
+
+### CoachingSession Override — List Display
+- Same pattern as Deliverable Override tab: filter cascade Bagian → Unit → Track
+- Per-worker rows with session count badges, click to expand/view sessions
+- Table columns per session: Coach, Coachee, Date, Deliverable, Kesimpulan, Result
+
+### CoachingSession Override — Edit Behavior
+- Admin can edit ALL text fields: CatatanCoach, Kesimpulan, Result, CoacheeCompetencies
+- CoachId, CoacheeId, Date are NOT editable (read-only context)
+- Mandatory "Alasan Edit" textarea — logged to AuditLog
+- Modal pattern: same as Deliverable Override (read-only context top, edit form bottom)
+
+### CoachingSession Override — Delete Behavior
+- Hard delete — remove record permanently from DB
+- Mandatory "Alasan Hapus" textarea — logged to AuditLog before deletion
+- Confirmation dialog before delete
+
+### CoachingSession Override — ActionItem
+- Skip entirely — ActionItem model exists but is never created in the current system
+- No ActionItem section in modal, no ActionItem CRUD
 
 </decisions>
 
