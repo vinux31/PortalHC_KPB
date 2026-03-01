@@ -401,7 +401,10 @@ Plans:
   2. Views/ProtonCatalog/ directory deleted
   3. No stale references to /ProtonCatalog in views or controllers
   4. Admin/Index hub card for Proton Catalog (if any) removed or already pointing to /Admin/ProtonData
-**Plans:** TBD
+**Plans:** 1 plan
+
+Plans:
+- [ ] 59-01-PLAN.md — Delete ProtonCatalogController.cs and Views/ProtonCatalog/ directory, verify no stale references, build passes
 
 ### Phase 60: Konsolidasi Assessment Management
 **Goal:** Move Assessment Management (CRUD assessment, kelola soal, kelola paket, monitoring, export) from CMP into Kelola Data Section B — HC manages all assessment admin from one hub. Personal assessment view (take exam, results) stays in CMP.
@@ -480,7 +483,7 @@ Plans:
 | 56. ~~ProtonTrack Edit/Delete~~ | v2.3 | - | Removed | - |
 | 57. ~~Password Reset Standalone~~ | v2.3 | - | Removed | - |
 | 58. ~~Konsolidasi Kelola Pekerja~~ | v2.3 | - | Superseded (v2.5 P68) | - |
-| 59. Hapus Page ProtonCatalog | v2.3 | 0/? | Not started | - |
+| 59. Hapus Page ProtonCatalog | v2.3 | 0/1 | Planned | - |
 | 60. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 61. ~~Update Kelola Data Hub~~ | v2.3 | - | Partially superseded (v2.5 P69) | - |
 | 62. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
