@@ -1528,8 +1528,6 @@ namespace HcPortal.Controllers
             return View(data);
         }
 
-        public IActionResult Progress() => RedirectToAction("Index");
-
         // ===== Phase 65: AJAX approval endpoints =====
 
         [HttpPost]
