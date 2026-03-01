@@ -152,4 +152,20 @@
         </a>
     </div>
     }
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
+        <a href="@Url.Action("AssessmentMonitoring", "Admin")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-binoculars fs-5 text-success"></i>
+                        <span class="fw-bold">Assessment Monitoring</span>
+                    </div>
+                    <small class="text-muted">Pantau progress assessment real-time — lihat status grup, peserta, dan regenerate token</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
 </div>

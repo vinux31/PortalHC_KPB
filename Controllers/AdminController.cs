@@ -1304,6 +1304,104 @@ namespace HcPortal.Controllers
             return new string(result);
         }
 
+        // --- ASSESSMENT MONITORING GROUP LIST ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AssessmentMonitoring(
+            string? search,
+            string? status,
+            string? category)
+        {
+            // 7-day window — same as ManageAssessment
+            var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
+
+            var query = _context.AssessmentSessions
+                .Where(a => (a.ExamWindowCloseDate ?? a.Schedule) >= sevenDaysAgo)
+                .AsQueryable();
+
+            // Text search by title
+            if (!string.IsNullOrEmpty(search))
+            {
+                var lower = search.ToLower();
+                query = query.Where(a => a.Title.ToLower().Contains(lower));
+            }
+
+            // Category filter
+            if (!string.IsNullOrEmpty(category))
+                query = query.Where(a => a.Category == category);
+
+            var allSessions = await query
+                .OrderByDescending(a => a.Schedule)
+                .Select(a => new
+                {
+                    a.Id,
+                    a.Title,
+                    a.Category,
+                    a.Schedule,
+                    a.ExamWindowCloseDate,
+                    a.Status,
+                    a.IsTokenRequired,
+                    a.AccessToken,
+                    a.CreatedAt,
+                    IsCompleted = a.CompletedAt != null || a.Score != null,
+                    IsPassed = a.IsPassed ?? false,
+                    IsStarted = a.StartedAt != null
+                })
+                .ToListAsync();
+
+            // Group by (Title, Category, Schedule.Date)
+            var grouped = allSessions
+                .GroupBy(a => (a.Title, a.Category, a.Schedule.Date))
+                .Select(g =>
+                {
+                    var rep = g.OrderBy(a => a.CreatedAt).First();
+                    // Compute GroupStatus from session statuses
+                    string groupStatus;
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
+                        groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming"))
+                        groupStatus = "Upcoming";
+                    else
+                        groupStatus = "Closed";
+
+                    return new MonitoringGroupViewModel
+                    {
+                        RepresentativeId = rep.Id,
+                        Title = rep.Title,
+                        Category = rep.Category,
+                        Schedule = rep.Schedule,
+                        GroupStatus = groupStatus,
+                        TotalCount = g.Count(),
+                        CompletedCount = g.Count(a => a.IsCompleted),
+                        PassedCount = g.Count(a => a.IsPassed),
+                        PendingCount = g.Count(a => !a.IsCompleted && !a.IsStarted),
+                        IsTokenRequired = rep.IsTokenRequired,
+                        AccessToken = rep.AccessToken ?? ""
+                    };
+                })
+                .OrderByDescending(g => g.Schedule)
+                .ToList();
+
+            // Status filter — applied AFTER grouping (GroupStatus computed from sessions)
+            // Default: show Open + Upcoming only (exclude Closed) unless status param is provided
+            if (string.IsNullOrEmpty(status))
+            {
+                grouped = grouped.Where(g => g.GroupStatus != "Closed").ToList();
+                status = "active"; // signal to view that default active filter is on
+            }
+            else if (status == "Open" || status == "Upcoming" || status == "Closed")
+            {
+                grouped = grouped.Where(g => g.GroupStatus == status).ToList();
+            }
+            // status == "All" → no filter applied
+
+            ViewBag.SearchTerm = search ?? "";
+            ViewBag.SelectedStatus = status;
+            ViewBag.SelectedCategory = category ?? "";
+
+            return View(grouped);
+        }
+
         // --- ASSESSMENT MONITORING DETAIL ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
