@@ -41,12 +41,12 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 ### HC Role Fix
 
-- [ ] **ROLE-01**: Admin hub cards hidden for HC users when the backing action is Admin-only (KKJ Matrix, KKJ-IDP Mapping, Coach-Coachee Mapping, Manage Assessments)
+- [x] **ROLE-01**: Admin hub cards hidden for HC users when the backing action is Admin-only (KKJ Matrix, KKJ-IDP Mapping, Coach-Coachee Mapping, Manage Assessments)
 - [x] **ROLE-02**: "Kelola Data" navbar visibility uses Identity role check, not just SelectedView field
 
 ### Broken Link Fix
 
-- [ ] **LINK-01**: Admin hub "Deliverable Progress Override" card activates correct Bootstrap tab on ProtonData page
+- [x] **LINK-01**: Admin hub "Deliverable Progress Override" card activates correct Bootstrap tab on ProtonData page
 
 ## Future Requirements
 
@@ -85,9 +85,9 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 | STUB-05 | Phase 75 | Complete |
 | FILE-01 | Phase 74 | Complete |
 | FILE-02 | Phase 74 | Complete |
-| ROLE-01 | Phase 76 | Pending |
+| ROLE-01 | Phase 76 | Complete |
 | ROLE-02 | Phase 76 | Complete |
-| LINK-01 | Phase 76 | Pending |
+| LINK-01 | Phase 76 | Complete |
 
 **Coverage:**
 - v2.6 requirements: 20 total
