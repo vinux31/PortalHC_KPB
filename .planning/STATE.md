@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.3
-milestone_name: Admin Portal
+milestone: v2.5
+milestone_name: User Infrastructure & AD Readiness
 status: completed
-last_updated: "2026-03-01T11:30:00.000Z"
-last_activity: "2026-03-01 - v2.3 Admin Portal milestone archived. 8 phases (47-53, 59), 29 plans. Known gaps: OPER-05, CRUD-01 through CRUD-04 deferred."
+last_updated: "2026-03-01T14:00:00.000Z"
+last_activity: "2026-03-01 - v2.4 and v2.5 milestones archived. v2.4: 4 phases (61-64), 9 plans. v2.5: 8 phases (65-72), 14 plans."
 progress:
   total_phases: 60
   completed_phases: 60
-  total_plans: 138
-  completed_plans: 138
+  total_plans: 150
+  completed_plans: 150
 ---
 
 # Project State
@@ -19,21 +19,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Completing milestones v2.4 and v2.5
+**Current focus:** All milestones through v2.5 shipped. Planning next milestone.
 
 ## Current Position
 
-**Milestone:** v2.3 Admin Portal — SHIPPED 2026-03-01
-**Status:** Milestone complete, proceeding to v2.4 and v2.5 completion
-**Last activity:** 2026-03-01 - v2.3 milestone archived
+**Milestone:** v2.5 User Infrastructure & AD Readiness — SHIPPED 2026-03-01
+**Status:** All milestones through v2.5 complete
+**Last activity:** 2026-03-01 - v2.4 and v2.5 milestones archived
 
-Progress: [████████████████████] 100% (v2.3 complete)
+Progress: [████████████████████] 100% (v2.5 complete)
 
 ## Performance Metrics
 
-**Velocity (v1.0-v2.3):**
-- Total milestones shipped: 15 (v1.0 through v2.3)
-- Total phases: 54
+**Velocity (v1.0-v2.5):**
+- Total milestones shipped: 17 (v1.0 through v2.5)
+- Total phases: 60
+- Total plans: 150
 - Timeline: 2026-02-14 → 2026-03-01 (16 days)
 
 ## Accumulated Context
@@ -44,7 +45,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Roadmap Evolution
 
-All milestones through v2.3 shipped. v2.4 (Phases 61-64) and v2.5 (Phases 65-72) all complete — awaiting milestone archival.
+All milestones through v2.5 shipped.
 
 ### Pending Todos
 
@@ -57,5 +58,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: v2.3 milestone completion. Next: complete v2.4 and v2.5 milestones.
+Stopped at: v2.4 and v2.5 milestone completion. Next: `/gsd:new-milestone` for next version.
 Resume file: None.

@@ -86,6 +86,85 @@
 
 ---
 
+## Milestone: v2.4 — CDP Progress
+
+**Shipped:** 2026-03-01
+**Phases:** 4 (61-64) | **Plans:** 9
+
+### What Was Built
+- ProtonProgress page with data from ProtonDeliverableProgress + ProtonTrackAssignment — replaced IdpItems data source
+- 5 filter parameters (Bagian/Unit, Coachee, Track, Tahun) wired to EF Core Where composition with role-scope-first pattern
+- Per-role approval workflow: SrSpv/SectionHead/HC each with independent approval columns; data migration backfills from existing records
+- Combined coaching report + evidence submission modal; CoachingSession FK linked to deliverable progress
+- Excel (ClosedXML) + PDF (QuestPDF) export from Progress page
+- Group-boundary server-side pagination (20 rows/page) with 3 empty state scenarios
+
+### What Worked
+- **Role-scope-first pattern**: Deriving scopedCoacheeIds from the logged-in user's role before applying any URL parameters ensures security by default — filters only narrow within already-authorized scope
+- **EF Where composition**: Chaining `.Where()` calls on IQueryable and calling single `ToListAsync()` at the end keeps all filtering server-side with clean code structure
+- **Per-role approval**: Independent columns for SrSpv/SH/HC approvals allowed each role to act independently without blocking others; data migration backfilled cleanly
+
+### What Was Inefficient
+- Phase renumbering (originally 63-66, renamed to 61-64 after phase removal) created git commit number mismatch — commits reference old numbers while SUMMARY files use new numbers
+
+### Patterns Established
+- **Role-scope-first filtering**: Always scope data by user role (CoachCoacheeMapping for coach, section for SrSpv, etc.) before applying user-selected filters
+- **Per-role approval columns**: Independent approval per authorization level; any rejection overrides overall status; individual approvals don't cascade
+- **Group-boundary pagination**: Group rows by logical unit (coachee + kompetensi + sub), slice groups into pages without splitting — better UX than arbitrary row cuts
+
+### Key Lessons
+1. ProtonProgress was a complete rewrite — the existing page was stub/mock data. Starting fresh was faster than patching.
+2. QuestPDF was added for PDF export alongside ClosedXML for Excel — two export libraries now coexist cleanly.
+3. Per-role approval migration needed a data fix (Locked→Pending) that was combined with schema migration — efficient single migration.
+
+### Cost Observations
+- Model profile: budget
+- 2-day milestone (Feb 27-28)
+- Executed in parallel with v2.5 phases
+
+---
+
+## Milestone: v2.5 — User Infrastructure & AD Readiness
+
+**Shipped:** 2026-03-01
+**Phases:** 8 (65-72) | **Plans:** 14
+
+### What Was Built
+- Dynamic Profile page bound to @model ApplicationUser; null-safe fallback; avatar initials from FullName
+- Functional Settings page with ChangePassword, EditProfile (FullName/Position), and disabled placeholder items
+- ManageWorkers migration: 11 actions from CMPController → AdminController with HC access; clean break (no redirects)
+- Kelola Data hub: Admin/Index restructured into 3 domain sections; HC nav access extended
+- Dual auth infrastructure: IAuthService + LocalAuthService + LdapAuthService; config toggle; System.DirectoryServices NuGet
+- Login flow: IAuthService-based auth; AD hint; profile sync (FullName/Email); unregistered user rejection
+- User structure: UserRoles.GetDefaultView() helper; SeedData modernization; AuthSource lifecycle (added then removed)
+- Hybrid auth: HybridAuthService wraps AD-first + local fallback for admin user
+
+### What Worked
+- **IAuthService abstraction**: Clean separation of auth concerns behind interface — switching from local to AD requires only config toggle, no code changes
+- **Clean break migration**: Removing old CMP ManageWorkers entirely (no redirects) eliminated dead code and confusion about canonical URLs
+- **Kelola Data hub 3-section layout**: Grouping admin tools by domain made navigation intuitive; HC users can now access worker management directly
+
+### What Was Inefficient
+- **AuthSource field lifecycle**: Added in Phase 69 (per-user auth source), removed in Phase 72 (global config routing). The discuss-phase for Phase 69 should have concluded global routing earlier.
+- **Phase 71 SeedData cleanup needed Phase 72 follow-up**: Modernizing SeedData in Phase 71 revealed the Admin KPB user needed hybrid auth fallback, requiring an entire additional phase (72)
+
+### Patterns Established
+- **IAuthService for dual auth**: Interface with Task<AuthResult> pattern; AuthenticationConfig POCO for LDAP settings; DI factory delegate for config-based registration
+- **HybridAuthService composite**: Wraps two concrete services; email-based routing for fallback; silent failure semantics (same error UX regardless of which path failed)
+- **GetDefaultView() single source of truth**: Role → SelectedView mapping extracted to static helper; SeedData and runtime both use same function
+
+### Key Lessons
+1. Global config routing (UseActiveDirectory toggle) is simpler than per-user AuthSource — one config flag instead of per-row DB field
+2. Hybrid auth pattern solves the "admin needs local login in AD mode" problem elegantly — HybridAuthService tries AD first, falls back to local for specific email
+3. The Supervisor role (level 5) addition was necessary for production role hierarchy — discovered during implementation, not during requirements
+
+### Cost Observations
+- Model profile: budget
+- 2-day milestone (Feb 27-28), executed in parallel with v2.4
+- 8 phases is second-largest (v2.3 had 8 phases too) but 14 plans is more manageable than v2.3's 29
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -104,5 +183,7 @@
 | v2.1 | 5 | 13 | 2 | 6.5 |
 | v2.2 | 1 | 2 | 1 | 2 |
 | v2.3 | 8 | 29 | 4 | 7.25 |
+| v2.4 | 4 | 9 | 2 | 4.5 |
+| v2.5 | 8 | 14 | 2 | 7 |
 
-**Running total:** 54 phases, ~127 plans, 16 days
+**Running total:** 66 phases, ~150 plans, 16 days

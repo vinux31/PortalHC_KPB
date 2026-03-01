@@ -12,19 +12,49 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestones
-
-### v2.4 - CDP Progress (completing)
-
-**Goal:** CDP/Progress page menjadi fully functional — data dari ProtonDeliverableProgress (bukan IdpItems), semua filter berfungsi, approval workflow terkoneksi ke backend, coaching report tersimpan, evidence upload/view berfungsi, export berfungsi.
-
-### v2.5 - User Infrastructure & AD Readiness (completing)
-
-**Goal:** Full user system overhaul — dual authentication (Active Directory + local), dynamic profile page, functional settings page, ManageWorkers migration to Admin, Kelola Data hub reorganization, and user structure improvements to prepare for Pertamina server deployment.
-
-## Current State (v2.3 — shipped 2026-03-01)
+## Current State (v2.5 — shipped 2026-03-01)
 
 ## Shipped Milestones
+
+### ✅ v2.5 - User Infrastructure & AD Readiness (2026-03-01)
+
+**Delivered:** Full user system overhaul — dynamic profile/settings pages, ManageWorkers migrated to AdminController with HC access, Kelola Data hub reorganized into 3 domain sections, dual authentication (Active Directory + local) via IAuthService abstraction with hybrid AD-first + local fallback for admin, Supervisor role added, SectionHead demoted to level 3.
+
+**What Shipped:**
+1. **Dynamic Profile Page** — Profile bound to @model ApplicationUser with real data; null-safe em dash fallback; avatar initials from FullName
+2. **Functional Settings Page** — Change password, edit FullName/Position; non-functional items removed/disabled
+3. **ManageWorkers Migration** — 11 actions moved from CMPController to AdminController; HC access via [Authorize(Roles = "Admin, HC")]; standalone navbar button removed
+4. **Kelola Data Hub** — 3 domain sections (Manajemen Pekerja, Kelola Assessment, Data Proton); HC nav access extended
+5. **LDAP Auth Infrastructure** — IAuthService + LocalAuthService + LdapAuthService; config toggle; System.DirectoryServices NuGet
+6. **Dual Auth Login Flow** — IAuthService-based login; AD hint; profile sync (FullName/Email); unregistered user rejection
+7. **Hybrid Auth** — HybridAuthService (AD-first + local fallback for admin); Supervisor role (level 5); SectionHead level 3
+8. **User Structure Polish** — UserRoles.GetDefaultView() helper; SeedData modernized; AuthSource field lifecycle (added Phase 69, removed Phase 72)
+
+**Metrics:**
+- 8 phases (65-72), 14 plans
+- 41 files changed, +12,297 / -1,055
+- 2026-02-27 → 2026-02-28
+
+---
+
+### ✅ v2.4 - CDP Progress (2026-03-01)
+
+**Delivered:** CDP/Progress page rebuilt from scratch — data source corrected to ProtonDeliverableProgress, all filters wired to real queries with role-scoping, per-role approval workflow (SrSpv/SH/HC) with coaching report + evidence, Excel/PDF export, and server-side group-boundary pagination with empty states.
+
+**What Shipped:**
+1. **Data Source Fix** — ProtonProgress queries ProtonDeliverableProgress + ProtonTrackAssignment; real coachee list from CoachCoacheeMapping; correct summary stats
+2. **Functional Filters** — 5 filter parameters wired to EF Core Where composition; role-scope-first; client-side search
+3. **Per-role Approval** — SrSpv/SectionHead/HC independent approval columns; rejection takes precedence; migration backfills
+4. **Coaching Report + Evidence** — Combined evidence+coaching modal; CoachingSession FK; Deliverable detail coaching display
+5. **Export** — Excel (ClosedXML) and PDF (QuestPDF) from ProtonProgress page
+6. **UI Polish** — Group-boundary pagination (20 rows/page); 3 empty state scenarios; filter result counter
+
+**Metrics:**
+- 4 phases (61-64), 9 plans
+- 49 files changed, +20,101 / -6,105
+- 2026-02-27 → 2026-02-28
+
+---
 
 ### ✅ v2.3 - Admin Portal (2026-03-01)
 
@@ -286,7 +316,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ---
 
-## Current State (v1.5)
+## Current State (v2.5)
 
 **Tech Stack:**
 - ASP.NET Core 8.0 MVC (C#)
@@ -296,14 +326,24 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 - ASP.NET Identity (authentication)
 - Chart.js (loaded globally via _Layout.cshtml)
 - ClosedXML (Excel export)
+- QuestPDF (PDF export — v2.4)
+- System.DirectoryServices (LDAP auth — v2.5)
 
 **Working Features:**
 
 ### Authentication & Authorization
-- ✅ Login/logout system
-- ✅ 6-level role hierarchy (Admin, HC, SectionHead, SrSpv, Spv, Coachee)
-- ✅ Multi-view system — Admin can simulate all 5 role views (HC, Atasan, Coach, Coachee, Admin)
+- ✅ Dual authentication via IAuthService abstraction (v2.5): config toggle `Authentication:UseActiveDirectory` routes to Local or LDAP
+- ✅ HybridAuthService: AD-first + local fallback for admin@pertamina.com (v2.5)
+- ✅ 10-level role hierarchy: Admin, HC, SectionHead(3), SrSpv(4), Supervisor(5), Spv, Coach, Coachee, plus Worker and User
+- ✅ Multi-view system — Admin can simulate all role views; UserRoles.GetDefaultView() single source of truth
 - ✅ Section-based access control
+- ✅ Profile sync on AD login: FullName and Email only (Role/SelectedView never changed)
+
+### User Management (v2.5)
+- ✅ Dynamic Profile page — bound to @model ApplicationUser; real user data; null-safe fallback; avatar initials
+- ✅ Functional Settings page — Change password, edit FullName/Position; non-functional items disabled
+- ✅ ManageWorkers in AdminController — 11 CRUD actions with [Authorize(Roles = "Admin, HC")]
+- ✅ Kelola Data hub — 3 domain sections (Manajemen Pekerja, Kelola Assessment, Data Proton)
 
 ### CMP Module (Competency Management)
 - ✅ **Assessment Engine:**
@@ -378,7 +418,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 ### CDP Module (Competency Development)
 - ✅ IDP (Individual Development Plan) management
 - ✅ Coaching sessions with domain-specific fields (Kompetensi, SubKompetensi, CatatanCoach, action items)
-- ✅ Proton deliverable tracking with sequential lock and evidence upload/revise
+- ✅ Proton deliverable tracking with evidence upload/revise
 - ✅ Approval workflow (SrSpv → SectionHead → HC) with rejection reasons
 - ✅ HC HCApprovals queue + final Proton Assessment creation
 - ✅ **Proton Catalog Manager (v1.9):** ProtonCatalogController; tree view (Kompetensi→SubKompetensi→Deliverable) with Bootstrap expand/collapse; track dropdown; Add Track modal; inline add for all 3 levels; pencil-icon rename; trash icon delete with coachee impact modal (cascade: Deliverables→SubKompetensi→Kompetensi→Track)
@@ -387,6 +427,14 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
   - Proton Progress tab: role-scoped team data (Coachee=self, Spv=unit, SrSpv/SectionHead=section, HC/Admin=all)
   - Assessment Analytics tab: HC/Admin only (absorbed from standalone HC Reports)
   - ~~DevDashboard~~ and ~~HC Reports~~ standalone pages retired
+
+- ✅ **CDP Progress Page (v2.4):**
+  - Data sourced from ProtonDeliverableProgress + ProtonTrackAssignment (not IdpItems); real coachee list from CoachCoacheeMapping
+  - 5 filters (Bagian/Unit, Coachee, Track, Tahun) wired to EF Core Where composition; role-scope-first pattern; client-side search
+  - Per-role approval workflow: SrSpv/SectionHead/HC independent approval columns; rejection precedence
+  - Coaching report + evidence combined modal; CoachingSession FK linked
+  - Excel (ClosedXML) + PDF (QuestPDF) export
+  - Group-boundary server-side pagination (20 rows/page); 3 empty state scenarios; filter counter
 
 ### BP Module
 - ⏸️ **NOT IN SCOPE** - Talent profiles, eligibility, point system (postponed)
@@ -453,6 +501,15 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 | AttemptNumber as count+1 (no sequence column) | AttemptNumber = existing AssessmentAttemptHistory rows for (UserId, Title) + 1; simple count, no DB sequence needed | v2.2 ✓ |
 | GetAllWorkersHistory returns (assessment, training) tuple | Two lists have different sort orders and columns; tuple cleaner than single list with discriminator flag | v2.2 ✓ |
 | Batch GroupBy/ToDictionary for archived counts | Compute archived count per (UserId, Title) once via GroupBy; ToDictionary lookup per current session — avoids N+1 against AssessmentAttemptHistory | v2.2 ✓ |
+| Role-scope-first filter pattern | Derive scopedCoacheeIds from role before applying URL params; EF Where composition chains | v2.4 ✓ |
+| Per-role approval columns (SrSpv/SH/HC) | Independent approval columns; any role rejecting sets Status=Rejected; data migration backfills from existing Approved | v2.4 ✓ |
+| Group-boundary pagination | Group by (CoacheeName, Kompetensi, SubKompetensi) then slice ≤20 rows without splitting a group | v2.4 ✓ |
+| QuestPDF for PDF export | QuestPDF NuGet installed for ProtonProgress PDF export alongside ClosedXML for Excel | v2.4 ✓ |
+| ManageWorkers migration clean break | No redirect from old CMP URL — clean break; 11 actions moved to AdminController | v2.5 ✓ |
+| IAuthService abstraction for dual auth | LocalAuthService + LdapAuthService behind common interface; DI factory delegate in Program.cs | v2.5 ✓ |
+| Global config routing (not per-user AuthSource) | UseActiveDirectory config toggle routes all users to same auth; AuthSource field added then removed | v2.5 ✓ |
+| HybridAuthService AD-first + local fallback | admin@pertamina.com gets local fallback after AD failure; all others AD-only in AD mode | v2.5 ✓ |
+| Supervisor role level 5, SectionHead level 3 | New Supervisor role bridges Coach and SrSpv; SectionHead demoted for management-tier parity | v2.5 ✓ |
 
 ## Technical Constraints
 
@@ -474,7 +531,7 @@ See `.planning/milestones/v1.0-ROADMAP.md` for full details.
 
 ## Shipped Requirements
 
-All requirements from v1.0–v2.2 are satisfied. See milestone archives for traceability:
+All requirements from v1.0–v2.5 are satisfied. See milestone archives for traceability:
 - `milestones/v1.0-REQUIREMENTS.md` — 6 requirements (Phases 1-3)
 - `milestones/v1.2-REQUIREMENTS.md` — 11 requirements (Phases 9-12, all ✅ Shipped)
 - `milestones/v1.3-REQUIREMENTS.md` — 9 requirements (Phases 13-15; 7 shipped, 2 cancelled)
@@ -484,6 +541,9 @@ All requirements from v1.0–v2.2 are satisfied. See milestone archives for trac
 - `milestones/v2.0-REQUIREMENTS.md` — 4 requirements (ASSESS-01–03, HIST-01, all ✅ Shipped)
 - `milestones/v2.1-REQUIREMENTS.md` — 11 requirements (SAVE-01–03, RESUME-01–03, POLL-01–02, MONITOR-01–03, all ✅ Shipped)
 - `milestones/v2.2-REQUIREMENTS.md` — 3 requirements (HIST-01–03, all ✅ Shipped)
+- `milestones/v2.3-REQUIREMENTS.md` — 12 v2.3 requirements (MDAT/OPER/CRUD; 7 shipped, 5 deferred)
+- `milestones/v2.4-REQUIREMENTS.md` — 17 requirements (DATA/FILT/ACTN/UI, all ✅ Shipped)
+- `milestones/v2.5-REQUIREMENTS.md` — 21 requirements (PROF/AUTH/USR/USTR/AUTH-HYBRID, all ✅ Shipped)
 
 ## Users & Roles
 
@@ -556,4 +616,4 @@ All requirements from v1.0–v2.2 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-01 after v2.3 milestone completion*
+*Last updated: 2026-03-01 after v2.5 milestone completion*

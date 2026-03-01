@@ -161,3 +161,43 @@
 
 ---
 
+
+## v2.4 CDP Progress (Shipped: 2026-03-01)
+
+**Phases completed:** 4 phases (61-64), 9 plans
+**Files modified:** 49 | **Insertions:** 20,101 | **Deletions:** 6,105
+**Timeline:** 2026-02-27 → 2026-02-28
+
+**Delivered:** CDP/Progress page rebuilt from scratch — data source corrected to ProtonDeliverableProgress, all filters wired to real queries with role-scoping, per-role approval workflow (SrSpv/SH/HC) with coaching report + evidence, Excel/PDF export via QuestPDF, and server-side group-boundary pagination with empty states.
+
+**Key accomplishments:**
+1. Data source fix — ProtonProgress action queries ProtonDeliverableProgress + ProtonTrackAssignment (not IdpItems), real coachee list from CoachCoacheeMapping, correct summary stats
+2. Role-scoped filtering — 5 filter parameters (Bagian/Unit, Coachee, Track, Tahun) wired to EF Core Where composition with role-scope-first pattern; client-side search box
+3. Per-role approval workflow — SrSpv/SectionHead/HC each have independent approval columns; per-role migration backfills from existing Approved records; rejection takes overall precedence
+4. Coaching report + evidence — SubmitEvidenceWithCoaching combined modal; CoachingSession FK linked; Deliverable detail page shows coaching report
+5. Export — Excel export via ClosedXML and PDF export via QuestPDF from ProtonProgress page
+6. UI polish — Group-boundary server-side pagination (20 rows/page), 3 empty state scenarios, "Menampilkan X dari Y" counter
+
+---
+
+
+## v2.5 User Infrastructure & AD Readiness (Shipped: 2026-03-01)
+
+**Phases completed:** 8 phases (65-72), 14 plans
+**Files modified:** 41 | **Insertions:** 12,297 | **Deletions:** 1,055
+**Timeline:** 2026-02-27 → 2026-02-28
+
+**Delivered:** Full user system overhaul — dynamic profile/settings pages, ManageWorkers migrated to AdminController with HC access, Kelola Data hub reorganized, dual authentication (Active Directory + local) via IAuthService abstraction, hybrid auth with AD-first + local fallback for admin, and role structure additions (Supervisor level 5).
+
+**Key accomplishments:**
+1. Dynamic profile page — Profile bound to @model ApplicationUser; real user data (Nama, NIP, Email, Position, Section, Unit, Role); null-safe em dash fallback; avatar initials from FullName
+2. Functional settings page — Change password via ChangePasswordAsync; edit FullName/Position; non-functional items (2FA, Notifications, Language) removed or disabled
+3. ManageWorkers migration — 11 actions (CRUD, import, export, detail) moved from CMPController to AdminController with [Authorize(Roles = "Admin, HC")]; standalone navbar button removed; 5 view files copied and updated
+4. Kelola Data hub — Admin/Index.cshtml restructured into 3 domain sections (Manajemen Pekerja, Kelola Assessment, Data Proton); stale "Segera" items cleaned up; HC nav access extended
+5. LDAP auth infrastructure — IAuthService interface + LocalAuthService + LdapAuthService (DirectoryEntry LDAP bind); config toggle UseActiveDirectory; System.DirectoryServices NuGet
+6. Dual auth login flow — AccountController.Login POST uses IAuthService; AD hint on login page; profile sync (FullName/Email only); unregistered users rejected with message
+7. Hybrid auth — HybridAuthService wraps AD-first + local fallback for admin@pertamina.com; Supervisor role (level 5) added; SectionHead demoted to level 3
+8. User structure polish — UserRoles.GetDefaultView() single source of truth; SeedData modernized; AuthSource field added then removed (global config routing replaces per-user)
+
+---
+
