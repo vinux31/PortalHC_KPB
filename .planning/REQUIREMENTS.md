@@ -42,7 +42,7 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 ### HC Role Fix
 
 - [ ] **ROLE-01**: Admin hub cards hidden for HC users when the backing action is Admin-only (KKJ Matrix, KKJ-IDP Mapping, Coach-Coachee Mapping, Manage Assessments)
-- [ ] **ROLE-02**: "Kelola Data" navbar visibility uses Identity role check, not just SelectedView field
+- [x] **ROLE-02**: "Kelola Data" navbar visibility uses Identity role check, not just SelectedView field
 
 ### Broken Link Fix
 
@@ -86,7 +86,7 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 | FILE-01 | Phase 74 | Complete |
 | FILE-02 | Phase 74 | Complete |
 | ROLE-01 | Phase 76 | Pending |
-| ROLE-02 | Phase 76 | Pending |
+| ROLE-02 | Phase 76 | Complete |
 | LINK-01 | Phase 76 | Pending |
 
 **Coverage:**

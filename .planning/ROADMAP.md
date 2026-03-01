@@ -301,7 +301,7 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
   1. An HC user on the Admin hub sees only the cards their role can open — KKJ Matrix, KKJ-IDP Mapping, Coach-Coachee Mapping, and Manage Assessments cards are hidden from HC view
   2. The "Kelola Data" navbar item appears for HC users based on their Identity role, not the SelectedView session field
   3. Clicking the "Deliverable Progress Override" card in the Admin hub navigates to the ProtonData page with the correct Bootstrap tab already active
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 76-01-PLAN.md — Admin hub HC card gating + Deliverable Progress Override tab fix
 - [ ] 76-02-PLAN.md — Kelola Data navbar Identity role gating
@@ -333,4 +333,4 @@ Plans:
 | 73 | 2/2 | Complete    | 2026-03-01 | — |
 | 74 | 2/2 | Complete    | 2026-03-01 | — |
 | 75 | 2/2 | Complete    | 2026-03-01 | — |
-| 76 | v2.6 | 0/TBD | Not started | — |
+| 76 | 1/2 | In Progress|  | — |

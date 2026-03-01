@@ -4,13 +4,13 @@ milestone: v1.0
 milestone_name: Codebase Cleanup
 current_phase: Phase 75 (complete — both plans done)
 status: completed
-last_updated: "2026-03-01T05:17:38.356Z"
+last_updated: "2026-03-01T05:27:18.246Z"
 last_activity: "2026-03-01 — 75-02: Coaching Session Override + Final Assessment Manager stub cards removed from Admin hub; Pengaturan Lainnya (2FA, Notifikasi, Bahasa) removed from Settings page (STUB-02, STUB-03, STUB-04)"
 progress:
-  total_phases: 43
+  total_phases: 44
   completed_phases: 42
-  total_plans: 92
-  completed_plans: 91
+  total_plans: 94
+  completed_plans: 92
 ---
 
 ---
@@ -69,11 +69,11 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 75 (complete — both plans done)
+**Current phase:** Phase 76 (complete — both plans done)
 **Status:** Milestone complete
-**Last activity:** 2026-03-01 — 75-02: Coaching Session Override + Final Assessment Manager stub cards removed from Admin hub; Pengaturan Lainnya (2FA, Notifikasi, Bahasa) removed from Settings page (STUB-02, STUB-03, STUB-04)
+**Last activity:** 2026-03-01 — 76-02: Kelola Data nav visibility fixed to use User.IsInRole() instead of SelectedView string comparison (ROLE-02)
 
-Progress: [███████████████░░░░░] 75% (3/4 phases complete)
+Progress: [████████████████████] 100% (4/4 phases complete)
 
 ## Phase Summary
 
@@ -82,7 +82,7 @@ Progress: [███████████████░░░░░] 75% (3/
 | 73 | Critical Fixes | CRIT-01, CRIT-02 | Complete |
 | 74 | Dead Code Removal | VIEW-01–06, ACTN-01–02, FILE-01–02 | Complete |
 | 75 | Placeholder Cleanup | STUB-01–05 | Complete |
-| 76 | Role Fixes & Broken Link | ROLE-01, ROLE-02, LINK-01 | Not started |
+| 76 | Role Fixes & Broken Link | ROLE-01, ROLE-02, LINK-01 | Complete |
 
 ## Performance Metrics
 
@@ -111,6 +111,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 75-placeholder-cleanup]: 75-01: Removed Privacy() blank line separator above [ResponseCache] to keep consistent spacing in HomeController
 - [Phase 75-placeholder-cleanup]: 75-02: Deleted stub cards entirely rather than hiding them — dead href="#" cards with "Segera" badges provide no value and mislead users
 - [Phase 75-placeholder-cleanup]: 75-02: Removed entire Pengaturan Lainnya section including preceding hr — no functional content remained in Section 3
+- [Phase 76-role-fixes-broken-link]: 76-02: Used User.IsInRole() for Kelola Data nav visibility — SelectedView is a profile field; HC users with SelectedView set to a unit name would otherwise lose nav access despite holding the HC Identity role
 
 ### Roadmap Evolution
 
@@ -127,5 +128,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 75-02-PLAN.md — stub cards and Pengaturan Lainnya removed (STUB-02, STUB-03, STUB-04)
-Resume file: .planning/phases/75-placeholder-cleanup/75-02-SUMMARY.md
+Stopped at: Completed 76-02-PLAN.md — Kelola Data nav visibility fixed to use User.IsInRole() (ROLE-02). v2.6 milestone complete.
+Resume file: .planning/phases/76-role-fixes-broken-link/76-02-SUMMARY.md
