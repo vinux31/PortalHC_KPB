@@ -181,6 +181,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 ### Roadmap Evolution
 
 All milestones through v2.5 shipped. v2.6 is cleanup-only — no new features. Phase ordering prioritizes by impact: critical runtime errors first, then delete sweep, then stub removal, then role/link fixes.
+- Phase 78 added: Deduplicate CMP page — remove CDP/ProtonMain if identical to Admin/CoachCoacheeMapping
 
 ### Pending Todos
 
