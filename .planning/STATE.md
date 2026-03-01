@@ -68,13 +68,13 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 ## Current Position
 
-**Milestone:** v2.7 Assessment Monitoring
+**Milestone:** v2.7 Assessment Monitoring — COMPLETE
 **Current phase:** 81 of 81 — Cleanup — Remove Old Entry Points
-**Plan:** 1 of 1 in current phase (awaiting human-verify checkpoint)
-**Status:** In progress — checkpoint pending
-**Last activity:** 2026-03-01 — Plan 81-01 tasks complete: Monitoring dropdown removed, Training Records card removed, AssessmentMonitoring table height fixed — awaiting human verify
+**Plan:** 2 of 2 in current phase — COMPLETE
+**Status:** Complete — all v2.7 plans delivered
+**Last activity:** 2026-03-01 — Plan 81-02 complete: Admin/ManageQuestions page added with 3 controller actions and ManageAssessment dropdown entry — checkpoint approved
 
-Progress: [█████████░] 90% (v2.7)
+Progress: [██████████] 100% (v2.7)
 
 ## Accumulated Context
 
@@ -92,6 +92,8 @@ Progress: [█████████░] 90% (v2.7)
 - [Phase 80]: Checkpoint approved with out-of-scope notes: manage question and table height — deferred
 - [81-01]: CLN-01 and CLN-02 implemented as surgical view edits — no controller changes needed
 - [81-01]: AssessmentMonitoring table min-height matches ManageAssessment pattern (calc(100vh - 420px))
+- [81-02]: Admin/ManageQuestions mirrors CMP/ManageQuestions logic; only redirect targets and breadcrumb differ
+- [81-02]: Manage Questions dropdown item placed after Edit and before Export Excel in ManageAssessment dropdown
 
 ### Pending Todos
 
@@ -104,5 +106,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: 81-01-PLAN.md — Task 3 checkpoint:human-verify (tasks 1+2 complete, awaiting user verification)
-Resume file: .planning/phases/81-cleanup-remove-old-entry-points/81-01-PLAN.md
+Stopped at: Completed 81-02-PLAN.md — v2.7 milestone complete
+Resume file: N/A — milestone complete
