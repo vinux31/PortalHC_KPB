@@ -12,22 +12,35 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v2.6 Codebase Cleanup
+## Current Milestone: v2.7 Assessment Monitoring
 
-**Goal:** Remove all dead code, fix broken pages, eliminate placeholder stubs, and resolve HC role mismatches across the portal
+**Goal:** Extract real-time assessment monitoring into a dedicated page and clean up the Kelola Data hub by removing the redundant Training Records card
 
 **Target features:**
-- Fix critical runtime errors (missing AccessDenied view, missing CMP/WorkerDetail view)
-- Delete orphaned views left behind from CMP→Admin migration (6 files)
-- Remove dead controller actions (3 actions)
-- Clean up placeholder/stub pages and menu items (BP module, Admin hub stubs, Settings disabled items, Privacy page)
-- Delete unused static files (site.css, site.js)
-- Fix HC role mismatch in Admin hub (4 cards visible but AccessDenied on click)
-- Fix broken Bootstrap tab link in Admin hub
+- Dedicated Assessment Monitoring page in Kelola Data > Section C (Assessment & Training)
+- Move monitoring functionality from ManageAssessment dropdown actions to standalone page
+- Remove redundant Training Records hub card (CMP/Records stays as worker-facing page, just not linked from Admin hub)
 
-## Current State (v2.5 — shipped 2026-03-01)
+## Current State (v2.6 — shipped 2026-03-01)
 
 ## Shipped Milestones
+
+### ✅ v2.6 - Codebase Cleanup (2026-03-01)
+
+**Delivered:** Removed all dead code, fixed critical runtime errors, cleaned up placeholder stubs, resolved HC role mismatches, and deduplicated CMP/ProtonMain page.
+
+**What Shipped:**
+1. **Critical Fixes** — AccessDenied view created, dead CMPController.WorkerDetail removed with 5 redirect fixes
+2. **Dead Code Removal** — 6 orphaned Razor views deleted, 3 dead controller actions removed, unused site.css and site.js deleted
+3. **Placeholder Cleanup** — BP module stub page removed, Admin hub stub cards deleted, Settings disabled items cleaned up
+4. **Role Fixes & Broken Link** — HC-only card visibility fixed with User.IsInRole() gates, Deliverable Progress Override tab link fixed
+5. **CMP/ProtonMain Deduplication** — CDP/ProtonMain action + view + ViewModel deleted, Training Records hub card added to Kelola Data Section C
+
+**Metrics:**
+- 5 phases (73-78), 10 plans
+- 2026-03-01
+
+---
 
 ### ✅ v2.5 - User Infrastructure & AD Readiness (2026-03-01)
 
@@ -629,4 +642,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-01 after v2.5 milestone completion*
+*Last updated: 2026-03-01 after v2.7 milestone started*
