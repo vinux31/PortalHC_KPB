@@ -25,10 +25,13 @@ Remove redundant entry points from ManageAssessment and the Kelola Data hub, add
 
 ### Manage Questions Dropdown Item (new)
 - Add "Manage Questions" item to ManageAssessment per-group dropdown
+- Dropdown label: "Manage Questions"
 - Link to `Admin/ManageQuestions/{id}` — new action in AdminController
 - Reuse the same layout and logic from existing `CMP/ManageQuestions` (2-column: add form left, question list right)
 - URL pattern: `Admin/ManageQuestions/{assessmentId}`, NOT CMP path
-- Breadcrumb and back button point to ManageAssessment (not CMP)
+- Page title (header): "Manage Questions"
+- Breadcrumb: Kelola Data > Manage Assessment > Kelola Soal
+- Back button points to ManageAssessment
 - Same Add + Delete functionality (no edit), same authorization (Admin, HC)
 
 ### Assessment Monitoring Table Height
@@ -39,7 +42,6 @@ Remove redundant entry points from ManageAssessment and the Kelola Data hub, add
 ### Claude's Discretion
 - Exact dropdown item icon for "Manage Questions" (suggest `bi-question-circle` or `bi-list-check`)
 - Whether to copy the CMP view file or create a new one that shares the same layout
-- Breadcrumb text for ManageQuestions page
 - Order of dropdown items after adding Manage Questions
 
 </decisions>
