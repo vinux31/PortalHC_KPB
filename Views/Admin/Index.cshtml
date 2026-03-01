@@ -29,7 +29,7 @@
             </div>
         </a>
     </div>
-    @if (User.IsInRole("Admin"))
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
         <a href="@Url.Action("KkjMatrix", "Admin")" class="text-decoration-none">
@@ -81,7 +81,7 @@
     <h5 class="fw-bold text-warning mb-0">Proton</h5>
 </div>
 <div class="row g-3 mb-2">
-    @if (User.IsInRole("Admin"))
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
         <a href="@Url.Action("CoachCoacheeMapping", "Admin")" class="text-decoration-none">

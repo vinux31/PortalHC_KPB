@@ -46,7 +46,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/KkjMatrix
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> KkjMatrix()
         {
             ViewData["Title"] = "Kelola KKJ Matrix";
@@ -74,7 +74,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjMatrixSave
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjMatrixSave([FromBody] List<KkjMatrixItem> rows)
         {
@@ -135,7 +135,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjBagianSave
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianSave([FromBody] List<KkjBagian> bagians)
         {
@@ -186,7 +186,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjBagianAdd
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianAdd()
         {
@@ -210,7 +210,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjBagianDelete
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianDelete(int id)
         {
@@ -233,7 +233,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/KkjMatrixDelete
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjMatrixDelete(int id)
         {
@@ -382,7 +382,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/CpdpItems
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CpdpItems()
         {
             ViewData["Title"] = "KKJ-IDP Mapping Editor";
@@ -395,7 +395,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CpdpItemsSave
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CpdpItemsSave([FromBody] List<CpdpItem> rows)
         {
@@ -454,7 +454,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CpdpItemDelete
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CpdpItemDelete(int id)
         {
@@ -1027,7 +1027,7 @@ namespace HcPortal.Controllers
 
         // --- DELETE ASSESSMENT ---
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteAssessment(int id)
         {
@@ -1229,7 +1229,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/CpdpItemsExport?section=RFCC
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CpdpItemsExport(string? section)
         {
             var query = _context.CpdpItems.OrderBy(c => c.No).ThenBy(c => c.Id).AsQueryable();
@@ -1528,7 +1528,7 @@ namespace HcPortal.Controllers
 
         // --- GET MONITORING PROGRESS (polling endpoint for real-time monitoring) ---
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> GetMonitoringProgress(string title, string category, DateTime scheduleDate)
         {
             // Step 1: load sessions (same filter as AssessmentMonitoringDetail)
@@ -1624,7 +1624,7 @@ namespace HcPortal.Controllers
 
         // --- RESET ASSESSMENT ---
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ResetAssessment(int id)
         {
@@ -1722,7 +1722,7 @@ namespace HcPortal.Controllers
 
         // --- FORCE CLOSE ASSESSMENT ---
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForceCloseAssessment(int id)
         {
@@ -1773,7 +1773,7 @@ namespace HcPortal.Controllers
 
         // --- FORCE CLOSE ALL SESSIONS IN GROUP ---
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ForceCloseAll(string title, string category, DateTime scheduleDate)
         {
@@ -2060,7 +2060,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CloseEarly — score InProgress sessions from submitted answers, lock all
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CloseEarly(string title, string category, DateTime scheduleDate)
         {
@@ -2304,7 +2304,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/ReshufflePackage — reshuffle package for single worker
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReshufflePackage(int sessionId)
         {
@@ -2385,7 +2385,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/ReshuffleAll — bulk reshuffle for all workers in assessment group
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReshuffleAll(string title, string category, DateTime scheduleDate)
         {
@@ -2543,7 +2543,7 @@ namespace HcPortal.Controllers
 
         // GET /Admin/CoachCoacheeMapping
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CoachCoacheeMapping(
             string? search, string? section, bool showAll = false, int page = 1)
         {
@@ -2656,7 +2656,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingAssign
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingAssign([FromBody] CoachAssignRequest req)
         {
@@ -2732,7 +2732,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingEdit
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingEdit([FromBody] CoachEditRequest req)
         {
@@ -2792,7 +2792,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingGetSessionCount
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingGetSessionCount(int id)
         {
@@ -2808,7 +2808,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingDeactivate
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingDeactivate(int id)
         {
@@ -2835,7 +2835,7 @@ namespace HcPortal.Controllers
 
         // POST /Admin/CoachCoacheeMappingReactivate
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CoachCoacheeMappingReactivate(int id)
         {
@@ -3592,7 +3592,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/CoachCoacheeMappingExport
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CoachCoacheeMappingExport()
         {
             var mappings = await _context.CoachCoacheeMappings
