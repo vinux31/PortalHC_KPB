@@ -328,6 +328,6 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 | 61-64 | v2.4 | 9/9 | Complete | 2026-02-28 |
 | 65-72 | v2.5 | 14/14 | Complete | 2026-02-28 |
 | 73 | 2/2 | Complete    | 2026-03-01 | — |
-| 74 | 2/2 | Complete   | 2026-03-01 | — |
+| 74 | 2/2 | Complete    | 2026-03-01 | — |
 | 75 | v2.6 | 0/TBD | Not started | — |
 | 76 | v2.6 | 0/TBD | Not started | — |
