@@ -718,6 +718,85 @@
         }
     }
 
+@* HC Pending Review Panel — visible to HC/Admin only (Phase 53: replaces HCApprovals page) *@
+@if (isHC)
+{
+    var hcPending = ViewBag.HcPendingReviews as dynamic ?? null;
+    int pendingCount = hcPending != null ? ((System.Collections.ICollection)hcPending).Count : 0;
+
+    <div id="hcReviewPanel" class="mt-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center py-2"
+                 style="cursor:pointer" data-bs-toggle="collapse" data-bs-target="#hcReviewPanelBody" aria-expanded="@(pendingCount > 0 ? "true" : "false")">
+                <h6 class="mb-0">
+                    <i class="bi bi-clipboard-check me-2 text-success"></i>Antrian Review HC
+                    @if (pendingCount > 0)
+                    {
+                        <span class="badge bg-warning text-dark ms-2">@pendingCount pending</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success ms-2">Semua sudah direview</span>
+                    }
+                </h6>
+                <i class="bi bi-chevron-down text-muted small"></i>
+            </div>
+            <div class="collapse @(pendingCount > 0 ? "show" : "")" id="hcReviewPanelBody">
+                <div class="card-body p-0">
+                    @if (pendingCount == 0)
+                    {
+                        <div class="p-3 text-muted text-center">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>
+                            Tidak ada deliverable yang menunggu review HC.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Coachee</th>
+                                        <th>Kompetensi</th>
+                                        <th>Sub-Kompetensi</th>
+                                        <th>Deliverable</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Tanggal Submit</th>
+                                        <th class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="hcReviewTableBody">
+                                    @foreach (var item in hcPending)
+                                    {
+                                        <tr id="hcrow-@item.ProgressId">
+                                            <td>@item.CoacheeName</td>
+                                            <td class="small text-muted">@item.Kompetensi</td>
+                                            <td class="small text-muted">@item.SubKompetensi</td>
+                                            <td>@item.Deliverable</td>
+                                            <td class="text-center"><span class="badge bg-primary">@item.Status</span></td>
+                                            <td class="text-center small text-muted">@item.SubmittedAt</td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-success btnHcReviewPanel"
+                                                        data-progress-id="@item.ProgressId">
+                                                    <i class="bi bi-check-circle me-1"></i>Review
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="px-3 py-2 text-muted small border-top">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Setelah diklik Review, deliverable ditandai sebagai sudah diperiksa HC. Status tidak berubah.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 </div> @* end container-fluid *@
 
 @* Tinjau Modal — shared for SrSpv and SH approve/reject *@
@@ -1059,6 +1138,73 @@ document.querySelectorAll('.btnHcReview').forEach(btn => {
         } catch (e) {
             showToast('Terjadi kesalahan jaringan.', 'danger');
             this.disabled = false;
+        }
+    });
+});
+
+// === HC Review Panel buttons (Phase 53: antrian review panel) ===
+document.querySelectorAll('.btnHcReviewPanel').forEach(btn => {
+    btn.addEventListener('click', async function() {
+        const progressId = this.dataset.progressId;
+        if (!confirm('Tandai deliverable ini sebagai sudah direview HC?')) return;
+
+        const formData = new FormData();
+        formData.append('progressId', progressId);
+        formData.append('__RequestVerificationToken', getAntiForgeryToken());
+
+        this.disabled = true;
+        const originalHtml = this.innerHTML;
+        this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Menyimpan...';
+
+        try {
+            const resp = await fetch('/CDP/HCReviewFromProgress', { method: 'POST', body: formData });
+            const data = await resp.json();
+            if (data.success) {
+                // Remove row from panel table
+                const row = document.getElementById(`hcrow-${progressId}`);
+                if (row) row.remove();
+
+                // Update HC cell in the main progress table (if visible on same page)
+                const hcCell = document.getElementById(`hc-${progressId}`);
+                if (hcCell) {
+                    const tooltip = `${data.reviewerName} \u2014 ${data.reviewedAt}`;
+                    hcCell.innerHTML = `<span class="badge bg-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
+                    const newBadge = hcCell.querySelector('[data-bs-toggle="tooltip"]');
+                    if (newBadge) new bootstrap.Tooltip(newBadge);
+                    // Also remove the btnHcReview inline button for this row if present
+                    const oldBtn = hcCell.querySelector('.btnHcReview[data-progress-id="' + progressId + '"]');
+                    if (oldBtn) oldBtn.remove();
+                }
+
+                // Update the pending count badge
+                const panelRows = document.querySelectorAll('#hcReviewTableBody tr');
+                const newCount = panelRows.length;
+                const badge = document.querySelector('#hcReviewPanel .badge');
+                if (badge) {
+                    if (newCount === 0) {
+                        badge.className = 'badge bg-success ms-2';
+                        badge.textContent = 'Semua sudah direview';
+                        const emptyMsg = document.createElement('div');
+                        emptyMsg.className = 'p-3 text-muted text-center';
+                        emptyMsg.innerHTML = '<i class="bi bi-check-circle-fill text-success me-1"></i>Tidak ada deliverable yang menunggu review HC.';
+                        const tbody = document.getElementById('hcReviewTableBody');
+                        if (tbody && tbody.closest('.table-responsive')) {
+                            tbody.closest('.table-responsive').replaceWith(emptyMsg);
+                        }
+                    } else {
+                        badge.textContent = newCount + ' pending';
+                    }
+                }
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message || 'Terjadi kesalahan.', 'danger');
+                this.disabled = false;
+                this.innerHTML = originalHtml;
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan jaringan.', 'danger');
+            this.disabled = false;
+            this.innerHTML = originalHtml;
         }
     });
 });

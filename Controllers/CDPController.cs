@@ -1740,6 +1740,45 @@ namespace HcPortal.Controllers
             }
             ViewBag.EmptyScenario = emptyScenario;
 
+            // HC pending review panel (Phase 53) — load pending deliverables for HC/Admin to review
+            if (userLevel <= 2) // HC or Admin
+            {
+                // Load all deliverables with HCApprovalStatus == "Pending" within scoped coachees
+                // Use a fresh query (not filtered by pagination) so panel shows ALL pending even when table is filtered
+                var hcPendingRaw = await _context.ProtonDeliverableProgresses
+                    .Include(p => p.ProtonDeliverable)
+                        .ThenInclude(d => d!.ProtonSubKompetensi)
+                            .ThenInclude(s => s!.ProtonKompetensi)
+                    .Where(p => scopedCoacheeIds.Contains(p.CoacheeId)
+                             && p.HCApprovalStatus == "Pending"
+                             && (p.Status == "Submitted" || p.Status == "Approved" || p.Status == "Rejected"))
+                    .OrderBy(p => p.SubmittedAt)
+                    .ToListAsync();
+
+                // Batch-load coachee names for the panel
+                var panelCoacheeIds = hcPendingRaw.Select(p => p.CoacheeId).Distinct().ToList();
+                var panelCoacheeNames = panelCoacheeIds.Any()
+                    ? await _context.Users
+                        .Where(u => panelCoacheeIds.Contains(u.Id))
+                        .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id)
+                    : new Dictionary<string, string>();
+
+                ViewBag.HcPendingReviews = hcPendingRaw.Select(p => new
+                {
+                    ProgressId = p.Id,
+                    CoacheeName = panelCoacheeNames.TryGetValue(p.CoacheeId, out var pn) ? pn : p.CoacheeId,
+                    Deliverable = p.ProtonDeliverable?.NamaDeliverable ?? "",
+                    Kompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
+                    SubKompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
+                    Status = p.Status,
+                    SubmittedAt = p.SubmittedAt.HasValue ? p.SubmittedAt.Value.ToLocalTime().ToString("dd/MM/yyyy") : "-"
+                }).ToList();
+            }
+            else
+            {
+                ViewBag.HcPendingReviews = null;
+            }
+
             return View(data);
         }
 
