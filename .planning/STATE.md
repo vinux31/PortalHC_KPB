@@ -2,6 +2,21 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Codebase Cleanup
+current_phase: Phase 76 (plan 01 complete, plan 02 pending)
+status: completed
+last_updated: "2026-03-01T05:31:14.311Z"
+last_activity: "2026-03-01 — 76-01: HC-only card visibility in Admin hub fixed, Deliverable Progress Override link fixed (ROLE-01, LINK-01)"
+progress:
+  total_phases: 44
+  completed_phases: 43
+  total_plans: 94
+  completed_plans: 93
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Codebase Cleanup
 current_phase: Phase 76 (complete — both plans done)
 status: completed
 last_updated: "2026-03-01T05:28:35.539Z"
@@ -85,7 +100,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Milestone:** v2.6 Codebase Cleanup
 **Current phase:** Phase 76 (plan 01 complete, plan 02 pending)
-**Status:** in-progress
+**Status:** Milestone complete
 **Last activity:** 2026-03-01 — 76-01: HC-only card visibility in Admin hub fixed, Deliverable Progress Override link fixed (ROLE-01, LINK-01)
 
 Progress: [███████████████░░░░░] 75% (3/4 phases complete)
