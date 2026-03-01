@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Admin Portal
 status: completed
-last_updated: "2026-02-28T14:35:33.289Z"
+last_updated: "2026-03-01T01:57:45.077Z"
 last_activity: "2026-02-28 - Completed Plan 74-02: _Layout SelectedView optimization (no GetRolesAsync in shared view), CDPController upload gated on Coach role name (not RoleLevel), AdminController EligibleCoaches uses GetUsersInRoleAsync("Coach"), EF migration UpdateSectionHeadRoleLevelAndAddSupervisorRole applied (SectionHead RoleLevel 4→3 in DB)."
 progress:
   total_phases: 59
   completed_phases: 57
-  total_plans: 134
-  completed_plans: 133
+  total_plans: 137
+  completed_plans: 134
 ---
 
 ---
@@ -569,6 +569,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 74-02]: EligibleCoaches uses GetUsersInRoleAsync(UserRoles.Coach) — explicit role membership query, not level filter; cleanly excludes Supervisor from coach dropdown
 - [Phase 74-02]: _Layout uses currentUser?.SelectedView (stored field) — eliminates async GetRolesAsync from shared view, consistent with Phase 73 SelectedView-as-display-mode pattern
 - [Phase 74-02]: EF data migration uses SQL JOIN to AspNetUserRoles+AspNetRoles to find SectionHead users; table name is "Users" (custom ToTable in DbContext)
+- [Phase 53-01]: No EF navigation property on ProtonTrackId — avoids cascade complications; caller queries ProtonTracks separately when needed
+- [Phase 53-01]: InterviewResultsJson configured as TEXT column — unrestricted length for JSON payload
+- [Phase 53-01]: IsPassed is HC manual decision in InterviewResultsDto — not computed from AspectScores per locked CONTEXT.md decision
 
 ### Roadmap Evolution
 
@@ -617,6 +620,7 @@ None.
 | Phase 73 P01 | 3m | 2 tasks | 4 files |
 | Phase 74-hybrid-auth-role-restructuring P01 | 2 | 2 tasks | 3 files |
 | Phase 74-hybrid-auth-role-restructuring P02 | 3m | 2 tasks | 5 files |
+| Phase 53-final-assessment-manager P01 | 2 | 2 tasks | 6 files |
 
 ## Session Continuity
 
