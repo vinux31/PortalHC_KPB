@@ -39,19 +39,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MON-01 | — | Pending |
-| MON-02 | — | Pending |
-| MON-03 | — | Pending |
-| MON-04 | — | Pending |
-| MON-05 | — | Pending |
-| CLN-01 | — | Pending |
-| CLN-02 | — | Pending |
+| MON-01 | Phase 79 | Pending |
+| MON-02 | Phase 79 | Pending |
+| MON-05 | Phase 79 | Pending |
+| MON-03 | Phase 80 | Pending |
+| MON-04 | Phase 80 | Pending |
+| CLN-01 | Phase 81 | Pending |
+| CLN-02 | Phase 81 | Pending |
 
 **Coverage:**
 - v2.7 requirements: 7 total
-- Mapped to phases: 0
-- Unmapped: 7
+- Mapped to phases: 7
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-01*
-*Last updated: 2026-03-01 after initial definition*
+*Last updated: 2026-03-01 — traceability filled after roadmap creation*

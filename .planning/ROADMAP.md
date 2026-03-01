@@ -19,7 +19,8 @@
 - ✅ **v2.3 Admin Portal** — Phases 47-53, 59 (shipped 2026-03-01)
 - ✅ **v2.4 CDP Progress** — Phases 61-64 (shipped 2026-03-01)
 - ✅ **v2.5 User Infrastructure & AD Readiness** — Phases 65-72 (shipped 2026-03-01)
-- 🔲 **v2.6 Codebase Cleanup** — Phases 73-78 (in progress)
+- ✅ **v2.6 Codebase Cleanup** — Phases 73-78 (shipped 2026-03-01)
+- 🚧 **v2.7 Assessment Monitoring** — Phases 79-81 (in progress)
 
 ## Phases
 
@@ -247,94 +248,73 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 
 </details>
 
+<details>
+<summary>✅ v2.6 Codebase Cleanup (Phases 73-78) — SHIPPED 2026-03-01</summary>
+
+- [x] Phase 73: Critical Fixes (2/2 plans) — completed 2026-03-01
+- [x] Phase 74: Dead Code Removal (2/2 plans) — completed 2026-03-01
+- [x] Phase 75: Placeholder Cleanup (2/2 plans) — completed 2026-03-01
+- [x] Phase 76: Role Fixes & Broken Link (2/2 plans) — completed 2026-03-01
+- [x] Phase 77: Merge Training Records into Manage Assessment & Training (3/3 plans) — completed 2026-03-01
+- [x] Phase 78: Deduplicate CMP page (1/1 plans) — completed 2026-03-01
+
+</details>
+
 ---
 
-## v2.6 Codebase Cleanup (Phases 73-78)
+### 🚧 v2.7 Assessment Monitoring (Phases 79-81)
 
-### Phase 73: Critical Fixes
-**Goal:** The application has no runtime errors from missing views or broken authorization paths
-**Depends on:** Nothing
-**Requirements:** CRIT-01, CRIT-02
+**Milestone Goal:** Extract assessment monitoring from the ManageAssessment dropdown into a dedicated, first-class page in Kelola Data hub — giving HC/Admin a purpose-built workspace for live assessment oversight with all monitoring actions available, while cleaning up the hub by removing redundant cards.
+
+#### Phase 79: Assessment Monitoring Page — Group List
+**Goal:** HC/Admin can reach a dedicated Assessment Monitoring page from the Kelola Data hub and see all assessment groups with real-time stats and search/filter controls
+**Depends on:** Nothing (first phase of milestone)
+**Requirements:** MON-01, MON-02, MON-05
 **Success Criteria** (what must be TRUE):
-  1. Navigating to a route the user cannot access shows a proper "Access Denied" page instead of an exception screen
-  2. The `CMPController.WorkerDetail` action and its missing view reference are gone — no runtime exception can be triggered via that route
-**Plans:** 2/2 plans complete
-
-**Completed:** —
+  1. An HC or Admin user sees an "Assessment Monitoring" card in Kelola Data hub Section C (Assessment & Training) and clicking it navigates to the new page
+  2. The monitoring page lists all assessment groups with real-time stats: participant count, completed count, passed count, and assessment status badge
+  3. The user can type in a search box or use a filter to narrow the group list by assessment name, status, or date — the list updates without a full page reload or with a filtered server response
+  4. A "Regenerate Token" action is available on the group list page (per group) and functions correctly
+**Plans:** TBD
 
 ---
 
-### Phase 74: Dead Code Removal
-**Goal:** All orphaned views, dead controller actions, and unreferenced static files are deleted from the codebase
-**Depends on:** Phase 73
-**Requirements:** VIEW-01, VIEW-02, VIEW-03, VIEW-04, VIEW-05, VIEW-06, ACTN-01, ACTN-02, FILE-01, FILE-02
+#### Phase 80: Per-Participant Monitoring Detail & HC Actions
+**Goal:** HC/Admin can drill into any assessment group to see per-participant live progress, and can perform all monitoring actions (Reset, Force Close, Bulk Close, Close Early, Regenerate Token) from within the dedicated monitoring page
+**Depends on:** Phase 79
+**Requirements:** MON-03, MON-04
 **Success Criteria** (what must be TRUE):
-  1. The six `Views/CMP/` and `Views/CDP/` orphan files no longer exist on disk — no dangling Razor views from the CMP-to-Admin migration remain
-  2. `CMPController.GetMonitorData` and `CDPController.Progress` actions are removed — zero references remain in the codebase
-  3. `wwwroot/css/site.css` and `wwwroot/js/site.js` are deleted — no view links to them and no 404s are generated for these paths
-**Plans:** 2/2 plans complete
-
-**Completed:** —
+  1. Clicking a group on the monitoring page navigates to a detail view showing each participant's real-time progress (answers completed / total), status badge, current score, and countdown timer
+  2. HC/Admin can Reset an individual participant session from the detail page — the participant's exam state is cleared and they can restart
+  3. HC/Admin can Force Close an individual session from the detail page — the participant's exam is immediately terminated and scored
+  4. HC/Admin can Bulk Close all active sessions for a group from the detail page — all in-progress sessions are closed in one action
+  5. HC/Admin can Close Early for a participant from the detail page — the session closes and results are computed from answers submitted so far
+**Plans:** TBD
 
 ---
 
-### Phase 75: Placeholder Cleanup
-**Goal:** All stub pages and placeholder menu items are removed so users never land on an unbuilt page
-**Depends on:** Phase 74
-**Requirements:** STUB-01, STUB-02, STUB-03, STUB-04, STUB-05
+#### Phase 81: Cleanup — Remove Old Entry Points
+**Goal:** The monitoring dropdown action is removed from ManageAssessment and the redundant Training Records hub card is removed from Kelola Data, leaving the hub clean with only the new dedicated monitoring card as the monitoring entry point
+**Depends on:** Phase 80
+**Requirements:** CLN-01, CLN-02
 **Success Criteria** (what must be TRUE):
-  1. The BP navbar link is gone (or hidden) — clicking the navbar never routes to the placeholder BP page
-  2. Admin hub no longer shows "Coaching Session Override" or "Final Assessment Manager" stub cards — only functional cards are visible
-  3. The Settings page shows no disabled 2FA, Notifikasi, or Bahasa items — the page contains only working controls
-  4. The Privacy page and its controller action are deleted — `/Home/Privacy` returns 404
-**Plans:** 2/2 plans complete
-
-**Completed:** —
+  1. The ManageAssessment Assessment Groups tab no longer shows a "Monitoring" dropdown action — the row action menu contains only non-monitoring actions
+  2. The Kelola Data hub Section C no longer shows a "Training Records" card — only the Assessment Monitoring card (and other remaining cards) are visible
+  3. Direct navigation to the old monitoring URL (if it existed as a dropdown target) either redirects to the new dedicated page or returns 404 — no orphaned route remains
+**Plans:** TBD
 
 ---
 
-### Phase 76: Role Fixes & Broken Link
-**Goal:** HC users see only cards they can access, the "Kelola Data" nav is correctly role-gated, and the broken tab link works
-**Depends on:** Phase 75
-**Requirements:** ROLE-01, ROLE-02, LINK-01
-**Success Criteria** (what must be TRUE):
-  1. An HC user on the Admin hub sees only the cards their role can open — KKJ Matrix, KKJ-IDP Mapping, Coach-Coachee Mapping, and Manage Assessments cards are hidden from HC view
-  2. The "Kelola Data" navbar item appears for HC users based on their Identity role, not the SelectedView session field
-  3. Clicking the "Deliverable Progress Override" card in the Admin hub navigates to the ProtonData page with the correct Bootstrap tab already active
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 76-01-PLAN.md — Admin hub HC card gating + Deliverable Progress Override tab fix
-- [ ] 76-02-PLAN.md — Kelola Data navbar Identity role gating
+## Progress
 
-**Completed:** —
-
----
-
-### Phase 77: Merge Training Records into Manage Assessment & Training
-**Goal:** Admin/ManageAssessment becomes a unified "Manage Assessment & Training" page; training CRUD moves from CMP to Admin; CMP/Records is personal-only for all roles; RecordsWorkerList.cshtml is deleted
-**Depends on:** Phase 76
-**Requirements:** REDIR-01
-**Success Criteria** (what must be TRUE):
-  1. After creating, editing, or deleting a training record via the Admin interface, the user is redirected back to `/Admin/ManageAssessment?tab=training` — not `Admin/WorkerDetail`
-  2. HC users can access the unified Manage Assessment & Training page from the Kelola Data hub card
-  3. CMP/Records serves only the personal view (Records.cshtml) for all roles — no role-based routing to RecordsWorkerList remains
-  4. RecordsWorkerList.cshtml does not exist on disk
-**Plans:** 3/3 plans complete
-Plans:
-- [ ] 77-01-PLAN.md — Controller layer: ManageAssessment refactor + AddTraining/EditTraining/DeleteTraining actions + CMPController simplification
-- [ ] 77-02-PLAN.md — View layer: ManageAssessment 3-tab rewrite + AddTraining/EditTraining views + RecordsWorkerList deletion
-- [ ] 77-03-PLAN.md — Hub card + breadcrumb updates
-
-**Completed:** —
-
-### Phase 78: Deduplicate CMP page — remove CDP/ProtonMain if identical to Admin/CoachCoacheeMapping
-
-**Goal:** CDP/ProtonMain and its controller actions are removed; Kelola Data hub gains a Training Records shortcut for Admin/HC users
-**Requirements:** NAV-01
-**Depends on:** Phase 77
-**Plans:** 1/1 plans complete
-
-Plans:
-- [ ] 78-01-PLAN.md — Remove ProtonMain/AssignTrack actions + view + ProtonMainViewModel; add Training Records card to Kelola Data hub
-
----
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 73. Critical Fixes | v2.6 | 2/2 | Complete | 2026-03-01 |
+| 74. Dead Code Removal | v2.6 | 2/2 | Complete | 2026-03-01 |
+| 75. Placeholder Cleanup | v2.6 | 2/2 | Complete | 2026-03-01 |
+| 76. Role Fixes & Broken Link | v2.6 | 2/2 | Complete | 2026-03-01 |
+| 77. Merge Training Records | v2.6 | 3/3 | Complete | 2026-03-01 |
+| 78. Deduplicate CMP page | v2.6 | 1/1 | Complete | 2026-03-01 |
+| 79. Assessment Monitoring Page — Group List | v2.7 | 0/? | Not started | - |
+| 80. Per-Participant Monitoring Detail & HC Actions | v2.7 | 0/? | Not started | - |
+| 81. Cleanup — Remove Old Entry Points | v2.7 | 0/? | Not started | - |
