@@ -60,7 +60,7 @@
                             <a class="nav-link text-dark" asp-controller="CDP" asp-action="Index">CDP</a>
                         </li>
 
-                        @if (userRole == "Admin" || userRole == "HC")
+                        @if (User.IsInRole("Admin") || User.IsInRole("HC"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Admin" asp-action="Index">
