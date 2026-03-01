@@ -60,8 +60,8 @@
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
-            <li class="breadcrumb-item"><a href="@Url.Action("ManageAssessment", "Admin")">Manage Assessment &amp; Training</a></li>
-            <li class="breadcrumb-item active">Monitoring Detail</li>
+            <li class="breadcrumb-item"><a href="@Url.Action("AssessmentMonitoring", "Admin")">Assessment Monitoring</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
         </ol>
     </nav>
 
@@ -83,6 +83,39 @@
             <i class="bi bi-calendar3 me-1"></i>@Model.Schedule.ToString("dd MMM yyyy")
         </p>
     </div>
+
+    @if (Model.IsTokenRequired)
+    {
+        <!-- Token Card -->
+        <div class="card border-0 shadow-sm mb-4" style="border-left: 4px solid #0d6efd !important;">
+            <div class="card-body py-3">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-key-fill text-primary fs-5"></i>
+                        <span class="fw-semibold">Access Token:</span>
+                        <code id="token-display" class="fs-6 text-primary">@Model.AccessToken</code>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                id="btn-copy-token"
+                                onclick="copyToken()"
+                                title="Copy token">
+                            <i class="bi bi-clipboard me-1"></i><span id="copy-label">Copy</span>
+                        </button>
+                        <button type="button"
+                                class="btn btn-outline-warning btn-sm"
+                                id="btn-regen-token"
+                                data-id="@Model.RepresentativeId"
+                                onclick="regenToken(this)"
+                                title="Regenerate token">
+                            <i class="bi bi-arrow-repeat me-1"></i>Regenerate Token
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <!-- Summary cards -->
     <div class="row g-3 mb-4">
@@ -794,3 +827,49 @@
     fetchProgress();
 })();
 </script>
+
+@if (Model.IsTokenRequired)
+{
+    <script>
+    function copyToken() {
+        var tokenEl = document.getElementById('token-display');
+        var labelEl = document.getElementById('copy-label');
+        if (!tokenEl) return;
+        navigator.clipboard.writeText(tokenEl.textContent.trim()).then(function () {
+            labelEl.textContent = 'Copied!';
+            setTimeout(function () { labelEl.textContent = 'Copy'; }, 2000);
+        });
+    }
+
+    function regenToken(btn) {
+        if (!confirm('Regenerate token untuk grup ini? Token lama tidak akan bisa digunakan.')) return;
+        var id = btn.getAttribute('data-id');
+        var token = document.querySelector('#antiforgeryForm input[name="__RequestVerificationToken"]').value;
+        btn.disabled = true;
+        var originalHtml = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        fetch('/Admin/RegenerateToken/' + id, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': token }
+        })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success) {
+                document.getElementById('token-display').textContent = data.token;
+                var labelEl = document.getElementById('copy-label');
+                if (labelEl) { labelEl.textContent = 'Copy'; }
+            } else {
+                alert('Error: ' + (data.message || 'Gagal regenerate token.'));
+            }
+        })
+        .catch(function () {
+            alert('Terjadi kesalahan saat regenerate token.');
+        })
+        .finally(function () {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
+        });
+    }
+    </script>
+}
