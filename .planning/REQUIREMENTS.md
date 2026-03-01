@@ -48,19 +48,27 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 - [x] **LINK-01**: Admin hub "Deliverable Progress Override" card activates correct Bootstrap tab on ProtonData page
 
+### Training Record Redirect Fix
+
+- [ ] **REDIR-01**: `EditTrainingRecord` and `DeleteTrainingRecord` redirect to `CMP/Records` instead of `Admin/WorkerDetail` (which shows no training data)
+
+### Navigation Improvement
+
+- [ ] **NAV-01**: Kelola Data hub shows a "Training Records" card for HC and Admin users linking to `CMP/Records`
+
 ## Future Requirements
 
-### Page Migration (deferred from v2.6)
+### Page Migration (deferred)
 
-- **MIG-01**: CMP/Records page migrated to Kelola Data Hub or Admin
+- **MIG-01**: CMP/Records full migration to Admin controller (currently linked from Kelola Data hub but still served by CMPController)
 - **MIG-02**: CDP/ProtonMain page migrated to Kelola Data Hub or Admin
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| CMP/Records migration | Functional page with unique features — deferred to future milestone |
-| CDP/ProtonMain migration | Functional page with unique features — deferred to future milestone |
+| Full CMP/Records controller migration | v2.6 adds nav shortcut + fixes redirects; full migration deferred |
+| CDP/ProtonMain migration | Serves supervisor workflow, not admin — different audience |
 | New feature development | v2.6 is cleanup-only |
 | BP module implementation | BP is explicitly deferred (not in scope for any current milestone) |
 
@@ -88,10 +96,12 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 | ROLE-01 | Phase 76 | Complete |
 | ROLE-02 | Phase 76 | Complete |
 | LINK-01 | Phase 76 | Complete |
+| REDIR-01 | Phase 77 | Planned |
+| NAV-01 | Phase 78 | Planned |
 
 **Coverage:**
-- v2.6 requirements: 20 total
-- Mapped to phases: 20
+- v2.6 requirements: 22 total
+- Mapped to phases: 22
 - Unmapped: 0
 
 ---

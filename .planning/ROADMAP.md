@@ -19,7 +19,7 @@
 - ✅ **v2.3 Admin Portal** — Phases 47-53, 59 (shipped 2026-03-01)
 - ✅ **v2.4 CDP Progress** — Phases 61-64 (shipped 2026-03-01)
 - ✅ **v2.5 User Infrastructure & AD Readiness** — Phases 65-72 (shipped 2026-03-01)
-- 🔲 **v2.6 Codebase Cleanup** — Phases 73-76 (in progress)
+- 🔲 **v2.6 Codebase Cleanup** — Phases 73-78 (in progress)
 
 ## Phases
 
@@ -310,6 +310,32 @@ Plans:
 
 ---
 
+### Phase 77: Training Record Redirect Fix
+**Goal:** Training record CRUD operations redirect back to the correct page instead of a dead-end
+**Depends on:** Phase 76
+**Requirements:** REDIR-01
+**Success Criteria** (what must be TRUE):
+  1. After editing or deleting a training record, the user is redirected back to `CMP/Records` (not `Admin/WorkerDetail` which shows no training data)
+  2. The redirect preserves enough context that the user can see the result of their action
+**Plans:** TBD
+
+**Completed:** —
+
+---
+
+### Phase 78: Training Records Card in Kelola Data
+**Goal:** HC users can access training records directly from the Kelola Data hub without navigating through the CMP hub
+**Depends on:** Phase 77
+**Requirements:** NAV-01
+**Success Criteria** (what must be TRUE):
+  1. The Kelola Data hub (Admin/Index) shows a "Training Records" card visible to HC and Admin users
+  2. Clicking the card navigates to `CMP/Records` which renders the RecordsWorkerList for HC/Admin users
+**Plans:** TBD
+
+**Completed:** —
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans | Status | Completed |
@@ -334,3 +360,5 @@ Plans:
 | 74 | 2/2 | Complete    | 2026-03-01 | — |
 | 75 | 2/2 | Complete    | 2026-03-01 | — |
 | 76 | 2/2 | Complete    | 2026-03-01 | — |
+| 77 | v2.6 | 0/TBD | Not started | — |
+| 78 | v2.6 | 0/TBD | Not started | — |
