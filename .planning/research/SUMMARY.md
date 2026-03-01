@@ -1,318 +1,186 @@
-# Project Research Summary
+# Research Summary — Portal HC KPB v3.0 QA & Feature Completion
 
-**Project:** Portal HC KPB - v2.1 Milestone (Assessment Resilience & Real-Time Monitoring)
-**Domain:** Web-based exam/assessment system with live HC monitoring (ASP.NET Core 8 MVC)
-**Researched:** 2026-02-24
+**Project:** Portal HC KPB v3.0 (ASP.NET Core 8 MVC)
+**Domain:** Enterprise Portal — Comprehensive QA Testing, Code Cleanup, and Feature Completion
+**Researched:** 2026-03-01
 **Confidence:** HIGH
+
+---
 
 ## Executive Summary
 
-v2.1 adds four interdependent resilience and monitoring features to Portal HC's exam system: **auto-save on answer selection**, **session resume after disconnect**, **worker polling for HC-initiated closure**, and **live HC monitoring dashboard**. These are table-stakes expectations in modern online assessment platforms (Moodle, Blackboard, Pearson) and are achievable **without new external dependencies** — the stack extends existing ASP.NET Core endpoints and uses native browser APIs (Fetch, sessionStorage, setInterval).
+Portal HC KPB v3.0 is a **brownfield QA & consolidation milestone**, not a new feature release. The portal has existed through v2.6 with core features (assessments, coaching, master data) largely implemented; v3.0's role is to systematically test all features via end-to-end flows, eliminate dead code from previous cleanup attempts, complete the IDP Plan page, and rename "Proton Progress" → "Coaching Proton" throughout the codebase. The research strongly recommends a **pragmatic, phase-based approach**: start with code analysis (NetAnalyzers + SonarQube) to establish a baseline of technical debt, then build lightweight unit and functional tests (xUnit + WebApplicationFactory) covering critical flows, then execute manual QA against a detailed checklist, and finally address code cleanup and rename tasks. This ordering ensures testing occurs before cleanup (reducing risk of deleting code tests depend on), and prioritizes high-value QA activities over UI automation (which would be slow and brittle on a brownfield portal).
 
-The research reveals a **high-confidence, low-risk implementation path**: all four features layer cleanly onto the existing monolithic CMPController architecture (SaveAnswer already exists; CheckExamStatus already exists; session state table is extensible). The primary challenge is not technology selection but **concurrency handling** — auto-save, page navigation, and final submission can overlap in subtle ways that corrupt audit trails or create race conditions if not protected with atomic upserts and debouncing.
+**Key risks identified:** (1) Dead code cleanup breaking dependent code if "Find All References" is skipped; (2) Authorization gaps (workers accessing admin features) if role-based tests don't cover all role combinations; (3) Test flakiness from non-deterministic seeding or concurrency issues in auto-save logic. Prevention strategies are concrete and actionable for each.
 
-**Recommended approach:** Implement in strict dependency order (Phase 41 → 45). Phase 41 hardens SaveAnswer with atomic upserts + concurrency tokens. Phase 42 adds session resume capability. Phase 43 introduces memory caching to reduce database load from polling. Phases 44-45 are optional hardening and HC feature polish. This ordering eliminates integration surprises and ensures each phase's verification is clean before the next begins.
+---
 
 ## Key Findings
 
 ### Recommended Stack
 
-v2.1 uses **zero new NuGet packages**. All technology already exists in the codebase:
+The research recommends a **minimal, Microsoft-endorsed stack** requiring **no new NuGet dependencies** beyond testing frameworks (which the project likely already uses or will add):
 
-- **ASP.NET Core 8 MVC** — Extend existing SaveAnswer, CheckExamStatus endpoints; add UpdateSessionProgress, GetMonitoringProgress endpoints
-- **Entity Framework Core 8** — Use ExecuteUpdateAsync for atomic upserts; add RowVersion [Timestamp] for concurrency detection
-- **SQL Server/SQLite** — Two new columns to AssessmentSession (LastPageIndex, ElapsedSeconds); unique constraint on (SessionId, QuestionId) in PackageUserResponse
-- **Fetch API (native ES6)** — AJAX for auto-save, polling, monitoring refresh; already used in codebase
-- **sessionStorage (HTML5)** — Client-side ephemeral state for exam page/time (NEW, <100 bytes per session)
-- **setInterval (ES3)** — Polling timer (already used for countdown timer)
-- **jQuery 3.7.1** — Keep for backward compatibility; new code uses fetch()
-- **Bootstrap 5** — UI framework unchanged
+**Core testing frameworks:**
+- **xUnit 2.6+** for unit testing — Microsoft's official .NET Core recommendation, default in all Microsoft testing docs, strong DI support
+- **WebApplicationFactory** (built into ASP.NET Core 8) for functional/integration tests — enables end-to-end workflow testing via TestServer without requiring IIS
+- **Xunit.DependencyInjection 8.9+** for test DI configuration — reduces boilerplate in large test suites
 
-**Migration effort:** Add 1 EF Core migration with two columns and one unique constraint. Existing endpoints need parameter extensions but no signature changes.
+**Code quality & analysis tools:**
+- **Microsoft.CodeAnalysis.NetAnalyzers 8.0+** — Roslyn-based static analysis, successor to deprecated FxCopAnalyzers, finds dead code and unsafe patterns, built into .NET SDK
+- **StyleCop.Analyzers 1.2+** — code style consistency, identifies naming violations and documentation gaps
+- **SonarQube Community 9.9 LTA** — enterprise-grade code quality dashboard, detects duplications and security hotspots, free community edition
+- **Bogus 35.3+** for test data generation (optional, but recommended for realistic scenarios)
+- **EF Core In-Memory Database 8.0+** (built-in) for test isolation
 
-**Load baseline (100 concurrent workers):**
-- Auto-save: ~1.6 req/sec (debounced, fire-and-forget)
-- Polling: ~10 req/sec (every 10-30s)
-- Monitoring: <1 req/sec (every 5-10s for HC)
-- **Total: ~12 req/sec** on 500-1000 MHz server (negligible)
+**Development tools:**
+- `dotnet test` (CLI) — already available
+- Visual Studio Test Explorer — built-in IDE integration
+- Coverlet for code coverage measurement
+- SonarScanner CLI for SonarQube integration
 
-**With Phase 43 memory caching (5-10s TTL):** Database load reduces 3-6x; even at 300 concurrent workers, system stays sustainable.
+**Key Finding:** Stack is **lean and testable**. No commercial tools required. Analysis can start immediately with `dotnet build /p:AnalysisLevel=latest` to identify warnings.
+
+---
 
 ### Expected Features
 
-#### Must Have (Table Stakes)
+v3.0 QA focuses on verification of **existing features** (built in v2.0-v2.6) and **one new feature** (IDP Plan page).
 
-These features workers expect in modern online exams. Missing = product feels incomplete:
+**Must-have features (table stakes) — all need verification:**
+1. **Assessment End-to-End Flow** (core product) — create → assign → schedule → exam → auto-save → session resume → results → history
+2. **Coaching Proton Workflow** (core product) — coach mapping → coaching sessions → evidence upload → HC approval → deliverable progress tracking
+3. **Master Data CRUD** (operational) — KKJ Matrix, CPDP Items, Proton Silabus, Training Records all editable in Kelola Data hub
+4. **User Role Authorization** (security-critical) — Worker, Coach, HC, Admin roles enforce access gates consistently
+5. **Dashboard / Home Pages** — IDP stats, assessment counts, coaching progress display correctly per role
+6. **Data Export** (Admin/HC feature) — Excel/PDF exports of assessments, coaching reports, audit logs
 
-1. **Auto-save on click** — Worker selects radio button → immediate AJAX POST to SaveAnswer (debounced 300-500ms). Server uses atomic upsert pattern (ExecuteUpdateAsync) to prevent duplicates on concurrent requests.
+**Should-have features (competitive advantages) — new or incomplete:**
+1. **IDP Plan Page** (NEW) — coachee dashboard showing assigned silabus items, guidance PDFs, real-time progress %; integrate with coaching evidence tracking
+2. **Audit Log** (NEW) — admin can see user actions logged; compliance requirement
+3. **Live HC Monitoring** (v2.1) — HC dashboard auto-refreshes exam progress; verify polling mechanism works
+4. **Assessment History** (v2.2) — workers see all past attempts with timestamps and attempt numbers
 
-2. **Auto-save before page navigation** — Clicking Prev/Next blocks navigation until all SaveAnswer requests on current page complete. Shows loading indicator ("Saving... please wait").
+**Anti-features to eliminate or ignore:**
+1. **Selenium/Playwright UI Tests** — defer to v3.1+; too slow/brittle for brownfield; manual QA + code analysis better ROI
+2. **CMP/ProtonMain Page** — removed in v2.6; verify no orphaned links remain
+3. **Duplicate Admin CRUD Paths** — CMP had redundant ManageQuestions; Admin panel is canonical; verify CMP versions deleted
+4. **"Proton Progress" terminology** — rename to "Coaching Proton" throughout (UI, comments, docs)
 
-3. **Session resume after disconnect** — Browser close or network outage; worker logs back in and clicks "Resume Exam" → loads last-answered page with correct remaining timer (server-calculated from StartedAt + ExamWindowCloseDate).
-
-4. **Worker polling for HC closure** — Exam page polls CheckExamStatus every 10-30 seconds. If HC closes exam (status changes), worker redirects to Results page immediately without manual refresh.
-
-#### Should Have (Competitive Differentiators)
-
-Features that improve operational visibility and worker confidence:
-
-5. **Live HC monitoring dashboard** — HC's monitoring page auto-refreshes progress every 5-10s via AJAX (not full page reload). Shows "X/Y answered" per worker without scrolling reset or filter loss. Uses dedicated GetMonitoringProgress endpoint returning minimal JSON payload (~100 bytes).
-
-**Optional UX enhancers (defer to v2.2+):**
-- Visual feedback ("Saved" badges) during auto-save
-- Graceful closure warning (grace period before hard redirect)
-- Auto-extend exam window if worker actively answering
-
-#### Anti-Features (Explicitly Avoid)
-
-1. **Save on every keystroke** — Generates excessive AJAX traffic (100+ workers × 10+ saves/sec = 1000+ DB writes/sec overload). Mitigation: debounce 500ms+ minimum; save-on-blur preferred for text fields.
-
-2. **Immediate redirect on closure without warning** — Removes worker agency; if closure is unintended, worker loses answers. Mitigation: redirect with "Exam closed by HC" message + brief grace period.
-
-3. **Live timer countdown in HC dashboard** — Creates perception of lag (HC sees 4:32, worker sees 4:28). Mitigation: show only "time at last save"; client timer is authoritative.
-
-4. **Full-page polling refresh for monitoring** — Destroys HC UX (scrolling resets, filter state lost). Mitigation: AJAX refresh only progress cells; preserve scroll and state.
+---
 
 ### Architecture Approach
 
-v2.1's architecture is **enhancement of existing CMPController**, not refactoring. All four features integrate via:
+The portal uses **ASP.NET Core 8 MVC with class-level authorization**. Two main controllers (CMPController ~1840 lines, CDPController ~1475 lines) handle assessment and coaching workflows respectively. Data model has ~20 DbSet entities, with key tables: AssessmentSessions, TrainingRecords, ProtonDeliverableProgresses, CoachingSessions, AspNetUsers (ApplicationUser with FullName, NIP, RoleLevel). Authorization pattern uses `[Authorize]` at controller class level with per-action role attributes like `[Authorize(Roles = "Admin, HC")]`.
 
-1. **Phase 41 (Auto-Save Foundation):** Harden SaveAnswer endpoint with ExecuteUpdateAsync (atomic upsert) + add RowVersion [Timestamp] for concurrency detection + enforce unique constraint on (SessionId, QuestionId). Add debounce(300ms) and request-blocking on Exam.cshtml. **Critical path item; blocks all others.**
+**Major components & their responsibilities:**
+1. **CMPController** — Assessment lifecycle (create, assign, schedule, exam submit), Training Records management, Competency Gap reporting (scheduled for deletion), HC Reports dashboard
+2. **CDPController** — CDP Dashboard, Dev Dashboard (for supervisors), Coaching workflow (mapping, sessions, approval), Proton deliverables and final assessment
+3. **ApplicationDbContext** — EF Core with 20+ entities; includes AssessmentSessions, ProtonDeliverableProgresses, CoachingSessions, TrainingRecords, KkjMatrices
+4. **ApplicationUser** — custom ASP.NET Identity user; has RoleLevel (integer hierarchy), NIP, SelectedView (for role-switching UI), multi-unit membership
+5. **Razor Views** — Bootstrap 5 + Chart.js for dashboards; Assessment/Records tabs, Coaching evidence upload, Hub-based master data management (Kelola Data)
 
-2. **Phase 42 (Session Resume):** Add LastPageIndex + ElapsedSeconds columns to AssessmentSession. New UpdateSessionProgress endpoint saves page/time during navigation. Enhanced StartExam detects resume, populates ViewBag with stored values for client. Exam.cshtml updates sessionStorage every 5s and adds page-tracking to navigation.
+**Data flow pattern:** Controllers query EF Core context directly (no separate service layer); views receive typed ViewModels (DashboardViewModel, CoachingViewModel, etc.); POST actions return redirects or JSON for AJAX. Test isolation uses EF Core in-memory database per test class.
 
-3. **Phase 43 (Polling + Caching):** Add IMemoryCache to CheckExamStatus endpoint (5s TTL). Reduce polling interval from 30s to 10s. Cache invalidation on CloseEarlySession. **Reduces database load 3-6x at scale.**
-
-4. **Phase 44 (Close Early Hardening, optional):** Add DbUpdateConcurrencyException handling. Verify RowVersion prevents race between SubmitExam and CloseEarlySession.
-
-5. **Phase 45 (HC Monitoring):** New GetMonitoringProgress endpoint mirrors CheckExamStatus caching strategy. AssessmentMonitoringDetail.cshtml adds Progress column + 5-10s AJAX refresh loop.
-
-**Data flow transformation:**
-
-```
-Current: Click → Manual Save → Submit (all answers collected at end)
-New:     Click → Auto-Save (incremental) + Page Track + Polling → Submit (grades from pre-saved answers)
-```
-
-**Key patterns:**
-- **Atomic upsert:** Prevents duplicate rows on concurrent saves
-- **Server-side timer:** Client cannot manipulate exam duration (DevTools proof)
-- **Memory cache with TTL:** Reduces DB load; invalidated on state changes
-- **Optimistic concurrency (RowVersion):** Detects conflicts; allows safe concurrent updates
+---
 
 ### Critical Pitfalls
 
-1. **Race condition between auto-save and page navigation (SEVERITY: HIGH)**
-   - Problem: Worker clicks radio → auto-save fires AJAX (non-blocking) → worker immediately clicks Next before AJAX completes → overlapping requests corrupt SubmittedAt or duplicate PackageOptionId
-   - Impact: Audit trail shows wrong timestamps; LastPageIndex resume off-by-one; answered count incorrect in monitoring
-   - Prevention: Debounce auto-save (max 1 request in-flight); block Prev/Next until all pending saves complete; use ExecuteUpdateAsync for atomic upsert; add RowVersion for concurrency detection
-   - Detection: HC dashboard shows duplicate SubmittedAt for same question; session resume lands on wrong page
-   - Phase: Phase 41 — must be addressed in auto-save feature itself, not later
+**Five high-priority risks to prevent:**
 
-2. **Session resume loads stale LastPageIndex if previous page's auto-save in-flight (SEVERITY: MEDIUM)**
-   - Problem: Worker on page 5 → clicks Next → SaveAnswer for Q5 is in-flight → UpdateSessionProgress saves LastPageIndex=6 → server crashes → on resume, Q5's answer is lost but session says page 6
-   - Impact: Worker resumes, doesn't see their answer to Q5; confusion about whether answer was saved
-   - Prevention: Wait for all SaveAnswer requests to complete before calling UpdateSessionProgress; use client-side queue; timeout after 10s + warn worker
-   - Detection: Test with network throttling; pause SaveAnswer response, click Next, verify navigation blocks
-   - Phase: Phase 42 — critical during implementation; test before shipping
+1. **Null Reference Exceptions from Reckless Dead Code Cleanup** — Code analyzers flag methods as "unused" but they're called via reflection, LINQ.Invoke, or interface implementations. Developers delete without checking "Find All References", tests break with NullReferenceException at runtime.
+   - **Prevention:** Always "Find All References" (Ctrl+Shift+F) before deleting anything. Comment out first, run tests, then delete. Two-person review for method/class deletion.
 
-3. **Polling interval tuning creates UX/load trade-off (SEVERITY: MEDIUM)**
-   - Problem: At 10s polling interval × 100 workers = 10 DB queries/sec; at 30s = 3.3 DB queries/sec. If cache TTL is 5s and polling is 30s, 25 out of 30 seconds are cache hits (efficient). If polling is 10s, hits are still ~80% but DB load is higher. No caching = collapse at 100+ workers.
-   - Impact: Too frequent polling (1-2s) → overload; too infrequent (60s) → worker doesn't know exam is closed for 1 minute
-   - Prevention: Default to 10-30s polling; MUST include Phase 43 memory cache (5s TTL). Monitor DB CPU during load test. If >60%, increase cache TTL or polling interval.
-   - Detection: Load test 100 workers, monitor DB CPU over 10 min. Without cache, will spike >80%. With cache, should stay <30%.
-   - Phase: Phase 43 — test polling + caching together; never deploy Phase 43 polling without Phase 43 caching
+2. **Test Flakiness from Non-Deterministic Data Seeding** — Bogus generates random test data each run; if seeding depends on data not guaranteed to exist, tests pass sometimes, fail other times. CI/CD becomes unreliable ("just rerun it").
+   - **Prevention:** Use fixed test data for critical tests (Coach "John" always mapped to Coachee "Alice"). Seed idempotently with `if (!db.Coaches.Any()) { ... }`. Isolate test DB per test class with unique in-memory names.
 
-4. **EF Core migration timing issues (SEVERITY: MEDIUM)**
-   - Problem: Adding LastPageIndex + ElapsedSeconds + RowVersion columns in separate migrations (Phase 41, 42) can create "column not found" errors if code runs mid-migration. If RowVersion added in Phase 41 but SaveAnswer code references it in Phase 42, code breaks until both migrations applied.
-   - Impact: Production deployment failure; roll-back needed
-   - Prevention: Create all three migrations in Phase 41 (RowVersion + unique constraint) and Phase 42 (LastPageIndex + ElapsedSeconds). Apply all before deploying code changes. Or: Feature-flag new code paths until migration complete.
-   - Detection: Test deployment script on staging; verify migrations apply before code runs
-   - Phase: Phase 41 & 42 — validate migration script and deployment process before release
+3. **Authorization Gaps — Workers Access Admin Features** — Controllers have `[Authorize]` but missing role checks. Any authenticated user (even Worker) can GET /Admin/ManageAssessments if endpoint only checks `[Authorize]` not `[Authorize(Roles = "Admin, HC")]`.
+   - **Prevention:** Write explicit 403 tests for every protected endpoint per role. Create authorization matrix documenting who can do what. Use consistent pattern: class-level `[Authorize(Roles = "...")]` on AdminController. SonarQube flags bare `[Authorize]` as medium risk.
 
-5. **Antiforgery token conflicts with stateless GET monitoring requests (SEVERITY: LOW)**
-   - Problem: SaveAnswer is POST (requires antiforgery token); GetMonitoringProgress is GET (no token). If code incorrectly expects token on GET, monitoring fails silently.
-   - Impact: HC monitoring returns 400 Bad Request; monitoring dashboard blank
-   - Prevention: Verify token handling: POSTs use [ValidateAntiForgeryToken], GETs use [AllowAnonymous] or omit token check. Document in code.
-   - Detection: Test without antiforgery cookie; verify monitoring still loads
-   - Phase: Phase 45 — simple check during implementation
+4. **Database Migration Drift** — Tests run against in-memory DB with stale schema. New migration adds NOT NULL column, but test seed doesn't set it. Tests pass locally, fail in CI/CD where migrations run.
+   - **Prevention:** Use `db.Database.Migrate()` (not `EnsureCreated()`) in test setup to apply all pending migrations. Test migrations locally before commit: `dotnet ef migrations add MyMig; dotnet test; dotnet ef database update 0; dotnet ef database update` to verify idempotency.
 
-6. **Incomplete question set mid-exam confuses session resume (SEVERITY: MEDIUM)**
-   - Problem: Assessment has 30 questions; worker is on Q20. HC updates assessment to 25 questions. Worker resumes, page tries to render Q26 (doesn't exist anymore). Or: question IDs change (Q5 is now a different question entirely).
-   - Impact: Worker sees broken page; admin dashboard breaks when grading orphaned answers
-   - Prevention: On resume, validate question count unchanged. Store `StoredQuestionCount` on AssessmentSession at start; on UpdateSessionProgress, verify count matches. If not, block resume with "Assessment changed; cannot resume."
-   - Detection: Test case: pause exam, change question set, attempt resume
-   - Phase: Phase 42 — validation logic must be in UpdateSessionProgress endpoint
+5. **Concurrency in SaveAnswer Auto-Save** — Worker A and Worker B save answers simultaneously, race condition hits unique constraint violation or duplicate records. Tests don't simulate concurrent load.
+   - **Prevention:** Add UNIQUE constraint on (SessionId, QuestionId) via migration. Implement UPSERT pattern: ExecuteUpdateAsync + insert fallback. Load test with concurrent simulations (50 users simultaneously).
 
-7. **Monitoring query O(n) explodes at 100+ sessions (SEVERITY: MEDIUM)**
-   - Problem: GetMonitoringProgress runs `SELECT COUNT(*) FROM PackageUserResponses WHERE SessionId = X` for each session. With 100 sessions, 100 subqueries per refresh. At 5s intervals over 10 workers, 200 queries/sec.
-   - Impact: Database CPU spike; monitoring dashboard slow to refresh; cascading slowness on worker polling
-   - Prevention: Single efficient query: `SELECT SessionId, COUNT(*) FROM PackageUserResponses GROUP BY SessionId`. Materialize the result or cache for 10s. Avoid N+1 queries.
-   - Detection: Load test with 100 sessions; monitor query execution time. Should be <100ms with grouping + cache, >5000ms without.
-   - Phase: Phase 45 — implement as single efficient query, not loop; validate before shipping
-
-8. **Client timer divergence from server time (SEVERITY: LOW)**
-   - Problem: Worker's client-side timer (setInterval countdown) can drift from server's ExamWindowCloseDate by 3-5 seconds due to network latency, clock skew, or browser tab backgrounding. HC monitoring shows "4 min remaining" but worker sees "3:45".
-   - Impact: Worker confusion; unlikely to affect scoring (server time is authoritative)
-   - Prevention: Document: "Client timer is for UX only; server time is source of truth." On resume, reset client timer from server-calculated remaining time. Don't sync too frequently (adds polling overhead).
-   - Detection: Open exam on two devices; compare timer displays. Should be within 5s.
-   - Phase: Phase 42 — document in code comment; document in UX guide for HC staff
+---
 
 ## Implications for Roadmap
 
-Based on research, Phase v2.1 should be structured as **5 sequential phases** (41-45), with phases 41-43 **required** and phases 44-45 **optional but recommended**.
+Research suggests **six sequential phases** for v3.0, ordered by dependency and risk mitigation:
 
-### Phase 41: Auto-Save Foundation (REQUIRED, BLOCKS ALL)
-
-**Rationale:** Existing SaveAnswer endpoint is used by all features. It has a race condition (overlapping upsert calls corrupt data). Must be hardened first or all downstream features inherit the bug.
-
-**Delivers:**
-- ExecuteUpdateAsync atomic upsert on SaveAnswer (prevents duplicate rows)
-- Unique constraint on (SessionId, QuestionId) in PackageUserResponse
-- RowVersion [Timestamp] on PackageUserResponse for optimistic concurrency
-- Debounce(300ms) + request-blocking on Exam.cshtml radio buttons
-- Prevents rapid-fire SaveAnswer calls from causing data corruption
-
-**Avoids pitfall:** Race condition between auto-save and page navigation (Pitfall 1)
-
-**Verification checklist:**
-- Load test: Single worker, 1000 rapid clicks on same question; verify 0 duplicate rows, 1 final answer saved
-- Performance: SaveAnswer latency <10ms per request
-- Concurrency: Two workers answering same question simultaneously; verify no duplicates or stale data
-
-**Research flags:** No deep research needed; existing SaveAnswer implementation well-documented. Clear upgrade path.
+### Phase 1: Code Analysis Baseline (Week 1)
+**Rationale:** Identify technical debt BEFORE testing or cleanup. Establish baseline of dead code, null safety issues, and naming inconsistencies. Informs cleanup priorities and test coverage areas.
+**Delivers:** SonarQube dashboard with code smells, dead code report; NetAnalyzers baseline scan; priority list of issues to address
+**Stack elements used:** Microsoft.CodeAnalysis.NetAnalyzers, StyleCop.Analyzers, SonarQube Community (CLI)
+**Avoids pitfall #1:** By documenting what analyzers claim is dead, developers can validate before deleting
 
 ---
 
-### Phase 42: Session Resume (REQUIRED, MEDIUM PRIORITY)
-
-**Rationale:** Resume capability depends on stable auto-save (Phase 41). Can't resume if saved answers are corrupted.
-
-**Delivers:**
-- LastPageIndex + ElapsedSeconds columns on AssessmentSession
-- UpdateSessionProgress endpoint (new) to save page/time on navigation
-- StartExam enhancement to detect resume and populate ViewBag
-- Exam.cshtml page-tracking JS + timer UI reset
-- Validation to prevent question-set changes mid-exam
-
-**Uses:** Phase 41 (RowVersion), existing session state table
-
-**Avoids pitfalls:** Session resume stale data (Pitfall 2), incomplete question set (Pitfall 6)
-
-**Verification checklist:**
-- Resume test: Pause exam at Q15, page 2; network down 5 min; resume → correct page + correct timer
-- Question change test: Pause exam, admin changes question count; resume → blocked with "Assessment changed"
-- Timer accuracy test: Resume, compare client timer to server clock; should be within 5s
-- Page tracking test: Navigate 5 pages, stop, resume; verify lands on correct page
-
-**Research flags:** Standard pattern; well-documented in research. Clear implementation path.
+### Phase 2: Unit Test Framework & Service Tests (Weeks 2-3)
+**Rationale:** Build test skeleton for critical service logic (Assessment creation/submission, Coaching approval, IDP Plan data). Small, fast tests give developers confidence before functional testing.
+**Delivers:** PortalHC.Tests project structure; 60-80 unit tests covering services, validation, business logic; test data builders
+**Uses:** xUnit, Xunit.DependencyInjection, EF Core in-memory DB, Bogus
+**Implements:** Assessment service (create, assign, score), Coaching service (evidence, approval), IDP Plan builder logic
+**Avoids pitfalls #2 & #5:** Fixed test data + UNIQUE constraint testing in unit layer
 
 ---
 
-### Phase 43: Polling + Caching Infrastructure (REQUIRED, HIGH IMPACT)
-
-**Rationale:** Without caching, 100 workers polling every 10s = 10 DB queries/sec; grows to 100+ at 300 workers. With 5s memory cache, reduces to 2-3 DB queries/sec. **Essential for scalability.**
-
-**Delivers:**
-- IMemoryCache registration in Startup.cs
-- CheckExamStatus endpoint enhanced with 5s cache (key: exam_status_{sessionId})
-- CloseEarlySession enhanced with cache invalidation
-- Exam.cshtml polling loop (10-30s interval)
-- GetMonitoringProgress endpoint with 10s cache (key: monitoring_{title}_{category}_{date})
-- Polling verification: 100 workers, 10s interval, 10min duration → DB <30% CPU
-
-**Avoids pitfalls:** Polling interval tuning (Pitfall 3), monitoring query O(n) (Pitfall 7)
-
-**Verification checklist:**
-- Load test: 100 concurrent workers, 10s polling, 10min exam duration; monitor DB CPU (target <30%)
-- Cache hit rate: Should be >80% (5s cache + 10-30s polling interval)
-- Cache invalidation: Close Early clears cache; next worker poll fetches fresh data
-- Monitoring query: 100 sessions, 5s refresh; query latency <100ms with grouping + cache
-
-**Research flags:** Memory caching is standard ASP.NET Core pattern. No exotic dependencies. Well-documented.
+### Phase 3: Functional/Integration Tests (Weeks 3-4)
+**Rationale:** End-to-end workflow tests (Worker takes assessment → sees results; Coach maps coachee → uploads evidence → HC approves). Catch integration bugs, authorization gaps, data persistence issues.
+**Delivers:** 15-20 functional tests using WebTestFixture; critical workflow paths (Assessment E2E, Coaching approval, IDP Plan display); 403 authorization tests per role
+**Uses:** WebApplicationFactory, WebTestFixture, test data seeding via EF Core
+**Implements:** Authorization matrix testing; verify role-based view gates
+**Avoids pitfall #3:** Explicit 403 tests for Worker access to /Admin routes
 
 ---
 
-### Phase 44: Close Early Hardening (OPTIONAL, LOWER PRIORITY)
-
-**Rationale:** Close Early feature already shipped (Phase 39). Phase 44 hardens it for concurrency. Can defer if schedule tight.
-
-**Delivers:**
-- DbUpdateConcurrencyException handling on SubmitExam + CloseEarlySession race
-- Verification: Worker submits at T=3599s, HC closes at T=3600s → both requests succeed, final state correct, no data loss
-
-**Uses:** Phase 41 (RowVersion), Phase 43 (caching)
-
-**Avoids pitfalls:** (None new; hardens existing feature)
-
-**Verification checklist:**
-- Race test: Simultaneous SubmitExam + CloseEarlySession; verify scores match, no orphaned records
-- Concurrency exception: Catch DbUpdateConcurrencyException; retry with fresh data
-
-**Research flags:** Low risk; well-understood concurrency pattern. Can ship later or skip if feature proves stable.
+### Phase 4: Manual QA Execution (Week 4-5)
+**Rationale:** Comprehensive manual testing of all features via checklist. Catch UI/UX issues, workflow edge cases, data display accuracy that automated tests miss.
+**Delivers:** QA checklist executed (Assessment, Coaching, Master Data, Authorization, IDP Plan); bug report log; regression verification
+**Testing approach:** Test each feature matrix (create → assign → execute → results) per role; verify Kelola Data hub cards load
+**Avoids pitfall #4:** Database migrations applied before test DB setup; schema verified
 
 ---
 
-### Phase 45: HC Monitoring Dashboard (OPTIONAL, NICE-TO-HAVE)
-
-**Rationale:** HC monitoring is differentiator, not blocker. Workers don't need it. Can be deferred if schedule tight. Reuses Phase 43 caching infrastructure.
-
-**Delivers:**
-- GetMonitoringProgress endpoint (new, mirrors CheckExamStatus caching)
-- AssessmentMonitoringDetail.cshtml: Progress column + 5-10s AJAX refresh JS
-- HC sees real-time "X/Y answered" per worker without full page reload
-- Preserves HC scroll position, filter state, sort order
-
-**Uses:** Phase 43 (caching), Phase 41 (stable SaveAnswer)
-
-**Avoids pitfalls:** Monitoring query O(n) (Pitfall 7)
-
-**Verification checklist:**
-- Real-time test: HC watches worker; progress updates within 5-10s
-- Accuracy test: Answer counts match DB (no off-by-one)
-- Unload test: 500 workers, monitoring dashboard; query latency <2s
-- UX test: HC refreshes; scroll position + filter state preserved
-
-**Research flags:** Well-documented pattern; efficient single-query design. Standard AJAX refresh technique.
+### Phase 5: IDP Plan Page Development & Testing (Weeks 4-5, parallel)
+**Rationale:** NEW feature requires development + integrated testing. Shows assigned silabus items, downloadable guidance, real-time progress % linked to coaching evidence.
+**Delivers:** /CDP/IdpPlan or similar route; Razor view displaying coachee's deliverables; integration with coaching progress tracking
+**Implements:** Query pulling assigned silabus + coaching evidence for coachee; calculate completion %; PDF download links
+**Uses:** Existing EF Core models (ProtonDeliverableProgresses, ProtonSilabus); MVC controller action
+**Avoids pitfall #5:** Functional tests verify IDP progress updates when coaching evidence uploaded
 
 ---
 
-## Phase Ordering Rationale
-
-```
-Phase 41: Auto-Save (foundation, required)
-   ↓
-Phase 42: Resume (requires stable auto-save)
-   ↓
-Phase 43: Polling + Caching (uses stable session state, improves scalability)
-   ├─→ Phase 44: Close Early (optional hardening)
-   └─→ Phase 45: Monitoring (optional UX enhancement)
-```
-
-**Why this order:**
-1. Phases 41-43 are **required** for v2.1 launch (worker resilience + basic monitoring)
-2. Phase 41 blocks 42 (resume needs working auto-save)
-3. Phase 42 should complete before 43 goes live (caching must cache correct session state)
-4. Phases 44-45 are **optional** (can ship v2.1 without them, add in v2.2)
-5. **Cannot skip phases:** Each enables the next; skipping introduces gaps
-
-**Dependency chain:** 41 → 42 → 43; then 44+45 in parallel (both depend on 43, not on each other)
+### Phase 6: Code Cleanup & Rename (Weeks 5-6+)
+**Rationale:** Dead code removal (CompetencyGap action, unused methods) and "Proton Progress" → "Coaching Proton" rename. Only after testing ensures no tests depend on code being deleted.
+**Delivers:** Dead code removed (verified by analyzers + tests pass); "Coaching Proton" terminology consistent in UI, views, comments
+**Cleanup tasks:** Delete CompetencyGap() action, delete CompetencyGapViewModel, remove CMP/ProtonMain references, rename UI labels
+**Avoids pitfall #1:** Tests already exist to catch deletion breakage
 
 ---
 
-## Research Flags
+### Phase Ordering Rationale
 
-**Phases likely needing deeper research during planning:**
+1. **Code Analysis first** — informs what to test, what to clean up; risk mitigation
+2. **Unit tests early** — fast feedback, foundation for functional tests
+3. **Functional tests before manual QA** — automated tests catch integration issues, allowing manual QA to focus on UX
+4. **IDP Plan parallel with manual QA** — feature development independent of other testing; shares same test infrastructure
+5. **Cleanup last** — only after testing verifies what code is truly used
 
-- **Phase 43 (Polling + Caching):** Load test with 100-300 concurrent workers required. Memory cache tuning (TTL adjustment) depends on production network latency. Recommend `/gsd:research-phase` for load testing script + metrics dashboard.
+---
 
-- **Phase 45 (Monitoring Dashboard):** Query optimization for 100+ sessions requires testing. If monitoring frequently refreshes, may need Redis or materialized view (out of scope for v2.1). Recommend load test during implementation.
+### Research Flags
+
+**Phases needing deeper research during planning:**
+- **Phase 5 (IDP Plan):** Requires validation of exact display requirements (silabus hierarchy, PDF organization, progress calculation formula). Recommend `/gsd:research-phase` for 30min to confirm UI/UX expectations with stakeholders.
+- **Phase 4 (Manual QA Authorization):** 10+ roles (Admin, HC, SrSpv, SectionHead, Coach, Coachee, Worker) with overlapping permissions. Authorization matrix needs confirmation. Recommend clarifying "who can approve deliverable?" per role during planning.
 
 **Phases with standard patterns (skip research-phase):**
-
-- **Phase 41 (Auto-Save):** Atomic upsert + debouncing are well-established patterns. SaveAnswer code review sufficient.
-- **Phase 42 (Resume):** Server-side timer, session state tracking are standard. EF Core migration straightforward.
-- **Phase 44 (Concurrency):** RowVersion + DbUpdateConcurrencyException handling are documented EF Core patterns.
+- **Phase 1 (Code Analysis):** NetAnalyzers + SonarQube are well-documented, standard patterns. No research needed.
+- **Phase 2 (Unit Tests):** xUnit + EF Core in-memory DB are Microsoft-endorsed, well-documented. Standard setup.
+- **Phase 3 (Functional Tests):** WebApplicationFactory is ASP.NET Core standard. No research needed beyond STACK.md.
+- **Phase 6 (Code Cleanup):** Straightforward deletions guided by analyzer reports. No research needed.
 
 ---
 
@@ -320,49 +188,37 @@ Phase 43: Polling + Caching (uses stable session state, improves scalability)
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| **Stack** | HIGH | ASP.NET Core 8, EF Core, Fetch, sessionStorage all mature, well-documented. No dependency surprises. |
-| **Features** | MEDIUM-HIGH | Core five features (auto-save, resume, polling, monitoring) verified against Moodle/Blackboard/Pearson. Edge cases documented. Confidence limited by lack of phase-specific testing (will clarify during Phase 35 planning). |
-| **Architecture** | HIGH | Existing CMPController, SaveAnswer, CheckExamStatus endpoints thoroughly analyzed. Integration points clear. No refactoring surprises. |
-| **Pitfalls** | HIGH | Eight critical pitfalls identified via direct codebase analysis. Prevention strategies clear. No unknown gotchas. |
-| **Load Estimates** | MEDIUM | Baseline estimates (12 req/sec at 100 workers) are conservative. Phase 43 caching strategy verified. Will require load testing in Phase 43 to confirm 300+ worker scalability. |
+| **Stack** | HIGH | Microsoft official docs + proven frameworks (xUnit 2.6+, WebApplicationFactory, NetAnalyzers); no experimental or niche tools; version compatibility matrix validated |
+| **Features** | HIGH | Directly sourced from PROJECT.md scope + v2.1-v2.6 milestone roadmaps; all features exist in codebase or are clearly scoped (IDP Plan) |
+| **Architecture** | HIGH | Direct inspection of codebase: CMPController (1840 lines), CDPController (1475 lines), EF Core models examined; authorization pattern verified; data flow traced |
+| **Pitfalls** | HIGH | Based on v2.6 cleanup experience (10+ dead code removals), codebase architectural review, multi-role system complexity; prevention strategies tested and proven patterns |
 
-**Overall confidence:** HIGH — stack is proven, features are standard, architecture is straightforward, pitfalls are understood. Main uncertainty is load testing at scale; recommend load test script during Phase 43.
+**Overall confidence:** **HIGH** — All four research areas backed by official documentation, codebase inspection, and proven enterprise patterns.
 
-### Gaps to Address During Phase Planning
+### Gaps to Address
 
-1. **Load testing script** (Phase 43) — Need way to simulate 100-300 concurrent workers. Locust/JMeter recommended.
-2. **HC monitoring query optimization** (Phase 45) — Single GROUP BY query designed; requires verification with 100+ sessions to ensure <2s latency.
-3. **Deployment validation** (Phase 41-42) — Migration script must apply before code runs. Need deployment checklist.
-4. **Feature flag for gradual rollout** (Optional) — If auto-save causes issues, want quick off-switch without redeployment.
+1. **Authorization Matrix Clarity** — "Who exactly can approve a deliverable?" (Admin, HC, SrSpv, SectionHead, all of above?). Document per role during Phase 4 planning.
+2. **IDP Plan Display Spec** — Exact silabus hierarchy display, PDF organization, progress calculation formula. Validate with Product during Phase 5 kickoff.
+3. **Concurrent Load Expectations** — What's the expected simultaneous exam taker load? Affects SaveAnswer UPSERT testing (Phase 2-3).
+4. **Code Coverage Goals** — Researchers recommend 60-70% on services, 40-50% on controllers. Confirm acceptable targets during Phase 2 kickoff.
 
 ---
 
 ## Sources
 
-### Stack Research
-- Microsoft Learn: EF Core ExecuteUpdateAsync, Concurrency, Memory Cache
-- MDN: Fetch API, sessionStorage, setInterval
-- Codebase: STACK.md (detailed version requirements, load estimates, browser compatibility)
+### Primary (HIGH confidence)
+- **STACK.md** — Microsoft Learn (xUnit, WebApplicationFactory, EF Core testing), official .NET testing guides, Microsoft.CodeAnalysis.NetAnalyzers documentation
+- **FEATURES.md** — `.planning/PROJECT.md` scope, v2.1-v2.6 milestone roadmaps (archived), feature dependency map verified against codebase
+- **ARCHITECTURE.md** — Direct codebase inspection (Controllers/CMPController.cs, Controllers/CDPController.cs, Models/ApplicationUser.cs, EF Core DbContext)
+- **PITFALLS.md** — v2.6 cleanup experience, codebase architectural patterns, multi-role authorization system review, EF Core best practices (Microsoft Learn + SQL Server)
 
-### Feature Research
-- Competitive analysis: Moodle, Blackboard, Pearson, Scrum.org, edX
-- Online exam platforms: BlinkExam, MeritTrac, SoftwareSuggest surveys
-- Codebase: FEATURES.md (edge cases, dependency analysis, MVP definition)
-
-### Architecture Research
-- Direct codebase review: CMPController.cs, Exam.cshtml, StartExam.cshtml
-- EF Core patterns: Atomic upserts, RowVersion, cached queries
-- ASP.NET Core: IMemoryCache, antiforgery tokens, role-based authorization
-- Codebase: ARCHITECTURE-v2.1-FEATURES.md (phase-by-phase integration, data flow, deployment checklist)
-
-### Pitfalls Research
-- Concurrency scenarios: Race conditions between auto-save, navigation, submit
-- Database migration timing: Column additions, constraint timing
-- Polling scalability: Cache tuning, TTL strategy
-- Codebase: v2.1-PITFALLS.md (8 critical pitfalls, detection methods, prevention strategies)
+### Secondary (MEDIUM confidence)
+- BrowserStack: C# testing frameworks 2026 — consensus on xUnit + WebApplicationFactory for .NET Core
+- StyleCop.Analyzers GitHub — community-driven code style enforcement, 21M+ downloads
+- SonarQube .NET integration docs — free community edition capabilities
 
 ---
 
-*Research completed: 2026-02-24*
-*Ready for roadmap: YES*
-*Next step: `/gsd:roadmap-v2.1` to create detailed phase breakdown*
+**Research completed:** 2026-03-01
+**Ready for roadmap creation:** YES
+**Next step:** Use phase suggestions and research flags to inform REQUIREMENTS.md and detailed phase planning

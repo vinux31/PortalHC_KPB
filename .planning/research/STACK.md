@@ -1,488 +1,608 @@
-# Technology Stack: v2.1 Assessment Resilience & Real-Time Monitoring
+# QA Testing Stack — Portal HC KPB v3.0
 
-**Project:** Portal HC KPB - v2.1 Milestone (auto-save, session resume, exam polling, live monitoring)
-**Researched:** 2026-02-24
-**Overall Confidence:** HIGH
-
----
+**Project:** Portal HC KPB (ASP.NET Core 8 MVC) — Full QA & Feature Completion
+**Researched:** 2026-03-01
+**Confidence:** HIGH (Microsoft official docs, current frameworks, verified patterns)
 
 ## Executive Summary
 
-The v2.1 milestone adds four resilience features to an existing ASP.NET Core 8 MVC application:
+This portal requires a **pragmatic, brownfield-focused QA testing approach**. The stack separates unit testing (xUnit for existing services), functional testing (WebApplicationFactory for end-to-end flows), and code quality analysis (Roslyn analyzers + SonarQube for brownfield cleanup). Test data seeding uses EF Core migrations for reproducibility. Skip UI test automation (Selenium/Playwright) for now — manual QA with code analysis tools provides better ROI on a brownfield portal. Code analysis (NDepend, StyleCop, SonarQube) surfaces the dead code and inconsistencies this milestone aims to fix.
 
-1. **Auto-save answers** on each radio click → `SaveAnswer` AJAX POST (v1.7 endpoint exists)
-2. **Session resume** → persist last page + elapsed time via `sessionStorage` + database columns
-3. **Worker exam polling** → 10s polling on `CheckExamStatus` endpoint (existing, tested)
-4. **Live HC monitoring** → auto-refresh progress every 5-10s via AJAX
-
-**Key Finding: No new NuGet packages required.** Uses:
-- Existing ASP.NET Core 8 MVC + EF Core endpoints
-- Browser native APIs (Fetch, sessionStorage, setInterval)
-- No WebSockets, no job queues, no real-time libraries
-- Stack stays lean: server handles ~20 req/sec easily at scale
+**Key Finding:** No new NuGet packages required beyond testing frameworks. Stack stays lean and testable.
 
 ---
 
-## Recommended Stack
+## Recommended Testing Stack
 
-### Backend (Server-Side)
+### Core Testing Frameworks
 
-| Technology | Version | Purpose | Status | Changes |
-|-----------|---------|---------|--------|---------|
-| ASP.NET Core MVC | 8.0 | Web framework | Existing | None — use existing patterns |
-| Entity Framework Core | 8.0 | ORM | Existing | None — SaveAnswer already exists |
-| SQL Server / SQLite | Current | Database | Existing | Schema only: add 2 columns to AssessmentSession |
-| ASP.NET Identity | 8.0 | Auth | Existing | None — antiforgery tokens already used |
+| Framework | Version | Purpose | Why Recommended |
+|-----------|---------|---------|-----------------|
+| **xUnit** | 2.6+ | Unit testing services, models, business logic | Microsoft's recommended framework for .NET Core; used in all official .NET/EF Core tests; strong dependency injection support; test isolation (new instance per test); parallel execution by default |
+| **WebApplicationFactory** | .NET 8+ (built-in) | Functional testing controllers, full request/response cycles | Part of ASP.NET Core testing infrastructure; integrates with Kestrel test host; enables TestServer without requiring IIS; in-memory database seeding works seamlessly; no additional NuGet needed |
+| **Xunit.DependencyInjection** | 8.9+ | DI container for unit tests | Reduces boilerplate in test classes; mirrors production DI setup; preferred over constructor injection in large test suites; aligns with web app DI patterns |
 
-**Database Schema Changes (Migration Only):**
-```sql
-ALTER TABLE AssessmentSessions ADD
-    LastPageIndex INT DEFAULT 0,
-    ElapsedSeconds INT DEFAULT 0;
-```
+### Code Analysis & Quality Tools
 
-No new tables, no new dependencies.
+| Tool | Version | Purpose | Why Recommended |
+|------|---------|---------|-----------------|
+| **Microsoft.CodeAnalysis.NetAnalyzers** | 8.0+ | Static analysis (Roslyn-based) | Replaces deprecated FxCopAnalyzers; finds dead code, unused variables, unreachable paths; free; built into .NET SDK 5.0+; IDE integration in Visual Studio; no external service needed |
+| **StyleCop.Analyzers** | 1.2+ | Code style consistency (naming, spacing, documentation) | 21M+ downloads; identifies inconsistencies this codebase likely has (dead code, unused fields, naming violations); pair with .editorconfig for consistency |
+| **SonarQube Community** | 9.9 LTA | Enterprise code quality dashboard | Detects code smells, security hotspots, technical debt; generates reports on dead code, duplication; free community edition; CLI integration via SonarScanner; perfect for brownfield baselines |
+| **NDepend** (Optional) | 2024+ | Dependency analysis & architectural visualization | Identifies hidden dependencies, dead code in large legacy systems; excellent for brownfield migrations; commercial ($400/year) but worth it for complex architecture validation |
 
-### Frontend (Client-Side)
+### Test Data & Database
 
-| Technology | Version | Purpose | Status | Notes |
-|-----------|---------|---------|--------|-------|
-| **Fetch API** | Native ES6 | AJAX to endpoints | Existing | Already used in StartExam.cshtml for polling; increase call frequency |
-| **sessionStorage** | Native HTML5 | Client state persistence | **NEW** | Resume page + time across refresh; ephemeral (cleared on logout) |
-| **setInterval()** | Native ES3 | Polling timer | Existing | Already used for countdown; reuse for status polling |
-| **jQuery** | 3.7.1 (CDN) | DOM manipulation | Existing | Keep for backward compatibility; new code uses `fetch()` |
-| **Bootstrap 5** | 5.3.0 (CDN) | UI framework | Existing | Modals, alerts, progress bars; no changes |
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| **EF Core In-Memory Database** | 8.0+ | In-memory DB for functional tests | Fast test execution; no infrastructure setup; suitable for isolated test scenarios; use for most QA tests |
+| **Bogus** | 35.3+ | Fake data generation for seeding | Generates realistic test data (names, emails, dates); reduces magic strings; pair with EF Core seeding methods; great for rapid test data creation |
+| **TestcontainersNet** | 3.7+ (Optional) | Docker-based test databases | If in-memory DB proves insufficient for specific scenarios; runs real SQLite in containers; slower but more realistic; use only for critical integration tests where in-memory limitations appear |
 
-**Zero new JavaScript libraries.** All native browser APIs or already loaded via CDN.
+### Development Tools
 
-### Supporting Libraries (Unchanged)
-
-- ClosedXML (0.105.0) — Excel exports, no interaction with v2.1
-- Chart.js — Monitoring visualizations, no code changes (auto-refresh only)
-
----
-
-## Feature Implementation Details
-
-### 1. Auto-Save on Radio Click
-
-**Status:** Extend existing pattern (SaveAnswer already tested in v1.7)
-
-**Endpoint:** `POST /CMP/SaveAnswer?sessionId=X&questionId=Y&optionId=Z`
-- Already exists, already handles concurrent requests
-- Uses EF Core `ExecuteUpdateAsync` pattern (try update, fallback to insert)
-- Antiforgery tokens already in place
-
-**Client Code:** Fire-and-forget AJAX on radio change
-```javascript
-document.querySelectorAll('.exam-radio').forEach(radio => {
-    radio.addEventListener('change', () => {
-        const qId = radio.getAttribute('data-question-id');
-        const optId = radio.value;
-
-        // Update local hidden input (fallback if AJAX fails)
-        document.getElementById('ans_' + qId).value = optId;
-
-        // NEW: Auto-save to DB (non-blocking)
-        fetch('/CMP/SaveAnswer', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'RequestVerificationToken': token
-            },
-            body: `sessionId=${SESSION_ID}&questionId=${qId}&optionId=${optId}`
-        }).catch(() => {}); // Ignore network errors
-    });
-});
-```
-
-**Why fetch() over jQuery.ajax():**
-- Fetch is modern, simpler, already used for CheckExamStatus polling
-- No jQuery dependency added
-- Easier error handling with `.catch()`
-
-**Load:** ~5 answers/worker × 100 workers = ~500 POST/min = 8 req/sec (negligible)
+| Tool | Purpose | Configuration |
+|------|---------|---------------|
+| **dotnet test** (CLI) | Run unit tests locally & in CI/CD | Command: `dotnet test --filter Category=Unit` for test categorization |
+| **Visual Studio Test Explorer** | Discover & run tests in IDE | Built-in; use Test > Test Explorer window; supports grouping by namespace, result filtering |
+| **Coverlet** | Code coverage measurement | NuGet: `dotnet add package coverlet.collector`; generates coverage reports (.opencover format); integrate with CI/CD for trend tracking |
+| **SonarScanner for .NET** | Integrate Roslyn analysis with SonarQube | CLI tool for submitting analysis results to SonarQube dashboard |
 
 ---
 
-### 2. Session Resume (Last Page + Elapsed Time)
+## Installation & Configuration
 
-**Client-Side:** `sessionStorage` for immediate resume
-**Server-Side:** Database columns + endpoint to fetch resume state
+### 1. Create Test Project Structure
 
-**Client Storage (sessionStorage keys):**
-```javascript
-sessionStorage.setItem('exam_' + SESSION_ID + '_page', currentPage);
-sessionStorage.setItem('exam_' + SESSION_ID + '_elapsed', elapsedSeconds);
-```
-
-**On page load (StartExam.cshtml):**
-```javascript
-// Restore page and time from sessionStorage (if page refresh)
-const lastPage = parseInt(sessionStorage.getItem('exam_' + SESSION_ID + '_page')) || 0;
-const elapsedStoredSeconds = parseInt(sessionStorage.getItem('exam_' + SESSION_ID + '_elapsed')) || 0;
-
-currentPage = lastPage;
-timeRemaining = DURATION_SECONDS - elapsedStoredSeconds;
-changePage(lastPage);
-```
-
-**Periodic update (every 5 seconds during exam):**
-```javascript
-setInterval(() => {
-    sessionStorage.setItem('exam_' + SESSION_ID + '_page', currentPage);
-    sessionStorage.setItem('exam_' + SESSION_ID + '_elapsed', DURATION_SECONDS - timeRemaining);
-}, 5000);
-```
-
-**On ExamSummary POST:**
-```javascript
-// Append to form before submit
-const form = document.getElementById('examForm');
-form.innerHTML += `<input type="hidden" name="lastPageIndex" value="${currentPage}">`;
-form.innerHTML += `<input type="hidden" name="elapsedSeconds" value="${DURATION_SECONDS - timeRemaining}">`;
-form.submit();
-```
-
-**Server-Side Persistence (ExamSummary controller):**
-```csharp
-[HttpPost]
-public async Task<IActionResult> ExamSummary(int id, int lastPageIndex, int elapsedSeconds, ...)
-{
-    var session = await _context.AssessmentSessions.FindAsync(id);
-    session.LastPageIndex = lastPageIndex;
-    session.ElapsedSeconds = elapsedSeconds;
-    session.Status = "Completed";
-    session.CompletedAt = DateTime.UtcNow;
-    await _context.SaveChangesAsync();
-
-    // Redirect to results
-}
-```
-
-**Resume Endpoint (optional, for debugging):**
-```csharp
-[HttpGet("GetSessionResume")]
-public async Task<IActionResult> GetSessionResume(int sessionId)
-{
-    var session = await _context.AssessmentSessions
-        .AsNoTracking()
-        .Where(s => s.Id == sessionId && s.Status == "InProgress")
-        .Select(s => new {
-            lastPageIndex = s.LastPageIndex ?? 0,
-            elapsedSeconds = s.ElapsedSeconds,
-            remainingSeconds = (int)(s.ExamWindowCloseDate - DateTime.UtcNow).TotalSeconds
-        })
-        .FirstOrDefaultAsync();
-
-    return Json(session);
-}
-```
-
-**Why sessionStorage:**
-- Persists across page refresh (F5, accidental close)
-- Cleared on browser close or logout (security)
-- ~200 bytes per session (trivial)
-- No network overhead (instant restore)
-- Works offline until next AJAX call
-
-**Database columns purpose:**
-- Audit trail (compliance: record how long worker took)
-- Resume after logout + re-login (sessionStorage cleared)
-- Admin can see elapsed time in session history
-
----
-
-### 3. Worker Exam Polling (Every 10s)
-
-**Status:** Existing endpoint, just reduce interval
-
-**Endpoint:** `GET /CMP/CheckExamStatus?sessionId=X` (already exists, v1.7)
-- Response: `{ "closed": bool, "redirectUrl": string }`
-- Lightweight query: single SELECT on AssessmentSession.Id
-- No new code needed on server
-
-**Client Code (StartExam.cshtml):**
-```javascript
-// EXISTING: Polling every 30 seconds
-// CHANGE: Reduce to 10 seconds for faster HC close detection
-const POLL_INTERVAL = 10000; // was 30000
-
-setInterval(() => {
-    fetch('/CMP/CheckExamStatus?sessionId=' + SESSION_ID)
-        .then(r => r.json())
-        .then(data => {
-            if (data.closed && !examClosed) {
-                examClosed = true;
-                clearInterval(statusPollInterval);
-                clearInterval(timerInterval);
-
-                // Show notification
-                alert('Exam closed by administrator. Redirecting...');
-
-                // Redirect to results
-                setTimeout(() => {
-                    window.location.href = data.redirectUrl || '/CMP/Assessment';
-                }, 3000);
-            }
-        })
-        .catch(() => {}); // Continue polling on network error
-}, POLL_INTERVAL);
-```
-
-**Load Estimate:**
-- 100 concurrent workers → 10 req/sec
-- Query: 1 table, 1 WHERE clause, 0 joins
-- Database can handle 1000+ req/sec easily
-- Network: ~100 bytes per response (minimal)
-
-**No new libraries.** Uses existing Fetch API and setInterval.
-
----
-
-### 4. Live HC Monitoring Auto-Refresh (Every 5-10s)
-
-**Status:** Existing page, add polling script
-
-**Options:**
-
-**Option A: Refetch full page, extract progress DOM**
-```javascript
-// In AssessmentMonitoringDetail.cshtml <script> block
-const MONITORING_URL = window.location.href;
-const POLL_INTERVAL = 10000; // 10 seconds
-
-setInterval(() => {
-    fetch(MONITORING_URL)
-        .then(r => r.text())
-        .then(html => {
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, 'text/html');
-
-            // Extract new progress values
-            const newProgress = doc.querySelector('#completedProgress');
-            if (newProgress) {
-                document.querySelector('#completedProgress').innerText =
-                    newProgress.innerText;
-            }
-        })
-        .catch(() => {});
-}, POLL_INTERVAL);
-```
-
-**Option B: Dedicated JSON endpoint (recommended for efficiency)**
-```csharp
-// In CMPController.cs
-[HttpGet("GetMonitoringProgress")]
-public async Task<IActionResult> GetMonitoringProgress(string title, string category, DateTime scheduleDate)
-{
-    var sessions = await _context.AssessmentSessions
-        .AsNoTracking()
-        .Where(s => s.Title == title && s.Category == category && s.Schedule == scheduleDate)
-        .ToListAsync();
-
-    int total = sessions.Count;
-    int completed = sessions.Count(s => s.Status == "Completed");
-    int progressPct = total > 0 ? (int)Math.Round(completed * 100.0 / total) : 0;
-
-    return Json(new { completedCount = completed, totalCount = total, progressPct });
-}
-```
-
-```javascript
-// Client code (Option B - more efficient)
-const TITLE = '@Model.Title';
-const CATEGORY = '@Model.Category';
-const SCHEDULE = '@Model.Schedule.ToString("yyyy-MM-ddTHH:mm:ss")';
-
-setInterval(() => {
-    fetch(`/CMP/GetMonitoringProgress?title=${encodeURIComponent(TITLE)}&category=${encodeURIComponent(CATEGORY)}&scheduleDate=${encodeURIComponent(SCHEDULE)}`)
-        .then(r => r.json())
-        .then(data => {
-            // Update only the progress column
-            document.querySelector('#progressBar').style.width = data.progressPct + '%';
-            document.querySelector('#progressText').innerText = data.completedCount + '/' + data.totalCount;
-        })
-        .catch(() => {});
-}, 10000);
-```
-
-**Recommendation:** Option B (dedicated endpoint)
-- Payload: ~100 bytes vs. ~30KB for full page
-- Cleaner separation of concerns
-- Easier to test and debug
-
----
-
-## Database Schema Migration
-
-**Create new migration:**
 ```bash
-dotnet ef migrations add AddSessionResumeColumns
+# Create xUnit test project (next to main .csproj)
+dotnet new xunit -n PortalHC.Tests
+
+# Navigate to test project
+cd PortalHC.Tests
+
+# Add testing framework packages
+dotnet add package xunit
+dotnet add package xunit.runner.visualstudio
+dotnet add package Microsoft.NET.Test.Sdk
+
+# Add dependency injection support
+dotnet add package Xunit.DependencyInjection
+dotnet add package Xunit.DependencyInjection.Logging
+dotnet add package Microsoft.AspNetCore.Mvc.Testing
+
+# Add code quality tools
+dotnet add package coverlet.collector
 ```
 
-**Migration code:**
-```csharp
-protected override void Up(MigrationBuilder migrationBuilder)
-{
-    migrationBuilder.AddColumn<int>(
-        name: "LastPageIndex",
-        table: "AssessmentSessions",
-        type: "int",
-        nullable: false,
-        defaultValue: 0);
+### 2. Add Code Quality Analyzers to Main Project
 
-    migrationBuilder.AddColumn<int>(
-        name: "ElapsedSeconds",
-        table: "AssessmentSessions",
-        type: "int",
-        nullable: false,
-        defaultValue: 0);
-}
-
-protected override void Down(MigrationBuilder migrationBuilder)
-{
-    migrationBuilder.DropColumn(name: "LastPageIndex", table: "AssessmentSessions");
-    migrationBuilder.DropColumn(name: "ElapsedSeconds", table: "AssessmentSessions");
-}
-```
-
-**Apply:**
 ```bash
-dotnet ef database update
+# In main PortalHC directory
+dotnet add package Microsoft.CodeAnalysis.NetAnalyzers
+dotnet add package StyleCop.Analyzers
 ```
 
-**Entity Model Update:**
-```csharp
-public class AssessmentSession
-{
-    // Existing fields...
-    public DateTime? StartedAt { get; set; }
-    public DateTime? CompletedAt { get; set; }
+### 3. Configure .editorconfig for Style Enforcement
 
-    // NEW:
-    public int LastPageIndex { get; set; } = 0;
-    public int ElapsedSeconds { get; set; } = 0;
+Create `.editorconfig` in project root:
+
+```ini
+root = true
+
+# All C# files
+[*.cs]
+
+# Code quality warnings
+dotnet_code_quality_unused_parameters = all:error
+dotnet_diagnostic.CA1806.severity = warning
+
+# StyleCop naming rules
+dotnet_naming_rule.interface_should_be_starts_with_i.severity = warning
+dotnet_naming_style.starts_with_i.required_prefix = I
+dotnet_naming_symbols.interface.applicable_kinds = interface
+dotnet_naming_symbols.interface.applicable_accessibilities = public,internal,private,protected,protected_internal,private_protected
+dotnet_naming_rule.interface_should_be_starts_with_i.symbols = interface
+dotnet_naming_rule.interface_should_be_starts_with_i.style = starts_with_i
+
+# StyleCop rule enforcement
+stylecop_use_built_in_aliases = true
+```
+
+### 4. Setup WebApplicationFactory for Functional Tests
+
+Create `PortalHC.Tests/WebTestFixture.cs`:
+
+```csharp
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using PortalHC.Web;
+
+namespace PortalHC.Tests;
+
+public class WebTestFixture : WebApplicationFactory<Program>
+{
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.UseEnvironment("Testing");
+
+        builder.ConfigureServices(services =>
+        {
+            // Remove production DbContext
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+            if (descriptor != null)
+                services.Remove(descriptor);
+
+            // Add in-memory DbContext for testing
+            services.AddDbContext<AppDbContext>(options =>
+            {
+                options.UseInMemoryDatabase("TestDb_" + Guid.NewGuid());
+            });
+
+            // Build service provider
+            var sp = services.BuildServiceProvider();
+
+            using (var scope = sp.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.Database.EnsureCreated();
+
+                // Seed test data
+                SeedTestData(db);
+            }
+        });
+    }
+
+    private static void SeedTestData(AppDbContext db)
+    {
+        // Add minimal test data for each scenario
+        if (!db.Users.Any())
+        {
+            db.Users.Add(new ApplicationUser
+            {
+                Id = "test-user-admin",
+                UserName = "adminuser",
+                Email = "admin@example.com",
+                FullName = "Admin User",
+                UserRoles = new() { new() { RoleId = "admin-role" } }
+            });
+
+            db.Users.Add(new ApplicationUser
+            {
+                Id = "test-user-hc",
+                UserName = "hcuser",
+                Email = "hc@example.com",
+                FullName = "HC User",
+                UserRoles = new() { new() { RoleId = "hc-role" } }
+            });
+
+            db.SaveChanges();
+        }
+    }
+}
+```
+
+### 5. Configure .NET Analyzers in Project File
+
+Update `PortalHC.csproj`:
+
+```xml
+<PropertyGroup>
+  <!-- Enable analyzer enforcement -->
+  <AnalysisLevel>latest</AnalysisLevel>
+  <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+  <!-- Make warnings visible but don't fail build initially -->
+  <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+
+  <!-- Enable nullable reference types for safety -->
+  <Nullable>enable</Nullable>
+</PropertyGroup>
+
+<!-- StyleCop configuration -->
+<ItemGroup>
+  <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+  </PackageReference>
+</ItemGroup>
+```
+
+### 6. Setup SonarQube Scanning for Brownfield Analysis
+
+```bash
+# Install SonarScanner globally
+dotnet tool install --global dotnet-sonarscanner
+
+# Run baseline analysis
+dotnet sonarscanner begin /k:"PortalHC" /d:sonar.login="YOUR_TOKEN"
+dotnet build
+dotnet sonarscanner end /d:sonar.login="YOUR_TOKEN"
+
+# View results at: http://localhost:9000/dashboard?id=PortalHC
+```
+
+---
+
+## Testing Patterns & Best Practices
+
+### Unit Test Pattern (Arrange-Act-Assert)
+
+```csharp
+[Fact]
+public void CreateAssessment_ValidInput_ReturnsAssessmentWithId()
+{
+    // Arrange: Set up dependencies and test data
+    var service = new AssessmentService(_mockRepository.Object);
+    var request = new CreateAssessmentRequest
+    {
+        Title = "Online Assessment - Safety",
+        Category = "Online"
+    };
+
+    // Act: Execute the method under test
+    var result = service.CreateAssessment(request);
+
+    // Assert: Verify the expected outcome
+    Assert.NotNull(result);
+    Assert.NotEqual(0, result.Id);
+    Assert.Equal("Online Assessment - Safety", result.Title);
+}
+```
+
+### Functional Test Pattern (Integration with Real Endpoints)
+
+```csharp
+[Collection("Sequential")]
+public class AssessmentManagementTests : IClassFixture<WebTestFixture>
+{
+    private readonly HttpClient _client;
+
+    public AssessmentManagementTests(WebTestFixture factory)
+    {
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task ManageAssessments_GetList_ReturnsOkWithData()
+    {
+        // Arrange & Act: Make HTTP request to real endpoint
+        var response = await _client.GetAsync("/Admin/ManageAssessments");
+
+        // Assert: Verify response
+        response.EnsureSuccessStatusCode();
+        var content = await response.Content.ReadAsStringAsync();
+        Assert.Contains("Assessment", content);
+    }
+}
+```
+
+### Parameterized Testing (Multiple Scenarios with One Test)
+
+```csharp
+[Theory]
+[InlineData("", 0)]
+[InlineData("Single,Value", 1)]
+[InlineData("Multiple,Comma,Values", 2)]
+public void ParseInput_VariousInputs_ReturnCorrectCounts(string input, int expected)
+{
+    var result = InputParser.Parse(input);
+    Assert.Equal(expected, result.Count);
+}
+```
+
+### Test Data Seeding with Bogus
+
+```csharp
+[Fact]
+public void AssessmentService_WithManyWorkers_ProcessesAllRecords()
+{
+    // Arrange: Generate realistic test data
+    var faker = new Faker<Worker>();
+    var workers = faker
+        .RuleFor(w => w.Nip, f => f.Random.Int(1000000000, 9999999999).ToString())
+        .RuleFor(w => w.Name, f => f.Person.FullName)
+        .RuleFor(w => w.Email, f => f.Internet.Email())
+        .Generate(100);
+
+    // Act
+    var result = _service.ProcessWorkerBatch(workers);
+
+    // Assert
+    Assert.Equal(100, result.ProcessedCount);
 }
 ```
 
 ---
 
-## Alternatives Considered & Rejected
+## Code Analysis Workflow for Brownfield
 
-| Use Case | Proposed | Why Rejected | Our Choice |
-|----------|----------|-------------|-----------|
-| Auto-save | WebSockets (SignalR) | Overkill; polling sufficient; adds 2 dependencies | Fire-and-forget fetch POST |
-| Resume state | Redis cache | Deployment complexity; sessionStorage ephemeral by design | sessionStorage + DB columns |
-| Resume state | URL params | Leaks data in browser history | sessionStorage |
-| Session polling | WebSockets (SignalR) | Workers don't need real-time; 10s polling fast enough | 10s fetch polling |
-| Polling library | Axios | Already have fetch; no extra dependency | Native fetch API |
-| Persistence | IndexedDB | Overkill; sessionStorage sufficient for exam duration | sessionStorage (~100 bytes) |
+### Phase 1: Baseline Scan (Week 1 of QA milestone)
 
----
+1. **Run NetAnalyzers** to identify code quality issues:
+   ```bash
+   dotnet build /p:AnalysisLevel=latest 2>&1 | tee analysis-baseline.txt
+   ```
+   Look for high-priority warnings:
+   - **CA1806**: Do not ignore method results (unused return values)
+   - **IDE0005**: Remove unnecessary imports
+   - **CS8600**: Converting null literal to non-nullable type (null safety)
+   - **IDE0161**: Use file-scoped namespaces (modernization)
 
-## Load Testing Baseline
+2. **Run StyleCop** for consistency issues:
+   ```bash
+   dotnet build /p:EnforceCodeStyleInBuild=true 2>&1 | grep "SA"
+   ```
+   Typical issues: SA1633 (missing header), SA1101 (unused this), SA1309 (field naming)
 
-**Concurrent Scenario:** 100 workers taking exams simultaneously
+3. **Generate SonarQube Report** for architectural debt:
+   ```bash
+   dotnet sonarscanner begin /k:"PortalHC-Baseline"
+   dotnet build
+   dotnet sonarscanner end
+   ```
+   Dashboard shows: Code smells, duplications, security hotspots, dead code paths
 
-| Operation | Frequency | Payload | Total/sec |
-|-----------|-----------|---------|-----------|
-| SaveAnswer (auto-click) | ~1 per min/worker | 150 bytes POST | ~1.6 req/sec |
-| CheckExamStatus poll | Every 10s/worker | 100 bytes GET | ~10 req/sec |
-| MonitoringDetail poll | Every 10s/HC (1-5 HC) | 100 bytes GET | <1 req/sec |
-| **Total** | — | — | **~12 req/sec** |
+### Phase 2: Cleanup Priorities
 
-**Database Load:**
-- SaveAnswer: 2 queries (ExecuteUpdate + possible Insert) = moderate I/O
-- CheckExamStatus: 1 SELECT = minimal I/O
-- Monitoring: 1 SELECT with COUNT = minimal I/O
+| Priority | Issue Type | Action | Effort |
+|----------|------------|--------|--------|
+| **CRITICAL** | Null reference bugs (CS8600) | Add null checks, use nullable operators | High |
+| **HIGH** | Dead code (unused methods, classes) | Delete or mark as obsolete with reason | Medium |
+| **HIGH** | Broken API calls (CA1806) | Verify return values are handled | Medium |
+| **MEDIUM** | Naming inconsistencies | Rename per StyleCop rules | Low |
+| **MEDIUM** | Unused imports | Remove via IDE (Ctrl+. quick fix) | Low |
+| **LOW** | Style enforcement (spacing, braces) | Auto-fix with IDE or EditorConfig | Low |
 
-**Prediction:** ASP.NET Core can handle 1000+ req/sec on modern hardware. 12 req/sec is negligible.
+### Phase 3: CI/CD Enforcement
 
----
+Update `.github/workflows/build.yml` (or equivalent):
 
-## Browsers & Compatibility
+```yaml
+- name: Build and Analyze
+  run: |
+    dotnet build /p:AnalysisLevel=latest /p:EnforceCodeStyleInBuild=true
+    dotnet sonarscanner begin /k:"PortalHC"
+    dotnet build
+    dotnet sonarscanner end
 
-| Technology | Min Browser | Note |
-|-----------|-----------|------|
-| Fetch API | Chrome 42, Firefox 39, Safari 10.1, Edge 15 | Covers 99%+ of modern users |
-| sessionStorage | IE 8+ | Covers 100% |
-| setInterval() | All | ES3 standard |
-| Antiforgery tokens | All | Server-side feature |
+- name: Run Tests
+  run: dotnet test --logger "trx;LogFileName=test-results.trx"
 
-**Recommendation:** No polyfills needed; ASP.NET Core 8 assumes modern browsers.
-
----
-
-## Deployment Checklist
-
-**Server-Side:**
-- [ ] Create and apply migration to add 2 columns to AssessmentSession
-- [ ] Update AssessmentSession model to include new columns
-- [ ] Update ExamSummary POST handler to receive lastPageIndex + elapsedSeconds
-- [ ] Verify SaveAnswer endpoint handles concurrent clicks (EF Core already does)
-- [ ] Reduce CheckExamStatus polling from 30s to 10s (optional but recommended)
-
-**Client-Side (Frontend):**
-- [ ] Add sessionStorage logic to StartExam.cshtml for page/time persistence
-- [ ] Update page navigation to update sessionStorage every change
-- [ ] Add periodic save of elapsed time to sessionStorage (every 5s)
-- [ ] Append lastPageIndex + elapsedSeconds to ExamSummary form before submit
-- [ ] Test sessionStorage survives F5 refresh
-- [ ] Test sessionStorage clears on logout
-
-**Monitoring (Optional):**
-- [ ] Add GetMonitoringProgress endpoint to CMPController (or refetch full page)
-- [ ] Add polling script to AssessmentMonitoringDetail.cshtml
-- [ ] Test auto-refresh updates progress column every 10s
-
-**Testing:**
-- [ ] Load test: 50+ concurrent workers, verify 10s polling doesn't spike CPU
-- [ ] Verify antiforgery tokens work with all new AJAX calls
-- [ ] Test with network throttling (simulate slow connection)
-- [ ] Test SaveAnswer with rapid-fire clicks (100+ per session)
+- name: Code Coverage
+  run: dotnet test /p:CollectCoverageMetrics=true
+```
 
 ---
 
-## Performance Tips
+## What NOT to Use (Brownfield Context)
 
-1. **sessionStorage is fast:** No network round-trip; restore instantly on page load
-2. **Fetch is lean:** Simpler than jQuery.ajax; 1KB gzipped
-3. **Polling is efficient:** 10s interval with simple SELECT queries scales easily
-4. **Fire-and-forget design:** AJAX errors don't block exam; answers in hidden inputs as fallback
-
----
-
-## Sources & Verification
-
-**ASP.NET Core & EF Core:**
-- [SaveAnswer pattern - EF Core ExecuteUpdateAsync](https://learn.microsoft.com/en-us/ef/core/saving/execute-insert-update-delete)
-- [Efficient Updating in EF Core](https://learn.microsoft.com/en-us/ef/core/performance/efficient-updating)
-- [ASP.NET Core Antiforgery Protection](https://learn.microsoft.com/en-us/aspnet/core/security/anti-request-forgery)
-
-**Browser APIs:**
-- [Fetch API (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
-- [sessionStorage (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage)
-- [setInterval (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/setInterval)
-
-**Existing Codebase (Verified):**
-- StartExam.cshtml: Uses fetch for CheckExamStatus polling (line 321)
-- CMPController.cs: SaveAnswer & CheckExamStatus endpoints exist (tested in v1.7)
-- _Layout.cshtml: jQuery 3.7.1 + Bootstrap 5.3.0 already included
-- AssessmentSession.cs: Model has StartedAt, CompletedAt, ExamWindowCloseDate
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| **Selenium WebDriver** for UI testing | Slow, brittle, maintenance burden on brownfield; flaky with legacy HTML; requires parallel infrastructure | Manual QA checklist + code analysis; defer Selenium to v3.1+ |
+| **Playwright** at this phase | Adds test complexity without immediate ROI; requires browser setup; doesn't address code quality issues | Focus on unit/functional tests first; plan Playwright for critical flows in v3.1+ |
+| **Full integration test suite** on real database | Brownfield has infrastructure coupling; slow (seconds per test); hard to parallelize | Use in-memory EF Core for 80% of tests; real DB only for migrations |
+| **NUnit or MSTest** | xUnit is .NET Core standard; better isolation; Microsoft's official recommendation | Stick with xUnit across all test projects |
+| **Manual data setup in tests** | Error-prone; magic values clutter tests; hard to maintain as data model grows | Use EF Core seeding + Bogus for fake data |
+| **PVS-Studio** (commercial) | Expensive ($600/year); SonarQube Community covers 90% of static analysis needs | Use SonarQube Community (free) first; upgrade only if specialized checks needed |
+| **Test code coverage >80%** | Diminishing returns on brownfield; time better spent on critical path testing | Target 60-70% on services; 40-50% on controllers (they delegate work) |
 
 ---
 
-## Summary: What's New vs. What Exists
+## Version Compatibility Matrix
 
-| Component | Existing | New | Change |
-|-----------|----------|-----|--------|
-| SaveAnswer endpoint | ✓ v1.7 | — | Increase click frequency (no code change) |
-| CheckExamStatus endpoint | ✓ | — | Reduce polling from 30s to 10s |
-| Fetch API usage | ✓ | — | Reuse for auto-save (same pattern) |
-| sessionStorage | — | ✓ | New: persist page + time across refresh |
-| DB columns (LastPageIndex, ElapsedSeconds) | — | ✓ | New: 1 migration |
-| ExamSummary handler | ✓ | — | Extend: receive 2 new params |
-| Monitoring auto-refresh | — | ✓ | New: optional polling script |
+| Package | Version | .NET Target | Notes |
+|---------|---------|-------------|-------|
+| xUnit | 2.6+ | .NET 7+ (includes 8) | Dependency injection support required |
+| WebApplicationFactory | Built-in | .NET 8+ | No separate NuGet; included in ASP.NET Core |
+| Microsoft.CodeAnalysis.NetAnalyzers | 8.0+ | .NET 7+ | Successor to FxCopAnalyzers (deprecated 3.3.2) |
+| StyleCop.Analyzers | 1.2+ | .NET 7+ | Works alongside NetAnalyzers without conflict |
+| SonarQube Community | 9.9 LTA | Platform-agnostic | Runs via CLI; dashboard is web-based |
+| EF Core In-Memory | 8.0+ | .NET 8+ | Included in main EF Core package |
+| Bogus | 35.3+ | .NET 7+ | No special requirements; pure C# |
 
-**Bottom Line:** Mostly extending existing patterns. No new dependencies. No deployment risk.
+---
+
+## Testing Pyramid for This Project
+
+**Recommended Distribution:**
+
+```
+                 ▲
+                ╱ ╲
+               ╱   ╲        Functional Tests (15-20)
+              ╱     ╲       - End-to-end flows
+             ╱───────╲      - Manual QA coverage checklist
+            ╱         ╲
+           ╱───────────╲    Integration Tests (20-30)
+          ╱             ╲   - Data access, migrations
+         ╱───────────────╲  - Query correctness
+        ╱                 ╲
+       ╱─────────────────────╲  Unit Tests (60-80)
+      ╱                       ╲  - Service logic, validation
+     ╱___________________________╲ - Business calculations
+```
+
+**Target Metrics:**
+- **Unit Tests**: 60-80 (small, fast, testable services)
+- **Integration Tests**: 20-30 (database interactions)
+- **Functional Tests**: 15-20 (critical end-to-end workflows)
+- **UI Manual Tests**: Checklist in QA phase (not automated yet)
+- **Code Coverage Goal**: 60-70% on services; 40-50% on controllers
+
+---
+
+## Test Organization Structure
+
+```
+PortalHC/
+├── PortalHC.Web/
+│   ├── Controllers/
+│   ├── Models/
+│   ├── Views/
+│   └── PortalHC.csproj
+├── PortalHC.Tests/
+│   ├── Unit/
+│   │   ├── Services/
+│   │   │   ├── AssessmentServiceTests.cs
+│   │   │   ├── CoachingProtonServiceTests.cs
+│   │   │   ├── UserServiceTests.cs
+│   │   │   └── IdpPlanServiceTests.cs
+│   │   ├── Models/
+│   │   │   └── ValidationTests.cs
+│   │   └── Utilities/
+│   │       └── ParserTests.cs
+│   ├── Integration/
+│   │   ├── DataAccess/
+│   │   │   └── AssessmentRepositoryTests.cs
+│   │   └── Migrations/
+│   │       └── MigrationTests.cs
+│   ├── Functional/
+│   │   ├── Pages/
+│   │   │   ├── AssessmentManagementTests.cs
+│   │   │   ├── AdminPortalTests.cs
+│   │   │   └── KelolaDataHubTests.cs
+│   │   └── Workflows/
+│   │       ├── AssessmentFlowTests.cs
+│   │       ├── CoachingProtonFlowTests.cs
+│   │       └── IdpPlanTests.cs
+│   ├── WebTestFixture.cs
+│   ├── TestData/
+│   │   ├── SeedData.cs
+│   │   └── FakeDataBuilders.cs
+│   └── PortalHC.Tests.csproj
+```
+
+---
+
+## Running Tests & Analysis
+
+### Quick Start Commands
+
+```bash
+# Run all tests
+dotnet test
+
+# Run only unit tests (fast feedback)
+dotnet test --filter "Category=Unit"
+
+# Run with code coverage report
+dotnet test /p:CollectCoverageMetrics=true
+
+# Watch mode (auto-rerun on file changes)
+dotnet test --watch
+
+# Verbose output (for debugging)
+dotnet test --verbosity detailed
+
+# Run specific test class
+dotnet test --filter "FullyQualifiedName~PortalHC.Tests.Unit.Services.AssessmentServiceTests"
+```
+
+### Code Analysis Commands
+
+```bash
+# Build with analyzer enforcement
+dotnet build /p:AnalysisLevel=latest /p:EnforceCodeStyleInBuild=true
+
+# Generate StyleCop report
+dotnet build /p:EnforceCodeStyleInBuild=true 2>&1 | grep "SA"
+
+# SonarQube analysis
+dotnet sonarscanner begin /k:"PortalHC"
+dotnet build
+dotnet sonarscanner end
+
+# View coverage report
+# Coverage files generated in: coverage/
+# Open in browser: coverage/index.html
+```
+
+---
+
+## Testing Best Practices Summary
+
+### ✅ DO
+
+- Write test names that describe the scenario: `CreateAssessment_InvalidInput_ThrowsArgumentException`
+- Use Arrange-Act-Assert pattern clearly
+- Test one behavior per test
+- Use parameterized tests for similar scenarios
+- Seed test data via EF Core, not SQL scripts
+- Run tests frequently (every commit)
+- Keep unit tests under 100ms each
+- Use dependency injection in services to make them testable
+
+### ❌ DON'T
+
+- Write tests without clear names
+- Mix multiple assertions/behaviors in one test
+- Use real database in unit tests (use in-memory)
+- Copy-paste test setup code (create helper methods)
+- Test private methods directly
+- Hardcode test data magic strings
+- Skip analyzer warnings; fix them
+- Assume code is correct; test the happy AND sad paths
+
+---
+
+## Sources & References
+
+### Official Microsoft Documentation
+- [Microsoft Learn: Best practices for writing unit tests](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices)
+- [Microsoft Learn: Test ASP.NET Core MVC apps](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/test-asp-net-core-mvc-apps)
+- [Microsoft Learn: Entity Framework Core Data Seeding](https://learn.microsoft.com/en-us/ef/core/modeling/data-seeding)
+- [Microsoft Learn: Migrate from FxCop Analyzers to .NET Analyzers](https://learn.microsoft.com/en-us/visualstudio/code-quality/migrate-from-fxcop-analyzers-to-net-analyzers)
+
+### Framework Documentation
+- [xUnit.net Getting Started](https://xunit.net/docs/getting-started/netcore)
+- [WebApplicationFactory (ASP.NET Core Testing)](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests)
+- [StyleCop.Analyzers GitHub](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
+
+### Code Quality Tools
+- [SonarQube .NET integration](https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/dotnet-environments/getting-started-with-net)
+- [Roslyn Analyzers Overview](https://learn.microsoft.com/en-us/visualstudio/code-quality/roslyn-analyzers-overview)
+
+### Reference Implementations
+- [BrowserStack: C# Testing Frameworks 2026](https://www.testmuai.com/blog/c-sharp-testing-frameworks/)
+- [BrowserStack: Code Quality Analysis Tools](https://www.code-quality.io/best-c-sharp-static-code-analysis-tools)
+
+---
+
+## Next Steps for Phase 3.0
+
+1. **Week 1 (Code Analysis):**
+   - Run NetAnalyzers baseline scan
+   - Generate SonarQube report
+   - Create priority list of dead code to remove
+
+2. **Week 2-3 (Unit Testing):**
+   - Create test project structure
+   - Write 10-15 critical service unit tests
+   - Verify code paths for Assessment, Coaching, IDP flows
+
+3. **Week 4 (Functional Testing):**
+   - Setup WebTestFixture
+   - Write 10-15 functional tests for major workflows
+   - Verify end-to-end Assessment assignment → results
+
+4. **Week 5 (Manual QA):**
+   - Execute QA checklist (Assessment, Coaching, IDP, Master Data)
+   - Log bugs found during functional testing
+   - Fix critical issues
+
+5. **Week 6+ (Code Cleanup):**
+   - Remove dead code identified by analyzers
+   - Fix naming inconsistencies
+   - Rename "Proton Progress" → "Coaching Proton"
+   - Complete IDP Plan page development
+
+---
+
+**Stack research for:** ASP.NET Core 8 MVC Portal — Comprehensive QA Testing & Code Analysis
+**Researched:** 2026-03-01
+**Confidence:** HIGH
+**Next Phase:** v3.0 should start with code analysis baseline (Week 1), then build unit/functional test skeleton (Weeks 2-3), then execute manual QA (Week 4-5), with code cleanup ongoing throughout.
