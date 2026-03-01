@@ -11,7 +11,7 @@
         new SelectListItem { Value = "Training Licencor", Text = "Training Licencor" },
         new SelectListItem { Value = "OTS", Text = "OTS" },
         new SelectListItem { Value = "Mandatory HSSE Training", Text = "Mandatory HSSE Training" },
-        new SelectListItem { Value = "Proton", Text = "Proton" }
+        new SelectListItem { Value = "Assessment Proton", Text = "Assessment Proton" }
     };
 
     // Status options
@@ -166,6 +166,40 @@
                     </div>
                 </div>
 
+                <!-- Assessment Proton: Track + Eligible Coachees (d-none by default, shown by JS) -->
+                <div id="protonFieldsSection" class="col-12 d-none mt-3">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="bi bi-award me-2"></i>Pengaturan Assessment Proton</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Track <span class="text-danger">*</span></label>
+                                    <select id="protonTrackSelect" name="ProtonTrackId" class="form-select">
+                                        <option value="">-- Pilih Track --</option>
+                                        @if (ViewBag.ProtonTracks != null)
+                                        {
+                                            foreach (var track in (List<HcPortal.Models.ProtonTrack>)ViewBag.ProtonTracks)
+                                            {
+                                                <option value="@track.Id" data-tahun="@track.TahunKe">@track.DisplayName</option>
+                                            }
+                                        }
+                                    </select>
+                                    <div class="form-text text-muted">Pilih track sesuai penugasan coachee (Operator/Panelman, Tahun 1/2/3).</div>
+                                </div>
+                            </div>
+                            <div id="protonEligibleSection" class="d-none">
+                                <div class="alert alert-info py-2 px-3 mb-2" id="protonEligibleStatus">
+                                    <i class="bi bi-hourglass-split me-1"></i>Pilih track untuk memuat daftar coachee eligible...
+                                </div>
+                                <div id="protonUserCheckboxContainer" class="border rounded p-2 d-none" style="max-height: 250px; overflow-y: auto;"></div>
+                                <div class="form-text text-muted mt-1">Hanya coachee dengan 100% deliverable Approved yang dapat dipilih.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="row">
                     <!-- Schedule -->
                     <div class="col-md-6 mb-3">
@@ -189,7 +223,7 @@
 
                 <div class="row">
                     <!-- Duration Minutes -->
-                    <div class="col-md-6 mb-3">
+                    <div class="col-md-6 mb-3" id="durationFieldWrapper">
                         <label asp-for="DurationMinutes" class="form-label fw-semibold">
                             Duration (Minutes) <span class="text-danger">*</span>
                         </label>
@@ -245,7 +279,7 @@
                     <div class="card-body">
                         <div class="row">
                             <!-- Pass Percentage -->
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3" id="passPercentageWrapper">
                                 <label asp-for="PassPercentage" class="form-label fw-semibold">
                                     Pass Percentage (%) <span class="text-danger">*</span>
                                 </label>
@@ -488,7 +522,8 @@
                 'Training Licencor': 80,
                 'OTS': 70,
                 'Mandatory HSSE Training': 100,
-                'Proton': 85
+                'Proton': 85,
+                'Assessment Proton': 70
             };
 
             // Update PassPercentage when category changes
@@ -647,7 +682,10 @@
                         return false;
                     }
 
-                    if (!duration || duration <= 0) {
+                    // Skip duration check for Assessment Proton Tahun 3 (interview — no online exam)
+                    var durWrapper2 = document.getElementById('durationFieldWrapper');
+                    var isDurHidden = durWrapper2 && durWrapper2.classList.contains('d-none');
+                    if (!isDurHidden && (!duration || duration <= 0)) {
                         e.preventDefault();
                         alert('Please enter a valid Duration (1-480 minutes)');
                         console.error('Validation failed: Invalid duration');
@@ -729,6 +767,119 @@
             }
             document.getElementById('AccessToken').value = token;
         }
+
+        // ===== Assessment Proton adaptive form =====
+        (function() {
+            var categorySelect = document.getElementById('Category');
+            var protonSection = document.getElementById('protonFieldsSection');
+            var protonTrackSelect = document.getElementById('protonTrackSelect');
+            var protonEligibleSection = document.getElementById('protonEligibleSection');
+            var protonEligibleStatus = document.getElementById('protonEligibleStatus');
+            var protonCbContainer = document.getElementById('protonUserCheckboxContainer');
+            var durationWrapper = document.getElementById('durationFieldWrapper');
+            var passWrapper = document.getElementById('passPercentageWrapper');
+            var standardUserCol = document.querySelector('#userCheckboxContainer') ? document.querySelector('#userCheckboxContainer').closest('.col-md-8') : null;
+
+            function applyProtonMode(isProton) {
+                if (isProton) {
+                    if (protonSection) protonSection.classList.remove('d-none');
+                    if (standardUserCol) standardUserCol.style.display = 'none';
+                } else {
+                    if (protonSection) protonSection.classList.add('d-none');
+                    if (standardUserCol) standardUserCol.style.display = '';
+                    // Restore duration + passPercentage
+                    if (durationWrapper) { durationWrapper.classList.remove('d-none'); var di = durationWrapper.querySelector('input'); if (di) di.setAttribute('required','required'); }
+                    if (passWrapper) { passWrapper.classList.remove('d-none'); var pi = passWrapper.querySelector('input'); if (pi) pi.setAttribute('required','required'); }
+                    // Reset proton state
+                    if (protonTrackSelect) protonTrackSelect.value = '';
+                    if (protonEligibleSection) protonEligibleSection.classList.add('d-none');
+                    if (protonCbContainer) { protonCbContainer.innerHTML = ''; protonCbContainer.classList.add('d-none'); }
+                }
+            }
+
+            if (categorySelect) {
+                categorySelect.addEventListener('change', function() {
+                    applyProtonMode(this.value === 'Assessment Proton');
+                });
+                // On page load, apply if Assessment Proton already selected (e.g. form re-display after error)
+                if (categorySelect.value === 'Assessment Proton') applyProtonMode(true);
+            }
+
+            if (protonTrackSelect) {
+                protonTrackSelect.addEventListener('change', function() {
+                    var trackId = parseInt(this.value) || 0;
+                    var selectedOption = this.options[this.selectedIndex];
+                    var tahun = selectedOption ? (selectedOption.dataset.tahun || '') : '';
+
+                    // Tahun 3 = interview: hide Duration + PassPercentage
+                    var isTahun3 = tahun === 'Tahun 3';
+                    if (durationWrapper) {
+                        durationWrapper.classList.toggle('d-none', isTahun3);
+                        var durInput = durationWrapper.querySelector('input');
+                        if (durInput) { if (isTahun3) durInput.removeAttribute('required'); else durInput.setAttribute('required','required'); }
+                    }
+                    if (passWrapper) {
+                        passWrapper.classList.toggle('d-none', isTahun3);
+                    }
+
+                    if (!trackId) {
+                        if (protonEligibleSection) protonEligibleSection.classList.add('d-none');
+                        return;
+                    }
+
+                    // Load eligible coachees via AJAX
+                    if (protonEligibleSection) protonEligibleSection.classList.remove('d-none');
+                    if (protonEligibleStatus) { protonEligibleStatus.classList.remove('d-none'); protonEligibleStatus.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Memuat coachee eligible...'; }
+                    if (protonCbContainer) { protonCbContainer.innerHTML = ''; protonCbContainer.classList.add('d-none'); }
+
+                    fetch('/Admin/GetEligibleCoachees?protonTrackId=' + trackId)
+                        .then(function(r) { return r.json(); })
+                        .then(function(users) {
+                            if (!protonCbContainer || !protonEligibleStatus) return;
+                            if (!users || users.length === 0) {
+                                protonEligibleStatus.innerHTML = '<i class="bi bi-info-circle me-1"></i>Tidak ada coachee eligible untuk track ini. Semua deliverable harus Approved.';
+                                protonCbContainer.classList.add('d-none');
+                            } else {
+                                protonEligibleStatus.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>' + users.length + ' coachee eligible ditemukan.';
+                                protonCbContainer.innerHTML = '';
+                                users.forEach(function(u) {
+                                    var div = document.createElement('div');
+                                    div.className = 'form-check user-check-item mb-1';
+                                    div.dataset.name = u.fullName || '';
+                                    div.dataset.section = u.section || '';
+                                    div.innerHTML = '<input class="form-check-input user-checkbox" type="checkbox" name="UserIds" value="' + u.id + '" id="pu_' + u.id + '" />'
+                                        + '<label class="form-check-label" for="pu_' + u.id + '"><strong>' + (u.fullName || '-') + '</strong> <span class="text-muted">(' + (u.email || '') + ')</span></label>';
+                                    protonCbContainer.appendChild(div);
+                                });
+                                protonCbContainer.classList.remove('d-none');
+                                protonCbContainer.addEventListener('change', function() {
+                                    var count = protonCbContainer.querySelectorAll('.user-checkbox:checked').length;
+                                    var badge = document.getElementById('selectedCountBadge');
+                                    if (badge) badge.textContent = count + ' selected';
+                                });
+                            }
+                        })
+                        .catch(function() {
+                            if (protonEligibleStatus) protonEligibleStatus.innerHTML = '<i class="bi bi-exclamation-triangle text-danger me-1"></i>Gagal memuat daftar coachee.';
+                        });
+                });
+            }
+
+            // Patch form submit: skip duration check for Tahun 3
+            var form = document.getElementById('createAssessmentForm');
+            if (form) {
+                form.addEventListener('submit', function() {
+                    if (categorySelect && categorySelect.value === 'Assessment Proton') {
+                        var durWrapper = document.getElementById('durationFieldWrapper');
+                        if (durWrapper && durWrapper.classList.contains('d-none')) {
+                            // Tahun 3: set DurationMinutes to 0 before submit
+                            var durInput = durWrapper.querySelector('input[name="DurationMinutes"]');
+                            if (durInput) durInput.value = '0';
+                        }
+                    }
+                }, true); // capture phase — runs before existing submit handler
+            }
+        })();
 
         // === Auto-show success modal (batch) ===
         (function() {
