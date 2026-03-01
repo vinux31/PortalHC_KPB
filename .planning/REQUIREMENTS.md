@@ -10,7 +10,7 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 ### Critical Fixes
 
 - [ ] **CRIT-01**: User sees a proper "Access Denied" page instead of a runtime error when authorization fails
-- [ ] **CRIT-02**: Dead `CMPController.WorkerDetail` action removed (missing view causes runtime exception; all UI already routes through Admin/WorkerDetail)
+- [x] **CRIT-02**: Dead `CMPController.WorkerDetail` action removed (missing view causes runtime exception; all UI already routes through Admin/WorkerDetail)
 
 ### Dead View Cleanup
 
@@ -69,7 +69,7 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | CRIT-01 | Phase 73 | Pending |
-| CRIT-02 | Phase 73 | Pending |
+| CRIT-02 | Phase 73 | Complete |
 | VIEW-01 | Phase 74 | Pending |
 | VIEW-02 | Phase 74 | Pending |
 | VIEW-03 | Phase 74 | Pending |

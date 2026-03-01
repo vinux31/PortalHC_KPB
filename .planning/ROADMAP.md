@@ -258,7 +258,7 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 **Success Criteria** (what must be TRUE):
   1. Navigating to a route the user cannot access shows a proper "Access Denied" page instead of an exception screen
   2. The `CMPController.WorkerDetail` action and its missing view reference are gone — no runtime exception can be triggered via that route
-**Plans:** TBD
+**Plans:** 2/2 plans complete
 
 **Completed:** —
 
@@ -327,7 +327,7 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 | 47-53, 59 | v2.3 | 29/29 | Complete | 2026-03-01 |
 | 61-64 | v2.4 | 9/9 | Complete | 2026-02-28 |
 | 65-72 | v2.5 | 14/14 | Complete | 2026-02-28 |
-| 73 | v2.6 | 0/TBD | Not started | — |
+| 73 | 2/2 | Complete   | 2026-03-01 | — |
 | 74 | v2.6 | 0/TBD | Not started | — |
 | 75 | v2.6 | 0/TBD | Not started | — |
 | 76 | v2.6 | 0/TBD | Not started | — |

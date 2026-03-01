@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Codebase Cleanup
-status: ready
-last_updated: "2026-03-01T15:30:00.000Z"
-last_activity: "2026-03-01 — Roadmap created, 4 phases planned (73-76)"
+status: in-progress
+last_updated: "2026-03-01T04:40:00.000Z"
+last_activity: "2026-03-01 — 73-02 complete: dead WorkerDetail action removed, 5 redirects fixed (CRIT-02)"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -24,9 +24,9 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 73 (not started)
-**Status:** Ready — roadmap approved, awaiting plan-phase
-**Last activity:** 2026-03-01 — Roadmap finalized (4 phases, 20 requirements mapped)
+**Current phase:** Phase 73 (complete — both plans done)
+**Status:** Phase 73 complete — CRIT-01 and CRIT-02 resolved, ready for Phase 74
+**Last activity:** 2026-03-01 — 73-02: dead CMPController.WorkerDetail removed, 5 redirects fixed (CRIT-02)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases complete)
 
@@ -34,7 +34,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 
 | Phase | Name | Requirements | Status |
 |-------|------|--------------|--------|
-| 73 | Critical Fixes | CRIT-01, CRIT-02 | Not started |
+| 73 | Critical Fixes | CRIT-01, CRIT-02 | Complete |
 | 74 | Dead Code Removal | VIEW-01–06, ACTN-01–02, FILE-01–02 | Not started |
 | 75 | Placeholder Cleanup | STUB-01–05 | Not started |
 | 76 | Role Fixes & Broken Link | ROLE-01, ROLE-02, LINK-01 | Not started |
@@ -57,6 +57,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+- [Phase 73-critical-fixes]: Deleted CMPController.WorkerDetail entirely — Admin/WorkerDetail owns this functionality since Phase 67, no valid use case remains
 
 ### Roadmap Evolution
 
@@ -73,5 +74,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Phase 73 context gathered. Next step: `/gsd:plan-phase 73`
-Resume file: .planning/phases/73-critical-fixes/73-CONTEXT.md
+Stopped at: Completed 73-02-PLAN.md — Phase 73 fully done (CRIT-01, CRIT-02)
+Resume file: .planning/phases/73-critical-fixes/73-02-SUMMARY.md
