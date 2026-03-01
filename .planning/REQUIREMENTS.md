@@ -1,0 +1,99 @@
+# Requirements: Portal HC KPB
+
+**Defined:** 2026-03-01
+**Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
+
+## v2.6 Requirements
+
+Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code → Stubs → Role Fixes → Broken Links.
+
+### Critical Fixes
+
+- [ ] **CRIT-01**: User sees a proper "Access Denied" page instead of a runtime error when authorization fails
+- [ ] **CRIT-02**: Dead `CMPController.WorkerDetail` action removed (missing view causes runtime exception; all UI already routes through Admin/WorkerDetail)
+
+### Dead View Cleanup
+
+- [ ] **VIEW-01**: Orphaned `Views/CMP/CreateAssessment.cshtml` deleted (migrated to Admin)
+- [ ] **VIEW-02**: Orphaned `Views/CMP/EditAssessment.cshtml` deleted (migrated to Admin)
+- [ ] **VIEW-03**: Orphaned `Views/CMP/UserAssessmentHistory.cshtml` deleted (migrated to Admin)
+- [ ] **VIEW-04**: Orphaned `Views/CMP/AuditLog.cshtml` deleted (migrated to Admin)
+- [ ] **VIEW-05**: Orphaned `Views/CMP/AssessmentMonitoringDetail.cshtml` deleted (migrated to Admin)
+- [ ] **VIEW-06**: Orphaned `Views/CDP/Progress.cshtml` deleted (controller redirects, view never rendered)
+
+### Dead Action Cleanup
+
+- [ ] **ACTN-01**: `CMPController.GetMonitorData` action removed (zero references, replaced by Admin/GetMonitoringProgress)
+- [ ] **ACTN-02**: `CDPController.Progress` redirect stub removed (no inbound links)
+
+### Placeholder Cleanup
+
+- [ ] **STUB-01**: BP navbar link and placeholder page removed (or hidden until module is built)
+- [ ] **STUB-02**: Admin hub "Coaching Session Override" stub card removed
+- [ ] **STUB-03**: Admin hub "Final Assessment Manager" stub card removed
+- [ ] **STUB-04**: Settings page disabled items (2FA, Notifikasi, Bahasa) removed
+- [ ] **STUB-05**: `Views/Home/Privacy.cshtml` and `HomeController.Privacy` action removed
+
+### Dead Files
+
+- [ ] **FILE-01**: `wwwroot/css/site.css` deleted (unreferenced by any view)
+- [ ] **FILE-02**: `wwwroot/js/site.js` deleted (unreferenced by any view)
+
+### HC Role Fix
+
+- [ ] **ROLE-01**: Admin hub cards hidden for HC users when the backing action is Admin-only (KKJ Matrix, KKJ-IDP Mapping, Coach-Coachee Mapping, Manage Assessments)
+- [ ] **ROLE-02**: "Kelola Data" navbar visibility uses Identity role check, not just SelectedView field
+
+### Broken Link Fix
+
+- [ ] **LINK-01**: Admin hub "Deliverable Progress Override" card activates correct Bootstrap tab on ProtonData page
+
+## Future Requirements
+
+### Page Migration (deferred from v2.6)
+
+- **MIG-01**: CMP/Records page migrated to Kelola Data Hub or Admin
+- **MIG-02**: CDP/ProtonMain page migrated to Kelola Data Hub or Admin
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| CMP/Records migration | Functional page with unique features — deferred to future milestone |
+| CDP/ProtonMain migration | Functional page with unique features — deferred to future milestone |
+| New feature development | v2.6 is cleanup-only |
+| BP module implementation | BP is explicitly deferred (not in scope for any current milestone) |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| CRIT-01 | — | Pending |
+| CRIT-02 | — | Pending |
+| VIEW-01 | — | Pending |
+| VIEW-02 | — | Pending |
+| VIEW-03 | — | Pending |
+| VIEW-04 | — | Pending |
+| VIEW-05 | — | Pending |
+| VIEW-06 | — | Pending |
+| ACTN-01 | — | Pending |
+| ACTN-02 | — | Pending |
+| STUB-01 | — | Pending |
+| STUB-02 | — | Pending |
+| STUB-03 | — | Pending |
+| STUB-04 | — | Pending |
+| STUB-05 | — | Pending |
+| FILE-01 | — | Pending |
+| FILE-02 | — | Pending |
+| ROLE-01 | — | Pending |
+| ROLE-02 | — | Pending |
+| LINK-01 | — | Pending |
+
+**Coverage:**
+- v2.6 requirements: 20 total
+- Mapped to phases: 0
+- Unmapped: 20
+
+---
+*Requirements defined: 2026-03-01*
+*Last updated: 2026-03-01 after codebase audit*
