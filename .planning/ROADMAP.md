@@ -319,7 +319,7 @@ Plans:
   2. HC users can access the unified Manage Assessment & Training page from the Kelola Data hub card
   3. CMP/Records serves only the personal view (Records.cshtml) for all roles — no role-based routing to RecordsWorkerList remains
   4. RecordsWorkerList.cshtml does not exist on disk
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 77-01-PLAN.md — Controller layer: ManageAssessment refactor + AddTraining/EditTraining/DeleteTraining actions + CMPController simplification
 - [ ] 77-02-PLAN.md — View layer: ManageAssessment 3-tab rewrite + AddTraining/EditTraining views + RecordsWorkerList deletion
@@ -366,5 +366,5 @@ Plans:
 | 74 | 2/2 | Complete    | 2026-03-01 | — |
 | 75 | 2/2 | Complete    | 2026-03-01 | — |
 | 76 | 2/2 | Complete    | 2026-03-01 | — |
-| 77 | 1/3 | In Progress|  | — |
+| 77 | 2/3 | In Progress|  | — |
 | 78 | v2.6 | 0/TBD | Not started | — |

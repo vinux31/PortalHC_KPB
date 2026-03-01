@@ -99,11 +99,11 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 77 (plan 01 complete)
+**Current phase:** Phase 77 (complete — all 3 plans done)
 **Status:** In progress
-**Last activity:** 2026-03-01 — 77-01: AdminController training CRUD + ManageAssessment tab routing added; CMPController Records simplified to personal-only, redirect dead-ends fixed (REDIR-01)
+**Last activity:** 2026-03-01 — 77-03: Hub card updated to "Manage Assessment & Training" with HC visibility; breadcrumbs updated in 6 related views (REDIR-01)
 
-Progress: [███████████████░░░░░] 75% (3/4 phases complete)
+Progress: [████████████████████] 100% (4/4 phases complete)
 
 ## Phase Summary
 
@@ -161,5 +161,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 77-01-PLAN.md — AdminController training CRUD + ManageAssessment tab routing, CMPController Records simplified, redirects fixed (REDIR-01)
-Resume file: .planning/phases/77-training-record-redirect-fix/77-01-SUMMARY.md
+Stopped at: Completed 77-03-PLAN.md — hub card + breadcrumb labels updated to "Manage Assessment & Training", HC visibility added to Index hub card (REDIR-01)
+Resume file: .planning/phases/77-training-record-redirect-fix/77-03-SUMMARY.md
