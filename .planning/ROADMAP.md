@@ -287,7 +287,7 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
   2. Admin hub no longer shows "Coaching Session Override" or "Final Assessment Manager" stub cards — only functional cards are visible
   3. The Settings page shows no disabled 2FA, Notifikasi, or Bahasa items — the page contains only working controls
   4. The Privacy page and its controller action are deleted — `/Home/Privacy` returns 404
-**Plans:** TBD
+**Plans:** 2/2 plans complete
 
 **Completed:** —
 
@@ -329,5 +329,5 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 | 65-72 | v2.5 | 14/14 | Complete | 2026-02-28 |
 | 73 | 2/2 | Complete    | 2026-03-01 | — |
 | 74 | 2/2 | Complete    | 2026-03-01 | — |
-| 75 | v2.6 | 0/TBD | Not started | — |
+| 75 | 2/2 | Complete   | 2026-03-01 | — |
 | 76 | v2.6 | 0/TBD | Not started | — |

@@ -54,11 +54,11 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 74 (complete — both plans done)
-**Status:** Milestone complete
-**Last activity:** 2026-03-01 — 74-02: GetMonitorData action removed, CDPController.Progress stub deleted, site.css and site.js deleted (ACTN-01, ACTN-02, FILE-01, FILE-02)
+**Current phase:** Phase 75 (plan 01 complete — plan 02 remaining)
+**Status:** in-progress
+**Last activity:** 2026-03-01 — 75-01: BP stub infrastructure removed, Privacy placeholder deleted (STUB-01, STUB-05)
 
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases complete)
+Progress: [██████████░░░░░░░░░░] 50% (2/4 phases complete)
 
 ## Phase Summary
 
@@ -66,7 +66,7 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 |-------|------|--------------|--------|
 | 73 | Critical Fixes | CRIT-01, CRIT-02 | Complete |
 | 74 | Dead Code Removal | VIEW-01–06, ACTN-01–02, FILE-01–02 | Complete |
-| 75 | Placeholder Cleanup | STUB-01–05 | Not started |
+| 75 | Placeholder Cleanup | STUB-01–05 | In progress (1/2 plans done) |
 | 76 | Role Fixes & Broken Link | ROLE-01, ROLE-02, LINK-01 | Not started |
 
 ## Performance Metrics
@@ -92,6 +92,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 73-critical-fixes]: 73-01: AccessDenied view does NOT set Layout = null — inherits portal navbar via _ViewStart (same pattern as Settings.cshtml)
 - [Phase 74-dead-code-removal]: 74-01: Deleted six orphaned Razor views (5 CMP migrated to Admin in Phase 49, 1 CDP never rendered) — build verified 0 errors
 - [Phase 74-dead-code-removal]: 74-02: Deleted CMPController.GetMonitorData (replaced by Admin/GetMonitoringProgress Phase 49), CDPController.Progress stub, site.css and site.js (ASP.NET template remnants with zero view refs)
+- [Phase 75-placeholder-cleanup]: 75-01: Removed entire Views/BP/ directory after deleting Index.cshtml — directory had no other files
+- [Phase 75-placeholder-cleanup]: 75-01: Removed Privacy() blank line separator above [ResponseCache] to keep consistent spacing in HomeController
 
 ### Roadmap Evolution
 
@@ -108,5 +110,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 74-02-PLAN.md — GetMonitorData action, Progress stub, site.css, site.js removed (ACTN-01, ACTN-02, FILE-01, FILE-02)
-Resume file: .planning/phases/74-dead-code-removal/74-02-SUMMARY.md
+Stopped at: Completed 75-01-PLAN.md — BP stub infrastructure removed, Privacy placeholder deleted (STUB-01, STUB-05)
+Resume file: .planning/phases/75-placeholder-cleanup/75-01-SUMMARY.md
