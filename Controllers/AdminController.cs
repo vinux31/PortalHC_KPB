@@ -4293,6 +4293,76 @@ namespace HcPortal.Controllers
 
             return workerList;
         }
+
+        #region Question Management (Admin)
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ManageQuestions(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.Questions)
+                .ThenInclude(q => q.Options)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            return View(assessment);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddQuestion(int has_id, string question_text, List<string> options, int correct_option_index)
+        {
+            var assessment = await _context.AssessmentSessions.FindAsync(has_id);
+            if (assessment == null) return NotFound();
+
+            var newQuestion = new AssessmentQuestion
+            {
+                AssessmentSessionId = has_id,
+                QuestionText = question_text,
+                QuestionType = "MultipleChoice",
+                ScoreValue = 10,
+                Order = await _context.AssessmentQuestions.CountAsync(q => q.AssessmentSessionId == has_id) + 1
+            };
+
+            _context.AssessmentQuestions.Add(newQuestion);
+            await _context.SaveChangesAsync();
+
+            for (int i = 0; i < options.Count; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(options[i]))
+                {
+                    _context.AssessmentOptions.Add(new AssessmentOption
+                    {
+                        AssessmentQuestionId = newQuestion.Id,
+                        OptionText = options[i],
+                        IsCorrect = (i == correct_option_index)
+                    });
+                }
+            }
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteQuestion(int id)
+        {
+            var question = await _context.AssessmentQuestions.FindAsync(id);
+            if (question == null) return NotFound();
+
+            int assessmentId = question.AssessmentSessionId;
+            _context.AssessmentQuestions.Remove(question);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("ManageQuestions", "Admin", new { id = assessmentId });
+        }
+
+        #endregion
     }
 }
 
