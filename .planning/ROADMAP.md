@@ -19,6 +19,7 @@
 - ✅ **v2.3 Admin Portal** — Phases 47-53, 59 (shipped 2026-03-01)
 - ✅ **v2.4 CDP Progress** — Phases 61-64 (shipped 2026-03-01)
 - ✅ **v2.5 User Infrastructure & AD Readiness** — Phases 65-72 (shipped 2026-03-01)
+- 🔲 **v2.6 Codebase Cleanup** — Phases 73-76 (in progress)
 
 ## Phases
 
@@ -246,6 +247,66 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 
 </details>
 
+---
+
+## v2.6 Codebase Cleanup (Phases 73-76)
+
+### Phase 73: Critical Fixes
+**Goal:** The application has no runtime errors from missing views or broken authorization paths
+**Depends on:** Nothing
+**Requirements:** CRIT-01, CRIT-02
+**Success Criteria** (what must be TRUE):
+  1. Navigating to a route the user cannot access shows a proper "Access Denied" page instead of an exception screen
+  2. The `CMPController.WorkerDetail` action and its missing view reference are gone — no runtime exception can be triggered via that route
+**Plans:** TBD
+
+**Completed:** —
+
+---
+
+### Phase 74: Dead Code Removal
+**Goal:** All orphaned views, dead controller actions, and unreferenced static files are deleted from the codebase
+**Depends on:** Phase 73
+**Requirements:** VIEW-01, VIEW-02, VIEW-03, VIEW-04, VIEW-05, VIEW-06, ACTN-01, ACTN-02, FILE-01, FILE-02
+**Success Criteria** (what must be TRUE):
+  1. The six `Views/CMP/` and `Views/CDP/` orphan files no longer exist on disk — no dangling Razor views from the CMP-to-Admin migration remain
+  2. `CMPController.GetMonitorData` and `CDPController.Progress` actions are removed — zero references remain in the codebase
+  3. `wwwroot/css/site.css` and `wwwroot/js/site.js` are deleted — no view links to them and no 404s are generated for these paths
+**Plans:** TBD
+
+**Completed:** —
+
+---
+
+### Phase 75: Placeholder Cleanup
+**Goal:** All stub pages and placeholder menu items are removed so users never land on an unbuilt page
+**Depends on:** Phase 74
+**Requirements:** STUB-01, STUB-02, STUB-03, STUB-04, STUB-05
+**Success Criteria** (what must be TRUE):
+  1. The BP navbar link is gone (or hidden) — clicking the navbar never routes to the placeholder BP page
+  2. Admin hub no longer shows "Coaching Session Override" or "Final Assessment Manager" stub cards — only functional cards are visible
+  3. The Settings page shows no disabled 2FA, Notifikasi, or Bahasa items — the page contains only working controls
+  4. The Privacy page and its controller action are deleted — `/Home/Privacy` returns 404
+**Plans:** TBD
+
+**Completed:** —
+
+---
+
+### Phase 76: Role Fixes & Broken Link
+**Goal:** HC users see only cards they can access, the "Kelola Data" nav is correctly role-gated, and the broken tab link works
+**Depends on:** Phase 75
+**Requirements:** ROLE-01, ROLE-02, LINK-01
+**Success Criteria** (what must be TRUE):
+  1. An HC user on the Admin hub sees only the cards their role can open — KKJ Matrix, KKJ-IDP Mapping, Coach-Coachee Mapping, and Manage Assessments cards are hidden from HC view
+  2. The "Kelola Data" navbar item appears for HC users based on their Identity role, not the SelectedView session field
+  3. Clicking the "Deliverable Progress Override" card in the Admin hub navigates to the ProtonData page with the correct Bootstrap tab already active
+**Plans:** TBD
+
+**Completed:** —
+
+---
+
 ## Progress
 
 | Phase | Milestone | Plans | Status | Completed |
@@ -266,3 +327,7 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 | 47-53, 59 | v2.3 | 29/29 | Complete | 2026-03-01 |
 | 61-64 | v2.4 | 9/9 | Complete | 2026-02-28 |
 | 65-72 | v2.5 | 14/14 | Complete | 2026-02-28 |
+| 73 | v2.6 | 0/TBD | Not started | — |
+| 74 | v2.6 | 0/TBD | Not started | — |
+| 75 | v2.6 | 0/TBD | Not started | — |
+| 76 | v2.6 | 0/TBD | Not started | — |

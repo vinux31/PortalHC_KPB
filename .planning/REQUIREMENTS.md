@@ -68,31 +68,31 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CRIT-01 | — | Pending |
-| CRIT-02 | — | Pending |
-| VIEW-01 | — | Pending |
-| VIEW-02 | — | Pending |
-| VIEW-03 | — | Pending |
-| VIEW-04 | — | Pending |
-| VIEW-05 | — | Pending |
-| VIEW-06 | — | Pending |
-| ACTN-01 | — | Pending |
-| ACTN-02 | — | Pending |
-| STUB-01 | — | Pending |
-| STUB-02 | — | Pending |
-| STUB-03 | — | Pending |
-| STUB-04 | — | Pending |
-| STUB-05 | — | Pending |
-| FILE-01 | — | Pending |
-| FILE-02 | — | Pending |
-| ROLE-01 | — | Pending |
-| ROLE-02 | — | Pending |
-| LINK-01 | — | Pending |
+| CRIT-01 | Phase 73 | Pending |
+| CRIT-02 | Phase 73 | Pending |
+| VIEW-01 | Phase 74 | Pending |
+| VIEW-02 | Phase 74 | Pending |
+| VIEW-03 | Phase 74 | Pending |
+| VIEW-04 | Phase 74 | Pending |
+| VIEW-05 | Phase 74 | Pending |
+| VIEW-06 | Phase 74 | Pending |
+| ACTN-01 | Phase 74 | Pending |
+| ACTN-02 | Phase 74 | Pending |
+| STUB-01 | Phase 75 | Pending |
+| STUB-02 | Phase 75 | Pending |
+| STUB-03 | Phase 75 | Pending |
+| STUB-04 | Phase 75 | Pending |
+| STUB-05 | Phase 75 | Pending |
+| FILE-01 | Phase 74 | Pending |
+| FILE-02 | Phase 74 | Pending |
+| ROLE-01 | Phase 76 | Pending |
+| ROLE-02 | Phase 76 | Pending |
+| LINK-01 | Phase 76 | Pending |
 
 **Coverage:**
 - v2.6 requirements: 20 total
-- Mapped to phases: 0
-- Unmapped: 20
+- Mapped to phases: 20
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-01*
