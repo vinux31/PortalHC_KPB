@@ -249,7 +249,7 @@ See `.planning/milestones/v2.5-ROADMAP.md` for full details.
 
 ---
 
-## v2.6 Codebase Cleanup (Phases 73-76)
+## v2.6 Codebase Cleanup (Phases 73-78)
 
 ### Phase 73: Critical Fixes
 **Goal:** The application has no runtime errors from missing views or broken authorization paths
@@ -310,14 +310,20 @@ Plans:
 
 ---
 
-### Phase 77: Training Record Redirect Fix
-**Goal:** Training record CRUD operations redirect back to the correct page instead of a dead-end
+### Phase 77: Merge Training Records into Manage Assessment & Training
+**Goal:** Admin/ManageAssessment becomes a unified "Manage Assessment & Training" page; training CRUD moves from CMP to Admin; CMP/Records is personal-only for all roles; RecordsWorkerList.cshtml is deleted
 **Depends on:** Phase 76
 **Requirements:** REDIR-01
 **Success Criteria** (what must be TRUE):
-  1. After editing or deleting a training record, the user is redirected back to `CMP/Records` (not `Admin/WorkerDetail` which shows no training data)
-  2. The redirect preserves enough context that the user can see the result of their action
-**Plans:** TBD
+  1. After creating, editing, or deleting a training record via the Admin interface, the user is redirected back to `/Admin/ManageAssessment?tab=training` — not `Admin/WorkerDetail`
+  2. HC users can access the unified Manage Assessment & Training page from the Kelola Data hub card
+  3. CMP/Records serves only the personal view (Records.cshtml) for all roles — no role-based routing to RecordsWorkerList remains
+  4. RecordsWorkerList.cshtml does not exist on disk
+**Plans:** 3 plans
+Plans:
+- [ ] 77-01-PLAN.md — Controller layer: ManageAssessment refactor + AddTraining/EditTraining/DeleteTraining actions + CMPController simplification
+- [ ] 77-02-PLAN.md — View layer: ManageAssessment 3-tab rewrite + AddTraining/EditTraining views + RecordsWorkerList deletion
+- [ ] 77-03-PLAN.md — Hub card + breadcrumb updates
 
 **Completed:** —
 
@@ -360,5 +366,5 @@ Plans:
 | 74 | 2/2 | Complete    | 2026-03-01 | — |
 | 75 | 2/2 | Complete    | 2026-03-01 | — |
 | 76 | 2/2 | Complete    | 2026-03-01 | — |
-| 77 | v2.6 | 0/TBD | Not started | — |
+| 77 | v2.6 | 0/3 | Not started | — |
 | 78 | v2.6 | 0/TBD | Not started | — |
