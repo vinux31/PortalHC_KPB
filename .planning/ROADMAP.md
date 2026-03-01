@@ -287,9 +287,8 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [x] **Phase 53: Final Assessment Manager** — OPER-04 (planned) (completed 2026-03-01)
 - [x] ~~**Phase 56: ProtonTrack Edit/Delete**~~ — REMOVED (covered by Phase 59 Proton Catalog consolidation)
 - [x] ~~**Phase 57: Password Reset Standalone**~~ — REMOVED (covered by Phase 58 Kelola Pekerja consolidation)
-- [~] **Phase 58: Konsolidasi Kelola Pekerja** — ~~CONS-01~~ Superseded by v2.5 Phase 60
+- [~] **Phase 58: Konsolidasi Kelola Pekerja** — ~~CONS-01~~ Superseded by v2.5 Phase 67
 - [x] **Phase 59: Hapus Page ProtonCatalog** — CONS-02 (planned) (completed 2026-03-01)
-- [~] **Phase 60: Update Kelola Data Hub** — ~~CONS-04~~ Partially superseded by v2.5 Phase 60
 
 ### Phase Details
 
@@ -403,7 +402,7 @@ Plans:
 Plans:
 - [ ] 59-01-PLAN.md — Delete ProtonCatalogController.cs and Views/ProtonCatalog/ directory, verify no stale references, build passes
 
-### Phase 60: Data Source Fix
+### Phase 61: Data Source Fix
 **Goal:** Progress page queries ProtonDeliverableProgress + ProtonTrackAssignment (not IdpItems), displays real coachee list from CoachCoacheeMapping, and computes correct summary stats — the data foundation is accurate
 **Depends on:** Phase 53 (v2.3 complete) — runs in parallel, independent of v2.3 progress
 **Requirements:** DATA-01, DATA-02, DATA-03, DATA-04
@@ -414,9 +413,9 @@ Plans:
   4. Approving or updating evidence on the Deliverable page is immediately reflected on the Progress page with no stale cache
 **Plans:** 2/2 plans complete
 
-### Phase 60: Functional Filters
+### Phase 62: Functional Filters
 **Goal:** Every filter on the Progress page (Bagian/Unit, Coachee, Track, Tahun, Search) genuinely narrows the data returned — parameters are wired to queries and roles scope what users can see
-**Depends on:** Phase 60
+**Depends on:** Phase 61
 **Requirements:** FILT-01, FILT-02, FILT-03, FILT-04, UI-01, UI-03
 **Success Criteria** (what must be TRUE):
   1. HC/Admin selecting a Bagian or Unit filter receives only deliverable rows for workers in that Bagian/Unit
@@ -427,9 +426,9 @@ Plans:
   6. Filter dropdowns show the currently selected value as selected on page reload (no incorrect HTML selected attribute behavior)
 **Plans:** 1/2 plans executed
 
-### Phase 60: Actions
+### Phase 63: Actions
 **Goal:** Approve, reject, coaching report, evidence, and export actions all persist to the database — no more console.log stubs or missing onclick handlers
-**Depends on:** Phase 60
+**Depends on:** Phase 62
 **Requirements:** ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05
 **Success Criteria** (what must be TRUE):
   1. SrSpv or SectionHead clicking Approve on a deliverable row updates ProtonDeliverableProgress.Status to Approved in the database and the row reflects the new status on reload
@@ -439,9 +438,9 @@ Plans:
   5. Export Excel and Export PDF buttons generate and download the current filtered data as a file
 **Plans:** TBD
 
-### Phase 60: UI Polish
+### Phase 64: UI Polish
 **Goal:** Progress page handles edge cases gracefully — empty states communicate clearly, and large datasets do not load all rows at once
-**Depends on:** Phase 60
+**Depends on:** Phase 63
 **Requirements:** UI-02, UI-04
 **Success Criteria** (what must be TRUE):
   1. When no deliverable data matches the current filter/role scope, the table shows a descriptive empty-state message instead of a blank table
@@ -452,42 +451,42 @@ Plans:
 
 ### Phases
 
-- [x] **Phase 60: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned) (completed 2026-02-27)
-- [x] **Phase 60: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned) (completed 2026-02-27)
-- [x] **Phase 60: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 58 (completed 2026-02-28)
-- [x] **Phase 60: Kelola Data Hub Reorganization** — USR-04 (planned) — partially supersedes v2.3 Phase 60 (completed 2026-02-28)
-- [x] **Phase 60: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned) (completed 2026-02-28)
-- [x] **Phase 60: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned) (completed 2026-02-28)
-- [x] **Phase 60: User Structure Polish** — USTR-02 completion (planned) (completed 2026-02-28)
+- [x] **Phase 65: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned) (completed 2026-02-27)
+- [x] **Phase 66: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned) (completed 2026-02-27)
+- [x] **Phase 67: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 58 (completed 2026-02-28)
+- [x] **Phase 68: Kelola Data Hub Reorganization** — USR-04 (planned) (completed 2026-02-28)
+- [x] **Phase 69: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned) (completed 2026-02-28)
+- [x] **Phase 70: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned) (completed 2026-02-28)
+- [x] **Phase 71: User Structure Polish** — USTR-02 completion (planned) (completed 2026-02-28)
 
 ### Phase Details
 
-### Phase 60: Dynamic Profile Page
+### Phase 65: Dynamic Profile Page
 **Goal:** Profile page menampilkan data real user login — no more hardcoded placeholders
-**Depends on:** Phase 60 (v2.4 complete), or can start in parallel
+**Depends on:** Phase 64 (v2.4 complete), or can start in parallel
 **Requirements:** PROF-01, PROF-02, PROF-03
 **Success Criteria** (what must be TRUE):
   1. Profile page displays real user data: Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate from @Model
   2. Empty/null fields show placeholder "Belum diisi" instead of blank space or error
   3. Avatar initials are dynamically generated from user's FullName (not hardcoded "BS")
 **Plans:** 1/1 plans complete
-- [ ] 60-01: Rewrite Profile.cshtml with @Model binding, null-safe display, dynamic initials
+- [ ] 65-01: Rewrite Profile.cshtml with @Model binding, null-safe display, dynamic initials
 
-### Phase 60: Functional Settings Page
+### Phase 66: Functional Settings Page
 **Goal:** Settings page functional — change password works, edit profile fields, cleanup non-functional items
-**Depends on:** Phase 60
+**Depends on:** Phase 65
 **Requirements:** PROF-04, PROF-05, PROF-06
 **Success Criteria** (what must be TRUE):
   1. User can change password via ChangePasswordAsync with current/new/confirm fields and validation
   2. User can edit FullName and Position fields; NIP, Email, Role, Section are displayed read-only
   3. Non-functional items (2FA, Notifications, Language) are either removed or displayed as "Belum Tersedia" with disabled state
 **Plans:** 2/2 plans complete
-- [ ] 60-01: Backend — ChangePasswordViewModel, EditProfileViewModel, AccountController POST actions
-- [ ] 60-02: Frontend — Rewrite Settings.cshtml, 2 form sections, remove/disable placeholder items
+- [ ] 66-01: Backend — ChangePasswordViewModel, EditProfileViewModel, AccountController POST actions
+- [ ] 66-02: Frontend — Rewrite Settings.cshtml, 2 form sections, remove/disable placeholder items
 
-### Phase 60: ManageWorkers Migration to Admin
+### Phase 67: ManageWorkers Migration to Admin
 **Goal:** Pindahkan seluruh fitur ManageWorkers (CRUD, import, export, detail) dari CMPController ke AdminController — clean break tanpa redirect, akses via Kelola Data hub card, GetDefaultView() helper extraction
-**Depends on:** Phase 60
+**Depends on:** Phase 66
 **Requirements:** USR-01, USR-02, USR-03, USTR-02
 **Supersedes:** v2.3 Phase 58 (Konsolidasi Kelola Pekerja)
 **Success Criteria** (what must be TRUE):
@@ -498,14 +497,13 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 60-01-PLAN.md — Backend migration: 11 actions to AdminController with HC+Admin auth, GetDefaultView() extraction, 5 views copied to Views/Admin/ with all CMP references updated
-- [ ] 60-02-PLAN.md — Cleanup: delete from CMPController, delete old CMP views, remove navbar button, add hub card, update RecordsWorkerList, full stale reference verification
+- [ ] 67-01-PLAN.md — Backend migration: 11 actions to AdminController with HC+Admin auth, GetDefaultView() extraction, 5 views copied to Views/Admin/ with all CMP references updated
+- [ ] 67-02-PLAN.md — Cleanup: delete from CMPController, delete old CMP views, remove navbar button, add hub card, update RecordsWorkerList, full stale reference verification
 
-### Phase 60: Kelola Data Hub Reorganization
+### Phase 68: Kelola Data Hub Reorganization
 **Goal:** Admin/Index.cshtml restructured — ManageWorkers prominent, stale items cleaned up
-**Depends on:** Phase 60
+**Depends on:** Phase 67
 **Requirements:** USR-04
-**Partially supersedes:** v2.3 Phase 60 (Update Kelola Data Hub)
 **Success Criteria** (what must be TRUE):
   1. Kelola Data hub page (Admin/Index.cshtml) has ManageWorkers card in prominent position
   2. Stale "Segera" items cleaned up — cards for implemented features show active status
@@ -513,11 +511,11 @@ Plans:
 **Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 60-01-PLAN.md — Rewrite Admin/Index.cshtml (3 domain sections: Data Management, Proton, Assessment & Training), activate Deliverable Progress Override card, remove old Kelengkapan CRUD section, update navbar HC visibility
+- [ ] 68-01-PLAN.md — Rewrite Admin/Index.cshtml (3 domain sections: Data Management, Proton, Assessment & Training), activate Deliverable Progress Override card, remove old Kelengkapan CRUD section, update navbar HC visibility
 
-### Phase 60: LDAP Auth Service Foundation
+### Phase 69: LDAP Auth Service Foundation
 **Goal:** Infrastructure dual auth — NuGet, service interface, implementations, config toggle, AuthSource field. Login flow belum diubah.
-**Depends on:** Phase 60
+**Depends on:** Phase 68
 **Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01
 **Success Criteria** (what must be TRUE):
   1. System.DirectoryServices NuGet package added to csproj
@@ -528,12 +526,12 @@ Plans:
   6. LdapAuthService uses DirectoryEntry with Pertamina LDAP path and samaccountname filter
   7. Program.cs registers IAuthService via DI based on config toggle
 **Plans:** 2/2 plans complete
-- [ ] 60-01: NuGet package, AuthSource migration, config sections, IAuthService interface, LocalAuthService
-- [ ] 60-02: LdapAuthService with Pertamina DirectoryEntry code + AD attribute extraction, Program.cs DI registration
+- [ ] 69-01: NuGet package, AuthSource migration, config sections, IAuthService interface, LocalAuthService
+- [ ] 69-02: LdapAuthService with Pertamina DirectoryEntry code + AD attribute extraction, Program.cs DI registration
 
-### Phase 60: Dual Auth Login Flow
+### Phase 70: Dual Auth Login Flow
 **Goal:** Login flow pakai IAuthService — global config routing (no per-user AuthSource), profile sync FullName/Email, ManageWorkers + import adaptation for AD mode
-**Depends on:** Phase 60
+**Depends on:** Phase 69
 **Requirements:** AUTH-05, AUTH-06, AUTH-07
 **Success Criteria** (what must be TRUE):
   1. Login POST uses IAuthService.AuthenticateAsync instead of direct PasswordSignInAsync
@@ -545,24 +543,24 @@ Plans:
   7. ManageWorkers: password field hidden + auto-generate in AD mode; FullName/Email read-only for AD users
   8. Import template dynamic: AD mode → no Password column (auto-generate); local mode → with Password column
 **Plans:** 3/3 plans complete
-- [ ] 60-01: Backend — Rewrite AccountController.Login POST with IAuthService, profile sync, remove AuthSource migration
-- [ ] 60-02: Frontend — Login.cshtml hint, ManageWorkers form adaptation (password hide, read-only fields)
-- [ ] 60-03: Import — Dynamic template generation, import logic adaptation for AD mode
+- [ ] 70-01: Backend — Rewrite AccountController.Login POST with IAuthService, profile sync, remove AuthSource migration
+- [ ] 70-02: Frontend — Login.cshtml hint, ManageWorkers form adaptation (password hide, read-only fields)
+- [ ] 70-03: Import — Dynamic template generation, import logic adaptation for AD mode
 
-### Phase 60: User Structure Polish
+### Phase 71: User Structure Polish
 **Goal:** Finalize — consistent SelectedView mapping, SeedData cleanup, documentation
-**Depends on:** Phase 60
+**Depends on:** Phase 70
 **Requirements:** USTR-02 (completion)
 **Success Criteria** (what must be TRUE):
   1. All inline role-to-SelectedView switch/if statements replaced with UserRoles.GetDefaultView()
-  2. SeedData cleaned up (AuthSource references removed since field dropped in Phase 71)
+  2. SeedData cleaned up (AuthSource references removed since field dropped in Phase 70)
   3. ARCHITECTURE.md updated with dual auth documentation
 **Plans:** 1/1 plans complete
-- [ ] 60-01: Replace all inline role-to-view switches with GetDefaultView(), SeedData AuthSource, ARCHITECTURE.md update
+- [ ] 71-01: Replace all inline role-to-view switches with GetDefaultView(), SeedData AuthSource, ARCHITECTURE.md update
 
-### Phase 60: Hybrid Auth & Role Restructuring
+### Phase 72: Hybrid Auth & Role Restructuring
 **Goal:** Enable hybrid authentication (AD fallback to local) so dedicated Admin KPB user works in production AD mode, plus role/access fixes
-**Depends on:** Phase 60
+**Depends on:** Phase 71
 **Requirements:** AUTH-HYBRID (new)
 **Success Criteria** (what must be TRUE):
   1. Login flow tries AD first, falls back to local auth if AD fails — dedicated Admin KPB (admin@pertamina.com) can login in AD mode
@@ -572,5 +570,5 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 60-01-PLAN.md — HybridAuthService (AD+local fallback for admin@pertamina.com), Program.cs DI update, UserRoles.cs restructuring (Supervisor role + SectionHead level 3)
-- [ ] 60-02-PLAN.md — Role display fix (_Layout.cshtml SelectedView), Coach-only evidence upload (CDPController), Coach-only EligibleCoaches (AdminController), EF migration SectionHead RoleLevel 4→3
+- [ ] 72-01-PLAN.md — HybridAuthService (AD+local fallback for admin@pertamina.com), Program.cs DI update, UserRoles.cs restructuring (Supervisor role + SectionHead level 3)
+- [ ] 72-02-PLAN.md — Role display fix (_Layout.cshtml SelectedView), Coach-only evidence upload (CDPController), Coach-only EligibleCoaches (AdminController), EF migration SectionHead RoleLevel 4→3
