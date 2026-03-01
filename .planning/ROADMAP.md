@@ -319,5 +319,5 @@ Plans:
 | 77. Merge Training Records | v2.6 | 3/3 | Complete | 2026-03-01 |
 | 78. Deduplicate CMP page | v2.6 | 1/1 | Complete | 2026-03-01 |
 | 79. Assessment Monitoring Page — Group List | 1/1 | Complete    | 2026-03-01 | - |
-| 80. Per-Participant Monitoring Detail & HC Actions | 1/1 | Complete   | 2026-03-01 | - |
+| 80. Per-Participant Monitoring Detail & HC Actions | 1/1 | Complete    | 2026-03-01 | - |
 | 81. Cleanup — Remove Old Entry Points | v2.7 | 0/? | Not started | - |
