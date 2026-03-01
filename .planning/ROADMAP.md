@@ -290,7 +290,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [x] ~~**Phase 56: ProtonTrack Edit/Delete**~~ — REMOVED (covered by Phase 59 Proton Catalog consolidation)
 - [x] ~~**Phase 57: Password Reset Standalone**~~ — REMOVED (covered by Phase 58 Kelola Pekerja consolidation)
 - [~] **Phase 58: Konsolidasi Kelola Pekerja** — ~~CONS-01~~ Superseded by v2.5 Phase 68
-- [ ] **Phase 59: Hapus Page ProtonCatalog** — CONS-02 (planned)
+- [x] **Phase 59: Hapus Page ProtonCatalog** — CONS-02 (planned) (completed 2026-03-01)
 - [ ] **Phase 60: Konsolidasi Assessment Management** — CONS-03 (planned)
 - [~] **Phase 61: Update Kelola Data Hub** — ~~CONS-04~~ Partially superseded by v2.5 Phase 69
 
@@ -401,7 +401,7 @@ Plans:
   2. Views/ProtonCatalog/ directory deleted
   3. No stale references to /ProtonCatalog in views or controllers
   4. Admin/Index hub card for Proton Catalog (if any) removed or already pointing to /Admin/ProtonData
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 59-01-PLAN.md — Delete ProtonCatalogController.cs and Views/ProtonCatalog/ directory, verify no stale references, build passes
@@ -483,7 +483,7 @@ Plans:
 | 56. ~~ProtonTrack Edit/Delete~~ | v2.3 | - | Removed | - |
 | 57. ~~Password Reset Standalone~~ | v2.3 | - | Removed | - |
 | 58. ~~Konsolidasi Kelola Pekerja~~ | v2.3 | - | Superseded (v2.5 P68) | - |
-| 59. Hapus Page ProtonCatalog | v2.3 | 0/1 | Planned | - |
+| 59. Hapus Page ProtonCatalog | 1/1 | Complete   | 2026-03-01 | - |
 | 60. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 61. ~~Update Kelola Data Hub~~ | v2.3 | - | Partially superseded (v2.5 P69) | - |
 | 62. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
