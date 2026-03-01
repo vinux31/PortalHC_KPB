@@ -12,9 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: Planning next milestone
+## Current Milestone: v3.0 Full QA & Feature Completion
 
-**Status:** v2.7 shipped. Ready for `/gsd:new-milestone` to define next version.
+**Goal:** Comprehensive end-to-end testing of all portal features organized by use-case flows, fixing bugs found along the way, plus code cleanup (remove duplicates/orphans), UI rename ("Proton Progress" → "Coaching Proton"), and Plan IDP development.
+
+**Target features:**
+- End-to-end QA of Assessment flow (create → assign → exam → monitoring → results → history)
+- End-to-end QA of Coaching Proton flow (mapping → coaching → evidence → approval → override)
+- Master data management verification (KKJ, CPDP, Silabus, Workers, Coach-Coachee)
+- Plan IDP development (coachee sees silabus + downloadable guidance docs for assignment)
+- Rename "Proton Progress" → "Coaching Proton" throughout portal
+- Remove orphaned CMP/CpdpProgress page
+- Remove duplicate CMP paths (CreateTrainingRecord, ManageQuestions — Admin versions are canonical)
+- Add AuditLog card to Kelola Data hub
+- Analyze and decide on Override Silabus/Coaching Guidance tabs
+- Home dashboard verification
 
 ## Current State (v2.7 — shipped 2026-03-01)
 
