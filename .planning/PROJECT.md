@@ -12,18 +12,32 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v2.7 Assessment Monitoring
+## Current Milestone: Planning next milestone
 
-**Goal:** Extract real-time assessment monitoring into a dedicated page and clean up the Kelola Data hub by removing the redundant Training Records card
+**Status:** v2.7 shipped. Ready for `/gsd:new-milestone` to define next version.
 
-**Target features:**
-- Dedicated Assessment Monitoring page in Kelola Data > Section C (Assessment & Training)
-- Move monitoring functionality from ManageAssessment dropdown actions to standalone page
-- Remove redundant Training Records hub card (CMP/Records stays as worker-facing page, just not linked from Admin hub)
+## Current State (v2.7 — shipped 2026-03-01)
 
-## Current State (v2.6 — shipped 2026-03-01)
+Assessment monitoring now has a dedicated page in the Kelola Data hub with group list, per-participant detail, and full HC action suite. Admin can manage questions directly from ManageAssessment dropdown. Hub cleaned up — no redundant cards.
 
 ## Shipped Milestones
+
+### ✅ v2.7 - Assessment Monitoring (2026-03-01)
+
+**Delivered:** Dedicated Assessment Monitoring page extracted from ManageAssessment dropdown into first-class Kelola Data hub entry with group list, per-participant detail, full HC action suite, Admin ManageQuestions feature, and hub cleanup.
+
+**What Shipped:**
+1. **Assessment Monitoring Group List** — /Admin/AssessmentMonitoring with real-time stats, search/filter, Regenerate Token per group
+2. **Per-Participant Monitoring Detail** — Drill-down with live progress, status, score, countdown, token management
+3. **HC Action Suite** — Reset, Force Close, Bulk Close, Close Early, Regenerate Token from monitoring page
+4. **Admin ManageQuestions** — Admin-context question management from ManageAssessment dropdown
+5. **Hub Cleanup** — Monitoring dropdown removed (CLN-01), Training Records card removed (CLN-02)
+
+**Metrics:**
+- 3 phases (79-81), 4 plans
+- 2026-03-01
+
+---
 
 ### ✅ v2.6 - Codebase Cleanup (2026-03-01)
 

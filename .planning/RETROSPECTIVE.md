@@ -165,6 +165,44 @@
 
 ---
 
+## Milestone: v2.7 — Assessment Monitoring
+
+**Shipped:** 2026-03-01
+**Phases:** 3 (79-81) | **Plans:** 4
+
+### What Was Built
+- Assessment Monitoring group list page (/Admin/AssessmentMonitoring) with real-time stats, search/filter, status badges, Regenerate Token
+- Per-participant monitoring detail with live progress, countdown timer, token card with inline copy/regenerate
+- Full HC action suite on dedicated monitoring page (Reset, Force Close, Bulk Close, Close Early, Regenerate Token)
+- Admin ManageQuestions page (ManageQuestions GET, AddQuestion POST, DeleteQuestion POST) accessible from ManageAssessment dropdown
+- Hub cleanup — Monitoring dropdown removed from ManageAssessment, Training Records card removed from Section C, table min-height styling
+
+### What Worked
+- **Focused extraction pattern**: Moving existing monitoring functionality from a dropdown to a dedicated page was clean — controller actions already existed, just needed new views and navigation wiring
+- **discuss-phase context capture**: CONTEXT.md for Phase 81 captured 4 distinct items (2 removals, 1 addition, 1 styling fix) which let the planner create well-scoped plans
+- **Budget profile efficiency**: Sonnet planner/executor with haiku checker/verifier delivered all 4 plans without iteration — checker passed on first try for all phases
+- **Single-day milestone**: All 3 phases planned and executed in one session with no blockers
+
+### What Was Inefficient
+- **Plan-index wave mismatch**: Plan 81-02 frontmatter specified wave 2 with depends_on 81-01, but the plan-index tool returned both as wave 1 — had to manually verify and enforce correct wave ordering
+- **Summary one-liner extraction**: summary-extract returned null for all one_liner fields — summaries may not have the expected field format
+
+### Patterns Established
+- **Monitoring extraction pattern**: When a feature outgrows a dropdown action, create dedicated page with group list → detail drill-down → actions; remove old entry point last
+- **Admin controller mirroring**: Copying CMP controller actions to AdminController with only redirect-target changes provides Admin-context equivalent pages without shared code complexity
+
+### Key Lessons
+1. Small focused milestones (3 phases, 4 plans) execute cleanly in a single session — ideal scope for extraction/cleanup work
+2. Phase 81's discuss-phase captured a bonus feature (ManageQuestions) that wasn't in original requirements — discuss-phase is the right place to expand scope
+3. CLN-01/CLN-02 cleanup phases should always be last — ensures new functionality is verified before removing old entry points
+
+### Cost Observations
+- Model profile: budget (sonnet planner/executor, haiku checker/verifier/researcher)
+- 1-session milestone (~2 hours total)
+- 4 plans is the smallest non-trivial milestone
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -185,5 +223,7 @@
 | v2.3 | 8 | 29 | 4 | 7.25 |
 | v2.4 | 4 | 9 | 2 | 4.5 |
 | v2.5 | 8 | 14 | 2 | 7 |
+| v2.6 | 6 | 12 | 1 | 12 |
+| v2.7 | 3 | 4 | 1 | 4 |
 
-**Running total:** 66 phases, ~150 plans, 16 days
+**Running total:** 75 phases, ~166 plans, 18 days

@@ -1,4 +1,21 @@
 # Milestones
+## v2.7 Assessment Monitoring (Shipped: 2026-03-01)
+
+**Phases completed:** 3 phases (79-81), 4 plans
+**Files modified:** 7 | **Insertions:** 697 | **Deletions:** 9
+**Timeline:** 2026-03-01
+
+**Delivered:** Dedicated Assessment Monitoring page extracted from ManageAssessment dropdown into a first-class Kelola Data hub entry with group list, per-participant detail, full HC action suite, and Admin ManageQuestions feature — plus hub cleanup removing redundant cards.
+
+**Key accomplishments:**
+1. Assessment Monitoring group list — Dedicated page at /Admin/AssessmentMonitoring with real-time stats (participant count, completed, passed, status badge), search/filter bar, and Regenerate Token per group
+2. Per-participant monitoring detail — Drill-down view showing each participant's live progress, status, score, countdown timer; token card with copy and inline regenerate
+3. Full HC action suite on monitoring page — Reset, Force Close, Bulk Close, Close Early, Regenerate Token all available from the dedicated monitoring detail page
+4. Admin ManageQuestions — New Admin-context question management page (ManageQuestions GET, AddQuestion POST, DeleteQuestion POST) accessible from ManageAssessment dropdown
+5. Hub cleanup — Monitoring dropdown removed from ManageAssessment (CLN-01), Training Records hub card removed from Kelola Data Section C (CLN-02), AssessmentMonitoring table full-height styling
+
+---
+
 
 ## v1.0 CMP Assessment Completion (Shipped: 2026-02-17)
 
