@@ -14,45 +14,40 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 ## Current Milestones
 
-### v2.3 - Admin Portal (in progress)
-
-**Goal:** Admin memiliki full CRUD control atas seluruh data sistem — master data, relasi operasional, dan partial CRUD yang belum lengkap — tanpa perlu akses database langsung.
-
-**Target features:**
-- Master data managers: KKJ Matrix, CPDP Items, AssessmentCompetencyMap
-- Operational admin: CoachCoacheeMapping, ProtonTrackAssignment, DeliverableProgress override, FinalAssessment manager
-- CRUD completions: QuestionBank edit, PackageQuestion edit/delete, ProtonTrack edit/delete, Password Reset standalone
-
-### v2.4 - CDP Progress (in progress, parallel)
+### v2.4 - CDP Progress (completing)
 
 **Goal:** CDP/Progress page menjadi fully functional — data dari ProtonDeliverableProgress (bukan IdpItems), semua filter berfungsi, approval workflow terkoneksi ke backend, coaching report tersimpan, evidence upload/view berfungsi, export berfungsi.
 
-**Target features:**
-- Data source fix: Query ProtonDeliverableProgress + ProtonTrackAssignment, bukan IdpItems
-- Real coachee data: Query CoachCoacheeMapping, bukan mock hardcoded
-- Functional filters: Bagian/Unit/Coachee/Tahun/Search benar-benar filter data
-- Approval workflow: Approve/Reject actions tersambung ke backend ProtonDeliverableProgress
-- Coaching report: Submit membuat CoachingSession record
-- Evidence integration: Upload/View evidence tersambung ke existing Deliverable workflow
-- Export: Excel dan PDF functional
-- UI polish: HTML selected attribute fix, empty state, pagination
-
-### v2.5 - User Infrastructure & AD Readiness (planned)
+### v2.5 - User Infrastructure & AD Readiness (completing)
 
 **Goal:** Full user system overhaul — dual authentication (Active Directory + local), dynamic profile page, functional settings page, ManageWorkers migration to Admin, Kelola Data hub reorganization, and user structure improvements to prepare for Pertamina server deployment.
 
-**Target features:**
-- Dynamic profile page: Real user data (Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate), null-safe display, dynamic avatar initials
-- Functional settings: Change password via ChangePasswordAsync, edit FullName/Position, non-functional items removed/disabled
-- ManageWorkers migration: CRUD from /Admin/ManageWorkers, 301 redirect from old URL, standalone navbar button removed
-- Kelola Data reorganization: ManageWorkers card prominent, stale "Segera" items cleaned up
-- LDAP auth service: IAuthService interface, LdapAuthService (Pertamina DirectoryEntry), LocalAuthService, config toggle
-- Dual auth login: AD mode with auto-provisioning & profile sync, local mode unchanged, adaptive login UI
-- User structure: AuthSource field ("Local"/"AD"), role-to-SelectedView shared helper
-
-## Current State (v2.2 — shipped 2026-02-26)
+## Current State (v2.3 — shipped 2026-03-01)
 
 ## Shipped Milestones
+
+### ✅ v2.3 - Admin Portal (2026-03-01)
+
+**Delivered:** Admin has full CRUD control over master data (KKJ Matrix, CPDP Items), operational records (Coach-Coachee Mapping, DeliverableProgress Override, Final Assessment), and assessment management — all consolidated under /Admin with role-gated access. ProtonCatalog page removed after full migration to /Admin/ProtonData.
+
+**What Shipped:**
+1. **Admin Portal infrastructure** — AdminController with 12-card hub page, role-gated navigation
+2. **KKJ Matrix & CPDP Items managers** — Spreadsheet-style inline editing with bulk-save, multi-cell clipboard, Excel export
+3. **Assessment Management migration** — All manage actions moved from CMP to Admin with AuditLog
+4. **Coach-Coachee Mapping manager** — Grouped-by-coach view with bulk assign, soft-delete, Excel export
+5. **Proton Silabus & Coaching Guidance** — Two-tab /Admin/ProtonData with full silabus CRUD and guidance file management
+6. **DeliverableProgress Override** — Third ProtonData tab for HC to override stuck statuses; sequential lock removed
+7. **Final Assessment Manager** — Assessment Proton exam category with eligibility-gated coachee picker, Tahun 3 interview workflow
+8. **ProtonCatalog cleanup** — Redirect-only controller and views deleted
+
+**Known Gaps:** OPER-05, CRUD-01 through CRUD-04 deferred (phases removed/never planned)
+
+**Metrics:**
+- 8 phases (47-53, 59), 29 plans
+- 274 files changed, +82,601 / -8,074
+- 2026-02-26 → 2026-03-01
+
+---
 
 ### ✅ v2.2 - Attempt History (2026-02-26)
 
@@ -561,4 +556,4 @@ All requirements from v1.0–v2.2 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-02-27 after v2.4 milestone start — v2.3 Admin Portal + v2.4 CDP Progress parallel*
+*Last updated: 2026-03-01 after v2.3 milestone completion*

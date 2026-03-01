@@ -133,3 +133,31 @@
 
 ---
 
+
+## v2.3 Admin Portal (Shipped: 2026-03-01)
+
+**Phases completed:** 8 phases (47-53, 59), 29 plans
+**Files modified:** 274 | **Insertions:** 82,601 | **Deletions:** 8,074
+**Timeline:** 2026-02-26 → 2026-03-01 (4 days)
+
+**Delivered:** Admin has full CRUD control over master data (KKJ Matrix, CPDP Items), operational records (Coach-Coachee Mapping, DeliverableProgress Override, Final Assessment), and assessment management — all consolidated under /Admin with role-gated access.
+
+**Key accomplishments:**
+1. Admin Portal infrastructure — AdminController with 12-card hub page, role-gated navigation, and class-level authorization
+2. KKJ Matrix & CPDP Items managers — Spreadsheet-style inline editing with bulk-save, multi-cell clipboard, and Excel export for master data
+3. Assessment Management migration — All manage actions (Create, Edit, Delete, Reset, Force Close, Export, Monitoring, History) moved from CMP to Admin with AuditLog
+4. Coach-Coachee Mapping manager — Grouped-by-coach view with bulk assign, soft-delete, section filter, and Excel export
+5. Proton Silabus & Coaching Guidance — Two-tab /Admin/ProtonData replacing ProtonCatalog with full silabus CRUD and guidance file management
+6. DeliverableProgress Override — Third ProtonData tab for HC to override stuck statuses; sequential lock removed (all deliverables Active on assignment)
+7. Final Assessment Manager — Assessment Proton exam category with eligibility-gated coachee picker, Tahun 3 interview workflow; legacy HCApprovals removed
+8. ProtonCatalog cleanup — Redirect-only controller and views deleted after full migration to /Admin/ProtonData
+
+### Known Gaps
+- **OPER-05**: CoachingSession & ActionItem admin override — phase never planned
+- **CRUD-01**: AssessmentQuestion inline edit — phase never planned
+- **CRUD-02**: PackageQuestion edit/delete — REMOVED (Phase 56)
+- **CRUD-03**: ProtonTrack edit/delete — REMOVED (covered by Phase 59 ProtonData migration)
+- **CRUD-04**: Password Reset standalone — superseded by v2.5 Phase 67 ManageWorkers migration
+
+---
+

@@ -16,9 +16,9 @@
 - ✅ **v2.0 Assessment Management & Training History** — Phases 38-40 (shipped 2026-02-24)
 - ✅ **v2.1 Assessment Resilience & Real-Time Monitoring** — Phases 41-45 (shipped 2026-02-25)
 - ✅ **v2.2 Attempt History** — Phase 46 (shipped 2026-02-26)
-- 🚧 **v2.3 Admin Portal** — Phases 47-61 (in progress)
-- 🚧 **v2.4 CDP Progress** — Phases 54-66 (in progress)
-- 📋 **v2.5 User Infrastructure & AD Readiness** — Phases 54-73 (planned)
+- ✅ **v2.3 Admin Portal** — Phases 47-53, 59 (shipped 2026-03-01)
+- 🚧 **v2.4 CDP Progress** — Phases 61-64 (in progress)
+- 🚧 **v2.5 User Infrastructure & AD Readiness** — Phases 65-72 (in progress)
 
 ## Phases
 
@@ -70,83 +70,13 @@
 <details>
 <summary>✅ v1.1 CDP Coaching Management (Phases 4-8) — SHIPPED 2026-02-18</summary>
 
-### Phase 4: Foundation & Coaching Sessions
-**Goal:** Coaches can log sessions and action items against a stable data model, with users able to view their full coaching history
-**Depends on:** Phase 3 (v1.0 complete)
-**Requirements:** COACH-01, COACH-02, COACH-03
-**Success Criteria** (what must be TRUE):
-  1. Coach can create a coaching session with domain-specific fields (Kompetensi, SubKompetensi, Deliverable, CoacheeCompetencies, CatatanCoach, Kesimpulan, Result) for a coachee
-  2. Coach can add action items with due dates to a coaching session
-  3. User can view their coaching session history with date and status filtering
-  4. All existing v1.0 features remain functional after schema migration (broken CoachingLog FK fixed)
-**Plans:** 3 plans
+- [x] Phase 4: Foundation & Coaching Sessions (3/3 plans) — completed 2026-02-18
+- [x] Phase 5: Proton Deliverable Tracking (3/3 plans) — completed 2026-02-18
+- [x] Phase 6: Approval Workflow & Completion (3/3 plans) — completed 2026-02-18
+- [x] Phase 7: Development Dashboard (2/2 plans) — completed 2026-02-18
+- [x] Phase 8: Fix Admin Role Switcher (2/2 plans) — completed 2026-02-18
 
-Plans:
-- [x] 04-01-PLAN.md — Data foundation: models, DbContext, CoachingLog cleanup, migration
-- [x] 04-02-PLAN.md — Controller actions and view: coaching CRUD with filtering
-- [x] 04-03-PLAN.md — Gap closure: replace Topic/Notes with domain-specific coaching fields
-
-#### Phase 5: Proton Deliverable Tracking
-**Goal:** Coachee can track assigned deliverables in a structured Kompetensi hierarchy, with coaches able to upload and revise evidence files sequentially
-**Depends on:** Phase 4
-**Requirements:** PROTN-01, PROTN-02, PROTN-03, PROTN-04, PROTN-05
-**Success Criteria** (what must be TRUE):
-  1. Coach or SrSpv can assign a coachee to a Proton track (Panelman or Operator, Tahun 1/2/3) from the Proton Main page
-  2. Coachee can view their full deliverable list on the IDP Plan page organized by Kompetensi > Sub Kompetensi > Deliverable (read-only, no status, no navigation links)
-  3. Coachee can only access the next deliverable after the current one is approved — sequential lock is enforced
-  4. Coach can upload evidence files for an active deliverable on the Deliverable page
-  5. Coach can revise evidence and resubmit a rejected deliverable
-**Plans:** 3 plans
-
-Plans:
-- [x] 05-01-PLAN.md — Data foundation: Proton models, DbContext, migration, seed data
-- [x] 05-02-PLAN.md — ProtonMain track assignment page and PlanIdp hybrid Coachee view
-- [x] 05-03-PLAN.md — Deliverable page with sequential lock, evidence upload, and resubmit
-
-#### Phase 6: Approval Workflow & Completion
-**Goal:** Deliverables move through the SrSpv/SectionHead approval chain to completion, with HC completing final approvals before creating a final Proton Assessment that updates competency levels
-**Depends on:** Phase 5
-**Requirements:** APPRV-01, APPRV-02, APPRV-03, APPRV-04, APPRV-05, APPRV-06, PROTN-06, PROTN-07, PROTN-08
-**Success Criteria** (what must be TRUE):
-  1. Coach can submit a deliverable for approval
-  2. SrSpv or SectionHead can approve or reject a submitted deliverable — either approver alone is sufficient for the coachee to proceed
-  3. Approver can reject with a written reason; both coach and coachee can see rejection status and reason
-  4. HC receives notification when a coachee completes all deliverables; HC approval is non-blocking per deliverable but HC must complete all pending approvals before creating a final Proton Assessment
-  5. Coachee's Proton view shows final assessment status and resulting competency level update
-**Plans:** 3 plans
-
-Plans:
-- [x] 06-01-PLAN.md — Data foundation: extend models, add ProtonNotification/ProtonFinalAssessment, migration
-- [x] 06-02-PLAN.md — Approve/Reject actions with rejection reasons and sequential unlock
-- [x] 06-03-PLAN.md — HC workflow: HCApprovals queue, final assessment, PlanIdp completion card
-
-**Completed:** 2026-02-18
-
-#### Phase 7: Development Dashboard
-**Goal:** Supervisors and HC can monitor team competency progress, deliverable status, and pending approvals from a role-scoped dashboard with trend charts
-**Depends on:** Phase 6
-**Requirements:** DASH-01, DASH-02, DASH-03, DASH-04
-**Success Criteria** (what must be TRUE):
-  1. Dashboard is accessible to Spv, SrSpv, SectionHead, HC, and Admin — coachees have no access
-  2. Dashboard data is scoped by role: Spv sees their unit only; SrSpv and SectionHead see their section; HC and Admin see all sections
-  3. Dashboard shows each team member's deliverable progress, pending approvals, and competency status
-  4. Dashboard includes Chart.js charts showing competency level changes over time
-**Plans:** 2 plans
-
-Plans:
-- [x] 07-01-PLAN.md — ViewModel + CDPController.DevDashboard GET action with role-scoped queries and chart data
-- [x] 07-02-PLAN.md — DevDashboard.cshtml view with charts and coachee table, plus _Layout.cshtml nav link
-
-### Phase 8: Fix Admin Role Switcher
-**Goal:** Admin can switch between all role views (HC, Atasan, Coach, Coachee, Admin) with each simulated view granting the correct access to controller actions and showing accurate data
-**Depends on:** Phase 7
-**Plans:** 2 plans
-
-Plans:
-- [x] 08-01-PLAN.md — Enable Admin view: add "Admin" to allowedViews, _Layout dropdown, and SeedData default
-- [x] 08-02-PLAN.md — Fix CDPController gates: HC-gated actions, Atasan-gated actions, null-Section coachee lists, CreateSession Coachee block
-
-**Completed:** 2026-02-18
+See `.planning/milestones/` for full details.
 
 </details>
 
@@ -177,8 +107,6 @@ See `.planning/milestones/v1.3-ROADMAP.md` for full details.
 <summary>✅ v1.4 Assessment Monitoring (Phase 16) — SHIPPED 2026-02-19</summary>
 
 - [x] Phase 16: Grouped Monitoring View (3/3 plans) — completed 2026-02-19
-
-See `.planning/milestones/v1.5-REQUIREMENTS.md` for MON requirement traceability.
 
 </details>
 
@@ -274,190 +202,69 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 
 </details>
 
-## v2.3 Admin Portal
+<details>
+<summary>✅ v2.3 Admin Portal (Phases 47-53, 59) — SHIPPED 2026-03-01</summary>
+
+- [x] Phase 47: KKJ Matrix Manager (9/9 plans) — completed 2026-02-26
+- [x] Phase 48: CPDP Items Manager (4/4 plans) — completed 2026-02-26
+- [x] Phase 49: Assessment Management Migration (5/5 plans) — completed 2026-02-27
+- [x] Phase 50: Coach-Coachee Mapping Manager (2/2 plans) — completed 2026-02-27
+- [x] Phase 51: Proton Silabus & Coaching Guidance Manager (3/3 plans) — completed 2026-02-27
+- [x] Phase 52: DeliverableProgress Override (2/2 plans) — completed 2026-02-27
+- [x] Phase 53: Final Assessment Manager (3/3 plans) — completed 2026-03-01
+- [x] Phase 59: Hapus Page ProtonCatalog (1/1 plans) — completed 2026-03-01
+
+See `.planning/milestones/v2.3-ROADMAP.md` for full details.
+
+</details>
+
+## v2.4 CDP Progress
 
 ### Phases
 
-- [x] **Phase 47: KKJ Matrix Manager** — MDAT-01 (complete 2026-02-26)
-- [x] **Phase 48: CPDP Items Manager** — MDAT-02 (complete 2026-02-26)
-- [x] **Phase 49: Assessment Management Migration** — MDAT-03 (planned) (completed 2026-02-27)
-- [x] **Phase 50: Coach-Coachee Mapping Manager** — OPER-01 (planned) (completed 2026-02-27)
-- [x] **Phase 51: Proton Silabus & Coaching Guidance Manager** — (planned) (completed 2026-02-27)
-- [x] **Phase 52: DeliverableProgress Override** — OPER-03 (planned) (completed 2026-02-27)
-- [x] **Phase 53: Final Assessment Manager** — OPER-04 (planned) (completed 2026-03-01)
-- [x] ~~**Phase 56: ProtonTrack Edit/Delete**~~ — REMOVED (covered by Phase 59 Proton Catalog consolidation)
-- [x] ~~**Phase 57: Password Reset Standalone**~~ — REMOVED (covered by Phase 58 Kelola Pekerja consolidation)
-- [~] **Phase 58: Konsolidasi Kelola Pekerja** — ~~CONS-01~~ Superseded by v2.5 Phase 67
-- [x] **Phase 59: Hapus Page ProtonCatalog** — CONS-02 (planned) (completed 2026-03-01)
+- [x] **Phase 61: Data Source Fix** — DATA-01, DATA-02, DATA-03, DATA-04 (completed)
+- [x] **Phase 62: Functional Filters** — FILT-01, FILT-02, FILT-03, FILT-04, UI-01, UI-03 (completed)
+- [x] **Phase 63: Actions** — ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05 (completed)
+- [x] **Phase 64: UI Polish** — UI-02, UI-04 (completed)
 
 ### Phase Details
 
-### Phase 47: KKJ Matrix Manager
-**Goal:** Admin can view, create, edit, and delete KKJ Matrix items (KkjMatrixItem) through a dedicated management page — no database or code change required to manage master data
-**Depends on:** Phase 46 (v2.2 complete)
-**Requirements:** MDAT-01
-**Success Criteria** (what must be TRUE):
-  1. Admin can navigate to a KKJ Matrix management page that lists all KkjMatrixItem records
-  2. Admin can create a new KkjMatrixItem with all required fields (KKJ code, Kompetensi, SubKompetensi, Level) via an inline or modal form
-  3. Admin can edit an existing KkjMatrixItem's fields inline or via modal
-  4. Admin can delete a KkjMatrixItem with appropriate guard (show usage count or warn if in use)
-  5. All CRUD operations persist immediately to SQL Server and reflect in the list without full page reload
-**Plans:** 4/5 plans executed
-
-Plans:
-- [x] 47-01-PLAN.md — Admin Portal infrastructure: AdminController, /Admin/Index hub page, /Admin/KkjMatrix read-mode table, Kelola Data nav link
-- [x] 47-02-PLAN.md — KKJ Matrix write operations: spreadsheet edit mode (all 20 cols), bulk-save POST, delete-with-guard, clipboard paste
-- [ ] 47-03-PLAN.md — GAP: Per-bagian tables + editable headers (KkjBagian entity, EF migration, grouped view, KkjBagianSave)
-- [ ] 47-04-PLAN.md — GAP: Full 21-column read-mode table + per-row insert/delete in edit mode
-- [ ] 47-05-PLAN.md — GAP: Excel multi-cell selection (drag, Ctrl+C/V, Delete range) + save toast
-
-### Phase 48: CPDP Items Manager (KKJ-IDP Mapping Editor)
-**Goal:** Admin can view, create, edit, and delete CPDP Items (CpdpItem) with section filter through a dedicated management page — spreadsheet-style inline editing, bulk-save, delete guard, multi-cell clipboard, and Excel export
-**Depends on:** Phase 47
-**Requirements:** MDAT-02
-**Success Criteria** (what must be TRUE):
-  1. Admin can navigate to a CPDP Items management page that lists all CpdpItem records, filterable by section dropdown (RFCC, GAST, NGP, DHT)
-  2. Admin can create, edit, and delete CpdpItem records through spreadsheet-style inline editing with bulk-save and no reference guard blocking deletion
-  3. Admin can copy-paste data from Excel using multi-cell clipboard operations
-  4. Admin can export filtered data to Excel
-  5. CMP/Mapping section select page updated to use dropdown instead of card selection
-**Plans:** 4/4 plans complete
-
-Plans:
-- [x] 48-01-PLAN.md — GET action + read-mode table + section dropdown + Admin/Index link update
-- [x] 48-02-PLAN.md — Edit mode table + CpdpItemsSave POST + CpdpItemDelete POST + CMP/Mapping dropdown update
-- [x] 48-03-PLAN.md — Multi-cell selection (Ctrl+C/V, Delete range) + Excel export endpoint
-- [ ] 48-04-PLAN.md — GAP: Read-mode 6 columns, remove delete guard, fix Delete-key operator precedence
-
-### Phase 49: Assessment Management Migration
-**Goal:** Move Manage Assessments from CMP to Kelola Data (/Admin) — migrate all manage actions (Create, Edit, Delete, Reset, Force Close, Export, Monitoring, History) from CMPController to AdminController, move AuditLog to Admin, clean up CMP/Assessment to pure personal view
-**Depends on:** Phase 48
-**Requirements:** MDAT-03
-**Success Criteria** (what must be TRUE):
-  1. HC/Admin can access Manage Assessments from /Admin/ManageAssessment with all existing functionality (Create, Edit, Delete, Reset, Force Close, Export, Monitoring Detail, User History)
-  2. AuditLog page accessible at /Admin/AuditLog showing all global audit entries
-  3. CMP/Assessment is pure personal view — no manage toggle, no manage-related UI elements
-  4. Card 'Assessment Competency Map' in Admin/Index replaced with 'Manage Assessments' linking to /Admin/ManageAssessment
-  5. Card 'Manage Assessments' removed from CMP Index, card 'Assessment Lobby' renamed to 'My Assessments'
-  6. All manage-related actions removed from CMPController, AuditLog removed from CMPController
-**Plans:** 5/5 plans complete
-
-Plans:
-- [x] 49-01-PLAN.md — AdminController ManageAssessment GET + ManageAssessment.cshtml + Admin/Index card update
-- [x] 49-02-PLAN.md — Create/Edit/Delete/RegenerateToken actions + CreateAssessment.cshtml + EditAssessment.cshtml
-- [x] 49-03-PLAN.md — Monitoring, Reset, ForceClose, Export, UserHistory actions + view files
-- [x] 49-04-PLAN.md — AuditLog migration + CMPController cleanup + CMP/Assessment personal-only + CMP/Index card updates
-- [ ] 49-05-PLAN.md — GAP: Fix success modal, composite key migration, UserAssessmentHistory link, token guard
-
-**Completed:** 2026-02-27
-
-### Phase 50: Coach-Coachee Mapping Manager
-**Goal:** Admin can view, create, edit, and delete Coach-Coachee Mappings (CoachCoacheeMapping) through a grouped-by-coach management page with bulk assign, soft-delete, optional ProtonTrack assignment, section filter, Excel export, and AuditLog integration
-**Depends on:** Phase 49
-**Requirements:** OPER-01
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 50-01-PLAN.md — GET scaffold + grouped-by-coach view + filters/pagination + modal skeletons + Admin/Index card activation
-- [ ] 50-02-PLAN.md — Write endpoints (Assign/Edit/Deactivate/Reactivate) + ProtonTrack side-effect + AuditLog + Excel export + modal JS wiring
-
-### Phase 51: Proton Silabus & Coaching Guidance Manager
-**Goal:** Admin/HC can manage Proton silabus data (Bagian > Unit > Track > Kompetensi > SubKompetensi > Deliverable) and coaching guidance files through /Admin/ProtonData with two tabs — replaces ProtonCatalog page
-**Depends on:** Phase 50
-**Requirements:** —
-**Plans:** 3/3 plans complete
-
-### Phase 52: DeliverableProgress Override
-**Goal:** Admin/HC can view all ProtonDeliverableProgress records in a third /ProtonData tab and override stuck or erroneous statuses; sequential lock removed — all deliverables Active on assignment
-**Depends on:** Phase 51
-**Requirements:** OPER-03
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 52-01-PLAN.md — Override tab UI + OverrideList/OverrideDetail/OverrideSave endpoints + badge table + override modal + AuditLog
-- [ ] 52-02-PLAN.md — Lock removal: CDPController AssignTrack/Deliverable/ApproveDeliverable cleanup + CoacheeProgressRow.Locked removal + EF data migration
-
-### Phase 53: Final Assessment Manager
-**Goal:** Add "Assessment Proton" exam category to the assessment system — HC can create Proton exams (Tahun 1-2 online, Tahun 3 interview), with eligibility-gated coachee picker, Tahun 3 interview result input in MonitoringDetail; legacy HCApprovals and CreateFinalAssessment pages removed
-**Depends on:** Phase 52
-**Requirements:** OPER-04
-**Plans:** 3/3 plans complete
-
-Plans:
-- [ ] 53-01-PLAN.md — Data model extension: AssessmentSession ProtonTrackId/TahunKe/InterviewResultsJson fields + InterviewResultsDto POCO + EF migration
-- [ ] 53-02-PLAN.md — Adaptive CreateAssessment form + GetEligibleCoachees AJAX endpoint + badge display in ManageAssessment/CMP/Assessment
-- [ ] 53-03-PLAN.md — Tahun 3 interview form in MonitoringDetail + SubmitInterviewResults POST + delete HCApprovals/CreateFinalAssessment + legacy data cleanup
-
-### Phase 59: Hapus Page ProtonCatalog
-**Goal:** Delete ProtonCatalogController dan Views/ProtonCatalog/ — semua fungsionalitas sudah dipindahkan ke /Admin/ProtonData oleh Phase 51 (Silabus & Coaching Guidance Manager). Redirect-only controller tidak perlu dipertahankan.
-**Depends on:** Phase 53
-**Requirements:** CONS-02
-**Success Criteria** (what must be TRUE):
-  1. ProtonCatalogController.cs deleted
-  2. Views/ProtonCatalog/ directory deleted
-  3. No stale references to /ProtonCatalog in views or controllers
-  4. Admin/Index hub card for Proton Catalog (if any) removed or already pointing to /Admin/ProtonData
-**Plans:** 1/1 plans complete
-
-Plans:
-- [ ] 59-01-PLAN.md — Delete ProtonCatalogController.cs and Views/ProtonCatalog/ directory, verify no stale references, build passes
-
 ### Phase 61: Data Source Fix
 **Goal:** Progress page queries ProtonDeliverableProgress + ProtonTrackAssignment (not IdpItems), displays real coachee list from CoachCoacheeMapping, and computes correct summary stats — the data foundation is accurate
-**Depends on:** Phase 53 (v2.3 complete) — runs in parallel, independent of v2.3 progress
+**Depends on:** Phase 53 (v2.3 complete)
 **Requirements:** DATA-01, DATA-02, DATA-03, DATA-04
-**Success Criteria** (what must be TRUE):
-  1. Progress page table rows come from ProtonDeliverableProgress joined with ProtonTrackAssignment — no IdpItems data appears
-  2. Coach sees their real coachees in the dropdown, populated from CoachCoacheeMapping, not hardcoded mock values
-  3. Summary stats (progress %, pending actions, pending approvals) match the actual ProtonDeliverableProgress records in the database
-  4. Approving or updating evidence on the Deliverable page is immediately reflected on the Progress page with no stale cache
 **Plans:** 2/2 plans complete
 
 ### Phase 62: Functional Filters
 **Goal:** Every filter on the Progress page (Bagian/Unit, Coachee, Track, Tahun, Search) genuinely narrows the data returned — parameters are wired to queries and roles scope what users can see
 **Depends on:** Phase 61
 **Requirements:** FILT-01, FILT-02, FILT-03, FILT-04, UI-01, UI-03
-**Success Criteria** (what must be TRUE):
-  1. HC/Admin selecting a Bagian or Unit filter receives only deliverable rows for workers in that Bagian/Unit
-  2. Coach selecting a coachee from the dropdown sees only that coachee's deliverable rows — other coachees' data disappears
-  3. Selecting Proton Track (Panelman/Operator) and/or Tahun (1/2/3) filters rows to matching assignments only
-  4. Typing in the search box hides non-matching competency rows client-side without a page reload
-  5. Role-scoped data is enforced: Spv sees their unit, SrSpv/SectionHead see their section, HC/Admin see all — not based on filter selection alone
-  6. Filter dropdowns show the currently selected value as selected on page reload (no incorrect HTML selected attribute behavior)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 ### Phase 63: Actions
 **Goal:** Approve, reject, coaching report, evidence, and export actions all persist to the database — no more console.log stubs or missing onclick handlers
 **Depends on:** Phase 62
 **Requirements:** ACTN-01, ACTN-02, ACTN-03, ACTN-04, ACTN-05
-**Success Criteria** (what must be TRUE):
-  1. SrSpv or SectionHead clicking Approve on a deliverable row updates ProtonDeliverableProgress.Status to Approved in the database and the row reflects the new status on reload
-  2. SrSpv or SectionHead clicking Reject opens a rejection reason input; submitting it saves the reason to ProtonDeliverableProgress and status becomes Rejected
-  3. Coach submitting a coaching report modal creates a new CoachingSession record in the database with the entered details
-  4. Clicking Upload Evidence on a deliverable row opens the existing Deliverable workflow (or inline upload); the file is saved and viewable from the Progress page
-  5. Export Excel and Export PDF buttons generate and download the current filtered data as a file
-**Plans:** TBD
+**Plans:** 3/3 plans complete
 
 ### Phase 64: UI Polish
 **Goal:** Progress page handles edge cases gracefully — empty states communicate clearly, and large datasets do not load all rows at once
 **Depends on:** Phase 63
 **Requirements:** UI-02, UI-04
-**Success Criteria** (what must be TRUE):
-  1. When no deliverable data matches the current filter/role scope, the table shows a descriptive empty-state message instead of a blank table
-  2. Large coachee/deliverable datasets are paginated so the page does not load hundreds of rows at once; user can navigate between pages
 **Plans:** 2/2 plans complete
 
 ## v2.5 User Infrastructure & AD Readiness
 
 ### Phases
 
-- [x] **Phase 65: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (planned) (completed 2026-02-27)
-- [x] **Phase 66: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (planned) (completed 2026-02-27)
-- [x] **Phase 67: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (planned) — supersedes v2.3 Phase 58 (completed 2026-02-28)
-- [x] **Phase 68: Kelola Data Hub Reorganization** — USR-04 (planned) (completed 2026-02-28)
-- [x] **Phase 69: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (planned) (completed 2026-02-28)
-- [x] **Phase 70: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (planned) (completed 2026-02-28)
-- [x] **Phase 71: User Structure Polish** — USTR-02 completion (planned) (completed 2026-02-28)
+- [x] **Phase 65: Dynamic Profile Page** — PROF-01, PROF-02, PROF-03 (completed 2026-02-27)
+- [x] **Phase 66: Functional Settings Page** — PROF-04, PROF-05, PROF-06 (completed 2026-02-27)
+- [x] **Phase 67: ManageWorkers Migration to Admin** — USR-01, USR-02, USR-03, USTR-02 (completed 2026-02-28)
+- [x] **Phase 68: Kelola Data Hub Reorganization** — USR-04 (completed 2026-02-28)
+- [x] **Phase 69: LDAP Auth Service Foundation** — AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01 (completed 2026-02-28)
+- [x] **Phase 70: Dual Auth Login Flow** — AUTH-05, AUTH-06, AUTH-07 (completed 2026-02-28)
+- [x] **Phase 71: User Structure Polish** — USTR-02 completion (completed 2026-02-28)
+- [x] **Phase 72: Hybrid Auth & Role Restructuring** — AUTH-HYBRID (completed 2026-02-28)
 
 ### Phase Details
 
@@ -465,110 +272,67 @@ Plans:
 **Goal:** Profile page menampilkan data real user login — no more hardcoded placeholders
 **Depends on:** Phase 64 (v2.4 complete), or can start in parallel
 **Requirements:** PROF-01, PROF-02, PROF-03
-**Success Criteria** (what must be TRUE):
-  1. Profile page displays real user data: Nama, NIP, Email, Position, Section, Unit, Directorate, Role, JoinDate from @Model
-  2. Empty/null fields show placeholder "Belum diisi" instead of blank space or error
-  3. Avatar initials are dynamically generated from user's FullName (not hardcoded "BS")
 **Plans:** 1/1 plans complete
-- [ ] 65-01: Rewrite Profile.cshtml with @Model binding, null-safe display, dynamic initials
 
 ### Phase 66: Functional Settings Page
 **Goal:** Settings page functional — change password works, edit profile fields, cleanup non-functional items
 **Depends on:** Phase 65
 **Requirements:** PROF-04, PROF-05, PROF-06
-**Success Criteria** (what must be TRUE):
-  1. User can change password via ChangePasswordAsync with current/new/confirm fields and validation
-  2. User can edit FullName and Position fields; NIP, Email, Role, Section are displayed read-only
-  3. Non-functional items (2FA, Notifications, Language) are either removed or displayed as "Belum Tersedia" with disabled state
 **Plans:** 2/2 plans complete
-- [ ] 66-01: Backend — ChangePasswordViewModel, EditProfileViewModel, AccountController POST actions
-- [ ] 66-02: Frontend — Rewrite Settings.cshtml, 2 form sections, remove/disable placeholder items
 
 ### Phase 67: ManageWorkers Migration to Admin
 **Goal:** Pindahkan seluruh fitur ManageWorkers (CRUD, import, export, detail) dari CMPController ke AdminController — clean break tanpa redirect, akses via Kelola Data hub card, GetDefaultView() helper extraction
 **Depends on:** Phase 66
 **Requirements:** USR-01, USR-02, USR-03, USTR-02
-**Supersedes:** v2.3 Phase 58 (Konsolidasi Kelola Pekerja)
-**Success Criteria** (what must be TRUE):
-  1. All ManageWorkers CRUD actions (list, create, edit, delete, import, export, detail) work from /Admin/ManageWorkers
-  2. Old /CMP/ManageWorkers deleted — no redirect (clean break per user decision, overrides roadmap SC #2)
-  3. Standalone "Kelola Pekerja" button removed from navbar — access only via Kelola Data hub
-  4. Role-to-SelectedView mapping extracted to shared helper UserRoles.GetDefaultView()
 **Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 67-01-PLAN.md — Backend migration: 11 actions to AdminController with HC+Admin auth, GetDefaultView() extraction, 5 views copied to Views/Admin/ with all CMP references updated
-- [ ] 67-02-PLAN.md — Cleanup: delete from CMPController, delete old CMP views, remove navbar button, add hub card, update RecordsWorkerList, full stale reference verification
 
 ### Phase 68: Kelola Data Hub Reorganization
 **Goal:** Admin/Index.cshtml restructured — ManageWorkers prominent, stale items cleaned up
 **Depends on:** Phase 67
 **Requirements:** USR-04
-**Success Criteria** (what must be TRUE):
-  1. Kelola Data hub page (Admin/Index.cshtml) has ManageWorkers card in prominent position
-  2. Stale "Segera" items cleaned up — cards for implemented features show active status
-  3. Section C removed or reorganized
 **Plans:** 1/1 plans complete
-
-Plans:
-- [ ] 68-01-PLAN.md — Rewrite Admin/Index.cshtml (3 domain sections: Data Management, Proton, Assessment & Training), activate Deliverable Progress Override card, remove old Kelengkapan CRUD section, update navbar HC visibility
 
 ### Phase 69: LDAP Auth Service Foundation
 **Goal:** Infrastructure dual auth — NuGet, service interface, implementations, config toggle, AuthSource field. Login flow belum diubah.
 **Depends on:** Phase 68
 **Requirements:** AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-08, USTR-01
-**Success Criteria** (what must be TRUE):
-  1. System.DirectoryServices NuGet package added to csproj
-  2. ApplicationUser has AuthSource field ("Local"/"AD") with EF migration
-  3. appsettings.json has `Authentication:UseActiveDirectory` toggle (dev=false)
-  4. IAuthService interface defined with AuthenticateAsync method
-  5. LocalAuthService wraps existing PasswordSignInAsync
-  6. LdapAuthService uses DirectoryEntry with Pertamina LDAP path and samaccountname filter
-  7. Program.cs registers IAuthService via DI based on config toggle
 **Plans:** 2/2 plans complete
-- [ ] 69-01: NuGet package, AuthSource migration, config sections, IAuthService interface, LocalAuthService
-- [ ] 69-02: LdapAuthService with Pertamina DirectoryEntry code + AD attribute extraction, Program.cs DI registration
 
 ### Phase 70: Dual Auth Login Flow
 **Goal:** Login flow pakai IAuthService — global config routing (no per-user AuthSource), profile sync FullName/Email, ManageWorkers + import adaptation for AD mode
 **Depends on:** Phase 69
 **Requirements:** AUTH-05, AUTH-06, AUTH-07
-**Success Criteria** (what must be TRUE):
-  1. Login POST uses IAuthService.AuthenticateAsync instead of direct PasswordSignInAsync
-  2. Global config routing: UseActiveDirectory=true → all users via LDAP, false → all users via local Identity
-  3. AuthSource field removed from ApplicationUser (EF migration DROP column) — routing is global, not per-user
-  4. Login page identical both modes; AD mode shows hint "Login menggunakan akun Pertamina" below form
-  5. User not in DB → rejected with "Akun Anda belum terdaftar. Hubungi HC." (no auto-provisioning)
-  6. AD login: sync FullName + Email from AuthResult before SignInAsync; skip null values
-  7. ManageWorkers: password field hidden + auto-generate in AD mode; FullName/Email read-only for AD users
-  8. Import template dynamic: AD mode → no Password column (auto-generate); local mode → with Password column
 **Plans:** 3/3 plans complete
-- [ ] 70-01: Backend — Rewrite AccountController.Login POST with IAuthService, profile sync, remove AuthSource migration
-- [ ] 70-02: Frontend — Login.cshtml hint, ManageWorkers form adaptation (password hide, read-only fields)
-- [ ] 70-03: Import — Dynamic template generation, import logic adaptation for AD mode
 
 ### Phase 71: User Structure Polish
 **Goal:** Finalize — consistent SelectedView mapping, SeedData cleanup, documentation
 **Depends on:** Phase 70
 **Requirements:** USTR-02 (completion)
-**Success Criteria** (what must be TRUE):
-  1. All inline role-to-SelectedView switch/if statements replaced with UserRoles.GetDefaultView()
-  2. SeedData cleaned up (AuthSource references removed since field dropped in Phase 70)
-  3. ARCHITECTURE.md updated with dual auth documentation
 **Plans:** 1/1 plans complete
-- [ ] 71-01: Replace all inline role-to-view switches with GetDefaultView(), SeedData AuthSource, ARCHITECTURE.md update
 
 ### Phase 72: Hybrid Auth & Role Restructuring
 **Goal:** Enable hybrid authentication (AD fallback to local) so dedicated Admin KPB user works in production AD mode, plus role/access fixes
 **Depends on:** Phase 71
 **Requirements:** AUTH-HYBRID (new)
-**Success Criteria** (what must be TRUE):
-  1. Login flow tries AD first, falls back to local auth if AD fails — dedicated Admin KPB (admin@pertamina.com) can login in AD mode
-  2. _Layout.cshtml and AccountController use SelectedView (or role priority) instead of GetRolesAsync().FirstOrDefault() for role display
-  3. RoleLevel restructuring: SectionHead level 3, SrSupervisor stays level 4
-  4. Upload evidence access restricted to Coach only (not SrSupervisor)
 **Plans:** 2/2 plans complete
 
-Plans:
-- [ ] 72-01-PLAN.md — HybridAuthService (AD+local fallback for admin@pertamina.com), Program.cs DI update, UserRoles.cs restructuring (Supervisor role + SectionHead level 3)
-- [ ] 72-02-PLAN.md — Role display fix (_Layout.cshtml SelectedView), Coach-only evidence upload (CDPController), Coach-only EligibleCoaches (AdminController), EF migration SectionHead RoleLevel 4→3
+## Progress
+
+| Phase | Milestone | Plans | Status | Completed |
+|-------|-----------|-------|--------|-----------|
+| 1-3 | v1.0 | 10/10 | Complete | 2026-02-14 |
+| 4-8 | v1.1 | 13/13 | Complete | 2026-02-18 |
+| 9-12 | v1.2 | 8/8 | Complete | 2026-02-19 |
+| 13-15 | v1.3 | 2/2 | Complete | 2026-02-19 |
+| 16 | v1.4 | 3/3 | Complete | 2026-02-19 |
+| 17 | v1.5 | 7/7 | Complete | 2026-02-19 |
+| 18-20 | v1.6 | 3/3 | Complete | 2026-02-20 |
+| 21-26 | v1.7 | 14/14 | Complete | 2026-02-21 |
+| 27-32 | v1.8 | 10/10 | Complete | 2026-02-23 |
+| 33-37 | v1.9 | 8/8 | Complete | 2026-02-24 |
+| 38-40 | v2.0 | 5/5 | Complete | 2026-02-24 |
+| 41-45 | v2.1 | 13/13 | Complete | 2026-02-25 |
+| 46 | v2.2 | 2/2 | Complete | 2026-02-26 |
+| 47-53, 59 | v2.3 | 29/29 | Complete | 2026-03-01 |
+| 61-64 | v2.4 | 9/9 | Complete | 2026-02-28 |
+| 65-72 | v2.5 | 14/14 | Complete | 2026-02-28 |

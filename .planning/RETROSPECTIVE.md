@@ -41,6 +41,51 @@
 
 ---
 
+## Milestone: v2.3 — Admin Portal
+
+**Shipped:** 2026-03-01
+**Phases:** 8 (47-53, 59) | **Plans:** 29 | **Tasks:** 33
+
+### What Was Built
+- AdminController with 12-card hub page — centralized admin tool access with role-gated navigation
+- KKJ Matrix & CPDP Items spreadsheet editors — inline editing, bulk-save, multi-cell clipboard, Excel export
+- Assessment Management migration — all manage actions (Create/Edit/Delete/Reset/ForceClose/Export/Monitoring/History) from CMP to Admin
+- Coach-Coachee Mapping manager — grouped-by-coach view with bulk assign, soft-delete, section filter
+- Proton Silabus & Coaching Guidance — two-tab /Admin/ProtonData replacing ProtonCatalog with CRUD + file management
+- DeliverableProgress Override — third ProtonData tab for HC to fix stuck records; sequential lock removed entirely
+- Final Assessment Manager — Assessment Proton exam category with eligibility gates and Tahun 3 interview workflow
+- ProtonCatalog cleanup — dead controller/views removed after full migration
+
+### What Worked
+- **Admin hub pattern**: Single AdminController with card-based Index page scales well — each phase added 1-2 new tool pages without architectural changes
+- **Spreadsheet-style editing**: Bulk-save pattern (collect all rows as JSON, POST once) is faster and more reliable than per-row AJAX
+- **Phased migration**: Moving Assessment Management in 5 plans (scaffold → CRUD → monitoring → cleanup → gap fixes) prevented breaking changes mid-milestone
+- **SUMMARY.md extraction**: Phase summaries provided quick context restoration across sessions
+
+### What Was Inefficient
+- **GAP plans**: Phases 47-49 each needed UAT gap plans (47-03/04/05, 48-04, 49-05) — initial plans didn't fully capture UI requirements, requiring correction passes
+- **Phase removal churn**: 4 phases were removed/superseded during execution (56, 57, 58, 60) — upfront requirements were over-scoped
+- **5 requirements left incomplete**: OPER-05, CRUD-01 through CRUD-04 were planned but phases were removed before execution
+
+### Patterns Established
+- **Admin hub card pattern**: Each admin tool gets a card on Admin/Index with icon, description, and link; cards grouped by domain (Data Management, Proton, Assessment & Training)
+- **Spreadsheet editor pattern**: Read-mode table → Edit mode toggle → JSON bulk-save POST → DOM re-render; multi-cell clipboard via getTableCells() 2D array
+- **AuditLog on write**: All admin write operations log to AuditLog via AuditLogService.LogAsync — consistent across all admin tools
+- **ProtonData tab pattern**: Multiple admin tools sharing one route (/Admin/ProtonData) via Bootstrap nav-tabs — reduces hub card count
+
+### Key Lessons
+1. Scope v2.3 requirements more tightly — 12 requirements was too many; 7 shipped, 5 deferred. Better to ship smaller milestones with 100% completion.
+2. GAP plans are a sign that initial discuss-phase didn't capture enough detail. Future phases should include more concrete UI mockup questions.
+3. Migration phases (49, 59) are clean and predictable — the pattern of "move, verify references, delete originals" works reliably.
+4. Sequential lock removal (Phase 52) was the right call — Active-on-assignment is simpler to understand and maintain.
+
+### Cost Observations
+- Model profile: budget
+- 4-day milestone across multiple sessions
+- 29 plans is the largest milestone yet — previous max was v1.7 with 14 plans
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -58,5 +103,6 @@
 | v2.0 | 3 | 5 | 1 | 5 |
 | v2.1 | 5 | 13 | 2 | 6.5 |
 | v2.2 | 1 | 2 | 1 | 2 |
+| v2.3 | 8 | 29 | 4 | 7.25 |
 
-**Running total:** 46 phases, ~98 plans, 12 days
+**Running total:** 54 phases, ~127 plans, 16 days
