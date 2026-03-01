@@ -1,0 +1,181 @@
+@model HcPortal.Models.EditTrainingRecordViewModel
+
+@{
+    ViewData["Title"] = "Edit Training Record";
+}
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+        <li class="breadcrumb-item">
+            <a href="@Url.Action("ManageAssessment", "Admin", new { tab = "training" })">Manage Assessment & Training</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Edit Training</li>
+    </ol>
+</nav>
+
+<!-- Page Header -->
+<div class="mb-4">
+    <h2 class="fw-bold mb-1">
+        <i class="bi bi-pencil me-2 text-primary"></i>Edit Training Record
+    </h2>
+    <p class="text-muted">Pekerja: <strong>@Model.WorkerName</strong></p>
+</div>
+
+<!-- Validation Summary -->
+@if (!ViewData.ModelState.IsValid)
+{
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+}
+
+<form asp-action="EditTraining" asp-controller="Admin" method="post" enctype="multipart/form-data">
+    @Html.AntiForgeryToken()
+
+    <!-- Hidden fields -->
+    <input asp-for="Id" type="hidden" />
+    <input asp-for="WorkerId" type="hidden" />
+    <input asp-for="WorkerName" type="hidden" />
+    <input asp-for="ExistingSertifikatUrl" type="hidden" />
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-journal-text me-2"></i>Data Training</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Nama Pelatihan -->
+                <div class="col-md-6">
+                    <label asp-for="Judul" class="form-label fw-bold">Nama Pelatihan <span class="text-danger">*</span></label>
+                    <input asp-for="Judul" class="form-control" placeholder="Masukkan nama pelatihan" />
+                    <span asp-validation-for="Judul" class="text-danger small"></span>
+                </div>
+
+                <!-- Penyelenggara -->
+                <div class="col-md-6">
+                    <label asp-for="Penyelenggara" class="form-label fw-bold">Penyelenggara <span class="text-danger">*</span></label>
+                    <input asp-for="Penyelenggara" class="form-control" placeholder="Masukkan penyelenggara" />
+                    <span asp-validation-for="Penyelenggara" class="text-danger small"></span>
+                </div>
+
+                <!-- Kota -->
+                <div class="col-md-6">
+                    <label asp-for="Kota" class="form-label fw-bold">Kota</label>
+                    <input asp-for="Kota" class="form-control" placeholder="Masukkan kota pelatihan" />
+                </div>
+
+                <!-- Kategori -->
+                <div class="col-md-6">
+                    <label asp-for="Kategori" class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                    <select asp-for="Kategori" class="form-select">
+                        <option value="">-- Pilih Kategori --</option>
+                        <option value="OJT">OJT</option>
+                        <option value="IHT">IHT</option>
+                        <option value="MANDATORY">Mandatory HSSE Training</option>
+                        <option value="Training Licensor">Training Licensor</option>
+                        <option value="OTS">OTS</option>
+                        <option value="Proton">Proton</option>
+                        <option value="ISS">ISS</option>
+                        <option value="OSS">OSS</option>
+                    </select>
+                    <span asp-validation-for="Kategori" class="text-danger small"></span>
+                </div>
+
+                <!-- Tanggal -->
+                <div class="col-md-6">
+                    <label asp-for="Tanggal" class="form-label fw-bold">Tanggal <span class="text-danger">*</span></label>
+                    <input asp-for="Tanggal" type="date" class="form-control" />
+                    <span asp-validation-for="Tanggal" class="text-danger small"></span>
+                </div>
+
+                <!-- TanggalMulai -->
+                <div class="col-md-6">
+                    <label asp-for="TanggalMulai" class="form-label fw-bold">Tanggal Mulai</label>
+                    <input asp-for="TanggalMulai" type="date" class="form-control" />
+                </div>
+
+                <!-- TanggalSelesai -->
+                <div class="col-md-6">
+                    <label asp-for="TanggalSelesai" class="form-label fw-bold">Tanggal Selesai</label>
+                    <input asp-for="TanggalSelesai" type="date" class="form-control" />
+                </div>
+
+                <!-- Status -->
+                <div class="col-md-6">
+                    <label asp-for="Status" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
+                    <select asp-for="Status" class="form-select">
+                        <option value="Passed">Passed</option>
+                        <option value="Wait Certificate">Wait Certificate</option>
+                        <option value="Valid">Valid</option>
+                    </select>
+                    <span asp-validation-for="Status" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Data Sertifikat</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <!-- Nomor Sertifikat -->
+                <div class="col-md-6">
+                    <label asp-for="NomorSertifikat" class="form-label fw-bold">Nomor Sertifikat</label>
+                    <input asp-for="NomorSertifikat" class="form-control" placeholder="Masukkan nomor sertifikat" />
+                </div>
+
+                <!-- Tipe Sertifikat -->
+                <div class="col-md-6">
+                    <label asp-for="CertificateType" class="form-label fw-bold">Tipe Sertifikat</label>
+                    <select asp-for="CertificateType" class="form-select">
+                        <option value="">-- Pilih Tipe --</option>
+                        <option value="Permanent">Permanent</option>
+                        <option value="Annual">Annual</option>
+                        <option value="3-Year">3-Year</option>
+                    </select>
+                </div>
+
+                <!-- Berlaku Sampai -->
+                <div class="col-md-6">
+                    <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai</label>
+                    <input asp-for="ValidUntil" type="date" class="form-control" />
+                </div>
+
+                <!-- Certificate File Upload -->
+                <div class="col-md-6">
+                    <label asp-for="CertificateFile" class="form-label fw-bold">File Sertifikat Baru</label>
+                    <input asp-for="CertificateFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                    <div class="form-text">PDF, JPG, atau PNG. Maksimal 10MB. Kosongkan jika tidak ingin mengganti file.</div>
+                    <span asp-validation-for="CertificateFile" class="text-danger small"></span>
+                </div>
+
+                <!-- Existing Certificate Link -->
+                @if (!string.IsNullOrEmpty(Model.ExistingSertifikatUrl))
+                {
+                    <div class="col-md-12">
+                        <label class="form-label fw-bold">Sertifikat Saat Ini</label>
+                        <div>
+                            <a href="@Model.ExistingSertifikatUrl" target="_blank" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-file-earmark-text me-1"></i>Lihat Sertifikat
+                            </a>
+                            <small class="text-muted ms-2">Upload file baru untuk mengganti sertifikat yang ada.</small>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="d-flex justify-content-end gap-2">
+        <a href="@Url.Action("ManageAssessment", "Admin", new { tab = "training" })" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-2"></i>Batal
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-2"></i>Simpan Perubahan
+        </button>
+    </div>
+</form>
