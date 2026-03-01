@@ -12,6 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v2.6 Codebase Cleanup
+
+**Goal:** Remove all dead code, fix broken pages, eliminate placeholder stubs, and resolve HC role mismatches across the portal
+
+**Target features:**
+- Fix critical runtime errors (missing AccessDenied view, missing CMP/WorkerDetail view)
+- Delete orphaned views left behind from CMP→Admin migration (6 files)
+- Remove dead controller actions (3 actions)
+- Clean up placeholder/stub pages and menu items (BP module, Admin hub stubs, Settings disabled items, Privacy page)
+- Delete unused static files (site.css, site.js)
+- Fix HC role mismatch in Admin hub (4 cards visible but AccessDenied on click)
+- Fix broken Bootstrap tab link in Admin hub
+
 ## Current State (v2.5 — shipped 2026-03-01)
 
 ## Shipped Milestones

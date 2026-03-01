@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.5
-milestone_name: User Infrastructure & AD Readiness
-status: completed
-last_updated: "2026-03-01T14:00:00.000Z"
-last_activity: "2026-03-01 - v2.4 and v2.5 milestones archived. v2.4: 4 phases (61-64), 9 plans. v2.5: 8 phases (65-72), 14 plans."
+milestone: v2.6
+milestone_name: Codebase Cleanup
+status: defining_requirements
+last_updated: "2026-03-01T15:00:00.000Z"
+last_activity: "2026-03-01 — Milestone v2.6 started (codebase audit complete, 23 issues found)"
 progress:
-  total_phases: 60
-  completed_phases: 60
-  total_plans: 150
-  completed_plans: 150
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,15 +19,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** All milestones through v2.5 shipped. Planning next milestone.
+**Current focus:** v2.6 Codebase Cleanup — remove dead code, fix broken pages, resolve role mismatches
 
 ## Current Position
 
-**Milestone:** v2.5 User Infrastructure & AD Readiness — SHIPPED 2026-03-01
-**Status:** All milestones through v2.5 complete
-**Last activity:** 2026-03-01 - v2.4 and v2.5 milestones archived
+**Milestone:** v2.6 Codebase Cleanup
+**Status:** Defining requirements
+**Last activity:** 2026-03-01 — Codebase audit complete, 23 issues identified
 
-Progress: [████████████████████] 100% (v2.5 complete)
+Progress: [░░░░░░░░░░░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -45,7 +45,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Roadmap Evolution
 
-All milestones through v2.5 shipped.
+All milestones through v2.5 shipped. v2.6 started for codebase cleanup.
 
 ### Pending Todos
 
@@ -58,5 +58,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: v2.4 and v2.5 milestone completion. Next: `/gsd:new-milestone` for next version.
+Stopped at: Defining v2.6 requirements after codebase audit.
 Resume file: None.
