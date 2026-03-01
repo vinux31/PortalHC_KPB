@@ -96,8 +96,8 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 | ROLE-01 | Phase 76 | Complete |
 | ROLE-02 | Phase 76 | Complete |
 | LINK-01 | Phase 76 | Complete |
-| REDIR-01 | Phase 77 | Planned |
-| NAV-01 | Phase 78 | Planned |
+| REDIR-01 | Phase 77 | Complete |
+| NAV-01 | Phase 78 | Complete |
 
 **Coverage:**
 - v2.6 requirements: 22 total
