@@ -1497,7 +1497,10 @@ namespace HcPortal.Controllers
                 PendingCount   = sessionViewModels.Count(s => s.UserStatus == "Not started")
             };
 
-            ViewBag.BackUrl = Url.Action("ManageAssessment", "Admin");
+            model.IsTokenRequired = sessions.First().IsTokenRequired;
+            model.AccessToken = sessions.First().AccessToken ?? "";
+
+            ViewBag.BackUrl = Url.Action("AssessmentMonitoring", "Admin");
 
             // Proton Tahun 3 interview form support
             if (model.Category == "Assessment Proton")
