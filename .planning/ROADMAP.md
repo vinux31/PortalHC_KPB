@@ -318,6 +318,6 @@ Plans:
 | 76. Role Fixes & Broken Link | v2.6 | 2/2 | Complete | 2026-03-01 |
 | 77. Merge Training Records | v2.6 | 3/3 | Complete | 2026-03-01 |
 | 78. Deduplicate CMP page | v2.6 | 1/1 | Complete | 2026-03-01 |
-| 79. Assessment Monitoring Page — Group List | 1/1 | Complete   | 2026-03-01 | - |
+| 79. Assessment Monitoring Page — Group List | 1/1 | Complete    | 2026-03-01 | - |
 | 80. Per-Participant Monitoring Detail & HC Actions | v2.7 | 0/? | Not started | - |
 | 81. Cleanup — Remove Old Entry Points | v2.7 | 0/? | Not started | - |
