@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: Codebase Cleanup
 current_phase: Phase 78 (plan 01 complete — all plans done)
 status: completed
-last_updated: "2026-03-01T08:00:08.809Z"
+last_updated: "2026-03-01T08:08:50.257Z"
 last_activity: "2026-03-01 — 78-01: Removed CDP/ProtonMain + AssignTrack actions, ProtonMainViewModel, ProtonMain.cshtml; added Training Records card to Kelola Data hub (NAV-01)"
 progress:
   total_phases: 46
@@ -145,7 +145,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Milestone:** v2.6 Codebase Cleanup
 **Current phase:** Phase 78 (plan 01 complete — all plans done)
-**Status:** Milestone complete
+**Status:** v2.6 milestone complete
 **Last activity:** 2026-03-01 — 78-01: Removed CDP/ProtonMain + AssignTrack actions, ProtonMainViewModel, ProtonMain.cshtml; added Training Records card to Kelola Data hub (NAV-01)
 
 Progress: [████████████████████] 100% (5/5 phases complete)

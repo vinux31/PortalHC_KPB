@@ -201,3 +201,13 @@
 
 ---
 
+
+## v2.6 Codebase Cleanup (Shipped: 2026-03-01)
+
+**Phases completed:** 46 phases, 98 plans, 13 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
