@@ -2,6 +2,21 @@
 gsd_state_version: 1.0
 milestone: v2.7
 milestone_name: Assessment Monitoring
+current_phase: 80 of 81 — Per-Participant Monitoring Detail & HC Actions
+status: completed
+last_updated: "2026-03-01T10:30:00.000Z"
+last_activity: "2026-03-01 — Plan 80-01 complete: checkpoint approved, detail page nav + token card verified"
+progress:
+  total_phases: 48
+  completed_phases: 48
+  total_plans: 100
+  completed_plans: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.7
+milestone_name: Assessment Monitoring
 current_phase: 79 of 81 — Assessment Monitoring Page (Group List)
 status: completed
 last_updated: "2026-03-01T09:26:42.353Z"
@@ -40,11 +55,11 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Milestone:** v2.7 Assessment Monitoring
 **Current phase:** 80 of 81 — Per-Participant Monitoring Detail & HC Actions
-**Plan:** 1 of 1 in current phase (awaiting checkpoint:human-verify)
-**Status:** In progress — checkpoint pending
-**Last activity:** 2026-03-01 — Plan 80-01 tasks complete: detail page wired to Assessment Monitoring nav + token card added
+**Plan:** 1 of 1 in current phase (complete)
+**Status:** Complete — ready for Phase 81 Cleanup
+**Last activity:** 2026-03-01 — Plan 80-01 complete: checkpoint approved, detail page wired to Assessment Monitoring nav + token card verified
 
-Progress: [███░░░░░░░] 33% (v2.7)
+Progress: [██████░░░░] 67% (v2.7)
 
 ## Accumulated Context
 
@@ -59,6 +74,7 @@ Progress: [███░░░░░░░] 33% (v2.7)
 - [79-01]: Razor option selected uses @if/@else blocks — ternary in tag helper attribute area throws RZ1031 error.
 - [80-01]: Token fields read from sessions.First() already in memory — no extra DB round-trip needed.
 - [80-01]: Regenerate JS updates DOM in-place without page reload — preserves polling state and countdown timers.
+- [Phase 80]: Checkpoint approved with out-of-scope notes: manage question and table height — deferred
 
 ### Pending Todos
 
@@ -71,5 +87,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Phase 80 Plan 01 checkpoint:human-verify — awaiting user approval
-Resume file: .planning/phases/80-per-participant-monitoring-detail-hc-actions/80-01-SUMMARY.md
+Stopped at: Completed 80-01-PLAN.md — checkpoint approved by user
+Resume file: .planning/phases/81-cleanup-remove-old-entry-points/
