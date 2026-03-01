@@ -292,7 +292,7 @@ Plans:
   3. HC/Admin can Force Close an individual session from the detail page — the participant's exam is immediately terminated and scored
   4. HC/Admin can Bulk Close all active sessions for a group from the detail page — all in-progress sessions are closed in one action
   5. HC/Admin can Close Early for a participant from the detail page — the session closes and results are computed from answers submitted so far
-**Plans:** TBD
+**Plans:** 1/1 plans complete
 
 ---
 
@@ -319,5 +319,5 @@ Plans:
 | 77. Merge Training Records | v2.6 | 3/3 | Complete | 2026-03-01 |
 | 78. Deduplicate CMP page | v2.6 | 1/1 | Complete | 2026-03-01 |
 | 79. Assessment Monitoring Page — Group List | 1/1 | Complete    | 2026-03-01 | - |
-| 80. Per-Participant Monitoring Detail & HC Actions | v2.7 | 0/? | Not started | - |
+| 80. Per-Participant Monitoring Detail & HC Actions | 1/1 | Complete   | 2026-03-01 | - |
 | 81. Cleanup — Remove Old Entry Points | v2.7 | 0/? | Not started | - |
