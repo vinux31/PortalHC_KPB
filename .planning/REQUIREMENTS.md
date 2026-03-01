@@ -54,7 +54,7 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 
 ### Navigation Improvement
 
-- [ ] **NAV-01**: Kelola Data hub shows a "Training Records" card for HC and Admin users linking to `CMP/Records`
+- [x] **NAV-01**: Kelola Data hub shows a "Training Records" card for HC and Admin users linking to `CMP/Records`
 
 ## Future Requirements
 

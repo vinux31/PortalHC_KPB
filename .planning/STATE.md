@@ -129,11 +129,11 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 ## Current Position
 
 **Milestone:** v2.6 Codebase Cleanup
-**Current phase:** Phase 77 (plan 02 complete)
-**Status:** Milestone complete
-**Last activity:** 2026-03-01 — 77-02: ManageAssessment 3-tab view rewrite, AddTraining + EditTraining standalone forms created, RecordsWorkerList.cshtml deleted (REDIR-01)
+**Current phase:** Phase 78 (plan 01 complete — all plans done)
+**Status:** Executing
+**Last activity:** 2026-03-01 — 78-01: Removed CDP/ProtonMain + AssignTrack actions, ProtonMainViewModel, ProtonMain.cshtml; added Training Records card to Kelola Data hub (NAV-01)
 
-Progress: [████████████████████] 100% (4/4 phases complete)
+Progress: [████████████████████] 100% (5/5 phases complete)
 
 ## Phase Summary
 
@@ -142,7 +142,8 @@ Progress: [████████████████████] 100% (4
 | 73 | Critical Fixes | CRIT-01, CRIT-02 | Complete |
 | 74 | Dead Code Removal | VIEW-01–06, ACTN-01–02, FILE-01–02 | Complete |
 | 75 | Placeholder Cleanup | STUB-01–05 | Complete |
-| 76 | Role Fixes & Broken Link | ROLE-01, ROLE-02, LINK-01 | In progress (1/2 plans done) |
+| 76 | Role Fixes & Broken Link | ROLE-01, ROLE-02, LINK-01 | Complete |
+| 78 | Deduplicate CMP page / ProtonMain removal | NAV-01 | Complete |
 
 ## Performance Metrics
 
@@ -177,6 +178,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 77-training-record-redirect-fix]: Duplicated CMPController helpers into AdminController — GetWorkersInSection, GetAllWorkersHistory, GetUnifiedRecords needed for ManageAssessment tab data without making CMPController methods public
 - [Phase 77-training-record-redirect-fix]: Used Razor foreach/if blocks for dropdown selected state — RZ1031 prevents C# ternary in tag helper option attributes
 - [Phase 77-training-record-redirect-fix]: ManageAssessment expanded rows show only manual TrainingRecords — Assessment records omitted (require separate query); documented with TODO comment in view
+- [Phase 78-deduplicate-cmp-page]: CDPController.Index() converted from async to sync after removing ViewBag.CanAccessProton — the only await was GetUserAsync(User) which was only used by the deleted CanAccessProton line; var user removed entirely
+- [Phase 78-deduplicate-cmp-page]: Training Records hub card placed in Section C (Assessment & Training), same row g-3 as ManageAssessment card, gated with User.IsInRole("Admin") || User.IsInRole("HC")
 
 ### Roadmap Evolution
 
@@ -194,5 +197,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 77-02-PLAN.md — ManageAssessment 3-tab view rewrite, AddTraining + EditTraining views created, RecordsWorkerList deleted (REDIR-01)
-Resume file: .planning/phases/77-training-record-redirect-fix/77-02-SUMMARY.md
+Stopped at: Completed 78-01-PLAN.md — CDP/ProtonMain removed, ProtonMainViewModel deleted, Training Records hub card added (NAV-01)
+Resume file: .planning/phases/78-deduplicate-cmp-page-remove-cdp-protonmain-if-identical-to-admin-coachcoacheemapping/78-01-SUMMARY.md
