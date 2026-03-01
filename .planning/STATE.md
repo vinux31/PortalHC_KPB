@@ -2,6 +2,21 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Codebase Cleanup
+current_phase: Phase 75 (complete — both plans done)
+status: completed
+last_updated: "2026-03-01T05:17:38.356Z"
+last_activity: "2026-03-01 — 75-02: Coaching Session Override + Final Assessment Manager stub cards removed from Admin hub; Pengaturan Lainnya (2FA, Notifikasi, Bahasa) removed from Settings page (STUB-02, STUB-03, STUB-04)"
+progress:
+  total_phases: 43
+  completed_phases: 42
+  total_plans: 92
+  completed_plans: 91
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Codebase Cleanup
 current_phase: Phase 74 (complete — both plans done)
 status: completed
 last_updated: "2026-03-01T05:01:37.425Z"
@@ -55,7 +70,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Milestone:** v2.6 Codebase Cleanup
 **Current phase:** Phase 75 (complete — both plans done)
-**Status:** In progress (next: Phase 76)
+**Status:** Milestone complete
 **Last activity:** 2026-03-01 — 75-02: Coaching Session Override + Final Assessment Manager stub cards removed from Admin hub; Pengaturan Lainnya (2FA, Notifikasi, Bahasa) removed from Settings page (STUB-02, STUB-03, STUB-04)
 
 Progress: [███████████████░░░░░] 75% (3/4 phases complete)
