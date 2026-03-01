@@ -1,5 +1,20 @@
 ---
 gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Codebase Cleanup
+current_phase: Phase 73 (complete — both plans done)
+status: completed
+last_updated: "2026-03-01T04:39:29.766Z"
+last_activity: "2026-03-01 — 73-02: dead CMPController.WorkerDetail removed, 5 redirects fixed (CRIT-02)"
+progress:
+  total_phases: 41
+  completed_phases: 40
+  total_plans: 88
+  completed_plans: 87
+---
+
+---
+gsd_state_version: 1.0
 milestone: v2.6
 milestone_name: Codebase Cleanup
 status: in-progress
@@ -58,6 +73,8 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4
 
 Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 73-critical-fixes]: Deleted CMPController.WorkerDetail entirely — Admin/WorkerDetail owns this functionality since Phase 67, no valid use case remains
+- [Phase 73-critical-fixes]: 73-01: Used javascript:history.back() for AccessDenied Kembali button — works from any 403-triggering route
+- [Phase 73-critical-fixes]: 73-01: AccessDenied view does NOT set Layout = null — inherits portal navbar via _ViewStart (same pattern as Settings.cshtml)
 
 ### Roadmap Evolution
 
