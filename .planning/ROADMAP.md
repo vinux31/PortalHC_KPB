@@ -290,7 +290,7 @@ See `.planning/milestones/v2.2-ROADMAP.md` for full details.
 - [x] ~~**Phase 56: ProtonTrack Edit/Delete**~~ — REMOVED (covered by Phase 59 Proton Catalog consolidation)
 - [x] ~~**Phase 57: Password Reset Standalone**~~ — REMOVED (covered by Phase 58 Kelola Pekerja consolidation)
 - [~] **Phase 58: Konsolidasi Kelola Pekerja** — ~~CONS-01~~ Superseded by v2.5 Phase 68
-- [ ] **Phase 59: Konsolidasi Proton Catalog** — CONS-02 (planned)
+- [ ] **Phase 59: Hapus Page ProtonCatalog** — CONS-02 (planned)
 - [ ] **Phase 60: Konsolidasi Assessment Management** — CONS-03 (planned)
 - [~] **Phase 61: Update Kelola Data Hub** — ~~CONS-04~~ Partially superseded by v2.5 Phase 69
 
@@ -392,14 +392,15 @@ Plans:
 - [ ] 53-02-PLAN.md — Adaptive CreateAssessment form + GetEligibleCoachees AJAX endpoint + badge display in ManageAssessment/CMP/Assessment
 - [ ] 53-03-PLAN.md — Tahun 3 interview form in MonitoringDetail + SubmitInterviewResults POST + delete HCApprovals/CreateFinalAssessment + legacy data cleanup
 
-### Phase 59: Konsolidasi Proton Catalog
-**Goal:** Move Proton Catalog (master data Track/Kompetensi/SubKompetensi/Deliverable CRUD) from standalone /ProtonCatalog into Kelola Data Section A — all master data tables in one hub
-**Depends on:** Phase 58
+### Phase 59: Hapus Page ProtonCatalog
+**Goal:** Delete ProtonCatalogController dan Views/ProtonCatalog/ — semua fungsionalitas sudah dipindahkan ke /Admin/ProtonData oleh Phase 51 (Silabus & Coaching Guidance Manager). Redirect-only controller tidak perlu dipertahankan.
+**Depends on:** Phase 53
 **Requirements:** CONS-02
 **Success Criteria** (what must be TRUE):
-  1. Admin/HC can access Proton Catalog from Kelola Data hub page (Section A card)
-  2. All Proton Catalog CRUD functionality works from Admin section (tree view, add/edit/delete at all 4 levels)
-  3. Old /ProtonCatalog URL redirects to new location
+  1. ProtonCatalogController.cs deleted
+  2. Views/ProtonCatalog/ directory deleted
+  3. No stale references to /ProtonCatalog in views or controllers
+  4. Admin/Index hub card for Proton Catalog (if any) removed or already pointing to /Admin/ProtonData
 **Plans:** TBD
 
 ### Phase 60: Konsolidasi Assessment Management
@@ -479,7 +480,7 @@ Plans:
 | 56. ~~ProtonTrack Edit/Delete~~ | v2.3 | - | Removed | - |
 | 57. ~~Password Reset Standalone~~ | v2.3 | - | Removed | - |
 | 58. ~~Konsolidasi Kelola Pekerja~~ | v2.3 | - | Superseded (v2.5 P68) | - |
-| 59. Konsolidasi Proton Catalog | v2.3 | 0/? | Not started | - |
+| 59. Hapus Page ProtonCatalog | v2.3 | 0/? | Not started | - |
 | 60. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 61. ~~Update Kelola Data Hub~~ | v2.3 | - | Partially superseded (v2.5 P69) | - |
 | 62. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
