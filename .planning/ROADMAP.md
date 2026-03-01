@@ -483,7 +483,7 @@ Plans:
 | 56. ~~ProtonTrack Edit/Delete~~ | v2.3 | - | Removed | - |
 | 57. ~~Password Reset Standalone~~ | v2.3 | - | Removed | - |
 | 58. ~~Konsolidasi Kelola Pekerja~~ | v2.3 | - | Superseded (v2.5 P68) | - |
-| 59. Hapus Page ProtonCatalog | 1/1 | Complete   | 2026-03-01 | - |
+| 59. Hapus Page ProtonCatalog | 1/1 | Complete    | 2026-03-01 | - |
 | 60. Konsolidasi Assessment Management | v2.3 | 0/? | Not started | - |
 | 61. ~~Update Kelola Data Hub~~ | v2.3 | - | Partially superseded (v2.5 P69) | - |
 | 62. Data Source Fix | v2.4 | 2/2 | Complete | 2026-02-27 |
