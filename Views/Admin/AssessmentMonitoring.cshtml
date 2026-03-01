@@ -1,0 +1,305 @@
+@model List<HcPortal.Models.MonitoringGroupViewModel>
+
+@{
+    ViewData["Title"] = "Assessment Monitoring";
+    Layout = "_Layout";
+
+    int totalGroups = Model.Count;
+    int totalParticipants = Model.Sum(g => g.TotalCount);
+    int totalCompleted = Model.Sum(g => g.CompletedCount);
+    int totalPassed = Model.Sum(g => g.PassedCount);
+
+    string selStatus = ViewBag.SelectedStatus as string ?? "active";
+    string selCategory = ViewBag.SelectedCategory as string ?? "";
+    string selSearch = ViewBag.SearchTerm as string ?? "";
+}
+
+<div class="d-flex align-items-start mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Admin</a></li>
+                <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+                <li class="breadcrumb-item active">Assessment Monitoring</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold text-dark mb-1"><i class="bi bi-binoculars me-2 text-success"></i>Assessment Monitoring</h2>
+        <p class="text-muted">Pantau progress assessment real-time — status grup, peserta, dan token.</p>
+    </div>
+</div>
+
+@* Summary stat cards *@
+<div class="row g-2 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-center">
+            <div class="card-body py-3">
+                <div class="fs-4 fw-bold text-primary">@totalGroups</div>
+                <small class="text-muted">Grup Ditampilkan</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-center">
+            <div class="card-body py-3">
+                <div class="fs-4 fw-bold text-secondary">@totalParticipants</div>
+                <small class="text-muted">Total Peserta</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-center">
+            <div class="card-body py-3">
+                <div class="fs-4 fw-bold text-info">@totalCompleted</div>
+                <small class="text-muted">Selesai</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card shadow-sm border-0 text-center">
+            <div class="card-body py-3">
+                <div class="fs-4 fw-bold text-success">@totalPassed</div>
+                <small class="text-muted">Lulus</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Filter bar *@
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body">
+        <form method="get" asp-action="AssessmentMonitoring" asp-controller="Admin">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-muted mb-1">Cari Assessment</label>
+                    <input type="text" name="search" value="@selSearch"
+                           class="form-control" placeholder="Cari nama assessment..." />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold text-muted mb-1">Status</label>
+                    <select name="status" class="form-select">
+                        @if (selStatus == "active")
+                        {
+                            <option value="active" selected>Open + Upcoming</option>
+                        }
+                        else
+                        {
+                            <option value="active">Open + Upcoming</option>
+                        }
+                        @if (selStatus == "All")
+                        {
+                            <option value="All" selected>Semua Status</option>
+                        }
+                        else
+                        {
+                            <option value="All">Semua Status</option>
+                        }
+                        @if (selStatus == "Open")
+                        {
+                            <option value="Open" selected>Open</option>
+                        }
+                        else
+                        {
+                            <option value="Open">Open</option>
+                        }
+                        @if (selStatus == "Upcoming")
+                        {
+                            <option value="Upcoming" selected>Upcoming</option>
+                        }
+                        else
+                        {
+                            <option value="Upcoming">Upcoming</option>
+                        }
+                        @if (selStatus == "Closed")
+                        {
+                            <option value="Closed" selected>Closed</option>
+                        }
+                        else
+                        {
+                            <option value="Closed">Closed</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small fw-semibold text-muted mb-1">Kategori</label>
+                    <select name="category" class="form-select">
+                        @{
+                            var categories = new[]
+                            {
+                                ("", "Semua Kategori"),
+                                ("OJT", "OJT"),
+                                ("IHT", "IHT"),
+                                ("Training Licencor", "Training Licencor"),
+                                ("OTS", "OTS"),
+                                ("Mandatory HSSE Training", "Mandatory HSSE Training"),
+                                ("Proton", "Proton"),
+                                ("Assessment Proton", "Assessment Proton")
+                            };
+                            foreach (var (val, label) in categories)
+                            {
+                                if (selCategory == val)
+                                {
+                                    <option value="@val" selected>@label</option>
+                                }
+                                else
+                                {
+                                    <option value="@val">@label</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-semibold text-muted mb-1">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* Antiforgery token for JS fetch calls *@
+@Html.AntiForgeryToken()
+
+@* Group table *@
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>Tidak ada assessment group yang ditemukan. Coba ubah filter.
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Assessment</th>
+                    <th>Kategori</th>
+                    <th>Status</th>
+                    <th>Jadwal</th>
+                    <th class="text-center">Peserta</th>
+                    <th class="text-center">Selesai</th>
+                    <th class="text-center">Lulus</th>
+                    <th style="min-width:140px">Progress</th>
+                    <th class="text-end">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var group in Model)
+                {
+                    var catBadgeClass = group.Category switch
+                    {
+                        "OJT"                    => "bg-primary",
+                        "IHT"                    => "bg-success",
+                        "Training Licencor"       => "bg-danger",
+                        "OTS"                    => "bg-warning text-dark",
+                        "Mandatory HSSE Training" => "bg-info text-dark",
+                        "Proton"                 => "bg-purple",
+                        "Assessment Proton"       => "bg-purple",
+                        _                        => "bg-secondary"
+                    };
+
+                    var statusBadgeClass = group.GroupStatus switch
+                    {
+                        "Open"     => "bg-success",
+                        "Upcoming" => "bg-info text-dark",
+                        "Closed"   => "bg-secondary",
+                        _          => "bg-secondary"
+                    };
+
+                    int progressPct = group.TotalCount > 0
+                        ? (int)((double)group.CompletedCount / group.TotalCount * 100)
+                        : 0;
+
+                    string detailUrl = Url.Action("AssessmentMonitoringDetail", "Admin", new {
+                        title = group.Title,
+                        category = group.Category,
+                        scheduleDate = group.Schedule.Date.ToString("yyyy-MM-dd")
+                    }) ?? "#";
+
+                    <tr>
+                        <td>
+                            <span class="fw-semibold">@group.Title</span>
+                        </td>
+                        <td>
+                            <span class="badge @catBadgeClass">@group.Category</span>
+                        </td>
+                        <td>
+                            <span class="badge @statusBadgeClass">@group.GroupStatus</span>
+                        </td>
+                        <td class="text-nowrap">@group.Schedule.ToString("dd MMM yyyy")</td>
+                        <td class="text-center">@group.TotalCount</td>
+                        <td class="text-center">@group.CompletedCount</td>
+                        <td class="text-center">@group.PassedCount</td>
+                        <td>
+                            <div class="progress" style="height:16px;" title="@group.CompletedCount/@group.TotalCount selesai">
+                                <div class="progress-bar @(progressPct >= 100 ? "bg-success" : "bg-primary")"
+                                     role="progressbar"
+                                     style="width:@(progressPct)%"
+                                     aria-valuenow="@progressPct"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100">
+                                    <small>@group.CompletedCount/@group.TotalCount</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-end">
+                            <div class="dropdown">
+                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        type="button"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                                    Aksi
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li>
+                                        <a class="dropdown-item" href="@detailUrl">
+                                            <i class="bi bi-eye me-1"></i>View Detail
+                                        </a>
+                                    </li>
+                                    @if (group.IsTokenRequired)
+                                    {
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <button type="button"
+                                                    class="dropdown-item text-warning btn-regenerate-token"
+                                                    data-id="@group.RepresentativeId">
+                                                <i class="bi bi-arrow-repeat me-1"></i>Regenerate Token
+                                            </button>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.btn-regenerate-token').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var id = this.getAttribute('data-id');
+                if (!confirm('Regenerate token untuk assessment ini?')) return;
+                fetch('/Admin/RegenerateToken/' + id, {
+                    method: 'POST',
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    }
+                })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        alert('Token baru: ' + data.token);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                });
+            });
+        });
+    </script>
+}
