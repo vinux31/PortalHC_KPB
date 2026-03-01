@@ -2,6 +2,21 @@
 gsd_state_version: 1.0
 milestone: v2.7
 milestone_name: Assessment Monitoring
+current_phase: 81 of 81 — Cleanup — Remove Old Entry Points
+status: completed
+last_updated: "2026-03-01T11:25:33.139Z"
+last_activity: "2026-03-01 — Plan 81-02 complete: Admin/ManageQuestions page added with 3 controller actions and ManageAssessment dropdown entry — checkpoint approved"
+progress:
+  total_phases: 49
+  completed_phases: 48
+  total_plans: 102
+  completed_plans: 101
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.7
+milestone_name: Assessment Monitoring
 current_phase: 80 of 81 — Per-Participant Monitoring Detail & HC Actions
 status: completed
 last_updated: "2026-03-01T10:17:09.153Z"
@@ -71,7 +86,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 **Milestone:** v2.7 Assessment Monitoring — COMPLETE
 **Current phase:** 81 of 81 — Cleanup — Remove Old Entry Points
 **Plan:** 2 of 2 in current phase — COMPLETE
-**Status:** Complete — all v2.7 plans delivered
+**Status:** Milestone complete
 **Last activity:** 2026-03-01 — Plan 81-02 complete: Admin/ManageQuestions page added with 3 controller actions and ManageAssessment dropdown entry — checkpoint approved
 
 Progress: [██████████] 100% (v2.7)
