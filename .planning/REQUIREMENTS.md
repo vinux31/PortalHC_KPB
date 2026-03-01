@@ -29,9 +29,9 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 ### Placeholder Cleanup
 
 - [x] **STUB-01**: BP navbar link and placeholder page removed (or hidden until module is built)
-- [ ] **STUB-02**: Admin hub "Coaching Session Override" stub card removed
-- [ ] **STUB-03**: Admin hub "Final Assessment Manager" stub card removed
-- [ ] **STUB-04**: Settings page disabled items (2FA, Notifikasi, Bahasa) removed
+- [x] **STUB-02**: Admin hub "Coaching Session Override" stub card removed
+- [x] **STUB-03**: Admin hub "Final Assessment Manager" stub card removed
+- [x] **STUB-04**: Settings page disabled items (2FA, Notifikasi, Bahasa) removed
 - [x] **STUB-05**: `Views/Home/Privacy.cshtml` and `HomeController.Privacy` action removed
 
 ### Dead Files
@@ -79,9 +79,9 @@ Requirements for codebase cleanup milestone. Prioritized: Critical → Dead Code
 | ACTN-01 | Phase 74 | Complete |
 | ACTN-02 | Phase 74 | Complete |
 | STUB-01 | Phase 75 | Complete |
-| STUB-02 | Phase 75 | Pending |
-| STUB-03 | Phase 75 | Pending |
-| STUB-04 | Phase 75 | Pending |
+| STUB-02 | Phase 75 | Complete |
+| STUB-03 | Phase 75 | Complete |
+| STUB-04 | Phase 75 | Complete |
 | STUB-05 | Phase 75 | Complete |
 | FILE-01 | Phase 74 | Complete |
 | FILE-02 | Phase 74 | Complete |
