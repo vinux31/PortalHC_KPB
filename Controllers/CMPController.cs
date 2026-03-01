@@ -333,74 +333,11 @@ namespace HcPortal.Controllers
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
         public async Task<IActionResult> Records(string? section, string? unit, string? category, string? search, string? statusFilter, string? isFiltered)
         {
-            // Get current user and role
             var user = await _userManager.GetUserAsync(User);
-            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
-            var userRole = userRoles.FirstOrDefault();
-            int userLevel = user?.RoleLevel ?? 6;
+            if (user == null) return Challenge();
 
-            // Check if this is an initial load (no filter applied explicitly)
-            // We use the hidden input 'isFiltered' from the form to differentiate
-            bool isInitialState = string.IsNullOrEmpty(isFiltered);
-
-            // Default section to GAST if not specified, JUST for the dropdown display
-            // REMOVED: User wants "Semua Bagian" option
-            // if (string.IsNullOrEmpty(section))
-            // {
-            //     section = "GAST";
-            // }
-
-            ViewBag.UserRole = userRole;
-            ViewBag.UserLevel = userLevel;
-            ViewBag.SelectedSection = section; // Can be null/empty for "Semua Bagian"
-            ViewBag.SelectedUnit = unit;
-            ViewBag.SelectedCategory = category;
-            ViewBag.SearchTerm = search;
-            ViewBag.SelectedStatus = statusFilter;
-            ViewBag.IsInitialState = isInitialState;
-
-            // Determine if we should show Status column (Filter Mode) or Stats columns (Default Mode)
-            bool isFilterMode = !string.IsNullOrEmpty(category);
-            ViewBag.IsFilterMode = isFilterMode;
-
-            // Phase 10: Admin always gets HC worker list (elevated access, not personal view)
-            // Only literal Coach/Coachee roles see personal unified records
-            bool isCoacheeView = userRole == UserRoles.Coach || userRole == UserRoles.Coachee;
-            if (isCoacheeView)
-            {
-                var unified = await GetUnifiedRecords(user!.Id);
-                return View("Records", unified);
-            }
-            // HC, Admin, Management, Supervisor -> worker list
-
-            // Supervisor view:
-            List<WorkerTrainingStatus> workers;
-
-            if (isInitialState)
-            {
-                // Return empty list on initial load
-                workers = new List<WorkerTrainingStatus>();
-            }
-            else
-            {
-                // Fetch filtered data
-                workers = await GetWorkersInSection(section, unit, category, search, statusFilter);
-            }
-
-            var (assessmentHistory, trainingHistory) = await GetAllWorkersHistory();
-
-            return View("RecordsWorkerList", new RecordsWorkerListViewModel
-            {
-                Workers           = workers,
-                AssessmentHistory = assessmentHistory,
-                TrainingHistory   = trainingHistory,
-                AssessmentTitles  = assessmentHistory
-                    .Select(r => r.Title)
-                    .Where(t => !string.IsNullOrEmpty(t))
-                    .Distinct()
-                    .OrderBy(t => t)
-                    .ToList()
-            });
+            var unified = await GetUnifiedRecords(user.Id);
+            return View("Records", unified);
         }
 
         // Phase 19: HC Create Training Record — GET
@@ -531,12 +468,12 @@ namespace HcPortal.Controllers
                 if (!allowedExtensions.Contains(ext))
                 {
                     TempData["Error"] = "Hanya file PDF, JPG, dan PNG yang diperbolehkan.";
-                    return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
+                    return RedirectToAction("ManageAssessment", "Admin", new { tab = "training" });
                 }
                 if (model.CertificateFile.Length > 10 * 1024 * 1024)
                 {
                     TempData["Error"] = "Ukuran file maksimal 10MB.";
-                    return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
+                    return RedirectToAction("ManageAssessment", "Admin", new { tab = "training" });
                 }
             }
 
@@ -547,7 +484,7 @@ namespace HcPortal.Controllers
                     .Select(e => e.ErrorMessage)
                     .FirstOrDefault() ?? "Data tidak valid.";
                 TempData["Error"] = firstError;
-                return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
+                return RedirectToAction("ManageAssessment", "Admin", new { tab = "training" });
             }
 
             var record = await _context.TrainingRecords.FindAsync(model.Id);
@@ -592,7 +529,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Training record berhasil diperbarui.";
-            return RedirectToAction("WorkerDetail", "Admin", new { id = model.WorkerId });
+            return RedirectToAction("ManageAssessment", "Admin", new { tab = "training" });
         }
 
         // Phase 20: HC Delete Training Record — POST only
@@ -621,7 +558,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Training record berhasil dihapus.";
-            return RedirectToAction("WorkerDetail", "Admin", new { id = workerId });
+            return RedirectToAction("ManageAssessment", "Admin", new { tab = "training" });
         }
 
         // Helper method: Get personal training records for Coach/Coachee
