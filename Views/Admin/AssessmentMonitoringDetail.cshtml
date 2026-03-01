@@ -23,6 +23,13 @@
         _          => "bg-secondary"
     };
 
+    bool isProtonInterview = Model.Category == "Assessment Proton" && (ViewBag.GroupTahunKe as string) == "Tahun 3";
+    var interviewAspects = new List<string>
+    {
+        "Pengetahuan Teknis", "Kemampuan Operasional", "Keselamatan Kerja",
+        "Komunikasi & Kerjasama", "Sikap Profesional"
+    };
+
     int completedPct = Model.TotalCount > 0
         ? (int)Math.Round(Model.CompletedCount * 100.0 / Model.TotalCount)
         : 0;
@@ -356,6 +363,128 @@
                         </form>
                     </div>
                 </div>
+            </div>
+        </div>
+    }
+
+    @if (isProtonInterview)
+    {
+        var sessionObjects = ViewBag.SessionObjects as List<HcPortal.Models.AssessmentSession> ?? new List<HcPortal.Models.AssessmentSession>();
+        <div class="card mt-4 border-warning shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="bi bi-person-video3 me-2"></i>Input Hasil Interview Proton — Tahun 3</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var monSess in Model.Sessions)
+                {
+                    var fullSession = sessionObjects.FirstOrDefault(s => s.Id == monSess.Id);
+                    bool hasResults = !string.IsNullOrEmpty(fullSession?.InterviewResultsJson);
+                    HcPortal.Models.InterviewResultsDto? existingDto = null;
+                    if (hasResults)
+                    {
+                        try { existingDto = System.Text.Json.JsonSerializer.Deserialize<HcPortal.Models.InterviewResultsDto>(fullSession!.InterviewResultsJson!); } catch { }
+                    }
+
+                    <div class="card mb-4 border-secondary">
+                        <div class="card-header d-flex justify-content-between align-items-center py-2">
+                            <strong><i class="bi bi-person-fill me-1 text-primary"></i>@monSess.UserFullName</strong>
+                            @if (hasResults)
+                            {
+                                if (existingDto?.IsPassed == true)
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-circle-fill me-1"></i>Lulus</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Tidak Lulus</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Belum Diinput</span>
+                            }
+                        </div>
+                        <div class="card-body">
+                            <form asp-action="SubmitInterviewResults" asp-controller="Admin" method="post" enctype="multipart/form-data">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="sessionId" value="@monSess.Id" />
+                                <input type="hidden" name="returnTitle" value="@Model.Title" />
+                                <input type="hidden" name="returnCategory" value="@Model.Category" />
+                                <input type="hidden" name="returnDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Daftar Juri</label>
+                                    <input type="text" name="judges" class="form-control"
+                                        placeholder="Nama juri dipisahkan koma"
+                                        value="@(existingDto?.Judges ?? "")" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Penilaian per Aspek (1=Kurang, 5=Luar Biasa)</label>
+                                    <div class="row g-2">
+                                        @foreach (var aspect in interviewAspects)
+                                        {
+                                            var formKey = "aspect_" + aspect.Replace(" ", "_").Replace("&", "and").Replace(",", "");
+                                            var existingScore = existingDto?.AspectScores != null && existingDto.AspectScores.ContainsKey(aspect)
+                                                ? existingDto.AspectScores[aspect] : 3;
+                                            <div class="col-md-6 col-lg-4">
+                                                <label class="form-label small fw-semibold">@aspect</label>
+                                                <select name="@formKey" class="form-select form-select-sm">
+                                                    @for (int sv = 1; sv <= 5; sv++)
+                                                    {
+                                                        var lbl = sv switch { 1 => "Kurang", 2 => "Cukup", 3 => "Baik", 4 => "Sangat Baik", 5 => "Luar Biasa", _ => "" };
+                                                        if (existingScore == sv)
+                                                        {
+                                                            <option value="@sv" selected>@sv — @lbl</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="@sv">@sv — @lbl</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Catatan</label>
+                                    <textarea name="notes" class="form-control" rows="3"
+                                        placeholder="Catatan tambahan (opsional)">@(existingDto?.Notes ?? "")</textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Upload Dokumen Pendukung (Opsional)</label>
+                                    <input type="file" name="supportingDoc" class="form-control"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                                    @if (!string.IsNullOrEmpty(existingDto?.SupportingDocPath))
+                                    {
+                                        <div class="form-text">
+                                            <i class="bi bi-paperclip me-1"></i>Dokumen saat ini:
+                                            <a href="@existingDto.SupportingDocPath" target="_blank">Lihat dokumen</a>
+                                        </div>
+                                    }
+                                    <div class="form-text text-muted">PDF, Word, atau gambar. Maks 10MB.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" name="isPassed" value="true"
+                                            id="isPassed_@monSess.Id" @(existingDto?.IsPassed == true ? "checked" : "") />
+                                        <label class="form-check-label fw-semibold" for="isPassed_@monSess.Id">
+                                            <i class="bi bi-check-circle text-success me-1"></i>Dinyatakan Lulus
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-save me-1"></i>@(hasResults ? "Update Hasil Interview" : "Simpan Hasil Interview")
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     }

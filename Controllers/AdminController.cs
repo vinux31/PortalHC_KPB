@@ -1365,7 +1365,130 @@ namespace HcPortal.Controllers
             };
 
             ViewBag.BackUrl = Url.Action("ManageAssessment", "Admin");
+
+            // Proton Tahun 3 interview form support
+            if (model.Category == "Assessment Proton")
+            {
+                var repSession = await _context.AssessmentSessions.FindAsync(model.RepresentativeId);
+                ViewBag.GroupTahunKe = repSession?.TahunKe ?? "";
+
+                if (repSession?.TahunKe == "Tahun 3")
+                {
+                    var siblingIds2 = model.Sessions.Select(s => s.Id).ToList();
+                    ViewBag.SessionObjects = await _context.AssessmentSessions
+                        .Where(s => siblingIds2.Contains(s.Id))
+                        .ToListAsync();
+                }
+            }
+
             return View(model);
+        }
+
+        // --- SUBMIT INTERVIEW RESULTS (Assessment Proton Tahun 3) ---
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> SubmitInterviewResults(
+            int sessionId,
+            string? judges,
+            string? notes,
+            bool isPassed,
+            IFormFile? supportingDoc,
+            string? returnTitle,
+            string? returnCategory,
+            string? returnDate)
+        {
+            var session = await _context.AssessmentSessions.FindAsync(sessionId);
+            if (session == null)
+            {
+                TempData["Error"] = "Session tidak ditemukan.";
+                return RedirectToAction("ManageAssessment");
+            }
+            if (session.Category != "Assessment Proton" || session.TahunKe != "Tahun 3")
+            {
+                TempData["Error"] = "Aksi ini hanya untuk Assessment Proton Tahun 3.";
+                return RedirectToAction("ManageAssessment");
+            }
+
+            // Collect aspect scores from form fields (name=aspect_{AspectName_Underscored})
+            var aspects = new List<string>
+            {
+                "Pengetahuan Teknis", "Kemampuan Operasional", "Keselamatan Kerja",
+                "Komunikasi & Kerjasama", "Sikap Profesional"
+            };
+            var aspectScores = new Dictionary<string, int>();
+            foreach (var aspect in aspects)
+            {
+                var formKey = "aspect_" + aspect.Replace(" ", "_").Replace("&", "and").Replace(",", "");
+                if (int.TryParse(Request.Form[formKey], out int score))
+                    aspectScores[aspect] = Math.Clamp(score, 1, 5);
+                else
+                    aspectScores[aspect] = 3;
+            }
+
+            // File upload (optional, max 10MB)
+            string? supportingDocPath = null;
+            if (supportingDoc != null && supportingDoc.Length > 0 && supportingDoc.Length <= 10 * 1024 * 1024)
+            {
+                var ext = Path.GetExtension(supportingDoc.FileName).ToLowerInvariant();
+                var allowed = new[] { ".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png" };
+                if (allowed.Contains(ext))
+                {
+                    var dir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "interviews");
+                    Directory.CreateDirectory(dir);
+                    var safeName = $"{sessionId}_{DateTimeOffset.UtcNow.ToUnixTimeSeconds()}{ext}";
+                    using var stream = new FileStream(Path.Combine(dir, safeName), FileMode.Create);
+                    await supportingDoc.CopyToAsync(stream);
+                    supportingDocPath = $"/uploads/interviews/{safeName}";
+                }
+            }
+            // Preserve existing doc path when no new upload
+            if (supportingDocPath == null && !string.IsNullOrEmpty(session.InterviewResultsJson))
+            {
+                try
+                {
+                    var old = System.Text.Json.JsonSerializer.Deserialize<InterviewResultsDto>(session.InterviewResultsJson);
+                    supportingDocPath = old?.SupportingDocPath;
+                }
+                catch { /* ignore parse errors */ }
+            }
+
+            var dto = new InterviewResultsDto
+            {
+                Judges = judges?.Trim() ?? "",
+                AspectScores = aspectScores,
+                Notes = notes?.Trim() ?? "",
+                SupportingDocPath = supportingDocPath,
+                IsPassed = isPassed
+            };
+
+            session.InterviewResultsJson = System.Text.Json.JsonSerializer.Serialize(dto);
+            session.IsPassed = isPassed;
+            session.Status = "Completed";
+            session.CompletedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            // Audit log
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var actorName = string.IsNullOrWhiteSpace(user.NIP) ? (user.FullName ?? "Unknown") : $"{user.NIP} - {user.FullName}";
+                await _auditLog.LogAsync(
+                    user.Id,
+                    actorName,
+                    "SubmitInterviewResults",
+                    $"Interview results saved for session ID={sessionId} ({session.Title}), IsPassed={isPassed}",
+                    sessionId,
+                    "AssessmentSession");
+            }
+
+            TempData["Success"] = "Hasil interview berhasil disimpan.";
+            return RedirectToAction("AssessmentMonitoringDetail", new
+            {
+                title = returnTitle ?? session.Title,
+                category = returnCategory ?? session.Category,
+                scheduleDate = returnDate ?? session.Schedule.Date.ToString("yyyy-MM-dd")
+            });
         }
 
         // --- GET MONITORING PROGRESS (polling endpoint for real-time monitoring) ---
