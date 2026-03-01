@@ -4,7 +4,7 @@ milestone: v1.0
 milestone_name: Codebase Cleanup
 current_phase: Phase 73 (complete — both plans done)
 status: completed
-last_updated: "2026-03-01T04:39:29.766Z"
+last_updated: "2026-03-01T04:42:37.752Z"
 last_activity: "2026-03-01 — 73-02: dead CMPController.WorkerDetail removed, 5 redirects fixed (CRIT-02)"
 progress:
   total_phases: 41
@@ -40,7 +40,7 @@ See: .planning/PROJECT.md (updated 2026-03-01)
 
 **Milestone:** v2.6 Codebase Cleanup
 **Current phase:** Phase 73 (complete — both plans done)
-**Status:** Phase 73 complete — CRIT-01 and CRIT-02 resolved, ready for Phase 74
+**Status:** Milestone complete
 **Last activity:** 2026-03-01 — 73-02: dead CMPController.WorkerDetail removed, 5 redirects fixed (CRIT-02)
 
 Progress: [░░░░░░░░░░░░░░░░░░░░] 0% (0/4 phases complete)
