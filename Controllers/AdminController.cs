@@ -454,6 +454,7 @@ namespace HcPortal.Controllers
             ViewBag.Users = users;
             ViewBag.SelectedUserIds = new List<string>();
             ViewBag.Sections = OrganizationStructure.GetAllSections();
+            ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
 
             // Pass created assessment data to view if exists (for success modal)
             if (TempData["CreatedAssessment"] != null)
@@ -521,15 +522,20 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("Schedule", "Schedule date too far in future (maximum 2 years).");
             }
 
-            // Validate duration
-            if (model.DurationMinutes <= 0)
+            // Validate duration (skip for Assessment Proton Tahun 3 — interview only, no online exam)
+            bool isProtonYear3Check = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue;
+            // We'll resolve TahunKe after ModelState check below; for now use DurationMinutes=0 sentinel
+            if (!isProtonYear3Check || model.DurationMinutes != 0)
             {
-                ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
-            }
+                if (model.DurationMinutes <= 0)
+                {
+                    ModelState.AddModelError("DurationMinutes", "Duration must be greater than 0.");
+                }
 
-            if (model.DurationMinutes > 480)
-            {
-                ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+                if (model.DurationMinutes > 480)
+                {
+                    ModelState.AddModelError("DurationMinutes", "Duration cannot exceed 480 minutes (8 hours).");
+                }
             }
 
             // Validate PassPercentage
@@ -553,6 +559,7 @@ namespace HcPortal.Controllers
                 ViewBag.Users = users;
                 ViewBag.SelectedUserIds = UserIds ?? new List<string>();
                 ViewBag.Sections = OrganizationStructure.GetAllSections();
+                ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
                 return View(model);
             }
 
@@ -616,7 +623,16 @@ namespace HcPortal.Controllers
                     ViewBag.Users = users;
                     ViewBag.SelectedUserIds = UserIds ?? new List<string>();
                     ViewBag.Sections = OrganizationStructure.GetAllSections();
+                    ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
                     return View(model);
+                }
+
+                // Proton exam metadata — look up TahunKe from ProtonTrack
+                string? protonTahunKe = null;
+                if (model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue)
+                {
+                    var protonTrack = await _context.ProtonTracks.FindAsync(model.ProtonTrackId.Value);
+                    protonTahunKe = protonTrack?.TahunKe;
                 }
 
                 // Create all sessions in memory first
@@ -641,6 +657,16 @@ namespace HcPortal.Controllers
                         UserId = userId,
                         CreatedBy = currentUser?.Id
                     };
+
+                    // Set Proton-specific fields (nullable — null for non-Proton sessions)
+                    if (model.Category == "Assessment Proton")
+                    {
+                        session.ProtonTrackId = model.ProtonTrackId;
+                        session.TahunKe = protonTahunKe;
+                        // Tahun 3 = interview only; no DurationMinutes required
+                        if (protonTahunKe == "Tahun 3")
+                            session.DurationMinutes = 0;
+                    }
 
                     sessions.Add(session);
                 }
@@ -702,6 +728,7 @@ namespace HcPortal.Controllers
                 ViewBag.Users = users;
                 ViewBag.SelectedUserIds = UserIds ?? new List<string>();
                 ViewBag.Sections = OrganizationStructure.GetAllSections();
+                ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
                 return View(model);
             }
 
@@ -3482,6 +3509,62 @@ namespace HcPortal.Controllers
             return File(stream.ToArray(),
                 "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                 "CoachCoacheeMapping.xlsx");
+        }
+
+        /// <summary>
+        /// AJAX: Returns coachees eligible for a Proton exam — assigned to the track + 100% deliverables Approved.
+        /// Called from CreateAssessment form JS when category=Assessment Proton and track is selected.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetEligibleCoachees(int protonTrackId)
+        {
+            if (protonTrackId <= 0) return Json(new List<object>());
+
+            // Coachees with active assignment to this track
+            var assignedCoacheeIds = await _context.ProtonTrackAssignments
+                .Where(a => a.ProtonTrackId == protonTrackId && a.IsActive)
+                .Select(a => a.CoacheeId)
+                .Distinct()
+                .ToListAsync();
+
+            if (!assignedCoacheeIds.Any()) return Json(new List<object>());
+
+            // All deliverable IDs for this track (via Kompetensi → SubKompetensi → Deliverable)
+            var trackDeliverableIds = await _context.ProtonKompetensiList
+                .Where(k => k.ProtonTrackId == protonTrackId)
+                .SelectMany(k => k.SubKompetensiList)
+                .SelectMany(s => s.Deliverables)
+                .Select(d => d.Id)
+                .ToListAsync();
+
+            if (!trackDeliverableIds.Any()) return Json(new List<object>());
+
+            // Batch-load progress records for all assigned coachees on this track's deliverables
+            var progressRecords = await _context.ProtonDeliverableProgresses
+                .Where(p => assignedCoacheeIds.Contains(p.CoacheeId)
+                         && trackDeliverableIds.Contains(p.ProtonDeliverableId))
+                .Select(p => new { p.CoacheeId, p.ProtonDeliverableId, p.Status })
+                .ToListAsync();
+
+            // Eligible = has exactly trackDeliverableIds.Count Approved progress records
+            var eligibleCoacheeIds = assignedCoacheeIds
+                .Where(id =>
+                {
+                    var mine = progressRecords.Where(p => p.CoacheeId == id).ToList();
+                    return mine.Count == trackDeliverableIds.Count && mine.All(p => p.Status == "Approved");
+                })
+                .ToList();
+
+            if (!eligibleCoacheeIds.Any()) return Json(new List<object>());
+
+            var users = await _context.Users
+                .Where(u => eligibleCoacheeIds.Contains(u.Id))
+                .Select(u => new { u.Id, u.FullName, u.Email, u.NIP, u.Section })
+                .OrderBy(u => u.FullName)
+                .ToListAsync();
+
+            return Json(users);
         }
 
         // Helper: Crypto-random 16-char password for AD mode auto-generation
