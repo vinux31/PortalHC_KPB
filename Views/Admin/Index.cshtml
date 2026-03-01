@@ -139,22 +139,6 @@
     @if (User.IsInRole("Admin") || User.IsInRole("HC"))
     {
     <div class="col-md-4">
-        <a href="@Url.Action("Records", "CMP")" class="text-decoration-none">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-body">
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <i class="bi bi-journal-check fs-5 text-primary"></i>
-                        <span class="fw-bold">Training Records</span>
-                    </div>
-                    <small class="text-muted">Lihat riwayat training pekerja</small>
-                </div>
-            </div>
-        </a>
-    </div>
-    }
-    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
-    {
-    <div class="col-md-4">
         <a href="@Url.Action("AssessmentMonitoring", "Admin")" class="text-decoration-none">
             <div class="card shadow-sm h-100 border-0">
                 <div class="card-body">
