@@ -1,6 +1,6 @@
 @model List<HcPortal.Models.TrackingItem>
 @{
-    ViewData["Title"] = "Proton Progress";
+    ViewData["Title"] = "Coaching Proton";
     var userLevel = (int)ViewBag.UserLevel;
     var userRole = ViewBag.UserRole as string ?? "";
     var allBagian = ViewBag.AllBagian as List<string> ?? new List<string>();
@@ -67,7 +67,7 @@
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2><i class="bi bi-graph-up me-2"></i>Proton Progress</h2>
+            <h2><i class="bi bi-graph-up me-2"></i>Coaching Proton</h2>
             <p class="text-muted mb-0">Monitor deliverable progress and approval status</p>
         </div>
         <a href="@Url.Action("Index", "CDP")" class="btn btn-outline-secondary">
@@ -76,7 +76,7 @@
     </div>
 
     @* Filter bar — GET form, auto-submits on dropdown change *@
-    <form method="get" asp-action="ProtonProgress" asp-controller="CDP" id="filterForm"
+    <form method="get" asp-action="CoachingProton" asp-controller="CDP" id="filterForm"
           class="d-flex flex-wrap gap-2 align-items-center mb-3">
 
         @* Bagian dropdown — HC/Admin only (Level 1-2) *@
@@ -629,7 +629,7 @@
                     @if (currentPage > 1)
                     {
                         <li class="page-item">
-                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                            <a class="page-link page-nav-link" href="@Url.Action("CoachingProton", "CDP", new {
                                 bagian = selectedBagian,
                                 unit = selectedUnit,
                                 trackType = selectedTrackType,
@@ -652,7 +652,7 @@
                     @if (startPage > 1)
                     {
                         <li class="page-item">
-                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                            <a class="page-link page-nav-link" href="@Url.Action("CoachingProton", "CDP", new {
                                 bagian = selectedBagian, unit = selectedUnit,
                                 trackType = selectedTrackType, tahun = selectedTahun,
                                 coacheeId = selectedCoacheeId, page = 1
@@ -672,7 +672,7 @@
                         else
                         {
                             <li class="page-item">
-                                <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                                <a class="page-link page-nav-link" href="@Url.Action("CoachingProton", "CDP", new {
                                     bagian = selectedBagian, unit = selectedUnit,
                                     trackType = selectedTrackType, tahun = selectedTahun,
                                     coacheeId = selectedCoacheeId, page = p
@@ -687,7 +687,7 @@
                             <li class="page-item disabled"><span class="page-link">…</span></li>
                         }
                         <li class="page-item">
-                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                            <a class="page-link page-nav-link" href="@Url.Action("CoachingProton", "CDP", new {
                                 bagian = selectedBagian, unit = selectedUnit,
                                 trackType = selectedTrackType, tahun = selectedTahun,
                                 coacheeId = selectedCoacheeId, page = totalPages
@@ -699,7 +699,7 @@
                     @if (currentPage < totalPages)
                     {
                         <li class="page-item">
-                            <a class="page-link page-nav-link" href="@Url.Action("ProtonProgress", "CDP", new {
+                            <a class="page-link page-nav-link" href="@Url.Action("CoachingProton", "CDP", new {
                                 bagian = selectedBagian,
                                 unit = selectedUnit,
                                 trackType = selectedTrackType,
@@ -979,7 +979,7 @@ function onBagianChange(select) {
 }
 
 function clearFilters() {
-    window.location.href = '@Url.Action("ProtonProgress", "CDP")';
+    window.location.href = '@Url.Action("CoachingProton", "CDP")';
 }
 
 // === AJAX helpers ===

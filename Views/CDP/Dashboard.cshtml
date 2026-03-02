@@ -16,7 +16,7 @@
             <button class="nav-link active" id="proton-tab" data-bs-toggle="tab"
                     data-bs-target="#proton-pane" type="button" role="tab"
                     aria-controls="proton-pane" aria-selected="true">
-                <i class="bi bi-graph-up me-1"></i>Proton Progress
+                <i class="bi bi-graph-up me-1"></i>Coaching Proton
             </button>
         </li>
         @if (Model.AssessmentAnalyticsData != null)
@@ -39,7 +39,7 @@
             }
             else if (Model.ProtonProgressData != null)
             {
-                <partial name="Shared/_ProtonProgressPartial" model="Model.ProtonProgressData" />
+                <partial name="Shared/_CoachingProtonPartial" model="Model.ProtonProgressData" />
             }
         </div>
         @if (Model.AssessmentAnalyticsData != null)
