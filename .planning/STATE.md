@@ -134,6 +134,7 @@ Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 - Phase 88 added: KKJ Matrix Excel Import — add download-template + upload import feature to Admin/KkjMatrix
 - Phase 89 added: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model
 - Phase 88 depends on Phase 89 (dynamic columns must complete before import/export)
+- Phase 90 added: KKJ Matrix Admin Full Rewrite — document-based page with HC file CRUD and CDP PlanIDP integration
 
 ### Pending Todos
 

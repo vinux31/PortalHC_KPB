@@ -296,6 +296,16 @@ Plans:
 - [ ] 89-03: KkjMatrix.cshtml View Update (dynamic column rendering)
 - [ ] 89-04: CMPController Kkj view + downstream consumers
 
+### Phase 90: KKJ Matrix Admin Full Rewrite — document-based page with HC file CRUD and CDP PlanIDP integration
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 89
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 90 to break down)
+
 ---
 
 ### 🚧 v3.0 Full QA & Feature Completion (In Progress)
