@@ -437,6 +437,11 @@ namespace HcPortal.Controllers
         }
 
         // GET: /ProtonData/GuidanceDownload?id=X
+        // NOTE (Phase 86): This action inherits class-level [Authorize(Roles = "Admin,HC")].
+        // Plan IDP (Phase 86) requires coachees to download guidance files.
+        // Recommended approach: add a separate GuidanceDownload action in CDPController
+        // with [Authorize] (any authenticated user) that reuses the same DB lookup + file serve logic,
+        // keeping the Admin/HC-restricted version here for the manage-data context.
         public async Task<IActionResult> GuidanceDownload(int id)
         {
             var record = await _context.CoachingGuidanceFiles.FindAsync(id);
