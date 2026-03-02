@@ -12,6 +12,25 @@ using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
+    // DTO for receiving KkjMatrix row save requests with dynamic target values
+    public class KkjMatrixSaveDto
+    {
+        public int Id { get; set; }
+        public string Bagian { get; set; } = "";
+        public int No { get; set; }
+        public string SkillGroup { get; set; } = "";
+        public string SubSkillGroup { get; set; } = "";
+        public string Indeks { get; set; } = "";
+        public string Kompetensi { get; set; } = "";
+        public List<KkjTargetValueDto> TargetValues { get; set; } = new();
+    }
+
+    public class KkjTargetValueDto
+    {
+        public int KkjColumnId { get; set; }
+        public string Value { get; set; } = "-";
+    }
+
     [Authorize]
     public class AdminController : Controller
     {
@@ -65,8 +84,16 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            var bagians = await _context.KkjBagians.OrderBy(b => b.DisplayOrder).ToListAsync();
-            var items   = await _context.KkjMatrices.OrderBy(k => k.No).ToListAsync();
+            // NEW: Include target values and their column info for the view
+            var bagians = await _context.KkjBagians
+                .Include(b => b.Columns.OrderBy(c => c.DisplayOrder))
+                .OrderBy(b => b.DisplayOrder)
+                .ToListAsync();
+            var items = await _context.KkjMatrices
+                .Include(m => m.TargetValues)
+                .ThenInclude(v => v.KkjColumn)
+                .OrderBy(k => k.No)
+                .ToListAsync();
 
             ViewBag.Bagians = bagians;
             return View(items);
@@ -76,7 +103,7 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjMatrixSave([FromBody] List<KkjMatrixItem> rows)
+        public async Task<IActionResult> KkjMatrixSave([FromBody] List<KkjMatrixSaveDto> rows)
         {
             if (rows == null || !rows.Any())
                 return Json(new { success = false, message = "Tidak ada data yang diterima." });
@@ -85,26 +112,59 @@ namespace HcPortal.Controllers
             {
                 foreach (var row in rows)
                 {
+                    KkjMatrixItem item;
                     if (row.Id == 0)
                     {
-                        _context.KkjMatrices.Add(row);
+                        // New item
+                        item = new KkjMatrixItem
+                        {
+                            No            = row.No,
+                            SkillGroup    = row.SkillGroup,
+                            SubSkillGroup = row.SubSkillGroup,
+                            Indeks        = row.Indeks,
+                            Kompetensi    = row.Kompetensi,
+                            Bagian        = row.Bagian
+                        };
+                        _context.KkjMatrices.Add(item);
+                        await _context.SaveChangesAsync(); // Get the new Id
                     }
                     else
                     {
-                        var existing = await _context.KkjMatrices.FindAsync(row.Id);
-                        if (existing != null)
+                        // Existing item — update base fields
+                        item = await _context.KkjMatrices.FindAsync(row.Id);
+                        if (item == null) continue;
+
+                        item.No            = row.No;
+                        item.SkillGroup    = row.SkillGroup;
+                        item.SubSkillGroup = row.SubSkillGroup;
+                        item.Indeks        = row.Indeks;
+                        item.Kompetensi    = row.Kompetensi;
+                        item.Bagian        = row.Bagian;
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Upsert target values for this item
+                    foreach (var tv in row.TargetValues)
+                    {
+                        var existing = await _context.KkjTargetValues
+                            .FirstOrDefaultAsync(v => v.KkjMatrixItemId == item.Id && v.KkjColumnId == tv.KkjColumnId);
+
+                        if (existing == null)
                         {
-                            existing.No = row.No;
-                            existing.SkillGroup = row.SkillGroup ?? "";
-                            existing.SubSkillGroup = row.SubSkillGroup ?? "";
-                            existing.Indeks = row.Indeks ?? "";
-                            existing.Kompetensi = row.Kompetensi ?? "";
-                            existing.Bagian = row.Bagian ?? "";
-                            // TODO(89-02): Target value updates now handled via KkjTargetValue table
+                            _context.KkjTargetValues.Add(new KkjTargetValue
+                            {
+                                KkjMatrixItemId = item.Id,
+                                KkjColumnId     = tv.KkjColumnId,
+                                Value           = string.IsNullOrWhiteSpace(tv.Value) ? "-" : tv.Value
+                            });
+                        }
+                        else
+                        {
+                            existing.Value = string.IsNullOrWhiteSpace(tv.Value) ? "-" : tv.Value;
                         }
                     }
+                    await _context.SaveChangesAsync();
                 }
-                await _context.SaveChangesAsync();
 
                 var actor = await _userManager.GetUserAsync(User);
                 if (actor != null)
@@ -115,7 +175,7 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "Terjadi error: " + ex.Message });
             }
         }
 
@@ -143,7 +203,6 @@ namespace HcPortal.Controllers
                         {
                             existing.Name         = b.Name;
                             existing.DisplayOrder = b.DisplayOrder;
-                            // TODO(89-02): Label updates now handled via KkjColumn table
                         }
                     }
                 }
@@ -2265,7 +2324,7 @@ namespace HcPortal.Controllers
                                                               c.KkjMatrixItemId == mapping.KkjMatrixItemId);
                                 if (existingLevel == null)
                                 {
-                                    int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, sessionUser?.Position);
+                                    int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, sessionUser?.Position);
                                     _context.UserCompetencyLevels.Add(new UserCompetencyLevel
                                     {
                                         UserId = session.UserId,
@@ -2337,7 +2396,7 @@ namespace HcPortal.Controllers
                                                               c.KkjMatrixItemId == mapping.KkjMatrixItemId);
                                 if (existingLevel == null)
                                 {
-                                    int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, sessionUser?.Position);
+                                    int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, sessionUser?.Position);
                                     _context.UserCompetencyLevels.Add(new UserCompetencyLevel
                                     {
                                         UserId = session.UserId,
