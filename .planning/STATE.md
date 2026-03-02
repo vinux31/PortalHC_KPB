@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
-last_updated: "2026-03-02T07:29:19.870Z"
+last_updated: "2026-03-02T07:34:27.275Z"
 progress:
   total_phases: 51
   completed_phases: 49
   total_plans: 110
-  completed_plans: 106
+  completed_plans: 107
 ---
 
 ---
@@ -69,6 +69,8 @@ Progress: [█░░░░░░░░░] 13%  (3/23 plans complete across v3.0
 - [82-03 CLN-06]: Keep Override Silabus & Coaching Guidance tabs as-is — functional, no bugs, used by downstream phases 85-86
 - [82-02 CLN-02/03/04]: Removed entire CMP #region Question Management block (ManageQuestions+AddQuestion+DeleteQuestion) since views deleted and canonical versions in AdminController
 - [Phase 83-02]: CpdpItemDelete gets IDP reference guard: block if IdpItems.CountAsync > 0 before Remove(), mirrors KkjMatrixDelete pattern
+- [Phase 83]: Orphan cleanup uses HashSet tracking instead of nav property counts after RemoveRange
+- [Phase 83]: Stale-ID fallback (FindAsync returning null for ID>0) handled for all three silabus levels
 
 ### Pending Todos
 
