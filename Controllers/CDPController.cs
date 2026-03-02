@@ -913,7 +913,7 @@ namespace HcPortal.Controllers
             if (progress.HCApprovalStatus != "Pending")
             {
                 TempData["Error"] = "Deliverable ini sudah diperiksa HC sebelumnya.";
-                return RedirectToAction("ProtonProgress");
+                return RedirectToAction("CoachingProton");
             }
 
             progress.HCApprovalStatus = "Reviewed";
@@ -923,7 +923,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Deliverable telah ditandai sebagai sudah diperiksa HC.";
-            return RedirectToAction("ProtonProgress");
+            return RedirectToAction("CoachingProton");
         }
 
         [HttpPost]
@@ -1008,7 +1008,7 @@ namespace HcPortal.Controllers
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public async Task<IActionResult> ProtonProgress(
+        public async Task<IActionResult> CoachingProton(
             string? coacheeId = null,
             string? bagian = null,
             string? unit = null,
@@ -1741,7 +1741,7 @@ namespace HcPortal.Controllers
 
             // Build Excel using ClosedXML
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Proton Progress");
+            var ws = workbook.Worksheets.Add("Coaching Proton");
 
             // Header row (10 columns)
             ws.Cell(1, 1).Value = "Kompetensi";
@@ -1829,7 +1829,7 @@ namespace HcPortal.Controllers
                     page.Margin(20);
                     page.Content().Column(col =>
                     {
-                        col.Item().Text($"Proton Progress — {coacheeName}").FontSize(14).Bold();
+                        col.Item().Text($"Coaching Proton — {coacheeName}").FontSize(14).Bold();
                         col.Item().Text($"Export date: {DateTime.Now:dd MMM yyyy}").FontSize(9);
                         col.Item().PaddingTop(10).Table(table =>
                         {
