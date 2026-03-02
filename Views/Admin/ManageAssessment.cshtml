@@ -260,6 +260,12 @@
                                                     </a>
                                                 </li>
                                                 <li>
+                                                    <a class="dropdown-item" asp-action="ManagePackages" asp-controller="Admin"
+                                                       asp-route-assessmentId="@group.RepresentativeId">
+                                                        <i class="bi bi-collection me-2"></i>Manage Packages
+                                                    </a>
+                                                </li>
+                                                <li>
                                                     <a class="dropdown-item" href="@Url.Action("ExportAssessmentResults", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
                                                         <i class="bi bi-file-earmark-excel me-2"></i>Export Excel
                                                     </a>
