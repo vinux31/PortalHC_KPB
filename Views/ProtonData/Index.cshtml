@@ -531,6 +531,10 @@
                     alert(`Baris ${i + 1}: Kolom Kompetensi tidak boleh kosong.`);
                     return;
                 }
+                if (!r.SubKompetensi || !r.SubKompetensi.trim()) {
+                    alert(`Baris ${i + 1}: Kolom Sub Kompetensi tidak boleh kosong.`);
+                    return;
+                }
                 if (!r.Deliverable || !r.Deliverable.trim()) {
                     alert(`Baris ${i + 1}: Kolom Deliverable tidak boleh kosong.`);
                     return;

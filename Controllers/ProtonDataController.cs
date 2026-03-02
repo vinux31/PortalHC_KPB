@@ -147,6 +147,9 @@ namespace HcPortal.Controllers
             var kompDict = new Dictionary<string, ProtonKompetensi>();
             var subKompDict = new Dictionary<string, ProtonSubKompetensi>();
             var newDelivIds = new List<int>(); // Track newly created deliverable IDs for orphan cleanup
+            // Track IDs of newly-created Kompetensi/SubKompetensi that came from stale-ID path (FindAsync returned null)
+            var staleFallbackKompIds = new List<int>();
+            var staleFallbackSubIds = new List<int>();
 
             foreach (var row in rows)
             {
@@ -165,7 +168,7 @@ namespace HcPortal.Controllers
                     }
                     else
                     {
-                        // ID not found — treat as new
+                        // ID not found — treat as new; track new ID for orphan-safe inclusion
                         komp = new ProtonKompetensi { Bagian = bagian, Unit = unit, ProtonTrackId = trackId, NamaKompetensi = kompKey, Urutan = urutan };
                         _context.ProtonKompetensiList.Add(komp);
                         created++;
@@ -183,6 +186,9 @@ namespace HcPortal.Controllers
                     created++;
                 }
                 await _context.SaveChangesAsync(); // Flush to get Id for FK
+                // If this was a stale-ID fallback, record the new Id so orphan cleanup won't delete it
+                if (row.KompetensiId > 0 && komp!.Id != row.KompetensiId)
+                    staleFallbackKompIds.Add(komp.Id);
 
                 // 2. Upsert SubKompetensi
                 ProtonSubKompetensi? subKomp;
@@ -214,6 +220,9 @@ namespace HcPortal.Controllers
                     created++;
                 }
                 await _context.SaveChangesAsync();
+                // If this was a stale-ID fallback, record the new Id
+                if (row.SubKompetensiId > 0 && subKomp!.Id != row.SubKompetensiId)
+                    staleFallbackSubIds.Add(subKomp.Id);
 
                 // 3. Upsert Deliverable
                 if (row.DeliverableId > 0)
@@ -225,6 +234,20 @@ namespace HcPortal.Controllers
                         deliv.ProtonSubKompetensiId = subKomp!.Id;
                         deliv.Urutan = urutan;
                         updated++;
+                    }
+                    else
+                    {
+                        // Stale deliverable ID — create new
+                        var deliv2 = new ProtonDeliverable
+                        {
+                            ProtonSubKompetensiId = subKomp!.Id,
+                            NamaDeliverable = row.Deliverable.Trim(),
+                            Urutan = urutan
+                        };
+                        _context.ProtonDeliverableList.Add(deliv2);
+                        await _context.SaveChangesAsync();
+                        newDelivIds.Add(deliv2.Id);
+                        created++;
                     }
                 }
                 else
@@ -250,18 +273,24 @@ namespace HcPortal.Controllers
             var savedSubIds = rows.Where(r => r.SubKompetensiId > 0).Select(r => r.SubKompetensiId).Distinct().ToList();
             var savedDelivIds = rows.Where(r => r.DeliverableId > 0).Select(r => r.DeliverableId).Distinct().ToList();
 
-            // Also include newly-created IDs from kompDict/subKompDict/newDelivIds
+            // Also include newly-created IDs from kompDict/subKompDict/newDelivIds and stale-ID fallbacks
             savedKompIds.AddRange(kompDict.Values.Select(k => k.Id));
+            savedKompIds.AddRange(staleFallbackKompIds);
             savedSubIds.AddRange(subKompDict.Values.Select(s => s.Id));
+            savedSubIds.AddRange(staleFallbackSubIds);
             savedDelivIds.AddRange(newDelivIds);
 
-            // Find orphaned deliverables for this scope
+            // Find all scope records fresh from DB for orphan evaluation
             var scopeKomps = await _context.ProtonKompetensiList
                 .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId)
                 .Include(k => k.SubKompetensiList).ThenInclude(s => s.Deliverables)
                 .ToListAsync();
 
             int deleted = 0;
+            // Collect orphan IDs first, then remove — avoids in-memory nav property staleness
+            var orphanDelivIdSet = new HashSet<int>();
+            var orphanSubIdSet = new HashSet<int>();
+
             foreach (var k in scopeKomps)
             {
                 foreach (var s in k.SubKompetensiList)
@@ -269,12 +298,20 @@ namespace HcPortal.Controllers
                     var orphanDelivs = s.Deliverables.Where(d => !savedDelivIds.Contains(d.Id) && d.Id > 0).ToList();
                     _context.ProtonDeliverableList.RemoveRange(orphanDelivs);
                     deleted += orphanDelivs.Count;
+                    foreach (var od in orphanDelivs) orphanDelivIdSet.Add(od.Id);
                 }
-                var orphanSubs = k.SubKompetensiList.Where(s => !savedSubIds.Contains(s.Id) && s.Id > 0 && !s.Deliverables.Any()).ToList();
+                // A SubKompetensi is orphaned if it's not in savedSubIds AND all its deliverables are being deleted
+                var orphanSubs = k.SubKompetensiList.Where(s =>
+                    !savedSubIds.Contains(s.Id) && s.Id > 0 &&
+                    s.Deliverables.All(d => orphanDelivIdSet.Contains(d.Id))).ToList();
                 _context.ProtonSubKompetensiList.RemoveRange(orphanSubs);
                 deleted += orphanSubs.Count;
+                foreach (var os in orphanSubs) orphanSubIdSet.Add(os.Id);
             }
-            var orphanKomps = scopeKomps.Where(k => !savedKompIds.Contains(k.Id) && !k.SubKompetensiList.Any()).ToList();
+            // A Kompetensi is orphaned if it's not in savedKompIds AND all its SubKompetensi are being deleted
+            var orphanKomps = scopeKomps.Where(k =>
+                !savedKompIds.Contains(k.Id) &&
+                k.SubKompetensiList.All(s => orphanSubIdSet.Contains(s.Id))).ToList();
             _context.ProtonKompetensiList.RemoveRange(orphanKomps);
             deleted += orphanKomps.Count;
 
