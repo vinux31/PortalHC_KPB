@@ -17,6 +17,7 @@ namespace HcPortal.Controllers
     public class CMPController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
@@ -25,6 +26,7 @@ namespace HcPortal.Controllers
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
             SignInManager<ApplicationUser> signInManager,
             ApplicationDbContext context,
             IWebHostEnvironment env,
@@ -32,6 +34,7 @@ namespace HcPortal.Controllers
             IMemoryCache cache)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _signInManager = signInManager;
             _context = context;
             _env = env;
@@ -338,114 +341,6 @@ namespace HcPortal.Controllers
 
             var unified = await GetUnifiedRecords(user.Id);
             return View("Records", unified);
-        }
-
-        // Phase 19: HC Create Training Record — GET
-        [HttpGet]
-        public async Task<IActionResult> CreateTrainingRecord()
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var userRole = userRoles.FirstOrDefault();
-            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
-            if (!isHCAccess) return Forbid();
-
-            // Load ALL workers system-wide (not section-filtered) for dropdown
-            var workers = await _context.Users
-                .OrderBy(u => u.FullName)
-                .Select(u => new { u.Id, u.FullName, u.NIP })
-                .ToListAsync();
-
-            ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-            {
-                Value = w.Id,
-                Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
-            }).ToList();
-
-            return View(new CreateTrainingRecordViewModel());
-        }
-
-        // Phase 19: HC Create Training Record — POST
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateTrainingRecord(CreateTrainingRecordViewModel model)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var userRole = userRoles.FirstOrDefault();
-            bool isHCAccess = userRole == UserRoles.Admin || userRole == UserRoles.HC;
-            if (!isHCAccess) return Forbid();
-
-            // Validate file if provided
-            string? sertifikatUrl = null;
-            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
-            {
-                var allowedExtensions = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
-                var ext = Path.GetExtension(model.CertificateFile.FileName).ToLowerInvariant();
-                if (!allowedExtensions.Contains(ext))
-                {
-                    ModelState.AddModelError("CertificateFile", "Hanya file PDF, JPG, dan PNG yang diperbolehkan.");
-                }
-                if (model.CertificateFile.Length > 10 * 1024 * 1024)
-                {
-                    ModelState.AddModelError("CertificateFile", "Ukuran file maksimal 10MB.");
-                }
-            }
-
-            if (!ModelState.IsValid)
-            {
-                // Re-populate workers dropdown
-                var workers = await _context.Users
-                    .OrderBy(u => u.FullName)
-                    .Select(u => new { u.Id, u.FullName, u.NIP })
-                    .ToListAsync();
-                ViewBag.Workers = workers.Select(w => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
-                {
-                    Value = w.Id,
-                    Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
-                }).ToList();
-                return View(model);
-            }
-
-            // Handle file upload
-            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
-            {
-                var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
-                Directory.CreateDirectory(uploadDir);
-                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
-                var filePath = Path.Combine(uploadDir, safeFileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await model.CertificateFile.CopyToAsync(stream);
-                }
-                sertifikatUrl = $"/uploads/certificates/{safeFileName}";
-            }
-
-            // Create record
-            var record = new TrainingRecord
-            {
-                UserId = model.UserId,
-                Judul = model.Judul,
-                Penyelenggara = model.Penyelenggara,
-                Kota = model.Kota,
-                Kategori = model.Kategori,
-                Tanggal = model.Tanggal,
-                TanggalMulai = model.TanggalMulai,
-                TanggalSelesai = model.TanggalSelesai,
-                Status = model.Status,
-                NomorSertifikat = model.NomorSertifikat,
-                ValidUntil = model.ValidUntil,
-                CertificateType = model.CertificateType,
-                SertifikatUrl = sertifikatUrl
-            };
-
-            _context.TrainingRecords.Add(record);
-            await _context.SaveChangesAsync();
-
-            TempData["Success"] = "Training record berhasil dibuat.";
-            return RedirectToAction("Records", new { isFiltered = "true" });
         }
 
         // Phase 20: HC Edit Training Record — POST only (no GET; modal is pre-populated inline via Razor in WorkerDetail.cshtml)
@@ -1403,75 +1298,6 @@ namespace HcPortal.Controllers
             return View(summaryItems);
         }
 
-        // ... existing code ...
-
-        #region Question Management
-        [HttpGet]
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ManageQuestions(int id)
-        {
-            var assessment = await _context.AssessmentSessions
-                .Include(a => a.Questions)
-                .ThenInclude(q => q.Options)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (assessment == null) return NotFound();
-
-            return View(assessment);
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddQuestion(int has_id, string question_text, List<string> options, int correct_option_index)
-        {
-            var assessment = await _context.AssessmentSessions.FindAsync(has_id);
-            if (assessment == null) return NotFound();
-
-            var newQuestion = new AssessmentQuestion
-            {
-                AssessmentSessionId = has_id,
-                QuestionText = question_text,
-                QuestionType = "MultipleChoice",
-                ScoreValue = 10,
-                Order = await _context.AssessmentQuestions.CountAsync(q => q.AssessmentSessionId == has_id) + 1
-            };
-
-            _context.AssessmentQuestions.Add(newQuestion);
-            await _context.SaveChangesAsync(); // Save to get ID
-
-            // Add Options
-            for (int i = 0; i < options.Count; i++)
-            {
-                if (!string.IsNullOrWhiteSpace(options[i]))
-                {
-                    _context.AssessmentOptions.Add(new AssessmentOption
-                    {
-                        AssessmentQuestionId = newQuestion.Id,
-                        OptionText = options[i],
-                        IsCorrect = (i == correct_option_index)
-                    });
-                }
-            }
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("ManageQuestions", new { id = has_id });
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteQuestion(int id)
-        {
-            var question = await _context.AssessmentQuestions.FindAsync(id);
-            if (question == null) return NotFound();
-
-            int assessmentId = question.AssessmentSessionId;
-            _context.AssessmentQuestions.Remove(question);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("ManageQuestions", new { id = assessmentId });
-        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers)
@@ -2399,167 +2225,6 @@ namespace HcPortal.Controllers
         }
 
         #endregion
-
-        // --- CPDP PROGRESS TRACKING ---
-        public async Task<IActionResult> CpdpProgress(string? userId = null)
-        {
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null) return Challenge();
-
-            var userRoles = await _userManager.GetRolesAsync(currentUser);
-            var isHcOrAdmin = userRoles.Contains("Admin") || userRoles.Contains("HC");
-
-            var targetUserId = (isHcOrAdmin && !string.IsNullOrEmpty(userId)) ? userId : currentUser.Id;
-            var targetUser = await _userManager.FindByIdAsync(targetUserId);
-
-            if (targetUser == null) return NotFound();
-
-            // Load all CPDP items
-            var cpdpItems = await _context.CpdpItems.OrderBy(c => c.No).ToListAsync();
-
-            // Load user's competency levels
-            var userLevels = await _context.UserCompetencyLevels
-                .Include(c => c.KkjMatrixItem)
-                .Include(c => c.AssessmentSession)
-                .Where(c => c.UserId == targetUserId)
-                .ToListAsync();
-
-            // Load all assessment-competency mappings to find linked assessments
-            var competencyMaps = await _context.AssessmentCompetencyMaps
-                .Include(m => m.KkjMatrixItem)
-                .ToListAsync();
-
-            // Load user's completed assessments for evidence
-            var userAssessments = await _context.AssessmentSessions
-                .Where(a => a.UserId == targetUserId && a.Status == "Completed")
-                .OrderByDescending(a => a.CompletedAt)
-                .ToListAsync();
-
-            // Load user's IDP items for cross-referencing
-            var userIdpItems = await _context.IdpItems
-                .Where(i => i.UserId == targetUserId)
-                .ToListAsync();
-
-            // Load KKJ items for target level resolution
-            var kkjItems = await _context.KkjMatrices.ToListAsync();
-
-            // Build progress items
-            var progressItems = cpdpItems.Select(cpdp =>
-            {
-                // Find matching KKJ competency by name
-                var matchingKkj = kkjItems.FirstOrDefault(k =>
-                    k.Kompetensi.Contains(cpdp.NamaKompetensi, StringComparison.OrdinalIgnoreCase) ||
-                    cpdp.NamaKompetensi.Contains(k.Kompetensi, StringComparison.OrdinalIgnoreCase));
-
-                // Get user's competency level for this KKJ item
-                var userLevel = matchingKkj != null
-                    ? userLevels.FirstOrDefault(ul => ul.KkjMatrixItemId == matchingKkj.Id)
-                    : null;
-
-                int? currentLevel = userLevel?.CurrentLevel;
-                int? targetLevel = matchingKkj != null
-                    ? PositionTargetHelper.GetTargetLevel(matchingKkj, targetUser.Position)
-                    : null;
-
-                // Determine competency status
-                string compStatus = "Not Tracked";
-                if (targetLevel.HasValue && targetLevel.Value > 0)
-                {
-                    if (currentLevel.HasValue && currentLevel.Value >= targetLevel.Value)
-                        compStatus = "Met";
-                    else if (currentLevel.HasValue && currentLevel.Value > 0)
-                        compStatus = "Gap";
-                    else
-                        compStatus = "Not Started";
-                }
-
-                // Find assessment evidence: assessments mapped to this competency's KKJ item
-                var evidences = new List<AssessmentEvidence>();
-                if (matchingKkj != null)
-                {
-                    var mappingsForCompetency = competencyMaps
-                        .Where(m => m.KkjMatrixItemId == matchingKkj.Id)
-                        .ToList();
-
-                    foreach (var mapping in mappingsForCompetency)
-                    {
-                        var matchingAssessments = userAssessments
-                            .Where(a => a.Category == mapping.AssessmentCategory &&
-                                       (mapping.TitlePattern == null || a.Title.Contains(mapping.TitlePattern)))
-                            .ToList();
-
-                        foreach (var assessment in matchingAssessments)
-                        {
-                            // Avoid duplicate evidence entries
-                            if (!evidences.Any(e => e.AssessmentSessionId == assessment.Id))
-                            {
-                                evidences.Add(new AssessmentEvidence
-                                {
-                                    AssessmentSessionId = assessment.Id,
-                                    Title = assessment.Title,
-                                    Category = assessment.Category,
-                                    Score = assessment.Score,
-                                    IsPassed = assessment.IsPassed,
-                                    CompletedAt = assessment.CompletedAt,
-                                    LevelGranted = mapping.LevelGranted
-                                });
-                            }
-                        }
-                    }
-                }
-
-                // Check IDP activity
-                var idpMatch = userIdpItems.FirstOrDefault(i =>
-                    i.Kompetensi != null && (
-                        cpdp.NamaKompetensi.Contains(i.Kompetensi, StringComparison.OrdinalIgnoreCase) ||
-                        i.Kompetensi.Contains(cpdp.NamaKompetensi, StringComparison.OrdinalIgnoreCase)));
-
-                return new CpdpProgressItem
-                {
-                    CpdpItemId = cpdp.Id,
-                    No = cpdp.No,
-                    NamaKompetensi = cpdp.NamaKompetensi,
-                    IndikatorPerilaku = cpdp.IndikatorPerilaku,
-                    Silabus = cpdp.Silabus,
-                    TargetDeliverable = cpdp.TargetDeliverable,
-                    CpdpStatus = cpdp.Status,
-                    CurrentLevel = currentLevel,
-                    TargetLevel = targetLevel > 0 ? targetLevel : null,
-                    CompetencyStatus = compStatus,
-                    Evidences = evidences.OrderByDescending(e => e.CompletedAt).ToList(),
-                    HasIdpActivity = idpMatch != null,
-                    IdpStatus = idpMatch?.Status
-                };
-            }).ToList();
-
-            var viewModel = new CpdpProgressViewModel
-            {
-                UserId = targetUserId,
-                UserName = targetUser.FullName,
-                Position = targetUser.Position,
-                Section = targetUser.Section,
-                Items = progressItems,
-                TotalCpdpItems = progressItems.Count,
-                ItemsWithEvidence = progressItems.Count(i => i.Evidences.Any()),
-                EvidenceCoverage = progressItems.Count > 0
-                    ? Math.Round(progressItems.Count(i => i.Evidences.Any()) * 100.0 / progressItems.Count, 1)
-                    : 0
-            };
-
-            if (isHcOrAdmin)
-            {
-                var allUsers = await _userManager.Users
-                    .OrderBy(u => u.FullName)
-                    .Select(u => new { u.Id, u.FullName, u.Position, u.Section })
-                    .ToListAsync();
-                ViewBag.AllUsers = allUsers;
-                ViewBag.SelectedUserId = targetUserId;
-            }
-
-            ViewBag.IsHcOrAdmin = isHcOrAdmin;
-
-            return View(viewModel);
-        }
 
         #region Helper Methods
 
