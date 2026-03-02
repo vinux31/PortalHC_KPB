@@ -6,32 +6,11 @@ using Microsoft.Extensions.Caching.Memory;
 using HcPortal.Models;
 using HcPortal.Models.Competency;
 using HcPortal.Data;
-// TODO-Phase90: using HcPortal.Helpers; removed — PositionTargetHelper deleted in Phase 90
 using HcPortal.Services;
 using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
-    /* TODO-Phase90: KkjMatrixSaveDto and KkjTargetValueDto removed — KkjMatrices/KkjColumns tables dropped in Phase 90
-    public class KkjMatrixSaveDto
-    {
-        public int Id { get; set; }
-        public string Bagian { get; set; } = "";
-        public int No { get; set; }
-        public string SkillGroup { get; set; } = "";
-        public string SubSkillGroup { get; set; } = "";
-        public string Indeks { get; set; } = "";
-        public string Kompetensi { get; set; } = "";
-        public List<KkjTargetValueDto> TargetValues { get; set; } = new();
-    }
-
-    public class KkjTargetValueDto
-    {
-        public int KkjColumnId { get; set; }
-        public string Value { get; set; } = "-";
-    }
-    */
-
     [Authorize]
     public class AdminController : Controller
     {
@@ -65,18 +44,18 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        // GET /Admin/KkjMatrix
-        // TODO-Phase90: This action stub will be fully rewritten in Plan 02
+        #region KKJ File Management
+
+        // GET /Admin/KkjMatrix?bagian={bagianId}
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> KkjMatrix()
+        public async Task<IActionResult> KkjMatrix(int? bagian)
         {
-            ViewData["Title"] = "KKJ Matrix";
+            ViewData["Title"] = "Kelola KKJ Matrix";
 
             // Seed default bagians if none exist yet
             if (!await _context.KkjBagians.AnyAsync())
             {
-                var defaults = new[]
-                {
+                var defaults = new[] {
                     new KkjBagian { Name = "RFCC",    DisplayOrder = 1 },
                     new KkjBagian { Name = "GAST",    DisplayOrder = 2 },
                     new KkjBagian { Name = "NGP",     DisplayOrder = 3 },
@@ -90,56 +69,178 @@ namespace HcPortal.Controllers
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
 
+            // Load active (non-archived) files grouped by bagianId
+            var files = await _context.KkjFiles
+                .Where(f => !f.IsArchived)
+                .OrderByDescending(f => f.UploadedAt)
+                .ToListAsync();
+
+            var filesByBagian = bagians.ToDictionary(
+                b => b.Id,
+                b => files.Where(f => f.BagianId == b.Id).ToList()
+            );
+
+            // Determine which tab to show active
+            var selectedBagianId = bagian ?? bagians.FirstOrDefault()?.Id ?? 0;
+
             ViewBag.Bagians = bagians;
+            ViewBag.FilesByBagian = filesByBagian;
+            ViewBag.SelectedBagianId = selectedBagianId;
+
             return View();
         }
 
-        /* TODO-Phase90: KkjMatrixSave removed — KkjMatrices/KkjTargetValues tables dropped in Phase 90
-        [HttpPost]
+        // GET /Admin/KkjUpload?bagianId={id}
         [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjMatrixSave([FromBody] List<KkjMatrixSaveDto> rows)
+        public async Task<IActionResult> KkjUpload(int? bagianId)
         {
-            // Old bulk-save logic removed — KkjMatrices table dropped
-            return Json(new { success = false, message = "Not implemented" });
+            ViewData["Title"] = "Upload File KKJ Matrix";
+            var bagians = await _context.KkjBagians.OrderBy(b => b.DisplayOrder).ToListAsync();
+            ViewBag.Bagians = bagians;
+            ViewBag.SelectedBagianId = bagianId ?? 0;
+            return View();
         }
-        */
 
-        // POST /Admin/KkjBagianSave
+        // POST /Admin/KkjUpload
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjBagianSave([FromBody] List<KkjBagian> bagians)
+        public async Task<IActionResult> KkjUpload(IFormFile file, string? keterangan, int bagianId)
         {
-            if (bagians == null || !bagians.Any())
-                return Json(new { success = false, message = "Tidak ada data bagian." });
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Pilih file terlebih dahulu.";
+                return RedirectToAction("KkjUpload", new { bagianId });
+            }
+
+            var allowedExtensions = new[] { ".pdf", ".xlsx", ".xls" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                TempData["Error"] = "Hanya file PDF atau Excel yang didukung (.pdf, .xlsx, .xls).";
+                return RedirectToAction("KkjUpload", new { bagianId });
+            }
+
+            const long maxFileSize = 10 * 1024 * 1024; // 10MB
+            if (file.Length > maxFileSize)
+            {
+                TempData["Error"] = "Ukuran file terlalu besar (maksimal 10MB).";
+                return RedirectToAction("KkjUpload", new { bagianId });
+            }
+
+            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            if (bagian == null)
+            {
+                TempData["Error"] = "Bagian tidak ditemukan.";
+                return RedirectToAction("KkjUpload", new { bagianId });
+            }
 
             try
             {
-                foreach (var b in bagians)
+                var storageDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "kkj", bagianId.ToString());
+                Directory.CreateDirectory(storageDir);
+
+                // Safe filename: {unixTimestamp}_{originalNameNoSpaces}{ext}
+                var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                var originalName = Path.GetFileNameWithoutExtension(file.FileName)
+                                       .Replace(" ", "_")
+                                       .Replace("..", "");
+                var safeName = $"{timestamp}_{originalName}{fileExtension}";
+                var physicalPath = Path.Combine(storageDir, safeName);
+
+                using (var stream = new FileStream(physicalPath, FileMode.Create))
                 {
-                    if (b.Id == 0)
-                    {
-                        _context.KkjBagians.Add(b);
-                    }
-                    else
-                    {
-                        var existing = await _context.KkjBagians.FindAsync(b.Id);
-                        if (existing != null)
-                        {
-                            existing.Name         = b.Name;
-                            existing.DisplayOrder = b.DisplayOrder;
-                        }
-                    }
+                    await file.CopyToAsync(stream);
                 }
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                var kkjFile = new KkjFile
+                {
+                    BagianId = bagianId,
+                    FileName = file.FileName,
+                    FilePath = $"/uploads/kkj/{bagianId}/{safeName}",
+                    FileSizeBytes = file.Length,
+                    FileType = fileExtension.TrimStart('.'),
+                    Keterangan = keterangan,
+                    UploadedAt = DateTimeOffset.UtcNow,
+                    UploaderName = (currentUser as ApplicationUser)?.FullName ?? currentUser?.UserName ?? "Unknown",
+                    IsArchived = false
+                };
+                _context.KkjFiles.Add(kkjFile);
                 await _context.SaveChangesAsync();
-                return Json(new { success = true });
+
+                TempData["Success"] = $"File '{file.FileName}' berhasil di-upload ke bagian {bagian.Name}.";
+                return RedirectToAction("KkjMatrix", new { bagian = bagianId });
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                TempData["Error"] = $"Gagal menyimpan file: {ex.Message}";
+                return RedirectToAction("KkjUpload", new { bagianId });
             }
         }
+
+        // GET /Admin/KkjFileDownload/{id}
+        [Authorize]
+        public async Task<IActionResult> KkjFileDownload(int id)
+        {
+            var kkjFile = await _context.KkjFiles
+                .Include(f => f.Bagian)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (kkjFile == null) return NotFound();
+
+            var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                kkjFile.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+            if (!System.IO.File.Exists(physicalPath)) return NotFound("File tidak ditemukan di server.");
+
+            var contentType = kkjFile.FileType switch
+            {
+                "pdf" => "application/pdf",
+                "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xls"  => "application/vnd.ms-excel",
+                _ => "application/octet-stream"
+            };
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+            return File(fileBytes, contentType, kkjFile.FileName);
+        }
+
+        // POST /Admin/KkjFileDelete
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KkjFileDelete(int id)
+        {
+            var kkjFile = await _context.KkjFiles.FindAsync(id);
+            if (kkjFile == null) return Json(new { success = false, message = "File tidak ditemukan." });
+
+            // Soft delete: archive the file (moves to history view, physical file retained)
+            kkjFile.IsArchived = true;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "File berhasil diarsipkan." });
+        }
+
+        // GET /Admin/KkjFileHistory/{bagianId}
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> KkjFileHistory(int bagianId)
+        {
+            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            if (bagian == null) return NotFound();
+
+            var archivedFiles = await _context.KkjFiles
+                .Where(f => f.BagianId == bagianId && f.IsArchived)
+                .OrderByDescending(f => f.UploadedAt)
+                .ToListAsync();
+
+            ViewData["Title"] = $"Riwayat File — {bagian.Name}";
+            ViewBag.Bagian = bagian;
+            ViewBag.ArchivedFiles = archivedFiles;
+            return View();
+        }
+
+        #endregion
 
         // POST /Admin/KkjBagianAdd
         [HttpPost]
@@ -175,7 +276,6 @@ namespace HcPortal.Controllers
             if (bagian == null)
                 return Json(new { success = false, message = "Bagian tidak ditemukan." });
 
-            // TODO-Phase90: Old check against KkjMatrices removed — now check KkjFiles
             var fileCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id);
             if (fileCount > 0)
                 return Json(new { success = false, blocked = true,
@@ -186,18 +286,6 @@ namespace HcPortal.Controllers
 
             return Json(new { success = true });
         }
-
-        /* TODO-Phase90: KkjColumn Management region removed — KkjColumns table dropped in Phase 90
-        #region KkjColumn Management
-        // GetKkjColumns, KkjColumnAdd, KkjColumnSave, KkjColumnDelete all removed
-        #endregion
-
-        #region PositionColumnMapping Management
-        // GetPositionMappings, PositionMappingSave, PositionMappingDelete all removed
-        #endregion
-
-        // KkjMatrixDelete removed — KkjMatrices table dropped in Phase 90
-        */
 
         // GET /Admin/ManageAssessment
         [HttpGet]
@@ -2211,14 +2299,7 @@ namespace HcPortal.Controllers
                     session.CompletedAt = DateTime.UtcNow;
                     assignment.IsCompleted = true;
 
-                    /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
-                    if (session.IsPassed == true)
-                    {
-                        var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                            .Include(m => m.KkjMatrixItem)
-                            ...
-                    }
-                    */
+                    // Competency tracking removed (Phase 90: KKJ tables dropped)
                 }
                 else
                 {
@@ -2248,14 +2329,7 @@ namespace HcPortal.Controllers
                     session.IsPassed = finalPercentage >= session.PassPercentage;
                     session.CompletedAt = DateTime.UtcNow;
 
-                    /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
-                    if (session.IsPassed == true)
-                    {
-                        var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                            .Include(m => m.KkjMatrixItem)
-                            ...
-                    }
-                    */
+                    // Competency tracking removed (Phase 90: KKJ tables dropped)
                 }
             }
 
