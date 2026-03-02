@@ -6,7 +6,7 @@ using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 using HcPortal.Models.Competency;
-using HcPortal.Helpers;
+// TODO-Phase90: using HcPortal.Helpers; removed — PositionTargetHelper deleted in Phase 90
 using System.Text.Json;
 using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
@@ -47,10 +47,10 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        // --- HALAMAN 1: SUSUNAN KKJ (MATRIX VIEW) ---
+        // --- HALAMAN 1: SUSUNAN KKJ (FILE VIEW) ---
+        // TODO-Phase90: This action stub will be fully rewritten in Plan 03
         public async Task<IActionResult> Kkj(string? section)
         {
-            // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault() ?? "";
@@ -59,91 +59,29 @@ namespace HcPortal.Controllers
             ViewBag.UserRole = userRole;
             ViewBag.UserLevel = userLevel;
 
-            // Load all bagians from DB for the dropdown
             var allBagians = await _context.KkjBagians
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
 
-            // Role-based filter: L1-L4 (level <= 4) see all bagians; L5-L6 see only their own
+            // Role-based filter: L1-L4 see all bagians; L5-L6 see only their own
             List<KkjBagian> availableBagians;
             if (userLevel <= 4)
             {
-                // Admin, HC, Management (L3), SrSupervisor (L4) — all bagians
                 availableBagians = allBagians;
             }
             else
             {
-                // Coach, Supervisor (L5), Coachee (L6) — own bagian only
                 var userUnit = user?.Unit ?? "";
-                availableBagians = allBagians
-                    .Where(b => b.Name == userUnit)
-                    .ToList();
+                availableBagians = allBagians.Where(b => b.Name == userUnit).ToList();
             }
 
             ViewBag.AllBagians = availableBagians;
 
-            // Determine selected section
-            string? selectedSection = section;
+            /* TODO-Phase90: Old KkjColumns and KkjMatrices queries removed — rewritten in Plan 03
+            // Load KkjColumns, matrix items, etc.
+            */
 
-            // If no section passed:
-            // - L1-L4: default to first available bagian (if any)
-            // - L5-L6: use user's own unit
-            if (string.IsNullOrEmpty(selectedSection))
-            {
-                if (userLevel <= 4)
-                {
-                    selectedSection = availableBagians.FirstOrDefault()?.Name;
-                }
-                else
-                {
-                    selectedSection = user?.Unit;
-                }
-            }
-            else
-            {
-                // Validate that the requested section is in the user's available bagians
-                // (prevent L5/L6 from accessing other bagians by URL manipulation)
-                var allowed = availableBagians.Any(b => b.Name == selectedSection);
-                if (!allowed)
-                {
-                    // Fall back to own bagian
-                    selectedSection = userLevel <= 4
-                        ? availableBagians.FirstOrDefault()?.Name
-                        : user?.Unit;
-                }
-            }
-
-            ViewBag.SelectedSection = selectedSection;
-
-            // Load KkjColumns for the selected section
-            var bagian = availableBagians.FirstOrDefault(b => b.Name == selectedSection);
-            if (bagian != null)
-            {
-                // Load columns separately (bagian was loaded without Include)
-                var columns = await _context.KkjColumns
-                    .Where(c => c.BagianId == bagian.Id)
-                    .OrderBy(c => c.DisplayOrder)
-                    .ToListAsync();
-                ViewBag.Columns = columns;
-            }
-            else
-            {
-                ViewBag.Columns = new List<KkjColumn>();
-            }
-
-            // Load matrix items for selected section with target values
-            var matrixData = new List<KkjMatrixItem>();
-            if (!string.IsNullOrEmpty(selectedSection))
-            {
-                matrixData = await _context.KkjMatrices
-                    .Where(k => k.Bagian == selectedSection)
-                    .Include(m => m.TargetValues)
-                    .ThenInclude(v => v.KkjColumn)
-                    .OrderBy(k => k.No)
-                    .ToListAsync();
-            }
-
-            return View(matrixData);
+            return View();
         }
 
         // --- HALAMAN 2: MAPPING KKJ - CPDP ---
@@ -1472,49 +1410,13 @@ namespace HcPortal.Controllers
 
                 packageAssignment.IsCompleted = true;
 
-                // Auto-update competency levels (same logic as legacy path)
+                /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
                 if (assessment.IsPassed == true)
                 {
                     var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                        .Where(m => m.AssessmentCategory == assessment.Category &&
-                                    (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
-                        .ToListAsync();
-
-                    if (mappedCompetencies.Any())
-                    {
-                        var assessmentUser = await _context.Users.FindAsync(assessment.UserId);
-                        foreach (var mapping in mappedCompetencies)
-                        {
-                            if (mapping.MinimumScoreRequired.HasValue && assessment.Score < mapping.MinimumScoreRequired.Value)
-                                continue;
-
-                            var existingLevel = await _context.UserCompetencyLevels
-                                .FirstOrDefaultAsync(c => c.UserId == assessment.UserId &&
-                                                         c.KkjMatrixItemId == mapping.KkjMatrixItemId);
-                            if (existingLevel == null)
-                            {
-                                int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, assessmentUser?.Position);
-                                _context.UserCompetencyLevels.Add(new UserCompetencyLevel
-                                {
-                                    UserId = assessment.UserId,
-                                    KkjMatrixItemId = mapping.KkjMatrixItemId,
-                                    CurrentLevel = mapping.LevelGranted,
-                                    TargetLevel = targetLevel,
-                                    Source = "Assessment",
-                                    AssessmentSessionId = assessment.Id,
-                                    AchievedAt = DateTime.UtcNow
-                                });
-                            }
-                            else if (mapping.LevelGranted > existingLevel.CurrentLevel)
-                            {
-                                existingLevel.CurrentLevel = mapping.LevelGranted;
-                                existingLevel.Source = "Assessment";
-                                existingLevel.AssessmentSessionId = assessment.Id;
-                                existingLevel.UpdatedAt = DateTime.UtcNow;
-                            }
-                        }
-                    }
+                        ...PositionTargetHelper.GetTargetLevelAsync removed...
                 }
+                */
 
                 _context.AssessmentSessions.Update(assessment);
                 await _context.SaveChangesAsync();
@@ -1595,57 +1497,13 @@ namespace HcPortal.Controllers
                 assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
                 assessment.CompletedAt = DateTime.UtcNow;
 
-                // ========== AUTO-UPDATE COMPETENCY LEVELS ==========
+                /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
                 if (assessment.IsPassed == true)
                 {
-                    // Find competencies mapped to this assessment's category
                     var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                        .Where(m => m.AssessmentCategory == assessment.Category &&
-                                    (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
-                        .ToListAsync();
-
-                    if (mappedCompetencies.Any())
-                    {
-                        // Get user's position for target level resolution
-                        var assessmentUser = await _context.Users.FindAsync(assessment.UserId);
-
-                        foreach (var mapping in mappedCompetencies)
-                        {
-                            // Check minimum score if specified, otherwise use pass status
-                            if (mapping.MinimumScoreRequired.HasValue && assessment.Score < mapping.MinimumScoreRequired.Value)
-                                continue;
-
-                            // Check if user already has a level for this competency
-                            var existingLevel = await _context.UserCompetencyLevels
-                                .FirstOrDefaultAsync(c => c.UserId == assessment.UserId &&
-                                                         c.KkjMatrixItemId == mapping.KkjMatrixItemId);
-
-                            if (existingLevel == null)
-                            {
-                                // Create new competency level record
-                                int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, assessmentUser?.Position);
-                                _context.UserCompetencyLevels.Add(new UserCompetencyLevel
-                                {
-                                    UserId = assessment.UserId,
-                                    KkjMatrixItemId = mapping.KkjMatrixItemId,
-                                    CurrentLevel = mapping.LevelGranted,
-                                    TargetLevel = targetLevel,
-                                    Source = "Assessment",
-                                    AssessmentSessionId = assessment.Id,
-                                    AchievedAt = DateTime.UtcNow
-                                });
-                            }
-                            else if (mapping.LevelGranted > existingLevel.CurrentLevel)
-                            {
-                                // Only upgrade, never downgrade (monotonic progression)
-                                existingLevel.CurrentLevel = mapping.LevelGranted;
-                                existingLevel.Source = "Assessment";
-                                existingLevel.AssessmentSessionId = assessment.Id;
-                                existingLevel.UpdatedAt = DateTime.UtcNow;
-                            }
-                        }
-                    }
+                        ...PositionTargetHelper.GetTargetLevelAsync removed...
                 }
+                */
 
                 _context.AssessmentSessions.Update(assessment);
                 await _context.SaveChangesAsync();
@@ -1890,26 +1748,14 @@ namespace HcPortal.Controllers
                 };
             }
 
-            // ========== COMPETENCY GAINS (shared by both paths) ==========
+            /* TODO-Phase90: CompetencyGains section removed — KkjMatrixItem.Kompetensi no longer available (KkjMatrices table dropped)
             if (viewModel.IsPassed)
             {
                 var competencyMappings = await _context.AssessmentCompetencyMaps
-                    .Include(m => m.KkjMatrixItem)
-                    .Where(m => m.AssessmentCategory == assessment.Category &&
-                                (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
-                    .ToListAsync();
-
-                if (competencyMappings.Any())
-                {
-                    viewModel.CompetencyGains = competencyMappings
-                        .Select(m => new CompetencyGainItem
-                        {
-                            CompetencyName = m.KkjMatrixItem?.Kompetensi ?? "Unknown",
-                            LevelGranted = m.LevelGranted
-                        })
-                        .ToList();
-                }
+                    .Include(m => m.KkjMatrixItem)  // KkjMatrixItem nav property removed
+                    ...
             }
+            */
 
             return View(viewModel);
         }

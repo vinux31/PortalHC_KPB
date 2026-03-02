@@ -21,14 +21,10 @@ namespace HcPortal.Models.Competency
         public ApplicationUser? User { get; set; }
 
         /// <summary>
-        /// Foreign Key to KkjMatrixItem
+        /// Orphaned FK column — KkjMatrices table dropped in Phase 90.
+        /// Preserved as plain int for data continuity.
         /// </summary>
         public int KkjMatrixItemId { get; set; }
-
-        /// <summary>
-        /// Navigation property to KKJ competency
-        /// </summary>
-        public KkjMatrixItem? KkjMatrixItem { get; set; }
 
         /// <summary>
         /// Current competency level achieved (0-5, default 0)

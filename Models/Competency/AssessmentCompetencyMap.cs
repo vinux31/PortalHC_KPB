@@ -1,24 +1,19 @@
-using HcPortal.Models;
-
 namespace HcPortal.Models.Competency
 {
     /// <summary>
     /// Join table linking assessment categories to KKJ competencies.
     /// Defines which competency level is granted when an assessment is passed.
+    /// Note: KkjMatrixItemId is now an orphaned int column (KkjMatrices table dropped in Phase 90).
     /// </summary>
     public class AssessmentCompetencyMap
     {
         public int Id { get; set; }
 
         /// <summary>
-        /// Foreign Key to KkjMatrixItem
+        /// Orphaned FK column — KkjMatrices table dropped in Phase 90.
+        /// Preserved as plain int for data continuity.
         /// </summary>
         public int KkjMatrixItemId { get; set; }
-
-        /// <summary>
-        /// Navigation property to KKJ competency
-        /// </summary>
-        public KkjMatrixItem? KkjMatrixItem { get; set; }
 
         /// <summary>
         /// Assessment category (e.g., "Assessment OJ", "IHT", "Licencor")

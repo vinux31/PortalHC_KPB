@@ -1,69 +1,30 @@
 namespace HcPortal.Models
 {
-    // 1. CLASS UNTUK HALAMAN SUSUNAN KKJ (MATRIX)
-    public class KkjMatrixItem
-    {
-        public int Id { get; set; }           // Primary Key for EF Core
-        public int No { get; set; }           // Display number
-        public string SkillGroup { get; set; } = "";
-        public string SubSkillGroup { get; set; } = "";
-        public string Indeks { get; set; } = "";
-        public string Kompetensi { get; set; } = "";
-
-        // Bagian grouping (FK by name to KkjBagian.Name)
-        public string Bagian { get; set; } = "";   // e.g. "RFCC", "GAST", "NGP", "DHT/HMU"
-
-        // Navigation collection for dynamic target values
-        public ICollection<KkjTargetValue> TargetValues { get; set; } = new List<KkjTargetValue>();
-    }
-
-    // KKJ Matrix Bagian (section grouping with dynamic column definitions)
+    // KKJ Matrix Bagian (section grouping — used for tab navigation and file grouping)
     public class KkjBagian
     {
         public int Id { get; set; }
         public string Name { get; set; } = "";           // e.g. "RFCC", "GAST", "NGP", "DHT/HMU"
         public int DisplayOrder { get; set; } = 0;
 
-        // Navigation collection for dynamic column definitions
-        public ICollection<KkjColumn> Columns { get; set; } = new List<KkjColumn>();
+        // Navigation collection for KKJ files
+        public ICollection<KkjFile> Files { get; set; } = new List<KkjFile>();
     }
 
-    // Target column definition per Bagian (replaces hardcoded 15 Label_* columns)
-    public class KkjColumn
+    // KKJ File — represents an uploaded PDF/Excel file for a given bagian
+    public class KkjFile
     {
         public int Id { get; set; }
-        public int BagianId { get; set; }           // FK to KkjBagian
-        public string Name { get; set; } = "";       // e.g., "Section Head", "Operator Process Water"
-        public int DisplayOrder { get; set; } = 0;
-
-        // Navigation properties
+        public int BagianId { get; set; }
         public KkjBagian Bagian { get; set; } = null!;
-        public ICollection<KkjTargetValue> TargetValues { get; set; } = new List<KkjTargetValue>();
-        public ICollection<PositionColumnMapping> PositionMappings { get; set; } = new List<PositionColumnMapping>();
-    }
-
-    // Target value for a specific KKJ item + column cell (replaces hardcoded 15 Target_* columns)
-    public class KkjTargetValue
-    {
-        public int Id { get; set; }
-        public int KkjMatrixItemId { get; set; }    // FK to KkjMatrixItem
-        public int KkjColumnId { get; set; }         // FK to KkjColumn
-        public string Value { get; set; } = "-";     // Typically "1"-"5" or "-"
-
-        // Navigation properties
-        public KkjMatrixItem KkjMatrixItem { get; set; } = null!;
-        public KkjColumn KkjColumn { get; set; } = null!;
-    }
-
-    // Maps a user position string to a KkjColumn (replaces hardcoded Dictionary in PositionTargetHelper)
-    public class PositionColumnMapping
-    {
-        public int Id { get; set; }
-        public string Position { get; set; } = "";  // e.g., "Section Head", "Operator GSH 8-11"
-        public int KkjColumnId { get; set; }         // FK to KkjColumn
-
-        // Navigation property
-        public KkjColumn KkjColumn { get; set; } = null!;
+        public string FileName { get; set; } = "";      // Original filename (display)
+        public string FilePath { get; set; } = "";      // Relative path: /uploads/kkj/{bagianId}/{safeName}
+        public long FileSizeBytes { get; set; }
+        public string FileType { get; set; } = "";      // "pdf", "xlsx", "xls"
+        public string? Keterangan { get; set; }         // Optional description from upload form
+        public DateTimeOffset UploadedAt { get; set; } = DateTimeOffset.UtcNow;
+        public string UploaderName { get; set; } = "";
+        public bool IsArchived { get; set; } = false;   // True = moved to history
     }
 
     // 2. CLASS UNTUK HALAMAN MAPPING (GAP ANALYSIS) - KITA KEMBALIKAN

@@ -25,11 +25,8 @@ namespace HcPortal.Data
         public DbSet<IdpItem> IdpItems { get; set; }
         
         // Master Data (KKJ & CPDP)
-        public DbSet<KkjMatrixItem> KkjMatrices { get; set; }
         public DbSet<KkjBagian> KkjBagians { get; set; }
-        public DbSet<KkjColumn> KkjColumns { get; set; }
-        public DbSet<KkjTargetValue> KkjTargetValues { get; set; }
-        public DbSet<PositionColumnMapping> PositionColumnMappings { get; set; }
+        public DbSet<KkjFile> KkjFiles { get; set; }
         public DbSet<CpdpItem> CpdpItems { get; set; }
 
         // Competency Tracking
@@ -168,64 +165,21 @@ namespace HcPortal.Data
             });
 
             // Master data tables
-            builder.Entity<KkjMatrixItem>(entity =>
-            {
-                entity.ToTable("KkjMatrices");
-                // Navigation: KkjMatrixItem → KkjTargetValue is configured on KkjTargetValue side
-            });
-
             builder.Entity<KkjBagian>(entity =>
             {
                 entity.ToTable("KkjBagians");
                 entity.HasIndex(b => b.Name).IsUnique();
                 entity.HasIndex(b => b.DisplayOrder);
-                // Navigation: KkjBagian → KkjColumn is configured on KkjColumn side
             });
 
-            // KkjColumn: target column definitions per Bagian
-            builder.Entity<KkjColumn>(entity =>
+            // KkjFile: uploaded PDF/Excel files per bagian
+            builder.Entity<KkjFile>(entity =>
             {
-                entity.ToTable("KkjColumns");
-
-                entity.HasOne(c => c.Bagian)
-                    .WithMany(b => b.Columns)
-                    .HasForeignKey(c => c.BagianId)
-                    .OnDelete(DeleteBehavior.Cascade); // Deleting a Bagian cascades to its column definitions
-
-                entity.HasIndex(c => new { c.BagianId, c.DisplayOrder });
-                entity.HasIndex(c => new { c.BagianId, c.Name }).IsUnique(); // One column name per bagian
-            });
-
-            // KkjTargetValue: key-value store for target values per item+column cell
-            builder.Entity<KkjTargetValue>(entity =>
-            {
-                entity.ToTable("KkjTargetValues");
-
-                entity.HasOne(v => v.KkjMatrixItem)
-                    .WithMany(m => m.TargetValues)
-                    .HasForeignKey(v => v.KkjMatrixItemId)
-                    .OnDelete(DeleteBehavior.Cascade); // Deleting an item removes its target values
-
-                entity.HasOne(v => v.KkjColumn)
-                    .WithMany(c => c.TargetValues)
-                    .HasForeignKey(v => v.KkjColumnId)
-                    .OnDelete(DeleteBehavior.Restrict); // Prevent deleting column if it has values
-
-                entity.HasIndex(v => new { v.KkjMatrixItemId, v.KkjColumnId }).IsUnique(); // One value per cell
-            });
-
-            // PositionColumnMapping: maps user positions to KkjColumns
-            builder.Entity<PositionColumnMapping>(entity =>
-            {
-                entity.ToTable("PositionColumnMappings");
-
-                entity.HasOne(m => m.KkjColumn)
-                    .WithMany(c => c.PositionMappings)
-                    .HasForeignKey(m => m.KkjColumnId)
-                    .OnDelete(DeleteBehavior.Restrict); // Prevent deleting column if positions are mapped to it
-
-                entity.HasIndex(m => m.Position);
-                entity.HasIndex(m => new { m.Position, m.KkjColumnId }).IsUnique(); // No duplicate position-column pairs
+                entity.ToTable("KkjFiles");
+                entity.HasOne(f => f.Bagian)
+                      .WithMany(b => b.Files)
+                      .HasForeignKey(f => f.BagianId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<CpdpItem>(entity =>
@@ -238,10 +192,8 @@ namespace HcPortal.Data
             {
                 entity.ToTable("AssessmentCompetencyMaps");
 
-                entity.HasOne(c => c.KkjMatrixItem)
-                    .WithMany()
-                    .HasForeignKey(c => c.KkjMatrixItemId)
-                    .OnDelete(DeleteBehavior.Cascade);
+                // KkjMatrixItemId is now an orphaned int (KkjMatrices table dropped in Phase 90)
+                // FK constraint removed; column preserved for data continuity
 
                 // Indexes for performance
                 entity.HasIndex(c => c.AssessmentCategory);
@@ -257,19 +209,13 @@ namespace HcPortal.Data
                     .HasForeignKey(c => c.UserId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(c => c.KkjMatrixItem)
-                    .WithMany()
-                    .HasForeignKey(c => c.KkjMatrixItemId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                // KkjMatrixItemId is now an orphaned int (KkjMatrices table dropped in Phase 90)
+                // FK constraint removed; column preserved for data continuity
 
                 entity.HasOne(c => c.AssessmentSession)
                     .WithMany()
                     .HasForeignKey(c => c.AssessmentSessionId)
                     .OnDelete(DeleteBehavior.SetNull);
-
-                // Unique index: one level per user per competency
-                entity.HasIndex(c => new { c.UserId, c.KkjMatrixItemId })
-                    .IsUnique();
 
                 // Check constraints for level ranges
                 entity.HasCheckConstraint("CK_UserCompetencyLevel_CurrentLevel", "[CurrentLevel] >= 0 AND [CurrentLevel] <= 5");

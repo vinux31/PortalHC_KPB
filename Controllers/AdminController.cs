@@ -6,13 +6,13 @@ using Microsoft.Extensions.Caching.Memory;
 using HcPortal.Models;
 using HcPortal.Models.Competency;
 using HcPortal.Data;
-using HcPortal.Helpers;
+// TODO-Phase90: using HcPortal.Helpers; removed — PositionTargetHelper deleted in Phase 90
 using HcPortal.Services;
 using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
-    // DTO for receiving KkjMatrix row save requests with dynamic target values
+    /* TODO-Phase90: KkjMatrixSaveDto and KkjTargetValueDto removed — KkjMatrices/KkjColumns tables dropped in Phase 90
     public class KkjMatrixSaveDto
     {
         public int Id { get; set; }
@@ -30,6 +30,7 @@ namespace HcPortal.Controllers
         public int KkjColumnId { get; set; }
         public string Value { get; set; } = "-";
     }
+    */
 
     [Authorize]
     public class AdminController : Controller
@@ -65,10 +66,11 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/KkjMatrix
+        // TODO-Phase90: This action stub will be fully rewritten in Plan 02
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> KkjMatrix()
         {
-            ViewData["Title"] = "Kelola KKJ Matrix";
+            ViewData["Title"] = "KKJ Matrix";
 
             // Seed default bagians if none exist yet
             if (!await _context.KkjBagians.AnyAsync())
@@ -84,100 +86,24 @@ namespace HcPortal.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            // NEW: Include target values and their column info for the view
             var bagians = await _context.KkjBagians
-                .Include(b => b.Columns.OrderBy(c => c.DisplayOrder))
                 .OrderBy(b => b.DisplayOrder)
-                .ToListAsync();
-            var items = await _context.KkjMatrices
-                .Include(m => m.TargetValues)
-                .ThenInclude(v => v.KkjColumn)
-                .OrderBy(k => k.No)
                 .ToListAsync();
 
             ViewBag.Bagians = bagians;
-            return View(items);
+            return View();
         }
 
-        // POST /Admin/KkjMatrixSave
+        /* TODO-Phase90: KkjMatrixSave removed — KkjMatrices/KkjTargetValues tables dropped in Phase 90
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjMatrixSave([FromBody] List<KkjMatrixSaveDto> rows)
         {
-            if (rows == null || !rows.Any())
-                return Json(new { success = false, message = "Tidak ada data yang diterima." });
-
-            try
-            {
-                foreach (var row in rows)
-                {
-                    KkjMatrixItem item;
-                    if (row.Id == 0)
-                    {
-                        // New item
-                        item = new KkjMatrixItem
-                        {
-                            No            = row.No,
-                            SkillGroup    = row.SkillGroup,
-                            SubSkillGroup = row.SubSkillGroup,
-                            Indeks        = row.Indeks,
-                            Kompetensi    = row.Kompetensi,
-                            Bagian        = row.Bagian
-                        };
-                        _context.KkjMatrices.Add(item);
-                        await _context.SaveChangesAsync(); // Get the new Id
-                    }
-                    else
-                    {
-                        // Existing item — update base fields
-                        item = await _context.KkjMatrices.FindAsync(row.Id);
-                        if (item == null) continue;
-
-                        item.No            = row.No;
-                        item.SkillGroup    = row.SkillGroup;
-                        item.SubSkillGroup = row.SubSkillGroup;
-                        item.Indeks        = row.Indeks;
-                        item.Kompetensi    = row.Kompetensi;
-                        item.Bagian        = row.Bagian;
-                        await _context.SaveChangesAsync();
-                    }
-
-                    // Upsert target values for this item
-                    foreach (var tv in row.TargetValues)
-                    {
-                        var existing = await _context.KkjTargetValues
-                            .FirstOrDefaultAsync(v => v.KkjMatrixItemId == item.Id && v.KkjColumnId == tv.KkjColumnId);
-
-                        if (existing == null)
-                        {
-                            _context.KkjTargetValues.Add(new KkjTargetValue
-                            {
-                                KkjMatrixItemId = item.Id,
-                                KkjColumnId     = tv.KkjColumnId,
-                                Value           = string.IsNullOrWhiteSpace(tv.Value) ? "-" : tv.Value
-                            });
-                        }
-                        else
-                        {
-                            existing.Value = string.IsNullOrWhiteSpace(tv.Value) ? "-" : tv.Value;
-                        }
-                    }
-                    await _context.SaveChangesAsync();
-                }
-
-                var actor = await _userManager.GetUserAsync(User);
-                if (actor != null)
-                    await _auditLog.LogAsync(actor.Id, actor.FullName, "BulkUpdate",
-                        $"KKJ Matrix bulk-save: {rows.Count} rows", targetType: "KkjMatrixItem");
-
-                return Json(new { success = true, message = $"{rows.Count} baris berhasil disimpan." });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Terjadi error: " + ex.Message });
-            }
+            // Old bulk-save logic removed — KkjMatrices table dropped
+            return Json(new { success = false, message = "Not implemented" });
         }
+        */
 
         // POST /Admin/KkjBagianSave
         [HttpPost]
@@ -249,12 +175,11 @@ namespace HcPortal.Controllers
             if (bagian == null)
                 return Json(new { success = false, message = "Bagian tidak ditemukan." });
 
-            var assignedCount = await _context.KkjMatrices
-                .CountAsync(k => k.Bagian == bagian.Name);
-
-            if (assignedCount > 0)
+            // TODO-Phase90: Old check against KkjMatrices removed — now check KkjFiles
+            var fileCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id);
+            if (fileCount > 0)
                 return Json(new { success = false, blocked = true,
-                    message = $"Tidak dapat dihapus — masih ada {assignedCount} item yang di-assign ke bagian ini." });
+                    message = $"Tidak dapat dihapus — masih ada {fileCount} file yang di-upload ke bagian ini. Hapus file dahulu." });
 
             _context.KkjBagians.Remove(bagian);
             await _context.SaveChangesAsync();
@@ -262,207 +187,17 @@ namespace HcPortal.Controllers
             return Json(new { success = true });
         }
 
+        /* TODO-Phase90: KkjColumn Management region removed — KkjColumns table dropped in Phase 90
         #region KkjColumn Management
-
-        // GET /Admin/GetKkjColumns?bagianId=X
-        [Authorize(Roles = "Admin, HC")]
-        [HttpGet]
-        public async Task<IActionResult> GetKkjColumns(int bagianId)
-        {
-            var columns = await _context.KkjColumns
-                .Where(c => c.BagianId == bagianId)
-                .OrderBy(c => c.DisplayOrder)
-                .Select(c => new { c.Id, c.BagianId, c.Name, c.DisplayOrder })
-                .ToListAsync();
-
-            return Json(columns);
-        }
-
-        // POST /Admin/KkjColumnAdd
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjColumnAdd(int bagianId)
-        {
-            var bagian = await _context.KkjBagians.FindAsync(bagianId);
-            if (bagian == null)
-                return Json(new { success = false, message = "Bagian tidak ditemukan." });
-
-            var maxOrder = await _context.KkjColumns
-                .Where(c => c.BagianId == bagianId)
-                .MaxAsync(c => (int?)c.DisplayOrder) ?? 0;
-
-            var newColumn = new KkjColumn
-            {
-                BagianId     = bagianId,
-                Name         = "Kolom Baru",
-                DisplayOrder = maxOrder + 1
-            };
-            _context.KkjColumns.Add(newColumn);
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true, id = newColumn.Id, name = newColumn.Name, displayOrder = newColumn.DisplayOrder });
-        }
-
-        // POST /Admin/KkjColumnSave
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjColumnSave([FromBody] KkjColumn column)
-        {
-            if (string.IsNullOrWhiteSpace(column.Name))
-                return Json(new { success = false, message = "Nama kolom diperlukan." });
-
-            var existing = await _context.KkjColumns.FindAsync(column.Id);
-            if (existing == null)
-                return Json(new { success = false, message = "Kolom tidak ditemukan." });
-
-            existing.Name         = column.Name.Trim();
-            existing.DisplayOrder = column.DisplayOrder;
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true });
-        }
-
-        // POST /Admin/KkjColumnDelete
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjColumnDelete(int id)
-        {
-            var column = await _context.KkjColumns.FindAsync(id);
-            if (column == null)
-                return Json(new { success = false, message = "Kolom tidak ditemukan." });
-
-            // Block deletion if target values exist
-            var hasValues = await _context.KkjTargetValues.AnyAsync(v => v.KkjColumnId == id);
-            if (hasValues)
-                return Json(new { success = false, blocked = true,
-                    message = "Tidak dapat menghapus kolom yang masih memiliki data nilai. Hapus semua data nilai dahulu." });
-
-            // Block deletion if position mappings exist
-            var hasMappings = await _context.PositionColumnMappings.AnyAsync(m => m.KkjColumnId == id);
-            if (hasMappings)
-                return Json(new { success = false, blocked = true,
-                    message = "Tidak dapat menghapus kolom yang masih dipetakan ke jabatan. Hapus pemetaan jabatan dahulu." });
-
-            _context.KkjColumns.Remove(column);
-            await _context.SaveChangesAsync();
-            return Json(new { success = true });
-        }
-
+        // GetKkjColumns, KkjColumnAdd, KkjColumnSave, KkjColumnDelete all removed
         #endregion
 
         #region PositionColumnMapping Management
-
-        // GET /Admin/GetPositionMappings?bagianId=X
-        // Returns all PositionColumnMappings for columns belonging to the specified Bagian
-        [Authorize(Roles = "Admin, HC")]
-        [HttpGet]
-        public async Task<IActionResult> GetPositionMappings(int bagianId)
-        {
-            var mappings = await _context.PositionColumnMappings
-                .Include(m => m.KkjColumn)
-                .Where(m => m.KkjColumn.BagianId == bagianId)
-                .OrderBy(m => m.KkjColumn.DisplayOrder)
-                .ThenBy(m => m.Position)
-                .Select(m => new
-                {
-                    m.Id,
-                    m.Position,
-                    m.KkjColumnId,
-                    ColumnName = m.KkjColumn.Name
-                })
-                .ToListAsync();
-
-            return Json(mappings);
-        }
-
-        // POST /Admin/PositionMappingSave
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PositionMappingSave([FromBody] PositionColumnMapping mapping)
-        {
-            if (string.IsNullOrWhiteSpace(mapping.Position))
-                return Json(new { success = false, message = "Nama jabatan diperlukan." });
-
-            if (mapping.KkjColumnId == 0)
-                return Json(new { success = false, message = "Kolom KKJ diperlukan." });
-
-            // Check if this position-column pair already exists
-            var existing = await _context.PositionColumnMappings
-                .FirstOrDefaultAsync(m => m.Id == mapping.Id);
-
-            if (existing == null)
-            {
-                // Check for duplicate before insert
-                var duplicate = await _context.PositionColumnMappings
-                    .AnyAsync(m => m.Position == mapping.Position && m.KkjColumnId == mapping.KkjColumnId);
-                if (duplicate)
-                    return Json(new { success = false, message = "Pemetaan jabatan ke kolom ini sudah ada." });
-
-                _context.PositionColumnMappings.Add(new PositionColumnMapping
-                {
-                    Position    = mapping.Position.Trim(),
-                    KkjColumnId = mapping.KkjColumnId
-                });
-            }
-            else
-            {
-                existing.Position    = mapping.Position.Trim();
-                existing.KkjColumnId = mapping.KkjColumnId;
-            }
-
-            await _context.SaveChangesAsync();
-            return Json(new { success = true });
-        }
-
-        // POST /Admin/PositionMappingDelete
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PositionMappingDelete(int id)
-        {
-            var mapping = await _context.PositionColumnMappings.FindAsync(id);
-            if (mapping == null)
-                return Json(new { success = false, message = "Pemetaan tidak ditemukan." });
-
-            _context.PositionColumnMappings.Remove(mapping);
-            await _context.SaveChangesAsync();
-            return Json(new { success = true });
-        }
-
+        // GetPositionMappings, PositionMappingSave, PositionMappingDelete all removed
         #endregion
 
-        // POST /Admin/KkjMatrixDelete
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjMatrixDelete(int id)
-        {
-            var item = await _context.KkjMatrices.FindAsync(id);
-            if (item == null)
-                return Json(new { success = false, message = "Item tidak ditemukan." });
-
-            var usageCount = await _context.UserCompetencyLevels
-                .CountAsync(u => u.KkjMatrixItemId == id);
-
-            if (usageCount > 0)
-                return Json(new { success = false, blocked = true,
-                    message = $"Tidak dapat dihapus — digunakan oleh {usageCount} pekerja." });
-
-            _context.KkjMatrices.Remove(item);
-            await _context.SaveChangesAsync();
-
-            var actor = await _userManager.GetUserAsync(User);
-            if (actor != null)
-                await _auditLog.LogAsync(actor.Id, actor.FullName, "Delete",
-                    $"Deleted KkjMatrixItem Id={id} ({item.Kompetensi})",
-                    targetId: id, targetType: "KkjMatrixItem");
-
-            return Json(new { success = true });
-        }
+        // KkjMatrixDelete removed — KkjMatrices table dropped in Phase 90
+        */
 
         // GET /Admin/ManageAssessment
         [HttpGet]
@@ -2476,49 +2211,14 @@ namespace HcPortal.Controllers
                     session.CompletedAt = DateTime.UtcNow;
                     assignment.IsCompleted = true;
 
+                    /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
                     if (session.IsPassed == true)
                     {
                         var mappedCompetencies = await _context.AssessmentCompetencyMaps
                             .Include(m => m.KkjMatrixItem)
-                            .Where(m => m.AssessmentCategory == session.Category &&
-                                        (m.TitlePattern == null || session.Title.Contains(m.TitlePattern)))
-                            .ToListAsync();
-
-                        if (mappedCompetencies.Any())
-                        {
-                            var sessionUser = await _context.Users.FindAsync(session.UserId);
-                            foreach (var mapping in mappedCompetencies)
-                            {
-                                if (mapping.MinimumScoreRequired.HasValue && session.Score < mapping.MinimumScoreRequired.Value)
-                                    continue;
-
-                                var existingLevel = await _context.UserCompetencyLevels
-                                    .FirstOrDefaultAsync(c => c.UserId == session.UserId &&
-                                                              c.KkjMatrixItemId == mapping.KkjMatrixItemId);
-                                if (existingLevel == null)
-                                {
-                                    int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, sessionUser?.Position);
-                                    _context.UserCompetencyLevels.Add(new UserCompetencyLevel
-                                    {
-                                        UserId = session.UserId,
-                                        KkjMatrixItemId = mapping.KkjMatrixItemId,
-                                        CurrentLevel = mapping.LevelGranted,
-                                        TargetLevel = targetLevel,
-                                        Source = "Assessment",
-                                        AssessmentSessionId = session.Id,
-                                        AchievedAt = DateTime.UtcNow
-                                    });
-                                }
-                                else if (mapping.LevelGranted > existingLevel.CurrentLevel)
-                                {
-                                    existingLevel.CurrentLevel = mapping.LevelGranted;
-                                    existingLevel.Source = "Assessment";
-                                    existingLevel.AssessmentSessionId = session.Id;
-                                    existingLevel.UpdatedAt = DateTime.UtcNow;
-                                }
-                            }
-                        }
+                            ...
                     }
+                    */
                 }
                 else
                 {
@@ -2548,49 +2248,14 @@ namespace HcPortal.Controllers
                     session.IsPassed = finalPercentage >= session.PassPercentage;
                     session.CompletedAt = DateTime.UtcNow;
 
+                    /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
                     if (session.IsPassed == true)
                     {
                         var mappedCompetencies = await _context.AssessmentCompetencyMaps
                             .Include(m => m.KkjMatrixItem)
-                            .Where(m => m.AssessmentCategory == session.Category &&
-                                        (m.TitlePattern == null || session.Title.Contains(m.TitlePattern)))
-                            .ToListAsync();
-
-                        if (mappedCompetencies.Any())
-                        {
-                            var sessionUser = await _context.Users.FindAsync(session.UserId);
-                            foreach (var mapping in mappedCompetencies)
-                            {
-                                if (mapping.MinimumScoreRequired.HasValue && session.Score < mapping.MinimumScoreRequired.Value)
-                                    continue;
-
-                                var existingLevel = await _context.UserCompetencyLevels
-                                    .FirstOrDefaultAsync(c => c.UserId == session.UserId &&
-                                                              c.KkjMatrixItemId == mapping.KkjMatrixItemId);
-                                if (existingLevel == null)
-                                {
-                                    int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, sessionUser?.Position);
-                                    _context.UserCompetencyLevels.Add(new UserCompetencyLevel
-                                    {
-                                        UserId = session.UserId,
-                                        KkjMatrixItemId = mapping.KkjMatrixItemId,
-                                        CurrentLevel = mapping.LevelGranted,
-                                        TargetLevel = targetLevel,
-                                        Source = "Assessment",
-                                        AssessmentSessionId = session.Id,
-                                        AchievedAt = DateTime.UtcNow
-                                    });
-                                }
-                                else if (mapping.LevelGranted > existingLevel.CurrentLevel)
-                                {
-                                    existingLevel.CurrentLevel = mapping.LevelGranted;
-                                    existingLevel.Source = "Assessment";
-                                    existingLevel.AssessmentSessionId = session.Id;
-                                    existingLevel.UpdatedAt = DateTime.UtcNow;
-                                }
-                            }
-                        }
+                            ...
                     }
+                    */
                 }
             }
 

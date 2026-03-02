@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
 using HcPortal.Models.Competency;
 using HcPortal.Data;
-using HcPortal.Helpers;
 using ClosedXML.Excel;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;

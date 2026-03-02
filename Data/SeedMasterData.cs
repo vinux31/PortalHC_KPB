@@ -4,64 +4,11 @@ using HcPortal.Models;
 namespace HcPortal.Data
 {
     /// <summary>
-    /// Class untuk seeding data master (KKJ Matrix & CPDP Items)
+    /// Class untuk seeding data master (CPDP Items)
+    /// Note: KKJ Matrix seed data removed in Phase 90 — KkjMatrices table dropped.
     /// </summary>
     public static class SeedMasterData
     {
-        public static async Task SeedKkjMatrixAsync(ApplicationDbContext context)
-        {
-            // Skip if already seeded
-            if (await context.KkjMatrices.AnyAsync())
-            {
-                Console.WriteLine("ℹ️ KKJ Matrix data already exists, skipping...");
-                return;
-            }
-
-            // TODO(89-02): KKJ Matrix seed data updated — base competency records without target values.
-            // Target values are now managed via KkjTargetValue table (Phase 89 dynamic columns).
-            var kkjData = new List<KkjMatrixItem>
-            {
-                // 1. Gas Processing Operations
-                new KkjMatrixItem { No=1, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.2", Kompetensi="Gas Processing Operations", Bagian="" },
-                // 2. Material & Chemical Blending
-                new KkjMatrixItem { No=2, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.5", Kompetensi="Material & Chemical Blending", Bagian="" },
-                // 3. Oil Processing Operations
-                new KkjMatrixItem { No=3, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.6", Kompetensi="Oil Processing Operations", Bagian="" },
-                // 4. Refinery Process Operations
-                new KkjMatrixItem { No=4, SkillGroup="Engineering", SubSkillGroup="Production & Processing Operations and Maintenance", Indeks="6.2.7", Kompetensi="Refinery Process Operations", Bagian="" },
-                // 5. Catalyst & Chemical Management
-                new KkjMatrixItem { No=5, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.1", Kompetensi="Catalyst & Chemical Management", Bagian="" },
-                // 6. Energy Management
-                new KkjMatrixItem { No=6, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.2", Kompetensi="Energy Management", Bagian="" },
-                // 7. Process Control
-                new KkjMatrixItem { No=7, SkillGroup="Engineering", SubSkillGroup="Process Engineering", Indeks="7.1.4", Kompetensi="Process Control", Bagian="" },
-                // 8. Commissioning & Operational Readiness
-                new KkjMatrixItem { No=8, SkillGroup="HSSE", SubSkillGroup="Project Engineering", Indeks="7.7.1", Kompetensi="Commissioning & Operational Readiness", Bagian="" },
-                // 9. Cost Engineering
-                new KkjMatrixItem { No=9, SkillGroup="HSSE", SubSkillGroup="Project Engineering", Indeks="7.7.2", Kompetensi="Cost Engineering", Bagian="" },
-                // 10. Sourcing Procurement
-                new KkjMatrixItem { No=10, SkillGroup="Operation & Maintenance", SubSkillGroup="Procurement", Indeks="9.2.3", Kompetensi="Sourcing Procurement", Bagian="" },
-                // 11. Process Hazard Analysis
-                new KkjMatrixItem { No=11, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.12", Kompetensi="Process Hazard Analysis", Bagian="" },
-                // 12. Process Safety Management
-                new KkjMatrixItem { No=12, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.13", Kompetensi="Process Safety Management", Bagian="" },
-                // 13. Safe Work Practice
-                new KkjMatrixItem { No=13, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.14", Kompetensi="Safe Work Practice & Lifesaving Rules", Bagian="" },
-                // 14. Incident Investigation
-                new KkjMatrixItem { No=14, SkillGroup="Operation & Maintenance", SubSkillGroup="Safety", Indeks="12.2.9", Kompetensi="Incident Investigation", Bagian="" },
-                // 15. Individual Performance Management
-                new KkjMatrixItem { No=15, SkillGroup="Operation & Maintenance", SubSkillGroup="People Management", Indeks="13.2.6", Kompetensi="Individual Performance Management", Bagian="" },
-                // 16. Manpower Planning
-                new KkjMatrixItem { No=16, SkillGroup="Operation & Maintenance", SubSkillGroup="People Management", Indeks="13.2.8", Kompetensi="Manpower Planning", Bagian="" },
-                // 17. Project Risk Management
-                new KkjMatrixItem { No=17, SkillGroup="Operation & Maintenance", SubSkillGroup="Risk Management", Indeks="15.1.3", Kompetensi="Project Risk Management", Bagian="" }
-            };
-
-            await context.KkjMatrices.AddRangeAsync(kkjData);
-            await context.SaveChangesAsync();
-            Console.WriteLine($"✅ Seeded {kkjData.Count} KKJ Matrix items successfully!");
-        }
-
         public static async Task SeedCpdpItemsAsync(ApplicationDbContext context)
         {
             // Skip if already seeded

@@ -1,5 +1,3 @@
-using HcPortal.Models.Competency;
-
 namespace HcPortal.Models;
 
 /// <summary>
@@ -91,9 +89,6 @@ public class FinalAssessmentViewModel
     public int TotalDeliverables { get; set; }
     public int ApprovedDeliverables { get; set; }
     public bool AllHCReviewed { get; set; }
-
-    /// <summary>KKJ competency items for HC to select from dropdown</summary>
-    public List<KkjMatrixItem> AvailableCompetencies { get; set; } = new();
 
     /// <summary>Null if no final assessment has been created yet</summary>
     public ProtonFinalAssessment? ExistingAssessment { get; set; }
