@@ -1,64 +1,78 @@
+using HcPortal.Data;
 using HcPortal.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace HcPortal.Helpers
 {
     /// <summary>
     /// Helper to resolve target competency levels from KKJ matrix based on user position.
-    /// TODO(89-03): This helper is being refactored for the Phase 89 dynamic columns redesign.
-    /// The hardcoded Target_* column approach is replaced by KkjTargetValue + PositionColumnMapping tables.
+    /// Uses PositionColumnMapping table to map position → KkjColumn → KkjTargetValue.
+    /// Replaces the old hardcoded reflection-based approach (Phase 89).
     /// </summary>
     public static class PositionTargetHelper
     {
         /// <summary>
-        /// All valid position keys in the system (used for UI dropdowns, etc.)
-        /// NOTE: These are the legacy position names — new system uses PositionColumnMapping table.
+        /// Gets the target competency level for a given KKJ matrix item and user position.
+        /// Queries PositionColumnMapping + KkjTargetValue for the dynamic column approach.
         /// </summary>
-        private static readonly List<string> KnownPositions = new()
+        /// <param name="context">ApplicationDbContext for DB queries</param>
+        /// <param name="kkjMatrixItemId">ID of the KKJ competency item</param>
+        /// <param name="userPosition">User's position string (must match a PositionColumnMapping.Position)</param>
+        /// <returns>Target level (0-5), or 0 if position not mapped or value is "-" or unparseable</returns>
+        public static async Task<int> GetTargetLevelAsync(ApplicationDbContext context, int kkjMatrixItemId, string? userPosition)
         {
-            "Section Head",
-            "Sr Supervisor GSH",
-            "Shift Supervisor GSH",
-            "Panelman GSH 12-13",
-            "Panelman GSH 14",
-            "Operator GSH 8-11",
-            "Operator GSH 12-13",
-            "Shift Supervisor ARU",
-            "Panelman ARU 12-13",
-            "Panelman ARU 14",
-            "Operator ARU 8-11",
-            "Operator ARU 12-13",
-            "Sr Supervisor Facility",
-            "Jr Analyst",
-            "HSE Officer"
-        };
+            if (string.IsNullOrWhiteSpace(userPosition))
+                return 0;
 
-        /// <summary>
-        /// Gets the target competency level for a given KKJ competency and user position.
-        /// TODO(89-03): Updated to use KkjTargetValue + PositionColumnMapping tables.
-        /// This stub returns 0 until the dynamic columns refactor is complete.
-        /// </summary>
-        public static int GetTargetLevel(KkjMatrixItem competency, string? userPosition)
-        {
-            // TODO(89-03): Implement using PositionColumnMapping → KkjColumn → KkjTargetValue lookup
-            return 0;
+            // Find the KkjColumn mapped to this position
+            var mapping = await context.PositionColumnMappings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.Position == userPosition);
+
+            if (mapping == null)
+                return 0; // Position not mapped — admin needs to set up PositionColumnMapping
+
+            // Find the target value for this competency + column cell
+            var targetValue = await context.KkjTargetValues
+                .AsNoTracking()
+                .FirstOrDefaultAsync(v => v.KkjMatrixItemId == kkjMatrixItemId && v.KkjColumnId == mapping.KkjColumnId);
+
+            if (targetValue == null || targetValue.Value == "-")
+                return 0; // Not applicable or empty for this position
+
+            // Parse the level (typically "1"-"5")
+            if (int.TryParse(targetValue.Value, out var level) && level >= 0 && level <= 5)
+                return level;
+
+            return 0; // Unparseable value
         }
 
         /// <summary>
-        /// Gets the KkjMatrixItem column name for a given position.
-        /// TODO(89-03): Deprecated — use PositionColumnMapping table instead.
+        /// Checks whether a user position has a PositionColumnMapping configured.
+        /// Returns false if position is null/empty or unmapped.
         /// </summary>
-        public static string? GetColumnName(string? position)
+        public static async Task<bool> IsPositionMapped(ApplicationDbContext context, string? userPosition)
         {
-            // TODO(89-03): Deprecated — positions now map to KkjColumn via PositionColumnMapping table
-            return null;
+            if (string.IsNullOrWhiteSpace(userPosition))
+                return false;
+
+            return await context.PositionColumnMappings
+                .AsNoTracking()
+                .AnyAsync(m => m.Position == userPosition);
         }
 
         /// <summary>
-        /// Gets all valid position keys that are mapped in the system.
+        /// Gets all mapped position strings from the database.
+        /// Useful for dropdowns and validation.
         /// </summary>
-        public static List<string> GetAllPositions()
+        public static async Task<List<string>> GetAllPositionsAsync(ApplicationDbContext context)
         {
-            return KnownPositions.ToList();
+            return await context.PositionColumnMappings
+                .AsNoTracking()
+                .Select(m => m.Position)
+                .Distinct()
+                .OrderBy(p => p)
+                .ToListAsync();
         }
     }
 }
