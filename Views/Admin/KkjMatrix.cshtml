@@ -450,6 +450,7 @@ function renderEditRows() {
             + '<select id="editBagianFilter" class="form-select form-select-sm" style="max-width:220px;"></select>';
         container.parentNode.insertBefore(filterBar, container);
     }
+    filterBar.classList.remove('d-none');
     var editBagianFilter = document.getElementById('editBagianFilter');
     editBagianFilter.innerHTML = '';
     kkjBagians.forEach(function(b) {
@@ -704,6 +705,8 @@ function makeEmptyRow(columns) {
 document.getElementById('btnEdit').addEventListener('click', function() {
     renderEditRows();
     document.getElementById('readTable').classList.add('d-none');
+    document.getElementById('columnManagementPanel').classList.add('d-none');
+    document.getElementById('positionMappingPanel').classList.add('d-none');
     document.getElementById('editTablesContainer').classList.remove('d-none');
     document.getElementById('editActions').classList.remove('d-none');
     document.getElementById('editActions').classList.add('d-flex');
@@ -713,6 +716,10 @@ document.getElementById('btnEdit').addEventListener('click', function() {
 document.getElementById('btnCancel').addEventListener('click', function() {
     document.getElementById('editTablesContainer').classList.add('d-none');
     document.getElementById('readTable').classList.remove('d-none');
+    document.getElementById('columnManagementPanel').classList.remove('d-none');
+    document.getElementById('positionMappingPanel').classList.remove('d-none');
+    var fb = document.getElementById('editBagianFilterBar');
+    if (fb) fb.classList.add('d-none');
     document.getElementById('editActions').classList.add('d-none');
     document.getElementById('editActions').classList.remove('d-flex');
     document.getElementById('btnEdit').classList.remove('d-none');
@@ -1223,6 +1230,9 @@ function loadColumnPanel(bagianId) {
                             loadColumnPanel(bagianId);
                             var filter = document.getElementById('bagianFilter');
                             if (filter) renderReadTable(filter.value);
+                            var toastEl = document.getElementById('saveToast');
+                            var toast = new bootstrap.Toast(toastEl, { delay: 1500 });
+                            toast.show();
                         } else {
                             alert('Error: ' + resp.message);
                         }
