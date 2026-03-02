@@ -40,7 +40,7 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 Phase: 82 of 87 (Cleanup & Rename) — COMPLETE
 Plan: 3 of 3 in current phase — ALL COMPLETE
 Status: In progress — Phase 82 complete, ready for Phase 83
-Last activity: 2026-03-02 — Phase 82 all plans complete (82-01, 82-02, 82-03)
+Last activity: 2026-03-02 - Completed quick task 15: Move Package Questions and Import Questions features from CMP to Admin/ManageAssessment
 
 Progress: [█░░░░░░░░░] 13%  (3/23 plans complete across v3.0)
 
@@ -63,6 +63,12 @@ None.
 ### Blockers/Concerns
 
 None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 15 | Move Package Questions and Import Questions features from CMP to Admin/ManageAssessment | 2026-03-02 | b06b231 | [15-move-package-questions-and-import-questi](./quick/15-move-package-questions-and-import-questi/) |
 
 ## Session Continuity
 
