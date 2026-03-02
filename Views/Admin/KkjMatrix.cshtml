@@ -3,9 +3,22 @@
 @{
     ViewData["Title"] = "Kelola KKJ Matrix";
     ViewData["ContainerClass"] = "container-fluid px-4";
-    var itemsJson = System.Text.Json.JsonSerializer.Serialize(Model,
+
+    // Serialize items with their target values for JS (no Label_*/Target_* fields)
+    var itemsForJs = Model.Select(m => new {
+        m.Id, m.No, m.SkillGroup, m.SubSkillGroup, m.Indeks, m.Kompetensi, m.Bagian,
+        TargetValues = m.TargetValues.Select(tv => new { tv.KkjColumnId, tv.Value }).ToList()
+    });
+    var itemsJson = System.Text.Json.JsonSerializer.Serialize(itemsForJs,
         new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
-    var bagiansJson = System.Text.Json.JsonSerializer.Serialize(ViewBag.Bagians as List<HcPortal.Models.KkjBagian>,
+
+    // Serialize bagians with their columns for JS (no Label_* fields)
+    var bagiansForJs = (ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>())
+        .Select(b => new {
+            b.Id, b.Name, b.DisplayOrder,
+            Columns = b.Columns.OrderBy(c => c.DisplayOrder).Select(c => new { c.Id, c.Name, c.DisplayOrder }).ToList()
+        });
+    var bagiansJson = System.Text.Json.JsonSerializer.Serialize(bagiansForJs,
         new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
 }
 
@@ -160,6 +173,54 @@
     <div id="readTablePanel"></div>
 </div>
 
+@* Column Management Panel *@
+<div id="columnManagementPanel" class="mt-4">
+    <div class="card border-primary">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-columns-gap me-2"></i>Kelola Kolom Target</span>
+            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseColumns">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <div id="collapseColumns" class="collapse">
+            <div class="card-body">
+                <p class="text-muted small">Kelola kolom target untuk bagian yang dipilih. Kolom menentukan jabatan/posisi yang menjadi target kompetensi.</p>
+                <button id="btnAddColumn" class="btn btn-outline-success btn-sm mb-2">
+                    <i class="bi bi-plus-circle me-1"></i>Tambah Kolom
+                </button>
+                <div id="columnListContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Position Mapping Panel *@
+<div id="positionMappingPanel" class="mt-3">
+    <div class="card border-secondary">
+        <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-diagram-3 me-2"></i>Kelola Pemetaan Jabatan</span>
+            <button class="btn btn-sm btn-light" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#collapseMappings">
+                <i class="bi bi-chevron-down"></i>
+            </button>
+        </div>
+        <div id="collapseMappings" class="collapse">
+            <div class="card-body">
+                <p class="text-muted small">Petakan jabatan pengguna ke kolom KKJ. Digunakan untuk menghitung target kompetensi pada hasil assessment.</p>
+                <div class="input-group input-group-sm mb-2" style="max-width:400px;">
+                    <input type="text" id="newPositionName" class="form-control" placeholder="Nama jabatan (mis: Section Head)">
+                    <select id="newPositionColumn" class="form-select"></select>
+                    <button id="btnAddMapping" class="btn btn-outline-success">
+                        <i class="bi bi-plus-circle me-1"></i>Tambah
+                    </button>
+                </div>
+                <div id="mappingListContainer"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @* Edit-mode: per-bagian sections (populated by JS) *@
 <div id="editTablesContainer" class="d-none"></div>
 
@@ -169,30 +230,14 @@
 function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 // --- READ MODE RENDER ---
-var labelFieldKeys = [
-    { key:'Label_SectionHead',        prop:'Target_SectionHead'        },
-    { key:'Label_SrSpv_GSH',          prop:'Target_SrSpv_GSH'          },
-    { key:'Label_ShiftSpv_GSH',       prop:'Target_ShiftSpv_GSH'       },
-    { key:'Label_Panelman_GSH_12_13', prop:'Target_Panelman_GSH_12_13' },
-    { key:'Label_Panelman_GSH_14',    prop:'Target_Panelman_GSH_14'    },
-    { key:'Label_Operator_GSH_8_11',  prop:'Target_Operator_GSH_8_11'  },
-    { key:'Label_Operator_GSH_12_13', prop:'Target_Operator_GSH_12_13' },
-    { key:'Label_ShiftSpv_ARU',       prop:'Target_ShiftSpv_ARU'       },
-    { key:'Label_Panelman_ARU_12_13', prop:'Target_Panelman_ARU_12_13' },
-    { key:'Label_Panelman_ARU_14',    prop:'Target_Panelman_ARU_14'    },
-    { key:'Label_Operator_ARU_8_11',  prop:'Target_Operator_ARU_8_11'  },
-    { key:'Label_Operator_ARU_12_13', prop:'Target_Operator_ARU_12_13' },
-    { key:'Label_SrSpv_Facility',     prop:'Target_SrSpv_Facility'     },
-    { key:'Label_JrAnalyst',          prop:'Target_JrAnalyst'          },
-    { key:'Label_HSE',                prop:'Target_HSE'                },
-];
-
 function renderReadTable(bagianName) {
     var panel = document.getElementById('readTablePanel');
     if (!panel) return;
 
     var bagian = kkjBagians.find(function(b) { return b.Name === bagianName; });
     var knownNames = kkjBagians.map(function(b) { return b.Name; });
+    // Dynamic columns from bagian
+    var columns = bagian ? (bagian.Columns || []) : [];
 
     // Items for selected bagian; if bagianName is '__unassigned__' show orphans
     var items;
@@ -206,23 +251,26 @@ function renderReadTable(bagianName) {
     }
     items = items.slice().sort(function(a, b) { return (a.No || 0) - (b.No || 0); });
 
-    // Build thead
+    // Build thead using dynamic columns
     var theadCells = '<th style="width:45px;">No</th>'
         + '<th style="width:90px;">Indeks</th>'
         + '<th style="min-width:180px;">Kompetensi</th>'
         + '<th style="min-width:120px;">SkillGroup</th>'
         + '<th style="min-width:120px;">SubSkillGroup</th>';
 
-    labelFieldKeys.forEach(function(lf) {
-        var label = bagian ? (bagian[lf.key] || lf.key) : lf.key;
-        theadCells += '<th class="col-target">' + escHtml(label) + '</th>';
+    columns.forEach(function(col) {
+        theadCells += '<th class="col-target">' + escHtml(col.Name) + '</th>';
     });
+    if (columns.length === 0) {
+        theadCells += '<th class="col-target text-muted">Belum ada kolom</th>';
+    }
     theadCells += '<th style="width:70px;">Aksi</th>';
 
     // Build tbody rows
     var tbodyRows = '';
     if (items.length === 0) {
-        tbodyRows = '<tr><td colspan="21" class="text-muted text-center">Belum ada item di bagian ini.</td></tr>';
+        var emptyColspan = 5 + columns.length + 1;
+        tbodyRows = '<tr><td colspan="' + emptyColspan + '" class="text-muted text-center">Belum ada item di bagian ini.</td></tr>';
     } else {
         items.forEach(function(item) {
             var tds = '<td>' + escHtml(item.No) + '</td>'
@@ -230,9 +278,13 @@ function renderReadTable(bagianName) {
                 + '<td>' + escHtml(item.Kompetensi) + '</td>'
                 + '<td>' + escHtml(item.SkillGroup) + '</td>'
                 + '<td>' + escHtml(item.SubSkillGroup) + '</td>';
-            labelFieldKeys.forEach(function(lf) {
-                tds += '<td>' + escHtml(item[lf.prop]) + '</td>';
+            columns.forEach(function(col) {
+                var tv = item.TargetValues && item.TargetValues.find(function(t) { return t.KkjColumnId === col.Id; });
+                tds += '<td class="col-target">' + escHtml(tv ? tv.Value : '-') + '</td>';
             });
+            if (columns.length === 0) {
+                tds += '<td class="text-muted text-center">-</td>';
+            }
             var safeKomp = escHtml(item.Kompetensi).replace(/'/g, "\\'");
             tds += '<td>'
                 + '<button class="btn btn-outline-danger btn-sm" onclick="deleteRow(' + item.Id + ', \'' + safeKomp + '\')">'
@@ -260,11 +312,21 @@ document.addEventListener('DOMContentLoaded', function() {
         filter.addEventListener('change', function() {
             renderReadTable(this.value);
             updateCmpLink(this.value);
+            var bagian = kkjBagians.find(function(b) { return b.Name === this.value; }, this);
+            if (bagian) {
+                loadColumnPanel(bagian.Id);
+                loadMappingPanel(bagian.Id);
+            }
         });
         // Initial render for first option
         if (filter.value) {
             renderReadTable(filter.value);
             updateCmpLink(filter.value);
+            var initialBagian = kkjBagians.find(function(b) { return b.Name === filter.value; });
+            if (initialBagian) {
+                loadColumnPanel(initialBagian.Id);
+                loadMappingPanel(initialBagian.Id);
+            }
         }
     }
 });
@@ -353,13 +415,7 @@ document.getElementById('btnAddBagianRead').addEventListener('click', function()
             if (resp.success) {
                 var newBagian = {
                     Id: resp.id, Name: resp.name, DisplayOrder: resp.displayOrder,
-                    Label_SectionHead: 'Section Head', Label_SrSpv_GSH: 'Sr Spv GSH',
-                    Label_ShiftSpv_GSH: 'Shift Spv GSH', Label_Panelman_GSH_12_13: 'Panelman GSH 12-13',
-                    Label_Panelman_GSH_14: 'Panelman GSH 14', Label_Operator_GSH_8_11: 'Op GSH 8-11',
-                    Label_Operator_GSH_12_13: 'Op GSH 12-13', Label_ShiftSpv_ARU: 'Shift Spv ARU',
-                    Label_Panelman_ARU_12_13: 'Panelman ARU 12-13', Label_Panelman_ARU_14: 'Panelman ARU 14',
-                    Label_Operator_ARU_8_11: 'Op ARU 8-11', Label_Operator_ARU_12_13: 'Op ARU 12-13',
-                    Label_SrSpv_Facility: 'Sr Spv Facility', Label_JrAnalyst: 'Jr Analyst', Label_HSE: 'HSE'
+                    Columns: []
                 };
                 kkjBagians.push(newBagian);
                 var filter = document.getElementById('bagianFilter');
@@ -369,6 +425,8 @@ document.getElementById('btnAddBagianRead').addEventListener('click', function()
                 filter.appendChild(opt);
                 filter.value = resp.name;
                 renderReadTable(resp.name);
+                loadColumnPanel(resp.id);
+                loadMappingPanel(resp.id);
             } else {
                 alert('Error: ' + resp.message);
             }
@@ -425,24 +483,8 @@ function renderEditRows() {
             + 'data-bagian-id="' + bagian.Id + '" data-bagian-order="' + bagian.DisplayOrder + '" '
             + 'value="' + escHtml(bagian.Name) + '" style="max-width:160px;" title="Nama Bagian">';
 
-        // Label fields mapping
-        var labelFields = [
-            { key:'Label_SectionHead',        prop:'Target_SectionHead'        },
-            { key:'Label_SrSpv_GSH',          prop:'Target_SrSpv_GSH'          },
-            { key:'Label_ShiftSpv_GSH',       prop:'Target_ShiftSpv_GSH'       },
-            { key:'Label_Panelman_GSH_12_13', prop:'Target_Panelman_GSH_12_13' },
-            { key:'Label_Panelman_GSH_14',    prop:'Target_Panelman_GSH_14'    },
-            { key:'Label_Operator_GSH_8_11',  prop:'Target_Operator_GSH_8_11'  },
-            { key:'Label_Operator_GSH_12_13', prop:'Target_Operator_GSH_12_13' },
-            { key:'Label_ShiftSpv_ARU',       prop:'Target_ShiftSpv_ARU'       },
-            { key:'Label_Panelman_ARU_12_13', prop:'Target_Panelman_ARU_12_13' },
-            { key:'Label_Panelman_ARU_14',    prop:'Target_Panelman_ARU_14'    },
-            { key:'Label_Operator_ARU_8_11',  prop:'Target_Operator_ARU_8_11'  },
-            { key:'Label_Operator_ARU_12_13', prop:'Target_Operator_ARU_12_13' },
-            { key:'Label_SrSpv_Facility',     prop:'Target_SrSpv_Facility'     },
-            { key:'Label_JrAnalyst',          prop:'Target_JrAnalyst'          },
-            { key:'Label_HSE',                prop:'Target_HSE'                },
-        ];
+        // Dynamic columns from bagian
+        var bagianColumns = bagian.Columns || [];
 
         var tableWrapper = document.createElement('div');
         tableWrapper.className = 'table-responsive custom-scrollbar mb-1';
@@ -467,17 +509,17 @@ function renderEditRows() {
             headerRow.appendChild(th);
         });
 
-        labelFields.forEach(function(lf) {
+        // Dynamic column headers using KkjColumn records
+        bagianColumns.forEach(function(col) {
             var th = document.createElement('th');
             th.className = 'col-target';
             var inp = document.createElement('input');
             inp.type = 'text';
-            inp.className = 'edit-input bagian-label-input';
-            inp.dataset.bagianId = bagian.Id;
-            inp.dataset.labelKey = lf.key;
-            inp.value = bagian[lf.key] || '';
+            inp.className = 'edit-input col-name-input';
+            inp.dataset.columnId = col.Id;
+            inp.value = col.Name || '';
             inp.style.minWidth = '70px';
-            inp.title = 'Klik untuk edit label kolom ini';
+            inp.title = 'Klik untuk edit nama kolom';
             th.appendChild(inp);
             headerRow.appendChild(th);
         });
@@ -496,7 +538,7 @@ function renderEditRows() {
         tbody.className = 'bagian-tbody';
         tbody.dataset.bagianName = bagian.Name;
         bagianItems.forEach(function(item) {
-            tbody.appendChild(makeRow(item));
+            tbody.appendChild(makeRow(item, bagianColumns));
         });
         tbl.appendChild(tbody);
         tableWrapper.appendChild(tbl);
@@ -506,13 +548,13 @@ function renderEditRows() {
         addBtn.type = 'button';
         addBtn.className = 'btn btn-outline-success btn-sm mb-3';
         addBtn.innerHTML = '<i class="bi bi-plus me-1"></i>Tambah Baris ke ' + escHtml(bagian.Name);
-        (function(capturedTbody, capturedBagianName) {
+        (function(capturedTbody, capturedBagianName, capturedColumns) {
             addBtn.addEventListener('click', function() {
-                var emptyRow = makeEmptyRow();
+                var emptyRow = makeEmptyRow(capturedColumns);
                 emptyRow.querySelector('input[name="Bagian"]').value = capturedBagianName;
                 capturedTbody.appendChild(emptyRow);
             });
-        })(tbody, bagian.Name);
+        })(tbody, bagian.Name, bagianColumns);
 
         sectionDiv.appendChild(heading);
         sectionDiv.appendChild(tableWrapper);
@@ -540,7 +582,8 @@ function renderEditRows() {
     }
 }
 
-function makeRow(item) {
+function makeRow(item, columns) {
+    // columns: array of { Id, Name, DisplayOrder } for this item's bagian
     var tr = document.createElement('tr');
     tr.dataset.id = item.Id || 0;
 
@@ -551,29 +594,15 @@ function makeRow(item) {
     bagianInput.value = item.Bagian || '';
     tr.appendChild(bagianInput);
 
-    var fields = [
-        { name:'No',                        val: item.No,                        cls:'col-no',    type:'number' },
-        { name:'SkillGroup',                val: item.SkillGroup,                cls:'col-meta' },
-        { name:'SubSkillGroup',             val: item.SubSkillGroup,             cls:'col-meta' },
-        { name:'Indeks',                    val: item.Indeks,                    cls:'col-meta' },
-        { name:'Kompetensi',                val: item.Kompetensi,                cls:'col-meta', style:'min-width:180px' },
-        { name:'Target_SectionHead',        val: item.Target_SectionHead,        cls:'col-target' },
-        { name:'Target_SrSpv_GSH',          val: item.Target_SrSpv_GSH,          cls:'col-target' },
-        { name:'Target_ShiftSpv_GSH',       val: item.Target_ShiftSpv_GSH,       cls:'col-target' },
-        { name:'Target_Panelman_GSH_12_13', val: item.Target_Panelman_GSH_12_13, cls:'col-target' },
-        { name:'Target_Panelman_GSH_14',    val: item.Target_Panelman_GSH_14,    cls:'col-target' },
-        { name:'Target_Operator_GSH_8_11',  val: item.Target_Operator_GSH_8_11,  cls:'col-target' },
-        { name:'Target_Operator_GSH_12_13', val: item.Target_Operator_GSH_12_13, cls:'col-target' },
-        { name:'Target_ShiftSpv_ARU',       val: item.Target_ShiftSpv_ARU,       cls:'col-target' },
-        { name:'Target_Panelman_ARU_12_13', val: item.Target_Panelman_ARU_12_13, cls:'col-target' },
-        { name:'Target_Panelman_ARU_14',    val: item.Target_Panelman_ARU_14,    cls:'col-target' },
-        { name:'Target_Operator_ARU_8_11',  val: item.Target_Operator_ARU_8_11,  cls:'col-target' },
-        { name:'Target_Operator_ARU_12_13', val: item.Target_Operator_ARU_12_13, cls:'col-target' },
-        { name:'Target_SrSpv_Facility',     val: item.Target_SrSpv_Facility,     cls:'col-target' },
-        { name:'Target_JrAnalyst',          val: item.Target_JrAnalyst,          cls:'col-target' },
-        { name:'Target_HSE',                val: item.Target_HSE,                cls:'col-target' },
+    // Fixed fields
+    var fixedFields = [
+        { name:'No',           val: item.No,           cls:'col-no',   type:'number' },
+        { name:'SkillGroup',   val: item.SkillGroup,   cls:'col-meta' },
+        { name:'SubSkillGroup',val: item.SubSkillGroup, cls:'col-meta' },
+        { name:'Indeks',       val: item.Indeks,       cls:'col-meta' },
+        { name:'Kompetensi',   val: item.Kompetensi,   cls:'col-meta', style:'min-width:180px' },
     ];
-    fields.forEach(function(f) {
+    fixedFields.forEach(function(f) {
         var td = document.createElement('td');
         td.className = f.cls || '';
         if (f.style) td.style.cssText = f.style;
@@ -582,6 +611,20 @@ function makeRow(item) {
         input.name = f.name;
         input.value = (f.val === null || f.val === undefined) ? '' : f.val;
         input.className = 'edit-input';
+        td.appendChild(input);
+        tr.appendChild(td);
+    });
+
+    // Dynamic target value columns
+    (columns || []).forEach(function(col) {
+        var td = document.createElement('td');
+        td.className = 'col-target';
+        var tv = item.TargetValues && item.TargetValues.find(function(t) { return t.KkjColumnId === col.Id; });
+        var input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'edit-input';
+        input.dataset.columnId = col.Id;
+        input.value = tv ? (tv.Value || '-') : '-';
         td.appendChild(input);
         tr.appendChild(td);
     });
@@ -598,7 +641,10 @@ function makeRow(item) {
     btnInsert.innerHTML = '<i class="bi bi-plus-circle"></i>';
     btnInsert.addEventListener('click', function() {
         var bagianName = tr.querySelector('input[name="Bagian"]').value || '';
-        var newRow = makeEmptyRow();
+        // Get columns for this bagian from kkjBagians
+        var rowBagian = kkjBagians.find(function(b) { return b.Name === bagianName; });
+        var rowColumns = rowBagian ? (rowBagian.Columns || []) : (columns || []);
+        var newRow = makeEmptyRow(rowColumns);
         newRow.querySelector('input[name="Bagian"]').value = bagianName;
         tr.parentNode.insertBefore(newRow, tr.nextSibling);
     });
@@ -643,17 +689,15 @@ function makeRow(item) {
     return tr;
 }
 
-function makeEmptyRow() {
+function makeEmptyRow(columns) {
+    // columns: array of { Id, Name, DisplayOrder } — creates empty TargetValues for each
+    var emptyTargetValues = (columns || []).map(function(col) {
+        return { KkjColumnId: col.Id, Value: '-' };
+    });
     return makeRow({
         Id: 0, Bagian: '', No: 0, SkillGroup: '', SubSkillGroup: '', Indeks: '', Kompetensi: '',
-        Target_SectionHead: '-', Target_SrSpv_GSH: '-', Target_ShiftSpv_GSH: '-',
-        Target_Panelman_GSH_12_13: '-', Target_Panelman_GSH_14: '-',
-        Target_Operator_GSH_8_11: '-', Target_Operator_GSH_12_13: '-',
-        Target_ShiftSpv_ARU: '-', Target_Panelman_ARU_12_13: '-',
-        Target_Panelman_ARU_14: '-', Target_Operator_ARU_8_11: '-',
-        Target_Operator_ARU_12_13: '-', Target_SrSpv_Facility: '-',
-        Target_JrAnalyst: '-', Target_HSE: '-'
-    });
+        TargetValues: emptyTargetValues
+    }, columns || []);
 }
 
 // --- EDIT MODE TOGGLE ---
@@ -691,21 +735,7 @@ document.getElementById('btnAddBagian').addEventListener('click', function() {
                     Id: resp.id,
                     Name: resp.name,
                     DisplayOrder: resp.displayOrder,
-                    Label_SectionHead: 'Section Head',
-                    Label_SrSpv_GSH: 'Sr Spv GSH',
-                    Label_ShiftSpv_GSH: 'Shift Spv GSH',
-                    Label_Panelman_GSH_12_13: 'Panelman GSH 12-13',
-                    Label_Panelman_GSH_14: 'Panelman GSH 14',
-                    Label_Operator_GSH_8_11: 'Op GSH 8-11',
-                    Label_Operator_GSH_12_13: 'Op GSH 12-13',
-                    Label_ShiftSpv_ARU: 'Shift Spv ARU',
-                    Label_Panelman_ARU_12_13: 'Panelman ARU 12-13',
-                    Label_Panelman_ARU_14: 'Panelman ARU 14',
-                    Label_Operator_ARU_8_11: 'Op ARU 8-11',
-                    Label_Operator_ARU_12_13: 'Op ARU 12-13',
-                    Label_SrSpv_Facility: 'Sr Spv Facility',
-                    Label_JrAnalyst: 'Jr Analyst',
-                    Label_HSE: 'HSE'
+                    Columns: []
                 });
                 renderEditRows();
             } else {
@@ -729,12 +759,19 @@ function collectBagians() {
             b.Name = nameEl.value;
             b.DisplayOrder = parseInt(nameEl.dataset.bagianOrder) || 0;
         }
-        tbl.querySelectorAll('.bagian-label-input').forEach(function(inp) {
-            b[inp.dataset.labelKey] = inp.value;
-        });
+        // No Label_* fields — column names are managed via KkjColumn table
         result.push(b);
     });
     return result;
+}
+
+// --- COLLECT COLUMN RENAMES FROM EDIT FORM ---
+function collectColumnRenames() {
+    var renames = [];
+    document.querySelectorAll('.col-name-input').forEach(function(inp) {
+        renames.push({ Id: parseInt(inp.dataset.columnId), Name: inp.value.trim() });
+    });
+    return renames;
 }
 
 // --- COLLECT ROWS FROM ALL BAGIAN TBODIES ---
@@ -745,40 +782,47 @@ function collectRows() {
             var el = tr.querySelector('input[name="' + name + '"]');
             return el ? el.value : '';
         };
+        // Collect dynamic target values from inputs with data-column-id
+        var targetValues = [];
+        tr.querySelectorAll('input[data-column-id]').forEach(function(inp) {
+            targetValues.push({
+                KkjColumnId: parseInt(inp.dataset.columnId),
+                Value: inp.value || '-'
+            });
+        });
         rows.push({
-            Id:                        parseInt(tr.dataset.id) || 0,
-            Bagian:                    getVal('Bagian'),
-            No:                        parseInt(getVal('No')) || 0,
-            SkillGroup:                getVal('SkillGroup'),
-            SubSkillGroup:             getVal('SubSkillGroup'),
-            Indeks:                    getVal('Indeks'),
-            Kompetensi:                getVal('Kompetensi'),
-            Target_SectionHead:        getVal('Target_SectionHead') || '-',
-            Target_SrSpv_GSH:          getVal('Target_SrSpv_GSH') || '-',
-            Target_ShiftSpv_GSH:       getVal('Target_ShiftSpv_GSH') || '-',
-            Target_Panelman_GSH_12_13: getVal('Target_Panelman_GSH_12_13') || '-',
-            Target_Panelman_GSH_14:    getVal('Target_Panelman_GSH_14') || '-',
-            Target_Operator_GSH_8_11:  getVal('Target_Operator_GSH_8_11') || '-',
-            Target_Operator_GSH_12_13: getVal('Target_Operator_GSH_12_13') || '-',
-            Target_ShiftSpv_ARU:       getVal('Target_ShiftSpv_ARU') || '-',
-            Target_Panelman_ARU_12_13: getVal('Target_Panelman_ARU_12_13') || '-',
-            Target_Panelman_ARU_14:    getVal('Target_Panelman_ARU_14') || '-',
-            Target_Operator_ARU_8_11:  getVal('Target_Operator_ARU_8_11') || '-',
-            Target_Operator_ARU_12_13: getVal('Target_Operator_ARU_12_13') || '-',
-            Target_SrSpv_Facility:     getVal('Target_SrSpv_Facility') || '-',
-            Target_JrAnalyst:          getVal('Target_JrAnalyst') || '-',
-            Target_HSE:                getVal('Target_HSE') || '-'
+            Id:            parseInt(tr.dataset.id) || 0,
+            Bagian:        getVal('Bagian'),
+            No:            parseInt(getVal('No')) || 0,
+            SkillGroup:    getVal('SkillGroup'),
+            SubSkillGroup: getVal('SubSkillGroup'),
+            Indeks:        getVal('Indeks'),
+            Kompetensi:    getVal('Kompetensi'),
+            TargetValues:  targetValues
         });
     });
     return rows;
 }
 
-// --- BULK SAVE (bagians + rows) ---
+// --- BULK SAVE (bagians + column renames + rows) ---
 document.getElementById('btnSave').addEventListener('click', function() {
     var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
     var bagians = collectBagians();
     var rows = collectRows();
+    var renames = collectColumnRenames();
 
+    // Step 0: Save column renames (if any)
+    var renamePromises = renames.map(function(r) {
+        return $.ajax({
+            url: '/Admin/KkjColumnSave',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: { 'RequestVerificationToken': token },
+            data: JSON.stringify(r)
+        });
+    });
+
+    $.when.apply($, renamePromises.length > 0 ? renamePromises : [$.Deferred().resolve()]).then(function() {
     // Step 1: Save bagian headers
     $.ajax({
         url: '/Admin/KkjBagianSave',
@@ -824,6 +868,7 @@ document.getElementById('btnSave').addEventListener('click', function() {
             alert('Server error (bagian): ' + xhr.statusText);
         }
     });
+    }); // end $.when (column renames)
 });
 
 // --- DELETE ---
@@ -857,22 +902,19 @@ document.getElementById('editTablesContainer').addEventListener('paste', functio
     if (!text) return;
     var pastedRows = text.trim().split('\n');
     var tbody = targetTbl.querySelector('.bagian-tbody');
-    // Use selectedCells[0] as anchor (document.activeElement may be body due to e.preventDefault in mousedown)
+    // Use selectedCells[0] as anchor
     var anchorTd = (selectedCells && selectedCells.length > 0) ? selectedCells[0] : null;
     var anchorRow = anchorTd ? anchorTd.closest('tr') : null;
     var startIdx = (anchorRow && tbody.contains(anchorRow)) ? Array.from(tbody.rows).indexOf(anchorRow) : tbody.rows.length;
     if (startIdx < 0) startIdx = tbody.rows.length;
 
-    var colNames = [
-        'No','SkillGroup','SubSkillGroup','Indeks','Kompetensi',
-        'Target_SectionHead','Target_SrSpv_GSH','Target_ShiftSpv_GSH',
-        'Target_Panelman_GSH_12_13','Target_Panelman_GSH_14',
-        'Target_Operator_GSH_8_11','Target_Operator_GSH_12_13',
-        'Target_ShiftSpv_ARU','Target_Panelman_ARU_12_13',
-        'Target_Panelman_ARU_14','Target_Operator_ARU_8_11',
-        'Target_Operator_ARU_12_13','Target_SrSpv_Facility',
-        'Target_JrAnalyst','Target_HSE'
-    ];
+    // Fixed column names (before dynamic columns)
+    var fixedColNames = ['No','SkillGroup','SubSkillGroup','Indeks','Kompetensi'];
+
+    // Get bagian columns from kkjBagians
+    var bagianName = tbody.dataset.bagianName || '';
+    var bagianObj = kkjBagians.find(function(b) { return b.Name === bagianName; });
+    var dynamicCols = bagianObj ? (bagianObj.Columns || []) : [];
 
     pastedRows.forEach(function(rowText, pasteRowIdx) {
         var cols = rowText.split('\t');
@@ -881,14 +923,23 @@ document.getElementById('editTablesContainer').addEventListener('paste', functio
         if (targetRowIdx < tbody.rows.length) {
             tr = tbody.rows[targetRowIdx];
         } else {
-            tr = makeEmptyRow();
-            tr.querySelector('input[name="Bagian"]').value = tbody.dataset.bagianName || '';
+            tr = makeEmptyRow(dynamicCols);
+            tr.querySelector('input[name="Bagian"]').value = bagianName;
             tbody.appendChild(tr);
         }
         cols.forEach(function(cellVal, colIdx) {
-            if (colIdx >= colNames.length) return;
-            var input = tr.querySelector('[name="' + colNames[colIdx] + '"]');
-            if (input) input.value = cellVal.trim();
+            if (colIdx < fixedColNames.length) {
+                var input = tr.querySelector('[name="' + fixedColNames[colIdx] + '"]');
+                if (input) input.value = cellVal.trim();
+            } else {
+                // Dynamic column
+                var dynIdx = colIdx - fixedColNames.length;
+                if (dynIdx < dynamicCols.length) {
+                    var colId = dynamicCols[dynIdx].Id;
+                    var dynInput = tr.querySelector('[data-column-id="' + colId + '"]');
+                    if (dynInput) dynInput.value = cellVal.trim();
+                }
+            }
         });
     });
 });
@@ -1065,8 +1116,6 @@ document.addEventListener('keydown', function(e) {
 
     if ((e.ctrlKey || e.metaKey) && e.key === 'v' && selectedCells.length > 0) {
         // Ctrl+V: read clipboard directly — decoupled from focus/activeElement state
-        // Cannot rely on native paste event routing because e.preventDefault() in mousedown
-        // causes document.activeElement to be body, not an edit-input inside .kkj-edit-tbl
         e.preventDefault();
         navigator.clipboard.readText().then(function(text) {
             if (!text) return;
@@ -1079,18 +1128,15 @@ document.addEventListener('keydown', function(e) {
             var startIdx = (anchorRow && tbody.contains(anchorRow)) ? Array.from(tbody.rows).indexOf(anchorRow) : 0;
             if (startIdx < 0) startIdx = 0;
 
-            var colNames = [
-                'No','SkillGroup','SubSkillGroup','Indeks','Kompetensi',
-                'Target_SectionHead','Target_SrSpv_GSH','Target_ShiftSpv_GSH',
-                'Target_Panelman_GSH_12_13','Target_Panelman_GSH_14',
-                'Target_Operator_GSH_8_11','Target_Operator_GSH_12_13',
-                'Target_ShiftSpv_ARU','Target_Panelman_ARU_12_13',
-                'Target_Panelman_ARU_14','Target_Operator_ARU_8_11',
-                'Target_Operator_ARU_12_13','Target_SrSpv_Facility',
-                'Target_JrAnalyst','Target_HSE'
-            ];
+            // Fixed column names
+            var fixedColNames = ['No','SkillGroup','SubSkillGroup','Indeks','Kompetensi'];
 
-            // Determine start column from anchor td position
+            // Get bagian dynamic columns
+            var bagianNameCtrlV = tbody.dataset.bagianName || '';
+            var bagianObjCtrlV = kkjBagians.find(function(b) { return b.Name === bagianNameCtrlV; });
+            var dynamicColsCtrlV = bagianObjCtrlV ? (bagianObjCtrlV.Columns || []) : [];
+
+            // All inputs in anchor row (for column index mapping)
             var anchorAllTds = Array.from(anchorTd.parentElement.cells);
             var anchorColIdx = anchorAllTds.indexOf(anchorTd);
 
@@ -1102,17 +1148,25 @@ document.addEventListener('keydown', function(e) {
                 if (targetRowIdx < tbody.rows.length) {
                     tr = tbody.rows[targetRowIdx];
                 } else {
-                    tr = makeEmptyRow();
-                    tr.querySelector('input[name="Bagian"]').value = tbody.dataset.bagianName || '';
+                    tr = makeEmptyRow(dynamicColsCtrlV);
+                    tr.querySelector('input[name="Bagian"]').value = bagianNameCtrlV;
                     tbody.appendChild(tr);
                 }
                 cols.forEach(function(cellVal, colOffset) {
                     var colIdx = anchorColIdx + colOffset;
-                    if (colIdx >= anchorAllTds.length) return;
-                    var colName = colNames[colIdx];
-                    if (!colName) return;
-                    var input = tr.querySelector('[name="' + colName + '"]');
-                    if (input) input.value = cellVal.trim();
+                    if (colIdx < fixedColNames.length) {
+                        var input = tr.querySelector('[name="' + fixedColNames[colIdx] + '"]');
+                        if (input) input.value = cellVal.trim();
+                    } else {
+                        // Dynamic column — colIdx includes 1 hidden Bagian input before fixed cols
+                        // Actual td index for fixed cols starts at 0 (No), so dynamic starts at fixedColNames.length
+                        var dynIdx = colIdx - fixedColNames.length;
+                        if (dynIdx >= 0 && dynIdx < dynamicColsCtrlV.length) {
+                            var dynColId = dynamicColsCtrlV[dynIdx].Id;
+                            var dynInput = tr.querySelector('[data-column-id="' + dynColId + '"]');
+                            if (dynInput) dynInput.value = cellVal.trim();
+                        }
+                    }
                 });
             });
         }).catch(function(err) {
@@ -1120,6 +1174,190 @@ document.addEventListener('keydown', function(e) {
         });
         return;
     }
+});
+
+// ========== COLUMN MANAGEMENT PANEL ==========
+function loadColumnPanel(bagianId) {
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    $.getJSON('/Admin/GetKkjColumns?bagianId=' + bagianId, function(columns) {
+        var html = '';
+        if (columns.length === 0) {
+            html = '<p class="text-muted small">Belum ada kolom. Klik "Tambah Kolom" untuk menambahkan.</p>';
+        } else {
+            html = '<table class="table table-sm table-bordered"><thead><tr><th>Urutan</th><th>Nama Kolom</th><th>Aksi</th></tr></thead><tbody>';
+            columns.forEach(function(col) {
+                html += '<tr data-col-id="' + col.Id + '">'
+                    + '<td><input type="number" class="form-control form-control-sm col-order-input" value="' + col.DisplayOrder + '" style="width:60px;"></td>'
+                    + '<td><input type="text" class="form-control form-control-sm col-name-panel-input" value="' + escHtml(col.Name) + '"></td>'
+                    + '<td>'
+                    + '<button class="btn btn-sm btn-outline-primary me-1 btn-save-col" title="Simpan"><i class="bi bi-check"></i></button>'
+                    + '<button class="btn btn-sm btn-outline-danger btn-delete-col" title="Hapus"><i class="bi bi-trash"></i></button>'
+                    + '</td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        document.getElementById('columnListContainer').innerHTML = html;
+
+        // Wire save buttons
+        document.querySelectorAll('.btn-save-col').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tr = btn.closest('tr');
+                var colId = parseInt(tr.dataset.colId);
+                var name = tr.querySelector('.col-name-panel-input').value.trim();
+                var order = parseInt(tr.querySelector('.col-order-input').value) || 0;
+                $.ajax({
+                    url: '/Admin/KkjColumnSave',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    headers: { 'RequestVerificationToken': token },
+                    data: JSON.stringify({ Id: colId, Name: name, DisplayOrder: order }),
+                    success: function(resp) {
+                        if (resp.success) {
+                            // Update kkjBagians cache
+                            var bagian = kkjBagians.find(function(b) { return b.Id === bagianId; });
+                            if (bagian) {
+                                var col = bagian.Columns.find(function(c) { return c.Id === colId; });
+                                if (col) { col.Name = name; col.DisplayOrder = order; }
+                            }
+                            loadColumnPanel(bagianId);
+                            var filter = document.getElementById('bagianFilter');
+                            if (filter) renderReadTable(filter.value);
+                        } else {
+                            alert('Error: ' + resp.message);
+                        }
+                    }
+                });
+            });
+        });
+
+        // Wire delete buttons
+        document.querySelectorAll('.btn-delete-col').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var tr = btn.closest('tr');
+                var colId = parseInt(tr.dataset.colId);
+                if (!confirm('Hapus kolom ini? Tidak dapat dihapus jika masih ada data nilai.')) return;
+                $.ajax({
+                    url: '/Admin/KkjColumnDelete',
+                    type: 'POST',
+                    data: { id: colId, __RequestVerificationToken: token },
+                    success: function(resp) {
+                        if (resp.success) {
+                            var bagian = kkjBagians.find(function(b) { return b.Id === bagianId; });
+                            if (bagian) bagian.Columns = bagian.Columns.filter(function(c) { return c.Id !== colId; });
+                            loadColumnPanel(bagianId);
+                            var filter = document.getElementById('bagianFilter');
+                            if (filter) renderReadTable(filter.value);
+                        } else {
+                            alert(resp.message);
+                        }
+                    }
+                });
+            });
+        });
+    });
+}
+
+// Add column button
+document.getElementById('btnAddColumn').addEventListener('click', function() {
+    var filter = document.getElementById('bagianFilter');
+    var bagianName = filter ? filter.value : '';
+    var bagian = kkjBagians.find(function(b) { return b.Name === bagianName; });
+    if (!bagian) { alert('Pilih bagian terlebih dahulu.'); return; }
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    $.ajax({
+        url: '/Admin/KkjColumnAdd',
+        type: 'POST',
+        data: { bagianId: bagian.Id, __RequestVerificationToken: token },
+        success: function(resp) {
+            if (resp.success) {
+                bagian.Columns = bagian.Columns || [];
+                bagian.Columns.push({ Id: resp.id, Name: resp.name, DisplayOrder: resp.displayOrder });
+                loadColumnPanel(bagian.Id);
+                renderReadTable(bagianName);
+            } else {
+                alert('Error: ' + resp.message);
+            }
+        }
+    });
+});
+
+// ========== POSITION MAPPING PANEL ==========
+function loadMappingPanel(bagianId) {
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+    // Populate column select
+    var bagian = kkjBagians.find(function(b) { return b.Id === bagianId; });
+    var colSelect = document.getElementById('newPositionColumn');
+    colSelect.innerHTML = '';
+    if (bagian) {
+        (bagian.Columns || []).forEach(function(col) {
+            var opt = document.createElement('option');
+            opt.value = col.Id;
+            opt.textContent = col.Name;
+            colSelect.appendChild(opt);
+        });
+    }
+
+    $.getJSON('/Admin/GetPositionMappings?bagianId=' + bagianId, function(mappings) {
+        var html = '';
+        if (mappings.length === 0) {
+            html = '<p class="text-muted small">Belum ada pemetaan jabatan.</p>';
+        } else {
+            html = '<table class="table table-sm table-bordered"><thead><tr><th>Jabatan</th><th>Kolom KKJ</th><th>Aksi</th></tr></thead><tbody>';
+            mappings.forEach(function(m) {
+                html += '<tr>'
+                    + '<td>' + escHtml(m.Position) + '</td>'
+                    + '<td>' + escHtml(m.ColumnName) + '</td>'
+                    + '<td><button class="btn btn-sm btn-outline-danger btn-delete-mapping" data-mapping-id="' + m.Id + '">'
+                    + '<i class="bi bi-trash"></i></button></td></tr>';
+            });
+            html += '</tbody></table>';
+        }
+        document.getElementById('mappingListContainer').innerHTML = html;
+
+        document.querySelectorAll('.btn-delete-mapping').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var id = parseInt(btn.dataset.mappingId);
+                if (!confirm('Hapus pemetaan jabatan ini?')) return;
+                $.ajax({
+                    url: '/Admin/PositionMappingDelete',
+                    type: 'POST',
+                    data: { id: id, __RequestVerificationToken: token },
+                    success: function(resp) {
+                        if (resp.success) loadMappingPanel(bagianId);
+                        else alert(resp.message);
+                    }
+                });
+            });
+        });
+    });
+}
+
+document.getElementById('btnAddMapping').addEventListener('click', function() {
+    var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+    var filter = document.getElementById('bagianFilter');
+    var bagianName = filter ? filter.value : '';
+    var bagian = kkjBagians.find(function(b) { return b.Name === bagianName; });
+    var position = document.getElementById('newPositionName').value.trim();
+    var colId = parseInt(document.getElementById('newPositionColumn').value) || 0;
+    if (!position) { alert('Masukkan nama jabatan.'); return; }
+    if (!colId) { alert('Pilih kolom KKJ.'); return; }
+    $.ajax({
+        url: '/Admin/PositionMappingSave',
+        type: 'POST',
+        contentType: 'application/json',
+        headers: { 'RequestVerificationToken': token },
+        data: JSON.stringify({ Id: 0, Position: position, KkjColumnId: colId }),
+        success: function(resp) {
+            if (resp.success) {
+                document.getElementById('newPositionName').value = '';
+                if (bagian) loadMappingPanel(bagian.Id);
+            } else {
+                alert('Error: ' + resp.message);
+            }
+        }
+    });
 });
 </script>
 }
