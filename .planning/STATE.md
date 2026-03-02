@@ -58,15 +58,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 89 — KKJ Matrix Dynamic Columns (Plan 2 of 4 complete)
+**Current focus:** Phase 89 — KKJ Matrix Dynamic Columns (Plan 3 of 4 complete)
 
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
 Phase: 89 of 89 (KKJ Matrix Dynamic Columns) — IN PROGRESS
-Plan: 2 of 4 in current phase — Plan 89-02 complete
-Status: In progress — Phase 89 Plan 02 complete, ready for Plan 89-03
-Last activity: 2026-03-02 - Completed Phase 89 Plan 02: AdminController Backend + PositionTargetHelper Refactor
+Plan: 3 of 4 in current phase — Plan 89-03 complete
+Status: In progress — Phase 89 Plan 03 complete, ready for Plan 89-04
+Last activity: 2026-03-02 - Completed Phase 89 Plan 03: Views — Admin/KkjMatrix.cshtml + CMP/Kkj.cshtml Dynamic Columns
 
 Progress: [█░░░░░░░░░] 13%  (plans complete across v3.0)
 
@@ -86,6 +86,7 @@ Progress: [█░░░░░░░░░] 13%  (plans complete across v3.0)
 - [Phase 83]: Stale-ID fallback (FindAsync returning null for ID>0) handled for all three silabus levels
 - [Phase 89]: Key-value relational model (KkjColumn, KkjTargetValue, PositionColumnMapping) replaces hardcoded 15-column approach — migration 20260302093959_AddKkjDynamicColumns applied
 - [89-02]: PositionTargetHelper is now async-only using DB queries (GetTargetLevelAsync); KkjMatrixSave uses KkjMatrixSaveDto with dynamic TargetValues for upsert; KkjColumn + PositionColumnMapping CRUD actions added to AdminController
+- [89-03]: Admin/KkjMatrix.cshtml has zero Label_*/Target_* references; dynamic columns from KkjColumn; Kelola Kolom + Kelola Pemetaan Jabatan panels added; CMP/Kkj.cshtml uses ViewBag.Columns for dynamic column rendering
 
 ### Roadmap Evolution
 
@@ -110,5 +111,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 89-02-PLAN.md — AdminController Backend + PositionTargetHelper Refactor. Ready for 89-03.
+Stopped at: Completed 89-03-PLAN.md — Views Admin/KkjMatrix.cshtml + CMP/Kkj.cshtml Dynamic Columns. Ready for 89-04.
 Resume file: .planning/phases/89-kkj-matrix-dynamic-columns-redesign-fixed-15-target-columns-to-key-value-relational-model-with-kkjcolumn-and-kkjtargetvalue-tables/89-03-PLAN.md
