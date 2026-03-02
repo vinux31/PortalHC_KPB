@@ -285,13 +285,16 @@ Plans:
 
 ### Phase 89: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model with KkjColumn and KkjTargetValue tables
 
-**Goal:** [To be planned]
+**Goal:** Redesign KKJ Matrix from fixed 15 Target_* columns to key-value relational model with KkjColumn, KkjTargetValue, and PositionColumnMapping tables
 **Requirements**: TBD
 **Depends on:** Phase 88
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 89 to break down)
+- [x] 89-01: Data Model & EF Core Migration (AddKkjDynamicColumns)
+- [x] 89-02: AdminController Backend + PositionTargetHelper Refactor
+- [ ] 89-03: KkjMatrix.cshtml View Update (dynamic column rendering)
+- [ ] 89-04: CMPController Kkj view + downstream consumers
 
 ---
 

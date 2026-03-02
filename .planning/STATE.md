@@ -58,15 +58,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 89 — KKJ Matrix Dynamic Columns (Plan 1 of 4 complete)
+**Current focus:** Phase 89 — KKJ Matrix Dynamic Columns (Plan 2 of 4 complete)
 
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
 Phase: 89 of 89 (KKJ Matrix Dynamic Columns) — IN PROGRESS
-Plan: 1 of 4 in current phase — Plan 89-01 complete
-Status: In progress — Phase 89 Plan 01 complete, ready for Plan 89-02
-Last activity: 2026-03-02 - Completed Phase 89 Plan 01: Data Model & EF Core Migration (AddKkjDynamicColumns)
+Plan: 2 of 4 in current phase — Plan 89-02 complete
+Status: In progress — Phase 89 Plan 02 complete, ready for Plan 89-03
+Last activity: 2026-03-02 - Completed Phase 89 Plan 02: AdminController Backend + PositionTargetHelper Refactor
 
 Progress: [█░░░░░░░░░] 13%  (plans complete across v3.0)
 
@@ -85,6 +85,7 @@ Progress: [█░░░░░░░░░] 13%  (plans complete across v3.0)
 - [Phase 83]: Orphan cleanup uses HashSet tracking instead of nav property counts after RemoveRange
 - [Phase 83]: Stale-ID fallback (FindAsync returning null for ID>0) handled for all three silabus levels
 - [Phase 89]: Key-value relational model (KkjColumn, KkjTargetValue, PositionColumnMapping) replaces hardcoded 15-column approach — migration 20260302093959_AddKkjDynamicColumns applied
+- [89-02]: PositionTargetHelper is now async-only using DB queries (GetTargetLevelAsync); KkjMatrixSave uses KkjMatrixSaveDto with dynamic TargetValues for upsert; KkjColumn + PositionColumnMapping CRUD actions added to AdminController
 
 ### Roadmap Evolution
 
@@ -109,5 +110,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 89-01-PLAN.md — Data Model & EF Core Migration. Ready for 89-02.
-Resume file: .planning/phases/89-kkj-matrix-dynamic-columns-redesign-fixed-15-target-columns-to-key-value-relational-model-with-kkjcolumn-and-kkjtargetvalue-tables/89-02-PLAN.md
+Stopped at: Completed 89-02-PLAN.md — AdminController Backend + PositionTargetHelper Refactor. Ready for 89-03.
+Resume file: .planning/phases/89-kkj-matrix-dynamic-columns-redesign-fixed-15-target-columns-to-key-value-relational-model-with-kkjcolumn-and-kkjtargetvalue-tables/89-03-PLAN.md
