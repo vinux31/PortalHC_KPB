@@ -262,6 +262,179 @@ namespace HcPortal.Controllers
             return Json(new { success = true });
         }
 
+        #region KkjColumn Management
+
+        // GET /Admin/GetKkjColumns?bagianId=X
+        [Authorize(Roles = "Admin, HC")]
+        [HttpGet]
+        public async Task<IActionResult> GetKkjColumns(int bagianId)
+        {
+            var columns = await _context.KkjColumns
+                .Where(c => c.BagianId == bagianId)
+                .OrderBy(c => c.DisplayOrder)
+                .Select(c => new { c.Id, c.BagianId, c.Name, c.DisplayOrder })
+                .ToListAsync();
+
+            return Json(columns);
+        }
+
+        // POST /Admin/KkjColumnAdd
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KkjColumnAdd(int bagianId)
+        {
+            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            if (bagian == null)
+                return Json(new { success = false, message = "Bagian tidak ditemukan." });
+
+            var maxOrder = await _context.KkjColumns
+                .Where(c => c.BagianId == bagianId)
+                .MaxAsync(c => (int?)c.DisplayOrder) ?? 0;
+
+            var newColumn = new KkjColumn
+            {
+                BagianId     = bagianId,
+                Name         = "Kolom Baru",
+                DisplayOrder = maxOrder + 1
+            };
+            _context.KkjColumns.Add(newColumn);
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, id = newColumn.Id, name = newColumn.Name, displayOrder = newColumn.DisplayOrder });
+        }
+
+        // POST /Admin/KkjColumnSave
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KkjColumnSave([FromBody] KkjColumn column)
+        {
+            if (string.IsNullOrWhiteSpace(column.Name))
+                return Json(new { success = false, message = "Nama kolom diperlukan." });
+
+            var existing = await _context.KkjColumns.FindAsync(column.Id);
+            if (existing == null)
+                return Json(new { success = false, message = "Kolom tidak ditemukan." });
+
+            existing.Name         = column.Name.Trim();
+            existing.DisplayOrder = column.DisplayOrder;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true });
+        }
+
+        // POST /Admin/KkjColumnDelete
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> KkjColumnDelete(int id)
+        {
+            var column = await _context.KkjColumns.FindAsync(id);
+            if (column == null)
+                return Json(new { success = false, message = "Kolom tidak ditemukan." });
+
+            // Block deletion if target values exist
+            var hasValues = await _context.KkjTargetValues.AnyAsync(v => v.KkjColumnId == id);
+            if (hasValues)
+                return Json(new { success = false, blocked = true,
+                    message = "Tidak dapat menghapus kolom yang masih memiliki data nilai. Hapus semua data nilai dahulu." });
+
+            // Block deletion if position mappings exist
+            var hasMappings = await _context.PositionColumnMappings.AnyAsync(m => m.KkjColumnId == id);
+            if (hasMappings)
+                return Json(new { success = false, blocked = true,
+                    message = "Tidak dapat menghapus kolom yang masih dipetakan ke jabatan. Hapus pemetaan jabatan dahulu." });
+
+            _context.KkjColumns.Remove(column);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        #endregion
+
+        #region PositionColumnMapping Management
+
+        // GET /Admin/GetPositionMappings?bagianId=X
+        // Returns all PositionColumnMappings for columns belonging to the specified Bagian
+        [Authorize(Roles = "Admin, HC")]
+        [HttpGet]
+        public async Task<IActionResult> GetPositionMappings(int bagianId)
+        {
+            var mappings = await _context.PositionColumnMappings
+                .Include(m => m.KkjColumn)
+                .Where(m => m.KkjColumn.BagianId == bagianId)
+                .OrderBy(m => m.KkjColumn.DisplayOrder)
+                .ThenBy(m => m.Position)
+                .Select(m => new
+                {
+                    m.Id,
+                    m.Position,
+                    m.KkjColumnId,
+                    ColumnName = m.KkjColumn.Name
+                })
+                .ToListAsync();
+
+            return Json(mappings);
+        }
+
+        // POST /Admin/PositionMappingSave
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PositionMappingSave([FromBody] PositionColumnMapping mapping)
+        {
+            if (string.IsNullOrWhiteSpace(mapping.Position))
+                return Json(new { success = false, message = "Nama jabatan diperlukan." });
+
+            if (mapping.KkjColumnId == 0)
+                return Json(new { success = false, message = "Kolom KKJ diperlukan." });
+
+            // Check if this position-column pair already exists
+            var existing = await _context.PositionColumnMappings
+                .FirstOrDefaultAsync(m => m.Id == mapping.Id);
+
+            if (existing == null)
+            {
+                // Check for duplicate before insert
+                var duplicate = await _context.PositionColumnMappings
+                    .AnyAsync(m => m.Position == mapping.Position && m.KkjColumnId == mapping.KkjColumnId);
+                if (duplicate)
+                    return Json(new { success = false, message = "Pemetaan jabatan ke kolom ini sudah ada." });
+
+                _context.PositionColumnMappings.Add(new PositionColumnMapping
+                {
+                    Position    = mapping.Position.Trim(),
+                    KkjColumnId = mapping.KkjColumnId
+                });
+            }
+            else
+            {
+                existing.Position    = mapping.Position.Trim();
+                existing.KkjColumnId = mapping.KkjColumnId;
+            }
+
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        // POST /Admin/PositionMappingDelete
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PositionMappingDelete(int id)
+        {
+            var mapping = await _context.PositionColumnMappings.FindAsync(id);
+            if (mapping == null)
+                return Json(new { success = false, message = "Pemetaan tidak ditemukan." });
+
+            _context.PositionColumnMappings.Remove(mapping);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        #endregion
+
         // POST /Admin/KkjMatrixDelete
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]

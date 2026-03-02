@@ -55,19 +55,37 @@ namespace HcPortal.Controllers
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
             var userRole = userRoles.FirstOrDefault();
             int userLevel = user?.RoleLevel ?? 6;
-            
+
             ViewBag.UserRole = userRole;
             ViewBag.UserLevel = userLevel;
             ViewBag.SelectedSection = section;
-            
+
             // If Level 1-3 (Admin, HC, Management) and no section selected, show selection page
             if (UserRoles.HasFullAccess(userLevel) && string.IsNullOrEmpty(section))
             {
                 return View("KkjSectionSelect");
             }
 
-            // ✅ QUERY FROM DATABASE instead of hardcoded data
+            // Determine selectedSection — for workers use their unit, for admin/HC use the passed section param
+            var selectedSection = section;
+            if (string.IsNullOrEmpty(selectedSection) && !UserRoles.HasFullAccess(userLevel))
+            {
+                // Workers: use their assigned unit as section
+                selectedSection = user?.Unit;
+            }
+
+            // Load KkjColumns for the selected section (via KkjBagian.Name match)
+            var bagian = await _context.KkjBagians
+                .Include(b => b.Columns.OrderBy(c => c.DisplayOrder))
+                .FirstOrDefaultAsync(b => b.Name == selectedSection);
+
+            ViewBag.Columns = bagian?.Columns?.OrderBy(c => c.DisplayOrder).ToList() ?? new List<KkjColumn>();
+
+            // Load items with included TargetValues for dynamic column rendering
             var matrixData = await _context.KkjMatrices
+                .Where(k => k.Bagian == selectedSection)
+                .Include(m => m.TargetValues)
+                .ThenInclude(v => v.KkjColumn)
                 .OrderBy(k => k.No)
                 .ToListAsync();
 
@@ -1422,7 +1440,7 @@ namespace HcPortal.Controllers
                                                          c.KkjMatrixItemId == mapping.KkjMatrixItemId);
                             if (existingLevel == null)
                             {
-                                int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, assessmentUser?.Position);
+                                int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, assessmentUser?.Position);
                                 _context.UserCompetencyLevels.Add(new UserCompetencyLevel
                                 {
                                     UserId = assessment.UserId,
@@ -1553,7 +1571,7 @@ namespace HcPortal.Controllers
                             if (existingLevel == null)
                             {
                                 // Create new competency level record
-                                int targetLevel = PositionTargetHelper.GetTargetLevel(mapping.KkjMatrixItem!, assessmentUser?.Position);
+                                int targetLevel = await PositionTargetHelper.GetTargetLevelAsync(_context, mapping.KkjMatrixItemId, assessmentUser?.Position);
                                 _context.UserCompetencyLevels.Add(new UserCompetencyLevel
                                 {
                                     UserId = assessment.UserId,
