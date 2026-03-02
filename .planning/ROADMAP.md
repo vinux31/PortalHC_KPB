@@ -299,7 +299,7 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
   2. Navigating to CMP/CpdpProgress, CMP/CreateTrainingRecord, or CMP/ManageQuestions returns 404 or redirects correctly — no orphaned views remain
   3. The Kelola Data hub shows an AuditLog card visible to Admin and HC only; Worker role does not see it
   4. A decision is documented for Override Silabus and Coaching Guidance tabs (either removed with justification or kept with rationale recorded in PROJECT.md)
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 82-01-PLAN.md — Rename "Proton Progress" → "Coaching Proton" across CDPController, views, and exports (CLN-01)
@@ -403,7 +403,7 @@ Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 82. Cleanup & Rename | v3.0 | 0/3 | Not started | - |
+| 82. Cleanup & Rename | 1/3 | In Progress|  | - |
 | 83. Master Data QA | v3.0 | 0/5 | Not started | - |
 | 84. Assessment Flow QA | v3.0 | 0/6 | Not started | - |
 | 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |

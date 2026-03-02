@@ -13,8 +13,8 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 - [ ] **CLN-02**: Remove orphaned CMP/CpdpProgress page (action + view)
 - [ ] **CLN-03**: Remove duplicate CMP/CreateTrainingRecord (action + view — Admin/AddTraining is canonical)
 - [ ] **CLN-04**: Remove duplicate CMP/ManageQuestions (action + view — Admin/ManageQuestions is canonical)
-- [ ] **CLN-05**: Add AuditLog card to Kelola Data hub with proper role gating
-- [ ] **CLN-06**: Analyze Override Silabus & Coaching Guidance tabs — remove if unnecessary, document if keeping
+- [x] **CLN-05**: Add AuditLog card to Kelola Data hub with proper role gating
+- [x] **CLN-06**: Analyze Override Silabus & Coaching Guidance tabs — remove if unnecessary, document if keeping
 
 ### Assessment Flow (End-to-End)
 
@@ -95,8 +95,8 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 | CLN-02 | Phase 82 | Pending |
 | CLN-03 | Phase 82 | Pending |
 | CLN-04 | Phase 82 | Pending |
-| CLN-05 | Phase 82 | Pending |
-| CLN-06 | Phase 82 | Pending |
+| CLN-05 | Phase 82 | Complete |
+| CLN-06 | Phase 82 | Complete |
 | ASSESS-01 | Phase 84 | Pending |
 | ASSESS-02 | Phase 84 | Pending |
 | ASSESS-03 | Phase 84 | Pending |
