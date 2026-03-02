@@ -9,7 +9,7 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 
 ### Cleanup & Rename
 
-- [ ] **CLN-01**: Rename "Proton Progress" → "Coaching Proton" in all views, nav entries, hub cards, breadcrumbs, and page titles
+- [x] **CLN-01**: Rename "Proton Progress" → "Coaching Proton" in all views, nav entries, hub cards, breadcrumbs, and page titles
 - [ ] **CLN-02**: Remove orphaned CMP/CpdpProgress page (action + view)
 - [ ] **CLN-03**: Remove duplicate CMP/CreateTrainingRecord (action + view — Admin/AddTraining is canonical)
 - [ ] **CLN-04**: Remove duplicate CMP/ManageQuestions (action + view — Admin/ManageQuestions is canonical)
@@ -91,7 +91,7 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLN-01 | Phase 82 | Pending |
+| CLN-01 | Phase 82 | Complete |
 | CLN-02 | Phase 82 | Pending |
 | CLN-03 | Phase 82 | Pending |
 | CLN-04 | Phase 82 | Pending |
