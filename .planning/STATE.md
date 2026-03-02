@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-02T13:05:34.984Z"
+progress:
+  total_phases: 54
+  completed_phases: 50
+  total_plans: 118
+  completed_plans: 113
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-02T12:59:04.283Z"
 progress:
   total_phases: 54
@@ -116,9 +129,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Milestone:** v3.0 Full QA & Feature Completion
 Phase: 90 of 90 (KKJ Matrix Admin Full Rewrite) — IN PROGRESS
-Plan: 1 of 4 in current phase — Plan 90-01 complete (data model foundation)
-Status: Phase 90 in progress — data model cleanup done, controller/view rewrites pending (Plans 02-04)
-Last activity: 2026-03-02 - Completed Phase 90 Plan 01: KkjFile model added, 4 old KKJ table models removed, EF migration DropKkjTablesAddKkjFiles applied, PositionTargetHelper deleted, build clean
+Plan: 2 of 4 in current phase — Plan 90-02 complete (AdminController KKJ section rewritten)
+Status: Phase 90 in progress — data model done (01), controller done (02), view rewrites pending (Plans 03-04)
+Last activity: 2026-03-02 - Completed Phase 90 Plan 02: AdminController KKJ section rewritten — file management actions (KkjMatrix, KkjUpload, KkjFileDownload, KkjFileDelete, KkjFileHistory), old table CRUD removed, build clean
 
 Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 
@@ -142,6 +155,8 @@ Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 - [89-04]: CMPController.Kkj() rewritten — no KkjSectionSelect redirect; role-based ViewBag.AllBagians (L1-L4 all bagians, L5-L6 own only); section URL validation for L5/L6; Views/CMP/Kkj.cshtml rewritten with bagian dropdown, dynamic columns, color-coded target values (tv-1 to tv-5), sticky columns, crosshair hover
 - [Phase 89]: [89-03]: Admin/KkjMatrix.cshtml has zero Label_*/Target_* references; dynamic columns from KkjColumn; Kelola Kolom + Kelola Pemetaan Jabatan panels added; multi-cell selection and clipboard paste removed
 - [Phase 90]: KkjMatrixItemId preserved as orphaned int in AssessmentCompetencyMap and UserCompetencyLevel — FK constraint removed, column kept for data continuity
+- [Phase 90]: KkjBagianSave (bulk JSON save) removed — new file-based UI uses individual KkjBagianAdd/Delete only
+- [Phase 90]: KkjFileDelete is soft-delete (IsArchived=true) — physical file retained; KkjFileDownload open to all authenticated users
 
 ### Roadmap Evolution
 
@@ -167,5 +182,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 90-01-PLAN.md — KkjFile model added, 4 old KKJ table models/tables dropped, EF migration DropKkjTablesAddKkjFiles applied. Phase 90 Plan 01 complete.
-Resume file: .planning/phases/90-kkj-matrix-admin-full-rewrite-document-based-page-with-hc-file-crud-and-cdp-planidp-integration/90-01-SUMMARY.md
+Stopped at: Completed 90-02-PLAN.md — AdminController KKJ section rewritten to file management actions (KkjMatrix GET, KkjUpload GET/POST, KkjFileDownload, KkjFileDelete, KkjFileHistory). Old CRUD removed. Build clean.
+Resume file: .planning/phases/90-kkj-matrix-admin-full-rewrite-document-based-page-with-hc-file-crud-and-cdp-planidp-integration/90-02-SUMMARY.md
