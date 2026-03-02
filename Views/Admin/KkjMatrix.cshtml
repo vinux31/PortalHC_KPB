@@ -153,6 +153,9 @@
         <button id="btnAddBagianRead" class="btn btn-outline-success btn-sm">
             <i class="bi bi-plus-square me-1"></i>Tambah Bagian
         </button>
+        <a id="linkViewCmp" href="/CMP/Kkj" class="btn btn-outline-info btn-sm ms-auto" target="_blank" title="Lihat bagian ini di CMP/Kkj">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Lihat di CMP
+        </a>
     </div>
     <div id="readTablePanel"></div>
 </div>
@@ -250,11 +253,19 @@ function renderReadTable(bagianName) {
 document.addEventListener('DOMContentLoaded', function() {
     var filter = document.getElementById('bagianFilter');
     if (filter) {
+        function updateCmpLink(bagianName) {
+            var link = document.getElementById('linkViewCmp');
+            if (link) link.href = '/CMP/Kkj?section=' + encodeURIComponent(bagianName);
+        }
         filter.addEventListener('change', function() {
             renderReadTable(this.value);
+            updateCmpLink(this.value);
         });
         // Initial render for first option
-        if (filter.value) renderReadTable(filter.value);
+        if (filter.value) {
+            renderReadTable(filter.value);
+            updateCmpLink(filter.value);
+        }
     }
 });
 
@@ -287,6 +298,8 @@ document.getElementById('btnRenameBagian').addEventListener('click', function() 
                 if (opt) { opt.value = newName; opt.textContent = newName; }
                 filter.value = newName;
                 renderReadTable(newName);
+                var cmpLink = document.getElementById('linkViewCmp');
+                if (cmpLink) cmpLink.href = '/CMP/Kkj?section=' + encodeURIComponent(newName);
             } else {
                 alert('Error: ' + resp.message);
             }
