@@ -110,6 +110,19 @@
             </div>
         </a>
     </div>
+    <div class="col-md-4">
+        <a href="@Url.Action("CpdpProgress", "CMP")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-journal-check fs-5 text-primary"></i>
+                        <span class="fw-bold">CPDP Progress Tracking</span>
+                    </div>
+                    <small class="text-muted">Pantau progres kompetensi CPDP pekerja berdasarkan bukti assessment</small>
+                </div>
+            </div>
+        </a>
+    </div>
 </div>
 
 <hr class="my-4">
@@ -147,6 +160,22 @@
                         <span class="fw-bold">Assessment Monitoring</span>
                     </div>
                     <small class="text-muted">Pantau progress assessment real-time — lihat status grup, peserta, dan regenerate token</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
+        <a href="@Url.Action("AuditLog", "Admin")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-journal-text fs-5 text-primary"></i>
+                        <span class="fw-bold">Audit Log</span>
+                    </div>
+                    <small class="text-muted">Lihat riwayat aktivitas pengelolaan assessment oleh Admin dan HC</small>
                 </div>
             </div>
         </a>
