@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: in-progress
-last_updated: "2026-03-02T00:00:00.000Z"
-last_activity: "2026-03-02 — Phase 82 Plan 03 complete: AuditLog card added, CLN-06 decision documented"
+last_updated: "2026-03-02T06:30:00.000Z"
+last_activity: "2026-03-02 — Phase 82 Plan 02 complete: orphaned CMP endpoints removed, CLN-02/CLN-03/CLN-04 done"
 progress:
   total_phases: 6
   completed_phases: 0
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 Phase: 82 of 87 (Cleanup & Rename) — COMPLETE
 Plan: 3 of 3 in current phase — ALL COMPLETE
 Status: In progress — Phase 82 complete, ready for Phase 83
-Last activity: 2026-03-02 — Phase 82 Plan 03 complete: AuditLog card + CLN-06 decision
+Last activity: 2026-03-02 — Phase 82 all plans complete (82-01, 82-02, 82-03)
 
 Progress: [█░░░░░░░░░] 13%  (3/23 plans complete across v3.0)
 
@@ -41,6 +41,7 @@ Progress: [█░░░░░░░░░] 13%  (3/23 plans complete across v3.0
 - [v3.0 Roadmap]: Plan IDP (Phase 86) depends on Phase 83 (Silabus/Guidance data verified)
 - [v3.0 Roadmap]: Dashboard QA (Phase 87) goes last — depends on all features being ready
 - [82-03 CLN-06]: Keep Override Silabus & Coaching Guidance tabs as-is — functional, no bugs, used by downstream phases 85-86
+- [82-02 CLN-02/03/04]: Removed entire CMP #region Question Management block (ManageQuestions+AddQuestion+DeleteQuestion) since views deleted and canonical versions in AdminController
 
 ### Pending Todos
 
@@ -53,5 +54,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 82-01-PLAN.md — Proton Progress renamed to Coaching Proton (CLN-01 complete)
+Stopped at: Completed 82-02-PLAN.md — orphaned CMP endpoints removed, dead links fixed (CLN-02, CLN-03, CLN-04 complete)
 Resume file: None
