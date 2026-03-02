@@ -462,6 +462,13 @@ namespace HcPortal.Controllers
             if (item == null)
                 return Json(new { success = false, message = "CPDP item tidak ditemukan." });
 
+            // Guard: block deletion if IDP records still reference this competency name
+            var refCount = await _context.IdpItems
+                .CountAsync(i => i.Kompetensi == item.NamaKompetensi);
+            if (refCount > 0)
+                return Json(new { success = false, blocked = true,
+                    message = $"Tidak dapat dihapus — {refCount} IDP record masih mereferensi kompetensi ini." });
+
             _context.CpdpItems.Remove(item);
             await _context.SaveChangesAsync();
 
