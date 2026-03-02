@@ -1,111 +1,147 @@
-# Phase 89: KKJ Matrix Dynamic Columns - Context
+# Phase 89: KKJ Matrix Dynamic Columns - Context (Rewrite)
 
-**Gathered:** 2026-03-02
+**Gathered:** 2026-03-02 (updated)
 **Status:** Ready for planning
+**Reason for update:** UAT abandoned — user requests full page rewrite. Backend (models, migration, helper) is solid. Views and controller actions need clean rewrite from scratch.
 
 <domain>
 ## Phase Boundary
 
-Redesign KkjMatrixItem from 15 fixed Target_* columns to a key-value relational model using new KkjColumn and KkjTargetValue tables. Update all consumers: KkjMatrix admin view, CMP/Kkj worker view, PositionTargetHelper, and Assessment flow. This enables each Bagian to have its own set of target columns (dynamic, not hardcoded).
+Clean rewrite of KkjMatrix admin page (Views/Admin/KkjMatrix.cshtml) and CMP/Kkj worker view (Views/CMP/Kkj.cshtml) plus their controller actions (AdminController KkjMatrix region, CMPController.Kkj). Backend data model (KkjColumn, KkjTargetValue, KkjMatrixItem, KkjBagian) and migration are working — no changes needed to models or database.
+
+**Why rewrite:** Previous implementation patched old 15-column code with new dynamic column code. Result was messy/conflicting. User said: "hapus semua code di page KkjMatrix, susun ulang dari awal sehingga hasilnya bersih."
 
 </domain>
 
 <decisions>
 ## Implementation Decisions
 
-### Data Migration
-- Start fresh: remove all existing Target_* data from KkjMatrixItem
-- HC will re-input target values via Excel import (Phase 88) after this phase completes
-- Keep base KkjMatrixItem data (No, SkillGroup, SubSkillGroup, Indeks, Kompetensi, Bagian) intact
+### Page Layout (Admin KkjMatrix)
+- Matrix table always visible at top
+- Admin tools (Bagian management, column management) in collapsible cards below table
+- Bagian selector is a dropdown filter in the page header
+- When no Bagian selected: show only the Bagian dropdown, no table
+- Bagian CRUD (add/rename/delete) stays on this page, near the Bagian dropdown
 
-### New Table Design
-- **KkjColumn** table: Id, BagianId (FK to KkjBagian), Name (string), DisplayOrder (int)
-  - Defines target columns per Bagian (e.g., Bagian "RFCC" → columns "Section Head", "Operator Process Water", etc.)
-  - Each Bagian can have different number of columns
-- **KkjTargetValue** table: Id, KkjMatrixItemId (FK to KkjMatrixItem), KkjColumnId (FK to KkjColumn), Value (string)
-  - Key-value store: each cell is one row
-  - Value is string (same as current Target_* columns, typically "1"-"5" or "-")
-- Remove all 15 Target_* columns from KkjMatrixItem model
-- Remove all 15 Label_* columns from KkjBagian model
+### Read/Edit Mode
+- Toggle between read mode (clean styled table) and edit mode (input fields)
+- Button to switch between modes
+- Read mode: styled, non-editable table display
+- Edit mode: all cells become editable (fixed columns + dynamic columns)
 
-### Position Mapping
-- **Admin define mapping**: new table PositionColumnMapping (Id, Position string, KkjColumnId FK)
-- Admin can set which user position maps to which KkjColumn via UI in KkjMatrix page
-- Replaces hardcoded Dictionary in PositionTargetHelper.cs
-- PositionTargetHelper.GetTargetLevel() will query PositionColumnMapping + KkjTargetValue instead of reflection
-- If user position is not mapped: show **warning to admin** in assessment result ("Posisi X belum di-map ke kolom KKJ")
+### Edit Mode — Row Operations
+- Full CRUD in edit mode: add new rows, delete rows, edit all cells
+- **Inline row insert**: HC can insert a new row below any existing row, not just at the end
+- One Save button commits all changes (batch save, single request)
+- Cancel button discards all unsaved changes and returns to read mode
 
-### KkjMatrix Admin View
-- Spreadsheet-like editable view (same UX as current)
-- Columns rendered dynamically from KkjColumn table per selected Bagian
-- Admin can add/rename/delete/reorder columns directly in UI (like current Bagian management)
-- Columns also auto-created during Excel import (Phase 88)
+### Column Management
+- **Claude's discretion** for UI approach (collapsible card, modal, or inline header editing)
+- HC can add/rename/delete/reorder columns for current Bagian
+- Columns are per-Bagian (each Bagian has its own set)
+
+### Target Value Validation
+- Only values 1, 2, 3, 4, 5, or - (dash) allowed in dynamic column cells
+- Reject any other input
+
+### Data Entry
+- Start simple: basic cell-by-cell editing only
+- NO clipboard paste from Excel (defer to future enhancement)
+- NO multi-cell selection (defer to future enhancement)
+- NO keyboard shortcuts beyond basic Tab navigation
+
+### Role Permissions — Admin KkjMatrix
+- Access: Admin and HC roles only (Authorize(Roles = "Admin, HC"))
+- Both Admin and HC have full CRUD on matrix, columns, and bagian
 
 ### CMP/Kkj Worker View
-- Follow same pattern as KkjMatrix admin view
-- Render columns dynamically from DB
-- Worker sees columns for their Bagian only (filtered)
+- Design follows Admin KkjMatrix style but read-only table (no edit mode)
+- Full rewrite of both view and CMPController.Kkj action
+- Always show Bagian dropdown (options filtered by role)
+- Role-based Bagian access:
+  - HC, Admin, Level 3, Level 4: see ALL Bagians in dropdown
+  - Level 5 and Level 6: see only their own Bagian in dropdown
 
-### Assessment Flow
-- CMPController (lines 1425, 1556) and AdminController (lines 2296, 2368) use GetTargetLevel()
-- Update to use new PositionColumnMapping → KkjTargetValue lookup
-- UserCompetencyLevel and AssessmentCompetencyMap FK to KkjMatrixItem remains unchanged (only target lookup changes)
+### Table Styling
+- Admin KkjMatrix is the design source; CMP/Kkj follows same design (read-only)
+- First 5 columns frozen/sticky (No, SkillGroup, SubSkillGroup, Indeks, Kompetensi) when scrolling horizontally
+- Sticky header row when scrolling vertically
+- Clean, modern Bootstrap styling
+
+### Position Mapping — DEFERRED
+- PositionColumnMapping feature removed from this phase scope
+- Remove PositionMapping CRUD actions from AdminController
+- Keep PositionColumnMapping model and table in DB (no migration changes)
+- PositionTargetHelper stays as-is (already async, already working)
+- Position mapping UI will be implemented in a future phase
+
+### Backend Rewrite Scope
+- **AdminController**: Rewrite KkjMatrix region (KkjMatrix, KkjMatrixSave, KkjColumn CRUD actions). Remove PositionMapping CRUD actions
+- **CMPController**: Rewrite Kkj() action with role-based Bagian filtering
+- **Models**: No changes — KkjColumn, KkjTargetValue, KkjBagian, KkjMatrixItem stay as-is
+- **Migration**: No changes — existing migration is correct
+- **PositionTargetHelper**: No changes — already refactored to async
 
 ### Claude's Discretion
-- Exact EF Core migration strategy (code-first migration)
-- KkjColumn management UI layout details
-- PositionColumnMapping admin UI design
-- Performance optimization for key-value queries (eager loading, caching)
-- Handling edge cases in KkjMatrixSave for dynamic columns
+- Column management UI layout (card, modal, or inline)
+- Whether to keep PositionColumnMapping model/DbSet or clean it up
+- Table CSS specifics (exact colors, spacing, scrollbar styling)
+- Toast notification and error message styling
+- Edit mode input field types and styling
+- Performance optimization (eager loading strategy)
 
 </decisions>
 
 <specifics>
 ## Specific Ideas
 
-- User wants system where "setiap bagian memiliki kolom yang berbeda" — each Bagian has its own unique set of target columns
-- Example: Bagian RFCC might have "Section Head", "Operator Process Water", "Sr Supervisor" while Bagian GAST has completely different column names
-- HC defines the structure — system follows what HC imports/creates
-- Current KkjMatrix spreadsheet UX is good — keep it, just make columns dynamic
+- "hapus semua data/code di page KkjMatrix, susun ulang dari awal" — full clean rewrite, no patching
+- Each Bagian has its own unique set of target columns (dynamic, not hardcoded)
+- HC defines the structure (columns) AND inputs all data (rows + values)
+- Current spreadsheet-like UX concept is good — rebuild it cleanly
+- Phase 88 (Excel import) will work after this rewrite completes — HC downloads template with fixed + dynamic columns
 
 </specifics>
 
 <code_context>
 ## Existing Code Insights
 
-### Files to Modify
-- `Models/KkjModels.cs` — Remove 15 Target_* from KkjMatrixItem, 15 Label_* from KkjBagian, add KkjColumn + KkjTargetValue + PositionColumnMapping models
-- `Helpers/PositionTargetHelper.cs` — Replace hardcoded Dictionary with DB lookup via PositionColumnMapping
-- `Controllers/AdminController.cs` — Update KkjMatrix, KkjMatrixSave, KkjMatrixDelete actions; add column management actions; update GetTargetLevel calls
-- `Controllers/CMPController.cs` — Update GetTargetLevel calls (lines 1425, 1556)
-- `Views/Admin/KkjMatrix.cshtml` — Dynamic column rendering instead of 15 hardcoded columns
-- `Views/CMP/Kkj.cshtml` — Dynamic column rendering (read-only)
-- `Data/ApplicationDbContext.cs` — Add DbSets, configure FKs for new tables
-- `Data/SeedCompetencyMappings.cs` — May need update for new schema
+### Working Backend (NO changes needed)
+- `Models/KkjModels.cs` — KkjColumn, KkjTargetValue, PositionColumnMapping, KkjBagian, KkjMatrixItem all working
+- `Data/ApplicationDbContext.cs` — DbSets and OnModelCreating configuration working
+- `Migrations/20260302093959_AddKkjDynamicColumns.cs` — Applied successfully
+- `Helpers/PositionTargetHelper.cs` — Async DB-query based, working
+
+### Files to Rewrite from Scratch
+- `Views/Admin/KkjMatrix.cshtml` — DELETE all content, rewrite from scratch (~1300 lines → clean new version)
+- `Views/CMP/Kkj.cshtml` — DELETE all content, rewrite from scratch (~290 lines → clean new version)
+- `Controllers/AdminController.cs` — Rewrite KkjMatrix region actions, remove PositionMapping actions
+- `Controllers/CMPController.cs` — Rewrite Kkj() action with role-based filtering
 
 ### Established Patterns
-- KkjBagian management (add/delete/rename) pattern exists — reuse for KkjColumn management
-- ClosedXML for Excel (Phase 88 will use this)
-- AntiForgeryToken on all POST
-- JSON API responses for inline edit operations
+- KkjBagian management (add/delete/rename) pattern — reuse for clean column management
+- AntiForgeryToken on all POST actions
+- JSON API responses for AJAX operations
+- Bootstrap 5 + Bootstrap Icons for UI
 
 ### Integration Points
-- UserCompetencyLevel.KkjMatrixItemId → FK unchanged
-- AssessmentCompetencyMap.KkjMatrixItemId → FK unchanged
-- PositionTargetHelper → used by CMPController + AdminController assessment flows
-- Phase 88 (Import/Export) depends on this phase completing first
+- Phase 88 (Import/Export) depends on this rewrite completing
+- Assessment flow (PositionTargetHelper) not affected by this rewrite
+- UserCompetencyLevel and AssessmentCompetencyMap FKs unchanged
 
 </code_context>
 
 <deferred>
 ## Deferred Ideas
 
-- Excel import/export using dynamic columns → Phase 88 (depends on this phase)
-- Template per-Bagian download → Phase 88 future enhancement
+- Position mapping UI (PositionColumnMapping CRUD) — future phase
+- Excel clipboard paste into matrix table — future enhancement
+- Multi-cell selection and keyboard shortcuts — future enhancement
+- Excel import/export using dynamic columns — Phase 88 (depends on this phase)
 
 </deferred>
 
 ---
 
-*Phase: 89-kkj-matrix-dynamic-columns*
-*Context gathered: 2026-03-02*
+*Phase: 89-kkj-matrix-dynamic-columns (rewrite)*
+*Context gathered: 2026-03-02 (updated)*
