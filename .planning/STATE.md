@@ -58,17 +58,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 89 — KKJ Matrix Dynamic Columns (Plan 3 of 4 complete)
+**Current focus:** Phase 89 — KKJ Matrix Dynamic Columns (ALL 4 PLANS COMPLETE)
 
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 89 of 89 (KKJ Matrix Dynamic Columns) — IN PROGRESS
-Plan: 3 of 4 in current phase — Plan 89-03 complete
-Status: In progress — Phase 89 Plan 03 complete, ready for Plan 89-04
-Last activity: 2026-03-02 - Completed Phase 89 Plan 03: Views — Admin/KkjMatrix.cshtml + CMP/Kkj.cshtml Dynamic Columns
+Phase: 89 of 89 (KKJ Matrix Dynamic Columns) — COMPLETE
+Plan: 4 of 4 in current phase — Plan 89-04 complete
+Status: Phase 89 complete — KKJ Matrix Dynamic Columns redesign done
+Last activity: 2026-03-02 - Completed Phase 89 Plan 04: Assessment Flow — CMPController GetTargetLevel callers updated, zero CS errors
 
-Progress: [█░░░░░░░░░] 13%  (plans complete across v3.0)
+Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 
 ## Accumulated Context
 
@@ -87,6 +87,7 @@ Progress: [█░░░░░░░░░] 13%  (plans complete across v3.0)
 - [Phase 89]: Key-value relational model (KkjColumn, KkjTargetValue, PositionColumnMapping) replaces hardcoded 15-column approach — migration 20260302093959_AddKkjDynamicColumns applied
 - [89-02]: PositionTargetHelper is now async-only using DB queries (GetTargetLevelAsync); KkjMatrixSave uses KkjMatrixSaveDto with dynamic TargetValues for upsert; KkjColumn + PositionColumnMapping CRUD actions added to AdminController
 - [89-03]: Admin/KkjMatrix.cshtml has zero Label_*/Target_* references; dynamic columns from KkjColumn; Kelola Kolom + Kelola Pemetaan Jabatan panels added; CMP/Kkj.cshtml uses ViewBag.Columns for dynamic column rendering
+- [89-04]: CMPController both assessment-completion paths use GetTargetLevelAsync; .Include(m => m.KkjMatrixItem) removed from both AssessmentCompetencyMaps queries (no longer needed); zero CS compiler errors across solution
 
 ### Roadmap Evolution
 
@@ -111,5 +112,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 89-03-PLAN.md — Views Admin/KkjMatrix.cshtml + CMP/Kkj.cshtml Dynamic Columns. Ready for 89-04.
-Resume file: .planning/phases/89-kkj-matrix-dynamic-columns-redesign-fixed-15-target-columns-to-key-value-relational-model-with-kkjcolumn-and-kkjtargetvalue-tables/89-03-PLAN.md
+Stopped at: Completed 89-04-PLAN.md — Assessment Flow: CMPController GetTargetLevel callers + final build verification. Phase 89 COMPLETE.
+Resume file: .planning/phases/89-kkj-matrix-dynamic-columns-redesign-fixed-15-target-columns-to-key-value-relational-model-with-kkjcolumn-and-kkjtargetvalue-tables/89-04-PLAN.md
