@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-02T12:59:04.283Z"
+progress:
+  total_phases: 54
+  completed_phases: 50
+  total_plans: 118
+  completed_plans: 112
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-02T11:50:52.491Z"
 progress:
   total_phases: 53
@@ -97,15 +110,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 89 — KKJ Matrix Dynamic Columns (ALL 4 PLANS COMPLETE)
+**Current focus:** Phase 90 — KKJ Matrix Admin Full Rewrite (document-based page with HC file CRUD)
 
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 89 of 89 (KKJ Matrix Dynamic Columns) — COMPLETE
-Plan: 4 of 4 in current phase — Plan 89-03 re-executed (clean rewrite)
-Status: Phase 89 complete — KKJ Matrix Dynamic Columns redesign done
-Last activity: 2026-03-02 - Completed Phase 89 Plan 03 re-execution: full clean rewrite of Views/Admin/KkjMatrix.cshtml, multi-cell selection and clipboard paste removed, dynamic columns + edit mode + admin panels
+Phase: 90 of 90 (KKJ Matrix Admin Full Rewrite) — IN PROGRESS
+Plan: 1 of 4 in current phase — Plan 90-01 complete (data model foundation)
+Status: Phase 90 in progress — data model cleanup done, controller/view rewrites pending (Plans 02-04)
+Last activity: 2026-03-02 - Completed Phase 90 Plan 01: KkjFile model added, 4 old KKJ table models removed, EF migration DropKkjTablesAddKkjFiles applied, PositionTargetHelper deleted, build clean
 
 Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 
@@ -128,6 +141,7 @@ Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 - [89-03]: Admin/KkjMatrix.cshtml has zero Label_*/Target_* references; dynamic columns from KkjColumn; Kelola Kolom + Kelola Pemetaan Jabatan panels added; CMP/Kkj.cshtml uses ViewBag.Columns for dynamic column rendering
 - [89-04]: CMPController.Kkj() rewritten — no KkjSectionSelect redirect; role-based ViewBag.AllBagians (L1-L4 all bagians, L5-L6 own only); section URL validation for L5/L6; Views/CMP/Kkj.cshtml rewritten with bagian dropdown, dynamic columns, color-coded target values (tv-1 to tv-5), sticky columns, crosshair hover
 - [Phase 89]: [89-03]: Admin/KkjMatrix.cshtml has zero Label_*/Target_* references; dynamic columns from KkjColumn; Kelola Kolom + Kelola Pemetaan Jabatan panels added; multi-cell selection and clipboard paste removed
+- [Phase 90]: KkjMatrixItemId preserved as orphaned int in AssessmentCompetencyMap and UserCompetencyLevel — FK constraint removed, column kept for data continuity
 
 ### Roadmap Evolution
 
@@ -153,5 +167,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 89-04-PLAN.md — CMPController.Kkj() + Views/CMP/Kkj.cshtml full rewrite: role-based bagian dropdown, dynamic columns, color-coded target values. Phase 89 COMPLETE.
-Resume file: .planning/phases/89-kkj-matrix-dynamic-columns-redesign-fixed-15-target-columns-to-key-value-relational-model-with-kkjcolumn-and-kkjtargetvalue-tables/89-04-SUMMARY.md
+Stopped at: Completed 90-01-PLAN.md — KkjFile model added, 4 old KKJ table models/tables dropped, EF migration DropKkjTablesAddKkjFiles applied. Phase 90 Plan 01 complete.
+Resume file: .planning/phases/90-kkj-matrix-admin-full-rewrite-document-based-page-with-hc-file-crud-and-cdp-planidp-integration/90-01-SUMMARY.md

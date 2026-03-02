@@ -42,7 +42,7 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 
 ### Master Data Management
 
-- [ ] **DATA-01**: KKJ Matrix spreadsheet editor works (CRUD, bulk save, bagian management) and data links correctly to CMP/Kkj view
+- [x] **DATA-01**: KKJ Matrix spreadsheet editor works (CRUD, bulk save, bagian management) and data links correctly to CMP/Kkj view
 - [x] **DATA-02**: KKJ-IDP Mapping editor works (CRUD, bulk save, export) and data links correctly to CMP/Mapping view
 - [x] **DATA-03**: Silabus CRUD works and data links correctly to Plan IDP and Coaching Proton pages
 - [ ] **DATA-04**: Coaching Guidance file management works (upload, download, replace, delete) and files link correctly to Plan IDP
@@ -115,7 +115,7 @@ Comprehensive end-to-end QA of all portal features organized by use-case flows, 
 | COACH-06 | Phase 85 | Pending |
 | COACH-07 | Phase 85 | Pending |
 | COACH-08 | Phase 85 | Pending |
-| DATA-01 | Phase 83 | Pending |
+| DATA-01 | Phase 83 | Complete |
 | DATA-02 | Phase 83 | Complete |
 | DATA-03 | Phase 83 | Complete |
 | DATA-04 | Phase 83 | Pending |
