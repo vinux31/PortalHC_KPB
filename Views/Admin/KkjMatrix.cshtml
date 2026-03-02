@@ -2,12 +2,262 @@
     ViewData["Title"] = "KKJ Matrix";
     ViewData["ContainerClass"] = "container-fluid px-4";
     var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
+    var filesByBagian = ViewBag.FilesByBagian as Dictionary<int, List<HcPortal.Models.KkjFile>> ?? new Dictionary<int, List<HcPortal.Models.KkjFile>>();
+    var selectedBagianId = (int)(ViewBag.SelectedBagianId ?? 0);
+
+    string FormatSize(long bytes) => bytes < 1024 * 1024 ? $"{bytes / 1024}KB" : $"{bytes / (1024 * 1024.0):F1}MB";
 }
 
-{{! TODO-Phase90: This view will be fully rewritten in Plan 02 }}
-<div class="container-fluid px-4 py-4">
-    <div class="alert alert-info">
-        <strong>KKJ Matrix</strong> — Halaman ini sedang direnovasi (Phase 90). Konten baru akan hadir segera.
+@Html.AntiForgeryToken()
+
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item active">KKJ Matrix</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-folder2-open me-2 text-primary"></i>KKJ Matrix</h2>
+            <p class="text-muted mb-0">Kelola dokumen KKJ Matrix per bagian. Upload PDF atau Excel untuk setiap bagian.</p>
+        </div>
     </div>
-    <p>Bagians tersedia: @bagians.Count</p>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+
+            @* Tab navigation + Tambah Bagian button *@
+            <div class="d-flex align-items-center border-bottom px-3 pt-3 gap-2">
+                <ul class="nav nav-tabs border-0 flex-grow-1" id="bagianTabs" role="tablist">
+                    @foreach (var bagian in bagians.OrderBy(b => b.DisplayOrder))
+                    {
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @(bagian.Id == selectedBagianId ? "active" : "")"
+                                    id="tab-@bagian.Id"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#pane-@bagian.Id"
+                                    type="button"
+                                    role="tab">
+                                @bagian.Name
+                            </button>
+                        </li>
+                    }
+                </ul>
+                <button class="btn btn-sm btn-outline-primary mb-2 flex-shrink-0" onclick="addBagian()">
+                    <i class="bi bi-plus-lg me-1"></i>Tambah Bagian
+                </button>
+            </div>
+
+            @* Tab panes *@
+            <div class="tab-content" id="bagianTabContent">
+                @foreach (var bagian in bagians.OrderBy(b => b.DisplayOrder))
+                {
+                    var bagianFiles = filesByBagian.ContainsKey(bagian.Id) ? filesByBagian[bagian.Id] : new List<HcPortal.Models.KkjFile>();
+                    var isActive = bagian.Id == selectedBagianId;
+
+                    <div class="tab-pane fade @(isActive ? "show active" : "")"
+                         id="pane-@bagian.Id"
+                         role="tabpanel">
+
+                        @* Bagian management bar *@
+                        <div class="d-flex align-items-center justify-content-between px-4 py-3 border-bottom bg-light">
+                            <div class="d-flex align-items-center gap-2">
+                                <h6 class="mb-0 fw-bold" id="bagian-name-@bagian.Id">@bagian.Name</h6>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger"
+                                    onclick="deleteBagian(@bagian.Id, '@bagian.Name')"
+                                    title="Hapus bagian">
+                                <i class="bi bi-trash me-1"></i>Hapus Bagian
+                            </button>
+                        </div>
+
+                        @* File list *@
+                        <div class="p-4">
+                            @if (!bagianFiles.Any())
+                            {
+                                <div class="alert alert-light border text-muted text-center py-4" id="empty-@bagian.Id">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                                    Belum ada file. Upload file KKJ Matrix untuk bagian ini.
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="table-responsive" id="table-container-@bagian.Id">
+                                    <table class="table table-sm table-hover align-middle mb-3">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Nama File</th>
+                                                <th>Tipe</th>
+                                                <th>Ukuran</th>
+                                                <th>Keterangan</th>
+                                                <th>Tanggal Upload</th>
+                                                <th>Di-upload Oleh</th>
+                                                <th class="text-center">Aksi</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="file-table-@bagian.Id">
+                                            @foreach (var file in bagianFiles)
+                                            {
+                                                <tr id="file-row-@file.Id">
+                                                    <td>
+                                                        <i class="bi @(file.FileType == "pdf" ? "bi-file-earmark-pdf text-danger" : "bi-file-earmark-excel text-success") me-2"></i>
+                                                        @file.FileName
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge @(file.FileType == "pdf" ? "bg-danger" : "bg-success")">
+                                                            @file.FileType.ToUpper()
+                                                        </span>
+                                                    </td>
+                                                    <td><small>@FormatSize(file.FileSizeBytes)</small></td>
+                                                    <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
+                                                    <td><small>@file.UploadedAt.ToString("dd MMM yyyy HH:mm")</small></td>
+                                                    <td><small>@file.UploaderName</small></td>
+                                                    <td class="text-center">
+                                                        <div class="d-flex gap-1 justify-content-center">
+                                                            <a href="@Url.Action("KkjFileDownload", "Admin", new { id = file.Id })"
+                                                               class="btn btn-sm btn-outline-primary"
+                                                               title="Download">
+                                                                <i class="bi bi-download"></i>
+                                                            </a>
+                                                            <button class="btn btn-sm btn-outline-danger"
+                                                                    onclick="deleteFile(@file.Id)"
+                                                                    title="Arsipkan file">
+                                                                <i class="bi bi-archive"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+
+                            <div class="d-flex gap-2">
+                                <a href="@Url.Action("KkjUpload", "Admin", new { bagianId = bagian.Id })"
+                                   class="btn btn-primary btn-sm">
+                                    <i class="bi bi-cloud-arrow-up me-2"></i>Upload File
+                                </a>
+                                <a href="@Url.Action("KkjFileHistory", "Admin", new { bagianId = bagian.Id })"
+                                   class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-clock-history me-2"></i>Riwayat File
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                }
+
+                @if (!bagians.Any())
+                {
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                        Belum ada bagian. Klik "Tambah Bagian" untuk memulai.
+                    </div>
+                }
+            </div>
+
+        </div>
+    </div>
 </div>
+
+<script>
+    // Get antiforgery token from hidden field
+    function getToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]').value;
+    }
+
+    // Soft-delete (archive) a file
+    async function deleteFile(fileId) {
+        if (!confirm('Arsipkan file ini? File akan dipindahkan ke riwayat.')) return;
+        const token = getToken();
+        try {
+            const resp = await fetch('/Admin/KkjFileDelete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${fileId}&__RequestVerificationToken=${encodeURIComponent(token)}`
+            });
+            const data = await resp.json();
+            if (data.success) {
+                const row = document.getElementById(`file-row-${fileId}`);
+                if (row) row.remove();
+                showToast(data.message, 'success');
+            } else {
+                showToast(data.message, 'danger');
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan. Coba lagi.', 'danger');
+        }
+    }
+
+    // Delete a bagian
+    async function deleteBagian(bagianId, bagianName) {
+        if (!confirm(`Hapus bagian "${bagianName}"? Pastikan semua file sudah dihapus terlebih dahulu.`)) return;
+        const token = getToken();
+        try {
+            const resp = await fetch('/Admin/KkjBagianDelete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `id=${bagianId}&__RequestVerificationToken=${encodeURIComponent(token)}`
+            });
+            const data = await resp.json();
+            if (data.success) {
+                // Reload to reflect removed tab
+                window.location.reload();
+            } else {
+                showToast(data.message, 'warning');
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan. Coba lagi.', 'danger');
+        }
+    }
+
+    // Add a new bagian
+    async function addBagian() {
+        const token = getToken();
+        try {
+            const resp = await fetch('/Admin/KkjBagianAdd', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `__RequestVerificationToken=${encodeURIComponent(token)}`
+            });
+            const data = await resp.json();
+            if (data.success) {
+                // Reload and navigate to new bagian tab
+                window.location.href = `@Url.Action("KkjMatrix", "Admin")?bagian=${data.id}`;
+            } else {
+                showToast(data.message || 'Gagal menambah bagian.', 'danger');
+            }
+        } catch (e) {
+            showToast('Terjadi kesalahan. Coba lagi.', 'danger');
+        }
+    }
+
+    // Toast notification helper
+    function showToast(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3 shadow`;
+        toast.style.zIndex = '9999';
+        toast.style.minWidth = '280px';
+        toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${message}`;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3500);
+    }
+</script>
