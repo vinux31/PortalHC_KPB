@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-02T13:11:10.217Z"
+progress:
+  total_phases: 54
+  completed_phases: 51
+  total_plans: 118
+  completed_plans: 115
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-02T13:05:34.984Z"
 progress:
   total_phases: 54
@@ -128,10 +141,10 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 90 of 90 (KKJ Matrix Admin Full Rewrite) — IN PROGRESS
-Plan: 2 of 4 in current phase — Plan 90-02 complete (AdminController KKJ section rewritten)
-Status: Phase 90 in progress — data model done (01), controller done (02), view rewrites pending (Plans 03-04)
-Last activity: 2026-03-02 - Completed Phase 90 Plan 02: AdminController KKJ section rewritten — file management actions (KkjMatrix, KkjUpload, KkjFileDownload, KkjFileDelete, KkjFileHistory), old table CRUD removed, build clean
+Phase: 90 of 90 (KKJ Matrix Admin Full Rewrite) — AWAITING HUMAN VERIFY
+Plan: 4 of 4 in current phase — Plan 90-04 auto tasks complete, awaiting checkpoint:human-verify
+Status: Phase 90 auto tasks all done — awaiting human verification of full feature (upload/download/delete/role-filtering)
+Last activity: 2026-03-02 - Completed Phase 90 Plan 04 auto tasks: CMPController.Kkj() rewritten to load KkjFiles, CMP/Kkj.cshtml rewritten as file download page, CMP/Index.cshtml description updated, all TODO-Phase90 blocks cleared
 
 Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 
@@ -157,6 +170,9 @@ Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
 - [Phase 90]: KkjMatrixItemId preserved as orphaned int in AssessmentCompetencyMap and UserCompetencyLevel — FK constraint removed, column kept for data continuity
 - [Phase 90]: KkjBagianSave (bulk JSON save) removed — new file-based UI uses individual KkjBagianAdd/Delete only
 - [Phase 90]: KkjFileDelete is soft-delete (IsArchived=true) — physical file retained; KkjFileDownload open to all authenticated users
+- [90-04]: Use currentUser.Unit (not .Bagian/.Section) for L5/L6 bagian matching in CMPController.Kkj()
+- [90-04]: Razor option selected attribute uses if/else block (not inline @(condition ? "selected" : "")) — Razor RZ1031 restriction
+- [Phase 90]: KkjSectionSelect.cshtml deleted — CMP/Kkj.cshtml bagian dropdown fully replaces old section-select card UI
 
 ### Roadmap Evolution
 
@@ -182,5 +198,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 90-02-PLAN.md — AdminController KKJ section rewritten to file management actions (KkjMatrix GET, KkjUpload GET/POST, KkjFileDownload, KkjFileDelete, KkjFileHistory). Old CRUD removed. Build clean.
-Resume file: .planning/phases/90-kkj-matrix-admin-full-rewrite-document-based-page-with-hc-file-crud-and-cdp-planidp-integration/90-02-SUMMARY.md
+Stopped at: Completed 90-04-PLAN.md auto tasks — CMPController.Kkj() rewritten to load KkjFiles, CMP/Kkj.cshtml rewritten as file download page, CMP/Index.cshtml updated. Awaiting checkpoint:human-verify for Phase 90 full feature verification.
+Resume file: .planning/phases/90-kkj-matrix-admin-full-rewrite-document-based-page-with-hc-file-crud-and-cdp-planidp-integration/90-04-SUMMARY.md
