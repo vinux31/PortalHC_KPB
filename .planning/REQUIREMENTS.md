@@ -47,19 +47,19 @@ Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CPDP-01 | TBD | Pending |
-| CPDP-02 | TBD | Pending |
-| CPDP-03 | TBD | Pending |
-| CPDP-04 | TBD | Pending |
-| CPDP-05 | TBD | Pending |
-| CPDP-06 | TBD | Pending |
-| CPDP-07 | TBD | Pending |
+| CPDP-01 | Phase 92 | Pending |
+| CPDP-02 | Phase 92 | Pending |
+| CPDP-03 | Phase 92 | Pending |
+| CPDP-04 | Phase 93 | Pending |
+| CPDP-05 | Phase 93 | Pending |
+| CPDP-06 | Phase 91 | Pending |
+| CPDP-07 | Phase 93 | Pending |
 
 **Coverage:**
 - v3.1 requirements: 7 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 7
+- Mapped to phases: 7 (100%)
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-03*
-*Last updated: 2026-03-03 after initial definition*
+*Last updated: 2026-03-03 — traceability updated after roadmap creation*

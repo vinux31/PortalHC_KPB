@@ -22,6 +22,7 @@
 - ✅ **v2.6 Codebase Cleanup** — Phases 73-78 (shipped 2026-03-01)
 - ✅ **v2.7 Assessment Monitoring** — Phases 79-81 (shipped 2026-03-01)
 - 🚧 **v3.0 Full QA & Feature Completion** — Phases 82-87 (in progress)
+- 📋 **v3.1 CPDP Mapping File-Based Rewrite** — Phases 91-93 (planned)
 
 ## Phases
 
@@ -429,16 +430,78 @@ Plans:
 - [ ] 87-02: QA login flow and role-based navigation visibility (DASH-04, DASH-05)
 - [ ] 87-03: QA section selectors, AccessDenied page, and AuditLog page (DASH-06, DASH-07, DASH-08)
 
+---
+
+### 📋 v3.1 CPDP Mapping File-Based Rewrite (Planned)
+
+**Milestone Goal:** Replace the Admin/CpdpItems spreadsheet editor and CMP/Mapping data table with a file-based document management system (same pattern as Phase 90 KKJ Matrix rewrite), reusing KkjBagian as the section container and creating a new CpdpFile entity.
+
+## Phase Checklist
+
+- [ ] **Phase 91: Data Model & Migration** - Create CpdpFile entity, EF Core migration, export CpdpItem data to Excel backup
+- [ ] **Phase 92: Admin CPDP File Management** - Rewrite Admin/CpdpItems as file upload/download/archive hub with per-section tabs and bagian management
+- [ ] **Phase 93: Worker View & Cleanup** - Rewrite CMP/Mapping as file download page with role-based filtering, then remove CpdpItem table and old CRUD
+
+## Phase Details
+
+### Phase 91: Data Model & Migration
+**Goal**: The CpdpFile entity exists in the database and all existing CpdpItem data is preserved as an Excel backup before any table changes
+**Depends on**: Phase 90 (KkjBagian entity already exists)
+**Requirements**: CPDP-06
+**Success Criteria** (what must be TRUE):
+  1. An Excel file containing all existing CpdpItem rows is saved to disk and readable before migration runs
+  2. The CpdpFiles table exists in the database with columns for BagianId, FileName, StoredFileName, Description, UploadedAt, UploadedBy, and IsArchived
+  3. EF Core migration applies cleanly with no errors on dotnet ef database update
+**Plans**: TBD
+
+Plans:
+- [ ] 91-01: Export CpdpItem data to Excel backup via one-time script or controller action (CPDP-06)
+- [ ] 91-02: Define CpdpFile model, add DbSet to AppDbContext, create and apply EF Core migration
+
+### Phase 92: Admin CPDP File Management
+**Goal**: Admin/HC can manage CPDP document files per section — uploading, downloading, archiving, and viewing file history — with the ability to add or remove section tabs
+**Depends on**: Phase 91
+**Requirements**: CPDP-01, CPDP-02, CPDP-03
+**Success Criteria** (what must be TRUE):
+  1. Admin/HC navigates to /Admin/CpdpItems and sees tabbed sections (RFCC, GAST, NGP, DHT) matching KkjBagian records; each tab shows active files for that section
+  2. Admin/HC uploads a PDF or Excel file with an optional description; the file appears immediately in the correct section tab after upload
+  3. Admin/HC clicks Archive on a file and it disappears from the active list but remains visible in the History view for that section
+  4. Admin/HC downloads a file from the active list or history and receives the correct file
+  5. Admin/HC adds a new bagian tab or deletes an empty bagian tab; the change reflects on both the admin page and the worker CMP/Mapping page
+**Plans**: TBD
+
+Plans:
+- [ ] 92-01: AdminController actions — CpdpItems GET (tab display), UploadCpdpFile POST, DownloadCpdpFile GET, ArchiveCpdpFile POST (CPDP-01, CPDP-02)
+- [ ] 92-02: AdminController actions — AddCpdpBagian POST, DeleteCpdpBagian POST; Admin/CpdpItems.cshtml view with tabbed layout, upload form, file list, history toggle, and bagian management (CPDP-03)
+
+### Phase 93: Worker View & Cleanup
+**Goal**: All authenticated workers can download CPDP files per section on the CMP/Mapping page with role-based section filtering, and the legacy CpdpItem table and all spreadsheet CRUD code are permanently removed
+**Depends on**: Phase 92
+**Requirements**: CPDP-04, CPDP-05, CPDP-07
+**Success Criteria** (what must be TRUE):
+  1. An L1-L4 worker navigating to /CMP/Mapping sees all section tabs and can download files from any section
+  2. An L5-L6 worker navigating to /CMP/Mapping sees only the tab(s) matching their own unit and cannot access other section tabs
+  3. The CpdpItem table no longer exists in the database after migration; any direct URL access to old CpdpItem CRUD routes returns 404 or redirects
+  4. No references to CpdpItem, the old Mapping spreadsheet editor, or MappingSectionSelect remain in controllers or views
+**Plans**: TBD
+
+Plans:
+- [ ] 93-01: Rewrite CMPController Mapping action and CMP/Mapping.cshtml view — file download per section, role-based tab filtering (L1-L4 all, L5-L6 own unit) (CPDP-04, CPDP-05)
+- [ ] 93-02: Remove CpdpItem model, DbSet, migration drop, and all old CRUD controller actions and views; verify no broken references remain (CPDP-07)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87
+Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 → 92 → 93
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 82. Cleanup & Rename | 3/3 | Complete    | 2026-03-02 | - |
-| 83. Master Data QA | 3/5 | In Progress|  | - |
+| 82. Cleanup & Rename | v3.0 | 3/3 | Complete | 2026-03-02 |
+| 83. Master Data QA | v3.0 | 3/5 | In Progress | - |
 | 84. Assessment Flow QA | v3.0 | 0/6 | Not started | - |
 | 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |
 | 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
 | 87. Dashboard & Navigation QA | v3.0 | 0/3 | Not started | - |
+| 91. Data Model & Migration | v3.1 | 0/2 | Not started | - |
+| 92. Admin CPDP File Management | v3.1 | 0/2 | Not started | - |
+| 93. Worker View & Cleanup | v3.1 | 0/2 | Not started | - |
