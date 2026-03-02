@@ -205,30 +205,12 @@
                     <td class="sticky-col text-center fw-bold">@item.Indeks</td>
                     <td class="sticky-col fw-bold text-primary" style="border-right: 2px solid #999;">@item.Kompetensi</td>
                     
-                    <!-- Data Cells -->
-                    <td class="target-cell fw-bold" data-pos="0">@item.Target_SectionHead</td>
-                    <td class="target-cell" data-pos="1">@item.Target_SrSpv_GSH</td>
-                    <td class="target-cell" data-pos="2">@item.Target_ShiftSpv_GSH</td>
-                    
-                    <!-- Panelman GSH -->
-                    <td class="target-cell" data-pos="3">@item.Target_Panelman_GSH_12_13</td>
-                    <td class="target-cell" data-pos="4">@item.Target_Panelman_GSH_14</td>
-
-                     <!-- Operator GSH -->
-                    <td class="target-cell bg-light" data-pos="5">@item.Target_Operator_GSH_8_11</td>
-                    <td class="target-cell bg-light" data-pos="6">@item.Target_Operator_GSH_12_13</td>
-                    
-                    <!-- ARU -->
-                    <td class="target-cell" data-pos="7">@item.Target_ShiftSpv_ARU</td>
-                    <td class="target-cell" data-pos="8">@item.Target_Panelman_ARU_12_13</td>
-                    <td class="target-cell" data-pos="9">@item.Target_Panelman_ARU_14</td>
-                    <td class="target-cell" data-pos="10">@item.Target_Operator_ARU_8_11</td>
-                    <td class="target-cell" data-pos="11">@item.Target_Operator_ARU_12_13</td>
-                    
-                    <!-- Others -->
-                    <td class="target-cell" data-pos="12">@item.Target_SrSpv_Facility</td>
-                    <td class="target-cell" data-pos="13">@item.Target_JrAnalyst</td>
-                    <td class="target-cell" data-pos="14">@item.Target_HSE</td>
+                    <!-- Data Cells — TODO(89-03): Replaced with dynamic KkjTargetValue lookup -->
+                    @{ var tvLookup = item.TargetValues.ToDictionary(tv => tv.KkjColumnId, tv => tv.Value); }
+                    @for (int col = 0; col < 15; col++)
+                    {
+                        <td class="target-cell" data-pos="@col">-</td>
+                    }
                 </tr>
             }
         </tbody>

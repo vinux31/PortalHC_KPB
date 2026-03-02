@@ -100,21 +100,7 @@ namespace HcPortal.Controllers
                             existing.Indeks = row.Indeks ?? "";
                             existing.Kompetensi = row.Kompetensi ?? "";
                             existing.Bagian = row.Bagian ?? "";
-                            existing.Target_SectionHead = row.Target_SectionHead ?? "-";
-                            existing.Target_SrSpv_GSH = row.Target_SrSpv_GSH ?? "-";
-                            existing.Target_ShiftSpv_GSH = row.Target_ShiftSpv_GSH ?? "-";
-                            existing.Target_Panelman_GSH_12_13 = row.Target_Panelman_GSH_12_13 ?? "-";
-                            existing.Target_Panelman_GSH_14 = row.Target_Panelman_GSH_14 ?? "-";
-                            existing.Target_Operator_GSH_8_11 = row.Target_Operator_GSH_8_11 ?? "-";
-                            existing.Target_Operator_GSH_12_13 = row.Target_Operator_GSH_12_13 ?? "-";
-                            existing.Target_ShiftSpv_ARU = row.Target_ShiftSpv_ARU ?? "-";
-                            existing.Target_Panelman_ARU_12_13 = row.Target_Panelman_ARU_12_13 ?? "-";
-                            existing.Target_Panelman_ARU_14 = row.Target_Panelman_ARU_14 ?? "-";
-                            existing.Target_Operator_ARU_8_11 = row.Target_Operator_ARU_8_11 ?? "-";
-                            existing.Target_Operator_ARU_12_13 = row.Target_Operator_ARU_12_13 ?? "-";
-                            existing.Target_SrSpv_Facility = row.Target_SrSpv_Facility ?? "-";
-                            existing.Target_JrAnalyst = row.Target_JrAnalyst ?? "-";
-                            existing.Target_HSE = row.Target_HSE ?? "-";
+                            // TODO(89-02): Target value updates now handled via KkjTargetValue table
                         }
                     }
                 }
@@ -157,21 +143,7 @@ namespace HcPortal.Controllers
                         {
                             existing.Name         = b.Name;
                             existing.DisplayOrder = b.DisplayOrder;
-                            existing.Label_SectionHead        = b.Label_SectionHead        ?? "Section Head";
-                            existing.Label_SrSpv_GSH          = b.Label_SrSpv_GSH          ?? "Sr Spv GSH";
-                            existing.Label_ShiftSpv_GSH       = b.Label_ShiftSpv_GSH       ?? "Shift Spv GSH";
-                            existing.Label_Panelman_GSH_12_13 = b.Label_Panelman_GSH_12_13 ?? "Panelman GSH 12-13";
-                            existing.Label_Panelman_GSH_14    = b.Label_Panelman_GSH_14    ?? "Panelman GSH 14";
-                            existing.Label_Operator_GSH_8_11  = b.Label_Operator_GSH_8_11  ?? "Op GSH 8-11";
-                            existing.Label_Operator_GSH_12_13 = b.Label_Operator_GSH_12_13 ?? "Op GSH 12-13";
-                            existing.Label_ShiftSpv_ARU       = b.Label_ShiftSpv_ARU       ?? "Shift Spv ARU";
-                            existing.Label_Panelman_ARU_12_13 = b.Label_Panelman_ARU_12_13 ?? "Panelman ARU 12-13";
-                            existing.Label_Panelman_ARU_14    = b.Label_Panelman_ARU_14    ?? "Panelman ARU 14";
-                            existing.Label_Operator_ARU_8_11  = b.Label_Operator_ARU_8_11  ?? "Op ARU 8-11";
-                            existing.Label_Operator_ARU_12_13 = b.Label_Operator_ARU_12_13 ?? "Op ARU 12-13";
-                            existing.Label_SrSpv_Facility     = b.Label_SrSpv_Facility     ?? "Sr Spv Facility";
-                            existing.Label_JrAnalyst          = b.Label_JrAnalyst          ?? "Jr Analyst";
-                            existing.Label_HSE                = b.Label_HSE                ?? "HSE";
+                            // TODO(89-02): Label updates now handled via KkjColumn table
                         }
                     }
                 }

@@ -4,87 +4,61 @@ namespace HcPortal.Helpers
 {
     /// <summary>
     /// Helper to resolve target competency levels from KKJ matrix based on user position.
-    /// Maps position strings to KkjMatrixItem target level column names.
+    /// TODO(89-03): This helper is being refactored for the Phase 89 dynamic columns redesign.
+    /// The hardcoded Target_* column approach is replaced by KkjTargetValue + PositionColumnMapping tables.
     /// </summary>
     public static class PositionTargetHelper
     {
         /// <summary>
-        /// Maps user Position strings to KkjMatrixItem target level property names.
-        /// All 15 positions from the KKJ matrix are mapped here.
+        /// All valid position keys in the system (used for UI dropdowns, etc.)
+        /// NOTE: These are the legacy position names — new system uses PositionColumnMapping table.
         /// </summary>
-        private static readonly Dictionary<string, string> PositionColumnMap = new()
+        private static readonly List<string> KnownPositions = new()
         {
-            { "Section Head", "Target_SectionHead" },
-            { "Sr Supervisor GSH", "Target_SrSpv_GSH" },
-            { "Shift Supervisor GSH", "Target_ShiftSpv_GSH" },
-            { "Panelman GSH 12-13", "Target_Panelman_GSH_12_13" },
-            { "Panelman GSH 14", "Target_Panelman_GSH_14" },
-            { "Operator GSH 8-11", "Target_Operator_GSH_8_11" },
-            { "Operator GSH 12-13", "Target_Operator_GSH_12_13" },
-            { "Shift Supervisor ARU", "Target_ShiftSpv_ARU" },
-            { "Panelman ARU 12-13", "Target_Panelman_ARU_12_13" },
-            { "Panelman ARU 14", "Target_Panelman_ARU_14" },
-            { "Operator ARU 8-11", "Target_Operator_ARU_8_11" },
-            { "Operator ARU 12-13", "Target_Operator_ARU_12_13" },
-            { "Sr Supervisor Facility", "Target_SrSpv_Facility" },
-            { "Jr Analyst", "Target_JrAnalyst" },
-            { "HSE Officer", "Target_HSE" }
+            "Section Head",
+            "Sr Supervisor GSH",
+            "Shift Supervisor GSH",
+            "Panelman GSH 12-13",
+            "Panelman GSH 14",
+            "Operator GSH 8-11",
+            "Operator GSH 12-13",
+            "Shift Supervisor ARU",
+            "Panelman ARU 12-13",
+            "Panelman ARU 14",
+            "Operator ARU 8-11",
+            "Operator ARU 12-13",
+            "Sr Supervisor Facility",
+            "Jr Analyst",
+            "HSE Officer"
         };
 
         /// <summary>
         /// Gets the target competency level for a given KKJ competency and user position.
-        /// Uses reflection to access the appropriate target level column from the KkjMatrixItem.
+        /// TODO(89-03): Updated to use KkjTargetValue + PositionColumnMapping tables.
+        /// This stub returns 0 until the dynamic columns refactor is complete.
         /// </summary>
-        /// <param name="competency">The KKJ competency matrix item</param>
-        /// <param name="userPosition">The user's position (must match one of the 15 defined positions)</param>
-        /// <returns>Target level (0-5), or 0 if position is not mapped or value is "-"</returns>
         public static int GetTargetLevel(KkjMatrixItem competency, string? userPosition)
         {
-            if (string.IsNullOrWhiteSpace(userPosition))
-                return 0;
-
-            if (!PositionColumnMap.TryGetValue(userPosition, out var columnName))
-                return 0; // Position not in the map
-
-            // Use reflection to get the property value
-            var propertyInfo = typeof(KkjMatrixItem).GetProperty(columnName);
-            if (propertyInfo == null)
-                return 0; // Property doesn't exist
-
-            var value = propertyInfo.GetValue(competency) as string;
-            if (string.IsNullOrWhiteSpace(value) || value == "-")
-                return 0; // Not applicable for this position
-
-            // Parse the level value
-            if (int.TryParse(value, out var level))
-            {
-                return level;
-            }
-
-            return 0; // Unparseable value
+            // TODO(89-03): Implement using PositionColumnMapping → KkjColumn → KkjTargetValue lookup
+            return 0;
         }
 
         /// <summary>
         /// Gets the KkjMatrixItem column name for a given position.
-        /// Useful for testing and validation.
+        /// TODO(89-03): Deprecated — use PositionColumnMapping table instead.
         /// </summary>
-        /// <param name="position">The user's position</param>
-        /// <returns>Column name or null if position not mapped</returns>
         public static string? GetColumnName(string? position)
         {
-            if (string.IsNullOrWhiteSpace(position))
-                return null;
-
-            return PositionColumnMap.TryGetValue(position, out var columnName) ? columnName : null;
+            // TODO(89-03): Deprecated — positions now map to KkjColumn via PositionColumnMapping table
+            return null;
         }
 
         /// <summary>
         /// Gets all valid position keys that are mapped in the system.
         /// </summary>
-        /// <returns>List of all 15 position strings</returns>
         public static List<string> GetAllPositions()
         {
-            return PositionColumnMap.Keys.ToList();
+            return KnownPositions.ToList();
         }
     }
 }

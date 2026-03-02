@@ -27,6 +27,9 @@ namespace HcPortal.Data
         // Master Data (KKJ & CPDP)
         public DbSet<KkjMatrixItem> KkjMatrices { get; set; }
         public DbSet<KkjBagian> KkjBagians { get; set; }
+        public DbSet<KkjColumn> KkjColumns { get; set; }
+        public DbSet<KkjTargetValue> KkjTargetValues { get; set; }
+        public DbSet<PositionColumnMapping> PositionColumnMappings { get; set; }
         public DbSet<CpdpItem> CpdpItems { get; set; }
 
         // Competency Tracking
@@ -168,6 +171,7 @@ namespace HcPortal.Data
             builder.Entity<KkjMatrixItem>(entity =>
             {
                 entity.ToTable("KkjMatrices");
+                // Navigation: KkjMatrixItem → KkjTargetValue is configured on KkjTargetValue side
             });
 
             builder.Entity<KkjBagian>(entity =>
@@ -175,6 +179,53 @@ namespace HcPortal.Data
                 entity.ToTable("KkjBagians");
                 entity.HasIndex(b => b.Name).IsUnique();
                 entity.HasIndex(b => b.DisplayOrder);
+                // Navigation: KkjBagian → KkjColumn is configured on KkjColumn side
+            });
+
+            // KkjColumn: target column definitions per Bagian
+            builder.Entity<KkjColumn>(entity =>
+            {
+                entity.ToTable("KkjColumns");
+
+                entity.HasOne(c => c.Bagian)
+                    .WithMany(b => b.Columns)
+                    .HasForeignKey(c => c.BagianId)
+                    .OnDelete(DeleteBehavior.Cascade); // Deleting a Bagian cascades to its column definitions
+
+                entity.HasIndex(c => new { c.BagianId, c.DisplayOrder });
+                entity.HasIndex(c => new { c.BagianId, c.Name }).IsUnique(); // One column name per bagian
+            });
+
+            // KkjTargetValue: key-value store for target values per item+column cell
+            builder.Entity<KkjTargetValue>(entity =>
+            {
+                entity.ToTable("KkjTargetValues");
+
+                entity.HasOne(v => v.KkjMatrixItem)
+                    .WithMany(m => m.TargetValues)
+                    .HasForeignKey(v => v.KkjMatrixItemId)
+                    .OnDelete(DeleteBehavior.Cascade); // Deleting an item removes its target values
+
+                entity.HasOne(v => v.KkjColumn)
+                    .WithMany(c => c.TargetValues)
+                    .HasForeignKey(v => v.KkjColumnId)
+                    .OnDelete(DeleteBehavior.Restrict); // Prevent deleting column if it has values
+
+                entity.HasIndex(v => new { v.KkjMatrixItemId, v.KkjColumnId }).IsUnique(); // One value per cell
+            });
+
+            // PositionColumnMapping: maps user positions to KkjColumns
+            builder.Entity<PositionColumnMapping>(entity =>
+            {
+                entity.ToTable("PositionColumnMappings");
+
+                entity.HasOne(m => m.KkjColumn)
+                    .WithMany(c => c.PositionMappings)
+                    .HasForeignKey(m => m.KkjColumnId)
+                    .OnDelete(DeleteBehavior.Restrict); // Prevent deleting column if positions are mapped to it
+
+                entity.HasIndex(m => m.Position);
+                entity.HasIndex(m => new { m.Position, m.KkjColumnId }).IsUnique(); // No duplicate position-column pairs
             });
 
             builder.Entity<CpdpItem>(entity =>
