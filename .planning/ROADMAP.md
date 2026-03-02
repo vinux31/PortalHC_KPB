@@ -299,12 +299,12 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
   2. Navigating to CMP/CpdpProgress, CMP/CreateTrainingRecord, or CMP/ManageQuestions returns 404 or redirects correctly — no orphaned views remain
   3. The Kelola Data hub shows an AuditLog card visible to Admin and HC only; Worker role does not see it
   4. A decision is documented for Override Silabus and Coaching Guidance tabs (either removed with justification or kept with rationale recorded in PROJECT.md)
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 82-01: Rename "Proton Progress" → "Coaching Proton" across all views, layouts, and nav entries (CLN-01)
-- [ ] 82-02: Remove orphaned CMP/CpdpProgress, CMP/CreateTrainingRecord, CMP/ManageQuestions pages and verify no dead links (CLN-02, CLN-03, CLN-04)
-- [ ] 82-03: Add AuditLog card to Kelola Data hub + analyze and resolve Override Silabus/Coaching Guidance tabs (CLN-05, CLN-06)
+- [ ] 82-01-PLAN.md — Rename "Proton Progress" → "Coaching Proton" across CDPController, views, and exports (CLN-01)
+- [ ] 82-02-PLAN.md — Remove orphaned CMP actions and views, fix dead hub card and broken ManageQuestions links (CLN-02, CLN-03, CLN-04)
+- [ ] 82-03-PLAN.md — Add AuditLog card to Kelola Data hub Section C and document CLN-06 decision (CLN-05, CLN-06)
 
 ### Phase 83: Master Data QA
 **Goal**: All master data management features in the Kelola Data hub work correctly end-to-end for Admin and HC roles
