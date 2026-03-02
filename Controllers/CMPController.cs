@@ -6,7 +6,7 @@ using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
 using HcPortal.Models.Competency;
-// TODO-Phase90: using HcPortal.Helpers; removed — PositionTargetHelper deleted in Phase 90
+// PositionTargetHelper removed in Phase 90 (KKJ tables dropped)
 using System.Text.Json;
 using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
@@ -48,38 +48,52 @@ namespace HcPortal.Controllers
         }
 
         // --- HALAMAN 1: SUSUNAN KKJ (FILE VIEW) ---
-        // TODO-Phase90: This action stub will be fully rewritten in Plan 03
+        // GET /CMP/Kkj?section={bagianName}
+        [HttpGet]
         public async Task<IActionResult> Kkj(string? section)
         {
-            var user = await _userManager.GetUserAsync(User);
-            var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
-            var userRole = userRoles.FirstOrDefault() ?? "";
-            int userLevel = user?.RoleLevel ?? 6;
+            ViewData["Title"] = "KKJ Matrix";
 
-            ViewBag.UserRole = userRole;
-            ViewBag.UserLevel = userLevel;
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            var userLevel = currentUser?.RoleLevel ?? 6;
 
-            var allBagians = await _context.KkjBagians
-                .OrderBy(b => b.DisplayOrder)
-                .ToListAsync();
-
-            // Role-based filter: L1-L4 see all bagians; L5-L6 see only their own
-            List<KkjBagian> availableBagians;
-            if (userLevel <= 4)
+            // Role-based bagian filtering: L1-L4 see all, L5-L6 see own bagian only
+            IQueryable<KkjBagian> bagiansQuery = _context.KkjBagians;
+            if (userLevel >= 5 && currentUser?.Unit != null)
             {
-                availableBagians = allBagians;
-            }
-            else
-            {
-                var userUnit = user?.Unit ?? "";
-                availableBagians = allBagians.Where(b => b.Name == userUnit).ToList();
+                bagiansQuery = bagiansQuery.Where(b => b.Name == currentUser.Unit);
             }
 
+            var availableBagians = await bagiansQuery.OrderBy(b => b.DisplayOrder).ToListAsync();
             ViewBag.AllBagians = availableBagians;
 
-            /* TODO-Phase90: Old KkjColumns and KkjMatrices queries removed — rewritten in Plan 03
-            // Load KkjColumns, matrix items, etc.
-            */
+            if (!availableBagians.Any())
+            {
+                ViewBag.SelectedBagian = "";
+                ViewBag.Files = new List<KkjFile>();
+                ViewBag.SelectedBagianRecord = null;
+                return View();
+            }
+
+            // Select bagian from URL param or default to first available
+            var selectedBagian = availableBagians.FirstOrDefault(b => b.Name == section)
+                              ?? availableBagians.First();
+
+            // Validate section param for L5/L6: if section provided but not in their accessible list, use first
+            if (userLevel >= 5 && section != null && !availableBagians.Any(b => b.Name == section))
+            {
+                selectedBagian = availableBagians.First();
+            }
+
+            // Load active files for selected bagian
+            var files = await _context.KkjFiles
+                .Where(f => f.BagianId == selectedBagian.Id && !f.IsArchived)
+                .OrderByDescending(f => f.UploadedAt)
+                .ToListAsync();
+
+            ViewBag.SelectedBagian = selectedBagian.Name;
+            ViewBag.SelectedBagianRecord = selectedBagian;
+            ViewBag.Files = files;
 
             return View();
         }
@@ -1410,13 +1424,7 @@ namespace HcPortal.Controllers
 
                 packageAssignment.IsCompleted = true;
 
-                /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
-                if (assessment.IsPassed == true)
-                {
-                    var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                        ...PositionTargetHelper.GetTargetLevelAsync removed...
-                }
-                */
+                // Competency auto-update removed in Phase 90 (KKJ tables dropped)
 
                 _context.AssessmentSessions.Update(assessment);
                 await _context.SaveChangesAsync();
@@ -1497,13 +1505,7 @@ namespace HcPortal.Controllers
                 assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
                 assessment.CompletedAt = DateTime.UtcNow;
 
-                /* TODO-Phase90: CompetencyLevel update via KkjMatrixItem removed — KkjMatrices table dropped in Phase 90
-                if (assessment.IsPassed == true)
-                {
-                    var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                        ...PositionTargetHelper.GetTargetLevelAsync removed...
-                }
-                */
+                // Competency auto-update removed in Phase 90 (KKJ tables dropped)
 
                 _context.AssessmentSessions.Update(assessment);
                 await _context.SaveChangesAsync();
@@ -1748,14 +1750,7 @@ namespace HcPortal.Controllers
                 };
             }
 
-            /* TODO-Phase90: CompetencyGains section removed — KkjMatrixItem.Kompetensi no longer available (KkjMatrices table dropped)
-            if (viewModel.IsPassed)
-            {
-                var competencyMappings = await _context.AssessmentCompetencyMaps
-                    .Include(m => m.KkjMatrixItem)  // KkjMatrixItem nav property removed
-                    ...
-            }
-            */
+            // Competency gains section removed in Phase 90 (KKJ tables dropped)
 
             return View(viewModel);
         }
