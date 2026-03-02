@@ -1,0 +1,159 @@
+@{
+    ViewData["Title"] = "Upload File KKJ Matrix";
+    var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
+    var selectedBagianId = (int)(ViewBag.SelectedBagianId ?? 0);
+}
+
+<div class="container py-4" style="max-width: 860px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("KkjMatrix", "Admin")">KKJ Matrix</a></li>
+            <li class="breadcrumb-item active">Upload File</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="bi bi-cloud-arrow-up me-2"></i>Upload File KKJ Matrix</h2>
+        <a href="@Url.Action("KkjMatrix", "Admin")" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Kembali
+        </a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <form asp-action="KkjUpload" asp-controller="Admin" method="post" enctype="multipart/form-data" id="uploadForm">
+                @Html.AntiForgeryToken()
+
+                @* Bagian selector *@
+                <div class="mb-3">
+                    <label for="bagianId" class="form-label fw-semibold">
+                        Pilih Bagian <span class="text-danger">*</span>
+                    </label>
+                    <select name="bagianId" id="bagianId" class="form-select" required>
+                        <option value="">-- Pilih Bagian --</option>
+                        @foreach (var b in bagians.OrderBy(x => x.DisplayOrder))
+                        {
+                            if (b.Id == selectedBagianId)
+                            {
+                                <option value="@b.Id" selected>@b.Name</option>
+                            }
+                            else
+                            {
+                                <option value="@b.Id">@b.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                @* File picker with drag-drop zone *@
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">
+                        Pilih File <span class="text-danger">*</span>
+                    </label>
+                    <div class="border rounded-3 p-5 text-center"
+                         id="uploadZone"
+                         onclick="document.getElementById('fileInput').click()"
+                         style="border-color: #d1d5db; border-style: dashed; cursor: pointer; transition: all 0.2s;">
+                        <i class="bi bi-cloud-arrow-up fs-1 text-muted mb-3 d-block"></i>
+                        <p class="fw-semibold mb-1" id="dropText">Klik atau drag &amp; drop file di sini</p>
+                        <p class="small text-muted mb-0">Format: PDF atau Excel (.pdf, .xlsx, .xls) — Maks 10MB</p>
+                    </div>
+                    <input type="file" name="file" id="fileInput" accept=".pdf,.xlsx,.xls" class="d-none" required />
+                </div>
+
+                @* Keterangan (optional) *@
+                <div class="mb-3">
+                    <label for="keterangan" class="form-label">Keterangan <span class="text-muted">(Opsional)</span></label>
+                    <input type="text" name="keterangan" id="keterangan" class="form-control"
+                           placeholder="Contoh: KKJ Rev 2.1, KKJ Operator Level, dll" />
+                </div>
+
+                @* Action buttons *@
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="@Url.Action("KkjMatrix", "Admin")" class="btn btn-light">Batal</a>
+                    <button type="submit" class="btn btn-primary px-4" id="btnUpload" disabled>
+                        <i class="bi bi-check2-all me-2"></i>Upload File
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* Format requirements card *@
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header border-0 bg-white">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2 text-primary"></i>Persyaratan File</h6>
+        </div>
+        <div class="card-body pt-0">
+            <ul class="mb-0">
+                <li>Format file: <strong>PDF (.pdf) atau Excel (.xlsx, .xls)</strong></li>
+                <li>Ukuran maksimal: <strong>10MB</strong></li>
+                <li>Satu atau lebih file dapat di-upload per bagian</li>
+                <li>File yang di-upload akan tercatat beserta nama uploader dan tanggal upload</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+    #uploadZone:hover, #uploadZone.drag-over {
+        border-color: #2563eb !important;
+        background-color: #eff6ff;
+    }
+</style>
+
+<script>
+    const fileInput = document.getElementById('fileInput');
+    const uploadZone = document.getElementById('uploadZone');
+    const dropText = document.getElementById('dropText');
+    const btnUpload = document.getElementById('btnUpload');
+
+    fileInput.addEventListener('change', function () {
+        if (this.files.length > 0) {
+            const file = this.files[0];
+            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+            dropText.textContent = `File: ${file.name} (${sizeInMB}MB)`;
+            uploadZone.style.borderColor = '#16a34a';
+            uploadZone.style.backgroundColor = '#f0fdf4';
+            btnUpload.disabled = false;
+        }
+    });
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('drag-over');
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file && ['.pdf', '.xlsx', '.xls'].some(ext => file.name.toLowerCase().endsWith(ext))) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
+            dropText.textContent = `File: ${file.name} (${sizeInMB}MB)`;
+            uploadZone.style.borderColor = '#16a34a';
+            uploadZone.style.backgroundColor = '#f0fdf4';
+            btnUpload.disabled = false;
+        } else {
+            dropText.textContent = 'Hanya PDF atau Excel yang didukung!';
+            uploadZone.style.borderColor = '#dc2626';
+            uploadZone.style.backgroundColor = '#fef2f2';
+        }
+    });
+</script>
