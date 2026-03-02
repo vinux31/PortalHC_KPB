@@ -140,77 +140,69 @@
     </div>
 </div>
 
+@{
+    var columns = ViewBag.Columns as List<HcPortal.Models.KkjColumn> ?? new List<HcPortal.Models.KkjColumn>();
+}
+
 <div class="table-responsive shadow-sm custom-scrollbar bg-white">
-    <table class="table table-bordered table-sm table-hover mb-0" id="kkjTable" style="min-width: 2000px;">
+    <table class="table table-bordered table-sm table-hover mb-0" id="kkjTable">
         <thead>
             <tr>
-                <th rowspan="3" class="sticky-col bg-white col-no">No</th>
-                <th rowspan="3" class="sticky-col bg-white col-skill">Skill Group</th>
-                <th rowspan="3" class="sticky-col bg-white col-subskill">Subskill Group</th>
-                <th rowspan="3" class="sticky-col bg-white col-index">Indeks</th>
-                <th rowspan="3" class="sticky-col bg-white col-tech" style="border-right: 2px solid #999;">Kompetensi Teknis</th>
-                
-                <th colspan="15" class="text-white text-center py-2 fs-6 position-sticky" style="background-color: #0d6efd; left: 0;">
-                    CSU Process - GSH, Alkylation & Sour Treating
-                </th>
+                <th rowspan="2" class="sticky-col bg-white col-no">No</th>
+                <th rowspan="2" class="sticky-col bg-white col-skill">Skill Group</th>
+                <th rowspan="2" class="sticky-col bg-white col-subskill">Subskill Group</th>
+                <th rowspan="2" class="sticky-col bg-white col-index">Indeks</th>
+                <th rowspan="2" class="sticky-col bg-white col-tech" style="border-right: 2px solid #999;">Kompetensi Teknis</th>
+                @if (columns.Any())
+                {
+                    <th colspan="@columns.Count" class="text-white text-center py-2 matrix-header">
+                        @(ViewBag.SelectedSection ?? "KKJ Matrix")
+                    </th>
+                }
+                else
+                {
+                    <th class="text-muted text-center py-2">Belum ada kolom target untuk bagian ini</th>
+                }
             </tr>
-
-            <tr class="matrix-header">
-                <th>Section Head<br>GSH, Alky & Sour</th>
-                <th>Sr Spv<br>GSH & Alky</th>
-                <th>Shift Spv<br>GSH & Alky</th>
-                <th colspan="2">Panelman<br>GSH & Alkylation</th>
-                <th colspan="2">Operator<br>GSH & Alkylation</th>
-
-                <th>Shift Spv<br>ARU & Sour</th>
-                <th colspan="2">Panelman<br>ARU & Sour</th>
-                <th colspan="2">Operator<br>ARU & Sour</th>
-
-                <th>Sr Spv<br>Facility & Quality</th>
-                <th>Jr Analyst<br>Material & Data</th>
-                <th>Officer<br>HSE Compliance</th>
-            </tr>
-
             <tr class="matrix-subheader">
-                <td>18</td>
-                <td>16</td>
-                <td>15</td>
-                <!-- Panelman GSH -->
-                <td>12-13</td>
-                <td>14</td>
-                <!-- Operator GSH (New) -->
-                <td>8-11</td>
-                <td>12-13</td>
-
-                <!-- ARU Section -->
-                <td>15</td>
-                <td>12-13</td>
-                <td>14</td>
-                <td>8-11</td>
-                <td>12-13</td>
-                <!-- Others -->
-                <td>16</td>
-                <td>10-12</td>
-                <td>14</td>
+                @foreach (var col in columns)
+                {
+                    <th>@col.Name</th>
+                }
+                @if (!columns.Any())
+                {
+                    <th>-</th>
+                }
             </tr>
         </thead>
-        
+
         <tbody>
             @foreach (var item in Model)
             {
-                <tr>
+                <tr data-item-id="@item.Id">
                     <td class="sticky-col text-center">@item.No</td>
                     <td class="sticky-col text-muted">@item.SkillGroup</td>
                     <td class="sticky-col text-muted">@item.SubSkillGroup</td>
                     <td class="sticky-col text-center fw-bold">@item.Indeks</td>
                     <td class="sticky-col fw-bold text-primary" style="border-right: 2px solid #999;">@item.Kompetensi</td>
-                    
-                    <!-- Data Cells — TODO(89-03): Replaced with dynamic KkjTargetValue lookup -->
-                    @{ var tvLookup = item.TargetValues.ToDictionary(tv => tv.KkjColumnId, tv => tv.Value); }
-                    @for (int col = 0; col < 15; col++)
+                    @foreach (var col in columns)
                     {
-                        <td class="target-cell" data-pos="@col">-</td>
+                        var tv = item.TargetValues.FirstOrDefault(v => v.KkjColumnId == col.Id);
+                        var value = tv?.Value ?? "-";
+                        <td class="target-cell text-center">@value</td>
                     }
+                    @if (!columns.Any())
+                    {
+                        <td class="text-muted text-center">-</td>
+                    }
+                </tr>
+            }
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="@(5 + columns.Count + 1)" class="text-center text-muted py-4">
+                        Belum ada data KKJ Matrix untuk bagian ini.
+                    </td>
                 </tr>
             }
         </tbody>
