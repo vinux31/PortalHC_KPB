@@ -1843,7 +1843,6 @@ namespace HcPortal.Controllers
 
             return View(viewModel);
         }
-        #endregion
 
         #region Package Management
 
