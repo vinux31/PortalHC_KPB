@@ -53,41 +53,95 @@ namespace HcPortal.Controllers
             // Get current user and role
             var user = await _userManager.GetUserAsync(User);
             var userRoles = user != null ? await _userManager.GetRolesAsync(user) : new List<string>();
-            var userRole = userRoles.FirstOrDefault();
+            var userRole = userRoles.FirstOrDefault() ?? "";
             int userLevel = user?.RoleLevel ?? 6;
 
             ViewBag.UserRole = userRole;
             ViewBag.UserLevel = userLevel;
-            ViewBag.SelectedSection = section;
 
-            // If Level 1-3 (Admin, HC, Management) and no section selected, show selection page
-            if (UserRoles.HasFullAccess(userLevel) && string.IsNullOrEmpty(section))
-            {
-                return View("KkjSectionSelect");
-            }
-
-            // Determine selectedSection — for workers use their unit, for admin/HC use the passed section param
-            var selectedSection = section;
-            if (string.IsNullOrEmpty(selectedSection) && !UserRoles.HasFullAccess(userLevel))
-            {
-                // Workers: use their assigned unit as section
-                selectedSection = user?.Unit;
-            }
-
-            // Load KkjColumns for the selected section (via KkjBagian.Name match)
-            var bagian = await _context.KkjBagians
-                .Include(b => b.Columns.OrderBy(c => c.DisplayOrder))
-                .FirstOrDefaultAsync(b => b.Name == selectedSection);
-
-            ViewBag.Columns = bagian?.Columns?.OrderBy(c => c.DisplayOrder).ToList() ?? new List<KkjColumn>();
-
-            // Load items with included TargetValues for dynamic column rendering
-            var matrixData = await _context.KkjMatrices
-                .Where(k => k.Bagian == selectedSection)
-                .Include(m => m.TargetValues)
-                .ThenInclude(v => v.KkjColumn)
-                .OrderBy(k => k.No)
+            // Load all bagians from DB for the dropdown
+            var allBagians = await _context.KkjBagians
+                .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
+
+            // Role-based filter: L1-L4 (level <= 4) see all bagians; L5-L6 see only their own
+            List<KkjBagian> availableBagians;
+            if (userLevel <= 4)
+            {
+                // Admin, HC, Management (L3), SrSupervisor (L4) — all bagians
+                availableBagians = allBagians;
+            }
+            else
+            {
+                // Coach, Supervisor (L5), Coachee (L6) — own bagian only
+                var userUnit = user?.Unit ?? "";
+                availableBagians = allBagians
+                    .Where(b => b.Name == userUnit)
+                    .ToList();
+            }
+
+            ViewBag.AllBagians = availableBagians;
+
+            // Determine selected section
+            string? selectedSection = section;
+
+            // If no section passed:
+            // - L1-L4: default to first available bagian (if any)
+            // - L5-L6: use user's own unit
+            if (string.IsNullOrEmpty(selectedSection))
+            {
+                if (userLevel <= 4)
+                {
+                    selectedSection = availableBagians.FirstOrDefault()?.Name;
+                }
+                else
+                {
+                    selectedSection = user?.Unit;
+                }
+            }
+            else
+            {
+                // Validate that the requested section is in the user's available bagians
+                // (prevent L5/L6 from accessing other bagians by URL manipulation)
+                var allowed = availableBagians.Any(b => b.Name == selectedSection);
+                if (!allowed)
+                {
+                    // Fall back to own bagian
+                    selectedSection = userLevel <= 4
+                        ? availableBagians.FirstOrDefault()?.Name
+                        : user?.Unit;
+                }
+            }
+
+            ViewBag.SelectedSection = selectedSection;
+
+            // Load KkjColumns for the selected section
+            var bagian = availableBagians.FirstOrDefault(b => b.Name == selectedSection);
+            if (bagian != null)
+            {
+                // Load columns separately (bagian was loaded without Include)
+                var columns = await _context.KkjColumns
+                    .Where(c => c.BagianId == bagian.Id)
+                    .OrderBy(c => c.DisplayOrder)
+                    .ToListAsync();
+                ViewBag.Columns = columns;
+            }
+            else
+            {
+                ViewBag.Columns = new List<KkjColumn>();
+            }
+
+            // Load matrix items for selected section with target values
+            var matrixData = new List<KkjMatrixItem>();
+            if (!string.IsNullOrEmpty(selectedSection))
+            {
+                matrixData = await _context.KkjMatrices
+                    .Where(k => k.Bagian == selectedSection)
+                    .Include(m => m.TargetValues)
+                    .ThenInclude(v => v.KkjColumn)
+                    .OrderBy(k => k.No)
+                    .ToListAsync();
+            }
 
             return View(matrixData);
         }
