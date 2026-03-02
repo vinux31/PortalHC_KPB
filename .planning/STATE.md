@@ -1,198 +1,46 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T13:19:56.007Z"
+milestone: v3.1
+milestone_name: CPDP Mapping File-Based Rewrite
+status: defining-requirements
+last_updated: "2026-03-03"
 progress:
-  total_phases: 54
-  completed_phases: 51
-  total_plans: 118
-  completed_plans: 115
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T13:11:10.217Z"
-progress:
-  total_phases: 54
-  completed_phases: 51
-  total_plans: 118
-  completed_plans: 115
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T13:05:34.984Z"
-progress:
-  total_phases: 54
-  completed_phases: 50
-  total_plans: 118
-  completed_plans: 113
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T12:59:04.283Z"
-progress:
-  total_phases: 54
-  completed_phases: 50
-  total_plans: 118
-  completed_plans: 112
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T11:50:52.491Z"
-progress:
-  total_phases: 53
-  completed_phases: 50
-  total_plans: 114
-  completed_plans: 111
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T11:46:46.521Z"
-progress:
-  total_phases: 53
-  completed_phases: 50
-  total_plans: 114
-  completed_plans: 111
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T10:03:35.127Z"
-progress:
-  total_phases: 53
-  completed_phases: 50
-  total_plans: 114
-  completed_plans: 111
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T09:41:36.101Z"
-progress:
-  total_phases: 53
-  completed_phases: 49
-  total_plans: 114
-  completed_plans: 108
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T07:34:27.275Z"
-progress:
-  total_phases: 51
-  completed_phases: 49
-  total_plans: 110
-  completed_plans: 107
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-02T06:33:30.680Z"
-progress:
-  total_phases: 50
-  completed_phases: 49
-  total_plans: 105
-  completed_plans: 104
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: in-progress
-last_updated: "2026-03-02T06:30:00.000Z"
-last_activity: "2026-03-02 — Phase 82 Plan 02 complete: orphaned CMP endpoints removed, CLN-02/CLN-03/CLN-04 done"
-progress:
-  total_phases: 6
+  total_phases: 0
   completed_phases: 0
-  total_plans: 23
-  completed_plans: 3
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-02)
+See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 90 — KKJ Matrix Admin Full Rewrite (document-based page with HC file CRUD)
+**Current focus:** Defining requirements for v3.1 CPDP Mapping File-Based Rewrite
 
 ## Current Position
 
-**Milestone:** v3.0 Full QA & Feature Completion
-Phase: 90 of 90 (KKJ Matrix Admin Full Rewrite) — COMPLETE
-Plan: 4 of 4 in current phase — ALL PLANS COMPLETE (human verify approved 2026-03-02)
-Status: Phase 90 COMPLETE — all plans done, human verification checkpoint passed
-Last activity: 2026-03-02 - Phase 90 Plan 04 human verify APPROVED: full KKJ Matrix feature verified (Admin upload/download/delete, CMP worker file download, role-based bagian filtering, assessment flow stable)
-
-Progress: [██░░░░░░░░] 15%  (plans complete across v3.0)
+**Milestone:** v3.1 CPDP Mapping File-Based Rewrite
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-03 — Milestone v3.1 started
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v3.0 Roadmap]: Cleanup & Rename goes FIRST so pages have correct names during QA testing
-- [v3.0 Roadmap]: Master Data QA goes BEFORE Assessment/Coaching QA — data must exist for flows
-- [v3.0 Roadmap]: Phase 84 (Assessment) and Phase 85 (Coaching Proton) are independent after Phase 83
-- [v3.0 Roadmap]: Plan IDP (Phase 86) depends on Phase 83 (Silabus/Guidance data verified)
-- [v3.0 Roadmap]: Dashboard QA (Phase 87) goes last — depends on all features being ready
-- [82-03 CLN-06]: Keep Override Silabus & Coaching Guidance tabs as-is — functional, no bugs, used by downstream phases 85-86
-- [82-02 CLN-02/03/04]: Removed entire CMP #region Question Management block (ManageQuestions+AddQuestion+DeleteQuestion) since views deleted and canonical versions in AdminController
-- [Phase 83-02]: CpdpItemDelete gets IDP reference guard: block if IdpItems.CountAsync > 0 before Remove(), mirrors KkjMatrixDelete pattern
-- [Phase 83]: Orphan cleanup uses HashSet tracking instead of nav property counts after RemoveRange
-- [Phase 83]: Stale-ID fallback (FindAsync returning null for ID>0) handled for all three silabus levels
-- [Phase 89]: Key-value relational model (KkjColumn, KkjTargetValue, PositionColumnMapping) replaces hardcoded 15-column approach — migration 20260302093959_AddKkjDynamicColumns applied
-- [89-02]: PositionTargetHelper is now async-only using DB queries (GetTargetLevelAsync); KkjMatrixSave uses KkjMatrixSaveDto with dynamic TargetValues for upsert; KkjColumn + PositionColumnMapping CRUD actions added to AdminController
-- [89-03]: Admin/KkjMatrix.cshtml has zero Label_*/Target_* references; dynamic columns from KkjColumn; Kelola Kolom + Kelola Pemetaan Jabatan panels added; CMP/Kkj.cshtml uses ViewBag.Columns for dynamic column rendering
-- [89-04]: CMPController.Kkj() rewritten — no KkjSectionSelect redirect; role-based ViewBag.AllBagians (L1-L4 all bagians, L5-L6 own only); section URL validation for L5/L6; Views/CMP/Kkj.cshtml rewritten with bagian dropdown, dynamic columns, color-coded target values (tv-1 to tv-5), sticky columns, crosshair hover
-- [Phase 89]: [89-03]: Admin/KkjMatrix.cshtml has zero Label_*/Target_* references; dynamic columns from KkjColumn; Kelola Kolom + Kelola Pemetaan Jabatan panels added; multi-cell selection and clipboard paste removed
-- [Phase 90]: KkjMatrixItemId preserved as orphaned int in AssessmentCompetencyMap and UserCompetencyLevel — FK constraint removed, column kept for data continuity
-- [Phase 90]: KkjBagianSave (bulk JSON save) removed — new file-based UI uses individual KkjBagianAdd/Delete only
-- [Phase 90]: KkjFileDelete is soft-delete (IsArchived=true) — physical file retained; KkjFileDownload open to all authenticated users
-- [90-04]: Use currentUser.Unit (not .Bagian/.Section) for L5/L6 bagian matching in CMPController.Kkj()
-- [90-04]: Razor option selected attribute uses if/else block (not inline @(condition ? "selected" : "")) — Razor RZ1031 restriction
-- [Phase 90]: KkjSectionSelect.cshtml deleted — CMP/Kkj.cshtml bagian dropdown fully replaces old section-select card UI
+- [v3.1 Scope]: Rewrite Admin/CpdpItems + CMP/Mapping to file-based (like Phase 90 KKJ Matrix)
+- [v3.1 Scope]: Reuse KkjBagian as container entity (sections RFCC/GAST/NGP/DHT are shared)
+- [v3.1 Scope]: Export CpdpItem data to Excel backup, then drop table
+- [v3.1 Scope]: IdpItem.Kompetensi kept as standalone string — no FK impact from CpdpItem removal
+- [v3.1 Scope]: v3.0 remains open for remaining QA phases (83-88)
 
 ### Roadmap Evolution
 
-- Phase 88 added: KKJ Matrix Excel Import — add download-template + upload import feature to Admin/KkjMatrix
-- Phase 89 added: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model
-- Phase 88 depends on Phase 89 (dynamic columns must complete before import/export)
-- Phase 90 added: KKJ Matrix Admin Full Rewrite — document-based page with HC file CRUD and CDP PlanIDP integration
+(New milestone — no evolution yet)
 
 ### Pending Todos
 
@@ -202,14 +50,8 @@ None.
 
 None.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 15 | Move Package Questions and Import Questions features from CMP to Admin/ManageAssessment | 2026-03-02 | b06b231 | [15-move-package-questions-and-import-questi](./quick/15-move-package-questions-and-import-questi/) |
-
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: Phase 90 COMPLETE — Plan 90-04 human verify approved. All 4 plans done. KKJ Matrix Admin full rewrite (document-based HC file CRUD) complete.
-Resume file: .planning/phases/90-kkj-matrix-admin-full-rewrite-document-based-page-with-hc-file-crud-and-cdp-planidp-integration/90-04-SUMMARY.md
+Last session: 2026-03-03
+Stopped at: Defining v3.1 requirements
+Resume file: —

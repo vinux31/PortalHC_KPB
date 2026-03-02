@@ -12,21 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v3.0 Full QA & Feature Completion
+## Current Milestone: v3.1 CPDP Mapping File-Based Rewrite
 
-**Goal:** Comprehensive end-to-end testing of all portal features organized by use-case flows, fixing bugs found along the way, plus code cleanup (remove duplicates/orphans), UI rename ("Proton Progress" → "Coaching Proton"), and Plan IDP development.
+**Goal:** Rewrite the Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into a file-based document management system (same pattern as Phase 90 KKJ Matrix rewrite), reusing KkjBagian as container entity.
 
 **Target features:**
-- End-to-end QA of Assessment flow (create → assign → exam → monitoring → results → history)
-- End-to-end QA of Coaching Proton flow (mapping → coaching → evidence → approval → override)
-- Master data management verification (KKJ, CPDP, Silabus, Workers, Coach-Coachee)
-- Plan IDP development (coachee sees silabus + downloadable guidance docs for assignment)
-- Rename "Proton Progress" → "Coaching Proton" throughout portal
-- Remove orphaned CMP/CpdpProgress page
-- Remove duplicate CMP paths (CreateTrainingRecord, ManageQuestions — Admin versions are canonical)
-- Add AuditLog card to Kelola Data hub
-- Analyze and decide on Override Silabus/Coaching Guidance tabs
-- Home dashboard verification
+- Rewrite Admin/CpdpItems from inline spreadsheet editor to file upload/download/archive per section
+- Rewrite CMP/Mapping from data table to file download page with role-based filtering
+- Create CpdpFile entity (reuse KkjBagian for sections)
+- Export existing CpdpItem data to Excel backup before table removal
+- Remove CpdpItem table after file-based system is running
+- Keep IdpItem.Kompetensi as standalone string (no FK impact)
+
+## Previous Milestone: v3.0 Full QA & Feature Completion (In Progress — Phases 83-88 remaining)
+
+**Goal:** Comprehensive end-to-end testing of all portal features organized by use-case flows, fixing bugs found along the way, plus code cleanup (remove duplicates/orphans), UI rename ("Proton Progress" → "Coaching Proton"), and Plan IDP development.
 
 ## Current State (v2.7 — shipped 2026-03-01)
 
