@@ -1422,7 +1422,6 @@ namespace HcPortal.Controllers
                 if (assessment.IsPassed == true)
                 {
                     var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                        .Include(m => m.KkjMatrixItem)
                         .Where(m => m.AssessmentCategory == assessment.Category &&
                                     (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
                         .ToListAsync();
@@ -1547,7 +1546,6 @@ namespace HcPortal.Controllers
                 {
                     // Find competencies mapped to this assessment's category
                     var mappedCompetencies = await _context.AssessmentCompetencyMaps
-                        .Include(m => m.KkjMatrixItem)
                         .Where(m => m.AssessmentCategory == assessment.Category &&
                                     (m.TitlePattern == null || assessment.Title.Contains(m.TitlePattern)))
                         .ToListAsync();
