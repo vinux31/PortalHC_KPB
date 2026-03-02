@@ -72,6 +72,12 @@ Progress: [█░░░░░░░░░] 13%  (3/23 plans complete across v3.0
 - [Phase 83]: Orphan cleanup uses HashSet tracking instead of nav property counts after RemoveRange
 - [Phase 83]: Stale-ID fallback (FindAsync returning null for ID>0) handled for all three silabus levels
 
+### Roadmap Evolution
+
+- Phase 88 added: KKJ Matrix Excel Import — add download-template + upload import feature to Admin/KkjMatrix
+- Phase 89 added: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model
+- Phase 88 depends on Phase 89 (dynamic columns must complete before import/export)
+
 ### Pending Todos
 
 None.
@@ -89,5 +95,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 82-02-PLAN.md — orphaned CMP endpoints removed, dead links fixed (CLN-02, CLN-03, CLN-04 complete)
-Resume file: None
+Stopped at: Phase 88 context gathered, Phase 89 added to roadmap
+Resume file: .planning/phases/88-kkj-matrix-excel-import-add-download-template-upload-import-feature-to-admin-kkjmatrix/88-CONTEXT.md

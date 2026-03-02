@@ -273,6 +273,26 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
 
 </details>
 
+### Phase 88: KKJ Matrix Excel Import — add download-template + upload import feature to Admin/KkjMatrix
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 87
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 88 to break down)
+
+### Phase 89: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model with KkjColumn and KkjTargetValue tables
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 88
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 89 to break down)
+
 ---
 
 ### 🚧 v3.0 Full QA & Feature Completion (In Progress)
