@@ -32,6 +32,16 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 Assessment monitoring now has a dedicated page in the Kelola Data hub with group list, per-participant detail, and full HC action suite. Admin can manage questions directly from ManageAssessment dropdown. Hub cleaned up — no redundant cards.
 
+## Architecture Decisions
+
+### CLN-06: Override Silabus & Coaching Guidance Tabs (2026-03-02)
+
+**Decision:** KEEP as-is — no changes.
+
+**Rationale:** The `ProtonData/Index` page with Silabus and Coaching Guidance tabs is fully functional and tested. It serves as the canonical admin interface for managing silabus entries and uploading coaching guidance files. These tabs are used by Plan IDP (Phase 86) and Coaching Proton (Phase 85) as data sources. Removing or restructuring them would break downstream feature flows.
+
+**Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
+
 ## Shipped Milestones
 
 ### ✅ v2.7 - Assessment Monitoring (2026-03-01)
