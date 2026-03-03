@@ -48,21 +48,24 @@ completed: 2026-03-03
 
 ## Accomplishments
 
-- Server started and running at http://localhost:5277
-- Verification instructions delivered to user
-- Checkpoint returned for human browser testing of /CDP/PlanIdp
+- All 16 browser verification items approved by user
+- Coachee access restricted to own Bagian during verification (additional change)
+- ProtonTrackAssignment test data seeded for Coachee users (Iwan, Rino → GAST, Operator Tahun 1)
 
 ## Task Commits
 
-No code commits in this plan — verification only.
+- `636a441` feat(89-03): restrict Coachee PlanIdp to own Bagian only
 
 ## Files Created/Modified
 
-None — this is a human-verify checkpoint plan.
+- Controllers/CDPController.cs (Coachee Bagian restriction)
+- Views/CDP/PlanIdp.cshtml (locked Bagian dropdown, removed "Lihat Semua")
 
 ## Decisions Made
 
-None.
+- [89-03] Coachee PlanIdp restricted to own Bagian — cannot browse other sections
+- [89-03] Coaching Guidance filtered by coacheeBagian for Coachee role
+- [89-03] "Lihat Semua" removed — Coachee always locked to assigned Bagian
 
 ## Deviations from Plan
 
