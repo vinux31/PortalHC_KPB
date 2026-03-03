@@ -1,6 +1,6 @@
 # Phase 83: Master Data QA - Context
 
-**Gathered:** 2026-03-02
+**Gathered:** 2026-03-02 (updated 2026-03-03)
 **Status:** Ready for planning
 
 <domain>
@@ -16,7 +16,10 @@ Verify all master data management features in the Kelola Data hub work correctly
 ### QA Depth & Scope
 - Happy path + validation: test normal CRUD flows plus input validation (empty fields, duplicates, invalid data)
 - Code review first: Claude reviews controller/view code, identifies potential bugs, fixes them proactively, THEN user verifies in browser
-- No known specific bugs — thorough pass across all features
+- 3 known high-priority bugs to fix (discovered during QA):
+  1. **DeleteWorker ProtonFinalAssessment** — Worker deletion fails due to FK constraint on ProtonFinalAssessment table
+  2. **SilabusDelete FK guard** — Silabus deletion fails due to FK constraint (no guard/cascade)
+  3. **KkjBagianDelete archived count** — KKJ Bagian deletion doesn't account for archived records in count
 - Filter behavior: test bagian/unit filter switching to verify data loads correctly and saves don't cross-contaminate
 
 ### Bug Fix Approach
@@ -79,6 +82,8 @@ Verify all master data management features in the Kelola Data hub work correctly
 ## Deferred Ideas
 
 - Package question management feature (CMP has ImportPackageQuestions.cshtml, ManagePackages.cshtml, PreviewPackage.cshtml) — user noted this during Phase 82 UAT, consider for future phase
+- **PlanIdp Bagian/Unit filter bug** — deferred to Phase 86 (PlanIdp development scope)
+- **Coachee guidance download bug** — deferred to Phase 86 (PlanIdp development scope)
 
 </deferred>
 
