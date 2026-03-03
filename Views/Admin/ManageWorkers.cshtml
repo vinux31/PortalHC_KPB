@@ -3,6 +3,7 @@
 @{
     ViewData["Title"] = "Manajemen Pekerja";
     var userRolesDict = ViewBag.UserRoles as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var showInactive = (bool)(ViewBag.ShowInactive ?? false);
 }
 
 <div class="container-fluid px-4 py-4">
@@ -30,9 +31,23 @@
             <a href="@Url.Action("ImportWorkers", "Admin")" class="btn btn-outline-success" id="btnImportWorkers">
                 <i class="bi bi-file-earmark-arrow-up me-2"></i>Import Excel
             </a>
-            <a href="@Url.Action("ExportWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter })" class="btn btn-outline-info" id="btnExportWorkers">
+            <a href="@Url.Action("ExportWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = showInactive })" class="btn btn-outline-info" id="btnExportWorkers">
                 <i class="bi bi-file-earmark-arrow-down me-2"></i>Export Excel
             </a>
+            @if (showInactive)
+            {
+                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = false })"
+                   class="btn btn-outline-secondary" id="btnToggleInactive">
+                    <i class="bi bi-eye-slash me-1"></i>Sembunyikan Inactive
+                </a>
+            }
+            else
+            {
+                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = true })"
+                   class="btn btn-outline-secondary" id="btnToggleInactive">
+                    <i class="bi bi-eye me-1"></i>Tampilkan Inactive
+                </a>
+            }
         </div>
     </div>
 
@@ -209,7 +224,7 @@
                                     "Coach" => "bg-success",
                                     _ => "bg-secondary"
                                 };
-                                <tr class="worker-row" id="row-@user.Id">
+                                <tr class="worker-row @(!user.IsActive ? "table-secondary text-muted" : "")" id="row-@user.Id">
                                     <td class="p-3 text-muted small">@idx</td>
                                     <td class="p-3">
                                         <div class="d-flex align-items-center">
@@ -234,11 +249,26 @@
                                                class="btn btn-outline-primary" title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
-                                            <button type="button" class="btn btn-outline-danger"
-                                                    title="Hapus"
-                                                    onclick="confirmDelete('@user.Id', '@user.FullName.Replace("'", "\\'")')">
-                                                <i class="bi bi-trash3"></i>
-                                            </button>
+                                            @if (user.IsActive)
+                                            {
+                                                <form method="post" action="@Url.Action("DeactivateWorker", "Admin")" style="display:inline;" onsubmit="return confirmDeactivate('@Html.Raw(user.FullName.Replace("'", "\\'"))');">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Nonaktifkan">
+                                                        <i class="bi bi-person-dash"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form method="post" action="@Url.Action("ReactivateWorker", "Admin")" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Aktifkan Kembali">
+                                                        <i class="bi bi-person-check"></i>
+                                                    </button>
+                                                </form>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
@@ -266,34 +296,6 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Konfirmasi Hapus</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>Apakah Anda yakin ingin menghapus user <strong id="deleteUserName"></strong>?</p>
-                <div class="alert alert-warning small mb-0">
-                    <i class="bi bi-exclamation-circle me-1"></i>
-                    <strong>Perhatian:</strong> Semua data terkait user ini (training records, assessment, coaching sessions, dll.) akan ikut terhapus secara permanen.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <form id="deleteForm" method="post" action="@Url.Action("DeleteWorker", "Admin")" style="display:inline;">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="id" id="deleteUserId" />
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash3 me-1"></i>Ya, Hapus
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <style>
     .stat-card {
@@ -325,12 +327,9 @@
 </style>
 
 <script>
-    // --- Delete Confirmation ---
-    function confirmDelete(userId, userName) {
-        document.getElementById('deleteUserId').value = userId;
-        document.getElementById('deleteUserName').textContent = userName;
-        var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        modal.show();
+    // --- Deactivate Confirmation ---
+    function confirmDeactivate(userName) {
+        return confirm(`Nonaktifkan user "${userName}"?\n\nCoaching aktif akan ditutup dan assessment aktif akan dibatalkan. Tindakan ini dapat dibatalkan dengan Aktifkan Kembali.`);
     }
 
     // --- Client-side Pagination ---
