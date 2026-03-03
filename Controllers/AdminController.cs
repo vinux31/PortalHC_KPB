@@ -287,6 +287,166 @@ namespace HcPortal.Controllers
             return Json(new { success = true });
         }
 
+        #region CPDP File Management
+
+        // GET /Admin/CpdpFiles?bagian={bagianId}
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CpdpFiles(int? bagian)
+        {
+            ViewData["Title"] = "CPDP File Management";
+
+            var bagians = await _context.KkjBagians
+                .OrderBy(b => b.DisplayOrder)
+                .ToListAsync();
+
+            // Load active (non-archived) CPDP files grouped by bagianId
+            var files = await _context.CpdpFiles
+                .Where(f => !f.IsArchived)
+                .OrderByDescending(f => f.UploadedAt)
+                .ToListAsync();
+
+            var filesByBagian = bagians.ToDictionary(
+                b => b.Id,
+                b => files.Where(f => f.BagianId == b.Id).ToList());
+
+            var selectedBagianId = bagians.Any(b => b.Id == bagian)
+                ? bagian!.Value
+                : bagians.FirstOrDefault()?.Id ?? 0;
+
+            ViewBag.Bagians = bagians;
+            ViewBag.FilesByBagian = filesByBagian;
+            ViewBag.SelectedBagianId = selectedBagianId;
+
+            return View();
+        }
+
+        // GET /Admin/CpdpUpload?bagianId={id}
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CpdpUpload(int? bagianId)
+        {
+            ViewData["Title"] = "Upload File CPDP";
+            var bagians = await _context.KkjBagians.OrderBy(b => b.DisplayOrder).ToListAsync();
+            ViewBag.Bagians = bagians;
+            ViewBag.SelectedBagianId = bagianId ?? 0;
+            return View();
+        }
+
+        // POST /Admin/CpdpUpload
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CpdpUpload(IFormFile file, string? keterangan, int bagianId)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Pilih file terlebih dahulu.";
+                return RedirectToAction("CpdpUpload", new { bagianId });
+            }
+
+            var allowedExtensions = new[] { ".pdf", ".xlsx", ".xls" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLower();
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                TempData["Error"] = "Hanya file PDF atau Excel yang didukung (.pdf, .xlsx, .xls).";
+                return RedirectToAction("CpdpUpload", new { bagianId });
+            }
+
+            const long maxFileSize = 10 * 1024 * 1024; // 10MB
+            if (file.Length > maxFileSize)
+            {
+                TempData["Error"] = "Ukuran file terlalu besar (maksimal 10MB).";
+                return RedirectToAction("CpdpUpload", new { bagianId });
+            }
+
+            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            if (bagian == null)
+            {
+                TempData["Error"] = "Bagian tidak ditemukan.";
+                return RedirectToAction("CpdpUpload", new { bagianId });
+            }
+
+            try
+            {
+                var storageDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "cpdp", bagianId.ToString());
+                Directory.CreateDirectory(storageDir);
+
+                var safeName = $"{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}_{Path.GetFileName(file.FileName).Replace(" ", "_")}";
+                var fullPath = Path.Combine(storageDir, safeName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                var currentUser = await _userManager.GetUserAsync(User);
+                var cpdpFile = new CpdpFile
+                {
+                    BagianId = bagianId,
+                    FileName = file.FileName,
+                    FilePath = $"/uploads/cpdp/{bagianId}/{safeName}",
+                    FileSizeBytes = file.Length,
+                    FileType = fileExtension.TrimStart('.'),
+                    Keterangan = keterangan,
+                    UploadedAt = DateTimeOffset.UtcNow,
+                    UploaderName = (currentUser as ApplicationUser)?.FullName ?? currentUser?.UserName ?? "Unknown",
+                    IsArchived = false
+                };
+                _context.CpdpFiles.Add(cpdpFile);
+                await _context.SaveChangesAsync();
+
+                TempData["Success"] = $"File '{file.FileName}' berhasil di-upload ke bagian {bagian.Name}.";
+                return RedirectToAction("CpdpFiles", new { bagian = bagianId });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Gagal menyimpan file: {ex.Message}";
+                return RedirectToAction("CpdpUpload", new { bagianId });
+            }
+        }
+
+        // GET /Admin/CpdpFileDownload/{id}
+        [Authorize]
+        public async Task<IActionResult> CpdpFileDownload(int id)
+        {
+            var cpdpFile = await _context.CpdpFiles
+                .Include(f => f.Bagian)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (cpdpFile == null) return NotFound();
+
+            var physicalPath = Path.Combine(
+                Directory.GetCurrentDirectory(),
+                "wwwroot",
+                cpdpFile.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+            if (!System.IO.File.Exists(physicalPath)) return NotFound();
+
+            var contentType = cpdpFile.FileType == "pdf"
+                ? "application/pdf"
+                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+            return File(fileBytes, contentType, cpdpFile.FileName);
+        }
+
+        // POST /Admin/CpdpFileArchive
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CpdpFileArchive(int id)
+        {
+            var cpdpFile = await _context.CpdpFiles.FindAsync(id);
+            if (cpdpFile == null) return Json(new { success = false, message = "File tidak ditemukan." });
+
+            // Soft delete: archive the file (moves to history view, physical file retained)
+            cpdpFile.IsArchived = true;
+            await _context.SaveChangesAsync();
+
+            return Json(new { success = true, message = "File berhasil diarsipkan." });
+        }
+
+        #endregion
+
         // GET /Admin/ManageAssessment
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
