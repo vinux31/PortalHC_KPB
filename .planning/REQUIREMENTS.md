@@ -20,7 +20,7 @@ Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into 
 
 ### Data Migration
 
-- [ ] **CPDP-06**: Existing CpdpItem data exported to Excel backup file before migration
+- [x] **CPDP-06**: Existing CpdpItem data exported to Excel backup file before migration
 - [ ] **CPDP-07**: CpdpItem table and related spreadsheet CRUD actions removed after file-based system is verified
 
 ## Future Requirements (v3.2+)
@@ -52,7 +52,7 @@ Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into 
 | CPDP-03 | Phase 92 | Pending |
 | CPDP-04 | Phase 93 | Pending |
 | CPDP-05 | Phase 93 | Pending |
-| CPDP-06 | Phase 91 | Pending |
+| CPDP-06 | Phase 91 | Complete |
 | CPDP-07 | Phase 93 | Pending |
 
 **Coverage:**

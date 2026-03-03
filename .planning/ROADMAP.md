@@ -502,6 +502,6 @@ Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 
 | 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |
 | 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
 | 87. Dashboard & Navigation QA | v3.0 | 0/3 | Not started | - |
-| 91. Data Model & Migration | v3.1 | 0/2 | Not started | - |
+| 91. Data Model & Migration | 1/2 | In Progress|  | - |
 | 92. Admin CPDP File Management | v3.1 | 0/2 | Not started | - |
 | 93. Worker View & Cleanup | v3.1 | 0/2 | Not started | - |
