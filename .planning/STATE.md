@@ -154,9 +154,9 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Milestone:** v3.0 Full QA & Feature Completion
 Phase: 83 — master-data-qa
-Plan: 05 complete (2 tasks done; IsActive schema foundation added to ApplicationUser and ProtonKompetensi)
-Status: Phase 83 Plan 05 complete
-Last activity: 2026-03-03 - Completed 83-05: IsActive schema foundation — migration applied, all users set to active
+Plan: 06 complete (2 tasks done; DeactivateWorker, ReactivateWorker, showInactive filter, login block for inactive users)
+Status: Phase 83 Plan 06 complete
+Last activity: 2026-03-03 - Completed 83-06: Worker soft delete backend — DeactivateWorker/ReactivateWorker POST actions, ManageWorkers showInactive filter, AccountController login block
 
 Progress: [██████░░░░] 67%
 
