@@ -8,6 +8,7 @@
     var selectedUnit = ViewBag.Unit as string ?? "";
     var selectedTrackId = ViewBag.TrackId as int?;
     var silabusRowsJson = ViewBag.SilabusRowsJson as string ?? "[]";
+    var showInactive = (bool)(ViewBag.ShowInactive ?? false);
 }
 
 <div class="d-flex align-items-start mb-4">
@@ -88,6 +89,27 @@
             </div>
         </div>
 
+        @* Tampilkan Inactive toggle *@
+        @if (!string.IsNullOrEmpty(selectedBagian) && !string.IsNullOrEmpty(selectedUnit) && selectedTrackId.HasValue)
+        {
+            <div class="d-flex justify-content-end mb-2">
+                @if (showInactive)
+                {
+                    <a href="@Url.Action("Index", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId, showInactive = false })"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-eye-slash me-1"></i>Sembunyikan Inactive
+                    </a>
+                }
+                else
+                {
+                    <a href="@Url.Action("Index", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId, showInactive = true })"
+                       class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-eye me-1"></i>Tampilkan Inactive
+                    </a>
+                }
+            </div>
+        }
+
         @* Silabus data display area — rendered by JS *@
         <div id="silabusTableContainer"></div>
 
@@ -99,7 +121,8 @@
             bagian = selectedBagian,
             unit = selectedUnit,
             trackId = selectedTrackId,
-            hasFilter = !string.IsNullOrEmpty(selectedBagian) && !string.IsNullOrEmpty(selectedUnit) && selectedTrackId.HasValue
+            hasFilter = !string.IsNullOrEmpty(selectedBagian) && !string.IsNullOrEmpty(selectedUnit) && selectedTrackId.HasValue,
+            showInactive = showInactive
         }))</script>
     </div>
 
@@ -269,6 +292,7 @@
         const currentUnit = silabusFilter.unit || '';
         const currentTrackId = silabusFilter.trackId || 0;
         const hasFilter = silabusFilter.hasFilter;
+        const isShowingInactive = silabusFilter.showInactive || false;
 
         const container = document.getElementById('silabusTableContainer');
 
@@ -298,13 +322,19 @@
                             <th>Kompetensi</th>
                             <th>Sub Kompetensi</th>
                             <th>Deliverable</th>
+                            <th style="width:130px">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>`;
 
+                // Group rows by KompetensiId for action buttons (deactivate acts on Kompetensi level)
+                // Track which KompetensiId has already had its action button rendered
+                const renderedKompIds = new Set();
+
                 let i = 0;
                 while (i < silabusRows.length) {
                     const row = silabusRows[i];
+                    const isRowActive = row.IsActive !== false;
                     // Compute kompetensi rowspan
                     let kompSpan = 1;
                     while (i + kompSpan < silabusRows.length && silabusRows[i + kompSpan].Kompetensi === row.Kompetensi) kompSpan++;
@@ -320,15 +350,31 @@
                         // Render rows for this sub-kompetensi group
                         for (let k = j; k < j + subSpan; k++) {
                             const dRow = silabusRows[k];
-                            html += '<tr>';
+                            const dRowIsActive = dRow.IsActive !== false;
+                            const rowCss = dRowIsActive ? '' : ' class="table-secondary text-muted"';
+                            html += `<tr${rowCss}>`;
                             if (k === i) {
-                                html += `<td rowspan="${kompSpan}" class="align-middle fw-semibold text-center" style="background:#f8f9fa">${escHtml(dRow.No)}</td>`;
+                                const bgStyle = dRowIsActive ? 'background:#f8f9fa' : 'background:#e9ecef';
+                                html += `<td rowspan="${kompSpan}" class="align-middle fw-semibold text-center" style="${bgStyle}">${escHtml(dRow.No)}</td>`;
                                 html += `<td rowspan="${kompSpan}" class="align-middle fw-semibold">${escHtml(dRow.Kompetensi)}</td>`;
                             }
                             if (k === j) {
                                 html += `<td rowspan="${subSpan}" class="align-middle">${escHtml(dRow.SubKompetensi)}</td>`;
                             }
                             html += `<td>${escHtml(dRow.Deliverable)}</td>`;
+                            // Action button — show once per kompetensi group (rowspan)
+                            if (k === i) {
+                                const kompId = dRow.KompetensiId || 0;
+                                let actionBtn = '';
+                                if (kompId > 0) {
+                                    if (dRowIsActive) {
+                                        actionBtn = `<button class="btn btn-sm btn-outline-warning btn-deactivate-row" title="Nonaktifkan" data-id="${kompId}" data-name="${escAttr(dRow.Kompetensi)}"><i class="bi bi-person-dash me-1"></i>Nonaktifkan</button>`;
+                                    } else {
+                                        actionBtn = `<button class="btn btn-sm btn-outline-success btn-reactivate-row" title="Aktifkan Kembali" data-id="${kompId}" data-name="${escAttr(dRow.Kompetensi)}"><i class="bi bi-person-check me-1"></i>Aktifkan</button>`;
+                                    }
+                                }
+                                html += `<td rowspan="${kompSpan}" class="align-middle text-center">${actionBtn}</td>`;
+                            }
                             html += '</tr>';
                         }
                         j += subSpan;
@@ -510,6 +556,56 @@
             silabusRows.splice(deleteTargetIndex, 1);
             deleteTargetIndex = -1;
             renderEditTable();
+        });
+
+        // ---- Nonaktifkan silabus (soft delete) ----
+        document.getElementById('silabusTableContainer').addEventListener('click', async function (e) {
+            const deactivateBtn = e.target.closest('.btn-deactivate-row');
+            if (deactivateBtn) {
+                const id = deactivateBtn.dataset.id;
+                const name = deactivateBtn.dataset.name;
+                if (!confirm(`Nonaktifkan silabus "${name}"?\n\nSilabus tidak akan muncul di Plan IDP dan Coaching Proton. Dapat diaktifkan kembali.`)) return;
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                try {
+                    const resp = await fetch('/ProtonData/SilabusDeactivate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify({ KompetensiId: parseInt(id) })
+                    });
+                    const result = await resp.json();
+                    if (result.success) {
+                        setTimeout(() => window.location.reload(), 300);
+                    } else {
+                        alert(result.message || 'Gagal menonaktifkan silabus.');
+                    }
+                } catch (err) {
+                    alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+                }
+                return;
+            }
+
+            const reactivateBtn = e.target.closest('.btn-reactivate-row');
+            if (reactivateBtn) {
+                const id = reactivateBtn.dataset.id;
+                const name = reactivateBtn.dataset.name;
+                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                try {
+                    const resp = await fetch('/ProtonData/SilabusReactivate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify({ KompetensiId: parseInt(id) })
+                    });
+                    const result = await resp.json();
+                    if (result.success) {
+                        setTimeout(() => window.location.reload(), 300);
+                    } else {
+                        alert(result.message || 'Gagal mengaktifkan silabus.');
+                    }
+                } catch (err) {
+                    alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
+                }
+                return;
+            }
         });
 
         // ---- Save All ----
