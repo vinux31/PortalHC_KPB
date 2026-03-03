@@ -126,11 +126,11 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 ## Current Position
 
-**Milestone:** v3.1 CPDP Mapping File-Based Rewrite
-Phase: 93 — worker-view-cleanup
-Plan: 02 complete (all 2 tasks done; CpdpItems table dropped)
-Status: Phase 93 complete
-Last activity: 2026-03-03 - Completed quick task 16: check menu kelola Data Hub dan listkan semua nama title menu disana
+**Milestone:** v3.0 Full QA & Feature Completion
+Phase: 83 — master-data-qa
+Plan: 04 complete (all 3 tasks done; KkjBagianDelete active-only guard + browser verified)
+Status: Phase 83 Plan 04 complete
+Last activity: 2026-03-03 - Completed 83-04: KKJ Bagian delete guard fix — user browser-verified all 4 flows
 
 Progress: [██████░░░░] 67%
 
@@ -149,7 +149,7 @@ Progress: [██████░░░░] 67%
 | 92    | 02   | 10 min   | 3     | 5     |
 | 93    | 01   | 20 min   | 3     | 2     |
 | 93    | 02   | 15 min   | 2     | 9     |
-| Phase 83 P04 | 15 | 2 tasks | 2 files |
+| 83    | 04   | 15 min   | 3     | 2     |
 
 ## Accumulated Context
 
@@ -191,5 +191,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: 93-02-PLAN.md complete — CpdpItem infrastructure removed, EF migration DropCpdpItems applied; Phase 93 complete; ready for 93-03 (if exists) or next phase
+Stopped at: 83-04-PLAN.md complete — KkjBagianDelete active-only guard fix fully verified; browser-verified all 4 delete flows; DATA-01, DATA-02, DATA-04 requirements satisfied
 Resume file: —
