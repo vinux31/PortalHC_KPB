@@ -103,9 +103,9 @@ using (var scope = app.Services.CreateScope())
         context.Database.Migrate(); // Apply migrations
         await SeedData.InitializeAsync(services); // Seed roles & users
         
-        // Seed master data (CPDP Items, Sample Training Records)
+        // Seed master data (Sample Training Records)
         // TODO-Phase90: SeedKkjMatrixAsync removed — KkjMatrices table dropped in Phase 90
-        await SeedMasterData.SeedCpdpItemsAsync(context);
+        // Phase93: SeedCpdpItemsAsync removed — CpdpItems table dropped in Phase 93
         await SeedMasterData.SeedSampleTrainingRecordsAsync(context);
         await SeedCompetencyMappings.SeedAsync(context);
         await SeedProtonData.SeedAsync(context);

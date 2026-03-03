@@ -43,28 +43,5 @@ namespace HcPortal.Models
         public bool IsArchived { get; set; } = false;   // True = moved to history
     }
 
-    // 2. CLASS UNTUK HALAMAN MAPPING (GAP ANALYSIS) - KITA KEMBALIKAN
-    public class GapAnalysisItem
-    {
-        public string? Kompetensi { get; set; }
-        public int LevelTarget { get; set; }
-        public string? AktivitasIdp { get; set; }
-        public string? Status { get; set; } // "Covered", "Gap", "Partial"
-    }
-
-    // 3. CLASS BARU UNTUK TABEL CPDP (MAPPING)
-    public class CpdpItem
-    {
-        public int Id { get; set; }           // Primary Key for EF Core
-        public string No { get; set; } = "";  // Display number (can be "5.1", "5.2", etc.)
-        public string NamaKompetensi { get; set; } = "";
-        public string IndikatorPerilaku { get; set; } = "";
-        public string DetailIndikator { get; set; } = "";
-        public string Silabus { get; set; } = "";
-        public string TargetDeliverable { get; set; } = "";
-        public string Status { get; set; } = "";
-        public string Section { get; set; } = "";   // RFCC | GAST | NGP | DHT
-        // Removed old properties: Implementasi, KodeSub, SubOps, SubPanel
-    }
 
 }

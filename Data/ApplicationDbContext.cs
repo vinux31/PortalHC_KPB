@@ -27,7 +27,6 @@ namespace HcPortal.Data
         // Master Data (KKJ & CPDP)
         public DbSet<KkjBagian> KkjBagians { get; set; }
         public DbSet<KkjFile> KkjFiles { get; set; }
-        public DbSet<CpdpItem> CpdpItems { get; set; }
         public DbSet<CpdpFile> CpdpFiles { get; set; }
 
         // Competency Tracking
@@ -181,11 +180,6 @@ namespace HcPortal.Data
                       .WithMany(b => b.Files)
                       .HasForeignKey(f => f.BagianId)
                       .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            builder.Entity<CpdpItem>(entity =>
-            {
-                entity.ToTable("CpdpItems");
             });
 
             // CpdpFile: uploaded PDF/Excel files per bagian (mirrors KkjFile)
