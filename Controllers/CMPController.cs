@@ -99,23 +99,47 @@ namespace HcPortal.Controllers
         }
 
         // --- HALAMAN 2: MAPPING KKJ - CPDP ---
-        public async Task<IActionResult> Mapping(string? section)
+        public async Task<IActionResult> Mapping()
         {
-            // If no section selected, show bagian selection page
-            if (string.IsNullOrEmpty(section))
-            {
-                return View("MappingSectionSelect");
-            }
-
-            ViewBag.SelectedSection = section;
-
-            // ✅ QUERY FROM DATABASE instead of hardcoded data
-            var cpdpData = await _context.CpdpItems
-                .Where(c => c.Section == section)
-                .OrderBy(c => c.No)
+            // Query all bagians ordered by DisplayOrder
+            var allBagians = await _context.KkjBagians
+                .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
 
-            return View(cpdpData);
+            // Query all active (non-archived) CPDP files, grouped by BagianId
+            var allFiles = await _context.CpdpFiles
+                .Where(f => !f.IsArchived)
+                .OrderBy(f => f.UploadedAt)
+                .ToListAsync();
+
+            var filesByBagian = allFiles
+                .GroupBy(f => f.BagianId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Role-based tab filtering
+            var user = await _userManager.GetUserAsync(User);
+            var filteredBagians = allBagians;
+
+            if (user != null && user.RoleLevel >= 5 && !string.IsNullOrEmpty(user.Section))
+            {
+                var sectionFiltered = allBagians
+                    .Where(b => b.Name.Equals(user.Section, StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                // Only apply filter if it matches at least one bagian; otherwise show all (safe fallback)
+                if (sectionFiltered.Count > 0)
+                {
+                    filteredBagians = sectionFiltered;
+                }
+            }
+
+            var selectedBagianId = filteredBagians.FirstOrDefault()?.Id ?? 0;
+
+            ViewBag.Bagians = filteredBagians;
+            ViewBag.FilesByBagian = filesByBagian;
+            ViewBag.SelectedBagianId = selectedBagianId;
+
+            return View();
         }
         // --- HALAMAN 3: MY ASSESSMENTS (personal view only) ---
         public async Task<IActionResult> Assessment(string? search, int page = 1, int pageSize = 20)
