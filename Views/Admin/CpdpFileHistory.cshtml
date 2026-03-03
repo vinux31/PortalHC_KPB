@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = ViewData["Title"] as string ?? "Riwayat File CPDP";
+    var bagian = ViewBag.Bagian as HcPortal.Models.KkjBagian;
+    var archivedFiles = ViewBag.ArchivedFiles as List<HcPortal.Models.CpdpFile> ?? new List<HcPortal.Models.CpdpFile>();
+}
+
+<div class="container py-4" style="max-width: 900px;">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("CpdpFiles", "Admin")">CPDP File Management</a></li>
+            <li class="breadcrumb-item active">Riwayat File CPDP — @bagian?.Name</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="bi bi-clock-history me-2"></i>Riwayat File CPDP — @bagian?.Name</h2>
+        <a href="@Url.Action("CpdpFiles", "Admin", new { bagian = bagian?.Id })" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Kembali
+        </a>
+    </div>
+
+    @if (!archivedFiles.Any())
+    {
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle me-2"></i>Tidak ada file yang diarsipkan untuk bagian ini.
+        </div>
+    }
+    else
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-header border-0 bg-white">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-archive me-2 text-secondary"></i>
+                    File Diarsipkan (@archivedFiles.Count file)
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">Nama File</th>
+                                <th>Tipe</th>
+                                <th>Ukuran</th>
+                                <th>Keterangan</th>
+                                <th>Tanggal Upload</th>
+                                <th>Di-upload Oleh</th>
+                                <th class="text-center pe-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var file in archivedFiles)
+                            {
+                                <tr>
+                                    <td class="ps-3">
+                                        <i class="bi @(file.FileType == "pdf" ? "bi-file-earmark-pdf text-danger" : "bi-file-earmark-excel text-success") me-2"></i>
+                                        <span class="text-muted">@file.FileName</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@file.FileType.ToUpper()</span>
+                                    </td>
+                                    <td>
+                                        <small>@(file.FileSizeBytes < 1048576 ? $"{file.FileSizeBytes / 1024}KB" : $"{file.FileSizeBytes / 1048576.0:F1}MB")</small>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">@(file.Keterangan ?? "-")</small>
+                                    </td>
+                                    <td>
+                                        <small>@file.UploadedAt.ToString("dd MMM yyyy HH:mm")</small>
+                                    </td>
+                                    <td>
+                                        <small>@file.UploaderName</small>
+                                    </td>
+                                    <td class="text-center pe-3">
+                                        <a href="@Url.Action("CpdpFileDownload", "Admin", new { id = file.Id })"
+                                           class="btn btn-sm btn-outline-primary"
+                                           title="Download file arsip">
+                                            <i class="bi bi-download me-1"></i>Download
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
