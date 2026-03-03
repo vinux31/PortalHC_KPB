@@ -101,6 +101,16 @@ None - no external service configuration required.
 - All 5 PLANIDP requirements (PLANIDP-01 through PLANIDP-05) fulfilled by Plans 89-01 and 89-02 together
 - Phase 89 is complete — ready for browser verification
 
+## Self-Check: PASSED
+
+- FOUND: Views/CDP/PlanIdp.cshtml
+- FOUND commit: 2485c31 (feat — view rewrite)
+- Build: 0 errors, 54 warnings (pre-existing)
+- No old references (IsProtonView, ProtonPlanViewModel, PdfFileName, pdf-header): 0 matches
+- GuidanceDownload present: 1 match
+- Accordion present: 31 matches
+- nav-tabs present: 1 match
+
 ---
 *Phase: 89-planidp-silabus-and-coaching-guidance-tabs-improvement*
 *Completed: 2026-03-03*
