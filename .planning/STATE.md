@@ -117,7 +117,7 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 Phase: 93 — worker-view-cleanup
 Plan: 02 complete (all 2 tasks done; CpdpItems table dropped)
 Status: Phase 93 complete
-Last activity: 2026-03-03 — Completed 93-02 (CpdpItem infrastructure fully removed, EF migration DropCpdpItems applied)
+Last activity: 2026-03-03 - Completed quick task 16: check menu kelola Data Hub dan listkan semua nama title menu disana
 
 Progress: [██████░░░░] 67%
 
@@ -165,6 +165,12 @@ None.
 ### Blockers/Concerns
 
 None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 16 | check menu kelola Data Hub dan listkan semua nama title menu disana | 2026-03-03 | 1bd9b4f | [16-check-menu-kelola-data-hub-dan-listkan-s](./quick/16-check-menu-kelola-data-hub-dan-listkan-s/) |
 
 ## Session Continuity
 
