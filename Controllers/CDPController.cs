@@ -124,7 +124,7 @@ namespace HcPortal.Controllers
                 .OrderBy(f => f.Bagian)
                     .ThenBy(f => f.Unit)
                     .ThenBy(f => f.ProtonTrack!.Urutan)
-                    .ThenByDescending(f => f.UploadedAt)
+                    .ThenBy(f => f.FileName)
                 .ToListAsync();
 
             var guidanceGrouped = allGuidanceFiles
