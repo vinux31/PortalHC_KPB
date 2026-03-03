@@ -28,6 +28,7 @@ namespace HcPortal.Data
         public DbSet<KkjBagian> KkjBagians { get; set; }
         public DbSet<KkjFile> KkjFiles { get; set; }
         public DbSet<CpdpItem> CpdpItems { get; set; }
+        public DbSet<CpdpFile> CpdpFiles { get; set; }
 
         // Competency Tracking
         public DbSet<AssessmentCompetencyMap> AssessmentCompetencyMaps { get; set; }
@@ -185,6 +186,16 @@ namespace HcPortal.Data
             builder.Entity<CpdpItem>(entity =>
             {
                 entity.ToTable("CpdpItems");
+            });
+
+            // CpdpFile: uploaded PDF/Excel files per bagian (mirrors KkjFile)
+            builder.Entity<CpdpFile>(entity =>
+            {
+                entity.ToTable("CpdpFiles");
+                entity.HasOne(f => f.Bagian)
+                      .WithMany()
+                      .HasForeignKey(f => f.BagianId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // Competency Tracking configuration
