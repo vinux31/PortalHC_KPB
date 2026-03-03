@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-03T02:59:50.187Z"
+progress:
+  total_phases: 56
+  completed_phases: 53
+  total_plans: 122
+  completed_plans: 119
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-03T02:54:26.867Z"
 progress:
   total_phases: 56
@@ -50,11 +63,11 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Milestone:** v3.1 CPDP Mapping File-Based Rewrite
 Phase: 92 — admin-cpdp-file-management
-Plan: 01 complete, 02 next
+Plan: 02 complete (at checkpoint Task 3 — awaiting human verify), 03 next
 Status: Executing Phase 92
-Last activity: 2026-03-03 — Completed 92-01 (CPDP file management controller actions)
+Last activity: 2026-03-03 — Completed 92-02 Tasks 1-2 (CPDP views + hub card), at checkpoint Task 3
 
-Progress: [█░░░░░░░░░] 17%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -70,6 +83,7 @@ Progress: [█░░░░░░░░░] 17%
 | 92    | 01   | 3 min    | 1     | 1     |
 
 *Updated after each plan completion*
+| Phase 92 P02 | 5 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -85,6 +99,8 @@ Progress: [█░░░░░░░░░] 17%
 - [Phase 91]: CpdpItems table NOT dropped in plan 91-02 — Phase 93 handles cleanup after worker view rewrite
 - [Phase 92]: CpdpFileArchive uses soft-delete (IsArchived=true) rather than physical file deletion, mirroring KKJ pattern
 - [Phase 92]: Storage path /uploads/cpdp/{bagianId}/ is distinct from /uploads/kkj/ for CPDP files
+- [Phase 92]: CpdpFiles.cshtml mirrors KkjMatrix.cshtml — same Bootstrap structure, CPDP-specific action names and model types
+- [Phase 92]: KkjBagianDelete now checks both KkjFiles and CpdpFiles — deletion blocked if either has files, with per-type count breakdown
 
 ### Pending Todos
 
@@ -97,5 +113,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 92-01-PLAN.md (CPDP file management controller actions)
+Stopped at: 92-02-PLAN.md Task 3 checkpoint:human-verify (Tasks 1-2 complete, awaiting browser verification)
 Resume file: —

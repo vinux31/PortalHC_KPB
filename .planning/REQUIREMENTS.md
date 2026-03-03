@@ -11,7 +11,7 @@ Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into 
 
 - [x] **CPDP-01**: Admin/HC can upload CPDP document files (PDF, XLSX, XLS) per section with optional description
 - [x] **CPDP-02**: Admin/HC can download and soft-delete (archive) CPDP files, with file history view per section
-- [ ] **CPDP-03**: Admin/HC can manage sections (add/delete bagian tabs) on the CPDP admin page
+- [x] **CPDP-03**: Admin/HC can manage sections (add/delete bagian tabs) on the CPDP admin page
 
 ### CPDP Mapping View (Worker)
 
@@ -49,7 +49,7 @@ Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into 
 |-------------|-------|--------|
 | CPDP-01 | Phase 92 | Complete |
 | CPDP-02 | Phase 92 | Complete |
-| CPDP-03 | Phase 92 | Pending |
+| CPDP-03 | Phase 92 | Complete |
 | CPDP-04 | Phase 93 | Pending |
 | CPDP-05 | Phase 93 | Pending |
 | CPDP-06 | Phase 91 | Complete |

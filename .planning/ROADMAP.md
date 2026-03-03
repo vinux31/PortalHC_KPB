@@ -439,7 +439,7 @@ Plans:
 ## Phase Checklist
 
 - [x] **Phase 91: Data Model & Migration** - Create CpdpFile entity, EF Core migration, export CpdpItem data to Excel backup (completed 2026-03-03)
-- [ ] **Phase 92: Admin CPDP File Management** - Rewrite Admin/CpdpItems as file upload/download/archive hub with per-section tabs and bagian management
+- [x] **Phase 92: Admin CPDP File Management** - Rewrite Admin/CpdpItems as file upload/download/archive hub with per-section tabs and bagian management (completed 2026-03-03)
 - [ ] **Phase 93: Worker View & Cleanup** - Rewrite CMP/Mapping as file download page with role-based filtering, then remove CpdpItem table and old CRUD
 
 ## Phase Details
@@ -503,5 +503,5 @@ Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 
 | 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
 | 87. Dashboard & Navigation QA | v3.0 | 0/3 | Not started | - |
 | 91. Data Model & Migration | 2/2 | Complete    | 2026-03-03 | - |
-| 92. Admin CPDP File Management | 1/2 | In Progress|  | - |
+| 92. Admin CPDP File Management | 2/2 | Complete   | 2026-03-03 | - |
 | 93. Worker View & Cleanup | v3.1 | 0/2 | Not started | - |
