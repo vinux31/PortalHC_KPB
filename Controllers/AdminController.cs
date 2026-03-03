@@ -1321,6 +1321,74 @@ namespace HcPortal.Controllers
                 fileName);
         }
 
+        // GET /Admin/CpdpItemsBackup
+        // One-time action: exports ALL CpdpItem rows to Excel, saves to disk, and streams to browser.
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CpdpItemsBackup()
+        {
+            var items = await _context.CpdpItems
+                .OrderBy(c => c.Section)
+                .ThenBy(c => c.No)
+                .ThenBy(c => c.Id)
+                .ToListAsync();
+
+            using var workbook = new ClosedXML.Excel.XLWorkbook();
+            var ws = workbook.Worksheets.Add("CPDP Items Backup");
+
+            // Header row
+            ws.Cell(1, 1).Value = "Id";
+            ws.Cell(1, 2).Value = "No";
+            ws.Cell(1, 3).Value = "Nama Kompetensi";
+            ws.Cell(1, 4).Value = "Indikator Perilaku";
+            ws.Cell(1, 5).Value = "Detail Indikator";
+            ws.Cell(1, 6).Value = "Silabus";
+            ws.Cell(1, 7).Value = "Target Deliverable";
+            ws.Cell(1, 8).Value = "Status";
+            ws.Cell(1, 9).Value = "Section";
+
+            var headerRow = ws.Row(1);
+            headerRow.Style.Font.Bold = true;
+            headerRow.Style.Fill.BackgroundColor = ClosedXML.Excel.XLColor.FromHtml("#343a40");
+            headerRow.Style.Font.FontColor = ClosedXML.Excel.XLColor.White;
+
+            // Data rows — include Id column for completeness
+            for (int i = 0; i < items.Count; i++)
+            {
+                var row = items[i];
+                var r = i + 2;
+                ws.Cell(r, 1).Value = row.Id;
+                ws.Cell(r, 2).Value = row.No;
+                ws.Cell(r, 3).Value = row.NamaKompetensi;
+                ws.Cell(r, 4).Value = row.IndikatorPerilaku;
+                ws.Cell(r, 5).Value = row.DetailIndikator;
+                ws.Cell(r, 6).Value = row.Silabus;
+                ws.Cell(r, 7).Value = row.TargetDeliverable;
+                ws.Cell(r, 8).Value = row.Status;
+                ws.Cell(r, 9).Value = row.Section;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            // --- Save to disk ---
+            var backupDir = Path.Combine(_env.WebRootPath, "uploads", "cpdp", "backup");
+            Directory.CreateDirectory(backupDir);   // no-op if already exists
+
+            var timestamp = DateTimeOffset.UtcNow.ToString("yyyyMMdd_HHmmss");
+            var fileName = $"CpdpItems_Backup_{timestamp}.xlsx";
+            var diskPath = Path.Combine(backupDir, fileName);
+
+            workbook.SaveAs(diskPath);
+
+            // --- Stream to browser ---
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
+        }
+
         // --- PRIVATE HELPERS ---
         private string GenerateSecureToken(int length = 6)
         {
