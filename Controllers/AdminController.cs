@@ -276,10 +276,12 @@ namespace HcPortal.Controllers
             if (bagian == null)
                 return Json(new { success = false, message = "Bagian tidak ditemukan." });
 
-            var fileCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id);
-            if (fileCount > 0)
+            var kkjFileCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id);
+            var cpdpFileCount = await _context.CpdpFiles.CountAsync(f => f.BagianId == id);
+            var totalFileCount = kkjFileCount + cpdpFileCount;
+            if (totalFileCount > 0)
                 return Json(new { success = false, blocked = true,
-                    message = $"Tidak dapat dihapus — masih ada {fileCount} file yang di-upload ke bagian ini. Hapus file dahulu." });
+                    message = $"Tidak dapat dihapus — masih ada {totalFileCount} file yang di-upload ke bagian ini (KKJ: {kkjFileCount}, CPDP: {cpdpFileCount}). Hapus file dahulu." });
 
             _context.KkjBagians.Remove(bagian);
             await _context.SaveChangesAsync();
@@ -443,6 +445,24 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             return Json(new { success = true, message = "File berhasil diarsipkan." });
+        }
+
+        // GET /Admin/CpdpFileHistory/{bagianId}
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CpdpFileHistory(int bagianId)
+        {
+            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            if (bagian == null) return NotFound();
+
+            var archivedFiles = await _context.CpdpFiles
+                .Where(f => f.BagianId == bagianId && f.IsArchived)
+                .OrderByDescending(f => f.UploadedAt)
+                .ToListAsync();
+
+            ViewData["Title"] = $"Riwayat File CPDP — {bagian.Name}";
+            ViewBag.Bagian = bagian;
+            ViewBag.ArchivedFiles = archivedFiles;
+            return View();
         }
 
         #endregion
