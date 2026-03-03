@@ -270,23 +270,95 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjBagianDelete(int id)
+        public async Task<IActionResult> KkjBagianDelete(int id, bool confirmed = false)
         {
             var bagian = await _context.KkjBagians.FindAsync(id);
             if (bagian == null)
                 return Json(new { success = false, message = "Bagian tidak ditemukan." });
 
-            var kkjFileCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id);
-            var cpdpFileCount = await _context.CpdpFiles.CountAsync(f => f.BagianId == id);
-            var totalFileCount = kkjFileCount + cpdpFileCount;
-            if (totalFileCount > 0)
-                return Json(new { success = false, blocked = true,
-                    message = $"Tidak dapat dihapus — masih ada {totalFileCount} file yang di-upload ke bagian ini (KKJ: {kkjFileCount}, CPDP: {cpdpFileCount}). Hapus file dahulu." });
+            // Count ACTIVE files (not archived) — these block deletion
+            var activeKkjCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id && !f.IsArchived);
+            var activeCpdpCount = await _context.CpdpFiles.CountAsync(f => f.BagianId == id && !f.IsArchived);
+            var totalActive = activeKkjCount + activeCpdpCount;
+
+            if (totalActive > 0)
+            {
+                // Active files block deletion — return specific block message
+                return Json(new
+                {
+                    success = false,
+                    blocked = true,
+                    message = $"Bagian ini memiliki {totalActive} file aktif (KKJ: {activeKkjCount}, CPDP: {activeCpdpCount}). " +
+                              $"Arsipkan atau hapus semua file aktif terlebih dahulu sebelum menghapus bagian ini."
+                });
+            }
+
+            // Count ARCHIVED files — these cascade delete (with confirmation)
+            var archivedKkjCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id && f.IsArchived);
+            var archivedCpdpCount = await _context.CpdpFiles.CountAsync(f => f.BagianId == id && f.IsArchived);
+            var totalArchived = archivedKkjCount + archivedCpdpCount;
+
+            if (totalArchived > 0 && !confirmed)
+            {
+                // Has archived files — require explicit confirmation with count
+                return Json(new
+                {
+                    success = false,
+                    needsConfirm = true,
+                    archivedCount = totalArchived,
+                    message = $"Bagian '{bagian.Name}' memiliki {totalArchived} file arsip yang akan ikut terhapus permanen (KKJ: {archivedKkjCount}, CPDP: {archivedCpdpCount}). Tindakan ini tidak dapat dibatalkan."
+                });
+            }
+
+            // Proceed with deletion: cascade delete archived files from disk + DB
+            var archivedKkjFiles = await _context.KkjFiles
+                .Where(f => f.BagianId == id && f.IsArchived)
+                .ToListAsync();
+            foreach (var f in archivedKkjFiles)
+            {
+                if (!string.IsNullOrEmpty(f.FilePath))
+                {
+                    var diskPath = Path.Combine(_env.WebRootPath, f.FilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(diskPath))
+                        System.IO.File.Delete(diskPath);
+                }
+            }
+            if (archivedKkjFiles.Any())
+                _context.KkjFiles.RemoveRange(archivedKkjFiles);
+
+            var archivedCpdpFiles = await _context.CpdpFiles
+                .Where(f => f.BagianId == id && f.IsArchived)
+                .ToListAsync();
+            foreach (var f in archivedCpdpFiles)
+            {
+                if (!string.IsNullOrEmpty(f.FilePath))
+                {
+                    var diskPath = Path.Combine(_env.WebRootPath, f.FilePath.TrimStart('/'));
+                    if (System.IO.File.Exists(diskPath))
+                        System.IO.File.Delete(diskPath);
+                }
+            }
+            if (archivedCpdpFiles.Any())
+                _context.CpdpFiles.RemoveRange(archivedCpdpFiles);
 
             _context.KkjBagians.Remove(bagian);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true });
+            // Audit log
+            var currentUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                    ? (currentUser?.FullName ?? "Unknown")
+                    : $"{currentUser.NIP} - {currentUser.FullName}";
+                await _auditLog.LogAsync(
+                    currentUser?.Id ?? "", actorName, "DeleteBagian",
+                    $"Deleted bagian '{bagian.Name}' (ID {id}). Cascaded {totalArchived} archived file(s) (KKJ: {archivedKkjCount}, CPDP: {archivedCpdpCount}).",
+                    id, "KkjBagian");
+            }
+            catch { }
+
+            return Json(new { success = true, message = $"Bagian '{bagian.Name}' berhasil dihapus." });
         }
 
         #region CPDP File Management
