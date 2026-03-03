@@ -32,90 +32,159 @@ namespace HcPortal.Controllers
             return View();
         }
 
-        public async Task<IActionResult> PlanIdp(string? bagian = null, string? unit = null, string? level = null)
+        public async Task<IActionResult> PlanIdp(string? bagian = null, string? unit = null, int? trackId = null)
         {
-            // Get current user and their role
+            // Get current user + role
             var user = await _userManager.GetUserAsync(User);
-            string userRole = "Operator"; // Default
-            int userLevel = 6; // Default: Coachee
+            if (user == null) return Challenge();
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
+            bool isCoachee = userRole == UserRoles.Coachee;
 
-            if (user != null)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                userRole = roles.FirstOrDefault() ?? "Operator";
-                userLevel = user.RoleLevel;
-            }
-
-            // ========== COACHEE ROLE PATH (Proton DB view) ==========
-            bool isCoacheeView = userRole == UserRoles.Coachee;
-
-            if (isCoacheeView && user != null)
+            // Coachee auto-filter: if no filters provided, pre-fill from ProtonTrackAssignment
+            if (isCoachee && bagian == null && unit == null && trackId == null)
             {
                 var assignment = await _context.ProtonTrackAssignments
                     .Where(a => a.CoacheeId == user.Id && a.IsActive)
                     .FirstOrDefaultAsync();
 
-                if (assignment == null)
+                if (assignment != null)
                 {
-                    ViewBag.UserRole = userRole;
-                    ViewBag.NoAssignment = true;
-                    return View();
+                    var firstKomp = await _context.ProtonKompetensiList
+                        .Where(k => k.ProtonTrackId == assignment.ProtonTrackId && k.IsActive)
+                        .FirstOrDefaultAsync();
+                    if (firstKomp != null)
+                    {
+                        bagian ??= firstKomp.Bagian;
+                        unit ??= firstKomp.Unit;
+                        trackId ??= assignment.ProtonTrackId;
+                    }
+                    ViewBag.HasAssignment = true;
+                    ViewBag.AssignedTrackId = assignment.ProtonTrackId;
                 }
+                else
+                {
+                    ViewBag.HasAssignment = false;
+                }
+            }
+            else
+            {
+                // Non-coachee roles: HasAssignment is not relevant (suppress "no assignment" message)
+                ViewBag.HasAssignment = true;
+                ViewBag.AssignedTrackId = (object?)null;
+            }
 
+            // Load all tracks for dropdowns
+            var allTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+
+            // Build silabus rows as JSON (only if all 3 filters are set)
+            var silabusRows = new List<object>();
+            if (!string.IsNullOrEmpty(bagian) && !string.IsNullOrEmpty(unit) && trackId.HasValue)
+            {
                 var kompetensiList = await _context.ProtonKompetensiList
                     .Include(k => k.SubKompetensiList)
                         .ThenInclude(s => s.Deliverables)
-                    .Where(k => k.ProtonTrackId == assignment.ProtonTrackId && k.IsActive)
+                    .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && k.IsActive)
                     .OrderBy(k => k.Urutan)
                     .ToListAsync();
 
-                var activeProgress = await _context.ProtonDeliverableProgresses
-                    .Where(p => p.CoacheeId == user.Id && p.Status == "Active")
-                    .FirstOrDefaultAsync();
-
-                // Phase 6: load final assessment for PROTN-08
-                var finalAssessment = await _context.ProtonFinalAssessments
-                    .Where(fa => fa.CoacheeId == user.Id)
-                    .OrderByDescending(fa => fa.CreatedAt)
-                    .FirstOrDefaultAsync();
-
-                // Load ProtonTrack for display name
-                var protonTrack = await _context.ProtonTracks
-                    .FirstOrDefaultAsync(t => t.Id == assignment.ProtonTrackId);
-
-                var protonViewModel = new ProtonPlanViewModel
+                foreach (var k in kompetensiList)
                 {
-                    TrackType = protonTrack?.TrackType ?? "",
-                    TahunKe = protonTrack?.TahunKe ?? "",
-                    KompetensiList = kompetensiList,
-                    ActiveProgress = activeProgress,
-                    FinalAssessment = finalAssessment
-                };
-
-                ViewBag.UserRole = userRole;
-                ViewBag.IsProtonView = true;
-                return View(protonViewModel);
+                    foreach (var s in k.SubKompetensiList.OrderBy(s => s.Urutan))
+                    {
+                        foreach (var d in s.Deliverables.OrderBy(d => d.Urutan))
+                        {
+                            silabusRows.Add(new {
+                                KompetensiId = k.Id,
+                                Kompetensi = k.NamaKompetensi,
+                                SubKompetensiId = s.Id,
+                                SubKompetensi = s.NamaSubKompetensi,
+                                DeliverableId = d.Id,
+                                Deliverable = d.NamaDeliverable,
+                                No = d.Urutan.ToString()
+                            });
+                        }
+                    }
+                }
             }
 
-            // Admin sees default view (no view switching)
-            // For non-admin or admin without specific view, use existing logic
+            // Build coaching guidance grouped hierarchy (all files, grouped: Bagian > Unit > TrackType > TahunKe)
+            var allGuidanceFiles = await _context.CoachingGuidanceFiles
+                .Include(f => f.ProtonTrack)
+                .OrderBy(f => f.Bagian)
+                    .ThenBy(f => f.Unit)
+                    .ThenBy(f => f.ProtonTrack!.Urutan)
+                    .ThenByDescending(f => f.UploadedAt)
+                .ToListAsync();
 
-            // Check if HC user has selected a bagian
-            bool hasBagianSelected = !string.IsNullOrEmpty(bagian);
+            var guidanceGrouped = allGuidanceFiles
+                .GroupBy(f => f.Bagian)
+                .OrderBy(g => g.Key)
+                .Select(bagianGroup => new {
+                    Bagian = bagianGroup.Key,
+                    Units = bagianGroup.GroupBy(f => f.Unit)
+                        .OrderBy(g => g.Key)
+                        .Select(unitGroup => new {
+                            Unit = unitGroup.Key,
+                            TrackTypes = unitGroup.GroupBy(f => f.ProtonTrack!.TrackType)
+                                .OrderBy(g => g.Key)
+                                .Select(ttGroup => new {
+                                    TrackType = ttGroup.Key,
+                                    TahunKeList = ttGroup.GroupBy(f => f.ProtonTrack!.TahunKe)
+                                        .OrderBy(g => g.Key)
+                                        .Select(tkGroup => new {
+                                            TahunKe = tkGroup.Key,
+                                            Files = tkGroup.Select(f => new {
+                                                f.Id,
+                                                f.FileName,
+                                                f.FileSize,
+                                                UploadedAt = f.UploadedAt.ToString("dd MMM yyyy")
+                                            }).ToList()
+                                        }).ToList()
+                                }).ToList()
+                        }).ToList()
+                }).ToList();
 
-            // Pass role and selection to view
+            // Set ViewBag values
             ViewBag.UserRole = userRole;
-            ViewBag.UserLevel = userLevel;
-            ViewBag.HasBagianSelected = hasBagianSelected;
-            ViewBag.SelectedBagian = bagian ?? "GAST";
-            ViewBag.SelectedUnit = unit ?? "RFCC NHT";
-            ViewBag.SelectedLevel = level ?? "Operator";
-
-            // Build PDF filename based on selection
-            var pdfFileName = $"{(bagian ?? "GAST").Replace(" ", "").Replace("/", "")}_{(unit ?? "RFCC NHT").Replace(" ", "").Replace("/", "")}_{level ?? "Operator"}_Kompetensi_02022026.pdf";
-            ViewBag.PdfFileName = pdfFileName;
+            ViewBag.IsCoachee = isCoachee;
+            ViewBag.AllTracks = allTracks;
+            ViewBag.Bagian = bagian ?? "";
+            ViewBag.Unit = unit ?? "";
+            ViewBag.TrackId = trackId;
+            ViewBag.HasFilter = !string.IsNullOrEmpty(bagian) && !string.IsNullOrEmpty(unit) && trackId.HasValue;
+            ViewBag.SilabusRowsJson = System.Text.Json.JsonSerializer.Serialize(silabusRows,
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
+            ViewBag.GuidanceGroupedJson = System.Text.Json.JsonSerializer.Serialize(guidanceGrouped,
+                new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
+            ViewBag.OrgStructureJson = System.Text.Json.JsonSerializer.Serialize(
+                HcPortal.Models.OrganizationStructure.SectionUnits);
 
             return View();
+        }
+
+        // GET: /CDP/GuidanceDownload?id=X
+        // Open to any authenticated user (coachees, coaches, HC, Admin, etc.)
+        public async Task<IActionResult> GuidanceDownload(int id)
+        {
+            var record = await _context.CoachingGuidanceFiles.FindAsync(id);
+            if (record == null) return NotFound();
+
+            var physicalPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            if (!System.IO.File.Exists(physicalPath)) return NotFound();
+
+            var contentType = record.FilePath.ToLowerInvariant() switch
+            {
+                var p when p.EndsWith(".pdf") => "application/pdf",
+                var p when p.EndsWith(".doc") => "application/msword",
+                var p when p.EndsWith(".docx") => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                var p when p.EndsWith(".xls") => "application/vnd.ms-excel",
+                var p when p.EndsWith(".xlsx") => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                var p when p.EndsWith(".ppt") => "application/vnd.ms-powerpoint",
+                var p when p.EndsWith(".pptx") => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                _ => "application/octet-stream"
+            };
+            return PhysicalFile(physicalPath, contentType, record.FileName);
         }
 
         public async Task<IActionResult> Dashboard(
