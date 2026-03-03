@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-03T07:48:39.790Z"
+progress:
+  total_phases: 56
+  completed_phases: 54
+  total_plans: 128
+  completed_plans: 125
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-03T07:43:47.681Z"
 progress:
   total_phases: 56
@@ -164,6 +177,8 @@ Progress: [██████░░░░] 67%
 | 93    | 02   | 15 min   | 2     | 9     |
 | 83    | 04   | 15 min   | 3     | 2     |
 | 83    | 05   | 12 min   | 2     | 7     |
+| Phase 83 P07 | 3 | 2 tasks | 2 files |
+| Phase 83 P06 | 7 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -188,6 +203,11 @@ Progress: [██████░░░░] 67%
 - [Phase 83]: KkjBagianDelete uses active-only guard: archived files do not block deletion, cascade with confirmation
 - [Phase 83]: Two-phase delete pattern: first POST checks state (needsConfirm/blocked), second POST with confirmed=true executes cascade
 - [Phase 83]: IsActive flag added to ApplicationUser and ProtonKompetensi as soft-delete foundation for Plans 83-06 through 83-09
+- [Phase 83]: SilabusKompetensiRequest created as separate class from SilabusDeleteRequest because existing class targets DeliverableId not KompetensiId
+- [Phase 83]: [Phase 83]: CDPController has one direct ProtonKompetensiList query needing IsActive filter — all others navigate via deliverable progress nav properties
+- [Phase 83]: [83-06] DeactivateWorker uses null targetId in AuditLog.LogAsync matching DeleteWorker overload; userId in description
+- [Phase 83]: [83-06] showInactive=false default keeps ManageWorkers backward compatible — only active users shown by default
+- [Phase 83]: [83-06] IsActive login block at Step 2b before AD sync prevents deactivated users from authenticating in both local and AD modes
 
 ### Pending Todos
 
