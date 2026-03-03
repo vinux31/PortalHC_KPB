@@ -209,9 +209,9 @@
 
     // Delete a bagian
     async function deleteBagian(bagianId, bagianName) {
-        if (!confirm(`Hapus bagian "${bagianName}"? Pastikan semua file sudah dihapus terlebih dahulu.`)) return;
         const token = getToken();
         try {
+            // First request: check if deletion is possible (active files block, archived trigger confirm)
             const resp = await fetch('/Admin/KkjBagianDelete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -219,10 +219,32 @@
             });
             const data = await resp.json();
             if (data.success) {
-                // Reload to reflect removed tab
+                // No files at all — deleted immediately
+                showToast(data.message || 'Bagian berhasil dihapus.', 'success');
                 window.location.reload();
+            } else if (data.blocked) {
+                // Active files — cannot delete, show specific count message
+                showToast(data.message, 'danger');
+            } else if (data.needsConfirm) {
+                // Has archived files — ask user to confirm cascade deletion
+                const confirmMsg = data.message + '\n\nLanjutkan penghapusan?';
+                if (!confirm(confirmMsg)) return;
+
+                // Second request: confirmed=true to proceed with cascade
+                const confirmResp = await fetch('/Admin/KkjBagianDelete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `id=${bagianId}&confirmed=true&__RequestVerificationToken=${encodeURIComponent(token)}`
+                });
+                const confirmData = await confirmResp.json();
+                if (confirmData.success) {
+                    showToast(confirmData.message || 'Bagian berhasil dihapus.', 'success');
+                    window.location.reload();
+                } else {
+                    showToast(confirmData.message || 'Gagal menghapus bagian.', 'danger');
+                }
             } else {
-                showToast(data.message, 'warning');
+                showToast(data.message || 'Gagal menghapus bagian.', 'danger');
             }
         } catch (e) {
             showToast('Terjadi kesalahan. Coba lagi.', 'danger');
