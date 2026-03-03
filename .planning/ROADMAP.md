@@ -306,7 +306,7 @@ Plans:
 ## Phase Checklist
 
 - [x] **Phase 82: Cleanup & Rename** - Remove orphaned pages, duplicate CMP paths, add AuditLog card, rename "Proton Progress" to "Coaching Proton" (completed 2026-03-02)
-- [ ] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC
+- [x] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC (completed 2026-03-03)
 - [ ] **Phase 84: Assessment Flow QA** - End-to-end QA of the full assessment lifecycle from creation to history
 - [ ] **Phase 85: Coaching Proton Flow QA** - End-to-end QA of the full coaching workflow from mapping to export
 - [ ] **Phase 86: Plan IDP Development** - Build the new Plan IDP page where coachees view silabus and download guidance docs
@@ -487,7 +487,7 @@ Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 82. Cleanup & Rename | v3.0 | 3/3 | Complete | 2026-03-02 |
-| 83. Master Data QA | v3.0 | 3/5 | In Progress | - |
+| 83. Master Data QA | 4/4 | Complete   | 2026-03-03 | - |
 | 84. Assessment Flow QA | v3.0 | 0/6 | Not started | - |
 | 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |
 | 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |

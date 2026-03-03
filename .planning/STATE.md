@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-03T06:58:17.735Z"
+progress:
+  total_phases: 56
+  completed_phases: 55
+  total_plans: 123
+  completed_plans: 122
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-03T04:56:10.692Z"
 progress:
   total_phases: 56
@@ -136,6 +149,7 @@ Progress: [██████░░░░] 67%
 | 92    | 02   | 10 min   | 3     | 5     |
 | 93    | 01   | 20 min   | 3     | 2     |
 | 93    | 02   | 15 min   | 2     | 9     |
+| Phase 83 P04 | 15 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -157,6 +171,8 @@ Progress: [██████░░░░] 67%
 - [93-01]: Download links in worker Mapping view reuse Admin/CpdpFileDownload endpoint (already [Authorize] without role restriction)
 - [Phase 93]: [93-02]: Admin CpdpItems CRUD actions and view removed as part of total cleanup — required for build to pass after model deletion
 - [Phase 93]: [93-02]: GapAnalysisItem deleted — verified no references outside KkjModels.cs
+- [Phase 83]: KkjBagianDelete uses active-only guard: archived files do not block deletion, cascade with confirmation
+- [Phase 83]: Two-phase delete pattern: first POST checks state (needsConfirm/blocked), second POST with confirmed=true executes cascade
 
 ### Pending Todos
 
