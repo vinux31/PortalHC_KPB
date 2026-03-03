@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-03T07:43:47.681Z"
+progress:
+  total_phases: 56
+  completed_phases: 54
+  total_plans: 128
+  completed_plans: 123
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-03T06:58:17.735Z"
 progress:
   total_phases: 56
@@ -128,9 +141,9 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Milestone:** v3.0 Full QA & Feature Completion
 Phase: 83 — master-data-qa
-Plan: 04 complete (all 3 tasks done; KkjBagianDelete active-only guard + browser verified)
-Status: Phase 83 Plan 04 complete
-Last activity: 2026-03-03 - Completed 83-04: KKJ Bagian delete guard fix — user browser-verified all 4 flows
+Plan: 05 complete (2 tasks done; IsActive schema foundation added to ApplicationUser and ProtonKompetensi)
+Status: Phase 83 Plan 05 complete
+Last activity: 2026-03-03 - Completed 83-05: IsActive schema foundation — migration applied, all users set to active
 
 Progress: [██████░░░░] 67%
 
@@ -150,6 +163,7 @@ Progress: [██████░░░░] 67%
 | 93    | 01   | 20 min   | 3     | 2     |
 | 93    | 02   | 15 min   | 2     | 9     |
 | 83    | 04   | 15 min   | 3     | 2     |
+| 83    | 05   | 12 min   | 2     | 7     |
 
 ## Accumulated Context
 
@@ -173,6 +187,7 @@ Progress: [██████░░░░] 67%
 - [Phase 93]: [93-02]: GapAnalysisItem deleted — verified no references outside KkjModels.cs
 - [Phase 83]: KkjBagianDelete uses active-only guard: archived files do not block deletion, cascade with confirmation
 - [Phase 83]: Two-phase delete pattern: first POST checks state (needsConfirm/blocked), second POST with confirmed=true executes cascade
+- [Phase 83]: IsActive flag added to ApplicationUser and ProtonKompetensi as soft-delete foundation for Plans 83-06 through 83-09
 
 ### Pending Todos
 
@@ -191,5 +206,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: 83-04-PLAN.md complete — KkjBagianDelete active-only guard fix fully verified; browser-verified all 4 delete flows; DATA-01, DATA-02, DATA-04 requirements satisfied
+Stopped at: 83-05-PLAN.md complete — IsActive schema foundation added to ApplicationUser and ProtonKompetensi; migration applied; all existing users set to active; DATA-05, DATA-03 requirements satisfied
 Resume file: —
