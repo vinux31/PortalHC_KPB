@@ -65,7 +65,7 @@ namespace HcPortal.Controllers
                 var kompetensiList = await _context.ProtonKompetensiList
                     .Include(k => k.SubKompetensiList)
                         .ThenInclude(s => s.Deliverables)
-                    .Where(k => k.ProtonTrackId == assignment.ProtonTrackId)
+                    .Where(k => k.ProtonTrackId == assignment.ProtonTrackId && k.IsActive)
                     .OrderBy(k => k.Urutan)
                     .ToListAsync();
 
