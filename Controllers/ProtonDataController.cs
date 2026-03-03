@@ -27,6 +27,11 @@ namespace HcPortal.Controllers
         public int DeliverableId { get; set; }
     }
 
+    public class SilabusKompetensiRequest
+    {
+        public int KompetensiId { get; set; }
+    }
+
     public class GuidanceDeleteRequest
     {
         public int Id { get; set; }
@@ -62,7 +67,7 @@ namespace HcPortal.Controllers
         }
 
         // GET: /ProtonData
-        public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId)
+        public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId, bool showInactive = false)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
@@ -72,6 +77,7 @@ namespace HcPortal.Controllers
             ViewBag.Bagian = bagian;
             ViewBag.Unit = unit;
             ViewBag.TrackId = trackId;
+            ViewBag.ShowInactive = showInactive;
 
             // Build flat silabus rows for JSON serialization to JS
             var silabusRows = new List<object>();
@@ -80,7 +86,7 @@ namespace HcPortal.Controllers
                 var kompetensiList = await _context.ProtonKompetensiList
                     .Include(k => k.SubKompetensiList)
                         .ThenInclude(s => s.Deliverables)
-                    .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value)
+                    .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && (showInactive || k.IsActive))
                     .OrderBy(k => k.Urutan)
                     .ToListAsync();
 
@@ -367,6 +373,50 @@ namespace HcPortal.Controllers
                 targetId: req.DeliverableId, targetType: "ProtonDeliverable");
 
             return Json(new { success = true });
+        }
+
+        // POST: /ProtonData/SilabusDeactivate — soft delete: set IsActive=false
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SilabusDeactivate([FromBody] SilabusKompetensiRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Json(new { success = false, message = "Sesi tidak valid." });
+
+            var komp = await _context.ProtonKompetensiList.FindAsync(req.KompetensiId);
+            if (komp == null) return Json(new { success = false, message = "Silabus tidak ditemukan." });
+            if (!komp.IsActive) return Json(new { success = false, message = "Silabus sudah tidak aktif." });
+
+            komp.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(user.Id, user.FullName ?? user.UserName ?? user.Id, "Deactivate",
+                $"Deactivated silabus kompetensi '{komp.NamaKompetensi}' (ID {komp.Id})",
+                targetId: komp.Id, targetType: "ProtonKompetensi");
+
+            return Json(new { success = true, message = $"Silabus '{komp.NamaKompetensi}' berhasil dinonaktifkan." });
+        }
+
+        // POST: /ProtonData/SilabusReactivate — restore soft-deleted silabus
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SilabusReactivate([FromBody] SilabusKompetensiRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Json(new { success = false, message = "Sesi tidak valid." });
+
+            var komp = await _context.ProtonKompetensiList.FindAsync(req.KompetensiId);
+            if (komp == null) return Json(new { success = false, message = "Silabus tidak ditemukan." });
+            if (komp.IsActive) return Json(new { success = false, message = "Silabus sudah aktif." });
+
+            komp.IsActive = true;
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(user.Id, user.FullName ?? user.UserName ?? user.Id, "Reactivate",
+                $"Reactivated silabus kompetensi '{komp.NamaKompetensi}' (ID {komp.Id})",
+                targetId: komp.Id, targetType: "ProtonKompetensi");
+
+            return Json(new { success = true, message = $"Silabus '{komp.NamaKompetensi}' berhasil diaktifkan kembali." });
         }
 
         // GET: /ProtonData/GuidanceList?bagian=X&unit=Y&trackId=Z
