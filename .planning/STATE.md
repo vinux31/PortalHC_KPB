@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
-last_updated: "2026-03-03T00:11:56.378Z"
+last_updated: "2026-03-03T02:54:26.867Z"
 progress:
-  total_phases: 55
+  total_phases: 56
   completed_phases: 52
-  total_plans: 120
-  completed_plans: 117
+  total_plans: 122
+  completed_plans: 118
 ---
 
 ---
@@ -44,15 +44,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.1 CPDP Mapping File-Based Rewrite — Phase 91 in progress
+**Current focus:** v3.1 CPDP Mapping File-Based Rewrite — Phase 92 in progress
 
 ## Current Position
 
 **Milestone:** v3.1 CPDP Mapping File-Based Rewrite
-Phase: 91 — data-model-migration
-Plan: 02 complete, 03 next
-Status: Executing Phase 91
-Last activity: 2026-03-03 — Completed 91-02 (CpdpFile model + EF Core migration AddCpdpFiles)
+Phase: 92 — admin-cpdp-file-management
+Plan: 01 complete, 02 next
+Status: Executing Phase 92
+Last activity: 2026-03-03 — Completed 92-01 (CPDP file management controller actions)
 
 Progress: [█░░░░░░░░░] 17%
 
@@ -67,6 +67,7 @@ Progress: [█░░░░░░░░░] 17%
 |-------|------|----------|-------|-------|
 | 91    | 01   | 8 min    | 1     | 1     |
 | 91    | 02   | 1 min    | 3     | 5     |
+| 92    | 01   | 3 min    | 1     | 1     |
 
 *Updated after each plan completion*
 
@@ -82,6 +83,8 @@ Progress: [█░░░░░░░░░] 17%
 - [91-01]: CpdpItemsBackup uses dual-save pattern: write to disk AND stream to browser; Id column included for complete backup
 - [Phase 91]: CpdpFile.Bagian FK uses WithMany() (no collection nav on KkjBagian) — EF Core enforces FK without bidirectional nav
 - [Phase 91]: CpdpItems table NOT dropped in plan 91-02 — Phase 93 handles cleanup after worker view rewrite
+- [Phase 92]: CpdpFileArchive uses soft-delete (IsArchived=true) rather than physical file deletion, mirroring KKJ pattern
+- [Phase 92]: Storage path /uploads/cpdp/{bagianId}/ is distinct from /uploads/kkj/ for CPDP files
 
 ### Pending Todos
 
@@ -94,5 +97,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 91-02-PLAN.md (CpdpFile model + EF Core migration AddCpdpFiles)
+Stopped at: Completed 92-01-PLAN.md (CPDP file management controller actions)
 Resume file: —

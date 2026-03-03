@@ -471,8 +471,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 92-01: AdminController actions — CpdpItems GET (tab display), UploadCpdpFile POST, DownloadCpdpFile GET, ArchiveCpdpFile POST (CPDP-01, CPDP-02)
-- [ ] 92-02: AdminController actions — AddCpdpBagian POST, DeleteCpdpBagian POST; Admin/CpdpItems.cshtml view with tabbed layout, upload form, file list, history toggle, and bagian management (CPDP-03)
+- [ ] 92-01: AdminController actions — CpdpFiles GET, CpdpUpload GET/POST, CpdpFileDownload GET, CpdpFileArchive POST (CPDP-01, CPDP-02)
+- [ ] 92-02: AdminController CpdpFileHistory GET + KkjBagianDelete CPDP guard; Views CpdpFiles.cshtml, CpdpUpload.cshtml, CpdpFileHistory.cshtml; Admin/Index hub card (CPDP-03)
 
 ### Phase 93: Worker View & Cleanup
 **Goal**: All authenticated workers can download CPDP files per section on the CMP/Mapping page with role-based section filtering, and the legacy CpdpItem table and all spreadsheet CRUD code are permanently removed
@@ -503,5 +503,5 @@ Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 
 | 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
 | 87. Dashboard & Navigation QA | v3.0 | 0/3 | Not started | - |
 | 91. Data Model & Migration | 2/2 | Complete    | 2026-03-03 | - |
-| 92. Admin CPDP File Management | v3.1 | 0/2 | Not started | - |
+| 92. Admin CPDP File Management | 1/2 | In Progress|  | - |
 | 93. Worker View & Cleanup | v3.1 | 0/2 | Not started | - |
