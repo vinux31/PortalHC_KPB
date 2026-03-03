@@ -306,7 +306,7 @@ Plans:
 ## Phase Checklist
 
 - [x] **Phase 82: Cleanup & Rename** - Remove orphaned pages, duplicate CMP paths, add AuditLog card, rename "Proton Progress" to "Coaching Proton" (completed 2026-03-02)
-- [x] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC (completed 2026-03-03)
+- [ ] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC (gap closure plans 83-05 to 83-09 in progress)
 - [ ] **Phase 84: Assessment Flow QA** - End-to-end QA of the full assessment lifecycle from creation to history
 - [ ] **Phase 85: Coaching Proton Flow QA** - End-to-end QA of the full coaching workflow from mapping to export
 - [ ] **Phase 86: Plan IDP Development** - Build the new Plan IDP page where coachees view silabus and download guidance docs
@@ -340,14 +340,18 @@ Plans:
   3. Admin/HC can create, edit, and delete Silabus entries; new Silabus items appear as options in Plan IDP and Coaching Proton pages
   4. Admin/HC can upload, replace, and delete Coaching Guidance files; download links function correctly
   5. Admin/HC can create, edit, delete, and view Worker details; Worker import with Excel template succeeds and validation errors are shown; Worker export with active filters produces correct Excel output
-**Plans**: TBD
+**Plans**: 9 plans (4 complete, 5 gap closure)
 
 Plans:
-- [ ] 83-01: QA KKJ Matrix editor (CRUD, bulk save, bagian management, CMP/Kkj link) (DATA-01)
-- [ ] 83-02: QA KKJ-IDP Mapping editor (CRUD, bulk save, export, CMP/Mapping link) (DATA-02)
-- [ ] 83-03: QA Silabus CRUD and verify data links to Plan IDP and Coaching Proton (DATA-03)
-- [ ] 83-04: QA Coaching Guidance file management (upload, download, replace, delete, Plan IDP links) (DATA-04)
-- [ ] 83-05: QA Worker management CRUD, import from Excel template, and export with filters (DATA-05, DATA-06, DATA-07)
+- [x] 83-01: QA KKJ Matrix editor — cross-link to CMP/Kkj added (DATA-01)
+- [x] 83-02: QA KKJ-IDP Mapping editor — reference guard added (DATA-02)
+- [x] 83-03: QA Silabus CRUD — orphan cleanup bugs fixed (DATA-03)
+- [x] 83-04: KKJ Bagian delete guard — active-only guard + two-phase delete (DATA-04)
+- [ ] 83-05-PLAN.md — Add IsActive to ApplicationUser + ProtonKompetensi + EF migration (DATA-05, DATA-03)
+- [ ] 83-06-PLAN.md — Worker soft delete backend: DeactivateWorker, ReactivateWorker, login block (DATA-05, DATA-07)
+- [ ] 83-07-PLAN.md — Silabus soft delete backend: SilabusDeactivate, SilabusReactivate, CDPController filter (DATA-03)
+- [ ] 83-08-PLAN.md — Worker soft delete UI + ExportWorkers inactive + ImportWorkers inactive match (DATA-05, DATA-06)
+- [ ] 83-09-PLAN.md — Silabus soft delete UI in ProtonData/Index + browser verify all flows (DATA-01..DATA-07)
 
 ### Phase 84: Assessment Flow QA
 **Goal**: The complete assessment lifecycle works correctly for all applicable roles — from HC creating an assessment to workers taking the exam and seeing results
@@ -487,7 +491,7 @@ Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 82. Cleanup & Rename | v3.0 | 3/3 | Complete | 2026-03-02 |
-| 83. Master Data QA | 4/4 | Complete   | 2026-03-03 | - |
+| 83. Master Data QA | v3.0 | 4/9 | In Progress | - |
 | 84. Assessment Flow QA | v3.0 | 0/6 | Not started | - |
 | 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |
 | 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
