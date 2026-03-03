@@ -68,6 +68,13 @@ namespace HcPortal.Controllers
                 return View();
             }
 
+            // Step 2b: Block inactive users from logging in
+            if (!user.IsActive)
+            {
+                ViewBag.Error = "Akun Anda tidak aktif. Hubungi HC untuk mengaktifkan kembali akun Anda.";
+                return View();
+            }
+
             // Step 3: AD mode — sync FullName and Email from AuthResult (null-safe, skip nulls)
             var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
             if (useAD)
