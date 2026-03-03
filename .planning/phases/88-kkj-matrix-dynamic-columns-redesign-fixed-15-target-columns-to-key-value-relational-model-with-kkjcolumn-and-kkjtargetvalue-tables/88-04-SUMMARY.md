@@ -126,3 +126,11 @@ None - no external service configuration required.
 ---
 *Phase: 89-kkj-matrix-dynamic-columns-redesign*
 *Completed: 2026-03-02*
+
+## Self-Check: PASSED
+
+- FOUND: Controllers/CMPController.cs (modified)
+- FOUND: Views/CMP/Kkj.cshtml (modified)
+- FOUND: .planning/phases/89-.../89-04-SUMMARY.md (created)
+- FOUND commit d94ce4e: feat(89-04): rewrite CMPController.Kkj() with role-based Bagian access
+- FOUND commit abf7e4b: feat(89-04): full rewrite Views/CMP/Kkj.cshtml

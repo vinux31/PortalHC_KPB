@@ -22,7 +22,7 @@
 - ✅ **v2.6 Codebase Cleanup** — Phases 73-78 (shipped 2026-03-01)
 - ✅ **v2.7 Assessment Monitoring** — Phases 79-81 (shipped 2026-03-01)
 - 🚧 **v3.0 Full QA & Feature Completion** — Phases 82-87 (in progress)
-- 📋 **v3.1 CPDP Mapping File-Based Rewrite** — Phases 91-93 (planned)
+- 📋 **v3.1 CPDP Mapping File-Based Rewrite** — Phases 88-93 (planned)
 
 ## Phases
 
@@ -274,17 +274,7 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
 
 </details>
 
-### Phase 88: KKJ Matrix Excel Import — add download-template + upload import feature to Admin/KkjMatrix
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 87
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 88 to break down)
-
-### Phase 89: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model with KkjColumn and KkjTargetValue tables
+### Phase 88: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model with KkjColumn and KkjTargetValue tables
 
 **Goal:** Redesign KKJ Matrix from fixed 15 Target_* columns to key-value relational model with KkjColumn, KkjTargetValue, and PositionColumnMapping tables
 **Requirements**: TBD
@@ -292,16 +282,16 @@ Plans:
 **Plans:** 4/4 plans complete
 
 Plans:
-- [x] 89-01: Data Model & EF Core Migration (AddKkjDynamicColumns)
-- [x] 89-02: AdminController Backend + PositionTargetHelper Refactor
-- [ ] 89-03: KkjMatrix.cshtml View Update (dynamic column rendering)
-- [ ] 89-04: CMPController Kkj view + downstream consumers
+- [x] 88-01: Data Model & EF Core Migration (AddKkjDynamicColumns)
+- [x] 88-02: AdminController Backend + PositionTargetHelper Refactor
+- [ ] 88-03: KkjMatrix.cshtml View Update (dynamic column rendering)
+- [ ] 88-04: CMPController Kkj view + downstream consumers
 
-### Phase 90: KKJ Matrix Admin Full Rewrite — document-based page with HC file CRUD and CDP PlanIDP integration
+### Phase 88: KKJ Matrix Admin Full Rewrite — document-based page with HC file CRUD and CDP PlanIDP integration
 
 **Goal:** [To be planned]
 **Requirements**: TBD
-**Depends on:** Phase 89
+**Depends on:** Phase 88
 **Plans:** 4/4 plans complete
 
 Plans:
@@ -434,19 +424,19 @@ Plans:
 
 ### 📋 v3.1 CPDP Mapping File-Based Rewrite (Planned)
 
-**Milestone Goal:** Replace the Admin/CpdpItems spreadsheet editor and CMP/Mapping data table with a file-based document management system (same pattern as Phase 90 KKJ Matrix rewrite), reusing KkjBagian as the section container and creating a new CpdpFile entity.
+**Milestone Goal:** Replace the Admin/CpdpItems spreadsheet editor and CMP/Mapping data table with a file-based document management system (same pattern as Phase 88 KKJ Matrix rewrite), reusing KkjBagian as the section container and creating a new CpdpFile entity.
 
 ## Phase Checklist
 
-- [x] **Phase 91: Data Model & Migration** - Create CpdpFile entity, EF Core migration, export CpdpItem data to Excel backup (completed 2026-03-03)
-- [x] **Phase 92: Admin CPDP File Management** - Rewrite Admin/CpdpItems as file upload/download/archive hub with per-section tabs and bagian management (completed 2026-03-03)
-- [x] **Phase 93: Worker View & Cleanup** - Rewrite CMP/Mapping as file download page with role-based filtering, then remove CpdpItem table and old CRUD (completed 2026-03-03)
+- [x] **Phase 88: Data Model & Migration** - Create CpdpFile entity, EF Core migration, export CpdpItem data to Excel backup (completed 2026-03-03)
+- [x] **Phase 88: Admin CPDP File Management** - Rewrite Admin/CpdpItems as file upload/download/archive hub with per-section tabs and bagian management (completed 2026-03-03)
+- [x] **Phase 88: Worker View & Cleanup** - Rewrite CMP/Mapping as file download page with role-based filtering, then remove CpdpItem table and old CRUD (completed 2026-03-03)
 
 ## Phase Details
 
-### Phase 91: Data Model & Migration
+### Phase 88: Data Model & Migration
 **Goal**: The CpdpFile entity exists in the database and all existing CpdpItem data is preserved as an Excel backup before any table changes
-**Depends on**: Phase 90 (KkjBagian entity already exists)
+**Depends on**: Phase 88 (KkjBagian entity already exists)
 **Requirements**: CPDP-06
 **Success Criteria** (what must be TRUE):
   1. An Excel file containing all existing CpdpItem rows is saved to disk and readable before migration runs
@@ -455,12 +445,12 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 91-01: Export CpdpItem data to Excel backup via one-time script or controller action (CPDP-06)
-- [ ] 91-02: Define CpdpFile model, add DbSet to AppDbContext, create and apply EF Core migration
+- [ ] 88-01: Export CpdpItem data to Excel backup via one-time script or controller action (CPDP-06)
+- [ ] 88-02: Define CpdpFile model, add DbSet to AppDbContext, create and apply EF Core migration
 
-### Phase 92: Admin CPDP File Management
+### Phase 88: Admin CPDP File Management
 **Goal**: Admin/HC can manage CPDP document files per section — uploading, downloading, archiving, and viewing file history — with the ability to add or remove section tabs
-**Depends on**: Phase 91
+**Depends on**: Phase 88
 **Requirements**: CPDP-01, CPDP-02, CPDP-03
 **Success Criteria** (what must be TRUE):
   1. Admin/HC navigates to /Admin/CpdpItems and sees tabbed sections (RFCC, GAST, NGP, DHT) matching KkjBagian records; each tab shows active files for that section
@@ -471,12 +461,12 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 92-01: AdminController actions — CpdpFiles GET, CpdpUpload GET/POST, CpdpFileDownload GET, CpdpFileArchive POST (CPDP-01, CPDP-02)
-- [ ] 92-02: AdminController CpdpFileHistory GET + KkjBagianDelete CPDP guard; Views CpdpFiles.cshtml, CpdpUpload.cshtml, CpdpFileHistory.cshtml; Admin/Index hub card (CPDP-03)
+- [ ] 88-01: AdminController actions — CpdpFiles GET, CpdpUpload GET/POST, CpdpFileDownload GET, CpdpFileArchive POST (CPDP-01, CPDP-02)
+- [ ] 88-02: AdminController CpdpFileHistory GET + KkjBagianDelete CPDP guard; Views CpdpFiles.cshtml, CpdpUpload.cshtml, CpdpFileHistory.cshtml; Admin/Index hub card (CPDP-03)
 
-### Phase 93: Worker View & Cleanup
+### Phase 88: Worker View & Cleanup
 **Goal**: All authenticated workers can download CPDP files per section on the CMP/Mapping page with role-based section filtering, and the legacy CpdpItem table and all spreadsheet CRUD code are permanently removed
-**Depends on**: Phase 92
+**Depends on**: Phase 88
 **Requirements**: CPDP-04, CPDP-05, CPDP-07
 **Success Criteria** (what must be TRUE):
   1. An L1-L4 worker navigating to /CMP/Mapping sees all section tabs and can download files from any section
@@ -486,8 +476,8 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 93-01: Rewrite CMPController Mapping action and CMP/Mapping.cshtml view — file download per section, role-based tab filtering (L1-L4 all, L5-L6 own unit) (CPDP-04, CPDP-05)
-- [ ] 93-02: Remove CpdpItem model, DbSet, migration drop, and all old CRUD controller actions and views; verify no broken references remain (CPDP-07)
+- [ ] 88-01: Rewrite CMPController Mapping action and CMP/Mapping.cshtml view — file download per section, role-based tab filtering (L1-L4 all, L5-L6 own unit) (CPDP-04, CPDP-05)
+- [ ] 88-02: Remove CpdpItem model, DbSet, migration drop, and all old CRUD controller actions and views; verify no broken references remain (CPDP-07)
 
 ## Progress
 
@@ -502,6 +492,6 @@ Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 
 | 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |
 | 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
 | 87. Dashboard & Navigation QA | v3.0 | 0/3 | Not started | - |
-| 91. Data Model & Migration | 2/2 | Complete    | 2026-03-03 | - |
-| 92. Admin CPDP File Management | 2/2 | Complete    | 2026-03-03 | - |
-| 93. Worker View & Cleanup | 2/2 | Complete    | 2026-03-03 | - |
+| 88. Data Model & Migration | 2/2 | Complete    | 2026-03-03 | - |
+| 88. Admin CPDP File Management | 2/2 | Complete    | 2026-03-03 | - |
+| 88. Worker View & Cleanup | 2/2 | Complete    | 2026-03-03 | - |
