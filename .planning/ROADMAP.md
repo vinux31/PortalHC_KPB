@@ -424,6 +424,25 @@ Plans:
 - [ ] 87-02: QA login flow and role-based navigation visibility (DASH-04, DASH-05)
 - [ ] 87-03: QA section selectors, AccessDenied page, and AuditLog page (DASH-06, DASH-07, DASH-08)
 
+### Phase 89: PlanIDP Silabus and Coaching Guidance Tabs Improvement
+
+**Goal:** Redesign CDP/PlanIdp from its current dual-path layout (Coachee deliverable table + Admin/HC PDF view) into a unified 2-tab layout (Silabus + Coaching Guidance) for all roles — read-only consumer view aligned with the finalized ProtonData/Index admin page
+**Requirements**: PLANIDP-01, PLANIDP-02, PLANIDP-03, PLANIDP-04, PLANIDP-05
+**Depends on:** Phase 88
+**Plans:** 1/3 plans executed
+
+Requirements:
+- **PLANIDP-01**: All roles see the same unified 2-tab PlanIdp layout (Silabus + Coaching Guidance); old PDF view and old Coachee deliverable-hierarchy path are removed
+- **PLANIDP-02**: Silabus tab shows read-only hierarchical table (Kompetensi > SubKompetensi > Deliverable) with rowspan merge and cascading filter (Bagian > Unit > Track > Muat Data); only IsActive==true items shown
+- **PLANIDP-03**: Coaching Guidance tab shows 4-level accordion (Bagian > Unit > TrackType > TahunKe) with Download buttons at the file level; data sourced from CoachingGuidanceFile table
+- **PLANIDP-04**: Coachee role auto-pre-fills their Bagian/Unit/Track from ProtonTrackAssignment on page load; "Lihat Semua" resets to manual filter; Coachee without assignment sees informational empty state
+- **PLANIDP-05**: CDPController.GuidanceDownload endpoint added (any [Authorize] user); old PDF-based view entirely removed including JS, CSS, and PDF file references
+
+Plans:
+- [ ] 89-01: Rewrite CDPController.PlanIdp + add CDPController.GuidanceDownload (PLANIDP-01..05)
+- [ ] 89-02: Rewrite Views/CDP/PlanIdp.cshtml as 2-tab layout (PLANIDP-01..05)
+- [ ] 89-03: Human verify — browser check all tabs and role behaviors (PLANIDP-01..05)
+
 ---
 
 ### 📋 v3.1 CPDP Mapping File-Based Rewrite (Planned)

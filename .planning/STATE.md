@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-03T10:05:44.343Z"
+progress:
+  total_phases: 56
+  completed_phases: 54
+  total_plans: 127
+  completed_plans: 124
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-03T09:10:33.817Z"
 progress:
   total_phases: 56
@@ -194,6 +207,7 @@ Progress: [████████░░] 80%
 | Phase 83 P06 | 7 min | 2 tasks | 2 files |
 | Phase 83 P08 | 3 min | 2 tasks | 4 files |
 | 83    | 09   | 30 min   | 2     | 1     |
+| Phase 89 P01 | 15 min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -229,6 +243,8 @@ Progress: [████████░░] 80%
 - [Phase 83]: [83-08] ExportWorkers Status column added only when showInactive=true — keeps normal export backward compatible
 - [Phase 83]: [83-09] Silabus soft delete UI mirrors ManageWorkers anchor-link toggle pattern; IsNew rows keep hard-delete, saved rows get Nonaktifkan/Aktifkan Kembali
 - [Phase 83]: [83-09] All 7 DATA requirements (DATA-01 to DATA-07) verified in browser by user — Phase 83 gap closure confirmed complete
+- [Phase 89]: [89-01]: Unified CDPController.PlanIdp replaces old Coachee-Proton/Admin-PDF dual-path; all roles use same action + ViewBag JSON
+- [Phase 89]: [89-01]: Coachee bagian/unit derived from first active ProtonKompetensi for assigned trackId; GuidanceDownload in CDPController accessible to all authenticated users
 
 ### Pending Todos
 
