@@ -41,8 +41,9 @@ namespace HcPortal.Controllers
             var userRole = roles.FirstOrDefault() ?? "";
             bool isCoachee = userRole == UserRoles.Coachee;
 
-            // Coachee auto-filter: if no filters provided, pre-fill from ProtonTrackAssignment
-            if (isCoachee && bagian == null && unit == null && trackId == null)
+            // Coachee: lock to their assigned Bagian (cannot browse other sections)
+            string? coacheeBagian = null;
+            if (isCoachee)
             {
                 var assignment = await _context.ProtonTrackAssignments
                     .Where(a => a.CoacheeId == user.Id && a.IsActive)
@@ -55,7 +56,9 @@ namespace HcPortal.Controllers
                         .FirstOrDefaultAsync();
                     if (firstKomp != null)
                     {
-                        bagian ??= firstKomp.Bagian;
+                        coacheeBagian = firstKomp.Bagian;
+                        // Force bagian to coachee's own — ignore URL param
+                        bagian = coacheeBagian;
                         unit ??= firstKomp.Unit;
                         trackId ??= assignment.ProtonTrackId;
                     }
@@ -73,6 +76,7 @@ namespace HcPortal.Controllers
                 ViewBag.HasAssignment = true;
                 ViewBag.AssignedTrackId = (object?)null;
             }
+            ViewBag.CoacheeBagian = coacheeBagian ?? "";
 
             // Load all tracks for dropdowns
             var allTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
@@ -108,9 +112,15 @@ namespace HcPortal.Controllers
                 }
             }
 
-            // Build coaching guidance grouped hierarchy (all files, grouped: Bagian > Unit > TrackType > TahunKe)
-            var allGuidanceFiles = await _context.CoachingGuidanceFiles
+            // Build coaching guidance grouped hierarchy (Bagian > Unit > TrackType > TahunKe)
+            // Coachee: limited to their own Bagian only
+            var guidanceQuery = _context.CoachingGuidanceFiles
                 .Include(f => f.ProtonTrack)
+                .AsQueryable();
+            if (isCoachee && coacheeBagian != null)
+                guidanceQuery = guidanceQuery.Where(f => f.Bagian == coacheeBagian);
+
+            var allGuidanceFiles = await guidanceQuery
                 .OrderBy(f => f.Bagian)
                     .ThenBy(f => f.Unit)
                     .ThenBy(f => f.ProtonTrack!.Urutan)

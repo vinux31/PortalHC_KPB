@@ -10,6 +10,7 @@
     var hasAssignment = (bool)(ViewBag.HasAssignment ?? true);
     var silabusRowsJson = ViewBag.SilabusRowsJson as string ?? "[]";
     var guidanceGroupedJson = ViewBag.GuidanceGroupedJson as string ?? "[]";
+    var coacheeBagian = ViewBag.CoacheeBagian as string ?? "";
 }
 
 <div class="d-flex align-items-start mb-4">
@@ -58,13 +59,21 @@
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Bagian</label>
-                            <select class="form-select" id="silabusBagian" name="bagian">
-                                <option value="">-- Pilih Bagian --</option>
-                                @foreach (var b in HcPortal.Models.OrganizationStructure.SectionUnits.Keys)
-                                {
-                                    <option value="@b" selected="@(selectedBagian == b ? "selected" : null)">@b</option>
-                                }
-                            </select>
+                            @if (isCoachee && !string.IsNullOrEmpty(coacheeBagian))
+                            {
+                                <input type="hidden" name="bagian" value="@coacheeBagian" />
+                                <input type="text" class="form-control bg-light" value="@coacheeBagian" disabled />
+                            }
+                            else
+                            {
+                                <select class="form-select" id="silabusBagian" name="bagian">
+                                    <option value="">-- Pilih Bagian --</option>
+                                    @foreach (var b in HcPortal.Models.OrganizationStructure.SectionUnits.Keys)
+                                    {
+                                        <option value="@b" selected="@(selectedBagian == b ? "selected" : null)">@b</option>
+                                    }
+                                </select>
+                            }
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Unit</label>
@@ -97,15 +106,7 @@
                         </div>
                     </div>
                 </form>
-                @* Coachee: show "Lihat Semua" link to reset auto-filter *@
-                @if (isCoachee && hasFilter)
-                {
-                    <div class="mt-2">
-                        <a href="/CDP/PlanIdp" class="btn btn-link btn-sm text-muted p-0">
-                            <i class="bi bi-x-circle me-1"></i>Lihat Semua (reset filter)
-                        </a>
-                    </div>
-                }
+                @* Coachee: locked to their Bagian, no reset needed *@
             </div>
         </div>
 
