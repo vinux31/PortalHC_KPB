@@ -4,6 +4,7 @@
     var successCount = importResults?.Count(r => r.Status == "Success") ?? 0;
     var errorCount = importResults?.Count(r => r.Status == "Error") ?? 0;
     var skipCount = importResults?.Count(r => r.Status == "Skip") ?? 0;
+    var reviewCount = importResults?.Count(r => r.Status == "PerluReview") ?? 0;
 }
 
 <div class="container py-4" style="max-width: 860px;">
@@ -43,22 +44,28 @@
     @if (importResults != null)
     {
         <div class="row g-3 mb-4">
-            <div class="col-4">
+            <div class="col-3">
                 <div class="card border-0 shadow-sm text-center p-3">
                     <div class="fs-2 fw-bold text-success">@successCount</div>
                     <div class="small text-muted">Berhasil Dibuat</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-3">
                 <div class="card border-0 shadow-sm text-center p-3">
                     <div class="fs-2 fw-bold text-warning">@skipCount</div>
                     <div class="small text-muted">Dilewati (duplikat)</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-3">
                 <div class="card border-0 shadow-sm text-center p-3">
                     <div class="fs-2 fw-bold text-danger">@errorCount</div>
                     <div class="small text-muted">Error / Gagal</div>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="card border-0 shadow-sm text-center p-3">
+                    <div class="fs-2 fw-bold text-info">@reviewCount</div>
+                    <div class="small text-muted">Perlu Review</div>
                 </div>
             </div>
         </div>
@@ -88,6 +95,7 @@
                                     "Success" => "table-success",
                                     "Error" => "table-danger",
                                     "Skip" => "table-warning",
+                                    "PerluReview" => "table-warning",
                                     _ => ""
                                 };
                                 var statusBadge = r.Status switch
@@ -95,6 +103,7 @@
                                     "Success" => "<span class=\"badge bg-success\"><i class=\"bi bi-check-lg me-1\"></i>Berhasil</span>",
                                     "Error" => "<span class=\"badge bg-danger\"><i class=\"bi bi-x-lg me-1\"></i>Error</span>",
                                     "Skip" => "<span class=\"badge bg-warning text-dark\"><i class=\"bi bi-skip-forward me-1\"></i>Skip</span>",
+                                    "PerluReview" => "<span class=\"badge bg-info text-dark\"><i class=\"bi bi-arrow-repeat me-1\"></i>Perlu Review</span>",
                                     _ => "<span class=\"badge bg-secondary\">?</span>"
                                 };
                                 <tr class="@rowClass">
@@ -102,7 +111,19 @@
                                     <td class="p-3"><small>@r.Email</small></td>
                                     <td class="p-3"><small>@r.Role</small></td>
                                     <td class="p-3 text-center">@Html.Raw(statusBadge)</td>
-                                    <td class="p-3"><small>@r.Message</small></td>
+                                    <td class="p-3">
+                                        <small>@r.Message</small>
+                                        @if (r.Status == "PerluReview" && !string.IsNullOrEmpty(r.ExistingUserId))
+                                        {
+                                            <form method="post" action="@Url.Action("ReactivateWorker", "Admin")" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@r.ExistingUserId" />
+                                                <button type="submit" class="btn btn-sm btn-outline-success ms-2">
+                                                    <i class="bi bi-person-check me-1"></i>Aktifkan Kembali
+                                                </button>
+                                            </form>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         </tbody>

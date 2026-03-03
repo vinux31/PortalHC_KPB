@@ -3544,7 +3544,7 @@ namespace HcPortal.Controllers
         // GET /Admin/ExportWorkers
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ExportWorkers(string? search, string? sectionFilter, string? roleFilter)
+        public async Task<IActionResult> ExportWorkers(string? search, string? sectionFilter, string? roleFilter, bool showInactive = false)
         {
             var query = _context.Users.AsQueryable();
 
@@ -3563,6 +3563,8 @@ namespace HcPortal.Controllers
                 var level = UserRoles.GetRoleLevel(roleFilter);
                 query = query.Where(u => u.RoleLevel == level);
             }
+            if (!showInactive)
+                query = query.Where(u => u.IsActive);
 
             var users = await query.OrderBy(u => u.FullName).ToListAsync();
 
@@ -3576,7 +3578,9 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Workers");
 
-            var headers = new[] { "No", "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Directorate", "Role", "Tgl Bergabung" };
+            var headers = showInactive
+                ? new[] { "No", "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Directorate", "Role", "Tgl Bergabung", "Status" }
+                : new[] { "No", "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Directorate", "Role", "Tgl Bergabung" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -3598,6 +3602,8 @@ namespace HcPortal.Controllers
                 ws.Cell(row, 8).Value = u.Directorate ?? "";
                 ws.Cell(row, 9).Value = roleDict.ContainsKey(u.Id) ? roleDict[u.Id] : "-";
                 ws.Cell(row, 10).Value = u.JoinDate.HasValue ? u.JoinDate.Value.ToString("yyyy-MM-dd") : "";
+                if (showInactive)
+                    ws.Cell(row, 11).Value = u.IsActive ? "Aktif" : "Tidak Aktif";
                 row++;
             }
 
@@ -3762,8 +3768,17 @@ namespace HcPortal.Controllers
                     var existing = await _userManager.FindByEmailAsync(email);
                     if (existing != null)
                     {
-                        result.Status = "Skip";
-                        result.Message = "Email sudah terdaftar, dilewati";
+                        if (!existing.IsActive)
+                        {
+                            result.Status = "PerluReview";
+                            result.Message = "Email terdaftar tapi tidak aktif — dapat diaktifkan kembali";
+                            result.ExistingUserId = existing.Id;
+                        }
+                        else
+                        {
+                            result.Status = "Skip";
+                            result.Message = "Email sudah terdaftar, dilewati";
+                        }
                         results.Add(result);
                         continue;
                     }
@@ -3819,8 +3834,9 @@ namespace HcPortal.Controllers
                 var actor = await _userManager.GetUserAsync(User);
                 var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
                 var successCount = results.Count(r => r.Status == "Success");
+                var reviewCount = results.Count(r => r.Status == "PerluReview");
                 await _auditLog.LogAsync(actor?.Id ?? "", actorName, "ImportWorkers",
-                    $"Bulk import: {successCount} berhasil, {results.Count(r => r.Status == "Error")} error, {results.Count(r => r.Status == "Skip")} dilewati",
+                    $"Bulk import: {successCount} berhasil, {results.Count(r => r.Status == "Error")} error, {results.Count(r => r.Status == "Skip")} dilewati, {reviewCount} perlu review",
                     null, "ApplicationUser");
             }
             catch { }
