@@ -443,6 +443,26 @@ Plans:
 - [ ] 89-02: Rewrite Views/CDP/PlanIdp.cshtml as 2-tab layout (PLANIDP-01..05)
 - [ ] 89-03: Human verify — browser check all tabs and role behaviors (PLANIDP-01..05)
 
+### Phase 90: Audit & fix Admin Assessment pages (ManageAssessment + AssessmentMonitoring)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 89
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 90 to break down)
+
+### Phase 91: Audit & fix CMP Assessment pages (Assessment + Records)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 90
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 91 to break down)
+
 ---
 
 ### 📋 v3.1 CPDP Mapping File-Based Rewrite (Planned)
