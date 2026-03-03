@@ -29,6 +29,7 @@ public class ProtonKompetensi
     public string Unit { get; set; } = "";
     public string NamaKompetensi { get; set; } = "";
     public int Urutan { get; set; }
+    public bool IsActive { get; set; } = true;
     public int ProtonTrackId { get; set; }
     public ProtonTrack? ProtonTrack { get; set; }
 

@@ -61,6 +61,11 @@ namespace HcPortal.Models
         public string SelectedView { get; set; } = "Coachee";
 
         /// <summary>
+        /// Apakah user aktif. Inactive users tidak bisa login dan disembunyikan dari list default.
+        /// </summary>
+        public bool IsActive { get; set; } = true;
+
+        /// <summary>
         /// Navigation property for TrainingRecords
         /// </summary>
         public virtual ICollection<TrainingRecord> TrainingRecords { get; set; } = new List<TrainingRecord>();
