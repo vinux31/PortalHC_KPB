@@ -154,11 +154,11 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Milestone:** v3.0 Full QA & Feature Completion
 Phase: 83 — master-data-qa
-Plan: 08 complete (2 tasks done; ManageWorkers soft delete UI, ExportWorkers showInactive+Status, ImportWorkers PerluReview detection)
-Status: Phase 83 Plan 08 complete
-Last activity: 2026-03-03 - Completed 83-08: Worker soft delete UI — Tampilkan Inactive toggle, Nonaktifkan/Aktifkan Kembali buttons, Export Status column, ImportWorkers PerluReview with Reaktivasi button
+Plan: 09 complete (2 tasks done; ProtonData/Index Tampilkan Inactive toggle, Nonaktifkan/Aktifkan Kembali buttons, browser verification of all 7 DATA requirements approved)
+Status: Phase 83 Plan 09 complete — Phase 83 DONE
+Last activity: 2026-03-03 - Completed 83-09: Silabus soft delete UI on ProtonData/Index; all 5 browser flows verified; all DATA-01 to DATA-07 requirements satisfied
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
@@ -180,6 +180,7 @@ Progress: [███████░░░] 70%
 | Phase 83 P07 | 3 | 2 tasks | 2 files |
 | Phase 83 P06 | 7 min | 2 tasks | 2 files |
 | Phase 83 P08 | 3 min | 2 tasks | 4 files |
+| 83    | 09   | 30 min   | 2     | 1     |
 
 ## Accumulated Context
 
@@ -213,6 +214,8 @@ Progress: [███████░░░] 70%
 - [Phase 83]: [83-08] Hapus (hard delete) modal removed from UI; backend DeleteWorker action preserved for programmatic use
 - [Phase 83]: [83-08] ImportWorkers PerluReview shows inline Aktifkan Kembali form — user stays on results page after reactivation
 - [Phase 83]: [83-08] ExportWorkers Status column added only when showInactive=true — keeps normal export backward compatible
+- [Phase 83]: [83-09] Silabus soft delete UI mirrors ManageWorkers anchor-link toggle pattern; IsNew rows keep hard-delete, saved rows get Nonaktifkan/Aktifkan Kembali
+- [Phase 83]: [83-09] All 7 DATA requirements (DATA-01 to DATA-07) verified in browser by user — Phase 83 gap closure confirmed complete
 
 ### Pending Todos
 
@@ -231,5 +234,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: 83-08-PLAN.md complete — Worker soft delete UI wired: Tampilkan Inactive toggle, Nonaktifkan/Aktifkan Kembali buttons, Export Status column, ImportWorkers PerluReview with Reaktivasi button
+Stopped at: 83-09-PLAN.md complete — Silabus soft delete UI on ProtonData/Index; all 5 browser flows verified; Phase 83 master data QA gap closure complete
 Resume file: —
