@@ -429,7 +429,7 @@ Plans:
 **Goal:** Redesign CDP/PlanIdp from its current dual-path layout (Coachee deliverable table + Admin/HC PDF view) into a unified 2-tab layout (Silabus + Coaching Guidance) for all roles — read-only consumer view aligned with the finalized ProtonData/Index admin page
 **Requirements**: PLANIDP-01, PLANIDP-02, PLANIDP-03, PLANIDP-04, PLANIDP-05
 **Depends on:** Phase 88
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Requirements:
 - **PLANIDP-01**: All roles see the same unified 2-tab PlanIdp layout (Silabus + Coaching Guidance); old PDF view and old Coachee deliverable-hierarchy path are removed
