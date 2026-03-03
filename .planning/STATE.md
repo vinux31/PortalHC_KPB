@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-03T04:36:45.800Z"
+progress:
+  total_phases: 57
+  completed_phases: 53
+  total_plans: 124
+  completed_plans: 120
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-03T04:30:52.124Z"
 progress:
   total_phases: 57
@@ -76,9 +89,9 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Milestone:** v3.1 CPDP Mapping File-Based Rewrite
 Phase: 93 — worker-view-cleanup
-Plan: 01 paused at checkpoint:human-verify (Tasks 1 & 2 complete)
+Plan: 01 complete (all 3 tasks done; human verification approved)
 Status: Executing Phase 93
-Last activity: 2026-03-03 — Completed 93-01 Tasks 1-2 (CMPController.Mapping rewrite + Mapping.cshtml rebuild); awaiting human verification
+Last activity: 2026-03-03 — Completed 93-01 (CMPController.Mapping rewrite + Mapping.cshtml rebuild + human verification approved)
 
 Progress: [███░░░░░░░] 33%
 
@@ -94,10 +107,8 @@ Progress: [███░░░░░░░] 33%
 | 91    | 01   | 8 min    | 1     | 1     |
 | 91    | 02   | 1 min    | 3     | 5     |
 | 92    | 01   | 3 min    | 1     | 1     |
-
-*Updated after each plan completion*
 | 92    | 02   | 10 min   | 3     | 5     |
-| Phase 93 P01 | 10 min | 2 tasks | 2 files |
+| 93    | 01   | 20 min   | 3     | 2     |
 
 ## Accumulated Context
 
@@ -116,6 +127,7 @@ Progress: [███░░░░░░░] 33%
 - [Phase 92]: CpdpFiles.cshtml mirrors KkjMatrix.cshtml — same Bootstrap structure, CPDP-specific action names and model types
 - [Phase 92]: KkjBagianDelete now checks both KkjFiles and CpdpFiles — deletion blocked if either has files, with per-type count breakdown
 - [Phase 93]: Worker Mapping view mirrors Admin CpdpFiles tabbed layout but read-only; RoleLevel >= 5 triggers section-specific tab filtering with all-tabs fallback
+- [93-01]: Download links in worker Mapping view reuse Admin/CpdpFileDownload endpoint (already [Authorize] without role restriction)
 
 ### Pending Todos
 
@@ -128,5 +140,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: 93-01-PLAN.md Task 2 complete — at checkpoint:human-verify (Task 3); resume after human approves
+Stopped at: 93-01-PLAN.md complete — all tasks done, human verification approved; ready for 93-02
 Resume file: —
