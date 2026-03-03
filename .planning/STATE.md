@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
-last_updated: "2026-03-03T03:07:20.309Z"
+last_updated: "2026-03-03T04:30:52.124Z"
 progress:
-  total_phases: 56
+  total_phases: 57
   completed_phases: 53
-  total_plans: 122
-  completed_plans: 119
+  total_plans: 124
+  completed_plans: 120
 ---
 
 ---
@@ -70,15 +70,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.1 CPDP Mapping File-Based Rewrite — Phase 92 in progress
+**Current focus:** v3.1 CPDP Mapping File-Based Rewrite — Phase 93 in progress
 
 ## Current Position
 
 **Milestone:** v3.1 CPDP Mapping File-Based Rewrite
-Phase: 92 — admin-cpdp-file-management
-Plan: 02 complete (human verification approved), 03 next
-Status: Executing Phase 92
-Last activity: 2026-03-03 — Completed 92-02 (CPDP views + hub card + human verification approved)
+Phase: 93 — worker-view-cleanup
+Plan: 01 paused at checkpoint:human-verify (Tasks 1 & 2 complete)
+Status: Executing Phase 93
+Last activity: 2026-03-03 — Completed 93-01 Tasks 1-2 (CMPController.Mapping rewrite + Mapping.cshtml rebuild); awaiting human verification
 
 Progress: [███░░░░░░░] 33%
 
@@ -97,6 +97,7 @@ Progress: [███░░░░░░░] 33%
 
 *Updated after each plan completion*
 | 92    | 02   | 10 min   | 3     | 5     |
+| Phase 93 P01 | 10 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,7 @@ Progress: [███░░░░░░░] 33%
 - [Phase 92]: Storage path /uploads/cpdp/{bagianId}/ is distinct from /uploads/kkj/ for CPDP files
 - [Phase 92]: CpdpFiles.cshtml mirrors KkjMatrix.cshtml — same Bootstrap structure, CPDP-specific action names and model types
 - [Phase 92]: KkjBagianDelete now checks both KkjFiles and CpdpFiles — deletion blocked if either has files, with per-type count breakdown
+- [Phase 93]: Worker Mapping view mirrors Admin CpdpFiles tabbed layout but read-only; RoleLevel >= 5 triggers section-specific tab filtering with all-tabs fallback
 
 ### Pending Todos
 
@@ -126,5 +128,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: 92-02-PLAN.md complete — human verification approved, ready for 92-03
+Stopped at: 93-01-PLAN.md Task 2 complete — at checkpoint:human-verify (Task 3); resume after human approves
 Resume file: —

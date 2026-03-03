@@ -15,8 +15,8 @@ Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into 
 
 ### CPDP Mapping View (Worker)
 
-- [ ] **CPDP-04**: All authenticated users can view and download CPDP files per section on CMP/Mapping page
-- [ ] **CPDP-05**: CMP/Mapping page supports role-based section filtering (L1-L4 see all sections, L5-L6 see own unit only)
+- [x] **CPDP-04**: All authenticated users can view and download CPDP files per section on CMP/Mapping page
+- [x] **CPDP-05**: CMP/Mapping page supports role-based section filtering (L1-L4 see all sections, L5-L6 see own unit only)
 
 ### Data Migration
 
@@ -50,8 +50,8 @@ Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into 
 | CPDP-01 | Phase 92 | Complete |
 | CPDP-02 | Phase 92 | Complete |
 | CPDP-03 | Phase 92 | Complete |
-| CPDP-04 | Phase 93 | Pending |
-| CPDP-05 | Phase 93 | Pending |
+| CPDP-04 | Phase 93 | Complete |
+| CPDP-05 | Phase 93 | Complete |
 | CPDP-06 | Phase 91 | Complete |
 | CPDP-07 | Phase 93 | Pending |
 
