@@ -1,5 +1,18 @@
 ---
 gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
+last_updated: "2026-03-03T00:09:08.183Z"
+progress:
+  total_phases: 55
+  completed_phases: 52
+  total_plans: 120
+  completed_plans: 117
+---
+
+---
+gsd_state_version: 1.0
 milestone: v3.1
 milestone_name: CPDP Mapping File-Based Rewrite
 status: in-progress
@@ -24,9 +37,9 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Milestone:** v3.1 CPDP Mapping File-Based Rewrite
 Phase: 91 — data-model-migration
-Plan: 01 complete, 02 next
+Plan: 02 complete, 03 next
 Status: Executing Phase 91
-Last activity: 2026-03-03 — Completed 91-01 (CpdpItemsBackup export action)
+Last activity: 2026-03-03 — Completed 91-02 (CpdpFile model + EF Core migration AddCpdpFiles)
 
 Progress: [█░░░░░░░░░] 17%
 
@@ -40,6 +53,7 @@ Progress: [█░░░░░░░░░] 17%
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 91    | 01   | 8 min    | 1     | 1     |
+| 91    | 02   | 1 min    | 3     | 5     |
 
 *Updated after each plan completion*
 
@@ -53,6 +67,8 @@ Progress: [█░░░░░░░░░] 17%
 - [v3.1 Scope]: IdpItem.Kompetensi kept as standalone string — no FK impact from CpdpItem removal
 - [v3.1 Phase structure]: 91 = data model + migration, 92 = admin rewrite, 93 = worker view + cleanup
 - [91-01]: CpdpItemsBackup uses dual-save pattern: write to disk AND stream to browser; Id column included for complete backup
+- [Phase 91]: CpdpFile.Bagian FK uses WithMany() (no collection nav on KkjBagian) — EF Core enforces FK without bidirectional nav
+- [Phase 91]: CpdpItems table NOT dropped in plan 91-02 — Phase 93 handles cleanup after worker view rewrite
 
 ### Pending Todos
 
@@ -65,5 +81,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 91-01-PLAN.md (CpdpItemsBackup export action)
+Stopped at: Completed 91-02-PLAN.md (CpdpFile model + EF Core migration AddCpdpFiles)
 Resume file: —
