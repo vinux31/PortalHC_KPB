@@ -3015,7 +3015,7 @@ namespace HcPortal.Controllers
         // GET /Admin/ManageWorkers
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ManageWorkers(string? search, string? sectionFilter, string? roleFilter)
+        public async Task<IActionResult> ManageWorkers(string? search, string? sectionFilter, string? roleFilter, bool showInactive = false)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Challenge();
@@ -3046,6 +3046,10 @@ namespace HcPortal.Controllers
                 query = query.Where(u => u.RoleLevel == roleLevel);
             }
 
+            // Filter by IsActive
+            if (!showInactive)
+                query = query.Where(u => u.IsActive);
+
             var users = await query.OrderBy(u => u.FullName).ToListAsync();
 
             // Get roles for each user
@@ -3067,6 +3071,7 @@ namespace HcPortal.Controllers
             ViewBag.Search = search;
             ViewBag.SectionFilter = sectionFilter;
             ViewBag.RoleFilter = roleFilter;
+            ViewBag.ShowInactive = showInactive;
 
             return View(users);
         }
@@ -3445,6 +3450,95 @@ namespace HcPortal.Controllers
             }
 
             return RedirectToAction("ManageWorkers");
+        }
+
+        // POST /Admin/DeactivateWorker
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeactivateWorker(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return BadRequest();
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Challenge();
+
+            if (currentUser.Id == id)
+            {
+                TempData["Error"] = "Anda tidak dapat menonaktifkan akun Anda sendiri!";
+                return RedirectToAction("ManageWorkers");
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) { TempData["Error"] = "User tidak ditemukan."; return RedirectToAction("ManageWorkers"); }
+            if (!user.IsActive) { TempData["Error"] = $"User '{user.FullName}' sudah tidak aktif."; return RedirectToAction("ManageWorkers"); }
+
+            // Count active coaching and assessments for confirmation message
+            var activeCoachingCount = await _context.CoachCoacheeMappings
+                .CountAsync(m => (m.CoachId == id || m.CoacheeId == id) && m.IsActive);
+            var activeAssessmentCount = await _context.AssessmentSessions
+                .CountAsync(a => a.UserId == id && (a.Status == "Open" || a.Status == "Upcoming" || a.Status == "InProgress"));
+
+            // Auto-close active coaching mappings
+            var activeMappings = await _context.CoachCoacheeMappings
+                .Where(m => (m.CoachId == id || m.CoacheeId == id) && m.IsActive)
+                .ToListAsync();
+            foreach (var m in activeMappings) { m.IsActive = false; m.EndDate = DateTime.Today; }
+
+            // Auto-cancel active assessment sessions
+            var activeSessions = await _context.AssessmentSessions
+                .Where(a => a.UserId == id && (a.Status == "Open" || a.Status == "Upcoming" || a.Status == "InProgress"))
+                .ToListAsync();
+            foreach (var s in activeSessions) { s.Status = "Closed"; }
+
+            // Soft delete: set IsActive = false
+            user.IsActive = false;
+            await _context.SaveChangesAsync();
+
+            // Audit log
+            try
+            {
+                var actorName = string.IsNullOrWhiteSpace(currentUser.NIP) ? currentUser.FullName : $"{currentUser.NIP} - {currentUser.FullName}";
+                await _auditLog.LogAsync(currentUser.Id, actorName, "DeactivateWorker",
+                    $"Nonaktifkan user '{user.FullName}' ({user.Email}). {activeCoachingCount} coaching ditutup, {activeAssessmentCount} assessment dibatalkan. UserId={id}",
+                    null, "ApplicationUser");
+            }
+            catch { }
+
+            var detail = "";
+            if (activeCoachingCount > 0) detail += $" {activeCoachingCount} coaching aktif ditutup.";
+            if (activeAssessmentCount > 0) detail += $" {activeAssessmentCount} assessment dibatalkan.";
+            TempData["Success"] = $"User '{user.FullName}' berhasil dinonaktifkan.{detail}";
+            return RedirectToAction("ManageWorkers", new { showInactive = true });
+        }
+
+        // POST /Admin/ReactivateWorker
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReactivateWorker(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return BadRequest();
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Challenge();
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) { TempData["Error"] = "User tidak ditemukan."; return RedirectToAction("ManageWorkers", new { showInactive = true }); }
+            if (user.IsActive) { TempData["Error"] = $"User '{user.FullName}' sudah aktif."; return RedirectToAction("ManageWorkers"); }
+
+            user.IsActive = true;
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var actorName = string.IsNullOrWhiteSpace(currentUser.NIP) ? currentUser.FullName : $"{currentUser.NIP} - {currentUser.FullName}";
+                await _auditLog.LogAsync(currentUser.Id, actorName, "ReactivateWorker",
+                    $"Aktifkan kembali user '{user.FullName}' ({user.Email}). UserId={id}",
+                    null, "ApplicationUser");
+            }
+            catch { }
+
+            TempData["Success"] = $"User '{user.FullName}' berhasil diaktifkan kembali.";
+            return RedirectToAction("ManageWorkers", new { showInactive = true });
         }
 
         // GET /Admin/ExportWorkers
