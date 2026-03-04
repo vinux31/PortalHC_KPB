@@ -2473,11 +2473,15 @@ namespace HcPortal.Controllers
                 var testCoachee1 = coacheeUsers[0];
                 var testCoachee2 = coacheeUsers[1];
 
-                // 2. Pick a ProtonTrack
-                var testTrack = await _context.ProtonTracks.OrderBy(t => t.Urutan).FirstOrDefaultAsync();
+                // 2. Pick a ProtonTrack that has deliverables
+                var testTrack = await _context.ProtonTracks
+                    .Where(t => _context.ProtonDeliverableList
+                        .Any(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == t.Id))
+                    .OrderBy(t => t.Urutan)
+                    .FirstOrDefaultAsync();
                 if (testTrack == null)
                 {
-                    TempData["Error"] = "SeedCoachingTestData: No ProtonTrack found. Seed the Silabus (Proton tracks) first.";
+                    TempData["Error"] = "SeedCoachingTestData: No ProtonTrack with deliverables found. Add Silabus deliverables first.";
                     return RedirectToAction("CoachCoacheeMapping");
                 }
 
