@@ -12,7 +12,7 @@ public class ProtonPlanViewModel
     public List<ProtonKompetensi> KompetensiList { get; set; } = new();
 
     /// <summary>
-    /// The coachee's current active deliverable progress record (Status == "Active").
+    /// The coachee's current active deliverable progress record (Status == "Pending").
     /// Used to render a navigation button to the Deliverable detail page.
     /// </summary>
     public ProtonDeliverableProgress? ActiveProgress { get; set; }
@@ -35,7 +35,7 @@ public class DeliverableViewModel
     /// <summary>Computed from sequential lock logic — whether this deliverable is accessible</summary>
     public bool IsAccessible { get; set; }
 
-    /// <summary>True if Status is "Active" or "Rejected" — coachee can upload evidence</summary>
+    /// <summary>True if Status is "Pending" or "Rejected" — coachee can upload evidence</summary>
     public bool CanUpload { get; set; }
 
     // ===== Phase 6: Approval Workflow =====

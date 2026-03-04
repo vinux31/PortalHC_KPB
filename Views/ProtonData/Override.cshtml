@@ -134,7 +134,7 @@
                     <div class="col-md-6">
                         <label class="form-label fw-semibold">Status Baru</label>
                         <select class="form-select" id="overrideStatusSelect">
-                            <option value="Active">Active</option>
+                            <option value="Pending">Pending</option>
                             <option value="Submitted">Submitted</option>
                             <option value="Approved">Approved</option>
                             <option value="Rejected">Rejected</option>
@@ -271,7 +271,7 @@
                     } else {
                         var badgeClass, letter;
                         switch (badge.status) {
-                            case 'Active':    badgeClass = 'bg-primary';   letter = 'A'; break;
+                            case 'Pending':   badgeClass = 'bg-primary';   letter = 'P'; break;
                             case 'Submitted': badgeClass = 'bg-warning text-dark'; letter = 'S'; break;
                             case 'Approved':  badgeClass = 'bg-success';   letter = 'V'; break;
                             case 'Rejected':  badgeClass = 'bg-danger';    letter = 'R'; break;
@@ -347,7 +347,7 @@
             document.getElementById('overrideExistingRejection').textContent = data.rejectionReason || '—';
 
             // Form defaults
-            document.getElementById('overrideStatusSelect').value = data.status || 'Active';
+            document.getElementById('overrideStatusSelect').value = data.status || 'Pending';
             document.getElementById('overrideHCStatusSelect').value = data.hcApprovalStatus || 'Pending';
             document.getElementById('overrideRejectionReason').value = data.rejectionReason || '';
             document.getElementById('overrideAlasan').value = '';
@@ -356,7 +356,7 @@
 
         function statusToBadgeClass(status) {
             switch (status) {
-                case 'Active':    return 'bg-primary';
+                case 'Pending':   return 'bg-primary';
                 case 'Submitted': return 'bg-warning text-dark';
                 case 'Approved':  return 'bg-success';
                 case 'Rejected':  return 'bg-danger';

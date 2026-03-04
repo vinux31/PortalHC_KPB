@@ -722,7 +722,7 @@ namespace HcPortal.Controllers
             if (string.IsNullOrWhiteSpace(req.OverrideReason))
                 return Json(new { success = false, message = "Alasan override wajib diisi." });
 
-            var validStatuses = new[] { "Active", "Submitted", "Approved", "Rejected" };
+            var validStatuses = new[] { "Pending", "Submitted", "Approved", "Rejected" };
             if (!validStatuses.Contains(req.NewStatus))
                 return Json(new { success = false, message = "Status tidak valid." });
 
@@ -749,7 +749,7 @@ namespace HcPortal.Controllers
                 case "Submitted":
                     progress.SubmittedAt = DateTime.UtcNow;
                     break;
-                case "Active":
+                case "Pending":
                     progress.ApprovedAt = null;
                     progress.RejectedAt = null;
                     progress.SubmittedAt = null;

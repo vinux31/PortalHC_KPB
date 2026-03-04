@@ -753,7 +753,7 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync() ?? progress.CoacheeId;
 
             // Phase 74: upload restricted to Coach role only (not level — SrSupervisor must not upload)
-            bool canUpload = (progress.Status == "Active" || progress.Status == "Rejected") && userRole == UserRoles.Coach;
+            bool canUpload = (progress.Status == "Pending" || progress.Status == "Rejected") && userRole == UserRoles.Coach;
 
             // Phase 6: approval context
             bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
@@ -1047,8 +1047,8 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            // Status check: must be Active or Rejected
-            if (progress.Status != "Active" && progress.Status != "Rejected")
+            // Status check: must be Pending or Rejected
+            if (progress.Status != "Pending" && progress.Status != "Rejected")
             {
                 TempData["Error"] = "Deliverable ini tidak dapat diupload.";
                 return RedirectToAction("Deliverable", new { id = progressId });
@@ -2019,7 +2019,7 @@ namespace HcPortal.Controllers
                 p.Status == "Approved" ? 1.0 :
                 p.Status == "Submitted" ? 0.5 : 0.0);
             int progressPercent = total > 0 ? (int)(weightedSum / total * 100) : 0;
-            int pendingActions = progresses.Count(p => p.Status == "Active" || p.Status == "Rejected");
+            int pendingActions = progresses.Count(p => p.Status == "Pending" || p.Status == "Rejected");
             int pendingApprovals = progresses.Count(p => p.Status == "Submitted");
 
             // Get track label and coachee name
