@@ -2,6 +2,8 @@
 @{
     Layout = null; // No standard layout for certificate
     var date = DateTime.Now.ToString("dd MMMM yyyy");
+    var certBackUrl = Context.Request.Query["returnUrl"].ToString();
+    if (string.IsNullOrEmpty(certBackUrl)) certBackUrl = Url.Action("Assessment", "CMP")!;
 }
 
 <!DOCTYPE html>
@@ -209,7 +211,7 @@
 <body>
 
     <div class="no-print">
-        <a href="/CMP/Assessment" class="btn-print btn-back"><i class="bi bi-arrow-left"></i> Back</a>
+        <a href="@certBackUrl" class="btn-print btn-back"><i class="bi bi-arrow-left"></i> Kembali</a>
         <button onclick="window.print()" class="btn-print"><i class="bi bi-printer"></i> Print / Save as PDF</button>
     </div>
 

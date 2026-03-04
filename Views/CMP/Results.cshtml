@@ -2,6 +2,8 @@
 
 @{
     ViewData["Title"] = "Assessment Results";
+    var backUrl = Context.Request.Query["returnUrl"].ToString();
+    if (string.IsNullOrEmpty(backUrl)) backUrl = Url.Action("Assessment", "CMP")!;
 }
 
 <div class="container-fluid px-4 py-4">
@@ -18,8 +20,8 @@
                 </nav>
             </div>
             <div>
-                <a asp-action="Assessment" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-1"></i>Back to Assessments
+                <a href="@backUrl" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>Kembali
                 </a>
             </div>
         </div>
@@ -216,8 +218,8 @@
                 <i class="bi bi-award me-1"></i>View Certificate
             </a>
         }
-        <a asp-action="Assessment" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>Back to Assessments
+        <a href="@backUrl" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Kembali
         </a>
     </div>
 </div>
