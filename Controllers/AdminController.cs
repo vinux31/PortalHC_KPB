@@ -1265,7 +1265,29 @@ namespace HcPortal.Controllers
                     _context.AssessmentQuestions.RemoveRange(assessment.Questions);
                 }
 
-                // 4. Finally delete the assessment itself
+                // 4. Delete PackageUserResponses (Restrict FK — must be removed before session)
+                var pkgResponses = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == id)
+                    .ToListAsync();
+                if (pkgResponses.Any())
+                {
+                    logger.LogInformation($"Deleting {pkgResponses.Count} package user responses");
+                    _context.PackageUserResponses.RemoveRange(pkgResponses);
+                }
+
+                // 5. Delete AssessmentAttemptHistory rows (no FK — orphaned if not removed)
+                var attemptHistory = await _context.AssessmentAttemptHistory
+                    .Where(h => h.SessionId == id)
+                    .ToListAsync();
+                if (attemptHistory.Any())
+                {
+                    logger.LogInformation($"Deleting {attemptHistory.Count} attempt history records");
+                    _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
+                }
+
+                // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
+
+                // 6. Finally delete the assessment itself
                 _context.AssessmentSessions.Remove(assessment);
 
                 await _context.SaveChangesAsync();
@@ -1335,6 +1357,24 @@ namespace HcPortal.Controllers
                     .ToListAsync();
 
                 logger.LogInformation($"DeleteAssessmentGroup: deleting {siblings.Count} sessions for '{rep.Title}'");
+
+                var siblingIds = siblings.Select(s => s.Id).ToList();
+
+                // Delete PackageUserResponses for all siblings (Restrict FK — must be removed before sessions)
+                var allPkgResponses = await _context.PackageUserResponses
+                    .Where(r => siblingIds.Contains(r.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPkgResponses.Any())
+                    _context.PackageUserResponses.RemoveRange(allPkgResponses);
+
+                // Delete AssessmentAttemptHistory for all siblings (no FK — orphaned if not removed)
+                var allAttemptHistory = await _context.AssessmentAttemptHistory
+                    .Where(h => siblingIds.Contains(h.SessionId))
+                    .ToListAsync();
+                if (allAttemptHistory.Any())
+                    _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
+
+                // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
 
                 foreach (var session in siblings)
                 {
@@ -1451,6 +1491,8 @@ namespace HcPortal.Controllers
             string? category)
         {
             // 7-day window — same as ManageAssessment
+            // 90-review: 7-day window is intentional for monitoring view; Abandoned sessions with no ExamWindowCloseDate
+            // fall back to Schedule for the window check and naturally age out after 7 days (expected behavior).
             var sevenDaysAgo = DateTime.UtcNow.AddDays(-7);
 
             var query = _context.AssessmentSessions
@@ -1641,6 +1683,8 @@ namespace HcPortal.Controllers
             ViewBag.BackUrl = Url.Action("AssessmentMonitoring", "Admin");
 
             // Proton Tahun 3 interview form support
+            // 90-review: For non-Proton categories, ViewBag.GroupTahunKe is not set. Views that access it via
+            // (ViewBag.GroupTahunKe as string) ?? "" handle the null safely — no change needed.
             if (model.Category == "Assessment Proton")
             {
                 var repSession = await _context.AssessmentSessions.FindAsync(model.RepresentativeId);
@@ -1982,6 +2026,9 @@ namespace HcPortal.Controllers
             }
 
             // Mark as Completed with system score of 0
+            // 90-review: ForceClose does NOT archive to AssessmentAttemptHistory before closing.
+            // This is acceptable design — force-close is an admin override, not a real completion.
+            // If HC later Resets the session, no attempt history entry exists for this force-closed attempt.
             assessment.Status = "Completed";
             assessment.Score = 0;
             assessment.IsPassed = false;
