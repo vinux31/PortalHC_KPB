@@ -4895,6 +4895,54 @@ namespace HcPortal.Controllers
             return View(pkg.Questions.OrderBy(q => q.Order).ToList());
         }
 
+        // GET /Admin/DownloadQuestionTemplate
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult DownloadQuestionTemplate()
+        {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Question Import");
+
+            var headers = new[] { "Question", "Option A", "Option B", "Option C", "Option D", "Correct" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#16A34A");
+                ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
+            }
+
+            // Example row (italic, gray)
+            var example = new[]
+            {
+                "Apa fungsi utama unit RFCC dalam proses pengolahan minyak?",
+                "Memecah molekul berat menjadi fraksi ringan",
+                "Memurnikan air limbah industri",
+                "Menghasilkan energi listrik dari gas alam",
+                "Mengolah bahan baku batubara menjadi coke",
+                "A"
+            };
+            for (int i = 0; i < example.Length; i++)
+            {
+                ws.Cell(2, i + 1).Value = example[i];
+                ws.Cell(2, i + 1).Style.Font.Italic = true;
+                ws.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray;
+            }
+
+            // Instruction row
+            ws.Cell(3, 1).Value = "Kolom Correct: isi dengan huruf A, B, C, atau D (tidak peka huruf besar/kecil)";
+            ws.Cell(3, 1).Style.Font.Italic = true;
+            ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new System.IO.MemoryStream();
+            workbook.SaveAs(stream);
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "question_import_template.xlsx");
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ImportPackageQuestions(int packageId)
