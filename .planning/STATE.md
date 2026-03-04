@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
-last_updated: "2026-03-04T03:23:55.773Z"
+last_updated: "2026-03-04T07:00:28.820Z"
 progress:
-  total_phases: 59
+  total_phases: 60
   completed_phases: 57
-  total_plans: 133
-  completed_plans: 132
+  total_plans: 137
+  completed_plans: 133
 ---
 
 ---
@@ -283,6 +283,7 @@ Progress: [████████░░] 85%
 | 91    | 03   | browser session | 2     | 1     |
 | Phase 84 P01 | 7 | 2 tasks | 2 files |
 | Phase 84 P02 | browser session | 1 task | 0 files |
+| Phase 85 P01 | 15 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -336,6 +337,8 @@ Progress: [████████░░] 85%
 - [Phase 91]: [91-03]: All 9 CMP Assessment browser verification flows confirmed PASS by user — Phase 91 complete, zero gap closure plans needed
 - [Phase 84]: [84-01]: DownloadQuestionTemplate placed between PreviewPackage and ImportPackageQuestions GET for logical grouping; column order matches parser cells[0..5]
 - [Phase 84]: [84-02]: All 5 smoke-test flows PASS — template download, Excel import round-trip, paste dedup, cross-package mismatch error, regression check; all ASSESS-01 through ASSESS-10 formally closed
+- [Phase 85]: [85-01]: CoachCoacheeMappingExport missing [HttpGet] — added; inactive users now excluded from modal dropdowns
+- [Phase 85]: [85-01]: SeedCoachingTestData uses Coach role (GetUsersInRoleAsync) for coach selection, matching Phase 74 decision
 
 ### Pending Todos
 
