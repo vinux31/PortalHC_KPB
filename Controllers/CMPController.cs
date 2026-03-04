@@ -911,6 +911,17 @@ namespace HcPortal.Controllers
                     // Build cross-package ShuffledQuestionIds (per user decision: slot-list algorithm)
                     var shuffledIds = BuildCrossPackageAssignment(packages, rng);
 
+                    // Build option shuffle: per question, randomize A/B/C/D option order
+                    // Stored as Dictionary<questionId, List<optionId>> serialized to JSON
+                    var optionShuffleDict = new Dictionary<int, List<int>>();
+                    var allPackageQuestions = packages.SelectMany(p => p.Questions).ToList();
+                    foreach (var q in allPackageQuestions)
+                    {
+                        var optionIds = q.Options.Select(o => o.Id).ToList();
+                        Shuffle(optionIds, rng);
+                        optionShuffleDict[q.Id] = optionIds;
+                    }
+
                     // Sentinel: store first package ID (no schema change — AssessmentPackageId still required by FK)
                     var sentinelPackage = packages.First();
 
@@ -920,7 +931,7 @@ namespace HcPortal.Controllers
                         AssessmentPackageId = sentinelPackage.Id,  // sentinel per discretion decision
                         UserId = user.Id,
                         ShuffledQuestionIds = JsonSerializer.Serialize(shuffledIds),
-                        ShuffledOptionIdsPerQuestion = "{}"  // option shuffle removed per user decision
+                        ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optionShuffleDict)
                     };
                     _context.UserPackageAssignments.Add(assignment);
                     await _context.SaveChangesAsync();
@@ -1133,10 +1144,12 @@ namespace HcPortal.Controllers
             if (packages.Count == 0)
                 return new List<int>();
 
-            // Single package: return questions in original DB order (no shuffle per user decision)
+            // Single package: shuffle question order so each worker sees a unique sequence
             if (packages.Count == 1)
             {
-                return packages[0].Questions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
+                var singlePackageIds = packages[0].Questions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
+                Shuffle(singlePackageIds, rng);
+                return singlePackageIds;
             }
 
             // Safety fallback: use minimum question count across packages (edge case per user decision)
