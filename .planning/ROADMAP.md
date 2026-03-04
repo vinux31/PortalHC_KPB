@@ -514,7 +514,7 @@ Plans:
 | 82. Cleanup & Rename | v3.0 | 3/3 | ✅ Complete | 2026-03-02 |
 | 83. Master Data QA | v3.0 | 9/9 | ✅ Complete | 2026-03-03 |
 | 84. Assessment Flow QA | v3.0 | 2/2 | ✅ Complete | 2026-03-04 |
-| 85. Coaching Proton Flow QA | v3.0 | 4/4 | ✅ Complete | 2026-03-04 |
+| 85. Coaching Proton Flow QA | v3.0 | Complete    | 2026-03-04 | 2026-03-04 |
 | 86. Plan IDP Development | v3.0 | — | ↗️ Superseded by 89 | - |
 | 87. Dashboard & Navigation QA | v3.0 | 0/3 | ⬜ Not started | - |
 | 88. KKJ Matrix Full Rewrite | v3.0 | 4/4 | ✅ Complete | 2026-03-03 |
