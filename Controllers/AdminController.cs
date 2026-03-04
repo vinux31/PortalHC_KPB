@@ -668,6 +668,7 @@ namespace HcPortal.Controllers
         {
             // Get list of users for dropdown
             var users = await _context.Users
+                .Where(u => u.IsActive)
                 .OrderBy(u => u.FullName)
                 .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                 .ToListAsync();
@@ -773,6 +774,7 @@ namespace HcPortal.Controllers
             {
                 // Reload users for validation error (must match GET structure)
                 var users = await _context.Users
+                    .Where(u => u.IsActive)
                     .OrderBy(u => u.FullName)
                     .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                     .ToListAsync();
@@ -838,6 +840,7 @@ namespace HcPortal.Controllers
                     TempData["Error"] = $"Invalid user IDs: {string.Join(", ", missingUsers)}";
                     // Reload form
                     var users = await _context.Users
+                        .Where(u => u.IsActive)
                         .OrderBy(u => u.FullName)
                         .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                         .ToListAsync();
@@ -943,6 +946,7 @@ namespace HcPortal.Controllers
 
                 // Reload form
                 var users = await _context.Users
+                    .Where(u => u.IsActive)
                     .OrderBy(u => u.FullName)
                     .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                     .ToListAsync();
@@ -1017,6 +1021,7 @@ namespace HcPortal.Controllers
 
             // Get list of all users for the picker
             var users = await _context.Users
+                .Where(u => u.IsActive)
                 .OrderBy(u => u.FullName)
                 .Select(u => new { u.Id, FullName = u.FullName ?? "", Email = u.Email ?? "", Section = u.Section ?? "" })
                 .ToListAsync();
@@ -4356,6 +4361,7 @@ namespace HcPortal.Controllers
         private async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null)
         {
             var usersQuery = _context.Users
+                .Where(u => u.IsActive)
                 .Include(u => u.TrainingRecords)
                 .AsQueryable();
 
