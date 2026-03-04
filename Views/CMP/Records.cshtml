@@ -2,11 +2,9 @@
 
 @{
     ViewData["Title"] = "Training Records";
-    var totalRecords = Model.Count;
-    var completedRecords = Model.Count(x =>
-        (x.RecordType == "Assessment Online" && x.IsPassed == true) ||
-        (x.RecordType == "Training Manual" && (x.Status == "Passed" || x.Status == "Valid")));
-    var pendingRecords = Model.Count(x => x.Status == "Wait Certificate");
+    var assessmentCount = Model.Count(x => x.RecordType == "Assessment Online");
+    var trainingCount = Model.Count(x => x.RecordType == "Training Manual");
+    var totalCount = Model.Count;
 }
 
 <div class="container-fluid px-4 py-4">
@@ -31,11 +29,11 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
-                            <i class="bi bi-journal-text fs-3"></i>
+                            <i class="bi bi-clipboard-check fs-3"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted mb-1 small">Total Records</h6>
-                            <h3 class="fw-bold mb-0">@totalRecords</h3>
+                            <h6 class="text-muted mb-1 small">Assessment Online</h6>
+                            <h3 class="fw-bold mb-0">@assessmentCount</h3>
                         </div>
                     </div>
                 </div>
@@ -47,11 +45,11 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center">
                         <div class="stat-icon bg-success bg-opacity-10 text-success rounded-3 p-3 me-3">
-                            <i class="bi bi-check-circle-fill fs-3"></i>
+                            <i class="bi bi-book fs-3"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted mb-1 small">Selesai</h6>
-                            <h3 class="fw-bold mb-0">@completedRecords</h3>
+                            <h6 class="text-muted mb-1 small">Training Manual</h6>
+                            <h3 class="fw-bold mb-0">@trainingCount</h3>
                         </div>
                     </div>
                 </div>
@@ -59,15 +57,15 @@
         </div>
 
         <div class="col-12 col-sm-6 col-lg-4">
-            <div class="card border-0 shadow-sm h-100 stat-card stat-card-warning">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-info">
                 <div class="card-body">
                     <div class="d-flex align-items-center">
-                        <div class="stat-icon bg-warning bg-opacity-10 text-warning rounded-3 p-3 me-3">
-                            <i class="bi bi-hourglass-split fs-3"></i>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info rounded-3 p-3 me-3">
+                            <i class="bi bi-journal-text fs-3"></i>
                         </div>
                         <div>
-                            <h6 class="text-muted mb-1 small">Pending</h6>
-                            <h3 class="fw-bold mb-0">@pendingRecords</h3>
+                            <h6 class="text-muted mb-1 small">Total Records</h6>
+                            <h3 class="fw-bold mb-0">@totalCount</h3>
                         </div>
                     </div>
                 </div>
@@ -100,92 +98,118 @@
         </div>
     </div>
 
-    <!-- Unified Records Table -->
-    <div class="card shadow-sm border-0 table-card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 records-table" id="unifiedTable">
-                    <thead class="sticky-header">
-                        <tr>
-                            <th class="p-3">Tanggal</th>
-                            <th class="p-3">Tipe</th>
-                            <th class="p-3">Nama / Judul</th>
-                            <th class="p-3 text-center">Score</th>
-                            <th class="p-3 text-center">Pass/Fail</th>
-                            <th class="p-3">Penyelenggara</th>
-                            <th class="p-3">Tipe Sertifikat</th>
-                            <th class="p-3">Berlaku Sampai</th>
-                            <th class="p-3">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Count == 0)
-                        {
-                            <tr>
-                                <td colspan="9" class="text-center p-5 text-muted">Belum ada riwayat pelatihan</td>
-                            </tr>
-                        }
-                        @foreach (var item in Model)
-                        {
-                            <tr class="training-row" data-title="@item.Title.ToLower()" data-year="@item.Date.Year">
-                                <td class="p-3">@item.Date.ToString("dd MMM yyyy")</td>
-                                <td class="p-3">
-                                    @if (item.RecordType == "Assessment Online")
-                                    {
-                                        <span class="badge rounded-pill bg-primary">Assessment Online</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge rounded-pill bg-success">Training Manual</span>
-                                    }
-                                </td>
-                                <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
-                                <td class="p-3 text-center">
-                                    @if (item.Score.HasValue) { <span>@item.Score</span> } else { <span class="text-muted">—</span> }
-                                </td>
-                                <td class="p-3 text-center">
-                                    @if (item.IsPassed.HasValue)
-                                    {
-                                        if (item.IsPassed == true)
-                                        { <span class="badge bg-success">Pass</span> }
-                                        else
-                                        { <span class="badge bg-danger">Fail</span> }
-                                    }
-                                    else { <span class="text-muted">—</span> }
-                                </td>
-                                <td class="p-3">@(item.Penyelenggara ?? "—")</td>
-                                <td class="p-3">@(item.CertificateType ?? "—")</td>
-                                <td class="p-3">
-                                    @if (item.ValidUntil.HasValue)
-                                    {
-                                        <div>@item.ValidUntil.Value.ToString("dd MMM yyyy")</div>
-                                        @if (item.IsExpired)
-                                        {
-                                            <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
-                                        }
-                                    }
-                                    else { <span class="text-muted">—</span> }
-                                </td>
-                                <td class="p-3">
-                                    @{
-                                        var statusClass = item.Status switch {
-                                            "Passed" => "bg-success",
-                                            "Valid" => "bg-success",
-                                            "Failed" => "bg-danger",
-                                            "Wait Certificate" => "bg-warning text-dark",
-                                            _ => "bg-secondary"
-                                        };
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.Status))
-                                    {
-                                        <span class="badge @statusClass">@item.Status</span>
-                                    }
-                                    else { <span class="text-muted">—</span> }
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+    <!-- Tab navigation -->
+    <ul class="nav nav-tabs mb-3" id="recordsTabs">
+        <li class="nav-item">
+            <a class="nav-link active" id="tab-assessment" data-bs-toggle="tab" href="#pane-assessment">
+                <i class="bi bi-clipboard-check me-1"></i>Assessment Online
+                <span class="badge bg-primary ms-1">@assessmentCount</span>
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="tab-training" data-bs-toggle="tab" href="#pane-training">
+                <i class="bi bi-book me-1"></i>Training Manual
+                <span class="badge bg-success ms-1">@trainingCount</span>
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <!-- Assessment Online Tab -->
+        <div class="tab-pane fade show active" id="pane-assessment">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="assessmentTable">
+                            <thead class="sticky-header">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Nama Assessment</th>
+                                    <th class="p-3 text-center">Score</th>
+                                    <th class="p-3 text-center">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Where(x => x.RecordType == "Assessment Online"))
+                                {
+                                    var resultsUrl = item.AssessmentSessionId.HasValue
+                                        ? Url.Action("Results", "CMP", new { id = item.AssessmentSessionId.Value })
+                                        : null;
+                                    <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
+                                        data-title="@item.Title.ToLower()" data-year="@item.Date.Year"
+                                        @(resultsUrl != null ? Html.Raw($"onclick=\"window.location.href='{resultsUrl}'\"") : Html.Raw(""))
+                                        style="@(resultsUrl != null ? "cursor:pointer;" : "")">
+                                        <td class="p-3">@item.Date.ToString("dd MMM yyyy")</td>
+                                        <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
+                                        <td class="p-3 text-center">
+                                            @if (item.Score.HasValue) { <span>@item.Score%</span> } else { <span class="text-muted">—</span> }
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            @if (item.IsPassed == true) {
+                                                <span class="badge bg-success">Passed</span>
+                                            } else if (item.IsPassed == false) {
+                                                <span class="badge bg-danger">Failed</span>
+                                            } else {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.Any(x => x.RecordType == "Assessment Online")) {
+                                    <tr><td colspan="4" class="text-center p-5 text-muted">Belum ada riwayat assessment</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Training Manual Tab -->
+        <div class="tab-pane fade" id="pane-training">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0" id="trainingTable">
+                            <thead class="sticky-header">
+                                <tr>
+                                    <th class="p-3">Tanggal</th>
+                                    <th class="p-3">Judul</th>
+                                    <th class="p-3">Penyelenggara</th>
+                                    <th class="p-3">Tipe Sertifikat</th>
+                                    <th class="p-3">Berlaku Sampai</th>
+                                    <th class="p-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Where(x => x.RecordType == "Training Manual"))
+                                {
+                                    <tr class="training-row" data-title="@item.Title.ToLower()" data-year="@item.Date.Year">
+                                        <td class="p-3">@item.Date.ToString("dd MMM yyyy")</td>
+                                        <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
+                                        <td class="p-3">@(item.Penyelenggara ?? "—")</td>
+                                        <td class="p-3">@(item.CertificateType ?? "—")</td>
+                                        <td class="p-3">
+                                            @if (item.ValidUntil.HasValue) {
+                                                <div>@item.ValidUntil.Value.ToString("dd MMM yyyy")</div>
+                                                @if (item.IsExpired) {
+                                                    <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
+                                                }
+                                            } else { <span class="text-muted">—</span> }
+                                        </td>
+                                        <td class="p-3">
+                                            @{ var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Failed" => "bg-danger", "Wait Certificate" => "bg-warning text-dark", _ => "bg-secondary" }; }
+                                            @if (!string.IsNullOrEmpty(item.Status)) { <span class="badge @sc">@item.Status</span> } else { <span class="text-muted">—</span> }
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.Any(x => x.RecordType == "Training Manual")) {
+                                    <tr><td colspan="6" class="text-center p-5 text-muted">Belum ada riwayat pelatihan manual</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -222,7 +246,7 @@
 
 .stat-card-primary::before { color: #0d6efd; }
 .stat-card-success::before { color: #198754; }
-.stat-card-warning::before { color: #ffc107; }
+.stat-card-info::before { color: #0dcaf0; }
 
 .stat-icon {
     transition: transform 0.3s ease;
@@ -233,33 +257,16 @@
 }
 
 /* Enhanced Table */
-.table-card {
-    overflow: hidden;
-}
-
-.records-table {
-    margin-bottom: 0;
-}
-
-.records-table thead {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-}
-
 .sticky-header {
     position: sticky;
     top: 0;
     z-index: 10;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.records-table tbody tr {
+.table tbody tr {
     transition: all 0.2s ease;
-}
-
-.records-table tbody tr:hover {
-    background-color: #f8f9ff;
-    transform: scale(1.01);
-    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.1);
 }
 
 /* Smooth Animations */
@@ -280,6 +287,7 @@
 </style>
 
 <script>
+// Filter works on active tab's rows
 function filterTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const yearFilter = document.getElementById('yearFilter').value;
