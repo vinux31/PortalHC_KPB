@@ -119,12 +119,12 @@
             </select>
         }
 
-        @* Coachee dropdown — Coach (Level 5) and HC/Admin (Level 1-2) *@
-        @if (coachees != null && (userLevel == 5 || userLevel <= 2))
+        @* Coachee dropdown — Coach (Level 5), SrSpv/SH (Level 4), and HC/Admin (Level 1-2) *@
+        @if (coachees != null && (userLevel == 5 || userLevel == 4 || userLevel <= 2))
         {
             <select name="coacheeId" class="form-select form-select-sm" style="width:auto;min-width:180px"
                     onchange="this.form.submit()">
-                <option value="">Semua Coachee</option>
+                <option value="">— Pilih Coachee —</option>
                 @foreach (var c in coachees)
                 {
                     if (c.Id == selectedCoacheeId)
@@ -301,7 +301,13 @@
     @if (Model.Count == 0)
     {
         <div id="emptyStateContainer" class="text-center py-5 border rounded bg-light">
-            @if (emptyScenario == "no_coachees")
+            @if (emptyScenario == "select_coachee")
+            {
+                <i class="bi bi-person-lines-fill fs-1 text-muted mb-3 d-block"></i>
+                <h5 class="text-muted mb-1">Pilih coachee terlebih dahulu</h5>
+                <p class="text-muted small">Gunakan dropdown coachee di atas untuk melihat data deliverable.</p>
+            }
+            else if (emptyScenario == "no_coachees")
             {
                 <i class="bi bi-people fs-1 text-muted mb-3 d-block"></i>
                 @if (isHC)
@@ -429,7 +435,19 @@
                                             </td>
                                             @* SrSpv approval column *@
                                             <td class="text-center" id="srspv-@item.Id">
-                                                @if (!string.IsNullOrEmpty(item.SrSpvApproverName))
+                                                @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
+                                                {
+                                                    <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                          data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                          data-progress-id="@item.Id"
+                                                          data-deliverable="@item.Deliverable"
+                                                          data-kompetensi="@item.Kompetensi"
+                                                          data-sub-kompetensi="@item.SubKompetensi"
+                                                          data-evidence-url="@item.FullEvidencePath"
+                                                          data-role="srspv"
+                                                          title="Klik untuk tinjau">Pending</span>
+                                                }
+                                                else if (!string.IsNullOrEmpty(item.SrSpvApproverName))
                                                 {
                                                     @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSrSpv, item.SrSpvApproverName, item.SrSpvApprovedAt))
                                                 }
@@ -437,40 +455,28 @@
                                                 {
                                                     @Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))
                                                 }
-                                                @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
-                                                {
-                                                    <br />
-                                                    <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
-                                                            data-bs-toggle="modal" data-bs-target="#tinjaModal"
-                                                            data-progress-id="@item.Id"
-                                                            data-deliverable="@item.Deliverable"
-                                                            data-kompetensi="@item.Kompetensi"
-                                                            data-sub-kompetensi="@item.SubKompetensi"
-                                                            data-evidence-url="@item.FullEvidencePath"
-                                                            data-role="srspv">Tinjau</button>
-                                                }
                                             </td>
                                             @* SH approval column *@
                                             <td class="text-center" id="sh-@item.Id">
-                                                @if (!string.IsNullOrEmpty(item.ShApproverName))
+                                                @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
+                                                {
+                                                    <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                          data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                          data-progress-id="@item.Id"
+                                                          data-deliverable="@item.Deliverable"
+                                                          data-kompetensi="@item.Kompetensi"
+                                                          data-sub-kompetensi="@item.SubKompetensi"
+                                                          data-evidence-url="@item.FullEvidencePath"
+                                                          data-role="sh"
+                                                          title="Klik untuk tinjau">Pending</span>
+                                                }
+                                                else if (!string.IsNullOrEmpty(item.ShApproverName))
                                                 {
                                                     @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSectionHead, item.ShApproverName, item.ShApprovedAt))
                                                 }
                                                 else
                                                 {
                                                     @Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))
-                                                }
-                                                @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
-                                                {
-                                                    <br />
-                                                    <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
-                                                            data-bs-toggle="modal" data-bs-target="#tinjaModal"
-                                                            data-progress-id="@item.Id"
-                                                            data-deliverable="@item.Deliverable"
-                                                            data-kompetensi="@item.Kompetensi"
-                                                            data-sub-kompetensi="@item.SubKompetensi"
-                                                            data-evidence-url="@item.FullEvidencePath"
-                                                            data-role="sh">Tinjau</button>
                                                 }
                                             </td>
                                             @* HC approval column *@
@@ -545,7 +551,19 @@
                                         </td>
                                         @* SrSpv approval column *@
                                         <td class="text-center" id="srspv-@item.Id">
-                                            @if (!string.IsNullOrEmpty(item.SrSpvApproverName))
+                                            @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                      data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                      data-progress-id="@item.Id"
+                                                      data-deliverable="@item.Deliverable"
+                                                      data-kompetensi="@item.Kompetensi"
+                                                      data-sub-kompetensi="@item.SubKompetensi"
+                                                      data-evidence-url="@item.FullEvidencePath"
+                                                      data-role="srspv"
+                                                      title="Klik untuk tinjau">Pending</span>
+                                            }
+                                            else if (!string.IsNullOrEmpty(item.SrSpvApproverName))
                                             {
                                                 @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSrSpv, item.SrSpvApproverName, item.SrSpvApprovedAt))
                                             }
@@ -553,40 +571,28 @@
                                             {
                                                 @Html.Raw(GetApprovalBadge(item.ApprovalSrSpv))
                                             }
-                                            @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
-                                            {
-                                                <br />
-                                                <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
-                                                        data-bs-toggle="modal" data-bs-target="#tinjaModal"
-                                                        data-progress-id="@item.Id"
-                                                        data-deliverable="@item.Deliverable"
-                                                        data-kompetensi="@item.Kompetensi"
-                                                        data-sub-kompetensi="@item.SubKompetensi"
-                                                        data-evidence-url="@item.FullEvidencePath"
-                                                        data-role="srspv">Tinjau</button>
-                                            }
                                         </td>
                                         @* SH approval column *@
                                         <td class="text-center" id="sh-@item.Id">
-                                            @if (!string.IsNullOrEmpty(item.ShApproverName))
+                                            @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                      data-bs-toggle="modal" data-bs-target="#tinjaModal"
+                                                      data-progress-id="@item.Id"
+                                                      data-deliverable="@item.Deliverable"
+                                                      data-kompetensi="@item.Kompetensi"
+                                                      data-sub-kompetensi="@item.SubKompetensi"
+                                                      data-evidence-url="@item.FullEvidencePath"
+                                                      data-role="sh"
+                                                      title="Klik untuk tinjau">Pending</span>
+                                            }
+                                            else if (!string.IsNullOrEmpty(item.ShApproverName))
                                             {
                                                 @Html.Raw(GetApprovalBadgeWithTooltip(item.ApprovalSectionHead, item.ShApproverName, item.ShApprovedAt))
                                             }
                                             else
                                             {
                                                 @Html.Raw(GetApprovalBadge(item.ApprovalSectionHead))
-                                            }
-                                            @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
-                                            {
-                                                <br />
-                                                <button class="btn btn-sm btn-outline-primary btnTinjau mt-1"
-                                                        data-bs-toggle="modal" data-bs-target="#tinjaModal"
-                                                        data-progress-id="@item.Id"
-                                                        data-deliverable="@item.Deliverable"
-                                                        data-kompetensi="@item.Kompetensi"
-                                                        data-sub-kompetensi="@item.SubKompetensi"
-                                                        data-evidence-url="@item.FullEvidencePath"
-                                                        data-role="sh">Tinjau</button>
                                             }
                                         </td>
                                         @* HC approval column *@
@@ -1039,9 +1045,11 @@ if (modalAction) {
         if (action === 'reject') {
             if (commentGroup) commentGroup.classList.remove('d-none');
             if (commentRequired) commentRequired.classList.remove('d-none');
+            if (modalComment) modalComment.placeholder = 'Masukkan alasan penolakan...';
         } else if (action === 'approve') {
             if (commentGroup) commentGroup.classList.remove('d-none');
             if (commentRequired) commentRequired.classList.add('d-none');
+            if (modalComment) modalComment.placeholder = 'Komentar (opsional)';
         } else {
             if (commentGroup) commentGroup.classList.add('d-none');
         }

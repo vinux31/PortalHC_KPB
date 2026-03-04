@@ -781,6 +781,20 @@ namespace HcPortal.Controllers
                 ViewBag.CoachNames = new Dictionary<string, string>();
             }
 
+            // Build approver name lookup for timeline
+            var approverIds = new[] { progress.SrSpvApprovedById, progress.ShApprovedById, progress.HCReviewedById, progress.ApprovedById }
+                .Where(id => !string.IsNullOrEmpty(id)).Distinct().ToList();
+            if (approverIds.Any())
+            {
+                ViewBag.ApproverNames = await _context.Users
+                    .Where(u => approverIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
+            }
+            else
+            {
+                ViewBag.ApproverNames = new Dictionary<string, string>();
+            }
+
             var viewModel = new DeliverableViewModel
             {
                 Progress = progress,
@@ -1201,9 +1215,12 @@ namespace HcPortal.Controllers
             }
 
             // Determine which coachee IDs to load data for
+            // Coach (level 5) and SrSpv/SH (level 4): default to empty until a coachee is selected
             var dataCoacheeIds = !string.IsNullOrEmpty(targetCoacheeId)
                 ? new List<string> { targetCoacheeId }
-                : scopedCoacheeIds;
+                : (userLevel >= 4 && userLevel <= 5)
+                    ? new List<string>()
+                    : scopedCoacheeIds;
 
             // Load deliverable progress data
             List<TrackingItem> data = new();
@@ -1416,6 +1433,11 @@ namespace HcPortal.Controllers
                 {
                     // No coachees assigned at all (role scope is empty)
                     emptyScenario = "no_coachees";
+                }
+                else if (dataCoacheeIds.Count == 0 && string.IsNullOrEmpty(targetCoacheeId) && userLevel >= 4 && userLevel <= 5)
+                {
+                    // Coach/SrSpv/SH: no coachee selected yet — prompt to select
+                    emptyScenario = "select_coachee";
                 }
                 else if (!string.IsNullOrEmpty(bagian) || !string.IsNullOrEmpty(unit) ||
                          !string.IsNullOrEmpty(trackType) || !string.IsNullOrEmpty(tahun) ||
