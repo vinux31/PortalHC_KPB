@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
-last_updated: "2026-03-04T00:34:27.368Z"
+last_updated: "2026-03-04T01:38:15.902Z"
 progress:
   total_phases: 58
-  completed_phases: 56
-  total_plans: 130
-  completed_plans: 129
+  completed_phases: 55
+  total_plans: 131
+  completed_plans: 128
 ---
 
 ---
@@ -205,12 +205,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 90 — audit-fix-admin-assessment-pages-manageassessment-assessmentmonitoring
-Plan: 03 — COMPLETE (all 3 plans in Phase 90 complete)
-Status: Phase 90 fully complete — all 11 browser verification flows passed (user confirmed PASS)
-Last activity: 2026-03-04 - 90-03 complete: browser verification of all 11 ManageAssessment and AssessmentMonitoring flows confirmed PASS by user
+Phase: 91 — audit-fix-cmp-assessment-pages
+Plan: 01 — COMPLETE (1 of 3 plans in Phase 91 complete)
+Status: Phase 91 in progress — 91-01 backend fixes complete; 91-02 (view fixes) and 91-03 (verification) remain
+Last activity: 2026-03-04 - 91-01 complete: CMPController CSRF/auth/shuffle hardening; UnifiedTrainingRecord.AssessmentSessionId added
 
-Progress: [████████░░] 80%
+Progress: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -239,6 +239,7 @@ Progress: [████████░░] 80%
 | Phase 90 P03 | checkpoint | 2 tasks | 1 files |
 | Phase 90 P02 | 10 min | 3 tasks | 5 files |
 | Phase 90 P01 | 20 min | 3 tasks | 1 files |
+| Phase 91 P01 | 12min | 3 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -283,6 +284,9 @@ Progress: [████████░░] 80%
 - [Phase 90]: [90-01] IsActive filter added to 5 user query locations in assessment section; RegenerateToken syncs all siblings; DeleteAssessment/Group cascade fixed for PackageUserResponses and AssessmentAttemptHistory
 - [Phase 90]: [90-03] SeedAssessmentTestData creates 5 groups (Open, Upcoming/token, Completed/pass, Completed/fail, Abandoned) + attempt history + training records using active users from DB
 - [Phase 90]: [90-03] All 11 ManageAssessment and AssessmentMonitoring browser verification flows confirmed PASS by user — Phase 90 complete
+- [Phase 91]: [91-01]: All 9 CMPController POSTs have ValidateAntiForgeryToken; VerifyToken JS call needs CSRF token in plan 91-02
+- [Phase 91]: [91-01]: SubmitExam HC auth fix — HC role added alongside Admin; single-package shuffle enabled
+- [Phase 91]: [91-01]: ShuffledOptionIdsPerQuestion now populated per worker; view rendering of shuffled options deferred to 91-02
 
 ### Pending Todos
 
