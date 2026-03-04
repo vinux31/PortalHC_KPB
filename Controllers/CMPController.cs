@@ -771,6 +771,7 @@ namespace HcPortal.Controllers
 
         // API: Verify Token for Assessment
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyToken(int id, string token)
         {
             var assessment = await _context.AssessmentSessions.FindAsync(id);
@@ -1360,7 +1361,7 @@ namespace HcPortal.Controllers
             // Authorization: only owner or Admin can submit
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
-            if (assessment.UserId != user.Id && !User.IsInRole("Admin"))
+            if (assessment.UserId != user.Id && !User.IsInRole("Admin") && !User.IsInRole("HC"))
             {
                 return Forbid();
             }
