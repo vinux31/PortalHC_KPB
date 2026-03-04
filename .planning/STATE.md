@@ -244,12 +244,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 84 — assessment-flow-qa
-Plan: 02 — COMPLETE (2 of 2 plans in Phase 84 complete — PHASE COMPLETE)
-Status: Phase 84 complete — all 10 ASSESS requirements closed; 5 smoke-test flows PASS
-Last activity: 2026-03-04 - 84-02 complete: all 5 browser smoke-test flows verified PASS by user; all ASSESS-01 through ASSESS-10 formally closed
+Phase: 85 — coaching-proton-flow-qa
+Plan: 02 — COMPLETE (2 of 2 plans in Phase 85 wave-2 code review complete)
+Status: Phase 85 Plan 02 complete — coaching action bugs fixed, views verified
+Last activity: 2026-03-04 - 85-02 complete: CDPController coaching bugs patched (3x 'Active'→'Pending' status, IsActive filter added); CoachingProton.cshtml and Deliverable.cshtml verified correct
 
-Progress: [████████░░] 85%
+Progress: [████████░░] 86%
 
 ## Performance Metrics
 
@@ -283,6 +283,7 @@ Progress: [████████░░] 85%
 | 91    | 03   | browser session | 2     | 1     |
 | Phase 84 P01 | 7 | 2 tasks | 2 files |
 | Phase 84 P02 | browser session | 1 task | 0 files |
+| Phase 85 P02 | 15 min | 2 tasks | 2 files |
 | Phase 85 P01 | 15 | 2 tasks | 1 files |
 
 ## Accumulated Context
@@ -337,6 +338,9 @@ Progress: [████████░░] 85%
 - [Phase 91]: [91-03]: All 9 CMP Assessment browser verification flows confirmed PASS by user — Phase 91 complete, zero gap closure plans needed
 - [Phase 84]: [84-01]: DownloadQuestionTemplate placed between PreviewPackage and ImportPackageQuestions GET for logical grouping; column order matches parser cells[0..5]
 - [Phase 84]: [84-02]: All 5 smoke-test flows PASS — template download, Excel import round-trip, paste dedup, cross-package mismatch error, regression check; all ASSESS-01 through ASSESS-10 formally closed
+- [Phase 85]: [85-02]: canUpload/UploadEvidence status check fixed: 'Active'→'Pending' (ProtonDeliverableProgress has no 'Active' status, default is 'Pending')
+- [Phase 85]: [85-02]: IsActive filter added to HC/Admin and SrSpv coachee scope queries in CoachingProton (Phase 83 filter was missing for these two branches)
+- [Phase 85]: [85-02]: GetCoacheeDeliverables not called from CoachingProton.cshtml — coaching modal uses buildDeliverableData() from table rows; endpoint exists but is not wired to the coachee dropdown
 - [Phase 85]: [85-01]: CoachCoacheeMappingExport missing [HttpGet] — added; inactive users now excluded from modal dropdowns
 - [Phase 85]: [85-01]: SeedCoachingTestData uses Coach role (GetUsersInRoleAsync) for coach selection, matching Phase 74 decision
 
@@ -363,5 +367,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: 84-02-PLAN.md complete — Phase 84 fully verified; all 5 smoke-test flows PASS; all ASSESS requirements closed
+Stopped at: 85-02-PLAN.md complete — coaching action status bugs fixed, IsActive filter added, views verified; COACH-03 and COACH-04 code review done
 Resume file: —
