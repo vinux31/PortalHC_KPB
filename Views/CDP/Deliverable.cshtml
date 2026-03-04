@@ -46,8 +46,8 @@ else
 {
     @* Determine status badge color *@
     string badgeClass;
-    if (Model.Progress?.Status == "Active") { badgeClass = "bg-primary"; }
-    else if (Model.Progress?.Status == "Submitted") { badgeClass = "bg-warning text-dark"; }
+    if (Model.Progress?.Status == "Pending") { badgeClass = "bg-secondary"; }
+    else if (Model.Progress?.Status == "Submitted") { badgeClass = "bg-primary"; }
     else if (Model.Progress?.Status == "Approved") { badgeClass = "bg-success"; }
     else if (Model.Progress?.Status == "Rejected") { badgeClass = "bg-danger"; }
     else { badgeClass = "bg-secondary"; }
