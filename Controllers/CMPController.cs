@@ -539,7 +539,8 @@ namespace HcPortal.Controllers
                 Score = a.Score,
                 IsPassed = a.IsPassed,
                 Status = a.IsPassed == true ? "Passed" : "Failed",
-                SortPriority = 0
+                SortPriority = 0,
+                AssessmentSessionId = a.Id
             }));
 
             unified.AddRange(trainings.Select(t => new UnifiedTrainingRecord
@@ -914,8 +915,8 @@ namespace HcPortal.Controllers
                     // Build option shuffle: per question, randomize A/B/C/D option order
                     // Stored as Dictionary<questionId, List<optionId>> serialized to JSON
                     var optionShuffleDict = new Dictionary<int, List<int>>();
-                    var allPackageQuestions = packages.SelectMany(p => p.Questions).ToList();
-                    foreach (var q in allPackageQuestions)
+                    var questionsForOptionShuffle = packages.SelectMany(p => p.Questions).ToList();
+                    foreach (var q in questionsForOptionShuffle)
                     {
                         var optionIds = q.Options.Select(o => o.Id).ToList();
                         Shuffle(optionIds, rng);

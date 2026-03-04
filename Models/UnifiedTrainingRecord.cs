@@ -42,6 +42,9 @@ namespace HcPortal.Models
         // TrainingRecord.Id — null for Assessment Online rows; used for Edit/Delete actions
         public int? TrainingRecordId { get; set; }
 
+        // AssessmentSession.Id — null for Training Manual rows; used to build Results link in Records view
+        public int? AssessmentSessionId { get; set; }
+
         // Training Manual-only fields for Edit modal pre-population (null for Assessment rows)
         public string? Kategori { get; set; }
         public string? Kota { get; set; }
