@@ -53,17 +53,20 @@ namespace HcPortal.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly AuditLogService _auditLog;
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<ProtonDataController> _logger;
 
         public ProtonDataController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             AuditLogService auditLog,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            ILogger<ProtonDataController> logger)
         {
             _context = context;
             _userManager = userManager;
             _auditLog = auditLog;
             _env = env;
+            _logger = logger;
         }
 
         // GET: /ProtonData
@@ -582,7 +585,7 @@ namespace HcPortal.Controllers
                 if (System.IO.File.Exists(physicalPath))
                     System.IO.File.Delete(physicalPath);
             }
-            catch { /* log but don't fail */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to delete physical guidance file for record {Id}, path {Path}", req.Id, physicalPath); }
 
             await _auditLog.LogAsync(user.Id, user.FullName, "Delete",
                 $"Deleted guidance file '{fileName}'",

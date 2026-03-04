@@ -123,8 +123,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
 }
 
-// 7. PENTING: Jangan pakai HttpsRedirection saat development lokal
-// app.UseHttpsRedirection(); 
+// 7. HTTPS Redirection — aktif di production, skip saat development lokal
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 
 // Konfigurasi Static Files dengan MIME type yang benar untuk PDF
 var staticFileOptions = new StaticFileOptions

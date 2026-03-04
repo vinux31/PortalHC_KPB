@@ -1036,7 +1036,10 @@ namespace HcPortal.Controllers
                     try {
                         parsedOptionShuffle = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(optionShuffleRaw)
                                               ?? new Dictionary<int, List<int>>();
-                    } catch { /* ignore malformed data — use empty dict (original order) */ }
+                    } catch (Exception ex) {
+                        var _logger = HttpContext.RequestServices.GetRequiredService<ILogger<CMPController>>();
+                        _logger.LogWarning(ex, "Failed to deserialize option shuffle JSON for session {SessionId}, using default order", id);
+                    }
                 }
                 ViewBag.OptionShuffle = parsedOptionShuffle;
             }

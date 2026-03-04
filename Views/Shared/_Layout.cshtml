@@ -4,7 +4,8 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @{
     var currentUser = await UserManager.GetUserAsync(User);
-    var userRole = currentUser?.SelectedView;
+    var userRoles = currentUser != null ? await UserManager.GetRolesAsync(currentUser) : new List<string>();
+    var userRole = userRoles.FirstOrDefault() ?? "User";
     var fullName = currentUser?.FullName ?? "";
     var nameParts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     var initials = nameParts.Length >= 2 

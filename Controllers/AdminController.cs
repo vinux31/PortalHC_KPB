@@ -20,6 +20,7 @@ namespace HcPortal.Controllers
         private readonly IMemoryCache _cache;
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _env;
+        private readonly ILogger<AdminController> _logger;
 
         public AdminController(
             ApplicationDbContext context,
@@ -27,7 +28,8 @@ namespace HcPortal.Controllers
             AuditLogService auditLog,
             IMemoryCache cache,
             IConfiguration config,
-            IWebHostEnvironment env)
+            IWebHostEnvironment env,
+            ILogger<AdminController> logger)
         {
             _context = context;
             _userManager = userManager;
@@ -35,6 +37,7 @@ namespace HcPortal.Controllers
             _cache = cache;
             _config = config;
             _env = env;
+            _logger = logger;
         }
 
         // GET /Admin/Index
@@ -356,7 +359,7 @@ namespace HcPortal.Controllers
                     $"Deleted bagian '{bagian.Name}' (ID {id}). Cascaded {totalArchived} archived file(s) (KKJ: {archivedKkjCount}, CPDP: {archivedCpdpCount}).",
                     id, "KkjBagian");
             }
-            catch { }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for KkjBagianDelete (bagianId={Id})", id); }
 
             return Json(new { success = true, message = $"Bagian '{bagian.Name}' berhasil dihapus." });
         }
@@ -1768,7 +1771,7 @@ namespace HcPortal.Controllers
                     var old = System.Text.Json.JsonSerializer.Deserialize<InterviewResultsDto>(session.InterviewResultsJson);
                     supportingDocPath = old?.SupportingDocPath;
                 }
-                catch { /* ignore parse errors */ }
+                catch (Exception ex) { _logger.LogWarning(ex, "Failed to parse scheduled date field in AssessmentMonitoring"); }
             }
 
             var dto = new InterviewResultsDto
@@ -2261,185 +2264,7 @@ namespace HcPortal.Controllers
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
-        // GET /Admin/SeedAssessmentTestData — TEMP: Phase 90 browser verify seed data
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> SeedAssessmentTestData()
-        {
-            try
-            {
-                // Pick up to 3 active users for test assignments
-                var activeUsers = await _context.Users
-                    .Where(u => u.IsActive)
-                    .OrderBy(u => u.FullName)
-                    .Take(3)
-                    .ToListAsync();
 
-                if (!activeUsers.Any())
-                {
-                    TempData["Error"] = "SeedAssessmentTestData: No active users found.";
-                    return RedirectToAction("ManageAssessment");
-                }
-
-                var now = DateTime.UtcNow;
-                var today = DateTime.Today;
-                var creatorId = _userManager.GetUserId(User);
-
-                var sessions = new List<AssessmentSession>();
-
-                // Group A — Open, no token (2 users)
-                foreach (var user in activeUsers.Take(Math.Min(2, activeUsers.Count)))
-                {
-                    sessions.Add(new AssessmentSession
-                    {
-                        Title = "Test Assessment RFCC Open",
-                        Category = "OJT",
-                        Schedule = today.AddDays(1),
-                        DurationMinutes = 60,
-                        PassPercentage = 70,
-                        Status = "Open",
-                        IsTokenRequired = false,
-                        AccessToken = "",
-                        Progress = 0,
-                        UserId = user.Id,
-                        CreatedBy = creatorId
-                    });
-                }
-
-                // Group B — Upcoming, token required (users[0] and last user if >=2)
-                var groupBUsers = new List<ApplicationUser> { activeUsers[0] };
-                if (activeUsers.Count >= 3) groupBUsers.Add(activeUsers[2]);
-                else if (activeUsers.Count >= 2) groupBUsers.Add(activeUsers[1]);
-
-                foreach (var user in groupBUsers)
-                {
-                    sessions.Add(new AssessmentSession
-                    {
-                        Title = "Test Assessment GAST Upcoming",
-                        Category = "IHT",
-                        Schedule = today.AddDays(3),
-                        DurationMinutes = 90,
-                        PassPercentage = 75,
-                        Status = "Upcoming",
-                        IsTokenRequired = true,
-                        AccessToken = "TEST90",
-                        Progress = 0,
-                        UserId = user.Id,
-                        CreatedBy = creatorId
-                    });
-                }
-
-                // Group C — Completed/Passed (user index 1 if exists, else index 0)
-                var userC = activeUsers.Count >= 2 ? activeUsers[1] : activeUsers[0];
-                var sessionC = new AssessmentSession
-                {
-                    Title = "Test Assessment Completed Pass",
-                    Category = "OJT",
-                    Schedule = today.AddDays(-2),
-                    DurationMinutes = 60,
-                    PassPercentage = 70,
-                    Status = "Completed",
-                    IsTokenRequired = false,
-                    AccessToken = "",
-                    Score = 85,
-                    IsPassed = true,
-                    StartedAt = now.AddDays(-2).AddHours(-1),
-                    CompletedAt = now.AddDays(-2),
-                    Progress = 100,
-                    UserId = userC.Id,
-                    CreatedBy = creatorId
-                };
-                sessions.Add(sessionC);
-
-                // Group D — Completed/Failed (user index 2 if exists, else index 0)
-                var userD = activeUsers.Count >= 3 ? activeUsers[2] : activeUsers[0];
-                sessions.Add(new AssessmentSession
-                {
-                    Title = "Test Assessment Completed Fail",
-                    Category = "OJT",
-                    Schedule = today.AddDays(-3),
-                    DurationMinutes = 60,
-                    PassPercentage = 70,
-                    Status = "Completed",
-                    IsTokenRequired = false,
-                    AccessToken = "",
-                    Score = 45,
-                    IsPassed = false,
-                    StartedAt = now.AddDays(-3).AddHours(-1),
-                    CompletedAt = now.AddDays(-3),
-                    Progress = 100,
-                    UserId = userD.Id,
-                    CreatedBy = creatorId
-                });
-
-                // Group E — Abandoned (user index 0)
-                sessions.Add(new AssessmentSession
-                {
-                    Title = "Test Assessment Abandoned",
-                    Category = "IHT",
-                    Schedule = today.AddDays(-1),
-                    DurationMinutes = 60,
-                    PassPercentage = 70,
-                    Status = "Abandoned",
-                    IsTokenRequired = false,
-                    AccessToken = "",
-                    Progress = 0,
-                    UserId = activeUsers[0].Id,
-                    CreatedBy = creatorId
-                });
-
-                _context.AssessmentSessions.AddRange(sessions);
-                await _context.SaveChangesAsync();
-
-                // Attempt history for Group C (simulate 1 prior attempt before current pass)
-                _context.AssessmentAttemptHistory.Add(new AssessmentAttemptHistory
-                {
-                    SessionId = sessionC.Id,
-                    UserId = userC.Id,
-                    Title = "Test Assessment Completed Pass",
-                    Category = "OJT",
-                    Score = 60,
-                    IsPassed = false,
-                    StartedAt = now.AddDays(-5),
-                    CompletedAt = now.AddDays(-5).AddHours(1),
-                    AttemptNumber = 1,
-                    ArchivedAt = now.AddDays(-4)
-                });
-
-                // Training Records for up to 2 active users
-                _context.TrainingRecords.Add(new TrainingRecord
-                {
-                    UserId = activeUsers[0].Id,
-                    Judul = "K3 Dasar Test 90",
-                    Kategori = "OJT",
-                    Tanggal = today.AddDays(-30),
-                    Status = "Passed",
-                    Penyelenggara = "PT Test Corp"
-                });
-
-                if (activeUsers.Count >= 2)
-                {
-                    _context.TrainingRecords.Add(new TrainingRecord
-                    {
-                        UserId = activeUsers[1].Id,
-                        Judul = "IHT Fire Safety Test 90",
-                        Kategori = "IHT",
-                        Tanggal = today.AddDays(-15),
-                        Status = "Valid",
-                        Penyelenggara = "HSE Division"
-                    });
-                }
-
-                await _context.SaveChangesAsync();
-
-                TempData["Success"] = $"Seed data created: 5 assessment groups + attempt history + training records for {activeUsers.Count} user(s).";
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"SeedAssessmentTestData failed: {ex.Message}";
-            }
-            return RedirectToAction("ManageAssessment");
-        }
 
         // GET /Admin/SeedCoachingTestData — TEMP: Phase 85 browser verify seed data
         [HttpGet]
@@ -3022,7 +2847,7 @@ namespace HcPortal.Controllers
                     sessionId,
                     "AssessmentSession");
             }
-            catch { /* audit failure must not roll back the successful reshuffle */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for ReshufflePackage (sessionId={Id})", sessionId); }
 
             return Json(new { success = true, packageName = $"Cross-package ({packages.Count} paket)", assignmentId = newAssignment.Id });
         }
@@ -3119,7 +2944,7 @@ namespace HcPortal.Controllers
                     null,
                     "AssessmentSession");
             }
-            catch { /* audit failure must not roll back successful reshuffles */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for ReshuffleAll (groupTitle={Title})", title); }
 
             return Json(new { success = true, results, reshuffledCount });
         }
@@ -3658,7 +3483,7 @@ namespace HcPortal.Controllers
                         null,
                         "ApplicationUser");
                 }
-                catch { /* audit failure must not block creation */ }
+                catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for CreateWorker (userId={UserId})", user.Id); }
 
                 TempData["Success"] = $"User '{model.FullName}' berhasil ditambahkan dengan role '{model.Role}'.";
                 return RedirectToAction("ManageWorkers");
@@ -3814,7 +3639,7 @@ namespace HcPortal.Controllers
                     null,
                     "ApplicationUser");
             }
-            catch { /* audit failure must not block update */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for EditWorker (userId={Id})", model.Id); }
 
             TempData["Success"] = $"Data user '{model.FullName}' berhasil diperbarui.";
             return RedirectToAction("ManageWorkers");
@@ -3943,7 +3768,7 @@ namespace HcPortal.Controllers
                         null,
                         "ApplicationUser");
                 }
-                catch { /* audit failure must not block deletion */ }
+                catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeleteWorker (userId={Id})", id); }
 
                 TempData["Success"] = $"User '{userName}' berhasil dihapus dari sistem.";
             }
@@ -4005,7 +3830,7 @@ namespace HcPortal.Controllers
                     $"Nonaktifkan user '{user.FullName}' ({user.Email}). {activeCoachingCount} coaching ditutup, {activeAssessmentCount} assessment dibatalkan. UserId={id}",
                     null, "ApplicationUser");
             }
-            catch { }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeactivateWorker (userId={Id})", id); }
 
             var detail = "";
             if (activeCoachingCount > 0) detail += $" {activeCoachingCount} coaching aktif ditutup.";
@@ -4038,7 +3863,7 @@ namespace HcPortal.Controllers
                     $"Aktifkan kembali user '{user.FullName}' ({user.Email}). UserId={id}",
                     null, "ApplicationUser");
             }
-            catch { }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for ReactivateWorker (userId={Id})", id); }
 
             TempData["Success"] = $"User '{user.FullName}' berhasil diaktifkan kembali.";
             return RedirectToAction("ManageWorkers", new { showInactive = true });
@@ -4342,7 +4167,7 @@ namespace HcPortal.Controllers
                     $"Bulk import: {successCount} berhasil, {results.Count(r => r.Status == "Error")} error, {results.Count(r => r.Status == "Skip")} dilewati, {reviewCount} perlu review",
                     null, "ApplicationUser");
             }
-            catch { }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for ImportWorkers"); }
 
             ViewBag.ImportResults = results;
             return View();
@@ -5134,7 +4959,7 @@ namespace HcPortal.Controllers
                     assessmentId,
                     "AssessmentPackage");
             }
-            catch { /* audit failure must not roll back successful delete */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeletePackage (packageId={Id})", packageId); }
 
             TempData["Success"] = $"Package '{pkg.PackageName}' deleted.";
             return RedirectToAction("ManagePackages", new { assessmentId });
