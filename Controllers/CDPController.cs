@@ -1107,13 +1107,13 @@ namespace HcPortal.Controllers
             if (userLevel <= 2) // HC/Admin — see all coachees
             {
                 scopedCoacheeIds = await _context.Users
-                    .Where(u => u.RoleLevel == 6)
+                    .Where(u => u.RoleLevel == 6 && u.IsActive)
                     .Select(u => u.Id).ToListAsync();
             }
             else if (userLevel == 4) // SrSpv/SectionHead — same section only
             {
                 scopedCoacheeIds = await _context.Users
-                    .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
                     .Select(u => u.Id).ToListAsync();
             }
             else if (userLevel == 5) // Coach — CoachCoacheeMapping only
