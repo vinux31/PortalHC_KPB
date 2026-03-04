@@ -213,7 +213,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.1 CPDP Mapping File-Based Rewrite — Phase 93 in progress
+**Current focus:** v3.0 Full QA & Feature Completion — Phases 84, 85, 87 remaining
 
 ## Current Position
 
