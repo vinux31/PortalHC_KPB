@@ -63,14 +63,21 @@ else
 
             @* Info row *@
             <div class="row mb-3">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <small class="text-muted">Coachee</small>
                     <div class="fw-semibold">@Model.CoacheeName</div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <small class="text-muted">Track</small>
                     <div class="fw-semibold">@Model.TrackType @Model.TahunKe</div>
                 </div>
+                <div class="col-md-4">
+                    <small class="text-muted">Anda masuk sebagai</small>
+                    <div><span class="badge bg-info text-white">@Model.CurrentUserRole</span></div>
+                </div>
+            </div>
+            <div class="mb-3 small text-muted">
+                <i class="bi bi-shield-lock me-1"></i>Hak akses: Coachee (data sendiri), Coach, Sr. Supervisor, Section Head (satu seksi), HC/Admin (semua)
             </div>
 
             @* Evidence display *@
