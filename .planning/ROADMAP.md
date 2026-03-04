@@ -448,7 +448,7 @@ Plans:
 **Goal:** All Admin assessment management pages work correctly end-to-end — CRUD, monitoring actions, tab navigation, cross-page links, and authorization boundaries are verified and bug-free
 **Requirements**: None (audit/fix phase)
 **Depends on:** Phase 89
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 90-01-PLAN.md — AdminController assessment actions: IsActive filters, RegenerateToken multi-sibling fix, cascade review
