@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-04T00:11:18.639Z"
+progress:
+  total_phases: 58
+  completed_phases: 55
+  total_plans: 130
+  completed_plans: 127
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-03T11:05:56.609Z"
 progress:
   total_phases: 56
@@ -210,6 +223,7 @@ Progress: [████████░░] 80%
 | Phase 89 P01 | 15 min | 1 tasks | 1 files |
 | Phase 89 P02 | 7 min | 1 tasks | 1 files |
 | Phase 89 P03 | 0 | 1 tasks | 0 files |
+| Phase 90 P02 | 10 min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -248,6 +262,9 @@ Progress: [████████░░] 80%
 - [Phase 89]: [89-01]: Unified CDPController.PlanIdp replaces old Coachee-Proton/Admin-PDF dual-path; all roles use same action + ViewBag JSON
 - [Phase 89]: [89-01]: Coachee bagian/unit derived from first active ProtonKompetensi for assigned trackId; GuidanceDownload in CDPController accessible to all authenticated users
 - [Phase 89]: [89-02]: All JS uses script[type=application/json] data islands — no inline Razor in JS; Lihat Semua resets to /CDP/PlanIdp for manual filter mode
+- [Phase 90]: [90-02] header-assessment-btns always rendered in DOM; initial visibility via inline style; JS shown.bs.tab handler can always find element
+- [Phase 90]: [90-02] Monitoring cross-link added to ManageAssessment header as btn-outline-success
+- [Phase 90]: [90-02] AssessmentMonitoring title column uses reuses computed detailUrl variable for clickable anchor
 
 ### Pending Todos
 
