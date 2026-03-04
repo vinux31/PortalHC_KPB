@@ -445,13 +445,15 @@ Plans:
 
 ### Phase 90: Audit & fix Admin Assessment pages (ManageAssessment + AssessmentMonitoring)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** All Admin assessment management pages work correctly end-to-end — CRUD, monitoring actions, tab navigation, cross-page links, and authorization boundaries are verified and bug-free
+**Requirements**: None (audit/fix phase)
 **Depends on:** Phase 89
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 90 to break down)
+- [ ] 90-01-PLAN.md — AdminController assessment actions: IsActive filters, RegenerateToken multi-sibling fix, cascade review
+- [ ] 90-02-PLAN.md — View-level audit: ManageAssessment header fix, Monitoring cross-link, AssessmentMonitoring detail links, form nav
+- [ ] 90-03-PLAN.md — Seed test data + browser verification: all 11 flows across ManageAssessment and AssessmentMonitoring
 
 ### Phase 91: Audit & fix CMP Assessment pages (Assessment + Records)
 
