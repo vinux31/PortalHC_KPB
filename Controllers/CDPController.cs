@@ -1001,7 +1001,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Deliverable telah ditandai sebagai sudah diperiksa HC.";
-            return RedirectToAction("CoachingProton");
+            return RedirectToAction("Deliverable", new { id = progressId });
         }
 
         [HttpPost]
