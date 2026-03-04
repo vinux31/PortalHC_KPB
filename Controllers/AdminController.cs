@@ -2441,6 +2441,264 @@ namespace HcPortal.Controllers
             return RedirectToAction("ManageAssessment");
         }
 
+        // GET /Admin/SeedCoachingTestData — TEMP: Phase 85 browser verify seed data
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SeedCoachingTestData()
+        {
+            try
+            {
+                // 1. Find users by role level
+                var allActiveUsers = await _context.Users
+                    .Where(u => u.IsActive)
+                    .OrderBy(u => u.FullName)
+                    .ToListAsync();
+
+                var coachUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coach);
+                var testCoach = coachUsers.FirstOrDefault(u => u.IsActive);
+                if (testCoach == null)
+                {
+                    TempData["Error"] = "SeedCoachingTestData: No active user with Coach role found. Assign Coach role to at least one user first.";
+                    return RedirectToAction("CoachCoacheeMapping");
+                }
+
+                // Coachee = RoleLevel 6
+                var coacheeUsers = allActiveUsers.Where(u => u.RoleLevel == 6 && u.Id != testCoach.Id).Take(2).ToList();
+                if (coacheeUsers.Count < 2)
+                {
+                    TempData["Error"] = $"SeedCoachingTestData: Need 2 active users with RoleLevel=6 (Coachee). Found: {coacheeUsers.Count}. Please ensure at least 2 coachee-level users exist.";
+                    return RedirectToAction("CoachCoacheeMapping");
+                }
+
+                var testCoachee1 = coacheeUsers[0];
+                var testCoachee2 = coacheeUsers[1];
+
+                // 2. Pick a ProtonTrack
+                var testTrack = await _context.ProtonTracks.OrderBy(t => t.Urutan).FirstOrDefaultAsync();
+                if (testTrack == null)
+                {
+                    TempData["Error"] = "SeedCoachingTestData: No ProtonTrack found. Seed the Silabus (Proton tracks) first.";
+                    return RedirectToAction("CoachCoacheeMapping");
+                }
+
+                var actorId = _userManager.GetUserId(User) ?? "";
+
+                // 3. Create CoachCoacheeMapping (idempotent)
+                var mapping1 = await _context.CoachCoacheeMappings
+                    .FirstOrDefaultAsync(m => m.CoachId == testCoach.Id && m.CoacheeId == testCoachee1.Id && m.IsActive);
+                if (mapping1 == null)
+                {
+                    mapping1 = new CoachCoacheeMapping
+                    {
+                        CoachId = testCoach.Id,
+                        CoacheeId = testCoachee1.Id,
+                        IsActive = true,
+                        StartDate = DateTime.Today.AddMonths(-3)
+                    };
+                    _context.CoachCoacheeMappings.Add(mapping1);
+                }
+
+                var mapping2 = await _context.CoachCoacheeMappings
+                    .FirstOrDefaultAsync(m => m.CoachId == testCoach.Id && m.CoacheeId == testCoachee2.Id && m.IsActive);
+                if (mapping2 == null)
+                {
+                    mapping2 = new CoachCoacheeMapping
+                    {
+                        CoachId = testCoach.Id,
+                        CoacheeId = testCoachee2.Id,
+                        IsActive = true,
+                        StartDate = DateTime.Today.AddMonths(-2)
+                    };
+                    _context.CoachCoacheeMappings.Add(mapping2);
+                }
+
+                // 4. Create ProtonTrackAssignment (idempotent)
+                var track1 = await _context.ProtonTrackAssignments
+                    .FirstOrDefaultAsync(a => a.CoacheeId == testCoachee1.Id && a.IsActive);
+                if (track1 == null)
+                {
+                    _context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+                    {
+                        CoacheeId = testCoachee1.Id,
+                        AssignedById = actorId,
+                        ProtonTrackId = testTrack.Id,
+                        IsActive = true,
+                        AssignedAt = DateTime.UtcNow
+                    });
+                }
+
+                var track2 = await _context.ProtonTrackAssignments
+                    .FirstOrDefaultAsync(a => a.CoacheeId == testCoachee2.Id && a.IsActive);
+                if (track2 == null)
+                {
+                    _context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+                    {
+                        CoacheeId = testCoachee2.Id,
+                        AssignedById = actorId,
+                        ProtonTrackId = testTrack.Id,
+                        IsActive = true,
+                        AssignedAt = DateTime.UtcNow
+                    });
+                }
+
+                await _context.SaveChangesAsync();
+
+                // 5. Load deliverables for the selected ProtonTrack
+                var deliverables = await _context.ProtonDeliverableList
+                    .Include(d => d.ProtonSubKompetensi)
+                        .ThenInclude(s => s.ProtonKompetensi)
+                    .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == testTrack.Id)
+                    .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
+                        .ThenBy(d => d.ProtonSubKompetensi.Urutan)
+                        .ThenBy(d => d.Urutan)
+                    .ToListAsync();
+
+                if (!deliverables.Any())
+                {
+                    TempData["Error"] = $"SeedCoachingTestData: Track '{testTrack.DisplayName}' has no deliverables. Add Silabus deliverables for this track first.";
+                    return RedirectToAction("CoachCoacheeMapping");
+                }
+
+                // 6. Create ProtonDeliverableProgress for testCoachee1 (all statuses)
+                var existingC1 = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.CoacheeId == testCoachee1.Id)
+                    .Select(p => p.ProtonDeliverableId)
+                    .ToListAsync();
+
+                ProtonDeliverableProgress? approvedProgress1 = null;
+
+                for (int i = 0; i < deliverables.Count; i++)
+                {
+                    var d = deliverables[i];
+                    if (existingC1.Contains(d.Id)) continue;
+
+                    ProtonDeliverableProgress prog;
+                    if (i == 0)
+                    {
+                        // Approved — full approval chain
+                        prog = new ProtonDeliverableProgress
+                        {
+                            CoacheeId = testCoachee1.Id,
+                            ProtonDeliverableId = d.Id,
+                            Status = "Approved",
+                            SrSpvApprovalStatus = "Approved",
+                            ShApprovalStatus = "Approved",
+                            HCApprovalStatus = "Reviewed",
+                            SubmittedAt = DateTime.UtcNow.AddDays(-7),
+                            ApprovedAt = DateTime.UtcNow.AddDays(-5)
+                        };
+                        _context.ProtonDeliverableProgresses.Add(prog);
+                        approvedProgress1 = prog;
+                    }
+                    else if (i == 1)
+                    {
+                        // Submitted — pending approval
+                        prog = new ProtonDeliverableProgress
+                        {
+                            CoacheeId = testCoachee1.Id,
+                            ProtonDeliverableId = d.Id,
+                            Status = "Submitted",
+                            SrSpvApprovalStatus = "Pending",
+                            ShApprovalStatus = "Pending",
+                            HCApprovalStatus = "Pending",
+                            SubmittedAt = DateTime.UtcNow.AddDays(-2)
+                        };
+                        _context.ProtonDeliverableProgresses.Add(prog);
+                    }
+                    else if (i == 2)
+                    {
+                        // Rejected
+                        prog = new ProtonDeliverableProgress
+                        {
+                            CoacheeId = testCoachee1.Id,
+                            ProtonDeliverableId = d.Id,
+                            Status = "Rejected",
+                            SrSpvApprovalStatus = "Rejected",
+                            ShApprovalStatus = "Pending",
+                            HCApprovalStatus = "Pending",
+                            RejectionReason = "Bukti tidak lengkap, harap upload ulang dengan dokumen yang valid",
+                            SubmittedAt = DateTime.UtcNow.AddDays(-3),
+                            RejectedAt = DateTime.UtcNow.AddDays(-1)
+                        };
+                        _context.ProtonDeliverableProgresses.Add(prog);
+                    }
+                    else
+                    {
+                        // Pending (not yet submitted)
+                        _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
+                        {
+                            CoacheeId = testCoachee1.Id,
+                            ProtonDeliverableId = d.Id,
+                            Status = "Pending"
+                        });
+                    }
+                }
+
+                // 7. Create ProtonDeliverableProgress for testCoachee2
+                var existingC2 = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.CoacheeId == testCoachee2.Id)
+                    .Select(p => p.ProtonDeliverableId)
+                    .ToListAsync();
+
+                ProtonDeliverableProgress? approvedProgress2 = null;
+
+                for (int i = 0; i < deliverables.Count; i++)
+                {
+                    var d = deliverables[i];
+                    if (existingC2.Contains(d.Id)) continue;
+
+                    if (i == 0)
+                    {
+                        // Approved by Spv, pending HC review
+                        var prog = new ProtonDeliverableProgress
+                        {
+                            CoacheeId = testCoachee2.Id,
+                            ProtonDeliverableId = d.Id,
+                            Status = "Approved",
+                            SrSpvApprovalStatus = "Approved",
+                            ShApprovalStatus = "Approved",
+                            HCApprovalStatus = "Pending",
+                            SubmittedAt = DateTime.UtcNow.AddDays(-5),
+                            ApprovedAt = DateTime.UtcNow.AddDays(-3)
+                        };
+                        _context.ProtonDeliverableProgresses.Add(prog);
+                        approvedProgress2 = prog;
+                    }
+                    else
+                    {
+                        _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
+                        {
+                            CoacheeId = testCoachee2.Id,
+                            ProtonDeliverableId = d.Id,
+                            Status = "Pending"
+                        });
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+
+                // 8. Create dummy evidence file for Approved record of testCoachee1
+                if (approvedProgress1 != null)
+                {
+                    var evidenceFolder = Path.Combine(_env.WebRootPath, "uploads", "evidence", approvedProgress1.Id.ToString());
+                    Directory.CreateDirectory(evidenceFolder);
+                    var dummyPath = Path.Combine(evidenceFolder, "test_evidence.txt");
+                    if (!System.IO.File.Exists(dummyPath))
+                        await System.IO.File.WriteAllTextAsync(dummyPath, "Test evidence file — seeded by SeedCoachingTestData for QA");
+                    approvedProgress1.EvidencePath = $"/uploads/evidence/{approvedProgress1.Id}/test_evidence.txt";
+                    approvedProgress1.EvidenceFileName = "test_evidence.txt";
+                    await _context.SaveChangesAsync();
+                }
+
+                TempData["Success"] = $"Test coaching data seeded. Coach: {testCoach.FullName}, Coachees: {testCoachee1.FullName}, {testCoachee2.FullName}. Track: {testTrack.DisplayName}.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"SeedCoachingTestData failed: {ex.Message}";
+            }
+            return RedirectToAction("CoachCoacheeMapping");
+        }
+
         // --- USER ASSESSMENT HISTORY ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
