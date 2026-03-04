@@ -6,6 +6,12 @@
 # dotenv files
 .env
 
+# Uploaded files (runtime data)
+wwwroot/uploads/
+
+# Windows NUL artifact
+NUL
+
 # User-specific files
 *.rsuser
 *.suo

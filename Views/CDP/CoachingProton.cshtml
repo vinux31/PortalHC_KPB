@@ -79,8 +79,8 @@
     <form method="get" asp-action="CoachingProton" asp-controller="CDP" id="filterForm"
           class="d-flex flex-wrap gap-2 align-items-center mb-3">
 
-        @* Bagian dropdown — HC/Admin only (Level 1-2) *@
-        @if (userLevel <= 2)
+        @* Bagian dropdown — HC/Admin (Level 1-2) and Direktur/VP/Manager (Level 3, non-SH) *@
+        @if (userLevel <= 3 && !isSH)
         {
             <select name="bagian" class="form-select form-select-sm" style="width:auto;min-width:150px"
                     onchange="onBagianChange(this)">
@@ -99,8 +99,8 @@
             </select>
         }
 
-        @* Unit dropdown — HC/Admin (Level 1-2) and SrSpv/SectionHead (Level 4) *@
-        @if (userLevel <= 2 || userLevel == 4)
+        @* Unit dropdown — HC/Admin (Level 1-2), Mgmt (Level 3), SrSpv (Level 4) *@
+        @if (userLevel <= 4)
         {
             <select name="unit" id="unitSelect" class="form-select form-select-sm" style="width:auto;min-width:180px"
                     onchange="this.form.submit()">
@@ -119,8 +119,8 @@
             </select>
         }
 
-        @* Coachee dropdown — Coach (Level 5), SrSpv/SH (Level 4), and HC/Admin (Level 1-2) *@
-        @if (coachees != null && (userLevel == 5 || userLevel == 4 || userLevel <= 2))
+        @* Coachee dropdown — all roles except Coachee (Level 6) *@
+        @if (coachees != null && userLevel <= 5)
         {
             <select name="coacheeId" class="form-select form-select-sm" style="width:auto;min-width:180px"
                     onchange="this.form.submit()">

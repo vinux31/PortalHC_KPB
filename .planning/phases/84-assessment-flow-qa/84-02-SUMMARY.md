@@ -109,6 +109,12 @@ None — no external service configuration required.
 - Phase 84 is complete. All ASSESS-01 through ASSESS-10 requirements are formally closed.
 - Remaining v3.0 phases: Phase 85 (Coaching Proton Flow QA) and Phase 87 (Dashboard & Navigation QA)
 
+## Self-Check: PASSED
+
+- FOUND: `.planning/phases/84-assessment-flow-qa/84-02-SUMMARY.md`
+- FOUND: commit `65621ea` (84-01 feat commit)
+- FOUND: commit `d008727` (84-02 docs/metadata commit)
+
 ---
 *Phase: 84-assessment-flow-qa*
 *Completed: 2026-03-04*

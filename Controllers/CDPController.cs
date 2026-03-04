@@ -858,7 +858,21 @@ namespace HcPortal.Controllers
             var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi;
             int trackId = kompetensi?.ProtonTrackId ?? 0;
 
-            // Set approval fields (in memory, before SaveChangesAsync)
+            // Set per-role approval fields
+            if (userRole == UserRoles.SrSupervisor)
+            {
+                progress.SrSpvApprovalStatus = "Approved";
+                progress.SrSpvApprovedById = user.Id;
+                progress.SrSpvApprovedAt = DateTime.UtcNow;
+            }
+            else if (userRole == UserRoles.SectionHead)
+            {
+                progress.ShApprovalStatus = "Approved";
+                progress.ShApprovedById = user.Id;
+                progress.ShApprovedAt = DateTime.UtcNow;
+            }
+
+            // Set overall approval fields (in memory, before SaveChangesAsync)
             progress.Status = "Approved";
             progress.ApprovedAt = DateTime.UtcNow;
             progress.ApprovedById = user.Id;
@@ -946,6 +960,17 @@ namespace HcPortal.Controllers
             progress.RejectionReason = rejectionReason;
             progress.ApprovedById = null;
             progress.ApprovedAt = null;
+
+            // Reset all approval chain fields
+            progress.SrSpvApprovalStatus = "Pending";
+            progress.SrSpvApprovedById = null;
+            progress.SrSpvApprovedAt = null;
+            progress.ShApprovalStatus = "Pending";
+            progress.ShApprovedById = null;
+            progress.ShApprovedAt = null;
+            progress.HCApprovalStatus = "Pending";
+            progress.HCReviewedById = null;
+            progress.HCReviewedAt = null;
 
             await _context.SaveChangesAsync();
 
@@ -1088,9 +1113,18 @@ namespace HcPortal.Controllers
             progress.EvidenceFileName = evidenceFile.FileName;
             progress.Status = "Submitted";
             progress.SubmittedAt = DateTime.UtcNow;
+
+            // Reset approval chain for fresh review cycle (match SubmitEvidenceWithCoaching pattern)
+            progress.SrSpvApprovalStatus = "Pending";
+            progress.SrSpvApprovedById = null;
+            progress.SrSpvApprovedAt = null;
+            progress.ShApprovalStatus = "Pending";
+            progress.ShApprovedById = null;
+            progress.ShApprovedAt = null;
             if (wasRejected)
             {
                 progress.RejectedAt = null;
+                progress.RejectionReason = null;
             }
 
             await _context.SaveChangesAsync();
@@ -1113,6 +1147,7 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault() ?? "";
             int userLevel = user.RoleLevel;
+            bool isSectionHead = (userRole == UserRoles.SectionHead);
 
             // --- STEP 1: Role-scoped coachee IDs (SERVER ENFORCEMENT) ---
             List<string> scopedCoacheeIds;
@@ -1124,7 +1159,19 @@ namespace HcPortal.Controllers
                     .Where(u => u.RoleLevel == 6 && u.IsActive)
                     .Select(u => u.Id).ToListAsync();
             }
-            else if (userLevel == 4) // SrSpv/SectionHead — same section only
+            else if (userLevel == 3 && isSectionHead) // SectionHead — same section only
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
+                    .Select(u => u.Id).ToListAsync();
+            }
+            else if (userLevel == 3) // Direktur/VP/Manager — see all coachees
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => u.RoleLevel == 6 && u.IsActive)
+                    .Select(u => u.Id).ToListAsync();
+            }
+            else if (userLevel == 4) // SrSpv — same section only
             {
                 scopedCoacheeIds = await _context.Users
                     .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
@@ -1141,8 +1188,8 @@ namespace HcPortal.Controllers
                 scopedCoacheeIds = new List<string> { user.Id };
             }
 
-            // --- STEP 2: Apply Bagian filter (HC/Admin only) ---
-            if (userLevel <= 2 && !string.IsNullOrEmpty(bagian))
+            // --- STEP 2: Apply Bagian filter (HC/Admin + Direktur/VP/Manager) ---
+            if (userLevel <= 3 && !isSectionHead && !string.IsNullOrEmpty(bagian))
             {
                 var validSections = OrganizationStructure.GetAllSections();
                 if (validSections.Contains(bagian))
@@ -1160,14 +1207,14 @@ namespace HcPortal.Controllers
             // --- STEP 3: Apply Unit filter ---
             if (!string.IsNullOrEmpty(unit))
             {
-                if (userLevel <= 2)
+                if (userLevel <= 2 || (userLevel == 3 && !isSectionHead))
                 {
-                    // HC/Admin: any unit (but must be within selected bagian if set)
+                    // HC/Admin/Direktur/VP/Manager: any unit (but must be within selected bagian if set)
                     scopedCoacheeIds = await _context.Users
                         .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
                         .Select(u => u.Id).ToListAsync();
                 }
-                else if (userLevel == 4)
+                else if (userLevel == 4 || isSectionHead)
                 {
                     // SrSpv/SectionHead: validate unit is in their section
                     var allowedUnits = OrganizationStructure.GetUnitsForSection(user.Section ?? "");
@@ -1215,10 +1262,12 @@ namespace HcPortal.Controllers
             }
 
             // Determine which coachee IDs to load data for
-            // Coach (level 5) and SrSpv/SH (level 4): default to empty until a coachee is selected
+            // SectionHead (level 3), SrSpv (level 4), Coach (level 5): default to empty until a coachee is selected
+            // Direktur/VP/Manager (level 3, non-SH): load all by default like HC/Admin
+            bool requiresCoacheeSelection = (userLevel >= 4 && userLevel <= 5) || isSectionHead;
             var dataCoacheeIds = !string.IsNullOrEmpty(targetCoacheeId)
                 ? new List<string> { targetCoacheeId }
-                : (userLevel >= 4 && userLevel <= 5)
+                : requiresCoacheeSelection
                     ? new List<string>()
                     : scopedCoacheeIds;
 
@@ -1372,9 +1421,19 @@ namespace HcPortal.Controllers
 
             // --- ViewBag: filter option lists ---
             ViewBag.AllBagian = OrganizationStructure.GetAllSections();
-            ViewBag.AllUnits = !string.IsNullOrEmpty(bagian)
-                ? OrganizationStructure.GetUnitsForSection(bagian)
-                : new List<string>();
+            if (!string.IsNullOrEmpty(bagian))
+            {
+                ViewBag.AllUnits = OrganizationStructure.GetUnitsForSection(bagian);
+            }
+            else if (isSectionHead || userLevel == 4)
+            {
+                // Section-scoped roles: auto-populate units from their own section
+                ViewBag.AllUnits = OrganizationStructure.GetUnitsForSection(user.Section ?? "");
+            }
+            else
+            {
+                ViewBag.AllUnits = new List<string>();
+            }
             ViewBag.AllTracks = new List<string> { "Panelman", "Operator" };
             ViewBag.AllTahun = new List<string> { "Tahun 1", "Tahun 2", "Tahun 3" };
             ViewBag.Coachees = (userLevel == 6) ? null : coacheeList;
@@ -1434,7 +1493,7 @@ namespace HcPortal.Controllers
                     // No coachees assigned at all (role scope is empty)
                     emptyScenario = "no_coachees";
                 }
-                else if (dataCoacheeIds.Count == 0 && string.IsNullOrEmpty(targetCoacheeId) && userLevel >= 4 && userLevel <= 5)
+                else if (dataCoacheeIds.Count == 0 && string.IsNullOrEmpty(targetCoacheeId) && requiresCoacheeSelection)
                 {
                     // Coach/SrSpv/SH: no coachee selected yet — prompt to select
                     emptyScenario = "select_coachee";
