@@ -1402,14 +1402,20 @@ namespace HcPortal.Controllers
 
             try
             {
-                // Generate new token
-                assessment.AccessToken = GenerateSecureToken();
-                assessment.UpdatedAt = DateTime.UtcNow;
-
-                _context.AssessmentSessions.Update(assessment);
+                var newToken = GenerateSecureToken();
+                // Update ALL sibling sessions in the same group (same Title + Category + Schedule.Date)
+                var siblings = await _context.AssessmentSessions
+                    .Where(a => a.Title == assessment.Title
+                             && a.Category == assessment.Category
+                             && a.Schedule.Date == assessment.Schedule.Date)
+                    .ToListAsync();
+                foreach (var sibling in siblings)
+                {
+                    sibling.AccessToken = newToken;
+                    sibling.UpdatedAt = DateTime.UtcNow;
+                }
                 await _context.SaveChangesAsync();
-
-                return Json(new { success = true, token = assessment.AccessToken, message = "Token regenerated successfully." });
+                return Json(new { success = true, token = newToken, message = "Token regenerated successfully." });
             }
             catch (Exception ex)
             {
