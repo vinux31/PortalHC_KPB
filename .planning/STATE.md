@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
-last_updated: "2026-03-04T00:11:18.639Z"
+last_updated: "2026-03-04T00:12:23.940Z"
 progress:
   total_phases: 58
   completed_phases: 55
   total_plans: 130
-  completed_plans: 127
+  completed_plans: 128
 ---
 
 ---
@@ -224,6 +224,7 @@ Progress: [████████░░] 80%
 | Phase 89 P02 | 7 min | 1 tasks | 1 files |
 | Phase 89 P03 | 0 | 1 tasks | 0 files |
 | Phase 90 P02 | 10 min | 3 tasks | 5 files |
+| Phase 90 P01 | 20 min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -265,6 +266,7 @@ Progress: [████████░░] 80%
 - [Phase 90]: [90-02] header-assessment-btns always rendered in DOM; initial visibility via inline style; JS shown.bs.tab handler can always find element
 - [Phase 90]: [90-02] Monitoring cross-link added to ManageAssessment header as btn-outline-success
 - [Phase 90]: [90-02] AssessmentMonitoring title column uses reuses computed detailUrl variable for clickable anchor
+- [Phase 90]: [90-01] IsActive filter added to 5 user query locations in assessment section; RegenerateToken syncs all siblings; DeleteAssessment/Group cascade fixed for PackageUserResponses and AssessmentAttemptHistory
 
 ### Pending Todos
 
