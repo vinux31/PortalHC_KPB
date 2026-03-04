@@ -2931,11 +2931,12 @@ namespace HcPortal.Controllers
         {
             const int pageSize = 20;
 
-            // 1. Load all users once (avoid N+1)
+            // 1. Load all users once (avoid N+1); use all for mapping display dict, active-only for modal dropdowns
             var allUsers = await _context.Users
-                .Select(u => new { u.Id, u.FullName, u.NIP, u.Section, u.Position, u.RoleLevel })
+                .Select(u => new { u.Id, u.FullName, u.NIP, u.Section, u.Position, u.RoleLevel, u.IsActive })
                 .ToListAsync();
             var userDict = allUsers.ToDictionary(u => u.Id);
+            var activeUsers = allUsers.Where(u => u.IsActive).ToList();
 
             // 2. Load mappings
             var query = _context.CoachCoacheeMappings.AsQueryable();
@@ -3023,13 +3024,15 @@ namespace HcPortal.Controllers
             ViewBag.SectionFilter = section;
             ViewBag.Sections = OrganizationStructure.GetAllSections();
             // Phase 74: Coach role only — not level (Supervisor is level 5 but never a coach)
+            // Filter to active users only so deactivated workers don't appear in assignment modals
             var coachRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coach);
             ViewBag.EligibleCoaches = coachRoleUsers
+                .Where(u => u.IsActive)
                 .OrderBy(u => u.FullName).ToList();
-            ViewBag.EligibleCoachees = allUsers
+            ViewBag.EligibleCoachees = activeUsers
                 .Where(u => !activeCoacheeIds.Contains(u.Id))
                 .OrderBy(u => u.FullName).ToList();
-            ViewBag.AllUsers = allUsers.OrderBy(u => u.FullName).ToList();
+            ViewBag.AllUsers = activeUsers.OrderBy(u => u.FullName).ToList();
             ViewBag.ProtonTracks = await _context.ProtonTracks
                 .OrderBy(t => t.Urutan).ToListAsync();
 
@@ -4084,6 +4087,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/CoachCoacheeMappingExport
+        [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CoachCoacheeMappingExport()
         {
