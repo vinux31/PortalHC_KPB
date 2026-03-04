@@ -219,7 +219,11 @@ else
 
                     <tr>
                         <td>
-                            <span class="fw-semibold">@group.Title</span>
+                            <a href="@detailUrl" class="fw-semibold text-decoration-none">@group.Title</a>
+                            @if (!string.IsNullOrEmpty(group.Category))
+                            {
+                                <div class="text-muted small">@group.Category</div>
+                            }
                         </td>
                         <td>
                             <span class="badge @catBadgeClass">@group.Category</span>
