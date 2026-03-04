@@ -226,17 +226,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.0 Full QA & Feature Completion — Phases 84, 85, 87 remaining
+**Current focus:** v3.0 Full QA & Feature Completion — Phases 85, 87 remaining
 
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 91 — audit-fix-cmp-assessment-pages
-Plan: 03 — COMPLETE (3 of 3 plans in Phase 91 complete — PHASE COMPLETE)
-Status: Phase 91 complete — all 9 UAT browser verification flows PASS; no gap items
-Last activity: 2026-03-04 - 91-03 complete: all 9 CMP Assessment browser flows verified PASS by user
+Phase: 84 — assessment-flow-qa
+Plan: 02 — COMPLETE (2 of 2 plans in Phase 84 complete — PHASE COMPLETE)
+Status: Phase 84 complete — all 10 ASSESS requirements closed; 5 smoke-test flows PASS
+Last activity: 2026-03-04 - 84-02 complete: all 5 browser smoke-test flows verified PASS by user; all ASSESS-01 through ASSESS-10 formally closed
 
-Progress: [████████░░] 83%
+Progress: [████████░░] 85%
 
 ## Performance Metrics
 
@@ -269,6 +269,7 @@ Progress: [████████░░] 83%
 | 91    | 02   | 4 min    | 3     | 6     |
 | 91    | 03   | browser session | 2     | 1     |
 | Phase 84 P01 | 7 | 2 tasks | 2 files |
+| Phase 84 P02 | browser session | 1 task | 0 files |
 
 ## Accumulated Context
 
@@ -321,6 +322,7 @@ Progress: [████████░░] 83%
 - [Phase 91]: [91-02]: Records redesigned with 2-tab layout (Assessment Online / Training Manual); Assessment rows clickable to CMP/Results
 - [Phase 91]: [91-03]: All 9 CMP Assessment browser verification flows confirmed PASS by user — Phase 91 complete, zero gap closure plans needed
 - [Phase 84]: [84-01]: DownloadQuestionTemplate placed between PreviewPackage and ImportPackageQuestions GET for logical grouping; column order matches parser cells[0..5]
+- [Phase 84]: [84-02]: All 5 smoke-test flows PASS — template download, Excel import round-trip, paste dedup, cross-package mismatch error, regression check; all ASSESS-01 through ASSESS-10 formally closed
 
 ### Pending Todos
 
@@ -345,5 +347,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: 91-03-PLAN.md complete — Phase 91 fully verified; all 9 browser flows PASS
+Stopped at: 84-02-PLAN.md complete — Phase 84 fully verified; all 5 smoke-test flows PASS; all ASSESS requirements closed
 Resume file: —
