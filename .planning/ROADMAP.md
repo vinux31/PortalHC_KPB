@@ -285,7 +285,7 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
 - [x] **Phase 82: Cleanup & Rename** - Remove orphaned pages, duplicate CMP paths, add AuditLog card, rename "Proton Progress" to "Coaching Proton" (completed 2026-03-02)
 - [x] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC (completed 2026-03-03)
 - [x] **Phase 84: Assessment Flow QA** - End-to-end QA of the full assessment lifecycle from creation to history (completed 2026-03-04)
-- [ ] **Phase 85: Coaching Proton Flow QA** - End-to-end QA of the full coaching workflow from mapping to export
+- [x] **Phase 85: Coaching Proton Flow QA** - End-to-end QA of the full coaching workflow from mapping to export (completed 2026-03-04)
 - [~] **Phase 86: Plan IDP Development** — Superseded by Phase 89 (PlanIDP 2-Tab Redesign)
 - [ ] **Phase 87: Dashboard & Navigation QA** - Verify all dashboards, login flow, role-based navigation, and audit log page
 - [x] **Phase 88: KKJ Matrix Full Rewrite** - Redesign KKJ Matrix to document-based file management with dynamic columns (completed 2026-03-03)
@@ -366,13 +366,15 @@ Plans:
   4. SrSpv, SectionHead, and HC can each approve or reject deliverables within their role scope; the correct approval chain is enforced
   5. The deliverable detail page shows complete information — status, evidence file, coaching report, and full approval history
   6. HC/Admin can override a stuck deliverable from the Coaching Proton Override tab; Excel and PDF exports work for authorized roles
-**Plans**: TBD
+**Plans**: 4/4 plans complete
 
 Plans:
-- [ ] 85-01: QA coach-coachee mapping CRUD and Excel export (COACH-01, COACH-02)
-- [ ] 85-02: QA coachee progress view and coach evidence upload flow (COACH-03, COACH-04)
-- [ ] 85-03: QA approval chain and deliverable detail page (COACH-05, COACH-06)
-- [ ] 85-04: QA Override tab and progress exports (COACH-07, COACH-08)
+- [x] 85-01: QA coach-coachee mapping CRUD and Excel export (COACH-01, COACH-02)
+- [x] 85-02: QA coachee progress view and coach evidence upload flow (COACH-03, COACH-04)
+- [x] 85-03: QA approval chain and deliverable detail page (COACH-05, COACH-06)
+- [x] 85-04: QA Override tab and progress exports (COACH-07, COACH-08)
+
+**Completed:** 2026-03-04
 
 ### Phase 86: Plan IDP Development — SUPERSEDED
 **Status**: Superseded by Phase 89 (PlanIDP 2-Tab Redesign) which delivered a more comprehensive unified layout with Silabus + Coaching Guidance tabs for all roles.
@@ -399,7 +401,7 @@ Plans:
 **Goal:** Redesign CDP/PlanIdp from its current dual-path layout (Coachee deliverable table + Admin/HC PDF view) into a unified 2-tab layout (Silabus + Coaching Guidance) for all roles — read-only consumer view aligned with the finalized ProtonData/Index admin page
 **Requirements**: PLANIDP-01, PLANIDP-02, PLANIDP-03, PLANIDP-04, PLANIDP-05
 **Depends on:** Phase 88
-**Plans:** 2/4 plans executed
+**Plans:** 4/4 plans complete
 
 Requirements:
 - **PLANIDP-01**: All roles see the same unified 2-tab PlanIdp layout (Silabus + Coaching Guidance); old PDF view and old Coachee deliverable-hierarchy path are removed
@@ -512,7 +514,7 @@ Plans:
 | 82. Cleanup & Rename | v3.0 | 3/3 | ✅ Complete | 2026-03-02 |
 | 83. Master Data QA | v3.0 | 9/9 | ✅ Complete | 2026-03-03 |
 | 84. Assessment Flow QA | v3.0 | 2/2 | ✅ Complete | 2026-03-04 |
-| 85. Coaching Proton Flow QA | 2/4 | In Progress|  | - |
+| 85. Coaching Proton Flow QA | v3.0 | 4/4 | ✅ Complete | 2026-03-04 |
 | 86. Plan IDP Development | v3.0 | — | ↗️ Superseded by 89 | - |
 | 87. Dashboard & Navigation QA | v3.0 | 0/3 | ⬜ Not started | - |
 | 88. KKJ Matrix Full Rewrite | v3.0 | 4/4 | ✅ Complete | 2026-03-03 |

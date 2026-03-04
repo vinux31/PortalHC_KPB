@@ -244,12 +244,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 85 — coaching-proton-flow-qa
-Plan: 02 — COMPLETE (2 of 2 plans in Phase 85 wave-2 code review complete)
-Status: Phase 85 Plan 02 complete — coaching action bugs fixed, views verified
-Last activity: 2026-03-04 - 85-02 complete: CDPController coaching bugs patched (3x 'Active'→'Pending' status, IsActive filter added); CoachingProton.cshtml and Deliverable.cshtml verified correct
+Phase: 85 — coaching-proton-flow-qa — COMPLETE
+Plan: 04 — COMPLETE (Phase 85 all 4 plans done)
+Status: Phase 85 complete — all 8 COACH requirements closed, Override tab + exports + Dashboard browser-verified PASS
+Last activity: 2026-03-04 - 85-04 complete: Override AJAX chain reviewed, ExportProgressExcel/Pdf confirmed, Dashboard pending counts verified; all COACH-01 through COACH-08 formally closed
 
-Progress: [████████░░] 86%
+Progress: [████████░░] 88%
 
 ## Performance Metrics
 
@@ -285,6 +285,7 @@ Progress: [████████░░] 86%
 | Phase 84 P02 | browser session | 1 task | 0 files |
 | Phase 85 P02 | 15 min | 2 tasks | 2 files |
 | Phase 85 P01 | 15 | 2 tasks | 1 files |
+| Phase 85 P04 | browser session | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -343,6 +344,15 @@ Progress: [████████░░] 86%
 - [Phase 85]: [85-02]: GetCoacheeDeliverables not called from CoachingProton.cshtml — coaching modal uses buildDeliverableData() from table rows; endpoint exists but is not wired to the coachee dropdown
 - [Phase 85]: [85-01]: CoachCoacheeMappingExport missing [HttpGet] — added; inactive users now excluded from modal dropdowns
 - [Phase 85]: [85-01]: SeedCoachingTestData uses Coach role (GetUsersInRoleAsync) for coach selection, matching Phase 74 decision
+- [Phase 85]: [85-03]: SeedCoachingTestData fixed to filter tracks with actual silabus deliverables (was picking any track by Urutan)
+- [Phase 85]: [85-03]: HCReviewDeliverable redirect changed to Deliverable page (was CoachingProton) for correct UX after HC review
+- [Phase 85]: [85-03]: SrSpv/SH (level 4) coachee dropdown added to CoachingProton — was missing entirely for that role branch
+- [Phase 85]: [85-03]: Status history timeline and role access info panel added to Deliverable detail page
+- [Phase 85]: [85-03]: COACH-01 through COACH-06 browser-verified PASS by user
+- [Phase 85]: [85-04]: OverrideSave uses [FromBody] JSON POST; CSRF via X-RequestVerificationToken header — confirmed correct in Index.cshtml, no fix needed
+- [Phase 85]: [85-04]: ExportProgressExcel/Pdf confirmed handles empty coachee record set gracefully
+- [Phase 85]: [85-04]: CDP Dashboard BuildProtonProgressSubModelAsync — PendingSpvApprovals=Status=="Submitted", PendingHCReviews=HCApprovalStatus=="Pending" AND Status=="Approved" — confirmed correct
+- [Phase 85]: [85-04]: All 8 COACH requirements (COACH-01 through COACH-08) browser-verified PASS — Phase 85 complete
 
 ### Pending Todos
 
@@ -367,5 +377,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: 85-02-PLAN.md complete — coaching action status bugs fixed, IsActive filter added, views verified; COACH-03 and COACH-04 code review done
+Stopped at: 85-04-PLAN.md complete — Override tab + export + Dashboard QA verified; all COACH-01 through COACH-08 closed; Phase 85 complete
 Resume file: —
