@@ -86,10 +86,14 @@ else
                                         <div class="list-group">
                                             @{
                                                 string[] letters = { "A", "B", "C", "D" };
+                                                var optShuffle = ViewBag.OptionShuffle as Dictionary<int, List<int>>;
+                                                var qOptions = (optShuffle != null && optShuffle.ContainsKey(q.QuestionId))
+                                                    ? optShuffle[q.QuestionId].Select(oid => q.Options.FirstOrDefault(o => o.OptionId == oid)).Where(o => o != null).ToList()
+                                                    : q.Options.ToList();
                                             }
-                                            @for (int oi = 0; oi < q.Options.Count; oi++)
+                                            @for (int oi = 0; oi < qOptions.Count; oi++)
                                             {
-                                                var opt = q.Options[oi];
+                                                var opt = qOptions[oi];
                                                 var letter = oi < letters.Length ? letters[oi] : (oi + 1).ToString();
                                                 <label class="list-group-item list-group-item-action d-flex align-items-center gap-3"
                                                        style="cursor: pointer;"
@@ -218,6 +222,24 @@ else
         100% { opacity: 0; }
     }
 </style>
+
+<!-- Force-close notification modal -->
+<div class="modal fade" id="forceCloseModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-warning">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Ujian Ditutup</h5>
+            </div>
+            <div class="modal-body text-center py-3">
+                <p class="mb-0">Ujian ini telah ditutup oleh HC/Administrator.</p>
+                <p class="text-muted small mt-1">Anda akan diarahkan ke halaman utama.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-top-0">
+                <button type="button" class="btn btn-warning" id="forceCloseOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
 <script>
@@ -369,7 +391,8 @@ else
         });
     }
 
-    function saveAnswerAsync(qId, optId, isRetry) {
+    function saveAnswerAsync(qId, optId, attempt) {
+        if (attempt === undefined) attempt = 0;
         if (inFlightSaves.has(String(qId))) return;
         inFlightSaves.add(String(qId));
         showSaveIndicator(qId, 'saving');
@@ -379,12 +402,15 @@ else
                 showSaveIndicator(qId, 'saved');
             })
             .catch(function() {
-                if (!isRetry) {
-                    // 1x retry immediately
-                    inFlightSaves.delete(String(qId));
-                    saveAnswerAsync(qId, optId, true);
+                inFlightSaves.delete(String(qId));
+                if (attempt < 2) {
+                    // Exponential backoff: attempt 0 -> 1s, attempt 1 -> 3s
+                    var delay = attempt === 0 ? 1000 : 3000;
+                    setTimeout(function() {
+                        saveAnswerAsync(qId, optId, attempt + 1);
+                    }, delay);
                 } else {
-                    // Retry also failed
+                    // All 3 attempts failed
                     showSaveIndicator(qId, 'error');
                     showFailureToast();
                 }
@@ -398,7 +424,7 @@ else
         if (pendingSaves[qId]) { clearTimeout(pendingSaves[qId]); }
         pendingSaves[qId] = setTimeout(function() {
             delete pendingSaves[qId];
-            saveAnswerAsync(qId, optId, false);
+            saveAnswerAsync(qId, optId, 0);
         }, DEBOUNCE_MS);
     }
 
@@ -693,17 +719,14 @@ else
                     clearInterval(timerInterval);
                     window.onbeforeunload = null;
 
-                    // Show banner notification
-                    var banner = document.createElement('div');
-                    banner.className = 'alert alert-warning alert-dismissible text-center fw-semibold';
-                    banner.style.cssText = 'position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:2000;min-width:400px;max-width:90vw;';
-                    banner.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>Ujian telah ditutup oleh administrator. Anda akan diarahkan ke halaman hasil...';
-                    document.body.appendChild(banner);
-
-                    // Redirect after 3 seconds
-                    setTimeout(function() {
-                        window.location.href = data.redirectUrl || '/CMP/Assessment';
-                    }, 3000);
+                    var redirectTarget = data.redirectUrl || '/CMP/Assessment';
+                    var modal = new bootstrap.Modal(document.getElementById('forceCloseModal'), {backdrop: 'static'});
+                    modal.show();
+                    document.getElementById('forceCloseOkBtn').addEventListener('click', function() {
+                        window.location.href = redirectTarget;
+                    });
+                    // Auto-redirect after 10s if user doesn't click OK
+                    setTimeout(function() { window.location.href = redirectTarget; }, 10000);
                 }
             })
             .catch(function() { /* ignore network errors during poll */ });

@@ -1027,6 +1027,18 @@ namespace HcPortal.Controllers
                 {
                     ViewBag.SavedAnswers = "{}";
                 }
+
+                // Parse option shuffle for view rendering (from existing assignment)
+                var optionShuffleRaw = assignment?.ShuffledOptionIdsPerQuestion ?? "{}";
+                var parsedOptionShuffle = new Dictionary<int, List<int>>();
+                if (!string.IsNullOrEmpty(optionShuffleRaw) && optionShuffleRaw != "{}")
+                {
+                    try {
+                        parsedOptionShuffle = JsonSerializer.Deserialize<Dictionary<int, List<int>>>(optionShuffleRaw)
+                                              ?? new Dictionary<int, List<int>>();
+                    } catch { /* ignore malformed data — use empty dict (original order) */ }
+                }
+                ViewBag.OptionShuffle = parsedOptionShuffle;
             }
             else
             {
