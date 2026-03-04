@@ -21,8 +21,8 @@
 - ✅ **v2.5 User Infrastructure & AD Readiness** — Phases 65-72 (shipped 2026-03-01)
 - ✅ **v2.6 Codebase Cleanup** — Phases 73-78 (shipped 2026-03-01)
 - ✅ **v2.7 Assessment Monitoring** — Phases 79-81 (shipped 2026-03-01)
-- 🚧 **v3.0 Full QA & Feature Completion** — Phases 82-87 (in progress)
-- 📋 **v3.1 CPDP Mapping File-Based Rewrite** — Phases 88-93 (planned)
+- 🚧 **v3.0 Full QA & Feature Completion** — Phases 82-91 (in progress)
+- ✅ **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 (shipped 2026-03-03)
 
 ## Phases
 
@@ -274,29 +274,6 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
 
 </details>
 
-### Phase 88: KKJ Matrix Dynamic Columns — redesign fixed 15 Target columns to key-value relational model with KkjColumn and KkjTargetValue tables
-
-**Goal:** Redesign KKJ Matrix from fixed 15 Target_* columns to key-value relational model with KkjColumn, KkjTargetValue, and PositionColumnMapping tables
-**Requirements**: TBD
-**Depends on:** Phase 88
-**Plans:** 4/4 plans complete
-
-Plans:
-- [x] 88-01: Data Model & EF Core Migration (AddKkjDynamicColumns)
-- [x] 88-02: AdminController Backend + PositionTargetHelper Refactor
-- [ ] 88-03: KkjMatrix.cshtml View Update (dynamic column rendering)
-- [ ] 88-04: CMPController Kkj view + downstream consumers
-
-### Phase 88: KKJ Matrix Admin Full Rewrite — document-based page with HC file CRUD and CDP PlanIDP integration
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 88
-**Plans:** 4/4 plans complete
-
-Plans:
-- [x] TBD (run /gsd:plan-phase 90 to break down) (completed 2026-03-02)
-
 ---
 
 ### 🚧 v3.0 Full QA & Feature Completion (In Progress)
@@ -306,11 +283,15 @@ Plans:
 ## Phase Checklist
 
 - [x] **Phase 82: Cleanup & Rename** - Remove orphaned pages, duplicate CMP paths, add AuditLog card, rename "Proton Progress" to "Coaching Proton" (completed 2026-03-02)
-- [x] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC (gap closure plans 83-05 to 83-09 in progress) (completed 2026-03-03)
+- [x] **Phase 83: Master Data QA** - Verify all Kelola Data hub CRUD and export features work correctly for Admin/HC (completed 2026-03-03)
 - [ ] **Phase 84: Assessment Flow QA** - End-to-end QA of the full assessment lifecycle from creation to history
 - [ ] **Phase 85: Coaching Proton Flow QA** - End-to-end QA of the full coaching workflow from mapping to export
-- [ ] **Phase 86: Plan IDP Development** - Build the new Plan IDP page where coachees view silabus and download guidance docs
+- [~] **Phase 86: Plan IDP Development** — Superseded by Phase 89 (PlanIDP 2-Tab Redesign)
 - [ ] **Phase 87: Dashboard & Navigation QA** - Verify all dashboards, login flow, role-based navigation, and audit log page
+- [x] **Phase 88: KKJ Matrix Full Rewrite** - Redesign KKJ Matrix to document-based file management with dynamic columns (completed 2026-03-03)
+- [x] **Phase 89: PlanIDP 2-Tab Redesign** - Unified Silabus + Coaching Guidance tabs for all roles (completed 2026-03-04)
+- [x] **Phase 90: Audit Admin Assessment Pages** - Audit & fix ManageAssessment + AssessmentMonitoring — all 11 flows verified (completed 2026-03-04)
+- [x] **Phase 91: Audit CMP Assessment Pages** - Audit & fix Assessment + Records — all 9 flows verified (completed 2026-03-04)
 
 ## Phase Details
 
@@ -393,23 +374,12 @@ Plans:
 - [ ] 85-03: QA approval chain and deliverable detail page (COACH-05, COACH-06)
 - [ ] 85-04: QA Override tab and progress exports (COACH-07, COACH-08)
 
-### Phase 86: Plan IDP Development
-**Goal**: Coachees can view the silabus items assigned to their track and download the relevant coaching guidance documents
-**Depends on**: Phase 83
-**Requirements**: IDP-01, IDP-02, IDP-03
-**Success Criteria** (what must be TRUE):
-  1. A coachee logging in sees a Plan IDP page that lists the silabus items matching their assigned Operator Tahun, Unit, and Bagian
-  2. Each silabus item with a linked coaching guidance file shows a download button; clicking it downloads the correct file
-  3. The Plan IDP page supports filtering by Bagian, Unit, and Level so coachees (and HC reviewing) can narrow displayed silabus items
-**Plans**: TBD
-
-Plans:
-- [ ] 86-01: Build Plan IDP controller action and ViewModel (query silabus by track assignment, support Bagian/Unit/Level filters) (IDP-01, IDP-03)
-- [ ] 86-02: Build Plan IDP Razor view (silabus list, filter bar, guidance file download links) and wire Coaching Guidance downloads (IDP-02)
+### Phase 86: Plan IDP Development — SUPERSEDED
+**Status**: Superseded by Phase 89 (PlanIDP 2-Tab Redesign) which delivered a more comprehensive unified layout with Silabus + Coaching Guidance tabs for all roles.
 
 ### Phase 87: Dashboard & Navigation QA
 **Goal**: All dashboards show correct role-scoped data, login and navigation work without errors, and authorization boundaries are enforced
-**Depends on**: Phase 82, Phase 86
+**Depends on**: Phase 82
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06, DASH-07, DASH-08
 **Success Criteria** (what must be TRUE):
   1. Home/Index dashboard shows correct stats per role (IDP progress for coachees, assessment summary for HC, training completion for workers)
@@ -429,7 +399,7 @@ Plans:
 **Goal:** Redesign CDP/PlanIdp from its current dual-path layout (Coachee deliverable table + Admin/HC PDF view) into a unified 2-tab layout (Silabus + Coaching Guidance) for all roles — read-only consumer view aligned with the finalized ProtonData/Index admin page
 **Requirements**: PLANIDP-01, PLANIDP-02, PLANIDP-03, PLANIDP-04, PLANIDP-05
 **Depends on:** Phase 88
-**Plans:** 3/3 plans complete
+**Plans:** 1/2 plans executed
 
 Requirements:
 - **PLANIDP-01**: All roles see the same unified 2-tab PlanIdp layout (Silabus + Coaching Guidance); old PDF view and old Coachee deliverable-hierarchy path are removed
@@ -439,9 +409,11 @@ Requirements:
 - **PLANIDP-05**: CDPController.GuidanceDownload endpoint added (any [Authorize] user); old PDF-based view entirely removed including JS, CSS, and PDF file references
 
 Plans:
-- [ ] 89-01: Rewrite CDPController.PlanIdp + add CDPController.GuidanceDownload (PLANIDP-01..05)
-- [ ] 89-02: Rewrite Views/CDP/PlanIdp.cshtml as 2-tab layout (PLANIDP-01..05)
-- [ ] 89-03: Human verify — browser check all tabs and role behaviors (PLANIDP-01..05)
+- [x] 89-01: Rewrite CDPController.PlanIdp + add CDPController.GuidanceDownload (PLANIDP-01..05)
+- [x] 89-02: Rewrite Views/CDP/PlanIdp.cshtml as 2-tab layout (PLANIDP-01..05)
+- [x] 89-03: Human verify — browser check all tabs and role behaviors (PLANIDP-01..05)
+
+**Completed:** 2026-03-04
 
 ### Phase 90: Audit & fix Admin Assessment pages (ManageAssessment + AssessmentMonitoring)
 
@@ -451,23 +423,29 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 90-01-PLAN.md — AdminController assessment actions: IsActive filters, RegenerateToken multi-sibling fix, cascade review
-- [ ] 90-02-PLAN.md — View-level audit: ManageAssessment header fix, Monitoring cross-link, AssessmentMonitoring detail links, form nav
-- [ ] 90-03-PLAN.md — Seed test data + browser verification: all 11 flows across ManageAssessment and AssessmentMonitoring
+- [x] 90-01-PLAN.md — AdminController assessment actions: IsActive filters, RegenerateToken multi-sibling fix, cascade review
+- [x] 90-02-PLAN.md — View-level audit: ManageAssessment header fix, Monitoring cross-link, AssessmentMonitoring detail links, form nav
+- [x] 90-03-PLAN.md — Seed test data + browser verification: all 11 flows across ManageAssessment and AssessmentMonitoring
+
+**Completed:** 2026-03-04
 
 ### Phase 91: Audit & fix CMP Assessment pages (Assessment + Records)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** All CMP assessment pages work correctly end-to-end — exam flow, results, records, certificate, and CSRF protection are verified and bug-free
+**Requirements**: None (audit/fix phase)
 **Depends on:** Phase 90
 **Plans:** 3/3 plans complete
 
 Plans:
-- [x] TBD (run /gsd:plan-phase 91 to break down) (completed 2026-03-04)
+- [x] 91-01: Audit CMPController assessment actions — CSRF, HC auth, shuffle fix
+- [x] 91-02: View-level audit — Results returnUrl, Records 2-tab redesign, VerifyToken CSRF
+- [x] 91-03: Browser verification — all 9 CMP Assessment flows verified PASS
+
+**Completed:** 2026-03-04
 
 ---
 
-### 📋 v3.1 CPDP Mapping File-Based Rewrite (Planned)
+### ✅ v3.1 CPDP Mapping File-Based Rewrite (Shipped 2026-03-03)
 
 **Milestone Goal:** Replace the Admin/CpdpItems spreadsheet editor and CMP/Mapping data table with a file-based document management system (same pattern as Phase 88 KKJ Matrix rewrite), reusing KkjBagian as the section container and creating a new CpdpFile entity.
 
@@ -527,16 +505,18 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 82 → 83 → 84 → 85 → 86 → 87, then 91 → 92 → 93
+82 → 83 → 88 → 89 → 90 → 91 → 84 → 85 → 87
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 82. Cleanup & Rename | v3.0 | 3/3 | Complete | 2026-03-02 |
-| 83. Master Data QA | 9/9 | Complete    | 2026-03-03 | - |
-| 84. Assessment Flow QA | v3.0 | 0/6 | Not started | - |
-| 85. Coaching Proton Flow QA | v3.0 | 0/4 | Not started | - |
-| 86. Plan IDP Development | v3.0 | 0/2 | Not started | - |
-| 87. Dashboard & Navigation QA | v3.0 | 0/3 | Not started | - |
-| 88. Data Model & Migration | 2/2 | Complete    | 2026-03-03 | - |
-| 88. Admin CPDP File Management | 2/2 | Complete    | 2026-03-03 | - |
-| 88. Worker View & Cleanup | 2/2 | Complete    | 2026-03-03 | - |
+| Phase | Milestone | Plans | Status | Completed |
+|-------|-----------|-------|--------|-----------|
+| 82. Cleanup & Rename | v3.0 | 3/3 | ✅ Complete | 2026-03-02 |
+| 83. Master Data QA | v3.0 | 9/9 | ✅ Complete | 2026-03-03 |
+| 84. Assessment Flow QA | 1/2 | In Progress|  | - |
+| 85. Coaching Proton Flow QA | v3.0 | 0/4 | ⬜ Not started | - |
+| 86. Plan IDP Development | v3.0 | — | ↗️ Superseded by 89 | - |
+| 87. Dashboard & Navigation QA | v3.0 | 0/3 | ⬜ Not started | - |
+| 88. KKJ Matrix Full Rewrite | v3.0 | 4/4 | ✅ Complete | 2026-03-03 |
+| 89. PlanIDP 2-Tab Redesign | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
+| 90. Audit Admin Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
+| 91. Audit CMP Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
+| 88. CPDP File Rewrite (3 sub) | v3.1 | 6/6 | ✅ Complete | 2026-03-03 |

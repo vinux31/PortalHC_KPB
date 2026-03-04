@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-04T02:50:28.331Z"
+progress:
+  total_phases: 59
+  completed_phases: 56
+  total_plans: 133
+  completed_plans: 131
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-04T02:12:18.946Z"
 progress:
   total_phases: 58
@@ -255,6 +268,7 @@ Progress: [████████░░] 83%
 | Phase 91 P01 | 12min | 3 tasks | 2 files |
 | 91    | 02   | 4 min    | 3     | 6     |
 | 91    | 03   | browser session | 2     | 1     |
+| Phase 84 P01 | 7 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -306,6 +320,7 @@ Progress: [████████░░] 83%
 - [Phase 91]: [91-02]: 3-attempt retry: first try immediate, retry 1 after 1s, retry 2 after 3s; all fail => error indicator + toast
 - [Phase 91]: [91-02]: Records redesigned with 2-tab layout (Assessment Online / Training Manual); Assessment rows clickable to CMP/Results
 - [Phase 91]: [91-03]: All 9 CMP Assessment browser verification flows confirmed PASS by user — Phase 91 complete, zero gap closure plans needed
+- [Phase 84]: [84-01]: DownloadQuestionTemplate placed between PreviewPackage and ImportPackageQuestions GET for logical grouping; column order matches parser cells[0..5]
 
 ### Pending Todos
 
