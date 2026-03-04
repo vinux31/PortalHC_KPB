@@ -206,9 +206,9 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 
 **Milestone:** v3.0 Full QA & Feature Completion
 Phase: 91 — audit-fix-cmp-assessment-pages
-Plan: 01 — COMPLETE (1 of 3 plans in Phase 91 complete)
-Status: Phase 91 in progress — 91-01 backend fixes complete; 91-02 (view fixes) and 91-03 (verification) remain
-Last activity: 2026-03-04 - 91-01 complete: CMPController CSRF/auth/shuffle hardening; UnifiedTrainingRecord.AssessmentSessionId added
+Plan: 02 — COMPLETE (2 of 3 plans in Phase 91 complete)
+Status: Phase 91 in progress — 91-01 backend fixes complete; 91-02 view fixes complete; 91-03 (verification) remains
+Last activity: 2026-03-04 - 91-02 complete: returnUrl back buttons, Records 2-tab redesign, VerifyToken CSRF fix, 3-attempt retry, force-close modal, option shuffle render
 
 Progress: [████████░░] 82%
 
@@ -222,7 +222,7 @@ Progress: [████████░░] 82%
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 91    | 01   | 8 min    | 1     | 1     |
-| 91    | 02   | 1 min    | 3     | 5     |
+| 91    | 02   | 4 min    | 3     | 6     |
 | 92    | 01   | 3 min    | 1     | 1     |
 | 92    | 02   | 10 min   | 3     | 5     |
 | 93    | 01   | 20 min   | 3     | 2     |
@@ -287,6 +287,9 @@ Progress: [████████░░] 82%
 - [Phase 91]: [91-01]: All 9 CMPController POSTs have ValidateAntiForgeryToken; VerifyToken JS call needs CSRF token in plan 91-02
 - [Phase 91]: [91-01]: SubmitExam HC auth fix — HC role added alongside Admin; single-package shuffle enabled
 - [Phase 91]: [91-01]: ShuffledOptionIdsPerQuestion now populated per worker; view rendering of shuffled options deferred to 91-02
+- [Phase 91]: [91-02]: returnUrl query param approach used for Results/Certificate back buttons; callers append ?returnUrl=... when needed
+- [Phase 91]: [91-02]: 3-attempt retry: first try immediate, retry 1 after 1s, retry 2 after 3s; all fail => error indicator + toast
+- [Phase 91]: [91-02]: Records redesigned with 2-tab layout (Assessment Online / Training Manual); Assessment rows clickable to CMP/Results
 
 ### Pending Todos
 
@@ -311,5 +314,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: 90-03-PLAN.md complete — all 11 browser verification flows passed; Phase 90 fully complete
+Stopped at: 91-02-PLAN.md complete — view-layer fixes done; 91-03 (browser verification) remains
 Resume file: —
