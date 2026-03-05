@@ -23,7 +23,7 @@
 - ✅ **v2.7 Assessment Monitoring** — Phases 79-81 (shipped 2026-03-01)
 - ✅ **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - ✅ **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 (shipped 2026-03-03)
-- 🚧 **v3.2 Bug Hunting & Quality Audit** — Phases 92-98 (in progress)
+- ✅ **v3.2 Bug Hunting & Quality Audit** — Phases 92-98 (shipped 2026-03-05)
 
 ## Phases
 
@@ -553,11 +553,11 @@ Plans:
 
 ---
 
-### Phase 94: CDP Section Audit
+### Phase 94: CDP Section Audit ✅
 **Goal**: Audit CDP (Competency Development Platform) pages for bugs
 **Milestone**: v3.2 Bug Hunting & Quality Audit
 **Requirements**: CDP-01, CDP-02, CDP-03, CDP-04, CDP-05, CDP-06
-**Status**: ○ Pending
+**Status**: ✅ COMPLETE — 6/6 plans complete
 
 **Pages to Audit**:
 - /CDP/Index (Plan IDP)
@@ -575,18 +575,20 @@ Plans:
 6. All CDP forms handle validation errors gracefully
 
 **Plans**:
-- [ ] 94-01: Code review — CDPController, Proton models, view files
-- [ ] 94-02: Browser verification — Test all CDP flows with different roles
-- [ ] 94-03: Fix identified bugs
-- [ ] 94-04: Regression test — Verify fixes don't break existing functionality
+- [x] 94-01: Code review — CDPController, Proton models, view files
+- [x] 94-02: Browser verification — Test all CDP flows with different roles
+- [x] 94-03: Fix identified bugs
+- [x] 94-04: Regression test — Verify fixes don't break existing functionality
+- [x] 94-05: Navigation fixes — Fix broken navbar links to CDP pages
+- [x] 94-06: Edge case fixes — Fix auth issues and navigation gaps
 
 ---
 
-### Phase 95: Admin Portal Audit
+### Phase 95: Admin Portal Audit ✅
 **Goal**: Audit Kelola Data (Admin Portal) pages for bugs
 **Milestone**: v3.2 Bug Hunting & Quality Audit
 **Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08
-**Status**: ○ Pending
+**Status**: ✅ COMPLETE — 4/4 plans complete
 
 **Pages to Audit**:
 - /Admin/Index (Kelola Data hub)
@@ -608,18 +610,18 @@ Plans:
 8. Role gates work correctly (HC-only vs Admin-only actions)
 
 **Plans**:
-- [ ] 95-01: Code review — AdminController, Admin models, view files
-- [ ] 95-02: Browser verification — Test all Admin flows with HC and Admin roles
-- [ ] 95-03: Fix identified bugs
-- [ ] 95-04: Regression test — Verify fixes don't break existing functionality
+- [x] 95-01: Code review — AdminController, Admin models, view files
+- [x] 95-02: Browser verification — Test all Admin flows with HC and Admin roles
+- [x] 95-03: Fix identified bugs
+- [x] 95-04: Regression test — Verify fixes don't break existing functionality
 
 ---
 
-### Phase 96: Account Pages Audit
+### Phase 96: Account Pages Audit ✅
 **Goal**: Audit Account (Profile & Settings) pages for bugs
 **Milestone**: v3.2 Bug Hunting & Quality Audit
 **Requirements**: ACCT-01, ACCT-02, ACCT-03, ACCT-04
-**Status**: ○ Pending
+**Status**: ✅ COMPLETE — 3/3 plans complete (+ 1 SUMMARY)
 
 **Pages to Audit**:
 - /Account/Profile
@@ -632,10 +634,10 @@ Plans:
 4. Avatar initials display correctly from FullName
 
 **Plans**:
-- [ ] 96-01: Code review — AccountController, ApplicationUser model, view files
-- [ ] 96-02: Browser verification — Test profile and settings flows
-- [ ] 96-03: Fix identified bugs
-- [ ] 96-04: Regression test — Verify fixes don't break existing functionality
+- [x] 96-01: Code review — AccountController, ApplicationUser model, view files
+- [x] 96-02: Browser verification — Test profile and settings flows
+- [x] 96-03: Fix identified bugs
+- [x] 96-04: Regression test — Verify fixes don't break existing functionality
 
 ### Phase 99: Remove Deliverable Card from CDP Index
 
@@ -676,11 +678,12 @@ Plans:
 
 **Completed:** 2026-03-05
 
-### Phase 98: Data Integrity Audit
+### Phase 98: Data Integrity Audit ✅
 **Goal**: Audit data integrity patterns for bugs
 **Milestone**: v3.2 Bug Hunting & Quality Audit
 **Requirements**: DATA-01, DATA-02, DATA-03
-**Status**: ○ Pending
+**Status**: ✅ COMPLETE — 4/4 plans complete, 7 bugs fixed (3 orphan leaks + 4 AuditLog gaps)
+**Completed**: 2026-03-05
 
 **Areas to Audit**:
 - IsActive filter consistency across all queries
@@ -693,10 +696,10 @@ Plans:
 3. Audit logging captures all HC/Admin actions with correct actor and timestamp
 
 **Plans**:
-- [ ] 98-01: Code review — Search for all IsActive usages, soft-delete patterns, AuditLog calls
-- [ ] 98-02: Database verification — Check for orphaned records and missing filters
-- [ ] 98-03: Fix identified bugs
-- [ ] 98-04: Regression test — Verify fixes don't break existing functionality
+- [x] 98-01: Code review — Search for all IsActive usages, soft-delete patterns, AuditLog calls
+- [x] 98-02: Database verification — Check for orphaned records and missing filters
+- [x] 98-03: Fix identified bugs
+- [x] 98-04: Regression test — Verify fixes don't break existing functionality
 
 ## Progress
 

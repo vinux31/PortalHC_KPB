@@ -1,4 +1,48 @@
 # Milestones
+
+## v3.2 Bug Hunting & Quality Audit (Shipped: 2026-03-05)
+
+**Phases completed:** 7 phases (92-98, 99), 31 plans, 95 tasks
+
+**Delivered:** Comprehensive audit of all portal sections — Homepage, CMP, CDP, Admin Portal, Account pages, Authentication/Authorization, and Data Integrity. Fixed 20+ bugs across UI, navigation, localization, authorization, soft-delete cascades, and audit logging.
+
+**Key accomplishments:**
+1. **Homepage Audit** — Fixed 5 bugs: deadline links, pluralization, localization, query consistency, negative days display
+2. **CMP Section Audit** — Fixed 6 bugs: localization (Indonesian dates), validation errors, navigation flow
+3. **CDP Section Audit** — Fixed 8 bugs: auth issues, navigation gaps, ProtonGuidance access, edge cases
+4. **Admin Portal Audit** — Fixed 4 bugs: role gates, UI issues, ManageWorkers validation
+5. **Account Pages Audit** — Profile/settings verified working, avatar display fixes
+6. **Auth & Authorization Audit** — Verified login flow (local/AD), inactive user block, AccessDenied page, role-based navigation, return URL security
+7. **Data Integrity Audit** — Fixed 7 bugs: 3 orphan leaks (parent.IsActive filters), 4 missing AuditLog calls
+8. **CDP Cleanup** — Removed broken Deliverable card from CDP Index
+
+**Bug Summary:**
+- UI/Localization: 9 bugs fixed
+- Navigation: 5 bugs fixed
+- Authorization/Security: 4 bugs fixed
+- Data Integrity: 7 bugs fixed
+- Validation: 3 bugs fixed
+
+**Files Modified:** 15+ controllers, 20+ views
+
+---
+
+## v3.1 CPDP Mapping File-Based Rewrite (Shipped: 2026-03-03)
+
+**Phases completed:** 1 phase (88), 6 plans, 17 tasks
+
+**Delivered:** Full rewrite of KKJ Matrix from fixed 15-column spreadsheet model to dynamic key-value relational model with document-based file management system.
+
+**Key accomplishments:**
+1. **Dynamic Schema** — KkjColumn and KkjTargetValue tables replace fixed columns; administrators can add/edit/delete competency columns dynamically
+2. **Document-Based File Management** — KkjFile and CpdpFile models with upload/download/archive functionality; versioned file tracking with AuditLog
+3. **File Management UI** — Silabus tab and Coaching Guidance tab with full file CRUD operations, archive status filtering, and role-based access control
+4. **Migration** — Existing KKJ Matrix data migrated from fixed columns to key-value model
+
+**Files Modified:** Models (KkjColumn, KkjTargetValue, KkjFile, CpdpFile), AdminController, ProtonDataController, Views
+
+---
+
 ## v3.0 Full QA & Feature Completion (Shipped: 2026-03-05)
 
 **Phases completed:** 10 phases (82-91, 86 superseded), 46 plans, 21 tasks
