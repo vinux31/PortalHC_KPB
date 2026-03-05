@@ -62,8 +62,8 @@ Systematically audit all portal pages to identify and fix bugs. Organized by nav
 ### Data Integrity
 
 - [x] **DATA-01**: All IsActive filters are applied consistently (Workers, Silabus, Assessments)
-- [ ] **DATA-02**: Soft-delete operations cascade correctly (no orphaned records)
-- [ ] **DATA-03**: Audit logging captures all HC/Admin actions correctly
+- [x] **DATA-02**: Soft-delete operations cascade correctly (no orphaned records)
+- [x] **DATA-03**: Audit logging captures all HC/Admin actions correctly
 
 ## Future Requirements (v3.3+)
 
@@ -123,8 +123,8 @@ Deferred to future milestones. Not in scope for bug hunting.
 | AUTH-04 | Phase 97 | Complete |
 | AUTH-05 | Phase 97 | Complete |
 | DATA-01 | Phase 98 | Complete |
-| DATA-02 | Phase 98 | Pending |
-| DATA-03 | Phase 98 | Pending |
+| DATA-02 | Phase 98 | Complete |
+| DATA-03 | Phase 98 | Complete |
 
 **Coverage:**
 - v3.2 requirements: 40 total
