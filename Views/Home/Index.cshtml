@@ -1,4 +1,5 @@
 ﻿@model HcPortal.Models.DashboardHomeViewModel
+@using System.Globalization
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -32,8 +33,8 @@
                 </div>
             </div>
             <div class="col-md-3 text-end">
-                <p class="mb-0 fs-5 fw-semibold">@DateTime.Now.ToString("dddd")</p>
-                <p class="mb-0 fs-6 opacity-75">@DateTime.Now.ToString("dd MMMM yyyy")</p>
+                <p class="mb-0 fs-5 fw-semibold">@DateTime.Now.ToString("dddd", CultureInfo.GetCultureInfo("id-ID"))</p>
+                <p class="mb-0 fs-6 opacity-75">@DateTime.Now.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</p>
             </div>
         </div>
     </div>
@@ -71,7 +72,7 @@
                     <div class="circular-progress-text">@Model.IdpProgressPercentage%</div>
                 </div>
 
-                <p class="text-center text-muted mb-3">@Model.IdpCompletedCount Aktivitas selesai dari @Model.IdpTotalCount</p>
+                <p class="text-center text-muted mb-3">@(Model.IdpCompletedCount == 1 ? "1 Aktivitas" : $"{Model.IdpCompletedCount} Aktivitas") selesai dari @Model.IdpTotalCount</p>
                 <a asp-controller="CDP" asp-action="Index" class="btn btn-outline-primary w-100 rounded-pill">
                     <i class="fas fa-arrow-right me-2"></i>Update Progress
                 </a>
@@ -251,20 +252,40 @@
         {
             @foreach (var deadline in Model.UpcomingDeadlines)
             {
-                <div class="deadline-card">
-                    <div class="deadline-icon">
-                        <i class="@deadline.IconClass"></i>
-                    </div>
-                    <div class="deadline-content">
-                        <div class="deadline-title">@deadline.Title</div>
-                        <div class="deadline-date">
-                            <i class="far fa-calendar me-1"></i>Due: @deadline.DueDateFormatted
+                @if (!string.IsNullOrEmpty(deadline.ActionUrl))
+                {
+                    <a href="@deadline.ActionUrl" class="deadline-card">
+                        <div class="deadline-icon">
+                            <i class="@deadline.IconClass"></i>
                         </div>
+                        <div class="deadline-content">
+                            <div class="deadline-title">@deadline.Title</div>
+                            <div class="deadline-date">
+                                <i class="far fa-calendar me-1"></i>Due: @deadline.DueDateFormatted
+                            </div>
+                        </div>
+                        <span class="deadline-badge @deadline.UrgencyClass">
+                            @(deadline.DaysRemaining == 1 ? "1 hari" : $"{deadline.DaysRemaining} hari")
+                        </span>
+                    </a>
+                }
+                else
+                {
+                    <div class="deadline-card">
+                        <div class="deadline-icon">
+                            <i class="@deadline.IconClass"></i>
+                        </div>
+                        <div class="deadline-content">
+                            <div class="deadline-title">@deadline.Title</div>
+                            <div class="deadline-date">
+                                <i class="far fa-calendar me-1"></i>Due: @deadline.DueDateFormatted
+                            </div>
+                        </div>
+                        <span class="deadline-badge @deadline.UrgencyClass">
+                            @(deadline.DaysRemaining == 1 ? "1 hari" : $"{deadline.DaysRemaining} hari")
+                        </span>
                     </div>
-                    <span class="deadline-badge @deadline.UrgencyClass">
-                        @deadline.DaysRemaining days
-                    </span>
-                </div>
+                }
             }
         }
         else

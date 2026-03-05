@@ -70,7 +70,7 @@ public class HomeController : Controller
 
         // Check urgency (assessments due within 3 days)
         viewModel.HasUrgentAssessments = await _context.AssessmentSessions
-            .AnyAsync(a => a.UserId == user.Id &&
+            .AnyAsync(a => targetUserIds.Contains(a.UserId) &&
                      a.Status != "Completed" &&
                      a.Schedule <= DateTime.Now.AddDays(3));
 
@@ -115,7 +115,7 @@ public class HomeController : Controller
                    : "EXPIRED",
             ValidUntil = hsseTraining.ValidUntil,
             CertificateUrl = hsseTraining.SertifikatUrl,
-            DaysUntilExpiry = daysRemaining
+            DaysUntilExpiry = daysRemaining > 0 ? daysRemaining : 0
         };
     }
 
@@ -197,7 +197,7 @@ public class HomeController : Controller
         {
             Title = $"Submit {a.Title}",
             DueDate = a.Schedule,
-            DueDateFormatted = a.Schedule.ToString("dd MMMM yyyy"),
+            DueDateFormatted = a.Schedule.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID")),
             DaysRemaining = (a.Schedule - now).Days,
             UrgencyClass = (a.Schedule - now).Days <= 3 ? "urgent" : "normal",
             IconClass = "fas fa-exclamation",
@@ -217,7 +217,7 @@ public class HomeController : Controller
         {
             Title = $"Complete IDP: {i.Kompetensi}",
             DueDate = i.DueDate,
-            DueDateFormatted = i.DueDate.ToString("dd MMMM yyyy"),
+            DueDateFormatted = i.DueDate.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID")),
             DaysRemaining = (i.DueDate - now).Days,
             UrgencyClass = (i.DueDate - now).Days <= 7 ? "urgent" : "normal",
             IconClass = "fas fa-file-alt",
@@ -240,7 +240,7 @@ public class HomeController : Controller
             {
                 Title = $"Renew {t.Judul} Certification",
                 DueDate = t.ValidUntil!.Value,
-                DueDateFormatted = t.ValidUntil.Value.ToString("dd MMMM yyyy"),
+                DueDateFormatted = t.ValidUntil.Value.ToString("dd MMMM yyyy", new System.Globalization.CultureInfo("id-ID")),
                 DaysRemaining = (t.ValidUntil.Value - now).Days,
                 UrgencyClass = (t.ValidUntil.Value - now).Days <= 30 ? "urgent" : "normal",
                 IconClass = "fas fa-graduation-cap",
@@ -260,15 +260,27 @@ public class HomeController : Controller
         var span = DateTime.Now - timestamp;
 
         if (span.TotalMinutes < 60)
-            return $"{(int)span.TotalMinutes} minutes ago";
+        {
+            var minutes = (int)span.TotalMinutes;
+            return minutes == 1 ? "1 menit yang lalu" : $"{minutes} menit yang lalu";
+        }
         if (span.TotalHours < 24)
-            return $"{(int)span.TotalHours} hours ago";
+        {
+            var hours = (int)span.TotalHours;
+            return hours == 1 ? "1 jam yang lalu" : $"{hours} jam yang lalu";
+        }
         if (span.TotalDays < 7)
-            return $"{(int)span.TotalDays} days ago";
+        {
+            var days = (int)span.TotalDays;
+            return days == 1 ? "1 hari yang lalu" : $"{days} hari yang lalu";
+        }
         if (span.TotalDays < 30)
-            return $"{(int)(span.TotalDays / 7)} weeks ago";
+        {
+            var weeks = (int)(span.TotalDays / 7);
+            return weeks == 1 ? "1 minggu yang lalu" : $"{weeks} minggu yang lalu";
+        }
 
-        return timestamp.ToString("dd MMM yyyy");
+        return timestamp.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("id-ID"));
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
