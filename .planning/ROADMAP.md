@@ -637,6 +637,16 @@ Plans:
 - [ ] 96-03: Fix identified bugs
 - [ ] 96-04: Regression test — Verify fixes don't break existing functionality
 
+### Phase 99: Remove Deliverable Card from CDP Index
+
+**Goal:** CDP Index page no longer has broken Deliverable card link; users access deliverable details through Coaching Proton page
+**Requirements**: None (UI cleanup fix)
+**Depends on:** Phase 94
+**Plans:** TBD
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 99 to break down)
+
 ---
 
 ### Phase 97: Authentication & Authorization Audit
@@ -663,18 +673,6 @@ Plans:
 - [ ] 97-02: Browser verification — Test login flows and authorization with different roles
 - [ ] 97-03: Fix identified bugs
 - [ ] 97-04: Regression test — Verify fixes don't break existing functionality
-
-### Phase 99: 99
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 98
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 99 to break down)
-
----
 
 ### Phase 98: Data Integrity Audit
 **Goal**: Audit data integrity patterns for bugs
