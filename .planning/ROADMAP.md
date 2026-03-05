@@ -653,7 +653,7 @@ Plans:
 **Goal**: Audit authentication and authorization for bugs
 **Milestone**: v3.2 Bug Hunting & Quality Audit
 **Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
-**Status**: ○ Pending
+**Status**: ✅ Complete
 
 **Areas to Audit**:
 - Login flow (local and AD modes)
@@ -662,17 +662,19 @@ Plans:
 - Return URL redirects
 
 **Success Criteria** (what must be TRUE):
-1. Login flow works correctly in both local and AD authentication modes
-2. Inactive users are blocked from login (Phase 83 soft-delete)
-3. AccessDenied page displays for unauthorized access attempts
-4. Role-based navigation visibility works correctly for all 6 roles
-5. Return URL redirect after login works correctly and securely (Url.IsLocalUrl check)
+1. Login flow works correctly in both local and AD authentication modes ✅
+2. Inactive users are blocked from login (Phase 83 soft-delete) ✅
+3. AccessDenied page displays for unauthorized access attempts ✅
+4. Role-based navigation visibility works correctly for all 6 roles ✅
+5. Return URL redirect after login works correctly and securely (Url.IsLocalUrl check) ✅
 
-**Plans**:
-- [ ] 97-01: Code review — AccountController, IAuthService implementations, _Layout.cshtml navigation
-- [ ] 97-02: Browser verification — Test login flows and authorization with different roles
-- [ ] 97-03: Fix identified bugs
-- [ ] 97-04: Regression test — Verify fixes don't break existing functionality
+**Plans**: 4/4 complete
+- [x] 97-01: Authorization Matrix Audit - Exhaustive grep audit of all controllers and views (AUTH-01, AUTH-02)
+- [x] 97-02: Browser Verification - Spot-check critical auth flows (AUTH-03, AUTH-04, AUTH-05)
+- [x] 97-03: Edge Case Testing and Bug Fixes - Analyze security and functional bugs via code review (AUTH-01 through AUTH-05)
+- [x] 97-04: Regression Testing and Phase Summary - Verify fixes, create summary (AUTH-01 through AUTH-05)
+
+**Completed:** 2026-03-05
 
 ### Phase 98: Data Integrity Audit
 **Goal**: Audit data integrity patterns for bugs
