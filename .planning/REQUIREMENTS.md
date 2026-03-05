@@ -10,13 +10,13 @@ Requirements for basic in-app notification system. Each maps to roadmap phases.
 
 ### Notification Infrastructure
 
-- [ ] **INFRA-01**: System stores notifications persistently in database with proper indexing for performance
+- [x] **INFRA-01**: System stores notifications persistently in database with proper indexing for performance
 - [ ] **INFRA-02**: NotificationService follows AuditLogService pattern (async, scoped DI, try-catch wrapped)
 - [ ] **INFRA-03**: Notification Center UI displays bell icon in navbar with unread badge counter
 - [ ] **INFRA-04**: Notification dropdown shows list of notifications (most recent first, pagination)
 - [ ] **INFRA-05**: Users can mark individual notifications as read (click notification → mark read → remove from counter)
 - [ ] **INFRA-06**: Users can mark all notifications as read (bulk action button)
-- [ ] **INFRA-07**: System tracks notification audit trail (created by, created at, read at, delivery status)
+- [x] **INFRA-07**: System tracks notification audit trail (created by, created at, read at, delivery status)
 - [ ] **INFRA-08**: Notification templates provide consistent messaging across all triggers
 - [ ] **INFRA-09**: Notification failures gracefully degrade (try-catch prevents main workflow crashes)
 - [ ] **INFRA-10**: Notifications use deep linking (click notification → navigate to relevant page)
@@ -76,13 +76,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 99 | Pending |
+| INFRA-01 | Phase 99 | Complete |
 | INFRA-02 | Phase 99 | Pending |
 | INFRA-03 | Phase 100 | Pending |
 | INFRA-04 | Phase 100 | Pending |
 | INFRA-05 | Phase 100 | Pending |
 | INFRA-06 | Phase 100 | Pending |
-| INFRA-07 | Phase 99 | Pending |
+| INFRA-07 | Phase 99 | Complete |
 | INFRA-08 | Phase 99 | Pending |
 | INFRA-09 | Phase 99 | Pending |
 | INFRA-10 | Phase 100 | Pending |
