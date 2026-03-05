@@ -53,8 +53,8 @@ Systematically audit all portal pages to identify and fix bugs. Organized by nav
 
 ### Authentication & Authorization
 
-- [ ] **AUTH-01**: Login flow works correctly (local and AD modes)
-- [ ] **AUTH-02**: Inactive users are blocked from login (Phase 83 soft-delete)
+- [x] **AUTH-01**: Login flow works correctly (local and AD modes)
+- [x] **AUTH-02**: Inactive users are blocked from login (Phase 83 soft-delete)
 - [ ] **AUTH-03**: AccessDenied page shows for unauthorized access attempts
 - [ ] **AUTH-04**: Role-based navigation visibility works correctly
 - [ ] **AUTH-05**: Return URL redirect after login works correctly and securely
@@ -117,8 +117,8 @@ Deferred to future milestones. Not in scope for bug hunting.
 | ACCT-02 | Phase 96 | Complete |
 | ACCT-03 | Phase 96 | Complete |
 | ACCT-04 | Phase 96 | Complete |
-| AUTH-01 | Phase 97 | Pending |
-| AUTH-02 | Phase 97 | Pending |
+| AUTH-01 | Phase 97 | Complete |
+| AUTH-02 | Phase 97 | Complete |
 | AUTH-03 | Phase 97 | Pending |
 | AUTH-04 | Phase 97 | Pending |
 | AUTH-05 | Phase 97 | Pending |
