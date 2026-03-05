@@ -3864,6 +3864,8 @@ namespace HcPortal.Controllers
 
             if (!ModelState.IsValid)
             {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                _logger.LogWarning("CreateWorker validation failed: {Errors}", errors);
                 return View(model);
             }
 
@@ -3976,6 +3978,8 @@ namespace HcPortal.Controllers
 
             if (!ModelState.IsValid)
             {
+                var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                _logger.LogWarning("EditWorker validation failed for user {UserId}: {Errors}", model.Id, errors);
                 return View(model);
             }
 
@@ -4362,7 +4366,7 @@ namespace HcPortal.Controllers
                 ws.Cell(row, 7).Value = u.Unit ?? "";
                 ws.Cell(row, 8).Value = u.Directorate ?? "";
                 ws.Cell(row, 9).Value = roleDict.ContainsKey(u.Id) ? roleDict[u.Id] : "-";
-                ws.Cell(row, 10).Value = u.JoinDate.HasValue ? u.JoinDate.Value.ToString("yyyy-MM-dd") : "";
+                ws.Cell(row, 10).Value = u.JoinDate.HasValue ? u.JoinDate.Value.ToString("dd MMM yyyy", new System.Globalization.CultureInfo("id-ID")) : "";
                 if (showInactive)
                     ws.Cell(row, 11).Value = u.IsActive ? "Aktif" : "Tidak Aktif";
                 row++;
