@@ -17,12 +17,12 @@ Systematically audit all portal pages to identify and fix bugs. Organized by nav
 
 ### CMP (Competency Management Platform)
 
-- [ ] **CMP-01**: Assessment page loads without errors for all roles (Worker, HC, Admin)
-- [ ] **CMP-02**: Assessment monitoring detail page shows real-time data correctly
-- [ ] **CMP-03**: Records page displays assessment history and training records with correct pagination
-- [ ] **CMP-04**: KKJ Matrix page loads correctly with section-based filtering
-- [ ] **CMP-05**: All CMP forms handle validation errors gracefully (no raw exceptions)
-- [ ] **CMP-06**: CMP navigation flows work correctly (Create Assessment → Edit → Delete → Monitor)
+- [x] **CMP-01**: Assessment page loads without errors for all roles (Worker, HC, Admin)
+- [x] **CMP-02**: Assessment monitoring detail page shows real-time data correctly
+- [x] **CMP-03**: Records page displays assessment history and training records with correct pagination
+- [x] **CMP-04**: KKJ Matrix page loads correctly with section-based filtering
+- [x] **CMP-05**: All CMP forms handle validation errors gracefully (no raw exceptions)
+- [x] **CMP-06**: CMP navigation flows work correctly (Create Assessment → Edit → Delete → Monitor)
 
 ### CDP (Competency Development Platform)
 
@@ -93,12 +93,12 @@ Deferred to future milestones. Not in scope for bug hunting.
 | HOME-03 | Phase 92 | Complete |
 | HOME-04 | Phase 92 | Complete |
 | HOME-05 | Phase 92 | Complete |
-| CMP-01 | Phase 93 | Pending |
-| CMP-02 | Phase 93 | Pending |
-| CMP-03 | Phase 93 | Pending |
-| CMP-04 | Phase 93 | Pending |
-| CMP-05 | Phase 93 | Pending |
-| CMP-06 | Phase 93 | Pending |
+| CMP-01 | Phase 93 | Complete |
+| CMP-02 | Phase 93 | Complete |
+| CMP-03 | Phase 93 | Complete |
+| CMP-04 | Phase 93 | Complete |
+| CMP-05 | Phase 93 | Complete |
+| CMP-06 | Phase 93 | Complete |
 | CDP-01 | Phase 94 | Pending |
 | CDP-02 | Phase 94 | Pending |
 | CDP-03 | Phase 94 | Pending |
