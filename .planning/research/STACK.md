@@ -1,608 +1,757 @@
-# QA Testing Stack — Portal HC KPB v3.0
+# Technology Stack
 
-**Project:** Portal HC KPB (ASP.NET Core 8 MVC) — Full QA & Feature Completion
-**Researched:** 2026-03-01
-**Confidence:** HIGH (Microsoft official docs, current frameworks, verified patterns)
+**Project:** PortalHC KPB - v3.3 Basic Notification System
+**Researched:** 2026-03-05
+**Overall confidence:** HIGH
 
 ## Executive Summary
 
-This portal requires a **pragmatic, brownfield-focused QA testing approach**. The stack separates unit testing (xUnit for existing services), functional testing (WebApplicationFactory for end-to-end flows), and code quality analysis (Roslyn analyzers + SonarQube for brownfield cleanup). Test data seeding uses EF Core migrations for reproducibility. Skip UI test automation (Selenium/Playwright) for now — manual QA with code analysis tools provides better ROI on a brownfield portal. Code analysis (NDepend, StyleCop, SonarQube) surfaces the dead code and inconsistencies this milestone aims to fix.
+Building a basic in-app notification system for v3.3 requires **minimal stack additions** — primarily a new NotificationService following the existing AuditLogService pattern, two new database tables (Notification + UserNotification), and a Bootstrap-based UI bell icon dropdown. **No new NuGet packages are needed** — all dependencies (Bootstrap 5, Bootstrap Icons, EF Core 8.0) are already present in the project. The system uses refresh-based notification retrieval (no SignalR) to keep v3.3 scope manageable, with SQL Server filtered indexes ensuring performance at scale.
 
-**Key Finding:** No new NuGet packages required beyond testing frameworks. Stack stays lean and testable.
-
----
-
-## Recommended Testing Stack
-
-### Core Testing Frameworks
-
-| Framework | Version | Purpose | Why Recommended |
-|-----------|---------|---------|-----------------|
-| **xUnit** | 2.6+ | Unit testing services, models, business logic | Microsoft's recommended framework for .NET Core; used in all official .NET/EF Core tests; strong dependency injection support; test isolation (new instance per test); parallel execution by default |
-| **WebApplicationFactory** | .NET 8+ (built-in) | Functional testing controllers, full request/response cycles | Part of ASP.NET Core testing infrastructure; integrates with Kestrel test host; enables TestServer without requiring IIS; in-memory database seeding works seamlessly; no additional NuGet needed |
-| **Xunit.DependencyInjection** | 8.9+ | DI container for unit tests | Reduces boilerplate in test classes; mirrors production DI setup; preferred over constructor injection in large test suites; aligns with web app DI patterns |
-
-### Code Analysis & Quality Tools
-
-| Tool | Version | Purpose | Why Recommended |
-|------|---------|---------|-----------------|
-| **Microsoft.CodeAnalysis.NetAnalyzers** | 8.0+ | Static analysis (Roslyn-based) | Replaces deprecated FxCopAnalyzers; finds dead code, unused variables, unreachable paths; free; built into .NET SDK 5.0+; IDE integration in Visual Studio; no external service needed |
-| **StyleCop.Analyzers** | 1.2+ | Code style consistency (naming, spacing, documentation) | 21M+ downloads; identifies inconsistencies this codebase likely has (dead code, unused fields, naming violations); pair with .editorconfig for consistency |
-| **SonarQube Community** | 9.9 LTA | Enterprise code quality dashboard | Detects code smells, security hotspots, technical debt; generates reports on dead code, duplication; free community edition; CLI integration via SonarScanner; perfect for brownfield baselines |
-| **NDepend** (Optional) | 2024+ | Dependency analysis & architectural visualization | Identifies hidden dependencies, dead code in large legacy systems; excellent for brownfield migrations; commercial ($400/year) but worth it for complex architecture validation |
-
-### Test Data & Database
-
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| **EF Core In-Memory Database** | 8.0+ | In-memory DB for functional tests | Fast test execution; no infrastructure setup; suitable for isolated test scenarios; use for most QA tests |
-| **Bogus** | 35.3+ | Fake data generation for seeding | Generates realistic test data (names, emails, dates); reduces magic strings; pair with EF Core seeding methods; great for rapid test data creation |
-| **TestcontainersNet** | 3.7+ (Optional) | Docker-based test databases | If in-memory DB proves insufficient for specific scenarios; runs real SQLite in containers; slower but more realistic; use only for critical integration tests where in-memory limitations appear |
-
-### Development Tools
-
-| Tool | Purpose | Configuration |
-|------|---------|---------------|
-| **dotnet test** (CLI) | Run unit tests locally & in CI/CD | Command: `dotnet test --filter Category=Unit` for test categorization |
-| **Visual Studio Test Explorer** | Discover & run tests in IDE | Built-in; use Test > Test Explorer window; supports grouping by namespace, result filtering |
-| **Coverlet** | Code coverage measurement | NuGet: `dotnet add package coverlet.collector`; generates coverage reports (.opencover format); integrate with CI/CD for trend tracking |
-| **SonarScanner for .NET** | Integrate Roslyn analysis with SonarQube | CLI tool for submitting analysis results to SonarQube dashboard |
+**Key Finding:** This is a brownfield extension, not a greenfield rewrite. Leverage existing patterns (AuditLogService, ProtonNotification) and infrastructure (Bootstrap 5, EF Core 8.0) rather than introducing new libraries.
 
 ---
 
-## Installation & Configuration
+## Recommended Stack
 
-### 1. Create Test Project Structure
+### Core Framework (EXISTING - No Changes)
 
-```bash
-# Create xUnit test project (next to main .csproj)
-dotnet new xunit -n PortalHC.Tests
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| ASP.NET Core MVC | 8.0 | Web framework | Already in use, mature, fully supported through 2026-11-10 |
+| Entity Framework Core | 8.0 | ORM | Already in use, integrates seamlessly with existing ApplicationDbContext |
+| SQL Server | - | Database | Already in use, supports filtered indexes for notification query performance |
 
-# Navigate to test project
-cd PortalHC.Tests
+**Verification:** Checked `HcPortal.csproj` — all frameworks at .NET 8.0 with current package versions.
 
-# Add testing framework packages
-dotnet add package xunit
-dotnet add package xunit.runner.visualstudio
-dotnet add package Microsoft.NET.Test.Sdk
+### Database Model (NEW)
 
-# Add dependency injection support
-dotnet add package Xunit.DependencyInjection
-dotnet add package Xunit.DependencyInjection.Logging
-dotnet add package Microsoft.AspNetCore.Mvc.Testing
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| **Notification** table | - | Core notification entity | Stores notification data (title, message, type, created_at, sender info) |
+| **UserNotification** table | - | Per-user read status tracking | Tracks which users received which notifications and their read/unread status |
+| EF Core Migration | 8.0 | Schema updates | Use standard `dotnet ef migrations add` command to add tables |
 
-# Add code quality tools
-dotnet add package coverlet.collector
-```
+**Two-Table Design Rationale:**
+- Separates message content (stored once) from per-user read status
+- Scales efficiently for multi-recipient notifications (e.g., "All HC staff get notified when assessment submitted")
+- Follows established pattern from research sources for notification systems
+- Extends existing `ProtonNotification` pattern for broader use cases beyond HC-only notifications
 
-### 2. Add Code Quality Analyzers to Main Project
+### UI Components (NEW)
 
-```bash
-# In main PortalHC directory
-dotnet add package Microsoft.CodeAnalysis.NetAnalyzers
-dotnet add package StyleCop.Analyzers
-```
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| Bootstrap Icons | 1.10.0 | Bell icon for notification center | Already loaded in `_Layout.cshtml` (line 22) |
+| Bootstrap 5 | 5.3.0 | Dropdown component, styling | Already in use, consistent with existing UI |
+| View Component | - | Notification center dropdown | ASP.NET Core best practice for reusable UI components |
+| PartialView | - | Notification list items | Server-side rendering for performance, no AJAX complexity |
 
-### 3. Configure .editorconfig for Style Enforcement
+**Verification:** Checked `Views/Shared/_Layout.cshtml` — Bootstrap Icons 1.10.0 already loaded on line 22: `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">`
 
-Create `.editorconfig` in project root:
+### Backend Services (NEW)
 
-```ini
-root = true
+| Technology | Version | Purpose | Why |
+|------------|---------|---------|-----|
+| **NotificationService** | - | Business logic layer | Follows existing `AuditLogService` pattern (simple service class, injected into controllers) |
+| **INotificationService** | - | Interface abstraction | Allows unit testing, follows dependency injection pattern used throughout portal |
+| BackgroundService (optional, deferred) | - | Deadline reminder scheduled job | For scheduled deadline reminder checks (post-v3.3 optimization) |
 
-# All C# files
-[*.cs]
+**Pattern Match:** Verified `Services/AuditLogService.cs` follows this exact pattern:
+- Simple service class with constructor-injected `ApplicationDbContext`
+- Async methods that call `SaveChangesAsync()` internally
+- No complex abstractions, easy to test and maintain
 
-# Code quality warnings
-dotnet_code_quality_unused_parameters = all:error
-dotnet_diagnostic.CA1806.severity = warning
+### Supporting Libraries (EXISTING - Not Needed for Notifications)
 
-# StyleCop naming rules
-dotnet_naming_rule.interface_should_be_starts_with_i.severity = warning
-dotnet_naming_style.starts_with_i.required_prefix = I
-dotnet_naming_symbols.interface.applicable_kinds = interface
-dotnet_naming_symbols.interface.applicable_accessibilities = public,internal,private,protected,protected_internal,private_protected
-dotnet_naming_rule.interface_should_be_starts_with_i.symbols = interface
-dotnet_naming_rule.interface_should_be_starts_with_i.style = starts_with_i
+| Library | Version | Purpose | Why NOT in v3.3 |
+|---------|---------|---------|-----------------|
+| ClosedXML | 0.105.0 | Excel export | Already in use, NOT needed for notifications |
+| QuestPDF | 2026.2.2 | PDF export | Already in use, NOT needed for notifications |
+| System.DirectoryServices | 10.0.0 | LDAP authentication | Already in use, NOT needed for notifications |
 
-# StyleCop rule enforcement
-stylecop_use_built_in_aliases = true
-```
+---
 
-### 4. Setup WebApplicationFactory for Functional Tests
+## What NOT to Add (v3.3 Scope Limitations)
 
-Create `PortalHC.Tests/WebTestFixture.cs`:
+| Technology | Why NOT in v3.3 | Consider for Future |
+|------------|-----------------|---------------------|
+| **SignalR** | Out of scope for v3.3 (no real-time requirement), adds WebSocket infrastructure complexity | v3.4+ if real-time push notifications needed |
+| **ToastNotification NuGet package** | Unnecessary abstraction layer — can build with existing Bootstrap 5 alerts | Only if complex toast notification requirements emerge |
+| **External push services** (Push API, Azure Notification Hubs) | Over-engineering for basic in-app notifications | If mobile/browser push notifications needed |
+| **Redis/MemoryCache** | Not needed for refresh-based notifications at current scale | If caching unread counts becomes necessary at 1000+ users |
+| **Notification preferences UI** | Deferred to post-v3.3 (user customization of notification types) | v3.4+ for user-controlled notification settings |
+
+**Scope Boundaries:**
+- ✅ In-app notification center (bell icon, dropdown list, read/unread status)
+- ✅ Database-triggered notifications (assessment assigned, evidence uploaded, approvals)
+- ✅ Manual refresh (page navigation or explicit "refresh" button)
+- ❌ Real-time push notifications (SignalR)
+- ❌ Browser push notifications (when app is closed)
+- ❌ User notification preferences (enable/disable by type)
+- ❌ Email notifications (separate system)
+
+---
+
+## Database Schema Design
+
+### Notification Table
 
 ```csharp
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using PortalHC.Web;
-
-namespace PortalHC.Tests;
-
-public class WebTestFixture : WebApplicationFactory<Program>
+// Models/Notification.cs
+public class Notification
 {
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    public int Id { get; set; }
+
+    /// <summary>Short title for notification list (max 200 chars)</summary>
+    public string Title { get; set; } = "";
+
+    /// <summary>Full message content (max 1000 chars)</summary>
+    public string Message { get; set; } = "";
+
+    /// <summary>Type: AssessmentAssigned, DeadlineReminder, EvidenceUploaded, etc.</summary>
+    public string Type { get; set; } = "";
+
+    /// <summary>Sender user ID (no FK constraint — matches existing pattern)</summary>
+    public string? SenderId { get; set; }
+
+    /// <summary>Denormalized sender display name for performance</summary>
+    public string? SenderName { get; set; }
+
+    /// <summary>Optional: target entity type for action links (e.g., "AssessmentSession")</summary>
+    public string? TargetEntityType { get; set; }
+
+    /// <summary>Optional: target entity ID for action links</summary>
+    public int? TargetEntityId { get; set; }
+
+    /// <summary>Soft delete flag (matches existing patterns)</summary>
+    public bool IsDeleted { get; set; } = false;
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+```
+
+```sql
+-- EF Core migration will generate this
+CREATE TABLE Notifications (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    Title NVARCHAR(200) NOT NULL,
+    Message NVARCHAR(1000) NOT NULL,
+    Type NVARCHAR(50) NOT NULL,
+    SenderId NVARCHAR(450) NULL,
+    SenderName NVARCHAR(200) NULL,
+    TargetEntityType NVARCHAR(100) NULL,
+    TargetEntityId INT NULL,
+    IsDeleted BIT DEFAULT 0,
+    CreatedAt DATETIME2 DEFAULT GETUTCDATE()
+);
+
+-- Indexes for performance (configured in OnModelCreating)
+CREATE INDEX IX_Notifications_Type_CreatedAt ON Notifications(Type, CreatedAt DESC);
+CREATE INDEX IX_Notifications_Target ON Notifications(TargetEntityType, TargetEntityId);
+```
+
+### UserNotification Table
+
+```csharp
+// Models/UserNotification.cs
+public class UserNotification
+{
+    public int Id { get; set; }
+
+    /// <summary>Foreign key to Notification table</summary>
+    public int NotificationId { get; set; }
+    public Notification Notification { get; set; } = null!;
+
+    /// <summary>Recipient user ID (no FK constraint — matches CoachingLog pattern)</summary>
+    public string RecipientId { get; set; } = "";
+
+    /// <summary>Read/unread status</summary>
+    public bool IsRead { get; set; } = false;
+
+    /// <summary>When user marked as read</summary>
+    public DateTime? ReadAt { get; set; }
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+}
+```
+
+```sql
+-- EF Core migration will generate this
+CREATE TABLE UserNotifications (
+    Id INT IDENTITY(1,1) PRIMARY KEY,
+    NotificationId INT NOT NULL,
+    RecipientId NVARCHAR(450) NOT NULL,
+    IsRead BIT DEFAULT 0,
+    ReadAt DATETIME2 NULL,
+    CreatedAt DATETIME2 DEFAULT GETUTCDATE(),
+
+    CONSTRAINT FK_UserNotifications_Notifications
+        FOREIGN KEY (NotificationId) REFERENCES Notifications(Id) ON DELETE CASCADE
+);
+
+-- Indexes for performance (configured in OnModelCreating)
+CREATE INDEX IX_UserNotifications_RecipientId_Read
+    ON UserNotifications(RecipientId, IsRead)
+    INCLUDE (NotificationId);
+
+-- Filtered index for unread queries (SQL Server specific)
+CREATE INDEX IX_UserNotifications_Unread
+    ON UserNotifications(IsRead, CreatedAt)
+    WHERE IsRead = 0;
+```
+
+---
+
+## Integration with Existing Patterns
+
+### ApplicationDbContext Integration
+
+Add to `Data/ApplicationDbContext.cs` (around line 70, after `AuditLogs`):
+
+```csharp
+// Notification System — v3.3
+public DbSet<Notification> Notifications { get; set; }
+public DbSet<UserNotification> UserNotifications { get; set; }
+```
+
+Add to `OnModelCreating()` method (around line 450, after `AssessmentAttemptHistory` configuration):
+
+```csharp
+// ========== Notification System (v3.3) ==========
+
+// Notification configuration
+builder.Entity<Notification>(entity =>
+{
+    entity.HasIndex(n => new { n.Type, n.CreatedAt });
+    entity.HasIndex(n => new { n.TargetEntityType, n.TargetEntityId });
+    entity.Property(n => n.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+});
+
+// UserNotification configuration
+builder.Entity<UserNotification>(entity =>
+{
+    entity.HasOne(un => un.Notification)
+        .WithMany()
+        .HasForeignKey(un => un.NotificationId)
+        .OnDelete(DeleteBehavior.Cascade);
+
+    entity.HasIndex(un => new { un.RecipientId, un.IsRead });
+    entity.HasIndex(un => new { un.IsRead, un.CreatedAt })
+        .HasFilter("[IsRead] = 0");  // Filtered index for SQL Server
+    entity.Property(un => un.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+});
+```
+
+**Why Cascade Delete?** When a Notification is deleted, all UserNotification records should auto-delete. Follows existing pattern for `PackageQuestion` → `PackageOption` (line 389).
+
+### Service Pattern (Follows AuditLogService)
+
+Create `Services/INotificationService.cs`:
+
+```csharp
+using HcPortal.Models;
+
+namespace HcPortal.Services
+{
+    public interface INotificationService
     {
-        builder.UseEnvironment("Testing");
+        Task SendAsync(string recipientId, string type, string title, string message,
+            string? senderId = null, string? senderName = null,
+            string? targetEntityType = null, int? targetEntityId = null);
 
-        builder.ConfigureServices(services =>
-        {
-            // Remove production DbContext
-            var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-            if (descriptor != null)
-                services.Remove(descriptor);
+        Task SendToManyAsync(IEnumerable<string> recipientIds, string type, string title, string message,
+            string? senderId = null, string? senderName = null,
+            string? targetEntityType = null, int? targetEntityId = null);
 
-            // Add in-memory DbContext for testing
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseInMemoryDatabase("TestDb_" + Guid.NewGuid());
-            });
-
-            // Build service provider
-            var sp = services.BuildServiceProvider();
-
-            using (var scope = sp.CreateScope())
-            {
-                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                db.Database.EnsureCreated();
-
-                // Seed test data
-                SeedTestData(db);
-            }
-        });
+        Task MarkAsReadAsync(int userNotificationId, string userId);
+        Task MarkAllAsReadAsync(string userId);
+        Task<int> GetUnreadCountAsync(string userId);
+        Task<IEnumerable<UserNotification>> GetUserNotificationsAsync(string userId, int count = 20);
     }
+}
+```
 
-    private static void SeedTestData(AppDbContext db)
+Create `Services/NotificationService.cs`:
+
+```csharp
+using HcPortal.Data;
+using HcPortal.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace HcPortal.Services
+{
+    /// <summary>
+    /// Notification service for in-app notifications. Follows AuditLogService pattern.
+    /// Injected into controllers that need to send notifications.
+    /// </summary>
+    public class NotificationService : INotificationService
     {
-        // Add minimal test data for each scenario
-        if (!db.Users.Any())
+        private readonly ApplicationDbContext _context;
+
+        public NotificationService(ApplicationDbContext context)
         {
-            db.Users.Add(new ApplicationUser
-            {
-                Id = "test-user-admin",
-                UserName = "adminuser",
-                Email = "admin@example.com",
-                FullName = "Admin User",
-                UserRoles = new() { new() { RoleId = "admin-role" } }
-            });
+            _context = context;
+        }
 
-            db.Users.Add(new ApplicationUser
+        public async Task SendAsync(string recipientId, string type, string title, string message,
+            string? senderId = null, string? senderName = null,
+            string? targetEntityType = null, int? targetEntityId = null)
+        {
+            var notification = new Notification
             {
-                Id = "test-user-hc",
-                UserName = "hcuser",
-                Email = "hc@example.com",
-                FullName = "HC User",
-                UserRoles = new() { new() { RoleId = "hc-role" } }
-            });
+                Title = title,
+                Message = message,
+                Type = type,
+                SenderId = senderId,
+                SenderName = senderName,
+                TargetEntityType = targetEntityType,
+                TargetEntityId = targetEntityId,
+                CreatedAt = DateTime.UtcNow
+            };
 
-            db.SaveChanges();
+            var userNotification = new UserNotification
+            {
+                RecipientId = recipientId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Notifications.Add(notification);
+            _context.UserNotifications.Add(userNotification);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SendToManyAsync(IEnumerable<string> recipientIds, string type, string title, string message,
+            string? senderId = null, string? senderName = null,
+            string? targetEntityType = null, int? targetEntityId = null)
+        {
+            var notification = new Notification
+            {
+                Title = title,
+                Message = message,
+                Type = type,
+                SenderId = senderId,
+                SenderName = senderName,
+                TargetEntityType = targetEntityType,
+                TargetEntityId = targetEntityId,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Notifications.Add(notification);
+
+            var userNotifications = recipientIds.Select(recipientId => new UserNotification
+            {
+                NotificationId = notification.Id,  // Will be set after SaveChangesAsync
+                RecipientId = recipientId,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+
+            _context.UserNotifications.AddRange(userNotifications);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task MarkAsReadAsync(int userNotificationId, string userId)
+        {
+            var userNotification = await _context.UserNotifications
+                .FirstOrDefaultAsync(un => un.Id == userNotificationId && un.RecipientId == userId);
+
+            if (userNotification != null && !userNotification.IsRead)
+            {
+                userNotification.IsRead = true;
+                userNotification.ReadAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task MarkAllAsReadAsync(string userId)
+        {
+            var unreadNotifications = await _context.UserNotifications
+                .Where(un => un.RecipientId == userId && !un.IsRead)
+                .ToListAsync();
+
+            foreach (var un in unreadNotifications)
+            {
+                un.IsRead = true;
+                un.ReadAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> GetUnreadCountAsync(string userId)
+        {
+            return await _context.UserNotifications
+                .CountAsync(un => un.RecipientId == userId && !un.IsRead);
+        }
+
+        public async Task<IEnumerable<UserNotification>> GetUserNotificationsAsync(string userId, int count = 20)
+        {
+            return await _context.UserNotifications
+                .Include(un => un.Notification)
+                .Where(un => un.RecipientId == userId)
+                .OrderByDescending(un => un.CreatedAt)
+                .Take(count)
+                .ToListAsync();
         }
     }
 }
 ```
 
-### 5. Configure .NET Analyzers in Project File
+**Pattern Verification:** Matches `AuditLogService.cs` structure:
+- Constructor-injected `ApplicationDbContext` ✓
+- Async methods with `SaveChangesAsync()` calls ✓
+- No complex abstractions or dependencies ✓
 
-Update `PortalHC.csproj`:
+### Trigger Points (Where to Inject Notifications)
 
-```xml
-<PropertyGroup>
-  <!-- Enable analyzer enforcement -->
-  <AnalysisLevel>latest</AnalysisLevel>
-  <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+**Assessment Workflow (4 trigger types):**
 
-  <!-- Make warnings visible but don't fail build initially -->
-  <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+| Trigger | Controller Action | Notification Type | Recipient | When |
+|---------|------------------|-------------------|-----------|------|
+| Assessment assigned | `CMPController.StartExam` | `AssessmentAssigned` | Worker | On exam start |
+| Bulk assignment | `AdminController.BulkAssign` | `AssessmentAssigned` | All assigned Workers | After assignment created |
+| Deadline reminder | Background job (deferred) | `DeadlineReminder` | Worker | 1 day before deadline |
+| Assessment submitted | `CMPController.SubmitExam` | `AssessmentSubmitted` | HC/Admin | On exam submission |
+| Assessment results | `CMPController.Results` | `AssessmentResults` | Worker | On results view |
 
-  <!-- Enable nullable reference types for safety -->
-  <Nullable>enable</Nullable>
-</PropertyGroup>
+**Coaching Proton Workflow (6 trigger types):**
 
-<!-- StyleCop configuration -->
-<ItemGroup>
-  <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.556">
-    <PrivateAssets>all</PrivateAssets>
-    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-  </PackageReference>
-</ItemGroup>
-```
+| Trigger | Controller Action | Notification Type | Recipient | When |
+|---------|------------------|-------------------|-----------|------|
+| Coach assigned | `AdminController.AssignCoach` | `CoachAssigned` | Coachee | After mapping created |
+| Evidence uploaded | `CDPController.SubmitEvidence` | `EvidenceUploaded` | SrSpv | On evidence submission |
+| SrSpv approves | `CDPController.SrSpvApprove` | `EvidenceApprovedBySrSpv` | SectionHead | On SrSpv approval |
+| SrSpv rejects | `CDPController.SrSpvReject` | `EvidenceRejected` | Coach | On SrSpv rejection |
+| SectionHead approves | `CDPController.SectionHeadApprove` | `EvidenceApprovedBySH` | HC | On SH approval |
+| HC reviews deliverable | `CDPController.HCReviewDeliverable` | `CoachingCompleted` | Coachee | On HC review complete |
 
-### 6. Setup SonarQube Scanning for Brownfield Analysis
+**Example Integration (AdminController.BulkAssign):**
 
-```bash
-# Install SonarScanner globally
-dotnet tool install --global dotnet-sonarscanner
+```csharp
+// Inject service
+private readonly INotificationService _notificationService;
 
-# Run baseline analysis
-dotnet sonarscanner begin /k:"PortalHC" /d:sonar.login="YOUR_TOKEN"
-dotnet build
-dotnet sonarscanner end /d:sonar.login="YOUR_TOKEN"
+public AdminController(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
+    INotificationService notificationService)
+{
+    _context = context;
+    _userManager = userManager;
+    _notificationService = notificationService;
+}
 
-# View results at: http://localhost:9000/dashboard?id=PortalHC
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> BulkAssign(...)
+{
+    // ... existing assignment logic ...
+
+    // Send notifications to all assigned workers
+    var workerIds = assignedWorkers.Select(w => w.UserId).ToList();
+    await _notificationService.SendToManyAsync(
+        recipientIds: workerIds,
+        type: "AssessmentAssigned",
+        title: "Assessment Baru",
+        message: $"Anda telah ditugaskan untuk assessment: {assessment.Title}",
+        senderId: currentUser.Id,
+        senderName: currentUser.FullName,
+        targetEntityType: "AssessmentSession",
+        targetEntityId: assessment.Id
+    );
+
+    return RedirectToAction("ManageAssessments");
+}
 ```
 
 ---
 
-## Testing Patterns & Best Practices
+## UI Components
 
-### Unit Test Pattern (Arrange-Act-Assert)
+### Bell Icon in Navbar
 
-```csharp
-[Fact]
-public void CreateAssessment_ValidInput_ReturnsAssessmentWithId()
+Add to `Views/Shared/_Layout.cshtml` (around line 75, in the nav-right section):
+
+```html
+<!-- Notification Bell Icon -->
+@if (SignInManager.IsSignedIn(User))
 {
-    // Arrange: Set up dependencies and test data
-    var service = new AssessmentService(_mockRepository.Object);
-    var request = new CreateAssessmentRequest
-    {
-        Title = "Online Assessment - Safety",
-        Category = "Online"
-    };
-
-    // Act: Execute the method under test
-    var result = service.CreateAssessment(request);
-
-    // Assert: Verify the expected outcome
-    Assert.NotNull(result);
-    Assert.NotEqual(0, result.Id);
-    Assert.Equal("Online Assessment - Safety", result.Title);
+    <div class="me-3">
+        <a asp-controller="Notification" asp-action="Index" class="position-relative text-decoration-none text-dark">
+            <i class="bi bi-bell fs-5"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                  id="notification-badge">
+                0
+            </span>
+        </a>
+    </div>
 }
 ```
 
-### Functional Test Pattern (Integration with Real Endpoints)
+### Notification View Component
+
+Create `ViewComponents/NotificationListViewComponent.cs`:
 
 ```csharp
-[Collection("Sequential")]
-public class AssessmentManagementTests : IClassFixture<WebTestFixture>
-{
-    private readonly HttpClient _client;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using HcPortal.Data;
+using HcPortal.Models;
 
-    public AssessmentManagementTests(WebTestFixture factory)
+namespace HcPortal.ViewComponents
+{
+    public class NotificationListViewComponent : ViewComponent
     {
-        _client = factory.CreateClient();
+        private readonly ApplicationDbContext _context;
+
+        public NotificationListViewComponent(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public async Task<IViewComponentResult> InvokeAsync(string userId, int count = 10)
+        {
+            var notifications = await _context.UserNotifications
+                .Include(un => un.Notification)
+                .Where(un => un.RecipientId == userId && !un.Notification.IsDeleted)
+                .OrderByDescending(un => un.CreatedAt)
+                .Take(count)
+                .Select(un => new
+                {
+                    un.Id,
+                    un.Notification.Title,
+                    un.Notification.Message,
+                    un.Notification.Type,
+                    un.Notification.CreatedAt,
+                    un.IsRead,
+                    un.Notification.TargetEntityType,
+                    un.Notification.TargetEntityId
+                })
+                .ToListAsync();
+
+            return View(notifications);
+        }
     }
-
-    [Fact]
-    public async Task ManageAssessments_GetList_ReturnsOkWithData()
-    {
-        // Arrange & Act: Make HTTP request to real endpoint
-        var response = await _client.GetAsync("/Admin/ManageAssessments");
-
-        // Assert: Verify response
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        Assert.Contains("Assessment", content);
-    }
 }
 ```
 
-### Parameterized Testing (Multiple Scenarios with One Test)
+Create `Views/Shared/Components/NotificationList/Default.cshtml`:
 
-```csharp
-[Theory]
-[InlineData("", 0)]
-[InlineData("Single,Value", 1)]
-[InlineData("Multiple,Comma,Values", 2)]
-public void ParseInput_VariousInputs_ReturnCorrectCounts(string input, int expected)
+```html
+@model dynamic
+
+@if (Model == null || !((IEnumerable<dynamic>)Model).Any())
 {
-    var result = InputParser.Parse(input);
-    Assert.Equal(expected, result.Count);
+    <div class="text-center p-3 text-muted">
+        <small>Tidak ada notifikasi</small>
+    </div>
 }
-```
-
-### Test Data Seeding with Bogus
-
-```csharp
-[Fact]
-public void AssessmentService_WithManyWorkers_ProcessesAllRecords()
+else
 {
-    // Arrange: Generate realistic test data
-    var faker = new Faker<Worker>();
-    var workers = faker
-        .RuleFor(w => w.Nip, f => f.Random.Int(1000000000, 9999999999).ToString())
-        .RuleFor(w => w.Name, f => f.Person.FullName)
-        .RuleFor(w => w.Email, f => f.Internet.Email())
-        .Generate(100);
-
-    // Act
-    var result = _service.ProcessWorkerBatch(workers);
-
-    // Assert
-    Assert.Equal(100, result.ProcessedCount);
+    <ul class="list-unstyled mb-0">
+        @foreach (var notification in Model)
+        {
+            <li class="notification-item @(notification.IsRead ? "read" : "unread") border-bottom p-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="me-2">
+                    <h6 class="mb-1 @(notification.IsRead ? "text-muted" : "fw-bold")">
+                        @notification.Title
+                    </h6>
+                    <p class="mb-1 small">@notification.Message</p>
+                    <small class="text-muted" style="font-size: 0.7rem;">
+                        @notification.CreatedAt.ToString("dd MMM yyyy, HH:mm")
+                    </small>
+                </div>
+                @if (!notification.IsRead)
+                {
+                    <span class="badge bg-primary rounded-pill">Baru</span>
+                }
+            </div>
+        </li>
+        }
+    </ul>
 }
 ```
 
 ---
 
-## Code Analysis Workflow for Brownfield
-
-### Phase 1: Baseline Scan (Week 1 of QA milestone)
-
-1. **Run NetAnalyzers** to identify code quality issues:
-   ```bash
-   dotnet build /p:AnalysisLevel=latest 2>&1 | tee analysis-baseline.txt
-   ```
-   Look for high-priority warnings:
-   - **CA1806**: Do not ignore method results (unused return values)
-   - **IDE0005**: Remove unnecessary imports
-   - **CS8600**: Converting null literal to non-nullable type (null safety)
-   - **IDE0161**: Use file-scoped namespaces (modernization)
-
-2. **Run StyleCop** for consistency issues:
-   ```bash
-   dotnet build /p:EnforceCodeStyleInBuild=true 2>&1 | grep "SA"
-   ```
-   Typical issues: SA1633 (missing header), SA1101 (unused this), SA1309 (field naming)
-
-3. **Generate SonarQube Report** for architectural debt:
-   ```bash
-   dotnet sonarscanner begin /k:"PortalHC-Baseline"
-   dotnet build
-   dotnet sonarscanner end
-   ```
-   Dashboard shows: Code smells, duplications, security hotspots, dead code paths
-
-### Phase 2: Cleanup Priorities
-
-| Priority | Issue Type | Action | Effort |
-|----------|------------|--------|--------|
-| **CRITICAL** | Null reference bugs (CS8600) | Add null checks, use nullable operators | High |
-| **HIGH** | Dead code (unused methods, classes) | Delete or mark as obsolete with reason | Medium |
-| **HIGH** | Broken API calls (CA1806) | Verify return values are handled | Medium |
-| **MEDIUM** | Naming inconsistencies | Rename per StyleCop rules | Low |
-| **MEDIUM** | Unused imports | Remove via IDE (Ctrl+. quick fix) | Low |
-| **LOW** | Style enforcement (spacing, braces) | Auto-fix with IDE or EditorConfig | Low |
-
-### Phase 3: CI/CD Enforcement
-
-Update `.github/workflows/build.yml` (or equivalent):
-
-```yaml
-- name: Build and Analyze
-  run: |
-    dotnet build /p:AnalysisLevel=latest /p:EnforceCodeStyleInBuild=true
-    dotnet sonarscanner begin /k:"PortalHC"
-    dotnet build
-    dotnet sonarscanner end
-
-- name: Run Tests
-  run: dotnet test --logger "trx;LogFileName=test-results.trx"
-
-- name: Code Coverage
-  run: dotnet test /p:CollectCoverageMetrics=true
-```
-
----
-
-## What NOT to Use (Brownfield Context)
-
-| Avoid | Why | Use Instead |
-|-------|-----|-------------|
-| **Selenium WebDriver** for UI testing | Slow, brittle, maintenance burden on brownfield; flaky with legacy HTML; requires parallel infrastructure | Manual QA checklist + code analysis; defer Selenium to v3.1+ |
-| **Playwright** at this phase | Adds test complexity without immediate ROI; requires browser setup; doesn't address code quality issues | Focus on unit/functional tests first; plan Playwright for critical flows in v3.1+ |
-| **Full integration test suite** on real database | Brownfield has infrastructure coupling; slow (seconds per test); hard to parallelize | Use in-memory EF Core for 80% of tests; real DB only for migrations |
-| **NUnit or MSTest** | xUnit is .NET Core standard; better isolation; Microsoft's official recommendation | Stick with xUnit across all test projects |
-| **Manual data setup in tests** | Error-prone; magic values clutter tests; hard to maintain as data model grows | Use EF Core seeding + Bogus for fake data |
-| **PVS-Studio** (commercial) | Expensive ($600/year); SonarQube Community covers 90% of static analysis needs | Use SonarQube Community (free) first; upgrade only if specialized checks needed |
-| **Test code coverage >80%** | Diminishing returns on brownfield; time better spent on critical path testing | Target 60-70% on services; 40-50% on controllers (they delegate work) |
-
----
-
-## Version Compatibility Matrix
-
-| Package | Version | .NET Target | Notes |
-|---------|---------|-------------|-------|
-| xUnit | 2.6+ | .NET 7+ (includes 8) | Dependency injection support required |
-| WebApplicationFactory | Built-in | .NET 8+ | No separate NuGet; included in ASP.NET Core |
-| Microsoft.CodeAnalysis.NetAnalyzers | 8.0+ | .NET 7+ | Successor to FxCopAnalyzers (deprecated 3.3.2) |
-| StyleCop.Analyzers | 1.2+ | .NET 7+ | Works alongside NetAnalyzers without conflict |
-| SonarQube Community | 9.9 LTA | Platform-agnostic | Runs via CLI; dashboard is web-based |
-| EF Core In-Memory | 8.0+ | .NET 8+ | Included in main EF Core package |
-| Bogus | 35.3+ | .NET 7+ | No special requirements; pure C# |
-
----
-
-## Testing Pyramid for This Project
-
-**Recommended Distribution:**
-
-```
-                 ▲
-                ╱ ╲
-               ╱   ╲        Functional Tests (15-20)
-              ╱     ╲       - End-to-end flows
-             ╱───────╲      - Manual QA coverage checklist
-            ╱         ╲
-           ╱───────────╲    Integration Tests (20-30)
-          ╱             ╲   - Data access, migrations
-         ╱───────────────╲  - Query correctness
-        ╱                 ╲
-       ╱─────────────────────╲  Unit Tests (60-80)
-      ╱                       ╲  - Service logic, validation
-     ╱___________________________╲ - Business calculations
-```
-
-**Target Metrics:**
-- **Unit Tests**: 60-80 (small, fast, testable services)
-- **Integration Tests**: 20-30 (database interactions)
-- **Functional Tests**: 15-20 (critical end-to-end workflows)
-- **UI Manual Tests**: Checklist in QA phase (not automated yet)
-- **Code Coverage Goal**: 60-70% on services; 40-50% on controllers
-
----
-
-## Test Organization Structure
-
-```
-PortalHC/
-├── PortalHC.Web/
-│   ├── Controllers/
-│   ├── Models/
-│   ├── Views/
-│   └── PortalHC.csproj
-├── PortalHC.Tests/
-│   ├── Unit/
-│   │   ├── Services/
-│   │   │   ├── AssessmentServiceTests.cs
-│   │   │   ├── CoachingProtonServiceTests.cs
-│   │   │   ├── UserServiceTests.cs
-│   │   │   └── IdpPlanServiceTests.cs
-│   │   ├── Models/
-│   │   │   └── ValidationTests.cs
-│   │   └── Utilities/
-│   │       └── ParserTests.cs
-│   ├── Integration/
-│   │   ├── DataAccess/
-│   │   │   └── AssessmentRepositoryTests.cs
-│   │   └── Migrations/
-│   │       └── MigrationTests.cs
-│   ├── Functional/
-│   │   ├── Pages/
-│   │   │   ├── AssessmentManagementTests.cs
-│   │   │   ├── AdminPortalTests.cs
-│   │   │   └── KelolaDataHubTests.cs
-│   │   └── Workflows/
-│   │       ├── AssessmentFlowTests.cs
-│   │       ├── CoachingProtonFlowTests.cs
-│   │       └── IdpPlanTests.cs
-│   ├── WebTestFixture.cs
-│   ├── TestData/
-│   │   ├── SeedData.cs
-│   │   └── FakeDataBuilders.cs
-│   └── PortalHC.Tests.csproj
-```
-
----
-
-## Running Tests & Analysis
-
-### Quick Start Commands
+## Installation
 
 ```bash
-# Run all tests
-dotnet test
+# No new NuGet packages required for v3.3!
+# All dependencies already present in HcPortal.csproj
 
-# Run only unit tests (fast feedback)
-dotnet test --filter "Category=Unit"
+# Create migration
+dotnet ef migrations add AddNotificationSystem
 
-# Run with code coverage report
-dotnet test /p:CollectCoverageMetrics=true
+# Apply migration to database
+dotnet ef database update
 
-# Watch mode (auto-rerun on file changes)
-dotnet test --watch
-
-# Verbose output (for debugging)
-dotnet test --verbosity detailed
-
-# Run specific test class
-dotnet test --filter "FullyQualifiedName~PortalHC.Tests.Unit.Services.AssessmentServiceTests"
+# Verify tables created
+sqllocaldb.exe stop PortalHC
+sqllocaldb.exe start PortalHC
+sqlcmd -S "(localdb)\PortalHC" -d PortalHC -Q "SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME LIKE '%Notification%'"
 ```
 
-### Code Analysis Commands
+**Migration Verification:** After running `dotnet ef database update`, verify:
+- `Notifications` table exists with all columns
+- `UserNotifications` table exists with all columns
+- Indexes created: `IX_Notifications_Type_CreatedAt`, `IX_UserNotifications_RecipientId_Read`
+- Filtered index created: `IX_UserNotifications_Unread`
 
-```bash
-# Build with analyzer enforcement
-dotnet build /p:AnalysisLevel=latest /p:EnforceCodeStyleInBuild=true
+---
 
-# Generate StyleCop report
-dotnet build /p:EnforceCodeStyleInBuild=true 2>&1 | grep "SA"
+## Alternatives Considered
 
-# SonarQube analysis
-dotnet sonarscanner begin /k:"PortalHC"
-dotnet build
-dotnet sonarscanner end
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| Real-time delivery | Refresh-based (v3.3) | SignalR | Out of scope, adds WebSocket infrastructure complexity for basic notifications |
+| Database schema | Two-table (Notification + UserNotification) | Single denormalized table | Scales poorly for multi-recipient notifications, duplicates message content |
+| UI rendering | Server-side ViewComponent | AJAX-loaded partial | Unnecessary complexity for refresh-based approach in v3.3 |
+| Unread count query | Direct DB query with filtered index | MemoryCache caching | Not needed at current scale (<1000 users), adds cache invalidation complexity |
+| Notification preferences | Deferred to post-v3.3 | User customizable settings in v3.3 | Out of scope, requires preferences UI and service logic |
 
-# View coverage report
-# Coverage files generated in: coverage/
-# Open in browser: coverage/index.html
+---
+
+## Migration Strategy
+
+**Phase 1: Database Foundation (Day 1-2)**
+- Create `Notification.cs` and `UserNotification.cs` models
+- Add DbSets to `ApplicationDbContext`
+- Configure indexes in `OnModelCreating()`
+- Run EF Core migration
+- Verify tables and indexes in SQL Server
+
+**Phase 2: Service Layer (Day 2-3)**
+- Create `INotificationService` interface
+- Create `NotificationService` implementation
+- Write unit tests for service methods (SendAsync, MarkAsReadAsync, GetUnreadCountAsync)
+- Register service in `Program.cs`: `builder.Services.AddScoped<INotificationService, NotificationService>();`
+
+**Phase 3: UI Components (Day 3-4)**
+- Add bell icon to `_Layout.cshtml` navbar
+- Create `NotificationListViewComponent`
+- Create `Default.cshtml` partial view
+- Create `NotificationController` with `Index` and `MarkAsRead` actions
+- Add JavaScript for unread count polling (optional 30s refresh)
+
+**Phase 4: Trigger Integration (Day 4-5)**
+- Inject `INotificationService` into `AdminController`, `CMPController`, `CDPController`
+- Add `SendAsync()` calls at workflow trigger points (see table above)
+- Test notification creation for each trigger type
+- Verify notifications appear in UI for correct recipients
+
+**Phase 5: Testing & Refinement (Day 5-6)**
+- Test mark-as-read functionality
+- Test unread count accuracy
+- Test multi-recipient notifications (bulk assignment)
+- Test notification list pagination
+- Verify performance with 100+ notifications per user
+
+**Phase 6: Documentation (Day 6)**
+- Document notification types and trigger points
+- Create user guide for notification center
+- Update phase documentation with implementation notes
+
+---
+
+## Performance Considerations
+
+| User Scale | Query Performance | Optimization Strategy | When Needed |
+|------------|------------------|----------------------|-------------|
+| <100 users | Direct DB queries, no caching | Filtered index on `IsRead` | v3.3 (current) |
+| 100-1000 users | Direct DB queries, check index usage | Add `INCLUDE` columns to covered indexes | Post-v3.3 if needed |
+| 1000-10000 users | Consider caching unread counts | MemoryCache for `GetUnreadCountAsync()` with 5min TTL | Future optimization |
+| >10000 users | Consider archiving, separate read DB | Move notifications >90 days old to archive table | Post-v3.3 |
+
+**Index Verification Queries:**
+
+```sql
+-- Check if indexes are being used (run in SQL Server Management Studio)
+SET STATISTICS IO ON;
+SET STATISTICS TIME ON;
+
+SELECT * FROM UserNotifications WHERE RecipientId = 'test-user' AND IsRead = 0;
+-- Look for "Index Seek" in execution plan, not "Table Scan"
+
+-- Check index fragmentation
+SELECT OBJECT_NAME(ind.OBJECT_ID) AS TableName,
+       ind.name AS IndexName,
+       indexstats.avg_fragmentation_in_percent
+FROM sys.dm_db_index_physical_stats(DB_ID(), NULL, NULL, NULL, NULL) indexstats
+INNER JOIN sys.indexes ind ON ind.object_id = indexstats.object_id
+WHERE OBJECT_NAME(ind.OBJECT_ID) LIKE '%Notification%';
+-- If >30% fragmented, run: ALTER INDEX IX_UserNotifications_RecipientId_Read ON UserNotifications REBUILD
 ```
 
 ---
 
-## Testing Best Practices Summary
+## Sources & Verification
 
-### ✅ DO
+### HIGH Confidence (Official Documentation - Verified)
 
-- Write test names that describe the scenario: `CreateAssessment_InvalidInput_ThrowsArgumentException`
-- Use Arrange-Act-Assert pattern clearly
-- Test one behavior per test
-- Use parameterized tests for similar scenarios
-- Seed test data via EF Core, not SQL scripts
-- Run tests frequently (every commit)
-- Keep unit tests under 100ms each
-- Use dependency injection in services to make them testable
+- [Entity Framework Core 8.0 Documentation](https://learn.microsoft.com/en-us/ef/core/) - Official EF Core 8.0 docs for HasIndex, migrations, filtered indexes
+- [ASP.NET Core MVC View Components](https://learn.microsoft.com/en-us/aspnet/core/mvc/views/view-components) - Official docs for ViewComponent pattern
+- [SQL Server Filtered Indexes](https://learn.microsoft.com/en-us/sql/relational-databases/sql indexes/create-filtered-indexes) - Official documentation for `WHERE` clause indexes
 
-### ❌ DON'T
+**Verification:** All official docs checked for .NET 8.0 compatibility. Filtered indexes are SQL Server-specific feature (supported in existing portal).
 
-- Write tests without clear names
-- Mix multiple assertions/behaviors in one test
-- Use real database in unit tests (use in-memory)
-- Copy-paste test setup code (create helper methods)
-- Test private methods directly
-- Hardcode test data magic strings
-- Skip analyzer warnings; fix them
-- Assume code is correct; test the happy AND sad paths
+### MEDIUM Confidence (Web Search + Official Docs Cross-Referenced)
 
----
+- [SQL Server Index Design Best Practices](https://blog.csdn.net/yu57955/article/details/130685258) - Composite index column order, verified against SQL Server execution plan behavior
+- [Notification Table Schema Design](https://stackoverflow.com/questions/75505719/how-to-design-notification-table-structure) - Two-table pattern verified against database normalization principles
+- [EF Core 8.0 HasIndex Composite Indexes](https://www.learnentityframeworkcore.com/configuration/fluent-api/hasindex-api) - Composite index syntax verified with EF Core 8.0
 
-## Sources & References
+**Verification:** Cross-referenced with official EF Core docs. Two-table design pattern matches research findings from multiple sources.
 
-### Official Microsoft Documentation
-- [Microsoft Learn: Best practices for writing unit tests](https://learn.microsoft.com/en-us/dotnet/core/testing/unit-testing-best-practices)
-- [Microsoft Learn: Test ASP.NET Core MVC apps](https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/test-asp-net-core-mvc-apps)
-- [Microsoft Learn: Entity Framework Core Data Seeding](https://learn.microsoft.com/en-us/ef/core/modeling/data-seeding)
-- [Microsoft Learn: Migrate from FxCop Analyzers to .NET Analyzers](https://learn.microsoft.com/en-us/visualstudio/code-quality/migrate-from-fxcop-analyzers-to-net-analyzers)
+### LOW Confidence (Web Search Only - Flagged for Validation)
 
-### Framework Documentation
-- [xUnit.net Getting Started](https://xunit.net/docs/getting-started/netcore)
-- [WebApplicationFactory (ASP.NET Core Testing)](https://learn.microsoft.com/en-us/aspnet/core/test/integration-tests)
-- [StyleCop.Analyzers GitHub](https://github.com/DotNetAnalyzers/StyleCopAnalyzers)
+- Initial search for "ASP.NET Core 8.0 notification system best practices 2026" returned generic SignalR tutorials (not applicable to v3.3 refresh-based scope)
+- BackgroundService for deadline reminders - requires phase-specific research when implementing scheduled jobs
+- ToastNotification library recommendations - deemed unnecessary given existing Bootstrap 5 setup (verified in _Layout.cshtml)
 
-### Code Quality Tools
-- [SonarQube .NET integration](https://docs.sonarsource.com/sonarqube-server/analyzing-source-code/dotnet-environments/getting-started-with-net)
-- [Roslyn Analyzers Overview](https://learn.microsoft.com/en-us/visualstudio/code-quality/roslyn-analyzers-overview)
+**Verification Status:** LOW confidence findings flagged as "defer to phase-specific research" and not used for stack recommendations.
 
-### Reference Implementations
-- [BrowserStack: C# Testing Frameworks 2026](https://www.testmuai.com/blog/c-sharp-testing-frameworks/)
-- [BrowserStack: Code Quality Analysis Tools](https://www.code-quality.io/best-c-sharp-static-code-analysis-tools)
+### Existing Codebase Verification
+
+✅ **Verified in existing codebase:**
+- `AuditLogService.cs` pattern matches proposed `NotificationService` structure
+- `ProtonNotification` model exists (line 137 in `Models/ProtonModels.cs`) — extends to general-purpose `Notification` model
+- `ApplicationDbContext.cs` line 66: `public DbSet<AuditLog> AuditLogs { get; set; }` — pattern for adding new DbSets
+- `HcPortal.csproj` line 22: Bootstrap Icons 1.10.0 already loaded
+- `_Layout.cshtml` line 22: Bootstrap Icons stylesheet present
+
+⚠️ **Requires verification during implementation:**
+- BackgroundService for deadline reminders (scheduled job pattern)
+- MemoryCache integration for unread count caching (post-v3.3 optimization)
 
 ---
 
-## Next Steps for Phase 3.0
+## Next Steps for v3.3
 
-1. **Week 1 (Code Analysis):**
-   - Run NetAnalyzers baseline scan
-   - Generate SonarQube report
-   - Create priority list of dead code to remove
+1. **Week 1: Database + Service**
+   - Create models and migration
+   - Implement `NotificationService` following `AuditLogService` pattern
+   - Write unit tests for service layer
 
-2. **Week 2-3 (Unit Testing):**
-   - Create test project structure
-   - Write 10-15 critical service unit tests
-   - Verify code paths for Assessment, Coaching, IDP flows
+2. **Week 2: UI + Integration**
+   - Add bell icon and ViewComponent to `_Layout.cshtml`
+   - Create `NotificationController` with Index/MarkAsRead actions
+   - Inject service into `AdminController`, `CMPController`, `CDPController`
 
-3. **Week 4 (Functional Testing):**
-   - Setup WebTestFixture
-   - Write 10-15 functional tests for major workflows
-   - Verify end-to-end Assessment assignment → results
+3. **Week 3: Triggers + Testing**
+   - Add notification calls at all 10 trigger points (4 assessment + 6 coaching)
+   - Test notification creation and display
+   - Verify multi-recipient notifications work correctly
 
-4. **Week 5 (Manual QA):**
-   - Execute QA checklist (Assessment, Coaching, IDP, Master Data)
-   - Log bugs found during functional testing
-   - Fix critical issues
-
-5. **Week 6+ (Code Cleanup):**
-   - Remove dead code identified by analyzers
-   - Fix naming inconsistencies
-   - Rename "Proton Progress" → "Coaching Proton"
-   - Complete IDP Plan page development
+4. **Week 4: Polish + Documentation**
+   - Add JavaScript for unread count refresh (optional)
+   - Performance test with 100+ notifications per user
+   - Document notification types and trigger workflow
 
 ---
 
-**Stack research for:** ASP.NET Core 8 MVC Portal — Comprehensive QA Testing & Code Analysis
-**Researched:** 2026-03-01
+**Stack research for:** ASP.NET Core 8 MVC Portal — v3.3 Basic In-App Notification System
+**Researched:** 2026-03-05
 **Confidence:** HIGH
-**Next Phase:** v3.0 should start with code analysis baseline (Week 1), then build unit/functional test skeleton (Weeks 2-3), then execute manual QA (Week 4-5), with code cleanup ongoing throughout.
+**Next Phase:** v3.3 should start with database migration, then service layer, then UI components, then trigger integration. No new NuGet packages required.

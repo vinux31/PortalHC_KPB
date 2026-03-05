@@ -1,515 +1,692 @@
-# Architecture Research
+# Architecture Patterns
 
-**Domain:** ASP.NET Core 8 MVC — v1.2 UX Consolidation (Portal HC KPB)
-**Researched:** 2026-02-18
-**Confidence:** HIGH — based on direct codebase inspection
+**Domain:** ASP.NET Core MVC — Notification System Integration
+**Researched:** 2026-03-05
+**Overall confidence:** HIGH
 
----
+## Executive Summary
 
-## System Overview
+Notification systems in ASP.NET Core MVC integrate through a **service layer pattern** that mirrors your existing `AuditLogService`. The architecture consists of three layers: (1) **Database model** (Notification entity in DbContext), (2) **Service layer** (NotificationService with scoped DI), and (3) **Trigger points** (controller actions that create notifications). Your portal already has a `ProtonNotification` model and basic notification creation in `CDPController` — extending this to Assessment workflows requires following the same pattern.
+
+**Key architectural insight:** Your existing `AuditLogService` IS the pattern to follow. It demonstrates proper scoped DbContext injection, async operations, and clean separation from controllers. The notification system should be implemented as `NotificationService` with the same structure: injected into controllers, called at trigger points, and persisting to the database.
+
+**Critical integration points:** (1) `ApplicationDbContext.Notifications` DbSet (already exists as `ProtonNotifications`), (2) Service registration in `Program.cs` (`builder.Services.AddScoped<NotificationService>()`), (3) Controller constructor injection, (4) Trigger points in Assessment and Coaching Proton workflows.
+
+## Recommended Architecture
+
+### Component Boundaries
+
+| Component | Responsibility | Communicates With |
+|-----------|---------------|-------------------|
+| **Notification Model** | Data persistence (recipient, message, read status, type, created timestamp) | ApplicationDbContext via DbSet |
+| **NotificationService** | Business logic for creating, retrieving, marking notifications as read | ApplicationDbContext (via constructor injection) |
+| **Controllers** | Workflow trigger points that call NotificationService | NotificationService (via constructor injection) |
+| **Views (Shared/_Layout)** | Notification UI (bell icon, dropdown list, unread count) | Controller action endpoint for JSON data |
+| **Background Service** (optional, future) | Scheduled deadline reminder notifications | NotificationService + AssessmentSession data |
+
+### Data Flow
 
 ```
-Browser (Razor + Bootstrap 5 + Chart.js)
-    |
-    v
-ASP.NET Core 8 MVC  [Authorize] on all controllers
-    |
-    +-- CMPController  (~1840 lines)
-    |       Assessment, Records, ReportsIndex, CompetencyGap, CpdpProgress,
-    |       CreateAssessment, StartExam, SubmitExam, Certificate, Results,
-    |       ManageQuestions, EditAssessment, DeleteAssessment, ExportResults,
-    |       UserAssessmentHistory, SearchUsers
-    |
-    +-- CDPController  (~1475 lines)
-    |       Dashboard, DevDashboard, Coaching, CreateSession, AddActionItem,
-    |       PlanIdp, Progress, ProtonMain, AssignTrack, Deliverable,
-    |       ApproveDeliverable, RejectDeliverable, UploadEvidence,
-    |       HCApprovals, CreateFinalAssessment, HCReviewDeliverable
-    |
-    +-- HomeController, AccountController, BPController
-    |
-    v
-ApplicationDbContext  (EF Core + SQL Server)
-    |
-    +-- AssessmentSessions, AssessmentQuestions, AssessmentOptions, UserResponses
-    +-- TrainingRecords
-    +-- IdpItems
-    +-- KkjMatrices, CpdpItems, AssessmentCompetencyMaps, UserCompetencyLevels
-    +-- ProtonTrackAssignments, ProtonDeliverableProgresses,
-    |   ProtonKompetensiList, ProtonFinalAssessments, ProtonNotifications
-    +-- CoachingSessions, ActionItems
-    +-- AspNetUsers (ApplicationUser: FullName, NIP, Section, Unit, RoleLevel, SelectedView)
+[User Action] → [Controller Action] → [NotificationService.SendAsync()]
+                                         ↓
+                                   [DbContext.Notifications.Add()]
+                                         ↓
+                                   [DbContext.SaveChangesAsync()]
+                                         ↓
+                                   [Notification persisted to DB]
+                                         ↓
+[Browser Poll] → [Controller Action: GetNotifications()] → [JSON response]
+                                         ↓
+                                   [View renders bell icon + list]
 ```
 
-### Component Responsibilities
+**Example: Assessment Assignment Notification**
 
-| Component | Responsibility | Key Notes |
-|-----------|---------------|-----------|
-| CMPController | Assessment lifecycle, TrainingRecords, HC Reports, CompetencyGap | 1840 lines; CompetencyGap being deleted |
-| CDPController | CDP Dashboard, Dev Dashboard, Coaching, Proton workflow | 1475 lines; absorbs HC Reports and Dev Dashboard |
-| ApplicationUser.SelectedView | Admin role-switching (HC/Atasan/Coach/Coachee) | Persisted to DB per user |
-| ApplicationUser.RoleLevel | Integer hierarchy 1=Admin … 6=Coachee | Drives scope logic in DevDashboard |
-| DashboardViewModel | Current CDP Dashboard model | Replaced by CDPDashboardViewModel |
-| ReportsDashboardViewModel | HC Reports model — paginated assessments, category stats | Currently lives in CMPController.ReportsIndex; absorbed into Dashboard |
-| DevDashboardViewModel | Dev Dashboard — Proton deliverable progress per coachee | Absorbed into Dashboard as sub-model |
+```mermaid
+sequenceDiagram
+    participant HC as HC/Admin User
+    participant Controller as AdminController
+    participant Service as NotificationService
+    participant DB as ApplicationDbContext
+    participant Worker as Worker User (Browser)
 
----
+    HC->>Controller: POST CreateAssessment (assigns workers)
+    Controller->>Service: SendAssignmentNotification(workerIds, assessmentId)
+    loop Each worker
+        Service->>DB: Notifications.Add(new Notification)
+    end
+    Service->>DB: SaveChangesAsync()
+    Controller-->>HC: Redirect to Assessment List
 
-## Scope of v1.2 Changes
+    Note over Worker: Later: Page refresh or navigation
+    Worker->>Controller: GET /Notification/GetUnreadCount
+    Controller->>DB: Notifications.Count(n => !n.IsRead && n.RecipientId == currentUser)
+    Controller-->>Worker: JSON: { count: 3 }
 
-### Component Classification
-
-#### DELETED
-
-| Component | File | Verification before delete |
-|-----------|------|---------------------------|
-| `CMPController.CompetencyGap()` action | CMPController.cs lines 1533-1632 | No other action calls it |
-| `CMPController.GenerateIdpSuggestion()` helper | CMPController.cs lines 1815-1837 | Only called from CompetencyGap() |
-| `Views/CMP/CompetencyGap.cshtml` | Views/CMP/ | Delete file |
-| `CompetencyGapViewModel` / `CompetencyGapItem` classes | Models/Competency/CompetencyGapViewModel.cs | Grep for usages first; no other consumers expected |
-| Any nav link / button pointing to `CMP/CompetencyGap` | Views/CMP/Index.cshtml, _Layout.cshtml | Layout has no current link; check CMP/Index.cshtml |
-
-What is NOT deleted: `UserCompetencyLevels` DB table, `AssessmentCompetencyMaps` table, `KkjMatrices` table, `CpdpProgress()` action — all still used by other features.
-
-#### MODIFIED
-
-| Component | What Changes |
-|-----------|-------------|
-| `CMPController.Assessment()` | Add status filter for "personal" branch (Open/Upcoming only). Add "monitor" as a valid third view value for HC/Admin |
-| `Views/CMP/Assessment.cshtml` | Add monitor tab/toggle (only rendered when canManage == true). Add callout on personal view linking to Records for completed assessments |
-| `CMPController.Records()` | Replace `GetPersonalTrainingRecords()` for Coachee path with `BuildUnifiedRecords()`. Supervisor/HC paths unchanged |
-| `CMPController.WorkerDetail()` | Optionally update to also use unified records |
-| `Views/CMP/Records.cshtml` | Change `@model List<TrainingRecord>` to `@model List<UnifiedCapabilityRecord>`. Add Type column, conditional Score/Certificate columns |
-| `Views/CMP/WorkerDetail.cshtml` | Same model change as Records.cshtml if WorkerDetail calls the same helper |
-| `CDPController.Dashboard()` | Absorb ReportsIndex query logic and DevDashboard query logic. Build CDPDashboardViewModel instead of DashboardViewModel |
-| `Views/CDP/Dashboard.cshtml` | Add Bootstrap tab nav with three tab panes: Overview, HC Reports, Dev Dashboard |
-| `Views/Shared/_Layout.cshtml` | Remove standalone "Dev Dashboard" nav entry (line 70) after Dashboard tab is verified |
-
-#### NEW
-
-| Component | Purpose | File |
-|-----------|---------|------|
-| `UnifiedCapabilityRecord` ViewModel | UNION DTO merging AssessmentSession and TrainingRecord rows | Models/UnifiedCapabilityRecord.cs |
-| `CDPDashboardViewModel` | Composite model for unified Dashboard: IDP stats + HcReports sub-model + DevDashboard sub-model | Models/CDPDashboardViewModel.cs |
-| `Views/CDP/_HCReportsPartial.cshtml` | Partial view for HC Reports tab content | Views/CDP/_HCReportsPartial.cshtml |
-| `Views/CDP/_DevDashboardPartial.cshtml` | Partial view for Dev Dashboard tab content | Views/CDP/_DevDashboardPartial.cshtml |
-
----
-
-## Integration Points: Detailed
-
-### 1. Assessment Page — Status Filter + HC Monitor View
-
-**Current query:**
-```
-CMPController.Assessment(view="personal")
-    -> WHERE UserId == me   (all statuses)
-CMPController.Assessment(view="manage")
-    -> WHERE (no filter)    (HC/Admin — all users, all statuses)
+    Worker->>Controller: GET /Notification/GetList
+    Controller->>DB: Notifications.Where(n => n.RecipientId == currentUser)
+    Controller-->>Worker: JSON: [{ id, message, type, createdAt }]
+    Worker->>Worker: Render bell badge + dropdown list
 ```
 
-**New query:**
-```
-view="personal"
-    -> WHERE UserId == me AND Status IN ("Open", "Upcoming")
-       (completed excluded — they appear in Records instead)
+## Existing Architecture Analysis
 
-view="manage"
-    -> unchanged (Admin/HC full control — all statuses, all users)
+### Current State (HIGH Confidence — Direct Code Inspection)
 
-view="monitor"    [new, HC/Admin only]
-    -> WHERE Status IN ("Open", "Upcoming")
-       system-wide across all users
-       include User navigation property for name/section display
-```
+**ProtonNotification Model** (`Models/ProtonModels.cs:137-152`):
+- Already exists with fields: `Id`, `RecipientId`, `CoacheeId`, `CoacheeName`, `Message`, `Type`, `IsRead`, `CreatedAt`, `ReadAt`
+- Limited to Coaching Proton workflow (`Type = "AllDeliverablesComplete"`)
+- **Missing fields for Assessment notifications:** `TargetId` (link to AssessmentSession), `ActionUrl` (deep link), `Priority` (urgent/normal)
 
-**What touches it:**
-- `CMPController.Assessment()` — add `view == "monitor"` branch; add Status filter on "personal" branch
-- `Views/CMP/Assessment.cshtml` — add third toggle button (monitor); gate it on `canManage == true`; add info callout on personal view
+**DbContext Integration** (`Data/ApplicationDbContext.cs:49, 341-346`):
+- `DbSet<ProtonNotification> ProtonNotifications` already registered
+- Indexes configured: `RecipientId`, `(RecipientId, IsRead)`, `CoacheeId`
+- **Status:** Database schema is complete and functional
 
-**Risk:** Workers who previously found completed assessments here will find an empty area. The callout linking to Records.cshtml is required.
+**Current Usage Pattern** (`Controllers/CDPController.cs:1026`):
+- Direct DbContext usage: `_context.ProtonNotifications.AddRange(notifications)`
+- No dedicated service layer — notifications created inline in controller
+- **Pattern to improve:** Extract to `NotificationService` for consistency with `AuditLogService`
 
----
+**Service Layer Pattern** (`Services/AuditLogService.cs:9-44`):
+- **This IS the reference implementation:**
+  - Constructor injection of `ApplicationDbContext`
+  - Async method `LogAsync()` that encapsulates business logic
+  - Internal `SaveChangesAsync()` call (no need for controller to save)
+  - Registered in `Program.cs:50` as scoped service: `builder.Services.AddScoped<AuditLogService>()`
 
-### 2. Training Records — Unified UNION ViewModel
+### Dependency Injection Setup (HIGH Confidence — Direct Code Inspection)
 
-**Current:**
+**Program.cs Configuration**:
 ```csharp
-// Records.cshtml
-@model List<HcPortal.Models.TrainingRecord>
+// Line 26-27: DbContext registered as scoped
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
 
-// Controller (Coachee path)
-var trainingRecords = GetPersonalTrainingRecords(userId);
-return View("Records", trainingRecords);
+// Line 30-47: Identity configured with ApplicationUser
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(...)
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+
+// Line 50: AuditLogService registered as scoped
+builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
+
+// Pattern to follow for NotificationService:
+builder.Services.AddScoped<HcPortal.Services.NotificationService>();
 ```
 
-**New ViewModel shape:**
+**Controller Injection Pattern** (from `AdminController.cs:17-41`):
 ```csharp
-public class UnifiedCapabilityRecord
+[Authorize]
+public class AdminController : Controller
 {
-    public int      Id            { get; set; }
-    public string   RecordType    { get; set; }  // "Assessment" | "Training"
-    public string   Title         { get; set; }  // Session.Title or TrainingRecord.Judul
-    public string   Category      { get; set; }  // Session.Category or TrainingRecord.Kategori
-    public DateTime Date          { get; set; }  // Session.CompletedAt or TrainingRecord.Tanggal
-    public string   Status        { get; set; }  // "Passed"/"Failed" or original Training status
-    public int?     Score         { get; set; }  // Assessment only; null for Training rows
-    public bool?    IsPassed      { get; set; }  // Assessment only; null for Training rows
-    public string?  SertifikatUrl { get; set; }  // Training only; null for Assessment rows
-    public DateTime? ValidUntil   { get; set; }  // Training only; null for Assessment rows
-    public int?     AssessmentId  { get; set; }  // Set for Assessment rows — enables link to Results/Certificate
+    private readonly ApplicationDbContext _context;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly AuditLogService _auditLog;  // ← Pattern to follow
+
+    public AdminController(
+        ApplicationDbContext context,
+        UserManager<ApplicationUser> userManager,
+        AuditLogService auditLog)  // ← Constructor injection
+    {
+        _context = context;
+        _userManager = userManager;
+        _auditLog = auditLog;
+    }
+
+    // Usage example (from existing codebase):
+    await _auditLog.LogAsync(
+        actorUserId: user.Id,
+        actorName: user.FullName,
+        actionType: "CreateAssessment",
+        description: $"Created assessment '{assessment.Title}'"
+    );
 }
 ```
 
-**Query pattern for BuildUnifiedRecords(userId):**
+## Patterns to Follow
+
+### Pattern 1: NotificationService (Core Pattern)
+
+**What:** Service layer that encapsulates all notification creation/retrieval logic
+
+**When:** Any controller action that needs to create or retrieve notifications
+
+**Example implementation:**
+
 ```csharp
-// Fetch completed+passed assessments
-var assessmentRows = await _context.AssessmentSessions
-    .Where(a => a.UserId == userId && a.Status == "Completed" && a.IsPassed == true)
-    .Select(a => new UnifiedCapabilityRecord
-    {
-        Id = a.Id, RecordType = "Assessment",
-        Title = a.Title, Category = a.Category,
-        Date = a.CompletedAt ?? a.Schedule,
-        Status = "Passed", Score = a.Score,
-        IsPassed = a.IsPassed, AssessmentId = a.Id
-    }).ToListAsync();
-
-// Fetch training records
-var trainingRows = await _context.TrainingRecords
-    .Where(t => t.UserId == userId)
-    .Select(t => new UnifiedCapabilityRecord
-    {
-        Id = t.Id, RecordType = "Training",
-        Title = t.Judul ?? "", Category = t.Kategori ?? "",
-        Date = t.Tanggal, Status = t.Status ?? "",
-        SertifikatUrl = t.SertifikatUrl, ValidUntil = t.ValidUntil
-    }).ToListAsync();
-
-return assessmentRows.Concat(trainingRows)
-    .OrderByDescending(r => r.Date)
-    .ToList();
-```
-
-**Column rendering matrix:**
-
-| Column | Assessment row | Training row |
-|--------|---------------|-------------|
-| Type badge | "Assessment" (blue) | "Training" (green) |
-| Title | Session.Title | TrainingRecord.Judul |
-| Category | Session.Category | TrainingRecord.Kategori |
-| Date | CompletedAt | Tanggal |
-| Score | Shown if non-null | Hidden |
-| Pass/Fail badge | Shown | Hidden |
-| Certificate link | Link to CMP/Certificate/{AssessmentId} | SertifikatUrl anchor |
-| Valid Until | Hidden | Shown if non-null |
-
-**What touches it:**
-- `Models/UnifiedCapabilityRecord.cs` — create
-- `CMPController.Records()` — replace Coachee path; supervisor/HC paths unchanged
-- `Views/CMP/Records.cshtml` — change `@model`, add Type column, conditional columns
-- `Views/CMP/WorkerDetail.cshtml` — same model change
-
----
-
-### 3. Dashboard Consolidation
-
-**Current state:**
-
-| URL | Action | ViewModel |
-|-----|--------|-----------|
-| /CDP/Dashboard | CDPController.Dashboard() | DashboardViewModel |
-| /CDP/DevDashboard | CDPController.DevDashboard() | DevDashboardViewModel |
-| /CMP/ReportsIndex | CMPController.ReportsIndex() | ReportsDashboardViewModel |
-
-**Target state:**
-
-| URL | Action | ViewModel |
-|-----|--------|-----------|
-| /CDP/Dashboard | CDPController.Dashboard() | CDPDashboardViewModel |
-| /CDP/DevDashboard | (keep alive as redirect or standalone) | — |
-| /CMP/ReportsIndex | (keep alive as redirect or standalone) | — |
-
-**CDPDashboardViewModel shape:**
-```csharp
-public class CDPDashboardViewModel
+// Services/NotificationService.cs
+public class NotificationService
 {
-    // Tab 1 — Overview (from existing DashboardViewModel)
-    public int TotalIdp { get; set; }
-    public int IdpGrowth { get; set; }
-    public int CompletionRate { get; set; }
-    public string CompletionTarget { get; set; } = "";
-    public int PendingAssessments { get; set; }
-    public int BudgetUsedPercent { get; set; }
-    public string BudgetUsedText { get; set; } = "";
-    public List<string> ChartLabels { get; set; } = new();
-    public List<int> ChartTarget { get; set; } = new();
-    public List<int> ChartRealization { get; set; } = new();
-    public List<UnitCompliance> TopUnits { get; set; } = new();
-    public int TotalCompletedAssessments { get; set; }
-    public double OverallPassRate { get; set; }
-    public int TotalUsersAssessed { get; set; }
+    private readonly ApplicationDbContext _context;
 
-    // Tab 2 — HC Reports (sub-model from ReportsDashboardViewModel)
-    public ReportsDashboardViewModel HcReports { get; set; } = new();
-    public List<CategoryStatistic> CategoryStats { get; set; } = new();
-    public List<int> ScoreDistribution { get; set; } = new();
+    public NotificationService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
 
-    // Tab 3 — Dev Dashboard (sub-model from DevDashboardViewModel)
-    public DevDashboardViewModel DevDashboard { get; set; } = new();
+    /// <summary>
+    /// Send notification to single recipient. Calls SaveChangesAsync internally.
+    /// </summary>
+    public async Task<Notification> SendAsync(
+        string recipientId,
+        string type,
+        string message,
+        int? targetId = null,
+        string? actionUrl = null,
+        string? coacheeId = null,
+        string? coacheeName = null)
+    {
+        var notification = new Notification
+        {
+            RecipientId = recipientId,
+            Type = type,
+            Message = message,
+            TargetId = targetId,
+            ActionUrl = actionUrl,
+            CoacheeId = coacheeId,
+            CoacheeName = coacheeName,
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.Notifications.Add(notification);
+        await _context.SaveChangesAsync();
+
+        return notification;
+    }
+
+    /// <summary>
+    /// Send same notification to multiple recipients (bulk operation).
+    /// </summary>
+    public async Task SendBulkAsync(
+        IEnumerable<string> recipientIds,
+        string type,
+        string message,
+        int? targetId = null,
+        string? actionUrl = null)
+    {
+        var notifications = recipientIds.Select(recipientId => new Notification
+        {
+            RecipientId = recipientId,
+            Type = type,
+            Message = message,
+            TargetId = targetId,
+            ActionUrl = actionUrl,
+            IsRead = false,
+            CreatedAt = DateTime.UtcNow
+        }).ToList();
+
+        _context.Notifications.AddRange(notifications);
+        await _context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Get unread count for a user. Does NOT call SaveChangesAsync.
+    /// </summary>
+    public async Task<int> GetUnreadCountAsync(string userId)
+    {
+        return await _context.Notifications
+            .Where(n => n.RecipientId == userId && !n.IsRead)
+            .CountAsync();
+    }
+
+    /// <summary>
+    /// Get notification list for a user. Does NOT call SaveChangesAsync.
+    /// </summary>
+    public async Task<List<Notification>> GetUserNotificationsAsync(
+        string userId,
+        int? take = null)
+    {
+        var query = _context.Notifications
+            .Where(n => n.RecipientId == userId)
+            .OrderByDescending(n => n.CreatedAt);
+
+        if (take.HasValue)
+            query = query.Take(take.Value) as IOrderedQueryable<Notification>;
+
+        return await query.ToListAsync();
+    }
+
+    /// <summary>
+    /// Mark notification as read. Calls SaveChangesAsync internally.
+    /// </summary>
+    public async Task MarkAsReadAsync(int notificationId)
+    {
+        var notification = await _context.Notifications.FindAsync(notificationId);
+        if (notification != null && !notification.IsRead)
+        {
+            notification.IsRead = true;
+            notification.ReadAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    /// <summary>
+    /// Mark all notifications for user as read. Calls SaveChangesAsync internally.
+    /// </summary>
+    public async Task MarkAllAsReadAsync(string userId)
+    {
+        var unread = await _context.Notifications
+            .Where(n => n.RecipientId == userId && !n.IsRead)
+            .ToListAsync();
+
+        foreach (var notification in unread)
+        {
+            notification.IsRead = true;
+            notification.ReadAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
+    }
 }
 ```
 
-**Role gating for sub-model population:**
+### Pattern 2: Controller Trigger Points
+
+**What:** Controller actions that call NotificationService after domain events
+
+**When:** After key workflow state changes (assessment assigned, submitted, evidence uploaded, approved)
+
+**Example: Assessment Assignment Notification**
+
 ```csharp
-// Only populate HC Reports and Dev Dashboard for roles that will see those tabs
-bool showHcReports = userRole == UserRoles.HC ||
-                     userRole == UserRoles.Admin ||
-                     userRole == UserRoles.SectionHead ||
-                     userRole == UserRoles.SrSupervisor;
+// Controllers/AdminController.cs
+[HttpPost]
+[ValidateAntiForgeryToken]
+[Authorize(Roles = "Admin, HC")]
+public async Task<IActionResult> CreateAssessment(CreateAssessmentViewModel model)
+{
+    // ... existing validation and assessment creation logic ...
 
-bool showDevDashboard = userRole == UserRoles.HC ||
-                        userRole == UserRoles.Admin ||
-                        userRole == UserRoles.Coach ||
-                        userRole == UserRoles.SectionHead ||
-                        userRole == UserRoles.SrSupervisor;
+    // Create assessment session
+    var assessmentSession = new AssessmentSession { ... };
+    _context.AssessmentSessions.Add(assessmentSession);
+    await _context.SaveChangesAsync();
 
-if (showHcReports) { /* run ReportsIndex query */ }
-if (showDevDashboard) { /* run DevDashboard query */ }
+    // NEW: Send notifications to assigned workers
+    var workerUserIds = model.SelectedWorkerIds; // From form data
+    foreach (var workerId in workerUserIds)
+    {
+        await _notificationService.SendAsync(
+            recipientId: workerId,
+            type: "AssessmentAssigned",
+            message: $"You have been assigned to assessment: {assessmentSession.Title}",
+            targetId: assessmentSession.Id,
+            actionUrl: $"/CMP/StartExam?sessionId={assessmentSession.Id}"
+        );
+    }
+
+    // Audit log (existing pattern)
+    await _auditLog.LogAsync(
+        actorUserId: currentUser.Id,
+        actorName: currentUser.FullName,
+        actionType: "CreateAssessment",
+        description: $"Created assessment '{assessmentSession.Title}' for {workerUserIds.Count} workers"
+    );
+
+    TempData["Success"] = $"Assessment created and {workerUserIds.Count} workers notified.";
+    return RedirectToAction(nameof(AssessmentList));
+}
 ```
 
-**Partial view approach:**
-- `Views/CDP/_HCReportsPartial.cshtml` — accepts `@model ReportsDashboardViewModel`. Contains the table, filters, category charts from CMP/ReportsIndex.cshtml. Rendered inside Dashboard Tab 2 via `<partial name="_HCReportsPartial" model="Model.HcReports" />`.
-- `Views/CDP/_DevDashboardPartial.cshtml` — accepts `@model DevDashboardViewModel`. Contains coachee rows table and doughnut/trend charts from CDP/DevDashboard.cshtml. Rendered inside Dashboard Tab 3 via `<partial name="_DevDashboardPartial" model="Model.DevDashboard" />`.
+**Example: Evidence Approved by SrSpv (Coaching Proton)**
 
-**Tab structure for Dashboard.cshtml:**
+```csharp
+// Controllers/CDPController.cs
+[HttpPost]
+[ValidateAntiForgeryToken]
+public async Task<IActionResult> ApproveEvidence(int deliverableProgressId)
+{
+    // ... existing approval logic ...
+
+    // NEW: Notify SectionHead (next in approval chain)
+    var sectionHeadUsers = await _userManager.Users
+        .Where(u => u.Section == coachee.Section && u.RoleLevel == 4) // L4 = SectionHead
+        .Select(u => u.Id)
+        .ToListAsync();
+
+    foreach (var shId in sectionHeadUsers)
+    {
+        await _notificationService.SendAsync(
+            recipientId: shId,
+            type: "EvidenceApprovedBySrSpv",
+            message: $"Evidence approved by SrSpv for {coachee.FullName}",
+            targetId: deliverableProgressId,
+            actionUrl: $"/CDP/CoachingProton?coacheeId={coachee.Id}",
+            coacheeId: coachee.Id,
+            coacheeName: coachee.FullName
+        );
+    }
+
+    TempData["Success"] = "Evidence approved and SectionHead notified.";
+    return RedirectToAction(nameof(CoachingProton));
+}
+```
+
+### Pattern 3: UI Integration (Bell Icon + Dropdown)
+
+**What:** AJAX-based notification center in shared layout
+
+**When:** On every page load (polling for new notifications)
+
+**Example: Shared/_Layout.cshtml integration**
+
 ```html
-<ul class="nav nav-tabs" id="dashboardTabs">
-    <li class="nav-item"><a class="nav-link active" data-bs-target="#overview">Overview</a></li>
-    @if (canSeeHcReports)
-    {
-        <li class="nav-item"><a class="nav-link" data-bs-target="#hc-reports">HC Reports</a></li>
+<!-- In navbar section -->
+<li class="nav-item position-relative">
+    <a class="nav-link" href="#" id="notificationDropdown" data-bs-toggle="dropdown">
+        <i class="bi bi-bell"></i>
+        <span id="notificationBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display: none;">
+            0
+        </span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end" id="notificationList" style="width: 350px; max-height: 500px; overflow-y: auto;">
+        <li><h6 class="dropdown-header">Notifications</h6></li>
+        <li><hr class="dropdown-divider"></li>
+        <!-- Notifications loaded via AJAX -->
+        <li id="noNotifications" class="dropdown-item text-muted">No new notifications</li>
+    </ul>
+</li>
+
+<script>
+    // Poll every 30 seconds for new notifications
+    setInterval(async () => {
+        const response = await fetch('/Notification/GetUnreadCount');
+        const data = await response.json();
+
+        const badge = document.getElementById('notificationBadge');
+        if (data.count > 0) {
+            badge.textContent = data.count > 99 ? '99+' : data.count;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    }, 30000);
+
+    // Load notification list on dropdown click
+    document.getElementById('notificationDropdown').addEventListener('click', async function() {
+        const response = await fetch('/Notification/GetList');
+        const data = await response.json();
+
+        const list = document.getElementById('notificationList');
+        list.innerHTML = '<li><h6 class="dropdown-header">Notifications</h6></li><li><hr class="dropdown-divider"></li>';
+
+        if (data.notifications.length === 0) {
+            list.innerHTML += '<li class="dropdown-item text-muted">No notifications</li>';
+        } else {
+            data.notifications.forEach(n => {
+                list.innerHTML += `
+                    <li class="dropdown-item ${n.isRead ? '' : 'bg-light'}" style="cursor: pointer;"
+                        onclick="markAsReadAndNavigate(${n.id}, '${n.actionUrl || ''}')">
+                        <div class="d-flex justify-content-between">
+                            <small class="text-muted">${getTimeAgo(n.createdAt)}</small>
+                            ${!n.isRead ? '<span class="badge bg-primary">New</span>' : ''}
+                        </div>
+                        <div class="mt-1">${n.message}</div>
+                    </li>
+                `;
+            });
+        }
+    });
+
+    async function markAsReadAndNavigate(notificationId, actionUrl) {
+        await fetch(`/Notification/MarkAsRead/${notificationId}`, { method: 'POST' });
+        if (actionUrl) {
+            window.location.href = actionUrl;
+        }
     }
-    @if (canSeeDevDashboard)
-    {
-        <li class="nav-item"><a class="nav-link" data-bs-target="#dev-dashboard">Dev Dashboard</a></li>
+
+    function getTimeAgo(dateString) {
+        // Simple "time ago" formatter
+        const date = new Date(dateString);
+        const seconds = Math.floor((new Date() - date) / 1000);
+        if (seconds < 60) return 'Just now';
+        if (seconds < 3600) return Math.floor(seconds / 60) + 'm ago';
+        if (seconds < 86400) return Math.floor(seconds / 3600) + 'h ago';
+        return Math.floor(seconds / 86400) + 'd ago';
     }
-</ul>
-<div class="tab-content">
-    <div class="tab-pane active" id="overview"><!-- existing cards/charts --></div>
-    <div class="tab-pane" id="hc-reports">
-        <partial name="_HCReportsPartial" model="Model.HcReports" />
-    </div>
-    <div class="tab-pane" id="dev-dashboard">
-        <partial name="_DevDashboardPartial" model="Model.DevDashboard" />
-    </div>
-</div>
+</script>
 ```
 
----
+**NotificationController** (new controller for UI endpoints):
 
-### 4. Gap Analysis Removal — Checklist
+```csharp
+// Controllers/NotificationController.cs
+[Authorize]
+public class NotificationController : Controller
+{
+    private readonly NotificationService _notificationService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-| Step | File / Location | Action |
-|------|----------------|--------|
-| 1 | CMPController.cs line 1533 | Delete `CompetencyGap()` action |
-| 2 | CMPController.cs line 1815 | Delete `GenerateIdpSuggestion()` private helper |
-| 3 | Views/CMP/CompetencyGap.cshtml | Delete file |
-| 4 | Models/Competency/CompetencyGapViewModel.cs | Grep for `CompetencyGapViewModel` and `CompetencyGapItem` first; delete file if zero hits |
-| 5 | Views/CMP/Index.cshtml | Remove any link with `asp-action="CompetencyGap"` |
-| 6 | Views/Shared/_Layout.cshtml | Confirm no CompetencyGap link (currently none in layout) |
-| 7 | Build | Verify no compile errors |
+    public NotificationController(
+        NotificationService notificationService,
+        UserManager<ApplicationUser> userManager)
+    {
+        _notificationService = notificationService;
+        _userManager = userManager;
+    }
 
-What survives: `UserCompetencyLevels` DbSet, `AssessmentCompetencyMaps` DbSet, `UserCompetencyLevel` model, `AssessmentCompetencyMap` model, `PositionTargetHelper`, `CpdpProgress()` action, `KkjMatrices` DbSet — all used by SubmitExam and CpdpProgress.
+    [HttpGet]
+    public async Task<IActionResult> GetUnreadCount()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        var count = await _notificationService.GetUnreadCountAsync(user.Id);
+        return Json(new { count });
+    }
 
----
+    [HttpGet]
+    public async Task<IActionResult> GetList()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        var notifications = await _notificationService.GetUserNotificationsAsync(user.Id, take: 20);
+        return Json(new { notifications });
+    }
 
-## Data Flow Changes
+    [HttpPost]
+    public async Task<IActionResult> MarkAsRead(int id)
+    {
+        await _notificationService.MarkAsReadAsync(id);
+        return Json(new { success = true });
+    }
 
-### Before v1.2
-
+    [HttpPost]
+    public async Task<IActionResult> MarkAllAsRead()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        await _notificationService.MarkAllAsReadAsync(user.Id);
+        return Json(new { success = true });
+    }
+}
 ```
-Worker -> Records.cshtml
-    <- List<TrainingRecord> (training only)
-
-HC -> CMP/ReportsIndex
-    <- ReportsDashboardViewModel
-
-Supervisor -> CDP/DevDashboard
-    <- DevDashboardViewModel
-
-Worker -> CMP/Assessment?view=personal
-    <- all statuses including Completed
-```
-
-### After v1.2
-
-```
-Worker -> Records.cshtml
-    <- List<UnifiedCapabilityRecord>
-       (completed+passed AssessmentSessions UNION all TrainingRecords)
-       sorted by date desc
-
-HC/Admin -> CDP/Dashboard
-    <- CDPDashboardViewModel
-       Tab 1: IDP overview + assessment widget (existing)
-       Tab 2: HC Reports (ReportsDashboardViewModel as sub-model)
-       Tab 3: Dev Dashboard (DevDashboardViewModel as sub-model)
-
-Worker -> CMP/Assessment?view=personal
-    <- Open/Upcoming only (Completed no longer shown; callout links to Records)
-
-HC -> CMP/Assessment?view=monitor  [new]
-    <- system-wide Open/Upcoming assessments across all users
-```
-
----
-
-## Recommended Build Order
-
-### Step 1 — Gap Analysis Removal (no dependencies, pure deletion)
-
-Do this first. Removes dead code and reduces noise during later changes.
-
-1. Delete `CompetencyGap()` action and `GenerateIdpSuggestion()` helper from CMPController.cs
-2. Delete `Views/CMP/CompetencyGap.cshtml`
-3. Grep solution for `CompetencyGapViewModel` — delete `Models/Competency/CompetencyGapViewModel.cs` when clean
-4. Remove any nav links pointing to CompetencyGap
-5. Build and confirm no errors
-
-**Dependency:** None. Safe to do in isolation.
-
----
-
-### Step 2 — UnifiedCapabilityRecord + Records view refactor
-
-1. Create `Models/UnifiedCapabilityRecord.cs`
-2. Add `BuildUnifiedRecords(string userId)` private method to CMPController (alongside existing `GetPersonalTrainingRecords`)
-3. Update `CMPController.Records()` Coachee branch to call `BuildUnifiedRecords`
-4. Update `Views/CMP/Records.cshtml` — change `@model`, add Type column, conditional Score/Certificate columns
-5. Update `Views/CMP/WorkerDetail.cshtml` if it renders the same data shape
-
-**Dependency:** Step 1 must be done first (clean compile baseline). Step 2 is self-contained thereafter.
-
-**Breaking point:** The `@model` directive change in Records.cshtml is a compile-time break until the controller change and view change land together. Make both changes in the same edit session.
-
----
-
-### Step 3 — Assessment page status filter + monitor view
-
-1. Extend `CMPController.Assessment()` — add status filter clause for `view="personal"`; add `view="monitor"` branch
-2. Update `Views/CMP/Assessment.cshtml` — add monitor toggle button (gated on `canManage`); add callout for personal view
-
-**Dependency:** None (independent of Steps 2 and 4). Can run in parallel with Step 2 if two developers.
-
----
-
-### Step 4 — Dashboard consolidation
-
-This is the most complex step. Run after Steps 1-3 are verified.
-
-1. Create `Models/CDPDashboardViewModel.cs`
-2. Extract `Views/CDP/_HCReportsPartial.cshtml` — copy table and filter markup from CMP/ReportsIndex.cshtml; adapt `@model` to `ReportsDashboardViewModel`
-3. Extract `Views/CDP/_DevDashboardPartial.cshtml` — copy coachee rows table and charts from CDP/DevDashboard.cshtml; adapt `@model` to `DevDashboardViewModel`
-4. Rewrite `CDPController.Dashboard()` to build `CDPDashboardViewModel` — absorb ReportsIndex query and DevDashboard query; apply role gating
-5. Update `Views/CDP/Dashboard.cshtml` — add Bootstrap tab nav; render partials for Tab 2 and Tab 3
-6. Remove standalone "Dev Dashboard" nav item from `_Layout.cshtml` (line 70) after tab is verified
-
-**Keep alive during transition:** Both `CMPController.ReportsIndex()` and `CDPController.DevDashboard()` remain as standalone pages until the Dashboard tabs are verified. Remove or redirect them in a follow-up cleanup commit.
-
-**Dependency:** Steps 1-3 verified. CDPDashboardViewModel must exist before Dashboard.cshtml is updated.
-
----
-
-### Step 5 — Cleanup (post-verification)
-
-- Optionally add `return RedirectToAction("Dashboard", "CDP")` to CMPController.ReportsIndex if removing from nav
-- Optionally keep CDPController.DevDashboard as a redirect to the Dashboard page with the dev tab pre-selected (`#dev-dashboard` hash)
-- Remove `DashboardViewModel.cs` from Models if no remaining references
-- Remove `GetPersonalTrainingRecords()` private method from CMPController if replaced entirely
-
----
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: UNION in Razor View
+### Anti-Pattern 1: Direct DbContext Access in Controllers
 
-**What people do:** Load `List<AssessmentSession>` and `List<TrainingRecord>` separately in ViewBag, concatenate and sort in the view.
+**What:** Creating notifications directly via `_context.Notifications.Add()` in controller actions
 
-**Why it's wrong:** Sorting across two types in Razor is brittle; pagination becomes impossible; filtering cannot be applied.
+**Why bad:**
+- Duplicates notification creation logic across controllers
+- No centralized business logic (e.g., message formatting, type validation)
+- Harder to test (can't mock service)
+- Inconsistent with existing `AuditLogService` pattern
 
-**Do this instead:** Build `List<UnifiedCapabilityRecord>` in the controller, return a single typed model.
+**Instead:** Use `NotificationService` for all notification operations
 
----
+### Anti-Pattern 2: Synchronous Database Operations
 
-### Anti-Pattern 2: Copy-Paste Filter Query into CDPController.Dashboard()
+**What:** Using `.SaveChanges()` instead of `await SaveChangesAsync()`
 
-**What people do:** Copy the 100+ line filter and stats query from CMPController.ReportsIndex() verbatim into CDPController.Dashboard().
+**Why bad:**
+- Blocks thread pool threads during database I/O
+- Poor scalability under load
+- ASP.NET Core MVC is async-first by design
 
-**Why it's wrong:** Two sources of truth — a filter bug must be fixed in two places. ExportResults in CMPController still uses its own copy.
+**Instead:** Always use `await SaveChangesAsync()`
 
-**Do this instead:** For this milestone, duplicate minimally and add a `// TODO(v1.3): extract to shared service` comment marking it for future extraction. The duplicate is intentional and bounded.
+### Anti-Pattern 3: Singleton Service Lifetime
 
----
+**What:** Registering `NotificationService` as singleton: `builder.Services.AddSingleton<NotificationService>()`
 
-### Anti-Pattern 3: Adding a Bool Flag Instead of Extending the View Param
+**Why bad:**
+- DbContext is scoped (not thread-safe, holds connection state)
+- Singleton service would hold onto DbContext indefinitely
+- Causes concurrency issues and connection leaks
 
-**What people do:** Replace `view=personal|manage` with `isMonitor=true` when adding the HC monitoring mode.
+**Instead:** Use scoped lifetime: `builder.Services.AddScoped<NotificationService>()`
 
-**Why it's wrong:** Breaks existing bookmarks and hard-coded links to `?view=manage`.
+### Anti-Pattern 4: SignalR Over-Engineering (for v3.3)
 
-**Do this instead:** Add `monitor` as a third string value for the existing `view` parameter. All existing URLs remain valid.
+**What:** Implementing SignalR real-time push notifications for basic notification center
 
----
+**Why bad:**
+- SignalR adds complexity (Hubs, connection management, reconnection logic)
+- Basic notification UI doesn't require real-time (30-second polling is sufficient)
+- Your project scope explicitly excludes SignalR ("no real-time — refresh-based only")
 
-### Anti-Pattern 4: Eager Loading All Dashboard Data for Coachee Role
+**Instead:** Use AJAX polling (as shown in Pattern 3) — simpler, sufficient for v3.3
 
-**What people do:** CDPController.Dashboard() unconditionally runs all three data-loading blocks (Overview + HC Reports + Dev Dashboard) for every user.
+## Scalability Considerations
 
-**Why it's wrong:** Coachee and Coach roles will never see HC Reports; the expensive category stats and score distribution queries run needlessly.
+| Concern | At 100 users | At 10K users | At 1M users |
+|---------|--------------|--------------|-------------|
+| **Notification storage** | Single table, no partitioning | Add archive table for old notifications (>90 days) | Table partitioning by date, move read notifications to archive |
+| **Query performance** | Indexes on (RecipientId, IsRead) sufficient | Add composite index (RecipientId, IsRead, CreatedAt DESC) | Consider read replicas, cache unread counts in Redis |
+| **Polling load** | 30-second interval, ~3 requests/min/user | Reduce to 2-minute interval, ~1 req/min/user | Move to SignalR, introduce background service for batching |
+| **Background reminders** | Run scheduled job every hour | Use Hangfire/Quartz with distributed locks | Dedicated worker role, queue-based processing |
 
-**Do this instead:** Gate sub-model population behind role checks. If role is Coachee or Coach, leave `HcReports` and `DevDashboard` as empty/null. The partial views are simply not rendered in Razor when the user lacks the role.
+**For v3.3 (100-1000 users):** Single table with indexes is sufficient. No optimization needed.
 
----
+## Notification Types for v3.3
 
-### Anti-Pattern 5: Deleting DashboardViewModel Before CDPDashboardViewModel Is Verified
+Based on PROJECT.md scope, these notification types should be supported:
 
-**What people do:** Rename or delete DashboardViewModel immediately when starting the Dashboard consolidation.
+### Assessment Notifications (4 types)
 
-**Why it's wrong:** Dashboard is called in multiple places; a rename creates compile errors before the replacement is ready.
+| Type | Trigger | Recipient | Message Template |
+|------|---------|-----------|------------------|
+| `AssessmentAssigned` | HC/Admin creates assessment with worker assignments | Workers | "You have been assigned to assessment: {Title}" |
+| `AssessmentDeadlineReminder` | Scheduled job runs 1 day before Schedule date | Workers | "Reminder: Assessment '{Title}' is due tomorrow" |
+| `AssessmentSubmitted` | Worker submits assessment | HC/Admin | "Assessment submitted by {WorkerName}: {Title}" |
+| `AssessmentResults` | HC/Admin publishes results | Workers | "Your assessment results are ready: {Title}" |
 
-**Do this instead:** Create CDPDashboardViewModel as a new class. Update Dashboard() to return it. Delete DashboardViewModel only when no references remain (Step 5 cleanup).
+### Coaching Proton Notifications (6 types)
 
----
+| Type | Trigger | Recipient | Message Template |
+|------|---------|-----------|------------------|
+| `CoachAssigned` | HC assigns coach to coachee | Coachee | "You have been assigned to coach: {CoachName}" |
+| `EvidenceRejected` | SrSpv/SectionHead rejects evidence | Coach | "Evidence rejected for {CoacheeName}: {Reason}" |
+| `EvidenceUploaded` | Coach uploads evidence for review | SrSpv | "Evidence uploaded by {CoachName} for {CoacheeName}" |
+| `EvidenceApprovedBySrSpv` | SrSpv approves evidence | SectionHead | "Evidence approved by SrSpv for {CoacheeName}" |
+| `EvidenceApprovedBySectionHead` | SectionHead approves evidence | HC | "Evidence approved by SectionHead for {CoacheeName}" |
+| `CoachingCompleted` | All deliverables approved | Coachee | "Congratulations! Coaching program completed" |
 
-## Scaling Considerations
+**Implementation note:** Extend `ProtonNotification` model or create new unified `Notification` model with `Type` enum/const strings.
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| Current (< 500 users) | All logic in controllers is fine. No service layer needed. |
-| 1k-5k users | Extract BuildUnifiedRecords and BuildReportsQuery into a service class injected via DI. Add 5-minute sliding response cache on Dashboard for HC Reports tab. |
-| 5k+ users | Add pagination to unified Records view. Consider background job for category statistics precomputation. |
+## Suggested Build Order
 
----
+Based on dependency analysis:
 
-## Internal Boundaries
+### 1. **Notification Model** (Foundational)
+- Create or extend `Notification` model in `Models/`
+- Add to `ApplicationDbContext` as `DbSet<Notification>`
+- Create EF Core migration
+- **Rationale:** Cannot create service without model
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| CMPController -> CDPController | CDPController absorbs CMP's ReportsIndex query into Dashboard; no runtime call between controllers | CDPController.Dashboard() duplicates the query — see Anti-Pattern 2 |
-| Records.cshtml -> Assessment results | Assessment rows in unified Records link to CMP/Certificate and CMP/Results via `AssessmentId` field | URL link only; no controller coupling |
-| Dashboard Tab HC Reports -> ExportResults | Export stays at /CMP/ExportResults; HC Reports tab renders a link to it | ExportResults is not moved in this milestone |
-| Layout -> DevDashboard nav item | Current `_Layout.cshtml` line 70 renders Dev Dashboard as top-level nav. Remove after Dashboard tab is verified. | Risk: removing before tab is ready hides the feature |
+### 2. **NotificationService** (Core Logic)
+- Implement `Services/NotificationService.cs`
+- Register in `Program.cs` as scoped service
+- Write unit tests for CRUD operations
+- **Rationale:** Service layer encapsulates business logic, reusable across controllers
 
----
+### 3. **Trigger Points** (Integration)
+- Identify all workflow state changes (see Notification Types table)
+- Modify controller actions to call `NotificationService.SendAsync()`
+- Test notification creation in database
+- **Rationale:** Controllers are the entry points for domain events
+
+### 4. **UI Components** (User-Facing)
+- Create `NotificationController` with JSON endpoints
+- Add bell icon + dropdown to `Views/Shared/_Layout.cshtml`
+- Implement AJAX polling for unread count
+- **Rationale:** UI is consumer of notification data, depends on service
+
+### 5. **Background Service** (Optional - Future)
+- Implement `DeadlineReminderBackgroundService` (IHostedService)
+- Register in `Program.cs` as hosted service
+- Query for assessments due in 24 hours, send reminders
+- **Rationale:** Deferred to post-v3.3, depends on stable notification infrastructure
+
+## Database Schema Recommendations
+
+### Option A: Extend ProtonNotification (LOW EFFORT)
+```csharp
+public class ProtonNotification
+{
+    public int Id { get; set; }
+    public string RecipientId { get; set; } = "";
+    public string? CoacheeId { get; set; }  // Nullable for non-coaching notifications
+    public string? CoacheeName { get; set; }  // Nullable for non-coaching notifications
+    public string Message { get; set; } = "";
+    public string Type { get; set; } = "";  // "AssessmentAssigned", "CoachAssigned", etc.
+    public int? TargetId { get; set; }  // NEW: Link to AssessmentSession, ProtonDeliverableProgress, etc.
+    public string? ActionUrl { get; set; }  // NEW: Deep link to relevant page
+    public string? Priority { get; set; }  // NEW: "Normal" or "Urgent"
+    public bool IsRead { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ReadAt { get; set; }
+}
+```
+
+**Pros:** Reuses existing table, no migration needed for new table
+**Cons:** Model name is Proton-specific (misleading for Assessment notifications)
+
+### Option B: Create Unified Notification (CLEAN SEMANTICS)
+```csharp
+public class Notification
+{
+    public int Id { get; set; }
+    public string RecipientId { get; set; } = "";
+    public string Type { get; set; } = "";  // AssessmentAssigned, CoachAssigned, etc.
+    public string Message { get; set; } = "";
+    public string? ActionUrl { get; set; }  // Deep link
+    public int? TargetId { get; set; }  // Entity ID
+    public string? TargetType { get; set; }  // "AssessmentSession", "ProtonDeliverableProgress"
+    public string? Priority { get; set; }  // "Normal" (default), "Urgent"
+
+    // Coaching-specific metadata (nullable)
+    public string? CoacheeId { get; set; }
+    public string? CoacheeName { get; set; }
+
+    public bool IsRead { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ReadAt { get; set; }
+}
+```
+
+**Pros:** Clear semantics, generic for all notification types, extensible
+**Cons:** Requires migration, need to migrate existing ProtonNotification data
+
+**Recommendation:** **Option B** for v3.3. The semantic clarity is worth the migration effort. Use a migration script to copy existing ProtonNotification records to the new Notification table.
 
 ## Sources
 
-- Direct inspection: `Controllers/CMPController.cs` (1840 lines, 2026-02-18)
-- Direct inspection: `Controllers/CDPController.cs` (1475 lines, 2026-02-18)
-- Direct inspection: `Models/AssessmentSession.cs`, `Models/TrainingRecord.cs`, `Models/DashboardViewModel.cs`, `Models/ReportsDashboardViewModel.cs`, `Models/DevDashboardViewModel.cs`, `Models/ApplicationUser.cs`
-- Direct inspection: `Views/Shared/_Layout.cshtml`, `Views/CMP/Assessment.cshtml`, `Views/CMP/Records.cshtml`, `Views/CDP/Dashboard.cshtml`
+| Source | Confidence | Notes |
+|--------|------------|-------|
+| Direct codebase inspection (ApplicationDbContext.cs) | HIGH | Verified existing ProtonNotification model, indexes, DbContext registration |
+| Direct codebase inspection (AuditLogService.cs) | HIGH | Reference implementation for service layer pattern |
+| Direct codebase inspection (Program.cs) | HIGH | Verified DI setup (scoped services, DbContext configuration) |
+| Direct codebase inspection (Controllers/AdminController.cs, CDPController.cs) | HIGH | Confirmed controller injection pattern, existing notification creation logic |
+| Web search: ASP.NET Core SignalR vs database polling 2025 | MEDIUM | Confirms polling is acceptable for non-real-time scenarios |
+| Web search: ASP.NET Core notification service DbContext DI 2025 | MEDIUM | Confirms scoped lifetime is correct pattern for DbContext-dependent services |
 
----
-*Architecture research for: Portal HC KPB v1.2 UX Consolidation*
-*Researched: 2026-02-18*
+### Verification Notes
+
+- **Existing ProtonNotification model:** Verified in `Models/ProtonModels.cs:137-152`
+- **DbContext integration:** Verified in `Data/ApplicationDbContext.cs:49, 341-346`
+- **Service pattern:** Verified via `AuditLogService` implementation
+- **DI setup:** Verified in `Program.cs:26-27, 50` (DbContext and AuditLogService registration)
+- **Controller injection:** Verified in `AdminController.cs:17-41` (constructor injection pattern)
+- **Notification creation:** Verified in `CDPController.cs:1026` (inline DbContext access — needs refactoring)
+
+**No contradictory findings detected.** All recommendations align with existing portal architecture.

@@ -1,224 +1,205 @@
-# Research Summary — Portal HC KPB v3.0 QA & Feature Completion
+# Project Research Summary
 
-**Project:** Portal HC KPB v3.0 (ASP.NET Core 8 MVC)
-**Domain:** Enterprise Portal — Comprehensive QA Testing, Code Cleanup, and Feature Completion
-**Researched:** 2026-03-01
+**Project:** PortalHC KPB v3.3 — Basic Notification System
+**Domain:** ASP.NET Core MVC — In-App Notification System for Assessment & Coaching Workflows
+**Researched:** 2026-03-05
 **Confidence:** HIGH
-
----
 
 ## Executive Summary
 
-Portal HC KPB v3.0 is a **brownfield QA & consolidation milestone**, not a new feature release. The portal has existed through v2.6 with core features (assessments, coaching, master data) largely implemented; v3.0's role is to systematically test all features via end-to-end flows, eliminate dead code from previous cleanup attempts, complete the IDP Plan page, and rename "Proton Progress" → "Coaching Proton" throughout the codebase. The research strongly recommends a **pragmatic, phase-based approach**: start with code analysis (NetAnalyzers + SonarQube) to establish a baseline of technical debt, then build lightweight unit and functional tests (xUnit + WebApplicationFactory) covering critical flows, then execute manual QA against a detailed checklist, and finally address code cleanup and rename tasks. This ordering ensures testing occurs before cleanup (reducing risk of deleting code tests depend on), and prioritizes high-value QA activities over UI automation (which would be slow and brittle on a brownfield portal).
+PortalHC KPB requires a basic in-app notification system to inform workers about assessment assignments and coaching progress. Research reveals this is a well-established pattern in ASP.NET Core MVC: follow the existing `AuditLogService` pattern with a new `NotificationService`, two new database tables (Notification + UserNotification), and a Bootstrap bell icon UI. **No new NuGet packages are needed** — all dependencies (Bootstrap 5, Bootstrap Icons, EF Core 8.0) are already present.
 
-**Key risks identified:** (1) Dead code cleanup breaking dependent code if "Find All References" is skipped; (2) Authorization gaps (workers accessing admin features) if role-based tests don't cover all role combinations; (3) Test flakiness from non-deterministic seeding or concurrency issues in auto-save logic. Prevention strategies are concrete and actionable for each.
-
----
+The recommended approach is refresh-based (no SignalR) with database polling every 30 seconds. This keeps v3.3 scope manageable while delivering core functionality: 10 notification triggers across Assessment (4 triggers) and Coaching Proton (6 triggers) workflows. Critical risks include N+1 query performance degradation, notification spam causing user fatigue, and tight coupling of notification logic to controllers (breaking existing workflows). These are mitigated through proper indexing, rate limiting, and following service layer patterns.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The research recommends a **minimal, Microsoft-endorsed stack** requiring **no new NuGet dependencies** beyond testing frameworks (which the project likely already uses or will add):
+This is a brownfield extension, not a greenfield rewrite. Leverage existing infrastructure — no new dependencies required for v3.3. The stack follows the proven `AuditLogService` pattern: scoped service injection, async operations, and clean separation from controllers.
 
-**Core testing frameworks:**
-- **xUnit 2.6+** for unit testing — Microsoft's official .NET Core recommendation, default in all Microsoft testing docs, strong DI support
-- **WebApplicationFactory** (built into ASP.NET Core 8) for functional/integration tests — enables end-to-end workflow testing via TestServer without requiring IIS
-- **Xunit.DependencyInjection 8.9+** for test DI configuration — reduces boilerplate in large test suites
+**Core technologies:**
+- **ASP.NET Core MVC 8.0** — Web framework (already in use) — mature, fully supported through 2026-11-10
+- **Entity Framework Core 8.0** — ORM (already in use) — integrates seamlessly with existing ApplicationDbContext
+- **SQL Server** — Database (already in use) — supports filtered indexes for notification query performance
+- **Bootstrap Icons 1.10.0** — Bell icon (already loaded in `_Layout.cshtml`) — no new CSS needed
+- **Bootstrap 5 Dropdown** — Notification center UI (already in use) — consistent with existing UI patterns
 
-**Code quality & analysis tools:**
-- **Microsoft.CodeAnalysis.NetAnalyzers 8.0+** — Roslyn-based static analysis, successor to deprecated FxCopAnalyzers, finds dead code and unsafe patterns, built into .NET SDK
-- **StyleCop.Analyzers 1.2+** — code style consistency, identifies naming violations and documentation gaps
-- **SonarQube Community 9.9 LTA** — enterprise-grade code quality dashboard, detects duplications and security hotspots, free community edition
-- **Bogus 35.3+** for test data generation (optional, but recommended for realistic scenarios)
-- **EF Core In-Memory Database 8.0+** (built-in) for test isolation
+**Two-table database design:**
+- **Notification table** — Stores message content once (title, message, type, created_at, sender info)
+- **UserNotification table** — Tracks per-user read status (scales efficiently for multi-recipient notifications)
 
-**Development tools:**
-- `dotnet test` (CLI) — already available
-- Visual Studio Test Explorer — built-in IDE integration
-- Coverlet for code coverage measurement
-- SonarScanner CLI for SonarQube integration
-
-**Key Finding:** Stack is **lean and testable**. No commercial tools required. Analysis can start immediately with `dotnet build /p:AnalysisLevel=latest` to identify warnings.
-
----
+**Service layer:**
+- **NotificationService** — Business logic layer following `AuditLogService` pattern (simple service class, injected into controllers)
+- **INotificationService** — Interface abstraction for unit testing and dependency injection
 
 ### Expected Features
 
-v3.0 QA focuses on verification of **existing features** (built in v2.0-v2.6) and **one new feature** (IDP Plan page).
+Research identified clear table stakes features for 2026 web applications. Missing these makes the product feel incomplete, while over-engineering notification preferences or real-time delivery in v3.3 would be premature.
 
-**Must-have features (table stakes) — all need verification:**
-1. **Assessment End-to-End Flow** (core product) — create → assign → schedule → exam → auto-save → session resume → results → history
-2. **Coaching Proton Workflow** (core product) — coach mapping → coaching sessions → evidence upload → HC approval → deliverable progress tracking
-3. **Master Data CRUD** (operational) — KKJ Matrix, CPDP Items, Proton Silabus, Training Records all editable in Kelola Data hub
-4. **User Role Authorization** (security-critical) — Worker, Coach, HC, Admin roles enforce access gates consistently
-5. **Dashboard / Home Pages** — IDP stats, assessment counts, coaching progress display correctly per role
-6. **Data Export** (Admin/HC feature) — Excel/PDF exports of assessments, coaching reports, audit logs
+**Must have (table stakes):**
+- **Notification Center (Bell Icon)** — Standard UI pattern with badge counter showing unread count — users expect centralized location for all notifications
+- **Notification List** — Chronological list view with timestamps — users need to see all notifications
+- **Read/Unread Status** — Visual distinction (bold or different background) — users need to know what's new
+- **Mark as Read** — Click notification → marks as read → clears from counter — users need ability to dismiss
+- **"Mark All as Read"** — Bulk action for notification fatigue — UX best practice
+- **Persistent Notifications** — Database-backed (not session-based) — notifications persist across sessions
+- **Deep Linking** — Clicking notification navigates to relevant content — links to /CMP/Exam, /CDP/ProtonProgress, /Admin pages
+- **Pagination** — Load 10-20 at a time with "Load More" button — performance optimization
 
-**Should-have features (competitive advantages) — new or incomplete:**
-1. **IDP Plan Page** (NEW) — coachee dashboard showing assigned silabus items, guidance PDFs, real-time progress %; integrate with coaching evidence tracking
-2. **Audit Log** (NEW) — admin can see user actions logged; compliance requirement
-3. **Live HC Monitoring** (v2.1) — HC dashboard auto-refreshes exam progress; verify polling mechanism works
-4. **Assessment History** (v2.2) — workers see all past attempts with timestamps and attempt numbers
+**Should have (competitive):**
+- **Deadline Reminders** — Proactive: notify workers 1 day before assessment deadline — requires scheduled job (Hangfire/Quartz)
+- **Filtered Views** — Users can filter by type (Assessment only, Coaching only) — improves UX with higher notification volumes
+- **Non-Intrusive Delivery** — No modal popups; notifications appear in center only — follows "notification center" pattern
 
-**Anti-features to eliminate or ignore:**
-1. **Selenium/Playwright UI Tests** — defer to v3.1+; too slow/brittle for brownfield; manual QA + code analysis better ROI
-2. **CMP/ProtonMain Page** — removed in v2.6; verify no orphaned links remain
-3. **Duplicate Admin CRUD Paths** — CMP had redundant ManageQuestions; Admin panel is canonical; verify CMP versions deleted
-4. **"Proton Progress" terminology** — rename to "Coaching Proton" throughout (UI, comments, docs)
-
----
+**Defer (v2+):**
+- **Real-Time Notifications (SignalR)** — Adds significant complexity; refresh-based is adequate for v3.3 — target v3.4+
+- **Notification Preferences** — Over-engineering for 10 triggers; all notifications are business-critical — target v3.4+
+- **Browser Push Notifications** — Requires user permission, can feel intrusive — in-app is sufficient — target v3.5+
+- **Email/SMS Notifications** — Different delivery channel; requires service configuration — target v3.5+
+- **Notification Search/Advanced Filtering** — Over-engineering for basic system — future
+- **"Quiet Hours" / Do Not Disturb** — Business hours only; no after-hours notifications expected — future
 
 ### Architecture Approach
 
-The portal uses **ASP.NET Core 8 MVC with class-level authorization**. Two main controllers (CMPController ~1840 lines, CDPController ~1475 lines) handle assessment and coaching workflows respectively. Data model has ~20 DbSet entities, with key tables: AssessmentSessions, TrainingRecords, ProtonDeliverableProgresses, CoachingSessions, AspNetUsers (ApplicationUser with FullName, NIP, RoleLevel). Authorization pattern uses `[Authorize]` at controller class level with per-action role attributes like `[Authorize(Roles = "Admin, HC")]`.
+Notification systems in ASP.NET Core MVC integrate through a service layer pattern that mirrors the existing `AuditLogService`. The architecture consists of three layers: (1) Database model (Notification entity in DbContext), (2) Service layer (NotificationService with scoped DI), and (3) Trigger points (controller actions that create notifications). Critical integration points include `ApplicationDbContext.Notifications` DbSet, service registration in `Program.cs`, controller constructor injection, and trigger points in Assessment and Coaching Proton workflows.
 
-**Major components & their responsibilities:**
-1. **CMPController** — Assessment lifecycle (create, assign, schedule, exam submit), Training Records management, Competency Gap reporting (scheduled for deletion), HC Reports dashboard
-2. **CDPController** — CDP Dashboard, Dev Dashboard (for supervisors), Coaching workflow (mapping, sessions, approval), Proton deliverables and final assessment
-3. **ApplicationDbContext** — EF Core with 20+ entities; includes AssessmentSessions, ProtonDeliverableProgresses, CoachingSessions, TrainingRecords, KkjMatrices
-4. **ApplicationUser** — custom ASP.NET Identity user; has RoleLevel (integer hierarchy), NIP, SelectedView (for role-switching UI), multi-unit membership
-5. **Razor Views** — Bootstrap 5 + Chart.js for dashboards; Assessment/Records tabs, Coaching evidence upload, Hub-based master data management (Kelola Data)
+**Major components:**
+1. **Notification Model** — Data persistence (recipient, message, read status, type, created timestamp) — communicates with ApplicationDbContext via DbSet
+2. **NotificationService** — Business logic for creating, retrieving, marking notifications as read — uses ApplicationDbContext via constructor injection (scoped lifetime)
+3. **Controllers** — Workflow trigger points that call NotificationService — inject NotificationService via constructor dependency injection
+4. **Views (Shared/_Layout)** — Notification UI (bell icon, dropdown list, unread count) — communicates with Controller action endpoints for JSON data
+5. **Background Service** (optional, future) — Scheduled deadline reminder notifications — uses NotificationService + AssessmentSession data
 
-**Data flow pattern:** Controllers query EF Core context directly (no separate service layer); views receive typed ViewModels (DashboardViewModel, CoachingViewModel, etc.); POST actions return redirects or JSON for AJAX. Test isolation uses EF Core in-memory database per test class.
-
----
+**Data flow:**
+```
+[User Action] → [Controller Action] → [NotificationService.SendAsync()]
+                                         ↓
+                                   [DbContext.Notifications.Add()]
+                                         ↓
+                                   [DbContext.SaveChangesAsync()]
+                                         ↓
+                                   [Notification persisted to DB]
+                                         ↓
+[Browser Poll] → [Controller Action: GetNotifications()] → [JSON response]
+                                         ↓
+                                   [View renders bell icon + list]
+```
 
 ### Critical Pitfalls
 
-**Five high-priority risks to prevent:**
+Research revealed 12 critical, moderate, and minor pitfalls. Top 5 that could cause rewrites or major issues:
 
-1. **Null Reference Exceptions from Reckless Dead Code Cleanup** — Code analyzers flag methods as "unused" but they're called via reflection, LINQ.Invoke, or interface implementations. Developers delete without checking "Find All References", tests break with NullReferenceException at runtime.
-   - **Prevention:** Always "Find All References" (Ctrl+Shift+F) before deleting anything. Comment out first, run tests, then delete. Two-person review for method/class deletion.
+1. **N+1 Query Performance Degradation** — Loading notifications triggers 1 + N database queries (one initial query + one per notification for related data). Prevent with eager loading `.Include()`, `.AsNoTracking()` for read-only queries, and composite index `(UserId, IsRead, CreatedAt DESC)`. Enable EF Core logging during development to detect N+1 patterns.
 
-2. **Test Flakiness from Non-Deterministic Data Seeding** — Bogus generates random test data each run; if seeding depends on data not guaranteed to exist, tests pass sometimes, fail other times. CI/CD becomes unreliable ("just rerun it").
-   - **Prevention:** Use fixed test data for critical tests (Coach "John" always mapped to Coachee "Alice"). Seed idempotently with `if (!db.Coaches.Any()) { ... }`. Isolate test DB per test class with unique in-memory names.
+2. **Notification Spam & User Fatigue** — Users receive excessive notifications (assessment reminders every hour, duplicate notifications), leading to notification blindness. Prevent with rate limiting per user per notification type (max 1 reminder/day), deduplication check before creating notification, and implementing notification consolidation for high-volume scenarios.
 
-3. **Authorization Gaps — Workers Access Admin Features** — Controllers have `[Authorize]` but missing role checks. Any authenticated user (even Worker) can GET /Admin/ManageAssessments if endpoint only checks `[Authorize]` not `[Authorize(Roles = "Admin, HC")]`.
-   - **Prevention:** Write explicit 403 tests for every protected endpoint per role. Create authorization matrix documenting who can do what. Use consistent pattern: class-level `[Authorize(Roles = "...")]` on AdminController. SonarQube flags bare `[Authorize]` as medium risk.
+3. **Broken Trigger Placement - Coupling Business Logic to Notifications** — Notification code scattered throughout controllers creates tight coupling. When notification system fails, core Assessment/Coaching workflows break. Prevent by using `INotificationService` interface, MediatR for domain events, and placing notification calls in service layer NOT controllers. Always wrap notification calls in try-catch (notification failure shouldn't break workflow).
 
-4. **Database Migration Drift** — Tests run against in-memory DB with stale schema. New migration adds NOT NULL column, but test seed doesn't set it. Tests pass locally, fail in CI/CD where migrations run.
-   - **Prevention:** Use `db.Database.Migrate()` (not `EnsureCreated()`) in test setup to apply all pending migrations. Test migrations locally before commit: `dotnet ef migrations add MyMig; dotnet test; dotnet ef database update 0; dotnet ef database update` to verify idempotency.
+4. **Missing Notification Audit Trail** — No record of which notifications were sent to whom, when, and whether they were read. Cannot investigate "missing notification" complaints. Prevent by adding audit fields (CreatedById, SentMethod, ReadAt, DeliveryStatus), creating NotificationLog table for all send attempts, and implementing read tracking with timestamp updates.
 
-5. **Concurrency in SaveAnswer Auto-Save** — Worker A and Worker B save answers simultaneously, race condition hits unique constraint violation or duplicate records. Tests don't simulate concurrent load.
-   - **Prevention:** Add UNIQUE constraint on (SessionId, QuestionId) via migration. Implement UPSERT pattern: ExecuteUpdateAsync + insert fallback. Load test with concurrent simulations (50 users simultaneously).
-
----
+5. **Bulk Notification Performance - Blocking Core Workflows** — When HC assigns assessment to 100 workers, assignment action takes 30+ seconds because notifications are inserted one-by-one in a loop. Prevent with `AddRange()` instead of loop with `Add()`, use EFCore.BulkExtensions for 100+ notifications, disable change tracking during bulk ops, and use background tasks (Hangfire) for bulk notifications.
 
 ## Implications for Roadmap
 
-Research suggests **six sequential phases** for v3.0, ordered by dependency and risk mitigation:
+Based on combined research from stack, features, architecture, and pitfalls, the recommended v3.3 phase structure follows dependency order: database foundation → service layer → UI components → workflow triggers → testing & polish. This separates concerns, allows for iterative testing, and avoids breaking existing Assessment/Coaching flows.
 
-### Phase 1: Code Analysis Baseline (Week 1)
-**Rationale:** Identify technical debt BEFORE testing or cleanup. Establish baseline of dead code, null safety issues, and naming inconsistencies. Informs cleanup priorities and test coverage areas.
-**Delivers:** SonarQube dashboard with code smells, dead code report; NetAnalyzers baseline scan; priority list of issues to address
-**Stack elements used:** Microsoft.CodeAnalysis.NetAnalyzers, StyleCop.Analyzers, SonarQube Community (CLI)
-**Avoids pitfall #1:** By documenting what analyzers claim is dead, developers can validate before deleting
+### Phase 99: Notification Database & Service
+**Rationale:** Foundation layer — cannot create service without model, and UI/trigger integration depends on stable service layer. Building UI before data layer is stable would require rework.
+**Delivers:** Two new database tables (Notification + UserNotification) with proper indexes, EF Core migration, NotificationService with full CRUD operations, unit tests for service layer
+**Addresses:** Database schema, NotificationService, dependency injection registration
+**Avoids:** Building UI without service layer (Pitfall 3: Broken Trigger Placement), missing indexes causing N+1 queries (Pitfall 1: N+1 Query Performance)
 
----
+### Phase 100: Notification Center UI
+**Rationale:** User-facing layer that depends on stable service layer. Separate phase allows UI refinement without touching service logic.
+**Delivers:** Bell icon in navbar with badge counter, dropdown list showing notifications, "Mark all as read" button, NotificationController with JSON endpoints, AJAX polling for unread count
+**Uses:** Bootstrap Icons 1.10.0 (already loaded), Bootstrap 5 Dropdown (already in use)
+**Implements:** AJAX polling every 30 seconds, deep linking to Assessment/Coaching pages, mark-as-read functionality
 
-### Phase 2: Unit Test Framework & Service Tests (Weeks 2-3)
-**Rationale:** Build test skeleton for critical service logic (Assessment creation/submission, Coaching approval, IDP Plan data). Small, fast tests give developers confidence before functional testing.
-**Delivers:** PortalHC.Tests project structure; 60-80 unit tests covering services, validation, business logic; test data builders
-**Uses:** xUnit, Xunit.DependencyInjection, EF Core in-memory DB, Bogus
-**Implements:** Assessment service (create, assign, score), Coaching service (evidence, approval), IDP Plan builder logic
-**Avoids pitfalls #2 & #5:** Fixed test data + UNIQUE constraint testing in unit layer
+### Phase 101: Assessment Notification Triggers
+**Rationale:** First workflow integration — simpler than Coaching (4 triggers vs 6), no approval chain complexity. Allows testing notification system with straightforward workflow before tackling complex approval chain.
+**Delivers:** 4 assessment notification triggers (AssessmentAssigned, AssessmentSubmitted, AssessmentResults, DeadlineReminder), integration with AdminController and CMPController, testing of notification creation and display
+**Implements:** Trigger points: AdminController.CreateAssessment, CMPController.SubmitExam, CMPController.GradeExam, background job for deadline reminders
+**Avoids:** Complexity of coaching approval chain in first integration (reduces risk)
 
----
+### Phase 102: Coaching Notification Triggers
+**Rationale:** Second workflow integration — more complex approval chain (6 triggers, multi-stage approval: Coach → SrSpv → SectionHead → HC). Assessment phase proves system works before adding complexity.
+**Delivers:** 6 coaching notification triggers (CoachAssigned, EvidenceUploaded, EvidenceRejected, EvidenceApprovedBySrSpv, EvidenceApprovedBySH, CoachingCompleted), integration with AdminController and CDPController, approval chain status tracking
+**Implements:** Trigger points: AdminController.AssignCoach, CDPController.SubmitEvidence, CDPController.ApproveEvidence (multiple stages), CDPController.RejectEvidence
+**Avoids:** Assessment-specific issues in earlier phase (isolates debugging)
 
-### Phase 3: Functional/Integration Tests (Weeks 3-4)
-**Rationale:** End-to-end workflow tests (Worker takes assessment → sees results; Coach maps coachee → uploads evidence → HC approves). Catch integration bugs, authorization gaps, data persistence issues.
-**Delivers:** 15-20 functional tests using WebTestFixture; critical workflow paths (Assessment E2E, Coaching approval, IDP Plan display); 403 authorization tests per role
-**Uses:** WebApplicationFactory, WebTestFixture, test data seeding via EF Core
-**Implements:** Authorization matrix testing; verify role-based view gates
-**Avoids pitfall #3:** Explicit 403 tests for Worker access to /Admin routes
-
----
-
-### Phase 4: Manual QA Execution (Week 4-5)
-**Rationale:** Comprehensive manual testing of all features via checklist. Catch UI/UX issues, workflow edge cases, data display accuracy that automated tests miss.
-**Delivers:** QA checklist executed (Assessment, Coaching, Master Data, Authorization, IDP Plan); bug report log; regression verification
-**Testing approach:** Test each feature matrix (create → assign → execute → results) per role; verify Kelola Data hub cards load
-**Avoids pitfall #4:** Database migrations applied before test DB setup; schema verified
-
----
-
-### Phase 5: IDP Plan Page Development & Testing (Weeks 4-5, parallel)
-**Rationale:** NEW feature requires development + integrated testing. Shows assigned silabus items, downloadable guidance, real-time progress % linked to coaching evidence.
-**Delivers:** /CDP/IdpPlan or similar route; Razor view displaying coachee's deliverables; integration with coaching progress tracking
-**Implements:** Query pulling assigned silabus + coaching evidence for coachee; calculate completion %; PDF download links
-**Uses:** Existing EF Core models (ProtonDeliverableProgresses, ProtonSilabus); MVC controller action
-**Avoids pitfall #5:** Functional tests verify IDP progress updates when coaching evidence uploaded
-
----
-
-### Phase 6: Code Cleanup & Rename (Weeks 5-6+)
-**Rationale:** Dead code removal (CompetencyGap action, unused methods) and "Proton Progress" → "Coaching Proton" rename. Only after testing ensures no tests depend on code being deleted.
-**Delivers:** Dead code removed (verified by analyzers + tests pass); "Coaching Proton" terminology consistent in UI, views, comments
-**Cleanup tasks:** Delete CompetencyGap() action, delete CompetencyGapViewModel, remove CMP/ProtonMain references, rename UI labels
-**Avoids pitfall #1:** Tests already exist to catch deletion breakage
-
----
+### Phase 103: Notification Testing & Polish
+**Rationale:** Testing last — requires all components (database, service, UI, triggers) to be complete. Ensures system works end-to-end and catches integration issues.
+**Delivers:** Integration tests for each trigger, manual QA of all 10 notification types, performance testing with 100+ notifications per user, edge case handling (empty state, no permissions, deleted entities)
+**Addresses:** Pitfall 7 (Missing Triggers — validate all triggers fire), Pitfall 12 (Breaking Existing Flows — regression test), Pitfall 1 (N+1 Queries — performance test)
+**Implements:** Trigger validation checklist, load testing scripts, user acceptance testing guide
 
 ### Phase Ordering Rationale
 
-1. **Code Analysis first** — informs what to test, what to clean up; risk mitigation
-2. **Unit tests early** — fast feedback, foundation for functional tests
-3. **Functional tests before manual QA** — automated tests catch integration issues, allowing manual QA to focus on UX
-4. **IDP Plan parallel with manual QA** — feature development independent of other testing; shares same test infrastructure
-5. **Cleanup last** — only after testing verifies what code is truly used
+- **Database → Service → UI → Triggers → Testing:** Follows strict dependency order. Service layer cannot exist without database model. UI cannot fetch data without service. Triggers cannot send notifications without service. Testing requires complete system.
 
----
+- **Assessment before Coaching:** Assessment triggers are simpler (4 vs 6), no multi-stage approval chain, single-step state transitions. Coaching triggers require tracking approval chain status (Coach → SrSpv → SectionHead → HC) with multiple notification recipients per event. Proving system works with simpler workflow first reduces debugging complexity.
+
+- **Separate UI phase:** Allows UI refinement (styling, UX, responsiveness) without touching service logic. If UI issues arise during integration, they're isolated from business logic.
+
+- **Testing last:** Integration tests require all components complete. Performance testing requires realistic data volume. User acceptance testing requires working end-to-end system.
 
 ### Research Flags
 
-**Phases needing deeper research during planning:**
-- **Phase 5 (IDP Plan):** Requires validation of exact display requirements (silabus hierarchy, PDF organization, progress calculation formula). Recommend `/gsd:research-phase` for 30min to confirm UI/UX expectations with stakeholders.
-- **Phase 4 (Manual QA Authorization):** 10+ roles (Admin, HC, SrSpv, SectionHead, Coach, Coachee, Worker) with overlapping permissions. Authorization matrix needs confirmation. Recommend clarifying "who can approve deliverable?" per role during planning.
+**Phases likely needing deeper research during planning:**
+
+- **Phase 99 (Database & Service):** Need to verify existing `ProtonNotification` model usage — decide between extending it (Option A: low effort) vs creating new unified `Notification` model (Option B: clean semantics). Also need to verify background job technology for deadline reminder (Hangfire vs Quartz.NET vs BackgroundService).
+
+- **Phase 102 (Coaching Triggers):** Approval chain logic is complex — need to verify current CoachingProton workflow states (is there a DeliverableProgress table? How are approvals tracked? What are exact status transitions?). May need research on status transition patterns and multi-recipient notification routing.
 
 **Phases with standard patterns (skip research-phase):**
-- **Phase 1 (Code Analysis):** NetAnalyzers + SonarQube are well-documented, standard patterns. No research needed.
-- **Phase 2 (Unit Tests):** xUnit + EF Core in-memory DB are Microsoft-endorsed, well-documented. Standard setup.
-- **Phase 3 (Functional Tests):** WebApplicationFactory is ASP.NET Core standard. No research needed beyond STACK.md.
-- **Phase 6 (Code Cleanup):** Straightforward deletions guided by analyzer reports. No research needed.
 
----
+- **Phase 100 (UI):** Standard Bootstrap dropdown pattern, AJAX polling is well-documented. No niche technologies or complex integration.
+
+- **Phase 101 (Assessment Triggers):** Standard CRUD trigger placement (POST actions after entity creation). Well-established pattern from existing `AuditLogService` usage.
+
+- **Phase 103 (Testing):** Standard ASP.NET Core integration testing patterns, performance testing with SQL Server indexes is well-documented.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| **Stack** | HIGH | Microsoft official docs + proven frameworks (xUnit 2.6+, WebApplicationFactory, NetAnalyzers); no experimental or niche tools; version compatibility matrix validated |
-| **Features** | HIGH | Directly sourced from PROJECT.md scope + v2.1-v2.6 milestone roadmaps; all features exist in codebase or are clearly scoped (IDP Plan) |
-| **Architecture** | HIGH | Direct inspection of codebase: CMPController (1840 lines), CDPController (1475 lines), EF Core models examined; authorization pattern verified; data flow traced |
-| **Pitfalls** | HIGH | Based on v2.6 cleanup experience (10+ dead code removals), codebase architectural review, multi-role system complexity; prevention strategies tested and proven patterns |
+| Stack | HIGH | Verified against existing codebase (HcPortal.csproj, _Layout.cshtml, ApplicationDbContext.cs). All dependencies already present. No new NuGet packages needed. |
+| Features | MEDIUM | WebSearch found consistent patterns across multiple sources for table stakes features. PortalHC-specific triggers need verification against actual workflow code. |
+| Architecture | HIGH | Direct codebase inspection confirmed existing patterns (AuditLogService, ProtonNotification, DI setup). Recommended approach matches established portal architecture. |
+| Pitfalls | HIGH | Multiple technical sources agree on critical pitfalls (N+1 queries, coupling, performance). Official EF Core documentation confirms prevention strategies. |
 
-**Overall confidence:** **HIGH** — All four research areas backed by official documentation, codebase inspection, and proven enterprise patterns.
+**Overall confidence:** **HIGH** — Stack and architecture recommendations are verified against existing codebase. Features and pitfalls are cross-referenced from multiple sources. Gaps are minor (background job technology, approval chain details) and can be resolved during phase planning.
 
 ### Gaps to Address
 
-1. **Authorization Matrix Clarity** — "Who exactly can approve a deliverable?" (Admin, HC, SrSpv, SectionHead, all of above?). Document per role during Phase 4 planning.
-2. **IDP Plan Display Spec** — Exact silabus hierarchy display, PDF organization, progress calculation formula. Validate with Product during Phase 5 kickoff.
-3. **Concurrent Load Expectations** — What's the expected simultaneous exam taker load? Affects SaveAnswer UPSERT testing (Phase 2-3).
-4. **Code Coverage Goals** — Researchers recommend 60-70% on services, 40-50% on controllers. Confirm acceptable targets during Phase 2 kickoff.
+- **Background Job Technology:** Need to decide between Hangfire, Quartz.NET, or ASP.NET Core BackgroundService for deadline reminder scheduled job. Research flags indicate Phase 99 needs deeper research here. Resolution: Evaluate during Phase 99 planning based on complexity vs compatibility with existing infrastructure.
 
----
+- **Notification Model Design:** Need to verify if `ProtonNotification` model is currently in use (has existing data) or can be replaced. Decide between Option A (extend ProtonNotification) vs Option B (create unified Notification model). Resolution: Check existing ProtonNotification records in database during Phase 99, run data migration if needed.
+
+- **Approval Chain Status Tracking:** Need to verify current CoachingProton workflow states and DeliverableProgress table structure for Phase 102. Resolution: Research flagged for Phase 102 planning — inspect CDPController code and database schema to understand approval chain.
+
+- **Bulk Notification Performance:** Need to decide if EFCore.BulkExtensions is needed for 100+ notifications or if AddRange is sufficient. Resolution: Performance test during Phase 103 — if bulk assignment to 100 workers takes >10 seconds, add EFCore.BulkExtensions package.
+
+- **Notification Archival:** Need to decide when to delete old notifications (30 days? 90 days? Never?). Resolution: Defer to post-v3.3 — for now, keep all notifications. Add "purge old notifications" scheduled job in future milestone if database size becomes issue.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- **STACK.md** — Microsoft Learn (xUnit, WebApplicationFactory, EF Core testing), official .NET testing guides, Microsoft.CodeAnalysis.NetAnalyzers documentation
-- **FEATURES.md** — `.planning/PROJECT.md` scope, v2.1-v2.6 milestone roadmaps (archived), feature dependency map verified against codebase
-- **ARCHITECTURE.md** — Direct codebase inspection (Controllers/CMPController.cs, Controllers/CDPController.cs, Models/ApplicationUser.cs, EF Core DbContext)
-- **PITFALLS.md** — v2.6 cleanup experience, codebase architectural patterns, multi-role authorization system review, EF Core best practices (Microsoft Learn + SQL Server)
+- **Direct codebase inspection** — Verified existing AuditLogService pattern, ProtonNotification model, ApplicationDbContext configuration, DI setup in Program.cs, Bootstrap Icons loading in _Layout.cshtml
+- **Entity Framework Core 8.0 Documentation** — Official EF Core 8.0 docs for HasIndex, migrations, filtered indexes, AsNoTracking, Include patterns
+- **ASP.NET Core MVC Documentation** — Official docs for ViewComponent pattern, scoped service lifetime, controller dependency injection
+- **SQL Server Filtered Indexes Documentation** — Official documentation for `WHERE` clause indexes (index optimization for unread queries)
 
 ### Secondary (MEDIUM confidence)
-- BrowserStack: C# testing frameworks 2026 — consensus on xUnit + WebApplicationFactory for .NET Core
-- StyleCop.Analyzers GitHub — community-driven code style enforcement, 21M+ downloads
-- SonarQube .NET integration docs — free community edition capabilities
+- **Web Search: Notification System Database Design** (2024-2025) — Two-table pattern verified against database normalization principles from multiple technical blogs
+- **Web Search: ASP.NET Core Notification Service Patterns** (2024-2025) — Service layer pattern confirmed by multiple sources, aligns with existing AuditLogService
+- **Web Search: Notification System Anti-Patterns** (2024-2025) — N+1 queries, coupling, performance issues documented across multiple technical articles
+- **Web Search: ASP.NET Core SignalR vs Polling** (2025) — Confirms polling is acceptable for non-real-time scenarios, SignalR over-engineering for v3.3 scope
+
+### Tertiary (LOW confidence)
+- **AWS Well-Architected Framework** — Notification reliability patterns (vendor-specific, adapted to ASP.NET Core context)
+- **Notification User Experience Research** — Industry best practices for notification center design (needs validation against Indonesian user expectations)
 
 ---
-
-**Research completed:** 2026-03-01
-**Ready for roadmap creation:** YES
-**Next step:** Use phase suggestions and research flags to inform REQUIREMENTS.md and detailed phase planning
+*Research completed: 2026-03-05*
+*Ready for roadmap: yes*
