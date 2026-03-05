@@ -718,6 +718,6 @@ Plans:
 | 93. CMP Section Audit | v3.2 | Complete    | 2026-03-05 | 2026-03-05 |
 | 94. CDP Section Audit | 6/6 | Complete    | 2026-03-05 | — |
 | 95. Admin Portal Audit | 4/4 | Complete   | 2026-03-05 | — |
-| 96. Account Pages Audit | 4/3 | Complete   | 2026-03-05 | — |
+| 96. Account Pages Audit | 4/3 | Complete    | 2026-03-05 | — |
 | 97. Auth & Authorization Audit | v3.2 | — | ○ Pending | — |
 | 98. Data Integrity Audit | v3.2 | — | ○ Pending | — |
