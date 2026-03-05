@@ -837,7 +837,7 @@ Plans:
 | 102. Coaching Notification Triggers | 0/3 | Not started | - |
 | 103. Notification Testing & Polish | 0/3 | Not started | - |
 
-### Phase 104: develop page http://localhost:5277/CMP/Records, saya ingin kamu cari konten,fitur,logic,user view/akses, paga page CMP/Records ini. saya ingin develop page ini**Goal:** Close UAT gaps - fix duplicate UI elements, broken filters, and missing back button**Requirements**: N/A (gap closure from UAT)**Depends on:** Phase 104 (original plan)**Plans:** 3 gap closure plansPlans:- [ ] 104-01 — Remove duplicate filter bar and summary cards from Team View- [ ] 104-02 — Fix all client-side filtering bugs (function collision + status filter logic)- [ ] 104-03 — Add missing back button to worker detail page with filter state preservation---
+### Phase 104: develop page http://localhost:5277/CMP/Records, saya ingin kamu cari konten,fitur,logic,user view/akses, paga page CMP/Records ini. saya ingin develop page ini**Goal:** Close UAT gaps - fix duplicate UI elements, broken filters, and missing back button**Requirements**: N/A (gap closure from UAT)**Depends on:** Phase 104 (original plan)**Plans:** 3/4 plans executed
 ## Historical Progress
 
 **Execution Order:**
