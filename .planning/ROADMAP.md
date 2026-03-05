@@ -649,6 +649,16 @@ Plans:
 Plans:
 - [x] 99-PLAN.md — Remove Deliverable card from CDP Index (lines 79-98)
 
+### Phase 100: Analisa workflow upload evidence coaching Proton
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 99
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 100 to break down)
+
 ---
 
 ### Phase 97: Authentication & Authorization Audit

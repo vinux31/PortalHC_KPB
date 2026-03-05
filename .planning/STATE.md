@@ -259,7 +259,8 @@ None.
 - Phase 90 added: Audit & fix Admin Assessment pages (ManageAssessment + AssessmentMonitoring)
 - Phase 91 added: Audit & fix CMP Assessment pages (Assessment + Records)
 - Phase 98 added: Data Integrity Audit (IsActive filters, soft-delete cascades, audit logging)
-- Phase 99 added: 99
+- Phase 99 added: Remove Deliverable Card from CDP Index
+- Phase 100 added: Analisa workflow upload evidence coaching Proton
 
 ### Blockers/Concerns
 
