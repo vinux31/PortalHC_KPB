@@ -1,65 +1,136 @@
-# Requirements: Portal HC KPB v3.1
+# Requirements: Portal HC KPB v3.2
 
-**Defined:** 2026-03-03
+**Defined:** 2026-03-05
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.1 Requirements
+## v3.2 Requirements
 
-Rewrite Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into file-based document management system, following the Phase 90 KKJ Matrix pattern (KkjBagian + KkjFile).
+Systematically audit all portal pages to identify and fix bugs. Organized by navbar menu for comprehensive coverage.
 
-### CPDP File Management (Admin)
+### Homepage
 
-- [x] **CPDP-01**: Admin/HC can upload CPDP document files (PDF, XLSX, XLS) per section with optional description
-- [x] **CPDP-02**: Admin/HC can download and soft-delete (archive) CPDP files, with file history view per section
-- [x] **CPDP-03**: Admin/HC can manage sections (add/delete bagian tabs) on the CPDP admin page
+- [x] **HOME-01**: Homepage renders without errors for all authenticated users
+- [x] **HOME-02**: All dashboard cards display correct data (IDP stats, pending assessments, mandatory training)
+- [x] **HOME-03**: Recent activities timeline shows correct time ago in Indonesian
+- [x] **HOME-04**: Upcoming deadlines are clickable and navigate to correct pages
+- [x] **HOME-05**: Date formatting uses Indonesian locale (day names, month names)
 
-### CPDP Mapping View (Worker)
+### CMP (Competency Management Platform)
 
-- [x] **CPDP-04**: All authenticated users can view and download CPDP files per section on CMP/Mapping page
-- [x] **CPDP-05**: CMP/Mapping page supports role-based section filtering (L1-L4 see all sections, L5-L6 see own unit only)
+- [ ] **CMP-01**: Assessment page loads without errors for all roles (Worker, HC, Admin)
+- [ ] **CMP-02**: Assessment monitoring detail page shows real-time data correctly
+- [ ] **CMP-03**: Records page displays assessment history and training records with correct pagination
+- [ ] **CMP-04**: KKJ Matrix page loads correctly with section-based filtering
+- [ ] **CMP-05**: All CMP forms handle validation errors gracefully (no raw exceptions)
+- [ ] **CMP-06**: CMP navigation flows work correctly (Create Assessment → Edit → Delete → Monitor)
 
-### Data Migration
+### CDP (Competency Development Platform)
 
-- [x] **CPDP-06**: Existing CpdpItem data exported to Excel backup file before migration
-- [x] **CPDP-07**: CpdpItem table and related spreadsheet CRUD actions removed after file-based system is verified
+- [ ] **CDP-01**: Plan IDP page loads without errors for all roles (Worker, Coach, Spv, HC, Admin)
+- [ ] **CDP-02**: Coaching Proton page shows correct coachee lists and deliverable status
+- [ ] **CDP-03**: Progress page displays correct approval workflows per role
+- [ ] **CDP-04**: Evidence upload and download work correctly for deliverables
+- [ ] **CDP-05**: Coaching session submission and approval flows work end-to-end
+- [ ] **CDP-06**: All CDP forms handle validation errors gracefully
 
-## Future Requirements (v3.2+)
+### Kelola Data (Admin Portal)
+
+- [ ] **ADMIN-01**: Manage Workers page loads with correct filters and pagination
+- [ ] **ADMIN-02**: Manage Silabus page handles KKJ files correctly (upload, download, archive)
+- [ ] **ADMIN-03**: Manage Assessment page shows correct assessment lists and actions
+- [ ] **ADMIN-04**: Assessment Monitoring page displays real-time participant data
+- [ ] **ADMIN-05**: Coach-Coachee Mapping page works correctly (assign, remove, export)
+- [ ] **ADMIN-06**: Proton Data page (Silabus + Coaching Guidance) displays correct tabs
+- [ ] **ADMIN-07**: All Admin forms handle validation errors gracefully
+- [ ] **ADMIN-08**: Admin role gates work correctly (HC vs Admin access)
+
+### Account (Profile & Settings)
+
+- [ ] **ACCT-01**: Profile page displays correct user data (Nama, NIP, Email, Position, Unit)
+- [ ] **ACCT-02**: Settings page change password works correctly
+- [ ] **ACCT-03**: Profile edit (FullName, Position) saves correctly
+- [ ] **ACCT-04**: Avatar initials display correctly from FullName
+
+### Authentication & Authorization
+
+- [ ] **AUTH-01**: Login flow works correctly (local and AD modes)
+- [ ] **AUTH-02**: Inactive users are blocked from login (Phase 83 soft-delete)
+- [ ] **AUTH-03**: AccessDenied page shows for unauthorized access attempts
+- [ ] **AUTH-04**: Role-based navigation visibility works correctly
+- [ ] **AUTH-05**: Return URL redirect after login works correctly and securely
+
+### Data Integrity
+
+- [ ] **DATA-01**: All IsActive filters are applied consistently (Workers, Silabus, Assessments)
+- [ ] **DATA-02**: Soft-delete operations cascade correctly (no orphaned records)
+- [ ] **DATA-03**: Audit logging captures all HC/Admin actions correctly
+
+## Future Requirements (v3.3+)
+
+Deferred to future milestones. Not in scope for bug hunting.
 
 - **PERF-01**: Performance baseline and load testing for concurrent exam sessions
 - **AUTO-01**: Automated test suite (xUnit + WebApplicationFactory) for regression
 - **MOBILE-01**: Mobile-responsive assessment forms
 - **NOTIF-01**: Email notifications for assessment assignments and coaching approvals
 - **ESCAL-01**: Approval auto-escalation after timeout period
-- **ACCT-01**: QA Account/Profile page (view and edit FullName, Position)
-- **ACCT-02**: QA Account/Settings page (change password)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| IdpItem table changes | IdpItem.Kompetensi kept as standalone string — no FK to CpdpItem |
-| Plan IDP page changes | Plan IDP uses ProtonTrack/Silabus, not CpdpItem |
-| Admin/ProtonData changes | Silabus & Coaching Guidance are separate from CPDP |
-| CpdpItem import feature | Replacing with file-based; no need for spreadsheet import |
-| MappingSectionSelect redesign | Section selection folded into new CMP/Mapping dropdown |
+| New features | This is bug hunting only — no new functionality |
+| UI redesign | Fix bugs only, no visual overhauls unless broken |
+| Performance optimization | Only fix critical performance bugs, not general optimization |
+| Database migrations | Only fix data integrity bugs, no schema changes |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CPDP-01 | Phase 92 | Complete |
-| CPDP-02 | Phase 92 | Complete |
-| CPDP-03 | Phase 92 | Complete |
-| CPDP-04 | Phase 93 | Complete |
-| CPDP-05 | Phase 93 | Complete |
-| CPDP-06 | Phase 91 | Complete |
-| CPDP-07 | Phase 93 | Complete |
+| HOME-01 | Phase 92 | Complete |
+| HOME-02 | Phase 92 | Complete |
+| HOME-03 | Phase 92 | Complete |
+| HOME-04 | Phase 92 | Complete |
+| HOME-05 | Phase 92 | Complete |
+| CMP-01 | Phase 93 | Pending |
+| CMP-02 | Phase 93 | Pending |
+| CMP-03 | Phase 93 | Pending |
+| CMP-04 | Phase 93 | Pending |
+| CMP-05 | Phase 93 | Pending |
+| CMP-06 | Phase 93 | Pending |
+| CDP-01 | Phase 94 | Pending |
+| CDP-02 | Phase 94 | Pending |
+| CDP-03 | Phase 94 | Pending |
+| CDP-04 | Phase 94 | Pending |
+| CDP-05 | Phase 94 | Pending |
+| CDP-06 | Phase 94 | Pending |
+| ADMIN-01 | Phase 95 | Pending |
+| ADMIN-02 | Phase 95 | Pending |
+| ADMIN-03 | Phase 95 | Pending |
+| ADMIN-04 | Phase 95 | Pending |
+| ADMIN-05 | Phase 95 | Pending |
+| ADMIN-06 | Phase 95 | Pending |
+| ADMIN-07 | Phase 95 | Pending |
+| ADMIN-08 | Phase 95 | Pending |
+| ACCT-01 | Phase 96 | Pending |
+| ACCT-02 | Phase 96 | Pending |
+| ACCT-03 | Phase 96 | Pending |
+| ACCT-04 | Phase 96 | Pending |
+| AUTH-01 | Phase 97 | Pending |
+| AUTH-02 | Phase 97 | Pending |
+| AUTH-03 | Phase 97 | Pending |
+| AUTH-04 | Phase 97 | Pending |
+| AUTH-05 | Phase 97 | Pending |
+| DATA-01 | Phase 98 | Pending |
+| DATA-02 | Phase 98 | Pending |
+| DATA-03 | Phase 98 | Pending |
 
 **Coverage:**
-- v3.1 requirements: 7 total
-- Mapped to phases: 7 (100%)
-- Unmapped: 0
+- v3.2 requirements: 40 total
+- Mapped to phases: 40 (100%)
+- Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-03*
-*Last updated: 2026-03-03 — traceability updated after roadmap creation*
+*Requirements defined: 2026-03-05*
+*Last updated: 2026-03-05 — initial v3.2 requirements*

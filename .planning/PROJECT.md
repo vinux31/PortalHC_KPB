@@ -12,9 +12,18 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v3.2 (Planning — Next)
+## Current Milestone: v3.2 - Bug Hunting & Quality Audit
 
-**Goal:** TBD
+**Goal:** Systematically audit, identify, and fix bugs across all portal pages and user flows — organized by navbar menu for comprehensive coverage.
+
+**Target pages:**
+- Homepage ✅ (5 bugs fixed: deadline cards, pluralization, localization, query consistency, negative days)
+- CMP (Assessment, Records, Monitoring)
+- CDP (Plan IDP, Coaching Proton, Progress)
+- Kelola Data (Admin CRUD pages)
+- Account (Profile, Settings)
+
+**Approach:** Code review → Identify bugs → Create task list → Fix → Verify in browser
 
 ## Current State (v3.0 — shipped 2026-03-05)
 
@@ -675,4 +684,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-01 after v2.7 milestone started*
+*Last updated: 2026-03-05 after v3.2 milestone started*

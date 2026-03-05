@@ -262,20 +262,20 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-03)
+See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.0 Full QA & Feature Completion — Phases 85, 87 remaining
+**Current focus:** v3.2 Bug Hunting & Quality Audit — Systematically audit all pages and fix bugs
 
 ## Current Position
 
-**Milestone:** v3.0 Full QA & Feature Completion
-Phase: 87 — dashboard-navigation-qa — COMPLETE
-Plan: 03 — COMPLETE (Phase 87 all 3 plans done)
-Status: Phase 87 complete — all 8 DASH requirements (DASH-01 through DASH-08) verified PASS via code review and browser verification
-Last activity: 2026-03-05 - 87-03 complete: Login flow, role-based navigation, section selectors, AccessDenied page, and AuditLog page all verified PASS; no bugs found
+**Milestone:** v3.2 Bug Hunting & Quality Audit
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-05 — Milestone v3.2 started, Homepage audited with 5 bugs fixed
 
-Progress: [████████░░] 94%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 

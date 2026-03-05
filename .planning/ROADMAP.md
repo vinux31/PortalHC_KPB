@@ -21,8 +21,9 @@
 - ✅ **v2.5 User Infrastructure & AD Readiness** — Phases 65-72 (shipped 2026-03-01)
 - ✅ **v2.6 Codebase Cleanup** — Phases 73-78 (shipped 2026-03-01)
 - ✅ **v2.7 Assessment Monitoring** — Phases 79-81 (shipped 2026-03-01)
-- 🚧 **v3.0 Full QA & Feature Completion** — Phases 82-91 (in progress)
+- ✅ **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - ✅ **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 (shipped 2026-03-03)
+- 🚧 **v3.2 Bug Hunting & Quality Audit** — Phases 92-98 (in progress)
 
 ## Phases
 
@@ -504,6 +505,189 @@ Plans:
 - [ ] 88-01: Rewrite CMPController Mapping action and CMP/Mapping.cshtml view — file download per section, role-based tab filtering (L1-L4 all, L5-L6 own unit) (CPDP-04, CPDP-05)
 - [ ] 88-02: Remove CpdpItem model, DbSet, migration drop, and all old CRUD controller actions and views; verify no broken references remain (CPDP-07)
 
+---
+
+### Phase 92: Homepage Audit ✅
+**Goal**: Audit Homepage for bugs and fix all issues
+**Milestone**: v3.2 Bug Hunting & Quality Audit
+**Requirements**: HOME-01, HOME-02, HOME-03, HOME-04, HOME-05
+**Status**: ✅ COMPLETE — 5 bugs fixed (deadline links, pluralization, localization, query consistency, negative days)
+
+**Success Criteria** (what must be TRUE):
+1. Homepage renders without errors for all authenticated user roles
+2. All dashboard cards display accurate data (IDP stats, assessments, training status)
+3. Recent activities show correct Indonesian time formatting
+4. Deadline cards are clickable and navigate to correct pages
+5. All dates use Indonesian locale (day names, month names)
+
+**Completed**: 2026-03-05
+
+---
+
+### Phase 93: CMP Section Audit
+**Goal**: Audit CMP (Competency Management Platform) pages for bugs
+**Milestone**: v3.2 Bug Hunting & Quality Audit
+**Requirements**: CMP-01, CMP-02, CMP-03, CMP-04, CMP-05, CMP-06
+**Status**: ○ Pending
+
+**Pages to Audit**:
+- /CMP/Index (Assessment hub)
+- /CMP/Assessment (Assessment list)
+- /CMP/Records (Assessment + Training history)
+- /CMP/Mapping (KKJ Matrix view)
+- /CMP/Monitoring (Assessment monitoring detail)
+
+**Success Criteria** (what must be TRUE):
+1. All CMP pages load without errors for Worker, HC, Admin roles
+2. Assessment monitoring shows real-time data correctly
+3. Records pagination works correctly with filters
+4. KKJ Matrix section filtering works per user RoleLevel
+5. All forms handle validation errors gracefully (no raw exceptions)
+6. CMP navigation flows work end-to-end (Create → Edit → Delete → Monitor)
+
+**Plans**:
+- [ ] 93-01: Code review — CMPController, Assessment models, view files
+- [ ] 93-02: Browser verification — Test all CMP flows with different roles
+- [ ] 93-03: Fix identified bugs
+- [ ] 93-04: Regression test — Verify fixes don't break existing functionality
+
+---
+
+### Phase 94: CDP Section Audit
+**Goal**: Audit CDP (Competency Development Platform) pages for bugs
+**Milestone**: v3.2 Bug Hunting & Quality Audit
+**Requirements**: CDP-01, CDP-02, CDP-03, CDP-04, CDP-05, CDP-06
+**Status**: ○ Pending
+
+**Pages to Audit**:
+- /CDP/Index (Plan IDP)
+- /CDP/CoachingProton (Coaching workflow)
+- /CDP/Progress (Progress tracking)
+- /CDP/Deliverable (Deliverable detail)
+- /CDP/PlanIdp (2-tab Silabus + Guidance)
+
+**Success Criteria** (what must be TRUE):
+1. All CDP pages load without errors for Worker, Coach, Spv, HC, Admin roles
+2. Coaching Proton shows correct coachee lists scoped by role
+3. Progress approval workflows work correctly per role (SrSpv, SH, HC)
+4. Evidence upload/download works without errors
+5. Coaching session submission and approval flows complete end-to-end
+6. All CDP forms handle validation errors gracefully
+
+**Plans**:
+- [ ] 94-01: Code review — CDPController, Proton models, view files
+- [ ] 94-02: Browser verification — Test all CDP flows with different roles
+- [ ] 94-03: Fix identified bugs
+- [ ] 94-04: Regression test — Verify fixes don't break existing functionality
+
+---
+
+### Phase 95: Admin Portal Audit
+**Goal**: Audit Kelola Data (Admin Portal) pages for bugs
+**Milestone**: v3.2 Bug Hunting & Quality Audit
+**Requirements**: ADMIN-01, ADMIN-02, ADMIN-03, ADMIN-04, ADMIN-05, ADMIN-06, ADMIN-07, ADMIN-08
+**Status**: ○ Pending
+
+**Pages to Audit**:
+- /Admin/Index (Kelola Data hub)
+- /Admin/ManageWorkers
+- /Admin/KkjMatrix (Manage Silabus)
+- /Admin/ManageAssessment
+- /Admin/AssessmentMonitoring
+- /Admin/CoachCoacheeMapping
+- /Admin/ProtonData (Silabus + Guidance tabs)
+
+**Success Criteria** (what must be TRUE):
+1. All Admin pages load without errors for Admin and HC roles
+2. ManageWorkers filters and pagination work correctly
+3. KkjMatrix file operations (upload, download, archive) work correctly
+4. Assessment monitoring displays real-time participant data
+5. Coach-Coachee mapping operations complete successfully
+6. ProtonData tabs display correctly with file management
+7. All forms handle validation errors gracefully
+8. Role gates work correctly (HC-only vs Admin-only actions)
+
+**Plans**:
+- [ ] 95-01: Code review — AdminController, Admin models, view files
+- [ ] 95-02: Browser verification — Test all Admin flows with HC and Admin roles
+- [ ] 95-03: Fix identified bugs
+- [ ] 95-04: Regression test — Verify fixes don't break existing functionality
+
+---
+
+### Phase 96: Account Pages Audit
+**Goal**: Audit Account (Profile & Settings) pages for bugs
+**Milestone**: v3.2 Bug Hunting & Quality Audit
+**Requirements**: ACCT-01, ACCT-02, ACCT-03, ACCT-04
+**Status**: ○ Pending
+
+**Pages to Audit**:
+- /Account/Profile
+- /Account/Settings
+
+**Success Criteria** (what must be TRUE):
+1. Profile page displays correct user data (Nama, NIP, Email, Position, Unit)
+2. Settings page change password works correctly
+3. Profile edit (FullName, Position) saves and persists correctly
+4. Avatar initials display correctly from FullName
+
+**Plans**:
+- [ ] 96-01: Code review — AccountController, ApplicationUser model, view files
+- [ ] 96-02: Browser verification — Test profile and settings flows
+- [ ] 96-03: Fix identified bugs
+- [ ] 96-04: Regression test — Verify fixes don't break existing functionality
+
+---
+
+### Phase 97: Authentication & Authorization Audit
+**Goal**: Audit authentication and authorization for bugs
+**Milestone**: v3.2 Bug Hunting & Quality Audit
+**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
+**Status**: ○ Pending
+
+**Areas to Audit**:
+- Login flow (local and AD modes)
+- AccessDenied page
+- Role-based navigation visibility
+- Return URL redirects
+
+**Success Criteria** (what must be TRUE):
+1. Login flow works correctly in both local and AD authentication modes
+2. Inactive users are blocked from login (Phase 83 soft-delete)
+3. AccessDenied page displays for unauthorized access attempts
+4. Role-based navigation visibility works correctly for all 6 roles
+5. Return URL redirect after login works correctly and securely (Url.IsLocalUrl check)
+
+**Plans**:
+- [ ] 97-01: Code review — AccountController, IAuthService implementations, _Layout.cshtml navigation
+- [ ] 97-02: Browser verification — Test login flows and authorization with different roles
+- [ ] 97-03: Fix identified bugs
+- [ ] 97-04: Regression test — Verify fixes don't break existing functionality
+
+---
+
+### Phase 98: Data Integrity Audit
+**Goal**: Audit data integrity patterns for bugs
+**Milestone**: v3.2 Bug Hunting & Quality Audit
+**Requirements**: DATA-01, DATA-02, DATA-03
+**Status**: ○ Pending
+
+**Areas to Audit**:
+- IsActive filter consistency across all queries
+- Soft-delete cascade operations
+- Audit logging completeness
+
+**Success Criteria** (what must be TRUE):
+1. All IsActive filters are applied consistently (Workers, Silabus, Assessments)
+2. Soft-delete operations cascade correctly without orphaned records
+3. Audit logging captures all HC/Admin actions with correct actor and timestamp
+
+**Plans**:
+- [ ] 98-01: Code review — Search for all IsActive usages, soft-delete patterns, AuditLog calls
+- [ ] 98-02: Database verification — Check for orphaned records and missing filters
+- [ ] 98-03: Fix identified bugs
+- [ ] 98-04: Regression test — Verify fixes don't break existing functionality
+
 ## Progress
 
 **Execution Order:**
@@ -522,3 +706,10 @@ Plans:
 | 90. Audit Admin Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
 | 91. Audit CMP Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
 | 88. CPDP File Rewrite (3 sub) | v3.1 | 6/6 | ✅ Complete | 2026-03-03 |
+| 92. Homepage Audit | v3.2 | — | ✅ Complete | 2026-03-05 |
+| 93. CMP Section Audit | v3.2 | — | ○ Pending | — |
+| 94. CDP Section Audit | v3.2 | — | ○ Pending | — |
+| 95. Admin Portal Audit | v3.2 | — | ○ Pending | — |
+| 96. Account Pages Audit | v3.2 | — | ○ Pending | — |
+| 97. Auth & Authorization Audit | v3.2 | — | ○ Pending | — |
+| 98. Data Integrity Audit | v3.2 | — | ○ Pending | — |
