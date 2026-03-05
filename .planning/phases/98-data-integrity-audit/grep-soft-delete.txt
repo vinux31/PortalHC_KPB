@@ -1,0 +1,7 @@
+Controllers/AdminController.cs:3620:                    t.IsActive = false;
+Controllers/AdminController.cs:3682:                    t.IsActive = false;
+Controllers/AdminController.cs:3734:            mapping.IsActive = false;
+Controllers/AdminController.cs:4254:            foreach (var m in activeMappings) { m.IsActive = false; m.EndDate = DateTime.Today; }
+Controllers/AdminController.cs:4262:            // Soft delete: set IsActive = false
+Controllers/AdminController.cs:4263:            user.IsActive = false;
+Controllers/ProtonDataController.cs:393:            komp.IsActive = false;

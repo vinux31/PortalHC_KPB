@@ -1,495 +1,353 @@
 # 📊 Analisis Lengkap — PortalHC_KPB
 
-**Tanggal Analisis:** 4 Maret 2026, 19:17 WIB  
-**Analyzer:** Antigravity AI  
-**Database:** SQL Server (prod) / SQLite fallback (dev: `HcPortal.db`)
+**Tanggal Analisis:** 5 Maret 2026, 16:14 WIB  
+**Status Proyek:** Pre-Production (~93%)
 
 ---
 
 ## 1. Ringkasan Eksekutif
 
-| Aspek | Status |
-|-------|:------:|
+| Aspek | Detail |
+|-------|--------|
 | **Tech Stack** | ASP.NET Core MVC .NET 8 + EF Core + SQL Server |
 | **Total Migrations** | 44 (terbaru: 3 Mar 2026) |
-| **Total Lines of Code** | ~11,200 lines (C#) + ~21,000 lines (Razor) |
-| **Completion Estimate** | ~92% |
-| **Stage** | Pre-Production |
+| **Total Lines C#** | ~11,700 (controllers) + ~2,400 (models/services) |
+| **Total Views** | 54 Razor files + 3 partials |
+| **Completion** | ~93% |
 
 ---
 
-## 2. Arsitektur & Stack
+## 2. Delta Sejak Analisis Terakhir (4 Mar → 5 Mar)
+
+### ✅ Bug yang Sudah Diperbaiki
+| Bug Lama | Status | Detail |
+|----------|:------:|--------|
+| **HTTPS Disabled** | ✅ **FIXED** | `Program.cs:127-130` — conditional enable di production |
+| **AdminController tanpa ILogger** | ✅ **FIXED** | `ILogger<AdminController>` injected (line 23) |
+| **Empty catch blocks (audit)** | ✅ **Sebagian FIXED** | Banyak audit catch diubah ke `_logger.LogWarning(ex, ...)` |
+| **Dashboard ActiveDeliverables** | ✅ **FIXED** | CDPController — status check diubah dari "Active" ke "Pending" |
+| **Dashboard IsActive filter** | ✅ **FIXED** | CDPController — `BuildProtonProgressSubModelAsync` sekarang filter `u.IsActive` |
+| **Inactive user login** | ✅ **FIXED** | `AccountController:72-76` — block inactive users dari login |
+
+### Perubahan Code Size
+| File | 4 Mar | 5 Mar | Delta |
+|------|:-----:|:-----:|:-----:|
+| `AdminController.cs` | 245KB / 5,472 ln | 265KB / 5,828 ln | **+20KB +356 lines** |
+| `CDPController.cs` | 102KB / 2,130 ln | 108KB / 2,227 ln | **+5KB +97 lines** |
+| `CMPController.cs` | 84KB / 1,833 ln | 86KB / 1,885 ln | +2KB +52 lines |
+| `AccountController.cs` | 8.9KB / 233 ln | 9.8KB / 275 ln | +0.9KB +42 lines |
+| `HomeController.cs` | 10.4KB / 250 ln | 11KB / 292 ln | +0.6KB +42 lines |
+| `Program.cs` | 5,764B / 158 ln | 5,820B / 162 ln | +56B +4 lines |
+
+### File Baru
+| File | Size | Detail |
+|------|:----:|--------|
+| `Data/SeedTestData.cs` | 24KB / 481 ln | Test data seeding diekstrak ke class terpisah |
+
+### Fitur Baru
+| Fitur | Controller | Keterangan |
+|-------|-----------|-----------|
+| `DownloadEvidence` | CDPController | Download evidence file dengan path traversal protection + role-based access |
+| `SeedDashboardTestData` | AdminController | Endpoint debug baru untuk seed dashboard data |
+| `SeedCDPTestData` | AdminController | Endpoint debug baru (delegate ke `SeedTestData.cs`) |
+| `Settings` page | AccountController | Halaman Settings dengan Edit Profile + Change Password |
+| `GetUpcomingDeadlines` | HomeController | Dashboard deadline tracking |
+| `GetMandatoryTrainingStatus` | HomeController | Dashboard mandatory training status |
+
+---
+
+## 3. Arsitektur Aplikasi
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                    Browser (Client)                      │
-│   Bootstrap 5.3 · Chart.js · AOS · jQuery 3.7.1        │
-└────────────────────────┬────────────────────────────────┘
-                         │ HTTP
-┌────────────────────────▼────────────────────────────────┐
-│              ASP.NET Core 8 MVC                          │
-│  AccountController · AdminController · CMPController    │
-│  CDPController · ProtonDataController · HomeController  │
-└──────────────┬──────────────────┬───────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│                  Browser (Client)                     │
+│  Bootstrap 5.3 · Chart.js · AOS · jQuery 3.7.1      │
+└──────────────────────┬───────────────────────────────┘
+                       │ HTTPS (prod) / HTTP (dev)
+┌──────────────────────▼───────────────────────────────┐
+│              ASP.NET Core 8 MVC                       │
+│                                                       │
+│  AccountController (275 ln, 8 methods)               │
+│  HomeController    (292 ln, 7 methods)               │
+│  AdminController   (5,828 ln, 91 methods) ⚠️ BESAR  │
+│  CMPController     (1,885 ln, 33 methods)            │
+│  CDPController     (2,227 ln, 28 methods)            │
+│  ProtonDataController (792 ln, 25 methods)           │
+│                                                       │
+│  Services: AuditLog, HybridAuth, LDAP, Local         │
+└──────────────┬──────────────────┬────────────────────┘
                │ EF Core          │ Identity
-┌──────────────▼────┐   ┌─────────▼─────────────────────┐
-│    SQL Server     │   │   ASP.NET Core Identity        │
-│  (44 migrations)  │   │ LocalAuth / LdapAuth / Hybrid  │
-└───────────────────┘   └───────────────────────────────┘
+┌──────────────▼────┐   ┌─────────▼────────────────────┐
+│   SQL Server      │   │  ASP.NET Core Identity       │
+│  (44 migrations)  │   │  Local + AD + Hybrid Auth    │
+└───────────────────┘   └──────────────────────────────┘
 ```
 
-### Key Dependencies
-| Package | Tujuan |
-|---------|--------|
-| ClosedXML | Excel export (assessment results, worker list) |
-| QuestPDF | PDF export (progress report) |
-| System.DirectoryServices.Protocols | LDAP/AD authentication |
-| Microsoft.Extensions.Caching.Memory | In-memory cache |
+### RBAC (10 Roles, 6 Levels)
+| Level | Role | Scope |
+|:-----:|------|-------|
+| 1 | Admin | Full system |
+| 2 | HC | Full system + worker management |
+| 3 | Direktur, VP, Manager, SectionHead | Full data read (all sections) |
+| 4 | Sr Supervisor | Section-scoped |
+| 5 | Coach, Supervisor | Own coachees/unit only |
+| 6 | Coachee | Personal data only |
 
 ---
 
-## 3. Role & RBAC (Updated 28 Feb)
+## 4. Modul & Fitur Lengkap
 
-| Level | Role | Count | Hak Akses |
-|:-----:|------|:-----:|-----------|
-| 1 | **Admin** | 1 | Full system access |
-| 2 | **HC** | N | Full access + user management |
-| 3 | **Direktur, VP, Manager, Section Head** | N | Full data read (all sections) ← *Section Head naik dari Level 4* |
-| 4 | **Sr Supervisor** | N | Section-scoped data only |
-| 5 | **Coach, Supervisor** | N | Own coachees only ← *Supervisor: role baru* |
-| 6 | **Coachee** | N | Personal data only |
+### 4.1 Admin Panel (91 methods, 26 views)
+| Area | Fitur | Status |
+|------|-------|:------:|
+| **KKJ Management** | KkjMatrix, KkjUpload, KkjFileDownload, KkjFileDelete, KkjFileHistory, KkjBagianAdd/Delete | ✅ |
+| **CPDP Management** | CpdpFiles, CpdpUpload, CpdpFileDownload, CpdpFileArchive, CpdpFileHistory | ✅ |
+| **Assessment** | ManageAssessment (3 tabs), Create/Edit/Delete Assessment, Monitoring, MonitoringDetail, CloseEarly, ForceClose, Reshuffle | ✅ |
+| **Package & Questions** | ManagePackages, CreatePackage, DeletePackage, ManageQuestions, AddQuestion, DeleteQuestion, ImportPackageQuestions | ✅ |
+| **Worker** | ManageWorkers, Create/Edit/Delete Worker, Deactivate/Reactivate, Import/Export, WorkerDetail | ✅ |
+| **Training** | AddTraining, EditTraining, DeleteTraining | ✅ |
+| **Coaching Mapping** | CoachCoacheeMapping (Assign/Edit/Deactivate/Reactivate/Export) | ✅ |
+| **Other** | AuditLog, UserAssessmentHistory, InterviewResults | ✅ |
 
-> ⚠️ **Perubahan Penting (28 Feb):** `SectionHead` naik dari Level 4 → Level 3 (full access). `Supervisor` role baru di Level 5 (same access as Coach, no coachee mapping).
+### 4.2 CMP — Competency Management Portal (33 methods, 9 views)
+| Fitur | Status |
+|-------|:------:|
+| KKJ File Viewer (per bagian) | ✅ |
+| Mapping KKJ ↔ CPDP | ✅ |
+| Assessment Lobby (personal) + Exam Engine | ✅ |
+| StartExam (timer, auto-save, pagination, resume) | ✅ |
+| ExamSummary + SubmitExam + Certificate | ✅ |
+| Records (personal training records) | ✅ |
+| EditTrainingRecord / DeleteTrainingRecord | ✅ |
+
+### 4.3 CDP — Career Development Portal (28 methods, 5 views + 3 partials)
+| Fitur | Status |
+|-------|:------:|
+| PlanIdp (silabus + guidance file download) | ✅ |
+| GuidanceDownload (proxy untuk semua role) | ✅ |
+| Dashboard (Coachee + ProtonProgress + Analytics) | ✅ |
+| Deliverable (detail + coaching log) | ✅ |
+| Approve/Reject Deliverable (Coach/SrSpv/SH/HC) | ✅ |
+| UploadEvidence (file validation) | ✅ |
+| **DownloadEvidence** (path traversal protection) | ✅ **NEW** |
+| CoachingProton (progress view, multi-role scoping) | ✅ |
+| SubmitEvidenceWithCoaching | ✅ |
+| Export (Excel + PDF) | ✅ |
+| Coaching Session Edit/Delete | ❌ Belum |
+
+### 4.4 ProtonData (25 methods, 2 views)
+| Fitur | Status |
+|-------|:------:|
+| Silabus CRUD (Save/Delete/Deactivate/Reactivate) | ✅ |
+| Guidance File CRUD (Upload/Download/Replace/Delete) | ✅ |
+| Override Management (List/Detail/Save) | ✅ |
+
+### 4.5 Account (8 methods, 4 views)
+| Fitur | Status |
+|-------|:------:|
+| Login (Local/AD/Hybrid) + Inactive user block | ✅ |
+| Logout | ✅ |
+| Profile | ✅ |
+| **Settings** (Edit Profile + Change Password) | ✅ **NEW** |
+| AccessDenied | ✅ |
+
+### 4.6 Home (7 methods, 1 view)
+| Fitur | Status |
+|-------|:------:|
+| Dashboard (greeting, stats, cards) | ✅ |
+| **GetMandatoryTrainingStatus** | ✅ **NEW** |
+| **GetUpcomingDeadlines** | ✅ **NEW** |
+| GetRecentActivities | ✅ |
 
 ---
 
-## 4. Perubahan Besar Sejak Analisis Terakhir (1 Mar → 4 Mar)
-
-### Migrasi Baru (7 migrations)
-| Tanggal | Nama | Dampak |
-|---------|------|--------|
-| 2 Mar | `AddKkjDynamicColumns` | KKJ: tambah kolom dinamis |
-| 2 Mar | `DropKkjTablesAddKkjFiles` | ⚡ **KKJ total redesign**: drop tabel lama, ganti ke file system |
-| 3 Mar | `AddCpdpFiles` | CPDP: tambah tabel file management |
-| 3 Mar | `DropCpdpItems` | ⚡ **CPDP total redesign**: drop tabel item lama |
-| 3 Mar | `AddIsActiveToUserAndSilabus` | Soft-delete untuk ApplicationUser dan Silabus |
-| 3 Mar | `SetExistingRecordsActive` | Data migration: set `IsActive=true` untuk semua record lama |
-
-### Perubahan Controller (ukuran file)
-| Controller | 1 Mar | 4 Mar | Delta |
-|-----------|:-----:|:-----:|:-----:|
-| `AdminController` | 190KB / 4,213 ln | 245KB / 5,472 ln | **+55KB +1,259 lines** |
-| `CMPController` | 119KB / 2,588 ln | 84KB / 1,833 ln | **-35KB -755 lines** |
-| `CDPController` | 94KB / 1,971 ln | 102KB / 2,130 ln | +8KB +159 lines |
-| `ProtonDataController` | 31KB / 688 ln | 37KB / 792 ln | +6KB +104 lines |
-
-### View Changes
-| Folder | 1 Mar | 4 Mar | Delta |
-|--------|:-----:|:-----:|:-----:|
-| Views/Admin | 17 files | 26 files | **+9 files** |
-| Views/CMP | 17 files | 9 files | **-8 files** |
-| Views/CDP | 8 files (5 visible) | 5 files (+1 folder) | Renamed ProtonProgress→CoachingProton |
-| Views/ProtonData | 1 file | 2 files | +Override.cshtml |
-
----
-
-## 5. Modul & Fitur Detail
-
-### 5.1 CMP — Competency Management Portal
-
-**Controller:** `CMPController.cs` (84KB, 1,833 lines, 33 methods)
-
-| Fitur | Status |
-|-------|:------:|
-| **Kkj** — Tampilan file KKJ per bagian (PDF viewer) | ✅ |
-| **Mapping** — KKJ ↔ CPDP mapping view | ✅ |
-| **Assessment** — Lobby personal assessments | ✅ |
-| **StartExam** — Exam engine (timer, navigasi, auto-save) | ✅ |
-| **SaveAnswer / CheckExamStatus** — Real-time exam tracking | ✅ |
-| **UpdateSessionProgress** — Resume support | ✅ |
-| **ExamSummary / SubmitExam** — Pre-submit review + final score | ✅ |
-| **Certificate** — Generate post-exam certificate | ✅ |
-| **Results** — Analytics per user (HC/Admin) | ✅ |
-| **Records** — Training records list (personal) | ✅ |
-| **EditTrainingRecord / DeleteTrainingRecord** — Training CRUD | ✅ |
-| **VerifyToken** — Token-based exam access | ✅ |
-| CpdpProgress | ❌ Dihapus (dipindah ke Admin) |
-| CreateTrainingRecord (CMP) | ❌ Dihapus (dipindah ke Admin) |
-| ManagePackages / ManageQuestions | ❌ Dipindah ke Admin |
-| ImportPackageQuestions | ❌ Dipindah ke Admin |
-
-### 5.2 Admin Panel
-
-**Controller:** `AdminController.cs` (245KB, 5,472 lines, 90 methods)
-
-**KKJ Management (REDESIGNED)**
-| Fitur | Status |
-|-------|:------:|
-| `KkjMatrix` — Tampilan list file KKJ per bagian | ✅ |
-| `KkjUpload` — Upload file KKJ (PDF/Excel) per bagian | ✅ |
-| `KkjFileDownload` — Download file KKJ | ✅ |
-| `KkjFileDelete` — Hapus file KKJ | ✅ |
-| `KkjFileHistory` — Riwayat upload file per bagian | ✅ |
-| `KkjBagianAdd / KkjBagianDelete` — Kelola bagian | ✅ |
-
-**CPDP Management (REDESIGNED)**
-| Fitur | Status |
-|-------|:------:|
-| `CpdpFiles` — List file CPDP per bagian | ✅ |
-| `CpdpUpload` — Upload file CPDP | ✅ |
-| `CpdpFileDownload` — Download file CPDP | ✅ |
-| `CpdpFileArchive` — Archive (soft-delete) file | ✅ |
-| `CpdpFileHistory` — Riwayat upload per bagian | ✅ |
-
-**Assessment Management**
-| Fitur | Status |
-|-------|:------:|
-| `ManageAssessment` (tab: assessment / training / history) | ✅ |
-| `CreateAssessment` — Multi-user, package assignment | ✅ |
-| `EditAssessment` — Update details | ✅ |
-| `DeleteAssessment / DeleteAssessmentGroup` | ✅ |
-| `AssessmentMonitoring` — **NEW**: Group list page | ✅ |
-| `AssessmentMonitoringDetail` — Real-time monitoring | ✅ |
-| `SubmitInterviewResults` — Proton Year 3 interview | ✅ |
-| `GetMonitoringProgress` — Polling endpoint | ✅ |
-| `ResetAssessment / ForceCloseAssessment / ForceCloseAll` | ✅ |
-| `CloseEarly` — Auto-score InProgress sessions | ✅ |
-| `ReshufflePackage / ReshuffleAll` | ✅ |
-| `ExportAssessmentResults` — Excel export | ✅ |
-| `UserAssessmentHistory` | ✅ |
-| `RegenerateToken` | ✅ |
-
-**Package Management (moved from CMP)**
-| Fitur | Status |
-|-------|:------:|
-| `ManagePackages / CreatePackage / DeletePackage` | ✅ |
-| `ManageQuestions / AddQuestion / DeleteQuestion` | ✅ |
-| `PreviewPackage` | ✅ |
-| `ImportPackageQuestions` — Excel import | ✅ |
-| `DownloadQuestionTemplate` — Template Excel | ✅ |
-
-**Worker Management**
-| Fitur | Status |
-|-------|:------:|
-| `ManageWorkers` | ✅ |
-| `CreateWorker / EditWorker / DeleteWorker` | ✅ |
-| `DeactivateWorker` — **NEW**: Soft-deactivate | ✅ |
-| `ReactivateWorker` — **NEW**: Restore inactive worker | ✅ |
-| `WorkerDetail / WorkerDetail (training tab)` | ✅ |
-| `ImportWorkers` — Excel bulk import | ✅ |
-| `DownloadImportTemplate` | ✅ |
-| `ExportWorkers` — Excel export | ✅ |
-
-**Training Records (moved from CMP)**
-| Fitur | Status |
-|-------|:------:|
-| `AddTraining / EditTraining / DeleteTraining` | ✅ |
-| File upload (PDF/JPG/PNG, max 10MB) | ✅ |
-
-**Other Admin**
-| Fitur | Status |
-|-------|:------:|
-| `CoachCoacheeMapping` + Assign/Edit/Deactivate/Reactivate | ✅ |
-| `CoachCoacheeMappingExport` — Excel | ✅ |
-| `AuditLog` | ✅ |
-| `GetEligibleCoachees` — AJAX | ✅ |
-| `SeedAssessmentTestData` ⚠️ | 🔴 DEV ONLY |
-| `SeedCoachingTestData` ⚠️ | 🔴 DEV ONLY |
-
-### 5.3 CDP — Career Development Portal
-
-**Controller:** `CDPController.cs` (102KB, 2,130 lines, 27 methods)
-
-| Fitur | Status |
-|-------|:------:|
-| `PlanIdp` — Tampilan silabus + guidance file download | ✅ |
-| `GuidanceDownload` — **NEW**: Proxy download untuk coachee | ✅ |
-| `Dashboard` — Analitik + ProtonProgress sub-model | ✅ |
-| `Deliverable` — Detail deliverable + coaching reports | ✅ |
-| `ApproveDeliverable / RejectDeliverable` | ✅ |
-| `HCReviewDeliverable` | ✅ |
-| `UploadEvidence` — File upload (PDF/JPG/PNG, max 10MB) | ✅ |
-| `CoachingProton` — **RENAMED** dari ProtonProgress (1,556→420 lines focus) | ✅ |
-| `ApproveFromProgress / RejectFromProgress / HCReviewFromProgress` | ✅ |
-| `SubmitEvidenceWithCoaching` | ✅ |
-| `ExportProgressExcel / ExportProgressPdf` | ✅ |
-| `GetCoacheeDeliverables` — AJAX | ✅ |
-| `ExportAnalyticsResults` — Assessment analytics Excel | ✅ |
-| `SearchUsers` — Autocomplete AJAX | ✅ |
-| Coaching Session Edit/Delete | ❌ Belum ada |
-
-### 5.4 ProtonData
-
-**Controller:** `ProtonDataController.cs` (37KB, 792 lines, 25 methods)
-
-| Fitur | Status |
-|-------|:------:|
-| `Index` — Manajemen silabus | ✅ |
-| `SilabusSave / SilabusDelete` | ✅ |
-| `SilabusDeactivate / SilabusReactivate` — **NEW**: Soft-delete | ✅ |
-| `GuidanceList / GuidanceUpload / GuidanceDownload` | ✅ |
-| `GuidanceReplace / GuidanceDelete` | ✅ |
-| `Override` — **NEW**: Halaman override management | ✅ |
-| `OverrideList / OverrideDetail / OverrideSave` — **NEW**: Override workflow | ✅ |
-
-### 5.5 Home
-
-**Controller:** `HomeController.cs` (10KB)
-
-| Fitur | Status |
-|-------|:------:|
-| Dashboard utama (greeting, cards, stats) | ✅ |
-
-### 5.6 BP Module
-
-| Status |
-|:------:|
-| ❌ **DIHAPUS** sepenuhnya dari codebase |
-
----
-
-## 6. Database Schema (44 Migrations)
-
-### Tabel Utama
-| Tabel | Keterangan |
-|-------|-----------|
-| `AspNetUsers` (+IsActive, +SelectedView, +RoleLevel, +NIP, ...) | Extended IdentityUser |
-| `AspNetRoles / AspNetUserRoles` | 10 roles |
-| `AssessmentSessions` | Exam instance per user |
-| `AssessmentPackages` | Question packages |
-| `AssessmentQuestions` | Soal |
-| `PackageUserResponse` | Jawaban user |
-| `AssessmentAttemptHistory` | Riwayat attempt |
-| `TrainingRecords` | Manual training entries |
-| `CoachCoacheeMappings` | Relasi Coach-Coachee |
-| `CoachingSessions` | Sesi coaching |
-| `CoachingLogs` | Log coaching |
-| `ActionItems` | Action items per coaching |
-| `ProtonTracks` | Track Proton (Panelman/Operator Tahun 1/2/3) |
-| `ProtonKompetensiList` | Hierarki kompetensi |
-| `ProtonSubKompetensiList` | Sub-kompetensi |
-| `ProtonDeliverables` | Deliverable items |
-| `ProtonDeliverableProgresses` | Progress per coachee |
-| `ProtonNotifications` | Notifikasi HC |
-| `ProtonSilabus` (+IsActive) | Silabus entries |
-| `ProtonGuidanceFiles` | File panduan |
-| `KkjFiles` | **NEW**: File KKJ per bagian |
-| `KkjBagianList` | Bagian untuk KKJ |
-| `CpdpFiles` | **NEW**: File CPDP per bagian |
-| `AuditLogs` | Audit trail |
-
-### Tabel yang DIHAPUS
-| Tabel | Alasan |
-|-------|--------|
-| `KkjMatrices` | Diganti `KkjFiles` (Phase 90) |
-| `KkjItems` | Diganti file system |
-| `CpdpItems` | Diganti `CpdpFiles` (Phase 93) |
-
----
-
-## 7. Authentication & Security
-
-| Aspek | Status | Detail |
-|-------|:------:|--------|
-| Local auth (Identity) | ✅ | BCrypt password hash |
-| LDAP/AD auth | ✅ | Production Pertamina AD |
-| Hybrid auth | ✅ | AD + local fallback untuk admin |
-| Toggle via config | ✅ | `Authentication:UseActiveDirectory` |
-| Anti-forgery tokens | ✅ | Semua form POST |
-| Session timeout | ✅ | 8 jam sliding |
-| Audit log | ✅ | Create/Update/Delete terekam |
-| HTTPS | ❌ | Disabled di Program.cs:127 |
-| Password policy | ❌ | Development mode (min 6, no complexity) |
-| Security headers | ❌ | Hanya `X-Content-Type-Options` untuk PDF |
-| Rate limiting | ❌ | Tidak ada |
-| AccessDenied page | ✅ | `Views/Account/AccessDenied.cshtml` baru |
-
----
-
-## 8. 🐛 Bug & Issues Report (4 Mar 2026)
+## 5. 🐛 Bug & Issues Report (5 Mar 2026)
 
 ### 🔴 KRITIS
 
-#### BUG-01: SeedTestData Endpoints Exposed di Production
-**File:** `AdminController.cs:2264` dan `2444`
-**Detail:** Dua endpoint debug masih ada dan TIDAK dilindungi:
-```csharp
-// GET /Admin/SeedAssessmentTestData — TEMP: Phase 90 browser verify seed data
-public async Task<IActionResult> SeedAssessmentTestData()
+#### BUG-01: 4 Seed/Test Data Endpoints Masih di Production Code
+**File:** `AdminController.cs`
+| Method | Line | Size |
+|--------|:----:|:----:|
+| `SeedAssessmentTestData` | 2290 | 180 lines |
+| `SeedCoachingTestData` | 2292-2553 | 261 lines |
+| `SeedDashboardTestData` | 2555-2961 | **406 lines** ← **BARU** |
+| `SeedCDPTestData` | 2963-2987 | 24 lines |
 
-// GET /Admin/SeedCoachingTestData — TEMP: Phase 85 browser verify seed data  
-public async Task<IActionResult> SeedCoachingTestData()
-```
-**Risiko:** Siapa pun yang login sebagai Admin bisa memanggil endpoint ini dan menyuntikkan data test ke production database.
-**Fix:** Hapus kedua method ini sebelum go-live.
+**Risiko:** Admin/HC bisa inject test data ke production database.
+**Fix:** Hapus semua, atau wrap dengan `#if DEBUG`.
 
 ---
 
-#### BUG-02: HTTPS Disabled
-**File:** `Program.cs:127`
+#### BUG-02: Password Policy Masih Development Mode
+**File:** `Program.cs:33-37`
 ```csharp
-// app.UseHttpsRedirection();  ← KOMENTAR DIBIARKAN
+options.Password.RequireDigit = false;
+options.Password.RequiredLength = 6;  // terlalu pendek
 ```
-**Risiko:** Seluruh traffic (termasuk password dan session tokens) bisa disadap.
-**Fix:** Aktifkan sebelum deploy ke server production.
+**Fix:** Override per environment di `appsettings.Production.json`.
 
 ---
 
 ### 🟡 SEDANG
 
-#### BUG-03: Password Policy Development Mode untuk Production
-**File:** `Program.cs:33-37`
-```csharp
-options.Password.RequireDigit = false;
-options.Password.RequireLowercase = false;
-options.Password.RequireUppercase = false;
-options.Password.RequireNonAlphanumeric = false;
-options.Password.RequiredLength = 6;  // terlalu pendek
-```
-**Fix:** Gunakan `appsettings.Production.json` override.
+#### BUG-03: CDPController Masih Tidak Punya ILogger
+**File:** `CDPController.cs:39-44` — 2,227 lines kode tanpa logging.
+**Fix:** Inject `ILogger<CDPController>`.
 
 ---
 
-#### BUG-04: CDPController Tidak Punya ILogger
-**File:** `CDPController.cs:22-28`
+#### BUG-04: AccountController Silent Catch di AD Sync
+**File:** `AccountController.cs:102-105`
 ```csharp
-public CDPController(UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager,
-    ApplicationDbContext context,
-    IWebHostEnvironment env)
-// ILogger<CDPController> TIDAK ADA
+catch
+{
+    // Sync failure is non-fatal — auth succeeded, login continues
+}
 ```
-**Risiko:** 2,130 lines kode tanpa logging. Error di CDP tidak akan tercatat.
-**Fix:** Inject `ILogger<CDPController> logger`.
+**Risiko:** AD profile sync gagal tanpa log — tidak terdeteksi.
+**Fix:** `catch (Exception ex) { _logger.LogWarning(ex, "AD profile sync failed"); }`
+**Note:** AccountController juga belum inject ILogger.
 
 ---
 
-#### BUG-05: Duplicate Helper Methods (3 Methods × 2 Controllers)
+#### BUG-05: Duplicate Helper Methods (3 × 2 Controllers)
 | Method | CMPController | AdminController |
 |--------|:---:|:---:|
-| `GetUnifiedRecords()` | ✅ | ✅ (duplikat) |
-| `GetAllWorkersHistory()` | ✅ | ✅ (duplikat) |
-| `GetWorkersInSection()` | ✅ | ✅ (duplikat) |
+| `GetUnifiedRecords()` | ln 565-615 | ln 5028-5074 |
+| `GetAllWorkersHistory()` | ln 617-698 | ln 5076-5148 |
+| `GetWorkersInSection()` | ln 700-816 | ln 5150-5243 |
 
-**Risiko:** Bug di satu implementasi bisa tidak terdeteksi di yang lain. Code drift.
-**Fix:** Extract ke `Services/TrainingDataService.cs`.
+**Fix:** Extract ke shared `Services/TrainingDataService.cs`.
 
 ---
 
-#### BUG-06: GetAllWorkersHistory Loads ALL Data Tanpa Pagination
-**File:** `AdminController.cs:4786`, `CMPController.cs:571`
+#### BUG-06: GetAllWorkersHistory Loads ALL Data
+**File:** CMPController:632, AdminController:5076
 ```csharp
-// Tidak ada LIMIT — load semua record
-var archivedAttempts = await _context.AssessmentAttemptHistory.Include(h => h.User).ToListAsync();
-var currentCompleted = await _context.AssessmentSessions.Include(a => a.User)
-    .Where(a => a.Status == "Completed").ToListAsync();  // Semua time!
-var trainings = await _context.TrainingRecords.Include(t => t.User).ToListAsync();
+var archivedAttempts = await _context.AssessmentAttemptHistory
+    .Include(h => h.User).ToListAsync();  // ← NO FILTER
 ```
-**Risiko:** Saat data production besar, halaman ManageAssessment tab history akan timeout/lambat.
-**Fix:** Tambah pagination server-side.
+**Fix:** Server-side pagination atau date range filter.
 
 ---
 
-#### BUG-07: Catch Blocks Swallowing Errors (Silent Failures)
-Ditemukan **10 empty/silent catch blocks** di seluruh codebase:
+#### BUG-07: Html.Raw dengan User Content (XSS Risk)
+**4 lokasi berisiko** (data bisa dari user input):
+| File | Line | Content |
+|------|:----:|---------|
+| `ManagePackages.cshtml` | 141 | `@Html.Raw(confirmMsg)` — package title |
+| `ManageWorkers.cshtml` | 254 | `@Html.Raw(user.FullName.Replace(...))` — user name |
+| `AssessmentMonitoringDetail.cshtml` | 580 | `@Html.Raw(Model.Title.Replace(...))` — assessment title |
+| `ImportWorkers.cshtml` | 113 | `@Html.Raw(statusBadge)` — generated HTML |
 
-| File | Line | Code |
-|------|:----:|------|
-| `AdminController.cs` | 1488 | `catch { /* ignore parse errors */ }` |
-| `AdminController.cs` | 2381 | `catch { /* audit failure */ }` |
-| `AdminController.cs` | 2478 | `catch { /* audit failure */ }` |
-| `AdminController.cs` | 3009 | `catch { /* audit failure */ }` |
-| `AdminController.cs` | 3165 | `catch { /* audit failure */ }` |
-| `AdminController.cs` | 3294 | `catch { /* audit failure */ }` |
-| `AdminController.cs` | 3588 | `catch { }` |
-| `CMPController.cs` | 2138 (est.) | `catch { /* audit failure */ }` |
-| `CDPController.cs` | ~1598 | `catch` (swallow) |
-| `ProtonDataController.cs` | 482 | `catch { /* log but don't fail */ }` |
-
-**Fix:** Minimum: `catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for ..."); }`
+**26 lokasi AMAN** (JSON serialization dari controller — no user content injection possible).
 
 ---
 
-#### BUG-08: RoleLevel Logic Inconsistency di CDPController
-**File:** `CDPController.cs:1029-1049`
-
-Setelah SectionHead naik ke Level 3 (migration 28 Feb), ada kode yang masih mengasumsikan SectionHead di Level 4:
-
+#### BUG-08: CMPController Audit Catch — Menggunakan _logger Tapi Tidak Inject
+**File:** `CMPController.cs:544`
 ```csharp
-if (userLevel <= 2)       // HC/Admin → full access ✅
-    ...
-else if (userLevel == 4)  // SectionHead seharusnya Level 3 sekarang!
-    scopedCoacheeIds = ...(section scope)
+catch (Exception auditEx)
+{
+    _logger.LogWarning(auditEx, "Audit log write failed..."); // ✅ Logging ada
+}
 ```
-
-Jika SectionHead (Level 3) masuk CoachingProton, dia akan masuk branch `if (userLevel <= 2)` → mendapat full access. Ini mungkin diinginkan, tapi perlu verifikasi.
-
----
-
-#### BUG-09: XSS Risk di Html.Raw dengan User Content
-| File | Line | Risk |
-|------|:----:|:----:|
-| `Mapping.cshtml` | 81 | `@Html.Raw(item.Silabus.Replace(...))` |
-| `Mapping.cshtml` | 85 | `@Html.Raw(item.TargetDeliverable...)` |
-| `ManagePackages.cshtml` | 141 | `@Html.Raw(confirmMsg)` |
-| `AssessmentMonitoringDetail.cshtml` | 546 | `@Html.Raw(Model.Title...)` |
+CMPController **memiliki** `_logger` (line 27-43 constructor). ✅ OK — bukan bug lagi.
 
 ---
 
 ### 🟢 MINOR
 
-#### BUG-10: Audit Log Setelah SaveChanges di DeleteTraining
-**File:** `AdminController.cs:4709-4734`
-```csharp
-_context.TrainingRecords.Remove(record);
-await _context.SaveChangesAsync();   // ← data sudah hilang
-// Jika baris ini crash, tidak ada audit trail delete
-if (actor != null) await _auditLog.LogAsync(...);
-```
+#### BUG-09: AdminController Terlalu Besar (5,828 Lines / 91 Methods)
+**Risiko:** Maintenance dan review sulit. Compile time berdampak.
+**Fix:** Split ke `AdminAssessmentController`, `AdminWorkerController`, `AdminTrainingController`.
 
 ---
 
-#### BUG-11: HomeController Potential Null Reference
-**File:** `HomeController.cs` — Filter by `user.Section` tanpa null check bisa crash jika user tidak punya section.
+#### BUG-10: HomeController — Missing Null Check
+**File:** `HomeController.cs` — Dashboard queries filter by `user.Section` tanpa null check. Bisa crash jika user baru tanpa section.
 
 ---
 
-#### BUG-12: GuidanceDownload Route Conflict
-**File:** `ProtonDataController.cs:489` dan `CDPController.cs:176`
-
-Dua endpoint dengan nama sama `GuidanceDownload`, satu di ProtonDataController (Admin/HC only), satu di CDPController (any authenticated user). Jika ada view yang menulis URL hardcoded ke `/ProtonData/GuidanceDownload` dari halaman coachee, mereka akan mendapat 403.
-
-Note dalam kode:
-```
-// NOTE (Phase 86): This action inherits class-level [Authorize(Roles = "Admin,HC")]
-```
+#### BUG-11: SeedTestData.cs Terdapat di Data/ (24KB)
+**Risiko:** Test seeding code ada di production build.
+**Fix:** Pindah ke folder terpisah atau wrap dengan `#if DEBUG`.
 
 ---
 
-## 9. Production Readiness Update
+## 6. Audit Catch Block Status (Comparison)
+
+| Controller | Total `catch` | Logged (✅) | Silent (❌) |
+|-----------|:---:|:---:|:---:|
+| AdminController | 36 | **33** ✅ | 3 (transaction rollback+throw — OK) |
+| CMPController | 2 | **2** ✅ | 0 |
+| CDPController | 1 | 0 | **1** ❌ (line 1854 — JSON parse, returns error — acceptable) |
+| ProtonDataController | 1 | **1** ✅ | 0 |
+| AccountController | 1 | 0 | **1** ❌ (line 102 — AD sync silent) |
+| **Total** | **41** | **36** ✅ | **5** (2 true-silent, 3 rollback+throw) |
+
+**Perbaikan besar:** Dari 10 empty catch (analisis 1 Mar) → hanya 2 true-silent catch tersisa.
+
+---
+
+## 7. Input Validation Status
+
+| Controller | `ModelState.IsValid` | POST Methods Total | Coverage |
+|-----------|:---:|:---:|:---:|
+| AdminController | 4 ✅ | ~40 | ~10% |
+| CMPController | 1 ✅ | ~10 | ~10% |
+| CDPController | 0 ❌ | ~10 | 0% |
+| AccountController | 2 ✅ | 3 | 67% |
+| ProtonDataController | 0 ❌ | ~8 | 0% |
+| **Total** | **7** | **~71** | **~10%** |
+
+**Note:** Banyak POST methods menggunakan validasi manual (role check, null check, file validation) yang sudah memadai. `ModelState.IsValid` formal coverage tetap rendah.
+
+---
+
+## 8. Security Status
+
+| Aspek | 4 Mar | 5 Mar | Status |
+|-------|:-----:|:-----:|:------:|
+| HTTPS redirect (production) | ❌ | ✅ | **FIXED** |
+| Inactive user login block | ❌ | ✅ | **FIXED** |
+| Anti-forgery tokens | ✅ | ✅ | OK |
+| Session 8h sliding | ✅ | ✅ | OK |
+| Audit logging | ✅ | ✅ | OK |
+| Path traversal protection | ❌ | ✅ | **NEW** (DownloadEvidence) |
+| AD profile sync | ✅ | ✅ | OK |
+| Password policy | ❌ | ❌ | **Still dev mode** |
+| Security headers | ❌ | ❌ | Missing CSP, X-Frame |
+| Cookie Secure flag | ❌ | ❌ | Missing |
+| Rate limiting | ❌ | ❌ | Missing |
+
+---
+
+## 9. Progress Bars
 
 ```
-Authentication (Local + AD + Hybrid) ████████████████████ 100%
-RBAC (10 roles, 6 levels)            ████████████████████ 100%
-Database & Migrations                ████████████████████ 100%
-CMP Module (Assessment Engine)       ████████████████████ 100%
-Admin Panel (Worker + Assessment)    ████████████████████ 100%
-KKJ File Management                  ████████████████████ 100% ✨
-CPDP File Management                 ████████████████████ 100% ✨
-CDP (Proton Workflow)                 ████████████████████ 100%
-Training CRUD                        ████████████████████ 100%
-File Upload Validation               ████████████████████ 100%
-Audit Logging                        █████████████████░░░  85%
-Soft-Delete (Worker + Silabus)       ████████████████████ 100% ✨
-Override Management                  ████████████████████ 100% ✨
-Worker Activate/Deactivate           ████████████████████ 100% ✨
-Error Handling                       ██████░░░░░░░░░░░░░░  30%
-Input Validation                     ████████░░░░░░░░░░░░  40%
-Structured Logging                   ████░░░░░░░░░░░░░░░░  20%
-Security (HTTPS, headers, policy)    ██████░░░░░░░░░░░░░░  30%
-Unit Tests                           ░░░░░░░░░░░░░░░░░░░░   0%
+Authentication (Local+AD+Hybrid)  ████████████████████ 100%
+RBAC (10 roles, 6 levels)         ████████████████████ 100%
+Database & Migrations             ████████████████████ 100%
+CMP Module                        ████████████████████ 100%
+Admin Panel (91 methods)          ████████████████████ 100%
+CDP Module                        ████████████████████ 100%
+ProtonData Module                 ████████████████████ 100%
+KKJ/CPDP File System              ████████████████████ 100%
+Training CRUD                     ████████████████████ 100%
+File Upload Validation            ████████████████████ 100%
+Audit Logging                     ████████████████████  95% ↑
+Worker Soft-Delete (IsActive)     ████████████████████ 100%
+Settings Page (Edit+Password)     ████████████████████ 100% ✨
+Dashboard (mandatory + deadline)  ████████████████████ 100% ✨
+Error Handling (catch blocks)     █████████████████░░░  90% ↑↑
+Input Validation (formal)         ████████░░░░░░░░░░░░  40%
+Security Hardening                ████████████░░░░░░░░  60% ↑
+Structured Logging (Serilog/NLog) ████░░░░░░░░░░░░░░░░  20%
+Unit Tests                        ░░░░░░░░░░░░░░░░░░░░   0%
 ─────────────────────────────────────────────────────────
-OVERALL COMPLETION                   █████████████████░░░  ~92%
+OVERALL                           ██████████████████░░  ~93%
 ```
 
 ---
@@ -497,86 +355,42 @@ OVERALL COMPLETION                   ██████████████�
 ## 10. Checklist Go-Live
 
 ```
-🔴 HARUS SELESAI SEBELUM DEPLOY:
-[ ] BUG-01: HAPUS SeedAssessmentTestData & SeedCoachingTestData
-[ ] BUG-02: Aktifkan app.UseHttpsRedirection()
-[ ] BUG-03: Hardening password policy (min 8, require digit)
-[ ] BUG-04: Inject ILogger di CDPController
-[ ] BUG-07: Replace empty catch blocks dengan logging
-[ ] Global exception filter (500 errors jangan tampil stack trace)
+🔴 HARUS SEBELUM DEPLOY:
+[ ] BUG-01: Hapus/disable 4 seed endpoints (SeedAssessmentTestData,
+    SeedCoachingTestData, SeedDashboardTestData, SeedCDPTestData)
+[ ] BUG-02: Password policy hardening (min 8, require digit)
+[ ] BUG-03: Inject ILogger di CDPController
+[ ] BUG-04: Inject ILogger di AccountController, log AD sync failure
 [ ] Security headers (X-Frame-Options, CSP, X-XSS-Protection)
 [ ] Cookie Secure flag
 [ ] Connection string dari environment variable
 
-🟡 SEBAIKNYA SELESAI SEBELUM DEPLOY:
-[ ] BUG-05: Extract duplicate helpers ke TrainingDataService
-[ ] BUG-06: Pagination di GetAllWorkersHistory
-[ ] BUG-08: Verifikasi SectionHead (Level 3) scoping di CDPController
-[ ] BUG-09: Encode user content di Html.Raw
-[ ] BUG-12: Verifikasi GuidanceDownload routing tidak conflict
-[ ] Coaching Session edit/delete
-[ ] CSS consolidation (ProtonProgress 76KB inline styles)
+🟡 SEBAIKNYA SEBELUM DEPLOY:
+[ ] BUG-05: Extract 3 duplicate helpers ke TrainingDataService
+[ ] BUG-06: Pagination GetAllWorkersHistory
+[ ] BUG-07: Encode user content di 4 Html.Raw
+[ ] BUG-09: Split AdminController (5,828 lines)
+[ ] BUG-11: Wrap SeedTestData.cs dengan #if DEBUG
 
 🟢 POST-LAUNCH:
-[ ] Unit tests (auth service, critical flows)
+[ ] Unit tests
 [ ] Rate limiting login
+[ ] Structured logging (Serilog/NLog)
 [ ] Response caching
-[ ] Dark mode
-[ ] Health check endpoint /health
+[ ] Health check endpoint
 ```
 
 ---
 
-## 11. Contoh Kode Fix Prioritas Tinggi
+## 11. Effort Estimation
 
-### Fix BUG-01: Hapus Seed Endpoints
-```csharp
-// AdminController.cs — DELETE kedua method ini:
-// SeedAssessmentTestData() lines 2264-2442
-// SeedCoachingTestData() lines 2444-2704
-```
-
-### Fix BUG-02 + Security Headers
-```csharp
-// Program.cs — tambahkan:
-app.UseHttpsRedirection();
-app.Use(async (context, next) =>
-{
-    context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
-    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Append("X-XSS-Protection", "1; mode=block");
-    await next();
-});
-```
-
-### Fix BUG-03: Password Policy
-```json
-// appsettings.Production.json — tambahkan:
-{
-  "PasswordRequirements": {
-    "RequireDigit": true,
-    "RequiredLength": 8,
-    "RequireUppercase": true
-  }
-}
-```
-
-### Fix BUG-04: CDPController Logger
-```csharp
-// CDPController.cs
-private readonly ILogger<CDPController> _logger;
-
-public CDPController(UserManager<ApplicationUser> userManager,
-    SignInManager<ApplicationUser> signInManager,
-    ApplicationDbContext context,
-    IWebHostEnvironment env,
-    ILogger<CDPController> logger)  // ← tambahkan ini
-{
-    _logger = logger;
-    // ...
-}
-```
+| Prioritas | Estimated Effort |
+|:---------:|:----------------:|
+| 🔴 Tinggi (seed cleanup, password, security headers, logging) | **2-3 hari** |
+| 🟡 Sedang (refactoring, pagination, XSS) | **3-5 hari** |
+| 🟢 Rendah (tests, caching, rate limiting) | **3-4 hari** |
+| **TOTAL** | **~8-12 hari kerja** |
 
 ---
 
-*Analisis selesai: 4 Maret 2026, 19:17 WIB — Full codebase scan (44 migrations, 6 controllers, 52 views)*
+*Analisis selesai: 5 Maret 2026 · 44 migrations · 6 controllers · 192 methods · 54 views*
