@@ -16,16 +16,23 @@ Controllers in scope: HomeController (Index), AccountController (Login, Logout, 
 ## Implementation Decisions
 
 ### Test Data & Role Coverage
-- Use existing data: Gunakan data produksi yang sudah ada di database — tidak perlu buat seed data
-- Database sudah punya users berbagai role dengan data assessment/IDP/coaching yang cukup untuk testing
-- Core roles focus: Test Admin, HC, dan Coachee secara utama (3 roles ini adalah primary dashboard consumers)
-- Role lain (SrSpv, SectionHead, Coach): verify lewat navigasi saja, tidak perlu full dashboard testing
+- Buat seed data baru: Create `SeedDashboardTestData` action di AdminController (seperti pattern SeedAssessmentTestData Phase 90, SeedCoachingTestData Phase 85)
+- Idempotent: check existing data sebelum insert, safe to run multiple times
+- Full role coverage: Test semua 6 roles — Admin, HC, SrSpv, SectionHead, Coach, Coachee
+- Seed data harus mencakup:
+  - Users untuk semua 6 roles dengan assignment yang sesuai
+  - Assessment sessions di berbagai status (Open, Upcoming, Completed)
+  - IDP items di berbagai status (Pending, In Progress, Completed)
+  - Proton deliverable progress untuk Coaching Proton stats
+  - Training records untuk Assessment Analytics
+  - Audit log entries untuk AuditLog page
 
 ### Login Flow Testing
-- Local auth only: Fokus testing mode autentikasi local
-- AD path: Code review saja — AD menggunakan IAuthService interface yang sama, logic setelah authenticate identik
-- Coverage: Happy path login + inactive user block (IsActive check di AccountController.Login line 72-76)
-- Return URL: Verify redirect setelah login works correctly
+- Local auth + inactive block: Test local auth login (email/password) dengan coverage:
+  - Happy path login → redirect ke Home
+  - Inactive user block (IsActive check di AccountController.Login line 72-76)
+  - Return URL redirect after login
+- AD path: Code review saja — AD menggunakan IAuthService interface yang sama, logic setelah authenticate identik dengan local path
 
 ### Dashboard Data Accuracy
 - Deep verification: Trace setiap dashboard stat ke controller query
@@ -40,6 +47,7 @@ Controllers in scope: HomeController (Index), AccountController (Login, Logout, 
 - Data accuracy only: Fokus verifikasi akurasi data dashboard
 - Tidak perlu round-trip testing ke detail pages — flows tersebut sudah di-test dan lulus di Phases 84/85/90/91
 - Dashboard stats yang ditampilkan harus akurat berdasarkan query di controller
+- Code review: Trace setiap dashboard metric ke controller query untuk verify role scoping correct
 
 ### Bug Fix Approach (sama dengan Phase 83-85)
 - Code review dulu → fix bug inline → commit → user verify di browser
@@ -48,10 +56,13 @@ Controllers in scope: HomeController (Index), AccountController (Login, Logout, 
 - Silent bugs (tidak visible ke user): Fix jika mudah (<20 baris), otherwise log dan skip
 
 ### Navigation & Authorization Testing
-- Kelola Data menu: Verify hanya visible ke Admin dan HC (guna User.IsInRole() di _Layout.cshtml line 64)
+- Kelola Data menu: Verify hanya visible ke Admin dan HC (guna `User.IsInRole()` di _Layout.cshtml line 64-71)
 - Section selectors: Test KkjSectionSelect dan CMP/Mapping dengan section param works untuk Admin/HC
+  - KkjSectionSelect: Verify 4 department cards render dan link ke CMP/Kkj?section=
+  - CMP/Mapping: Verify section param filters CPDP files correctly
+  - Code review untuk verify role gating logic
 - AccessDenied page: Verify renders ketika unauthorized user attempt restricted action
-- Role-based navigation: Verify menu items yang sesuai visible/hidden per role
+- Role-based navigation: Verify menu items yang sesuai visible/hidden per role (CMP, CDP, Kelola Data)
 
 ### Claude's Discretion
 - Urutan dan grouping dari QA plans
@@ -80,6 +91,7 @@ Controllers in scope: HomeController (Index), AccountController (Login, Logout, 
 
 ### Established Patterns
 - QA pattern dari Phase 83/84/85: Code review → fix bugs → browser verification
+- Seed data pattern: `SeedAssessmentTestData` (Phase 90), `SeedCoachingTestData` (Phase 85) — idempotent, check existing sebelum insert
 - Role gating: `[Authorize(Roles = "Admin, HC")]` di controller + `User.IsInRole()` di views
 - Inactive user block: `IsActive` check di AccountController.Login line 72-76
 - Dashboard stats: Server-side query di controller, pass ke view via ViewModel
@@ -95,9 +107,9 @@ Controllers in scope: HomeController (Index), AccountController (Login, Logout, 
 <specifics>
 ## Specific Ideas
 
-- Prior QA phases (83, 84, 85) established pattern: Claude reviews code → identifies bugs → fixes → user verifies in browser
-- Deep verification approach: Trace dashboard metrics ke controller queries untuk memastikan role scoping correct
-- Focus on core roles (Admin, HC, Coachee) — mereka adalah primary dashboard users
+- Seed data creation: Build `SeedDashboardTestData` action following pattern from Phase 90 (SeedAssessmentTestData) dan Phase 85 (SeedCoachingTestData)
+- Full role coverage: Test semua 6 roles untuk memastikan dashboard behavior correct di setiap role level
+- Deep verification: Trace dashboard metrics ke controller queries untuk verify role scoping correct
 - Phases 84/85/90/91 already verified end-to-end flows — Phase 87 fokus pada dashboard accuracy dan navigation, bukan re-test flows yang sudah lulus
 
 </specifics>
