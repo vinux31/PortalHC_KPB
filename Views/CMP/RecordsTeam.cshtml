@@ -33,7 +33,7 @@
                     <label class="form-label small text-muted mb-1">Section</label>
                     @if (roleLevel == 4 && !string.IsNullOrEmpty(lockedSection))
                     {
-                        <select id="sectionFilter" class="form-select" disabled onchange="filterTable()">
+                        <select id="sectionFilter" class="form-select" disabled onchange="filterTeamTable()">
                             <option value="">All Sections</option>
                             @foreach (var sec in sections)
                             {
@@ -50,7 +50,7 @@
                     }
                     else
                     {
-                        <select id="sectionFilter" class="form-select" onchange="filterTable()">
+                        <select id="sectionFilter" class="form-select" onchange="filterTeamTable()">
                             <option value="">All Sections</option>
                             @foreach (var sec in sections)
                             {
@@ -61,7 +61,7 @@
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label small text-muted mb-1">Unit</label>
-                    <select id="unitFilter" class="form-select" onchange="filterTable()">
+                    <select id="unitFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="">All Units</option>
                         @foreach (var unit in units)
                         {
@@ -71,7 +71,7 @@
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label small text-muted mb-1">Category</label>
-                    <select id="categoryFilter" class="form-select" onchange="filterTable()">
+                    <select id="categoryFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="">All Categories</option>
                         @foreach (var category in categories)
                         {
@@ -84,7 +84,7 @@
                 <!-- Row 2: Status, Search, Reset -->
                 <div class="col-12 col-md-4">
                     <label class="form-label small text-muted mb-1">Status</label>
-                    <select id="statusFilter" class="form-select" onchange="filterTable()">
+                    <select id="statusFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="ALL">ALL</option>
                         <option value="Sudah">Sudah</option>
                         <option value="Belum">Belum</option>
@@ -92,10 +92,10 @@
                 </div>
                 <div class="col-12 col-md-5">
                     <label class="form-label small text-muted mb-1">Search (Nama/NIP)</label>
-                    <input type="text" id="searchFilter" class="form-control" placeholder="Cari worker..." oninput="filterTable()">
+                    <input type="text" id="searchFilter" class="form-control" placeholder="Cari worker..." oninput="filterTeamTable()">
                 </div>
                 <div class="col-12 col-md-3 d-flex align-items-end">
-                    <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                    <button class="btn btn-outline-secondary w-100" onclick="resetTeamFilters()">
                         <i class="bi bi-x-circle me-1"></i>Reset
                     </button>
                 </div>
@@ -212,7 +212,7 @@
 </style>
 
 <script>
-function filterTable() {
+function filterTeamTable() {
     const section = document.getElementById('sectionFilter').value.toLowerCase();
     const unit = document.getElementById('unitFilter').value.toLowerCase();
     const category = document.getElementById('categoryFilter').value.toLowerCase();
@@ -240,7 +240,9 @@ function filterTable() {
 
         // Status filter
         let matchStatus = true;
-        if (status === 'Sudah') {
+        if (status === 'ALL') {
+            matchStatus = true;  // Explicit handling
+        } else if (status === 'Sudah') {
             matchStatus = rowHasTraining;
         } else if (status === 'Belum') {
             matchStatus = !rowHasTraining;
@@ -259,17 +261,17 @@ function filterTable() {
     document.getElementById('workerCount').textContent = visibleCount;
 }
 
-function resetFilters() {
+function resetTeamFilters() {
     document.getElementById('sectionFilter').value = '';
     document.getElementById('unitFilter').value = '';
     document.getElementById('categoryFilter').value = '';
     document.getElementById('statusFilter').value = 'ALL';
     document.getElementById('searchFilter').value = '';
-    filterTable();
+    filterTeamTable();
 }
 
 // Initial filter on page load
 document.addEventListener('DOMContentLoaded', function() {
-    filterTable();
+    filterTeamTable();
 });
 </script>
