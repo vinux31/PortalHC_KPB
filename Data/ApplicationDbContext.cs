@@ -68,6 +68,10 @@ namespace HcPortal.Data
         // Attempt History — Phase 46
         public DbSet<AssessmentAttemptHistory> AssessmentAttemptHistory { get; set; }
 
+        // Notification System — Phase 99
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<UserNotification> UserNotifications { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -459,6 +463,33 @@ namespace HcPortal.Data
                 entity.HasIndex(h => h.UserId);
                 entity.HasIndex(h => new { h.UserId, h.Title });
                 entity.Property(h => h.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // ========== Notification System (Phase 99) ==========
+            builder.Entity<Notification>(entity =>
+            {
+                entity.HasIndex(n => n.Type);
+                entity.HasIndex(n => n.Category);
+                entity.Property(n => n.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            builder.Entity<UserNotification>(entity =>
+            {
+                // Indexes for performance (CRITICAL for notification queries)
+                entity.HasIndex(n => n.UserId);
+                entity.HasIndex(n => new { n.UserId, n.IsRead });
+                entity.HasIndex(n => n.CreatedAt);
+
+                // Foreign key to ApplicationUser
+                entity.HasOne(n => n.User)
+                    .WithMany()
+                    .HasForeignKey(n => n.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Default values
+                entity.Property(n => n.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+                entity.Property(n => n.IsRead).HasDefaultValue(false);
+                entity.Property(n => n.DeliveryStatus).HasDefaultValue("Delivered");
             });
         }
     }
