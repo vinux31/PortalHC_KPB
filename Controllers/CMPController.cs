@@ -59,9 +59,16 @@ namespace HcPortal.Controllers
 
             // Role-based bagian filtering: L1-L4 see all, L5-L6 see own bagian only
             IQueryable<KkjBagian> bagiansQuery = _context.KkjBagians;
-            if (userLevel >= 5 && currentUser?.Unit != null)
+            if (userLevel >= 5 && currentUser?.Section != null)
             {
-                bagiansQuery = bagiansQuery.Where(b => b.Name == currentUser.Unit);
+                var sectionFiltered = _context.KkjBagians
+                    .Where(b => b.Name.Equals(currentUser.Section, StringComparison.OrdinalIgnoreCase));
+
+                // Only apply filter if it matches at least one bagian; otherwise show all (safe fallback)
+                if (await sectionFiltered.AnyAsync())
+                {
+                    bagiansQuery = sectionFiltered;
+                }
             }
 
             var availableBagians = await bagiansQuery.OrderBy(b => b.DisplayOrder).ToListAsync();
