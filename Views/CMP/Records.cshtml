@@ -1,4 +1,5 @@
 @model List<HcPortal.Models.UnifiedTrainingRecord>
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Training Records";
@@ -139,7 +140,7 @@
                                         data-title="@item.Title.ToLower()" data-year="@item.Date.Year"
                                         @(resultsUrl != null ? Html.Raw($"onclick=\"window.location.href='{resultsUrl}'\"") : Html.Raw(""))
                                         style="@(resultsUrl != null ? "cursor:pointer;" : "")">
-                                        <td class="p-3">@item.Date.ToString("dd MMM yyyy")</td>
+                                        <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
                                         <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
                                         <td class="p-3 text-center">
                                             @if (item.Score.HasValue) { <span>@item.Score%</span> } else { <span class="text-muted">—</span> }
@@ -185,13 +186,13 @@
                                 @foreach (var item in Model.Where(x => x.RecordType == "Training Manual"))
                                 {
                                     <tr class="training-row" data-title="@item.Title.ToLower()" data-year="@item.Date.Year">
-                                        <td class="p-3">@item.Date.ToString("dd MMM yyyy")</td>
+                                        <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
                                         <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
                                         <td class="p-3">@(item.Penyelenggara ?? "—")</td>
                                         <td class="p-3">@(item.CertificateType ?? "—")</td>
                                         <td class="p-3">
                                             @if (item.ValidUntil.HasValue) {
-                                                <div>@item.ValidUntil.Value.ToString("dd MMM yyyy")</div>
+                                                <div>@item.ValidUntil.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</div>
                                                 @if (item.IsExpired) {
                                                     <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
                                                 }

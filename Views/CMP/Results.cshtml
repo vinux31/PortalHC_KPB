@@ -1,4 +1,5 @@
 @model HcPortal.Models.AssessmentResultsViewModel
+@using System.Globalization
 
 @{
     ViewData["Title"] = "Assessment Results";
@@ -75,7 +76,7 @@
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>Completed:</strong></p>
-                    <span>@(Model.CompletedAt?.ToString("dd MMM yyyy HH:mm") ?? "N/A")</span>
+                    <span>@(Model.CompletedAt?.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID")) ?? "N/A")</span>
                 </div>
                 <div class="col-md-4">
                     <p class="mb-1"><strong>User:</strong></p>

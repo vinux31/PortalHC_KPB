@@ -4,6 +4,7 @@
     var selectedBagian = ViewBag.SelectedBagian as string ?? "";
     var files = ViewBag.Files as List<HcPortal.Models.KkjFile> ?? new();
 }
+@using System.Globalization
 
 <div class="container py-4">
     <!-- Breadcrumb -->
@@ -102,7 +103,7 @@
                                         @(file.FileSizeBytes < 1048576 ? $"{file.FileSizeBytes / 1024}KB" : $"{file.FileSizeBytes / 1048576.0:F1}MB")
                                     </td>
                                     <td class="text-muted small">@(file.Keterangan ?? "-")</td>
-                                    <td class="text-muted small">@file.UploadedAt.ToString("dd MMM yyyy")</td>
+                                    <td class="text-muted small">@file.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
                                     <td class="text-center">
                                         <a href="@Url.Action("KkjFileDownload", "Admin", new { id = file.Id })"
                                            class="btn btn-sm btn-primary"

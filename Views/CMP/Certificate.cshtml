@@ -1,7 +1,8 @@
 @model HcPortal.Models.AssessmentSession
+@using System.Globalization
 @{
     Layout = null; // No standard layout for certificate
-    var date = DateTime.Now.ToString("dd MMMM yyyy");
+    var date = DateTime.Now.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"));
     var certBackUrl = Context.Request.Query["returnUrl"].ToString();
     if (string.IsNullOrEmpty(certBackUrl)) certBackUrl = Url.Action("Assessment", "CMP")!;
 }
