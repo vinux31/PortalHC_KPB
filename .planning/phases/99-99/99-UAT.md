@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 99-notification-database-service
 source: 99-01-SUMMARY.md, 99-02-SUMMARY.md, 99-03-SUMMARY.md
 started: 2026-03-05T18:45:00Z
-updated: 2026-03-05T18:51:00Z
+updated: 2026-03-05T18:52:00Z
 ---
 
 ## Current Test
@@ -49,11 +49,11 @@ skipped: 0
 ## Gaps
 
 - truth: "Foreign key relationship FK_UserNotifications_Users_UserId exists pointing to AspNetUsers table with cascade delete"
-  status: failed
+  status: resolved
   reason: "User reported: di UserNotifications table saya adanya [PK_Notifications], dan bagaimana check pointing to the aspnetusers"
   severity: major
   test: 3
-  root_cause: ""
+  root_cause: "No bug - foreign key exists correctly pointing to 'Users' table (not 'AspNetUsers'). ASP.NET Core Identity tables are renamed to 'Users' via entity configuration. User expectation was incorrect."
   artifacts: []
   missing: []
-  debug_session: ""
+  debug_session: ".planning/debug/99-foreign-key-issue.md"
