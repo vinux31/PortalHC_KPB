@@ -49,6 +49,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // Audit log service
 builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 
+// Notification Service — Phase 99
+builder.Services.AddScoped<HcPortal.Services.INotificationService, HcPortal.Services.NotificationService>();
+
 // Auth service — factory delegates based on Authentication:UseActiveDirectory config toggle
 // dev (false) -> LocalAuthService (Identity PasswordHash)
 // prod (true)  -> HybridAuthService (AD for all users, local fallback for admin@pertamina.com)

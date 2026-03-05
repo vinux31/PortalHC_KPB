@@ -10,6 +10,7 @@ using HcPortal.Models.Competency;
 using System.Text.Json;
 using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace HcPortal.Controllers
 {
@@ -23,6 +24,7 @@ namespace HcPortal.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly AuditLogService _auditLog;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<CMPController> _logger;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -31,7 +33,8 @@ namespace HcPortal.Controllers
             ApplicationDbContext context,
             IWebHostEnvironment env,
             AuditLogService auditLog,
-            IMemoryCache cache)
+            IMemoryCache cache,
+            ILogger<CMPController> logger)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -40,6 +43,7 @@ namespace HcPortal.Controllers
             _env = env;
             _auditLog = auditLog;
             _cache = cache;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -523,8 +527,8 @@ namespace HcPortal.Controllers
                 if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
             }
 
-            string trainingTitle = record.TrainingTitle;
-            string workerName = workerName ?? record.UserId;
+            string trainingTitle = record.Judul ?? "Unknown";
+            string deletedWorkerName = record.UserId;
 
             _context.TrainingRecords.Remove(record);
             await _context.SaveChangesAsync();
@@ -537,7 +541,7 @@ namespace HcPortal.Controllers
                     user?.Id ?? "",
                     deleteActorName,
                     "DeleteTrainingRecord",
-                    $"Deleted training record '{trainingTitle}' for worker '{workerName}' [ID={id}]",
+                    $"Deleted training record '{trainingTitle}' for worker '{deletedWorkerName}' [ID={id}]",
                     id,
                     "TrainingRecord");
             }

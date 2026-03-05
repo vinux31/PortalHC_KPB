@@ -3,55 +3,60 @@ using HcPortal.Models;
 namespace HcPortal.Services
 {
     /// <summary>
-    /// Notification service interface for managing user notifications.
-    /// Provides methods for sending, retrieving, and managing notification read status.
-    /// All operations are async to prevent thread blocking.
+    /// Notification service interface for managing in-app notifications.
+    /// Provides CRUD operations for user notifications with async support.
     /// </summary>
     public interface INotificationService
     {
         /// <summary>
-        /// Send a notification to a user.
-        /// Creates a UserNotification record with IsRead=false and DeliveryStatus="Delivered".
-        /// Wraps in try-catch - notification failures should not crash main workflows.
+        /// Send a notification to a specific user.
         /// </summary>
-        /// <param name="userId">User ID to receive the notification</param>
+        /// <param name="userId">User ID to receive notification</param>
         /// <param name="type">Notification type (e.g., "ASMT_ASSIGNED", "COACH_EVIDENCE_SUBMITTED")</param>
         /// <param name="title">Notification title</param>
-        /// <param name="message">Notification message with placeholders replaced</param>
-        /// <param name="actionUrl">Deep link URL for notification click (optional)</param>
-        /// <returns>True if notification delivered successfully, false if failed</returns>
+        /// <param name="message">Notification message</param>
+        /// <param name="actionUrl">Optional deep link URL for notification click action</param>
+        /// <returns>True if notification sent successfully, false otherwise</returns>
         Task<bool> SendAsync(string userId, string type, string title, string message, string? actionUrl = null);
 
         /// <summary>
-        /// Get recent notifications for a user, ordered by most recent first.
-        /// Supports pagination via count parameter.
+        /// Get all notifications for a specific user, ordered by creation date (newest first).
         /// </summary>
-        /// <param name="userId">User ID to get notifications for</param>
-        /// <param name="count">Number of notifications to retrieve (default: 20)</param>
-        /// <returns>List of UserNotifications ordered by CreatedAt DESC</returns>
-        Task<List<UserNotification>> GetAsync(string userId, int count = 20);
+        /// <param name="userId">User ID to fetch notifications for</param>
+        /// <param name="count">Maximum number of notifications to return (default: 50)</param>
+        /// <returns>List of UserNotification objects</returns>
+        Task<List<UserNotification>> GetAsync(string userId, int count = 50);
 
         /// <summary>
-        /// Get unread notification count for a user.
+        /// Mark a specific notification as read.
         /// </summary>
-        /// <param name="userId">User ID to count unread notifications for</param>
-        /// <returns>Number of unread notifications (IsRead == false)</returns>
-        Task<int> GetUnreadCountAsync(string userId);
+        /// <param name="notificationId">Notification ID to mark as read</param>
+        /// <param name="userId">User ID (for authorization - users can only mark their own notifications)</param>
+        /// <returns>True if marked as read successfully, false if notification not found or not owned by user</returns>
+        Task<bool> MarkAsReadAsync(int notificationId, string userId);
 
         /// <summary>
-        /// Mark a single notification as read.
-        /// Sets IsRead=true and ReadAt=DateTime.UtcNow.
-        /// </summary>
-        /// <param name="notificationId">UserNotification ID to mark as read</param>
-        /// <returns>True if marked successfully, false if notification not found or update failed</returns>
-        Task<bool> MarkAsReadAsync(int notificationId);
-
-        /// <summary>
-        /// Mark all unread notifications for a user as read.
-        /// Efficiently updates all notifications where UserId matches and IsRead=false.
+        /// Mark all notifications for a user as read.
         /// </summary>
         /// <param name="userId">User ID to mark all notifications as read for</param>
         /// <returns>Number of notifications marked as read</returns>
         Task<int> MarkAllAsReadAsync(string userId);
+
+        /// <summary>
+        /// Get the count of unread notifications for a user.
+        /// </summary>
+        /// <param name="userId">User ID to count unread notifications for</param>
+        /// <returns>Number of unread notifications</returns>
+        Task<int> GetUnreadCountAsync(string userId);
+
+        /// <summary>
+        /// Send notification using predefined template with placeholder replacement.
+        /// Templates ensure consistent messaging across all notification triggers (INFRA-08).
+        /// </summary>
+        /// <param name="userId">User ID to receive notification</param>
+        /// <param name="type">Notification type (must match key in _templates dictionary)</param>
+        /// <param name="context">Dictionary of placeholder values (e.g., { "AssessmentTitle": "Safety OJT", "AssessmentId": "123" })</param>
+        /// <returns>True if notification sent successfully, false if template not found or send failed</returns>
+        Task<bool> SendByTemplateAsync(string userId, string type, Dictionary<string, object>? context = null);
     }
 }

@@ -1,26 +1,99 @@
+using Microsoft.EntityFrameworkCore;
 using HcPortal.Data;
 using HcPortal.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace HcPortal.Services
 {
     /// <summary>
-    /// Notification service for managing user notifications.
-    /// Follows AuditLogService pattern: async methods, DbContext injection, SaveChangesAsync internal.
-    /// All methods wrapped in try-catch to prevent notification failures from crashing main workflows (INFRA-09).
+    /// Notification service implementation for managing in-app notifications.
+    /// Follows AuditLogService pattern: async, scoped DI, try-catch wrapped.
     /// </summary>
     public class NotificationService : INotificationService
     {
         private readonly ApplicationDbContext _context;
 
+        /// <summary>
+        /// Notification template structure for consistent messaging.
+        /// </summary>
+        private class NotificationTemplate
+        {
+            public string Title { get; set; } = "";
+            public string MessageTemplate { get; set; } = "";
+            public string? ActionUrlTemplate { get; set; }
+        }
+
+        private readonly Dictionary<string, NotificationTemplate> _templates;
+
         public NotificationService(ApplicationDbContext context)
         {
             _context = context;
+
+            // Initialize notification templates for all v3.3 trigger types
+            _templates = new Dictionary<string, NotificationTemplate>
+            {
+                // Assessment Notifications (Phase 101)
+                ["ASMT_ASSIGNED"] = new NotificationTemplate
+                {
+                    Title = "Assessment Assigned",
+                    MessageTemplate = "You have been assigned to assessment: {AssessmentTitle}",
+                    ActionUrlTemplate = "/CMP/AssessmentDetails/{AssessmentId}"
+                },
+                ["ASMT_RESULTS_READY"] = new NotificationTemplate
+                {
+                    Title = "Assessment Results Ready",
+                    MessageTemplate = "Your results for {AssessmentTitle} are ready. Score: {Score}%",
+                    ActionUrlTemplate = "/CMP/AssessmentResults/{AssessmentId}"
+                },
+
+                // Coaching Proton Notifications (Phase 102)
+                ["COACH_ASSIGNED"] = new NotificationTemplate
+                {
+                    Title = "Coach Assigned",
+                    MessageTemplate = "Your coach {CoachName} has been assigned for coaching program",
+                    ActionUrlTemplate = "/CDP/ProtonProgress"
+                },
+                ["COACH_EVIDENCE_SUBMITTED"] = new NotificationTemplate
+                {
+                    Title = "Evidence Submitted for Review",
+                    MessageTemplate = "Coach {CoachName} has submitted evidence for {CoacheeName}. Please review.",
+                    ActionUrlTemplate = "/CDP/ProtonProgress"
+                },
+                ["COACH_EVIDENCE_REJECTED"] = new NotificationTemplate
+                {
+                    Title = "Evidence Rejected",
+                    MessageTemplate = "Your evidence was rejected. Reason: {RejectionReason}. Please resubmit.",
+                    ActionUrlTemplate = "/CDP/ProtonProgress"
+                },
+                ["COACH_EVIDENCE_APPROVED_SRSPV"] = new NotificationTemplate
+                {
+                    Title = "Evidence Approved by SrSpv",
+                    MessageTemplate = "Evidence for {CoacheeName} has been approved by Senior Supervisor. Forwarded to Section Head.",
+                    ActionUrlTemplate = "/CDP/ProtonProgress"
+                },
+                ["COACH_EVIDENCE_APPROVED_SH"] = new NotificationTemplate
+                {
+                    Title = "Evidence Approved by Section Head",
+                    MessageTemplate = "Evidence for {CoacheeName} has been approved by Section Head. Forwarded to HC.",
+                    ActionUrlTemplate = "/CDP/ProtonProgress"
+                },
+                ["COACH_EVIDENCE_APPROVED_HC"] = new NotificationTemplate
+                {
+                    Title = "Evidence Approved by HC",
+                    MessageTemplate = "Evidence for {CoacheeName} has been approved by HC. Coaching session completed.",
+                    ActionUrlTemplate = "/CDP/ProtonProgress"
+                },
+                ["COACH_SESSION_COMPLETED"] = new NotificationTemplate
+                {
+                    Title = "Coaching Session Completed",
+                    MessageTemplate = "Your coaching session with {CoachName} has been completed successfully.",
+                    ActionUrlTemplate = "/CDP/ProtonProgress"
+                }
+            };
         }
 
         /// <summary>
-        /// Send a notification to a user.
-        /// Creates UserNotification with proper field values. Returns false on failure (never throws).
+        /// Send a notification to a specific user.
+        /// Creates a UserNotification record with delivery status "Delivered" (v3.3: synchronous, no queue).
         /// </summary>
         public async Task<bool> SendAsync(string userId, string type, string title, string message, string? actionUrl = null)
         {
@@ -45,18 +118,15 @@ namespace HcPortal.Services
             }
             catch
             {
-                // Log failure internally (could add AuditLog here in future)
-                // Never throw - notification failures shouldn't crash main workflow
-                // In production, consider logging to AuditLog with ActionType "NotificationFailure"
+                // Fail silently - notification failures should not break the main workflow
                 return false;
             }
         }
 
         /// <summary>
-        /// Get recent notifications for a user, ordered by most recent first.
-        /// Supports pagination via count parameter.
+        /// Get all notifications for a specific user, ordered by creation date (newest first).
         /// </summary>
-        public async Task<List<UserNotification>> GetAsync(string userId, int count = 20)
+        public async Task<List<UserNotification>> GetAsync(string userId, int count = 50)
         {
             try
             {
@@ -68,56 +138,40 @@ namespace HcPortal.Services
             }
             catch
             {
-                // Return empty list on failure - don't crash calling code
                 return new List<UserNotification>();
             }
         }
 
         /// <summary>
-        /// Get unread notification count for a user.
+        /// Mark a specific notification as read.
+        /// Includes authorization check - users can only mark their own notifications.
         /// </summary>
-        public async Task<int> GetUnreadCountAsync(string userId)
-        {
-            try
-            {
-                return await _context.UserNotifications
-                    .CountAsync(n => n.UserId == userId && !n.IsRead);
-            }
-            catch
-            {
-                // Return 0 on failure - don't crash calling code
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// Mark a single notification as read.
-        /// Sets IsRead=true and ReadAt=DateTime.UtcNow.
-        /// </summary>
-        public async Task<bool> MarkAsReadAsync(int notificationId)
+        public async Task<bool> MarkAsReadAsync(int notificationId, string userId)
         {
             try
             {
                 var notification = await _context.UserNotifications.FindAsync(notificationId);
-                if (notification == null)
+
+                if (notification == null || notification.UserId != userId)
+                {
                     return false;
+                }
 
                 notification.IsRead = true;
                 notification.ReadAt = DateTime.UtcNow;
 
                 await _context.SaveChangesAsync();
+
                 return true;
             }
             catch
             {
-                // Return false on failure - don't crash calling code
                 return false;
             }
         }
 
         /// <summary>
-        /// Mark all unread notifications for a user as read.
-        /// Efficiently updates all notifications where UserId matches and IsRead=false.
+        /// Mark all notifications for a user as read.
         /// </summary>
         public async Task<int> MarkAllAsReadAsync(string userId)
         {
@@ -134,12 +188,73 @@ namespace HcPortal.Services
                 }
 
                 await _context.SaveChangesAsync();
+
                 return unreadNotifications.Count;
             }
             catch
             {
-                // Return 0 on failure - don't crash calling code
                 return 0;
+            }
+        }
+
+        /// <summary>
+        /// Get the count of unread notifications for a user.
+        /// Used for notification badge count in UI.
+        /// </summary>
+        public async Task<int> GetUnreadCountAsync(string userId)
+        {
+            try
+            {
+                return await _context.UserNotifications
+                    .CountAsync(n => n.UserId == userId && !n.IsRead);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Send notification using predefined template with placeholder replacement.
+        /// Templates ensure consistent messaging across all notification triggers (INFRA-08).
+        /// </summary>
+        /// <param name="userId">User ID to receive notification</param>
+        /// <param name="type">Notification type (must match key in _templates dictionary)</param>
+        /// <param name="context">Dictionary of placeholder values (e.g., { "AssessmentTitle": "Safety OJT", "AssessmentId": "123" })</param>
+        /// <returns>True if notification sent successfully, false if template not found or send failed</returns>
+        public async Task<bool> SendByTemplateAsync(string userId, string type, Dictionary<string, object>? context = null)
+        {
+            try
+            {
+                if (!_templates.TryGetValue(type, out var template))
+                {
+                    // Unknown notification type - fail silently
+                    return false;
+                }
+
+                // Replace placeholders in message template
+                var message = template.MessageTemplate;
+                var actionUrl = template.ActionUrlTemplate;
+
+                if (context != null)
+                {
+                    foreach (var kvp in context)
+                    {
+                        var placeholder = $"{{{kvp.Key}}}";
+                        message = message.Replace(placeholder, kvp.Value?.ToString() ?? "");
+                        if (actionUrl != null)
+                        {
+                            actionUrl = actionUrl.Replace(placeholder, kvp.Value?.ToString() ?? "");
+                        }
+                    }
+                }
+
+                return await SendAsync(userId, type, template.Title, message, actionUrl);
+            }
+            catch
+            {
+                // Template processing failed - fail silently
+                return false;
             }
         }
     }
