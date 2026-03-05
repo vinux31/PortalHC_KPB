@@ -2528,6 +2528,411 @@ namespace HcPortal.Controllers
             return RedirectToAction("CoachCoacheeMapping");
         }
 
+        // GET /Admin/SeedDashboardTestData — TEMP: Phase 87 browser verify seed data
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SeedDashboardTestData()
+        {
+            try
+            {
+                // 1. Verify active users exist (need users for all 6 roles)
+                var allActiveUsers = await _context.Users
+                    .Where(u => u.IsActive)
+                    .OrderBy(u => u.FullName)
+                    .ToListAsync();
+
+                if (allActiveUsers.Count < 2)
+                {
+                    TempData["Error"] = "SeedDashboardTestData: Need at least 2 active users. Found: " + allActiveUsers.Count;
+                    return RedirectToAction("Index", "Admin");
+                }
+
+                var now = DateTime.UtcNow;
+                var today = DateTime.Today;
+                var actorId = _userManager.GetUserId(User) ?? "";
+
+                // Mutable stats counters
+                var stats = new Dictionary<string, int>
+                {
+                    { "users", 0 },
+                    { "assessments", 0 },
+                    { "idpItems", 0 },
+                    { "deliverableProgress", 0 },
+                    { "trackAssignments", 0 },
+                    { "trainingRecords", 0 },
+                    { "auditLogs", 0 }
+                };
+
+                // 2. Assessment Sessions — create 5-10 sessions across statuses
+                var existingAssessments = await _context.AssessmentSessions
+                    .Where(a => a.Title.StartsWith("Seed Assessment -"))
+                    .Select(a => a.Title)
+                    .ToListAsync();
+
+                if (!existingAssessments.Any())
+                {
+                    var sessions = new List<AssessmentSession>();
+                    var userIndex = 0;
+
+                    // 2-3 Open sessions (Schedule in past/present, Status = "Open")
+                    for (int i = 0; i < 2; i++)
+                    {
+                        var user = allActiveUsers[userIndex % allActiveUsers.Count];
+                        sessions.Add(new AssessmentSession
+                        {
+                            Title = $"Seed Assessment - Open {i + 1}",
+                            Category = i % 2 == 0 ? "OJT" : "IHT",
+                            Schedule = today.AddHours(i * 2),
+                            DurationMinutes = 60,
+                            PassPercentage = 70,
+                            Status = "Open",
+                            IsTokenRequired = false,
+                            AccessToken = "",
+                            Progress = 0,
+                            UserId = user.Id,
+                            CreatedBy = actorId
+                        });
+                        userIndex++;
+                    }
+
+                    // 2-3 Upcoming sessions (Schedule in future, Status = "Upcoming")
+                    for (int i = 0; i < 2; i++)
+                    {
+                        var user = allActiveUsers[userIndex % allActiveUsers.Count];
+                        sessions.Add(new AssessmentSession
+                        {
+                            Title = $"Seed Assessment - Upcoming {i + 1}",
+                            Category = i % 2 == 0 ? "OJT" : "IHT",
+                            Schedule = today.AddDays(i + 2),
+                            DurationMinutes = 90,
+                            PassPercentage = 75,
+                            Status = "Upcoming",
+                            IsTokenRequired = i % 2 == 0, // Mix token/non-token
+                            AccessToken = i % 2 == 0 ? "SEED87" : "",
+                            Progress = 0,
+                            UserId = user.Id,
+                            CreatedBy = actorId
+                        });
+                        userIndex++;
+                    }
+
+                    // 3-4 Completed sessions with varying scores
+                    var completedScores = new[] { 85, 92, 55, 68 };
+                    for (int i = 0; i < 4; i++)
+                    {
+                        var user = allActiveUsers[userIndex % allActiveUsers.Count];
+                        var score = completedScores[i];
+                        sessions.Add(new AssessmentSession
+                        {
+                            Title = $"Seed Assessment - Completed {i + 1}",
+                            Category = i % 2 == 0 ? "OJT" : "IHT",
+                            Schedule = today.AddDays(-(i + 1)),
+                            DurationMinutes = 60,
+                            PassPercentage = 70,
+                            Status = "Completed",
+                            IsTokenRequired = false,
+                            AccessToken = "",
+                            Score = score,
+                            IsPassed = score >= 70,
+                            StartedAt = now.AddDays(-(i + 1)).AddHours(-1),
+                            CompletedAt = now.AddDays(-(i + 1)),
+                            Progress = 100,
+                            UserId = user.Id,
+                            CreatedBy = actorId
+                        });
+                        userIndex++;
+                    }
+
+                    _context.AssessmentSessions.AddRange(sessions);
+                    await _context.SaveChangesAsync();
+                    stats["assessments"] = sessions.Count;
+                }
+                else
+                {
+                    stats["assessments"] = existingAssessments.Count();
+                }
+
+                // 3. IDP Items — create 8-12 items across different users and statuses
+                var existingIdpItems = await _context.IdpItems
+                    .Where(i => i.Kompetensi != null && i.Kompetensi.StartsWith("Seed IDP -"))
+                    .CountAsync();
+
+                if (existingIdpItems == 0)
+                {
+                    var idpItems = new List<IdpItem>();
+                    var statuses = new[] { "Pending", "In Progress", "Completed" };
+                    var idpIndex = 0;
+
+                    // 3-4 Pending items
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var user = allActiveUsers[idpIndex % allActiveUsers.Count];
+                        idpItems.Add(new IdpItem
+                        {
+                            UserId = user.Id,
+                            Kompetensi = $"Seed IDP - Pending {i + 1}",
+                            Aktivitas = "Test pending IDP item for dashboard verification",
+                            Status = "Pending",
+                            DueDate = today.AddDays(30)
+                        });
+                        idpIndex++;
+                    }
+
+                    // 3-4 In Progress items
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var user = allActiveUsers[idpIndex % allActiveUsers.Count];
+                        idpItems.Add(new IdpItem
+                        {
+                            UserId = user.Id,
+                            Kompetensi = $"Seed IDP - In Progress {i + 1}",
+                            Aktivitas = $"Test in-progress IDP item {30 + (i * 20)}% for dashboard verification",
+                            Status = "In Progress",
+                            DueDate = today.AddDays(15)
+                        });
+                        idpIndex++;
+                    }
+
+                    // 2-4 Completed items
+                    for (int i = 0; i < 3; i++)
+                    {
+                        var user = allActiveUsers[idpIndex % allActiveUsers.Count];
+                        idpItems.Add(new IdpItem
+                        {
+                            UserId = user.Id,
+                            Kompetensi = $"Seed IDP - Completed {i + 1}",
+                            Aktivitas = "Test completed IDP item for dashboard verification",
+                            Status = "Completed",
+                            DueDate = today.AddDays(-5)
+                        });
+                        idpIndex++;
+                    }
+
+                    _context.IdpItems.AddRange(idpItems);
+                    await _context.SaveChangesAsync();
+                    stats["idpItems"] = idpItems.Count;
+                }
+                else
+                {
+                    stats["idpItems"] = existingIdpItems;
+                }
+
+                // 4. Proton Deliverable Progress — create 10-15 records
+                var existingProgress = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.CoacheeId.StartsWith("SEED-"))
+                    .CountAsync();
+
+                if (existingProgress == 0)
+                {
+                    // Get a ProtonTrack that has deliverables
+                    var testTrack = await _context.ProtonTracks
+                        .Where(t => _context.ProtonDeliverableList
+                            .Any(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == t.Id))
+                        .OrderBy(t => t.Urutan)
+                        .FirstOrDefaultAsync();
+
+                    if (testTrack != null)
+                    {
+                        var deliverables = await _context.ProtonDeliverableList
+                            .Include(d => d.ProtonSubKompetensi)
+                                .ThenInclude(s => s.ProtonKompetensi)
+                            .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == testTrack.Id)
+                            .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
+                                .ThenBy(d => d.ProtonSubKompetensi.Urutan)
+                                .ThenBy(d => d.Urutan)
+                            .Take(10)
+                            .ToListAsync();
+
+                        if (deliverables.Any())
+                        {
+                            var progressList = new List<ProtonDeliverableProgress>();
+                            var coacheeIndex = 0;
+                            var statuses = new[] { "Pending", "Submitted", "Approved", "Rejected" };
+
+                            foreach (var deliverable in deliverables)
+                            {
+                                var coachee = allActiveUsers[coacheeIndex % allActiveUsers.Count];
+                                var status = statuses[coacheeIndex % statuses.Length];
+
+                                var progress = new ProtonDeliverableProgress
+                                {
+                                    CoacheeId = coachee.Id,
+                                    ProtonDeliverableId = deliverable.Id,
+                                    Status = status,
+                                    SrSpvApprovalStatus = status == "Pending" ? "Pending" : (status == "Approved" ? "Approved" : "Pending"),
+                                    ShApprovalStatus = status == "Approved" ? "Approved" : "Pending",
+                                    HCApprovalStatus = status == "Approved" ? "Reviewed" : "Pending"
+                                };
+
+                                // Set timestamps based on status
+                                if (status == "Submitted")
+                                {
+                                    progress.SubmittedAt = now.AddDays(-2);
+                                }
+                                else if (status == "Approved")
+                                {
+                                    progress.SubmittedAt = now.AddDays(-5);
+                                    progress.ApprovedAt = now.AddDays(-3);
+                                }
+                                else if (status == "Rejected")
+                                {
+                                    progress.SubmittedAt = now.AddDays(-3);
+                                    progress.RejectedAt = now.AddDays(-1);
+                                    progress.RejectionReason = "Test rejection for dashboard verification";
+                                }
+
+                                progressList.Add(progress);
+                                coacheeIndex++;
+                            }
+
+                            _context.ProtonDeliverableProgresses.AddRange(progressList);
+                            await _context.SaveChangesAsync();
+                            stats["deliverableProgress"] = progressList.Count;
+                        }
+                    }
+                }
+                else
+                {
+                    stats["deliverableProgress"] = existingProgress;
+                }
+
+                // 5. Proton Track Assignments — create 3-5 assignments
+                var existingAssignments = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId.StartsWith("SEED-"))
+                    .CountAsync();
+
+                if (existingAssignments == 0 && stats["deliverableProgress"] > 0)
+                {
+                    var testTrack = await _context.ProtonTracks
+                        .Where(t => _context.ProtonDeliverableList
+                            .Any(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == t.Id))
+                        .OrderBy(t => t.Urutan)
+                        .FirstOrDefaultAsync();
+
+                    if (testTrack != null)
+                    {
+                        var assignments = new List<ProtonTrackAssignment>();
+                        var assignmentCount = Math.Min(3, allActiveUsers.Count);
+
+                        for (int i = 0; i < assignmentCount; i++)
+                        {
+                            var coachee = allActiveUsers[i];
+                            var existing = await _context.ProtonTrackAssignments
+                                .FirstOrDefaultAsync(a => a.CoacheeId == coachee.Id && a.IsActive);
+
+                            if (existing == null)
+                            {
+                                assignments.Add(new ProtonTrackAssignment
+                                {
+                                    CoacheeId = coachee.Id,
+                                    AssignedById = actorId,
+                                    ProtonTrackId = testTrack.Id,
+                                    IsActive = true,
+                                    AssignedAt = now.AddDays(-30)
+                                });
+                            }
+                        }
+
+                        if (assignments.Any())
+                        {
+                            _context.ProtonTrackAssignments.AddRange(assignments);
+                            await _context.SaveChangesAsync();
+                            stats["trackAssignments"] = assignments.Count;
+                        }
+                    }
+                }
+                else
+                {
+                    stats["trackAssignments"] = existingAssignments;
+                }
+
+                // 6. Training Records — create 5-8 records
+                var existingTraining = await _context.TrainingRecords
+                    .Where(t => t.Judul.StartsWith("Seed Training -"))
+                    .CountAsync();
+
+                if (existingTraining == 0)
+                {
+                    var trainingRecords = new List<TrainingRecord>();
+                    var categories = new[] { "MANDATORY", "OPTIONAL" };
+                    var statuses = new[] { "Valid", "Expired" };
+
+                    for (int i = 0; i < 6; i++)
+                    {
+                        var user = allActiveUsers[i % allActiveUsers.Count];
+                        var isValid = i % 2 == 0;
+
+                        trainingRecords.Add(new TrainingRecord
+                        {
+                            UserId = user.Id,
+                            Judul = $"Seed Training - {categories[i % 2]} {i + 1}",
+                            Kategori = i % 2 == 0 ? "OJT" : "IHT",
+                            Tanggal = today.AddDays(-(30 + i * 5)),
+                            Status = statuses[i % 2],
+                            Penyelenggara = "Test Training Provider",
+                            ValidUntil = isValid ? today.AddDays(180) : today.AddDays(-10)
+                        });
+                    }
+
+                    _context.TrainingRecords.AddRange(trainingRecords);
+                    await _context.SaveChangesAsync();
+                    stats["trainingRecords"] = trainingRecords.Count;
+                }
+                else
+                {
+                    stats["trainingRecords"] = existingTraining;
+                }
+
+                // 7. Audit Logs — create 10-15 log entries
+                var existingLogs = await _context.AuditLogs
+                    .Where(l => l.ActionType.StartsWith("Seed Audit -"))
+                    .CountAsync();
+
+                if (existingLogs == 0)
+                {
+                    var auditLogs = new List<AuditLog>();
+                    var actions = new[] { "Create", "Update", "Delete", "Login" };
+                    var entityTypes = new[] { "AssessmentSession", "IdpItem", "ProtonDeliverableProgress", "TrainingRecord" };
+
+                    for (int i = 0; i < 12; i++)
+                    {
+                        var user = allActiveUsers[i % allActiveUsers.Count];
+                        var action = actions[i % actions.Length];
+                        var entityType = entityTypes[i % entityTypes.Length];
+                        var userName = string.IsNullOrWhiteSpace(user.NIP) ? user.FullName : $"{user.NIP} - {user.FullName}";
+
+                        auditLogs.Add(new AuditLog
+                        {
+                            ActorUserId = user.Id,
+                            ActorName = userName,
+                            ActionType = $"Seed Audit - {action}",
+                            Description = $"Test {action.ToLower()} action on {entityType} for dashboard verification",
+                            TargetId = i + 1,
+                            TargetType = entityType,
+                            CreatedAt = now.AddDays(-(i / 2)) // Spread over last 6 days
+                        });
+                    }
+
+                    _context.AuditLogs.AddRange(auditLogs);
+                    await _context.SaveChangesAsync();
+                    stats["auditLogs"] = auditLogs.Count;
+                }
+                else
+                {
+                    stats["auditLogs"] = existingLogs;
+                }
+
+                stats["users"] = allActiveUsers.Count;
+
+                TempData["Success"] = $"Dashboard seed data created. Users: {stats["users"]}, Assessments: {stats["assessments"]}, IDP Items: {stats["idpItems"]}, Deliverable Progress: {stats["deliverableProgress"]}, Track Assignments: {stats["trackAssignments"]}, Training Records: {stats["trainingRecords"]}, Audit Logs: {stats["auditLogs"]}.";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"SeedDashboardTestData failed: {ex.Message}";
+            }
+            return RedirectToAction("Index", "Admin");
+        }
+
         // --- USER ASSESSMENT HISTORY ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
