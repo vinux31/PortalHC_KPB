@@ -241,13 +241,24 @@ namespace HcPortal.Controllers
             }
             else
             {
-                if (result.Errors.Any(e => e.Code == "PasswordMismatch"))
+                var error = result.Errors.FirstOrDefault();
+                if (error != null)
                 {
-                    TempData["PasswordError"] = "Password lama salah.";
+                    TempData["PasswordError"] = error.Code switch
+                    {
+                        "PasswordMismatch" => "Password lama salah.",
+                        "PasswordTooShort" => "Password baru minimal 6 karakter.",
+                        "PasswordRequiresUniqueChars" => "Password baru harus memiliki minimal 1 karakter unik.",
+                        "PasswordRequiresNonAlphanumeric" => "Password baru harus memiliki minimal 1 karakter khusus.",
+                        "PasswordRequiresDigit" => "Password baru harus memiliki minimal 1 angka.",
+                        "PasswordRequiresLower" => "Password baru harus memiliki minimal 1 huruf kecil.",
+                        "PasswordRequiresUpper" => "Password baru harus memiliki minimal 1 huruf besar.",
+                        _ => "Terjadi kesalahan saat mengubah password. Coba lagi."
+                    };
                 }
                 else
                 {
-                    TempData["PasswordError"] = string.Join("; ", result.Errors.Select(e => e.Description));
+                    TempData["PasswordError"] = "Terjadi kesalahan saat mengubah password. Coba lagi.";
                 }
             }
 
