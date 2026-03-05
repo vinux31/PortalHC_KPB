@@ -46,10 +46,10 @@ Systematically audit all portal pages to identify and fix bugs. Organized by nav
 
 ### Account (Profile & Settings)
 
-- [ ] **ACCT-01**: Profile page displays correct user data (Nama, NIP, Email, Position, Unit)
-- [ ] **ACCT-02**: Settings page change password works correctly
-- [ ] **ACCT-03**: Profile edit (FullName, Position) saves correctly
-- [ ] **ACCT-04**: Avatar initials display correctly from FullName
+- [x] **ACCT-01**: Profile page displays correct user data (Nama, NIP, Email, Position, Unit)
+- [x] **ACCT-02**: Settings page change password works correctly
+- [x] **ACCT-03**: Profile edit (FullName, Position) saves correctly
+- [x] **ACCT-04**: Avatar initials display correctly from FullName
 
 ### Authentication & Authorization
 
@@ -113,10 +113,10 @@ Deferred to future milestones. Not in scope for bug hunting.
 | ADMIN-06 | Phase 95 | Pending |
 | ADMIN-07 | Phase 95 | Pending |
 | ADMIN-08 | Phase 95 | Pending |
-| ACCT-01 | Phase 96 | Pending |
-| ACCT-02 | Phase 96 | Pending |
-| ACCT-03 | Phase 96 | Pending |
-| ACCT-04 | Phase 96 | Pending |
+| ACCT-01 | Phase 96 | Complete |
+| ACCT-02 | Phase 96 | Complete |
+| ACCT-03 | Phase 96 | Complete |
+| ACCT-04 | Phase 96 | Complete |
 | AUTH-01 | Phase 97 | Pending |
 | AUTH-02 | Phase 97 | Pending |
 | AUTH-03 | Phase 97 | Pending |
