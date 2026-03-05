@@ -323,28 +323,24 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Milestone:** v3.2 Bug Hunting & Quality Audit
 Phase: 94 - CDP Section Audit
-Plan: 94-01 IDP Planning Flow Audit (COMPLETE)
+Plan: 94-03 Evidence & Approval Flow Audit (COMPLETE)
 Status: In progress — Audit CDP pages by use-case flows
-Last activity: 2026-03-05 - Completed plan 94-01: Fixed Indonesian date localization in PlanIdp page
+Last activity: 2026-03-05 - Completed plan 94-03: Secured evidence downloads, fixed Indonesian localization
 
-Progress: [██░░░░░░░░] 17% (1/6 plans in Phase 94)
+Progress: [████░░░░░] 50% (3/6 plans in Phase 94)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 5 min
-- Total execution time: 20 min
+- Total plans completed: 7
+- Average duration: 6 min
+- Total execution time: 42 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
-| 91    | 01   | 8 min    | 1     | 1     |
-| 91    | 02   | 4 min    | 3     | 6     |
-| 92    | 01   | 3 min    | 1     | 1     |
-| 92    | 02   | 10 min   | 3     | 5     |
-| 93    | 01   | 2 min    | 3     | 1     |
-| 93    | 02   | 5 min    | 3     | 6     |
-| 93    | 03   | 8 min    | 4     | 1     |
+| 94    | 03   | 5 min    | 3     | 2     |
+| 94    | 02b  | 3 min    | 2     | 2     |
+| 94    | 02   | 4 min    | 2     | 1     |
 | 94    | 01   | 8 min    | 3     | 2     |
 | 83    | 04   | 15 min   | 3     | 2     |
 | 83    | 05   | 12 min   | 2     | 7     |
@@ -427,6 +423,9 @@ Progress: [██░░░░░░░░] 17% (1/6 plans in Phase 94)
 - [Phase 91]: [91-02]: 3-attempt retry: first try immediate, retry 1 after 1s, retry 2 after 3s; all fail => error indicator + toast
 - [Phase 91]: [91-02]: Records redesigned with 2-tab layout (Assessment Online / Training Manual); Assessment rows clickable to CMP/Results
 - [Phase 91]: [91-03]: All 9 CMP Assessment browser verification flows confirmed PASS by user — Phase 91 complete, zero gap closure plans needed
+- [Phase 94]: [94-03] DownloadEvidence action added with role-based access control (Coachee self, Coach same section, SrSpv/SH same section, HC all) and file path validation to prevent directory traversal
+- [Phase 94]: [94-03] All 8 date displays in Deliverable page fixed to use Indonesian locale (SubmittedAt, RejectedAt, ApprovedAt, SrSpvApprovedAt, ShApprovedAt, HCReviewedAt, coaching session dates, timeline dates)
+- [Phase 94]: [94-01] All PlanIdp validation already correct (user null check, IsActive filters, coachee section locking) — only localization fix needed for Indonesian date formatting
 - [Phase 84]: [84-01]: DownloadQuestionTemplate placed between PreviewPackage and ImportPackageQuestions GET for logical grouping; column order matches parser cells[0..5]
 - [Phase 84]: [84-02]: All 5 smoke-test flows PASS — template download, Excel import round-trip, paste dedup, cross-package mismatch error, regression check; all ASSESS-01 through ASSESS-10 formally closed
 - [Phase 85]: [85-02]: canUpload/UploadEvidence status check fixed: 'Active'→'Pending' (ProtonDeliverableProgress has no 'Active' status, default is 'Pending')
