@@ -35,6 +35,12 @@ Requirements for basic in-app notification system. Each maps to roadmap phases.
 - [ ] **COACH-05**: HC receives notification when evidence is approved by SectionHead
 - [ ] **COACH-06**: Coachee receives notification when coaching session is completed
 
+### Team Monitoring Features
+
+- [ ] **TEAM-01**: Users level 1-4 can view Team Training View tab with worker list showing assessment and training completion counts
+- [ ] **TEAM-02**: Users level 1-4 can drill into individual worker details to view unified assessment and training history
+- [ ] **TEAM-03**: Level 4 (SrSupervisor) users restricted to viewing workers in their own section only
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -94,10 +100,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COACH-04 | Phase 102 | Pending |
 | COACH-05 | Phase 102 | Pending |
 | COACH-06 | Phase 102 | Pending |
+| TEAM-01 | Phase 104 | Pending |
+| TEAM-02 | Phase 104 | Pending |
+| TEAM-03 | Phase 104 | Pending |
 
 **Coverage:**
 - v3.3 requirements: 18 total
-- Mapped to phases: 18
+- v3.3+: 3 total (Team Monitoring features)
+- Mapped to phases: 21
 - Unmapped: 0 ✓
 
 ---
