@@ -421,6 +421,35 @@ namespace HcPortal.Controllers
             return View("Records", unified);
         }
 
+        // Phase 104: Team View tab for monitoring team members' training & assessment compliance
+        public async Task<IActionResult> RecordsTeam()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+
+            // Role-based access control: Level 5-6 (Coach, Supervisor, Coachee) forbidden
+            if (roleLevel >= 5)
+            {
+                return Forbid();
+            }
+
+            // Scope enforcement: Level 4 (SrSupervisor) locked to their own section
+            string? sectionFilter = null;
+            if (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
+            {
+                sectionFilter = user.Section;
+            }
+
+            // Level 1-3: No section restriction (full access to all sections/units)
+            var workerList = await GetWorkersInSection(sectionFilter);
+
+            return View("RecordsTeam", workerList);
+        }
+
         // Phase 20: HC Edit Training Record — POST only (no GET; modal is pre-populated inline via Razor in WorkerDetail.cshtml)
         [HttpPost]
         [ValidateAntiForgeryToken]
