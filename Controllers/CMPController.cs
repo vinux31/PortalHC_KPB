@@ -82,6 +82,7 @@ namespace HcPortal.Controllers
             // Validate section param for L5/L6: if section provided but not in their accessible list, use first
             if (userLevel >= 5 && section != null && !availableBagians.Any(b => b.Name == section))
             {
+                // Safe to use .First() here because we already checked .Any() at line 70
                 selectedBagian = availableBagians.First();
             }
 
@@ -229,6 +230,12 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveAnswer(int sessionId, int questionId, int optionId)
         {
+            // Validate parameters
+            if (sessionId <= 0 || questionId <= 0 || optionId <= 0)
+            {
+                return Json(new { success = false, error = "Invalid parameters" });
+            }
+
             var session = await _context.AssessmentSessions.FindAsync(sessionId);
             if (session == null) return NotFound();
 
@@ -271,6 +278,12 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveLegacyAnswer(int sessionId, int questionId, int optionId)
         {
+            // Validate parameters
+            if (sessionId <= 0 || questionId <= 0 || optionId <= 0)
+            {
+                return Json(new { success = false, error = "Invalid parameters" });
+            }
+
             var session = await _context.AssessmentSessions.FindAsync(sessionId);
             if (session == null) return NotFound();
 
@@ -351,6 +364,12 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSessionProgress(int sessionId, int elapsedSeconds, int currentPage)
         {
+            // Validate parameters
+            if (sessionId <= 0 || elapsedSeconds < 0 || currentPage < 1)
+            {
+                return Json(new { success = false, error = "Invalid parameters" });
+            }
+
             var session = await _context.AssessmentSessions.FindAsync(sessionId);
             if (session == null) return NotFound();
 
@@ -1240,6 +1259,9 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ExamSummary(int id, int? assignmentId, Dictionary<int, int> answers)
         {
+            // Null-coalesce for nullable dictionary parameter
+            answers ??= new Dictionary<int, int>();
+
             // Validate ownership
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
