@@ -13,7 +13,10 @@ namespace HcPortal.Models
 
         // Read-only display fields (not editable via forms)
         public string? NIP { get; set; }
+
+        [EmailAddress(ErrorMessage = "Format email tidak valid")]
         public string? Email { get; set; }
+
         public string Role { get; set; } = "—";
         public string? Section { get; set; }
         public string? Directorate { get; set; }
@@ -33,6 +36,7 @@ namespace HcPortal.Models
         public string? Position { get; set; }
 
         [StringLength(20)]
+        [RegularExpression(@"^[0-9]+$", ErrorMessage = "Nomor telepon hanya boleh angka")]
         public string? PhoneNumber { get; set; }
     }
 
