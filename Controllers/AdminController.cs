@@ -177,7 +177,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Gagal menyimpan file: {ex.Message}";
+                _logger.LogError(ex, "Failed to upload KKJ file for bagian {BagianId}", bagianId);
+                TempData["Error"] = "Gagal menyimpan file. Silakan coba lagi.";
                 return RedirectToAction("KkjUpload", new { bagianId });
             }
         }
@@ -476,7 +477,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Gagal menyimpan file: {ex.Message}";
+                _logger.LogError(ex, "Failed to upload CPDP file for bagian {BagianId}", bagianId);
+                TempData["Error"] = "Gagal menyimpan file. Silakan coba lagi.";
                 return RedirectToAction("CpdpUpload", new { bagianId });
             }
         }
@@ -945,7 +947,7 @@ namespace HcPortal.Controllers
                 logger.LogError(ex, "Error creating assessment sessions");
 
                 // Show error to user
-                TempData["Error"] = $"Failed to create assessments: {ex.Message}";
+                TempData["Error"] = "Gagal membuat assessment. Silakan coba lagi.";
 
                 // Reload form
                 var users = await _context.Users
@@ -1117,7 +1119,7 @@ namespace HcPortal.Controllers
             {
                 var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
                 logger.LogError(ex, "Error updating assessment");
-                TempData["Error"] = $"Failed to update assessment: {ex.Message}";
+                TempData["Error"] = "Gagal memperbarui assessment. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
             }
 
@@ -1212,7 +1214,7 @@ namespace HcPortal.Controllers
                 {
                     var logger2 = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
                     logger2.LogError(ex, "Error bulk-assigning users to assessment {Id}", id);
-                    TempData["Error"] = $"Assessment updated but bulk assign failed: {ex.Message}";
+                    TempData["Error"] = "Assessment berhasil diperbarui, tetapi gagal menambahkan user. Silakan coba lagi.";
                 }
             }
 
@@ -1319,8 +1321,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Error deleting assessment {id}: {ex.Message}");
-                TempData["Error"] = $"Failed to delete assessment: {ex.Message}";
+                logger.LogError(ex, "Error deleting assessment {Id}", id);
+                TempData["Error"] = "Gagal menghapus assessment. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
             }
         }
@@ -1420,8 +1422,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"DeleteAssessmentGroup error for representative {id}: {ex.Message}");
-                TempData["Error"] = $"Failed to delete assessment group: {ex.Message}";
+                logger.LogError(ex, "DeleteAssessmentGroup error for representative {Id}", id);
+                TempData["Error"] = "Gagal menghapus grup assessment. Silakan coba lagi.";
                 return RedirectToAction("ManageAssessment");
             }
         }
@@ -2523,7 +2525,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"SeedCoachingTestData failed: {ex.Message}";
+                _logger.LogError(ex, "SeedCoachingTestData failed");
+                TempData["Error"] = "Gagal membuat data test coaching. Silakan coba lagi.";
             }
             return RedirectToAction("CoachCoacheeMapping");
         }
@@ -2930,7 +2933,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"SeedDashboardTestData failed: {ex.Message}";
+                _logger.LogError(ex, "SeedDashboardTestData failed");
+                TempData["Error"] = "Gagal membuat data test dashboard. Silakan coba lagi.";
             }
             return RedirectToAction("Index", "Admin");
         }
@@ -2955,8 +2959,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"SeedCDPTestData failed: {ex.Message}";
                 _logger.LogError(ex, "SeedCDPTestData failed");
+                TempData["Error"] = "Gagal membuat data test CDP. Silakan coba lagi.";
             }
             return RedirectToAction("Index", "Admin");
         }
@@ -4589,7 +4593,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Gagal membaca file: {ex.Message}";
+                _logger.LogError(ex, "Failed to read Excel import file");
+                TempData["Error"] = "Gagal membaca file Excel. Pastikan format file benar.";
                 return View();
             }
 
@@ -5238,6 +5243,32 @@ namespace HcPortal.Controllers
             var assessment = await _context.AssessmentSessions.FindAsync(has_id);
             if (assessment == null) return NotFound();
 
+            // Validation
+            if (string.IsNullOrWhiteSpace(question_text))
+            {
+                TempData["Error"] = "Pertanyaan tidak boleh kosong.";
+                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
+            }
+
+            if (options == null || options.Count < 2)
+            {
+                TempData["Error"] = "Minimal harus ada 2 opsi jawaban.";
+                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
+            }
+
+            if (correct_option_index < 0 || correct_option_index >= options.Count)
+            {
+                TempData["Error"] = "Index jawaban benar tidak valid.";
+                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
+            }
+
+            var validOptions = options.Where(o => !string.IsNullOrWhiteSpace(o)).ToList();
+            if (validOptions.Count < 2)
+            {
+                TempData["Error"] = "Minimal harus ada 2 opsi jawaban yang terisi.";
+                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
+            }
+
             var newQuestion = new AssessmentQuestion
             {
                 AssessmentSessionId = has_id,
@@ -5537,7 +5568,8 @@ namespace HcPortal.Controllers
                 }
                 catch (Exception ex)
                 {
-                    TempData["Error"] = $"Could not read Excel file: {ex.Message}";
+                    _logger.LogError(ex, "Failed to read Excel file for package {PackageId}", packageId);
+                    TempData["Error"] = "Gagal membaca file Excel. Pastikan format file benar.";
                     return RedirectToAction("ImportPackageQuestions", new { packageId });
                 }
             }
