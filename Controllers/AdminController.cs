@@ -2935,6 +2935,32 @@ namespace HcPortal.Controllers
             return RedirectToAction("Index", "Admin");
         }
 
+        // GET /Admin/SeedCDPTestData — Phase 94: CDP Section Audit precondition
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SeedCDPTestData()
+        {
+            try
+            {
+                var actorId = _userManager.GetUserId(User) ?? "";
+
+                await SeedTestData.SeedCDPTestData(_context, _userManager, _env, actorId, _logger);
+
+                TempData["Success"] = "SeedCDPTestData: Comprehensive test data created successfully. " +
+                    "Check logs for details on created users, assignments, progress records, and files.";
+
+                // Get summary for display
+                var summary = await SeedTestData.GetTestDataSummaryAsync(_context);
+                _logger.LogInformation(summary.Replace(Environment.NewLine, " | "));
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"SeedCDPTestData failed: {ex.Message}";
+                _logger.LogError(ex, "SeedCDPTestData failed");
+            }
+            return RedirectToAction("Index", "Admin");
+        }
+
         // --- USER ASSESSMENT HISTORY ---
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
