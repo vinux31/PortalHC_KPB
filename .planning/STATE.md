@@ -299,7 +299,7 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 Phase: 94 - CDP Section Audit
 Plan: Context gathering (COMPLETE)
 Status: Ready for planning — Audit CDP pages (PlanIdp, CoachingProton, Deliverable, Index) by use-case flows
-Last activity: 2026-03-05 — Context captured: flow-based organization, pre-seeded test data, deep evidence audit, all 5 roles
+Last activity: 2026-03-05 - Completed quick task 17: investigate CMP/Kkj page not showing KKJ Matrix files uploaded in Admin/KkjMatrix — Context captured: flow-based organization, pre-seeded test data, deep evidence audit, all 5 roles
 
 Progress: [░░░░░░░░░░] 0% (0 plans in Phase 94)
 
@@ -443,6 +443,7 @@ None.
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
+| 17 | investigate CMP/Kkj page not showing KKJ Matrix files uploaded in Admin/KkjMatrix | 2026-03-05 | 8d34629 | [17-investigate-cmp-kkj-page-not-showing-kkj](./quick/17-investigate-cmp-kkj-page-not-showing-kkj/) |
 | 16 | check menu kelola Data Hub dan listkan semua nama title menu disana | 2026-03-03 | 1bd9b4f | [16-check-menu-kelola-data-hub-dan-listkan-s](./quick/16-check-menu-kelola-data-hub-dan-listkan-s/) |
 
 ## Session Continuity
