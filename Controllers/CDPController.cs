@@ -11,6 +11,22 @@ using QuestPDF.Helpers;
 
 namespace HcPortal.Controllers
 {
+    // ====================================================================
+    // PHASE 87-02 DASHBOARD QA FIXES
+    // ====================================================================
+    // Bugs fixed during dashboard data accuracy verification:
+    //
+    // 1. [BUG] Coachee Dashboard ActiveDeliverables (line ~266)
+    //    - Was checking Status == "Active" which doesn't exist in ProtonDeliverableProgress
+    //    - Fixed to check Status == "Pending" (valid status for in-progress deliverables)
+    //    - Impact: Coachee dashboard now shows correct count of active/in-progress deliverables
+    //
+    // 2. [BUG] Proton Progress missing IsActive filters (lines ~292-323)
+    //    - BuildProtonProgressSubModelAsync was querying all RoleLevel==6 users without IsActive check
+    //    - Fixed: Added u.IsActive filter to all 4 role branches (HC/Admin, SrSpv, SectionHead, Coach)
+    //    - Impact: Dashboard now excludes inactive coachees from all stats, rows, and charts
+    // ====================================================================
+
     [Authorize]
     public class CDPController : Controller
     {
@@ -263,7 +279,8 @@ namespace HcPortal.Controllers
 
             subModel.TotalDeliverables = progresses.Count;
             subModel.ApprovedDeliverables = progresses.Count(p => p.Status == "Approved");
-            subModel.ActiveDeliverables = progresses.Count(p => p.Status == "Active");
+            // FIX: ProtonDeliverableProgress has no "Active" status; use "Pending" for in-progress deliverables
+            subModel.ActiveDeliverables = progresses.Count(p => p.Status == "Pending");
 
             var finalAssessment = await _context.ProtonFinalAssessments
                 .Where(fa => fa.CoacheeId == userId)
@@ -289,7 +306,7 @@ namespace HcPortal.Controllers
             if (userRole == UserRoles.HC || userRole == UserRoles.Admin)
             {
                 scopedCoacheeIds = await _context.Users
-                    .Where(u => u.RoleLevel == 6)
+                    .Where(u => u.RoleLevel == 6 && u.IsActive)
                     .Select(u => u.Id)
                     .ToListAsync();
                 scopeLabel = "All Sections";
@@ -297,7 +314,7 @@ namespace HcPortal.Controllers
             else if (userRole == UserRoles.SrSupervisor || userRole == UserRoles.SectionHead)
             {
                 scopedCoacheeIds = await _context.Users
-                    .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
                     .Select(u => u.Id)
                     .ToListAsync();
                 scopeLabel = $"Section: {user.Section ?? "(unknown)"}";
@@ -308,7 +325,7 @@ namespace HcPortal.Controllers
                 if (!string.IsNullOrEmpty(user.Unit))
                 {
                     scopedCoacheeIds = await _context.Users
-                        .Where(u => u.Unit == user.Unit && u.RoleLevel == 6)
+                        .Where(u => u.Unit == user.Unit && u.RoleLevel == 6 && u.IsActive)
                         .Select(u => u.Id)
                         .ToListAsync();
                     scopeLabel = $"Unit: {user.Unit}";
@@ -316,7 +333,7 @@ namespace HcPortal.Controllers
                 else
                 {
                     scopedCoacheeIds = await _context.Users
-                        .Where(u => u.Section == user.Section && u.RoleLevel == 6)
+                        .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
                         .Select(u => u.Id)
                         .ToListAsync();
                     scopeLabel = $"Section: {user.Section ?? "(unknown)"} (Unit not set)";
