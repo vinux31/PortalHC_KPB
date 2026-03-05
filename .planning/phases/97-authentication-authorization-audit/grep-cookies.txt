@@ -1,0 +1,2 @@
+20:    options.Cookie.HttpOnly = true;
+85:builder.Services.ConfigureApplicationCookie(options =>
