@@ -3,12 +3,25 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
-last_updated: "2026-03-05T04:21:45.383Z"
+last_updated: "2026-03-05T04:25:07.502Z"
+progress:
+  total_phases: 65
+  completed_phases: 63
+  total_plans: 155
+  completed_plans: 156
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
+last_updated: "2026-03-05T04:23:13.004Z"
 progress:
   total_phases: 65
   completed_phases: 62
   total_plans: 155
-  completed_plans: 154
+  completed_plans: 155
 ---
 
 ---
@@ -374,12 +387,12 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 ## Current Position
 
 **Milestone:** v3.2 Bug Hunting & Quality Audit
-Phase: 94 - CDP Section Audit
-Plan: 94-00 Test Data Seeding for CDP Flows (COMPLETE)
-Status: In progress — Audit CDP pages by use-case flows
-Last activity: 2026-03-05 - Completed plan 94-00: Created comprehensive test data for CDP flows
+Phase: 95 - Admin Portal Audit
+Plan: 95-03 Fix Cross-Cutting Validation & Role Gate Bugs (COMPLETE)
+Status: In progress — Audit Admin pages by use-case flows
+Last activity: 2026-03-05 - Completed plan 95-03: Fixed 12 raw exception exposures, added input validation to AddQuestion
 
-Progress: [████░░░░░] 50% (3/6 plans in Phase 94)
+Progress: [███░░░░░░] 38% (3/8 plans in Phase 95)
 
 ## Performance Metrics
 
@@ -429,6 +442,9 @@ Progress: [████░░░░░] 50% (3/6 plans in Phase 94)
 | Phase 94 P02b | 6 | 1 tasks | 2 files |
 | Phase 99 P99 | 16 | 1 tasks | 1 files |
 | Phase 95-admin-portal-audit P95-01 | 8 min | 4 tasks | 2 files |
+| Phase 95-admin-portal-audit P95-02 | 61 min | 4 tasks | 2 files |
+| Phase 95-admin-portal-audit P95-03 | 8 min | 3 tasks | 1 file |
+| Phase 95 P95-03 | 8 | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -516,6 +532,7 @@ Progress: [████░░░░░] 50% (3/6 plans in Phase 94)
 - [Phase 95-admin-portal-audit]: Date localization gaps in ExportWorkers JoinDate and CoachCoacheeMapping StartDate using ISO format instead of Indonesian locale
 - [Phase 95-admin-portal-audit]: Admin security posture verified as strong: proper auth gates, CSRF, validation, no raw exception exposure
 - [Phase 95-admin-portal-audit]: N+1 query in ManageWorkers role loading acceptable for typical scale, no optimization needed
+- [Phase 95-admin-portal-audit]: [95-03] Fixed 12 raw exception exposures with generic Indonesian messages and structured logging; added input validation to AddQuestion action
 
 ### Pending Todos
 
