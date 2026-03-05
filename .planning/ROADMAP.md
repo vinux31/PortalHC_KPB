@@ -401,7 +401,7 @@ Plans:
 **Goal:** Redesign CDP/PlanIdp from its current dual-path layout (Coachee deliverable table + Admin/HC PDF view) into a unified 2-tab layout (Silabus + Coaching Guidance) for all roles — read-only consumer view aligned with the finalized ProtonData/Index admin page
 **Requirements**: PLANIDP-01, PLANIDP-02, PLANIDP-03, PLANIDP-04, PLANIDP-05
 **Depends on:** Phase 88
-**Plans:** 4/4 plans complete
+**Plans:** 2/3 plans executed
 
 Requirements:
 - **PLANIDP-01**: All roles see the same unified 2-tab PlanIdp layout (Silabus + Coaching Guidance); old PDF view and old Coachee deliverable-hierarchy path are removed
@@ -516,7 +516,7 @@ Plans:
 | 84. Assessment Flow QA | v3.0 | 2/2 | ✅ Complete | 2026-03-04 |
 | 85. Coaching Proton Flow QA | v3.0 | 4/4 | ✅ Complete | 2026-03-04 |
 | 86. Plan IDP Development | v3.0 | — | ↗️ Superseded by 89 | - |
-| 87. Dashboard & Navigation QA | v3.0 | 0/3 | ⬜ Not started | - |
+| 87. Dashboard & Navigation QA | 2/3 | In Progress|  | - |
 | 88. KKJ Matrix Full Rewrite | v3.0 | 4/4 | ✅ Complete | 2026-03-03 |
 | 89. PlanIDP 2-Tab Redesign | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
 | 90. Audit Admin Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
