@@ -62,7 +62,7 @@ namespace HcPortal.Controllers
             if (userLevel >= 5 && currentUser?.Section != null)
             {
                 var sectionFiltered = _context.KkjBagians
-                    .Where(b => b.Name.Equals(currentUser.Section, StringComparison.OrdinalIgnoreCase));
+                    .Where(b => b.Name.ToLower() == currentUser.Section.ToLower());
 
                 // Only apply filter if it matches at least one bagian; otherwise show all (safe fallback)
                 if (await sectionFiltered.AnyAsync())
@@ -131,7 +131,7 @@ namespace HcPortal.Controllers
             if (user != null && user.RoleLevel >= 5 && !string.IsNullOrEmpty(user.Section))
             {
                 var sectionFiltered = allBagians
-                    .Where(b => b.Name.Equals(user.Section, StringComparison.OrdinalIgnoreCase))
+                    .Where(b => b.Name.ToLower() == user.Section.ToLower())
                     .ToList();
 
                 // Only apply filter if it matches at least one bagian; otherwise show all (safe fallback)
