@@ -1,136 +1,105 @@
-# Requirements: Portal HC KPB v3.2
+# Requirements: Portal HC KPB
 
 **Defined:** 2026-03-05
+**Milestone:** v3.3 Basic Notifications
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.2 Requirements
+## v3.3 Requirements
 
-Systematically audit all portal pages to identify and fix bugs. Organized by navbar menu for comprehensive coverage.
+Requirements for basic in-app notification system. Each maps to roadmap phases.
 
-### Homepage
+### Notification Infrastructure
 
-- [x] **HOME-01**: Homepage renders without errors for all authenticated users
-- [x] **HOME-02**: All dashboard cards display correct data (IDP stats, pending assessments, mandatory training)
-- [x] **HOME-03**: Recent activities timeline shows correct time ago in Indonesian
-- [x] **HOME-04**: Upcoming deadlines are clickable and navigate to correct pages
-- [x] **HOME-05**: Date formatting uses Indonesian locale (day names, month names)
+- [ ] **INFRA-01**: System stores notifications persistently in database with proper indexing for performance
+- [ ] **INFRA-02**: NotificationService follows AuditLogService pattern (async, scoped DI, try-catch wrapped)
+- [ ] **INFRA-03**: Notification Center UI displays bell icon in navbar with unread badge counter
+- [ ] **INFRA-04**: Notification dropdown shows list of notifications (most recent first, pagination)
+- [ ] **INFRA-05**: Users can mark individual notifications as read (click notification → mark read → remove from counter)
+- [ ] **INFRA-06**: Users can mark all notifications as read (bulk action button)
+- [ ] **INFRA-07**: System tracks notification audit trail (created by, created at, read at, delivery status)
+- [ ] **INFRA-08**: Notification templates provide consistent messaging across all triggers
+- [ ] **INFRA-09**: Notification failures gracefully degrade (try-catch prevents main workflow crashes)
+- [ ] **INFRA-10**: Notifications use deep linking (click notification → navigate to relevant page)
 
-### CMP (Competency Management Platform)
+### Assessment Notifications
 
-- [x] **CMP-01**: Assessment page loads without errors for all roles (Worker, HC, Admin)
-- [x] **CMP-02**: Assessment monitoring detail page shows real-time data correctly
-- [x] **CMP-03**: Records page displays assessment history and training records with correct pagination
-- [x] **CMP-04**: KKJ Matrix page loads correctly with section-based filtering
-- [x] **CMP-05**: All CMP forms handle validation errors gracefully (no raw exceptions)
-- [x] **CMP-06**: CMP navigation flows work correctly (Create Assessment → Edit → Delete → Monitor)
+- [ ] **ASMT-01**: Worker receives notification when assessment is assigned
+- [ ] **ASMT-02**: Worker receives notification when assessment results are ready
 
-### CDP (Competency Development Platform)
+### Coaching Proton Notifications
 
-- [x] **CDP-01**: Plan IDP page loads without errors for all roles (Worker, Coach, Spv, HC, Admin)
-- [x] **CDP-02**: Coaching Proton page shows correct coachee lists and deliverable status
-- [x] **CDP-03**: Progress page displays correct approval workflows per role
-- [ ] **CDP-04**: Evidence upload and download work correctly for deliverables
-- [ ] **CDP-05**: Coaching session submission and approval flows work end-to-end
-- [ ] **CDP-06**: All CDP forms handle validation errors gracefully
+- [ ] **COACH-01**: Coachee receives notification when coach is assigned
+- [ ] **COACH-02**: SrSpv receives notification when coach uploads evidence for review
+- [ ] **COACH-03**: Coach receives notification when evidence is rejected
+- [ ] **COACH-04**: SectionHead receives notification when evidence is approved by SrSpv
+- [ ] **COACH-05**: HC receives notification when evidence is approved by SectionHead
+- [ ] **COACH-06**: Coachee receives notification when coaching session is completed
 
-### Kelola Data (Admin Portal)
+## v2 Requirements
 
-- [ ] **ADMIN-01**: Manage Workers page loads with correct filters and pagination
-- [ ] **ADMIN-02**: Manage Silabus page handles KKJ files correctly (upload, download, archive)
-- [ ] **ADMIN-03**: Manage Assessment page shows correct assessment lists and actions
-- [ ] **ADMIN-04**: Assessment Monitoring page displays real-time participant data
-- [ ] **ADMIN-05**: Coach-Coachee Mapping page works correctly (assign, remove, export)
-- [ ] **ADMIN-06**: Proton Data page (Silabus + Coaching Guidance) displays correct tabs
-- [ ] **ADMIN-07**: All Admin forms handle validation errors gracefully
-- [ ] **ADMIN-08**: Admin role gates work correctly (HC vs Admin access)
+Deferred to future release. Tracked but not in current roadmap.
 
-### Account (Profile & Settings)
+### Assessment (Deferred)
 
-- [x] **ACCT-01**: Profile page displays correct user data (Nama, NIP, Email, Position, Unit)
-- [x] **ACCT-02**: Settings page change password works correctly
-- [x] **ACCT-03**: Profile edit (FullName, Position) saves correctly
-- [x] **ACCT-04**: Avatar initials display correctly from FullName
+- **ASMT-03**: Worker receives notification when assessment is submitted (to HC/Admin) — defer to v3.4
+- **ASMT-04**: Worker receives deadline reminder (1 day before due date) — defer to v3.4 (requires background job)
 
-### Authentication & Authorization
+### Notification Preferences (Deferred)
 
-- [x] **AUTH-01**: Login flow works correctly (local and AD modes)
-- [x] **AUTH-02**: Inactive users are blocked from login (Phase 83 soft-delete)
-- [x] **AUTH-03**: AccessDenied page shows for unauthorized access attempts
-- [x] **AUTH-04**: Role-based navigation visibility works correctly
-- [x] **AUTH-05**: Return URL redirect after login works correctly and securely
+- **PREF-01**: Users can configure notification preferences (enable/disable per type) — defer to v3.4
+- **PREF-02**: Users can set quiet hours/do not disturb — defer to v3.5
 
-### Data Integrity
+### Real-Time Notifications (Deferred)
 
-- [x] **DATA-01**: All IsActive filters are applied consistently (Workers, Silabus, Assessments)
-- [x] **DATA-02**: Soft-delete operations cascade correctly (no orphaned records)
-- [x] **DATA-03**: Audit logging captures all HC/Admin actions correctly
+- **REAL-01**: Real-time push notifications via SignalR — defer to v3.4
+- **REAL-02**: Browser push notifications — defer to v3.5
 
-## Future Requirements (v3.3+)
+### Email Notifications (Deferred)
 
-Deferred to future milestones. Not in scope for bug hunting.
-
-- **PERF-01**: Performance baseline and load testing for concurrent exam sessions
-- **AUTO-01**: Automated test suite (xUnit + WebApplicationFactory) for regression
-- **MOBILE-01**: Mobile-responsive assessment forms
-- **NOTIF-01**: Email notifications for assessment assignments and coaching approvals
-- **ESCAL-01**: Approval auto-escalation after timeout period
+- **EMAIL-01**: Notification delivery via email — defer to v3.5
 
 ## Out of Scope
 
+Explicitly excluded. Documented to prevent scope creep.
+
 | Feature | Reason |
 |---------|--------|
-| New features | This is bug hunting only — no new functionality |
-| UI redesign | Fix bugs only, no visual overhauls unless broken |
-| Performance optimization | Only fix critical performance bugs, not general optimization |
-| Database migrations | Only fix data integrity bugs, no schema changes |
+| SMS Notifications | Overkill for internal HR portal; costs money |
+| Notification Grouping/Batching | Unnecessary with low volume (8 triggers); one notification per event |
+| Notification Search | Over-engineering for basic system; pagination + filtering sufficient |
+| Rich Media Notifications (Images/Actions) | Text + link is sufficient for v3.3 |
+| Notification Snooze | Unnecessary complexity; notifications are time-sensitive |
 
 ## Traceability
 
+Which phases cover which requirements. Updated during roadmap creation.
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HOME-01 | Phase 92 | Complete |
-| HOME-02 | Phase 92 | Complete |
-| HOME-03 | Phase 92 | Complete |
-| HOME-04 | Phase 92 | Complete |
-| HOME-05 | Phase 92 | Complete |
-| CMP-01 | Phase 93 | Complete |
-| CMP-02 | Phase 93 | Complete |
-| CMP-03 | Phase 93 | Complete |
-| CMP-04 | Phase 93 | Complete |
-| CMP-05 | Phase 93 | Complete |
-| CMP-06 | Phase 93 | Complete |
-| CDP-01 | Phase 94 | Complete |
-| CDP-02 | Phase 94 | Complete |
-| CDP-03 | Phase 94 | Complete |
-| CDP-04 | Phase 94 | Pending |
-| CDP-05 | Phase 94 | Pending |
-| CDP-06 | Phase 94 | Pending |
-| ADMIN-01 | Phase 95 | Pending |
-| ADMIN-02 | Phase 95 | Pending |
-| ADMIN-03 | Phase 95 | Pending |
-| ADMIN-04 | Phase 95 | Pending |
-| ADMIN-05 | Phase 95 | Pending |
-| ADMIN-06 | Phase 95 | Pending |
-| ADMIN-07 | Phase 95 | Pending |
-| ADMIN-08 | Phase 95 | Pending |
-| ACCT-01 | Phase 96 | Complete |
-| ACCT-02 | Phase 96 | Complete |
-| ACCT-03 | Phase 96 | Complete |
-| ACCT-04 | Phase 96 | Complete |
-| AUTH-01 | Phase 97 | Complete |
-| AUTH-02 | Phase 97 | Complete |
-| AUTH-03 | Phase 97 | Complete |
-| AUTH-04 | Phase 97 | Complete |
-| AUTH-05 | Phase 97 | Complete |
-| DATA-01 | Phase 98 | Complete |
-| DATA-02 | Phase 98 | Complete |
-| DATA-03 | Phase 98 | Complete |
+| INFRA-01 | Phase 99 | Pending |
+| INFRA-02 | Phase 99 | Pending |
+| INFRA-03 | Phase 100 | Pending |
+| INFRA-04 | Phase 100 | Pending |
+| INFRA-05 | Phase 100 | Pending |
+| INFRA-06 | Phase 100 | Pending |
+| INFRA-07 | Phase 99 | Pending |
+| INFRA-08 | Phase 99 | Pending |
+| INFRA-09 | Phase 99 | Pending |
+| INFRA-10 | Phase 100 | Pending |
+| ASMT-01 | Phase 101 | Pending |
+| ASMT-02 | Phase 101 | Pending |
+| COACH-01 | Phase 102 | Pending |
+| COACH-02 | Phase 102 | Pending |
+| COACH-03 | Phase 102 | Pending |
+| COACH-04 | Phase 102 | Pending |
+| COACH-05 | Phase 102 | Pending |
+| COACH-06 | Phase 102 | Pending |
 
 **Coverage:**
-- v3.2 requirements: 40 total
-- Mapped to phases: 40 (100%)
+- v3.3 requirements: 18 total
+- Mapped to phases: 18
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-05*
-*Last updated: 2026-03-05 — initial v3.2 requirements*
+*Last updated: 2026-03-05 after requirements definition*
