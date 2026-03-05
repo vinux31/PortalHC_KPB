@@ -1,443 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T06:21:03.660Z"
-progress:
-  total_phases: 67
-  completed_phases: 65
-  total_plans: 162
-  completed_plans: 166
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T06:05:03.743Z"
-progress:
-  total_phases: 67
-  completed_phases: 64
-  total_plans: 162
-  completed_plans: 163
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T05:49:55.245Z"
-progress:
-  total_phases: 67
-  completed_phases: 64
-  total_plans: 162
-  completed_plans: 162
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T05:00:41.009Z"
-progress:
-  total_phases: 66
-  completed_phases: 64
-  total_plans: 158
-  completed_plans: 159
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T04:58:27.174Z"
-progress:
-  total_phases: 66
-  completed_phases: 63
-  total_plans: 158
-  completed_plans: 158
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T04:25:07.502Z"
-progress:
-  total_phases: 65
-  completed_phases: 63
-  total_plans: 155
-  completed_plans: 156
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T04:23:13.004Z"
-progress:
-  total_phases: 65
-  completed_phases: 62
-  total_plans: 155
-  completed_plans: 155
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T03:38:20.514Z"
-progress:
-  total_phases: 63
-  completed_phases: 61
-  total_plans: 150
-  completed_plans: 150
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T03:36:02.968Z"
-progress:
-  total_phases: 63
-  completed_phases: 61
-  total_plans: 150
-  completed_plans: 150
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T03:35:39.791Z"
-progress:
-  total_phases: 63
-  completed_phases: 60
-  total_plans: 150
-  completed_plans: 149
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T03:34:46.603Z"
-progress:
-  total_phases: 63
-  completed_phases: 60
-  total_plans: 150
-  completed_plans: 148
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T03:33:52.163Z"
-progress:
-  total_phases: 63
-  completed_phases: 60
-  total_plans: 150
-  completed_plans: 146
----
-
----
-gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Bug Hunting & Quality Audit
 status: in-progress
-last_updated: "2026-03-05T10:00:00.000Z"
+last_updated: "2026-03-05T07:12:00.000Z"
 progress:
   total_phases: 98
   completed_phases: 93
   total_plans: 0
   completed_plans: 0
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T02:22:15.318Z"
-progress:
-  total_phases: 62
-  completed_phases: 59
-  total_plans: 144
-  completed_plans: 142
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T00:55:22.170Z"
-progress:
-  total_phases: 61
-  completed_phases: 59
-  total_plans: 140
-  completed_plans: 140
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-05T00:22:37.788Z"
-progress:
-  total_phases: 61
-  completed_phases: 59
-  total_plans: 140
-  completed_plans: 139
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-04T07:00:28.820Z"
-progress:
-  total_phases: 60
-  completed_phases: 57
-  total_plans: 137
-  completed_plans: 133
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-04T02:50:28.331Z"
-progress:
-  total_phases: 59
-  completed_phases: 56
-  total_plans: 133
-  completed_plans: 131
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-04T02:12:18.946Z"
-progress:
-  total_phases: 58
-  completed_phases: 56
-  total_plans: 131
-  completed_plans: 130
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-04T01:38:15.902Z"
-progress:
-  total_phases: 58
-  completed_phases: 55
-  total_plans: 131
-  completed_plans: 128
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-04T00:12:23.940Z"
-progress:
-  total_phases: 58
-  completed_phases: 55
-  total_plans: 130
-  completed_plans: 128
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T11:05:56.609Z"
-progress:
-  total_phases: 56
-  completed_phases: 55
-  total_plans: 127
-  completed_plans: 126
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T09:10:33.817Z"
-progress:
-  total_phases: 56
-  completed_phases: 55
-  total_plans: 128
-  completed_plans: 127
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T07:48:39.790Z"
-progress:
-  total_phases: 56
-  completed_phases: 54
-  total_plans: 128
-  completed_plans: 125
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T07:43:47.681Z"
-progress:
-  total_phases: 56
-  completed_phases: 54
-  total_plans: 128
-  completed_plans: 123
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T06:58:17.735Z"
-progress:
-  total_phases: 56
-  completed_phases: 55
-  total_plans: 123
-  completed_plans: 122
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T04:56:10.692Z"
-progress:
-  total_phases: 56
-  completed_phases: 54
-  total_plans: 124
-  completed_plans: 121
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T04:43:40.039Z"
-progress:
-  total_phases: 57
-  completed_phases: 54
-  total_plans: 124
-  completed_plans: 121
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T04:36:45.800Z"
-progress:
-  total_phases: 57
-  completed_phases: 53
-  total_plans: 124
-  completed_plans: 120
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T04:30:52.124Z"
-progress:
-  total_phases: 57
-  completed_phases: 53
-  total_plans: 124
-  completed_plans: 120
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T02:59:50.187Z"
-progress:
-  total_phases: 56
-  completed_phases: 53
-  total_plans: 122
-  completed_plans: 119
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T02:54:26.867Z"
-progress:
-  total_phases: 56
-  completed_phases: 52
-  total_plans: 122
-  completed_plans: 118
----
-
----
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: unknown
-last_updated: "2026-03-03T00:09:08.183Z"
-progress:
-  total_phases: 55
-  completed_phases: 52
-  total_plans: 120
-  completed_plans: 117
----
-
----
-gsd_state_version: 1.0
-milestone: v3.1
-milestone_name: CPDP Mapping File-Based Rewrite
-status: in-progress
-last_updated: "2026-03-03"
-progress:
-  total_phases: 3
-  completed_phases: 0
-  total_plans: 6
-  completed_plans: 2
 ---
 
 # Project State
@@ -452,19 +23,19 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 ## Current Position
 
 **Milestone:** v3.2 Bug Hunting & Quality Audit
-Phase: 97 - Authentication & Authorization Audit
-Plan: 97-04 Regression Testing and Phase Summary (COMPLETE)
-Status: Complete — All authentication and authorization flows audited, bugs fixed, regression tested
-Last activity: 2026-03-05 - Completed phase 97: Authorization matrix created, browser verification executed, security bugs analyzed, regression testing passed. All requirements AUTH-01 through AUTH-05 verified PASS. Security posture: STRONG. No critical or high-severity bugs found. 3 medium-severity code quality gaps deferred to future cleanup. Ready for phase 98 (Data Integrity Audit).
+**Phase:** 98 - Data Integrity Audit
+**Plan:** 98-01 IsActive Filter Consistency Audit (COMPLETE)
+**Status:** Complete — Exhaustive grep audit of all IsActive filters across 4 entities with 48 .Where patterns, 22 showInactive occurrences, 93 total usages. Zero critical gaps found. DATA-01 requirement VERIFIED PASS.
+**Last activity:** 2026-03-05 - Completed plan 98-01: IsActive filter audit complete. All 4 entities (ApplicationUser, CoachCoacheeMapping, ProtonTrackAssignment, ProtonKompetensi) verified with consistent filtering. 7/7 high-risk queries PASS (100%). Plan 98-03 bug fixes: NOT NEEDED.
 
-Progress: [█████████] 100% (4/4 plans in Phase 97 complete)
+**Progress:** [████████░] 25% (1/4 plans in Phase 98 complete)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 10
+- Total plans completed: 11
 - Average duration: 6 min
-- Total execution time: 56 min
+- Total execution time: 62 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -519,11 +90,15 @@ Progress: [█████████] 100% (4/4 plans in Phase 97 complete)
 | Phase 97 P97-02 | 2 min | 3 tasks | 1 files |
 | Phase 97 P97-03 | 2 min | 3 tasks | 3 files |
 | Phase 97 P97-04 | 5 min | 3 tasks | 2 files |
+| Phase 98 P98-01 | 3 min | 4 tasks | 4 files |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 98]: [98-01] DATA-01 requirement VERIFIED PASS - all IsActive filters applied consistently across 4 entities (ApplicationUser, CoachCoacheeMapping, ProtonTrackAssignment, ProtonKompetensi)
+- [Phase 98]: [98-01] Grep audit: 48 .Where patterns, 22 showInactive, 93 total usages - ZERO critical gaps found
+- [Phase 98]: [98-01] Plan 98-03 bug fixes: NOT NEEDED - all IsActive filters working correctly, 1 optional improvement identified (low severity)
 - [v3.1 Scope]: Rewrite Admin/CpdpItems + CMP/Mapping to file-based (like Phase 90 KKJ Matrix)
 - [v3.1 Scope]: Reuse KkjBagian as container entity (sections RFCC/GAST/NGP/DHT are shared)
 - [v3.1 Scope]: Export CpdpItem data to Excel backup in Phase 91, drop table in Phase 93
@@ -574,7 +149,7 @@ Progress: [█████████] 100% (4/4 plans in Phase 97 complete)
 - [Phase 94]: [94-03] All 8 date displays in Deliverable page fixed to use Indonesian locale (SubmittedAt, RejectedAt, ApprovedAt, SrSpvApprovedAt, ShApprovedAt, HCReviewedAt, coaching session dates, timeline dates)
 - [Phase 94]: [94-01] All PlanIdp validation already correct (user null check, IsActive filters, coachee section locking) — only localization fix needed for Indonesian date formatting
 - [Phase 84]: [84-01]: DownloadQuestionTemplate placed between PreviewPackage and ImportPackageQuestions GET for logical grouping; column order matches parser cells[0..5]
-- [Phase 84]: [84-02]: All 5 smoke-test flows PASS — template download, Excel import round-trip, paste dedup, cross-package mismatch error, regression check; all ASSESS-01 through ASSESS-10 formally closed
+- [Phase 84]: [84-02]: All 5 smoke-test flows PASS — template download, Excel import round-trip, paste dedup, cross-package mismatch error, regression check; all ASSESS-01 through ASSESS-10 formally closed.
 - [Phase 85]: [85-02]: canUpload/UploadEvidence status check fixed: 'Active'→'Pending' (ProtonDeliverableProgress has no 'Active' status, default is 'Pending')
 - [Phase 85]: [85-02]: IsActive filter added to HC/Admin and SrSpv coachee scope queries in CoachingProton (Phase 83 filter was missing for these two branches)
 - [Phase 85]: [85-02]: GetCoacheeDeliverables not called from CoachingProton.cshtml — coaching modal uses buildDeliverableData() from table rows; endpoint exists but is not wired to the coachee dropdown
@@ -631,6 +206,7 @@ None.
 - Phase 89 added: PlanIDP Silabus and Coaching Guidance Tabs Improvement
 - Phase 90 added: Audit & fix Admin Assessment pages (ManageAssessment + AssessmentMonitoring)
 - Phase 91 added: Audit & fix CMP Assessment pages (Assessment + Records)
+- Phase 98 added: Data Integrity Audit (IsActive filters, soft-delete cascades, audit logging)
 - Phase 99 added: 99
 
 ### Blockers/Concerns
@@ -648,5 +224,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Phase 97 complete. All authentication and authorization flows audited, bugs fixed, regression tested. Authorization matrix created (86 actions across 6 controllers), browser verification executed (5 flows, 4 PASS), edge case analysis complete (3 edge cases, all PASS), regression testing passed (0% regression). All requirements AUTH-01 through AUTH-05 verified PASS. Security posture: STRONG. Ready for Phase 98 (Data Integrity Audit).
-Resume file: .planning/phases/97-authentication-authorization-audit/97-PHASE-SUMMARY.md
+Stopped at: Phase 98 plan 98-01 complete. IsActive filter audit complete with 4/4 tasks. Grep audit: 48 .Where patterns, 22 showInactive, 93 total usages. Spot-check: 7/7 high-risk queries PASS (100%). Critical gaps: 0, Medium gaps: 0. DATA-01 requirement VERIFIED PASS. Plan 98-03 bug fixes: NOT NEEDED (all filters working correctly). Ready for plan 98-02 (soft-delete cascade verification).
+Resume file: .planning/phases/98-data-integrity-audit/98-01-SUMMARY.md
