@@ -27,11 +27,11 @@ Audit Admin (Kelola Data) portal pages for bugs — Manage Workers, Coach-Coache
 ## Implementation Decisions
 
 ### Audit Organization
-- **By page** — Group fixes by Admin page being audited
-- ManageWorkers fixes in one commit (or grouped by bug category if many similar bugs)
-- CoachCoacheeMapping fixes in separate commit
-- Cross-cutting fixes (validation, role gates) as separate commits
+- **Per halaman** — ManageWorkers fixes → satu commit, CoachCoacheeMapping fixes → satu commit
+- **Cross-cutting concerns → commit terpisah** — Validation fixes → satu commit, Role gate fixes → satu commit
+- Total expected: 4-5 commit
 - This matches Phase 94's by-flow approach and keeps changes organized by feature area
+- Cross-cutting concerns yang mempengaruhi banyak halaman dipisah agar lebih mudah track apa yang diperbaiki
 
 ### Testing Approach
 - **Smoke test only** — quick verification that pages load and obvious bugs are fixed
@@ -41,16 +41,18 @@ Audit Admin (Kelola Data) portal pages for bugs — Manage Workers, Coach-Coache
 - Browser testing only when code review is unclear or requires runtime verification
 
 ### Test Data Approach
-- **Use existing seed data** where possible — no need for comprehensive new seed data
-- Workers should already exist from Phase 83 (Master Data QA)
-- Coach-coachee mappings should already exist from Phase 85
-- If specific test scenarios are missing during code review, add them
+- **Pakai existing seed data** — Workers dari Phase 83 (Master Data QA), Coach-coachee mappings dari Phase 85
+- **Tambah test data hanya saat diperlukan** — selama code review, kalau butuh worker dengan role spesifik atau mapping status tertentu, baru tambah
+- Untuk Import Workers: pakai template existing (DownloadImportTemplate), isi dengan sample data
+- Test file Excel — Claude tentukan berdasarkan code review findings
+- Pragmatic approach: hanya tambah test data yang benar-benar diperlukan
 
 ### Role Testing Coverage
-- **HC and Admin roles** — verify both have correct access to Admin pages
-- Verify Worker role is blocked from all Admin pages (403 or redirect)
-- No need to test every intermediate role (Coach, Spv, SectionHead) unless code review reveals specific concerns
-- This is smoke test level — verify role gates exist, not exhaustive permission testing
+- **HC & Admin roles saja** — dua role yang memang punya akses ke Admin pages
+- **Verify role gates via code review** — cek `[Authorize(Roles = "Admin, HC")]` attribute di controller
+- Tidak perlu test semua intermediate role (Coach, Spv, SectionHead) untuk save time
+- **Test role-based filtering kalau ada di code** — kalau code review menemukan .Where(u => u.Unit == user.Unit) atau similar, perlu test
+- Ini adalah smoke test level — verify role gates exist lewat code review, bukan exhaustive permission testing
 
 ### Validation Depth
 - **All Admin forms** — check validation error handling on all Admin CRUD forms
@@ -60,10 +62,10 @@ Audit Admin (Kelola Data) portal pages for bugs — Manage Workers, Coach-Coache
 - Check: Required fields, data type validation, error messages via TempData (not raw exceptions)
 
 ### Import/Export Depth
-- **Smoke test** — verify ImportWorkers and CoachCoacheeMappingExport work end-to-end
-- Verify: File upload succeeds, data is processed, export returns correct file
-- Don't test edge cases (large files, malformed data) unless code review reveals potential issues
-- File validation should be checked (allowed extensions, size limits)
+- **Smoke test untuk Import Workers** — upload valid file → verify processed → check data ada di DB
+- **Export — Claude tentukan** — tergantung complexity code review. Kalau export logic kompleks (formatting, calculations), test. Kalau simple data dump, smoke test atau skip.
+- **Smoke test validation** — test satu invalid file type untuk verify validation exists. Tidak test semua scenarios, cukup verify validation works.
+- Focus: verify basic functionality works, edge cases hanya kalau code review reveals potential issues
 
 ### Bug Priority
 - Claude's discretion — prioritize based on severity and user impact
@@ -78,6 +80,8 @@ Audit Admin (Kelola Data) portal pages for bugs — Manage Workers, Coach-Coache
 - Which validation checks are actually needed vs defensive coding
 - Whether to refactor any messy code discovered during audit
 - How deep to investigate each edge case vs smoke test
+- Untuk Import Excel test files: buatberapa tergantung findings
+- Untuk Export: test atau skip tergantung code complexity
 
 </decisions>
 
@@ -89,6 +93,7 @@ Audit Admin (Kelola Data) portal pages for bugs — Manage Workers, Coach-Coache
 - Use Indonesian culture (id-ID) for all date formatting, matching Phase 92/93/94 fixes
 - Preserve existing functionality — bug fixes only, no behavior changes
 - Focus on pages NOT yet audited: ManageWorkers, CoachCoacheeMapping (KKJ, Assessments, ProtonData already covered in Phase 88/90)
+- "Secara menyeluruh dan detail" — thoroughness is the priority, not speed (from Phase 90)
 
 </specifics>
 
