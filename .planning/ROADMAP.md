@@ -707,7 +707,7 @@ Plans:
 | 91. Audit CMP Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
 | 88. CPDP File Rewrite (3 sub) | v3.1 | 6/6 | ✅ Complete | 2026-03-03 |
 | 92. Homepage Audit | v3.2 | — | ✅ Complete | 2026-03-05 |
-| 93. CMP Section Audit | 2/4 | In Progress|  | — |
+| 93. CMP Section Audit | 3/4 | In Progress|  | — |
 | 94. CDP Section Audit | v3.2 | — | ○ Pending | — |
 | 95. Admin Portal Audit | v3.2 | — | ○ Pending | — |
 | 96. Account Pages Audit | v3.2 | — | ○ Pending | — |
