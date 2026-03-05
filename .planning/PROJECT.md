@@ -12,18 +12,30 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v3.2 - Bug Hunting & Quality Audit
+## Current Milestone: v3.3 - Basic Notifications
 
-**Goal:** Systematically audit, identify, and fix bugs across all portal pages and user flows — organized by navbar menu for comprehensive coverage.
+**Goal:** Build basic in-app notification system for Assessment and Coaching Proton workflows — assignment notifications, deadline reminders, and approval chain notifications.
 
-**Target pages:**
-- Homepage ✅ (5 bugs fixed: deadline cards, pluralization, localization, query consistency, negative days)
-- CMP (Assessment, Records, Monitoring)
-- CDP (Plan IDP, Coaching Proton, Progress)
-- Kelola Data (Admin CRUD pages)
-- Account (Profile, Settings)
+**Target notification types:**
 
-**Approach:** Code review → Identify bugs → Create task list → Fix → Verify in browser
+**Assessment (4 triggers):**
+- Worker receives: Assessment assigned, deadline reminder (1 day before), assessment results
+- HC/Admin receives: Assessment submitted notification
+
+**Coaching Proton (6 triggers):**
+- Coachee receives: Coach assignment, coaching completed
+- Coach receives: Evidence rejected notification
+- SrSpv receives: Evidence uploaded by coach (for review)
+- SectionHead receives: Evidence approved by SrSpv
+- HC receives: Evidence approved by SectionHead
+
+**Scope:**
+- In-App notification center (bell icon, notification list)
+- Read/unread status tracking
+- No real-time (SignalR) — refresh-based only
+- No notification preferences in v3.3
+
+**Approach:** Database model → Notification service → UI components → Trigger points → Testing
 
 ## Current State (v3.0 — shipped 2026-03-05)
 

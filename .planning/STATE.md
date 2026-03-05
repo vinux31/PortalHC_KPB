@@ -48,15 +48,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.2 Bug Hunting & Quality Audit — Remove broken Deliverable card from CDP Index page
+**Current focus:** v3.3 Basic Notifications — In-app notification system for Assessment and Coaching Proton
 
 ## Current Position
 
-**Milestone:** v3.2 Bug Hunting & Quality Audit
-**Phase:** 99 - Remove Deliverable Card from CDP Index
-**Plan:** Not started
-**Status:** Ready to plan
-**Last activity:** 2026-03-05 - Phase 98 complete. All data integrity requirements verified PASS (DATA-01, DATA-02, DATA-03). 7 bugs fixed, 65KB audit documentation created.
+**Milestone:** v3.3 Basic Notifications
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-03-05 — Milestone v3.3 started. Notification system for Assessment (4 triggers) and Coaching Proton (6 triggers).
 
 **Progress:** [████████░] 95%
 
