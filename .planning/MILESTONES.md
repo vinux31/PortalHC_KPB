@@ -1,4 +1,28 @@
 # Milestones
+## v3.0 Full QA & Feature Completion (Shipped: 2026-03-05)
+
+**Phases completed:** 10 phases (82-91, 86 superseded), 46 plans, 21 tasks
+
+**Delivered:** Comprehensive end-to-end QA of all portal features organized by use-case flows, code cleanup removing orphaned/duplicate pages, UI rename "Proton Progress" → "Coaching Proton" throughout portal, KKJ Matrix full rewrite to document-based file management, and PlanIDP 2-tab redesign. All major user flows verified working.
+
+**Key accomplishments:**
+1. Cleanup & Rename — "Proton Progress" renamed consistently, 3 orphaned CMP pages removed, AuditLog card added to Kelola Data hub
+2. Master Data QA — All Kelola Data CRUD verified, Worker/Silabus soft delete infrastructure with IsActive filters fully implemented
+3. Assessment Flow QA — DownloadQuestionTemplate action created, full assessment lifecycle verified across 10 requirements
+4. Coaching Proton QA — Full coaching workflow verified with browser testing (8 requirements, all flows pass)
+5. Dashboard & Navigation QA — SeedDashboardTestData action created, all dashboards show correct role-scoped data, login flow secure with inactive user block
+6. KKJ Matrix Full Rewrite — Document-based file management system (KkjFile/CpdpFile) replacing spreadsheet editor, 3 plans complete
+7. PlanIDP 2-Tab Redesign — Unified Silabus + Coaching Guidance tabs for all roles, 3 plans complete with read-only consumer view
+8. Admin Assessment Pages Audit — ManageAssessment + AssessmentMonitoring all 11 flows verified, RegenerateToken multi-sibling fix, IsActive filters added
+9. CMP Assessment Pages Audit — Assessment + Records pages verified, CSRF fixes applied, Records redesigned with 2-tab layout
+
+**Known Gaps:**
+- Phase 89 PlanIDP: No VERIFICATION.md file (5 requirements unverified: PLANIDP-01 through PLANIDP-05)
+- ASSESS-04: Assessment Results competency display may be broken (PositionTargetHelper missing from codebase)
+- Phase 88: KKJ Matrix verification claims don't match actual implementation (discrepancy between claimed relational model and actual file-based approach)
+
+---
+
 ## v2.7 Assessment Monitoring (Shipped: 2026-03-01)
 
 **Phases completed:** 3 phases (79-81), 4 plans

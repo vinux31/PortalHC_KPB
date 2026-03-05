@@ -12,25 +12,13 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v3.1 CPDP Mapping File-Based Rewrite
+## Current Milestone: v3.2 (Planning — Next)
 
-**Goal:** Rewrite the Admin/CpdpItems spreadsheet editor and CMP/Mapping read-only table into a file-based document management system (same pattern as Phase 90 KKJ Matrix rewrite), reusing KkjBagian as container entity.
+**Goal:** TBD
 
-**Target features:**
-- Rewrite Admin/CpdpItems from inline spreadsheet editor to file upload/download/archive per section
-- Rewrite CMP/Mapping from data table to file download page with role-based filtering
-- Create CpdpFile entity (reuse KkjBagian for sections)
-- Export existing CpdpItem data to Excel backup before table removal
-- Remove CpdpItem table after file-based system is running
-- Keep IdpItem.Kompetensi as standalone string (no FK impact)
+## Current State (v3.0 — shipped 2026-03-05)
 
-## Previous Milestone: v3.0 Full QA & Feature Completion (In Progress — Phases 83-88 remaining)
-
-**Goal:** Comprehensive end-to-end testing of all portal features organized by use-case flows, fixing bugs found along the way, plus code cleanup (remove duplicates/orphans), UI rename ("Proton Progress" → "Coaching Proton"), and Plan IDP development.
-
-## Current State (v2.7 — shipped 2026-03-01)
-
-Assessment monitoring now has a dedicated page in the Kelola Data hub with group list, per-participant detail, and full HC action suite. Admin can manage questions directly from ManageAssessment dropdown. Hub cleaned up — no redundant cards.
+**v3.0 Full QA & Feature Completion complete.** All core portal flows verified working (assessment lifecycle, coaching workflow, master data management, dashboards, login/navigation). Known gaps documented: Phase 89 PlanIDP unverified, PositionTargetHelper missing for competency display, KKJ Matrix Phase 88 verification discrepancy.
 
 ## Architecture Decisions
 
@@ -44,20 +32,29 @@ Assessment monitoring now has a dedicated page in the Kelola Data hub with group
 
 ## Shipped Milestones
 
-### ✅ v2.7 - Assessment Monitoring (2026-03-01)
+### ✅ v3.0 - Full QA & Feature Completion (2026-03-05)
 
-**Delivered:** Dedicated Assessment Monitoring page extracted from ManageAssessment dropdown into first-class Kelola Data hub entry with group list, per-participant detail, full HC action suite, Admin ManageQuestions feature, and hub cleanup.
+**Delivered:** Comprehensive end-to-end QA of all portal features organized by use-case flows, code cleanup, UI rename, and PlanIDP 2-tab redesign. All major user flows verified working.
 
 **What Shipped:**
-1. **Assessment Monitoring Group List** — /Admin/AssessmentMonitoring with real-time stats, search/filter, Regenerate Token per group
-2. **Per-Participant Monitoring Detail** — Drill-down with live progress, status, score, countdown, token management
-3. **HC Action Suite** — Reset, Force Close, Bulk Close, Close Early, Regenerate Token from monitoring page
-4. **Admin ManageQuestions** — Admin-context question management from ManageAssessment dropdown
-5. **Hub Cleanup** — Monitoring dropdown removed (CLN-01), Training Records card removed (CLN-02)
+1. **Cleanup & Rename** — "Proton Progress" → "Coaching Proton" throughout portal, orphaned CMP pages removed, AuditLog card added to Kelola Data
+2. **Master Data QA** — All Kelola Data CRUD verified working, Worker/Silabus soft delete infrastructure with IsActive filters
+3. **Assessment Flow QA** — Question import template, full assessment lifecycle verified (create, assign, exam, results, certificate)
+4. **Coaching Proton QA** — Full coaching workflow verified (mapping, evidence upload, approval chain, exports)
+5. **Dashboard & Navigation QA** — All dashboards show correct role-scoped data, login flow secure, navigation enforces visibility rules
+6. **KKJ Matrix Full Rewrite** — Document-based file management (KkjFile/CpdpFile), dynamic columns per section
+7. **PlanIDP 2-Tab Redesign** — Unified Silabus + Coaching Guidance tabs for all roles with read-only consumer view
+8. **Admin Assessment Pages Audit** — ManageAssessment + AssessmentMonitoring all 11 flows verified with IsActive filters and bug fixes
+9. **CMP Assessment Pages Audit** — Assessment + Records pages verified with CSRF fixes and Records redesign
+
+**Known Gaps:**
+- Phase 89 PlanIDP: No VERIFICATION.md file (5 requirements unverified)
+- ASSESS-04: Competency display may be broken (PositionTargetHelper missing from codebase)
+- Phase 88: KKJ Matrix verification claims don't match actual implementation
 
 **Metrics:**
-- 3 phases (79-81), 4 plans
-- 2026-03-01
+- 10 phases (82-91, excluding superseded 86), 46 plans
+- 2026-03-02 → 2026-03-05
 
 ---
 
