@@ -642,10 +642,10 @@ Plans:
 **Goal:** CDP Index page no longer has broken Deliverable card link; users access deliverable details through Coaching Proton page
 **Requirements**: None (UI cleanup fix)
 **Depends on:** Phase 94
-**Plans:** TBD
+**Plans:** 2/1 plans complete
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 99 to break down)
+- [x] 99-PLAN.md — Remove Deliverable card from CDP Index (lines 79-98)
 
 ---
 
