@@ -831,7 +831,7 @@ Plans:
 
 | Phase | Plans | Status | Completed |
 |-------|-------|--------|-----------|
-| 99. Notification Database & Service | 6/3 | Complete   | 2026-03-05 |
+| 99. Notification Database & Service | 6/3 | Complete    | 2026-03-05 |
 | 100. Notification Center UI | 0/4 | Not started | - |
 | 101. Assessment Notification Triggers | 0/2 | Not started | - |
 | 102. Coaching Notification Triggers | 0/3 | Not started | - |
