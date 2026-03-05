@@ -1,0 +1,255 @@
+@model List<HcPortal.Models.WorkerTrainingStatus>
+@using Microsoft.AspNetCore.Identity
+@using HcPortal.Models
+@inject UserManager<ApplicationUser> UserManager
+
+@{
+    var currentUser = await UserManager.GetUserAsync(User);
+    var userRoles = await UserManager.GetRolesAsync(currentUser);
+    var userRole = userRoles.FirstOrDefault();
+    var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+
+    // Get unique values for filter dropdowns
+    var sections = Model.Select(w => w.Section).Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(s => s).ToList();
+    var units = Model.Select(w => w.Unit).Where(u => !string.IsNullOrEmpty(u)).Distinct().OrderBy(u => u).ToList();
+    var categories = Model.SelectMany(w => w.TrainingRecords)
+        .Select(t => t.Kategori)
+        .Where(k => !string.IsNullOrEmpty(k))
+        .Distinct()
+        .OrderBy(k => k)
+        .ToList();
+
+    // For Level 4 (SrSupervisor), lock section to user's section
+    var lockedSection = roleLevel == 4 ? currentUser.Section : null;
+}
+
+<div class="container-fluid p-0">
+    <!-- Filter Controls -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <!-- Row 1: Section, Unit, Category -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Section</label>
+                    <select id="sectionFilter" class="form-select" @(roleLevel == 4 && !string.IsNullOrEmpty(lockedSection) ? "disabled" : "") onchange="filterTable()">
+                        <option value="">All Sections</option>
+                        @foreach (var section in sections)
+                        {
+                            <option value="@section" @(lockedSection == section ? "selected" : "")>@section</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Unit</label>
+                    <select id="unitFilter" class="form-select" onchange="filterTable()">
+                        <option value="">All Units</option>
+                        @foreach (var unit in units)
+                        {
+                            <option value="@unit">@unit</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Category</label>
+                    <select id="categoryFilter" class="form-select" onchange="filterTable()">
+                        <option value="">All Categories</option>
+                        @foreach (var category in categories)
+                        {
+                            <option value="@category">@category</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3">
+                <!-- Row 2: Status, Search, Reset -->
+                <div class="col-12 col-md-4">
+                    <label class="form-label small text-muted mb-1">Status</label>
+                    <select id="statusFilter" class="form-select" onchange="filterTable()">
+                        <option value="ALL">ALL</option>
+                        <option value="Sudah">Sudah</option>
+                        <option value="Belum">Belum</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-5">
+                    <label class="form-label small text-muted mb-1">Search (Nama/NIP)</label>
+                    <input type="text" id="searchFilter" class="form-control" placeholder="Cari worker..." oninput="filterTable()">
+                </div>
+                <div class="col-12 col-md-3 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary w-100" onclick="resetFilters()">
+                        <i class="bi bi-x-circle me-1"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Worker Counter -->
+    <div class="mb-3">
+        <small class="text-muted">
+            Showing <span id="workerCount" class="fw-bold">@Model.Count</span> workers
+        </small>
+    </div>
+
+    <!-- Worker List Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="workerTable">
+                    <thead class="sticky-header">
+                        <tr>
+                            <th class="p-3">Nama</th>
+                            <th class="p-3">NIP</th>
+                            <th class="p-3">Position</th>
+                            <th class="p-3">Section</th>
+                            <th class="p-3">Unit</th>
+                            <th class="p-3 text-center">Assessment</th>
+                            <th class="p-3 text-center">Training</th>
+                            <th class="p-3 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center p-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    Tidak ada worker ditemukan
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var worker in Model)
+                            {
+                                var hasTraining = worker.TrainingRecords.Any(t =>
+                                    !string.IsNullOrEmpty(t.Kategori) &&
+                                    (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent")
+                                );
+                                var trainingCategories = string.Join(",", worker.TrainingRecords
+                                    .Select(t => t.Kategori)
+                                    .Where(k => !string.IsNullOrEmpty(k))
+                                    .Distinct());
+
+                                <tr class="worker-row"
+                                    data-section="@worker.Section"
+                                    data-unit="@worker.Unit"
+                                    data-categories="@trainingCategories.ToLower()"
+                                    data-has-training="@hasTraining.ToString().ToLower()"
+                                    data-name="@worker.WorkerName.ToLower()"
+                                    data-nip="@(worker.NIP ?? "")">
+                                    <td class="p-3">
+                                        <span class="fw-semibold">@worker.WorkerName</span>
+                                    </td>
+                                    <td class="p-3">@(worker.NIP ?? "—")</td>
+                                    <td class="p-3">@worker.Position</td>
+                                    <td class="p-3">@(worker.Section ?? "—")</td>
+                                    <td class="p-3">@(worker.Unit ?? "—")</td>
+                                    <td class="p-3 text-center">
+                                        <span class="badge bg-primary">@worker.CompletedAssessments</span>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <span class="badge bg-success">@worker.CompletedTrainings</span>
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <a asp-action="RecordsWorkerDetail" asp-route-workerId="@worker.WorkerId"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>Detail
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.worker-row {
+    animation: fadeIn 0.3s ease;
+}
+
+@@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+function filterTable() {
+    const section = document.getElementById('sectionFilter').value.toLowerCase();
+    const unit = document.getElementById('unitFilter').value.toLowerCase();
+    const category = document.getElementById('categoryFilter').value.toLowerCase();
+    const status = document.getElementById('statusFilter').value;
+    const search = document.getElementById('searchFilter').value.toLowerCase();
+
+    let visibleCount = 0;
+
+    document.querySelectorAll('.worker-row').forEach(row => {
+        const rowSection = row.getAttribute('data-section') || '';
+        const rowUnit = row.getAttribute('data-unit') || '';
+        const rowCategories = row.getAttribute('data-categories') || '';
+        const rowHasTraining = row.getAttribute('data-has-training') === 'true';
+        const rowName = row.getAttribute('data-name') || '';
+        const rowNip = row.getAttribute('data-nip') || '';
+
+        // Section filter
+        const matchSection = !section || rowSection.toLowerCase() === section;
+
+        // Unit filter
+        const matchUnit = !unit || rowUnit.toLowerCase() === unit;
+
+        // Category filter (checks if category exists in comma-separated list)
+        const matchCategory = !category || rowCategories.includes(category);
+
+        // Status filter
+        let matchStatus = true;
+        if (status === 'Sudah') {
+            matchStatus = rowHasTraining;
+        } else if (status === 'Belum') {
+            matchStatus = !rowHasTraining;
+        }
+
+        // Search filter (matches Nama or NIP)
+        const matchSearch = !search || rowName.includes(search) || rowNip.includes(search);
+
+        const matchAll = matchSection && matchUnit && matchCategory && matchStatus && matchSearch;
+        row.style.display = matchAll ? '' : 'none';
+
+        if (matchAll) visibleCount++;
+    });
+
+    // Update worker counter
+    document.getElementById('workerCount').textContent = visibleCount;
+}
+
+function resetFilters() {
+    document.getElementById('sectionFilter').value = '';
+    document.getElementById('unitFilter').value = '';
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('statusFilter').value = 'ALL';
+    document.getElementById('searchFilter').value = '';
+    filterTable();
+}
+
+// Initial filter on page load
+document.addEventListener('DOMContentLoaded', function() {
+    filterTable();
+});
+</script>
