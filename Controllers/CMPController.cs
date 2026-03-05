@@ -418,6 +418,25 @@ namespace HcPortal.Controllers
             if (user == null) return Challenge();
 
             var unified = await GetUnifiedRecords(user.Id);
+
+            // Phase 104: Get worker list for Team View tab (only for users level 1-4)
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+
+            if (roleLevel <= 4)
+            {
+                // Scope enforcement: Level 4 (SrSupervisor) locked to their own section
+                string? sectionFilter = null;
+                if (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
+                {
+                    sectionFilter = user.Section;
+                }
+
+                var workerList = await GetWorkersInSection(sectionFilter);
+                ViewData["WorkerList"] = workerList;
+            }
+
             return View("Records", unified);
         }
 

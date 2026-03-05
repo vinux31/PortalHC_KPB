@@ -1,11 +1,20 @@
 @model List<HcPortal.Models.UnifiedTrainingRecord>
 @using System.Globalization
+@using Microsoft.AspNetCore.Identity
+@using HcPortal.Models
+@inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "Training Records";
     var assessmentCount = Model.Count(x => x.RecordType == "Assessment Online");
     var trainingCount = Model.Count(x => x.RecordType == "Training Manual");
     var totalCount = Model.Count;
+
+    // Get current user's role level for Team View tab visibility
+    var currentUser = await UserManager.GetUserAsync(User);
+    var userRoles = await UserManager.GetRolesAsync(currentUser);
+    var userRole = userRoles.FirstOrDefault();
+    var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
 }
 
 <div class="container-fluid px-4 py-4">
@@ -15,7 +24,6 @@
         <nav aria-label="breadcrumb" class="mb-1">
             <ol class="breadcrumb small">
                 <li class="breadcrumb-item"><a href="/CMP">CMP</a></li>
-                <li class="breadcrumb-item"><a asp-action="Assessment" asp-controller="CMP">Assessment</a></li>
                 <li class="breadcrumb-item active">Records</li>
             </ol>
         </nav>
@@ -102,38 +110,67 @@
     <!-- Tab navigation -->
     <ul class="nav nav-tabs mb-3" id="recordsTabs">
         <li class="nav-item">
-            <a class="nav-link active" id="tab-assessment" data-bs-toggle="tab" href="#pane-assessment">
-                <i class="bi bi-clipboard-check me-1"></i>Assessment Online
-                <span class="badge bg-primary ms-1">@assessmentCount</span>
+            <a class="nav-link active" id="tab-myrecords" data-bs-toggle="tab" href="#pane-myrecords">
+                <i class="bi bi-person me-1"></i>My Records
+                <span class="badge bg-info ms-1">@totalCount</span>
             </a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="tab-training" data-bs-toggle="tab" href="#pane-training">
-                <i class="bi bi-book me-1"></i>Training Manual
-                <span class="badge bg-success ms-1">@trainingCount</span>
-            </a>
-        </li>
+        @if (roleLevel <= 4)
+        {
+            <li class="nav-item">
+                <a class="nav-link" id="tab-team" data-bs-toggle="tab" href="#pane-team">
+                    <i class="bi bi-people me-1"></i>Team View
+                </a>
+            </li>
+        }
     </ul>
 
     <div class="tab-content">
-        <!-- Assessment Online Tab -->
-        <div class="tab-pane fade show active" id="pane-assessment">
+        <!-- My Records Tab (Unified Assessment + Training) -->
+        <div class="tab-pane fade show active" id="pane-myrecords">
+            <!-- Search & Filter Bar -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="row g-3 align-items-center">
+                        <div class="col-12 col-md-6">
+                            <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan judul...">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <select id="yearFilter" class="form-select">
+                                <option value="">Semua Tahun</option>
+                                @foreach (var year in Model.Select(r => r.Date.Year).Distinct().OrderByDescending(y => y))
+                                {
+                                    <option value="@year">@year</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                                <i class="bi bi-x-circle me-1"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="card shadow-sm border-0">
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="assessmentTable">
+                        <table class="table table-hover mb-0" id="recordsTable">
                             <thead class="sticky-header">
                                 <tr>
                                     <th class="p-3">Tanggal</th>
-                                    <th class="p-3">Nama Assessment</th>
+                                    <th class="p-3">Nama Kegiatan</th>
+                                    <th class="p-3 text-center">Tipe</th>
                                     <th class="p-3 text-center">Score</th>
                                     <th class="p-3 text-center">Status</th>
+                                    <th class="p-3 text-center">Sertifikat</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in Model.Where(x => x.RecordType == "Assessment Online"))
+                                @foreach (var item in Model.OrderByDescending(r => r.Date))
                                 {
-                                    var resultsUrl = item.AssessmentSessionId.HasValue
+                                    var resultsUrl = item.RecordType == "Assessment Online" && item.AssessmentSessionId.HasValue
                                         ? Url.Action("Results", "CMP", new { id = item.AssessmentSessionId.Value })
                                         : null;
                                     <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
@@ -143,6 +180,13 @@
                                         <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
                                         <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
                                         <td class="p-3 text-center">
+                                            @if (item.RecordType == "Assessment Online") {
+                                                <span class="badge bg-primary">Assessment</span>
+                                            } else {
+                                                <span class="badge bg-success">Training</span>
+                                            }
+                                        </td>
+                                        <td class="p-3 text-center">
                                             @if (item.Score.HasValue) { <span>@item.Score%</span> } else { <span class="text-muted">—</span> }
                                         </td>
                                         <td class="p-3 text-center">
@@ -150,14 +194,27 @@
                                                 <span class="badge bg-success">Passed</span>
                                             } else if (item.IsPassed == false) {
                                                 <span class="badge bg-danger">Failed</span>
+                                            } else if (!string.IsNullOrEmpty(item.Status)) {
+                                                var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Failed" => "bg-danger", "Wait Certificate" => "bg-warning text-dark", _ => "bg-secondary" };
+                                                <span class="badge @sc">@item.Status</span>
                                             } else {
                                                 <span class="text-muted">—</span>
                                             }
                                         </td>
+                                        <td class="p-3 text-center">
+                                            @if (item.RecordType == "Training Manual") {
+                                                @if (item.ValidUntil.HasValue) {
+                                                    <div>@item.ValidUntil.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</div>
+                                                    @if (item.IsExpired) {
+                                                        <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
+                                                    }
+                                                } else { <span class="text-muted">—</span> }
+                                            } else { <span class="text-muted">—</span> }
+                                        </td>
                                     </tr>
                                 }
-                                @if (!Model.Any(x => x.RecordType == "Assessment Online")) {
-                                    <tr><td colspan="4" class="text-center p-5 text-muted">Belum ada riwayat assessment</td></tr>
+                                @if (!Model.Any()) {
+                                    <tr><td colspan="6" class="text-center p-5 text-muted">Belum ada riwayat</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -166,53 +223,26 @@
             </div>
         </div>
 
-        <!-- Training Manual Tab -->
-        <div class="tab-pane fade" id="pane-training">
-            <div class="card shadow-sm border-0">
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0" id="trainingTable">
-                            <thead class="sticky-header">
-                                <tr>
-                                    <th class="p-3">Tanggal</th>
-                                    <th class="p-3">Judul</th>
-                                    <th class="p-3">Penyelenggara</th>
-                                    <th class="p-3">Tipe Sertifikat</th>
-                                    <th class="p-3">Berlaku Sampai</th>
-                                    <th class="p-3">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.Where(x => x.RecordType == "Training Manual"))
-                                {
-                                    <tr class="training-row" data-title="@item.Title.ToLower()" data-year="@item.Date.Year">
-                                        <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
-                                        <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
-                                        <td class="p-3">@(item.Penyelenggara ?? "—")</td>
-                                        <td class="p-3">@(item.CertificateType ?? "—")</td>
-                                        <td class="p-3">
-                                            @if (item.ValidUntil.HasValue) {
-                                                <div>@item.ValidUntil.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</div>
-                                                @if (item.IsExpired) {
-                                                    <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
-                                                }
-                                            } else { <span class="text-muted">—</span> }
-                                        </td>
-                                        <td class="p-3">
-                                            @{ var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Failed" => "bg-danger", "Wait Certificate" => "bg-warning text-dark", _ => "bg-secondary" }; }
-                                            @if (!string.IsNullOrEmpty(item.Status)) { <span class="badge @sc">@item.Status</span> } else { <span class="text-muted">—</span> }
-                                        </td>
-                                    </tr>
-                                }
-                                @if (!Model.Any(x => x.RecordType == "Training Manual")) {
-                                    <tr><td colspan="6" class="text-center p-5 text-muted">Belum ada riwayat pelatihan manual</td></tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+        <!-- Team View Tab (Phase 104) -->
+        @if (roleLevel <= 4)
+        {
+            <div class="tab-pane fade" id="pane-team">
+                @{
+                    var workerList = ViewData["WorkerList"] as List<HcPortal.Models.WorkerTrainingStatus>;
+                    if (workerList != null)
+                    {
+                        @await Html.PartialAsync("RecordsTeam", workerList)
+                    }
+                    else
+                    {
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Unable to load worker list. Please refresh the page.
+                        </div>
+                    }
+                }
             </div>
-        </div>
+        }
     </div>
 </div>
 
@@ -288,11 +318,11 @@
 </style>
 
 <script>
-// Filter works on active tab's rows
+// Filter works on My Records tab only
 function filterTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const yearFilter = document.getElementById('yearFilter').value;
-    document.querySelectorAll('.training-row').forEach(row => {
+    document.querySelectorAll('#recordsTable .training-row').forEach(row => {
         const title = row.getAttribute('data-title');
         const year = row.getAttribute('data-year');
         const matchSearch = !searchTerm || title.includes(searchTerm);
