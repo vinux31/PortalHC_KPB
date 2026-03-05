@@ -24,6 +24,7 @@
 - ✅ **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - ✅ **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 (shipped 2026-03-03)
 - ✅ **v3.2 Bug Hunting & Quality Audit** — Phases 92-98 (shipped 2026-03-05)
+- 🚧 **v3.3 Basic Notifications** — Phases 99-103 (IN PLANNING)
 
 ## Phases
 
@@ -277,7 +278,7 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
 
 ---
 
-### 🚧 v3.0 Full QA & Feature Completion (In Progress)
+### ✅ v3.0 Full QA & Feature Completion (Shipped 2026-03-05)
 
 **Milestone Goal:** Comprehensive end-to-end QA of all portal flows organized by use-case (not page-by-page), code cleanup to remove orphaned/duplicate paths, UI rename from "Proton Progress" to "Coaching Proton" throughout, and Plan IDP new feature development.
 
@@ -507,6 +508,22 @@ Plans:
 
 ---
 
+### ✅ v3.2 Bug Hunting & Quality Audit (Shipped 2026-03-05)
+
+**Milestone Goal:** Comprehensive audit of all portal sections — Homepage, CMP, CDP, Admin Portal, Account pages, Authentication/Authorization, and Data Integrity — to identify and fix bugs across UI, navigation, localization, authorization, soft-delete cascades, and audit logging.
+
+## Phase Checklist
+
+- [x] **Phase 92: Homepage Audit** - Audit Homepage for bugs and fix all issues (completed 2026-03-05)
+- [x] **Phase 93: CMP Section Audit** - Audit CMP pages for bugs (completed 2026-03-05)
+- [x] **Phase 94: CDP Section Audit** - Audit CDP pages for bugs (completed 2026-03-05)
+- [x] **Phase 95: Admin Portal Audit** - Audit Kelola Data pages for bugs (completed 2026-03-05)
+- [x] **Phase 96: Account Pages Audit** - Audit Account (Profile & Settings) pages for bugs (completed 2026-03-05)
+- [x] **Phase 97: Authentication & Authorization Audit** - Audit authentication and authorization for bugs (completed 2026-03-05)
+- [x] **Phase 98: Data Integrity Audit** - Audit data integrity patterns for bugs (completed 2026-03-05)
+
+## Phase Details
+
 ### Phase 92: Homepage Audit ✅
 **Goal**: Audit Homepage for bugs and fix all issues
 **Milestone**: v3.2 Bug Hunting & Quality Audit
@@ -524,7 +541,7 @@ Plans:
 
 ---
 
-### Phase 93: CMP Section Audit
+### Phase 93: CMP Section Audit ✅
 **Goal**: Audit CMP (Competency Management Platform) pages for bugs
 **Milestone**: v3.2 Bug Hunting & Quality Audit
 **Requirements**: CMP-01, CMP-02, CMP-03, CMP-04, CMP-05, CMP-06
@@ -639,29 +656,7 @@ Plans:
 - [x] 96-03: Fix identified bugs
 - [x] 96-04: Regression test — Verify fixes don't break existing functionality
 
-### Phase 99: Remove Deliverable Card from CDP Index
-
-**Goal:** CDP Index page no longer has broken Deliverable card link; users access deliverable details through Coaching Proton page
-**Requirements**: None (UI cleanup fix)
-**Depends on:** Phase 94
-**Plans:** 4/3 plans complete
-
-Plans:
-- [x] 99-PLAN.md — Remove Deliverable card from CDP Index (lines 79-98)
-
-### Phase 100: Analisa workflow upload evidence coaching Proton
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 99
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 100 to break down)
-
----
-
-### Phase 97: Authentication & Authorization Audit
+### Phase 97: Authentication & Authorization Audit ✅
 **Goal**: Audit authentication and authorization for bugs
 **Milestone**: v3.2 Bug Hunting & Quality Audit
 **Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05
@@ -711,7 +706,140 @@ Plans:
 - [x] 98-03: Fix identified bugs
 - [x] 98-04: Regression test — Verify fixes don't break existing functionality
 
+---
+
+### 🚧 v3.3 Basic Notifications (In Planning)
+
+**Milestone Goal:** Build basic in-app notification system for Assessment and Coaching Proton workflows — assignment notifications, deadline reminders, and approval chain notifications.
+
+**Target notification types:**
+
+**Assessment (2 triggers in v3.3):**
+- Worker receives: Assessment assigned, assessment results
+
+**Coaching Proton (6 triggers in v3.3):**
+- Coachee receives: Coach assignment, coaching completed
+- Coach receives: Evidence rejected notification
+- SrSpv receives: Evidence uploaded by coach (for review)
+- SectionHead receives: Evidence approved by SrSpv
+- HC receives: Evidence approved by SectionHead
+
+**Scope:**
+- In-App notification center (bell icon, notification list)
+- Read/unread status tracking
+- No real-time (SignalR) — refresh-based only
+- No notification preferences in v3.3
+
+**Approach:** Database model → Notification service → UI components → Trigger points → Testing
+
+## Phase Checklist
+
+- [ ] **Phase 99: Notification Database & Service** - Create Notification + UserNotification tables, NotificationService following AuditLogService pattern, DI registration (0/3 plans)
+- [ ] **Phase 100: Notification Center UI** - Bell icon with unread badge, dropdown list, mark read functionality, deep linking (0/4 plans)
+- [ ] **Phase 101: Assessment Notification Triggers** - Worker receives assessment assigned + results notifications (0/2 plans)
+- [ ] **Phase 102: Coaching Notification Triggers** - Full approval chain notifications (6 triggers across 4 roles) (0/3 plans)
+- [ ] **Phase 103: Notification Testing & Polish** - Integration tests, manual QA, performance testing, edge cases (0/3 plans)
+
+## Phase Details
+
+### Phase 99: Notification Database & Service
+**Goal**: System has persistent notification storage with service layer following AuditLogService pattern
+**Depends on**: Nothing (first phase of v3.3)
+**Requirements**: INFRA-01, INFRA-02, INFRA-07, INFRA-08, INFRA-09
+**Success Criteria** (what must be TRUE):
+  1. Notification and UserNotification tables exist in database with proper indexes (UserId, IsRead, CreatedAt DESC)
+  2. NotificationService is registered as scoped dependency in Program.cs and can be injected into controllers
+  3. NotificationService.SendAsync() creates notifications with audit trail (CreatedBy, CreatedAt, ReadAt, DeliveryStatus)
+  4. NotificationService uses try-catch wrapping so failures never crash main workflows
+  5. Notification templates provide consistent messaging across all notification types
+**Plans**: TBD
+
+Plans:
+- [ ] 99-01-PLAN.md — Create Notification + UserNotification models with EF Core migration (INFRA-01, INFRA-07)
+- [ ] 99-02-PLAN.md — Build NotificationService with full CRUD operations following AuditLogService pattern (INFRA-02, INFRA-09)
+- [ ] 99-03-PLAN.md — Register INotificationService in DI, create notification templates, add unit tests (INFRA-08)
+
+### Phase 100: Notification Center UI
+**Goal**: Users can access notifications via bell icon in navbar with unread badge, view list, mark as read, and navigate to related content
+**Depends on**: Phase 99
+**Requirements**: INFRA-03, INFRA-04, INFRA-05, INFRA-06, INFRA-10
+**Success Criteria** (what must be TRUE):
+  1. Bell icon appears in navbar with red badge showing unread count for authenticated users
+  2. Clicking bell icon opens dropdown showing most recent 20 notifications (most recent first)
+  3. Clicking a notification marks it as read and navigates to the relevant page (deep linking)
+  4. "Mark all as read" button clears all unread notifications for the current user
+  5. AJAX polling updates unread count every 30 seconds without full page refresh
+**Plans**: TBD
+
+Plans:
+- [ ] 100-01-PLAN.md — Add bell icon to navbar with unread badge (INFRA-03)
+- [ ] 100-02-PLAN.md — Build NotificationController with GetNotifications and MarkAsRead JSON endpoints (INFRA-04)
+- [ ] 100-03-PLAN.md — Create notification dropdown view with pagination and mark individual/bulk read actions (INFRA-05, INFRA-06)
+- [ ] 100-04-PLAN.md — Implement AJAX polling for unread count and deep linking to Assessment/Coaching pages (INFRA-10)
+
+### Phase 101: Assessment Notification Triggers
+**Goal**: Workers receive notifications when assessments are assigned and when results are ready
+**Depends on**: Phase 100
+**Requirements**: ASMT-01, ASMT-02
+**Success Criteria** (what must be TRUE):
+  1. Worker receives notification when HC assigns them to an assessment (title includes assessment name, deadline)
+  2. Worker receives notification when assessment results are ready (includes score, pass/fail status)
+  3. Notifications link to /CMP/Assessment (assignment) or /CMP/Results (results)
+  4. Bulk assignment to 100 workers completes in under 10 seconds (no blocking loop)
+**Plans**: TBD
+
+Plans:
+- [ ] 101-01-PLAN.md — Add assessment assignment notification trigger in AdminController.AssignWorkers (ASMT-01)
+- [ ] 101-02-PLAN.md — Add assessment results ready notification trigger in CMPController.SubmitExam/GradeExam (ASMT-02)
+
+### Phase 102: Coaching Notification Triggers
+**Goal**: All roles in coaching approval chain receive notifications at appropriate workflow stages
+**Depends on**: Phase 101
+**Requirements**: COACH-01, COACH-02, COACH-03, COACH-04, COACH-05, COACH-06
+**Success Criteria** (what must be TRUE):
+  1. Coachee receives notification when coach is assigned (includes coach name)
+  2. SrSpv receives notification when coach uploads evidence for review (includes deliverable name)
+  3. Coach receives notification when evidence is rejected (includes rejection reason)
+  4. SectionHead receives notification when evidence is approved by SrSpv (includes deliverable name)
+  5. HC receives notification when evidence is approved by SectionHead (includes deliverable name)
+  6. Coachee receives notification when coaching session is completed (includes session summary)
+**Plans**: TBD
+
+Plans:
+- [ ] 102-01-PLAN.md — Add coach assignment notification trigger in AdminController.AssignCoach (COACH-01)
+- [ ] 102-02-PLAN.md — Add evidence upload/reject/approval notification triggers in CDPController (COACH-02, COACH-03, COACH-04, COACH-05)
+- [ ] 102-03-PLAN.md — Add coaching completed notification trigger in CDPController.SubmitCoachingSession (COACH-06)
+
+### Phase 103: Notification Testing & Polish
+**Goal**: All notification triggers work correctly end-to-end with proper performance and edge case handling
+**Depends on**: Phase 102
+**Requirements**: All v3.3 requirements (validation phase)
+**Success Criteria** (what must be TRUE):
+  1. All 8 notification triggers fire correctly at appropriate workflow stages
+  2. Unread count badge updates within 30 seconds of notification creation
+  3. Deep links navigate to correct pages with proper context (assessment ID, deliverable ID)
+  4. Bulk operations (100+ notifications) complete in under 10 seconds
+  5. Edge cases handled gracefully (deleted entities, no permissions, duplicate notifications)
+**Plans**: TBD
+
+Plans:
+- [ ] 103-01-PLAN.md — Create integration tests for all 8 notification triggers
+- [ ] 103-02-PLAN.md — Manual QA checklist for each trigger with browser verification
+- [ ] 103-03-PLAN.md — Performance testing with 100+ notifications and edge case validation
+
 ## Progress
+
+| Phase | Plans | Status | Completed |
+|-------|-------|--------|-----------|
+| 99. Notification Database & Service | 0/3 | Not started | - |
+| 100. Notification Center UI | 0/4 | Not started | - |
+| 101. Assessment Notification Triggers | 0/2 | Not started | - |
+| 102. Coaching Notification Triggers | 0/3 | Not started | - |
+| 103. Notification Testing & Polish | 0/3 | Not started | - |
+
+---
+
+## Historical Progress
 
 **Execution Order:**
 82 → 83 → 88 → 89 → 90 → 91 → 84 → 85 → 87
@@ -723,16 +851,16 @@ Plans:
 | 84. Assessment Flow QA | v3.0 | 2/2 | ✅ Complete | 2026-03-04 |
 | 85. Coaching Proton Flow QA | v3.0 | 4/4 | ✅ Complete | 2026-03-04 |
 | 86. Plan IDP Development | v3.0 | — | ↗️ Superseded by 89 | - |
-| 87. Dashboard & Navigation QA | 3/3 | Complete    | 2026-03-05 | - |
+| 87. Dashboard & Navigation QA | v3.0 | 3/3 | ✅ Complete | 2026-03-05 |
 | 88. KKJ Matrix Full Rewrite | v3.0 | 4/4 | ✅ Complete | 2026-03-03 |
+| 88. CPDP File Rewrite (3 sub) | v3.1 | 6/6 | ✅ Complete | 2026-03-03 |
 | 89. PlanIDP 2-Tab Redesign | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
 | 90. Audit Admin Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
 | 91. Audit CMP Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
-| 88. CPDP File Rewrite (3 sub) | v3.1 | 6/6 | ✅ Complete | 2026-03-03 |
 | 92. Homepage Audit | v3.2 | — | ✅ Complete | 2026-03-05 |
-| 93. CMP Section Audit | v3.2 | Complete    | 2026-03-05 | 2026-03-05 |
-| 94. CDP Section Audit | 6/6 | Complete    | 2026-03-05 | — |
-| 95. Admin Portal Audit | 4/4 | Complete   | 2026-03-05 | — |
-| 96. Account Pages Audit | 4/3 | Complete    | 2026-03-05 | — |
-| 97. Auth & Authorization Audit | 4/4 | Complete    | 2026-03-05 | — |
-| 98. Data Integrity Audit | 6/4 | Complete    | 2026-03-05 | — |
+| 93. CMP Section Audit | v3.2 | 4/4 | ✅ Complete | 2026-03-05 |
+| 94. CDP Section Audit | v3.2 | 6/6 | ✅ Complete | 2026-03-05 |
+| 95. Admin Portal Audit | v3.2 | 4/4 | ✅ Complete | 2026-03-05 |
+| 96. Account Pages Audit | v3.2 | 4/3 | ✅ Complete | 2026-03-05 |
+| 97. Auth & Authorization Audit | v3.2 | 4/4 | ✅ Complete | 2026-03-05 |
+| 98. Data Integrity Audit | v3.2 | 4/4 | ✅ Complete | 2026-03-05 |
