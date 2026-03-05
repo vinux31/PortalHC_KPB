@@ -99,7 +99,7 @@ else
                             <i class="bi bi-file-earmark me-2 text-primary"></i>
                             <strong>Evidence:</strong> @Model.Progress.EvidenceFileName
                         </div>
-                        <a href="@Model.Progress.EvidencePath" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <a asp-action="DownloadEvidence" asp-route-progressId="@Model.Progress.Id" class="btn btn-sm btn-outline-primary">
                             <i class="bi bi-download me-1"></i>Download
                         </a>
                     </div>

@@ -8,6 +8,7 @@ using HcPortal.Data;
 using ClosedXML.Excel;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
+using System.Globalization;
 
 namespace HcPortal.Controllers
 {
@@ -164,7 +165,7 @@ namespace HcPortal.Controllers
                                                 f.Id,
                                                 f.FileName,
                                                 f.FileSize,
-                                                UploadedAt = f.UploadedAt.ToString("dd MMM yyyy")
+                                                UploadedAt = f.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))
                                             }).ToList()
                                         }).ToList()
                                 }).ToList()
@@ -1150,6 +1151,76 @@ namespace HcPortal.Controllers
             return RedirectToAction("Deliverable", new { id = progressId });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> DownloadEvidence(int progressId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Load progress record
+            var progress = await _context.ProtonDeliverableProgresses
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+            if (progress == null || string.IsNullOrEmpty(progress.EvidencePath))
+            {
+                return NotFound();
+            }
+
+            // Access control: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+            bool isCoachee = progress.CoacheeId == user.Id;
+            bool isCoach = user.RoleLevel <= 5;
+            bool isHC = userRole == UserRoles.HC;
+
+            if (!isCoachee && !isHC && isCoach)
+            {
+                var coachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.Section })
+                    .FirstOrDefaultAsync();
+                if (coachee == null || coachee.Section != user.Section)
+                {
+                    return Forbid();
+                }
+            }
+            else if (!isCoachee && !isHC && !isCoach)
+            {
+                return Forbid();
+            }
+
+            // Validate and build file path
+            var relativePath = progress.EvidencePath.TrimStart('/');
+            var filePath = Path.Combine(_env.WebRootPath, relativePath);
+
+            // Security check: ensure file is within evidence directory
+            var evidenceDir = Path.Combine(_env.WebRootPath, "uploads", "evidence");
+            var fileInfo = new FileInfo(filePath);
+            if (!fileInfo.FullName.StartsWith(evidenceDir, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            // Check file exists
+            if (!System.IO.File.Exists(filePath))
+            {
+                return NotFound();
+            }
+
+            // Determine content type
+            var extension = Path.GetExtension(filePath).ToLowerInvariant();
+            string contentType = extension switch
+            {
+                ".pdf" => "application/pdf",
+                ".jpg" or ".jpeg" => "image/jpeg",
+                ".png" => "image/png",
+                _ => "application/octet-stream"
+            };
+
+            // Read and return file
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(filePath);
+            return File(fileBytes, contentType, progress.EvidenceFileName ?? "evidence");
+        }
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> CoachingProton(
             string? coacheeId = null,
@@ -1351,11 +1422,11 @@ namespace HcPortal.Controllers
                 CoacheeName = coacheeNameDict.TryGetValue(p.CoacheeId, out var name) ? name : "",
                 Status = p.Status,
                 SrSpvApproverName = p.SrSpvApprovedById != null && approverNames.ContainsKey(p.SrSpvApprovedById) ? approverNames[p.SrSpvApprovedById] : "",
-                SrSpvApprovedAt = p.SrSpvApprovedAt.HasValue ? p.SrSpvApprovedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "",
+                SrSpvApprovedAt = p.SrSpvApprovedAt.HasValue ? p.SrSpvApprovedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID")) : "",
                 ShApproverName = p.ShApprovedById != null && approverNames.ContainsKey(p.ShApprovedById) ? approverNames[p.ShApprovedById] : "",
-                ShApprovedAt = p.ShApprovedAt.HasValue ? p.ShApprovedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "",
+                ShApprovedAt = p.ShApprovedAt.HasValue ? p.ShApprovedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID")) : "",
                 HcReviewerName = p.HCReviewedById != null && approverNames.ContainsKey(p.HCReviewedById) ? approverNames[p.HCReviewedById] : "",
-                HcReviewedAt = p.HCReviewedAt.HasValue ? p.HCReviewedAt.Value.ToLocalTime().ToString("dd/MM/yyyy HH:mm") : "",
+                HcReviewedAt = p.HCReviewedAt.HasValue ? p.HCReviewedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID")) : "",
             }).ToList();
 
             // --- PAGINATION: Group-boundary slicing (UI-04) ---
@@ -1561,7 +1632,7 @@ namespace HcPortal.Controllers
                     Kompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
                     SubKompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
                     Status = p.Status,
-                    SubmittedAt = p.SubmittedAt.HasValue ? p.SubmittedAt.Value.ToLocalTime().ToString("dd/MM/yyyy") : "-"
+                    SubmittedAt = p.SubmittedAt.HasValue ? p.SubmittedAt.Value.ToLocalTime().ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "-"
                 }).ToList();
             }
             else
@@ -1627,7 +1698,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             var approverName = user.FullName ?? user.UserName ?? user.Id;
-            var approvedAtLocal = now.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+            var approvedAtLocal = now.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"));
 
             return Json(new
             {
@@ -1695,7 +1766,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             var approverName = user.FullName ?? user.UserName ?? user.Id;
-            var approvedAtLocal = now.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+            var approvedAtLocal = now.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"));
 
             return Json(new
             {
@@ -1734,7 +1805,7 @@ namespace HcPortal.Controllers
             await _context.SaveChangesAsync();
 
             var reviewerName = user.FullName ?? user.UserName ?? user.Id;
-            var reviewedAtLocal = now.ToLocalTime().ToString("dd/MM/yyyy HH:mm");
+            var reviewedAtLocal = now.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"));
 
             return Json(new
             {
