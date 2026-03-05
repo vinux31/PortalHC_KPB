@@ -1,0 +1,349 @@
+@model dynamic
+@using System.Globalization
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Worker Detail";
+    var workerName = Model.WorkerName;
+    var nip = Model.NIP;
+    var position = Model.Position;
+    var section = Model.Section;
+    var unifiedRecords = Model.UnifiedRecords as List<HcPortal.Models.UnifiedTrainingRecord>;
+    var filterState = Model.FilterState;
+
+    var assessmentCount = unifiedRecords.Count(x => x.RecordType == "Assessment Online");
+    var trainingCount = unifiedRecords.Count(x => x.RecordType == "Training Manual");
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Header Section -->
+    <div class="mb-4">
+        <nav aria-label="breadcrumb" class="mb-1">
+            <ol class="breadcrumb small">
+                <li class="breadcrumb-item"><a href="/CMP">CMP</a></li>
+                <li class="breadcrumb-item">
+                    <a asp-action="Records" asp-controller="CMP" asp-fragment="team"
+                       asp-route-section="@filterState.Section"
+                       asp-route-unit="@filterState.Unit"
+                       asp-route-category="@filterState.Category"
+                       asp-route-statusFilter="@filterState.Status"
+                       asp-route-search="@filterState.Search">Records</a>
+                </li>
+                <li class="breadcrumb-item active">Worker Detail</li>
+            </ol>
+        </nav>
+        <h2 class="fw-bold mb-1">Worker Training History</h2>
+        <p class="text-muted mb-0">View detailed assessment and training records for team member.</p>
+    </div>
+
+    <!-- Worker Info Card -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-12 col-md-3 mb-2">
+                    <small class="text-muted d-block">Nama</small>
+                    <span class="fw-semibold fs-5">@workerName</span>
+                </div>
+                <div class="col-12 col-md-3 mb-2">
+                    <small class="text-muted d-block">NIP</small>
+                    <span class="fw-semibold fs-5">@(nip ?? "—")</span>
+                </div>
+                <div class="col-12 col-md-3 mb-2">
+                    <small class="text-muted d-block">Position</small>
+                    <span class="fw-semibold">@position</span>
+                </div>
+                <div class="col-12 col-md-3 mb-2">
+                    <small class="text-muted d-block">Section</small>
+                    <span class="fw-semibold">@section</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-primary">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                            <i class="bi bi-clipboard-check fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 small">Assessment Online</h6>
+                            <h3 class="fw-bold mb-0">@assessmentCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-success">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-success bg-opacity-10 text-success rounded-3 p-3 me-3">
+                            <i class="bi bi-book fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 small">Training Manual</h6>
+                            <h3 class="fw-bold mb-0">@trainingCount</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 stat-card stat-card-info">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon bg-info bg-opacity-10 text-info rounded-3 p-3 me-3">
+                            <i class="bi bi-journal-text fs-3"></i>
+                        </div>
+                        <div>
+                            <h6 class="text-muted mb-1 small">Total Records</h6>
+                            <h3 class="fw-bold mb-0">@unifiedRecords.Count</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filter Bar -->
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-body">
+            <div class="row g-3 align-items-center">
+                <div class="col-12 col-md-3">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan judul...">
+                </div>
+                <div class="col-12 col-md-2">
+                    <select id="categoryFilter" class="form-select">
+                        <option value="">All Categories</option>
+                        @if (unifiedRecords.Any(r => r.RecordType == "Training Manual"))
+                        {
+                            @foreach (var cat in unifiedRecords.Where(r => r.RecordType == "Training Manual")
+                                .Select(r => r.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c))
+                            {
+                                <option value="@cat">@cat</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <select id="yearFilter" class="form-select">
+                        <option value="">Semua Tahun</option>
+                        @foreach (var year in unifiedRecords.Select(r => r.Date.Year).Distinct().OrderByDescending(y => y))
+                        {
+                            <option value="@year">@year</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <select id="typeFilter" class="form-select">
+                        <option value="">All Types</option>
+                        <option value="Assessment Online">Assessment</option>
+                        <option value="Training Manual">Training</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                        <i class="bi bi-x-circle me-1"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unified Records Table -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="recordsTable">
+                    <thead class="sticky-header">
+                        <tr>
+                            <th class="p-3">Tanggal</th>
+                            <th class="p-3">Nama Kegiatan</th>
+                            <th class="p-3 text-center">Tipe</th>
+                            <th class="p-3 text-center">Score</th>
+                            <th class="p-3 text-center">Status</th>
+                            <th class="p-3 text-center">Sertifikat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!unifiedRecords.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center p-5 text-muted">
+                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                    Belum ada data
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in unifiedRecords.OrderByDescending(r => r.Date))
+                            {
+                                var resultsUrl = item.RecordType == "Assessment Online" && item.AssessmentSessionId.HasValue
+                                    ? Url.Action("Results", "CMP", new { id = item.AssessmentSessionId.Value })
+                                    : null;
+
+                                <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
+                                    data-title="@item.Title.ToLower()"
+                                    data-year="@item.Date.Year"
+                                    data-category="@(item.Category?.ToLower() ?? "")"
+                                    data-type="@item.RecordType.ToLower()"
+                                    @(resultsUrl != null ? Html.Raw($"onclick=\"window.location.href='{resultsUrl}'\"") : Html.Raw(""))
+                                    style="@(resultsUrl != null ? "cursor:pointer;" : "")">
+                                    <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
+                                    <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
+                                    <td class="p-3 text-center">
+                                        @if (item.RecordType == "Assessment Online") {
+                                            <span class="badge bg-primary">Assessment</span>
+                                        } else {
+                                            <span class="badge bg-success">Training</span>
+                                        }
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        @if (item.Score.HasValue) { <span>@item.Score%</span> } else { <span class="text-muted">—</span> }
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        @if (item.IsPassed == true) {
+                                            <span class="badge bg-success">Passed</span>
+                                        } else if (item.IsPassed == false) {
+                                            <span class="badge bg-danger">Failed</span>
+                                        } else if (!string.IsNullOrEmpty(item.Status)) {
+                                            var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Failed" => "bg-danger", "Wait Certificate" => "bg-warning text-dark", _ => "bg-secondary" };
+                                            <span class="badge @sc">@item.Status</span>
+                                        } else {
+                                            <span class="text-muted">—</span>
+                                        }
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        @if (item.RecordType == "Training Manual") {
+                                            @if (item.ValidUntil.HasValue) {
+                                                <div>@item.ValidUntil.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</div>
+                                                @if (item.IsExpired) {
+                                                    <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
+                                                }
+                                            } else { <span class="text-muted">—</span> }
+                                        } else { <span class="text-muted">—</span> }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Stat Cards */
+.stat-card {
+    transition: all 0.3s ease;
+    overflow: hidden;
+    position: relative;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, currentColor, transparent);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.stat-card:hover::before {
+    opacity: 1;
+}
+
+.stat-card-primary::before { color: #0d6efd; }
+.stat-card-success::before { color: #198754; }
+.stat-card-info::before { color: #0dcaf0; }
+
+.stat-icon {
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+/* Enhanced Table */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.table tbody tr {
+    transition: all 0.2s ease;
+}
+
+/* Smooth Animations */
+.training-row {
+    animation: fadeIn 0.3s ease;
+}
+
+@@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+
+<script>
+function filterTable() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+    const yearFilter = document.getElementById('yearFilter').value;
+    const typeFilter = document.getElementById('typeFilter').value.toLowerCase();
+
+    document.querySelectorAll('#recordsTable .training-row').forEach(row => {
+        const title = row.getAttribute('data-title');
+        const year = row.getAttribute('data-year');
+        const category = row.getAttribute('data-category');
+        const type = row.getAttribute('data-type');
+
+        const matchSearch = !searchTerm || title.includes(searchTerm);
+        const matchYear = !yearFilter || year === yearFilter;
+        const matchCategory = !categoryFilter || category.includes(categoryFilter);
+        const matchType = !typeFilter || type === typeFilter;
+
+        row.style.display = (matchSearch && matchYear && matchCategory && matchType) ? '' : 'none';
+    });
+}
+
+document.getElementById('searchInput').addEventListener('input', filterTable);
+document.getElementById('categoryFilter').addEventListener('change', filterTable);
+document.getElementById('yearFilter').addEventListener('change', filterTable);
+document.getElementById('typeFilter').addEventListener('change', filterTable);
+
+function clearFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('yearFilter').value = '';
+    document.getElementById('typeFilter').value = '';
+    filterTable();
+}
+</script>
