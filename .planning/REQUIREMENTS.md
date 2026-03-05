@@ -17,7 +17,7 @@ Requirements for basic in-app notification system. Each maps to roadmap phases.
 - [ ] **INFRA-05**: Users can mark individual notifications as read (click notification → mark read → remove from counter)
 - [ ] **INFRA-06**: Users can mark all notifications as read (bulk action button)
 - [x] **INFRA-07**: System tracks notification audit trail (created by, created at, read at, delivery status)
-- [ ] **INFRA-08**: Notification templates provide consistent messaging across all triggers
+- [x] **INFRA-08**: Notification templates provide consistent messaging across all triggers
 - [ ] **INFRA-09**: Notification failures gracefully degrade (try-catch prevents main workflow crashes)
 - [ ] **INFRA-10**: Notifications use deep linking (click notification → navigate to relevant page)
 
@@ -83,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-05 | Phase 100 | Pending |
 | INFRA-06 | Phase 100 | Pending |
 | INFRA-07 | Phase 99 | Complete |
-| INFRA-08 | Phase 99 | Pending |
+| INFRA-08 | Phase 99 | Complete |
 | INFRA-09 | Phase 99 | Pending |
 | INFRA-10 | Phase 100 | Pending |
 | ASMT-01 | Phase 101 | Pending |
