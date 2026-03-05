@@ -523,8 +523,28 @@ namespace HcPortal.Controllers
                 if (System.IO.File.Exists(path)) System.IO.File.Delete(path);
             }
 
+            string trainingTitle = record.TrainingTitle;
+            string workerName = workerName ?? record.UserId;
+
             _context.TrainingRecords.Remove(record);
             await _context.SaveChangesAsync();
+
+            // Audit log
+            try
+            {
+                var deleteActorName = string.IsNullOrWhiteSpace(user?.NIP) ? (user?.FullName ?? "Unknown") : $"{user.NIP} - {user.FullName}";
+                await _auditLog.LogAsync(
+                    user?.Id ?? "",
+                    deleteActorName,
+                    "DeleteTrainingRecord",
+                    $"Deleted training record '{trainingTitle}' for worker '{workerName}' [ID={id}]",
+                    id,
+                    "TrainingRecord");
+            }
+            catch (Exception auditEx)
+            {
+                _logger.LogWarning(auditEx, "Audit log write failed for DeleteTrainingRecord {Id}", id);
+            }
 
             TempData["Success"] = "Training record berhasil dihapus.";
             return RedirectToAction("ManageAssessment", "Admin", new { tab = "training" });

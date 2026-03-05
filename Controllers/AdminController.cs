@@ -219,9 +219,30 @@ namespace HcPortal.Controllers
             var kkjFile = await _context.KkjFiles.FindAsync(id);
             if (kkjFile == null) return Json(new { success = false, message = "File tidak ditemukan." });
 
+            string fileName = kkjFile.FileName;
+            int bagianId = kkjFile.BagianId;
+
             // Soft delete: archive the file (moves to history view, physical file retained)
             kkjFile.IsArchived = true;
             await _context.SaveChangesAsync();
+
+            // Audit log
+            try
+            {
+                var deleteUser = await _userManager.GetUserAsync(User);
+                var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
+                await _auditLog.LogAsync(
+                    deleteUser?.Id ?? "",
+                    deleteActorName,
+                    "ArchiveKKJFile",
+                    $"Archived KKJ file '{fileName}' [ID={id}] in bagian {bagianId}",
+                    id,
+                    "KkjFile");
+            }
+            catch (Exception auditEx)
+            {
+                _logger.LogWarning(auditEx, "Audit log write failed for KkjFileDelete {Id}", id);
+            }
 
             return Json(new { success = true, message = "File berhasil diarsipkan." });
         }
@@ -5309,8 +5330,28 @@ namespace HcPortal.Controllers
             if (question == null) return NotFound();
 
             int assessmentId = question.AssessmentSessionId;
+            string questionText = question.QuestionText;
+
             _context.AssessmentQuestions.Remove(question);
             await _context.SaveChangesAsync();
+
+            // Audit log
+            try
+            {
+                var deleteUser = await _userManager.GetUserAsync(User);
+                var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
+                await _auditLog.LogAsync(
+                    deleteUser?.Id ?? "",
+                    deleteActorName,
+                    "DeleteQuestion",
+                    $"Deleted question '{questionText?.Substring(0, Math.Min(50, questionText?.Length ?? 0))}...' [ID={id}] from assessment {assessmentId}",
+                    id,
+                    "AssessmentQuestion");
+            }
+            catch (Exception auditEx)
+            {
+                _logger.LogWarning(auditEx, "Audit log write failed for DeleteQuestion {Id}", id);
+            }
 
             return RedirectToAction("ManageQuestions", "Admin", new { id = assessmentId });
         }
@@ -5718,6 +5759,25 @@ namespace HcPortal.Controllers
             {
                 TempData["Warning"] = "All questions were already in the package. Nothing was added.";
                 return RedirectToAction("ImportPackageQuestions", new { packageId });
+            }
+
+            // Audit log
+            try
+            {
+                var importUser = await _userManager.GetUserAsync(User);
+                var importActorName = string.IsNullOrWhiteSpace(importUser?.NIP) ? (importUser?.FullName ?? "Unknown") : $"{importUser.NIP} - {importUser.FullName}";
+                string source = excelFile != null && excelFile.Length > 0 ? $"file '{excelFile.FileName}'" : "pasted text";
+                await _auditLog.LogAsync(
+                    importUser?.Id ?? "",
+                    importActorName,
+                    "ImportQuestions",
+                    $"Imported {added} questions from {source} to package {pkg.PackageName} [ID={packageId}] in assessment {pkg.AssessmentSessionId}",
+                    packageId,
+                    "AssessmentPackage");
+            }
+            catch (Exception auditEx)
+            {
+                _logger.LogWarning(auditEx, "Audit log write failed for ImportPackageQuestions {PackageId}", packageId);
             }
 
             if (excelFile != null && excelFile.Length > 0)
