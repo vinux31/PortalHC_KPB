@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Full QA & Feature Completion
 status: unknown
+last_updated: "2026-03-05T05:00:41.009Z"
+progress:
+  total_phases: 66
+  completed_phases: 64
+  total_plans: 158
+  completed_plans: 159
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: unknown
 last_updated: "2026-03-05T04:58:27.174Z"
 progress:
   total_phases: 66
@@ -401,18 +414,18 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Milestone:** v3.2 Bug Hunting & Quality Audit
 Phase: 96 - Account Pages Audit
-Plan: 96-01 Audit Profile Page & Cross-Page Concerns (COMPLETE)
+Plan: 96-02 Fix Edit Profile Validation and Password AD Mode Handling (COMPLETE)
 Status: In progress — Audit Account pages (Profile, Settings)
-Last activity: 2026-03-05 - Completed plan 96-01: Code review found 1 medium-severity bug in avatar initials logic
+Last activity: 2026-03-05 - Completed plan 96-02: Fixed validation (phone/email), added AD mode password form hiding, improved Indonesian error messages
 
-Progress: [██░░░░░░░] 33% (1/3 plans in Phase 96)
+Progress: [███░░░░░░] 67% (2/3 plans in Phase 96)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
+- Total plans completed: 10
 - Average duration: 6 min
-- Total execution time: 52 min
+- Total execution time: 56 min
 
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
@@ -460,6 +473,8 @@ Progress: [██░░░░░░░] 33% (1/3 plans in Phase 96)
 | Phase 96-account-pages-audit P96-01 | 5 min | 4 tasks | 0 files |
 | Phase 95 P95-03 | 8 | 3 tasks | 1 files |
 | Phase 96 P96-01 | 1 min | 4 tasks | 0 files |
+| Phase 96 P96-02 | 4 min | 5 tasks | 3 files |
+| Phase 96 P96-02 | 4 | 5 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -549,7 +564,8 @@ Progress: [██░░░░░░░] 33% (1/3 plans in Phase 96)
 - [Phase 95-admin-portal-audit]: N+1 query in ManageWorkers role loading acceptable for typical scale, no optimization needed
 - [Phase 95-admin-portal-audit]: [95-03] Fixed 12 raw exception exposures with generic Indonesian messages and structured logging; added input validation to AddQuestion action
 - [Phase 96-account-pages-audit]: [96-01] Account pages code review found only 1 medium-severity bug: avatar initials logic doesn't handle single-character names (shows "?" instead of the character)
-
+- [Phase 96-account-pages-audit]: [96-02] Email validation added to read-only Email field for defense-in-depth; AD mode uses view-layer conditional to keep Settings accessible in both modes; auto-dismiss uses 5-second standard UX timeout
+- [Phase 96]: Email validation added to read-only Email field for defense-in-depth; AD mode uses view-layer conditional; auto-dismiss uses 5-second timeout
 
 ### Pending Todos
 
