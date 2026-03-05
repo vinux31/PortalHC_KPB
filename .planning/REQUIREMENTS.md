@@ -27,8 +27,8 @@ Systematically audit all portal pages to identify and fix bugs. Organized by nav
 ### CDP (Competency Development Platform)
 
 - [ ] **CDP-01**: Plan IDP page loads without errors for all roles (Worker, Coach, Spv, HC, Admin)
-- [ ] **CDP-02**: Coaching Proton page shows correct coachee lists and deliverable status
-- [ ] **CDP-03**: Progress page displays correct approval workflows per role
+- [x] **CDP-02**: Coaching Proton page shows correct coachee lists and deliverable status
+- [x] **CDP-03**: Progress page displays correct approval workflows per role
 - [ ] **CDP-04**: Evidence upload and download work correctly for deliverables
 - [ ] **CDP-05**: Coaching session submission and approval flows work end-to-end
 - [ ] **CDP-06**: All CDP forms handle validation errors gracefully
@@ -100,8 +100,8 @@ Deferred to future milestones. Not in scope for bug hunting.
 | CMP-05 | Phase 93 | Complete |
 | CMP-06 | Phase 93 | Complete |
 | CDP-01 | Phase 94 | Pending |
-| CDP-02 | Phase 94 | Pending |
-| CDP-03 | Phase 94 | Pending |
+| CDP-02 | Phase 94 | Complete |
+| CDP-03 | Phase 94 | Complete |
 | CDP-04 | Phase 94 | Pending |
 | CDP-05 | Phase 94 | Pending |
 | CDP-06 | Phase 94 | Pending |
