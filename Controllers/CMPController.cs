@@ -469,6 +469,37 @@ namespace HcPortal.Controllers
             return View("RecordsTeam", workerList);
         }
 
+        // Phase 104: Worker Detail page showing unified assessment + training history
+        public async Task<IActionResult> RecordsWorkerDetail(string workerId, string? section, string? unit, string? category, string? status, string? search)
+        {
+            var worker = await _userManager.FindByIdAsync(workerId);
+            if (worker == null)
+            {
+                return NotFound();
+            }
+
+            var unifiedRecords = await GetUnifiedRecords(workerId);
+
+            var viewModel = new
+            {
+                WorkerName = worker.FullName ?? worker.Id,
+                NIP = worker.NIP,
+                Position = worker.Position ?? "—",
+                Section = worker.Section ?? "—",
+                UnifiedRecords = unifiedRecords,
+                FilterState = new
+                {
+                    Section = section,
+                    Unit = unit,
+                    Category = category,
+                    Status = status,
+                    Search = search
+                }
+            };
+
+            return View(viewModel);
+        }
+
         // Phase 20: HC Edit Training Record — POST only (no GET; modal is pre-populated inline via Razor in WorkerDetail.cshtml)
         [HttpPost]
         [ValidateAntiForgeryToken]
