@@ -2718,8 +2718,9 @@ namespace HcPortal.Controllers
                 }
 
                 // 4. Proton Deliverable Progress — create 10-15 records
+                // Check if any seed progress already exists (no CoacheeId prefix, check by deliverable count)
                 var existingProgress = await _context.ProtonDeliverableProgresses
-                    .Where(p => p.CoacheeId.StartsWith("SEED-"))
+                    .Where(p => allActiveUsers.Select(u => u.Id).Contains(p.CoacheeId))
                     .CountAsync();
 
                 if (existingProgress == 0)
@@ -2797,8 +2798,9 @@ namespace HcPortal.Controllers
                 }
 
                 // 5. Proton Track Assignments — create 3-5 assignments
+                // Check if any seed assignments already exist (no CoacheeId prefix, check by user IDs)
                 var existingAssignments = await _context.ProtonTrackAssignments
-                    .Where(a => a.CoacheeId.StartsWith("SEED-"))
+                    .Where(a => a.IsActive && allActiveUsers.Select(u => u.Id).Contains(a.CoacheeId))
                     .CountAsync();
 
                 if (existingAssignments == 0 && stats["deliverableProgress"] > 0)
