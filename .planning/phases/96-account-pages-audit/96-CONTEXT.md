@@ -21,14 +21,13 @@ Audit Account (Profile & Settings) pages for bugs — Profile page displays user
 
 ### Audit Organization
 - **Per functional area** — Profile bugs → satu commit, Settings Edit Profile bugs → satu commit, Change Password bugs → satu commit
-- Expected: 2-3 commits depending on findings
+- Expected: 3-4 commits tergantung findings
 - Matches Phase 94's by-flow approach and keeps changes organized by feature area
 
 ### Testing Approach
-- **Smoke test only** — quick verification that pages load and obvious bugs are fixed
-- Pattern: Code review → identify bugs → fix → browser verify (same as Phases 93-95)
+- **Code review untuk sebagian besar** — Profile, Edit Profile, password change, CSRF, null safety
+- **Browser test hanya untuk** — Authentication check (coba akses langsung tanpa login)
 - Focus on verifying the specific bug that was fixed
-- Browser testing only when code review is unclear or requires runtime verification
 
 ### Bug Priority
 - Claude's discretion — prioritize based on severity and user impact
@@ -38,43 +37,89 @@ Audit Account (Profile & Settings) pages for bugs — Profile page displays user
 - Low: cosmetic issues, typos, minor inconsistencies
 
 ### Test Data Approach
-- **Pakai existing users** — users from prior phases (Phase 83 workers, Phase 87 seed data)
-- Test with different user data scenarios:
-  - User with all fields populated
-  - User with missing optional fields (NIP, Position, PhoneNumber, Section, Directorate, Unit)
-  - User with single-word name (avatar initials edge case)
-  - User with two-word name (standard initials)
-  - User with multi-word name (3+ parts)
-- Pragmatic approach: use existing DB users, add only if specific edge case needed
+- **Pakai existing users** — users dari prior phases (Phase 83 workers, Phase 87 seed data)
+- Pragmatic approach: gunakan existing DB users, tambah hanya jika edge case spesifik diperlukan
 
-### Specific Areas to Check
+## Area 1: Profile Page
 
-**Profile page:**
-- Avatar initials logic correctness (lines 5-9 in Profile.cshtml)
-- Null/empty handling for all displayed fields
-- "Edit Profile" button link to Settings page
-- Role display fallback for users without roles
+### Avatar Initials
+- **Keputusan**: Biarkan logic existing
+- Logic saat ini: 2 kata pertama untuk nama multi-kata, 2 karakter pertama untuk satu kata, '?' untuk kosong
+- Tidak perlu perubahan
 
-**Settings Edit Profile:**
-- FullName required validation working
-- Position and PhoneNumber optional handling
-- Save persistence (changes actually saved to DB)
-- Success/error TempData messages displaying
-- Navigation back to Profile after save
+### Empty Field Placeholder
+- **Keputusan**: Biarkan tampil '-' untuk field kosong
+- Sudah konsisten dengan code saat ini
 
-**Change Password:**
-- Current password validation
-- New password min 6 character enforcement
-- Confirm password compare validation
-- Password mismatch error message (line 244-246 in AccountController)
-- RefreshSignInAsync called after successful change
-- Error messages for generic password failures
+### Role Display
+- **Keputusan**: Biarkan "No Role" untuk user tanpa role
+- Sudah appropriate
+
+### Testing
+- Code review saja — tidak perlu browser test untuk Profile
+
+## Area 2: Edit Profile (Settings)
+
+### Validation Rules
+- **Keputusan**: Tambah validasi
+1. **PhoneNumber** — tambah validasi numeric only (hanya angka)
+2. **Email** — tambah validasi format email, walau field read-only (untuk consistency)
+
+### Success/Error Messages
+- **Keputusan**: Improve dengan auto-dismiss
+- Tambah JavaScript untuk auto-dismiss alert setelah 5 detik
+- Gunakan Bootstrap alert + setTimeout untuk remove
+
+### Testing
+- Code review saja — cek validation dan auto-dismiss logic
+
+## Area 3: Change Password
+
+### AD Mode Handling
+- **Keputusan**: Sembunyikan form ganti password jika mode AD aktif
+- Baca config `Authentication:UseActiveDirectory`
+- Jika true, sembunyikan section "Ubah Password" di Settings.cshtml
+- Tambah info/message bahwa password dikelola oleh AD
+
+### Local Mode
+- **Keputusan**: Biarkan minimum 6 karakter untuk local auth
+- Tidak perlu complexity requirement
+
+### Error Messages
+- **Keputusan**: Perbaiki bahasa Indonesia
+- Review semua pesan error password dan perbaiki agar lebih natural/jelas
+
+### Testing
+- Code review saja untuk logic hide form dan password change
+- Untuk AD: tidak perlu test ganti password (form di-hide)
+
+## Area 4: Cross-page & Auth
+
+### Navigation
+- **Keputusan**: Code review saja
+- Cek link "Edit Profile" di Profile → Settings
+- Cek link "Kembali ke Profil" di Settings → Profile
+
+### CSRF Protection
+- **Keputusan**: Verifikasi CSRF
+- Pastikan @Html.AntiForgeryToken() ada di kedua form
+- Pastikan [ValidateAntiForgeryToken] attribute di POST actions
+- Verify implementasi correct
+
+### Authentication Check
+- **Keputusan**: Perlu browser test
+- Test: coba akses /Account/Profile dan /Account/Settings tanpa login
+- Verify redirect ke Login page
+
+### Null Safety
+- **Keputusan**: Code review saja
+- Cek null handling untuk Model dan ViewBag di views
+- Cek user null check di controller actions
 
 ### Claude's Discretion
 - Exact order of bug fixes within each area
-- Whether to group fixes by area or by bug category
-- Which null safety checks are actually needed vs defensive coding
-- How deep to investigate each edge case vs smoke test
+- Grouping fixes into commits
+- Detail improvement untuk bahasa Indonesia error messages
 
 </decisions>
 
@@ -82,10 +127,31 @@ Audit Account (Profile & Settings) pages for bugs — Profile page displays user
 ## Specific Ideas
 
 - Follow Phase 93-95 audit pattern: Code review → Identify bugs → Fix → Smoke test
-- Commit style: `fix(account): [description]` with Co-Authored-By footer
+- Commit style: `fix(account): [description]` dengan Co-Authored-By footer
 - Preserve existing functionality — bug fixes only, no behavior changes
-- Focus on the 2 Account pages only — Login/Logout already audited in Phase 87 (DASH-04)
-- "Secara menyeluruh dan detail" — thoroughness is the priority (from Phase 95)
+- Focus pada 2 Account pages saja — Login/Logout sudah audited di Phase 87
+
+**Validasi yang ditambahkan:**
+- Phone: `[RegularExpression(@"^[0-9]+$", ErrorMessage = "Nomor telepon hanya boleh angka")]`
+- Email: `[EmailAddress(ErrorMessage = "Format email tidak valid")]`
+
+**Auto-dismiss alert (JavaScript):**
+```javascript
+setTimeout(function() {
+    $('.alert').fadeOut('slow');
+}, 5000);
+```
+
+**Hide password form untuk AD mode (Settings.cshtml):**
+```csharp
+@{
+    var useAD = Context.RequestServices.GetRequiredService<IConfiguration>()
+        .GetValue<bool>("Authentication:UseActiveDirectory", false);
+}
+@if (!useAD) {
+    <!-- Password form section -->
+}
+```
 
 </specifics>
 
@@ -94,15 +160,10 @@ Audit Account (Profile & Settings) pages for bugs — Profile page displays user
 
 ### Key Files
 - `Controllers/AccountController.cs` (264 lines) — login, logout, profile, settings, EditProfile POST, ChangePassword POST
-- `Views/Account/Profile.cshtml` (101 lines) — read-only display with avatar initials
-- `Views/Account/Settings.cshtml` (183 lines) — two separate forms: Edit Profile + Change Password
-- `Models/SettingsViewModel.cs` — EditProfileViewModel and ChangePasswordViewModel with DataAnnotations validation
-- `Models/ApplicationUser.cs` — FullName, NIP, Position, Section, Directorate, Unit, JoinDate, RoleLevel, SelectedView, IsActive, PhoneNumber (from IdentityUser)
-
-### Established Patterns from Prior Audits
-- **Phase 93 (CMP Audit)**: Localization sweep using `CultureInfo.GetCultureInfo("id-ID")`, null checks for DateTime, CSRF token verification
-- **Phase 94 (CDP Audit)**: Flow-based organization, role-based filtering, validation error handling via TempData
-- **Phase 95 (Admin Audit)**: Per-page organization, cross-cutting concerns in separate commits, pragmatic test data usage
+- `Views/Account/Profile.cshtml` (101 lines) — read-only display dengan avatar initials
+- `Views/Account/Settings.cshtml` (183 lines) — dua separate forms: Edit Profile + Change Password
+- `Models/SettingsViewModel.cs` — EditProfileViewModel dan ChangePasswordViewModel dengan DataAnnotations validation
+- `Models/ApplicationUser.cs` — FullName, NIP, Position, Section, Directorate, Unit, JoinDate, RoleLevel, SelectedView, IsActive, PhoneNumber (dari IdentityUser)
 
 ### Avatar Initials Logic (Profile.cshtml lines 5-9)
 ```csharp
@@ -111,35 +172,48 @@ var initials = nameParts.Length >= 2
     ? $"{nameParts[0][0]}{nameParts[1][0]}".ToUpper()
     : (fullName.Length >= 2 ? fullName.Substring(0, 2).ToUpper() : "?");
 ```
-- Edge cases: single-word names, empty/null names, multi-word names (uses first 2 parts only)
+- Edge cases: single-word names, empty/null names, multi-word names (uses first 2 parts)
 
 ### Validation Rules (SettingsViewModel.cs)
 - EditProfileViewModel: FullName `[Required]`, Position/PhoneNumber optional `[StringLength(100)]/[StringLength(20)]`
 - ChangePasswordViewModel: All fields `[Required]`, NewPassword `[StringLength(100, MinimumLength = 6)]`, Confirm `[Compare("NewPassword")]`
 
 ### Error Handling Patterns
-- TempData for success/error messages: ProfileSuccess, ProfileError, PasswordSuccess, PasswordError
+- TempData untuk success/error messages: ProfileSuccess, ProfileError, PasswordSuccess, PasswordError
 - Password mismatch specific error: `if (result.Errors.Any(e => e.Code == "PasswordMismatch"))`
 - Generic password error fallback: `string.Join("; ", result.Errors.Select(e => e.Description))`
 
+### CSRF Protection
+- `@Html.AntiForgeryToken()` ada di kedua form (Settings.cshtml lines 35, 147)
+- `[ValidateAntiForgeryToken]` attribute ada di EditProfile dan ChangePassword POST actions
+
+### Authentication Checks
+- Profile action: `if (User.Identity?.IsAuthenticated != true) return RedirectToAction("Login");`
+- Settings action: `if (User.Identity?.IsAuthenticated != true) return RedirectToAction("Login");`
+
 ### Integration Points
-- Profile page links to Settings via "Edit Profile" button
-- Settings page links back to Profile via "Kembali ke Profil" anchor
-- Both pages require authentication (redirect to Login if not authenticated)
-- UserManager and SignInManager injected into AccountController for user operations
+- Profile links ke Settings via "Edit Profile" button (line 94-96)
+- Settings links back ke Profile via "Kembali ke Profil" anchor (line 9-11)
+- Both pages require authentication (redirect ke Login jika tidak authenticated)
+
+### AD Mode Config
+- Login action membaca config: `_config.GetValue<bool>("Authentication:UseActiveDirectory", false)`
+- Config key: `Authentication:UseActiveDirectory`
 
 ### Reusable Assets
-- UserManager<ApplicationUser> — for user lookup and updates
-- SignInManager<ApplicationUser> — for RefreshSignInAsync after password change
+- UserManager<ApplicationUser> — untuk user lookup dan updates
+- SignInManager<ApplicationUser> — untuk RefreshSignInAsync setelah password change
 - DataAnnotations validation — server-side ModelState validation
+- IConfiguration — untuk baca AD mode setting
 
 ### Known Bug Patterns to Look For
-- **Null safety**: Check Model.XXX null checks in Profile.cshtml
+- **Null safety**: Cek Model.XXX null checks di Profile.cshtml
 - **Empty string handling**: `string.IsNullOrEmpty(Model.FullName)` pattern used
-- **Avatar edge cases**: Single-word names, names with special characters, null/empty names
+- **Avatar edge cases**: Single-word names, names dengan special characters, null/empty names
 - **Password errors**: All error paths tested (wrong current, too short new, mismatch confirm)
-- **CSRF tokens**: `@Html.AntiForgeryToken()` present in both forms
-- **ModelState validation**: Check for missing ModelState.IsValid checks in POST actions
+- **CSRF tokens**: Verify `@Html.AntiForgeryToken()` present di kedua forms
+- **ModelState validation**: Cek untuk missing ModelState.IsValid checks di POST actions
+- **AD mode detection**: Verify logic baca config dan hide form
 
 </code_context>
 
