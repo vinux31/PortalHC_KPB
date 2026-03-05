@@ -18,23 +18,36 @@
 <div class="container-fluid px-4 py-4">
 
     <!-- Header Section -->
-    <div class="mb-4">
-        <nav aria-label="breadcrumb" class="mb-1">
-            <ol class="breadcrumb small">
-                <li class="breadcrumb-item"><a href="/CMP">CMP</a></li>
-                <li class="breadcrumb-item">
-                    <a asp-action="Records" asp-controller="CMP" asp-fragment="team"
-                       asp-route-section="@filterState.Section"
-                       asp-route-unit="@filterState.Unit"
-                       asp-route-category="@filterState.Category"
-                       asp-route-statusFilter="@filterState.Status"
-                       asp-route-search="@filterState.Search">Records</a>
-                </li>
-                <li class="breadcrumb-item active">Worker Detail</li>
-            </ol>
-        </nav>
-        <h2 class="fw-bold mb-1">Worker Training History</h2>
-        <p class="text-muted mb-0">View detailed assessment and training records for team member.</p>
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <nav aria-label="breadcrumb" class="mb-1">
+                <ol class="breadcrumb small">
+                    <li class="breadcrumb-item"><a href="/CMP">CMP</a></li>
+                    <li class="breadcrumb-item">
+                        <a asp-action="Records" asp-controller="CMP" asp-fragment="team"
+                           asp-route-section="@filterState.Section"
+                           asp-route-unit="@filterState.Unit"
+                           asp-route-category="@filterState.Category"
+                           asp-route-statusFilter="@filterState.Status"
+                           asp-route-search="@filterState.Search">Records</a>
+                    </li>
+                    <li class="breadcrumb-item active">Worker Detail</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold mb-1">Worker Training History</h2>
+            <p class="text-muted mb-0">View detailed assessment and training records for team member.</p>
+        </div>
+        <a asp-action="Records"
+           asp-controller="CMP"
+           asp-fragment="team"
+           asp-route-section="@filterState.Section"
+           asp-route-unit="@filterState.Unit"
+           asp-route-category="@filterState.Category"
+           asp-route-statusFilter="@filterState.Status"
+           asp-route-search="@filterState.Search"
+           class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Team View
+        </a>
     </div>
 
     <!-- Worker Info Card -->
