@@ -1,5 +1,20 @@
 ---
 gsd_state_version: 1.0
+milestone: v3.0
+milestone_name: Full QA & Feature Completion
+status: verifying
+last_updated: "2026-03-05T07:13:57.259Z"
+last_activity: "2026-03-05 - Completed plan 98-02: Soft-delete cascade verification. Found orphan leaks in AdminController.CoachCoacheeMapping (missing Coach/Coachee.IsActive), CDPController.Progress (missing ProtonTrackAssignment.IsActive), and assignment display (missing ProtonKompetensi.IsActive). Plan 98-03 bug fixes: REQUIRED."
+progress:
+  total_phases: 68
+  completed_phases: 65
+  total_plans: 166
+  completed_plans: 169
+  percent: 50
+---
+
+---
+gsd_state_version: 1.0
 milestone: v3.2
 milestone_name: Bug Hunting & Quality Audit
 status: in-progress
@@ -24,11 +39,11 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 
 **Milestone:** v3.2 Bug Hunting & Quality Audit
 **Phase:** 98 - Data Integrity Audit
-**Plan:** 98-01 IsActive Filter Consistency Audit (COMPLETE)
-**Status:** Complete — Exhaustive grep audit of all IsActive filters across 4 entities with 48 .Where patterns, 22 showInactive occurrences, 93 total usages. Zero critical gaps found. DATA-01 requirement VERIFIED PASS.
-**Last activity:** 2026-03-05 - Completed plan 98-01: IsActive filter audit complete. All 4 entities (ApplicationUser, CoachCoacheeMapping, ProtonTrackAssignment, ProtonKompetensi) verified with consistent filtering. 7/7 high-risk queries PASS (100%). Plan 98-03 bug fixes: NOT NEEDED.
+**Plan:** 98-02 Soft-Delete Cascade Verification (COMPLETE)
+**Status:** Complete — Comprehensive audit of EF Core cascades and soft-delete patterns. Documented 12 hard-delete cascades, 4 soft-delete entities, 5 soft-delete actions. Verified 7 child query locations. Identified 3 HIGH-risk gaps where orphans leak to UI. DATA-02 requirement: FAIL (gaps found, fixes needed in plan 98-03).
+**Last activity:** 2026-03-05 - Completed plan 98-02: Soft-delete cascade verification. Found orphan leaks in AdminController.CoachCoacheeMapping (missing Coach/Coachee.IsActive), CDPController.Progress (missing ProtonTrackAssignment.IsActive), and assignment display (missing ProtonKompetensi.IsActive). Plan 98-03 bug fixes: REQUIRED.
 
-**Progress:** [████████░] 25% (1/4 plans in Phase 98 complete)
+**Progress:** [█████████] 50% (2/4 plans in Phase 98 complete)
 
 ## Performance Metrics
 
@@ -91,11 +106,17 @@ See: .planning/PROJECT.md (updated 2026-03-05)
 | Phase 97 P97-03 | 2 min | 3 tasks | 3 files |
 | Phase 97 P97-04 | 5 min | 3 tasks | 2 files |
 | Phase 98 P98-01 | 3 min | 4 tasks | 4 files |
+| Phase 98 P98-02 | 7 | 5 tasks | 4 files |
 
 ## Accumulated Context
 
 ### Decisions
 
+- [Phase 98]: [98-02] DATA-02 requirement: FAIL - 3 HIGH-risk orphan leaks found where soft-deleted parents leak to UI (CoachCoacheeMapping, Progress, assignment display)
+- [Phase 98]: [98-02] Auto-hide orphan strategy is correct but INCONSISTENT - some queries filter parent.IsActive, others don't, causing leaks
+- [Phase 98]: [98-02] DeactivateWorker partial cascade (CoachCoacheeMapping) is correct - track assignments persist across deactivation/reactivation
+- [Phase 98]: [98-02] ReactivateWorker/ReactivateSilabus non-cascade is intentional - prevents accidental relationship restoration
+- [Phase 98]: [98-02] Plan 98-03 bug fixes: REQUIRED - fix 3 HIGH-risk gaps to satisfy DATA-02 requirement
 - [Phase 98]: [98-01] DATA-01 requirement VERIFIED PASS - all IsActive filters applied consistently across 4 entities (ApplicationUser, CoachCoacheeMapping, ProtonTrackAssignment, ProtonKompetensi)
 - [Phase 98]: [98-01] Grep audit: 48 .Where patterns, 22 showInactive, 93 total usages - ZERO critical gaps found
 - [Phase 98]: [98-01] Plan 98-03 bug fixes: NOT NEEDED - all IsActive filters working correctly, 1 optional improvement identified (low severity)
