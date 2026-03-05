@@ -31,13 +31,33 @@
                 <!-- Row 1: Section, Unit, Category -->
                 <div class="col-12 col-md-4">
                     <label class="form-label small text-muted mb-1">Section</label>
-                    <select id="sectionFilter" class="form-select" @(roleLevel == 4 && !string.IsNullOrEmpty(lockedSection) ? "disabled" : "") onchange="filterTable()">
-                        <option value="">All Sections</option>
-                        @foreach (var section in sections)
-                        {
-                            <option value="@section" @(lockedSection == section ? "selected" : "")>@section</option>
-                        }
-                    </select>
+                    @if (roleLevel == 4 && !string.IsNullOrEmpty(lockedSection))
+                    {
+                        <select id="sectionFilter" class="form-select" disabled onchange="filterTable()">
+                            <option value="">All Sections</option>
+                            @foreach (var sec in sections)
+                            {
+                                @if (lockedSection == sec)
+                                {
+                                    <option value="@sec" selected>@sec</option>
+                                }
+                                else
+                                {
+                                    <option value="@sec">@sec</option>
+                                }
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <select id="sectionFilter" class="form-select" onchange="filterTable()">
+                            <option value="">All Sections</option>
+                            @foreach (var sec in sections)
+                            {
+                                <option value="@sec">@sec</option>
+                            }
+                        </select>
+                    }
                 </div>
                 <div class="col-12 col-md-4">
                     <label class="form-label small text-muted mb-1">Unit</label>

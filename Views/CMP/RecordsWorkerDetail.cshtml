@@ -7,7 +7,7 @@
     var workerName = Model.WorkerName;
     var nip = Model.NIP;
     var position = Model.Position;
-    var section = Model.Section;
+    var workerSection = Model.Section;
     var unifiedRecords = Model.UnifiedRecords as List<HcPortal.Models.UnifiedTrainingRecord>;
     var filterState = Model.FilterState;
 
@@ -55,7 +55,7 @@
                 </div>
                 <div class="col-12 col-md-3 mb-2">
                     <small class="text-muted d-block">Section</small>
-                    <span class="fw-semibold">@section</span>
+                    <span class="fw-semibold">@workerSection</span>
                 </div>
             </div>
         </div>
@@ -122,10 +122,10 @@
                 <div class="col-12 col-md-2">
                     <select id="categoryFilter" class="form-select">
                         <option value="">All Categories</option>
-                        @if (unifiedRecords.Any(r => r.RecordType == "Training Manual"))
+                        @if (unifiedRecords != null && unifiedRecords.Any(r => r.RecordType == "Training Manual"))
                         {
                             @foreach (var cat in unifiedRecords.Where(r => r.RecordType == "Training Manual")
-                                .Select(r => r.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c))
+                                .Select(r => r.Kategori).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c))
                             {
                                 <option value="@cat">@cat</option>
                             }
@@ -193,7 +193,7 @@
                                 <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
                                     data-title="@item.Title.ToLower()"
                                     data-year="@item.Date.Year"
-                                    data-category="@(item.Category?.ToLower() ?? "")"
+                                    data-category="@(item.Kategori?.ToLower() ?? "")"
                                     data-type="@item.RecordType.ToLower()"
                                     @(resultsUrl != null ? Html.Raw($"onclick=\"window.location.href='{resultsUrl}'\"") : Html.Raw(""))
                                     style="@(resultsUrl != null ? "cursor:pointer;" : "")">
