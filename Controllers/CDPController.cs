@@ -1368,13 +1368,19 @@ namespace HcPortal.Controllers
             int pendingActions = 0;
             int pendingApprovals = 0;
 
-            // Build base query
+            // Build base query (filter out progresses for coachees with inactive ProtonTrackAssignments)
+            var activeAssignmentCoacheeIds = await _context.ProtonTrackAssignments
+                .Where(a => a.IsActive && dataCoacheeIds.Contains(a.CoacheeId))
+                .Select(a => a.CoacheeId)
+                .Distinct()
+                .ToListAsync();
+
             var query = _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
                     .ThenInclude(d => d!.ProtonSubKompetensi)
                         .ThenInclude(s => s!.ProtonKompetensi)
                             .ThenInclude(k => k!.ProtonTrack)
-                .Where(p => dataCoacheeIds.Contains(p.CoacheeId));
+                .Where(p => activeAssignmentCoacheeIds.Contains(p.CoacheeId));
 
             // Apply Track filter (FILT-03)
             if (!string.IsNullOrEmpty(trackType))

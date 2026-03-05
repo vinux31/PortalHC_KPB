@@ -3468,12 +3468,12 @@ namespace HcPortal.Controllers
                 query = query.Where(m => m.IsActive);
             var mappings = await query.ToListAsync();
 
-            // 3. Join with user data + apply filters
+            // 3. Join with user data + apply filters (including parent.IsActive to prevent orphans)
             var rows = mappings.Select(m => new {
                 Mapping = m,
                 Coach = userDict.GetValueOrDefault(m.CoachId),
                 Coachee = userDict.GetValueOrDefault(m.CoacheeId)
-            }).ToList();
+            }).Where(r => r.Coach?.IsActive == true && r.Coachee?.IsActive == true).ToList();
 
             if (!string.IsNullOrEmpty(search))
             {
@@ -3492,12 +3492,14 @@ namespace HcPortal.Controllers
                     .ToList();
             }
 
-            // 4. Load active ProtonTrack assignments keyed by CoacheeId
+            // 4. Load active ProtonTrack assignments keyed by CoacheeId (filter out assignments with inactive ProtonKompetensi)
             var activeTrackAssignments = await _context.ProtonTrackAssignments
                 .Where(a => a.IsActive)
                 .Include(a => a.ProtonTrack)
+                    .ThenInclude(t => t.KompetensiList)
                 .ToListAsync();
             var trackByCoachee = activeTrackAssignments
+                .Where(a => a.ProtonTrack?.KompetensiList?.Any(k => k.IsActive) == true)
                 .GroupBy(a => a.CoacheeId)
                 .ToDictionary(g => g.Key, g => g.First().ProtonTrack?.DisplayName ?? "");
 
