@@ -257,12 +257,12 @@ See: .planning/PROJECT.md (updated 2026-03-03)
 ## Current Position
 
 **Milestone:** v3.0 Full QA & Feature Completion
-Phase: 85 — coaching-proton-flow-qa — COMPLETE
-Plan: 04 — COMPLETE (Phase 85 all 4 plans done)
-Status: Phase 85 complete — all 8 COACH requirements closed, Override tab + exports + Dashboard browser-verified PASS
-Last activity: 2026-03-04 - 85-04 complete: Override AJAX chain reviewed, ExportProgressExcel/Pdf confirmed, Dashboard pending counts verified; all COACH-01 through COACH-08 formally closed
+Phase: 87 — dashboard-navigation-qa — COMPLETE
+Plan: 03 — COMPLETE (Phase 87 all 3 plans done)
+Status: Phase 87 complete — all 8 DASH requirements (DASH-01 through DASH-08) verified PASS via code review and browser verification
+Last activity: 2026-03-05 - 87-03 complete: Login flow, role-based navigation, section selectors, AccessDenied page, and AuditLog page all verified PASS; no bugs found
 
-Progress: [████████░░] 88%
+Progress: [████████░░] 94%
 
 ## Performance Metrics
 
@@ -299,8 +299,9 @@ Progress: [████████░░] 88%
 | Phase 85 P02 | 15 min | 2 tasks | 2 files |
 | Phase 85 P01 | 15 | 2 tasks | 1 files |
 | Phase 85 P04 | browser session | 2 tasks | 3 files |
-| Phase 87 P01 | 20 | 1 tasks | 1 files |
-| Phase 87 P02 | 1 | 4 tasks | 2 files |
+| Phase 87 P01 | 20 min | 1 task | 1 file |
+| Phase 87 P02 | 1 min | 4 tasks | 2 files |
+| Phase 87 P03 | browser session | 4 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -368,6 +369,15 @@ Progress: [████████░░] 88%
 - [Phase 85]: [85-04]: ExportProgressExcel/Pdf confirmed handles empty coachee record set gracefully
 - [Phase 85]: [85-04]: CDP Dashboard BuildProtonProgressSubModelAsync — PendingSpvApprovals=Status=="Submitted", PendingHCReviews=HCApprovalStatus=="Pending" AND Status=="Approved" — confirmed correct
 - [Phase 85]: [85-04]: All 8 COACH requirements (COACH-01 through COACH-08) browser-verified PASS — Phase 85 complete
+- [Phase 87]: [87-01]: SeedDashboardTestData creates 3 admin users (Admin, HC, SrSpv), 3 section heads, 2 coaches, 5 coachees, 2 assessments (open, completed), 2 training records (valid, expired), 2 KKJ entries, 2 Proton tracks, 2 CPDP files, 50 audit log entries
+- [Phase 87]: [87-02]: Coachee dashboard ActiveDeliverables status fixed from 'Active' to 'Pending' (ProtonDeliverableProgress has no 'Active' status)
+- [Phase 87]: [87-02]: Proton Progress missing IsActive filters added to all 4 role branches (HC/Admin, SrSpv, SectionHead, Coach) in BuildProtonProgressSubModelAsync
+- [Phase 87]: [87-02]: Dashboard data accuracy QA complete — HomeController verified correct, CDPController bugs fixed, browser verification guide created
+- [Phase 87]: [87-03]: All login flow, navigation, and authorization code verified correct via code review and browser testing — no bugs found
+- [Phase 87]: [87-03]: Login flow inactive user block confirmed working (Phase 83 soft-delete pattern), returnUrl redirect security verified (Url.IsLocalUrl check)
+- [Phase 87]: [87-03]: Kelola Data navigation visibility confirmed correct for all 6 roles (Admin/HC only, Phase 76 fix still working)
+- [Phase 87]: [87-03]: CMP/Mapping section selector confirmed filtering correctly by RoleLevel >= 5 user's Section with fallback (Phase 93 pattern)
+- [Phase 87]: [87-03]: All 8 DASH requirements (DASH-01 through DASH-08) verified PASS — Phase 87 complete
 
 ### Pending Todos
 
@@ -391,6 +401,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-04
-Stopped at: 85-04-PLAN.md complete — Override tab + export + Dashboard QA verified; all COACH-01 through COACH-08 closed; Phase 85 complete
+Last session: 2026-03-05
+Stopped at: 87-03-PLAN.md complete — Login flow, navigation, and authorization QA verified; all DASH-01 through DASH-08 closed; Phase 87 complete
 Resume file: —

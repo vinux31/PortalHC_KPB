@@ -392,9 +392,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 87-01: QA Home/Index dashboard per role and CDP Dashboard both tabs (DASH-01, DASH-02, DASH-03)
-- [ ] 87-02: QA login flow and role-based navigation visibility (DASH-04, DASH-05)
-- [ ] 87-03: QA section selectors, AccessDenied page, and AuditLog page (DASH-06, DASH-07, DASH-08)
+- [x] 87-01: QA Home/Index dashboard per role and CDP Dashboard both tabs (DASH-01, DASH-02, DASH-03)
+- [x] 87-02: QA login flow and role-based navigation visibility (DASH-04, DASH-05)
+- [x] 87-03: QA section selectors, AccessDenied page, and AuditLog page (DASH-06, DASH-07, DASH-08)
 
 ### Phase 89: PlanIDP Silabus and Coaching Guidance Tabs Improvement
 
