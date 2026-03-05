@@ -287,7 +287,7 @@ See `.planning/milestones/v2.7-ROADMAP.md` for full details.
 - [x] **Phase 84: Assessment Flow QA** - End-to-end QA of the full assessment lifecycle from creation to history (completed 2026-03-04)
 - [x] **Phase 85: Coaching Proton Flow QA** - End-to-end QA of the full coaching workflow from mapping to export (completed 2026-03-04)
 - [~] **Phase 86: Plan IDP Development** — Superseded by Phase 89 (PlanIDP 2-Tab Redesign)
-- [ ] **Phase 87: Dashboard & Navigation QA** - Verify all dashboards, login flow, role-based navigation, and audit log page
+- [x] **Phase 87: Dashboard & Navigation QA** - Verify all dashboards, login flow, role-based navigation, and audit log page (completed 2026-03-05)
 - [x] **Phase 88: KKJ Matrix Full Rewrite** - Redesign KKJ Matrix to document-based file management with dynamic columns (completed 2026-03-03)
 - [x] **Phase 89: PlanIDP 2-Tab Redesign** - Unified Silabus + Coaching Guidance tabs for all roles (completed 2026-03-04)
 - [x] **Phase 90: Audit Admin Assessment Pages** - Audit & fix ManageAssessment + AssessmentMonitoring — all 11 flows verified (completed 2026-03-04)
@@ -401,7 +401,7 @@ Plans:
 **Goal:** Redesign CDP/PlanIdp from its current dual-path layout (Coachee deliverable table + Admin/HC PDF view) into a unified 2-tab layout (Silabus + Coaching Guidance) for all roles — read-only consumer view aligned with the finalized ProtonData/Index admin page
 **Requirements**: PLANIDP-01, PLANIDP-02, PLANIDP-03, PLANIDP-04, PLANIDP-05
 **Depends on:** Phase 88
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Requirements:
 - **PLANIDP-01**: All roles see the same unified 2-tab PlanIdp layout (Silabus + Coaching Guidance); old PDF view and old Coachee deliverable-hierarchy path are removed
@@ -516,7 +516,7 @@ Plans:
 | 84. Assessment Flow QA | v3.0 | 2/2 | ✅ Complete | 2026-03-04 |
 | 85. Coaching Proton Flow QA | v3.0 | 4/4 | ✅ Complete | 2026-03-04 |
 | 86. Plan IDP Development | v3.0 | — | ↗️ Superseded by 89 | - |
-| 87. Dashboard & Navigation QA | 2/3 | In Progress|  | - |
+| 87. Dashboard & Navigation QA | 3/3 | Complete   | 2026-03-05 | - |
 | 88. KKJ Matrix Full Rewrite | v3.0 | 4/4 | ✅ Complete | 2026-03-03 |
 | 89. PlanIDP 2-Tab Redesign | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
 | 90. Audit Admin Assessment | v3.0 | 3/3 | ✅ Complete | 2026-03-04 |
