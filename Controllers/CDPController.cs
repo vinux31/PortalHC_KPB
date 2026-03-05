@@ -734,13 +734,14 @@ namespace HcPortal.Controllers
 
             if (progress == null) return NotFound();
 
-            // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC
+            // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC OR Admin
             bool isCoachee = progress.CoacheeId == user.Id;
             bool isCoach = user.RoleLevel <= 5;
             bool isHC = userRole == UserRoles.HC;
+            bool isAdmin = userRole == UserRoles.Admin;
 
-            // HC has full access — no section check required
-            if (!isCoachee && !isHC && isCoach)
+            // Admin and HC have full access — no section check required
+            if (!isCoachee && !isHC && !isAdmin && isCoach)
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
@@ -751,7 +752,7 @@ namespace HcPortal.Controllers
                     return Forbid();
                 }
             }
-            else if (!isCoachee && !isHC && !isCoach)
+            else if (!isCoachee && !isHC && !isAdmin && !isCoach)
             {
                 return Forbid();
             }
@@ -1165,14 +1166,16 @@ namespace HcPortal.Controllers
                 return NotFound();
             }
 
-            // Access control: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC
+            // Access control: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC OR Admin
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
             bool isCoachee = progress.CoacheeId == user.Id;
             bool isCoach = user.RoleLevel <= 5;
             bool isHC = userRole == UserRoles.HC;
+            bool isAdmin = userRole == UserRoles.Admin;
 
-            if (!isCoachee && !isHC && isCoach)
+            // Admin and HC have full access — no section check required
+            if (!isCoachee && !isHC && !isAdmin && isCoach)
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
@@ -1183,7 +1186,7 @@ namespace HcPortal.Controllers
                     return Forbid();
                 }
             }
-            else if (!isCoachee && !isHC && !isCoach)
+            else if (!isCoachee && !isHC && !isAdmin && !isCoach)
             {
                 return Forbid();
             }
