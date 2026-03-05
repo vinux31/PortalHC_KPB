@@ -1,0 +1,74 @@
+Controllers/AccountController.cs:72:            if (!user.IsActive)
+Controllers/AdminController.cs:676:                .Where(u => u.IsActive)
+Controllers/AdminController.cs:782:                    .Where(u => u.IsActive)
+Controllers/AdminController.cs:848:                        .Where(u => u.IsActive)
+Controllers/AdminController.cs:954:                    .Where(u => u.IsActive)
+Controllers/AdminController.cs:1029:                .Where(u => u.IsActive)
+Controllers/AdminController.cs:2280:                    .Where(u => u.IsActive)
+Controllers/AdminController.cs:2285:                var testCoach = coachUsers.FirstOrDefault(u => u.IsActive);
+Controllers/AdminController.cs:2319:                    .FirstOrDefaultAsync(m => m.CoachId == testCoach.Id && m.CoacheeId == testCoachee1.Id && m.IsActive);
+Controllers/AdminController.cs:2333:                    .FirstOrDefaultAsync(m => m.CoachId == testCoach.Id && m.CoacheeId == testCoachee2.Id && m.IsActive);
+Controllers/AdminController.cs:2348:                    .FirstOrDefaultAsync(a => a.CoacheeId == testCoachee1.Id && a.IsActive);
+Controllers/AdminController.cs:2362:                    .FirstOrDefaultAsync(a => a.CoacheeId == testCoachee2.Id && a.IsActive);
+Controllers/AdminController.cs:2543:                    .Where(u => u.IsActive)
+Controllers/AdminController.cs:2806:                    .Where(a => a.IsActive && allActiveUsers.Select(u => u.Id).Contains(a.CoacheeId))
+Controllers/AdminController.cs:2826:                                .FirstOrDefaultAsync(a => a.CoacheeId == coachee.Id && a.IsActive);
+Controllers/AdminController.cs:3460:                .Select(u => new { u.Id, u.FullName, u.NIP, u.Section, u.Position, u.RoleLevel, u.IsActive })
+Controllers/AdminController.cs:3463:            var activeUsers = allUsers.Where(u => u.IsActive).ToList();
+Controllers/AdminController.cs:3468:                query = query.Where(m => m.IsActive);
+Controllers/AdminController.cs:3497:                .Where(a => a.IsActive)
+Controllers/AdminController.cs:3511:                    ActiveCount = g.Count(r => r.Mapping.IsActive),
+Controllers/AdminController.cs:3514:                        r.Mapping.IsActive,
+Controllers/AdminController.cs:3537:                .Where(m => m.IsActive)
+Controllers/AdminController.cs:3554:                .Where(u => u.IsActive)
+Controllers/AdminController.cs:3580:                .Where(m => req.CoacheeIds.Contains(m.CoacheeId) && m.IsActive)
+Controllers/AdminController.cs:3617:                    .Where(a => req.CoacheeIds.Contains(a.CoacheeId) && a.IsActive)
+Controllers/AdminController.cs:3620:                    t.IsActive = false;
+Controllers/AdminController.cs:3662:                    .AnyAsync(m => m.CoacheeId == mapping.CoacheeId && m.CoachId == req.CoachId && m.IsActive && m.Id != req.MappingId);
+Controllers/AdminController.cs:3679:                    .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+Controllers/AdminController.cs:3682:                    t.IsActive = false;
+Controllers/AdminController.cs:3727:            if (!mapping.IsActive)
+Controllers/AdminController.cs:3734:            mapping.IsActive = false;
+Controllers/AdminController.cs:3754:            if (mapping.IsActive)
+Controllers/AdminController.cs:3759:                .AnyAsync(m => m.CoacheeId == mapping.CoacheeId && m.IsActive && m.Id != id);
+Controllers/AdminController.cs:3767:            mapping.IsActive = true;
+Controllers/AdminController.cs:3816:                query = query.Where(u => u.IsActive);
+Controllers/AdminController.cs:4242:            if (!user.IsActive) { TempData["Error"] = $"User '{user.FullName}' sudah tidak aktif."; return RedirectToAction("ManageWorkers"); }
+Controllers/AdminController.cs:4246:                .CountAsync(m => (m.CoachId == id || m.CoacheeId == id) && m.IsActive);
+Controllers/AdminController.cs:4252:                .Where(m => (m.CoachId == id || m.CoacheeId == id) && m.IsActive)
+Controllers/AdminController.cs:4254:            foreach (var m in activeMappings) { m.IsActive = false; m.EndDate = DateTime.Today; }
+Controllers/AdminController.cs:4263:            user.IsActive = false;
+Controllers/AdminController.cs:4295:            if (user.IsActive) { TempData["Error"] = $"User '{user.FullName}' sudah aktif."; return RedirectToAction("ManageWorkers"); }
+Controllers/AdminController.cs:4297:            user.IsActive = true;
+Controllers/AdminController.cs:4336:                query = query.Where(u => u.IsActive);
+Controllers/AdminController.cs:4375:                    ws.Cell(row, 11).Value = u.IsActive ? "Aktif" : "Tidak Aktif";
+Controllers/AdminController.cs:4540:                        if (!existing.IsActive)
+Controllers/AdminController.cs:4643:                .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
+Controllers/AdminController.cs:4673:                var status = m.IsActive ? "Active" : "Inactive";
+Controllers/AdminController.cs:4709:                .Where(a => a.ProtonTrackId == protonTrackId && a.IsActive)
+Controllers/AdminController.cs:5130:                .Where(u => u.IsActive)
+Controllers/CDPController.cs:27:    //    - Fixed: Added u.IsActive filter to all 4 role branches (HC/Admin, SrSpv, SectionHead, Coach)
+Controllers/CDPController.cs:66:                    .Where(a => a.CoacheeId == user.Id && a.IsActive)
+Controllers/CDPController.cs:72:                        .Where(k => k.ProtonTrackId == assignment.ProtonTrackId && k.IsActive)
+Controllers/CDPController.cs:108:                    .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && k.IsActive)
+Controllers/CDPController.cs:266:                .Where(a => a.CoacheeId == userId && a.IsActive)
+Controllers/CDPController.cs:310:                    .Where(u => u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:318:                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:329:                        .Where(u => u.Unit == user.Unit && u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:337:                        .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:356:                .Where(a => scopedCoacheeIds.Contains(a.CoacheeId) && a.IsActive)
+Controllers/CDPController.cs:1250:                    .Where(u => u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:1256:                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:1262:                    .Where(u => u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:1268:                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
+Controllers/CDPController.cs:1274:                    .Where(m => m.CoachId == user.Id && m.IsActive)
+Controllers/CDPController.cs:1330:                    .Where(a => scopedCoacheeIds.Contains(a.CoacheeId) && a.IsActive
+Controllers/CDPController.cs:1562:                    .FirstOrDefaultAsync(a => a.CoacheeId == targetCoacheeId && a.IsActive);
+Controllers/CDPController.cs:1870:                .Where(m => m.CoachId == user.Id && coacheeIds.Contains(m.CoacheeId) && m.IsActive)
+Controllers/CDPController.cs:2151:                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == coacheeId && m.IsActive);
+Controllers/CDPController.cs:2200:                .FirstOrDefaultAsync(a => a.CoacheeId == coacheeId && a.IsActive);
+Controllers/ProtonDataController.cs:92:                    .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && (showInactive || k.IsActive))
+Controllers/ProtonDataController.cs:391:            if (!komp.IsActive) return Json(new { success = false, message = "Silabus sudah tidak aktif." });
+Controllers/ProtonDataController.cs:393:            komp.IsActive = false;
+Controllers/ProtonDataController.cs:413:            if (komp.IsActive) return Json(new { success = false, message = "Silabus sudah aktif." });
+Controllers/ProtonDataController.cs:415:            komp.IsActive = true;

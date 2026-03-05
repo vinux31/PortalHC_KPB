@@ -1,0 +1,24 @@
+Controllers/AdminController.cs:3783:        public async Task<IActionResult> ManageWorkers(string? search, string? sectionFilter, string? roleFilter, bool showInactive = false)
+Controllers/AdminController.cs:3815:            if (!showInactive)
+Controllers/AdminController.cs:3839:            ViewBag.ShowInactive = showInactive;
+Controllers/AdminController.cs:4280:            return RedirectToAction("ManageWorkers", new { showInactive = true });
+Controllers/AdminController.cs:4294:            if (user == null) { TempData["Error"] = "User tidak ditemukan."; return RedirectToAction("ManageWorkers", new { showInactive = true }); }
+Controllers/AdminController.cs:4310:            return RedirectToAction("ManageWorkers", new { showInactive = true });
+Controllers/AdminController.cs:4316:        public async Task<IActionResult> ExportWorkers(string? search, string? sectionFilter, string? roleFilter, bool showInactive = false)
+Controllers/AdminController.cs:4335:            if (!showInactive)
+Controllers/AdminController.cs:4350:            var headers = showInactive
+Controllers/AdminController.cs:4374:                if (showInactive)
+Controllers/ProtonDataController.cs:73:        public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId, bool showInactive = false)
+Controllers/ProtonDataController.cs:83:            ViewBag.ShowInactive = showInactive;
+Controllers/ProtonDataController.cs:92:                    .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && (showInactive || k.IsActive))
+Views/Admin/ManageWorkers.cshtml:6:    var showInactive = (bool)(ViewBag.ShowInactive ?? false);
+Views/Admin/ManageWorkers.cshtml:34:            <a href="@Url.Action("ExportWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = showInactive })" class="btn btn-outline-info" id="btnExportWorkers">
+Views/Admin/ManageWorkers.cshtml:37:            @if (showInactive)
+Views/Admin/ManageWorkers.cshtml:39:                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = false })"
+Views/Admin/ManageWorkers.cshtml:46:                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = true })"
+Views/ProtonData/Index.cshtml:11:    var showInactive = (bool)(ViewBag.ShowInactive ?? false);
+Views/ProtonData/Index.cshtml:96:                @if (showInactive)
+Views/ProtonData/Index.cshtml:98:                    <a href="@Url.Action("Index", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId, showInactive = false })"
+Views/ProtonData/Index.cshtml:105:                    <a href="@Url.Action("Index", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId, showInactive = true })"
+Views/ProtonData/Index.cshtml:125:            showInactive = showInactive
+Views/ProtonData/Index.cshtml:295:        const isShowingInactive = silabusFilter.showInactive || false;
