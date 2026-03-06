@@ -57,9 +57,9 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Milestone:** v3.5 User Guide
 **Phase:** 105 - User Guide Structure & Content
-**Plan:** 105-03 (complete)
+**Plan:** 105-05 (complete)
 **Status:** In progress
-**Last activity:** 2026-03-06 — Added 7th CDP guide (Deliverable List & Status Progress)
+**Last activity:** 2026-03-06 — Added search highlighting, breadcrumb navigation, and improved print CSS
 
 **Progress:** [██████████] 100%
 
