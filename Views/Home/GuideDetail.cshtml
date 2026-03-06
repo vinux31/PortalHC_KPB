@@ -1,0 +1,522 @@
+@model dynamic
+
+@{
+    ViewData["Title"] = "Detail Panduan";
+    var module = ViewBag.Module as string ?? "cmp";
+    var userRole = ViewBag.UserRole as string ?? "User";
+    
+    string moduleTitle = "";
+    string moduleIcon = "";
+    string moduleCategory = "";
+    
+    switch (module)
+    {
+        case "cmp":
+            moduleTitle = "CMP — Competency Management";
+            moduleIcon = "bi-journal-bookmark-fill";
+            moduleCategory = "cmp";
+            break;
+        case "cdp":
+            moduleTitle = "CDP — Career Development Portal";
+            moduleIcon = "bi-graph-up-arrow";
+            moduleCategory = "cdp";
+            break;
+        case "account":
+            moduleTitle = "Akun & Profil";
+            moduleIcon = "bi-person-circle";
+            moduleCategory = "account";
+            break;
+        case "data":
+            moduleTitle = "Kelola Data";
+            moduleIcon = "bi-database-fill";
+            moduleCategory = "data";
+            break;
+        case "admin":
+            moduleTitle = "Admin Panel";
+            moduleIcon = "bi-gear-wide-connected";
+            moduleCategory = "admin";
+            break;
+    }
+}
+
+<link rel="stylesheet" href="~/css/guide.css" />
+
+<!-- Breadcrumb / Back Navigation -->
+<div class="guide-detail-nav" data-aos="fade-down">
+    <a asp-action="Guide" class="btn btn-sm btn-light guide-back-btn">
+        <i class="bi bi-arrow-left me-1"></i> Kembali ke Pusat Bantuan
+    </a>
+</div>
+
+<!-- Header Detail -->
+<div class="guide-detail-header @($"guide-header-{moduleCategory}")" data-aos="fade-up" data-aos-delay="100">
+    <div class="guide-detail-header-icon">
+        <i class="bi @moduleIcon"></i>
+    </div>
+    <div class="guide-detail-header-text">
+        <h2 class="mb-1">@moduleTitle</h2>
+        <p class="mb-0 text-white-50">Panduan langkah demi langkah penggunaan fitur</p>
+    </div>
+</div>
+
+<!-- List Panduan (Fungsi expandable steps) -->
+<div class="guide-detail-content" data-aos="fade-up" data-aos-delay="200">
+    
+    <div class="guide-list-container accordion" id="guideAccordion">
+        
+        @if (module == "cmp")
+        {
+            <!-- CMP 1 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cmpHeading1">
+                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse1" aria-expanded="false">
+                        Cara Melihat Library KKJ (Kebutuhan Kompetensi Jabatan)
+                    </button>
+                </h2>
+                <div id="cmpCollapse1" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Akses CMP</strong><span>Klik menu <b>CMP</b> di navbar atas.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buka Tab Library</strong><span>Klik tab <b>Library KKJ</b>. Anda akan melihat daftar kompetensi khusus untuk posisi Anda.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CMP 2 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cmpHeading2">
+                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse2" aria-expanded="false">
+                        Cara Melihat Mapping KKJ — CPDP
+                    </button>
+                </h2>
+                <div id="cmpCollapse2" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Akses CMP</strong><span>Klik menu <b>CMP</b> di navbar atas.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buka Tab Mapping</strong><span>Klik tab <b>CPDP Mapping</b> untuk melihat pemetaan pengembangan kompetensi Anda.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CMP 3 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cmpHeading3">
+                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse3" aria-expanded="false">
+                        Cara Mengerjakan Assessment (Mulai Ujian)
+                    </button>
+                </h2>
+                <div id="cmpCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Lihat Daftar Ujian</strong><span>Pada tab <b>My Assessments</b>, Anda akan melihat semua ujian yang ditugaskan kepada Anda.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Mulai</strong><span>Klik tombol <b>Mulai</b> pada assessment yang bersatus <i>Not Started</i>.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Isi Jawaban & Navigasi</strong><span>Pilih jawaban yang benar. Gunakan panel nomor di samping untuk berpindah soal. Timer akan berjalan di pojok kanan atas.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Submit Ujian</strong><span>Jika sudah yakin, klik <b>Submit</b> pada soal terakhir atau gunakan tombol submit di panel navigasi.</span></div></li>
+                        </ul>
+                        <div class="guide-tip"><i class="bi bi-info-circle-fill"></i><span>Jika waktu habis, jawaban yang sudah dipilih akan otomatis tersubmit.</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CMP 4 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cmpHeading4">
+                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse4" aria-expanded="false">
+                        Cara Melihat Hasil Assessment
+                    </button>
+                </h2>
+                <div id="cmpCollapse4" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Tab Results</strong><span>Di menu CMP, klik tab <b>Results</b>.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Detail Nilai</strong><span>Klik tombol <b>Detail</b> pada assessment yang dituju untuk melihat persentase skor, status kelulusan, dan feedback per jawaban (jika diaktifkan Admin).</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CMP 5 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cmpHeading5">
+                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse5" aria-expanded="false">
+                        Cara Download Sertifikat Assessment
+                    </button>
+                </h2>
+                <div id="cmpCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Tab Sertifikat</strong><span>Di menu CMP, klik tab <b>Sertifikat</b>.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Download</strong><span>Klik <b>Download</b>. Sertifikat hanya akan muncul jika Anda sudah Lulus (Passed) ujian kompetensi bersangkutan.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CMP 6 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cmpHeading6">
+                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse6" aria-expanded="false">
+                        Cara Melihat Riwayat Training (Capability Building Records)
+                    </button>
+                </h2>
+                <div id="cmpCollapse6" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Tab Training Records</strong><span>Di menu CMP, klik tab <b>Training Records</b> (Riwayat Pelatihan).</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Review Riwayat</strong><span>Semua pelatihan baik internal maupun eksternal yang di-input oleh HC akan tampil di tabel riwayat beserta jam pelatihannya.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CMP 7 -->
+            @if (userRole == "Admin" || userRole == "HC")
+            {
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cmpHeading7">
+                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse7" aria-expanded="false">
+                        Cara Monitoring Records Tim <span class="guide-step-badge-role ms-2">Atasan / HC</span>
+                    </button>
+                </h2>
+                <div id="cmpCollapse7" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Tab Records Team</strong><span>Di menu CMP, klik tab <b>Records Team</b>.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>List Anggota Tim</strong><span>Anda akan melihat semua anggota tim di bawah supervisi Anda beserta persentase kepatuhan (compliance) dan jam pelatihannya.</span></div></li>
+                            <li class="guide-step-item"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Detail Pekerja</strong><span>Klik nama pekerja untuk melihat lebih detail riwayat assessment dan training-nya.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            }
+        }
+        else if (module == "cdp")
+        {
+            <!-- CDP Guides -->
+            <!-- CDP 1 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading1">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse1">
+                        Cara Melihat Plan IDP / Silabus
+                    </button>
+                </h2>
+                <div id="cdpCollapse1" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Masuk ke CDP</strong><span>Pilih menu <b>CDP</b> di navbar.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buka Plan IDP</strong><span>Pada bagian sidebar menu CDP, klik <b>Plan IDP / Silabus</b>. Sistem akan menampilkan daftar silabus sesuai jabatan dan level Anda.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CDP 2 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading2">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse2">
+                        Cara Menggunakan Coaching Proton (Melihat Progress)
+                    </button>
+                </h2>
+                <div id="cdpCollapse2" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Coaching Proton</strong><span>Di menu kiri CDP, klik <b>Coaching Proton</b>. Halaman ini adalah wadah diskusi interaktif Anda dengan Coach mengenai kegiatan pengembangan yang sedang berjalan.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CDP 3 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading3">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse3">
+                        Cara Membuat dan Mengelola Deliverable
+                    </button>
+                </h2>
+                <div id="cdpCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Tambah Deliverable</strong><span>Di dalam Coaching Proton, jika ada sesi aktif, Anda dapat menambahkan hasil deliverable yang harus diberikan.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Isi Detail & Target</strong><span>Isi nama deliverable, target tanggal selesai, lalu simpan. Deliverable akan muncul di daftar tugas Anda.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CDP 4 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading4">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse4">
+                        Cara Upload Evidence Deliverable
+                    </button>
+                </h2>
+                <div id="cdpCollapse4" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Pilih Deliverable</strong><span>Klik pada judul deliverable Anda untuk membuka panel detailnya.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Upload File</strong><span>Klik tombol <b>Upload Evidence</b>. Pilih file (PDF / DOCX / JPG).</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Kirim untuk Review</strong><span>Klik <b>Simpan Action/Evidence</b>. Status tugas Anda akan berubah menjadi <i>Menunggu Review (Pending Approval)</i>.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CDP 5 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading5">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse5">
+                        Cara Approve / Reject Deliverable (Coaching Guidance) <span class="guide-step-badge-role ms-2 bg-success text-white border-0">Coach / Atasan</span>
+                    </button>
+                </h2>
+                <div id="cdpCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Cek Request Masuk</strong><span>Bila Anda merupakan Coach/Atasan, buka CDP dan cek notifikasi approval yang muncul saat coachee submit evidence.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Review Bukti</strong><span>Download evidence yang disertakan coachee tersebut. Review kelengkapannya.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Aksi Approve/Reject</strong><span>Klik tombol <b>Approve</b> hijau jika sesuai, atau <b>Reject</b> (beri catatan perbaikan) jika evidence belum memenuhi standar.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CDP 6 & 7 combined (Dashboard/Export) -->
+            @if (userRole == "Admin" || userRole == "HC")
+            {
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading6">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse6">
+                        Cara Melihat Dashboard & Export Laporan <span class="guide-step-badge-role ms-2">Admin / HC</span>
+                    </button>
+                </h2>
+                <div id="cdpCollapse6" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Akses Dashboard</strong><span>Di halaman CDP, klik menu <b>Dashboard</b> di panel sebelah kiri.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Monitoring Keseluruhan</strong><span>Lihat chart progress dan statistik coaching secara global (untuk HC) atau level Unit Kerja.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Export Laporan</strong><span>Klik tombol <b>Export Excel</b> atau <b>Export PDF</b> di pojok kanan atas tabel untuk mendownload raw data laporan progress semua pekerja yang berada di radar Anda.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            }
+
+            <!-- CDP 7 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="cdpHeading7">
+                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse7">
+                        Cara Melihat Daftar Deliverable & Status Progress
+                    </button>
+                </h2>
+                <div id="cdpCollapse7" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Halaman Deliverable</strong><span>Masuk ke menu <b>CDP</b>, klik <b>Deliverable</b> di panel navigasi kiri.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Pantau Status Progress</strong><span>Lihat daftar deliverable yang ditugaskan. Status: <i>Not Started, In Progress, Pending Approval, Approved, Rejected</i>. Filter berdasarkan status atau periode.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Detail Deliverable</strong><span>Klik judul deliverable untuk melihat deskripsi lengkap, target tanggal selesai, dan riwayat coaching session.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (module == "account")
+        {
+            <!-- Account Guides -->
+            <!-- Account 1 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="accHeading1">
+                    <button class="accordion-button collapsed guide-list-btn btn-account" type="button" data-bs-toggle="collapse" data-bs-target="#accCollapse1">
+                        Cara Login ke HC Portal
+                    </button>
+                </h2>
+                <div id="accCollapse1" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-teal"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Portal</strong><span>Akses URL HC Portal melalui browser.</span></div></li>
+                            <li class="guide-step-item step-variant-teal"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Masukkan Kredensial</strong><span>Ketik <b>email</b> dan <b>password</b> yang sudah diaktifkan. Klik Log In.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account 2,3 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="accHeading2">
+                    <button class="accordion-button collapsed guide-list-btn btn-account" type="button" data-bs-toggle="collapse" data-bs-target="#accCollapse2">
+                        Cara Melihat & Edit Profil (Nama, Posisi)
+                    </button>
+                </h2>
+                <div id="accCollapse2" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-teal"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Profil</strong><span>Klik avatar profil Anda di pojok kanan atas layar, lalu pilih <b>My Profile</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-teal"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Edit Data Personal</strong><span>Klik tombol pensil/Edit di profil. Edit informasi yang diperlukan, lalu tekan Simpan.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Account 4 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="accHeading3">
+                    <button class="accordion-button collapsed guide-list-btn btn-account" type="button" data-bs-toggle="collapse" data-bs-target="#accCollapse3">
+                        Cara Mengganti Password
+                    </button>
+                </h2>
+                <div id="accCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-teal"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Settings</strong><span>Klik avatar profil Anda, pilih <b>Settings</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-teal"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Change Password</strong><span>Pilih tab Change Password. Masukkan password lama Anda dan ketikkan password baru. Konfirmasi dan Simpan.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (module == "data")
+        {
+            <!-- Data Guides -->
+            <!-- Data 1 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="dataHeading1">
+                    <button class="accordion-button collapsed guide-list-btn btn-data" type="button" data-bs-toggle="collapse" data-bs-target="#dataCollapse1">
+                        Cara Kelola Data Silabus
+                    </button>
+                </h2>
+                <div id="dataCollapse1" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-orange"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Masuk Kelola Data</strong><span>Klik navbar <b>Kelola Data</b>. Bagian default adalah konfigurasi Silabus.</span></div></li>
+                            <li class="guide-step-item step-variant-orange"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Tambah/Edit Silabus</strong><span>Gunakan panel inline editing untuk menambah kompetensi silabus baru, update judulnya, atau hapus dan nonaktifkan (Deactivate) jika silabus tsb sudah obsolete.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data 2 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="dataHeading2">
+                    <button class="accordion-button collapsed guide-list-btn btn-data" type="button" data-bs-toggle="collapse" data-bs-target="#dataCollapse2">
+                        Cara Upload dan Kelola Guidance File
+                    </button>
+                </h2>
+                <div id="dataCollapse2" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-orange"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Guidance List</strong><span>Di menu Kelola Data, pilih <b>Guidance Files</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-orange"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Upload File Petunjuk</strong><span>Klik tombol <b>Upload Guidance</b>, pilih target Unit/Bagian, lalu lampirkan file yang akan menjadi rujukan/guidance resmi bagi coachee.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data 3 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="dataHeading3">
+                    <button class="accordion-button collapsed guide-list-btn btn-data" type="button" data-bs-toggle="collapse" data-bs-target="#dataCollapse3">
+                        Cara Override Data Pekerja (Proton Data Sync)
+                    </button>
+                </h2>
+                <div id="dataCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-orange"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Override Data</strong><span>Di menu Kelola Data, pilih tab <b>Override</b>. Ini digunakan mengatur data mentah Proton yang gagal tersinkron.</span></div></li>
+                            <li class="guide-step-item step-variant-orange"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Save Override</strong><span>Isi paksa value mapping posisi yang valid (misal mapping KKJ jika Proton tidak mendeteksi ID Jabatan otomatis), lalu klik Override / Save. Data yang masuk akan digenerate otomatis.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (module == "admin")
+        {
+            <!-- Admin Panel 1,2,3 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="admHeading1">
+                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse1">
+                        Cara Kelola Pekerja (Tambah, Edit, Import Excel & Export)
+                    </button>
+                </h2>
+                <div id="admCollapse1" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Pekerja</strong><span>Pilih <b>Admin Panel → Kelola Pekerja (Manage Workers)</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>CRUD Pekerja</strong><span>Anda bisa Tambah baru, edit jabatan pekerja yang ada, atur active/deactive status, atau hapus pekerja.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Mass Import / Export</strong><span>Gunakan tombol <b>Import Workers</b> beserta template Excel yang tersedia untuk input data besar. Untuk backup, klik <b>Export Excel</b>.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel 4, 5 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="admHeading2">
+                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse2">
+                        Cara Upload File KKJ Matrix & CPDP Files
+                    </button>
+                </h2>
+                <div id="admCollapse2" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Upload File KKJ / CPDP</strong><span>Pilih <b>Admin Panel → KKJ Matrix</b> atau <b>Admin Panel → CPDP Files</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Histori Matrix</strong><span>Pilih Bagian divisi tujuan, lalu Upload dokumen PDF terkait KKJ / mapping matriksnya agar tampil di module CMP bagi seluruh pekerja. Catatan historis file sebelumnya bisa dilihat di submenu History.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel 6 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="admHeading3">
+                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse3">
+                        Cara Mapping Coach-Coachee
+                    </button>
+                </h2>
+                <div id="admCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Setting Mapping</strong><span>Pilih <b>Admin Panel → Coach Coachee Mapping</b>. Di sini tersimpan seluruh relasi siapa membimbing siapa.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Assign / Cabut Akses</strong><span>Anda dapat assign Coach baru (Assign Mapping), mengubah coach untuk periode tertentu (Edit), atau mencabut hak apabila transfer staff / resign (Deactivate).</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel 7,8,9,10 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="admHeading4">
+                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse4">
+                        Cara Kelola Ujian (Buat Assessment, Monitoring, Soal Ujian)
+                    </button>
+                </h2>
+                <div id="admCollapse4" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Kelola Soal (Bank Soal / Packages)</strong><span>Di <b>Admin Panel → Kelola Paket Soal</b>, buat kategori paket. Anda bisa import dari template Excel untuk mass upload dan define kunci jawabannya.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buat Jadwal Assessment</strong><span>Pilih <b>Kelola Assessment → Create New</b>. Masukkan nama ujian, tentukan durasi (menit), batas tanggal awal-akhir, passing grade, paket soal apa saja, lalu pick peserta / group terkait. Save.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Monitoring Ujian Berjalan</strong><span>Buka <b>Assessment Monitoring</b>. Anda dapat memantau realtime user yang sedang in-progress. Anda juga bisa <i>Force-Close</i> user apabila diyakini browser tertutup atau ada kendala teknis (sistem akan submit skor sesuai progres tsb).</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel 11,12 -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="admHeading5">
+                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse5">
+                        Audit Log & Training Record
+                    </button>
+                </h2>
+                <div id="admCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Insert Training User</strong><span>Pilih <b>Add Training</b> dari panel utama untuk men-sertifikasi pelatihan karyawan via formulir back-office.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Audit Log Security</strong><span>Buka <b>Audit Log</b> untuk melihat data terekam tentang IP address dari user login, siapa yg mendelete data, jam aksi apa yg terjadi dari seluruh aktifitas HC Portal yang rawan (misal Force-Close/Override).</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
+    </div> <!-- end accordion -->
+
+</div>
