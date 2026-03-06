@@ -1000,10 +1000,10 @@ mark.search-highlight {
         border-top: 1px solid #ddd;
     }
 
-    /* Add page numbers */
+    /* Add page numbers and title */
     @page {
         @bottom-center {
-            content: "Halaman " counter(page);
+            content: "Halaman " counter(page) " | HC Portal User Guide";
             font-size: 10pt;
             color: #666;
         }
@@ -1015,6 +1015,37 @@ mark.search-highlight {
         font-family: Georgia, 'Times New Roman', serif;
         line-height: 1.8;
         color: #000;
+    }
+
+    /* Convert gradients to solid colors for better print quality */
+    .guide-hero {
+        background: #667eea !important;
+    }
+
+    .icon-cmp,
+    .guide-step-badge,
+    .badge-gradient {
+        background: #667eea !important;
+    }
+
+    .icon-cdp,
+    .guide-step-item.step-variant-green .guide-step-badge {
+        background: #11998e !important;
+    }
+
+    .icon-account,
+    .guide-step-item.step-variant-teal .guide-step-badge {
+        background: #4facfe !important;
+    }
+
+    .icon-data,
+    .guide-step-item.step-variant-orange .guide-step-badge {
+        background: #f7971e !important;
+    }
+
+    .icon-admin,
+    .guide-step-item.step-variant-pink .guide-step-badge {
+        background: #f093fb !important;
     }
 
     /* Remove text-shadows and screen-only effects */

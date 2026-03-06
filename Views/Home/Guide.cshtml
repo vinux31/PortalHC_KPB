@@ -2,6 +2,9 @@
     ViewData["Title"] = "Panduan & Bantuan";
     var role = ViewBag.UserRole as string ?? "User";
     var isAdminOrHc = role == "Admin" || role == "HC";
+
+    // Set print date for footer
+    var printDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 }
 
 <link rel="stylesheet" href="~/css/guide.css" />
@@ -11,7 +14,7 @@
 <a href="#guide-modules" class="skip-link">Lompat ke modul</a>
 <a href="#guide-faq" class="skip-link">Lompat ke FAQ</a>
 
-<main role="main" id="main-content">
+<main role="main" id="main-content" data-print-date="@printDate">
 <!-- Hero Section -->
 <div class="guide-hero" data-aos="fade-down">
     <div class="guide-hero-content">
