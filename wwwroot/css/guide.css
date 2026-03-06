@@ -366,11 +366,18 @@
     justify-content: center;
     flex-shrink: 0;
     box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .guide-step-item.step-variant-green .guide-step-badge {
     background: var(--gradient-success);
     box-shadow: 0 3px 8px rgba(17, 153, 142, 0.3);
+}
+
+.guide-step-item:hover .guide-step-badge {
+    transform: scale(1.15) rotate(-3deg);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    animation: pulse-glow 2s ease-in-out infinite;
 }
 
 .guide-step-item.step-variant-teal .guide-step-badge {
@@ -386,6 +393,27 @@
 .guide-step-item.step-variant-pink .guide-step-badge {
     background: var(--gradient-warning);
     box-shadow: 0 3px 8px rgba(245, 87, 108, 0.3);
+}
+
+/* Variant-specific hover glow colors */
+.guide-step-item.step-variant-green:hover .guide-step-badge {
+    box-shadow: 0 6px 20px rgba(17, 153, 142, 0.5);
+    animation-name: pulse-glow-green;
+}
+
+.guide-step-item.step-variant-teal:hover .guide-step-badge {
+    box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
+    animation-name: pulse-glow-teal;
+}
+
+.guide-step-item.step-variant-orange:hover .guide-step-badge {
+    box-shadow: 0 6px 20px rgba(247, 151, 30, 0.5);
+    animation-name: pulse-glow-orange;
+}
+
+.guide-step-item.step-variant-pink:hover .guide-step-badge {
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
+    animation-name: pulse-glow-pink;
 }
 
 .guide-step-text {
@@ -609,6 +637,42 @@ mark.search-highlight {
     }
 }
 
+@keyframes pulse-glow-green {
+    0%, 100% {
+        box-shadow: 0 3px 8px rgba(17, 153, 142, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(17, 153, 142, 0.5);
+    }
+}
+
+@keyframes pulse-glow-teal {
+    0%, 100% {
+        box-shadow: 0 3px 8px rgba(79, 172, 254, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(79, 172, 254, 0.5);
+    }
+}
+
+@keyframes pulse-glow-orange {
+    0%, 100% {
+        box-shadow: 0 3px 8px rgba(247, 151, 30, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(247, 151, 30, 0.5);
+    }
+}
+
+@keyframes pulse-glow-pink {
+    0%, 100% {
+        box-shadow: 0 3px 8px rgba(245, 87, 108, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
+    }
+}
+
 /* ============================================
    Reduced Motion Support
    ============================================ */
@@ -671,6 +735,10 @@ mark.search-highlight {
     .guide-step-item:hover .guide-step-badge {
         transform: none;
         animation: none;
+    }
+
+    .guide-step-badge {
+        transition: none !important;
     }
 
     .faq-answer.fade-in {
