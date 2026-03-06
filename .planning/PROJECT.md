@@ -12,22 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v3.5 - User Guide
+## Current Milestone: v3.6 - Riwayat Proton
 
-**Goal:** Build interactive user guide page with step-by-step instructions for all portal modules, role-specific content, and FAQ section.
+**Goal:** Build Proton History page in CDP menu showing each worker's Proton journey as a vertical timeline across years, units, and competency levels.
 
 **Target features:**
-- 5 role-specific tabs: Dashboard, CMP, CDP, Account, Admin Panel (Admin/HC only)
-- Step-by-step instructions with numbered steps and tips
-- FAQ section with common questions
-- Premium styling matching existing design system
-- Navbar link "Panduan" with question icon
-- Login required, role-based access control
+- CDP menu item "Riwayat Proton"
+- Worker list page with search/filter, role-scoped access
+- Vertical timeline detail page per worker (Tahun, Unit, Coach, Status, Level)
+- Summary per tahun (no deliverable drill-down)
+- Role-based access: Coachee (self), Coach/SrSpv/SH (section), HC/Admin (all)
 
 **Scope:**
-- Static content (Indonesian language)
-- Bootstrap 5 accordion/collapse for organization
-- Responsive design (mobile-friendly)
+- Query existing ProtonTrackAssignment + ProtonFinalAssessment data
+- Vertical timeline UI (similar to Deliverable approval stepper)
+- Responsive design, consistent with portal styling
 - No video tutorials or screenshots in v3.5
 
 **Approach:** Controller action → View with tabs → CSS styling → Navbar link

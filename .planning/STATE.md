@@ -1,31 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Full QA & Feature Completion
-status: completed
-last_updated: "2026-03-06T05:40:17.388Z"
-last_activity: 2026-03-06 — Final polish with animation timing optimization and Indonesian print footer
+milestone: v3.6
+milestone_name: Riwayat Proton
+status: defining requirements
+last_updated: "2026-03-06T06:00:00Z"
+last_activity: 2026-03-06 — Milestone v3.6 started
 progress:
-  total_phases: 72
-  completed_phases: 69
-  total_plans: 182
-  completed_plans: 193
-  percent: 100
----
-
----
-gsd_state_version: 1.0
-milestone: v3.5
-milestone_name: User Guide
-status: executing
-last_updated: "2026-03-06T05:33:08Z"
-last_activity: 2026-03-06 — Final polish with animation timing optimization and Indonesian print footer
-progress:
-  total_phases: 2
-  completed_phases: 1
-  total_plans: 10
-  completed_plans: 10
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 ---
