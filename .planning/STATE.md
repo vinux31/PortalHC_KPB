@@ -40,9 +40,9 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ## Current Position
 
 **Milestone:** v3.6 Riwayat Proton
-**Phase:** 107 - Backend & Worker List Page (not started)
-**Status:** Ready to plan
-**Last activity:** 2026-03-06 — v3.0 milestone archived
+**Phase:** 108 - Timeline Detail Page Styling (complete)
+**Status:** All plans complete
+**Last activity:** 2026-03-06 — Phase 108 plan 02 complete (timeline detail page)
 
 **Progress:** [██████████] 100%
 
@@ -67,6 +67,7 @@ for v3.6.
 - [Phase 107]: HistoriProton role-scoping clones CoachingProton RoleLevel branching
 - [Phase 107]: Added Section property to HistoriProtonWorkerRow for filter support
 - [Phase 108]: Single coach per worker from CoachCoacheeMapping (most recent active)
+- [Phase 108-02]: All timeline CSS inline in view style block for simplicity
 
 ### Blockers/Concerns
 

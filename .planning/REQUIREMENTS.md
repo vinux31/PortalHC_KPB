@@ -23,7 +23,7 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 
 ### Halaman Timeline Detail
 
-- [ ] **HIST-09**: Vertical timeline dengan node per Proton year
+- [x] **HIST-09**: Vertical timeline dengan node per Proton year
 - [x] **HIST-10**: Setiap node menampilkan: Tahun Proton (1/2/3), Unit saat itu
 - [x] **HIST-11**: Setiap node menampilkan: Nama Coach
 - [x] **HIST-12**: Setiap node menampilkan: Status (Lulus / Dalam Proses / Belum Mulai)
@@ -33,8 +33,8 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 
 ### Styling & UX
 
-- [ ] **HIST-16**: Desain konsisten dengan design system portal (Bootstrap 5, CSS variables)
-- [ ] **HIST-17**: Responsive mobile design
+- [x] **HIST-16**: Desain konsisten dengan design system portal (Bootstrap 5, CSS variables)
+- [x] **HIST-17**: Responsive mobile design
 
 ## Future Requirements
 
@@ -64,15 +64,15 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 | HIST-06 | Phase 107 | Complete |
 | HIST-07 | Phase 107 | Complete |
 | HIST-08 | Phase 107 | Complete |
-| HIST-09 | Phase 108 | Pending |
+| HIST-09 | Phase 108 | Complete |
 | HIST-10 | Phase 108 | Complete |
 | HIST-11 | Phase 108 | Complete |
 | HIST-12 | Phase 108 | Complete |
 | HIST-13 | Phase 108 | Complete |
 | HIST-14 | Phase 108 | Complete |
 | HIST-15 | Phase 108 | Complete |
-| HIST-16 | Phase 108 | Pending |
-| HIST-17 | Phase 108 | Pending |
+| HIST-16 | Phase 108 | Complete |
+| HIST-17 | Phase 108 | Complete |
 
 **Coverage:**
 - v3.6 requirements: 17 total
