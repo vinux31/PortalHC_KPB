@@ -828,6 +828,52 @@ Plans:
 - [ ] 103-02-PLAN.md — Manual QA checklist for each trigger with browser verification
 - [ ] 103-03-PLAN.md — Performance testing with 100+ notifications and edge case validation
 
+
+### 🚧 v3.5 User Guide (Planned)
+
+**Milestone Goal:** Build interactive user guide page with step-by-step instructions for all portal modules, role-specific content, and FAQ section.
+
+#### Phase 105: User Guide Structure & Content
+**Goal**: Users can access comprehensive user guide with tab-based navigation and role-specific content
+**Depends on**: Phase 104
+**Requirements**: GUIDE-NAV-01, GUIDE-NAV-02, GUIDE-NAV-03, GUIDE-NAV-04, GUIDE-NAV-05, GUIDE-CONTENT-01, GUIDE-CONTENT-02, GUIDE-CONTENT-03, GUIDE-CONTENT-04, GUIDE-CONTENT-05, GUIDE-CONTENT-06, GUIDE-ACCESS-01, GUIDE-ACCESS-02, GUIDE-ACCESS-03, GUIDE-ACCESS-04, GUIDE-ACCESS-05, GUIDE-ACCESS-06, GUIDE-ACCESS-07
+**Success Criteria** (what must be TRUE):
+  1. User can access Guide page via "Panduan" link in navbar after login
+  2. Guide page displays hero section with gradient styling and 5 tab navigation buttons
+  3. User can click tabs to switch between Dashboard, CMP, CDP, Account content sections without page refresh
+  4. Each tab displays step-by-step instructions with numbered step cards including icon, title, and description
+  5. Important information displays in alert boxes (tips/catatan) and FAQ section displays at bottom with accordion behavior
+  6. Admin Panel tab is visible only to Admin/HC users (hidden for other roles)
+  7. Non-logged users accessing Guide page are redirected to login page
+**Plans**: TBD
+
+Plans:
+- [ ] 105-01-PLAN.md — Create controller action and view structure for Guide page
+- [ ] 105-02-PLAN.md — Implement tab navigation and content organization
+- [ ] 105-03-PLAN.md — Add role-based access control and authentication requirements
+- [ ] 105-04-PLAN.md — Create FAQ section with accordion behavior
+
+#### Phase 106: User Guide Styling & Polish
+**Goal**: User Guide displays with premium visual design matching existing portal design system
+**Depends on**: Phase 105
+**Requirements**: GUIDE-STYLE-01, GUIDE-STYLE-02, GUIDE-STYLE-03, GUIDE-STYLE-04, GUIDE-STYLE-05, GUIDE-STYLE-06, GUIDE-STYLE-07, GUIDE-STYLE-08
+**Success Criteria** (what must be TRUE):
+  1. Guide page uses CSS variables matching home.css (--gradient-primary, --shadow-*) for visual consistency
+  2. Page uses Inter font family throughout all text elements
+  3. Cards display with glassmorphism effect matching existing design system
+  4. Page content animates smoothly using AOS library on scroll
+  5. Step numbers display with gradient badges matching portal styling
+  6. Tab navigation styling matches existing design patterns (hover states, active states)
+  7. Page displays correctly on mobile devices with responsive breakpoints and adjusted layouts
+  8. All content is in Indonesian language
+**Plans**: TBD
+
+Plans:
+- [ ] 106-01-PLAN.md — Apply CSS styling with home.css variables and glassmorphism effects
+- [ ] 106-02-PLAN.md — Implement AOS scroll animations and gradient badges
+- [ ] 106-03-PLAN.md — Add responsive design for mobile devices
+- [ ] 106-04-PLAN.md — Final polish and Indonesian language verification
+
 ## Progress
 
 | Phase | Plans | Status | Completed |
@@ -837,8 +883,16 @@ Plans:
 | 101. Assessment Notification Triggers | 0/2 | Not started | - |
 | 102. Coaching Notification Triggers | 0/3 | Not started | - |
 | 103. Notification Testing & Polish | 0/3 | Not started | - |
+| 104. CMP Records Team View | 4/4 | Complete | 2026-03-06 |
+| 105. User Guide Structure & Content | 0/4 | Not started | - |
+| 106. User Guide Styling & Polish | 0/4 | Not started | - |
 
-### Phase 104: develop page http://localhost:5277/CMP/Records, saya ingin kamu cari konten,fitur,logic,user view/akses, paga page CMP/Records ini. saya ingin develop page ini**Goal:** Close UAT gaps - fix duplicate UI elements, broken filters, and missing back button**Requirements**: N/A (gap closure from UAT)**Depends on:** Phase 104 (original plan)**Plans:** 4/4 plans complete
+### Phase 104: CMP Records Team View
+**Goal:** Close UAT gaps - fix duplicate UI elements, broken filters, and missing back button
+**Requirements**: N/A (gap closure from UAT)
+**Depends on:** Phase 103
+**Plans:** 4/4 plans complete
+
 ## Historical Progress
 
 **Execution Order:**
