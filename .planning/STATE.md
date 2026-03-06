@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v3.6
 milestone_name: Histori Proton
 status: planning
-last_updated: "2026-03-06T10:48:53.252Z"
+last_updated: "2026-03-06T10:50:56.522Z"
 last_activity: 2026-03-06 — v3.0 milestone archived
 progress:
   total_phases: 2
@@ -41,7 +41,7 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Milestone:** v3.6 Riwayat Proton
 **Phase:** 107 - Backend & Worker List Page (not started)
-**Status:** Requirements defined, ready for planning
+**Status:** Ready to plan
 **Last activity:** 2026-03-06 — v3.0 milestone archived
 
 **Progress:** [██████████] 100%
