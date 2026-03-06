@@ -833,25 +833,28 @@ Plans:
 
 **Milestone Goal:** Build interactive user guide page with step-by-step instructions for all portal modules, role-specific content, and FAQ section.
 
-#### Phase 105: User Guide Structure & Content
-**Goal**: Users can access comprehensive user guide with tab-based navigation and role-specific content
+#### Phase 105: User Guide Structure & Content — IMPROVEMENTS & GAP COMPLETION
+**Goal**: Complete and improve existing User Guide infrastructure with missing content, bug fixes, and UX enhancements
 **Depends on**: Phase 104
+**Status**: Infrastructure exists (HomeController.Guide, Guide.cshtml, GuideDetail.cshtml, guide.css, navbar link) — Phase 105 adds improvements and gap completion
 **Requirements**: GUIDE-NAV-01, GUIDE-NAV-02, GUIDE-NAV-03, GUIDE-NAV-04, GUIDE-NAV-05, GUIDE-CONTENT-01, GUIDE-CONTENT-02, GUIDE-CONTENT-03, GUIDE-CONTENT-04, GUIDE-CONTENT-05, GUIDE-CONTENT-06, GUIDE-ACCESS-01, GUIDE-ACCESS-02, GUIDE-ACCESS-03, GUIDE-ACCESS-04, GUIDE-ACCESS-05, GUIDE-ACCESS-06, GUIDE-ACCESS-07
 **Success Criteria** (what must be TRUE):
-  1. User can access Guide page via "Panduan" link in navbar after login
-  2. Guide page displays hero section with gradient styling and 5 tab navigation buttons
-  3. User can click tabs to switch between Dashboard, CMP, CDP, Account content sections without page refresh
-  4. Each tab displays step-by-step instructions with numbered step cards including icon, title, and description
-  5. Important information displays in alert boxes (tips/catatan) and FAQ section displays at bottom with accordion behavior
-  6. Admin Panel tab is visible only to Admin/HC users (hidden for other roles)
-  7. Non-logged users accessing Guide page are redirected to login page
-**Plans**: TBD
+  1. User can access Guide page via "Panduan" link in navbar after login ✅ (already implemented)
+  2. Guide page displays hero section with gradient styling and 4 tab navigation buttons ✅ (Dashboard removed per user request)
+  3. User can click tabs to switch between CMP, CDP, Account, Admin Panel content sections without page refresh ✅ (already implemented)
+  4. Each tab displays step-by-step instructions with numbered step cards including icon, title, and description ✅ (already implemented, gaps to fill)
+  5. Important information displays in alert boxes (tips/catatan) and FAQ section displays at bottom with accordion behavior ✅ (already implemented)
+  6. Admin Panel tab is visible only to Admin/HC users (hidden for other roles) ✅ (already implemented)
+  7. Non-logged users accessing Guide page are redirected to login page ✅ (already implemented)
+**Plans**: 5 improvement plans (fixes, content gaps, UX polish)
 
 Plans:
-- [ ] 105-01-PLAN.md — Create controller action and view structure for Guide page
-- [ ] 105-02-PLAN.md — Implement tab navigation and content organization
-- [ ] 105-03-PLAN.md — Add role-based access control and authentication requirements
-- [ ] 105-04-PLAN.md — Create FAQ section with accordion behavior
+- [x] 105-01-PLAN.md — Fix CSS bugs (missing btn-cdp, btn-account, btn-data, btn-admin classes)
+- [x] 105-02-PLAN.md — Add missing Account module guide (Logout & Role Information)
+- [x] 105-03-PLAN.md — Add missing CDP module guide (Deliverable List Overview)
+- [x] 105-04-PLAN.md — Split existing Admin guides into focused, detailed guides (3 tasks)
+- [x] 105-04B-PLAN.md — Add new Admin module guides (Manage Units, Positions, Notifications, System Settings)
+- [x] 105-05-PLAN.md — Add minor UX features (search highlighting, breadcrumb, print CSS)
 
 #### Phase 106: User Guide Styling & Polish
 **Goal**: User Guide displays with premium visual design matching existing portal design system
@@ -884,14 +887,14 @@ Plans:
 | 102. Coaching Notification Triggers | 0/3 | Not started | - |
 | 103. Notification Testing & Polish | 0/3 | Not started | - |
 | 104. CMP Records Team View | 4/4 | Complete | 2026-03-06 |
-| 105. User Guide Structure & Content | 0/4 | Not started | - |
+| 105. User Guide Structure & Content | 2/6 | In Progress|  |
 | 106. User Guide Styling & Polish | 0/4 | Not started | - |
 
 ### Phase 104: CMP Records Team View
 **Goal:** Close UAT gaps - fix duplicate UI elements, broken filters, and missing back button
 **Requirements**: N/A (gap closure from UAT)
 **Depends on:** Phase 103
-**Plans:** 4/4 plans complete
+**Plans:** 2/6 plans executed
 
 ## Historical Progress
 
