@@ -28,8 +28,8 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 **Milestone:** v3.5 User Guide
 **Phase:** 105 - User Guide Structure & Content
 **Plan:** TBD
-**Status:** Planning
-**Last activity:** 2026-03-06 — Roadmap created, 2 phases defined
+**Status:** Context gathered
+**Last activity:** 2026-03-06 — Phase 105 context captured, ready for planning
 
 **Progress:** [░░░░░░░░░░] 0% (0/2 phases)
 
@@ -108,15 +108,19 @@ Roadmap complete. Ready for phase planning.
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Roadmap created for v3.5 User Guide
-Resume file: None
+Stopped at: Phase 105 context gathered
+Resume file: .planning/phases/105-user-guide-structure-content/105-CONTEXT.md
 
 **Context Handoff:**
-- Milestone v3.5 User Guide roadmap complete
-- 2 phases defined: Structure & Content (105), Styling & Polish (106)
-- 24 requirements mapped 100% to phases
+- Phase 105 context captured with implementation decisions
+- Tab content: 5 tabs (Dashboard, CMP, CDP, Account, Admin Panel) with 8-12 steps each
+- Instruction format: Cards with icons and gradient badges
+- FAQ: 12 comprehensive questions with accordion behavior
+- Controller: HomeController.Guide() method, Views/Home/Guide.cshtml
+- Navbar: "Panduan" link with question icon
+- Role-based access: Admin Panel tab hidden for non-Admin/HC users
 - Ready for Phase 105 planning: `/gsd:plan-phase 105`
 
 ---
 *State updated: 2026-03-06*
-*Ready for Phase 105 planning*
+*Phase 105 context complete, ready for planning*
