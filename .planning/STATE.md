@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 **Milestone:** v3.6 Histori Proton (shipped 2026-03-06)
 **Phase:** All complete
 **Status:** Between milestones
-**Last activity:** 2026-03-06 — v3.6 milestone archived
+**Last activity:** 2026-03-06 - Completed quick task 19: Move Search & Filter Bar inside My Records tab
 
 ## Performance Metrics
 
@@ -52,6 +52,12 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 ### Blockers/Concerns
 
 None currently identified.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 19 | Move Search & Filter Bar inside My Records tab on CMP/Records page | 2026-03-06 | 7137960 | [19-move-search-filter-bar-inside-my-records](./quick/19-move-search-filter-bar-inside-my-records/) |
 
 ---
 *State updated: 2026-03-06 after v3.6 milestone completion*
