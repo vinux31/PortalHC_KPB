@@ -484,6 +484,7 @@
     width: 100%;
     background: transparent;
     border: none;
+    border-left: 3px solid transparent;
     padding: 1.25rem 0;
     min-height: 48px;
     text-align: left;
@@ -493,11 +494,13 @@
     cursor: pointer;
     user-select: none;
     gap: 1rem;
-    transition: color 0.2s ease, background 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .faq-question:hover {
     color: #667eea;
+    background: rgba(102, 126, 234, 0.04);
+    border-left: 3px solid #667eea;
 }
 
 .faq-question:active {
@@ -507,7 +510,7 @@
 .faq-question .faq-chevron {
     font-size: 0.9rem;
     color: #a0aec0;
-    transition: transform 0.3s ease, color 0.2s ease;
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), color 0.2s ease;
     flex-shrink: 0;
 }
 
@@ -525,6 +528,10 @@
     font-size: 0.9rem;
     color: #4a5568;
     line-height: 1.7;
+}
+
+.faq-answer.fade-in {
+    animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* FAQ hidden by search */
@@ -552,12 +559,57 @@ mark.search-highlight {
 }
 
 /* ============================================
+   Animations - Keyframes
+   ============================================ */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 3px 8px rgba(102, 126, 234, 0.3);
+    }
+    50% {
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    }
+}
+
+/* ============================================
    Reduced Motion Support
    ============================================ */
 @media (prefers-reduced-motion: reduce) {
     .guide-module-card,
     .guide-card-header-icon,
     .guide-search-input,
+    .guide-search-wrapper,
     .faq-question,
     .faq-chevron,
     .guide-step-badge,
@@ -580,8 +632,21 @@ mark.search-highlight {
         transform: none;
     }
 
+    .guide-search-wrapper:focus-within .guide-search-icon {
+        transform: none;
+    }
+
+    .faq-question:hover {
+        border-left-color: transparent;
+        background: transparent;
+    }
+
     .guide-step-item:hover .guide-step-badge {
         transform: none;
+        animation: none;
+    }
+
+    .faq-answer.fade-in {
         animation: none;
     }
 }
