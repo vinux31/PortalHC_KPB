@@ -500,6 +500,12 @@
 @section Scripts {
 <script>
 (function () {
+    // ─── Mobile-specific placeholder text ───
+    var searchInput = document.getElementById('guideSearchInput');
+    if (searchInput && window.innerWidth <= 768) {
+        searchInput.placeholder = 'Cari panduan...';
+    }
+
     // ─── Smooth scroll to top when clicking module cards ───
     document.querySelectorAll('.guide-module-card').forEach(function(card) {
         card.addEventListener('click', function(e) {
