@@ -566,25 +566,84 @@ mark.search-highlight {
    Print Styles
    ============================================ */
 @media print {
+    /* Enhance existing print styles */
     .guide-hero {
         background: #667eea !important;
         -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        color: white !important;
+        page-break-after: avoid;
     }
 
     .guide-module-card {
         break-inside: avoid;
         box-shadow: none;
         border: 1px solid #ddd;
+        margin-bottom: 1rem;
+        page-break-inside: avoid;
     }
 
-    .guide-search-wrapper,
-    .guide-card-chevron,
-    .faq-chevron {
+    /* Expand all accordions */
+    .collapse:not(.show) {
+        display: block !important;
+        height: auto !important;
+    }
+
+    .accordion-button {
+        background: #f8f9fa !important;
+        border: 1px solid #dee2e6;
+        color: #000 !important;
+    }
+
+    .accordion-button::after {
         display: none !important;
     }
 
-    .collapse:not(.show) {
+    /* Hide interactive elements */
+    .guide-search-wrapper,
+    .guide-card-chevron,
+    .faq-chevron,
+    .guide-back-btn,
+    .no-results-msg {
+        display: none !important;
+    }
+
+    /* FAQ items print better */
+    .faq-item {
+        page-break-inside: avoid;
+        border-bottom: 1px solid #ccc;
+        padding-top: 0.5rem;
+    }
+
+    .faq-question {
+        font-weight: 700;
+        color: #000 !important;
+        text-decoration: underline;
+    }
+
+    .faq-answer {
         display: block !important;
+        color: #333;
+    }
+
+    /* Add page breaks */
+    .guide-faq-section {
+        page-break-before: always;
+    }
+
+    /* Print footer */
+    body::after {
+        content: "HC Portal User Guide - Printed on " attr(data-print-date);
+        display: block;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        font-size: 10pt;
+        text-align: center;
+        color: #666;
+        padding: 0.5rem;
+        border-top: 1px solid #ddd;
     }
 }
 
