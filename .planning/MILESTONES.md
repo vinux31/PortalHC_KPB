@@ -1,4 +1,22 @@
 # Milestones
+## v3.6 Histori Proton (Shipped: 2026-03-06)
+
+**Phases completed:** 2 phases (107-108), 4 plans
+**Timeline:** 2026-03-06
+
+**Delivered:** Proton History feature in CDP menu — role-scoped worker list with search/filter and vertical timeline detail page showing each worker's Proton journey (Tahun 1-3) with expandable nodes, status badges, and responsive styling.
+
+**Key accomplishments:**
+1. **CDP Histori Proton menu** — New navbar item with role-scoped access (Coachee self-redirect, Coach/SrSpv/SH section-scoped, HC/Admin all workers)
+2. **Worker list page** — Table with search by nama/NIP, filter by unit/section, step indicator showing Tahun progress, status badges
+3. **Timeline detail page** — Vertical left-aligned timeline with colored circles (green=Lulus, yellow=Dalam Proses), expandable Bootstrap Collapse cards per Proton year
+4. **Per-node detail** — Each node shows Tahun, Unit, Coach name, Status, Competency Level (if lulus), Start/End dates
+5. **Responsive design** — Bootstrap 5 consistent styling, mobile-friendly layout
+
+**Files Modified:** Models (2 ViewModels), Controllers/CDPController.cs, Views/CDP (3 views)
+
+---
+
 
 ## v3.2 Bug Hunting & Quality Audit (Shipped: 2026-03-05)
 

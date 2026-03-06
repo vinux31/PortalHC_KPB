@@ -247,6 +247,42 @@
 
 ---
 
+## Milestone: v3.6 — Histori Proton
+
+**Shipped:** 2026-03-06
+**Phases:** 2 (107-108) | **Plans:** 4
+
+### What Was Built
+- CDP "Histori Proton" navbar menu with role-scoped access (Coachee self-redirect, Coach/SrSpv/SH section, HC/Admin all)
+- Worker list page with search by nama/NIP, filter by unit/section, step indicator, status badges
+- Vertical timeline detail page with left-aligned line, colored circles (green=Lulus, yellow=Dalam Proses), expandable Bootstrap Collapse cards
+- HistoriProtonDetailViewModel with ProtonTimelineNode — queries ProtonTrackAssignment + ProtonFinalAssessment + CoachCoacheeMapping
+
+### What Worked
+- **Cloning CoachingProton role-scoping**: HistoriProton role access copied CoachingProton's RoleLevel branching — proven pattern, zero auth bugs
+- **Small focused milestone**: 2 phases, 4 plans — planned and executed in a single session with no blockers
+- **Backend-first waves**: Plan 01 (ViewModel + controller) in wave 1, Plan 02 (view) in wave 2 — clean separation, view could reference compiled model
+
+### What Was Inefficient
+- **Plan-index wave mismatch (again)**: Plan 02 frontmatter had wave 2 + depends_on 01, but plan-index tool returned both as wave 1 — same bug as v2.7
+- **Summary one-liner extraction still null**: summary-extract returns null for one_liner — format issue persists across milestones
+
+### Patterns Established
+- **Timeline CSS inline pattern**: All timeline CSS in a `<style>` block within the Razor view — appropriate for single-page custom styling
+- **Left-aligned vertical timeline**: `.timeline` with `::before` pseudo-element for line, `.timeline-node::before` for circles — reusable pattern for any stepped history
+
+### Key Lessons
+1. Small milestones (2 phases) execute cleanly in one session — ideal for focused feature additions
+2. Role-scoping patterns are now mature enough to clone without modification — CoachingProton is the reference implementation
+3. Coach data best sourced from CoachCoacheeMapping (not ProtonTrackAssignment which lacks CoachId)
+
+### Cost Observations
+- Model profile: budget (sonnet planner/executor, haiku checker/researcher)
+- 1-session milestone (~1.5 hours)
+- 4 plans is efficient for a complete new feature (list + detail pages)
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -270,5 +306,6 @@
 | v2.6 | 6 | 12 | 1 | 12 |
 | v2.7 | 3 | 4 | 1 | 4 |
 | v3.0 | 10 | 34 | 4 | 8.5 |
+| v3.6 | 2 | 4 | 1 | 4 |
 
-**Running total:** 85 phases, ~200 plans, 22 days
+**Running total:** 87 phases, ~204 plans, 23 days

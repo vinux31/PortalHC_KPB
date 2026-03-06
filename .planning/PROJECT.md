@@ -12,28 +12,11 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v3.6 - Riwayat Proton
+## Current State (v3.6 — shipped 2026-03-06)
 
-**Goal:** Build Proton History page in CDP menu showing each worker's Proton journey as a vertical timeline across years, units, and competency levels.
+**v3.0 through v3.6 shipped.** All core portal flows verified working. CDP now includes Histori Proton feature — role-scoped worker list with search/filter and vertical timeline detail page per worker showing Proton journey (Tahun 1-3) with expandable nodes, status badges, and responsive styling. User Guide page available. Known gaps from v3.0: Phase 89 PlanIDP unverified, PositionTargetHelper missing for competency display, KKJ Matrix Phase 88 verification discrepancy.
 
-**Target features:**
-- CDP menu item "Riwayat Proton"
-- Worker list page with search/filter, role-scoped access
-- Vertical timeline detail page per worker (Tahun, Unit, Coach, Status, Level)
-- Summary per tahun (no deliverable drill-down)
-- Role-based access: Coachee (self), Coach/SrSpv/SH (section), HC/Admin (all)
-
-**Scope:**
-- Query existing ProtonTrackAssignment + ProtonFinalAssessment data
-- Vertical timeline UI (similar to Deliverable approval stepper)
-- Responsive design, consistent with portal styling
-- No video tutorials or screenshots in v3.5
-
-**Approach:** Controller action → View with tabs → CSS styling → Navbar link
-
-## Current State (v3.5 — shipped 2026-03-06)
-
-**v3.0 through v3.5 shipped.** All core portal flows verified working (assessment lifecycle, coaching workflow, master data management, dashboards, login/navigation). User Guide page added with 5 tabs, FAQ, role-based content, and premium styling. Known gaps from v3.0: Phase 89 PlanIDP unverified, PositionTargetHelper missing for competency display, KKJ Matrix Phase 88 verification discrepancy.
+**Next milestone:** Not yet defined. Run `/gsd:new-milestone` to start.
 
 ## Architecture Decisions
 
