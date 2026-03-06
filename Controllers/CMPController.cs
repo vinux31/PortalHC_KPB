@@ -555,7 +555,8 @@ namespace HcPortal.Controllers
                 // Save new file with timestamp prefix
                 var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
                 Directory.CreateDirectory(uploadDir);
-                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
+                var originalExt = Path.GetExtension(model.CertificateFile.FileName);
+                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{originalExt}";
                 var filePath = Path.Combine(uploadDir, safeFileName);
                 using (var stream = new FileStream(filePath, FileMode.Create))
                 {
@@ -978,7 +979,7 @@ namespace HcPortal.Controllers
             // InProgress sessions bypass: token was checked on first entry; reload must not block the worker
             if (assessment.IsTokenRequired && assessment.UserId == user.Id && assessment.StartedAt == null)
             {
-                var tokenVerified = TempData[$"TokenVerified_{id}"];
+                var tokenVerified = TempData.Peek($"TokenVerified_{id}");
                 if (tokenVerified == null)
                 {
                     TempData["Error"] = "Ujian ini membutuhkan token akses. Silakan masukkan token terlebih dahulu.";
@@ -1036,7 +1037,7 @@ namespace HcPortal.Controllers
 
                 if (assignment == null)
                 {
-                    var rng = new Random();
+                    var rng = Random.Shared;
 
                     // Build cross-package ShuffledQuestionIds (per user decision: slot-list algorithm)
                     var shuffledIds = BuildCrossPackageAssignment(packages, rng);
@@ -1292,7 +1293,10 @@ namespace HcPortal.Controllers
             // Single package: shuffle question order so each worker sees a unique sequence
             if (packages.Count == 1)
             {
-                var singlePackageIds = packages[0].Questions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
+                var singlePackageQuestions = packages[0].Questions;
+                if (singlePackageQuestions == null || !singlePackageQuestions.Any())
+                    return new List<int>();
+                var singlePackageIds = singlePackageQuestions.OrderBy(q => q.Order).Select(q => q.Id).ToList();
                 Shuffle(singlePackageIds, rng);
                 return singlePackageIds;
             }
@@ -1612,8 +1616,24 @@ namespace HcPortal.Controllers
 
                 // Competency auto-update removed in Phase 90 (KKJ tables dropped)
 
+                // Use concurrency-safe update to prevent late SaveAnswer from corrupting score
                 _context.AssessmentSessions.Update(assessment);
-                await _context.SaveChangesAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                }
+                catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
+                {
+                    // Reload and retry once — late SaveAnswer may have touched the session
+                    await _context.Entry(assessment).ReloadAsync();
+                    assessment.Score = finalPercentage;
+                    assessment.Status = "Completed";
+                    assessment.Progress = 100;
+                    assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
+                    assessment.CompletedAt = DateTime.UtcNow;
+                    _context.AssessmentSessions.Update(assessment);
+                    await _context.SaveChangesAsync();
+                }
 
                 return RedirectToAction("Results", new { id });
             }
@@ -1877,14 +1897,16 @@ namespace HcPortal.Controllers
             else
             {
                 // Legacy path: existing UserResponse + AssessmentQuestion data
+                var legacyQuestions = assessment.Questions ?? new List<AssessmentQuestion>();
+                var legacyResponses = assessment.Responses ?? new List<UserResponse>();
                 if (assessment.AllowAnswerReview)
                 {
                     questionReviews = new List<QuestionReviewItem>();
                     int questionNum = 0;
-                    foreach (var question in assessment.Questions)
+                    foreach (var question in legacyQuestions)
                     {
                         questionNum++;
-                        var userResponse = assessment.Responses
+                        var userResponse = legacyResponses
                             .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
                         var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
                         var selectedOption = userResponse?.SelectedOption;
@@ -1910,9 +1932,9 @@ namespace HcPortal.Controllers
                 else
                 {
                     // Still count correct for summary even when review disabled
-                    foreach (var question in assessment.Questions)
+                    foreach (var question in legacyQuestions)
                     {
-                        var userResponse = assessment.Responses
+                        var userResponse = legacyResponses
                             .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
                         if (userResponse?.SelectedOption != null && userResponse.SelectedOption.IsCorrect)
                             correctCount++;
@@ -1930,7 +1952,7 @@ namespace HcPortal.Controllers
                     IsPassed = score >= passPercentage,
                     AllowAnswerReview = assessment.AllowAnswerReview,
                     CompletedAt = assessment.CompletedAt,
-                    TotalQuestions = assessment.Questions.Count,
+                    TotalQuestions = legacyQuestions.Count,
                     CorrectAnswers = correctCount,
                     QuestionReviews = questionReviews
                 };

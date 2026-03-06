@@ -109,7 +109,7 @@ namespace HcPortal.Data
 
                 // Check constraints for data integrity
                 entity.HasCheckConstraint("CK_AssessmentSession_Progress", "[Progress] >= 0 AND [Progress] <= 100");
-                entity.HasCheckConstraint("CK_AssessmentSession_DurationMinutes", "[DurationMinutes] > 0");
+                entity.HasCheckConstraint("CK_AssessmentSession_DurationMinutes", "[DurationMinutes] >= 0");
                 entity.HasCheckConstraint("CK_AssessmentSession_PassPercentage", "[PassPercentage] >= 0 AND [PassPercentage] <= 100");
 
                 // Default values

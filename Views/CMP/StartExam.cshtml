@@ -299,9 +299,9 @@ else
 
     // -------- Answer tracking + incremental save --------
     const SAVE_ANSWER_URL = '@Url.Action("SaveAnswer", "CMP")';
-    const SAVE_ANSWER_TOKEN = document.querySelector('input[name="__RequestVerificationToken"]') !== null
-        ? document.querySelector('input[name="__RequestVerificationToken"]').value
-        : '';
+    const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+    const SAVE_ANSWER_TOKEN = tokenEl ? tokenEl.value : '';
+    if (!SAVE_ANSWER_TOKEN) console.warn('Anti-forgery token not found — answer saves may fail.');
     const SESSION_ID = @Model.AssessmentSessionId;
 
     // -------- Auto-save state --------

@@ -184,7 +184,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/KkjFileDownload/{id}
-        [Authorize]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> KkjFileDownload(int id)
         {
             var kkjFile = await _context.KkjFiles
@@ -505,7 +505,7 @@ namespace HcPortal.Controllers
         }
 
         // GET /Admin/CpdpFileDownload/{id}
-        [Authorize]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CpdpFileDownload(int id)
         {
             var cpdpFile = await _context.CpdpFiles
@@ -882,7 +882,14 @@ namespace HcPortal.Controllers
                 if (model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue)
                 {
                     var protonTrack = await _context.ProtonTracks.FindAsync(model.ProtonTrackId.Value);
-                    protonTahunKe = protonTrack?.TahunKe;
+                    if (protonTrack == null)
+                    {
+                        TempData["Error"] = "Proton Track tidak ditemukan. Silakan pilih track yang valid.";
+                        var users = await _context.Users.OrderBy(u => u.FullName).ToListAsync();
+                        ViewBag.Users = users;
+                        return View("CreateAssessment", model);
+                    }
+                    protonTahunKe = protonTrack.TahunKe;
                 }
 
                 // Create all sessions in memory first
@@ -966,6 +973,20 @@ namespace HcPortal.Controllers
                 // Log error
                 var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
                 logger.LogError(ex, "Error creating assessment sessions");
+
+                // Audit log for failed creation attempt
+                try
+                {
+                    var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(
+                        currentUser?.Id ?? "",
+                        actorName,
+                        "CreateAssessment_Failed",
+                        $"Failed to create assessment '{model.Title}' ({model.Category}): {ex.Message}",
+                        null,
+                        "AssessmentSession");
+                }
+                catch { /* don't let audit logging failure mask the original error */ }
 
                 // Show error to user
                 TempData["Error"] = "Gagal membuat assessment. Silakan coba lagi.";
@@ -1680,19 +1701,20 @@ namespace HcPortal.Controllers
                     IsPassed     = a.IsPassed,
                     CompletedAt  = a.CompletedAt,
                     StartedAt    = a.StartedAt,
-                    QuestionCount = questionCountMap.ContainsKey(a.Id) ? questionCountMap[a.Id] : 0
+                    QuestionCount = questionCountMap.TryGetValue(a.Id, out var qc) ? qc : 0
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
             .ThenBy(s => s.UserFullName)
             .ToList();
 
+            var firstSession = sessions.First();
             var model = new MonitoringGroupViewModel
             {
-                RepresentativeId = sessions.First().Id,
+                RepresentativeId = firstSession.Id,
                 Title    = title,
                 Category = category,
-                Schedule = sessions.First().Schedule,
+                Schedule = firstSession.Schedule,
                 Sessions = sessionViewModels,
                 TotalCount     = sessionViewModels.Count,
                 CompletedCount = sessionViewModels.Count(s => s.UserStatus == "Completed"),
@@ -1703,8 +1725,8 @@ namespace HcPortal.Controllers
                 PendingCount   = sessionViewModels.Count(s => s.UserStatus == "Not started")
             };
 
-            model.IsTokenRequired = sessions.First().IsTokenRequired;
-            model.AccessToken = sessions.First().AccessToken ?? "";
+            model.IsTokenRequired = firstSession.IsTokenRequired;
+            model.AccessToken = firstSession.AccessToken ?? "";
 
             ViewBag.BackUrl = Url.Action("AssessmentMonitoring", "Admin");
 
@@ -2197,7 +2219,7 @@ namespace HcPortal.Controllers
                 {
                     UserFullName  = a.User?.FullName ?? "Unknown",
                     UserNIP       = a.User?.NIP ?? "",
-                    QuestionCount = questionCountMap.ContainsKey(a.Id) ? questionCountMap[a.Id] : 0,
+                    QuestionCount = questionCountMap.TryGetValue(a.Id, out var qcnt) ? qcnt : 0,
                     UserStatus    = userStatus,
                     Score         = a.Score.HasValue ? (object)a.Score.Value : "\u2014",
                     Result        = resultText,
@@ -2285,705 +2307,6 @@ namespace HcPortal.Controllers
             var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
             var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Results.xlsx";
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
-
-
-
-        // GET /Admin/SeedCoachingTestData — TEMP: Phase 85 browser verify seed data
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> SeedCoachingTestData()
-        {
-            try
-            {
-                // 1. Find users by role level
-                var allActiveUsers = await _context.Users
-                    .Where(u => u.IsActive)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync();
-
-                var coachUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coach);
-                var testCoach = coachUsers.FirstOrDefault(u => u.IsActive);
-                if (testCoach == null)
-                {
-                    TempData["Error"] = "SeedCoachingTestData: No active user with Coach role found. Assign Coach role to at least one user first.";
-                    return RedirectToAction("CoachCoacheeMapping");
-                }
-
-                // Coachee = RoleLevel 6
-                var coacheeUsers = allActiveUsers.Where(u => u.RoleLevel == 6 && u.Id != testCoach.Id).Take(2).ToList();
-                if (coacheeUsers.Count < 2)
-                {
-                    TempData["Error"] = $"SeedCoachingTestData: Need 2 active users with RoleLevel=6 (Coachee). Found: {coacheeUsers.Count}. Please ensure at least 2 coachee-level users exist.";
-                    return RedirectToAction("CoachCoacheeMapping");
-                }
-
-                var testCoachee1 = coacheeUsers[0];
-                var testCoachee2 = coacheeUsers[1];
-
-                // 2. Pick a ProtonTrack that has deliverables
-                var testTrack = await _context.ProtonTracks
-                    .Where(t => _context.ProtonDeliverableList
-                        .Any(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == t.Id))
-                    .OrderBy(t => t.Urutan)
-                    .FirstOrDefaultAsync();
-                if (testTrack == null)
-                {
-                    TempData["Error"] = "SeedCoachingTestData: No ProtonTrack with deliverables found. Add Silabus deliverables first.";
-                    return RedirectToAction("CoachCoacheeMapping");
-                }
-
-                var actorId = _userManager.GetUserId(User) ?? "";
-
-                // 3. Create CoachCoacheeMapping (idempotent)
-                var mapping1 = await _context.CoachCoacheeMappings
-                    .FirstOrDefaultAsync(m => m.CoachId == testCoach.Id && m.CoacheeId == testCoachee1.Id && m.IsActive);
-                if (mapping1 == null)
-                {
-                    mapping1 = new CoachCoacheeMapping
-                    {
-                        CoachId = testCoach.Id,
-                        CoacheeId = testCoachee1.Id,
-                        IsActive = true,
-                        StartDate = DateTime.Today.AddMonths(-3)
-                    };
-                    _context.CoachCoacheeMappings.Add(mapping1);
-                }
-
-                var mapping2 = await _context.CoachCoacheeMappings
-                    .FirstOrDefaultAsync(m => m.CoachId == testCoach.Id && m.CoacheeId == testCoachee2.Id && m.IsActive);
-                if (mapping2 == null)
-                {
-                    mapping2 = new CoachCoacheeMapping
-                    {
-                        CoachId = testCoach.Id,
-                        CoacheeId = testCoachee2.Id,
-                        IsActive = true,
-                        StartDate = DateTime.Today.AddMonths(-2)
-                    };
-                    _context.CoachCoacheeMappings.Add(mapping2);
-                }
-
-                // 4. Create ProtonTrackAssignment (idempotent)
-                var track1 = await _context.ProtonTrackAssignments
-                    .FirstOrDefaultAsync(a => a.CoacheeId == testCoachee1.Id && a.IsActive);
-                if (track1 == null)
-                {
-                    _context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
-                    {
-                        CoacheeId = testCoachee1.Id,
-                        AssignedById = actorId,
-                        ProtonTrackId = testTrack.Id,
-                        IsActive = true,
-                        AssignedAt = DateTime.UtcNow
-                    });
-                }
-
-                var track2 = await _context.ProtonTrackAssignments
-                    .FirstOrDefaultAsync(a => a.CoacheeId == testCoachee2.Id && a.IsActive);
-                if (track2 == null)
-                {
-                    _context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
-                    {
-                        CoacheeId = testCoachee2.Id,
-                        AssignedById = actorId,
-                        ProtonTrackId = testTrack.Id,
-                        IsActive = true,
-                        AssignedAt = DateTime.UtcNow
-                    });
-                }
-
-                await _context.SaveChangesAsync();
-
-                // 5. Load deliverables for the selected ProtonTrack
-                var deliverables = await _context.ProtonDeliverableList
-                    .Include(d => d.ProtonSubKompetensi)
-                        .ThenInclude(s => s.ProtonKompetensi)
-                    .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == testTrack.Id)
-                    .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
-                        .ThenBy(d => d.ProtonSubKompetensi.Urutan)
-                        .ThenBy(d => d.Urutan)
-                    .ToListAsync();
-
-                if (!deliverables.Any())
-                {
-                    TempData["Error"] = $"SeedCoachingTestData: Track '{testTrack.DisplayName}' has no deliverables. Add Silabus deliverables for this track first.";
-                    return RedirectToAction("CoachCoacheeMapping");
-                }
-
-                // 6. Create ProtonDeliverableProgress for testCoachee1 (all statuses)
-                var existingC1 = await _context.ProtonDeliverableProgresses
-                    .Where(p => p.CoacheeId == testCoachee1.Id)
-                    .Select(p => p.ProtonDeliverableId)
-                    .ToListAsync();
-
-                ProtonDeliverableProgress? approvedProgress1 = null;
-
-                for (int i = 0; i < deliverables.Count; i++)
-                {
-                    var d = deliverables[i];
-                    if (existingC1.Contains(d.Id)) continue;
-
-                    ProtonDeliverableProgress prog;
-                    if (i == 0)
-                    {
-                        // Approved — full approval chain
-                        prog = new ProtonDeliverableProgress
-                        {
-                            CoacheeId = testCoachee1.Id,
-                            ProtonDeliverableId = d.Id,
-                            Status = "Approved",
-                            SrSpvApprovalStatus = "Approved",
-                            ShApprovalStatus = "Approved",
-                            HCApprovalStatus = "Reviewed",
-                            SubmittedAt = DateTime.UtcNow.AddDays(-7),
-                            ApprovedAt = DateTime.UtcNow.AddDays(-5)
-                        };
-                        _context.ProtonDeliverableProgresses.Add(prog);
-                        approvedProgress1 = prog;
-                    }
-                    else if (i == 1)
-                    {
-                        // Submitted — pending approval
-                        prog = new ProtonDeliverableProgress
-                        {
-                            CoacheeId = testCoachee1.Id,
-                            ProtonDeliverableId = d.Id,
-                            Status = "Submitted",
-                            SrSpvApprovalStatus = "Pending",
-                            ShApprovalStatus = "Pending",
-                            HCApprovalStatus = "Pending",
-                            SubmittedAt = DateTime.UtcNow.AddDays(-2)
-                        };
-                        _context.ProtonDeliverableProgresses.Add(prog);
-                    }
-                    else if (i == 2)
-                    {
-                        // Rejected
-                        prog = new ProtonDeliverableProgress
-                        {
-                            CoacheeId = testCoachee1.Id,
-                            ProtonDeliverableId = d.Id,
-                            Status = "Rejected",
-                            SrSpvApprovalStatus = "Rejected",
-                            ShApprovalStatus = "Pending",
-                            HCApprovalStatus = "Pending",
-                            RejectionReason = "Bukti tidak lengkap, harap upload ulang dengan dokumen yang valid",
-                            SubmittedAt = DateTime.UtcNow.AddDays(-3),
-                            RejectedAt = DateTime.UtcNow.AddDays(-1)
-                        };
-                        _context.ProtonDeliverableProgresses.Add(prog);
-                    }
-                    else
-                    {
-                        // Pending (not yet submitted)
-                        _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
-                        {
-                            CoacheeId = testCoachee1.Id,
-                            ProtonDeliverableId = d.Id,
-                            Status = "Pending"
-                        });
-                    }
-                }
-
-                // 7. Create ProtonDeliverableProgress for testCoachee2
-                var existingC2 = await _context.ProtonDeliverableProgresses
-                    .Where(p => p.CoacheeId == testCoachee2.Id)
-                    .Select(p => p.ProtonDeliverableId)
-                    .ToListAsync();
-
-                ProtonDeliverableProgress? approvedProgress2 = null;
-
-                for (int i = 0; i < deliverables.Count; i++)
-                {
-                    var d = deliverables[i];
-                    if (existingC2.Contains(d.Id)) continue;
-
-                    if (i == 0)
-                    {
-                        // Approved by Spv, pending HC review
-                        var prog = new ProtonDeliverableProgress
-                        {
-                            CoacheeId = testCoachee2.Id,
-                            ProtonDeliverableId = d.Id,
-                            Status = "Approved",
-                            SrSpvApprovalStatus = "Approved",
-                            ShApprovalStatus = "Approved",
-                            HCApprovalStatus = "Pending",
-                            SubmittedAt = DateTime.UtcNow.AddDays(-5),
-                            ApprovedAt = DateTime.UtcNow.AddDays(-3)
-                        };
-                        _context.ProtonDeliverableProgresses.Add(prog);
-                        approvedProgress2 = prog;
-                    }
-                    else
-                    {
-                        _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
-                        {
-                            CoacheeId = testCoachee2.Id,
-                            ProtonDeliverableId = d.Id,
-                            Status = "Pending"
-                        });
-                    }
-                }
-
-                await _context.SaveChangesAsync();
-
-                // 8. Create dummy evidence file for Approved record of testCoachee1
-                if (approvedProgress1 != null)
-                {
-                    var evidenceFolder = Path.Combine(_env.WebRootPath, "uploads", "evidence", approvedProgress1.Id.ToString());
-                    Directory.CreateDirectory(evidenceFolder);
-                    var dummyPath = Path.Combine(evidenceFolder, "test_evidence.txt");
-                    if (!System.IO.File.Exists(dummyPath))
-                        await System.IO.File.WriteAllTextAsync(dummyPath, "Test evidence file — seeded by SeedCoachingTestData for QA");
-                    approvedProgress1.EvidencePath = $"/uploads/evidence/{approvedProgress1.Id}/test_evidence.txt";
-                    approvedProgress1.EvidenceFileName = "test_evidence.txt";
-                    await _context.SaveChangesAsync();
-                }
-
-                TempData["Success"] = $"Test coaching data seeded. Coach: {testCoach.FullName}, Coachees: {testCoachee1.FullName}, {testCoachee2.FullName}. Track: {testTrack.DisplayName}.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "SeedCoachingTestData failed");
-                TempData["Error"] = "Gagal membuat data test coaching. Silakan coba lagi.";
-            }
-            return RedirectToAction("CoachCoacheeMapping");
-        }
-
-        // GET /Admin/SeedDashboardTestData — TEMP: Phase 87 browser verify seed data
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> SeedDashboardTestData()
-        {
-            try
-            {
-                // 1. Verify active users exist (need users for all 6 roles)
-                var allActiveUsers = await _context.Users
-                    .Where(u => u.IsActive)
-                    .OrderBy(u => u.FullName)
-                    .ToListAsync();
-
-                if (allActiveUsers.Count < 2)
-                {
-                    TempData["Error"] = "SeedDashboardTestData: Need at least 2 active users. Found: " + allActiveUsers.Count;
-                    return RedirectToAction("Index", "Admin");
-                }
-
-                var now = DateTime.UtcNow;
-                var today = DateTime.Today;
-                var actorId = _userManager.GetUserId(User) ?? "";
-
-                // Mutable stats counters
-                var stats = new Dictionary<string, int>
-                {
-                    { "users", 0 },
-                    { "assessments", 0 },
-                    { "idpItems", 0 },
-                    { "deliverableProgress", 0 },
-                    { "trackAssignments", 0 },
-                    { "trainingRecords", 0 },
-                    { "auditLogs", 0 }
-                };
-
-                // 2. Assessment Sessions — create 5-10 sessions across statuses
-                var existingAssessments = await _context.AssessmentSessions
-                    .Where(a => a.Title.StartsWith("Seed Assessment -"))
-                    .Select(a => a.Title)
-                    .ToListAsync();
-
-                if (!existingAssessments.Any())
-                {
-                    var sessions = new List<AssessmentSession>();
-                    var userIndex = 0;
-
-                    // 2-3 Open sessions (Schedule in past/present, Status = "Open")
-                    for (int i = 0; i < 2; i++)
-                    {
-                        var user = allActiveUsers[userIndex % allActiveUsers.Count];
-                        sessions.Add(new AssessmentSession
-                        {
-                            Title = $"Seed Assessment - Open {i + 1}",
-                            Category = i % 2 == 0 ? "OJT" : "IHT",
-                            Schedule = today.AddHours(i * 2),
-                            DurationMinutes = 60,
-                            PassPercentage = 70,
-                            Status = "Open",
-                            IsTokenRequired = false,
-                            AccessToken = "",
-                            Progress = 0,
-                            UserId = user.Id,
-                            CreatedBy = actorId
-                        });
-                        userIndex++;
-                    }
-
-                    // 2-3 Upcoming sessions (Schedule in future, Status = "Upcoming")
-                    for (int i = 0; i < 2; i++)
-                    {
-                        var user = allActiveUsers[userIndex % allActiveUsers.Count];
-                        sessions.Add(new AssessmentSession
-                        {
-                            Title = $"Seed Assessment - Upcoming {i + 1}",
-                            Category = i % 2 == 0 ? "OJT" : "IHT",
-                            Schedule = today.AddDays(i + 2),
-                            DurationMinutes = 90,
-                            PassPercentage = 75,
-                            Status = "Upcoming",
-                            IsTokenRequired = i % 2 == 0, // Mix token/non-token
-                            AccessToken = i % 2 == 0 ? "SEED87" : "",
-                            Progress = 0,
-                            UserId = user.Id,
-                            CreatedBy = actorId
-                        });
-                        userIndex++;
-                    }
-
-                    // 3-4 Completed sessions with varying scores
-                    var completedScores = new[] { 85, 92, 55, 68 };
-                    for (int i = 0; i < 4; i++)
-                    {
-                        var user = allActiveUsers[userIndex % allActiveUsers.Count];
-                        var score = completedScores[i];
-                        sessions.Add(new AssessmentSession
-                        {
-                            Title = $"Seed Assessment - Completed {i + 1}",
-                            Category = i % 2 == 0 ? "OJT" : "IHT",
-                            Schedule = today.AddDays(-(i + 1)),
-                            DurationMinutes = 60,
-                            PassPercentage = 70,
-                            Status = "Completed",
-                            IsTokenRequired = false,
-                            AccessToken = "",
-                            Score = score,
-                            IsPassed = score >= 70,
-                            StartedAt = now.AddDays(-(i + 1)).AddHours(-1),
-                            CompletedAt = now.AddDays(-(i + 1)),
-                            Progress = 100,
-                            UserId = user.Id,
-                            CreatedBy = actorId
-                        });
-                        userIndex++;
-                    }
-
-                    _context.AssessmentSessions.AddRange(sessions);
-                    await _context.SaveChangesAsync();
-                    stats["assessments"] = sessions.Count;
-                }
-                else
-                {
-                    stats["assessments"] = existingAssessments.Count();
-                }
-
-                // 3. IDP Items — create 8-12 items across different users and statuses
-                var existingIdpItems = await _context.IdpItems
-                    .Where(i => i.Kompetensi != null && i.Kompetensi.StartsWith("Seed IDP -"))
-                    .CountAsync();
-
-                if (existingIdpItems == 0)
-                {
-                    var idpItems = new List<IdpItem>();
-                    var statuses = new[] { "Pending", "In Progress", "Completed" };
-                    var idpIndex = 0;
-
-                    // 3-4 Pending items
-                    for (int i = 0; i < 3; i++)
-                    {
-                        var user = allActiveUsers[idpIndex % allActiveUsers.Count];
-                        idpItems.Add(new IdpItem
-                        {
-                            UserId = user.Id,
-                            Kompetensi = $"Seed IDP - Pending {i + 1}",
-                            Aktivitas = "Test pending IDP item for dashboard verification",
-                            Status = "Pending",
-                            DueDate = today.AddDays(30)
-                        });
-                        idpIndex++;
-                    }
-
-                    // 3-4 In Progress items
-                    for (int i = 0; i < 3; i++)
-                    {
-                        var user = allActiveUsers[idpIndex % allActiveUsers.Count];
-                        idpItems.Add(new IdpItem
-                        {
-                            UserId = user.Id,
-                            Kompetensi = $"Seed IDP - In Progress {i + 1}",
-                            Aktivitas = $"Test in-progress IDP item {30 + (i * 20)}% for dashboard verification",
-                            Status = "In Progress",
-                            DueDate = today.AddDays(15)
-                        });
-                        idpIndex++;
-                    }
-
-                    // 2-4 Completed items
-                    for (int i = 0; i < 3; i++)
-                    {
-                        var user = allActiveUsers[idpIndex % allActiveUsers.Count];
-                        idpItems.Add(new IdpItem
-                        {
-                            UserId = user.Id,
-                            Kompetensi = $"Seed IDP - Completed {i + 1}",
-                            Aktivitas = "Test completed IDP item for dashboard verification",
-                            Status = "Completed",
-                            DueDate = today.AddDays(-5)
-                        });
-                        idpIndex++;
-                    }
-
-                    _context.IdpItems.AddRange(idpItems);
-                    await _context.SaveChangesAsync();
-                    stats["idpItems"] = idpItems.Count;
-                }
-                else
-                {
-                    stats["idpItems"] = existingIdpItems;
-                }
-
-                // 4. Proton Deliverable Progress — create 10-15 records
-                // Check if any seed progress already exists (no CoacheeId prefix, check by deliverable count)
-                var existingProgress = await _context.ProtonDeliverableProgresses
-                    .Where(p => allActiveUsers.Select(u => u.Id).Contains(p.CoacheeId))
-                    .CountAsync();
-
-                if (existingProgress == 0)
-                {
-                    // Get a ProtonTrack that has deliverables
-                    var testTrack = await _context.ProtonTracks
-                        .Where(t => _context.ProtonDeliverableList
-                            .Any(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == t.Id))
-                        .OrderBy(t => t.Urutan)
-                        .FirstOrDefaultAsync();
-
-                    if (testTrack != null)
-                    {
-                        var deliverables = await _context.ProtonDeliverableList
-                            .Include(d => d.ProtonSubKompetensi)
-                                .ThenInclude(s => s.ProtonKompetensi)
-                            .Where(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == testTrack.Id)
-                            .OrderBy(d => d.ProtonSubKompetensi.ProtonKompetensi.Urutan)
-                                .ThenBy(d => d.ProtonSubKompetensi.Urutan)
-                                .ThenBy(d => d.Urutan)
-                            .Take(10)
-                            .ToListAsync();
-
-                        if (deliverables.Any())
-                        {
-                            var progressList = new List<ProtonDeliverableProgress>();
-                            var coacheeIndex = 0;
-                            var statuses = new[] { "Pending", "Submitted", "Approved", "Rejected" };
-
-                            foreach (var deliverable in deliverables)
-                            {
-                                var coachee = allActiveUsers[coacheeIndex % allActiveUsers.Count];
-                                var status = statuses[coacheeIndex % statuses.Length];
-
-                                var progress = new ProtonDeliverableProgress
-                                {
-                                    CoacheeId = coachee.Id,
-                                    ProtonDeliverableId = deliverable.Id,
-                                    Status = status,
-                                    SrSpvApprovalStatus = status == "Pending" ? "Pending" : (status == "Approved" ? "Approved" : "Pending"),
-                                    ShApprovalStatus = status == "Approved" ? "Approved" : "Pending",
-                                    HCApprovalStatus = status == "Approved" ? "Reviewed" : "Pending"
-                                };
-
-                                // Set timestamps based on status
-                                if (status == "Submitted")
-                                {
-                                    progress.SubmittedAt = now.AddDays(-2);
-                                }
-                                else if (status == "Approved")
-                                {
-                                    progress.SubmittedAt = now.AddDays(-5);
-                                    progress.ApprovedAt = now.AddDays(-3);
-                                }
-                                else if (status == "Rejected")
-                                {
-                                    progress.SubmittedAt = now.AddDays(-3);
-                                    progress.RejectedAt = now.AddDays(-1);
-                                    progress.RejectionReason = "Test rejection for dashboard verification";
-                                }
-
-                                progressList.Add(progress);
-                                coacheeIndex++;
-                            }
-
-                            _context.ProtonDeliverableProgresses.AddRange(progressList);
-                            await _context.SaveChangesAsync();
-                            stats["deliverableProgress"] = progressList.Count;
-                        }
-                    }
-                }
-                else
-                {
-                    stats["deliverableProgress"] = existingProgress;
-                }
-
-                // 5. Proton Track Assignments — create 3-5 assignments
-                // Check if any seed assignments already exist (no CoacheeId prefix, check by user IDs)
-                var existingAssignments = await _context.ProtonTrackAssignments
-                    .Where(a => a.IsActive && allActiveUsers.Select(u => u.Id).Contains(a.CoacheeId))
-                    .CountAsync();
-
-                if (existingAssignments == 0 && stats["deliverableProgress"] > 0)
-                {
-                    var testTrack = await _context.ProtonTracks
-                        .Where(t => _context.ProtonDeliverableList
-                            .Any(d => d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == t.Id))
-                        .OrderBy(t => t.Urutan)
-                        .FirstOrDefaultAsync();
-
-                    if (testTrack != null)
-                    {
-                        var assignments = new List<ProtonTrackAssignment>();
-                        var assignmentCount = Math.Min(3, allActiveUsers.Count);
-
-                        for (int i = 0; i < assignmentCount; i++)
-                        {
-                            var coachee = allActiveUsers[i];
-                            var existing = await _context.ProtonTrackAssignments
-                                .FirstOrDefaultAsync(a => a.CoacheeId == coachee.Id && a.IsActive);
-
-                            if (existing == null)
-                            {
-                                assignments.Add(new ProtonTrackAssignment
-                                {
-                                    CoacheeId = coachee.Id,
-                                    AssignedById = actorId,
-                                    ProtonTrackId = testTrack.Id,
-                                    IsActive = true,
-                                    AssignedAt = now.AddDays(-30)
-                                });
-                            }
-                        }
-
-                        if (assignments.Any())
-                        {
-                            _context.ProtonTrackAssignments.AddRange(assignments);
-                            await _context.SaveChangesAsync();
-                            stats["trackAssignments"] = assignments.Count;
-                        }
-                    }
-                }
-                else
-                {
-                    stats["trackAssignments"] = existingAssignments;
-                }
-
-                // 6. Training Records — create 5-8 records
-                var existingTraining = await _context.TrainingRecords
-                    .Where(t => t.Judul.StartsWith("Seed Training -"))
-                    .CountAsync();
-
-                if (existingTraining == 0)
-                {
-                    var trainingRecords = new List<TrainingRecord>();
-                    var categories = new[] { "MANDATORY", "OPTIONAL" };
-                    var statuses = new[] { "Valid", "Expired" };
-
-                    for (int i = 0; i < 6; i++)
-                    {
-                        var user = allActiveUsers[i % allActiveUsers.Count];
-                        var isValid = i % 2 == 0;
-
-                        trainingRecords.Add(new TrainingRecord
-                        {
-                            UserId = user.Id,
-                            Judul = $"Seed Training - {categories[i % 2]} {i + 1}",
-                            Kategori = i % 2 == 0 ? "OJT" : "IHT",
-                            Tanggal = today.AddDays(-(30 + i * 5)),
-                            Status = statuses[i % 2],
-                            Penyelenggara = "Test Training Provider",
-                            ValidUntil = isValid ? today.AddDays(180) : today.AddDays(-10)
-                        });
-                    }
-
-                    _context.TrainingRecords.AddRange(trainingRecords);
-                    await _context.SaveChangesAsync();
-                    stats["trainingRecords"] = trainingRecords.Count;
-                }
-                else
-                {
-                    stats["trainingRecords"] = existingTraining;
-                }
-
-                // 7. Audit Logs — create 10-15 log entries
-                var existingLogs = await _context.AuditLogs
-                    .Where(l => l.ActionType.StartsWith("Seed Audit -"))
-                    .CountAsync();
-
-                if (existingLogs == 0)
-                {
-                    var auditLogs = new List<AuditLog>();
-                    var actions = new[] { "Create", "Update", "Delete", "Login" };
-                    var entityTypes = new[] { "AssessmentSession", "IdpItem", "ProtonDeliverableProgress", "TrainingRecord" };
-
-                    for (int i = 0; i < 12; i++)
-                    {
-                        var user = allActiveUsers[i % allActiveUsers.Count];
-                        var action = actions[i % actions.Length];
-                        var entityType = entityTypes[i % entityTypes.Length];
-                        var userName = string.IsNullOrWhiteSpace(user.NIP) ? user.FullName : $"{user.NIP} - {user.FullName}";
-
-                        auditLogs.Add(new AuditLog
-                        {
-                            ActorUserId = user.Id,
-                            ActorName = userName,
-                            ActionType = $"Seed Audit - {action}",
-                            Description = $"Test {action.ToLower()} action on {entityType} for dashboard verification",
-                            TargetId = i + 1,
-                            TargetType = entityType,
-                            CreatedAt = now.AddDays(-(i / 2)) // Spread over last 6 days
-                        });
-                    }
-
-                    _context.AuditLogs.AddRange(auditLogs);
-                    await _context.SaveChangesAsync();
-                    stats["auditLogs"] = auditLogs.Count;
-                }
-                else
-                {
-                    stats["auditLogs"] = existingLogs;
-                }
-
-                stats["users"] = allActiveUsers.Count;
-
-                TempData["Success"] = $"Dashboard seed data created. Users: {stats["users"]}, Assessments: {stats["assessments"]}, IDP Items: {stats["idpItems"]}, Deliverable Progress: {stats["deliverableProgress"]}, Track Assignments: {stats["trackAssignments"]}, Training Records: {stats["trainingRecords"]}, Audit Logs: {stats["auditLogs"]}.";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "SeedDashboardTestData failed");
-                TempData["Error"] = "Gagal membuat data test dashboard. Silakan coba lagi.";
-            }
-            return RedirectToAction("Index", "Admin");
-        }
-
-        // GET /Admin/SeedCDPTestData — Phase 94: CDP Section Audit precondition
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> SeedCDPTestData()
-        {
-            try
-            {
-                var actorId = _userManager.GetUserId(User) ?? "";
-
-                await SeedTestData.SeedCDPTestData(_context, _userManager, _env, actorId, _logger);
-
-                TempData["Success"] = "SeedCDPTestData: Comprehensive test data created successfully. " +
-                    "Check logs for details on created users, assignments, progress records, and files.";
-
-                // Get summary for display
-                var summary = await SeedTestData.GetTestDataSummaryAsync(_context);
-                _logger.LogInformation(summary.Replace(Environment.NewLine, " | "));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "SeedCDPTestData failed");
-                TempData["Error"] = "Gagal membuat data test CDP. Silakan coba lagi.";
-            }
-            return RedirectToAction("Index", "Admin");
         }
 
         // --- USER ASSESSMENT HISTORY ---
@@ -3277,7 +2600,7 @@ namespace HcPortal.Controllers
             if (currentAssignment != null)
                 _context.UserPackageAssignments.Remove(currentAssignment);
 
-            var rng = new Random();
+            var rng = Random.Shared;
             var shuffledIds = BuildCrossPackageAssignment(packages, rng);
             var sentinelPackage = packages.First();
 
@@ -3341,7 +2664,7 @@ namespace HcPortal.Controllers
                 .Where(a => siblingSessionIds.Contains(a.AssessmentSessionId))
                 .ToDictionaryAsync(a => a.AssessmentSessionId);
 
-            var rng = new Random();
+            var rng = Random.Shared;
             var results = new List<object>();
             int reshuffledCount = 0;
 

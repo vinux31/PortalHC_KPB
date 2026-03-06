@@ -244,13 +244,13 @@
                                     {
                                         if (item.IsTokenRequired)
                                         {
-                                            <button class="btn btn-primary w-100" onclick="openTokenModal(@item.Id, '@item.Title', '@item.Category')">
+                                            <button class="btn btn-primary w-100 btn-start-token" data-id="@item.Id" data-title="@item.Title" data-category="@item.Category">
                                                 <i class="bi bi-shield-lock me-1"></i>Start Assessment <i class="bi bi-arrow-right ms-1"></i>
                                             </button>
                                         }
                                         else
                                         {
-                                            <button class="btn btn-primary w-100" onclick="startStandardAssessment(@item.Id, '@item.Title')">
+                                            <button class="btn btn-primary w-100 btn-start-standard" data-id="@item.Id" data-title="@item.Title">
                                                 Start Assessment <i class="bi bi-arrow-right ms-1"></i>
                                             </button>
                                         }
@@ -540,6 +540,19 @@
                     filterCards(status);
                 });
             });
+        }
+    });
+
+    // Delegated click handlers (safe from XSS — values read from data attributes, not inline JS)
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-start-token');
+        if (btn) {
+            openTokenModal(parseInt(btn.dataset.id), btn.dataset.title, btn.dataset.category);
+            return;
+        }
+        btn = e.target.closest('.btn-start-standard');
+        if (btn) {
+            startStandardAssessment(parseInt(btn.dataset.id), btn.dataset.title);
         }
     });
 

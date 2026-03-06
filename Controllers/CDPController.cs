@@ -198,7 +198,11 @@ namespace HcPortal.Controllers
             if (record == null) return NotFound();
 
             var physicalPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (!System.IO.File.Exists(physicalPath)) return NotFound();
+            // Validate path stays within wwwroot to prevent path traversal
+            var fullPath = Path.GetFullPath(physicalPath);
+            if (!fullPath.StartsWith(_env.WebRootPath, StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Invalid file path.");
+            if (!System.IO.File.Exists(fullPath)) return NotFound();
 
             var contentType = record.FilePath.ToLowerInvariant() switch
             {
@@ -211,7 +215,7 @@ namespace HcPortal.Controllers
                 var p when p.EndsWith(".pptx") => "application/vnd.openxmlformats-officedocument.presentationml.presentation",
                 _ => "application/octet-stream"
             };
-            return PhysicalFile(physicalPath, contentType, record.FileName);
+            return PhysicalFile(fullPath, contentType, record.FileName);
         }
 
         public async Task<IActionResult> Dashboard(
@@ -271,8 +275,10 @@ namespace HcPortal.Controllers
 
             // Load ProtonTrack for display
             var track = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == assignment.ProtonTrackId);
-            subModel.TrackType = track?.TrackType ?? "";
-            subModel.TahunKe = track?.TahunKe ?? "";
+            if (track == null)
+                return subModel; // Track deleted — return defaults rather than proceeding with incomplete data
+            subModel.TrackType = track.TrackType ?? "";
+            subModel.TahunKe = track.TahunKe ?? "";
 
             var progresses = await _context.ProtonDeliverableProgresses
                 .Where(p => p.CoacheeId == userId)
@@ -736,12 +742,12 @@ namespace HcPortal.Controllers
 
             // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC OR Admin
             bool isCoachee = progress.CoacheeId == user.Id;
-            bool isCoach = user.RoleLevel <= 5;
+            bool isSupervisorOrCoach = user.RoleLevel >= 3 && user.RoleLevel <= 5;
             bool isHC = userRole == UserRoles.HC;
             bool isAdmin = userRole == UserRoles.Admin;
 
             // Admin and HC have full access — no section check required
-            if (!isCoachee && !isHC && !isAdmin && isCoach)
+            if (!isCoachee && !isHC && !isAdmin && isSupervisorOrCoach)
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
@@ -752,7 +758,7 @@ namespace HcPortal.Controllers
                     return Forbid();
                 }
             }
-            else if (!isCoachee && !isHC && !isAdmin && !isCoach)
+            else if (!isCoachee && !isHC && !isAdmin && !isSupervisorOrCoach)
             {
                 return Forbid();
             }
@@ -1024,7 +1030,14 @@ namespace HcPortal.Controllers
             }).ToList();
 
             _context.ProtonNotifications.AddRange(notifications);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Concurrent request already created the notification — safe to ignore
+            }
         }
 
         [HttpPost]
@@ -1038,7 +1051,7 @@ namespace HcPortal.Controllers
             var userRole = roles.FirstOrDefault();
 
             // HC or Admin simulating HC view can review
-            bool isHCAccess = userRole == UserRoles.HC;
+            bool isHCAccess = userRole == UserRoles.HC || userRole == UserRoles.Admin;
             if (!isHCAccess) return Forbid();
 
             var progress = await _context.ProtonDeliverableProgresses
@@ -1170,12 +1183,12 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
             bool isCoachee = progress.CoacheeId == user.Id;
-            bool isCoach = user.RoleLevel <= 5;
+            bool isSupervisorOrCoach = user.RoleLevel >= 3 && user.RoleLevel <= 5;
             bool isHC = userRole == UserRoles.HC;
             bool isAdmin = userRole == UserRoles.Admin;
 
             // Admin and HC have full access — no section check required
-            if (!isCoachee && !isHC && !isAdmin && isCoach)
+            if (!isCoachee && !isHC && !isAdmin && isSupervisorOrCoach)
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
@@ -1186,7 +1199,7 @@ namespace HcPortal.Controllers
                     return Forbid();
                 }
             }
-            else if (!isCoachee && !isHC && !isAdmin && !isCoach)
+            else if (!isCoachee && !isHC && !isAdmin && !isSupervisorOrCoach)
             {
                 return Forbid();
             }
@@ -1976,6 +1989,15 @@ namespace HcPortal.Controllers
             var coacheeUser = await _context.Users.FindAsync(coacheeId);
             if (coacheeUser == null) return NotFound();
 
+            // Scope validation: SrSpv/SectionHead can only export their own section
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+            if (userRole == "Sr Supervisor" || userRole == "Section Head")
+            {
+                if (coacheeUser.Section != user.Section)
+                    return Forbid();
+            }
+
             // Load deliverable progress for this specific coachee
             var progresses = await _context.ProtonDeliverableProgresses
                 .Include(p => p.ProtonDeliverable)
@@ -2055,6 +2077,15 @@ namespace HcPortal.Controllers
             // Load coachee user for filename/header
             var coacheeUser = await _context.Users.FindAsync(coacheeId);
             if (coacheeUser == null) return NotFound();
+
+            // Scope validation: SrSpv/SectionHead can only export their own section
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault();
+            if (userRole == "Sr Supervisor" || userRole == "Section Head")
+            {
+                if (coacheeUser.Section != user.Section)
+                    return Forbid();
+            }
 
             // Load deliverable progress for this specific coachee
             var progresses = await _context.ProtonDeliverableProgresses
@@ -2159,6 +2190,8 @@ namespace HcPortal.Controllers
             }
             else if (userLevel == 4) // SrSpv / SectionHead
             {
+                if (string.IsNullOrEmpty(user.Section))
+                    return Json(new { error = "unauthorized", data = (object?)null });
                 var coacheeUser = await _context.Users.FindAsync(coacheeId);
                 if (coacheeUser == null || coacheeUser.Section != user.Section)
                     return Json(new { error = "unauthorized", data = (object?)null });
