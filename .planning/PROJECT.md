@@ -12,11 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.6 — shipped 2026-03-06)
+## Current State (v3.7 — started 2026-03-06)
 
-**v3.0 through v3.6 shipped.** All core portal flows verified working. CDP now includes Histori Proton feature — role-scoped worker list with search/filter and vertical timeline detail page per worker showing Proton journey (Tahun 1-3) with expandable nodes, status badges, and responsive styling. User Guide page available. Known gaps from v3.0: Phase 89 PlanIDP unverified, PositionTargetHelper missing for competency display, KKJ Matrix Phase 88 verification discrepancy.
+**v3.0 through v3.6 shipped.** All core portal flows verified working.
 
-**Next milestone:** Not yet defined. Run `/gsd:new-milestone` to start.
+## Current Milestone: v3.7 Role Access & Filter Audit
+
+**Goal:** Audit dan perbaiki role-level access, view content, dan filter di semua page CMP/CDP/Guide — pastikan setiap level melihat konten yang sesuai dan semua filter menampilkan data lengkap dari OrganizationStructure.
+
+**Target features:**
+- Audit & fix role-scoped view content di setiap page (konten yang tampil sesuai level)
+- Fix SectionHead level 4 impact di semua page
+- Fix semua filter Bagian/Unit agar menggunakan OrganizationStructure (static list) bukan query data
+- Empty state "Data belum ada" ketika filter dipilih tapi belum ada data
 
 ## Architecture Decisions
 

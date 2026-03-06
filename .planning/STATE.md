@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between_milestones
-last_updated: "2026-03-06T12:00:00Z"
-last_activity: 2026-03-06 — v3.6 Histori Proton milestone completed and archived
+milestone: v3.7
+milestone_name: Role Access & Filter Audit
+status: defining requirements
+last_updated: "2026-03-06T14:00:00Z"
+last_activity: 2026-03-06 — Milestone v3.7 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-06)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Between milestones — run /gsd:new-milestone to start next
+**Current focus:** v3.7 Role Access & Filter Audit — Fix role-level view content dan filter consistency
 
 ## Current Position
 
-**Milestone:** v3.6 Histori Proton (shipped 2026-03-06)
-**Phase:** All complete
-**Status:** Between milestones
-**Last activity:** 2026-03-06 - Completed quick task 19: Move Search & Filter Bar inside My Records tab
+**Milestone:** v3.7 Role Access & Filter Audit
+**Phase:** Not started (defining requirements)
+**Status:** Defining requirements
+**Last activity:** 2026-03-06 — Milestone v3.7 started
 
 ## Performance Metrics
 
@@ -35,7 +35,6 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 - v3.6 Histori Proton: 2 phases, 4 plans, 17 requirements (shipped 2026-03-06)
 - v3.5 User Guide: 2 phases, 26 requirements (shipped 2026-03-06)
 - v3.2 Bug Hunting & Quality Audit: 7 phases, 20+ bugs fixed (shipped 2026-03-05)
-- v3.1 CPDP Mapping File-Based Rewrite: 1 phase, 6 plans (shipped 2026-03-03)
 - v3.0 Full QA & Feature Completion: 10 phases, 34 plans (shipped 2026-03-05)
 
 **Total Project:**
@@ -47,7 +46,9 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ### Decisions
 
-(Clean slate for next milestone)
+- SectionHead moved from Level 3 → Level 4 (same as SrSupervisor, section-scoped)
+- All filters should use OrganizationStructure static list, not data-driven queries
+- Empty filter results show "Data belum ada" message instead of hiding option
 
 ### Blockers/Concerns
 
@@ -60,4 +61,4 @@ None currently identified.
 | 19 | Move Search & Filter Bar inside My Records tab on CMP/Records page | 2026-03-06 | 7137960 | [19-move-search-filter-bar-inside-my-records](./quick/19-move-search-filter-bar-inside-my-records/) |
 
 ---
-*State updated: 2026-03-06 after v3.6 milestone completion*
+*State updated: 2026-03-06 after v3.7 milestone started*
