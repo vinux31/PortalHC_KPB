@@ -8,6 +8,12 @@
 
 **Requirements:** HIST-01 through HIST-08
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 107-01-PLAN.md — Backend: ViewModel, CDPController actions with role-scoped access, CDP Hub card
+- [ ] 107-02-PLAN.md — Worker list Razor view with table, search, filters, step indicator, status badges
+
 **Success Criteria:**
 1. CDPController has HistoriProton (list) and HistoriProtonDetail (timeline) actions
 2. CDP navbar shows "Histori Proton" menu item
@@ -65,4 +71,4 @@
 
 ---
 *Roadmap created: 2026-03-06*
-*Last updated: 2026-03-06 after v3.0 milestone completion*
+*Last updated: 2026-03-06*
