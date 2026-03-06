@@ -11,8 +11,8 @@
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 107-01-PLAN.md — Backend: ViewModel, CDPController actions with role-scoped access, CDP Hub card
-- [ ] 107-02-PLAN.md — Worker list Razor view with table, search, filters, step indicator, status badges
+- [x] 107-01-PLAN.md — Backend: ViewModel, CDPController actions with role-scoped access, CDP Hub card
+- [x] 107-02-PLAN.md — Worker list Razor view with table, search, filters, step indicator, status badges
 
 **Success Criteria:**
 1. CDPController has HistoriProton (list) and HistoriProtonDetail (timeline) actions
@@ -27,6 +27,12 @@ Plans:
 **Goal:** Build vertical timeline detail page with Proton year nodes and responsive styling.
 
 **Requirements:** HIST-09 through HIST-17
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 108-01-PLAN.md — Backend: HistoriProtonDetailViewModel + controller data query
+- [ ] 108-02-PLAN.md — Razor timeline view with CSS, expandable nodes, responsive layout
 
 **Success Criteria:**
 1. Vertical timeline with distinct node per Proton year (filled/empty based on status)
