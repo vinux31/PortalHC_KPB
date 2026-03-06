@@ -40,7 +40,7 @@
 
 ## Phases
 
-- [ ] **Phase 109: CMP Role Access & Filters** - Fix role scoping, OrganizationStructure filters, and empty states on Records and RecordsTeam
+- [x] **Phase 109: CMP Role Access & Filters** - Fix role scoping, OrganizationStructure filters, and empty states on Records and RecordsTeam (completed 2026-03-06)
 - [ ] **Phase 110: CDP Role Access & Filters** - Fix role scoping, filters, and empty states on CoachingProton, PlanIdp, Deliverable, and HistoriProton
 - [ ] **Phase 111: SectionHead & Filter Infrastructure** - SectionHead level 4 consistency across all pages, ManageWorkers filter, and cascade wiring
 
@@ -55,7 +55,7 @@
   2. L4 user on CMP RecordsTeam sees only their section's workers; L5-6 are denied access
   3. Bagian and Unit filter dropdowns on Records and RecordsTeam are populated from OrganizationStructure (not from existing data queries)
   4. Selecting a filter combination that returns no data shows "Data belum ada" message instead of empty table
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 109-01-PLAN.md — OrganizationStructure filters, cascade, role scoping verification, empty states
@@ -98,7 +98,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 109. CMP Role Access & Filters | 0/1 | Planned | - |
+| 109. CMP Role Access & Filters | 1/1 | Complete   | 2026-03-06 |
 | 110. CDP Role Access & Filters | 0/? | Not started | - |
 | 111. SectionHead & Filter Infrastructure | 0/? | Not started | - |
 

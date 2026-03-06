@@ -9,8 +9,8 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 
 ### Role-Scoped View Content
 
-- [ ] **ROLE-01**: CMP Records page shows correct data per role (L1-3 all, L4 section-only, L5-6 own only)
-- [ ] **ROLE-02**: CMP RecordsTeam page correctly scopes to section for L4 and forbids L5-6
+- [x] **ROLE-01**: CMP Records page shows correct data per role (L1-3 all, L4 section-only, L5-6 own only)
+- [x] **ROLE-02**: CMP RecordsTeam page correctly scopes to section for L4 and forbids L5-6
 - [ ] **ROLE-03**: CDP CoachingProton page shows correct coachee list per role (L1-3 all, L4 section, L5 mapped, L6 self)
 - [ ] **ROLE-04**: CDP PlanIdp page scopes content correctly per role
 - [ ] **ROLE-05**: CDP Deliverable page enforces section check for L4 and coach-coachee check for L5
@@ -24,16 +24,16 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 
 ### Filter Consistency
 
-- [ ] **FILT-01**: CMP Records filters use OrganizationStructure instead of data-driven queries
-- [ ] **FILT-02**: CMP RecordsTeam section/unit filters use OrganizationStructure
+- [x] **FILT-01**: CMP Records filters use OrganizationStructure instead of data-driven queries
+- [x] **FILT-02**: CMP RecordsTeam section/unit filters use OrganizationStructure
 - [ ] **FILT-03**: CDP CoachingProton Bagian/Unit filters use OrganizationStructure (verify)
 - [ ] **FILT-04**: Admin ManageWorkers section filter uses OrganizationStructure
 - [ ] **FILT-05**: All unit dropdowns cascade correctly from selected Bagian
 
 ### Empty States
 
-- [ ] **UX-01**: CMP Records shows "Data belum ada" when filtered results are empty
-- [ ] **UX-02**: CMP RecordsTeam shows "Data belum ada" when filtered results are empty
+- [x] **UX-01**: CMP Records shows "Data belum ada" when filtered results are empty
+- [x] **UX-02**: CMP RecordsTeam shows "Data belum ada" when filtered results are empty
 - [ ] **UX-03**: CDP CoachingProton shows "Data belum ada" when filtered results are empty
 - [ ] **UX-04**: CDP PlanIdp shows "Data belum ada" when filtered results are empty
 
@@ -53,8 +53,8 @@ None deferred for this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROLE-01 | Phase 109 | Pending |
-| ROLE-02 | Phase 109 | Pending |
+| ROLE-01 | Phase 109 | Complete |
+| ROLE-02 | Phase 109 | Complete |
 | ROLE-03 | Phase 110 | Pending |
 | ROLE-04 | Phase 110 | Pending |
 | ROLE-05 | Phase 110 | Pending |
@@ -62,13 +62,13 @@ None deferred for this milestone.
 | SH-01 | Phase 111 | Pending |
 | SH-02 | Phase 111 | Pending |
 | SH-03 | Phase 111 | Pending |
-| FILT-01 | Phase 109 | Pending |
-| FILT-02 | Phase 109 | Pending |
+| FILT-01 | Phase 109 | Complete |
+| FILT-02 | Phase 109 | Complete |
 | FILT-03 | Phase 110 | Pending |
 | FILT-04 | Phase 111 | Pending |
 | FILT-05 | Phase 111 | Pending |
-| UX-01 | Phase 109 | Pending |
-| UX-02 | Phase 109 | Pending |
+| UX-01 | Phase 109 | Complete |
+| UX-02 | Phase 109 | Complete |
 | UX-03 | Phase 110 | Pending |
 | UX-04 | Phase 110 | Pending |
 

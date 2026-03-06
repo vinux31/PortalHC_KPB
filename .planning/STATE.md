@@ -2,11 +2,26 @@
 gsd_state_version: 1.0
 milestone: v3.7
 milestone_name: Role Access & Filter Audit
+status: planning
+last_updated: "2026-03-06T12:38:50.636Z"
+last_activity: 2026-03-06 — Roadmap created
+progress:
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.7
+milestone_name: Role Access & Filter Audit
 status: ready to plan
 last_updated: "2026-03-06T15:00:00Z"
 last_activity: 2026-03-06 — Roadmap created (3 phases, 18 requirements)
 progress:
-  total_phases: 3
+  [██████████] 100%
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -47,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 - All filters should use OrganizationStructure static list, not data-driven queries
 - Empty filter results show "Data belum ada" message
 - Phases grouped by page area (CMP/CDP/cross-cutting) for efficiency
+- [Phase 109]: Categories dropdown kept data-driven; controller scoping verified correct
 
 ### Blockers/Concerns
 
@@ -60,3 +76,5 @@ None currently identified.
 
 ---
 *State updated: 2026-03-06 after roadmap creation*
+| Phase 109 P01 | 8min | 2 tasks | 2 files |
+
