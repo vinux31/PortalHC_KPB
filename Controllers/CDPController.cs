@@ -2425,12 +2425,69 @@ namespace HcPortal.Controllers
             else if (userLevel == 4)
             {
                 // SrSpv/SH can view same section workers
-                var targetUser = await _context.Users.FindAsync(userId);
-                if (targetUser == null || targetUser.Section != user.Section) return Forbid();
+                var sectionTarget = await _context.Users.FindAsync(userId);
+                if (sectionTarget == null || sectionTarget.Section != user.Section) return Forbid();
             }
             // Level <= 3 (HC/Admin) can view all — no check needed
 
-            return View();
+            var targetUser = await _context.Users.FindAsync(userId);
+            if (targetUser == null) return NotFound();
+
+            var assignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .Where(a => a.CoacheeId == userId)
+                .OrderBy(a => a.ProtonTrack!.Urutan)
+                .ToListAsync();
+
+            if (!assignments.Any()) return NotFound();
+
+            var assignmentIds = assignments.Select(a => a.Id).ToList();
+            var assessments = await _context.ProtonFinalAssessments
+                .Where(fa => assignmentIds.Contains(fa.ProtonTrackAssignmentId))
+                .ToDictionaryAsync(fa => fa.ProtonTrackAssignmentId);
+
+            // Get coach name
+            var coachMapping = await _context.CoachCoacheeMappings
+                .Where(m => m.CoacheeId == userId)
+                .OrderByDescending(m => m.IsActive)
+                .ThenByDescending(m => m.Id)
+                .FirstOrDefaultAsync();
+            string coachName = "N/A";
+            if (coachMapping != null)
+            {
+                var coach = await _context.Users.FindAsync(coachMapping.CoachId);
+                coachName = coach?.FullName ?? "N/A";
+            }
+
+            string jalur = assignments.First().ProtonTrack?.TrackType ?? "";
+
+            var nodes = assignments.Select(a => {
+                var hasAssessment = assessments.TryGetValue(a.Id, out var fa);
+                return new ProtonTimelineNode
+                {
+                    AssignmentId = a.Id,
+                    TahunKe = a.ProtonTrack?.TahunKe ?? "",
+                    TahunUrutan = a.ProtonTrack?.Urutan ?? 0,
+                    Unit = targetUser.Unit ?? "",
+                    CoachName = coachName,
+                    Status = hasAssessment ? "Lulus" : "Dalam Proses",
+                    CompetencyLevel = hasAssessment ? fa!.CompetencyLevelGranted : null,
+                    StartDate = a.AssignedAt,
+                    EndDate = hasAssessment ? fa!.CompletedAt : null
+                };
+            }).OrderBy(n => n.TahunUrutan).ToList();
+
+            var viewModel = new HistoriProtonDetailViewModel
+            {
+                Nama = targetUser.FullName,
+                NIP = targetUser.NIP ?? "",
+                Unit = targetUser.Unit ?? "",
+                Section = targetUser.Section ?? "",
+                Jalur = jalur,
+                Nodes = nodes
+            };
+
+            return View(viewModel);
         }
 
     }
