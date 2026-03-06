@@ -1,6 +1,21 @@
 ---
 gsd_state_version: 1.0
 milestone: v3.6
+milestone_name: Histori Proton
+status: planning
+last_updated: "2026-03-06T10:33:19.952Z"
+last_activity: 2026-03-06 — v3.0 milestone archived
+progress:
+  total_phases: 2
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 1
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.6
 milestone_name: Riwayat Proton
 status: defining requirements
 last_updated: "2026-03-06T12:00:00Z"
@@ -29,7 +44,7 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 **Status:** Requirements defined, ready for planning
 **Last activity:** 2026-03-06 — v3.0 milestone archived
 
-**Progress:** [----------] 0%
+**Progress:** [██████████] 100%
 
 ## Performance Metrics
 
@@ -48,7 +63,8 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 
 ### Decisions
 
-None yet for v3.6.
+for v3.6.
+- [Phase 107]: HistoriProton role-scoping clones CoachingProton RoleLevel branching
 
 ### Blockers/Concerns
 

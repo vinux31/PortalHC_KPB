@@ -9,10 +9,10 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 
 ### Navigation & Access
 
-- [ ] **HIST-01**: CDP navbar memiliki menu item "Histori Proton"
-- [ ] **HIST-02**: Coachee hanya melihat riwayat diri sendiri (redirect langsung ke timeline)
-- [ ] **HIST-03**: Coach/SrSupervisor/SectionHead melihat list worker se-section
-- [ ] **HIST-04**: HC/Admin melihat semua worker
+- [x] **HIST-01**: CDP navbar memiliki menu item "Histori Proton"
+- [x] **HIST-02**: Coachee hanya melihat riwayat diri sendiri (redirect langsung ke timeline)
+- [x] **HIST-03**: Coach/SrSupervisor/SectionHead melihat list worker se-section
+- [x] **HIST-04**: HC/Admin melihat semua worker
 
 ### Halaman List Worker
 
@@ -56,10 +56,10 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HIST-01 | Phase 107 | Pending |
-| HIST-02 | Phase 107 | Pending |
-| HIST-03 | Phase 107 | Pending |
-| HIST-04 | Phase 107 | Pending |
+| HIST-01 | Phase 107 | Complete |
+| HIST-02 | Phase 107 | Complete |
+| HIST-03 | Phase 107 | Complete |
+| HIST-04 | Phase 107 | Complete |
 | HIST-05 | Phase 107 | Pending |
 | HIST-06 | Phase 107 | Pending |
 | HIST-07 | Phase 107 | Pending |

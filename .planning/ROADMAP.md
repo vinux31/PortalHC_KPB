@@ -8,7 +8,7 @@
 
 **Requirements:** HIST-01 through HIST-08
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 107-01-PLAN.md — Backend: ViewModel, CDPController actions with role-scoped access, CDP Hub card
