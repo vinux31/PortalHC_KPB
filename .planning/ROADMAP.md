@@ -33,5 +33,76 @@
 - **v3.6 Histori Proton** — Phases 107-108 (shipped 2026-03-06)
 
 ---
+
+## v3.7 Role Access & Filter Audit
+
+**Milestone Goal:** Audit and fix role-level access, view content, and filters across all CMP/CDP pages so every level sees correctly scoped data, filters use OrganizationStructure, and empty results show proper messages.
+
+## Phases
+
+- [ ] **Phase 109: CMP Role Access & Filters** - Fix role scoping, OrganizationStructure filters, and empty states on Records and RecordsTeam
+- [ ] **Phase 110: CDP Role Access & Filters** - Fix role scoping, filters, and empty states on CoachingProton, PlanIdp, Deliverable, and HistoriProton
+- [ ] **Phase 111: SectionHead & Filter Infrastructure** - SectionHead level 4 consistency across all pages, ManageWorkers filter, and cascade wiring
+
+## Phase Details
+
+### Phase 109: CMP Role Access & Filters
+**Goal**: Every role sees correctly scoped data on CMP Records and RecordsTeam, with OrganizationStructure-based filters and empty states
+**Depends on**: Nothing (first phase)
+**Requirements**: ROLE-01, ROLE-02, FILT-01, FILT-02, UX-01, UX-02
+**Success Criteria** (what must be TRUE):
+  1. L1-3 user on CMP Records sees all workers; L4 sees section-only; L5-6 see own records only
+  2. L4 user on CMP RecordsTeam sees only their section's workers; L5-6 are denied access
+  3. Bagian and Unit filter dropdowns on Records and RecordsTeam are populated from OrganizationStructure (not from existing data queries)
+  4. Selecting a filter combination that returns no data shows "Data belum ada" message instead of empty table
+**Plans**: TBD
+
+Plans:
+- [ ] 109-01: TBD
+- [ ] 109-02: TBD
+
+### Phase 110: CDP Role Access & Filters
+**Goal**: Every role sees correctly scoped data on all CDP pages, with consistent filters and empty states
+**Depends on**: Phase 109
+**Requirements**: ROLE-03, ROLE-04, ROLE-05, ROLE-07, FILT-03, UX-03, UX-04
+**Success Criteria** (what must be TRUE):
+  1. CoachingProton shows correct coachee list per role (L1-3 all, L4 section, L5 mapped coachees, L6 self only)
+  2. PlanIdp scopes content correctly per role level
+  3. Deliverable page enforces section check for L4 and coach-coachee mapping check for L5
+  4. HistoriProton worker list is scoped correctly per role level
+  5. CoachingProton and PlanIdp show "Data belum ada" when filtered results are empty
+**Plans**: TBD
+
+Plans:
+- [ ] 110-01: TBD
+- [ ] 110-02: TBD
+
+### Phase 111: SectionHead & Filter Infrastructure
+**Goal**: SectionHead at level 4 has consistent access everywhere, ManageWorkers filter fixed, and all unit dropdowns cascade correctly
+**Depends on**: Phase 110
+**Requirements**: SH-01, SH-02, SH-03, FILT-04, FILT-05
+**Success Criteria** (what must be TRUE):
+  1. SectionHead at level 4 has identical section-scoped access as SrSupervisor on every CMP/CDP page
+  2. Navigation menu items show/hide correctly for SectionHead level 4 (same visibility as SrSupervisor)
+  3. SrSpv/SH approval chain works correctly when SH is at level 4
+  4. Admin ManageWorkers section filter uses OrganizationStructure
+  5. Selecting a Bagian in any filter dropdown cascades to show only that Bagian's units
+**Plans**: TBD
+
+Plans:
+- [ ] 111-01: TBD
+- [ ] 111-02: TBD
+
+## Progress
+
+**Execution Order:** 109 → 110 → 111
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 109. CMP Role Access & Filters | 0/? | Not started | - |
+| 110. CDP Role Access & Filters | 0/? | Not started | - |
+| 111. SectionHead & Filter Infrastructure | 0/? | Not started | - |
+
+---
 *Roadmap created: 2026-03-06*
-*Last updated: 2026-03-06 after v3.6 milestone*
+*Last updated: 2026-03-06 after v3.7 roadmap creation*

@@ -53,30 +53,30 @@ None deferred for this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROLE-01 | — | Pending |
-| ROLE-02 | — | Pending |
-| ROLE-03 | — | Pending |
-| ROLE-04 | — | Pending |
-| ROLE-05 | — | Pending |
-| ROLE-07 | — | Pending |
-| SH-01 | — | Pending |
-| SH-02 | — | Pending |
-| SH-03 | — | Pending |
-| FILT-01 | — | Pending |
-| FILT-02 | — | Pending |
-| FILT-03 | — | Pending |
-| FILT-04 | — | Pending |
-| FILT-05 | — | Pending |
-| UX-01 | — | Pending |
-| UX-02 | — | Pending |
-| UX-03 | — | Pending |
-| UX-04 | — | Pending |
+| ROLE-01 | Phase 109 | Pending |
+| ROLE-02 | Phase 109 | Pending |
+| ROLE-03 | Phase 110 | Pending |
+| ROLE-04 | Phase 110 | Pending |
+| ROLE-05 | Phase 110 | Pending |
+| ROLE-07 | Phase 110 | Pending |
+| SH-01 | Phase 111 | Pending |
+| SH-02 | Phase 111 | Pending |
+| SH-03 | Phase 111 | Pending |
+| FILT-01 | Phase 109 | Pending |
+| FILT-02 | Phase 109 | Pending |
+| FILT-03 | Phase 110 | Pending |
+| FILT-04 | Phase 111 | Pending |
+| FILT-05 | Phase 111 | Pending |
+| UX-01 | Phase 109 | Pending |
+| UX-02 | Phase 109 | Pending |
+| UX-03 | Phase 110 | Pending |
+| UX-04 | Phase 110 | Pending |
 
 **Coverage:**
 - v3.7 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18
+- Mapped to phases: 18
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-06*
-*Last updated: 2026-03-06 after initial definition*
+*Last updated: 2026-03-06 after roadmap creation*
