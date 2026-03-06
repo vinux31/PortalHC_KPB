@@ -11,6 +11,7 @@
 <a href="#guide-modules" class="skip-link">Lompat ke modul</a>
 <a href="#guide-faq" class="skip-link">Lompat ke FAQ</a>
 
+<main role="main" id="main-content">
 <!-- Hero Section -->
 <div class="guide-hero" data-aos="fade-down">
     <div class="guide-hero-content">
@@ -503,6 +504,7 @@
     </div>
 
 </div><!-- end faq section -->
+</main>
 
 @section Scripts {
 <script>
@@ -528,6 +530,14 @@
         var targetId = trigger.getAttribute('data-bs-target');
         var target = document.querySelector(targetId);
         if (!target) return;
+
+        // Add Space key support for FAQ buttons
+        trigger.addEventListener('keydown', function(e) {
+            if (e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                this.click();
+            }
+        });
 
         target.addEventListener('show.bs.collapse', function() {
             trigger.setAttribute('aria-expanded', 'true');
