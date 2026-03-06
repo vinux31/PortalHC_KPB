@@ -55,11 +55,10 @@
   2. L4 user on CMP RecordsTeam sees only their section's workers; L5-6 are denied access
   3. Bagian and Unit filter dropdowns on Records and RecordsTeam are populated from OrganizationStructure (not from existing data queries)
   4. Selecting a filter combination that returns no data shows "Data belum ada" message instead of empty table
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 109-01: TBD
-- [ ] 109-02: TBD
+- [ ] 109-01-PLAN.md — OrganizationStructure filters, cascade, role scoping verification, empty states
 
 ### Phase 110: CDP Role Access & Filters
 **Goal**: Every role sees correctly scoped data on all CDP pages, with consistent filters and empty states
@@ -99,10 +98,10 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 109. CMP Role Access & Filters | 0/? | Not started | - |
+| 109. CMP Role Access & Filters | 0/1 | Planned | - |
 | 110. CDP Role Access & Filters | 0/? | Not started | - |
 | 111. SectionHead & Filter Infrastructure | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-03-06*
-*Last updated: 2026-03-06 after v3.7 roadmap creation*
+*Last updated: 2026-03-06 after Phase 109 planning*
