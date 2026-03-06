@@ -9,9 +9,10 @@
     var userRole = userRoles.FirstOrDefault();
     var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
 
-    // Get unique values for filter dropdowns
-    var sections = Model.Select(w => w.Section).Where(s => !string.IsNullOrEmpty(s)).Distinct().OrderBy(s => s).ToList();
-    var units = Model.Select(w => w.Unit).Where(u => !string.IsNullOrEmpty(u)).Distinct().OrderBy(u => u).ToList();
+    // Use OrganizationStructure for filter dropdowns (always show all 4 Bagian)
+    var allSections = OrganizationStructure.GetAllSections();
+    var sectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(OrganizationStructure.SectionUnits);
+
     var categories = Model.SelectMany(w => w.TrainingRecords)
         .Select(t => t.Kategori)
         .Where(k => !string.IsNullOrEmpty(k))
@@ -19,7 +20,7 @@
         .OrderBy(k => k)
         .ToList();
 
-    // For Level 4 (SrSupervisor), lock section to user's section
+    // For Level 4 (SectionHead, SrSupervisor), lock section to user's section
     var lockedSection = roleLevel == 4 ? currentUser.Section : null;
 }
 
@@ -28,14 +29,14 @@
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body">
             <div class="row g-3 mb-3">
-                <!-- Row 1: Section, Unit, Category -->
+                <!-- Row 1: Bagian, Unit, Category -->
                 <div class="col-12 col-md-4">
-                    <label class="form-label small text-muted mb-1">Section</label>
+                    <label class="form-label small text-muted mb-1">Bagian</label>
                     @if (roleLevel == 4 && !string.IsNullOrEmpty(lockedSection))
                     {
-                        <select id="sectionFilter" class="form-select" disabled onchange="filterTeamTable()">
-                            <option value="">All Sections</option>
-                            @foreach (var sec in sections)
+                        <select id="sectionFilter" class="form-select" disabled onchange="updateUnitOptions(); filterTeamTable()">
+                            <option value="">Semua Bagian</option>
+                            @foreach (var sec in allSections)
                             {
                                 @if (lockedSection == sec)
                                 {
@@ -50,9 +51,9 @@
                     }
                     else
                     {
-                        <select id="sectionFilter" class="form-select" onchange="filterTeamTable()">
-                            <option value="">All Sections</option>
-                            @foreach (var sec in sections)
+                        <select id="sectionFilter" class="form-select" onchange="updateUnitOptions(); filterTeamTable()">
+                            <option value="">Semua Bagian</option>
+                            @foreach (var sec in allSections)
                             {
                                 <option value="@sec">@sec</option>
                             }
@@ -62,11 +63,7 @@
                 <div class="col-12 col-md-4">
                     <label class="form-label small text-muted mb-1">Unit</label>
                     <select id="unitFilter" class="form-select" onchange="filterTeamTable()">
-                        <option value="">All Units</option>
-                        @foreach (var unit in units)
-                        {
-                            <option value="@unit">@unit</option>
-                        }
+                        <option value="">Semua Unit</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-4">
@@ -120,7 +117,7 @@
                             <th class="p-3">Nama</th>
                             <th class="p-3">NIP</th>
                             <th class="p-3">Position</th>
-                            <th class="p-3">Section</th>
+                            <th class="p-3">Bagian</th>
                             <th class="p-3">Unit</th>
                             <th class="p-3 text-center">Assessment</th>
                             <th class="p-3 text-center">Training</th>
@@ -133,7 +130,7 @@
                             <tr>
                                 <td colspan="8" class="text-center p-5 text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                    Tidak ada worker ditemukan
+                                    Data belum ada
                                 </td>
                             </tr>
                         }
@@ -160,10 +157,10 @@
                                     <td class="p-3">
                                         <span class="fw-semibold">@worker.WorkerName</span>
                                     </td>
-                                    <td class="p-3">@(worker.NIP ?? "—")</td>
+                                    <td class="p-3">@(worker.NIP ?? "---")</td>
                                     <td class="p-3">@worker.Position</td>
-                                    <td class="p-3">@(worker.Section ?? "—")</td>
-                                    <td class="p-3">@(worker.Unit ?? "—")</td>
+                                    <td class="p-3">@(worker.Section ?? "---")</td>
+                                    <td class="p-3">@(worker.Unit ?? "---")</td>
                                     <td class="p-3 text-center">
                                         <span class="badge bg-primary">@worker.CompletedAssessments</span>
                                     </td>
@@ -212,6 +209,24 @@
 </style>
 
 <script>
+// OrganizationStructure cascade data
+var sectionUnits = @Html.Raw(sectionUnitsJson);
+
+function updateUnitOptions() {
+    var sectionVal = document.getElementById('sectionFilter').value;
+    var unitSelect = document.getElementById('unitFilter');
+    unitSelect.innerHTML = '<option value="">Semua Unit</option>';
+
+    if (sectionVal && sectionUnits[sectionVal]) {
+        sectionUnits[sectionVal].forEach(function(u) {
+            var opt = document.createElement('option');
+            opt.value = u;
+            opt.textContent = u;
+            unitSelect.appendChild(opt);
+        });
+    }
+}
+
 function filterTeamTable() {
     const section = document.getElementById('sectionFilter').value.toLowerCase();
     const unit = document.getElementById('unitFilter').value.toLowerCase();
@@ -229,28 +244,20 @@ function filterTeamTable() {
         const rowName = row.getAttribute('data-name') || '';
         const rowNip = row.getAttribute('data-nip') || '';
 
-        // Section filter
         const matchSection = !section || rowSection.toLowerCase() === section;
-
-        // Unit filter
         const matchUnit = !unit || rowUnit.toLowerCase() === unit;
-
-        // Category filter (checks if category exists in comma-separated list)
         const matchCategory = !category || rowCategories.includes(category);
 
-        // Status filter
         let matchStatus = true;
         if (status === 'ALL') {
-            matchStatus = true;  // Explicit handling
+            matchStatus = true;
         } else if (status === 'Sudah') {
             matchStatus = rowHasTraining;
         } else if (status === 'Belum') {
             matchStatus = !rowHasTraining;
         }
 
-        // Search filter (matches Nama or NIP)
         const matchSearch = !search || rowName.includes(search) || rowNip.includes(search);
-
         const matchAll = matchSection && matchUnit && matchCategory && matchStatus && matchSearch;
         row.style.display = matchAll ? '' : 'none';
 
@@ -259,19 +266,49 @@ function filterTeamTable() {
 
     // Update worker counter
     document.getElementById('workerCount').textContent = visibleCount;
+
+    // Empty state handling
+    var emptyRow = document.getElementById('emptyStateRow');
+    if (visibleCount === 0 && document.querySelectorAll('.worker-row').length > 0) {
+        if (!emptyRow) {
+            var tbody = document.querySelector('#workerTable tbody');
+            var tr = document.createElement('tr');
+            tr.id = 'emptyStateRow';
+            tr.innerHTML = '<td colspan="8" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td>';
+            tbody.appendChild(tr);
+        } else {
+            emptyRow.style.display = '';
+        }
+    } else if (emptyRow) {
+        emptyRow.style.display = 'none';
+    }
 }
 
 function resetTeamFilters() {
-    document.getElementById('sectionFilter').value = '';
+    var sectionFilter = document.getElementById('sectionFilter');
+    var isLocked = sectionFilter.disabled;
+    if (!isLocked) {
+        sectionFilter.value = '';
+    }
     document.getElementById('unitFilter').value = '';
     document.getElementById('categoryFilter').value = '';
     document.getElementById('statusFilter').value = 'ALL';
     document.getElementById('searchFilter').value = '';
+    updateUnitOptions();
+    if (isLocked) {
+        // Re-populate units for locked section
+        updateUnitOptions();
+    }
     filterTeamTable();
 }
 
-// Initial filter on page load
+// Initial setup on page load
 document.addEventListener('DOMContentLoaded', function() {
+    // For L4 locked Bagian, auto-populate units
+    var sectionFilter = document.getElementById('sectionFilter');
+    if (sectionFilter.disabled && sectionFilter.value) {
+        updateUnitOptions();
+    }
     filterTeamTable();
 });
 </script>
