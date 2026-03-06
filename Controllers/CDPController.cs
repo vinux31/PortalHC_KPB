@@ -742,8 +742,8 @@ namespace HcPortal.Controllers
 
             // Access check: coachee themselves OR coach/supervisor OR management OR HC OR Admin
             bool isCoachee = progress.CoacheeId == user.Id;
-            bool hasFullAccess = UserRoles.HasFullAccess(user.RoleLevel); // Level 1-3: Admin, HC, Direktur, VP, Manager, SectionHead
-            bool isSectionScoped = UserRoles.HasSectionAccess(user.RoleLevel); // Level 4: SrSupervisor
+            bool hasFullAccess = UserRoles.HasFullAccess(user.RoleLevel); // Level 1-3: Admin, HC, Direktur, VP, Manager
+            bool isSectionScoped = UserRoles.HasSectionAccess(user.RoleLevel); // Level 4: SectionHead, SrSupervisor
             bool isCoach = user.RoleLevel == 5; // Level 5 only: Coach, Supervisor
 
             if (isCoachee || hasFullAccess)
@@ -1267,31 +1267,17 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault() ?? "";
             int userLevel = user.RoleLevel;
-            bool isSectionHead = (userRole == UserRoles.SectionHead);
-
             // --- STEP 1: Role-scoped coachee IDs (SERVER ENFORCEMENT) ---
             List<string> scopedCoacheeIds;
             List<ApplicationUser>? coacheeList = null;
 
-            if (userLevel <= 2) // HC/Admin — see all coachees
+            if (userLevel <= 3) // HC/Admin/Direktur/VP/Manager — see all coachees
             {
                 scopedCoacheeIds = await _context.Users
                     .Where(u => u.RoleLevel == 6 && u.IsActive)
                     .Select(u => u.Id).ToListAsync();
             }
-            else if (userLevel == 3 && isSectionHead) // SectionHead — same section only
-            {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id).ToListAsync();
-            }
-            else if (userLevel == 3) // Direktur/VP/Manager — see all coachees
-            {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id).ToListAsync();
-            }
-            else if (userLevel == 4) // SrSpv — same section only
+            else if (userLevel == 4) // SectionHead/SrSpv — same section only
             {
                 scopedCoacheeIds = await _context.Users
                     .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
@@ -1309,7 +1295,7 @@ namespace HcPortal.Controllers
             }
 
             // --- STEP 2: Apply Bagian filter (HC/Admin + Direktur/VP/Manager) ---
-            if (userLevel <= 3 && !isSectionHead && !string.IsNullOrEmpty(bagian))
+            if (userLevel <= 3 && !string.IsNullOrEmpty(bagian))
             {
                 var validSections = OrganizationStructure.GetAllSections();
                 if (validSections.Contains(bagian))
@@ -1327,14 +1313,14 @@ namespace HcPortal.Controllers
             // --- STEP 3: Apply Unit filter ---
             if (!string.IsNullOrEmpty(unit))
             {
-                if (userLevel <= 2 || (userLevel == 3 && !isSectionHead))
+                if (userLevel <= 3)
                 {
                     // HC/Admin/Direktur/VP/Manager: any unit (but must be within selected bagian if set)
                     scopedCoacheeIds = await _context.Users
                         .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
                         .Select(u => u.Id).ToListAsync();
                 }
-                else if (userLevel == 4 || isSectionHead)
+                else if (userLevel == 4)
                 {
                     // SrSpv/SectionHead: validate unit is in their section
                     var allowedUnits = OrganizationStructure.GetUnitsForSection(user.Section ?? "");
@@ -1382,9 +1368,9 @@ namespace HcPortal.Controllers
             }
 
             // Determine which coachee IDs to load data for
-            // SectionHead (level 3), SrSpv (level 4), Coach (level 5): default to empty until a coachee is selected
-            // Direktur/VP/Manager (level 3, non-SH): load all by default like HC/Admin
-            bool requiresCoacheeSelection = (userLevel >= 4 && userLevel <= 5) || isSectionHead;
+            // SectionHead/SrSpv (level 4), Coach (level 5): default to empty until a coachee is selected
+            // Direktur/VP/Manager (level 3): load all by default like HC/Admin
+            bool requiresCoacheeSelection = (userLevel >= 4 && userLevel <= 5);
             var dataCoacheeIds = !string.IsNullOrEmpty(targetCoacheeId)
                 ? new List<string> { targetCoacheeId }
                 : requiresCoacheeSelection
@@ -1551,7 +1537,7 @@ namespace HcPortal.Controllers
             {
                 ViewBag.AllUnits = OrganizationStructure.GetUnitsForSection(bagian);
             }
-            else if (isSectionHead || userLevel == 4)
+            else if (userLevel == 4)
             {
                 // Section-scoped roles: auto-populate units from their own section
                 ViewBag.AllUnits = OrganizationStructure.GetUnitsForSection(user.Section ?? "");
@@ -2006,7 +1992,7 @@ namespace HcPortal.Controllers
             if (coacheeUser == null) return NotFound();
 
             // Scope validation: section-scoped roles can only export their own section
-            // Full access roles (Admin, HC, management level 3 incl. SectionHead) bypass
+            // Full access roles (Admin, HC, management level 3) bypass; SectionHead is level 4 (section-scoped)
             if (!UserRoles.HasFullAccess(user.RoleLevel))
             {
                 if (coacheeUser.Section != user.Section)
@@ -2094,7 +2080,7 @@ namespace HcPortal.Controllers
             if (coacheeUser == null) return NotFound();
 
             // Scope validation: section-scoped roles can only export their own section
-            // Full access roles (Admin, HC, management level 3 incl. SectionHead) bypass
+            // Full access roles (Admin, HC, management level 3) bypass; SectionHead is level 4 (section-scoped)
             if (!UserRoles.HasFullAccess(user.RoleLevel))
             {
                 if (coacheeUser.Section != user.Section)
@@ -2210,7 +2196,7 @@ namespace HcPortal.Controllers
                 if (coacheeUser == null || coacheeUser.Section != user.Section)
                     return Json(new { error = "unauthorized", data = (object?)null });
             }
-            // Level 1-3 (Admin, HC, Management/SectionHead): allow all
+            // Level 1-3 (Admin, HC, Direktur/VP/Manager): allow all
 
             // Load deliverable progress
             var progresses = await _context.ProtonDeliverableProgresses
@@ -2269,6 +2255,182 @@ namespace HcPortal.Controllers
             });
         }
 
+        // ====================================================================
+        // PHASE 107: HISTORI PROTON — Worker List & Detail
+        // ====================================================================
+
+        public async Task<IActionResult> HistoriProton()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            int userLevel = user.RoleLevel;
+
+            // --- Role-scoped coachee IDs (same pattern as CoachingProton) ---
+            List<string> scopedCoacheeIds;
+
+            if (userLevel <= 3) // HC/Admin/Direktur/VP/Manager — all
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => u.RoleLevel == 6 && u.IsActive)
+                    .Select(u => u.Id).ToListAsync();
+            }
+            else if (userLevel == 4) // SectionHead/SrSpv — same section
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
+                    .Select(u => u.Id).ToListAsync();
+            }
+            else if (userLevel == 5) // Coach — mapped coachees only
+            {
+                scopedCoacheeIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Select(m => m.CoacheeId).ToListAsync();
+            }
+            else // Level 6 (Coachee) — redirect to own detail
+            {
+                return RedirectToAction("HistoriProtonDetail", new { userId = user.Id });
+            }
+
+            // --- Query assignments for scoped coachees ---
+            var assignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .Where(a => scopedCoacheeIds.Contains(a.CoacheeId))
+                .ToListAsync();
+
+            // Only coachees with at least 1 assignment appear (HIST-05)
+            var coacheeIdsWithAssignments = assignments.Select(a => a.CoacheeId).Distinct().ToList();
+
+            // Get final assessments for those assignments
+            var assignmentIds = assignments.Select(a => a.Id).ToList();
+            var assessments = await _context.ProtonFinalAssessments
+                .Where(fa => assignmentIds.Contains(fa.ProtonTrackAssignmentId))
+                .ToListAsync();
+            var assessmentsByAssignmentId = assessments.ToDictionary(fa => fa.ProtonTrackAssignmentId);
+
+            // Get user info for coachees with assignments
+            var coacheeUsers = await _context.Users
+                .Where(u => coacheeIdsWithAssignments.Contains(u.Id) && u.IsActive)
+                .ToListAsync();
+
+            // Build worker rows
+            var coacheeGroups = assignments.GroupBy(a => a.CoacheeId);
+            var workers = new List<HistoriProtonWorkerRow>();
+
+            foreach (var group in coacheeGroups)
+            {
+                var coacheeUser = coacheeUsers.FirstOrDefault(u => u.Id == group.Key);
+                if (coacheeUser == null) continue;
+
+                var coacheeAssignments = group.ToList();
+                var latestAssignment = coacheeAssignments.OrderByDescending(a => a.AssignedAt).First();
+
+                // Determine Jalur from latest assignment
+                string jalur = latestAssignment.ProtonTrack?.TrackType ?? "";
+
+                // Check progress per TahunKe
+                bool tahun1Done = false, tahun2Done = false, tahun3Done = false;
+                bool tahun1InProgress = false, tahun2InProgress = false, tahun3InProgress = false;
+
+                foreach (var a in coacheeAssignments)
+                {
+                    if (a.ProtonTrack == null) continue;
+                    string tahunKe = a.ProtonTrack.TahunKe;
+                    bool hasAssessment = assessmentsByAssignmentId.ContainsKey(a.Id);
+
+                    if (tahunKe == "Tahun 1")
+                    {
+                        if (hasAssessment) tahun1Done = true;
+                        else tahun1InProgress = true;
+                    }
+                    else if (tahunKe == "Tahun 2")
+                    {
+                        if (hasAssessment) tahun2Done = true;
+                        else tahun2InProgress = true;
+                    }
+                    else if (tahunKe == "Tahun 3")
+                    {
+                        if (hasAssessment) tahun3Done = true;
+                        else tahun3InProgress = true;
+                    }
+                }
+
+                // Status based on latest assignment
+                string status;
+                if (assessmentsByAssignmentId.ContainsKey(latestAssignment.Id))
+                    status = "Lulus";
+                else
+                    status = "Dalam Proses";
+
+                workers.Add(new HistoriProtonWorkerRow
+                {
+                    UserId = coacheeUser.Id,
+                    Nama = coacheeUser.FullName,
+                    NIP = coacheeUser.NIP ?? "",
+                    Unit = coacheeUser.Unit ?? "",
+                    Jalur = jalur,
+                    Tahun1Done = tahun1Done,
+                    Tahun2Done = tahun2Done,
+                    Tahun3Done = tahun3Done,
+                    Tahun1InProgress = tahun1InProgress,
+                    Tahun2InProgress = tahun2InProgress,
+                    Tahun3InProgress = tahun3InProgress,
+                    Status = status
+                });
+            }
+
+            // Sort by Nama A-Z (default)
+            workers = workers.OrderBy(w => w.Nama).ToList();
+
+            // Build available filters from scoped data
+            var availableSections = coacheeUsers
+                .Where(u => !string.IsNullOrEmpty(u.Section))
+                .Select(u => u.Section!)
+                .Distinct().OrderBy(s => s).ToList();
+
+            var availableUnits = coacheeUsers
+                .Where(u => !string.IsNullOrEmpty(u.Unit))
+                .Select(u => u.Unit!)
+                .Distinct().OrderBy(u => u).ToList();
+
+            var viewModel = new HistoriProtonViewModel
+            {
+                Workers = workers,
+                AvailableSections = availableSections,
+                AvailableUnits = availableUnits
+            };
+
+            return View(viewModel);
+        }
+
+        public async Task<IActionResult> HistoriProtonDetail(string userId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            int userLevel = user.RoleLevel;
+
+            // Authorization check
+            if (userLevel >= 6)
+            {
+                // Coachee can only view own
+                if (userId != user.Id) return Forbid();
+            }
+            else if (userLevel == 5)
+            {
+                // Coach can view mapped coachees
+                var isMapped = await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == userId && m.IsActive);
+                if (!isMapped) return Forbid();
+            }
+            else if (userLevel == 4)
+            {
+                // SrSpv/SH can view same section workers
+                var targetUser = await _context.Users.FindAsync(userId);
+                if (targetUser == null || targetUser.Section != user.Section) return Forbid();
+            }
+            // Level <= 3 (HC/Admin) can view all — no check needed
+
+            return View();
+        }
 
     }
 }
