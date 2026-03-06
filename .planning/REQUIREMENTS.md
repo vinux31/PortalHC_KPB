@@ -1,68 +1,68 @@
-# Requirements: Portal HC KPB
+# Requirements: Portal HC KPB - User Guide
 
-**Defined:** 2026-03-05
-**Milestone:** v3.3 Basic Notifications
-**Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
+**Defined:** 2026-03-06
+**Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration and comprehensive user documentation.
 
-## v3.3 Requirements
+## v1 Requirements
 
-Requirements for basic in-app notification system. Each maps to roadmap phases.
+Requirements for milestone v3.5 User Guide. Each maps to roadmap phases.
 
-### Notification Infrastructure
+### Page Structure & Navigation
 
-- [x] **INFRA-01**: System stores notifications persistently in database with proper indexing for performance
-- [ ] **INFRA-02**: NotificationService follows AuditLogService pattern (async, scoped DI, try-catch wrapped)
-- [ ] **INFRA-03**: Notification Center UI displays bell icon in navbar with unread badge counter
-- [ ] **INFRA-04**: Notification dropdown shows list of notifications (most recent first, pagination)
-- [ ] **INFRA-05**: Users can mark individual notifications as read (click notification → mark read → remove from counter)
-- [ ] **INFRA-06**: Users can mark all notifications as read (bulk action button)
-- [x] **INFRA-07**: System tracks notification audit trail (created by, created at, read at, delivery status)
-- [x] **INFRA-08**: Notification templates provide consistent messaging across all triggers
-- [ ] **INFRA-09**: Notification failures gracefully degrade (try-catch prevents main workflow crashes)
-- [ ] **INFRA-10**: Notifications use deep linking (click notification → navigate to relevant page)
+- [ ] **GUIDE-NAV-01**: User can access Guide page via "Panduan" link in navbar after login
+- [ ] **GUIDE-NAV-02**: Guide page displays hero section with "Panduan Pengguna" title using gradient styling matching dashboard
+- [ ] **GUIDE-NAV-03**: Guide page displays 5 tab navigation buttons (Dashboard, CMP, CDP, Account, Admin Panel)
+- [ ] **GUIDE-NAV-04**: User can click tabs to switch between content sections without page refresh
+- [ ] **GUIDE-NAV-05**: Admin Panel tab is hidden for non-Admin/HC users
 
-### Assessment Notifications
+### Content Organization
 
-- [ ] **ASMT-01**: Worker receives notification when assessment is assigned
-- [ ] **ASMT-02**: Worker receives notification when assessment results are ready
+- [ ] **GUIDE-CONTENT-01**: Each tab displays step-by-step instructions with numbered step cards
+- [ ] **GUIDE-CONTENT-02**: Step cards include icon, title, and description
+- [ ] **GUIDE-CONTENT-03**: Important information displayed in alert boxes (tips/catatan)
+- [ ] **GUIDE-CONTENT-04**: Content organized using Bootstrap 5 accordion/collapse for sub-sections
+- [ ] **GUIDE-CONTENT-05**: FAQ section displays at bottom of page with accordion behavior
+- [ ] **GUIDE-CONTENT-06**: FAQ includes common questions: login, password reset, CMP vs CDP, assessments, evidence upload, approval flow, coaching progress
 
-### Coaching Proton Notifications
+### Role-Based Access
 
-- [ ] **COACH-01**: Coachee receives notification when coach is assigned
-- [ ] **COACH-02**: SrSpv receives notification when coach uploads evidence for review
-- [ ] **COACH-03**: Coach receives notification when evidence is rejected
-- [ ] **COACH-04**: SectionHead receives notification when evidence is approved by SrSpv
-- [ ] **COACH-05**: HC receives notification when evidence is approved by SectionHead
-- [ ] **COACH-06**: Coachee receives notification when coaching session is completed
+- [ ] **GUIDE-ACCESS-01**: Guide page requires authentication (non-logged users redirected to login)
+- [ ] **GUIDE-ACCESS-02**: Role indicator badge displays user's current role at top of page
+- [ ] **GUIDE-ACCESS-03**: Dashboard tab content available to all authenticated users
+- [ ] **GUIDE-ACCESS-04**: CMP tab content available to all authenticated users
+- [ ] **GUIDE-ACCESS-05**: CDP tab content available to all authenticated users
+- [ ] **GUIDE-ACCESS-06**: Account tab content available to all authenticated users
+- [ ] **GUIDE-ACCESS-07**: Admin Panel tab content visible only to Admin and HC users
 
-### Team Monitoring Features
+### Styling & UX
 
-- [ ] **TEAM-01**: Users level 1-4 can view Team Training View tab with worker list showing assessment and training completion counts
-- [ ] **TEAM-02**: Users level 1-4 can drill into individual worker details to view unified assessment and training history
-- [ ] **TEAM-03**: Level 4 (SrSupervisor) users restricted to viewing workers in their own section only
+- [ ] **GUIDE-STYLE-01**: Guide page uses CSS variables matching home.css (--gradient-primary, --shadow-*)
+- [ ] **GUIDE-STYLE-02**: Page uses Inter font family
+- [ ] **GUIDE-STYLE-03**: Cards use glassmorphism effect matching existing design system
+- [ ] **GUIDE-STYLE-04**: Page content animates using AOS library
+- [ ] **GUIDE-STYLE-05**: Step numbers display with gradient badges
+- [ ] **GUIDE-STYLE-06**: Tab navigation styling matches existing design patterns
+- [ ] **GUIDE-STYLE-07**: Page displays correctly on mobile devices (responsive breakpoints)
+- [ ] **GUIDE-STYLE-08**: All content is in Indonesian language
 
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
 
-### Assessment (Deferred)
+### Interactive Features
 
-- **ASMT-03**: Worker receives notification when assessment is submitted (to HC/Admin) — defer to v3.4
-- **ASMT-04**: Worker receives deadline reminder (1 day before due date) — defer to v3.4 (requires background job)
+- **GUIDE-INTER-01**: Video tutorials for each module
+- **GUIDE-INTER-02**: Interactive walkthrough tours
+- **GUIDE-INTER-03**: Search functionality to find specific topics
+- **GUIDE-INTER-04**: Screenshots with annotations
+- **GUIDE-INTER-05**: Context-sensitive help from each page
 
-### Notification Preferences (Deferred)
+### Advanced Content
 
-- **PREF-01**: Users can configure notification preferences (enable/disable per type) — defer to v3.4
-- **PREF-02**: Users can set quiet hours/do not disturb — defer to v3.5
-
-### Real-Time Notifications (Deferred)
-
-- **REAL-01**: Real-time push notifications via SignalR — defer to v3.4
-- **REAL-02**: Browser push notifications — defer to v3.5
-
-### Email Notifications (Deferred)
-
-- **EMAIL-01**: Notification delivery via email — defer to v3.5
+- **GUIDE-ADV-01**: Admin/HC-specific detailed guides
+- **GUIDE-ADV-02**: Printable PDF versions of each guide
+- **GUIDE-ADV-03**: Troubleshooting guides for common issues
+- **GUIDE-ADV-04**: Best practices and tips per role
 
 ## Out of Scope
 
@@ -70,11 +70,13 @@ Explicitly excluded. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| SMS Notifications | Overkill for internal HR portal; costs money |
-| Notification Grouping/Batching | Unnecessary with low volume (8 triggers); one notification per event |
-| Notification Search | Over-engineering for basic system; pagination + filtering sufficient |
-| Rich Media Notifications (Images/Actions) | Text + link is sufficient for v3.3 |
-| Notification Snooze | Unnecessary complexity; notifications are time-sensitive |
+| Video tutorials | High production effort, defer to v2+ |
+| Interactive walkthrough tours | Complex implementation, defer to v2+ |
+| Search functionality | Static content small enough for navigation, defer to v2+ |
+| Screenshots | Maintenance burden, text instructions sufficient for v3.5 |
+| Multi-language support | Indonesian only (matches portal language) |
+| Anonymous access | Portal requires login for all features |
+| Content management system | Static content sufficient, no admin UI needed |
 
 ## Traceability
 
@@ -82,34 +84,38 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 99 | Complete |
-| INFRA-02 | Phase 99 | Pending |
-| INFRA-03 | Phase 100 | Pending |
-| INFRA-04 | Phase 100 | Pending |
-| INFRA-05 | Phase 100 | Pending |
-| INFRA-06 | Phase 100 | Pending |
-| INFRA-07 | Phase 99 | Complete |
-| INFRA-08 | Phase 99 | Complete |
-| INFRA-09 | Phase 99 | Pending |
-| INFRA-10 | Phase 100 | Pending |
-| ASMT-01 | Phase 101 | Pending |
-| ASMT-02 | Phase 101 | Pending |
-| COACH-01 | Phase 102 | Pending |
-| COACH-02 | Phase 102 | Pending |
-| COACH-03 | Phase 102 | Pending |
-| COACH-04 | Phase 102 | Pending |
-| COACH-05 | Phase 102 | Pending |
-| COACH-06 | Phase 102 | Pending |
-| TEAM-01 | Phase 104 | Pending |
-| TEAM-02 | Phase 104 | Pending |
-| TEAM-03 | Phase 104 | Pending |
+| GUIDE-NAV-01 | Phase 105 | Pending |
+| GUIDE-NAV-02 | Phase 105 | Pending |
+| GUIDE-NAV-03 | Phase 105 | Pending |
+| GUIDE-NAV-04 | Phase 105 | Pending |
+| GUIDE-NAV-05 | Phase 105 | Pending |
+| GUIDE-CONTENT-01 | Phase 105 | Pending |
+| GUIDE-CONTENT-02 | Phase 105 | Pending |
+| GUIDE-CONTENT-03 | Phase 105 | Pending |
+| GUIDE-CONTENT-04 | Phase 105 | Pending |
+| GUIDE-CONTENT-05 | Phase 105 | Pending |
+| GUIDE-CONTENT-06 | Phase 105 | Pending |
+| GUIDE-ACCESS-01 | Phase 105 | Pending |
+| GUIDE-ACCESS-02 | Phase 105 | Pending |
+| GUIDE-ACCESS-03 | Phase 105 | Pending |
+| GUIDE-ACCESS-04 | Phase 105 | Pending |
+| GUIDE-ACCESS-05 | Phase 105 | Pending |
+| GUIDE-ACCESS-06 | Phase 105 | Pending |
+| GUIDE-ACCESS-07 | Phase 105 | Pending |
+| GUIDE-STYLE-01 | Phase 106 | Pending |
+| GUIDE-STYLE-02 | Phase 106 | Pending |
+| GUIDE-STYLE-03 | Phase 106 | Pending |
+| GUIDE-STYLE-04 | Phase 106 | Pending |
+| GUIDE-STYLE-05 | Phase 106 | Pending |
+| GUIDE-STYLE-06 | Phase 106 | Pending |
+| GUIDE-STYLE-07 | Phase 106 | Pending |
+| GUIDE-STYLE-08 | Phase 106 | Pending |
 
 **Coverage:**
-- v3.3 requirements: 18 total
-- v3.3+: 3 total (Team Monitoring features)
-- Mapped to phases: 21
+- v1 requirements: 24 total
+- Mapped to phases: 24
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-03-05*
-*Last updated: 2026-03-05 after roadmap creation*
+*Requirements defined: 2026-03-06*
+*Last updated: 2026-03-06 after initial definition*
