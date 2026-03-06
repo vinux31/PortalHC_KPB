@@ -12,30 +12,25 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v3.3 - Basic Notifications
+## Current Milestone: v3.5 - User Guide
 
-**Goal:** Build basic in-app notification system for Assessment and Coaching Proton workflows — assignment notifications, deadline reminders, and approval chain notifications.
+**Goal:** Build interactive user guide page with step-by-step instructions for all portal modules, role-specific content, and FAQ section.
 
-**Target notification types:**
-
-**Assessment (4 triggers):**
-- Worker receives: Assessment assigned, deadline reminder (1 day before), assessment results
-- HC/Admin receives: Assessment submitted notification
-
-**Coaching Proton (6 triggers):**
-- Coachee receives: Coach assignment, coaching completed
-- Coach receives: Evidence rejected notification
-- SrSpv receives: Evidence uploaded by coach (for review)
-- SectionHead receives: Evidence approved by SrSpv
-- HC receives: Evidence approved by SectionHead
+**Target features:**
+- 5 role-specific tabs: Dashboard, CMP, CDP, Account, Admin Panel (Admin/HC only)
+- Step-by-step instructions with numbered steps and tips
+- FAQ section with common questions
+- Premium styling matching existing design system
+- Navbar link "Panduan" with question icon
+- Login required, role-based access control
 
 **Scope:**
-- In-App notification center (bell icon, notification list)
-- Read/unread status tracking
-- No real-time (SignalR) — refresh-based only
-- No notification preferences in v3.3
+- Static content (Indonesian language)
+- Bootstrap 5 accordion/collapse for organization
+- Responsive design (mobile-friendly)
+- No video tutorials or screenshots in v3.5
 
-**Approach:** Database model → Notification service → UI components → Trigger points → Testing
+**Approach:** Controller action → View with tabs → CSS styling → Navbar link
 
 ## Current State (v3.0 — shipped 2026-03-05)
 

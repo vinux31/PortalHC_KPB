@@ -77,97 +77,73 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-05)
+See: .planning/PROJECT.md (updated 2026-03-06)
 
-**Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration and in-app notifications for Assessment and Coaching Proton workflows.
+**Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration and comprehensive user documentation.
 
-**Current focus:** v3.3 Basic Notifications — Building in-app notification system with 8 triggers (2 assessment, 6 coaching).
+**Current focus:** v3.5 User Guide — Building interactive user guide page with role-specific content for all portal modules.
 
 ## Current Position
 
-**Milestone:** v3.4 Gap Closure - CMP Records Team View Filters
-**Phase:** 104 - Develop page http://localhost:5277/CMP/Records
-**Plan:** 104-03 - Verify Section filter working (Next)
-**Status:** Milestone complete
-**Last activity:** 2026-03-05 — Completed 104-02 Status filter fix. Added explicit 'ALL' case handling.
+**Milestone:** v3.5 User Guide
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-03-06 — Milestone v3.5 started
 
-**Progress:** [██████████] 100%
+**Progress:** [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Recent Milestones:**
+- v3.3 Basic Notifications: In progress (Phase 99 complete, Phases 100-103 pending)
 - v3.2 Bug Hunting & Quality Audit: 7 phases, 20+ bugs fixed (shipped 2026-03-05)
 - v3.1 CPDP Mapping File-Based Rewrite: 1 phase, 6 plans (shipped 2026-03-03)
 - v3.0 Full QA & Feature Completion: 10 phases, 46 plans (shipped 2026-03-05)
 
-**Current Milestone (v3.3):**
-- Phases: 5 (99-103)
-- Plans: 15 total
-- Status: In Execution
-- Completed: 2/15 plans (99-01, 99-02)
+**Current Milestone (v3.5):**
+- Status: Planning
+- Target: User Guide page with 5 tabs, FAQ, role-based content
 
 **Total Project:**
-- Milestones shipped: 20 (v1.0 through v3.2)
-- Phases completed: 98
-- Active development: 2026-02-14 to present (20 days)
+- Milestones shipped: 23 (v1.0 through v3.3)
+- Phases completed: 99
+- Active development: 2026-02-14 to present (21 days)
 
 ## Accumulated Context
 
 ### Decisions
 
-**v3.3 Notification System Architecture:**
-- Two-table design: Notification (content) + UserNotification (per-user read status)
-- Service layer pattern: INotificationService following AuditLogService pattern (async, scoped DI, try-catch wrapped)
-- Refresh-based polling (30s interval) - no SignalR in v3.3
-- Database-backed persistence (not session-based)
+**v3.5 User Guide Architecture:**
+- Single-page app with tab-based navigation (Dashboard, CMP, CDP, Account, Admin Panel)
+- Role-based content visibility (Admin/HC see Admin Panel tab)
+- Bootstrap 5 accordion/collapse for content organization
+- Separate CSS file (guide.css) matching existing design system
+- Static content (no database, no backend logic)
 
-**v3.3 Phase Ordering:**
-- Database → Service → UI → Triggers → Testing (strict dependency order)
-- Assessment before Coaching (simpler workflow first: 2 triggers vs 6)
-- Separate UI phase (allows refinement without touching service logic)
-
-**v3.3 Scope Boundaries:**
-- v3.3: 8 triggers (2 assessment, 6 coaching), in-app only, refresh-based
-- v3.4: Deferred features (deadline reminders, submitted notification, notification preferences, SignalR)
-- v3.5: Browser push notifications, email/SMS
-
-**v3.3 Technology Stack:**
-- No new NuGet packages for v3.3
-- Bootstrap Icons 1.10.0 (already loaded in _Layout.cshtml)
-- Bootstrap 5 Dropdown (already in use)
-- EF Core 8.0 (existing ApplicationDbContext)
-- [Phase 99]: Template dictionary stored in NotificationService constructor - centralizes message formatting for easy updates
-- [Phase 99]: Placeholder replacement using simple string.Replace - sufficient for v3.3 needs, no regex complexity
-- [Phase 99]: SendByTemplateAsync fails silently on unknown notification types - prevents workflow disruption
+**v3.5 Scope Boundaries:**
+- v3.5: 5 tabs with step-by-step instructions, FAQ section, premium styling
+- Future: Video tutorials, interactive walkthroughs, search functionality, screenshots
 
 ### Pending Todos
 
 **Immediate Next Actions:**
-1. Run `/gsd:plan-phase 99` to break down Phase 99 into executable plans
-2. Create Notification + UserNotification models with EF Core migration
-3. Build NotificationService with full CRUD operations
-4. Register INotificationService in DI container
-5. Create notification templates for all 8 trigger types
+1. Complete requirements definition
+2. Create roadmap phases
+3. Begin implementation planning
 
-**Phase 99 Deliverables:**
-- [x] 99-01: Notification + UserNotification models with EF Core migration
-- [x] 99-02: NotificationService with SendAsync, GetAsync, MarkAsReadAsync, MarkAllAsReadAsync
-- [ ] 99-03: DI registration, notification templates, unit tests
-
-**Upcoming Phases:**
-- Phase 100: Notification Center UI (bell icon, dropdown, AJAX polling)
-- Phase 101: Assessment notification triggers (2 triggers)
-- Phase 102: Coaching notification triggers (6 triggers)
-- Phase 103: Integration testing and polish
+**v3.5 Deliverables:**
+- [ ] HomeController.Guide() action
+- [ ] Views/Home/Guide.cshtml with 5 tabs and FAQ
+- [ ] wwwroot/css/guide.css with premium styling
+- [ ] Navbar "Panduan" link with icon
+- [ ] Role-based access control verification
 
 ### Roadmap Evolution
 
-- Phase 99 added: Notification Database & Service
-- Phase 100 added: Notification Center UI
-- Phase 101 added: Assessment Notification Triggers
-- Phase 102 added: Coaching Notification Triggers
-- Phase 103 added: Notification Testing & Polish
-- Phase 104 added: develop page http://localhost:5277/CMP/Records
+- Phases 99-103: v3.3 Basic Notifications (partially complete)
+- Phase 104: CMP Records Team View (gap closure)
+- v3.5: User Guide page (to be planned)
 
 ### Blockers/Concerns
 
@@ -177,12 +153,11 @@ Research phase complete. Ready for phase planning.
 
 ## Session Continuity
 
-Last session: 2026-03-05
-Stopped at: Roadmap created for v3.3, ready to run `/gsd:plan-phase 99`
+Last session: 2026-03-06
+Stopped at: Starting milestone v3.5 User Guide
 Resume file: None
 
 **Context Handoff:**
-- All v3.3 requirements defined (18 requirements: INFRA-01 through COACH-06)
-- Research complete (high confidence, all dependencies verified)
-- Roadmap created with 5 phases (99-103)
-- Ready for execution starting with Phase 99
+- Milestone v3.5 User Guide initiated
+- User Guide-Plan.md provides detailed implementation plan
+- Ready for requirements definition and roadmap creation
