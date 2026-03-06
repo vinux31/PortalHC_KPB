@@ -887,7 +887,7 @@ Plans:
 | 102. Coaching Notification Triggers | 0/3 | Not started | - |
 | 103. Notification Testing & Polish | 0/3 | Not started | - |
 | 104. CMP Records Team View | 4/4 | Complete | 2026-03-06 |
-| 105. User Guide Structure & Content | 7/6 | Complete   | 2026-03-06 |
+| 105. User Guide Structure & Content | 7/6 | Complete    | 2026-03-06 |
 | 106. User Guide Styling & Polish | 0/4 | Not started | - |
 
 ### Phase 104: CMP Records Team View
