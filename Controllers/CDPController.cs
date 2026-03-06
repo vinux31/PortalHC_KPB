@@ -2366,6 +2366,7 @@ namespace HcPortal.Controllers
                     UserId = coacheeUser.Id,
                     Nama = coacheeUser.FullName,
                     NIP = coacheeUser.NIP ?? "",
+                    Section = coacheeUser.Section ?? "",
                     Unit = coacheeUser.Unit ?? "",
                     Jalur = jalur,
                     Tahun1Done = tahun1Done,

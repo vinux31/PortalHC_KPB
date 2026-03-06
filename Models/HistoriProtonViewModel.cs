@@ -17,6 +17,7 @@ public class HistoriProtonWorkerRow
     public string UserId { get; set; } = "";
     public string Nama { get; set; } = "";
     public string NIP { get; set; } = "";
+    public string Section { get; set; } = "";
     public string Unit { get; set; } = "";
     public string Jalur { get; set; } = ""; // Panelman or Operator
     public bool Tahun1Done { get; set; }

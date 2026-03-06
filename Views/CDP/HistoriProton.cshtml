@@ -1,0 +1,301 @@
+@model HcPortal.Models.HistoriProtonViewModel
+@{
+    ViewData["Title"] = "Histori Proton - CDP";
+}
+
+<div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-action="Index" asp-controller="CDP">CDP</a></li>
+            <li class="breadcrumb-item active">Histori Proton</li>
+        </ol>
+    </nav>
+
+    <h4 class="mb-4"><i class="bi bi-clock-history me-2"></i>Histori Proton</h4>
+
+    <!-- Search and Filter Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted">Cari</label>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cari nama atau NIP...">
+                </div>
+                <div class="col-12 col-md-auto">
+                    <label class="form-label small text-muted">Section</label>
+                    <select id="filterSection" class="form-select">
+                        <option value="">Semua Section</option>
+                        @foreach (var s in Model.AvailableSections)
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-auto">
+                    <label class="form-label small text-muted">Unit</label>
+                    <select id="filterUnit" class="form-select">
+                        <option value="">Semua Unit</option>
+                        @foreach (var u in Model.AvailableUnits)
+                        {
+                            <option value="@u">@u</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-auto">
+                    <label class="form-label small text-muted">Jalur</label>
+                    <select id="filterJalur" class="form-select">
+                        <option value="">Semua Jalur</option>
+                        <option value="Panelman">Panelman</option>
+                        <option value="Operator">Operator</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-auto">
+                    <label class="form-label small text-muted">Status</label>
+                    <select id="filterStatus" class="form-select">
+                        <option value="">Semua Status</option>
+                        <option value="Lulus">Lulus</option>
+                        <option value="Dalam Proses">Dalam Proses</option>
+                        <option value="Belum Mulai">Belum Mulai</option>
+                    </select>
+                </div>
+                <div class="col-12 col-md-auto">
+                    <button type="button" id="btnReset" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle me-1"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0" id="workerTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:50px">No</th>
+                            <th>Nama</th>
+                            <th>NIP</th>
+                            <th>Unit</th>
+                            <th>Jalur</th>
+                            <th>Progress Proton</th>
+                            <th>Status</th>
+                            <th style="width:140px">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Workers.Any())
+                        {
+                            var rowNum = 0;
+                            @foreach (var w in Model.Workers)
+                            {
+                                rowNum++;
+                                <tr data-nama="@w.Nama.ToLower()" data-nip="@w.NIP.ToLower()" data-section="@w.Section" data-unit="@w.Unit" data-jalur="@w.Jalur" data-status="@w.Status">
+                                    <td class="row-number">@rowNum</td>
+                                    <td>@w.Nama</td>
+                                    <td>@w.NIP</td>
+                                    <td>@w.Unit</td>
+                                    <td>@w.Jalur</td>
+                                    <td>
+                                        <div class="step-indicator">
+                                            @{
+                                                var t1Class = w.Tahun1Done ? "done" : w.Tahun1InProgress ? "in-progress" : "empty";
+                                                var t2Class = w.Tahun2Done ? "done" : w.Tahun2InProgress ? "in-progress" : "empty";
+                                                var t3Class = w.Tahun3Done ? "done" : w.Tahun3InProgress ? "in-progress" : "empty";
+                                            }
+                                            <span class="step-dot @t1Class" title="Tahun 1"></span>
+                                            <span class="step-line"></span>
+                                            <span class="step-dot @t2Class" title="Tahun 2"></span>
+                                            <span class="step-line"></span>
+                                            <span class="step-dot @t3Class" title="Tahun 3"></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @if (w.Status == "Lulus")
+                                        {
+                                            <span class="badge bg-success">Lulus</span>
+                                        }
+                                        else if (w.Status == "Dalam Proses")
+                                        {
+                                            <span class="badge bg-warning text-dark">Dalam Proses</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Belum Mulai</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("HistoriProtonDetail", new { userId = w.UserId })" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>Lihat Riwayat
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty state -->
+            <div id="emptyState" class="text-center py-5 d-none">
+                <i class="bi bi-search fs-1 text-muted"></i>
+                <p class="text-muted mt-2">Tidak ada data yang sesuai dengan pencarian.</p>
+            </div>
+
+            <!-- Pagination -->
+            <div id="paginationContainer" class="d-flex justify-content-between align-items-center px-3 py-2 border-top">
+                <small class="text-muted" id="paginationInfo"></small>
+                <nav>
+                    <ul class="pagination pagination-sm mb-0" id="paginationControls"></ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .step-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 0;
+    }
+    .step-indicator .step-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    .step-indicator .step-dot.done { background-color: var(--bs-success); }
+    .step-indicator .step-dot.in-progress { background-color: var(--bs-warning); }
+    .step-indicator .step-dot.empty { background-color: var(--bs-gray-300); }
+    .step-indicator .step-line {
+        width: 16px;
+        height: 2px;
+        background-color: var(--bs-gray-400);
+        display: inline-block;
+    }
+</style>
+
+@section Scripts {
+<script>
+(function() {
+    const ROWS_PER_PAGE = 15;
+    const table = document.getElementById('workerTable');
+    const tbody = table.querySelector('tbody');
+    const allRows = Array.from(tbody.querySelectorAll('tr'));
+    const searchInput = document.getElementById('searchInput');
+    const filterSection = document.getElementById('filterSection');
+    const filterUnit = document.getElementById('filterUnit');
+    const filterJalur = document.getElementById('filterJalur');
+    const filterStatus = document.getElementById('filterStatus');
+    const btnReset = document.getElementById('btnReset');
+    const emptyState = document.getElementById('emptyState');
+    const paginationInfo = document.getElementById('paginationInfo');
+    const paginationControls = document.getElementById('paginationControls');
+    const paginationContainer = document.getElementById('paginationContainer');
+
+    let currentPage = 1;
+    let visibleRows = allRows.slice();
+
+    function applyFilters() {
+        const search = searchInput.value.toLowerCase().trim();
+        const section = filterSection.value;
+        const unit = filterUnit.value;
+        const jalur = filterJalur.value;
+        const status = filterStatus.value;
+
+        visibleRows = allRows.filter(function(row) {
+            if (search && !row.dataset.nama.includes(search) && !row.dataset.nip.includes(search)) return false;
+            if (section && row.dataset.section !== section) return false;
+            if (unit && row.dataset.unit !== unit) return false;
+            if (jalur && row.dataset.jalur !== jalur) return false;
+            if (status && row.dataset.status !== status) return false;
+            return true;
+        });
+
+        currentPage = 1;
+        render();
+    }
+
+    function render() {
+        // Hide all rows
+        allRows.forEach(function(r) { r.style.display = 'none'; });
+
+        var totalPages = Math.max(1, Math.ceil(visibleRows.length / ROWS_PER_PAGE));
+        if (currentPage > totalPages) currentPage = totalPages;
+
+        var start = (currentPage - 1) * ROWS_PER_PAGE;
+        var end = start + ROWS_PER_PAGE;
+        var pageRows = visibleRows.slice(start, end);
+
+        // Show page rows and renumber
+        pageRows.forEach(function(r, i) {
+            r.style.display = '';
+            r.querySelector('.row-number').textContent = start + i + 1;
+        });
+
+        // Empty state
+        if (visibleRows.length === 0) {
+            emptyState.classList.remove('d-none');
+            paginationContainer.classList.add('d-none');
+        } else {
+            emptyState.classList.add('d-none');
+            paginationContainer.classList.remove('d-none');
+        }
+
+        // Pagination info
+        if (visibleRows.length > 0) {
+            paginationInfo.textContent = 'Menampilkan ' + (start + 1) + '-' + Math.min(end, visibleRows.length) + ' dari ' + visibleRows.length + ' pekerja';
+        }
+
+        // Pagination controls
+        paginationControls.innerHTML = '';
+        if (totalPages > 1) {
+            // Previous
+            var prevLi = document.createElement('li');
+            prevLi.className = 'page-item' + (currentPage === 1 ? ' disabled' : '');
+            prevLi.innerHTML = '<a class="page-link" href="#">&laquo;</a>';
+            prevLi.addEventListener('click', function(e) { e.preventDefault(); if (currentPage > 1) { currentPage--; render(); } });
+            paginationControls.appendChild(prevLi);
+
+            for (var p = 1; p <= totalPages; p++) {
+                (function(page) {
+                    var li = document.createElement('li');
+                    li.className = 'page-item' + (page === currentPage ? ' active' : '');
+                    li.innerHTML = '<a class="page-link" href="#">' + page + '</a>';
+                    li.addEventListener('click', function(e) { e.preventDefault(); currentPage = page; render(); });
+                    paginationControls.appendChild(li);
+                })(p);
+            }
+
+            // Next
+            var nextLi = document.createElement('li');
+            nextLi.className = 'page-item' + (currentPage === totalPages ? ' disabled' : '');
+            nextLi.innerHTML = '<a class="page-link" href="#">&raquo;</a>';
+            nextLi.addEventListener('click', function(e) { e.preventDefault(); if (currentPage < totalPages) { currentPage++; render(); } });
+            paginationControls.appendChild(nextLi);
+        }
+    }
+
+    searchInput.addEventListener('keyup', applyFilters);
+    filterSection.addEventListener('change', applyFilters);
+    filterUnit.addEventListener('change', applyFilters);
+    filterJalur.addEventListener('change', applyFilters);
+    filterStatus.addEventListener('change', applyFilters);
+
+    btnReset.addEventListener('click', function() {
+        searchInput.value = '';
+        filterSection.value = '';
+        filterUnit.value = '';
+        filterJalur.value = '';
+        filterStatus.value = '';
+        applyFilters();
+    });
+
+    // Initial render
+    render();
+})();
+</script>
+}
