@@ -25,6 +25,7 @@
 - ✅ **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 (shipped 2026-03-03)
 - ✅ **v3.2 Bug Hunting & Quality Audit** — Phases 92-98 (shipped 2026-03-05)
 - 🚧 **v3.3 Basic Notifications** — Phases 99-103 (IN PLANNING)
+- 📋 **v3.5 User Guide** — Phases 105-106 (PLANNED)
 
 ## Phases
 
