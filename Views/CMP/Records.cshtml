@@ -189,7 +189,7 @@
                                     </tr>
                                 }
                                 @if (!Model.Any()) {
-                                    <tr><td colspan="6" class="text-center p-5 text-muted">Belum ada riwayat</td></tr>
+                                    <tr><td colspan="6" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td></tr>
                                 }
                             </tbody>
                         </table>
@@ -297,13 +297,32 @@
 function filterTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const yearFilter = document.getElementById('yearFilter').value;
+    let visibleCount = 0;
     document.querySelectorAll('#recordsTable .training-row').forEach(row => {
         const title = row.getAttribute('data-title');
         const year = row.getAttribute('data-year');
         const matchSearch = !searchTerm || title.includes(searchTerm);
         const matchYear = !yearFilter || year === yearFilter;
-        row.style.display = (matchSearch && matchYear) ? '' : 'none';
+        const show = matchSearch && matchYear;
+        row.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
     });
+
+    // Empty state handling
+    var emptyRow = document.getElementById('myRecordsEmptyState');
+    if (visibleCount === 0 && document.querySelectorAll('#recordsTable .training-row').length > 0) {
+        if (!emptyRow) {
+            var tbody = document.querySelector('#recordsTable tbody');
+            var tr = document.createElement('tr');
+            tr.id = 'myRecordsEmptyState';
+            tr.innerHTML = '<td colspan="6" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td>';
+            tbody.appendChild(tr);
+        } else {
+            emptyRow.style.display = '';
+        }
+    } else if (emptyRow) {
+        emptyRow.style.display = 'none';
+    }
 }
 document.getElementById('searchInput').addEventListener('input', filterTable);
 document.getElementById('yearFilter').addEventListener('change', filterTable);
