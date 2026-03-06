@@ -31,9 +31,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **Approach:** Controller action → View with tabs → CSS styling → Navbar link
 
-## Current State (v3.0 — shipped 2026-03-05)
+## Current State (v3.5 — shipped 2026-03-06)
 
-**v3.0 Full QA & Feature Completion complete.** All core portal flows verified working (assessment lifecycle, coaching workflow, master data management, dashboards, login/navigation). Known gaps documented: Phase 89 PlanIDP unverified, PositionTargetHelper missing for competency display, KKJ Matrix Phase 88 verification discrepancy.
+**v3.0 through v3.5 shipped.** All core portal flows verified working (assessment lifecycle, coaching workflow, master data management, dashboards, login/navigation). User Guide page added with 5 tabs, FAQ, role-based content, and premium styling. Known gaps from v3.0: Phase 89 PlanIDP unverified, PositionTargetHelper missing for competency display, KKJ Matrix Phase 88 verification discrepancy.
 
 ## Architecture Decisions
 

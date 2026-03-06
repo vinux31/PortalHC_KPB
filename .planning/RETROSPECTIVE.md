@@ -203,6 +203,50 @@
 
 ---
 
+## Milestone: v3.0 — Full QA & Feature Completion
+
+**Shipped:** 2026-03-05
+**Phases:** 10 (82-91, 86 superseded) | **Plans:** 34
+
+### What Was Built
+- Cleanup & Rename: "Proton Progress" → "Coaching Proton" throughout, orphaned CMP pages removed, AuditLog card added
+- Master Data QA: Worker/Silabus soft delete infrastructure with IsActive filters across all queries
+- Assessment Flow QA: Full lifecycle verified (create, assign, exam, auto-save, results, certificate)
+- Coaching Proton QA: Full coaching workflow verified (mapping, evidence, multi-level approval, exports)
+- Dashboard & Navigation QA: All dashboards role-scoped, login flow secure, nav visibility enforced
+- KKJ Matrix Full Rewrite: Document-based file management (KkjFile/CpdpFile) replacing spreadsheet
+- PlanIDP 2-Tab Redesign: Unified Silabus + Coaching Guidance tabs for all roles
+- Admin & CMP Assessment Audit: 20 assessment flows verified with CSRF fixes and Records redesign
+
+### What Worked
+- **Use-case flow QA**: Testing by flow (not by page) caught cross-page integration issues that page-level testing would miss
+- **Soft delete infrastructure**: Adding IsActive to ApplicationUser and ProtonKompetensi once, then filtering everywhere, was cleaner than scattered delete logic
+- **Browser verification pattern**: Claude analyzes code → user verifies in browser → Claude fixes bugs. Efficient division of labor.
+- **Supersession**: Phase 86 → 89 pivot was clean — superseding a phase and creating a better-scoped replacement avoids sunk cost
+
+### What Was Inefficient
+- **Phase 89 missing VERIFICATION.md**: Phase shipped without verification file — gap discovered only during milestone audit
+- **Phase 88 verification mismatch**: VERIFICATION.md claims don't match actual codebase state — verification was written without re-reading the final code
+- **PositionTargetHelper gap**: Component exists only in worktree, not main codebase — incomplete merge or abandoned branch work
+
+### Patterns Established
+- **Use-case flow QA**: Organize QA by user flows (assessment lifecycle, coaching workflow) not by page or role
+- **Seed data actions**: Idempotent SeedXxxTestData actions for browser verification — quick setup for manual testing
+- **Soft delete with IsActive**: Add bool IsActive to entity, filter in all queries, deactivate instead of delete
+
+### Key Lessons
+1. Always create VERIFICATION.md immediately after phase execution — don't defer to later sessions
+2. Verification files should be written by re-reading actual code, not from memory of what was built
+3. Use-case flow QA is superior to page-by-page QA for catching integration issues
+4. 10 phases in 4 days is sustainable but verification quality suffers at speed
+
+### Cost Observations
+- Model profile: budget (sonnet planner/executor, haiku checker)
+- 4-day milestone (2026-03-02 → 2026-03-05)
+- QA phases are faster than build phases — mostly reading + verifying, less code generation
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -225,5 +269,6 @@
 | v2.5 | 8 | 14 | 2 | 7 |
 | v2.6 | 6 | 12 | 1 | 12 |
 | v2.7 | 3 | 4 | 1 | 4 |
+| v3.0 | 10 | 34 | 4 | 8.5 |
 
-**Running total:** 75 phases, ~166 plans, 18 days
+**Running total:** 85 phases, ~200 plans, 22 days
