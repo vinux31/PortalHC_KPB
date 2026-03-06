@@ -538,7 +538,77 @@
 
         // Show/hide no-results message
         noResults.style.display = (visibleCards === 0 && visibleFaq === 0 && q) ? 'block' : 'none';
+
+        // Highlight search terms
+        highlightSearchTerms(q, document.querySelector('.guide-card-grid'));
+        highlightSearchTerms(q, document.querySelector('.guide-faq-section'));
     });
+
+    // ─── Search Term Highlighting ───
+    function highlightSearchTerms(query, container) {
+        if (!query) {
+            // Remove existing highlights
+            container.querySelectorAll('mark.search-highlight').forEach(function(mark) {
+                var parent = mark.parentNode;
+                parent.replaceChild(document.createTextNode(mark.textContent), mark);
+                parent.normalize(); // Merge adjacent text nodes
+            });
+            return;
+        }
+
+        // Remove old highlights first
+        container.querySelectorAll('mark.search-highlight').forEach(function(mark) {
+            var parent = mark.parentNode;
+            parent.replaceChild(document.createTextNode(mark.textContent), mark);
+            parent.normalize();
+        });
+
+        // Add new highlights (simple text-only traversal to avoid breaking HTML)
+        // Only highlight in text nodes, not inside element attributes
+        var walker = document.createTreeWalker(
+            container,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: function(node) {
+                    if (node.parentElement.tagName.match(/^(SCRIPT|STYLE|MARK|INPUT|TEXTAREA)$/)) {
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+            }
+        );
+
+        var textNodes = [];
+        var node;
+        while (node = walker.nextNode()) {
+            if (node.textContent.toLowerCase().includes(query)) {
+                textNodes.push(node);
+            }
+        }
+
+        textNodes.forEach(function(textNode) {
+            var text = textNode.textContent;
+            var regex = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+            if (regex.test(text)) {
+                var fragment = document.createDocumentFragment();
+                var lastIdx = 0;
+                text.replace(regex, function(match, p1, idx) {
+                    if (idx > lastIdx) {
+                        fragment.appendChild(document.createTextNode(text.slice(lastIdx, idx)));
+                    }
+                    var mark = document.createElement('mark');
+                    mark.className = 'search-highlight';
+                    mark.textContent = match;
+                    fragment.appendChild(mark);
+                    lastIdx = idx + match.length;
+                });
+                if (lastIdx < text.length) {
+                    fragment.appendChild(document.createTextNode(text.slice(lastIdx)));
+                }
+                textNode.parentNode.replaceChild(fragment, textNode);
+            }
+        });
+    }
 })();
 </script>
 }
