@@ -664,18 +664,6 @@ mark.search-highlight {
     }
 }
 
-/* Sticky search bar for mobile */
-@media (max-width: 768px) {
-    .guide-search-wrapper {
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        background: white;
-        padding: 0.5rem 0;
-        margin-bottom: 1.5rem;
-    }
-}
-
 @keyframes pulse-glow-pink {
     0%, 100% {
         box-shadow: 0 3px 8px rgba(245, 87, 108, 0.3);
@@ -762,6 +750,16 @@ mark.search-highlight {
    Responsive
    ============================================ */
 @media (max-width: 768px) {
+    /* Sticky search bar for mobile */
+    .guide-search-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: white;
+        padding: 0.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+
     .guide-hero {
         padding: 1.5rem 1rem;
         margin-bottom: 1.5rem;
