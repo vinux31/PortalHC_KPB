@@ -13,17 +13,10 @@ Build a comprehensive User Guide page at `/Home/Guide` with tab-based navigation
 ## Implementation Decisions
 
 ### Tab Content Structure
-- **5 tabs total**: Dashboard, CMP, CDP, Account, Admin Panel (Admin/HC only)
+- **4 tabs total**: CMP, CDP, Account, Admin Panel (Admin/HC only) — Dashboard home removed per user request
 - **Content depth**: 8-12 detailed steps per tab - covers main workflows without being overwhelming
 - **Step granularity**: Each step is one clear action (e.g., "Click tombol 'Mulai Ujian'", "Upload file evidence")
 - **Scope within boundary**: Each tab covers only what users can SEE/DO in that module. Implementation details (Phase 106 styling, backend logic) are out of scope.
-
-### Dashboard Tab Content
-- Login flow (quick reference)
-- View personal greeting and role badge
-- Understand 4 dashboard cards (IDP Progress, Pending Assessments, Mandatory Training, Recent Activities)
-- Check upcoming deadlines
-- Navigate to other modules
 
 ### CMP Tab Content
 - Access Assessment page
