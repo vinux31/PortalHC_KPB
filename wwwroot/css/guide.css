@@ -975,6 +975,16 @@ mark.search-highlight {
         page-break-before: always;
     }
 
+    /* Avoid orphaned headings */
+    h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+
+    /* Prevent cards from splitting */
+    .guide-step-item {
+        page-break-inside: avoid;
+    }
+
     /* Print footer */
     body::after {
         content: "HC Portal User Guide - Printed on " attr(data-print-date);
@@ -988,6 +998,55 @@ mark.search-highlight {
         color: #666;
         padding: 0.5rem;
         border-top: 1px solid #ddd;
+    }
+
+    /* Add page numbers */
+    @page {
+        @bottom-center {
+            content: "Halaman " counter(page);
+            font-size: 10pt;
+            color: #666;
+        }
+        margin: 2cm;
+    }
+
+    /* Enhance print typography */
+    body {
+        font-family: Georgia, 'Times New Roman', serif;
+        line-height: 1.8;
+        color: #000;
+    }
+
+    /* Remove text-shadows and screen-only effects */
+    * {
+        text-shadow: none !important;
+    }
+
+    /* Improve FAQ print layout with Q: prefix */
+    .faq-question::before {
+        content: "Q: ";
+        font-weight: bold;
+    }
+
+    /* Ensure step numbers are visible */
+    .guide-step-badge {
+        border: 1px solid #667eea;
+        color: #667eea !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Breadcrumb simplification for print */
+    .guide-breadcrumb .breadcrumb-item::before {
+        content: " > ";
+    }
+    .guide-breadcrumb .breadcrumb-item:first-child::before {
+        content: "";
+    }
+    .guide-breadcrumb .breadcrumb-item a {
+        color: #000;
+        text-decoration: underline;
     }
 }
 

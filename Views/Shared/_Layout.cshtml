@@ -61,6 +61,12 @@
                             <a class="nav-link text-dark" asp-controller="CDP" asp-action="Index">CDP</a>
                         </li>
 
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-controller="Home" asp-action="Guide">
+                                <i class="bi bi-question-circle me-1"></i>Panduan
+                            </a>
+                        </li>
+
                         @if (User.IsInRole("Admin") || User.IsInRole("HC"))
                         {
                             <li class="nav-item">
@@ -169,11 +175,20 @@
     <!-- AOS Animation Library -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
-        AOS.init({
-            duration: 800,
-            easing: 'ease-in-out',
-            once: true
-        });
+        // AOS initialization with performance optimization and reduced motion support
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            AOS.init({
+                disable: true
+            });
+        } else {
+            AOS.init({
+                duration: 600,
+                easing: 'ease-out-cubic',
+                once: true,
+                offset: 50,
+                delay: 0
+            });
+        }
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
