@@ -499,19 +499,58 @@
                 </div>
             </div>
 
-            <!-- Admin Panel 7,8,9,10 -->
+            <!-- Admin Panel 7: Bank Soal -->
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="admHeading4">
                     <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse4">
-                        Cara Kelola Ujian (Buat Assessment, Monitoring, Soal Ujian)
+                        Cara Kelola Bank Soal (Paket Ujian)
                     </button>
                 </h2>
                 <div id="admCollapse4" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Kelola Soal (Bank Soal / Packages)</strong><span>Di <b>Admin Panel → Kelola Paket Soal</b>, buat kategori paket. Anda bisa import dari template Excel untuk mass upload dan define kunci jawabannya.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buat Jadwal Assessment</strong><span>Pilih <b>Kelola Assessment → Create New</b>. Masukkan nama ujian, tentukan durasi (menit), batas tanggal awal-akhir, passing grade, paket soal apa saja, lalu pick peserta / group terkait. Save.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Monitoring Ujian Berjalan</strong><span>Buka <b>Assessment Monitoring</b>. Anda dapat memantau realtime user yang sedang in-progress. Anda juga bisa <i>Force-Close</i> user apabila diyakini browser tertutup atau ada kendala teknis (sistem akan submit skor sesuai progres tsb).</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Paket Soal</strong><span>Di <b>Admin Panel → Kelola Paket Soal</b>, klik tombol <b>Buat Paket Soal Baru</b> untuk membuat kategori paket ujian.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Import Soal dari Template</strong><span>Download template Excel yang tersedia, isi soal dan kunci jawaban, lalu upload kembali untuk mass import soal.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Define Kunci Jawaban</strong><span>Tentukan jawaban benar untuk setiap soal. Anda juga dapat memberikan pembahasan atau feedback untuk setiap opsi jawaban.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Kategorikan Paket Soal</strong><span>Tag paket soal dengan kategori kompetensi, level jabatan, atau unit kerja untuk memudahkan filtering saat membuat jadwal assessment.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel 8: Assessment Creation -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="admHeading5">
+                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse5">
+                        Cara Membuat Jadwal Assessment
+                    </button>
+                </h2>
+                <div id="admCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Assessment</strong><span>Pilih <b>Admin Panel → Kelola Assessment</b>, lalu klik tombol <b>Create New Assessment</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Set Durasi dan Tanggal</strong><span>Masukkan nama ujian, durasi (menit), batas tanggal mulai dan selesai, serta passing grade minimum.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Pilih Paket Soal</strong><span>Pilih satu atau beberapa paket soal yang sudah dibuat sebelumnya dari Bank Soal.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Assign Peserta</strong><span>Pilih peserta individu atau assign berdasarkan group/unit kerja, lalu klik <b>Save</b> untuk mempublish jadwal assessment.</span></div></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel 9: Monitoring -->
+            <div class="guide-list-item accordion-item">
+                <h2 class="accordion-header" id="admHeading6">
+                    <button class="accordion-button collapsed guide-list-btn btn-admin" type="button" data-bs-toggle="collapse" data-bs-target="#admCollapse6">
+                        Monitoring Ujian Berjalan
+                    </button>
+                </h2>
+                <div id="admCollapse6" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
+                    <div class="accordion-body guide-list-body">
+                        <ul class="guide-steps">
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Assessment Monitoring</strong><span>Pilih <b>Admin Panel → Assessment Monitoring</b> untuk melihat semua ujian yang sedang berlangsung.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Real-time Monitoring</strong><span>Pantau progres user secara realtime: status login, waktu tersisa, jumlah soal terjawab, dan persentase penyelesaian.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Force-Close User</strong><span>Jika ada kendala teknis (browser freeze, dll), Anda dapat melakukan <i>Force-Close</i> untuk mengakhiri sesi user. Sistem akan otomatis submit skor sesuai progres yang sudah dicapai.</span></div></li>
+                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>View Progress User</strong><span>Klik nama user untuk melihat detail progress: jawaban per soal, waktu pengerjaan, dan status penyelesaian.</span></div></li>
                         </ul>
                     </div>
                 </div>
