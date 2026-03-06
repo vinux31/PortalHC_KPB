@@ -1009,7 +1009,7 @@ mark.search-highlight {
 
     /* Print footer */
     body::after {
-        content: "HC Portal User Guide - Printed on " attr(data-print-date);
+        content: "Panduan HC Portal - Dicetak pada " attr(data-print-date);
         display: block;
         position: fixed;
         bottom: 0;
@@ -1025,7 +1025,7 @@ mark.search-highlight {
     /* Add page numbers and title */
     @page {
         @bottom-center {
-            content: "Halaman " counter(page) " | HC Portal User Guide";
+            content: "Halaman " counter(page) " | Panduan HC Portal";
             font-size: 10pt;
             color: #666;
         }
