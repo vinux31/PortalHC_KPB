@@ -11,84 +11,56 @@ namespace HcPortal.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropCheckConstraint(
-                name: "CK_AssessmentSession_DurationMinutes",
-                table: "AssessmentSessions");
+            migrationBuilder.Sql(@"
+                IF EXISTS (SELECT 1 FROM sys.check_constraints WHERE name = 'CK_AssessmentSession_DurationMinutes')
+                    ALTER TABLE [AssessmentSessions] DROP CONSTRAINT [CK_AssessmentSession_DurationMinutes];
+            ");
 
-            migrationBuilder.CreateTable(
-                name: "Notifications",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    MessageTemplate = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ActionUrlTemplate = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    Category = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Notifications", x => x.Id);
-                });
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'Notifications')
+                BEGIN
+                    CREATE TABLE [Notifications] (
+                        [Id] int NOT NULL IDENTITY,
+                        [Type] nvarchar(50) NOT NULL,
+                        [Title] nvarchar(200) NOT NULL,
+                        [MessageTemplate] nvarchar(max) NOT NULL,
+                        [ActionUrlTemplate] nvarchar(500) NULL,
+                        [Category] nvarchar(50) NOT NULL,
+                        [CreatedAt] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+                        CONSTRAINT [PK_Notifications] PRIMARY KEY ([Id])
+                    );
+                    CREATE INDEX [IX_Notifications_Category] ON [Notifications] ([Category]);
+                    CREATE INDEX [IX_Notifications_Type] ON [Notifications] ([Type]);
+                END
+            ");
 
-            migrationBuilder.CreateTable(
-                name: "UserNotifications",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Type = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
-                    Message = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    ActionUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    ReadAt = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DeliveryStatus = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false, defaultValue: "Delivered"),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserNotifications", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserNotifications_Users_UserId",
-                        column: x => x.UserId,
-                        principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            migrationBuilder.Sql(@"
+                IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'UserNotifications')
+                BEGIN
+                    CREATE TABLE [UserNotifications] (
+                        [Id] int NOT NULL IDENTITY,
+                        [UserId] nvarchar(450) NOT NULL,
+                        [Type] nvarchar(50) NOT NULL,
+                        [Title] nvarchar(200) NOT NULL,
+                        [Message] nvarchar(max) NOT NULL,
+                        [ActionUrl] nvarchar(500) NULL,
+                        [IsRead] bit NOT NULL DEFAULT 0,
+                        [ReadAt] datetime2 NULL,
+                        [DeliveryStatus] nvarchar(50) NOT NULL DEFAULT 'Delivered',
+                        [CreatedAt] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+                        CONSTRAINT [PK_UserNotifications] PRIMARY KEY ([Id]),
+                        CONSTRAINT [FK_UserNotifications_Users_UserId] FOREIGN KEY ([UserId]) REFERENCES [Users] ([Id]) ON DELETE CASCADE
+                    );
+                    CREATE INDEX [IX_UserNotifications_CreatedAt] ON [UserNotifications] ([CreatedAt]);
+                    CREATE INDEX [IX_UserNotifications_UserId] ON [UserNotifications] ([UserId]);
+                    CREATE INDEX [IX_UserNotifications_UserId_IsRead] ON [UserNotifications] ([UserId], [IsRead]);
+                END
+            ");
 
             migrationBuilder.AddCheckConstraint(
                 name: "CK_AssessmentSession_DurationMinutes",
                 table: "AssessmentSessions",
                 sql: "[DurationMinutes] >= 0");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Notifications_Category",
-                table: "Notifications",
-                column: "Category");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Notifications_Type",
-                table: "Notifications",
-                column: "Type");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserNotifications_CreatedAt",
-                table: "UserNotifications",
-                column: "CreatedAt");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserNotifications_UserId",
-                table: "UserNotifications",
-                column: "UserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserNotifications_UserId_IsRead",
-                table: "UserNotifications",
-                columns: new[] { "UserId", "IsRead" });
         }
 
         /// <inheritdoc />

@@ -16,10 +16,10 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 
 ### Halaman List Worker
 
-- [ ] **HIST-05**: Halaman list menampilkan worker yang memiliki riwayat Proton (ProtonTrackAssignment)
-- [ ] **HIST-06**: Search by nama/NIP
-- [ ] **HIST-07**: Filter by unit/section
-- [ ] **HIST-08**: Setiap row menampilkan summary: nama, NIP, tahun Proton terakhir, status terakhir
+- [x] **HIST-05**: Halaman list menampilkan worker yang memiliki riwayat Proton (ProtonTrackAssignment)
+- [x] **HIST-06**: Search by nama/NIP
+- [x] **HIST-07**: Filter by unit/section
+- [x] **HIST-08**: Setiap row menampilkan summary: nama, NIP, tahun Proton terakhir, status terakhir
 
 ### Halaman Timeline Detail
 
@@ -60,10 +60,10 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 | HIST-02 | Phase 107 | Complete |
 | HIST-03 | Phase 107 | Complete |
 | HIST-04 | Phase 107 | Complete |
-| HIST-05 | Phase 107 | Pending |
-| HIST-06 | Phase 107 | Pending |
-| HIST-07 | Phase 107 | Pending |
-| HIST-08 | Phase 107 | Pending |
+| HIST-05 | Phase 107 | Complete |
+| HIST-06 | Phase 107 | Complete |
+| HIST-07 | Phase 107 | Complete |
+| HIST-08 | Phase 107 | Complete |
 | HIST-09 | Phase 108 | Pending |
 | HIST-10 | Phase 108 | Pending |
 | HIST-11 | Phase 108 | Pending |
