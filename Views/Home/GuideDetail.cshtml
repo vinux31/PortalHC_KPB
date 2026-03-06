@@ -42,11 +42,11 @@
 <link rel="stylesheet" href="~/css/guide.css" />
 
 <!-- Breadcrumb / Back Navigation -->
-<div class="guide-detail-nav" data-aos="fade-down">
+<nav role="navigation" aria-label="Breadcrumb navigasi" class="guide-detail-nav" data-aos="fade-down">
     <a asp-action="Guide" class="btn btn-sm btn-light guide-back-btn">
-        <i class="bi bi-arrow-left me-1"></i> Kembali ke Pusat Bantuan
+        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali ke Pusat Bantuan
     </a>
-</div>
+</nav>
 
 <!-- Header Detail -->
 <div class="guide-detail-header @($"guide-header-{moduleCategory}")" data-aos="fade-up" data-aos-delay="100">
