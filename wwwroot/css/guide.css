@@ -274,7 +274,7 @@
 
 .guide-card-header-text p {
     font-size: 0.82rem;
-    color: #718096;
+    color: #4a5568;
     margin: 0;
     line-height: 1.4;
 }
@@ -430,7 +430,7 @@
 
 .guide-step-text span {
     font-size: 0.8rem;
-    color: #718096;
+    color: #4a5568;
     line-height: 1.45;
 }
 
@@ -485,7 +485,7 @@
 
 .guide-faq-section>.faq-subtitle {
     font-size: 0.95rem;
-    color: #718096;
+    color: #4a5568;
     margin-bottom: 2rem;
 }
 
@@ -1259,4 +1259,51 @@ mark.search-highlight {
 
 .guide-step-item a:focus {
     text-decoration: underline;
+}
+
+/* ============================================
+   High Contrast Mode Support
+   ============================================ */
+@media (prefers-contrast: high) {
+    /* Force high contrast colors */
+    .guide-hero {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    .guide-module-card {
+        border: 2px solid #000000 !important;
+    }
+
+    .guide-module-card:hover {
+        border: 3px solid #000000 !important;
+    }
+
+    .faq-question {
+        border-left: 3px solid #000000 !important;
+    }
+
+    .guide-step-badge {
+        background: #000000 !important;
+        color: #ffffff !important;
+    }
+
+    /* Ensure all text meets high contrast requirements */
+    .guide-step-text span,
+    .guide-card-header-text p,
+    .guide-faq-section > .faq-subtitle {
+        color: #000000 !important;
+    }
+
+    /* Enhanced focus indicators */
+    :focus-visible {
+        outline: 4px solid #000000 !important;
+        outline-offset: 3px !important;
+    }
+
+    .skip-link {
+        background: #000000 !important;
+        color: #ffffff !important;
+        border: 2px solid #ffffff !important;
+    }
 }
