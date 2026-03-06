@@ -20,6 +20,24 @@
 }
 
 /* ============================================
+   Breadcrumb
+   ============================================ */
+.guide-breadcrumb .breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin-bottom: 1.5rem;
+}
+
+.guide-breadcrumb .breadcrumb-item a {
+    color: #718096;
+    transition: color 0.2s ease;
+}
+
+.guide-breadcrumb .breadcrumb-item a:hover {
+    color: #667eea;
+}
+
+/* ============================================
    Hero Section
    ============================================ */
 .guide-hero {
