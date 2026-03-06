@@ -662,6 +662,16 @@ mark.search-highlight {
     50% {
         box-shadow: 0 6px 20px rgba(247, 151, 30, 0.5);
     }
+    /* Sticky search bar for mobile */
+    .guide-search-wrapper {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: white;
+        padding: 0.5rem 0;
+        margin-bottom: 1.5rem;
+    }
+
 }
 
 @keyframes pulse-glow-pink {
