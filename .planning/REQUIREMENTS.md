@@ -1,142 +1,84 @@
-# Requirements: Portal HC KPB - User Guide
+# Requirements: Portal HC KPB - Histori Proton
 
 **Defined:** 2026-03-06
-**Last Updated:** 2026-03-06 (Updated for Phase 105: User Guide already exists, Phase 105 = improvements & gap completion)
-**Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration and comprehensive user documentation.
+**Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## Implementation Status
+## v3.6 Requirements
 
-**✅ User Guide infrastructure already built** (created prior to GSD Phase 105):
-- HomeController.Guide() and HomeController.GuideDetail(string module) actions
-- Views/Home/Guide.cshtml (hero section, search bar, module cards, FAQ with 32 questions)
-- Views/Home/GuideDetail.cshtml (detailed guides per module with accordion steps)
-- wwwroot/css/guide.css (complete styling system)
-- _Layout.cshtml "Panduan" navbar link (line 65)
-- Role-based access control (Admin/HC visibility)
-- AOS animations integrated
-- Client-side search functionality
+Requirements for Histori Proton milestone. Each maps to roadmap phases.
 
-**Phase 105 Focus:** Improvements, bug fixes, missing content completion, and UX polish
+### Navigation & Access
 
-## v1 Requirements
+- [ ] **HIST-01**: CDP navbar memiliki menu item "Histori Proton"
+- [ ] **HIST-02**: Coachee hanya melihat riwayat diri sendiri (redirect langsung ke timeline)
+- [ ] **HIST-03**: Coach/SrSupervisor/SectionHead melihat list worker se-section
+- [ ] **HIST-04**: HC/Admin melihat semua worker
 
-Requirements for milestone v3.5 User Guide. Each maps to roadmap phases.
+### Halaman List Worker
 
-### Page Structure & Navigation
+- [ ] **HIST-05**: Halaman list menampilkan worker yang memiliki riwayat Proton (ProtonTrackAssignment)
+- [ ] **HIST-06**: Search by nama/NIP
+- [ ] **HIST-07**: Filter by unit/section
+- [ ] **HIST-08**: Setiap row menampilkan summary: nama, NIP, tahun Proton terakhir, status terakhir
 
-- [x] **GUIDE-NAV-01**: User can access Guide page via "Panduan" link in navbar after login ✅ **COMPLETE** (_Layout.cshtml line 65)
-- [x] **GUIDE-NAV-02**: Guide page displays hero section with "Panduan Pengguna" title using gradient styling matching dashboard ✅ **COMPLETE** (Guide.cshtml)
-- [x] **GUIDE-NAV-03**: Guide page displays 4 tab navigation buttons (CMP, CDP, Account, Admin Panel) ✅ **COMPLETE** (Dashboard excluded per user decision)
-- [x] **GUIDE-NAV-04**: User can click tabs to switch between content sections without page refresh ✅ **COMPLETE** (card grid + detail page pattern)
-- [x] **GUIDE-NAV-05**: Admin Panel tab is hidden for non-Admin/HC users ✅ **COMPLETE** (role-based visibility in Guide.cshtml)
+### Halaman Timeline Detail
 
-### Content Organization
-
-- [x] **GUIDE-CONTENT-01**: Each tab displays step-by-step instructions with numbered step cards (Phase 105: Add missing guides)
-- [x] **GUIDE-CONTENT-02**: Step cards include icon, title, and description (Phase 105: Add missing guides)
-- [ ] **GUIDE-CONTENT-03**: Important information displayed in alert boxes (tips/catatan) (Phase 105: Enhance existing)
-- [x] **GUIDE-CONTENT-04**: Content organized using Bootstrap 5 accordion/collapse for sub-sections ✅ **COMPLETE** (GuideDetail.cshtml)
-- [x] **GUIDE-CONTENT-05**: FAQ section displays at bottom of page with accordion behavior ✅ **COMPLETE** (Guide.cshtml, 32 FAQs)
-- [x] **GUIDE-CONTENT-06**: FAQ includes common questions: login, password reset, CMP vs CDP, assessments, evidence upload, approval flow, coaching progress ✅ **COMPLETE** (32 FAQs covering all topics)
-
-### Role-Based Access
-
-- [x] **GUIDE-ACCESS-01**: Guide page requires authentication (non-logged users redirected to login) ✅ **COMPLETE** (HomeController [Authorize])
-- [x] **GUIDE-ACCESS-02**: Role indicator badge displays user's current role at top of page ✅ **COMPLETE** (Guide.cshtml line 22)
-- [x] **GUIDE-ACCESS-03**: CMP tab content available to all authenticated users ✅ **COMPLETE** (CMP guide in GuideDetail.cshtml)
-- [x] **GUIDE-ACCESS-04**: CDP tab content available to all authenticated users ✅ **COMPLETE** (CDP guide in GuideDetail.cshtml)
-- [x] **GUIDE-ACCESS-05**: Account tab content available to all authenticated users ✅ **COMPLETE** (Account guide in GuideDetail.cshtml)
-- [x] **GUIDE-ACCESS-06**: Data tab content available only to Admin and HC users ✅ **COMPLETE** (role-based visibility in GuideDetail.cshtml)
-- [x] **GUIDE-ACCESS-07**: Admin Panel tab content visible only to Admin and HC users ✅ **COMPLETE** (role-based visibility in GuideDetail.cshtml)
+- [ ] **HIST-09**: Vertical timeline dengan node per Proton year
+- [ ] **HIST-10**: Setiap node menampilkan: Tahun Proton (1/2/3), Unit saat itu
+- [ ] **HIST-11**: Setiap node menampilkan: Nama Coach
+- [ ] **HIST-12**: Setiap node menampilkan: Status (Lulus / Dalam Proses / Belum Mulai)
+- [ ] **HIST-13**: Setiap node menampilkan: Competency Level yang diperoleh (jika lulus)
+- [ ] **HIST-14**: Setiap node menampilkan: Tanggal mulai (assignment) & tanggal selesai (completion)
+- [ ] **HIST-15**: Timeline diurutkan kronologis (Tahun 1 -> 2 -> 3)
 
 ### Styling & UX
 
-- [x] **GUIDE-STYLE-01**: Guide page uses CSS variables matching home.css (--gradient-primary, --shadow-*) ✅ **COMPLETE** (guide.css)
-- [x] **GUIDE-STYLE-02**: Page uses Inter font family ✅ **COMPLETE** (guide.css)
-- [x] **GUIDE-STYLE-03**: Cards use glassmorphism effect matching existing design system ✅ **COMPLETE** (guide.css)
-- [x] **GUIDE-STYLE-04**: Page content animates using AOS library ✅ **COMPLETE** (AOS integrated)
-- [x] **GUIDE-STYLE-05**: Step numbers display with gradient badges ✅ **COMPLETE** (guide.css)
-- [x] **GUIDE-STYLE-06**: Tab navigation styling matches existing design patterns (Phase 105: fix CSS bugs)
-- [x] **GUIDE-STYLE-07**: Page displays correctly on mobile devices (responsive breakpoints) ✅ **COMPLETE** (guide.css responsive)
-- [x] **GUIDE-STYLE-08**: All content is in Indonesian language ✅ **COMPLETE** (all content Indonesian)
+- [ ] **HIST-16**: Desain konsisten dengan design system portal (Bootstrap 5, CSS variables)
+- [ ] **HIST-17**: Responsive mobile design
 
-## v2 Requirements
+## Future Requirements
 
-Deferred to future release. Tracked but not in current roadmap.
+### Enhanced History
 
-### Interactive Features
-
-- **GUIDE-INTER-01**: Video tutorials for each module
-- **GUIDE-INTER-02**: Interactive walkthrough tours
-- **GUIDE-INTER-03**: Search functionality to find specific topics
-- **GUIDE-INTER-04**: Screenshots with annotations
-- **GUIDE-INTER-05**: Context-sensitive help from each page
-
-### Advanced Content
-
-- **GUIDE-ADV-01**: Admin/HC-specific detailed guides
-- **GUIDE-ADV-02**: Printable PDF versions of each guide
-- **GUIDE-ADV-03**: Troubleshooting guides for common issues
-- **GUIDE-ADV-04**: Best practices and tips per role
+- **HIST-F01**: Expandable deliverable detail per tahun
+- **HIST-F02**: Export riwayat ke PDF
+- **HIST-F03**: Print-friendly view
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
-
 | Feature | Reason |
 |---------|--------|
-| Video tutorials | High production effort, defer to v2+ |
-| Interactive walkthrough tours | Complex implementation, defer to v2+ |
-| Dashboard/Home guide | User explicitly excluded: "dashboard home tidak perlu, hapus bagian ini" |
-| Screenshots | Maintenance burden, text instructions sufficient for v3.5 |
-| Feedback buttons | User explicitly excluded: "feedback tidak perlu" |
-| Video placeholders | User explicitly excluded: "video placeholder hapus" |
-| Progress indicators | User explicitly excluded: "progress indicator hapus" |
-| Multi-language support | Indonesian only (matches portal language) |
-| Anonymous access | Portal requires login for all features |
-| Content management system | Static content sufficient, no admin UI needed |
+| Deliverable drill-down per tahun | Deferred to future -- summary only for v3.6 |
+| Edit/modify history data | History is read-only, sourced from existing records |
+| Coaching session log display | Too much detail for timeline view |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GUIDE-NAV-01 | ✅ Complete | Built prior to Phase 105 |
-| GUIDE-NAV-02 | ✅ Complete | Built prior to Phase 105 |
-| GUIDE-NAV-03 | ✅ Complete | Built prior to Phase 105 (4 tabs, Dashboard excluded) |
-| GUIDE-NAV-04 | ✅ Complete | Built prior to Phase 105 |
-| GUIDE-NAV-05 | ✅ Complete | Built prior to Phase 105 |
-| GUIDE-CONTENT-01 | Phase 105 | Pending (add missing guides) |
-| GUIDE-CONTENT-02 | Phase 105 | Pending (add missing guides) |
-| GUIDE-CONTENT-03 | Phase 105 | Pending (enhance existing) |
-| GUIDE-CONTENT-04 | ✅ Complete | Built prior to Phase 105 |
-| GUIDE-CONTENT-05 | ✅ Complete | Built prior to Phase 105 (32 FAQs) |
-| GUIDE-CONTENT-06 | ✅ Complete | Built prior to Phase 105 (32 FAQs) |
-| GUIDE-ACCESS-01 | ✅ Complete | Built prior to Phase 105 |
-| GUIDE-ACCESS-02 | ✅ Complete | Built prior to Phase 105 |
-| GUIDE-ACCESS-03 | ✅ Complete | Built prior to Phase 105 (CMP guide) |
-| GUIDE-ACCESS-04 | ✅ Complete | Built prior to Phase 105 (CDP guide) |
-| GUIDE-ACCESS-05 | ✅ Complete | Built prior to Phase 105 (Account guide) |
-| GUIDE-ACCESS-06 | ✅ Complete | Built prior to Phase 105 (Data guide, Admin/HC only) |
-| GUIDE-ACCESS-07 | ✅ Complete | Built prior to Phase 105 (Admin Panel guide, Admin/HC only) |
-| GUIDE-STYLE-01 | ✅ Complete | Built prior to Phase 105 (guide.css with variables) |
-| GUIDE-STYLE-02 | ✅ Complete | Built prior to Phase 105 (Inter font) |
-| GUIDE-STYLE-03 | ✅ Complete | Built prior to Phase 105 (glassmorphism) |
-| GUIDE-STYLE-04 | ✅ Complete | Built prior to Phase 105 (AOS) |
-| GUIDE-STYLE-05 | ✅ Complete | Built prior to Phase 105 (gradient badges) |
-| GUIDE-STYLE-06 | Phase 105 | Pending (fix CSS bugs) |
-| GUIDE-STYLE-07 | ✅ Complete | Built prior to Phase 105 (responsive CSS) |
-| GUIDE-STYLE-08 | ✅ Complete | Built prior to Phase 105 (Indonesian content) |
+| HIST-01 | Phase 107 | Pending |
+| HIST-02 | Phase 107 | Pending |
+| HIST-03 | Phase 107 | Pending |
+| HIST-04 | Phase 107 | Pending |
+| HIST-05 | Phase 107 | Pending |
+| HIST-06 | Phase 107 | Pending |
+| HIST-07 | Phase 107 | Pending |
+| HIST-08 | Phase 107 | Pending |
+| HIST-09 | Phase 107 | Pending |
+| HIST-10 | Phase 107 | Pending |
+| HIST-11 | Phase 107 | Pending |
+| HIST-12 | Phase 107 | Pending |
+| HIST-13 | Phase 107 | Pending |
+| HIST-14 | Phase 107 | Pending |
+| HIST-15 | Phase 107 | Pending |
+| HIST-16 | Phase 107 | Pending |
+| HIST-17 | Phase 107 | Pending |
 
 **Coverage:**
-- v1 requirements: 24 total
-- Already complete: 21 ✅
-- Phase 105 improvements: 3
-- Unmapped: 0 ✓
-
-**Phase 105 Focus:** Complete remaining gaps (3 requirements) + bug fixes + UX polish
+- v3.6 requirements: 17 total
+- Mapped to phases: 17
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-06*
-*Last updated: 2026-03-06 (Updated: User Guide infrastructure exists, Phase 105 = improvements)*
+*Last updated: 2026-03-06 after initial definition*
