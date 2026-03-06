@@ -207,6 +207,7 @@
     box-shadow: var(--shadow-sm);
     overflow: hidden;
     contain: layout style;
+    cursor: pointer;
     transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
                 border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -234,6 +235,11 @@
     cursor: pointer;
     user-select: none;
     position: relative;
+    transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.guide-card-header:active {
+    background-color: rgba(102, 126, 234, 0.05);
 }
 
 .guide-card-header-icon {
@@ -361,6 +367,11 @@
     padding: 0.75rem 0;
     border-bottom: 1px solid #f7f8fa;
     transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.guide-step-item:active {
+    background-color: rgba(102, 126, 234, 0.05);
 }
 
 .guide-step-item:last-child {
@@ -1264,6 +1275,12 @@ mark.search-highlight {
     top: 0;
     outline: 2px solid white;
     outline-offset: 2px;
+}
+
+.skip-link:focus-visible {
+    top: 0;
+    outline: 3px solid white;
+    outline-offset: 3px;
 }
 
 .skip-link:hover {
