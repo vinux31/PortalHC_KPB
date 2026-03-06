@@ -77,6 +77,36 @@ public class HomeController : Controller
         return View(viewModel);
     }
 
+    public async Task<IActionResult> Guide()
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+        var userRoles = await _userManager.GetRolesAsync(user);
+        ViewBag.UserRole = userRoles.FirstOrDefault() ?? "User";
+        return View();
+    }
+
+    public async Task<IActionResult> GuideDetail(string module)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Challenge();
+        var userRoles = await _userManager.GetRolesAsync(user);
+        var userRole = userRoles.FirstOrDefault() ?? "User";
+        
+        // Validate module & role access
+        var adminModules = new[] { "data", "admin" };
+        if (adminModules.Contains(module) && userRole != "Admin" && userRole != "HC")
+            return RedirectToAction("Guide");
+        
+        var validModules = new[] { "cmp", "cdp", "account", "data", "admin" };
+        if (!validModules.Contains(module))
+            return RedirectToAction("Guide");
+        
+        ViewBag.UserRole = userRole;
+        ViewBag.Module = module;
+        return View();
+    }
+
     private string GetTimeBasedGreeting()
     {
         var hour = DateTime.Now.Hour;
