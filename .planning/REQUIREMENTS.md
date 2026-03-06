@@ -24,12 +24,12 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 ### Halaman Timeline Detail
 
 - [ ] **HIST-09**: Vertical timeline dengan node per Proton year
-- [ ] **HIST-10**: Setiap node menampilkan: Tahun Proton (1/2/3), Unit saat itu
-- [ ] **HIST-11**: Setiap node menampilkan: Nama Coach
-- [ ] **HIST-12**: Setiap node menampilkan: Status (Lulus / Dalam Proses / Belum Mulai)
-- [ ] **HIST-13**: Setiap node menampilkan: Competency Level yang diperoleh (jika lulus)
-- [ ] **HIST-14**: Setiap node menampilkan: Tanggal mulai (assignment) & tanggal selesai (completion)
-- [ ] **HIST-15**: Timeline diurutkan kronologis (Tahun 1 -> 2 -> 3)
+- [x] **HIST-10**: Setiap node menampilkan: Tahun Proton (1/2/3), Unit saat itu
+- [x] **HIST-11**: Setiap node menampilkan: Nama Coach
+- [x] **HIST-12**: Setiap node menampilkan: Status (Lulus / Dalam Proses / Belum Mulai)
+- [x] **HIST-13**: Setiap node menampilkan: Competency Level yang diperoleh (jika lulus)
+- [x] **HIST-14**: Setiap node menampilkan: Tanggal mulai (assignment) & tanggal selesai (completion)
+- [x] **HIST-15**: Timeline diurutkan kronologis (Tahun 1 -> 2 -> 3)
 
 ### Styling & UX
 
@@ -65,12 +65,12 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 | HIST-07 | Phase 107 | Complete |
 | HIST-08 | Phase 107 | Complete |
 | HIST-09 | Phase 108 | Pending |
-| HIST-10 | Phase 108 | Pending |
-| HIST-11 | Phase 108 | Pending |
-| HIST-12 | Phase 108 | Pending |
-| HIST-13 | Phase 108 | Pending |
-| HIST-14 | Phase 108 | Pending |
-| HIST-15 | Phase 108 | Pending |
+| HIST-10 | Phase 108 | Complete |
+| HIST-11 | Phase 108 | Complete |
+| HIST-12 | Phase 108 | Complete |
+| HIST-13 | Phase 108 | Complete |
+| HIST-14 | Phase 108 | Complete |
+| HIST-15 | Phase 108 | Complete |
 | HIST-16 | Phase 108 | Pending |
 | HIST-17 | Phase 108 | Pending |
 

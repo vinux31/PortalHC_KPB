@@ -28,7 +28,7 @@ Plans:
 
 **Requirements:** HIST-09 through HIST-17
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 108-01-PLAN.md — Backend: HistoriProtonDetailViewModel + controller data query

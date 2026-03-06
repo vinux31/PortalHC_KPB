@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.6
 milestone_name: Histori Proton
 status: planning
-last_updated: "2026-03-06T10:50:56.522Z"
+last_updated: "2026-03-06T11:43:31.064Z"
 last_activity: 2026-03-06 — v3.0 milestone archived
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 100
 ---
 
@@ -66,6 +66,7 @@ See: .planning/PROJECT.md (updated 2026-03-06)
 for v3.6.
 - [Phase 107]: HistoriProton role-scoping clones CoachingProton RoleLevel branching
 - [Phase 107]: Added Section property to HistoriProtonWorkerRow for filter support
+- [Phase 108]: Single coach per worker from CoachCoacheeMapping (most recent active)
 
 ### Blockers/Concerns
 
