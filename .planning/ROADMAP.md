@@ -887,14 +887,14 @@ Plans:
 | 102. Coaching Notification Triggers | 0/3 | Not started | - |
 | 103. Notification Testing & Polish | 0/3 | Not started | - |
 | 104. CMP Records Team View | 4/4 | Complete | 2026-03-06 |
-| 105. User Guide Structure & Content | 2/6 | In Progress|  |
+| 105. User Guide Structure & Content | 3/6 | In Progress|  |
 | 106. User Guide Styling & Polish | 0/4 | Not started | - |
 
 ### Phase 104: CMP Records Team View
 **Goal:** Close UAT gaps - fix duplicate UI elements, broken filters, and missing back button
 **Requirements**: N/A (gap closure from UAT)
 **Depends on:** Phase 103
-**Plans:** 2/6 plans executed
+**Plans:** 3/6 plans executed
 
 ## Historical Progress
 
