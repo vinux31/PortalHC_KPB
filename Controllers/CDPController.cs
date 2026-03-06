@@ -391,7 +391,7 @@ namespace HcPortal.Controllers
                     Approved = progresses.Count(p => p.Status == "Approved"),
                     Submitted = progresses.Count(p => p.Status == "Submitted"),
                     Rejected = progresses.Count(p => p.Status == "Rejected"),
-                    Active = progresses.Count(p => p.Status == "Active"),
+                    Active = progresses.Count(p => p.Status == "Pending"),
                     HasFinalAssessment = finalAssessment != null,
                     CompetencyLevelGranted = finalAssessment?.CompetencyLevelGranted
                 });
@@ -425,12 +425,12 @@ namespace HcPortal.Controllers
             }
 
             // Doughnut chart: status distribution
-            var statusLabels = new List<string> { "Approved", "Submitted", "Active", "Rejected" };
+            var statusLabels = new List<string> { "Approved", "Submitted", "Pending", "Rejected" };
             var statusData = new List<int>
             {
                 allProgresses.Count(p => p.Status == "Approved"),
                 allProgresses.Count(p => p.Status == "Submitted"),
-                allProgresses.Count(p => p.Status == "Active"),
+                allProgresses.Count(p => p.Status == "Pending"),
                 allProgresses.Count(p => p.Status == "Rejected")
             };
 
@@ -744,24 +744,35 @@ namespace HcPortal.Controllers
             bool isCoachee = progress.CoacheeId == user.Id;
             bool hasFullAccess = UserRoles.HasFullAccess(user.RoleLevel); // Level 1-3: Admin, HC, Direktur, VP, Manager, SectionHead
             bool isSectionScoped = UserRoles.HasSectionAccess(user.RoleLevel); // Level 4: SrSupervisor
-            bool isCoachScoped = UserRoles.IsCoachingRole(user.RoleLevel); // Level 5: Coach, Supervisor
-            bool isHC = userRole == UserRoles.HC;
-            bool isAdmin = userRole == UserRoles.Admin;
+            bool isCoach = user.RoleLevel == 5; // Level 5 only: Coach, Supervisor
 
-            // Full access roles (Admin, HC, management level 3) bypass section check
-            if (!isCoachee && !hasFullAccess && (isSectionScoped || isCoachScoped))
+            if (isCoachee || hasFullAccess)
             {
+                // Own data or full-access role — allow
+            }
+            else if (isSectionScoped)
+            {
+                // SrSupervisor: section check
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
                     .Select(u => new { u.Section })
                     .FirstOrDefaultAsync();
                 if (coachee == null || coachee.Section != user.Section)
-                {
                     return Forbid();
-                }
             }
-            else if (!isCoachee && !hasFullAccess && !isSectionScoped && !isCoachScoped)
+            else if (isCoach)
             {
+                // Coach: section check (coach-coachee are always same section)
+                var coachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.Section })
+                    .FirstOrDefaultAsync();
+                if (coachee == null || coachee.Section != user.Section)
+                    return Forbid();
+            }
+            else
+            {
+                // Coachee accessing other coachee, or unknown role — deny
                 return Forbid();
             }
 
@@ -783,6 +794,7 @@ namespace HcPortal.Controllers
             bool canUpload = (progress.Status == "Pending" || progress.Status == "Rejected") && userRole == UserRoles.Coach;
 
             // Phase 6: approval context
+            bool isHC = userRole == UserRoles.HC;
             bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
                                   userRole == UserRoles.SectionHead;
             bool canApprove = isAtasanAccess && progress.Status == "Submitted";
@@ -1187,22 +1199,24 @@ namespace HcPortal.Controllers
             bool isCoachee = progress.CoacheeId == user.Id;
             bool hasFullAccess = UserRoles.HasFullAccess(user.RoleLevel); // Level 1-3
             bool isSectionScoped = UserRoles.HasSectionAccess(user.RoleLevel); // Level 4
-            bool isCoachScoped = UserRoles.IsCoachingRole(user.RoleLevel); // Level 5
+            bool isCoach = user.RoleLevel == 5; // Level 5 only
 
-            // Full access roles bypass section check
-            if (!isCoachee && !hasFullAccess && (isSectionScoped || isCoachScoped))
+            if (isCoachee || hasFullAccess)
+            {
+                // Own data or full-access role — allow
+            }
+            else if (isSectionScoped || isCoach)
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
                     .Select(u => new { u.Section })
                     .FirstOrDefaultAsync();
                 if (coachee == null || coachee.Section != user.Section)
-                {
                     return Forbid();
-                }
             }
-            else if (!isCoachee && !hasFullAccess && !isSectionScoped && !isCoachScoped)
+            else
             {
+                // Coachee accessing other coachee, or unknown role — deny
                 return Forbid();
             }
 

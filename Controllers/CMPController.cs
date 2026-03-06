@@ -472,6 +472,27 @@ namespace HcPortal.Controllers
         // Phase 104: Worker Detail page showing unified assessment + training history
         public async Task<IActionResult> RecordsWorkerDetail(string workerId, string? section, string? unit, string? category, string? status, string? search)
         {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
+
+            // Own records: always allowed
+            if (workerId != user.Id)
+            {
+                // Level 5-6 (Coach, Coachee): cannot view other workers
+                if (roleLevel >= 5) return Forbid();
+                // Level 4 (SrSupervisor): section-scoped
+                if (roleLevel == 4)
+                {
+                    var targetUser = await _context.Users.FindAsync(workerId);
+                    if (targetUser == null || targetUser.Section != user.Section)
+                        return Forbid();
+                }
+                // Level 1-3: full access
+            }
+
             var worker = await _userManager.FindByIdAsync(workerId);
             if (worker == null)
             {
@@ -1064,11 +1085,9 @@ namespace HcPortal.Controllers
                         ShuffledQuestionIds = JsonSerializer.Serialize(shuffledIds),
                         ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optionShuffleDict)
                     };
-                    _context.UserPackageAssignments.Add(assignment);
-                    await _context.SaveChangesAsync();
-
                     // Record question count for stale-question detection on resume (RESUME-03 safety net)
                     assignment.SavedQuestionCount = shuffledIds.Count;
+                    _context.UserPackageAssignments.Add(assignment);
                     await _context.SaveChangesAsync();
                 }
 
@@ -1571,6 +1590,11 @@ namespace HcPortal.Controllers
                 int maxScore = shuffledIds.Sum(qId =>
                     questionLookupById.TryGetValue(qId, out var qq) ? qq.ScoreValue : 0);
 
+                // Batch-load all existing responses to avoid N+1 queries in the grading loop
+                var existingResponses = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == id)
+                    .ToDictionaryAsync(r => r.PackageQuestionId);
+
                 foreach (var qId in shuffledIds)
                 {
                     if (!questionLookupById.TryGetValue(qId, out var q)) continue;
@@ -1585,9 +1609,7 @@ namespace HcPortal.Controllers
 
                     // Persist answer for package-based answer review (upsert: SaveAnswer may have already
                     // written a record incrementally; update it rather than inserting a duplicate)
-                    var existingResponse = await _context.PackageUserResponses
-                        .FirstOrDefaultAsync(r => r.AssessmentSessionId == id && r.PackageQuestionId == q.Id);
-                    if (existingResponse != null)
+                    if (existingResponses.TryGetValue(q.Id, out var existingResponse))
                     {
                         existingResponse.PackageOptionId = selectedOptId;
                         existingResponse.SubmittedAt = DateTime.UtcNow;
