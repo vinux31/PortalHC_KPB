@@ -740,14 +740,16 @@ namespace HcPortal.Controllers
 
             if (progress == null) return NotFound();
 
-            // Access check: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC OR Admin
+            // Access check: coachee themselves OR coach/supervisor OR management OR HC OR Admin
             bool isCoachee = progress.CoacheeId == user.Id;
-            bool isSupervisorOrCoach = user.RoleLevel >= 3 && user.RoleLevel <= 5;
+            bool hasFullAccess = UserRoles.HasFullAccess(user.RoleLevel); // Level 1-3: Admin, HC, Direktur, VP, Manager, SectionHead
+            bool isSectionScoped = UserRoles.HasSectionAccess(user.RoleLevel); // Level 4: SrSupervisor
+            bool isCoachScoped = UserRoles.IsCoachingRole(user.RoleLevel); // Level 5: Coach, Supervisor
             bool isHC = userRole == UserRoles.HC;
             bool isAdmin = userRole == UserRoles.Admin;
 
-            // Admin and HC have full access — no section check required
-            if (!isCoachee && !isHC && !isAdmin && isSupervisorOrCoach)
+            // Full access roles (Admin, HC, management level 3) bypass section check
+            if (!isCoachee && !hasFullAccess && (isSectionScoped || isCoachScoped))
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
@@ -758,7 +760,7 @@ namespace HcPortal.Controllers
                     return Forbid();
                 }
             }
-            else if (!isCoachee && !isHC && !isAdmin && !isSupervisorOrCoach)
+            else if (!isCoachee && !hasFullAccess && !isSectionScoped && !isCoachScoped)
             {
                 return Forbid();
             }
@@ -1179,16 +1181,16 @@ namespace HcPortal.Controllers
                 return NotFound();
             }
 
-            // Access control: coachee themselves OR coach/supervisor (RoleLevel <= 5) OR HC OR Admin
+            // Access control: coachee themselves OR coach/supervisor OR management OR HC OR Admin
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
             bool isCoachee = progress.CoacheeId == user.Id;
-            bool isSupervisorOrCoach = user.RoleLevel >= 3 && user.RoleLevel <= 5;
-            bool isHC = userRole == UserRoles.HC;
-            bool isAdmin = userRole == UserRoles.Admin;
+            bool hasFullAccess = UserRoles.HasFullAccess(user.RoleLevel); // Level 1-3
+            bool isSectionScoped = UserRoles.HasSectionAccess(user.RoleLevel); // Level 4
+            bool isCoachScoped = UserRoles.IsCoachingRole(user.RoleLevel); // Level 5
 
-            // Admin and HC have full access — no section check required
-            if (!isCoachee && !isHC && !isAdmin && isSupervisorOrCoach)
+            // Full access roles bypass section check
+            if (!isCoachee && !hasFullAccess && (isSectionScoped || isCoachScoped))
             {
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
@@ -1199,7 +1201,7 @@ namespace HcPortal.Controllers
                     return Forbid();
                 }
             }
-            else if (!isCoachee && !isHC && !isAdmin && !isSupervisorOrCoach)
+            else if (!isCoachee && !hasFullAccess && !isSectionScoped && !isCoachScoped)
             {
                 return Forbid();
             }
@@ -1989,10 +1991,9 @@ namespace HcPortal.Controllers
             var coacheeUser = await _context.Users.FindAsync(coacheeId);
             if (coacheeUser == null) return NotFound();
 
-            // Scope validation: SrSpv/SectionHead can only export their own section
-            var roles = await _userManager.GetRolesAsync(user);
-            var userRole = roles.FirstOrDefault();
-            if (userRole == "Sr Supervisor" || userRole == "Section Head")
+            // Scope validation: section-scoped roles can only export their own section
+            // Full access roles (Admin, HC, management level 3 incl. SectionHead) bypass
+            if (!UserRoles.HasFullAccess(user.RoleLevel))
             {
                 if (coacheeUser.Section != user.Section)
                     return Forbid();
@@ -2078,10 +2079,9 @@ namespace HcPortal.Controllers
             var coacheeUser = await _context.Users.FindAsync(coacheeId);
             if (coacheeUser == null) return NotFound();
 
-            // Scope validation: SrSpv/SectionHead can only export their own section
-            var roles = await _userManager.GetRolesAsync(user);
-            var userRole = roles.FirstOrDefault();
-            if (userRole == "Sr Supervisor" || userRole == "Section Head")
+            // Scope validation: section-scoped roles can only export their own section
+            // Full access roles (Admin, HC, management level 3 incl. SectionHead) bypass
+            if (!UserRoles.HasFullAccess(user.RoleLevel))
             {
                 if (coacheeUser.Section != user.Section)
                     return Forbid();
@@ -2196,7 +2196,7 @@ namespace HcPortal.Controllers
                 if (coacheeUser == null || coacheeUser.Section != user.Section)
                     return Json(new { error = "unauthorized", data = (object?)null });
             }
-            // Level 1-2 (HC/Admin): allow all
+            // Level 1-3 (Admin, HC, Management/SectionHead): allow all
 
             // Load deliverable progress
             var progresses = await _context.ProtonDeliverableProgresses
