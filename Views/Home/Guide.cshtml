@@ -541,9 +541,13 @@
 
         target.addEventListener('show.bs.collapse', function() {
             trigger.setAttribute('aria-expanded', 'true');
+            // Add fade-in animation to FAQ answer
+            target.classList.add('fade-in');
         });
         target.addEventListener('hide.bs.collapse', function() {
             trigger.setAttribute('aria-expanded', 'false');
+            // Remove fade-in animation class when hiding
+            target.classList.remove('fade-in');
         });
     });
 
@@ -598,6 +602,14 @@
 
         // Show/hide no-results message
         noResults.style.display = (visibleCards === 0 && visibleFaq === 0 && q) ? 'block' : 'none';
+
+        // Trigger shake animation if no results
+        if (q && visibleCards === 0 && visibleFaq === 0) {
+            searchInput.classList.add('shake');
+            setTimeout(function() {
+                searchInput.classList.remove('shake');
+            }, 400);
+        }
 
         // Announce search results via aria-live
         var totalCards = cards.length;
