@@ -6,6 +6,11 @@
 
 <link rel="stylesheet" href="~/css/guide.css" />
 
+<!-- Skip Links for Accessibility -->
+<a href="#guide-search" class="skip-link">Lompat ke pencarian</a>
+<a href="#guide-modules" class="skip-link">Lompat ke modul</a>
+<a href="#guide-faq" class="skip-link">Lompat ke FAQ</a>
+
 <!-- Hero Section -->
 <div class="guide-hero" data-aos="fade-down">
     <div class="guide-hero-content">
@@ -40,7 +45,7 @@
 </nav>
 
 <!-- Search Bar -->
-<div class="guide-search-wrapper" data-aos="fade-up" data-aos-delay="100">
+<div class="guide-search-wrapper" id="guide-search" data-aos="fade-up" data-aos-delay="100">
     <i class="bi bi-search guide-search-icon"></i>
     <input type="text" id="guideSearchInput" class="guide-search-input"
            placeholder="Cari panduan... (contoh: assessment, coaching, IDP, upload)" autocomplete="off" />
@@ -54,7 +59,7 @@
     <h2>Panduan Penggunaan Fitur</h2>
 </div>
 
-<div class="guide-card-grid" id="moduleCardGrid">
+<div class="guide-card-grid" id="guide-modules">
 
     <!-- ===== CARD 1: CMP ===== -->
     <a asp-action="GuideDetail" asp-route-module="cmp" class="guide-module-card card-cmp searchable-card text-decoration-none" data-keywords="cmp competency assessment kkj cpdp mapping sertifikat training records library ujian soal" data-aos="fade-up" data-aos-delay="100">
@@ -129,7 +134,7 @@
 <!-- ==================================================
      SECTION: FAQ — Line Text Style
      ================================================== -->
-<div class="guide-faq-section" data-aos="fade-up">
+<div class="guide-faq-section" id="guide-faq" data-aos="fade-up">
     <div class="guide-section-heading mb-2">
         <div class="guide-section-icon"><i class="bi bi-chat-square-quote-fill"></i></div>
         <h2>Frequently Asked Questions</h2>
@@ -495,6 +500,16 @@
 @section Scripts {
 <script>
 (function () {
+    // ─── Smooth scroll to top when clicking module cards ───
+    document.querySelectorAll('.guide-module-card').forEach(function(card) {
+        card.addEventListener('click', function(e) {
+            // Smooth scroll to top after a short delay for navigation
+            setTimeout(function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }, 100);
+        });
+    });
+
     // ─── Update chevron arrow state for Bootstrap collapse (only for FAQs now) ───
     document.querySelectorAll('.guide-faq-section [data-bs-toggle="collapse"]').forEach(function(trigger) {
         var targetId = trigger.getAttribute('data-bs-target');

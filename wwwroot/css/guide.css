@@ -12,7 +12,7 @@
     --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
     --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
-    --shadow-hover: 0 16px 48px rgba(0, 0, 0, 0.2);
+    --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 * {
@@ -199,6 +199,10 @@
     box-shadow: var(--shadow-hover);
     transform: translateY(-6px);
     border-color: transparent;
+}
+
+.guide-module-card:active {
+    transform: scale(0.98);
 }
 
 /* Card header (clickable trigger) */
@@ -480,18 +484,24 @@
     width: 100%;
     background: transparent;
     border: none;
-    padding: 1rem 0;
+    padding: 1.25rem 0;
+    min-height: 48px;
     text-align: left;
     font-size: 0.95rem;
     font-weight: 600;
     color: #2d3748;
     cursor: pointer;
+    user-select: none;
     gap: 1rem;
-    transition: color 0.2s ease;
+    transition: color 0.2s ease, background 0.2s ease;
 }
 
 .faq-question:hover {
     color: #667eea;
+}
+
+.faq-question:active {
+    background: rgba(102, 126, 234, 0.08);
 }
 
 .faq-question .faq-chevron {
@@ -546,19 +556,138 @@ mark.search-highlight {
    ============================================ */
 @media (max-width: 768px) {
     .guide-hero {
-        padding: 2rem 1.5rem;
+        padding: 1.5rem 1rem;
+        margin-bottom: 1.5rem;
     }
 
     .guide-hero h1 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
     }
 
+    .guide-hero p {
+        font-size: 1rem;
+    }
+
+    .guide-hero-content {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .role-badge {
+        margin-top: 0.5rem;
+    }
+
+    /* Search input mobile enhancements */
+    .guide-search-input {
+        padding: 1rem 1.2rem 1rem 3.2rem;
+        font-size: 16px; /* Prevent iOS auto-zoom */
+    }
+
+    .guide-search-input::placeholder {
+        font-size: 15px;
+    }
+
+    /* Section headings */
+    .guide-section-heading h2 {
+        font-size: 1.2rem;
+    }
+
+    /* Card grid with touch-friendly spacing */
     .guide-card-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0 1rem;
     }
 
+    /* Module card touch target */
+    .guide-module-card {
+        min-height: 120px;
+    }
+
+    /* Card header adjustments */
+    .guide-card-header-text h5 {
+        font-size: 1rem;
+    }
+
+    /* Step items */
     .guide-step-item {
         gap: 0.75rem;
+    }
+
+    .guide-step-text {
+        line-height: 1.5;
+    }
+
+    /* FAQ mobile enhancements */
+    .faq-question {
+        padding: 0.9rem 0;
+    }
+
+    .faq-answer {
+        font-size: 0.95rem;
+        line-height: 1.6;
+        overflow-wrap: break-word;
+    }
+
+    /* Breadcrumb touch targets */
+    .guide-breadcrumb .breadcrumb-item a {
+        padding: 0.5rem;
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* Back button mobile enhancements */
+    .guide-back-btn {
+        width: 100%;
+        text-align: center;
+        margin-bottom: 1rem;
+        padding: 0.75rem 1.5rem;
+        display: block;
+        min-height: 48px;
+    }
+
+    /* Prevent horizontal scroll */
+    body, .container, .container-fluid {
+        overflow-x: hidden;
+    }
+
+    .guide-module-card,
+    .guide-tip,
+    .guide-list-container {
+        max-width: 100%;
+    }
+}
+
+/* Very small phones (< 400px) */
+@media (max-width: 400px) {
+    .guide-hero h1 {
+        font-size: 1.3rem;
+    }
+
+    .guide-card-header {
+        padding: 1rem 0.75rem;
+    }
+
+    .guide-card-header-icon {
+        width: 48px;
+        height: 48px;
+        font-size: 1.4rem;
+    }
+
+    /* Hide breadcrumb text, keep icon only */
+    .guide-breadcrumb .breadcrumb-item:not(:first-child) {
+        display: none;
+    }
+
+    .guide-breadcrumb {
+        justify-content: center;
+    }
+
+    .guide-step-text span {
+        font-size: 0.78rem;
     }
 }
 
@@ -769,3 +898,91 @@ mark.search-highlight {
 .guide-list-btn.btn-account { }
 .guide-list-btn.btn-data { }
 .guide-list-btn.btn-admin { }
+
+/* ============================================
+   Accessibility - Focus Indicators
+   ============================================ */
+
+/* Screen reader only class */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Skip links for keyboard navigation */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    z-index: 10000;
+    text-decoration: none;
+    border-radius: 0 0 4px 0;
+    font-weight: 500;
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 2px solid white;
+    outline-offset: 2px;
+}
+
+.skip-link:hover {
+    background: #5568d3;
+}
+
+/* Enhanced focus indicators for all interactive elements */
+:focus-visible {
+    outline: 3px solid #667eea !important;
+    outline-offset: 2px !important;
+}
+
+/* FAQ question focus */
+.faq-question:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 4px;
+    background: rgba(102, 126, 234, 0.08);
+    transition: background 0.2s ease, outline 0s;
+}
+
+/* Module card focus */
+.guide-module-card:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 4px;
+}
+
+/* Search input focus */
+.guide-search-input:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Back button focus */
+.guide-back-btn:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 3px;
+}
+
+/* Accordion button focus */
+.guide-list-btn:focus-visible {
+    outline: 3px solid #667eea;
+    outline-offset: 2px;
+}
+
+/* Link focus underline for better visibility */
+.guide-breadcrumb .breadcrumb-item a:focus {
+    text-decoration: underline;
+}
+
+.guide-step-item a:focus {
+    text-decoration: underline;
+}
