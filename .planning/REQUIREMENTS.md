@@ -64,15 +64,15 @@ Requirements for Histori Proton milestone. Each maps to roadmap phases.
 | HIST-06 | Phase 107 | Pending |
 | HIST-07 | Phase 107 | Pending |
 | HIST-08 | Phase 107 | Pending |
-| HIST-09 | Phase 107 | Pending |
-| HIST-10 | Phase 107 | Pending |
-| HIST-11 | Phase 107 | Pending |
-| HIST-12 | Phase 107 | Pending |
-| HIST-13 | Phase 107 | Pending |
-| HIST-14 | Phase 107 | Pending |
-| HIST-15 | Phase 107 | Pending |
-| HIST-16 | Phase 107 | Pending |
-| HIST-17 | Phase 107 | Pending |
+| HIST-09 | Phase 108 | Pending |
+| HIST-10 | Phase 108 | Pending |
+| HIST-11 | Phase 108 | Pending |
+| HIST-12 | Phase 108 | Pending |
+| HIST-13 | Phase 108 | Pending |
+| HIST-14 | Phase 108 | Pending |
+| HIST-15 | Phase 108 | Pending |
+| HIST-16 | Phase 108 | Pending |
+| HIST-17 | Phase 108 | Pending |
 
 **Coverage:**
 - v3.6 requirements: 17 total
