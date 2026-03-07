@@ -12,10 +12,10 @@
 
 ### Status History
 
-- [ ] **HIST-01**: Tabel DeliverableStatusHistory menyimpan setiap perubahan status (Created, Submitted, Approved, Rejected, Reviewed, Re-submitted) dengan timestamp dan actor
-- [ ] **HIST-02**: Rejection record menyimpan rejection reason dan tidak terhapus saat coach resubmit evidence baru
-- [ ] **HIST-03**: Setiap approval per-role (SrSpv Approved, SH Approved, HC Reviewed) tercatat sebagai entry terpisah di history
-- [ ] **HIST-04**: Re-submit evidence setelah rejection tercatat sebagai entry "Re-submitted" di history
+- [x] **HIST-01**: Tabel DeliverableStatusHistory menyimpan setiap perubahan status (Created, Submitted, Approved, Rejected, Reviewed, Re-submitted) dengan timestamp dan actor
+- [x] **HIST-02**: Rejection record menyimpan rejection reason dan tidak terhapus saat coach resubmit evidence baru
+- [x] **HIST-03**: Setiap approval per-role (SrSpv Approved, SH Approved, HC Reviewed) tercatat sebagai entry terpisah di history
+- [x] **HIST-04**: Re-submit evidence setelah rejection tercatat sebagai entry "Re-submitted" di history
 
 ### Deliverable Page Restructure
 
@@ -51,10 +51,10 @@
 |-------------|-------|--------|
 | MOD-01 | Phase 116 | Complete |
 | MOD-02 | Phase 116 | Complete |
-| HIST-01 | Phase 117 | Pending |
-| HIST-02 | Phase 117 | Pending |
-| HIST-03 | Phase 117 | Pending |
-| HIST-04 | Phase 117 | Pending |
+| HIST-01 | Phase 117 | Complete |
+| HIST-02 | Phase 117 | Complete |
+| HIST-03 | Phase 117 | Complete |
+| HIST-04 | Phase 117 | Complete |
 | PAGE-01 | Phase 119 | Pending |
 | PAGE-02 | Phase 119 | Pending |
 | PAGE-03 | Phase 119 | Pending |

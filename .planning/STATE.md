@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
 status: planning
-last_updated: "2026-03-07T08:18:38.551Z"
+last_updated: "2026-03-07T11:47:25.318Z"
 last_activity: 2026-03-07 — Completed 116-01 Modal Cleanup
 progress:
   total_phases: 8
-  completed_phases: 4
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 5
+  total_plans: 5
+  completed_plans: 5
 ---
 
 ---
@@ -81,6 +81,8 @@ Progress: [██████████] 100%
 - Phase 119 depends on 117 (needs history data)
 - Phase 120 depends on 116 and 118 (needs clean modal fields + P-Sign component)
 - [Phase 116]: Hand-written migration pattern for data-only changes (no schema drop)
+- [Phase 117]: Detect re-submit by checking Status==Rejected before overwriting
+- [Phase 117]: Cache actor FullName and role at write time for historical accuracy
 
 ### Blockers/Concerns
 
