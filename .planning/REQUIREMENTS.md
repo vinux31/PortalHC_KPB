@@ -1,82 +1,57 @@
-# Requirements: Portal HC KPB
+# Requirements: Portal HC KPB v3.8
 
-**Defined:** 2026-03-06
+**Defined:** 2026-03-07
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.7 Requirements
+## v3.8 Requirements
 
-Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
+### Button Conversion
 
-### Role-Scoped View Content
+- [ ] **BTN-01**: Clickable Pending badge di kolom SrSpv berubah menjadi proper button element yang jelas clickable
+- [ ] **BTN-02**: Clickable Pending badge di kolom SH berubah menjadi proper button element yang jelas clickable
+- [ ] **BTN-03**: Semua status badges (Approved, Rejected, Pending, Reviewed) menampilkan icon yang sesuai
 
-- [x] **ROLE-01**: CMP Records page shows correct data per role (L1-3 all, L4 section-only, L5-6 own only)
-- [x] **ROLE-02**: CMP RecordsTeam page correctly scopes to section for L4 and forbids L5-6
-- [x] **ROLE-03**: CDP CoachingProton page shows correct coachee list per role (L1-3 all, L4 section, L5 mapped, L6 self)
-- [x] **ROLE-04**: CDP PlanIdp page scopes content correctly per role
-- [x] **ROLE-05**: CDP Deliverable page enforces section check for L4 and coach-coachee check for L5
-- [x] **ROLE-07**: CDP HistoriProton page scopes worker list correctly per role
+### Button Consistency
 
-### SectionHead Level 4
+- [ ] **CONS-01**: Evidence column memiliki style yang konsisten antara Submit button dan status badges
+- [ ] **CONS-02**: "Lihat Detail" button di kolom Detail lebih standout dan tidak washed out
+- [ ] **CONS-03**: HC Review button style konsisten antara main table dan Antrian Review panel
+- [ ] **CONS-04**: Export, Reset, dan Kembali buttons memiliki style yang polished dan konsisten
 
-- [ ] **SH-01**: SectionHead at level 4 has same section-scoped access as SrSupervisor across all pages
-- [ ] **SH-02**: Navigation menu items show/hide correctly for SectionHead level 4
-- [ ] **SH-03**: Approval workflow (SrSpv/SH chain) works correctly with SH at level 4
+### Technical Quality
 
-### Filter Consistency
-
-- [x] **FILT-01**: CMP Records filters use OrganizationStructure instead of data-driven queries
-- [x] **FILT-02**: CMP RecordsTeam section/unit filters use OrganizationStructure
-- [x] **FILT-03**: CDP CoachingProton Bagian/Unit filters use OrganizationStructure (verify)
-- [ ] **FILT-04**: Admin ManageWorkers section filter uses OrganizationStructure
-- [ ] **FILT-05**: All unit dropdowns cascade correctly from selected Bagian
-
-### Empty States
-
-- [x] **UX-01**: CMP Records shows "Data belum ada" when filtered results are empty
-- [x] **UX-02**: CMP RecordsTeam shows "Data belum ada" when filtered results are empty
-- [x] **UX-03**: CDP CoachingProton shows "Data belum ada" when filtered results are empty
-- [x] **UX-04**: CDP PlanIdp shows "Data belum ada" when filtered results are empty
-
-## Future Requirements
-
-None deferred for this milestone.
+- [ ] **TECH-01**: Semua JS event handlers tetap berfungsi setelah redesign (btnTinjau, btnSubmitEvidence, btnHcReview, btnHcReviewPanel)
+- [ ] **TECH-02**: Modal triggers (data-bs-toggle, data-bs-target) tetap bekerja untuk approval flow
+- [ ] **TECH-03**: AJAX innerHTML updates di JS menggunakan class/style baru yang konsisten
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Home Dashboard role scoping | Dashboard stats already working, low priority |
-| OrganizationStructure migration to DB | Static dict sufficient for current org size |
-| New role additions | Not in scope for audit milestone |
+| Other CDP pages (PlanIdp, Deliverable, HistoriProton) | Scope limited to CoachingProton only |
+| Backend/controller changes | Pure frontend redesign |
+| New JS libraries or CSS frameworks | Bootstrap 5 is sufficient |
+| Table structure/layout changes | Only button/badge visual changes |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ROLE-01 | Phase 109 | Complete |
-| ROLE-02 | Phase 109 | Complete |
-| ROLE-03 | Phase 110 | Pending |
-| ROLE-04 | Phase 110 | Complete |
-| ROLE-05 | Phase 110 | Complete |
-| ROLE-07 | Phase 110 | Complete |
-| SH-01 | Phase 111 | Pending |
-| SH-02 | Phase 111 | Pending |
-| SH-03 | Phase 111 | Pending |
-| FILT-01 | Phase 109 | Complete |
-| FILT-02 | Phase 109 | Complete |
-| FILT-03 | Phase 110 | Complete |
-| FILT-04 | Phase 111 | Pending |
-| FILT-05 | Phase 111 | Pending |
-| UX-01 | Phase 109 | Complete |
-| UX-02 | Phase 109 | Complete |
-| UX-03 | Phase 110 | Complete |
-| UX-04 | Phase 110 | Complete |
+| BTN-01 | TBD | Pending |
+| BTN-02 | TBD | Pending |
+| BTN-03 | TBD | Pending |
+| CONS-01 | TBD | Pending |
+| CONS-02 | TBD | Pending |
+| CONS-03 | TBD | Pending |
+| CONS-04 | TBD | Pending |
+| TECH-01 | TBD | Pending |
+| TECH-02 | TBD | Pending |
+| TECH-03 | TBD | Pending |
 
 **Coverage:**
-- v3.7 requirements: 18 total
-- Mapped to phases: 18
-- Unmapped: 0
+- v3.8 requirements: 10 total
+- Mapped to phases: 0
+- Unmapped: 10
 
 ---
-*Requirements defined: 2026-03-06*
-*Last updated: 2026-03-06 after roadmap creation*
+*Requirements defined: 2026-03-07*
