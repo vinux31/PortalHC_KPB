@@ -174,6 +174,28 @@
         </div>
     </div>
 
+    @* ====== Delete Kompetensi confirmation modal ====== *@
+    <div class="modal fade" id="kompetensiDeleteModal" tabindex="-1" aria-labelledby="kompetensiDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="kompetensiDeleteModalLabel">Konfirmasi Hapus Kompetensi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Hapus Kompetensi <strong id="kompetensiDeleteName"></strong>?</p>
+                    <p id="kompetensiCascadeInfo" class="small"></p>
+                    <p class="text-danger small">Tindakan ini tidak dapat dibatalkan.</p>
+                    <div class="alert alert-danger d-none" id="kompetensiDeleteError"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-danger" id="btnConfirmKompetensiDelete">Hapus</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @* ====== COACHING GUIDANCE TAB ====== *@
     <div class="tab-pane fade" id="guidanceTabContent" role="tabpanel" aria-labelledby="guidance-tab">
         <div class="card border-0 shadow-sm mb-4">
@@ -433,6 +455,7 @@
                                     } else {
                                         actionBtn = `<button class="btn btn-sm btn-outline-success btn-reactivate-row" title="Aktifkan Kembali" data-id="${kompId}" data-name="${escAttr(dRow.Kompetensi)}"><i class="bi bi-person-check me-1"></i>Aktifkan</button>`;
                                     }
+                                    actionBtn += `<button class="btn btn-sm btn-outline-danger btn-delete-kompetensi ms-1" title="Hapus" data-id="${kompId}" data-name="${escAttr(dRow.Kompetensi)}"><i class="bi bi-trash me-1"></i>Hapus</button>`;
                                 }
                                 html += `<td rowspan="${kompSpan}" class="align-middle text-center">${actionBtn}</td>`;
                             }
@@ -668,6 +691,67 @@
                     alert('Terjadi kesalahan jaringan. Silakan coba lagi.');
                 }
                 return;
+            }
+
+            // ---- Delete Kompetensi (hard delete) ----
+            const deleteBtn = e.target.closest('.btn-delete-kompetensi');
+            if (deleteBtn) {
+                const id = deleteBtn.dataset.id;
+                const name = deleteBtn.dataset.name;
+                const errorDiv = document.getElementById('kompetensiDeleteError');
+                errorDiv.classList.add('d-none');
+                errorDiv.textContent = '';
+                document.getElementById('kompetensiDeleteName').textContent = name;
+                document.getElementById('kompetensiCascadeInfo').textContent = 'Memuat informasi...';
+                document.getElementById('btnConfirmKompetensiDelete').dataset.id = id;
+
+                const modal = new bootstrap.Modal(document.getElementById('kompetensiDeleteModal'));
+                modal.show();
+
+                try {
+                    const resp = await fetch(`/ProtonData/GetKompetensiCascadeInfo?id=${id}`);
+                    const info = await resp.json();
+                    if (info.success) {
+                        document.getElementById('kompetensiCascadeInfo').textContent =
+                            `Ini akan menghapus ${info.subKompetensiCount} Sub Kompetensi, ${info.deliverableCount} Deliverable, ${info.progressCount} Progress Coaching, ${info.sessionCount} Sesi Coaching.`;
+                    } else {
+                        document.getElementById('kompetensiCascadeInfo').textContent = info.message || 'Gagal memuat info.';
+                    }
+                } catch (err) {
+                    document.getElementById('kompetensiCascadeInfo').textContent = 'Gagal memuat informasi cascade.';
+                }
+                return;
+            }
+        });
+
+        // ---- Confirm Kompetensi Delete ----
+        document.getElementById('btnConfirmKompetensiDelete').addEventListener('click', async function () {
+            const id = this.dataset.id;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            const errorDiv = document.getElementById('kompetensiDeleteError');
+            errorDiv.classList.add('d-none');
+            this.disabled = true;
+            this.textContent = 'Menghapus...';
+            try {
+                const resp = await fetch('/ProtonData/DeleteKompetensi', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                    body: JSON.stringify({ KompetensiId: parseInt(id) })
+                });
+                const result = await resp.json();
+                if (result.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('kompetensiDeleteModal')).hide();
+                    setTimeout(() => window.location.reload(), 300);
+                } else {
+                    errorDiv.textContent = result.message || 'Gagal menghapus kompetensi.';
+                    errorDiv.classList.remove('d-none');
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Terjadi kesalahan jaringan. Silakan coba lagi.';
+                errorDiv.classList.remove('d-none');
+            } finally {
+                this.disabled = false;
+                this.textContent = 'Hapus';
             }
         });
 

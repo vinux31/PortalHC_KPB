@@ -33,6 +33,11 @@ namespace HcPortal.Controllers
         public int KompetensiId { get; set; }
     }
 
+    public class KompetensiDeleteRequest
+    {
+        public int KompetensiId { get; set; }
+    }
+
     public class GuidanceDeleteRequest
     {
         public int Id { get; set; }
@@ -826,6 +831,122 @@ namespace HcPortal.Controllers
                 targetId: progress.Id, targetType: "ProtonDeliverableProgress");
 
             return Json(new { success = true });
+        }
+
+        // GET: /ProtonData/GetKompetensiCascadeInfo?id=X
+        [HttpGet]
+        public async Task<IActionResult> GetKompetensiCascadeInfo(int id)
+        {
+            var komp = await _context.ProtonKompetensiList
+                .Include(k => k.SubKompetensiList)
+                    .ThenInclude(s => s.Deliverables)
+                .FirstOrDefaultAsync(k => k.Id == id);
+
+            if (komp == null)
+                return Json(new { success = false, message = "Kompetensi tidak ditemukan." });
+
+            var deliverableIds = komp.SubKompetensiList
+                .SelectMany(s => s.Deliverables)
+                .Select(d => d.Id)
+                .ToList();
+
+            var progressIds = await _context.ProtonDeliverableProgresses
+                .Where(p => deliverableIds.Contains(p.ProtonDeliverableId))
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            var sessionCount = await _context.CoachingSessions
+                .Where(cs => cs.ProtonDeliverableProgressId != null && progressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                .CountAsync();
+
+            return Json(new
+            {
+                success = true,
+                nama = komp.NamaKompetensi,
+                subKompetensiCount = komp.SubKompetensiList.Count,
+                deliverableCount = deliverableIds.Count,
+                progressCount = progressIds.Count,
+                sessionCount
+            });
+        }
+
+        // POST: /ProtonData/DeleteKompetensi — hard delete with full cascade
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteKompetensi([FromBody] KompetensiDeleteRequest req)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var komp = await _context.ProtonKompetensiList
+                .Include(k => k.SubKompetensiList)
+                    .ThenInclude(s => s.Deliverables)
+                .FirstOrDefaultAsync(k => k.Id == req.KompetensiId);
+
+            if (komp == null)
+                return Json(new { success = false, message = "Kompetensi tidak ditemukan." });
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var deliverableIds = komp.SubKompetensiList
+                    .SelectMany(s => s.Deliverables)
+                    .Select(d => d.Id)
+                    .ToList();
+
+                var progressIds = await _context.ProtonDeliverableProgresses
+                    .Where(p => deliverableIds.Contains(p.ProtonDeliverableId))
+                    .Select(p => p.Id)
+                    .ToListAsync();
+
+                // 1. Delete CoachingSessions (no FK constraint, must be explicit; ActionItems cascade automatically)
+                if (progressIds.Any())
+                {
+                    var sessions = await _context.CoachingSessions
+                        .Include(cs => cs.ActionItems)
+                        .Where(cs => cs.ProtonDeliverableProgressId != null && progressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                        .ToListAsync();
+                    _context.CoachingSessions.RemoveRange(sessions);
+                    await _context.SaveChangesAsync();
+                }
+
+                // 2. Delete ProtonDeliverableProgresses
+                if (progressIds.Any())
+                {
+                    var progresses = await _context.ProtonDeliverableProgresses
+                        .Where(p => progressIds.Contains(p.Id))
+                        .ToListAsync();
+                    _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+                    await _context.SaveChangesAsync();
+                }
+
+                // 3. Delete Deliverables
+                var deliverables = komp.SubKompetensiList.SelectMany(s => s.Deliverables).ToList();
+                _context.ProtonDeliverableList.RemoveRange(deliverables);
+                await _context.SaveChangesAsync();
+
+                // 4. Delete SubKompetensi
+                _context.ProtonSubKompetensiList.RemoveRange(komp.SubKompetensiList);
+                await _context.SaveChangesAsync();
+
+                // 5. Delete Kompetensi
+                _context.ProtonKompetensiList.Remove(komp);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                await _auditLog.LogAsync(user.Id, user.FullName ?? user.UserName ?? user.Id, "Delete",
+                    $"Hard-deleted kompetensi '{komp.NamaKompetensi}' (ID {komp.Id}) with all descendants",
+                    targetId: komp.Id, targetType: "ProtonKompetensi");
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to delete Kompetensi {Id}", req.KompetensiId);
+                return Json(new { success = false, message = "Gagal menghapus: " + ex.Message });
+            }
         }
 
         private static string GetContentType(string extension) => extension.ToLowerInvariant() switch
