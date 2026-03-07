@@ -73,6 +73,7 @@
             <div class="card-body">
                 <h6 class="fw-bold text-muted mb-3"><i class="bi bi-funnel me-1"></i>Filter Silabus</h6>
                 <form method="get" action="@Url.Action("Index", "ProtonData")" id="silabusFilterForm">
+                    <input type="hidden" name="tab" value="silabus" />
                     <div class="row g-3 align-items-end">
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Bagian</label>
@@ -295,6 +296,19 @@
     // Organization structure from server
     const orgStructure = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         HcPortal.Models.OrganizationStructure.SectionUnits));
+
+    // ====== Activate tab from query param ======
+    (function() {
+        const params = new URLSearchParams(window.location.search);
+        const tab = params.get('tab');
+        if (tab === 'silabus') {
+            const triggerEl = document.getElementById('silabus-tab');
+            if (triggerEl) new bootstrap.Tab(triggerEl).show();
+        } else if (tab === 'guidance') {
+            const triggerEl = document.getElementById('guidance-tab');
+            if (triggerEl) new bootstrap.Tab(triggerEl).show();
+        }
+    })();
 
     // ====== Status tab ======
     function loadStatusData() {
