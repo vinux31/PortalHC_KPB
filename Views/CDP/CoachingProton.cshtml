@@ -79,8 +79,8 @@
     <form method="get" asp-action="CoachingProton" asp-controller="CDP" id="filterForm"
           class="d-flex flex-wrap gap-2 align-items-center mb-3">
 
-        @* Bagian dropdown — HC/Admin (Level 1-2) and Direktur/VP/Manager (Level 3, non-SH) *@
-        @if (userLevel <= 3 && !isSH)
+        @* Bagian dropdown — HC/Admin (Level 1-2) and Direktur/VP/Manager (Level 3) *@
+        @if (userLevel <= 3)
         {
             <select name="bagian" class="form-select form-select-sm" style="width:auto;min-width:150px"
                     onchange="onBagianChange(this)">
@@ -435,7 +435,7 @@
                                             </td>
                                             @* SrSpv approval column *@
                                             <td class="text-center" id="srspv-@item.Id">
-                                                @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
+                                                @if (isSrSpv && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSrSpv == "Pending")
                                                 {
                                                     <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
                                                           data-bs-toggle="modal" data-bs-target="#tinjaModal"
@@ -458,7 +458,7 @@
                                             </td>
                                             @* SH approval column *@
                                             <td class="text-center" id="sh-@item.Id">
-                                                @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
+                                                @if (isSH && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSectionHead == "Pending")
                                                 {
                                                     <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
                                                           data-bs-toggle="modal" data-bs-target="#tinjaModal"
@@ -551,7 +551,7 @@
                                         </td>
                                         @* SrSpv approval column *@
                                         <td class="text-center" id="srspv-@item.Id">
-                                            @if (isSrSpv && item.Status == "Submitted" && item.ApprovalSrSpv == "Pending")
+                                            @if (isSrSpv && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSrSpv == "Pending")
                                             {
                                                 <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
                                                       data-bs-toggle="modal" data-bs-target="#tinjaModal"
@@ -574,7 +574,7 @@
                                         </td>
                                         @* SH approval column *@
                                         <td class="text-center" id="sh-@item.Id">
-                                            @if (isSH && item.Status == "Submitted" && item.ApprovalSectionHead == "Pending")
+                                            @if (isSH && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSectionHead == "Pending")
                                             {
                                                 <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
                                                       data-bs-toggle="modal" data-bs-target="#tinjaModal"
