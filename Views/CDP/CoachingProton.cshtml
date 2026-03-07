@@ -291,7 +291,7 @@
                 <i class="bi bi-file-earmark-excel"></i> Export Excel
             </a>
             <a href="@Url.Action("ExportProgressPdf", "CDP", new { coacheeId = selectedCoacheeId })"
-               class="btn btn-sm btn-outline-danger">
+               class="btn btn-sm btn-outline-success">
                 <i class="bi bi-file-earmark-pdf"></i> Export PDF
             </a>
         </div>
@@ -426,7 +426,7 @@
                                                 }
                                                 else if (item.EvidenceStatus == "Uploaded")
                                                 {
-                                                    <span class="badge bg-success">Sudah Upload</span>
+                                                    <span class="badge bg-success fw-bold border border-success">Sudah Upload</span>
                                                 }
                                                 else
                                                 {
@@ -437,7 +437,7 @@
                                             <td class="text-center" id="srspv-@item.Id">
                                                 @if (isSrSpv && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSrSpv == "Pending")
                                                 {
-                                                    <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                    <button type="button" class="btn btn-sm btn-outline-warning btnTinjau"
                                                           data-bs-toggle="modal" data-bs-target="#tinjaModal"
                                                           data-progress-id="@item.Id"
                                                           data-deliverable="@item.Deliverable"
@@ -445,7 +445,7 @@
                                                           data-sub-kompetensi="@item.SubKompetensi"
                                                           data-evidence-url="@item.FullEvidencePath"
                                                           data-role="srspv"
-                                                          title="Klik untuk tinjau">Pending</span>
+                                                          title="Klik untuk tinjau">Tinjau</button>
                                                 }
                                                 else if (!string.IsNullOrEmpty(item.SrSpvApproverName))
                                                 {
@@ -460,7 +460,7 @@
                                             <td class="text-center" id="sh-@item.Id">
                                                 @if (isSH && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSectionHead == "Pending")
                                                 {
-                                                    <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                    <button type="button" class="btn btn-sm btn-outline-warning btnTinjau"
                                                           data-bs-toggle="modal" data-bs-target="#tinjaModal"
                                                           data-progress-id="@item.Id"
                                                           data-deliverable="@item.Deliverable"
@@ -468,7 +468,7 @@
                                                           data-sub-kompetensi="@item.SubKompetensi"
                                                           data-evidence-url="@item.FullEvidencePath"
                                                           data-role="sh"
-                                                          title="Klik untuk tinjau">Pending</span>
+                                                          title="Klik untuk tinjau">Tinjau</button>
                                                 }
                                                 else if (!string.IsNullOrEmpty(item.ShApproverName))
                                                 {
@@ -542,7 +542,7 @@
                                             }
                                             else if (item.EvidenceStatus == "Uploaded")
                                             {
-                                                <span class="badge bg-success">Sudah Upload</span>
+                                                <span class="badge bg-success fw-bold border border-success">Sudah Upload</span>
                                             }
                                             else
                                             {
@@ -553,7 +553,7 @@
                                         <td class="text-center" id="srspv-@item.Id">
                                             @if (isSrSpv && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSrSpv == "Pending")
                                             {
-                                                <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                <button type="button" class="btn btn-sm btn-outline-warning btnTinjau"
                                                       data-bs-toggle="modal" data-bs-target="#tinjaModal"
                                                       data-progress-id="@item.Id"
                                                       data-deliverable="@item.Deliverable"
@@ -561,7 +561,7 @@
                                                       data-sub-kompetensi="@item.SubKompetensi"
                                                       data-evidence-url="@item.FullEvidencePath"
                                                       data-role="srspv"
-                                                      title="Klik untuk tinjau">Pending</span>
+                                                      title="Klik untuk tinjau">Tinjau</button>
                                             }
                                             else if (!string.IsNullOrEmpty(item.SrSpvApproverName))
                                             {
@@ -576,7 +576,7 @@
                                         <td class="text-center" id="sh-@item.Id">
                                             @if (isSH && (item.Status == "Submitted" || item.Status == "Approved") && item.ApprovalSectionHead == "Pending")
                                             {
-                                                <span class="badge bg-warning text-dark btnTinjau" role="button" style="cursor:pointer"
+                                                <button type="button" class="btn btn-sm btn-outline-warning btnTinjau"
                                                       data-bs-toggle="modal" data-bs-target="#tinjaModal"
                                                       data-progress-id="@item.Id"
                                                       data-deliverable="@item.Deliverable"
@@ -584,7 +584,7 @@
                                                       data-sub-kompetensi="@item.SubKompetensi"
                                                       data-evidence-url="@item.FullEvidencePath"
                                                       data-role="sh"
-                                                      title="Klik untuk tinjau">Pending</span>
+                                                      title="Klik untuk tinjau">Tinjau</button>
                                             }
                                             else if (!string.IsNullOrEmpty(item.ShApproverName))
                                             {
@@ -922,9 +922,9 @@
     {
         return status switch
         {
-            "Approved" => "<span class=\"badge bg-success\">Approved</span>",
-            "Rejected" => "<span class=\"badge bg-danger\">Rejected</span>",
-            "Reviewed" => "<span class=\"badge bg-success\">Reviewed</span>",
+            "Approved" => "<span class=\"badge bg-success fw-bold border border-success\">Approved</span>",
+            "Rejected" => "<span class=\"badge bg-danger fw-bold border border-danger\">Rejected</span>",
+            "Reviewed" => "<span class=\"badge bg-success fw-bold border border-success\">Reviewed</span>",
             "Pending"  => "<span class=\"badge bg-secondary\">Pending</span>",
             _ => "<span class=\"badge bg-light text-dark\">-</span>",
         };
@@ -935,9 +935,9 @@
         var tooltipText = $"{approverName} — {approvedAt}";
         return status switch
         {
-            "Approved" => $"<span class=\"badge bg-success\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Approved</span>",
-            "Rejected" => $"<span class=\"badge bg-danger\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Rejected</span>",
-            "Reviewed" => $"<span class=\"badge bg-success\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Reviewed</span>",
+            "Approved" => $"<span class=\"badge bg-success fw-bold border border-success\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Approved</span>",
+            "Rejected" => $"<span class=\"badge bg-danger fw-bold border border-danger\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Rejected</span>",
+            "Reviewed" => $"<span class=\"badge bg-success fw-bold border border-success\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Reviewed</span>",
             "Pending"  => "<span class=\"badge bg-secondary\">Pending</span>",
             _ => "<span class=\"badge bg-light text-dark\">-</span>",
         };
@@ -1099,7 +1099,7 @@ if (btnSubmitTinja) {
                 if (cell) {
                     const tooltip = `${data.approverName} \u2014 ${data.approvedAt}`;
                     const badgeClass = data.newStatus === 'Approved' ? 'bg-success' : 'bg-danger';
-                    cell.innerHTML = `<span class="badge ${badgeClass}" data-bs-toggle="tooltip" title="${tooltip}">${data.newStatus}</span>`;
+                    cell.innerHTML = `<span class="badge ${badgeClass} fw-bold border border-${data.newStatus === 'Approved' ? 'success' : 'danger'}" data-bs-toggle="tooltip" title="${tooltip}">${data.newStatus}</span>`;
                     // Re-init tooltip on new badge
                     const newBadge = cell.querySelector('[data-bs-toggle="tooltip"]');
                     if (newBadge) new bootstrap.Tooltip(newBadge);
@@ -1135,7 +1135,7 @@ document.querySelectorAll('.btnHcReview').forEach(btn => {
                 const cell = document.getElementById(`hc-${progressId}`);
                 if (cell) {
                     const tooltip = `${data.reviewerName} \u2014 ${data.reviewedAt}`;
-                    cell.innerHTML = `<span class="badge bg-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
+                    cell.innerHTML = `<span class="badge bg-success fw-bold border border-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
                     const newBadge = cell.querySelector('[data-bs-toggle="tooltip"]');
                     if (newBadge) new bootstrap.Tooltip(newBadge);
                 }
@@ -1176,7 +1176,7 @@ document.querySelectorAll('.btnHcReviewPanel').forEach(btn => {
                 const hcCell = document.getElementById(`hc-${progressId}`);
                 if (hcCell) {
                     const tooltip = `${data.reviewerName} \u2014 ${data.reviewedAt}`;
-                    hcCell.innerHTML = `<span class="badge bg-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
+                    hcCell.innerHTML = `<span class="badge bg-success fw-bold border border-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
                     const newBadge = hcCell.querySelector('[data-bs-toggle="tooltip"]');
                     if (newBadge) new bootstrap.Tooltip(newBadge);
                     // Also remove the btnHcReview inline button for this row if present
@@ -1415,7 +1415,7 @@ if (btnSubmitEvidence) {
                     const evidenceCell = document.getElementById(`evidence-${id}`);
                     if (evidenceCell) {
                         evidenceCell.innerHTML = data.hasEvidence
-                            ? '<span class="badge bg-success">Sudah Upload</span>'
+                            ? '<span class="badge bg-success fw-bold border border-success">Sudah Upload</span>'
                             : '<span class="badge bg-secondary">Belum Upload</span>';
                     }
                     // Update Status in SrSpv / SH cells — reset to Pending badge
