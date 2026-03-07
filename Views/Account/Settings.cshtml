@@ -126,6 +126,17 @@
 
         <hr class="my-4">
 
+        @* --- SECTION: Preview P-Sign --- *@
+
+        <p class="text-uppercase fw-bold small text-muted mb-3">Preview P-Sign</p>
+
+        @if (Model.PSign != null)
+        {
+            @await Html.PartialAsync("_PSign", Model.PSign)
+        }
+
+        <hr class="my-4">
+
         @* --- SECTION 2: Ubah Password --- *@
 
         @if (!useAD)

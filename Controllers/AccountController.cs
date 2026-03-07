@@ -176,7 +176,13 @@ namespace HcPortal.Controllers
                 Role = roles.FirstOrDefault() ?? "—",
                 Section = user.Section,
                 Directorate = user.Directorate,
-                Unit = user.Unit
+                Unit = user.Unit,
+                PSign = new PSignViewModel
+                {
+                    FullName = user.FullName,
+                    Position = user.Position,
+                    Unit = user.Unit
+                }
             };
 
             return View(model);
