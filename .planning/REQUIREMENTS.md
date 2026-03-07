@@ -25,9 +25,9 @@
 
 ### P-Sign Infrastructure
 
-- [ ] **PSIGN-01**: Setiap ApplicationUser memiliki data P-Sign (Position/Role text dan Unit) yang bisa di-render menjadi badge visual
-- [ ] **PSIGN-02**: P-Sign badge berisi: Logo Pertamina (gambar statis), Role + Unit (dari user data), dan Nama lengkap user
-- [ ] **PSIGN-03**: P-Sign dapat di-generate sebagai image atau embeddable component untuk digunakan di PDF dan halaman web
+- [x] **PSIGN-01**: Setiap ApplicationUser memiliki data P-Sign (Position/Role text dan Unit) yang bisa di-render menjadi badge visual
+- [x] **PSIGN-02**: P-Sign badge berisi: Logo Pertamina (gambar statis), Role + Unit (dari user data), dan Nama lengkap user
+- [x] **PSIGN-03**: P-Sign dapat di-generate sebagai image atau embeddable component untuk digunakan di PDF dan halaman web
 
 ### PDF Evidence
 
@@ -58,9 +58,9 @@
 | PAGE-01 | Phase 119 | Pending |
 | PAGE-02 | Phase 119 | Pending |
 | PAGE-03 | Phase 119 | Pending |
-| PSIGN-01 | Phase 118 | Pending |
-| PSIGN-02 | Phase 118 | Pending |
-| PSIGN-03 | Phase 118 | Pending |
+| PSIGN-01 | Phase 118 | Complete |
+| PSIGN-02 | Phase 118 | Complete |
+| PSIGN-03 | Phase 118 | Complete |
 | PDF-01 | Phase 120 | Pending |
 | PDF-02 | Phase 120 | Pending |
 | PDF-03 | Phase 120 | Pending |
