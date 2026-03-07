@@ -14,8 +14,8 @@
 
 ### Silabus Target Column
 
-- [ ] **TGT-01**: Tabel Silabus menampilkan kolom Target (text) setelah SubKompetensi dan sebelum Deliverable
-- [ ] **TGT-02**: Kolom Target bisa diisi di edit mode dan tersimpan via SilabusSave
+- [x] **TGT-01**: Tabel Silabus menampilkan kolom Target (text) setelah SubKompetensi dan sebelum Deliverable
+- [x] **TGT-02**: Kolom Target bisa diisi di edit mode dan tersimpan via SilabusSave
 
 ### Hard Delete
 
@@ -44,8 +44,8 @@
 | STAT-02 | Phase 114 | Pending |
 | STAT-03 | Phase 114 | Pending |
 | STAT-04 | Phase 114 | Pending |
-| TGT-01 | Phase 113 | Pending |
-| TGT-02 | Phase 113 | Pending |
+| TGT-01 | Phase 113 | Complete |
+| TGT-02 | Phase 113 | Complete |
 | DEL-01 | Phase 115 | Pending |
 | DEL-02 | Phase 115 | Pending |
 | DEL-03 | Phase 115 | Pending |

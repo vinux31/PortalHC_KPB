@@ -47,7 +47,7 @@
 
 ## Phases
 
-- [ ] **Phase 113: Target Column** - Add Target text column to silabus table with edit/save support
+- [x] **Phase 113: Target Column** - Add Target text column to silabus table with edit/save support (completed 2026-03-07)
 - [ ] **Phase 114: Status Tab** - New first tab showing silabus and guidance completeness tree
 - [ ] **Phase 115: Hard Delete + Consumer Audit** - Kompetensi hard delete with safety checks and consumer verification
 
@@ -98,6 +98,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 113. Target Column | 0/1 | Not started | - |
+| 113. Target Column | 1/1 | Complete   | 2026-03-07 |
 | 114. Status Tab | 0/1 | Not started | - |
 | 115. Hard Delete + Consumer Audit | 0/1 | Not started | - |
