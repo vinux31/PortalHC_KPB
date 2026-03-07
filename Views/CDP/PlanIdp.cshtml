@@ -205,8 +205,8 @@
             '<th style="width:60px">No</th>' +
             '<th>Kompetensi</th>' +
             '<th>Sub Kompetensi</th>' +
-            '<th>Deliverable</th>' +
             '<th>Target</th>' +
+            '<th>Deliverable</th>' +
             '</tr>' +
             '</thead>' +
             '<tbody>';
@@ -234,9 +234,9 @@
                     }
                     if (k === j) {
                         html += '<td rowspan="' + subSpan + '" class="align-middle">' + escHtml(dRow.SubKompetensi) + '</td>';
+                        html += '<td rowspan="' + subSpan + '" class="align-middle">' + escHtml(dRow.Target || '-') + '</td>';
                     }
                     html += '<td>' + escHtml(dRow.Deliverable) + '</td>';
-                    html += '<td>' + escHtml(dRow.Target || '-') + '</td>';
                     html += '</tr>';
                 }
                 j += subSpan;
