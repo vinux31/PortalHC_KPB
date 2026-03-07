@@ -41,7 +41,7 @@
 ## Phases
 
 - [x] **Phase 109: CMP Role Access & Filters** - Fix role scoping, OrganizationStructure filters, and empty states on Records and RecordsTeam (completed 2026-03-06)
-- [ ] **Phase 110: CDP Role Access & Filters** - Fix role scoping, filters, and empty states on CoachingProton, PlanIdp, Deliverable, and HistoriProton
+- [x] **Phase 110: CDP Role Access & Filters** - Fix role scoping, filters, and empty states on CoachingProton, PlanIdp, Deliverable, and HistoriProton (completed 2026-03-07)
 - [ ] **Phase 111: SectionHead & Filter Infrastructure** - SectionHead level 4 consistency across all pages, ManageWorkers filter, and cascade wiring
 
 ## Phase Details
@@ -70,7 +70,7 @@ Plans:
   3. Deliverable page enforces section check for L4 and coach-coachee mapping check for L5
   4. HistoriProton worker list is scoped correctly per role level
   5. CoachingProton and PlanIdp show "Data belum ada" when filtered results are empty
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 110-01-PLAN.md — HistoriProton OrganizationStructure filters, cascade, L4 lock, empty state + CoachingProton verification
@@ -99,7 +99,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 109. CMP Role Access & Filters | 1/1 | Complete    | 2026-03-06 |
-| 110. CDP Role Access & Filters | 1/2 | In Progress|  |
+| 110. CDP Role Access & Filters | 2/2 | Complete   | 2026-03-07 |
 | 111. SectionHead & Filter Infrastructure | 0/? | Not started | - |
 
 ---

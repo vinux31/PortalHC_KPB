@@ -12,8 +12,8 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 - [x] **ROLE-01**: CMP Records page shows correct data per role (L1-3 all, L4 section-only, L5-6 own only)
 - [x] **ROLE-02**: CMP RecordsTeam page correctly scopes to section for L4 and forbids L5-6
 - [ ] **ROLE-03**: CDP CoachingProton page shows correct coachee list per role (L1-3 all, L4 section, L5 mapped, L6 self)
-- [ ] **ROLE-04**: CDP PlanIdp page scopes content correctly per role
-- [ ] **ROLE-05**: CDP Deliverable page enforces section check for L4 and coach-coachee check for L5
+- [x] **ROLE-04**: CDP PlanIdp page scopes content correctly per role
+- [x] **ROLE-05**: CDP Deliverable page enforces section check for L4 and coach-coachee check for L5
 - [x] **ROLE-07**: CDP HistoriProton page scopes worker list correctly per role
 
 ### SectionHead Level 4
@@ -35,7 +35,7 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 - [x] **UX-01**: CMP Records shows "Data belum ada" when filtered results are empty
 - [x] **UX-02**: CMP RecordsTeam shows "Data belum ada" when filtered results are empty
 - [x] **UX-03**: CDP CoachingProton shows "Data belum ada" when filtered results are empty
-- [ ] **UX-04**: CDP PlanIdp shows "Data belum ada" when filtered results are empty
+- [x] **UX-04**: CDP PlanIdp shows "Data belum ada" when filtered results are empty
 
 ## Future Requirements
 
@@ -56,8 +56,8 @@ None deferred for this milestone.
 | ROLE-01 | Phase 109 | Complete |
 | ROLE-02 | Phase 109 | Complete |
 | ROLE-03 | Phase 110 | Pending |
-| ROLE-04 | Phase 110 | Pending |
-| ROLE-05 | Phase 110 | Pending |
+| ROLE-04 | Phase 110 | Complete |
+| ROLE-05 | Phase 110 | Complete |
 | ROLE-07 | Phase 110 | Complete |
 | SH-01 | Phase 111 | Pending |
 | SH-02 | Phase 111 | Pending |
@@ -70,7 +70,7 @@ None deferred for this milestone.
 | UX-01 | Phase 109 | Complete |
 | UX-02 | Phase 109 | Complete |
 | UX-03 | Phase 110 | Complete |
-| UX-04 | Phase 110 | Pending |
+| UX-04 | Phase 110 | Complete |
 
 **Coverage:**
 - v3.7 requirements: 18 total
