@@ -1,116 +1,119 @@
-# Research Summary: v3.8 CoachingProton UI Redesign
+# Project Research Summary
 
-**Project:** PortalHC KPB
-**Domain:** UI button/badge consistency on enterprise approval workflow
+**Project:** PortalHC KPB — v3.9 ProtonData Enhancement
+**Domain:** Admin tooling for Proton silabus management
 **Researched:** 2026-03-07
 **Confidence:** HIGH
 
 ## Executive Summary
 
-The CoachingProton page has a single core problem: clickable badge elements (`<span class="badge">`) are visually indistinguishable from read-only status badges. Users cannot tell what is actionable versus informational. This is a well-understood UX antipattern with a straightforward fix -- replace badge-as-button elements with proper `<button>` elements and add icons to status badges for accessibility.
+This milestone enhances the existing ProtonData admin page with four features: a Status tab showing silabus/guidance completeness as a tree checklist, a Target column on the silabus table, a hard delete button for Kompetensi records, and an audit of silabus consumer connections. All four features build on the existing ProtonDataController and require zero new dependencies — the current stack (ASP.NET Core 8, EF Core, Bootstrap 5, vanilla JS) handles everything.
 
-No new libraries or build tooling are needed. Bootstrap 5.3 + Bootstrap Icons (already loaded) provide every class and icon required. The entire change is scoped to a single file: `Views/CDP/CoachingProton.cshtml`. Estimated custom CSS is under 30 lines via an inline `<style>` block. This is a single-phase, low-complexity milestone.
+The recommended approach is to build in order of risk: Target column first (simple migration, zero risk), Status tab second (read-only aggregation, medium complexity), then hard delete last (destructive operation requiring manual cascade due to FK Restrict constraints). The audit task folds into the delete phase as a prerequisite step rather than a standalone phase.
 
-The primary risk is breaking JavaScript event handlers. The page uses `querySelectorAll` with class selectors (`.btnTinjau`, `.btnSubmitEvidence`, `.btnHcReview`, `.btnHcReviewPanel`) bound at page load, plus Bootstrap modal `relatedTarget` for data attribute extraction. JS also rebuilds HTML via `innerHTML` after AJAX operations. All existing class names and data attributes must be preserved; new styling classes should be added alongside them, never replacing them.
+The primary risk is the hard delete feature. All Proton entity FK relationships use `DeleteBehavior.Restrict`, so deletion must be done bottom-up in application code within a transaction. More importantly, deleting a Kompetensi permanently destroys coachee progress records. The safest approach is to block deletion when progress records exist, limiting hard delete to incorrectly entered master data with no user progress attached.
 
-## Stack Additions
+## Key Findings
 
-None. The existing stack is sufficient:
+### Recommended Stack
 
-- **Bootstrap 5.3.0** -- buttons, badges, utilities (already loaded via CDN)
-- **Bootstrap Icons 1.10.0** -- `bi-check-circle`, `bi-x-circle`, `bi-hourglass`, `bi-eye` (already loaded)
-- **Vanilla JS (ES6+)** -- existing handlers stay, no new JS library needed
-- **~30 lines custom CSS** -- inline `<style>` block with `cp-` prefixed classes
+No new packages needed. All features use patterns already established in the codebase.
 
-Do NOT add: Tailwind, FontAwesome, Animate.css, jQuery plugins, SASS/LESS, or separate CSS files.
+**Core technologies (unchanged):**
+- EF Core 8.0: Migration for Target column, manual cascade delete logic
+- Bootstrap 5 accordion: Nested tree UI for Status tab (3 levels deep, no JS tree library needed)
+- Vanilla JS: AJAX fetch for Status data endpoint, server-first delete pattern
 
-## Feature Table Stakes
+### Expected Features
 
-| Change | Why |
-|--------|-----|
-| Replace badge-as-button with `<button>` in SrSpv/SH columns | Users cannot tell clickable badges from status badges |
-| Add icons to all status badges | WCAG accessibility -- color alone is insufficient |
-| Hover states on all clickable elements | Missing on badge-as-button; required for affordance |
-| Muted styling for "not your turn" pending states | Distinguish "waiting for you" from "waiting for someone else" |
-| Icon + label on approval action buttons | Small table buttons need both for scannability |
+**Must have (table stakes):**
+- Target column on ProtonSubKompetensi — free-text field, nullable, displayed between SubKompetensi and Deliverable columns
+- Hard delete for Kompetensi — bottom-up cascade in transaction, only for inactive Kompetensi with zero progress records
+- Confirmation dialog with impact counts before any hard delete
 
-## Feature Differentiators
+**Should have (differentiators):**
+- Status tab as first/default tab — tree checklist showing silabus + guidance completeness per Bagian/Unit/Track
+- Summary counts at each tree level (e.g., "RFCC: 4/18 complete")
 
-| Change | Value |
-|--------|-------|
-| Contextual button colors for approval actions | `outline-warning` for Tinjau, `outline-success` for Review -- matches semantics |
-| Status + action stacked in approval cells | Show badge above button in same cell (HC column already does this) |
-| Brief fade/highlight on AJAX success | Immediate feedback that action succeeded |
+**Defer (v2+):**
+- Bulk hard delete (too dangerous, single-item only)
+- Undo/restore for hard-deleted data (soft-delete already covers reversible removal)
+- Evidence file cleanup on hard delete (orphan files are acceptable for now)
 
-Defer fade/highlight animation and HC Review Panel visual alignment to a later phase if needed.
+### Architecture Approach
 
-## Architecture Approach
+All new features stay within ProtonDataController. Status tab uses a new AJAX endpoint (`StatusData`) returning JSON, rendered client-side as a Bootstrap accordion tree. Target column adds a nullable string to ProtonSubKompetensi with propagation through SilabusRowDto and SilabusSave. Hard delete adds a `SilabusKompetensiDelete` POST action with explicit bottom-up removal in a DB transaction.
 
-All changes go in `Views/CDP/CoachingProton.cshtml` (single file, ~1500 lines Razor + ~400 lines JS).
+**Major components:**
+1. ProtonDataController.StatusData — JSON endpoint returning completeness tree aggregated from ProtonKompetensi hierarchy + CoachingGuidanceFiles
+2. ProtonSubKompetensi.Target — nullable string column (max 500 chars), integrated into existing SilabusSave batch upsert
+3. ProtonDataController.SilabusKompetensiDelete — manual cascade delete with pre-check for progress records, uses existing SilabusKompetensiRequest DTO
 
-1. **`<style>` block** at top of view -- custom `cp-` prefixed classes for styling. No separate CSS file (no `site.css` pattern exists in this project; scoped CSS breaks with JS `innerHTML`).
-2. **HTML element swaps** -- `<span class="badge">` to `<button class="btn btn-sm">` for clickable elements, preserving all `data-*` attributes and existing class names.
-3. **JS `innerHTML` string updates** -- AJAX response handlers construct badge HTML with hardcoded classes (lines ~1096-1200, ~1418-1428). These must be updated in the same phase as HTML changes.
-4. **Inline `style=` cleanup** -- replace scattered `cursor:pointer` / `min-width` attributes with `cp-` classes.
+### Critical Pitfalls
 
-Key constraint: use `cp-` prefix on all custom classes to avoid collisions with Bootstrap or other views.
+1. **FK Restrict blocks naive delete** — All Proton FKs use Restrict. Must delete bottom-up: Progress -> Deliverable -> SubKompetensi -> Kompetensi, wrapped in a transaction.
+2. **Hard delete destroys coachee progress permanently** — Block delete when ProtonDeliverableProgress records exist. Only allow hard delete on Kompetensi with zero progress.
+3. **Target column NULL handling** — Use nullable string (`string?`), display empty input for NULL in edit mode, dash in view mode. Existing rows get NULL automatically.
+4. **Status tab performance** — Filter by Bagian/Unit/Track (same dropdowns as Silabus tab). Use projection queries, not Include chains.
+5. **Delete button JS state desync** — Call server first, update DOM only on success response. Never optimistically remove rows.
 
-## Watch Out For
+## Implications for Roadmap
 
-1. **Breaking modal triggers (CRITICAL)** -- `.btnTinjau` badges use `data-bs-toggle="modal"` + 6 `data-*` attributes read via `event.relatedTarget`. Preserve all attributes when converting to `<button>`. Test with SrSpv AND Section Head roles.
+### Phase 1: Target Column + Migration
+**Rationale:** Lowest risk, simplest change, immediate value for silabus editing. Unblocks any UI work that depends on the updated table structure.
+**Delivers:** New `Target` nullable string column on ProtonSubKompetensi; updated SilabusSave to persist Target; updated silabus table UI with Target column.
+**Addresses:** Target column feature
+**Avoids:** NULL handling pitfall (use nullable string, handle in UI)
 
-2. **Non-delegated event listeners (CRITICAL)** -- `.btnSubmitEvidence`, `.btnHcReview`, `.btnHcReviewPanel`, `.btnTinjau` are bound via `querySelectorAll` at page load. Do NOT rename these classes. Add new styling classes alongside them.
+### Phase 2: Status Tab
+**Rationale:** Read-only feature with no data mutation risk. Can be built independently after Phase 1.
+**Delivers:** New Status tab (first/default tab) with tree checklist showing silabus + guidance completeness per Bagian/Unit/Track. AJAX endpoint returning JSON aggregation.
+**Addresses:** Status tab feature, completeness visibility
+**Avoids:** Performance pitfall (filtered queries, projection DTOs, no ViewBag)
 
-3. **AJAX DOM updates by ID (CRITICAL)** -- Cells are updated post-AJAX using `getElementById('srspv-{id}')`, `getElementById('sh-{id}')`, etc. Preserve all cell `id` attributes exactly.
+### Phase 3: Hard Delete + Consumer Audit
+**Rationale:** Highest risk feature, must come last. Audit of consumer connections is a prerequisite step folded into this phase rather than a separate phase.
+**Delivers:** Hard delete button for inactive Kompetensi (blocked when progress exists); consumer audit confirming no broken references; confirmation dialog with impact counts.
+**Addresses:** Delete button feature, audit connections feature
+**Avoids:** FK Restrict pitfall (manual cascade), progress data loss pitfall (block when progress exists), JS desync pitfall (server-first pattern)
 
-4. **Dual HC Review button locations (MODERATE)** -- HC Review exists in both the main table (`.btnHcReview`) and panel below (`.btnHcReviewPanel`). Panel JS removes the inline button after review. Test both locations.
+### Phase Ordering Rationale
 
-5. **Rowspan breakage (MODERATE)** -- Table uses complex rowspan for Coachee/Kompetensi columns. Keep `btn-sm` consistently; do not increase button padding.
-
-Must-preserve selector inventory (14 selectors): see PITFALLS-COACHING-PROTON-UI.md for the complete reference.
-
-## Recommendation
-
-**Single phase. Low complexity.** All changes are in one file with no backend impact.
-
-### Build Order
-
-1. Add `<style>` block with all `cp-*` class definitions
-2. Convert badge-as-button to proper `<button>` in SrSpv/SH columns (highest risk -- do first)
-3. Add icons to all status badges
-4. Add muted styling for "not your turn" states
-5. Update JS `innerHTML` strings to match new markup
-6. Polish secondary buttons (Lihat Detail, Kembali, Export)
-7. Remove replaced inline `style=` attributes
-8. Test all roles: Coach, SrSpv, Section Head, HC
+- Target column first because it is a simple additive migration with zero risk and no dependencies on other features
+- Status tab second because it is read-only and independent, but slightly more complex (new endpoint + JS tree rendering)
+- Hard delete last because it is destructive, needs the consumer audit as input, and benefits from the developer having already worked in the ProtonData codebase during phases 1-2
 
 ### Research Flags
 
-- **No phase research needed** -- pure CSS/HTML refactor with well-documented Bootstrap patterns
-- **Testing emphasis** -- main risk is JS regression. Plan for role-based testing across Coach, SrSpv, SH, and HC flows
+Phases with standard patterns (skip research-phase):
+- **Phase 1 (Target Column):** Standard EF Core migration + column add. Well-established pattern in this codebase.
+- **Phase 2 (Status Tab):** Standard AJAX endpoint + Bootstrap accordion. No novel patterns.
+- **Phase 3 (Hard Delete):** The cascade logic is well-documented in this research. The audit findings are already captured in FEATURES.md. No further research needed.
 
-### Confidence Assessment
+## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | No changes needed; verified against codebase |
-| Features | HIGH | Direct codebase analysis + established UX principles |
-| Architecture | HIGH | Single-file change, no unknowns |
-| Pitfalls | HIGH | JS selectors inventoried line-by-line from source |
+| Stack | HIGH | No new packages; all patterns already in codebase |
+| Features | HIGH | All based on direct codebase analysis of models, controllers, FK config |
+| Architecture | HIGH | Extends existing ProtonDataController with established patterns |
+| Pitfalls | HIGH | FK Restrict behavior confirmed from ApplicationDbContext.cs; cascade order verified |
 
-**Overall:** HIGH
+**Overall confidence:** HIGH
 
-### Gaps
+### Gaps to Address
 
-- **Real data rowspan testing** -- need test data with 5+ deliverables per sub-kompetensi to verify table layout stability
-- **Mobile/responsive behavior** -- not researched; may have existing issues unrelated to this redesign
+- **"Complete" definition for Status tab:** Research identified ambiguity. Recommendation: define "complete" as silabus exists (active Kompetensi with children) AND guidance files exist for that Bagian/Unit/Track. Confirm with user during Phase 2 planning.
+- **Target column type:** FEATURES.md says free-text string, PITFALLS.md mentions `int?` in some examples. Recommendation: use `string?` (nvarchar 500) as FEATURES.md and ARCHITECTURE.md consistently recommend. The `int` references in PITFALLS.md appear to be generic examples.
+- **Evidence file cleanup on hard delete:** Deferred. Orphaned files on disk are acceptable for now; can be addressed in a future cleanup phase.
 
 ## Sources
 
-- Direct codebase analysis: `Views/CDP/CoachingProton.cshtml`, `Views/Shared/_Layout.cshtml`
-- Bootstrap 5 component documentation (buttons, badges)
-- WCAG 2.1 SC 1.4.1 (color-only information conveying)
-- Nielsen Norman Group affordance principles
+### Primary (HIGH confidence)
+- Direct codebase analysis: `Models/ProtonModels.cs`, `Data/ApplicationDbContext.cs`, `Controllers/ProtonDataController.cs`, `Controllers/CDPController.cs`
+- FK configuration: ApplicationDbContext.cs lines 279-331 (all Restrict)
+- OrganizationStructure: `Models/OrganizationStructure.cs`
+- Existing patterns: `SilabusSave`, `SilabusDelete`, `SilabusKompetensiToggle` actions
 
 ---
 *Research completed: 2026-03-07*
