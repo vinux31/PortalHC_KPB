@@ -71,7 +71,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 112. CoachingProton Button & Badge Redesign | 1/1 | Complete   | 2026-03-07 |
+| 112. CoachingProton Button & Badge Redesign | 1/1 | Complete    | 2026-03-07 |
 
 ---
 *Roadmap created: 2026-03-07*
