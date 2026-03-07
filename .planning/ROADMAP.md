@@ -180,7 +180,7 @@ nPlans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 116. Modal Cleanup | 1/1 | Complete    | 2026-03-07 |
-| 117. Status History | 1/1 | Complete   | 2026-03-07 |
+| 117. Status History | 1/1 | Complete    | 2026-03-07 |
 | 118. P-Sign Infrastructure | 0/? | Not started | - |
 | 119. Deliverable Page Restructure | 0/? | Not started | - |
 | 120. PDF Evidence | 0/? | Not started | - |
