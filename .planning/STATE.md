@@ -40,6 +40,8 @@ Progress: [░░░░░░░░░░] 0%
 - Active development: 2026-02-14 to present
 
 **Parallel:** v3.9 ProtonData Enhancement (Phases 113-115) in separate terminal
+- Phase 113: complete (113-01 done)
+- Phase 114: 114-01 complete (Status tab)
 
 ## Accumulated Context
 
@@ -56,4 +58,4 @@ Progress: [░░░░░░░░░░] 0%
 None.
 
 ---
-*State updated: 2026-03-07 after roadmap creation*
+*State updated: 2026-03-07 after 114-01 Status tab plan completion*
