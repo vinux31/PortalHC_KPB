@@ -1,30 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.9
-milestone_name: ProtonData Enhancement
+milestone: v3.10
+milestone_name: Evidence Coaching & Deliverable Redesign
 status: planning
-last_updated: "2026-03-07T06:46:52.143Z"
-last_activity: 2026-03-07 — Completed 113-01 Target Column plan
-progress:
-  total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
----
-
----
-gsd_state_version: 1.0
-milestone: v3.9
-milestone_name: ProtonData Enhancement
-status: in-progress
 last_updated: "2026-03-07"
-last_activity: 2026-03-07 — Completed 113-01 Target Column plan
+last_activity: 2026-03-07 — Roadmap created for v3.10
 progress:
-  total_phases: 3
+  total_phases: 5
   completed_phases: 0
-  total_plans: 3
-  completed_plans: 1
-  percent: 33
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -34,17 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 113 - Target Column (Plan 01 complete)
+**Current focus:** v3.10 Evidence Coaching & Deliverable Redesign — roadmap created, ready to plan Phase 116
 
 ## Current Position
 
-**Milestone:** v3.9 ProtonData Enhancement
-**Phase:** 113 (1 of 3) — Target Column
-**Plan:** 1 of 1 in current phase (complete)
+**Milestone:** v3.10 Evidence Coaching & Deliverable Redesign
+**Phase:** 116 (1 of 5) — Modal Cleanup
+**Plan:** Not yet planned
 **Status:** Ready to plan
-**Last activity:** 2026-03-07 — Completed 113-01 Target Column plan
+**Last activity:** 2026-03-07 — Roadmap created
 
-Progress: [███░░░░░░░] 33%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -53,26 +39,21 @@ Progress: [███░░░░░░░] 33%
 - Phases completed: 112
 - Active development: 2026-02-14 to present
 
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 113   | 01   | 5min     | 2     | 4     |
+**Parallel:** v3.9 ProtonData Enhancement (Phases 113-115) in separate terminal
 
 ## Accumulated Context
 
 ### Decisions
 
-- ProtonData has 2 existing tabs: Silabus + Coaching Guidance
-- Silabus hierarchy: ProtonKompetensi > ProtonSubKompetensi > ProtonDeliverable
-- Nonaktifkan = soft-delete (IsActive=false), Delete = hard delete from DB
-- New Target column is free text type (string?, nvarchar 500)
-- Status tab shows tree checklist for completeness overview
-- Build order: Target (low risk) -> Status (medium) -> Delete+Audit (high risk)
-- Target is required field with both client and server validation
-- Existing rows default to '-' via migration SQL UPDATE
+- Phase numbering starts at 116 (v3.9 uses 113-115 in parallel)
+- 5 phases derived from 5 requirement categories: MOD, HIST, PSIGN, PAGE, PDF
+- Phases 116, 117, 118 are independent (can run in any order)
+- Phase 119 depends on 117 (needs history data)
+- Phase 120 depends on 116 and 118 (needs clean modal fields + P-Sign component)
 
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-03-07 after completing 113-01*
+*State updated: 2026-03-07 after roadmap creation*

@@ -101,3 +101,81 @@ Plans:
 | 113. Target Column | 1/1 | Complete    | 2026-03-07 |
 | 114. Status Tab | 0/1 | Not started | - |
 | 115. Hard Delete + Consumer Audit | 0/1 | Not started | - |
+
+---
+
+## v3.10 Evidence Coaching & Deliverable Redesign
+
+**Milestone Goal:** Redesign evidence coaching flow — cleanup modal, add status history tracking, restructure Deliverable detail page, build P-Sign infrastructure, and auto-generate PDF evidence coaching forms.
+
+## Phases
+
+- [ ] **Phase 116: Modal Cleanup** - Remove Kompetensi Coachee field from evidence modal and backend
+- [ ] **Phase 117: Status History** - New DeliverableStatusHistory table tracking all status changes with rejection persistence
+- [ ] **Phase 118: P-Sign Infrastructure** - User P-Sign data model and renderable badge component
+- [ ] **Phase 119: Deliverable Page Restructure** - Split Deliverable detail into sectioned layout with status timeline
+- [ ] **Phase 120: PDF Evidence** - Auto-generate PDF evidence coaching form with P-Sign
+
+## Phase Details
+
+### Phase 116: Modal Cleanup
+**Goal**: Evidence modal only captures coaching-relevant fields, with no unused Kompetensi Coachee textarea
+**Depends on**: Nothing (independent)
+**Requirements**: MOD-01, MOD-02
+**Success Criteria** (what must be TRUE):
+  1. Evidence modal in CoachingProton no longer shows the "Kompetensi Coachee" textarea
+  2. Submitting evidence succeeds without sending koacheeCompetencies data
+  3. CoachingSession records created after this change have no koacheeCompetencies value stored
+**Plans**: TBD
+
+### Phase 117: Status History
+**Goal**: Every deliverable status change is permanently recorded with actor, timestamp, and reason
+**Depends on**: Nothing (independent)
+**Requirements**: HIST-01, HIST-02, HIST-03, HIST-04
+**Success Criteria** (what must be TRUE):
+  1. When a deliverable status changes (submit, approve, reject, review, re-submit), a new row appears in DeliverableStatusHistory
+  2. After a rejection followed by re-submit, the original rejection entry (with reason) is still present in the history table
+  3. Each approval role (SrSpv, SH, HC) creates a separate history entry when they approve
+  4. Re-submitting evidence after rejection creates a "Re-submitted" history entry
+**Plans**: TBD
+
+### Phase 118: P-Sign Infrastructure
+**Goal**: Any user's P-Sign badge can be rendered as a visual component for use in pages and PDFs
+**Depends on**: Nothing (independent)
+**Requirements**: PSIGN-01, PSIGN-02, PSIGN-03
+**Success Criteria** (what must be TRUE):
+  1. ApplicationUser has Position/Role text and Unit fields that populate the P-Sign
+  2. P-Sign badge renders with Logo Pertamina, Role + Unit, and full name
+  3. P-Sign can be rendered as an embeddable HTML component and as an image for PDF embedding
+**Plans**: TBD
+
+### Phase 119: Deliverable Page Restructure
+**Goal**: Deliverable detail page presents coaching data, approval status, and history in clearly separated sections
+**Depends on**: Phase 117 (needs DeliverableStatusHistory data)
+**Requirements**: PAGE-01, PAGE-02, PAGE-03
+**Success Criteria** (what must be TRUE):
+  1. Deliverable detail page shows four distinct sections: Detail Coachee & Kompetensi, Evidence Coach, Approval Chain, Riwayat Status
+  2. Riwayat Status section displays a chronological timeline of all status changes from DeliverableStatusHistory
+  3. Evidence Coach section shows Catatan Coach, Kesimpulan, Result, and a download button for the evidence file
+**Plans**: TBD
+
+### Phase 120: PDF Evidence
+**Goal**: Coach can download a professional PDF evidence form after submitting coaching evidence
+**Depends on**: Phase 116 (modal fields define PDF content), Phase 118 (P-Sign component for PDF)
+**Requirements**: PDF-01, PDF-02, PDF-03, PDF-04
+**Success Criteria** (what must be TRUE):
+  1. After coach submits evidence, a PDF is auto-generated containing the coaching session data
+  2. PDF contains: Coachee info, Track, Kompetensi, SubKompetensi, Deliverable, Tanggal, Catatan Coach, Kesimpulan, Result
+  3. PDF displays the Coach's P-Sign badge in the bottom-right corner
+  4. Deliverable detail page has a "Download PDF" button that downloads the generated PDF
+**Plans**: TBD
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 116. Modal Cleanup | 0/? | Not started | - |
+| 117. Status History | 0/? | Not started | - |
+| 118. P-Sign Infrastructure | 0/? | Not started | - |
+| 119. Deliverable Page Restructure | 0/? | Not started | - |
+| 120. PDF Evidence | 0/? | Not started | - |

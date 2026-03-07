@@ -49,27 +49,27 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MOD-01 | TBD | Pending |
-| MOD-02 | TBD | Pending |
-| HIST-01 | TBD | Pending |
-| HIST-02 | TBD | Pending |
-| HIST-03 | TBD | Pending |
-| HIST-04 | TBD | Pending |
-| PAGE-01 | TBD | Pending |
-| PAGE-02 | TBD | Pending |
-| PAGE-03 | TBD | Pending |
-| PSIGN-01 | TBD | Pending |
-| PSIGN-02 | TBD | Pending |
-| PSIGN-03 | TBD | Pending |
-| PDF-01 | TBD | Pending |
-| PDF-02 | TBD | Pending |
-| PDF-03 | TBD | Pending |
-| PDF-04 | TBD | Pending |
+| MOD-01 | Phase 116 | Pending |
+| MOD-02 | Phase 116 | Pending |
+| HIST-01 | Phase 117 | Pending |
+| HIST-02 | Phase 117 | Pending |
+| HIST-03 | Phase 117 | Pending |
+| HIST-04 | Phase 117 | Pending |
+| PAGE-01 | Phase 119 | Pending |
+| PAGE-02 | Phase 119 | Pending |
+| PAGE-03 | Phase 119 | Pending |
+| PSIGN-01 | Phase 118 | Pending |
+| PSIGN-02 | Phase 118 | Pending |
+| PSIGN-03 | Phase 118 | Pending |
+| PDF-01 | Phase 120 | Pending |
+| PDF-02 | Phase 120 | Pending |
+| PDF-03 | Phase 120 | Pending |
+| PDF-04 | Phase 120 | Pending |
 
 **Coverage:**
 - v3.10 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-07*
