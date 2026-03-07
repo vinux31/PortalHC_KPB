@@ -177,7 +177,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 116. Modal Cleanup | 1/1 | Complete   | 2026-03-07 |
+| 116. Modal Cleanup | 1/1 | Complete    | 2026-03-07 |
 | 117. Status History | 0/? | Not started | - |
 | 118. P-Sign Infrastructure | 0/? | Not started | - |
 | 119. Deliverable Page Restructure | 0/? | Not started | - |
