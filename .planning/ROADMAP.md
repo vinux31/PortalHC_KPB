@@ -26,82 +26,52 @@
 
 </details>
 
+<details>
+<summary>v3.0 through v3.7 (Phases 82-111) — shipped 2026-03-02 to 2026-03-07</summary>
+
 - **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 CPDP (shipped 2026-03-03)
 - **v3.2 Bug Hunting & Quality Audit** — Phases 92-98 (shipped 2026-03-05)
 - **v3.5 User Guide** — Phases 105-106 (shipped 2026-03-06)
 - **v3.6 Histori Proton** — Phases 107-108 (shipped 2026-03-06)
+- **v3.7 Role Access & Filter Audit** — Phases 109-111 (shipped 2026-03-07)
+
+</details>
 
 ---
 
-## v3.7 Role Access & Filter Audit
+## v3.8 CoachingProton UI Redesign
 
-**Milestone Goal:** Audit and fix role-level access, view content, and filters across all CMP/CDP pages so every level sees correctly scoped data, filters use OrganizationStructure, and empty results show proper messages.
+**Milestone Goal:** Redesign all buttons and UI elements on CoachingProton page so interactive elements are visually distinguishable from status indicators, with consistent styling across all actions.
 
 ## Phases
 
-- [x] **Phase 109: CMP Role Access & Filters** - Fix role scoping, OrganizationStructure filters, and empty states on Records and RecordsTeam (completed 2026-03-06)
-- [x] **Phase 110: CDP Role Access & Filters** - Fix role scoping, filters, and empty states on CoachingProton, PlanIdp, Deliverable, and HistoriProton (completed 2026-03-07)
-- [ ] **Phase 111: SectionHead & Filter Infrastructure** - SectionHead level 4 consistency across all pages, ManageWorkers filter, and cascade wiring
+- [ ] **Phase 112: CoachingProton Button & Badge Redesign** - Replace badge-as-button antipattern with proper buttons, add status icons, unify styling across all interactive elements
 
 ## Phase Details
 
-### Phase 109: CMP Role Access & Filters
-**Goal**: Every role sees correctly scoped data on CMP Records and RecordsTeam, with OrganizationStructure-based filters and empty states
-**Depends on**: Nothing (first phase)
-**Requirements**: ROLE-01, ROLE-02, FILT-01, FILT-02, UX-01, UX-02
+### Phase 112: CoachingProton Button & Badge Redesign
+**Goal**: All interactive elements on the CoachingProton page are visually distinguishable from read-only status indicators, with consistent styling across buttons, badges, and approval actions
+**Depends on**: Nothing (standalone UI milestone)
+**Requirements**: BTN-01, BTN-02, BTN-03, CONS-01, CONS-02, CONS-03, CONS-04, TECH-01, TECH-02, TECH-03
 **Success Criteria** (what must be TRUE):
-  1. L1-3 user on CMP Records sees all workers; L4 sees section-only; L5-6 see own records only
-  2. L4 user on CMP RecordsTeam sees only their section's workers; L5-6 are denied access
-  3. Bagian and Unit filter dropdowns on Records and RecordsTeam are populated from OrganizationStructure (not from existing data queries)
-  4. Selecting a filter combination that returns no data shows "Data belum ada" message instead of empty table
-**Plans:** 1/1 plans complete
+  1. Pending badges in SrSpv and SH columns are clearly clickable buttons with hover/focus states that signal interactivity -- not styled as passive badges
+  2. All status badges (Approved, Rejected, Pending, Reviewed) display appropriate icons alongside text, making status distinguishable without relying on color alone
+  3. Evidence column submit buttons and status badges have visually distinct, consistent styling -- users can instantly tell which is actionable vs informational
+  4. Lihat Detail, Export, Reset, Kembali, and HC Review buttons all have polished, consistent styling that matches across the main table and Antrian Review panel
+  5. All existing approval workflows (SrSpv Tinjau modal, SH Tinjau modal, HC Review, Evidence Submit) continue to function after the redesign -- no JS regression
+**Plans**: TBD
 
 Plans:
-- [ ] 109-01-PLAN.md — OrganizationStructure filters, cascade, role scoping verification, empty states
-
-### Phase 110: CDP Role Access & Filters
-**Goal**: Every role sees correctly scoped data on all CDP pages, with consistent filters and empty states
-**Depends on**: Phase 109
-**Requirements**: ROLE-03, ROLE-04, ROLE-05, ROLE-07, FILT-03, UX-03, UX-04
-**Success Criteria** (what must be TRUE):
-  1. CoachingProton shows correct coachee list per role (L1-3 all, L4 section, L5 mapped coachees, L6 self only)
-  2. PlanIdp scopes content correctly per role level
-  3. Deliverable page enforces section check for L4 and coach-coachee mapping check for L5
-  4. HistoriProton worker list is scoped correctly per role level
-  5. CoachingProton and PlanIdp show "Data belum ada" when filtered results are empty
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 110-01-PLAN.md — HistoriProton OrganizationStructure filters, cascade, L4 lock, empty state + CoachingProton verification
-- [ ] 110-02-PLAN.md — PlanIdp L4 Bagian lock, guidance scoping, empty states + Deliverable verification
-
-### Phase 111: SectionHead & Filter Infrastructure
-**Goal**: SectionHead at level 4 has consistent access everywhere, ManageWorkers filter fixed, and all unit dropdowns cascade correctly
-**Depends on**: Phase 110
-**Requirements**: SH-01, SH-02, SH-03, FILT-04, FILT-05
-**Success Criteria** (what must be TRUE):
-  1. SectionHead at level 4 has identical section-scoped access as SrSupervisor on every CMP/CDP page
-  2. Navigation menu items show/hide correctly for SectionHead level 4 (same visibility as SrSupervisor)
-  3. SrSpv/SH approval chain works correctly when SH is at level 4
-  4. Admin ManageWorkers section filter uses OrganizationStructure
-  5. Selecting a Bagian in any filter dropdown cascades to show only that Bagian's units
-**Plans:** 2 plans
-
-Plans:
-- [ ] 111-01-PLAN.md — SH access audit, CDP role-name refactor, approval co-sign logic
-- [ ] 111-02-PLAN.md — ManageWorkers OrganizationStructure filter with Unit cascade, cascade audit
+- [ ] 112-01: TBD
 
 ## Progress
 
-**Execution Order:** 109 → 110 → 111
+**Execution Order:** Phase 112 (single phase milestone)
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 109. CMP Role Access & Filters | 1/1 | Complete    | 2026-03-06 |
-| 110. CDP Role Access & Filters | 2/2 | Complete    | 2026-03-07 |
-| 111. SectionHead & Filter Infrastructure | 0/2 | Not started | - |
+| 112. CoachingProton Button & Badge Redesign | 0/? | Not started | - |
 
 ---
-*Roadmap created: 2026-03-06*
-*Last updated: 2026-03-07 after Phase 111 planning*
+*Roadmap created: 2026-03-07*

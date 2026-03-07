@@ -37,21 +37,21 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| BTN-01 | TBD | Pending |
-| BTN-02 | TBD | Pending |
-| BTN-03 | TBD | Pending |
-| CONS-01 | TBD | Pending |
-| CONS-02 | TBD | Pending |
-| CONS-03 | TBD | Pending |
-| CONS-04 | TBD | Pending |
-| TECH-01 | TBD | Pending |
-| TECH-02 | TBD | Pending |
-| TECH-03 | TBD | Pending |
+| BTN-01 | Phase 112 | Pending |
+| BTN-02 | Phase 112 | Pending |
+| BTN-03 | Phase 112 | Pending |
+| CONS-01 | Phase 112 | Pending |
+| CONS-02 | Phase 112 | Pending |
+| CONS-03 | Phase 112 | Pending |
+| CONS-04 | Phase 112 | Pending |
+| TECH-01 | Phase 112 | Pending |
+| TECH-02 | Phase 112 | Pending |
+| TECH-03 | Phase 112 | Pending |
 
 **Coverage:**
 - v3.8 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-07*
