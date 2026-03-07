@@ -3126,10 +3126,22 @@ namespace HcPortal.Controllers
         // GET /Admin/ManageWorkers
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ManageWorkers(string? search, string? sectionFilter, string? roleFilter, bool showInactive = false)
+        public async Task<IActionResult> ManageWorkers(string? search, string? sectionFilter, string? unitFilter, string? roleFilter, bool showInactive = false)
         {
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Challenge();
+
+            // Server-side validation: ignore unitFilter if it doesn't belong to selected sectionFilter
+            if (!string.IsNullOrEmpty(unitFilter) && !string.IsNullOrEmpty(sectionFilter))
+            {
+                var validUnits = OrganizationStructure.GetUnitsForSection(sectionFilter);
+                if (!validUnits.Contains(unitFilter))
+                    unitFilter = null;
+            }
+            else if (!string.IsNullOrEmpty(unitFilter) && string.IsNullOrEmpty(sectionFilter))
+            {
+                unitFilter = null;
+            }
 
             var query = _context.Users.AsQueryable();
 
@@ -3148,6 +3160,12 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(sectionFilter))
             {
                 query = query.Where(u => u.Section == sectionFilter);
+            }
+
+            // Filter by unit
+            if (!string.IsNullOrEmpty(unitFilter))
+            {
+                query = query.Where(u => u.Unit == unitFilter);
             }
 
             // Filter by role level
@@ -3181,10 +3199,101 @@ namespace HcPortal.Controllers
             // Filters state
             ViewBag.Search = search;
             ViewBag.SectionFilter = sectionFilter;
+            ViewBag.UnitFilter = unitFilter;
             ViewBag.RoleFilter = roleFilter;
             ViewBag.ShowInactive = showInactive;
+            ViewBag.AllSections = OrganizationStructure.GetAllSections();
+            ViewBag.AllUnits = !string.IsNullOrEmpty(sectionFilter)
+                ? OrganizationStructure.GetUnitsForSection(sectionFilter)
+                : new List<string>();
 
             return View(users);
+        }
+
+        // GET /Admin/ExportWorkers
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportWorkers(string? search, string? sectionFilter, string? unitFilter, string? roleFilter, bool showInactive = false)
+        {
+            // Server-side validation: ignore unitFilter if it doesn't belong to selected sectionFilter
+            if (!string.IsNullOrEmpty(unitFilter) && !string.IsNullOrEmpty(sectionFilter))
+            {
+                var validUnits = OrganizationStructure.GetUnitsForSection(sectionFilter);
+                if (!validUnits.Contains(unitFilter))
+                    unitFilter = null;
+            }
+            else if (!string.IsNullOrEmpty(unitFilter) && string.IsNullOrEmpty(sectionFilter))
+            {
+                unitFilter = null;
+            }
+
+            var query = _context.Users.AsQueryable();
+
+            if (!string.IsNullOrEmpty(search))
+            {
+                var s = search.ToLower();
+                query = query.Where(u =>
+                    u.FullName.ToLower().Contains(s) ||
+                    u.Email!.ToLower().Contains(s) ||
+                    (u.NIP != null && u.NIP.Contains(s))
+                );
+            }
+
+            if (!string.IsNullOrEmpty(sectionFilter))
+                query = query.Where(u => u.Section == sectionFilter);
+
+            if (!string.IsNullOrEmpty(unitFilter))
+                query = query.Where(u => u.Unit == unitFilter);
+
+            if (!string.IsNullOrEmpty(roleFilter))
+            {
+                var roleLevel = UserRoles.GetRoleLevel(roleFilter);
+                query = query.Where(u => u.RoleLevel == roleLevel);
+            }
+
+            if (!showInactive)
+                query = query.Where(u => u.IsActive);
+
+            var users = await query.OrderBy(u => u.FullName).ToListAsync();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Pekerja");
+
+            // Header
+            ws.Cell(1, 1).Value = "No";
+            ws.Cell(1, 2).Value = "Nama";
+            ws.Cell(1, 3).Value = "Email";
+            ws.Cell(1, 4).Value = "NIP";
+            ws.Cell(1, 5).Value = "Jabatan";
+            ws.Cell(1, 6).Value = "Bagian";
+            ws.Cell(1, 7).Value = "Unit";
+            ws.Cell(1, 8).Value = "Status";
+
+            var headerRange = ws.Range(1, 1, 1, 8);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            for (int i = 0; i < users.Count; i++)
+            {
+                var u = users[i];
+                ws.Cell(i + 2, 1).Value = i + 1;
+                ws.Cell(i + 2, 2).Value = u.FullName;
+                ws.Cell(i + 2, 3).Value = u.Email;
+                ws.Cell(i + 2, 4).Value = u.NIP ?? "-";
+                ws.Cell(i + 2, 5).Value = u.Position ?? "-";
+                ws.Cell(i + 2, 6).Value = u.Section ?? "-";
+                ws.Cell(i + 2, 7).Value = u.Unit ?? "-";
+                ws.Cell(i + 2, 8).Value = u.IsActive ? "Active" : "Inactive";
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = $"Pekerja_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         // GET /Admin/CreateWorker

@@ -31,19 +31,19 @@
             <a href="@Url.Action("ImportWorkers", "Admin")" class="btn btn-outline-success" id="btnImportWorkers">
                 <i class="bi bi-file-earmark-arrow-up me-2"></i>Import Excel
             </a>
-            <a href="@Url.Action("ExportWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = showInactive })" class="btn btn-outline-info" id="btnExportWorkers">
+            <a href="@Url.Action("ExportWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = showInactive })" class="btn btn-outline-info" id="btnExportWorkers">
                 <i class="bi bi-file-earmark-arrow-down me-2"></i>Export Excel
             </a>
             @if (showInactive)
             {
-                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = false })"
+                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = false })"
                    class="btn btn-outline-secondary" id="btnToggleInactive">
                     <i class="bi bi-eye-slash me-1"></i>Sembunyikan Inactive
                 </a>
             }
             else
             {
-                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, roleFilter = ViewBag.RoleFilter, showInactive = true })"
+                <a href="@Url.Action("ManageWorkers", "Admin", new { search = ViewBag.Search, sectionFilter = ViewBag.SectionFilter, unitFilter = ViewBag.UnitFilter, roleFilter = ViewBag.RoleFilter, showInactive = true })"
                    class="btn btn-outline-secondary" id="btnToggleInactive">
                     <i class="bi bi-eye me-1"></i>Tampilkan Inactive
                 </a>
@@ -128,13 +128,13 @@
         <div class="card-body">
             <form method="get" action="@Url.Action("ManageWorkers", "Admin")" id="filterForm">
                 <div class="row g-3 align-items-end">
-                    <div class="col-12 col-md-3">
+                    <div class="col-12 col-md-2">
                         <label class="form-label fw-bold small">Bagian</label>
-                        <select class="form-select form-select-sm" name="sectionFilter" onchange="this.form.submit()">
+                        <select class="form-select form-select-sm" name="sectionFilter" id="sectionFilterSelect" onchange="onBagianChange()">
                             <option value="">Semua Bagian</option>
                             @{
-                                var sections = new[] { "GAST", "RFCC", "NGP", "DHT / HMU" };
-                                foreach (var sec in sections)
+                                var allSections = ViewBag.AllSections as List<string> ?? new List<string>();
+                                foreach (var sec in allSections)
                                 {
                                     if ((string)ViewBag.SectionFilter == sec)
                                     {
@@ -149,6 +149,26 @@
                         </select>
                     </div>
                     <div class="col-12 col-md-3">
+                        <label class="form-label fw-bold small">Unit</label>
+                        <select class="form-select form-select-sm" name="unitFilter" id="unitFilterSelect" onchange="this.form.submit()">
+                            <option value="">Semua Unit</option>
+                            @{
+                                var allUnits = ViewBag.AllUnits as List<string> ?? new List<string>();
+                                foreach (var unit in allUnits)
+                                {
+                                    if ((string)ViewBag.UnitFilter == unit)
+                                    {
+                                        <option value="@unit" selected>@unit</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@unit">@unit</option>
+                                    }
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-2">
                         <label class="form-label fw-bold small">Role</label>
                         <select class="form-select form-select-sm" name="roleFilter" onchange="this.form.submit()">
                             <option value="">Semua Role</option>
@@ -165,7 +185,7 @@
                             }
                         </select>
                     </div>
-                    <div class="col-12 col-md-4">
+                    <div class="col-12 col-md-3">
                         <label class="form-label fw-bold small">Cari</label>
                         <div class="input-group input-group-sm">
                             <input type="text" class="form-control" name="search" placeholder="Cari nama, email, atau NIP..." value="@ViewBag.Search">
@@ -327,6 +347,15 @@
 </style>
 
 <script>
+    // --- Bagian Change: reset Unit before submit ---
+    function onBagianChange() {
+        var unitSelect = document.getElementById('unitFilterSelect');
+        if (unitSelect) {
+            unitSelect.value = '';
+        }
+        document.getElementById('filterForm').submit();
+    }
+
     // --- Deactivate Confirmation ---
     function confirmDeactivate(userName) {
         return confirm(`Nonaktifkan user "${userName}"?\n\nCoaching aktif akan ditutup dan assessment aktif akan dibatalkan. Tindakan ini dapat dibatalkan dengan Aktifkan Kembali.`);
