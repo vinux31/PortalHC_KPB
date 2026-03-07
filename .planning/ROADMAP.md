@@ -60,10 +60,10 @@
   3. Evidence column submit buttons and status badges have visually distinct, consistent styling -- users can instantly tell which is actionable vs informational
   4. Lihat Detail, Export, Reset, Kembali, and HC Review buttons all have polished, consistent styling that matches across the main table and Antrian Review panel
   5. All existing approval workflows (SrSpv Tinjau modal, SH Tinjau modal, HC Review, Evidence Submit) continue to function after the redesign -- no JS regression
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 112-01: TBD
+- [ ] 112-01-PLAN.md — Button/badge redesign: Razor helpers, Tinjau conversion, evidence badges, JS innerHTML, Export PDF
 
 ## Progress
 
@@ -71,7 +71,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 112. CoachingProton Button & Badge Redesign | 0/? | Not started | - |
+| 112. CoachingProton Button & Badge Redesign | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-07*
