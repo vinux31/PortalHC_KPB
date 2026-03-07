@@ -141,6 +141,8 @@ Plans:
   3. Each approval role (SrSpv, SH, HC) creates a separate history entry when they approve
   4. Re-submitting evidence after rejection creates a "Re-submitted" history entry
 **Plans**: 1 plan
+nPlans:
+- [ ] 117-01-PLAN.md — DeliverableStatusHistory model, migration, and CDPController wiring
 
 ### Phase 118: P-Sign Infrastructure
 **Goal**: Any user's P-Sign badge can be rendered as a visual component for use in pages and PDFs
