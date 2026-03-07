@@ -61,10 +61,10 @@
   1. Silabus table in view mode shows a Target column between SubKompetensi and Deliverable
   2. In edit mode, user can type a target value into the Target field and save it via SilabusSave
   3. Existing silabus rows display correctly with empty/null Target values
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 113-01: Migration, model, and UI for Target column
+- [ ] 113-01: Migration, model, DTO, save logic, and UI for Target column
 
 ### Phase 114: Status Tab
 **Goal**: Admin/HC can see completeness status of silabus and guidance across all tracks at a glance
