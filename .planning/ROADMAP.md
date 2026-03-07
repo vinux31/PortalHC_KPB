@@ -99,7 +99,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 113. Target Column | 1/1 | Complete    | 2026-03-07 |
-| 114. Status Tab | 1/1 | Complete   | 2026-03-07 |
+| 114. Status Tab | 1/1 | Complete    | 2026-03-07 |
 | 115. Hard Delete + Consumer Audit | 0/1 | Not started | - |
 
 ---

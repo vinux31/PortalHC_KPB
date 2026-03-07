@@ -1,5 +1,19 @@
 ---
 gsd_state_version: 1.0
+milestone: v3.9
+milestone_name: ProtonData Enhancement
+status: planning
+last_updated: "2026-03-07T07:32:59.415Z"
+last_activity: 2026-03-07 — Roadmap created
+progress:
+  total_phases: 8
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
+---
+
+---
+gsd_state_version: 1.0
 milestone: v3.10
 milestone_name: Evidence Coaching & Deliverable Redesign
 status: planning
