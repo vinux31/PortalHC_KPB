@@ -1,6 +1,10 @@
 @model HcPortal.Models.HistoriProtonViewModel
 @{
     ViewData["Title"] = "Histori Proton - CDP";
+    var lockedSection = ViewBag.LockedSection as string;
+    var userLevel = (int)(ViewBag.UserLevel ?? 0);
+    var isLocked = userLevel == 4 && !string.IsNullOrEmpty(lockedSection);
+    var orgStructureJson = ViewBag.OrgStructureJson as string ?? "{}";
 }
 
 <div class="container-fluid py-4">
@@ -23,23 +27,39 @@
                     <input type="text" id="searchInput" class="form-control" placeholder="Cari nama atau NIP...">
                 </div>
                 <div class="col-12 col-md-auto">
-                    <label class="form-label small text-muted">Section</label>
-                    <select id="filterSection" class="form-select">
-                        <option value="">Semua Section</option>
-                        @foreach (var s in Model.AvailableSections)
-                        {
-                            <option value="@s">@s</option>
-                        }
-                    </select>
+                    <label class="form-label small text-muted">Bagian</label>
+                    @if (isLocked)
+                    {
+                        <select id="filterBagian" class="form-select" disabled>
+                            <option value="">Semua Bagian</option>
+                            @foreach (var s in Model.AvailableSections)
+                            {
+                                @if (s == lockedSection)
+                                {
+                                    <option value="@s" selected>@s</option>
+                                }
+                                else
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <select id="filterBagian" class="form-select">
+                            <option value="">Semua Bagian</option>
+                            @foreach (var s in Model.AvailableSections)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        </select>
+                    }
                 </div>
                 <div class="col-12 col-md-auto">
                     <label class="form-label small text-muted">Unit</label>
                     <select id="filterUnit" class="form-select">
                         <option value="">Semua Unit</option>
-                        @foreach (var u in Model.AvailableUnits)
-                        {
-                            <option value="@u">@u</option>
-                        }
                     </select>
                 </div>
                 <div class="col-12 col-md-auto">
@@ -140,8 +160,8 @@
 
             <!-- Empty state -->
             <div id="emptyState" class="text-center py-5 d-none">
-                <i class="bi bi-search fs-1 text-muted"></i>
-                <p class="text-muted mt-2">Tidak ada data yang sesuai dengan pencarian.</p>
+                <i class="bi bi-funnel fs-1 text-muted"></i>
+                <p class="text-muted mt-2">Tidak ada pekerja yang sesuai dengan filter.</p>
             </div>
 
             <!-- Pagination -->
@@ -181,12 +201,15 @@
 @section Scripts {
 <script>
 (function() {
+    // OrganizationStructure cascade data
+    var sectionUnits = @Html.Raw(orgStructureJson);
+
     const ROWS_PER_PAGE = 15;
     const table = document.getElementById('workerTable');
     const tbody = table.querySelector('tbody');
     const allRows = Array.from(tbody.querySelectorAll('tr'));
     const searchInput = document.getElementById('searchInput');
-    const filterSection = document.getElementById('filterSection');
+    const filterBagian = document.getElementById('filterBagian');
     const filterUnit = document.getElementById('filterUnit');
     const filterJalur = document.getElementById('filterJalur');
     const filterStatus = document.getElementById('filterStatus');
@@ -199,16 +222,30 @@
     let currentPage = 1;
     let visibleRows = allRows.slice();
 
+    function updateUnitOptions() {
+        var bagianVal = filterBagian.value;
+        filterUnit.innerHTML = '<option value="">Semua Unit</option>';
+
+        if (bagianVal && sectionUnits[bagianVal]) {
+            sectionUnits[bagianVal].forEach(function(u) {
+                var opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                filterUnit.appendChild(opt);
+            });
+        }
+    }
+
     function applyFilters() {
         const search = searchInput.value.toLowerCase().trim();
-        const section = filterSection.value;
+        const bagian = filterBagian.value;
         const unit = filterUnit.value;
         const jalur = filterJalur.value;
         const status = filterStatus.value;
 
         visibleRows = allRows.filter(function(row) {
             if (search && !row.dataset.nama.includes(search) && !row.dataset.nip.includes(search)) return false;
-            if (section && row.dataset.section !== section) return false;
+            if (bagian && row.dataset.section !== bagian) return false;
             if (unit && row.dataset.unit !== unit) return false;
             if (jalur && row.dataset.jalur !== jalur) return false;
             if (status && row.dataset.status !== status) return false;
@@ -280,19 +317,30 @@
     }
 
     searchInput.addEventListener('keyup', applyFilters);
-    filterSection.addEventListener('change', applyFilters);
+    filterBagian.addEventListener('change', function() { updateUnitOptions(); applyFilters(); });
     filterUnit.addEventListener('change', applyFilters);
     filterJalur.addEventListener('change', applyFilters);
     filterStatus.addEventListener('change', applyFilters);
 
     btnReset.addEventListener('click', function() {
         searchInput.value = '';
-        filterSection.value = '';
+        if (!filterBagian.disabled) {
+            filterBagian.value = '';
+        }
         filterUnit.value = '';
         filterJalur.value = '';
         filterStatus.value = '';
+        updateUnitOptions();
+        if (filterBagian.disabled && filterBagian.value) {
+            updateUnitOptions();
+        }
         applyFilters();
     });
+
+    // Initial setup: if L4 locked, populate units for locked section
+    if (filterBagian.disabled && filterBagian.value) {
+        updateUnitOptions();
+    }
 
     // Initial render
     render();

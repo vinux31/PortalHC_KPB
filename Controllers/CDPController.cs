@@ -2382,23 +2382,19 @@ namespace HcPortal.Controllers
             // Sort by Nama A-Z (default)
             workers = workers.OrderBy(w => w.Nama).ToList();
 
-            // Build available filters from scoped data
-            var availableSections = coacheeUsers
-                .Where(u => !string.IsNullOrEmpty(u.Section))
-                .Select(u => u.Section!)
-                .Distinct().OrderBy(s => s).ToList();
-
-            var availableUnits = coacheeUsers
-                .Where(u => !string.IsNullOrEmpty(u.Unit))
-                .Select(u => u.Unit!)
-                .Distinct().OrderBy(u => u).ToList();
-
+            // Use OrganizationStructure for filter dropdowns (not data-driven)
             var viewModel = new HistoriProtonViewModel
             {
                 Workers = workers,
-                AvailableSections = availableSections,
-                AvailableUnits = availableUnits
+                AvailableSections = HcPortal.Models.OrganizationStructure.GetAllSections(),
+                AvailableUnits = new List<string>() // Units populated client-side via cascade
             };
+
+            // L4 lock and cascade data
+            ViewBag.LockedSection = userLevel == 4 ? user.Section : null;
+            ViewBag.UserLevel = userLevel;
+            ViewBag.OrgStructureJson = System.Text.Json.JsonSerializer.Serialize(
+                HcPortal.Models.OrganizationStructure.SectionUnits);
 
             return View(viewModel);
         }
