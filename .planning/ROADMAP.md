@@ -154,6 +154,9 @@ nPlans:
   3. P-Sign can be rendered as an embeddable HTML component and as an image for PDF embedding
 **Plans**: 1 plan
 
+Plans:
+- [ ] 118-01-PLAN.md — PSignViewModel, _PSign.cshtml partial view, and Settings page preview
+
 ### Phase 119: Deliverable Page Restructure
 **Goal**: Deliverable detail page presents coaching data, approval status, and history in clearly separated sections
 **Depends on**: Phase 117 (needs DeliverableStatusHistory data)
