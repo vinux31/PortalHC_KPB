@@ -64,7 +64,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 113-01: Migration, model, DTO, save logic, and UI for Target column
+- [x] 113-01: Migration, model, DTO, save logic, and UI for Target column
 
 ### Phase 114: Status Tab
 **Goal**: Admin/HC can see completeness status of silabus and guidance across all tracks at a glance
@@ -78,7 +78,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 114-01: StatusData endpoint and Status tab UI
+- [x] 114-01: StatusData endpoint and Status tab UI
 
 ### Phase 115: Hard Delete + Consumer Audit
 **Goal**: Admin/HC can permanently remove incorrectly entered Kompetensi master data while all silabus consumers remain intact
@@ -89,10 +89,10 @@ Plans:
   2. Clicking Delete shows a confirmation dialog listing the count of SubKompetensi and Deliverable that will be deleted
   3. Delete is blocked with a message when ProtonDeliverableProgress records reference deliverables under that Kompetensi
   4. After successful delete, PlanIdp and CoachingProton pages still function correctly (consumer audit verified)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 115-01: Hard delete endpoint, confirmation dialog, consumer audit
+- [ ] 115-01-PLAN.md — Backend cascade delete endpoints + frontend delete button and confirmation modal
 
 ## Progress
 
@@ -129,7 +129,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 116-01-PLAN.md — Remove CoacheeCompetencies from modal, controller, model, views + data-clearing migration
+- [x] 116-01-PLAN.md — Remove CoacheeCompetencies from modal, controller, model, views + data-clearing migration
 
 ### Phase 117: Status History
 **Goal**: Every deliverable status change is permanently recorded with actor, timestamp, and reason
@@ -140,7 +140,7 @@ Plans:
   2. After a rejection followed by re-submit, the original rejection entry (with reason) is still present in the history table
   3. Each approval role (SrSpv, SH, HC) creates a separate history entry when they approve
   4. Re-submitting evidence after rejection creates a "Re-submitted" history entry
-**Plans**: TBD
+**Plans**: 1 plan
 
 ### Phase 118: P-Sign Infrastructure
 **Goal**: Any user's P-Sign badge can be rendered as a visual component for use in pages and PDFs
@@ -150,7 +150,7 @@ Plans:
   1. ApplicationUser has Position/Role text and Unit fields that populate the P-Sign
   2. P-Sign badge renders with Logo Pertamina, Role + Unit, and full name
   3. P-Sign can be rendered as an embeddable HTML component and as an image for PDF embedding
-**Plans**: TBD
+**Plans**: 1 plan
 
 ### Phase 119: Deliverable Page Restructure
 **Goal**: Deliverable detail page presents coaching data, approval status, and history in clearly separated sections
@@ -160,7 +160,7 @@ Plans:
   1. Deliverable detail page shows four distinct sections: Detail Coachee & Kompetensi, Evidence Coach, Approval Chain, Riwayat Status
   2. Riwayat Status section displays a chronological timeline of all status changes from DeliverableStatusHistory
   3. Evidence Coach section shows Catatan Coach, Kesimpulan, Result, and a download button for the evidence file
-**Plans**: TBD
+**Plans**: 1 plan
 
 ### Phase 120: PDF Evidence
 **Goal**: Coach can download a professional PDF evidence form after submitting coaching evidence
@@ -171,7 +171,7 @@ Plans:
   2. PDF contains: Coachee info, Track, Kompetensi, SubKompetensi, Deliverable, Tanggal, Catatan Coach, Kesimpulan, Result
   3. PDF displays the Coach's P-Sign badge in the bottom-right corner
   4. Deliverable detail page has a "Download PDF" button that downloads the generated PDF
-**Plans**: TBD
+**Plans**: 1 plan
 
 ## Progress
 
