@@ -70,11 +70,11 @@ Plans:
   3. Deliverable page enforces section check for L4 and coach-coachee mapping check for L5
   4. HistoriProton worker list is scoped correctly per role level
   5. CoachingProton and PlanIdp show "Data belum ada" when filtered results are empty
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 110-01: TBD
-- [ ] 110-02: TBD
+- [ ] 110-01-PLAN.md — HistoriProton OrganizationStructure filters, cascade, L4 lock, empty state + CoachingProton verification
+- [ ] 110-02-PLAN.md — PlanIdp L4 Bagian lock, guidance scoping, empty states + Deliverable verification
 
 ### Phase 111: SectionHead & Filter Infrastructure
 **Goal**: SectionHead at level 4 has consistent access everywhere, ManageWorkers filter fixed, and all unit dropdowns cascade correctly
@@ -99,9 +99,9 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 109. CMP Role Access & Filters | 1/1 | Complete    | 2026-03-06 |
-| 110. CDP Role Access & Filters | 0/? | Not started | - |
+| 110. CDP Role Access & Filters | 0/2 | Not started | - |
 | 111. SectionHead & Filter Infrastructure | 0/? | Not started | - |
 
 ---
 *Roadmap created: 2026-03-06*
-*Last updated: 2026-03-06 after Phase 109 planning*
+*Last updated: 2026-03-07 after Phase 110 planning*
