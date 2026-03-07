@@ -959,6 +959,11 @@ namespace HcPortal.Controllers
 
             // Phase 65: No more sequential unlock — Locked/Active statuses removed
 
+            // Phase 117: Record status history
+            string approveStatusType = isSrSpv ? "SrSpv Approved" : "SH Approved";
+            string approveActorRole = isSrSpv ? "Sr. Supervisor" : "Section Head";
+            RecordStatusHistory(progress.Id, approveStatusType, user.Id, user.FullName, approveActorRole);
+
             // Check all-approved: use in-memory state (current record already set to "Approved" above)
             bool allApproved = orderedProgresses.All(p => p.Status == "Approved");
 
@@ -1036,6 +1041,12 @@ namespace HcPortal.Controllers
             progress.HCReviewedById = null;
             progress.HCReviewedAt = null;
 
+            // Phase 117: Record rejection history
+            bool isSrSpvReject = userRole == UserRoles.SrSupervisor;
+            string rejectStatusType = isSrSpvReject ? "SrSpv Rejected" : "SH Rejected";
+            string rejectActorRole = isSrSpvReject ? "Sr. Supervisor" : "Section Head";
+            RecordStatusHistory(progress.Id, rejectStatusType, user.Id, user.FullName, rejectActorRole, rejectionReason);
+
             await _context.SaveChangesAsync();
 
             TempData["Success"] = "Deliverable berhasil ditolak.";
@@ -1107,6 +1118,9 @@ namespace HcPortal.Controllers
             progress.HCApprovalStatus = "Reviewed";
             progress.HCReviewedAt = DateTime.UtcNow;
             progress.HCReviewedById = user.Id;
+
+            // Phase 117: Record HC review history
+            RecordStatusHistory(progress.Id, "HC Reviewed", user.Id, user.FullName, "HC");
 
             await _context.SaveChangesAsync();
 
@@ -1965,6 +1979,11 @@ namespace HcPortal.Controllers
             var submittedIds = new List<int>();
             foreach (var progress in progresses)
             {
+                // Phase 117: Record status history (before overwriting Status)
+                bool isResubmit = progress.Status == "Rejected";
+                string submitStatusType = isResubmit ? "Re-submitted" : "Submitted";
+                RecordStatusHistory(progress.Id, submitStatusType, user.Id, user.FullName, "Coach");
+
                 progress.Status = "Submitted";
                 progress.SubmittedAt = now;
                 // Reset approval columns for fresh review cycle
@@ -2519,6 +2538,21 @@ namespace HcPortal.Controllers
             };
 
             return View(viewModel);
+        }
+
+        // ===== Phase 117: Status History Helper =====
+        private void RecordStatusHistory(int progressId, string statusType, string actorId, string actorName, string actorRole, string? rejectionReason = null)
+        {
+            _context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
+            {
+                ProtonDeliverableProgressId = progressId,
+                StatusType = statusType,
+                ActorId = actorId,
+                ActorName = actorName,
+                ActorRole = actorRole,
+                RejectionReason = rejectionReason,
+                Timestamp = DateTime.UtcNow
+            });
         }
 
     }
