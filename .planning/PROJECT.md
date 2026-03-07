@@ -12,13 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.8 shipped — 2026-03-07)
+## Current State (v3.9 — started 2026-03-07)
 
-**v1.0 through v3.8 shipped** — 25 milestones, 112 phases. All core portal flows verified working. CoachingProton page fully redesigned with proper button/badge distinction.
+**v1.0 through v3.8 shipped** — 25 milestones, 112 phases.
 
-## Latest Milestone: v3.8 CoachingProton UI Redesign (SHIPPED)
+## Current Milestone: v3.9 ProtonData Enhancement
 
-**Delivered:** All interactive elements on CoachingProton page visually distinguishable from status indicators — Tinjau badges converted to proper buttons, resolved statuses styled bold+border, JS innerHTML synchronized, export buttons unified.
+**Goal:** Enhance ProtonData/Index page — tambah tab Status overview, kolom Target di Silabus, tombol Delete permanen, dan audit koneksi tabel Silabus.
+
+**Target features:**
+- Tab Status baru (posisi pertama) — tree checklist Bagian > Unit > Track showing completeness per silabus & guidance
+- Kolom Target (text bebas) di tabel Silabus setelah SubKompetensi, sebelum Deliverable
+- Tombol Delete permanen di view mode level Kompetensi (hard delete Kompetensi + children)
+- Audit & fix koneksi tabel Silabus ke semua consumer (PlanIdp, CoachingProton, dll)
 
 ## Architecture Decisions
 

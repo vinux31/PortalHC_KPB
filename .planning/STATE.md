@@ -1,15 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.8
-milestone_name: CoachingProton UI Redesign
-status: completed
+milestone: v3.9
+milestone_name: ProtonData Enhancement
+status: defining requirements
 last_updated: "2026-03-07"
-last_activity: 2026-03-07 — Milestone v3.8 completed and archived
+last_activity: 2026-03-07 — Milestone v3.9 started
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,15 +20,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Planning next milestone
+**Current focus:** v3.9 ProtonData Enhancement
 
 ## Current Position
 
-**Milestone:** v3.8 CoachingProton UI Redesign — SHIPPED
-**Status:** Milestone complete, awaiting next milestone
-**Last activity:** 2026-03-07 — Milestone v3.8 archived
+**Milestone:** v3.9 ProtonData Enhancement
+**Phase:** Not started (defining requirements)
+**Plan:** --
+**Status:** Defining requirements
+**Last activity:** 2026-03-07 — Milestone v3.9 started
 
-Progress: [##########] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -40,15 +43,15 @@ Progress: [##########] 100%
 
 ### Decisions
 
-- SectionHead moved from Level 3 to Level 4 (same as SrSupervisor, section-scoped)
-- All filters should use OrganizationStructure static list, not data-driven queries
-- CDP access gates refactored to level-based (HasSectionAccess) instead of role-name OR chains
-- Rejection allowed on Approved deliverables for co-sign disagreement scenario
-- Tinjau buttons use btn-outline-warning; resolved badges use fw-bold + colored border
+- ProtonData has 2 existing tabs: Silabus + Coaching Guidance
+- Silabus hierarchy: ProtonKompetensi > ProtonSubKompetensi > ProtonDeliverable
+- Nonaktifkan = soft-delete (IsActive=false), Delete = hard delete from DB
+- New Target column is free text type
+- Status tab shows tree checklist for completeness overview
 
 ### Blockers/Concerns
 
 None currently identified.
 
 ---
-*State updated: 2026-03-07 after v3.8 milestone completion*
+*State updated: 2026-03-07 after milestone v3.9 start*
