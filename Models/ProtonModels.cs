@@ -45,6 +45,7 @@ public class ProtonSubKompetensi
     public int ProtonKompetensiId { get; set; }
     public ProtonKompetensi? ProtonKompetensi { get; set; }
     public string NamaSubKompetensi { get; set; } = "";
+    public string? Target { get; set; }
     public int Urutan { get; set; }
 
     public ICollection<ProtonDeliverable> Deliverables { get; set; } = new List<ProtonDeliverable>();
