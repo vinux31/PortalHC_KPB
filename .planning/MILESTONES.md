@@ -1,4 +1,21 @@
 # Milestones
+## v3.8 CoachingProton UI Redesign (Shipped: 2026-03-07)
+
+**Phases completed:** 1 phase (112), 1 plan, 2 tasks
+**Timeline:** 2026-03-07
+**Files modified:** 1 (Views/CDP/CoachingProton.cshtml)
+
+**Delivered:** Complete visual redesign of CoachingProton page — clickable badges converted to proper buttons, status badges given bold+border treatment for resolved states, JS innerHTML synchronized with server-rendered styling, and Export PDF recolored for consistency.
+
+**Key accomplishments:**
+1. Converted 4 Pending badge spans to proper `btn-outline-warning` Tinjau buttons with preserved modal triggers
+2. Added `fw-bold` + colored border to Approved/Rejected/Reviewed status badges via Razor helpers
+3. Updated 6 JS innerHTML locations to match new badge styling after AJAX operations
+4. Changed Export PDF button from red to green outline, matching Excel export
+5. Unified Evidence column: Sudah Upload = bold green+border, Belum Upload = plain gray
+
+---
+
 ## v3.6 Histori Proton (Shipped: 2026-03-06)
 
 **Phases completed:** 2 phases (107-108), 4 plans

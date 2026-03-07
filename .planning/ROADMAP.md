@@ -27,7 +27,7 @@
 </details>
 
 <details>
-<summary>v3.0 through v3.7 (Phases 82-111) — shipped 2026-03-02 to 2026-03-07</summary>
+<summary>v3.0 through v3.8 (Phases 82-112) — shipped 2026-03-02 to 2026-03-07</summary>
 
 - **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 CPDP (shipped 2026-03-03)
@@ -35,43 +35,10 @@
 - **v3.5 User Guide** — Phases 105-106 (shipped 2026-03-06)
 - **v3.6 Histori Proton** — Phases 107-108 (shipped 2026-03-06)
 - **v3.7 Role Access & Filter Audit** — Phases 109-111 (shipped 2026-03-07)
+- **v3.8 CoachingProton UI Redesign** — Phase 112 (shipped 2026-03-07)
 
 </details>
 
 ---
 
-## v3.8 CoachingProton UI Redesign
-
-**Milestone Goal:** Redesign all buttons and UI elements on CoachingProton page so interactive elements are visually distinguishable from status indicators, with consistent styling across all actions.
-
-## Phases
-
-- [x] **Phase 112: CoachingProton Button & Badge Redesign** - Replace badge-as-button antipattern with proper buttons, add status icons, unify styling across all interactive elements (completed 2026-03-07)
-
-## Phase Details
-
-### Phase 112: CoachingProton Button & Badge Redesign
-**Goal**: All interactive elements on the CoachingProton page are visually distinguishable from read-only status indicators, with consistent styling across buttons, badges, and approval actions
-**Depends on**: Nothing (standalone UI milestone)
-**Requirements**: BTN-01, BTN-02, BTN-03, CONS-01, CONS-02, CONS-03, CONS-04, TECH-01, TECH-02, TECH-03
-**Success Criteria** (what must be TRUE):
-  1. Pending badges in SrSpv and SH columns are clearly clickable buttons with hover/focus states that signal interactivity -- not styled as passive badges
-  2. All status badges (Approved, Rejected, Pending, Reviewed) display appropriate icons alongside text, making status distinguishable without relying on color alone
-  3. Evidence column submit buttons and status badges have visually distinct, consistent styling -- users can instantly tell which is actionable vs informational
-  4. Lihat Detail, Export, Reset, Kembali, and HC Review buttons all have polished, consistent styling that matches across the main table and Antrian Review panel
-  5. All existing approval workflows (SrSpv Tinjau modal, SH Tinjau modal, HC Review, Evidence Submit) continue to function after the redesign -- no JS regression
-**Plans**: 1 plan
-
-Plans:
-- [ ] 112-01-PLAN.md — Button/badge redesign: Razor helpers, Tinjau conversion, evidence badges, JS innerHTML, Export PDF
-
-## Progress
-
-**Execution Order:** Phase 112 (single phase milestone)
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 112. CoachingProton Button & Badge Redesign | 1/1 | Complete    | 2026-03-07 |
-
----
-*Roadmap created: 2026-03-07*
+*Roadmap updated: 2026-03-07 — all milestones through v3.8 shipped*

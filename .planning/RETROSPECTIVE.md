@@ -283,6 +283,43 @@
 
 ---
 
+## Milestone: v3.8 — CoachingProton UI Redesign
+
+**Shipped:** 2026-03-07
+**Phases:** 1 (112) | **Plans:** 1
+
+### What Was Built
+- Converted 4 Pending badge spans to proper `btn-outline-warning` Tinjau buttons with modal triggers
+- Added `fw-bold` + colored border to resolved status badges (Approved/Rejected/Reviewed) via Razor helpers
+- Synchronized 6 JS innerHTML locations with new badge styling for AJAX consistency
+- Unified Export PDF button to green outline matching Excel export
+- Styled Evidence badges: Sudah Upload = bold green+border, Belum Upload = plain gray
+
+### What Worked
+- **Single-file scope**: Entire milestone touched only `CoachingProton.cshtml` — no cross-file coordination needed
+- **Razor helper leverage**: Updating `GetApprovalBadge` and `GetApprovalBadgeWithTooltip` fixed all server-rendered badges at once
+- **CONTEXT.md locked decisions**: discuss-phase captured exact class names and color mappings upfront — zero ambiguity during execution
+- **Research line-number mapping**: Researcher identified exact line numbers for all 6 JS innerHTML locations — executor hit them all on first pass
+
+### What Was Inefficient
+- Nothing notable — single-plan milestone executed cleanly in one session
+
+### Patterns Established
+- **btn vs badge convention**: Interactive elements use `btn btn-outline-*` classes; read-only status indicators use `badge` with `fw-bold border` for resolved states
+- **JS innerHTML sync rule**: After changing server-rendered badge/button styling, grep all `innerHTML` assignments in the same view — they MUST match
+
+### Key Lessons
+1. Pure CSS/HTML redesigns are ideal single-plan milestones — low risk, high visual impact
+2. The discuss-phase "locked decisions" pattern eliminates design ambiguity at execution time
+3. JS innerHTML is the #1 risk area for styling drift — always audit after Razor template changes
+
+### Cost Observations
+- Model profile: budget (sonnet planner/executor, haiku checker/researcher)
+- 1-session milestone (~30 min total)
+- Smallest possible milestone: 1 phase, 1 plan, 2 tasks
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -307,5 +344,6 @@
 | v2.7 | 3 | 4 | 1 | 4 |
 | v3.0 | 10 | 34 | 4 | 8.5 |
 | v3.6 | 2 | 4 | 1 | 4 |
+| v3.8 | 1 | 1 | 1 | 1 |
 
-**Running total:** 87 phases, ~204 plans, 23 days
+**Running total:** 88 phases, ~205 plans, 24 days
