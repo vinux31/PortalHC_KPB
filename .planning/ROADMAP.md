@@ -86,11 +86,11 @@ Plans:
   3. SrSpv/SH approval chain works correctly when SH is at level 4
   4. Admin ManageWorkers section filter uses OrganizationStructure
   5. Selecting a Bagian in any filter dropdown cascades to show only that Bagian's units
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 111-01: TBD
-- [ ] 111-02: TBD
+- [ ] 111-01-PLAN.md — SH access audit, CDP role-name refactor, approval co-sign logic
+- [ ] 111-02-PLAN.md — ManageWorkers OrganizationStructure filter with Unit cascade, cascade audit
 
 ## Progress
 
@@ -100,8 +100,8 @@ Plans:
 |-------|----------------|--------|-----------|
 | 109. CMP Role Access & Filters | 1/1 | Complete    | 2026-03-06 |
 | 110. CDP Role Access & Filters | 2/2 | Complete    | 2026-03-07 |
-| 111. SectionHead & Filter Infrastructure | 0/? | Not started | - |
+| 111. SectionHead & Filter Infrastructure | 0/2 | Not started | - |
 
 ---
 *Roadmap created: 2026-03-06*
-*Last updated: 2026-03-07 after Phase 110 planning*
+*Last updated: 2026-03-07 after Phase 111 planning*
