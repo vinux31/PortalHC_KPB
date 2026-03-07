@@ -70,6 +70,55 @@ namespace HcPortal.Controllers
             _logger = logger;
         }
 
+        // GET: /ProtonData/StatusData
+        public async Task<IActionResult> StatusData()
+        {
+            // 1. Silabus completeness per (Bagian, Unit, TrackId)
+            var kompetensiData = await _context.ProtonKompetensiList
+                .Where(k => k.IsActive)
+                .Include(k => k.SubKompetensiList)
+                    .ThenInclude(s => s.Deliverables)
+                .ToListAsync();
+
+            var silabusStatus = kompetensiData
+                .GroupBy(k => new { k.Bagian, k.Unit, k.ProtonTrackId })
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.All(k => k.SubKompetensiList.Any()
+                        && k.SubKompetensiList.All(s => s.Deliverables.Any()))
+                );
+
+            // 2. Guidance existence per (Bagian, Unit, TrackId)
+            var guidanceKeys = await _context.CoachingGuidanceFiles
+                .Select(f => new { f.Bagian, f.Unit, f.ProtonTrackId })
+                .Distinct()
+                .ToListAsync();
+            var guidanceSet = new HashSet<string>(
+                guidanceKeys.Select(g => $"{g.Bagian}|{g.Unit}|{g.ProtonTrackId}"));
+
+            // 3. Build response for all combos
+            var tracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+            var result = new List<object>();
+
+            foreach (var section in OrganizationStructure.SectionUnits)
+            {
+                foreach (var unit in section.Value)
+                {
+                    foreach (var track in tracks)
+                    {
+                        var key = new { Bagian = section.Key, Unit = unit, ProtonTrackId = track.Id };
+                        var silabusOk = silabusStatus.TryGetValue(key, out var ok) && ok;
+                        var guidanceOk = guidanceSet.Contains($"{section.Key}|{unit}|{track.Id}");
+
+                        result.Add(new { bagian = section.Key, unit, trackId = track.Id,
+                            trackName = track.DisplayName, silabusOk, guidanceOk });
+                    }
+                }
+            }
+
+            return Json(result);
+        }
+
         // GET: /ProtonData
         public async Task<IActionResult> Index(string? bagian, string? unit, int? trackId, bool showInactive = false)
         {
