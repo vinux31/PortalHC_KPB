@@ -2,28 +2,14 @@
 gsd_state_version: 1.0
 milestone: v3.8
 milestone_name: CoachingProton UI Redesign
-status: planning
-last_updated: "2026-03-07T05:07:03.259Z"
-last_activity: 2026-03-07 — Completed 111-02 ManageWorkers filter refactor
-progress:
-  total_phases: 1
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
----
-
----
-gsd_state_version: 1.0
-milestone: v3.8
-milestone_name: CoachingProton UI Redesign
 status: executing
 last_updated: "2026-03-07"
-last_activity: 2026-03-07 — Completed 111-02 ManageWorkers filter refactor
+last_activity: 2026-03-07 — Completed 112-01 Button & Badge Redesign
 progress:
   total_phases: 1
   completed_phases: 0
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 1
+  completed_plans: 1
   percent: 100
 ---
 
@@ -40,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Milestone:** v3.8 CoachingProton UI Redesign
 **Phase:** 1 of 1 (Phase 112: CoachingProton Button & Badge Redesign)
-**Plan:** 2 of 2 complete (111-01, 111-02)
-**Status:** Ready to plan
-**Last activity:** 2026-03-07 — Completed 111-02 ManageWorkers filter refactor
+**Plan:** 1 of 1 complete (112-01)
+**Status:** Phase complete
+**Last activity:** 2026-03-07 — Completed 112-01 Button & Badge Redesign
 
 Progress: [██████████] 100%
 
@@ -50,7 +36,7 @@ Progress: [██████████] 100%
 
 **Total Project:**
 - Milestones shipped: 24 (v1.0 through v3.7)
-- Phases completed: 110 (through Phase 110)
+- Phases completed: 111 (through Phase 112)
 - Active development: 2026-02-14 to present
 
 ## Accumulated Context
@@ -65,10 +51,11 @@ Progress: [██████████] 100%
 - Rejection allowed on Approved deliverables for co-sign disagreement scenario
 - Created ExportWorkers action (was missing from controller despite view reference)
 - ManageWorkers uses server-side cascade for Unit dropdown (form resubmit pattern)
+- Tinjau buttons use btn-outline-warning; resolved badges use fw-bold + colored border
 
 ### Blockers/Concerns
 
 None currently identified.
 
 ---
-*State updated: 2026-03-07 after 111-02 execution*
+*State updated: 2026-03-07 after 112-01 execution*

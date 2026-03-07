@@ -46,7 +46,7 @@
 
 ## Phases
 
-- [ ] **Phase 112: CoachingProton Button & Badge Redesign** - Replace badge-as-button antipattern with proper buttons, add status icons, unify styling across all interactive elements
+- [x] **Phase 112: CoachingProton Button & Badge Redesign** - Replace badge-as-button antipattern with proper buttons, add status icons, unify styling across all interactive elements (completed 2026-03-07)
 
 ## Phase Details
 
@@ -71,7 +71,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 112. CoachingProton Button & Badge Redesign | 0/1 | Not started | - |
+| 112. CoachingProton Button & Badge Redesign | 1/1 | Complete   | 2026-03-07 |
 
 ---
 *Roadmap created: 2026-03-07*
