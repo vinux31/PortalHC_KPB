@@ -1,5 +1,6 @@
 @model HcPortal.Models.DeliverableViewModel
 @using System.Globalization
+@using HcPortal.Models
 
 @{
     ViewData["Title"] = $"Deliverable — {Model.Deliverable?.NamaDeliverable}";
@@ -400,36 +401,39 @@ else
         </div>
     }
 
-    @* Status Timeline *@
-    var approverNames = ViewBag.ApproverNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    @* Status Timeline — Phase 117: reads from DeliverableStatusHistory for permanent audit trail *@
+    var statusHistories = ViewBag.StatusHistories as List<DeliverableStatusHistory> ?? new List<DeliverableStatusHistory>();
     var timelineEvents = new List<(DateTime date, string icon, string iconClass, string text)>();
     var p = Model.Progress;
     if (p != null)
     {
         timelineEvents.Add((p.CreatedAt, "bi-plus-circle", "text-secondary", "Deliverable dibuat"));
-        if (p.SubmittedAt.HasValue)
-            timelineEvents.Add((p.SubmittedAt.Value, "bi-upload", "text-primary", "Evidence diupload"));
-        if (p.SrSpvApprovedAt.HasValue)
+    }
+    // Add history entries from DeliverableStatusHistory
+    foreach (var h in statusHistories)
+    {
+        var (icon, iconClass) = h.StatusType switch
         {
-            var aname = !string.IsNullOrEmpty(p.SrSpvApprovedById) && approverNames.ContainsKey(p.SrSpvApprovedById!) ? approverNames[p.SrSpvApprovedById!] : "Sr. Supervisor";
-            var aaction = p.SrSpvApprovalStatus == "Rejected" ? "ditolak" : "disetujui";
-            timelineEvents.Add((p.SrSpvApprovedAt.Value, p.SrSpvApprovalStatus == "Rejected" ? "bi-x-circle" : "bi-check-circle", p.SrSpvApprovalStatus == "Rejected" ? "text-danger" : "text-success", $"Sr. Supervisor ({aname}) — {aaction}"));
-        }
-        if (p.ShApprovedAt.HasValue)
+            "Submitted" => ("bi-upload", "text-primary"),
+            "Re-submitted" => ("bi-arrow-repeat", "text-warning"),
+            "SrSpv Approved" => ("bi-check-circle", "text-success"),
+            "SH Approved" => ("bi-check-circle", "text-success"),
+            "SrSpv Rejected" or "SH Rejected" => ("bi-x-circle", "text-danger"),
+            "HC Reviewed" => ("bi-person-check", "text-info"),
+            _ => ("bi-circle", "text-secondary")
+        };
+        var label = h.StatusType switch
         {
-            var sname = !string.IsNullOrEmpty(p.ShApprovedById) && approverNames.ContainsKey(p.ShApprovedById!) ? approverNames[p.ShApprovedById!] : "Section Head";
-            var saction = p.ShApprovalStatus == "Rejected" ? "ditolak" : "disetujui";
-            timelineEvents.Add((p.ShApprovedAt.Value, p.ShApprovalStatus == "Rejected" ? "bi-x-circle" : "bi-check-circle", p.ShApprovalStatus == "Rejected" ? "text-danger" : "text-success", $"Section Head ({sname}) — {saction}"));
-        }
-        if (p.RejectedAt.HasValue && p.Status == "Rejected")
-            timelineEvents.Add((p.RejectedAt.Value, "bi-x-circle", "text-danger", $"Ditolak — {p.RejectionReason}"));
-        if (p.ApprovedAt.HasValue && p.Status == "Approved")
-            timelineEvents.Add((p.ApprovedAt.Value, "bi-check-circle", "text-success", "Deliverable disetujui"));
-        if (p.HCReviewedAt.HasValue)
-        {
-            var hname = !string.IsNullOrEmpty(p.HCReviewedById) && approverNames.ContainsKey(p.HCReviewedById!) ? approverNames[p.HCReviewedById!] : "HC";
-            timelineEvents.Add((p.HCReviewedAt.Value, "bi-person-check", "text-info", $"HC Review ({hname})"));
-        }
+            "Submitted" => $"Evidence diupload oleh {h.ActorName} ({h.ActorRole})",
+            "Re-submitted" => $"Evidence diupload ulang oleh {h.ActorName} ({h.ActorRole})",
+            "SrSpv Approved" => $"Sr. Supervisor ({h.ActorName}) — disetujui",
+            "SH Approved" => $"Section Head ({h.ActorName}) — disetujui",
+            "SrSpv Rejected" => $"Sr. Supervisor ({h.ActorName}) — ditolak" + (!string.IsNullOrEmpty(h.RejectionReason) ? $": {h.RejectionReason}" : ""),
+            "SH Rejected" => $"Section Head ({h.ActorName}) — ditolak" + (!string.IsNullOrEmpty(h.RejectionReason) ? $": {h.RejectionReason}" : ""),
+            "HC Reviewed" => $"HC Review ({h.ActorName})",
+            _ => $"{h.StatusType} oleh {h.ActorName}"
+        };
+        timelineEvents.Add((h.Timestamp, icon, iconClass, label));
     }
     // Add coaching sessions to timeline
     foreach (var cs in coachingSessions65)

@@ -854,6 +854,12 @@ namespace HcPortal.Controllers
                 ViewBag.ApproverNames = new Dictionary<string, string>();
             }
 
+            // Phase 117: Load status history for timeline
+            ViewBag.StatusHistories = await _context.DeliverableStatusHistories
+                .Where(h => h.ProtonDeliverableProgressId == id)
+                .OrderBy(h => h.Timestamp)
+                .ToListAsync();
+
             var viewModel = new DeliverableViewModel
             {
                 Progress = progress,
