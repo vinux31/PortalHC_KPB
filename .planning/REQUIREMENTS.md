@@ -7,8 +7,8 @@
 
 ### Modal Cleanup
 
-- [ ] **MOD-01**: Field "Kompetensi Coachee" dihapus dari evidence modal CoachingProton (textarea #evidenceKoacheeComp)
-- [ ] **MOD-02**: CoachingSession model dan SubmitEvidenceWithCoaching action tidak lagi menyimpan/menerima field koacheeCompetencies
+- [x] **MOD-01**: Field "Kompetensi Coachee" dihapus dari evidence modal CoachingProton (textarea #evidenceKoacheeComp)
+- [x] **MOD-02**: CoachingSession model dan SubmitEvidenceWithCoaching action tidak lagi menyimpan/menerima field koacheeCompetencies
 
 ### Status History
 
@@ -49,8 +49,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MOD-01 | Phase 116 | Pending |
-| MOD-02 | Phase 116 | Pending |
+| MOD-01 | Phase 116 | Complete |
+| MOD-02 | Phase 116 | Complete |
 | HIST-01 | Phase 117 | Pending |
 | HIST-02 | Phase 117 | Pending |
 | HIST-03 | Phase 117 | Pending |
