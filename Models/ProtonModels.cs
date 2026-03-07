@@ -133,6 +133,28 @@ public class ProtonDeliverableProgress
 }
 
 /// <summary>
+/// Audit trail for every deliverable status change — tracks actor, timestamp, and reason (Phase 117)
+/// </summary>
+public class DeliverableStatusHistory
+{
+    public int Id { get; set; }
+    public int ProtonDeliverableProgressId { get; set; }
+    public ProtonDeliverableProgress? ProtonDeliverableProgress { get; set; }
+    /// <summary>Values: "Submitted", "SrSpv Approved", "SH Approved", "HC Reviewed",
+    ///         "SrSpv Rejected", "SH Rejected", "Re-submitted"</summary>
+    public string StatusType { get; set; } = "";
+    /// <summary>User ID of person who performed the action (no FK, matches project pattern)</summary>
+    public string ActorId { get; set; } = "";
+    /// <summary>Cached display name of actor at time of action</summary>
+    public string ActorName { get; set; } = "";
+    /// <summary>Cached display role: "Sr. Supervisor", "Section Head", "HC", "Coach"</summary>
+    public string ActorRole { get; set; } = "";
+    /// <summary>Only populated for rejection entries</summary>
+    public string? RejectionReason { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+}
+
+/// <summary>
 /// In-app notification for HC when coachee completes all deliverables (PROTN-06)
 /// </summary>
 public class ProtonNotification

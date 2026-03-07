@@ -68,6 +68,9 @@ namespace HcPortal.Data
         // Attempt History — Phase 46
         public DbSet<AssessmentAttemptHistory> AssessmentAttemptHistory { get; set; }
 
+        // Deliverable Status History — Phase 117
+        public DbSet<DeliverableStatusHistory> DeliverableStatusHistories { get; set; }
+
         // Notification System — Phase 99
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
