@@ -40,21 +40,21 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STAT-01 | TBD | Pending |
-| STAT-02 | TBD | Pending |
-| STAT-03 | TBD | Pending |
-| STAT-04 | TBD | Pending |
-| TGT-01 | TBD | Pending |
-| TGT-02 | TBD | Pending |
-| DEL-01 | TBD | Pending |
-| DEL-02 | TBD | Pending |
-| DEL-03 | TBD | Pending |
-| AUD-01 | TBD | Pending |
+| STAT-01 | Phase 114 | Pending |
+| STAT-02 | Phase 114 | Pending |
+| STAT-03 | Phase 114 | Pending |
+| STAT-04 | Phase 114 | Pending |
+| TGT-01 | Phase 113 | Pending |
+| TGT-02 | Phase 113 | Pending |
+| DEL-01 | Phase 115 | Pending |
+| DEL-02 | Phase 115 | Pending |
+| DEL-03 | Phase 115 | Pending |
+| AUD-01 | Phase 115 | Pending |
 
 **Coverage:**
 - v3.9 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-07*

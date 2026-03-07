@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
-status: defining requirements
+status: ready to plan
 last_updated: "2026-03-07"
-last_activity: 2026-03-07 — Milestone v3.9 started
+last_activity: 2026-03-07 — Roadmap created for v3.9
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
-  total_plans: 0
+  total_plans: 3
   completed_plans: 0
   percent: 0
 ---
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-07)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.9 ProtonData Enhancement
+**Current focus:** Phase 113 - Target Column
 
 ## Current Position
 
 **Milestone:** v3.9 ProtonData Enhancement
-**Phase:** Not started (defining requirements)
-**Plan:** --
-**Status:** Defining requirements
-**Last activity:** 2026-03-07 — Milestone v3.9 started
+**Phase:** 113 (1 of 3) — Target Column
+**Plan:** 0 of 1 in current phase
+**Status:** Ready to plan
+**Last activity:** 2026-03-07 — Roadmap created
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -46,12 +46,13 @@ Progress: [░░░░░░░░░░] 0%
 - ProtonData has 2 existing tabs: Silabus + Coaching Guidance
 - Silabus hierarchy: ProtonKompetensi > ProtonSubKompetensi > ProtonDeliverable
 - Nonaktifkan = soft-delete (IsActive=false), Delete = hard delete from DB
-- New Target column is free text type
+- New Target column is free text type (string?, nvarchar 500)
 - Status tab shows tree checklist for completeness overview
+- Build order: Target (low risk) -> Status (medium) -> Delete+Audit (high risk)
 
 ### Blockers/Concerns
 
-None currently identified.
+None.
 
 ---
-*State updated: 2026-03-07 after milestone v3.9 start*
+*State updated: 2026-03-07 after roadmap creation*
