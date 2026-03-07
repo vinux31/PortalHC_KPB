@@ -1,60 +1,75 @@
-# Requirements: Portal HC KPB v3.9
+# Requirements: Portal HC KPB v3.10
 
 **Defined:** 2026-03-07
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.9 Requirements
+## v3.10 Requirements
 
-### Status Tab
+### Modal Cleanup
 
-- [ ] **STAT-01**: Admin/HC dapat melihat tab Status (posisi pertama) di ProtonData/Index
-- [ ] **STAT-02**: Tab Status menampilkan tree checklist Bagian > Unit > Track yang bisa di-expand/collapse
-- [ ] **STAT-03**: Setiap node Track memiliki kolom Silabus dengan centang hijau jika ada minimal 1 Kompetensi aktif
-- [ ] **STAT-04**: Setiap node Track memiliki kolom Guidance dengan centang hijau jika ada minimal 1 file guidance
+- [ ] **MOD-01**: Field "Kompetensi Coachee" dihapus dari evidence modal CoachingProton (textarea #evidenceKoacheeComp)
+- [ ] **MOD-02**: CoachingSession model dan SubmitEvidenceWithCoaching action tidak lagi menyimpan/menerima field koacheeCompetencies
 
-### Silabus Target Column
+### Status History
 
-- [x] **TGT-01**: Tabel Silabus menampilkan kolom Target (text) setelah SubKompetensi dan sebelum Deliverable
-- [x] **TGT-02**: Kolom Target bisa diisi di edit mode dan tersimpan via SilabusSave
+- [ ] **HIST-01**: Tabel DeliverableStatusHistory menyimpan setiap perubahan status (Created, Submitted, Approved, Rejected, Reviewed, Re-submitted) dengan timestamp dan actor
+- [ ] **HIST-02**: Rejection record menyimpan rejection reason dan tidak terhapus saat coach resubmit evidence baru
+- [ ] **HIST-03**: Setiap approval per-role (SrSpv Approved, SH Approved, HC Reviewed) tercatat sebagai entry terpisah di history
+- [ ] **HIST-04**: Re-submit evidence setelah rejection tercatat sebagai entry "Re-submitted" di history
 
-### Hard Delete
+### Deliverable Page Restructure
 
-- [ ] **DEL-01**: Admin/HC dapat hard delete Kompetensi dari view mode dengan tombol Delete
-- [ ] **DEL-02**: Delete diblokir jika ada ProtonDeliverableProgress records yang mereferensi deliverable di bawah Kompetensi tersebut
-- [ ] **DEL-03**: Konfirmasi dialog menampilkan jumlah SubKompetensi dan Deliverable yang akan ikut terhapus
+- [ ] **PAGE-01**: Halaman Deliverable detail dibagi menjadi sections yang jelas: Detail Coachee & Kompetensi, Evidence Coach, Approval Chain, Riwayat Status
+- [ ] **PAGE-02**: Section Riwayat Status menampilkan timeline kronologis semua status changes dari DeliverableStatusHistory
+- [ ] **PAGE-03**: Section Evidence Coach menampilkan coaching session data (Catatan Coach, Kesimpulan, Result) dan file evidence dengan tombol download
 
-### Consumer Audit
+### P-Sign Infrastructure
 
-- [ ] **AUD-01**: Semua consumer tabel Silabus (PlanIdp, CoachingProton, dll) tetap berfungsi setelah perubahan schema
+- [ ] **PSIGN-01**: Setiap ApplicationUser memiliki data P-Sign (Position/Role text dan Unit) yang bisa di-render menjadi badge visual
+- [ ] **PSIGN-02**: P-Sign badge berisi: Logo Pertamina (gambar statis), Role + Unit (dari user data), dan Nama lengkap user
+- [ ] **PSIGN-03**: P-Sign dapat di-generate sebagai image atau embeddable component untuk digunakan di PDF dan halaman web
+
+### PDF Evidence
+
+- [ ] **PDF-01**: Setelah coach submit evidence, sistem auto-generate PDF form evidence coaching
+- [ ] **PDF-02**: PDF berisi: info Coachee, Track, Kompetensi, SubKompetensi, Deliverable, Tanggal, Catatan Coach, Kesimpulan, Result
+- [ ] **PDF-03**: PDF memiliki P-Sign Coach di pojok kanan bawah
+- [ ] **PDF-04**: PDF bisa di-download dari halaman Deliverable detail via tombol "Download PDF"
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Coaching Guidance CRUD changes | Existing upload/replace/delete already works |
-| Override tab changes | Not in scope |
-| Other pages (PlanIdp, CoachingProton) | Only ProtonData/Index |
-| Silabus edit mode restructuring | Only adding Target column to existing edit flow |
+| P-Sign untuk approval export (SrSpv, SH, HC) | Akan dibahas di milestone terpisah setelah P-Sign infrastructure ready |
+| Perubahan approval workflow logic | Hanya visual restructure, logic tetap sama |
+| Perubahan file upload mechanism | Tetap pakai wwwroot/uploads pattern yang sudah ada |
+| Export PDF approval chain dengan multi P-Sign | Butuh analisa terpisah untuk layout multi-signer |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STAT-01 | Phase 114 | Pending |
-| STAT-02 | Phase 114 | Pending |
-| STAT-03 | Phase 114 | Pending |
-| STAT-04 | Phase 114 | Pending |
-| TGT-01 | Phase 113 | Complete |
-| TGT-02 | Phase 113 | Complete |
-| DEL-01 | Phase 115 | Pending |
-| DEL-02 | Phase 115 | Pending |
-| DEL-03 | Phase 115 | Pending |
-| AUD-01 | Phase 115 | Pending |
+| MOD-01 | TBD | Pending |
+| MOD-02 | TBD | Pending |
+| HIST-01 | TBD | Pending |
+| HIST-02 | TBD | Pending |
+| HIST-03 | TBD | Pending |
+| HIST-04 | TBD | Pending |
+| PAGE-01 | TBD | Pending |
+| PAGE-02 | TBD | Pending |
+| PAGE-03 | TBD | Pending |
+| PSIGN-01 | TBD | Pending |
+| PSIGN-02 | TBD | Pending |
+| PSIGN-03 | TBD | Pending |
+| PDF-01 | TBD | Pending |
+| PDF-02 | TBD | Pending |
+| PDF-03 | TBD | Pending |
+| PDF-04 | TBD | Pending |
 
 **Coverage:**
-- v3.9 requirements: 10 total
-- Mapped to phases: 10
-- Unmapped: 0
+- v3.10 requirements: 16 total
+- Mapped to phases: 0
+- Unmapped: 16
 
 ---
 *Requirements defined: 2026-03-07*
