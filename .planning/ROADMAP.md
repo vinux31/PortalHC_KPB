@@ -75,7 +75,7 @@ Plans:
   2. Status tab displays a tree of Bagian > Unit > Track nodes that can be expanded and collapsed
   3. Each Track node shows a green checkmark in the Silabus column when at least 1 active Kompetensi exists
   4. Each Track node shows a green checkmark in the Guidance column when at least 1 guidance file exists
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 114-01: StatusData endpoint and Status tab UI
