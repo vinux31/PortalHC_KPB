@@ -1,0 +1,46 @@
+@model HcPortal.Models.PSignViewModel
+
+<style>
+    .psign-badge {
+        width: 180px;
+        border: 1.5px solid #adb5bd;
+        border-radius: 10px;
+        padding: 14px 12px;
+        text-align: center;
+        background: #fff;
+        font-family: inherit;
+    }
+    .psign-logo {
+        height: 40px;
+        margin-bottom: 8px;
+    }
+    .psign-label {
+        font-size: 0.75rem;
+        color: #333;
+        margin: 2px 0;
+        line-height: 1.3;
+    }
+    .psign-name {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #000;
+        margin: 6px 0 0;
+        line-height: 1.3;
+    }
+</style>
+
+<div class="psign-badge">
+    <img src="@Model.LogoUrl" alt="Logo Pertamina" class="psign-logo" />
+
+    @if (!string.IsNullOrEmpty(Model.Position))
+    {
+        <div class="psign-label">@Model.Position</div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.Unit))
+    {
+        <div class="psign-label">@Model.Unit</div>
+    }
+
+    <div class="psign-name">@Model.FullName</div>
+</div>
