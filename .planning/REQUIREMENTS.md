@@ -11,7 +11,7 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 
 - [x] **ROLE-01**: CMP Records page shows correct data per role (L1-3 all, L4 section-only, L5-6 own only)
 - [x] **ROLE-02**: CMP RecordsTeam page correctly scopes to section for L4 and forbids L5-6
-- [ ] **ROLE-03**: CDP CoachingProton page shows correct coachee list per role (L1-3 all, L4 section, L5 mapped, L6 self)
+- [x] **ROLE-03**: CDP CoachingProton page shows correct coachee list per role (L1-3 all, L4 section, L5 mapped, L6 self)
 - [x] **ROLE-04**: CDP PlanIdp page scopes content correctly per role
 - [x] **ROLE-05**: CDP Deliverable page enforces section check for L4 and coach-coachee check for L5
 - [x] **ROLE-07**: CDP HistoriProton page scopes worker list correctly per role

@@ -99,7 +99,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 109. CMP Role Access & Filters | 1/1 | Complete    | 2026-03-06 |
-| 110. CDP Role Access & Filters | 2/2 | Complete   | 2026-03-07 |
+| 110. CDP Role Access & Filters | 2/2 | Complete    | 2026-03-07 |
 | 111. SectionHead & Filter Infrastructure | 0/? | Not started | - |
 
 ---
