@@ -11,6 +11,9 @@
     var silabusRowsJson = ViewBag.SilabusRowsJson as string ?? "[]";
     var guidanceGroupedJson = ViewBag.GuidanceGroupedJson as string ?? "[]";
     var coacheeBagian = ViewBag.CoacheeBagian as string ?? "";
+    var userLevel = (int)(ViewBag.UserLevel ?? 0);
+    var lockedSection = ViewBag.LockedSection as string ?? "";
+    var isL4Locked = userLevel == 4 && !string.IsNullOrEmpty(lockedSection);
 }
 
 <div class="d-flex align-items-start mb-4">
@@ -63,6 +66,11 @@
                             {
                                 <input type="hidden" name="bagian" value="@coacheeBagian" />
                                 <input type="text" class="form-control bg-light" value="@coacheeBagian" disabled />
+                            }
+                            else if (isL4Locked)
+                            {
+                                <input type="hidden" name="bagian" value="@lockedSection" />
+                                <input type="text" class="form-control bg-light" value="@lockedSection" disabled />
                             }
                             else
                             {

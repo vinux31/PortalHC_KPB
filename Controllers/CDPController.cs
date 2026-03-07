@@ -93,6 +93,14 @@ namespace HcPortal.Controllers
                 ViewBag.HasAssignment = true;
                 ViewBag.AssignedTrackId = (object?)null;
             }
+
+            // L4 (SectionHead/SrSpv): lock Bagian to their section
+            bool isL4 = !isCoachee && user.RoleLevel == 4;
+            if (isL4 && !string.IsNullOrEmpty(user.Section))
+            {
+                bagian = user.Section; // Force bagian to user's section
+            }
+
             ViewBag.CoacheeBagian = coacheeBagian ?? "";
 
             // Load all tracks for dropdowns
@@ -136,6 +144,8 @@ namespace HcPortal.Controllers
                 .AsQueryable();
             if (isCoachee && coacheeBagian != null)
                 guidanceQuery = guidanceQuery.Where(f => f.Bagian == coacheeBagian);
+            else if (isL4 && !string.IsNullOrEmpty(user.Section))
+                guidanceQuery = guidanceQuery.Where(f => f.Bagian == user.Section);
 
             var allGuidanceFiles = await guidanceQuery
                 .OrderBy(f => f.Bagian)
@@ -174,6 +184,8 @@ namespace HcPortal.Controllers
 
             // Set ViewBag values
             ViewBag.UserRole = userRole;
+            ViewBag.UserLevel = user.RoleLevel;
+            ViewBag.LockedSection = isL4 ? user.Section : null;
             ViewBag.IsCoachee = isCoachee;
             ViewBag.AllTracks = allTracks;
             ViewBag.Bagian = bagian ?? "";
