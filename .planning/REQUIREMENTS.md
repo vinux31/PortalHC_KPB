@@ -14,7 +14,7 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 - [ ] **ROLE-03**: CDP CoachingProton page shows correct coachee list per role (L1-3 all, L4 section, L5 mapped, L6 self)
 - [ ] **ROLE-04**: CDP PlanIdp page scopes content correctly per role
 - [ ] **ROLE-05**: CDP Deliverable page enforces section check for L4 and coach-coachee check for L5
-- [ ] **ROLE-07**: CDP HistoriProton page scopes worker list correctly per role
+- [x] **ROLE-07**: CDP HistoriProton page scopes worker list correctly per role
 
 ### SectionHead Level 4
 
@@ -26,7 +26,7 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 
 - [x] **FILT-01**: CMP Records filters use OrganizationStructure instead of data-driven queries
 - [x] **FILT-02**: CMP RecordsTeam section/unit filters use OrganizationStructure
-- [ ] **FILT-03**: CDP CoachingProton Bagian/Unit filters use OrganizationStructure (verify)
+- [x] **FILT-03**: CDP CoachingProton Bagian/Unit filters use OrganizationStructure (verify)
 - [ ] **FILT-04**: Admin ManageWorkers section filter uses OrganizationStructure
 - [ ] **FILT-05**: All unit dropdowns cascade correctly from selected Bagian
 
@@ -34,7 +34,7 @@ Requirements for v3.7 Role Access & Filter Audit. Each maps to roadmap phases.
 
 - [x] **UX-01**: CMP Records shows "Data belum ada" when filtered results are empty
 - [x] **UX-02**: CMP RecordsTeam shows "Data belum ada" when filtered results are empty
-- [ ] **UX-03**: CDP CoachingProton shows "Data belum ada" when filtered results are empty
+- [x] **UX-03**: CDP CoachingProton shows "Data belum ada" when filtered results are empty
 - [ ] **UX-04**: CDP PlanIdp shows "Data belum ada" when filtered results are empty
 
 ## Future Requirements
@@ -58,18 +58,18 @@ None deferred for this milestone.
 | ROLE-03 | Phase 110 | Pending |
 | ROLE-04 | Phase 110 | Pending |
 | ROLE-05 | Phase 110 | Pending |
-| ROLE-07 | Phase 110 | Pending |
+| ROLE-07 | Phase 110 | Complete |
 | SH-01 | Phase 111 | Pending |
 | SH-02 | Phase 111 | Pending |
 | SH-03 | Phase 111 | Pending |
 | FILT-01 | Phase 109 | Complete |
 | FILT-02 | Phase 109 | Complete |
-| FILT-03 | Phase 110 | Pending |
+| FILT-03 | Phase 110 | Complete |
 | FILT-04 | Phase 111 | Pending |
 | FILT-05 | Phase 111 | Pending |
 | UX-01 | Phase 109 | Complete |
 | UX-02 | Phase 109 | Complete |
-| UX-03 | Phase 110 | Pending |
+| UX-03 | Phase 110 | Complete |
 | UX-04 | Phase 110 | Pending |
 
 **Coverage:**
