@@ -1766,6 +1766,11 @@ namespace HcPortal.Controllers
             progress.ApprovedAt = now;
             progress.ApprovedById = user.Id;
 
+            // Phase 117: Record status history
+            string approveStatusType = isSrSpv ? "SrSpv Approved" : "SH Approved";
+            string approveActorRole = isSrSpv ? "Sr. Supervisor" : "Section Head";
+            RecordStatusHistory(progress.Id, approveStatusType, user.Id, user.FullName, approveActorRole);
+
             await _context.SaveChangesAsync();
 
             var approverName = user.FullName ?? user.UserName ?? user.Id;
@@ -1838,6 +1843,11 @@ namespace HcPortal.Controllers
             progress.RejectionReason = rejectionReason;
             progress.RejectedAt = now;
 
+            // Phase 117: Record status history
+            string rejectStatusType = isSrSpv ? "SrSpv Rejected" : "SH Rejected";
+            string rejectActorRole = isSrSpv ? "Sr. Supervisor" : "Section Head";
+            RecordStatusHistory(progress.Id, rejectStatusType, user.Id, user.FullName, rejectActorRole, rejectionReason);
+
             await _context.SaveChangesAsync();
 
             var approverName = user.FullName ?? user.UserName ?? user.Id;
@@ -1876,6 +1886,9 @@ namespace HcPortal.Controllers
             progress.HCApprovalStatus = "Reviewed";
             progress.HCReviewedAt = now;
             progress.HCReviewedById = user.Id;
+
+            // Phase 117: Record status history
+            RecordStatusHistory(progress.Id, "HC Reviewed", user.Id, user.FullName, "HC");
 
             await _context.SaveChangesAsync();
 
