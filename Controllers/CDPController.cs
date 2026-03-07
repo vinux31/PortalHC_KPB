@@ -330,7 +330,7 @@ namespace HcPortal.Controllers
                     .ToListAsync();
                 scopeLabel = "All Sections";
             }
-            else if (userRole == UserRoles.SrSupervisor || userRole == UserRoles.SectionHead)
+            else if (UserRoles.HasSectionAccess(UserRoles.GetRoleLevel(userRole)))
             {
                 scopedCoacheeIds = await _context.Users
                     .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
@@ -807,9 +807,16 @@ namespace HcPortal.Controllers
 
             // Phase 6: approval context
             bool isHC = userRole == UserRoles.HC;
-            bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
-                                  userRole == UserRoles.SectionHead;
-            bool canApprove = isAtasanAccess && progress.Status == "Submitted";
+            int roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+            bool isAtasanAccess = UserRoles.HasSectionAccess(roleLevel);
+            bool isSrSpv = userRole == UserRoles.SrSupervisor;
+            bool isSH = userRole == UserRoles.SectionHead;
+            // Co-sign: allow approve when own approval is still Pending, even if overall Status is already Approved
+            bool canApprove = isAtasanAccess && (
+                progress.Status == "Submitted" ||
+                (progress.Status == "Approved" && (
+                    (isSrSpv && progress.SrSpvApprovalStatus != "Approved") ||
+                    (isSH && progress.ShApprovalStatus != "Approved"))));
             bool canHCReview = isHC && progress.HCApprovalStatus == "Pending";
 
             // Phase 65-03: Load coaching sessions linked to this deliverable progress
@@ -873,10 +880,12 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // SrSupervisor, SectionHead, or Admin simulating Atasan/HC view can approve
-            bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
-                                  userRole == UserRoles.SectionHead;
-            if (!isAtasanAccess) return Forbid();
+            // Level-based access: only L4 (SrSupervisor/SectionHead) can approve
+            int roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+            if (!UserRoles.HasSectionAccess(roleLevel)) return Forbid();
+
+            bool isSrSpv = userRole == UserRoles.SrSupervisor;
+            bool isSH = userRole == UserRoles.SectionHead;
 
             // Load progress with full Include chain
             var progress = await _context.ProtonDeliverableProgresses
@@ -887,10 +896,14 @@ namespace HcPortal.Controllers
 
             if (progress == null) return NotFound();
 
-            // Guard: only Submitted status can be approved
-            if (progress.Status != "Submitted")
+            // Guard: allow Submitted, or co-sign when already Approved but own approval still Pending
+            bool canApprove = progress.Status == "Submitted" ||
+                (progress.Status == "Approved" && (
+                    (isSrSpv && progress.SrSpvApprovalStatus != "Approved") ||
+                    (isSH && progress.ShApprovalStatus != "Approved")));
+            if (!canApprove)
             {
-                TempData["Error"] = "Hanya deliverable dengan status Submitted yang dapat disetujui.";
+                TempData["Error"] = "Deliverable ini tidak dapat disetujui saat ini.";
                 return RedirectToAction("Deliverable", new { id = progressId });
             }
 
@@ -969,10 +982,9 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault();
 
-            // SrSupervisor, SectionHead, or Admin simulating Atasan/HC view can reject
-            bool isAtasanAccess = userRole == UserRoles.SrSupervisor ||
-                                  userRole == UserRoles.SectionHead;
-            if (!isAtasanAccess) return Forbid();
+            // Level-based access: only L4 (SrSupervisor/SectionHead) can reject
+            int roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+            if (!UserRoles.HasSectionAccess(roleLevel)) return Forbid();
 
             // Validate rejection reason
             if (string.IsNullOrWhiteSpace(rejectionReason))
@@ -987,10 +999,10 @@ namespace HcPortal.Controllers
 
             if (progress == null) return NotFound();
 
-            // Guard: only Submitted status can be rejected
-            if (progress.Status != "Submitted")
+            // Guard: Submitted or Approved (co-sign scenario) can be rejected
+            if (progress.Status != "Submitted" && progress.Status != "Approved")
             {
-                TempData["Error"] = "Hanya deliverable dengan status Submitted yang dapat ditolak.";
+                TempData["Error"] = "Deliverable ini tidak dapat ditolak saat ini.";
                 return RedirectToAction("Deliverable", new { id = progressId });
             }
 
@@ -1526,11 +1538,11 @@ namespace HcPortal.Controllers
                 p.Status == "Submitted" ? 0.5 : 0.0);
             progressPercent = total > 0 ? (int)(weightedSum / total * 100) : 0;
             pendingActions = progresses.Count(p => p.Status == "Pending" || p.Status == "Rejected");
-            // Role-aware pending approvals
+            // Role-aware pending approvals (includes co-sign: Approved but own approval still Pending)
             if (userRole == UserRoles.SrSupervisor)
-                pendingApprovals = progresses.Count(p => p.Status == "Submitted" && p.SrSpvApprovalStatus == "Pending");
+                pendingApprovals = progresses.Count(p => (p.Status == "Submitted" || p.Status == "Approved") && p.SrSpvApprovalStatus == "Pending");
             else if (userRole == UserRoles.SectionHead)
-                pendingApprovals = progresses.Count(p => p.Status == "Submitted" && p.ShApprovalStatus == "Pending");
+                pendingApprovals = progresses.Count(p => (p.Status == "Submitted" || p.Status == "Approved") && p.ShApprovalStatus == "Pending");
             else if (userRole == UserRoles.HC)
                 pendingApprovals = progresses.Count(p => p.Status == "Submitted" && p.HCApprovalStatus == "Pending");
             else
@@ -1691,18 +1703,26 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault() ?? "";
 
+            // Level-based access: only L4 (SrSupervisor/SectionHead) can approve
+            int roleLevel = UserRoles.GetRoleLevel(userRole);
+            if (!UserRoles.HasSectionAccess(roleLevel))
+                return Json(new { success = false, message = "Akses tidak diizinkan." });
+
             bool isSrSpv = userRole == UserRoles.SrSupervisor;
             bool isSH = userRole == UserRoles.SectionHead;
-            if (!isSrSpv && !isSH)
-                return Json(new { success = false, message = "Akses tidak diizinkan." });
 
             var progress = await _context.ProtonDeliverableProgresses
                 .FirstOrDefaultAsync(p => p.Id == progressId);
             if (progress == null)
                 return Json(new { success = false, message = "Data tidak ditemukan." });
 
-            if (progress.Status != "Submitted")
-                return Json(new { success = false, message = "Hanya deliverable dengan status Submitted yang dapat disetujui." });
+            // Co-sign guard: allow Submitted, or Approved when own approval still Pending
+            bool canApprove = progress.Status == "Submitted" ||
+                (progress.Status == "Approved" && (
+                    (isSrSpv && progress.SrSpvApprovalStatus != "Approved") ||
+                    (isSH && progress.ShApprovalStatus != "Approved")));
+            if (!canApprove)
+                return Json(new { success = false, message = "Deliverable ini tidak dapat disetujui saat ini." });
 
             // Section check
             var coacheeUser = await _context.Users
@@ -1756,10 +1776,13 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault() ?? "";
 
+            // Level-based access: only L4 (SrSupervisor/SectionHead) can reject
+            int roleLevel = UserRoles.GetRoleLevel(userRole);
+            if (!UserRoles.HasSectionAccess(roleLevel))
+                return Json(new { success = false, message = "Akses tidak diizinkan." });
+
             bool isSrSpv = userRole == UserRoles.SrSupervisor;
             bool isSH = userRole == UserRoles.SectionHead;
-            if (!isSrSpv && !isSH)
-                return Json(new { success = false, message = "Akses tidak diizinkan." });
 
             if (string.IsNullOrWhiteSpace(rejectionReason))
                 return Json(new { success = false, message = "Alasan penolakan tidak boleh kosong." });
@@ -1769,8 +1792,9 @@ namespace HcPortal.Controllers
             if (progress == null)
                 return Json(new { success = false, message = "Data tidak ditemukan." });
 
-            if (progress.Status != "Submitted")
-                return Json(new { success = false, message = "Hanya deliverable dengan status Submitted yang dapat ditolak." });
+            // Reject allowed for Submitted or Approved (co-sign scenario: one L4 can reject after the other approved)
+            if (progress.Status != "Submitted" && progress.Status != "Approved")
+                return Json(new { success = false, message = "Deliverable ini tidak dapat ditolak saat ini." });
 
             // Section check
             var coacheeUser = await _context.Users
