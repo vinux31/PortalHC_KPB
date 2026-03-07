@@ -9,7 +9,6 @@ namespace HcPortal.Models
         public string Kompetensi { get; set; } = "";
         public string SubKompetensi { get; set; } = "";
         public string Deliverable { get; set; } = "";
-        public string CoacheeCompetencies { get; set; } = "";  // multi-line text
         public string CatatanCoach { get; set; } = "";          // multi-line text
         public string Kesimpulan { get; set; } = "";             // "Kompeten" or "Perlu Pengembangan"
         public string Result { get; set; } = "";                 // "Need Improvement" / "Suitable" / "Good" / "Excellence"

@@ -863,11 +863,6 @@
                     <label class="form-label">Tanggal</label>
                     <input type="date" class="form-control" id="evidenceDate" />
                 </div>
-                @* Kompetensi Coachee (free-text) *@
-                <div class="mb-3">
-                    <label class="form-label">Kompetensi Coachee</label>
-                    <textarea class="form-control" id="evidenceKoacheeComp" rows="2" placeholder="Coach menuliskan competencies yang harus dipenuhi sesuai dengan workbook"></textarea>
-                </div>
                 @* Catatan Coach *@
                 <div class="mb-3">
                     <label class="form-label">Catatan Coach</label>
@@ -1339,12 +1334,10 @@ document.querySelectorAll('.btnSubmitEvidence').forEach(btn => {
         if (dateInput) dateInput.value = today;
 
         // Clear all fields
-        const koacheeComp = document.getElementById('evidenceKoacheeComp');
         const catatan = document.getElementById('evidenceCatatan');
         const kesimpulan = document.getElementById('evidenceKesimpulan');
         const resultSel = document.getElementById('evidenceResult');
         const fileInput = document.getElementById('evidenceFile');
-        if (koacheeComp) koacheeComp.value = '';
         if (catatan) catatan.value = '';
         if (kesimpulan) kesimpulan.value = '';
         if (resultSel) resultSel.value = '';
@@ -1380,7 +1373,6 @@ if (btnSubmitEvidence) {
         const formData = new FormData();
         formData.append('progressIdsJson', JSON.stringify(selectedIds));
         formData.append('date', document.getElementById('evidenceDate').value);
-        formData.append('koacheeCompetencies', document.getElementById('evidenceKoacheeComp').value);
         formData.append('catatanCoach', document.getElementById('evidenceCatatan').value);
         formData.append('kesimpulan', kesimpulan);
         formData.append('result', result);

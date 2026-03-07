@@ -1881,7 +1881,6 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> SubmitEvidenceWithCoaching(
             [FromForm] string progressIdsJson,
             [FromForm] DateTime date,
-            [FromForm] string koacheeCompetencies,
             [FromForm] string catatanCoach,
             [FromForm] string kesimpulan,
             [FromForm] string result,
@@ -1991,7 +1990,6 @@ namespace HcPortal.Controllers
                     Kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
                     SubKompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
                     Deliverable = progress.ProtonDeliverable?.NamaDeliverable ?? "",
-                    CoacheeCompetencies = koacheeCompetencies,
                     CatatanCoach = catatanCoach,
                     Kesimpulan = kesimpulan,
                     Result = result,
