@@ -126,7 +126,10 @@ Plans:
   1. Evidence modal in CoachingProton no longer shows the "Kompetensi Coachee" textarea
   2. Submitting evidence succeeds without sending koacheeCompetencies data
   3. CoachingSession records created after this change have no koacheeCompetencies value stored
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 116-01-PLAN.md — Remove CoacheeCompetencies from modal, controller, model, views + data-clearing migration
 
 ### Phase 117: Status History
 **Goal**: Every deliverable status change is permanently recorded with actor, timestamp, and reason
@@ -174,7 +177,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 116. Modal Cleanup | 0/? | Not started | - |
+| 116. Modal Cleanup | 0/1 | Not started | - |
 | 117. Status History | 0/? | Not started | - |
 | 118. P-Sign Infrastructure | 0/? | Not started | - |
 | 119. Deliverable Page Restructure | 0/? | Not started | - |
