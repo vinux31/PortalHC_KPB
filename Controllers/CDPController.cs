@@ -130,7 +130,8 @@ namespace HcPortal.Controllers
                                 SubKompetensi = s.NamaSubKompetensi,
                                 DeliverableId = d.Id,
                                 Deliverable = d.NamaDeliverable,
-                                No = d.Urutan.ToString()
+                                No = d.Urutan.ToString(),
+                                Target = s.Target ?? ""
                             });
                         }
                     }
