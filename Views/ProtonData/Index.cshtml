@@ -321,6 +321,7 @@
                             <th style="width:60px">No</th>
                             <th>Kompetensi</th>
                             <th>Sub Kompetensi</th>
+                            <th>Target</th>
                             <th>Deliverable</th>
                             <th style="width:130px">Aksi</th>
                         </tr>
@@ -360,6 +361,7 @@
                             }
                             if (k === j) {
                                 html += `<td rowspan="${subSpan}" class="align-middle">${escHtml(dRow.SubKompetensi)}</td>`;
+                                html += `<td rowspan="${subSpan}" class="align-middle">${escHtml(dRow.Target || '-')}</td>`;
                             }
                             html += `<td>${escHtml(dRow.Deliverable)}</td>`;
                             // Action button — show once per kompetensi group (rowspan)
@@ -408,6 +410,7 @@
                         <th style="width:60px">No</th>
                         <th>Kompetensi</th>
                         <th>Sub Kompetensi</th>
+                        <th>Target</th>
                         <th>Deliverable</th>
                         <th style="width:90px">Aksi</th>
                     </tr>
@@ -415,7 +418,7 @@
                 <tbody>`;
 
             if (silabusRows.length === 0) {
-                html += `<tr id="emptyRow"><td colspan="5" class="text-center text-muted py-3">Belum ada baris. Klik tombol "Tambah Baris" di bawah.</td></tr>`;
+                html += `<tr id="emptyRow"><td colspan="6" class="text-center text-muted py-3">Belum ada baris. Klik tombol "Tambah Baris" di bawah.</td></tr>`;
             } else {
                 silabusRows.forEach(function (row, idx) {
                     html += renderEditRow(row, idx);
@@ -445,7 +448,7 @@
                 const newRow = {
                     KompetensiId: 0, Kompetensi: '',
                     SubKompetensiId: 0, SubKompetensi: '',
-                    DeliverableId: 0, Deliverable: '', No: ''
+                    DeliverableId: 0, Deliverable: '', No: '', Target: ''
                 };
                 silabusRows.push(newRow);
                 renderEditTable();
@@ -460,6 +463,7 @@
                 <td><input type="text" class="form-control form-control-sm" data-field="No" value="${escAttr(row.No)}"></td>
                 <td><input type="text" class="form-control form-control-sm" data-field="Kompetensi" value="${escAttr(row.Kompetensi)}"></td>
                 <td><input type="text" class="form-control form-control-sm" data-field="SubKompetensi" value="${escAttr(row.SubKompetensi)}"></td>
+                <td><input type="text" class="form-control form-control-sm" data-field="Target" value="${escAttr(row.Target || '')}" maxlength="500"></td>
                 <td><input type="text" class="form-control form-control-sm" data-field="Deliverable" value="${escAttr(row.Deliverable)}"></td>
                 <td class="text-center">
                     <button class="btn btn-sm btn-outline-primary btn-insert-row me-1" title="Sisipkan baris setelah ini" data-idx="${idx}">
@@ -498,7 +502,7 @@
                 const newRow = {
                     KompetensiId: 0, Kompetensi: currRow.Kompetensi || '',
                     SubKompetensiId: 0, SubKompetensi: currRow.SubKompetensi || '',
-                    DeliverableId: 0, Deliverable: '', No: ''
+                    DeliverableId: 0, Deliverable: '', No: '', Target: currRow.Target || ''
                 };
                 silabusRows.splice(idx + 1, 0, newRow);
                 renderEditTable();
@@ -633,6 +637,10 @@
                 }
                 if (!r.Deliverable || !r.Deliverable.trim()) {
                     alert(`Baris ${i + 1}: Kolom Deliverable tidak boleh kosong.`);
+                    return;
+                }
+                if (!r.Target || !r.Target.trim()) {
+                    alert(`Baris ${i + 1}: Kolom Target tidak boleh kosong.`);
                     return;
                 }
             }
