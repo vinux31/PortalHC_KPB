@@ -227,6 +227,16 @@ Plans:
 | 119. Deliverable Page Restructure | 1/1 | Complete    | 2026-03-08 |
 | 120. PDF Evidence | 1/1 | Complete    | 2026-03-08 |
 
+### Phase 126: Scope CoachingProton progress data to ProtonTrackAssignment context
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 125
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 126 to break down)
+
 ---
 
 ## v3.11 CoachCoacheeMapping Overhaul

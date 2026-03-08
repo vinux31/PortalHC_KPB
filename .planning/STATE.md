@@ -61,6 +61,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ### Roadmap Evolution
 
 - 2026-03-08: v3.11 roadmap created — 3 phases, 11 requirements, 100% coverage
+- Phase 126 added: Scope CoachingProton progress data to ProtonTrackAssignment context
 
 ### Decisions
 
