@@ -1145,36 +1145,43 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault() ?? "";
             int userLevel = user.RoleLevel;
-            // --- STEP 1: Role-scoped coachee IDs (SERVER ENFORCEMENT) ---
+            // --- STEP 1: Role-scoped coachee IDs via active ProtonTrackAssignment (Phase 127) ---
             List<string> scopedCoacheeIds;
             List<ApplicationUser>? coacheeList = null;
 
-            if (userLevel <= 3) // HC/Admin/Direktur/VP/Manager — see all coachees
+            if (userLevel <= 3) // HC/Admin/Direktur/VP/Manager — coachees with active assignments
             {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id).ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive)
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
             }
-            else if (userLevel == 4) // SectionHead/SrSpv — same section only
+            else if (userLevel == 4) // SectionHead/SrSpv — coachees with active assignment in same section
             {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id).ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive)
+                    .Join(_context.Users, a => a.CoacheeId, u => u.Id, (a, u) => new { a.CoacheeId, u.Section })
+                    .Where(x => x.Section == user.Section)
+                    .Select(x => x.CoacheeId).Distinct().ToListAsync();
             }
-            else if (userLevel == 5) // Coach — CoachCoacheeMapping only
+            else if (userLevel == 5) // Coach — mapped coachees with active assignments
             {
                 var coachMappings = await _context.CoachCoacheeMappings
                     .Where(m => m.CoachId == user.Id && m.IsActive)
                     .Select(m => new { m.CoacheeId, m.AssignmentSection })
                     .ToListAsync();
-                scopedCoacheeIds = coachMappings.Select(m => m.CoacheeId).ToList();
+                var mappedIds = coachMappings.Select(m => m.CoacheeId).ToList();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive && mappedIds.Contains(a.CoacheeId))
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
                 ViewBag.AssignmentSections = coachMappings
-                    .Where(m => !string.IsNullOrEmpty(m.AssignmentSection))
+                    .Where(m => !string.IsNullOrEmpty(m.AssignmentSection) && scopedCoacheeIds.Contains(m.CoacheeId))
                     .ToDictionary(m => m.CoacheeId, m => m.AssignmentSection!);
             }
-            else // Level 6 (Coachee)
+            else // Level 6 (Coachee) — own ID only if has active assignment
             {
-                scopedCoacheeIds = new List<string> { user.Id };
+                var hasAssignment = await _context.ProtonTrackAssignments
+                    .AnyAsync(a => a.IsActive && a.CoacheeId == user.Id);
+                scopedCoacheeIds = hasAssignment ? new List<string> { user.Id } : new List<string>();
             }
 
             // --- STEP 2: Apply Bagian filter (HC/Admin + Direktur/VP/Manager) ---
@@ -1266,11 +1273,10 @@ namespace HcPortal.Controllers
             int pendingActions = 0;
             int pendingApprovals = 0;
 
-            // Build base query (filter out progresses for coachees with inactive ProtonTrackAssignments)
-            var activeAssignmentCoacheeIds = await _context.ProtonTrackAssignments
+            // Phase 127: Query progress via ProtonTrackAssignmentId join
+            var activeAssignmentIds = await _context.ProtonTrackAssignments
                 .Where(a => a.IsActive && dataCoacheeIds.Contains(a.CoacheeId))
-                .Select(a => a.CoacheeId)
-                .Distinct()
+                .Select(a => a.Id)
                 .ToListAsync();
 
             var query = _context.ProtonDeliverableProgresses
@@ -1278,7 +1284,12 @@ namespace HcPortal.Controllers
                     .ThenInclude(d => d!.ProtonSubKompetensi)
                         .ThenInclude(s => s!.ProtonKompetensi)
                             .ThenInclude(k => k!.ProtonTrack)
-                .Where(p => activeAssignmentCoacheeIds.Contains(p.CoacheeId));
+                .Include(p => p.ProtonTrackAssignment)
+                    .ThenInclude(a => a!.ProtonTrack)
+                .Where(p => activeAssignmentIds.Contains(p.ProtonTrackAssignmentId))
+                // Belt and suspenders: deliverable's track must match assignment's track
+                .Where(p => p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId
+                         == p.ProtonTrackAssignment!.ProtonTrackId);
 
             // Apply Track filter (FILT-03)
             if (!string.IsNullOrEmpty(trackType))
@@ -2320,26 +2331,29 @@ namespace HcPortal.Controllers
             if (user == null) return Challenge();
             int userLevel = user.RoleLevel;
 
-            // --- Role-scoped coachee IDs (same pattern as CoachingProton) ---
+            // --- Phase 127: Role-scoped coachee IDs via active ProtonTrackAssignment ---
             List<string> scopedCoacheeIds;
 
-            if (userLevel <= 3) // HC/Admin/Direktur/VP/Manager — all
+            if (userLevel <= 3) // HC/Admin/Direktur/VP/Manager — coachees with any assignment
             {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id).ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
             }
-            else if (userLevel == 4) // SectionHead/SrSpv — same section
+            else if (userLevel == 4) // SectionHead/SrSpv — coachees with assignment in same section
             {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id).ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Join(_context.Users, a => a.CoacheeId, u => u.Id, (a, u) => new { a.CoacheeId, u.Section })
+                    .Where(x => x.Section == user.Section)
+                    .Select(x => x.CoacheeId).Distinct().ToListAsync();
             }
-            else if (userLevel == 5) // Coach — mapped coachees only
+            else if (userLevel == 5) // Coach — mapped coachees with assignments
             {
-                scopedCoacheeIds = await _context.CoachCoacheeMappings
+                var mappedIds = await _context.CoachCoacheeMappings
                     .Where(m => m.CoachId == user.Id && m.IsActive)
                     .Select(m => m.CoacheeId).ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => mappedIds.Contains(a.CoacheeId))
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
             }
             else // Level 6 (Coachee) — redirect to own detail
             {
