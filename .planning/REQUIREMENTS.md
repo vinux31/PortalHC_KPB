@@ -1,75 +1,64 @@
-# Requirements: Portal HC KPB v3.10
+# Requirements: Portal HC KPB v3.11
 
-**Defined:** 2026-03-07
+**Defined:** 2026-03-08
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.10 Requirements
+## v3.11 Requirements
 
-### Modal Cleanup
+Requirements for CoachCoacheeMapping Overhaul milestone.
 
-- [x] **MOD-01**: Field "Kompetensi Coachee" dihapus dari evidence modal CoachingProton (textarea #evidenceKoacheeComp)
-- [x] **MOD-02**: CoachingSession model dan SubmitEvidenceWithCoaching action tidak lagi menyimpan/menerima field koacheeCompetencies
+### Data Model
 
-### Status History
+- [ ] **MODEL-01**: CoachCoacheeMapping memiliki field `AssignmentSection` untuk section penugasan (bisa beda dari section pekerja)
+- [ ] **MODEL-02**: CoachCoacheeMapping memiliki field `AssignmentUnit` untuk unit penugasan (bisa beda dari unit pekerja)
+- [ ] **MODEL-03**: Database memiliki unique filtered index untuk one-active-coach-per-coachee constraint (`CoacheeId` WHERE `IsActive = 1`)
 
-- [x] **HIST-01**: Tabel DeliverableStatusHistory menyimpan setiap perubahan status (Created, Submitted, Approved, Rejected, Reviewed, Re-submitted) dengan timestamp dan actor
-- [x] **HIST-02**: Rejection record menyimpan rejection reason dan tidak terhapus saat coach resubmit evidence baru
-- [x] **HIST-03**: Setiap approval per-role (SrSpv Approved, SH Approved, HC Reviewed) tercatat sebagai entry terpisah di history
-- [x] **HIST-04**: Re-submit evidence setelah rejection tercatat sebagai entry "Re-submitted" di history
+### CDP Access
 
-### Deliverable Page Restructure
+- [ ] **ACCESS-01**: Deliverable page menggunakan CoachCoacheeMapping check (bukan section match) untuk validasi akses coach
+- [ ] **ACCESS-02**: Coach bisa akses coachee dari section lain jika ada active mapping
+- [ ] **ACCESS-03**: Semua CDP scope query (CoachingProton, HistoriProton, GetCoacheeDeliverables, batch submit) konsisten menggunakan mapping-based access
 
-- [x] **PAGE-01**: Halaman Deliverable detail dibagi menjadi sections yang jelas: Detail Coachee & Kompetensi, Evidence Coach, Approval Chain, Riwayat Status
-- [x] **PAGE-02**: Section Riwayat Status menampilkan timeline kronologis semua status changes dari DeliverableStatusHistory
-- [x] **PAGE-03**: Section Evidence Coach menampilkan coaching session data (Catatan Coach, Kesimpulan, Result) dan file evidence dengan tombol download
+### Lifecycle
 
-### P-Sign Infrastructure
+- [ ] **LIFE-01**: Deactivate mapping otomatis deactivate ProtonTrackAssignment terkait
+- [ ] **LIFE-02**: Reactivate mapping menampilkan opsi untuk re-assign ProtonTrack
 
-- [x] **PSIGN-01**: Setiap ApplicationUser memiliki data P-Sign (Position/Role text dan Unit) yang bisa di-render menjadi badge visual
-- [x] **PSIGN-02**: P-Sign badge berisi: Logo Pertamina (gambar statis), Role + Unit (dari user data), dan Nama lengkap user
-- [x] **PSIGN-03**: P-Sign dapat di-generate sebagai image atau embeddable component untuk digunakan di PDF dan halaman web
+### UI
 
-### PDF Evidence
-
-- [x] **PDF-01**: Setelah coach submit evidence, sistem auto-generate PDF form evidence coaching
-- [x] **PDF-02**: PDF berisi: info Coachee, Track, Kompetensi, SubKompetensi, Deliverable, Tanggal, Catatan Coach, Kesimpulan, Result
-- [x] **PDF-03**: PDF memiliki P-Sign Coach di pojok kanan bawah
-- [x] **PDF-04**: PDF bisa di-download dari halaman Deliverable detail via tombol "Download PDF"
+- [ ] **UI-01**: CoachCoacheeMapping page menampilkan kolom "Unit Penugasan" dan "Seksi Penugasan" terpisah dari unit/seksi asal pekerja
+- [ ] **UI-02**: Assign modal memiliki field AssignmentSection dan AssignmentUnit
+- [ ] **UI-03**: Export Excel menyertakan kolom unit/seksi penugasan vs unit/seksi asal
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| P-Sign untuk approval export (SrSpv, SH, HC) | Akan dibahas di milestone terpisah setelah P-Sign infrastructure ready |
-| Perubahan approval workflow logic | Hanya visual restructure, logic tetap sama |
-| Perubahan file upload mechanism | Tetap pakai wwwroot/uploads pattern yang sudah ada |
-| Export PDF approval chain dengan multi P-Sign | Butuh analisa terpisah untuk layout multi-signer |
+| Tahun field di mapping | Tahun sudah tracked via ProtonTrack.TahunKe di ProtonTrackAssignment |
+| Coach self-assign UI | Violates admin-only mapping control |
+| Auto-migrate existing mappings | Existing mappings retain null AssignmentSection/Unit (fallback to worker's own) |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MOD-01 | Phase 116 | Complete |
-| MOD-02 | Phase 116 | Complete |
-| HIST-01 | Phase 117 | Complete |
-| HIST-02 | Phase 117 | Complete |
-| HIST-03 | Phase 117 | Complete |
-| HIST-04 | Phase 117 | Complete |
-| PAGE-01 | Phase 119 | Complete |
-| PAGE-02 | Phase 119 | Complete |
-| PAGE-03 | Phase 119 | Complete |
-| PSIGN-01 | Phase 118 | Complete |
-| PSIGN-02 | Phase 118 | Complete |
-| PSIGN-03 | Phase 118 | Complete |
-| PDF-01 | Phase 120 | Complete |
-| PDF-02 | Phase 120 | Complete |
-| PDF-03 | Phase 120 | Complete |
-| PDF-04 | Phase 120 | Complete |
+| MODEL-01 | TBD | Pending |
+| MODEL-02 | TBD | Pending |
+| MODEL-03 | TBD | Pending |
+| ACCESS-01 | TBD | Pending |
+| ACCESS-02 | TBD | Pending |
+| ACCESS-03 | TBD | Pending |
+| LIFE-01 | TBD | Pending |
+| LIFE-02 | TBD | Pending |
+| UI-01 | TBD | Pending |
+| UI-02 | TBD | Pending |
+| UI-03 | TBD | Pending |
 
 **Coverage:**
-- v3.10 requirements: 16 total
-- Mapped to phases: 16
-- Unmapped: 0
+- v3.11 requirements: 11 total
+- Mapped to phases: 0
+- Unmapped: 11 ⚠️
 
 ---
-*Requirements defined: 2026-03-07*
+*Requirements defined: 2026-03-08*
+*Last updated: 2026-03-08 after initial definition*
