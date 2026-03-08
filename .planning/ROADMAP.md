@@ -265,7 +265,11 @@ Plans:
   3. Deactivating a mapping automatically deactivates all ProtonTrackAssignment records for that coach-coachee pair
   4. Reactivating a mapping presents the option to re-assign ProtonTrack to the coachee
   5. Coach without an active mapping for a coachee cannot access that coachee's Deliverable page
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 124-01-PLAN.md — Fix Deliverable access check to mapping-based + cross-section badge
+- [ ] 124-02-PLAN.md — ProtonTrackAssignment cascade on deactivate + reactivate toast
 
 ### Phase 125: Mapping UI
 **Goal**: Admin/HC can see and set assignment unit/section when managing coach-coachee mappings, with full export support
@@ -275,7 +279,11 @@ Plans:
   1. CoachCoacheeMapping list page shows separate columns for worker's home unit/section and assignment unit/section
   2. Assign modal includes AssignmentSection and AssignmentUnit dropdown fields that default to the coachee's own section/unit
   3. Excel export includes both home and assignment unit/section columns with correct data per row
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 124-01-PLAN.md — Fix Deliverable access check to mapping-based + cross-section badge
+- [ ] 124-02-PLAN.md — ProtonTrackAssignment cascade on deactivate + reactivate toast
 
 ## Progress
 
