@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
 status: planning
-last_updated: "2026-03-08T07:34:49.392Z"
+last_updated: "2026-03-08T08:00:10.936Z"
 last_activity: 2026-03-08 — Roadmap created with 3 phases (123-125)
 progress:
   total_phases: 13
-  completed_phases: 12
-  total_plans: 14
-  completed_plans: 14
+  completed_phases: 13
+  total_plans: 15
+  completed_plans: 15
   percent: 100
 ---
 
@@ -70,6 +70,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - [Phase 123]: Nullable AssignmentSection/Unit fields for backward compat; duplicate active mappings auto-deactivated in migration
 - [Phase 124]: Approve/Reject/HCReview already L4/HC-only; no coach access path needs fixing
 - [Phase 124]: Reactivate toast auto-dismisses after 8s with page reload after 1.5s
+- [Phase 125]: Auto-fill assignment from coachee home unit when single coachee selected
 
 ### Blockers/Concerns
 

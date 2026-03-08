@@ -26,9 +26,9 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 
 ### UI
 
-- [ ] **UI-01**: CoachCoacheeMapping page menampilkan kolom "Unit Penugasan" dan "Seksi Penugasan" terpisah dari unit/seksi asal pekerja
-- [ ] **UI-02**: Assign modal memiliki field AssignmentSection dan AssignmentUnit
-- [ ] **UI-03**: Export Excel menyertakan kolom unit/seksi penugasan vs unit/seksi asal
+- [x] **UI-01**: CoachCoacheeMapping page menampilkan kolom "Unit Penugasan" dan "Seksi Penugasan" terpisah dari unit/seksi asal pekerja
+- [x] **UI-02**: Assign modal memiliki field AssignmentSection dan AssignmentUnit
+- [x] **UI-03**: Export Excel menyertakan kolom unit/seksi penugasan vs unit/seksi asal
 
 ## Out of Scope
 
@@ -50,9 +50,9 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 | ACCESS-03 | Phase 124 | Complete |
 | LIFE-01 | Phase 124 | Complete |
 | LIFE-02 | Phase 124 | Complete |
-| UI-01 | Phase 125 | Pending |
-| UI-02 | Phase 125 | Pending |
-| UI-03 | Phase 125 | Pending |
+| UI-01 | Phase 125 | Complete |
+| UI-02 | Phase 125 | Complete |
+| UI-03 | Phase 125 | Complete |
 
 **Coverage:**
 - v3.11 requirements: 11 total
