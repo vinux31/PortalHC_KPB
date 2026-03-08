@@ -250,7 +250,10 @@ Plans:
   2. Existing mappings with null AssignmentSection/AssignmentUnit continue to work (fallback to worker's own section/unit)
   3. Attempting to create a second active mapping for the same coachee is rejected by the database unique filtered index
   4. Migration applies cleanly on existing data without data loss
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 123-01-PLAN.md — Model fields, migration with duplicate cleanup, unique index, and assign validation
 
 ### Phase 124: CDP Access & Lifecycle
 **Goal**: Coaches can access coachees across sections via mapping, and deactivating a mapping cleans up associated ProtonTrackAssignments
@@ -278,6 +281,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 123. Data Model & Migration | 0/0 | Not started | - |
+| 123. Data Model & Migration | 0/1 | Not started | - |
 | 124. CDP Access & Lifecycle | 0/0 | Not started | - |
 | 125. Mapping UI | 0/0 | Not started | - |
