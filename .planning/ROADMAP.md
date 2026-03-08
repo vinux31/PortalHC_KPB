@@ -114,7 +114,7 @@ Plans:
   4. Both tabs follow identical layout: Filter bar -> KPI cards -> Charts -> Table
   5. Excel export respects active filter selections
   6. Assessment Analytics filter change no longer redirects to Coaching Proton tab
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
 - [ ] 121-01-PLAN.md — Backend AJAX endpoints + Coaching Proton tab cascade filters
@@ -265,11 +265,9 @@ Plans:
   3. Deactivating a mapping automatically deactivates all ProtonTrackAssignment records for that coach-coachee pair
   4. Reactivating a mapping presents the option to re-assign ProtonTrack to the coachee
   5. Coach without an active mapping for a coachee cannot access that coachee's Deliverable page
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 124-01-PLAN.md — Fix Deliverable access check to mapping-based + cross-section badge
-- [ ] 124-02-PLAN.md — ProtonTrackAssignment cascade on deactivate + reactivate toast
 
 ### Phase 125: Mapping UI
 **Goal**: Admin/HC can see and set assignment unit/section when managing coach-coachee mappings, with full export support
@@ -279,11 +277,10 @@ Plans:
   1. CoachCoacheeMapping list page shows separate columns for worker's home unit/section and assignment unit/section
   2. Assign modal includes AssignmentSection and AssignmentUnit dropdown fields that default to the coachee's own section/unit
   3. Excel export includes both home and assignment unit/section columns with correct data per row
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 124-01-PLAN.md — Fix Deliverable access check to mapping-based + cross-section badge
-- [ ] 124-02-PLAN.md — ProtonTrackAssignment cascade on deactivate + reactivate toast
+- [ ] 125-01-PLAN.md — Table columns, assign/edit modal dropdowns, and Excel export
 
 ## Progress
 
@@ -291,4 +288,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 123. Data Model & Migration | 1/1 | Complete    | 2026-03-08 |
 | 124. CDP Access & Lifecycle | 2/2 | Complete    | 2026-03-08 |
-| 125. Mapping UI | 0/0 | Not started | - |
+| 125. Mapping UI | 0/1 | Not started | - |
