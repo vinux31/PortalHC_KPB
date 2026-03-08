@@ -311,3 +311,44 @@ Plans:
 | 123. Data Model & Migration | 1/1 | Complete    | 2026-03-08 |
 | 124. CDP Access & Lifecycle | 2/2 | Complete    | 2026-03-08 |
 | 125. Mapping UI | 1/1 | Complete    | 2026-03-08 |
+
+---
+
+## v3.12 Progress Unit Scoping
+
+**Milestone Goal:** Fix progress data agar hanya berisi kompetensi sesuai unit penugasan coachee — AutoCreateProgress filter by AssignmentUnit, clean migration hapus & recreate progress, dan reassignment handler.
+
+## Phases
+
+- [ ] **Phase 128: Unit-Filtered Progress & Clean Migration** - AutoCreateProgress filters by AssignmentUnit + migration wipes and recreates all progress data
+- [ ] **Phase 129: Sync, Reassignment & Defensive Query** - SilabusSave unit-aware sync, edit-mapping reassignment handler, and CoachingProton belt-and-suspenders filter
+
+## Phase Details
+
+### Phase 128: Unit-Filtered Progress & Clean Migration
+**Goal**: Progress data contains only deliverables matching the coachee's assignment unit, with all existing data cleaned and recreated correctly
+**Depends on**: Nothing (foundation phase, builds on v3.11 AssignmentUnit field)
+**Requirements**: PROG-01, MIG-01, MIG-02
+**Success Criteria** (what must be TRUE):
+  1. When a ProtonTrackAssignment is created, AutoCreateProgressForAssignment only creates progress rows for deliverables where ProtonKompetensi.Unit matches the coachee's AssignmentUnit from CoachCoacheeMapping
+  2. After migration runs, all old ProtonDeliverableProgress, CoachingSessions, and DeliverableStatusHistory rows are deleted
+  3. After migration runs, every active ProtonTrackAssignment has fresh progress rows created with the correct unit filter applied
+  4. A coachee assigned to unit "Alkylation" sees only Alkylation-scoped kompetensi in their CoachingProton table (no cross-unit leakage)
+**Plans**: TBD
+
+### Phase 129: Sync, Reassignment & Defensive Query
+**Goal**: All secondary progress-creation paths respect unit scoping, and unit changes trigger automatic progress rebuild
+**Depends on**: Phase 128 (needs unit-filtered AutoCreateProgress logic)
+**Requirements**: PROG-02, REASSIGN-01, QUERY-01
+**Success Criteria** (what must be TRUE):
+  1. When HC saves new silabus deliverables via SilabusSave, auto-sync only creates progress for assignments whose AssignmentUnit matches the deliverable's ProtonKompetensi.Unit
+  2. When Admin/HC edits a mapping's AssignmentUnit, the coachee's old progress is deleted and new progress is created matching the new unit
+  3. CoachingProton query includes a defensive filter ensuring displayed deliverables belong to kompetensi matching the assignment's unit
+**Plans**: TBD
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 128. Unit-Filtered Progress & Clean Migration | 0/? | Not started | - |
+| 129. Sync, Reassignment & Defensive Query | 0/? | Not started | - |

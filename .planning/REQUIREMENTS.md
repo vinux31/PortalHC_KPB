@@ -37,18 +37,18 @@ Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya b
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROG-01 | TBD | Pending |
-| PROG-02 | TBD | Pending |
-| MIG-01 | TBD | Pending |
-| MIG-02 | TBD | Pending |
-| REASSIGN-01 | TBD | Pending |
-| QUERY-01 | TBD | Pending |
+| PROG-01 | Phase 128 | Pending |
+| PROG-02 | Phase 129 | Pending |
+| MIG-01 | Phase 128 | Pending |
+| MIG-02 | Phase 128 | Pending |
+| REASSIGN-01 | Phase 129 | Pending |
+| QUERY-01 | Phase 129 | Pending |
 
 **Coverage:**
 - v3.12 requirements: 6 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 6
+- Mapped to phases: 6
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after initial definition*
+*Last updated: 2026-03-08 after roadmap creation*
