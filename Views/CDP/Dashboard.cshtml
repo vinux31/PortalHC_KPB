@@ -1,7 +1,7 @@
 @model HcPortal.Models.CDPDashboardViewModel
 
 @{
-    ViewData["Title"] = "Dashboard";
+    ViewData["Title"] = "Coaching Proton Dashboard";
 }
 
 <style>
@@ -26,48 +26,18 @@
 <div class="container-fluid px-4">
 
     <div class="mb-4">
-        <h2><i class="bi bi-speedometer2 me-2"></i>Dashboard</h2>
+        <h2><i class="bi bi-speedometer2 me-2"></i>Coaching Proton Dashboard</h2>
         <p class="text-muted">@Model.ScopeLabel</p>
     </div>
 
-    <ul class="nav nav-tabs mb-4" id="dashboardTabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="proton-tab" data-bs-toggle="tab"
-                    data-bs-target="#proton-pane" type="button" role="tab"
-                    aria-controls="proton-pane" aria-selected="true">
-                <i class="bi bi-graph-up me-1"></i>Coaching Proton
-            </button>
-        </li>
-        @if (Model.AssessmentAnalyticsData != null)
-        {
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="analytics-tab" data-bs-toggle="tab"
-                        data-bs-target="#analytics-pane" type="button" role="tab"
-                        aria-controls="analytics-pane" aria-selected="false">
-                    <i class="bi bi-clipboard-data me-1"></i>Assessment Analytics
-                </button>
-            </li>
-        }
-    </ul>
-
-    <div class="tab-content">
-        <div class="tab-pane fade show active" id="proton-pane" role="tabpanel" aria-labelledby="proton-tab">
-            @if (Model.CoacheeData != null)
-            {
-                <partial name="Shared/_CoacheeDashboardPartial" model="Model.CoacheeData" />
-            }
-            else if (Model.ProtonProgressData != null)
-            {
-                <partial name="Shared/_CoachingProtonPartial" model="Model.ProtonProgressData" />
-            }
-        </div>
-        @if (Model.AssessmentAnalyticsData != null)
-        {
-            <div class="tab-pane fade" id="analytics-pane" role="tabpanel" aria-labelledby="analytics-tab">
-                <partial name="Shared/_AssessmentAnalyticsPartial" model="Model.AssessmentAnalyticsData" />
-            </div>
-        }
-    </div>
+    @if (Model.CoacheeData != null)
+    {
+        <partial name="Shared/_CoacheeDashboardPartial" model="Model.CoacheeData" />
+    }
+    else if (Model.ProtonProgressData != null)
+    {
+        <partial name="Shared/_CoachingProtonPartial" model="Model.ProtonProgressData" />
+    }
 
 </div>
 
@@ -173,137 +143,6 @@
                         container.classList.remove('dashboard-loading');
                     }
                 });
-        }
-    })();
-
-    // ============================================================
-    // Assessment Analytics AJAX Filters
-    // ============================================================
-    (function () {
-        var sectionEl = document.getElementById('analyticsFilterSection');
-        var unitEl = document.getElementById('analyticsFilterUnit');
-        var categoryEl = document.getElementById('analyticsFilterCategory');
-        var clearBtn = document.getElementById('analyticsClearBtn');
-        var exportBtn = document.getElementById('analyticsExportBtn');
-        if (!sectionEl) return; // analytics tab not rendered
-
-        var analyticsAbort = null;
-
-        // Section change: cascade units, reset category, refresh
-        sectionEl.addEventListener('change', function () {
-            var section = this.value;
-            unitEl.innerHTML = '<option value="">Semua Unit</option>';
-            if (section) {
-                fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section))
-                    .then(function (r) { return r.json(); })
-                    .then(function (data) {
-                        (data.units || []).forEach(function (u) {
-                            var opt = document.createElement('option');
-                            opt.value = u;
-                            opt.textContent = u;
-                            unitEl.appendChild(opt);
-                        });
-                    });
-            }
-            refreshAnalyticsContent(1);
-        });
-
-        unitEl.addEventListener('change', function () { refreshAnalyticsContent(1); });
-        categoryEl.addEventListener('change', function () { refreshAnalyticsContent(1); });
-
-        clearBtn.addEventListener('click', function () {
-            sectionEl.value = '';
-            unitEl.innerHTML = '<option value="">Semua Unit</option>';
-            categoryEl.value = '';
-            refreshAnalyticsContent(1);
-        });
-
-        function buildParams(page) {
-            var params = new URLSearchParams();
-            var section = sectionEl.value;
-            var unit = unitEl.value;
-            var category = categoryEl.value;
-            if (section) params.set('section', section);
-            if (unit) params.set('unit', unit);
-            if (category) params.set('category', category);
-            params.set('page', page || 1);
-            return params;
-        }
-
-        function updateExportLink() {
-            if (!exportBtn) return;
-            var params = new URLSearchParams();
-            var section = sectionEl.value;
-            var unit = unitEl.value;
-            var category = categoryEl.value;
-            if (section) params.set('section', section);
-            if (unit) params.set('unit', unit);
-            if (category) params.set('category', category);
-            var qs = params.toString();
-            exportBtn.href = '/CDP/ExportAnalyticsResults' + (qs ? '?' + qs : '');
-        }
-
-        function refreshAnalyticsContent(page) {
-            page = page || 1;
-            var container = document.getElementById('analytics-content');
-            if (!container) return;
-            container.classList.add('dashboard-loading');
-            updateExportLink();
-
-            if (analyticsAbort) analyticsAbort.abort();
-            analyticsAbort = new AbortController();
-
-            var params = buildParams(page);
-            fetch('/CDP/FilterAssessmentAnalytics?' + params, { signal: analyticsAbort.signal })
-                .then(function (resp) { return resp.text(); })
-                .then(function (html) {
-                    container.innerHTML = html;
-                    // Re-execute scripts for charts
-                    container.querySelectorAll('script').forEach(function (old) {
-                        var s = document.createElement('script');
-                        s.textContent = old.textContent;
-                        old.parentNode.replaceChild(s, old);
-                    });
-                    bindAnalyticsPagination();
-                    container.classList.remove('dashboard-loading');
-                })
-                .catch(function (e) {
-                    if (e.name !== 'AbortError') {
-                        console.error(e);
-                        container.classList.remove('dashboard-loading');
-                    }
-                });
-        }
-
-        function bindAnalyticsPagination() {
-            var container = document.getElementById('analytics-content');
-            if (!container) return;
-            container.querySelectorAll('.analytics-page-link').forEach(function (link) {
-                link.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    var page = this.getAttribute('data-page');
-                    if (page) refreshAnalyticsContent(parseInt(page));
-                });
-            });
-        }
-
-        // Bind initial pagination
-        bindAnalyticsPagination();
-        // Set initial export link
-        updateExportLink();
-    })();
-
-    // ============================================================
-    // Tab activation from URL params (legacy support)
-    // ============================================================
-    (function () {
-        var params = new URLSearchParams(window.location.search);
-        if (params.get('activeTab') === 'analytics') {
-            var analyticsTabEl = document.getElementById('analytics-tab');
-            if (analyticsTabEl) {
-                var tab = new bootstrap.Tab(analyticsTabEl);
-                tab.show();
-            }
         }
     })();
 </script>

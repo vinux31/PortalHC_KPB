@@ -13,9 +13,6 @@ public class CDPDashboardViewModel
 
     // Populated for all non-Coachee roles (HC/Admin/Coach/Supervisor)
     public ProtonProgressSubModel? ProtonProgressData { get; set; }
-
-    // Populated for HC and Admin regardless of SelectedView
-    public AssessmentAnalyticsSubModel? AssessmentAnalyticsData { get; set; }
 }
 
 // ============================================================
@@ -71,42 +68,7 @@ public class ProtonProgressSubModel
 }
 
 // ============================================================
-// Sub-model 3: HC / Admin Assessment Analytics view
-// ============================================================
-public class AssessmentAnalyticsSubModel
-{
-    // KPI card fields
-    public int TotalAssigned { get; set; }
-    public int TotalCompleted { get; set; }
-    public int PassedCount { get; set; }
-    public double PassRate { get; set; }
-    public double AverageScore { get; set; }
-
-    // Paginated assessment table
-    public List<AssessmentReportItem> Assessments { get; set; } = new();
-    public int CurrentPage { get; set; }
-    public int TotalPages { get; set; }
-    public int PageSize { get; set; }
-
-    // Filters
-    public ReportFilters CurrentFilters { get; set; } = new();
-    public List<string> AvailableCategories { get; set; } = new();
-    public List<string> AvailableSections { get; set; } = new();
-    public List<string> AvailableUnits { get; set; } = new();
-
-    // Current filter state (for export link and AJAX round-trip)
-    public string? FilterSection { get; set; }
-    public string? FilterUnit { get; set; }
-    public string? FilterCategory { get; set; }
-
-    // Chart data
-    public List<CategoryStatistic> CategoryStats { get; set; } = new();
-    public List<int> ScoreDistribution { get; set; } = new();
-}
-
-// ============================================================
 // Supporting classes for CDP Dashboard
-// (These classes are now canonical here; legacy ViewModel files have been retired)
 // ============================================================
 
 public class CoacheeProgressRow
@@ -128,6 +90,9 @@ public class CoacheeProgressRow
         : "0%";
 }
 
+// ============================================================
+// Shared: used by CMP Reports and CDP
+// ============================================================
 public class AssessmentReportItem
 {
     public int Id { get; set; }
@@ -141,22 +106,4 @@ public class AssessmentReportItem
     public int PassPercentage { get; set; }
     public bool IsPassed { get; set; }
     public DateTime? CompletedAt { get; set; }
-}
-
-public class ReportFilters
-{
-    public string? Category { get; set; }
-    public DateTime? StartDate { get; set; }
-    public DateTime? EndDate { get; set; }
-    public string? Section { get; set; }
-    public string? UserSearch { get; set; }
-}
-
-public class CategoryStatistic
-{
-    public string CategoryName { get; set; } = "";
-    public int TotalAssessments { get; set; }
-    public int PassedCount { get; set; }
-    public double PassRate { get; set; }
-    public double AverageScore { get; set; }
 }
