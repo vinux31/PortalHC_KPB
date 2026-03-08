@@ -365,6 +365,7 @@ else
                 <p>Apakah Anda yakin ingin menonaktifkan mapping ini?</p>
                 <p>Coachee: <strong id="deactivateCoacheeName"></strong></p>
                 <p id="deactivateSessionInfo" class="text-muted small"></p>
+                <p id="deactivateTrackInfo" class="small d-none"></p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -486,6 +487,7 @@ else
         document.getElementById('deactivateCoacheeName').textContent = coacheeName || '';
         document.getElementById('deactivateSessionInfo').textContent = 'Memuat...';
 
+        // Fetch session count
         fetch('/Admin/CoachCoacheeMappingGetSessionCount', {
             method: 'POST',
             headers: {
@@ -501,6 +503,21 @@ else
                     ? 'Coachee ini memiliki ' + data.count + ' sesi coaching aktif (Draft).'
                     : 'Tidak ada sesi coaching aktif.';
                 document.getElementById('deactivateSessionInfo').textContent = msg;
+            }
+        });
+
+        // Fetch active ProtonTrackAssignment count
+        fetch('/Admin/CoachCoacheeMappingActiveAssignmentCount?id=' + id)
+        .then(r => r.json())
+        .then(data => {
+            var el = document.getElementById('deactivateTrackInfo');
+            if (data.count > 0) {
+                el.textContent = 'Peringatan: ' + data.count + ' track assignment aktif akan ikut dinonaktifkan.';
+                el.classList.remove('d-none');
+                el.classList.add('text-danger', 'fw-bold');
+            } else {
+                el.textContent = '';
+                el.classList.add('d-none');
             }
         });
 
@@ -541,7 +558,22 @@ else
         })
         .then(r => r.json())
         .then(data => {
-            if (data.success) location.reload();
+            if (data.success) {
+                if (data.showAssignPrompt) {
+                    Swal.fire({
+                        toast: true,
+                        position: 'top-end',
+                        icon: 'success',
+                        html: 'Mapping diaktifkan. <a href="' + data.assignUrl + '" class="fw-bold">Assign ProtonTrack untuk ' + data.coacheeName + '?</a>',
+                        showConfirmButton: false,
+                        timer: 8000,
+                        timerProgressBar: true
+                    });
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    location.reload();
+                }
+            }
             else alert(data.message);
         })
         .catch(err => alert('Terjadi kesalahan: ' + err.message));
