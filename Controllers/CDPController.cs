@@ -2241,6 +2241,151 @@ namespace HcPortal.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> DownloadEvidencePdf(int progressId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var roles = await _userManager.GetRolesAsync(user);
+
+            var progress = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d.ProtonSubKompetensi)
+                        .ThenInclude(s => s.ProtonKompetensi)
+                            .ThenInclude(k => k.ProtonTrack)
+                .FirstOrDefaultAsync(p => p.Id == progressId);
+
+            if (progress == null) return NotFound();
+
+            // Access check (same as Deliverable action)
+            bool isCoachee = progress.CoacheeId == user.Id;
+            bool hasFullAccess = UserRoles.HasFullAccess(user.RoleLevel);
+            bool isSectionScoped = UserRoles.HasSectionAccess(user.RoleLevel);
+            bool isCoach = user.RoleLevel == 5;
+
+            if (isCoachee || hasFullAccess)
+            {
+                // allow
+            }
+            else if (isSectionScoped || isCoach)
+            {
+                var coachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.Section })
+                    .FirstOrDefaultAsync();
+                if (coachee == null || coachee.Section != user.Section)
+                    return Forbid();
+            }
+            else
+            {
+                return Forbid();
+            }
+
+            // Load latest coaching session
+            var session = await _context.CoachingSessions
+                .Where(cs => cs.ProtonDeliverableProgressId == progressId)
+                .OrderByDescending(cs => cs.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (session == null) return NotFound();
+
+            // Load data
+            var coacheeName = await _context.Users
+                .Where(u => u.Id == progress.CoacheeId)
+                .Select(u => u.FullName)
+                .FirstOrDefaultAsync() ?? "Coachee";
+
+            var coachInfo = await _context.Users
+                .Where(u => u.Id == session.CoachId)
+                .Select(u => new { u.FullName, u.Position, u.Unit })
+                .FirstOrDefaultAsync();
+
+            var track = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrack;
+            var trackDisplay = track != null ? $"{track.TrackType} {track.TahunKe}" : "-";
+            var kompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "-";
+            var subKompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "-";
+            var deliverable = progress.ProtonDeliverable?.NamaDeliverable ?? "-";
+
+            // Load logo
+            var logoPath = Path.Combine(_env.WebRootPath, "images", "psign-pertamina.png");
+            byte[]? logoBytes = System.IO.File.Exists(logoPath) ? System.IO.File.ReadAllBytes(logoPath) : null;
+
+            var accentColor = "#005B96";
+
+            // Helper for form fields
+            void AddField(QuestPDF.Infrastructure.IContainer container, string label, string value)
+            {
+                container.Row(row =>
+                {
+                    row.RelativeItem(1).Background(accentColor).Padding(6)
+                        .Text(label).FontSize(9).Bold().FontColor(QuestPDF.Helpers.Colors.White);
+                    row.RelativeItem(2).BorderBottom(1).BorderColor("#dee2e6").Padding(6)
+                        .Text(string.IsNullOrWhiteSpace(value) ? "-" : value).FontSize(10);
+                });
+            }
+
+            var pdf = QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(QuestPDF.Helpers.PageSizes.A4);
+                    page.Margin(2, QuestPDF.Infrastructure.Unit.Centimetre);
+
+                    page.Content().Column(col =>
+                    {
+                        // Header
+                        col.Item().AlignCenter().Column(header =>
+                        {
+                            if (logoBytes != null)
+                                header.Item().AlignCenter().Width(80).Image(logoBytes);
+                            header.Item().PaddingTop(8).AlignCenter()
+                                .Text("EVIDENCE COACHING REPORT").FontSize(16).Bold().FontColor(accentColor);
+                        });
+
+                        col.Item().PaddingTop(20).Column(fields =>
+                        {
+                            AddField(fields.Item(), "Nama Coachee", coacheeName);
+                            AddField(fields.Item(), "Track", trackDisplay);
+                            AddField(fields.Item(), "Kompetensi", kompetensi);
+                            AddField(fields.Item(), "Sub Kompetensi", subKompetensi);
+                            AddField(fields.Item(), "Deliverable", deliverable);
+                            AddField(fields.Item(), "Tanggal Coaching", session.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")));
+                            AddField(fields.Item(), "Catatan Coach", session.CatatanCoach);
+                            AddField(fields.Item(), "Kesimpulan", session.Kesimpulan);
+                            AddField(fields.Item(), "Result", session.Result);
+                        });
+
+                        // P-Sign badge at bottom-left
+                        col.Item().PaddingTop(30).Row(row =>
+                        {
+                            row.RelativeItem(1).Width(170).Border(1.5f).BorderColor("#adb5bd").Padding(8).Column(badge =>
+                            {
+                                if (logoBytes != null)
+                                    badge.Item().AlignCenter().Width(50).Image(logoBytes);
+                                if (!string.IsNullOrWhiteSpace(coachInfo?.Position))
+                                    badge.Item().AlignCenter().Text(coachInfo.Position).FontSize(8);
+                                if (!string.IsNullOrWhiteSpace(coachInfo?.Unit))
+                                    badge.Item().AlignCenter().Text(coachInfo.Unit).FontSize(8);
+                                badge.Item().AlignCenter().Text(coachInfo?.FullName ?? "Coach").FontSize(9).Bold();
+                            });
+                            row.RelativeItem(1);
+                        });
+                    });
+
+                    page.Footer().AlignCenter()
+                        .Text($"Generated: {DateTime.Now:dd MMM yyyy HH:mm} — Page 1 of 1 — PortalHC KPB").FontSize(7);
+                });
+            });
+
+            var pdfStream = new MemoryStream();
+            pdf.GeneratePdf(pdfStream);
+            var safeName = System.Text.RegularExpressions.Regex.Replace(coacheeName, @"[^a-zA-Z0-9]", "_");
+            var safeDeliverable = System.Text.RegularExpressions.Regex.Replace(deliverable, @"[^a-zA-Z0-9]", "_");
+            var filename = $"Evidence_{safeName}_{safeDeliverable}_{session.Date:yyyy-MM-dd}.pdf";
+            return File(pdfStream.ToArray(), "application/pdf", filename);
+        }
+
+        [HttpGet]
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public async Task<IActionResult> GetCoacheeDeliverables(string coacheeId)
         {
