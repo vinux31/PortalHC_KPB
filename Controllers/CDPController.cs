@@ -605,12 +605,10 @@ namespace HcPortal.Controllers
             }
             else if (isCoach)
             {
-                // Coach: section check (coach-coachee are always same section)
-                var coachee = await _context.Users
-                    .Where(u => u.Id == progress.CoacheeId)
-                    .Select(u => new { u.Section })
-                    .FirstOrDefaultAsync();
-                if (coachee == null || coachee.Section != user.Section)
+                // Coach: mapping-based access (supports cross-section coachees)
+                var hasMapping = await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == progress.CoacheeId && m.IsActive);
+                if (!hasMapping)
                     return Forbid();
             }
             else
@@ -1160,9 +1158,14 @@ namespace HcPortal.Controllers
             }
             else if (userLevel == 5) // Coach — CoachCoacheeMapping only
             {
-                scopedCoacheeIds = await _context.CoachCoacheeMappings
+                var coachMappings = await _context.CoachCoacheeMappings
                     .Where(m => m.CoachId == user.Id && m.IsActive)
-                    .Select(m => m.CoacheeId).ToListAsync();
+                    .Select(m => new { m.CoacheeId, m.AssignmentSection })
+                    .ToListAsync();
+                scopedCoacheeIds = coachMappings.Select(m => m.CoacheeId).ToList();
+                ViewBag.AssignmentSections = coachMappings
+                    .Where(m => !string.IsNullOrEmpty(m.AssignmentSection))
+                    .ToDictionary(m => m.CoacheeId, m => m.AssignmentSection!);
             }
             else // Level 6 (Coachee)
             {

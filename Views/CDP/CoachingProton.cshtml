@@ -25,6 +25,8 @@
     var filteredCount = (int)(ViewBag.FilteredCount ?? 0);
     var emptyScenario = ViewBag.EmptyScenario as string ?? "";
 
+    var assignmentSections = ViewBag.AssignmentSections as Dictionary<string, string> ?? new Dictionary<string, string>();
+
     bool isSrSpv = userRole == "Sr Supervisor";
     bool isSH = userRole == "Section Head";
     bool isHC = userRole == "HC" || userRole == "Admin";
@@ -127,13 +129,14 @@
                 <option value="">— Pilih Coachee —</option>
                 @foreach (var c in coachees)
                 {
+                    var sectionLabel = assignmentSections.ContainsKey(c.Id) ? $" [{assignmentSections[c.Id]}]" : "";
                     if (c.Id == selectedCoacheeId)
                     {
-                        <option value="@c.Id" selected>@c.FullName</option>
+                        <option value="@c.Id" selected>@c.FullName@sectionLabel</option>
                     }
                     else
                     {
-                        <option value="@c.Id">@c.FullName</option>
+                        <option value="@c.Id">@c.FullName@sectionLabel</option>
                     }
                 }
             </select>
