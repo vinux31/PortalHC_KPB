@@ -122,13 +122,19 @@ Plans:
 
 ### Phase 122: Remove Assessment Analytics Tab from CDP Dashboard
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal**: CDP Dashboard is simplified to a single-section Coaching Proton Dashboard with all analytics code removed
 **Depends on:** Phase 121
-**Plans:** 0 plans
+**Requirements**: REM-01, REM-02, REM-03, REM-04, REM-05
+**Success Criteria** (what must be TRUE):
+  1. Assessment Analytics tab, partials, controller actions, and view model classes are fully removed
+  2. Dashboard renders as a single-section "Coaching Proton Dashboard" page with no tab UI
+  3. Navbar, hub card, and guide pages reference "Coaching Proton Dashboard"
+  4. Build succeeds with no errors
+  5. Old analytics URLs land on Dashboard without errors
+**Plans**: 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 122 to break down)
+- [ ] 122-01-PLAN.md — Remove analytics backend/frontend code and simplify Dashboard to single-section
 
 ---
 
