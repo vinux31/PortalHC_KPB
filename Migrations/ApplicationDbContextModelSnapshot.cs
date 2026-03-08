@@ -1190,6 +1190,9 @@ namespace HcPortal.Migrations
                     b.Property<int>("ProtonDeliverableId")
                         .HasColumnType("int");
 
+                    b.Property<int>("ProtonTrackAssignmentId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("RejectedAt")
                         .HasColumnType("datetime2");
 
@@ -1229,9 +1232,11 @@ namespace HcPortal.Migrations
 
                     b.HasIndex("ProtonDeliverableId");
 
+                    b.HasIndex("ProtonTrackAssignmentId");
+
                     b.HasIndex("Status");
 
-                    b.HasIndex("CoacheeId", "ProtonDeliverableId")
+                    b.HasIndex("ProtonTrackAssignmentId", "ProtonDeliverableId")
                         .IsUnique();
 
                     b.ToTable("ProtonDeliverableProgresses");
@@ -2001,7 +2006,15 @@ namespace HcPortal.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("HcPortal.Models.ProtonTrackAssignment", "ProtonTrackAssignment")
+                        .WithMany()
+                        .HasForeignKey("ProtonTrackAssignmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("ProtonDeliverable");
+
+                    b.Navigation("ProtonTrackAssignment");
                 });
 
             modelBuilder.Entity("HcPortal.Models.ProtonFinalAssessment", b =>

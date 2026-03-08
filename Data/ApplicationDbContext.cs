@@ -324,15 +324,20 @@ namespace HcPortal.Data
                 entity.HasIndex(d => d.ProtonSubKompetensiId);
             });
 
-            // ProtonDeliverableProgress -> ProtonDeliverable
+            // ProtonDeliverableProgress -> ProtonDeliverable + ProtonTrackAssignment
             builder.Entity<ProtonDeliverableProgress>(entity =>
             {
                 entity.HasOne(p => p.ProtonDeliverable)
                     .WithMany()
                     .HasForeignKey(p => p.ProtonDeliverableId)
                     .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(p => p.ProtonTrackAssignment)
+                    .WithMany()
+                    .HasForeignKey(p => p.ProtonTrackAssignmentId)
+                    .OnDelete(DeleteBehavior.Cascade);
                 entity.HasIndex(p => p.CoacheeId);
-                entity.HasIndex(p => new { p.CoacheeId, p.ProtonDeliverableId }).IsUnique();
+                entity.HasIndex(p => p.ProtonTrackAssignmentId);
+                entity.HasIndex(p => new { p.ProtonTrackAssignmentId, p.ProtonDeliverableId }).IsUnique();
                 entity.HasIndex(p => p.Status);
             });
 

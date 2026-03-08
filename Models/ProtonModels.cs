@@ -89,6 +89,8 @@ public class ProtonDeliverableProgress
     public string CoacheeId { get; set; } = "";
     public int ProtonDeliverableId { get; set; }
     public ProtonDeliverable? ProtonDeliverable { get; set; }
+    public int ProtonTrackAssignmentId { get; set; }
+    public ProtonTrackAssignment? ProtonTrackAssignment { get; set; }
     /// <summary>Values: "Pending", "Submitted", "Approved", "Rejected"</summary>
     public string Status { get; set; } = "Pending";
     /// <summary>Relative web path like "/uploads/evidence/{id}/{filename}"</summary>
