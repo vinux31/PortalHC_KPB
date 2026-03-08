@@ -403,7 +403,35 @@ namespace HcPortal.Controllers
 
             var allProgresses = await _context.ProtonDeliverableProgresses
                 .Where(p => activeAssignmentIds.Contains(p.ProtonTrackAssignmentId))
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
                 .ToListAsync();
+
+            // Phase 129: Defensive unit filter — exclude progress where kompetensi unit doesn't match assignment's resolved unit
+            {
+                var asnCoacheeIds129 = assignments.Select(a => new { a.Id, a.CoacheeId }).ToList();
+                var coacheeIdList129 = asnCoacheeIds129.Select(x => x.CoacheeId).Distinct().ToList();
+                var mappingUnits129 = await _context.CoachCoacheeMappings
+                    .Where(m => m.IsActive && coacheeIdList129.Contains(m.CoacheeId))
+                    .Select(m => new { m.CoacheeId, m.AssignmentUnit })
+                    .ToListAsync();
+                var userUnits129 = await _context.Users
+                    .Where(u => coacheeIdList129.Contains(u.Id))
+                    .Select(u => new { u.Id, u.Unit })
+                    .ToDictionaryAsync(u => u.Id, u => u.Unit);
+                var asnUnitMap129 = asnCoacheeIds129.ToDictionary(
+                    x => x.Id,
+                    x => (mappingUnits129.FirstOrDefault(m => m.CoacheeId == x.CoacheeId)?.AssignmentUnit
+                          ?? userUnits129.GetValueOrDefault(x.CoacheeId))?.Trim() ?? "");
+
+                allProgresses = allProgresses.Where(p =>
+                {
+                    var kompUnit = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Unit?.Trim() ?? "";
+                    var resolvedUnit = asnUnitMap129.GetValueOrDefault(p.ProtonTrackAssignmentId, "");
+                    return string.IsNullOrEmpty(resolvedUnit) || kompUnit == resolvedUnit;
+                }).ToList();
+            }
 
             // Phase 121: Apply category/track filters
             if (!string.IsNullOrEmpty(category))
@@ -1306,6 +1334,34 @@ namespace HcPortal.Controllers
                 .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.Urutan)
                 .ThenBy(p => p.ProtonDeliverable!.Urutan)
                 .ToListAsync();
+
+            // Phase 129: Defensive unit filter — exclude progress where kompetensi unit doesn't match assignment's resolved unit
+            {
+                var asnCoachees129 = await _context.ProtonTrackAssignments
+                    .Where(a => activeAssignmentIds.Contains(a.Id))
+                    .Select(a => new { a.Id, a.CoacheeId })
+                    .ToListAsync();
+                var coacheeIds129 = asnCoachees129.Select(x => x.CoacheeId).Distinct().ToList();
+                var mappingUnits129 = await _context.CoachCoacheeMappings
+                    .Where(m => m.IsActive && coacheeIds129.Contains(m.CoacheeId))
+                    .Select(m => new { m.CoacheeId, m.AssignmentUnit })
+                    .ToListAsync();
+                var userUnits129 = await _context.Users
+                    .Where(u => coacheeIds129.Contains(u.Id))
+                    .Select(u => new { u.Id, u.Unit })
+                    .ToDictionaryAsync(u => u.Id, u => u.Unit);
+                var asnUnitMap129 = asnCoachees129.ToDictionary(
+                    x => x.Id,
+                    x => (mappingUnits129.FirstOrDefault(m => m.CoacheeId == x.CoacheeId)?.AssignmentUnit
+                          ?? userUnits129.GetValueOrDefault(x.CoacheeId))?.Trim() ?? "");
+
+                progresses = progresses.Where(p =>
+                {
+                    var kompUnit = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Unit?.Trim() ?? "";
+                    var resolvedUnit = asnUnitMap129.GetValueOrDefault(p.ProtonTrackAssignmentId, "");
+                    return string.IsNullOrEmpty(resolvedUnit) || kompUnit == resolvedUnit;
+                }).ToList();
+            }
 
             // Build coachee name lookup dictionary
             var coacheeNameDict = coacheeList?.ToDictionary(u => u.Id, u => u.FullName ?? "")
