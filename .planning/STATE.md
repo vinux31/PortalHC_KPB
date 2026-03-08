@@ -67,13 +67,13 @@ See: .planning/PROJECT.md (updated 2026-03-07)
 
 ## Current Position
 
-**Milestone:** v3.10 Evidence Coaching & Deliverable Redesign
-**Phase:** 116 (1 of 5) — Modal Cleanup
-**Plan:** 01 complete (1 of 1)
-**Status:** Milestone complete
-**Last activity:** 2026-03-07 — Completed 116-01 Modal Cleanup
+**Milestone:** v3.11 CDP Dashboard Filter & Assessment Analytics Redesign
+**Phase:** 121 (1 of 1)
+**Plan:** 01 complete (1 of 2)
+**Status:** In progress
+**Last activity:** 2026-03-08 — Completed 121-01 Coaching Proton Cascade Filters
 
-Progress: [██████████] 100%
+Progress: [█████-----] 50%
 
 ## Performance Metrics
 
@@ -107,10 +107,12 @@ Progress: [██████████] 100%
 - [Phase 119]: Upload Evidence form removed from Deliverable page
 - [Phase 120]: PDF Evidence: logo top-right, date-only footer, green button
 - [Phase 121]: Reused GetCascadeOptions endpoint for both tabs instead of creating duplicate
+- [Phase 121-01]: Split CoachingProton partial into filter bar + content partial for flicker-free AJAX
+- [Phase 121-01]: IIFE pattern in content partial scripts for re-execution after innerHTML replacement
 
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-03-07 after 116-01 Modal Cleanup plan completion*
+*State updated: 2026-03-08 after 121-01 Coaching Proton Cascade Filters plan completion*
