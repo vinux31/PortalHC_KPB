@@ -120,6 +120,16 @@ Plans:
 - [ ] 121-01-PLAN.md — Backend AJAX endpoints + Coaching Proton tab cascade filters
 - [ ] 121-02-PLAN.md — Assessment Analytics tab redesign with cascade filters + export fix
 
+### Phase 122: Remove Assessment Analytics Tab from CDP Dashboard
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 121
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 122 to break down)
+
 ---
 
 ## v3.10 Evidence Coaching & Deliverable Redesign

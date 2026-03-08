@@ -105,6 +105,7 @@ Progress: [█████-----] 50%
 ### Roadmap Evolution
 
 - Phase 121 added: CDP Dashboard Filter & Assessment Analytics Redesign
+- Phase 122 added: Remove Assessment Analytics Tab from CDP Dashboard
 
 ### Decisions
 
