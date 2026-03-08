@@ -104,13 +104,21 @@ Plans:
 
 ### Phase 121: CDP Dashboard Filter & Assessment Analytics Redesign
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal**: Both CDP Dashboard tabs have cascade filter dropdowns with AJAX refresh, role-based filter locking, and aligned layout
 **Depends on:** Phase 120
-**Plans:** 0 plans
+**Requirements**: FILT-01, FILT-02, FILT-03, FILT-04, FILT-05, FILT-06, FILT-07, FILT-08
+**Success Criteria** (what must be TRUE):
+  1. Coaching Proton tab has 4 cascade filters (Section -> Unit -> Category -> Track) with immediate AJAX refresh
+  2. Assessment Analytics tab has 3 cascade filters (Section -> Unit -> Category) with AJAX refresh, no page reload
+  3. Level 4 users see Section pre-filled and locked; Level 5 users see Section+Unit locked
+  4. Both tabs follow identical layout: Filter bar -> KPI cards -> Charts -> Table
+  5. Excel export respects active filter selections
+  6. Assessment Analytics filter change no longer redirects to Coaching Proton tab
+**Plans**: 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 121 to break down)
+- [ ] 121-01-PLAN.md — Backend AJAX endpoints + Coaching Proton tab cascade filters
+- [ ] 121-02-PLAN.md — Assessment Analytics tab redesign with cascade filters + export fix
 
 ---
 
