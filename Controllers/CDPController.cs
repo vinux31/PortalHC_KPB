@@ -131,7 +131,7 @@ namespace HcPortal.Controllers
                                 DeliverableId = d.Id,
                                 Deliverable = d.NamaDeliverable,
                                 No = d.Urutan.ToString(),
-                                Target = s.Target ?? ""
+                                Target = d.Target ?? ""
                             });
                         }
                     }

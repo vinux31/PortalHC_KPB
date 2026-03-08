@@ -160,7 +160,7 @@ namespace HcPortal.Controllers
                                 Kompetensi = k.NamaKompetensi,
                                 SubKompetensiId = s.Id,
                                 SubKompetensi = s.NamaSubKompetensi,
-                                Target = s.Target ?? "-",
+                                Target = d.Target ?? "-",
                                 DeliverableId = d.Id,
                                 Deliverable = d.NamaDeliverable,
                                 No = d.Urutan.ToString()
@@ -269,11 +269,10 @@ namespace HcPortal.Controllers
                     {
                         subKomp.NamaSubKompetensi = row.SubKompetensi.Trim();
                         subKomp.ProtonKompetensiId = komp.Id;
-                        subKomp.Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim();
                     }
                     else
                     {
-                        subKomp = new ProtonSubKompetensi { ProtonKompetensiId = komp.Id, NamaSubKompetensi = row.SubKompetensi.Trim(), Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim(), Urutan = urutan };
+                        subKomp = new ProtonSubKompetensi { ProtonKompetensiId = komp.Id, NamaSubKompetensi = row.SubKompetensi.Trim(), Urutan = urutan };
                         _context.ProtonSubKompetensiList.Add(subKomp);
                         created++;
                     }
@@ -284,7 +283,7 @@ namespace HcPortal.Controllers
                 }
                 else
                 {
-                    subKomp = new ProtonSubKompetensi { ProtonKompetensiId = komp.Id, NamaSubKompetensi = row.SubKompetensi.Trim(), Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim(), Urutan = urutan };
+                    subKomp = new ProtonSubKompetensi { ProtonKompetensiId = komp.Id, NamaSubKompetensi = row.SubKompetensi.Trim(), Urutan = urutan };
                     _context.ProtonSubKompetensiList.Add(subKomp);
                     subKompDict[subKey] = subKomp;
                     created++;
@@ -302,6 +301,7 @@ namespace HcPortal.Controllers
                     {
                         deliv.NamaDeliverable = row.Deliverable.Trim();
                         deliv.ProtonSubKompetensiId = subKomp!.Id;
+                        deliv.Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim();
                         deliv.Urutan = urutan;
                         updated++;
                     }
@@ -312,6 +312,7 @@ namespace HcPortal.Controllers
                         {
                             ProtonSubKompetensiId = subKomp!.Id,
                             NamaDeliverable = row.Deliverable.Trim(),
+                            Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim(),
                             Urutan = urutan
                         };
                         _context.ProtonDeliverableList.Add(deliv2);
@@ -326,6 +327,7 @@ namespace HcPortal.Controllers
                     {
                         ProtonSubKompetensiId = subKomp!.Id,
                         NamaDeliverable = row.Deliverable.Trim(),
+                        Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim(),
                         Urutan = urutan
                     };
                     _context.ProtonDeliverableList.Add(deliv);

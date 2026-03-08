@@ -1138,6 +1138,9 @@ namespace HcPortal.Migrations
                     b.Property<int>("ProtonSubKompetensiId")
                         .HasColumnType("int");
 
+                    b.Property<string>("Target")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Urutan")
                         .HasColumnType("int");
 
@@ -1389,9 +1392,6 @@ namespace HcPortal.Migrations
 
                     b.Property<int>("ProtonKompetensiId")
                         .HasColumnType("int");
-
-                    b.Property<string>("Target")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Urutan")
                         .HasColumnType("int");
