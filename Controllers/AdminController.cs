@@ -2902,8 +2902,9 @@ namespace HcPortal.Controllers
             ViewBag.EligibleCoaches = coachRoleUsers
                 .Where(u => u.IsActive)
                 .OrderBy(u => u.FullName).ToList();
-            ViewBag.EligibleCoachees = activeUsers
-                .Where(u => !activeCoacheeIds.Contains(u.Id))
+            var coacheeRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coachee);
+            ViewBag.EligibleCoachees = coacheeRoleUsers
+                .Where(u => u.IsActive && !activeCoacheeIds.Contains(u.Id))
                 .OrderBy(u => u.FullName).ToList();
             ViewBag.AllUsers = activeUsers.OrderBy(u => u.FullName).ToList();
             ViewBag.ProtonTracks = await _context.ProtonTracks
