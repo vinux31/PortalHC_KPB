@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
 status: planning
-last_updated: "2026-03-07T12:24:16.265Z"
+last_updated: "2026-03-08T03:49:42.772Z"
 last_activity: 2026-03-07 — Completed 116-01 Modal Cleanup
 progress:
   total_phases: 8
-  completed_phases: 6
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 7
+  total_plans: 7
+  completed_plans: 7
 ---
 
 ---
@@ -84,6 +84,8 @@ Progress: [██████████] 100%
 - [Phase 117]: Detect re-submit by checking Status==Rejected before overwriting
 - [Phase 117]: Cache actor FullName and role at write time for historical accuracy
 - [Phase 118]: Inline styles with psign- prefix for PDF embedding compatibility
+- [Phase 119]: Approval Chain stepper always visible, removed status gate
+- [Phase 119]: Upload Evidence form removed from Deliverable page
 
 ### Blockers/Concerns
 

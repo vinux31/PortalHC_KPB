@@ -19,9 +19,9 @@
 
 ### Deliverable Page Restructure
 
-- [ ] **PAGE-01**: Halaman Deliverable detail dibagi menjadi sections yang jelas: Detail Coachee & Kompetensi, Evidence Coach, Approval Chain, Riwayat Status
-- [ ] **PAGE-02**: Section Riwayat Status menampilkan timeline kronologis semua status changes dari DeliverableStatusHistory
-- [ ] **PAGE-03**: Section Evidence Coach menampilkan coaching session data (Catatan Coach, Kesimpulan, Result) dan file evidence dengan tombol download
+- [x] **PAGE-01**: Halaman Deliverable detail dibagi menjadi sections yang jelas: Detail Coachee & Kompetensi, Evidence Coach, Approval Chain, Riwayat Status
+- [x] **PAGE-02**: Section Riwayat Status menampilkan timeline kronologis semua status changes dari DeliverableStatusHistory
+- [x] **PAGE-03**: Section Evidence Coach menampilkan coaching session data (Catatan Coach, Kesimpulan, Result) dan file evidence dengan tombol download
 
 ### P-Sign Infrastructure
 
@@ -55,9 +55,9 @@
 | HIST-02 | Phase 117 | Complete |
 | HIST-03 | Phase 117 | Complete |
 | HIST-04 | Phase 117 | Complete |
-| PAGE-01 | Phase 119 | Pending |
-| PAGE-02 | Phase 119 | Pending |
-| PAGE-03 | Phase 119 | Pending |
+| PAGE-01 | Phase 119 | Complete |
+| PAGE-02 | Phase 119 | Complete |
+| PAGE-03 | Phase 119 | Complete |
 | PSIGN-01 | Phase 118 | Complete |
 | PSIGN-02 | Phase 118 | Complete |
 | PSIGN-03 | Phase 118 | Complete |
