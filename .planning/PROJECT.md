@@ -12,21 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.11 — started 2026-03-08)
+## Current State (v3.12 — started 2026-03-08)
 
-**v1.0 through v3.10 shipped** — 27 milestones, 122 phases.
+**v1.0 through v3.11 shipped** — 28 milestones, 127 phases.
 
-## Current Milestone: v3.11 CoachCoacheeMapping Overhaul
+## Current Milestone: v3.12 Progress Unit Scoping
 
-**Goal:** Perbaiki sistem CoachCoacheeMapping agar mendukung cross-section assignment, tambah field penugasan (AssignmentUnit/Section/Tahun), perbaiki CDP access check, tambah database constraint, dan cleanup ProtonTrackAssignment lifecycle.
+**Goal:** Fix progress data agar hanya berisi kompetensi sesuai unit penugasan coachee — AutoCreateProgress filter by AssignmentUnit, clean migration hapus & recreate progress, dan reassignment handler.
 
 **Target features:**
-- Tambah field AssignmentUnit, AssignmentSection di CoachCoacheeMapping untuk penugasan cross-section
-- Perbaiki Deliverable access check — ganti section check dengan mapping check
-- Cleanup ProtonTrackAssignment saat mapping di-deactivate
-- Tambah database uniqueness constraint untuk one-active-coach-per-coachee
-- Update CoachCoacheeMapping UI — tampilkan unit penugasan vs unit asal pekerja
-- Perbaiki CDP scoping di semua page (CoachingProton, HistoriProton, GetCoacheeDeliverables) untuk handle cross-section
+- AutoCreateProgressForAssignment filter deliverable by AssignmentUnit dari CoachCoacheeMapping
+- Clean migration — hapus semua progress lama, recreate berdasarkan active assignments + unit filter
+- Reassignment handler — saat coachee pindah unit, hapus progress lama, buat baru sesuai unit baru
+- CoachingProton table menampilkan hanya kompetensi yang match unit penugasan
 
 ## Architecture Decisions
 
