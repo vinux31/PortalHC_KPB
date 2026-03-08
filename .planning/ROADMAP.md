@@ -334,7 +334,10 @@ Plans:
   2. After migration runs, all old ProtonDeliverableProgress, CoachingSessions, and DeliverableStatusHistory rows are deleted
   3. After migration runs, every active ProtonTrackAssignment has fresh progress rows created with the correct unit filter applied
   4. A coachee assigned to unit "Alkylation" sees only Alkylation-scoped kompetensi in their CoachingProton table (no cross-unit leakage)
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 128-01-PLAN.md — Unit-filtered AutoCreateProgress + clean migration
 
 ### Phase 129: Sync, Reassignment & Defensive Query
 **Goal**: All secondary progress-creation paths respect unit scoping, and unit changes trigger automatic progress rebuild
@@ -350,5 +353,5 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 128. Unit-Filtered Progress & Clean Migration | 0/? | Not started | - |
+| 128. Unit-Filtered Progress & Clean Migration | 0/1 | Not started | - |
 | 129. Sync, Reassignment & Defensive Query | 0/? | Not started | - |
