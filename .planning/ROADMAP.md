@@ -245,9 +245,9 @@ Plans:
 **Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 127-01-PLAN.md — Migration + model FK + auto-create/cleanup in Assign/Edit
-- [ ] 127-02-PLAN.md — Rewrite Dashboard + CoachingProton + HistoriProton scoping to assignment-based
-- [ ] 127-03-PLAN.md — SaveSilabus auto-sync + DeleteKompetensi cascade cleanup
+- [x] 127-01-PLAN.md — Migration + model FK + auto-create/cleanup in Assign/Edit
+- [x] 127-02-PLAN.md — Rewrite Dashboard + CoachingProton + HistoriProton scoping to assignment-based
+- [x] 127-03-PLAN.md — SaveSilabus auto-sync + DeleteKompetensi cascade cleanup
 
 ---
 

@@ -56,9 +56,9 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Milestone:** v3.11 CoachCoacheeMapping Overhaul
 **Phase:** 127
-**Plan:** 02 complete, 03 next
+**Plan:** 03 complete, 04 next
 **Status:** Executing phase 127
-**Last activity:** 2026-03-08 — Completed 127-02 (Dashboard and CoachingProton scoping rewrite)
+**Last activity:** 2026-03-08 — Completed 127-03 (SaveSilabus auto-sync + cascade delete)
 
 ```
 [=                   ] 0% (0/3 phases)
@@ -94,10 +94,12 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - [Phase 127-01]: Migration wipes all existing progress/sessions/history and repopulates from active assignments
 - [Phase 127]: All coachee visibility flows through active ProtonTrackAssignment, not RoleLevel==6 user queries
 - [Phase 127]: Belt-and-suspenders track validation on progress queries
+- [Phase 127-03]: DeliverableStatusHistory cascade-deletes via EF convention (no manual cleanup needed)
+- [Phase 127-03]: SilabusDelete also needs cascade cleanup for progress (not just DeleteKompetensi)
 
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-03-08 after 127-01 execution*
+*State updated: 2026-03-08 after 127-03 execution*
