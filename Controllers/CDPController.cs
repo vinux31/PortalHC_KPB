@@ -335,45 +335,48 @@ namespace HcPortal.Controllers
         // ============================================================
         private async Task<ProtonProgressSubModel> BuildProtonProgressSubModelAsync(ApplicationUser user, string userRole, string? section = null, string? unit = null, string? category = null, string? track = null)
         {
-            // DASH-02: Build scoped coachee ID list
+            // DASH-02: Build scoped coachee ID list via active ProtonTrackAssignment
             List<string> scopedCoacheeIds;
             string scopeLabel;
+            int roleLevel = UserRoles.GetRoleLevel(userRole);
 
+            // Phase 127: Assignment-based scoping — only coachees with active assignments are visible
             if (userRole == UserRoles.HC || userRole == UserRoles.Admin)
             {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id)
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive)
+                    .Select(a => a.CoacheeId)
+                    .Distinct()
                     .ToListAsync();
                 scopeLabel = "All Sections";
             }
-            else if (UserRoles.HasSectionAccess(UserRoles.GetRoleLevel(userRole)))
+            else if (UserRoles.HasSectionAccess(roleLevel))
             {
-                scopedCoacheeIds = await _context.Users
-                    .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
-                    .Select(u => u.Id)
+                // SectionHead/SrSpv: coachees with active assignment whose section matches
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive)
+                    .Join(_context.Users, a => a.CoacheeId, u => u.Id, (a, u) => new { a.CoacheeId, u.Section })
+                    .Where(x => x.Section == user.Section)
+                    .Select(x => x.CoacheeId)
+                    .Distinct()
                     .ToListAsync();
                 scopeLabel = $"Section: {user.Section ?? "(unknown)"}";
             }
             else // Coach
             {
-                // Null-guard: fall back to Section if Unit is unset
-                if (!string.IsNullOrEmpty(user.Unit))
-                {
-                    scopedCoacheeIds = await _context.Users
-                        .Where(u => u.Unit == user.Unit && u.RoleLevel == 6 && u.IsActive)
-                        .Select(u => u.Id)
-                        .ToListAsync();
-                    scopeLabel = $"Unit: {user.Unit}";
-                }
-                else
-                {
-                    scopedCoacheeIds = await _context.Users
-                        .Where(u => u.Section == user.Section && u.RoleLevel == 6 && u.IsActive)
-                        .Select(u => u.Id)
-                        .ToListAsync();
-                    scopeLabel = $"Section: {user.Section ?? "(unknown)"} (Unit not set)";
-                }
+                // Coach: mapped coachees that also have active assignments
+                var mappedCoacheeIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Select(m => m.CoacheeId)
+                    .ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive && mappedCoacheeIds.Contains(a.CoacheeId))
+                    .Select(a => a.CoacheeId)
+                    .Distinct()
+                    .ToListAsync();
+                scopeLabel = !string.IsNullOrEmpty(user.Unit)
+                    ? $"Unit: {user.Unit}"
+                    : $"Section: {user.Section ?? "(unknown)"} (Unit not set)";
             }
 
             // Batch load data (avoid N+1)
@@ -382,7 +385,6 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             // Phase 121: Apply additional section/unit filters for full-access roles
-            int roleLevel = UserRoles.GetRoleLevel(userRole);
             if (!string.IsNullOrEmpty(section) && UserRoles.HasFullAccess(roleLevel))
                 coacheeUsers = coacheeUsers.Where(u => u.Section == section).ToList();
             if (!string.IsNullOrEmpty(unit))
@@ -391,13 +393,16 @@ namespace HcPortal.Controllers
             var filteredCoacheeIds = coacheeUsers.Select(u => u.Id).ToList();
             var userNames = coacheeUsers.ToDictionary(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
 
-            var allProgresses = await _context.ProtonDeliverableProgresses
-                .Where(p => filteredCoacheeIds.Contains(p.CoacheeId))
-                .ToListAsync();
-
+            // Phase 127: Query progress via assignment FK, not just CoacheeId
             var assignments = await _context.ProtonTrackAssignments
                 .Include(a => a.ProtonTrack)
                 .Where(a => filteredCoacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                .ToListAsync();
+
+            var activeAssignmentIds = assignments.Select(a => a.Id).ToList();
+
+            var allProgresses = await _context.ProtonDeliverableProgresses
+                .Where(p => activeAssignmentIds.Contains(p.ProtonTrackAssignmentId))
                 .ToListAsync();
 
             // Phase 121: Apply category/track filters
