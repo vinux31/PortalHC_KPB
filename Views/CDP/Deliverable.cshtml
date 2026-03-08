@@ -16,14 +16,11 @@
         bcLabel = "Coaching Proton";
     }
 }
-@* Breadcrumb *@
+@* Breadcrumb — simplified to 2 levels *@
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a asp-action="@bcAction">@bcLabel</a></li>
-        <li class="breadcrumb-item">@Model.TrackType @Model.TahunKe</li>
-        <li class="breadcrumb-item">@(Model.Deliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "-")</li>
-        <li class="breadcrumb-item">@(Model.Deliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "-")</li>
-        <li class="breadcrumb-item active" aria-current="page">@(Model.Deliverable?.NamaDeliverable ?? "-")</li>
+        <li class="breadcrumb-item active" aria-current="page">Deliverable</li>
     </ol>
 </nav>
 
@@ -64,312 +61,254 @@ else
     else if (Model.Progress?.Status == "Rejected") { badgeClass = "bg-danger"; }
     else { badgeClass = "bg-secondary"; }
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-semibold">
-                <i class="bi bi-file-earmark-check me-2 text-primary"></i>@(Model.Deliverable?.NamaDeliverable ?? "-")
-            </h5>
-            <span class="badge @badgeClass px-3 py-2">@Model.Progress?.Status</span>
-        </div>
-        <div class="card-body">
-
-            @* Info row *@
-            <div class="row mb-3">
-                <div class="col-md-4">
-                    <small class="text-muted">Coachee</small>
-                    <div class="fw-semibold">@Model.CoacheeName</div>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted">Track</small>
-                    <div class="fw-semibold">@Model.TrackType @Model.TahunKe</div>
-                </div>
-                <div class="col-md-4">
-                    <small class="text-muted">Anda masuk sebagai</small>
-                    <div><span class="badge bg-info text-white">@Model.CurrentUserRole</span></div>
-                </div>
-            </div>
-            <div class="mb-3 small text-muted">
-                <i class="bi bi-shield-lock me-1"></i>Hak akses: Coachee (data sendiri), Coach, Sr. Supervisor, Section Head (satu seksi), HC/Admin (semua)
-            </div>
-
-            @* Evidence display *@
-            @if (!string.IsNullOrEmpty(Model.Progress?.EvidencePath))
-            {
-                <div class="mb-3 p-3 bg-light rounded">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <div>
-                            <i class="bi bi-file-earmark me-2 text-primary"></i>
-                            <strong>Evidence:</strong> @Model.Progress.EvidenceFileName
-                        </div>
-                        <a asp-action="DownloadEvidence" asp-route-progressId="@Model.Progress.Id" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-download me-1"></i>Download
-                        </a>
-                    </div>
-                    @if (Model.Progress.SubmittedAt.HasValue)
-                    {
-                        <div class="mt-1">
-                            <small class="text-muted">Diupload: @Model.Progress.SubmittedAt.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
-                        </div>
-                    }
-                </div>
-            }
-
-            @* Rejected notice *@
-            @if (Model.Progress?.Status == "Rejected")
-            {
-                <div class="alert alert-danger">
-                    <i class="bi bi-x-circle me-2"></i>
-                    <strong>Deliverable ini ditolak.</strong>
-                    @if (!string.IsNullOrEmpty(Model.Progress.RejectionReason))
-                    {
-                        <div class="mt-2 p-2 bg-white rounded border">
-                            <small class="text-muted d-block mb-1">Alasan Penolakan:</small>
-                            <span>@Model.Progress.RejectionReason</span>
-                        </div>
-                    }
-                    @if (Model.Progress.RejectedAt.HasValue)
-                    {
-                        <div class="mt-1">
-                            <small class="text-muted">Ditolak pada: @Model.Progress.RejectedAt.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
-                        </div>
-                    }
-                    @if (Model.CanUpload)
-                    {
-                        <div class="mt-1">
-                            <small>Silakan upload ulang evidence.</small>
-                        </div>
-                    }
-                </div>
-            }
-
-            @* Submitted notice *@
-            @if (Model.Progress?.Status == "Submitted")
-            {
-                <div class="alert alert-info">
-                    <i class="bi bi-hourglass-split me-2"></i>
-                    Evidence telah diupload dan menunggu review approver.
-                </div>
-            }
-
-            @* Approved notice *@
-            @if (Model.Progress?.Status == "Approved")
-            {
-                <div class="alert alert-success">
-                    <i class="bi bi-check-circle me-2"></i>
-                    Deliverable ini telah disetujui
-                    @if (Model.Progress.ApprovedAt.HasValue)
-                    {
-                        <span>pada @Model.Progress.ApprovedAt.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</span>
-                    }
-                    .
-                    @if (Model.Progress?.HCApprovalStatus == "Reviewed")
-                    {
-                        <div class="mt-1">
-                            <small class="text-success"><i class="bi bi-check2-circle me-1"></i>Sudah diperiksa HC</small>
-                        </div>
-                    }
-                </div>
-            }
-
-            @* Approval Status Stepper — visible for Submitted/Approved/Rejected *@
-            @if (Model.Progress?.Status == "Submitted" || Model.Progress?.Status == "Approved" || Model.Progress?.Status == "Rejected")
-            {
-                var apNames = ViewBag.ApproverNames as Dictionary<string, string> ?? new Dictionary<string, string>();
-
-                var srSpvStatus = Model.Progress.SrSpvApprovalStatus ?? "Pending";
-                var shStatus = Model.Progress.ShApprovalStatus ?? "Pending";
-                var hcStatus = Model.Progress.HCApprovalStatus ?? "Pending";
-
-                string GetStepIcon(string status) => status switch {
-                    "Approved" or "Reviewed" => "bi-check-circle-fill",
-                    "Rejected" => "bi-x-circle-fill",
-                    _ => "bi-circle"
-                };
-                string GetStepColor(string status) => status switch {
-                    "Approved" or "Reviewed" => "text-success",
-                    "Rejected" => "text-danger",
-                    _ => "text-secondary"
-                };
-                string GetBadgeClass(string status) => status switch {
-                    "Approved" => "bg-success",
-                    "Reviewed" => "bg-success",
-                    "Rejected" => "bg-danger",
-                    _ => "bg-secondary"
-                };
-
-                <div class="card border-0 shadow-sm mb-3">
-                    <div class="card-header bg-white border-bottom">
-                        <h6 class="mb-0 fw-semibold">
-                            <i class="bi bi-diagram-3 me-2 text-primary"></i>Status Approval Chain
-                        </h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="position-relative ps-4">
-                            @* Vertical line *@
-                            <div class="position-absolute" style="left:11px;top:8px;bottom:8px;width:2px;background:#dee2e6"></div>
-
-                            @* Step 1: Sr. Supervisor *@
-                            <div class="d-flex align-items-start mb-3 position-relative">
-                                <i class="bi @GetStepIcon(srSpvStatus) @GetStepColor(srSpvStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
-                                <div>
-                                    <div class="fw-semibold">Sr. Supervisor
-                                        <span class="badge @GetBadgeClass(srSpvStatus) ms-2">@srSpvStatus</span>
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(Model.Progress.SrSpvApprovedById))
-                                    {
-                                        var srName = apNames.ContainsKey(Model.Progress.SrSpvApprovedById!) ? apNames[Model.Progress.SrSpvApprovedById!] : "-";
-                                        <small class="text-muted">@srName</small>
-                                    }
-                                    @if (Model.Progress.SrSpvApprovedAt.HasValue)
-                                    {
-                                        <small class="text-muted ms-2">@Model.Progress.SrSpvApprovedAt.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
-                                    }
-                                </div>
-                            </div>
-
-                            @* Step 2: Section Head *@
-                            <div class="d-flex align-items-start mb-3 position-relative">
-                                <i class="bi @GetStepIcon(shStatus) @GetStepColor(shStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
-                                <div>
-                                    <div class="fw-semibold">Section Head
-                                        <span class="badge @GetBadgeClass(shStatus) ms-2">@shStatus</span>
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(Model.Progress.ShApprovedById))
-                                    {
-                                        var shName = apNames.ContainsKey(Model.Progress.ShApprovedById!) ? apNames[Model.Progress.ShApprovedById!] : "-";
-                                        <small class="text-muted">@shName</small>
-                                    }
-                                    @if (Model.Progress.ShApprovedAt.HasValue)
-                                    {
-                                        <small class="text-muted ms-2">@Model.Progress.ShApprovedAt.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
-                                    }
-                                </div>
-                            </div>
-
-                            @* Step 3: HC Review *@
-                            <div class="d-flex align-items-start position-relative">
-                                <i class="bi @GetStepIcon(hcStatus) @GetStepColor(hcStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
-                                <div>
-                                    <div class="fw-semibold">HC Review
-                                        <span class="badge @GetBadgeClass(hcStatus) ms-2">@(hcStatus == "Reviewed" ? "Reviewed" : hcStatus)</span>
-                                    </div>
-                                    @if (!string.IsNullOrEmpty(Model.Progress.HCReviewedById))
-                                    {
-                                        var hcName = apNames.ContainsKey(Model.Progress.HCReviewedById!) ? apNames[Model.Progress.HCReviewedById!] : "-";
-                                        <small class="text-muted">@hcName</small>
-                                    }
-                                    @if (Model.Progress.HCReviewedAt.HasValue)
-                                    {
-                                        <small class="text-muted ms-2">@Model.Progress.HCReviewedAt.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
-                                    }
-                                </div>
-                            </div>
-
-                            @* Rejection reason if applicable *@
-                            @if (Model.Progress.Status == "Rejected" && !string.IsNullOrEmpty(Model.Progress.RejectionReason))
-                            {
-                                <div class="mt-3 p-2 bg-danger bg-opacity-10 border border-danger rounded">
-                                    <small class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle me-1"></i>Alasan Penolakan:</small>
-                                    <div class="small mt-1">@Model.Progress.RejectionReason</div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
-
-            @* Approval actions — SrSpv/SectionHead only, Submitted or co-sign (Approved but own approval Pending) *@
-            @if (Model.CanApprove)
-            {
-                <hr class="my-3" />
-                <h6 class="fw-semibold mb-3">
-                    <i class="bi bi-clipboard-check me-2"></i>Tindakan Approval
-                </h6>
-                <div class="d-flex gap-2 mb-3">
-                    <form method="post" asp-action="ApproveDeliverable" class="d-inline">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
-                        <button type="submit" class="btn btn-success"
-                                onclick="return confirm('Yakin ingin menyetujui deliverable ini?')">
-                            <i class="bi bi-check-circle me-1"></i>Setujui
-                        </button>
-                    </form>
-                    <button type="button" class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#rejectForm">
-                        <i class="bi bi-x-circle me-1"></i>Tolak
-                    </button>
-                </div>
-                <div class="collapse" id="rejectForm">
-                    <div class="card card-body border-danger mb-3">
-                        <form method="post" asp-action="RejectDeliverable">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
-                                <textarea name="rejectionReason" class="form-control" rows="3"
-                                          placeholder="Tuliskan alasan penolakan..." required></textarea>
-                            </div>
-                            <button type="submit" class="btn btn-danger"
-                                    onclick="return confirm('Yakin ingin menolak deliverable ini?')">
-                                <i class="bi bi-x-circle me-1"></i>Tolak Deliverable
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            }
-
-            @* HC Review — HC only, HCApprovalStatus==Pending *@
-            @if (Model.CanHCReview)
-            {
-                <hr class="my-3" />
-                <h6 class="fw-semibold mb-3">
-                    <i class="bi bi-person-check me-2"></i>Review HC
-                </h6>
-                <form method="post" asp-action="HCReviewDeliverable">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
-                    <button type="submit" class="btn btn-info text-white"
-                            onclick="return confirm('Tandai deliverable ini sebagai sudah diperiksa HC?')">
-                        <i class="bi bi-check2-square me-1"></i>Tandai Sudah Diperiksa
-                    </button>
-                </form>
-            }
-
-            @* Upload form — only if CanUpload *@
-            @if (Model.CanUpload)
-            {
-                <hr class="my-3" />
-                <h6 class="fw-semibold mb-3">
-                    <i class="bi bi-upload me-2"></i>
-                    @(Model.Progress?.Status == "Rejected" ? "Upload Ulang Evidence" : "Upload Evidence")
-                </h6>
-                <form method="post" asp-action="UploadEvidence" enctype="multipart/form-data">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">File Evidence</label>
-                        <input type="file" name="evidenceFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required />
-                        <div class="form-text">Format: PDF, JPG, PNG. Maksimal 10MB.</div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-upload me-1"></i>
-                        @(Model.Progress?.Status == "Rejected" ? "Upload Ulang Evidence" : "Upload Evidence")
-                    </button>
-                </form>
-            }
-
-        </div>
-    </div>
-
-    @* Phase 65-03: Coaching reports section *@
+    @* Declare coaching data variables early — used in Card 3 and Card 4 *@
     var coachingSessions65 = ViewBag.CoachingSessions as List<HcPortal.Models.CoachingSession> ?? new List<HcPortal.Models.CoachingSession>();
     var coachNames65 = ViewBag.CoachNames as Dictionary<string, string> ?? new Dictionary<string, string>();
-    if (coachingSessions65.Any())
+
+    @* === Row 1: Side-by-side cards === *@
+    <div class="row g-3 mb-3">
+
+        @* Card 1: Detail Coachee & Kompetensi (col-md-7) *@
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom">
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="bi bi-person-lines-fill me-2 text-primary"></i>Detail Coachee &amp; Kompetensi
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <small class="text-muted">Coachee</small>
+                        <div class="fw-semibold">@Model.CoacheeName</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Track</small>
+                        <div class="fw-semibold">@Model.TrackType @Model.TahunKe</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Kompetensi</small>
+                        <div class="fw-semibold">@(Model.Deliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "-")</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Sub Kompetensi</small>
+                        <div class="fw-semibold">@(Model.Deliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "-")</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Deliverable</small>
+                        <div class="fw-semibold">@(Model.Deliverable?.NamaDeliverable ?? "-")</div>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted">Anda masuk sebagai</small>
+                        <div><span class="badge bg-info text-white">@Model.CurrentUserRole</span></div>
+                    </div>
+                    <div class="small text-muted">
+                        <i class="bi bi-shield-lock me-1"></i>Hak akses: Coachee (data sendiri), Coach, Sr. Supervisor, Section Head (satu seksi), HC/Admin (semua)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Card 2: Approval Chain (col-md-5) *@
+        <div class="col-md-5">
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-semibold">
+                        <i class="bi bi-diagram-3 me-2 text-primary"></i>Approval Chain
+                    </h6>
+                    <span class="badge @badgeClass px-3 py-2">@(Model.Progress?.Status ?? "Pending")</span>
+                </div>
+                <div class="card-body">
+                    @{
+                        var apNames = ViewBag.ApproverNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+                        var srSpvStatus = Model.Progress?.SrSpvApprovalStatus ?? "Pending";
+                        var shStatus = Model.Progress?.ShApprovalStatus ?? "Pending";
+                        var hcStatus = Model.Progress?.HCApprovalStatus ?? "Pending";
+
+                        string GetStepIcon(string status) => status switch {
+                            "Approved" or "Reviewed" => "bi-check-circle-fill",
+                            "Rejected" => "bi-x-circle-fill",
+                            _ => "bi-circle"
+                        };
+                        string GetStepColor(string status) => status switch {
+                            "Approved" or "Reviewed" => "text-success",
+                            "Rejected" => "text-danger",
+                            _ => "text-secondary"
+                        };
+                        string GetBadgeClass(string status) => status switch {
+                            "Approved" => "bg-success",
+                            "Reviewed" => "bg-success",
+                            "Rejected" => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+                    }
+
+                    <div class="position-relative ps-4">
+                        @* Vertical line *@
+                        <div class="position-absolute" style="left:11px;top:8px;bottom:8px;width:2px;background:#dee2e6"></div>
+
+                        @* Step 1: Sr. Supervisor *@
+                        <div class="d-flex align-items-start mb-3 position-relative">
+                            <i class="bi @GetStepIcon(srSpvStatus) @GetStepColor(srSpvStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
+                            <div>
+                                <div class="fw-semibold">Sr. Supervisor
+                                    <span class="badge @GetBadgeClass(srSpvStatus) ms-2">@srSpvStatus</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Progress?.SrSpvApprovedById))
+                                {
+                                    var srName = apNames.ContainsKey(Model.Progress.SrSpvApprovedById!) ? apNames[Model.Progress.SrSpvApprovedById!] : "-";
+                                    <small class="text-muted">@srName</small>
+                                }
+                                @if (Model.Progress?.SrSpvApprovedAt.HasValue == true)
+                                {
+                                    <small class="text-muted ms-2">@Model.Progress.SrSpvApprovedAt!.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
+                                }
+                            </div>
+                        </div>
+
+                        @* Step 2: Section Head *@
+                        <div class="d-flex align-items-start mb-3 position-relative">
+                            <i class="bi @GetStepIcon(shStatus) @GetStepColor(shStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
+                            <div>
+                                <div class="fw-semibold">Section Head
+                                    <span class="badge @GetBadgeClass(shStatus) ms-2">@shStatus</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Progress?.ShApprovedById))
+                                {
+                                    var shName = apNames.ContainsKey(Model.Progress.ShApprovedById!) ? apNames[Model.Progress.ShApprovedById!] : "-";
+                                    <small class="text-muted">@shName</small>
+                                }
+                                @if (Model.Progress?.ShApprovedAt.HasValue == true)
+                                {
+                                    <small class="text-muted ms-2">@Model.Progress.ShApprovedAt!.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
+                                }
+                            </div>
+                        </div>
+
+                        @* Step 3: HC Review *@
+                        <div class="d-flex align-items-start position-relative">
+                            <i class="bi @GetStepIcon(hcStatus) @GetStepColor(hcStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
+                            <div>
+                                <div class="fw-semibold">HC Review
+                                    <span class="badge @GetBadgeClass(hcStatus) ms-2">@(hcStatus == "Reviewed" ? "Reviewed" : hcStatus)</span>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Progress?.HCReviewedById))
+                                {
+                                    var hcName = apNames.ContainsKey(Model.Progress.HCReviewedById!) ? apNames[Model.Progress.HCReviewedById!] : "-";
+                                    <small class="text-muted">@hcName</small>
+                                }
+                                @if (Model.Progress?.HCReviewedAt.HasValue == true)
+                                {
+                                    <small class="text-muted ms-2">@Model.Progress.HCReviewedAt!.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
+                                }
+                            </div>
+                        </div>
+
+                        @* Rejection reason if applicable *@
+                        @if (Model.Progress?.Status == "Rejected" && !string.IsNullOrEmpty(Model.Progress.RejectionReason))
+                        {
+                            <div class="mt-3 p-2 bg-danger bg-opacity-10 border border-danger rounded">
+                                <small class="text-danger fw-semibold"><i class="bi bi-exclamation-triangle me-1"></i>Alasan Penolakan:</small>
+                                <div class="small mt-1">@Model.Progress.RejectionReason</div>
+                            </div>
+                        }
+                    </div>
+
+                    @* Approval actions — SrSpv/SectionHead *@
+                    @if (Model.CanApprove)
+                    {
+                        <div class="mt-3 pt-3 border-top">
+                            <h6 class="fw-semibold mb-3">
+                                <i class="bi bi-clipboard-check me-2"></i>Tindakan Approval
+                            </h6>
+                            <div class="d-flex gap-2 mb-3">
+                                <form method="post" asp-action="ApproveDeliverable" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
+                                    <button type="submit" class="btn btn-success"
+                                            onclick="return confirm('Yakin ingin menyetujui deliverable ini?')">
+                                        <i class="bi bi-check-circle me-1"></i>Setujui
+                                    </button>
+                                </form>
+                                <button type="button" class="btn btn-danger" data-bs-toggle="collapse" data-bs-target="#rejectForm">
+                                    <i class="bi bi-x-circle me-1"></i>Tolak
+                                </button>
+                            </div>
+                            <div class="collapse" id="rejectForm">
+                                <div class="card card-body border-danger mb-3">
+                                    <form method="post" asp-action="RejectDeliverable">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
+                                        <div class="mb-3">
+                                            <label class="form-label fw-semibold">Alasan Penolakan <span class="text-danger">*</span></label>
+                                            <textarea name="rejectionReason" class="form-control" rows="3"
+                                                      placeholder="Tuliskan alasan penolakan..." required></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger"
+                                                onclick="return confirm('Yakin ingin menolak deliverable ini?')">
+                                            <i class="bi bi-x-circle me-1"></i>Tolak Deliverable
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @* HC Review — HC only *@
+                    @if (Model.CanHCReview)
+                    {
+                        <div class="mt-3 pt-3 border-top">
+                            <h6 class="fw-semibold mb-3">
+                                <i class="bi bi-person-check me-2"></i>Review HC
+                            </h6>
+                            <form method="post" asp-action="HCReviewDeliverable">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="progressId" value="@Model.Progress!.Id" />
+                                <button type="submit" class="btn btn-info text-white"
+                                        onclick="return confirm('Tandai deliverable ini sebagai sudah diperiksa HC?')">
+                                    <i class="bi bi-check2-square me-1"></i>Tandai Sudah Diperiksa
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    @* === Card 3: Evidence Coach (full-width) === *@
+    @if (!string.IsNullOrEmpty(Model.Progress?.EvidencePath) || coachingSessions65.Any())
     {
-        <div class="card mt-3">
+        <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white border-bottom">
-                <h6 class="mb-0 fw-semibold"><i class="bi bi-chat-square-text me-2 text-primary"></i>Coaching Reports</h6>
+                <h6 class="mb-0 fw-semibold">
+                    <i class="bi bi-file-earmark-text me-2 text-primary"></i>Evidence Coach
+                </h6>
             </div>
             <div class="card-body">
+                @* Evidence file display *@
+                @if (!string.IsNullOrEmpty(Model.Progress?.EvidencePath))
+                {
+                    <div class="mb-3 p-3 bg-light rounded">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <i class="bi bi-file-earmark me-2 text-primary"></i>
+                                <strong>Evidence:</strong> @Model.Progress!.EvidenceFileName
+                            </div>
+                            <a asp-action="DownloadEvidence" asp-route-progressId="@Model.Progress.Id" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-1"></i>Download
+                            </a>
+                        </div>
+                        @if (Model.Progress.SubmittedAt.HasValue)
+                        {
+                            <div class="mt-1">
+                                <small class="text-muted">Diupload: @Model.Progress.SubmittedAt.Value.ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID"))</small>
+                            </div>
+                        }
+                    </div>
+                }
+
+                @* Coaching session data *@
                 @foreach (var session in coachingSessions65)
                 {
                     var coachDisplayName = coachNames65.ContainsKey(session.CoachId) ? coachNames65[session.CoachId] : session.CoachId;
@@ -401,51 +340,49 @@ else
         </div>
     }
 
-    @* Status Timeline — Phase 117: reads from DeliverableStatusHistory for permanent audit trail *@
+    @* === Card 4: Riwayat Status (full-width) === *@
     var statusHistories = ViewBag.StatusHistories as List<DeliverableStatusHistory> ?? new List<DeliverableStatusHistory>();
-    var timelineEvents = new List<(DateTime date, string icon, string iconClass, string text)>();
-    var p = Model.Progress;
-    if (p != null)
-    {
-        timelineEvents.Add((p.CreatedAt, "bi-plus-circle", "text-secondary", "Deliverable dibuat"));
-    }
-    // Add history entries from DeliverableStatusHistory
-    foreach (var h in statusHistories)
-    {
-        var (icon, iconClass) = h.StatusType switch
+        var timelineEvents = new List<(DateTime date, string icon, string iconClass, string text)>();
+        var p = Model.Progress;
+        if (p != null)
         {
-            "Submitted" => ("bi-upload", "text-primary"),
-            "Re-submitted" => ("bi-arrow-repeat", "text-warning"),
-            "SrSpv Approved" => ("bi-check-circle", "text-success"),
-            "SH Approved" => ("bi-check-circle", "text-success"),
-            "SrSpv Rejected" or "SH Rejected" => ("bi-x-circle", "text-danger"),
-            "HC Reviewed" => ("bi-person-check", "text-info"),
-            _ => ("bi-circle", "text-secondary")
-        };
-        var label = h.StatusType switch
+            timelineEvents.Add((p.CreatedAt, "bi-plus-circle", "text-secondary", "Deliverable dibuat"));
+        }
+        foreach (var h in statusHistories)
         {
-            "Submitted" => $"Evidence diupload oleh {h.ActorName} ({h.ActorRole})",
-            "Re-submitted" => $"Evidence diupload ulang oleh {h.ActorName} ({h.ActorRole})",
-            "SrSpv Approved" => $"Sr. Supervisor ({h.ActorName}) — disetujui",
-            "SH Approved" => $"Section Head ({h.ActorName}) — disetujui",
-            "SrSpv Rejected" => $"Sr. Supervisor ({h.ActorName}) — ditolak" + (!string.IsNullOrEmpty(h.RejectionReason) ? $": {h.RejectionReason}" : ""),
-            "SH Rejected" => $"Section Head ({h.ActorName}) — ditolak" + (!string.IsNullOrEmpty(h.RejectionReason) ? $": {h.RejectionReason}" : ""),
-            "HC Reviewed" => $"HC Review ({h.ActorName})",
-            _ => $"{h.StatusType} oleh {h.ActorName}"
-        };
-        timelineEvents.Add((h.Timestamp, icon, iconClass, label));
-    }
-    // Add coaching sessions to timeline
-    foreach (var cs in coachingSessions65)
-    {
-        var cname = coachNames65.ContainsKey(cs.CoachId) ? coachNames65[cs.CoachId] : "Coach";
-        timelineEvents.Add((cs.CreatedAt, "bi-chat-square-text", "text-primary", $"Coaching session oleh {cname} — {cs.Kesimpulan}"));
-    }
-    timelineEvents = timelineEvents.OrderBy(e => e.date).ToList();
+            var (icon, iconClass) = h.StatusType switch
+            {
+                "Submitted" => ("bi-upload", "text-primary"),
+                "Re-submitted" => ("bi-arrow-repeat", "text-warning"),
+                "SrSpv Approved" => ("bi-check-circle", "text-success"),
+                "SH Approved" => ("bi-check-circle", "text-success"),
+                "SrSpv Rejected" or "SH Rejected" => ("bi-x-circle", "text-danger"),
+                "HC Reviewed" => ("bi-person-check", "text-info"),
+                _ => ("bi-circle", "text-secondary")
+            };
+            var label = h.StatusType switch
+            {
+                "Submitted" => $"Evidence diupload oleh {h.ActorName} ({h.ActorRole})",
+                "Re-submitted" => $"Evidence diupload ulang oleh {h.ActorName} ({h.ActorRole})",
+                "SrSpv Approved" => $"Sr. Supervisor ({h.ActorName}) — disetujui",
+                "SH Approved" => $"Section Head ({h.ActorName}) — disetujui",
+                "SrSpv Rejected" => $"Sr. Supervisor ({h.ActorName}) — ditolak" + (!string.IsNullOrEmpty(h.RejectionReason) ? $": {h.RejectionReason}" : ""),
+                "SH Rejected" => $"Section Head ({h.ActorName}) — ditolak" + (!string.IsNullOrEmpty(h.RejectionReason) ? $": {h.RejectionReason}" : ""),
+                "HC Reviewed" => $"HC Review ({h.ActorName})",
+                _ => $"{h.StatusType} oleh {h.ActorName}"
+            };
+            timelineEvents.Add((h.Timestamp, icon, iconClass, label));
+        }
+        foreach (var cs in coachingSessions65)
+        {
+            var cname = coachNames65.ContainsKey(cs.CoachId) ? coachNames65[cs.CoachId] : "Coach";
+            timelineEvents.Add((cs.CreatedAt, "bi-chat-square-text", "text-primary", $"Coaching session oleh {cname} — {cs.Kesimpulan}"));
+        }
+        timelineEvents = timelineEvents.OrderBy(e => e.date).ToList();
 
-    if (timelineEvents.Count > 1)
+    @if (timelineEvents.Count > 1)
     {
-        <div class="card mt-3">
+        <div class="card border-0 shadow-sm mb-3">
             <div class="card-header bg-white border-bottom">
                 <h6 class="mb-0 fw-semibold"><i class="bi bi-clock-history me-2 text-primary"></i>Riwayat Status</h6>
             </div>
