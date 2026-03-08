@@ -73,6 +73,10 @@ Progress: [██████████] 100%
 
 ## Accumulated Context
 
+### Roadmap Evolution
+
+- Phase 121 added: CDP Dashboard Filter & Assessment Analytics Redesign
+
 ### Decisions
 
 - Phase numbering starts at 116 (v3.9 uses 113-115 in parallel)
