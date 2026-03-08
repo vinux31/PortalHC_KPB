@@ -2985,8 +2985,14 @@ namespace HcPortal.Controllers
                 _context.ProtonTrackAssignments.AddRange(newTracks);
                 await _context.SaveChangesAsync(); // flush to get assignment IDs
 
+                var allWarnings = new List<string>();
                 foreach (var t in newTracks)
-                    await AutoCreateProgressForAssignment(t.Id, t.ProtonTrackId, t.CoacheeId);
+                {
+                    var w = await AutoCreateProgressForAssignment(t.Id, t.ProtonTrackId, t.CoacheeId);
+                    allWarnings.AddRange(w);
+                }
+                if (allWarnings.Any())
+                    TempData["Warning"] = string.Join("\n", allWarnings);
             }
 
             await _context.SaveChangesAsync();
@@ -3057,7 +3063,9 @@ namespace HcPortal.Controllers
                 _context.ProtonTrackAssignments.Add(newAssignment);
                 await _context.SaveChangesAsync(); // flush to get assignment ID
 
-                await AutoCreateProgressForAssignment(newAssignment.Id, newAssignment.ProtonTrackId, mapping.CoacheeId);
+                var editWarnings = await AutoCreateProgressForAssignment(newAssignment.Id, newAssignment.ProtonTrackId, mapping.CoacheeId);
+                if (editWarnings.Any())
+                    TempData["Warning"] = string.Join("\n", editWarnings);
             }
 
             await _context.SaveChangesAsync();
@@ -5228,12 +5236,46 @@ namespace HcPortal.Controllers
 
         #region Proton Progress Helpers
 
-        private async Task AutoCreateProgressForAssignment(int assignmentId, int protonTrackId, string coacheeId)
+        private async Task<List<string>> AutoCreateProgressForAssignment(int assignmentId, int protonTrackId, string coacheeId)
         {
+            var warnings = new List<string>();
+
+            // Resolve unit: AssignmentUnit from active mapping, fallback to User.Unit
+            var assignmentUnit = await _context.CoachCoacheeMappings
+                .Where(m => m.CoacheeId == coacheeId && m.IsActive)
+                .Select(m => m.AssignmentUnit)
+                .FirstOrDefaultAsync();
+
+            var resolvedUnit = assignmentUnit;
+            if (string.IsNullOrWhiteSpace(resolvedUnit))
+            {
+                resolvedUnit = await _context.Users
+                    .Where(u => u.Id == coacheeId)
+                    .Select(u => u.Unit)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(resolvedUnit))
+            {
+                warnings.Add($"Coachee {coacheeId} tidak memiliki AssignmentUnit maupun Unit — progress tidak dibuat.");
+                return warnings;
+            }
+
             var deliverableIds = await _context.ProtonDeliverableList
-                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId)
+                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId
+                         && d.ProtonSubKompetensi!.ProtonKompetensi!.Unit!.Trim() == resolvedUnit.Trim())
                 .Select(d => d.Id)
                 .ToListAsync();
+
+            if (!deliverableIds.Any())
+            {
+                var trackName = await _context.ProtonTracks
+                    .Where(t => t.Id == protonTrackId)
+                    .Select(t => t.DisplayName)
+                    .FirstOrDefaultAsync() ?? protonTrackId.ToString();
+                warnings.Add($"Tidak ada deliverable untuk unit {resolvedUnit} di track {trackName}.");
+                return warnings;
+            }
 
             var progresses = deliverableIds.Select(dId => new ProtonDeliverableProgress
             {
@@ -5245,6 +5287,7 @@ namespace HcPortal.Controllers
             }).ToList();
 
             _context.ProtonDeliverableProgresses.AddRange(progresses);
+            return warnings;
         }
 
         private async Task CleanupProgressForAssignment(int assignmentId)
