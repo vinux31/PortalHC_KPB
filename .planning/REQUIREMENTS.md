@@ -31,10 +31,10 @@
 
 ### PDF Evidence
 
-- [ ] **PDF-01**: Setelah coach submit evidence, sistem auto-generate PDF form evidence coaching
-- [ ] **PDF-02**: PDF berisi: info Coachee, Track, Kompetensi, SubKompetensi, Deliverable, Tanggal, Catatan Coach, Kesimpulan, Result
-- [ ] **PDF-03**: PDF memiliki P-Sign Coach di pojok kanan bawah
-- [ ] **PDF-04**: PDF bisa di-download dari halaman Deliverable detail via tombol "Download PDF"
+- [x] **PDF-01**: Setelah coach submit evidence, sistem auto-generate PDF form evidence coaching
+- [x] **PDF-02**: PDF berisi: info Coachee, Track, Kompetensi, SubKompetensi, Deliverable, Tanggal, Catatan Coach, Kesimpulan, Result
+- [x] **PDF-03**: PDF memiliki P-Sign Coach di pojok kanan bawah
+- [x] **PDF-04**: PDF bisa di-download dari halaman Deliverable detail via tombol "Download PDF"
 
 ## Out of Scope
 
@@ -61,10 +61,10 @@
 | PSIGN-01 | Phase 118 | Complete |
 | PSIGN-02 | Phase 118 | Complete |
 | PSIGN-03 | Phase 118 | Complete |
-| PDF-01 | Phase 120 | Pending |
-| PDF-02 | Phase 120 | Pending |
-| PDF-03 | Phase 120 | Pending |
-| PDF-04 | Phase 120 | Pending |
+| PDF-01 | Phase 120 | Complete |
+| PDF-02 | Phase 120 | Complete |
+| PDF-03 | Phase 120 | Complete |
+| PDF-04 | Phase 120 | Complete |
 
 **Coverage:**
 - v3.10 requirements: 16 total
