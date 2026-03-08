@@ -229,13 +229,25 @@ Plans:
 
 ### Phase 126: Scope CoachingProton progress data to ProtonTrackAssignment context
 
-**Goal:** [To be planned]
+**Goal:** Absorbed into Phase 127
 **Requirements**: TBD
 **Depends on:** Phase 125
-**Plans:** 0 plans
+**Plans:** 0 plans (absorbed into Phase 127)
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 126 to break down)
+- Absorbed into Phase 127
+
+### Phase 127: Audit & fix CoachingProton progress table data source and assignment scoping
+
+**Goal:** Link ProtonDeliverableProgress to ProtonTrackAssignment, auto-create progress on assign, rewrite all CDP scoping to assignment-based, and add silabus sync/cascade cleanup
+**Requirements**: TBD
+**Depends on:** Phase 125
+**Plans:** 3 plans
+
+Plans:
+- [ ] 127-01-PLAN.md — Migration + model FK + auto-create/cleanup in Assign/Edit
+- [ ] 127-02-PLAN.md — Rewrite Dashboard + CoachingProton + HistoriProton scoping to assignment-based
+- [ ] 127-03-PLAN.md — SaveSilabus auto-sync + DeleteKompetensi cascade cleanup
 
 ---
 
