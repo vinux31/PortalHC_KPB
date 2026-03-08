@@ -1,5 +1,19 @@
 ---
 gsd_state_version: 1.0
+milestone: v3.9
+milestone_name: ProtonData Enhancement
+status: planning
+last_updated: "2026-03-08T10:16:10.682Z"
+last_activity: 2026-03-08 -- Completed 128-01 (unit-filtered progress + clean migration)
+progress:
+  total_phases: 17
+  completed_phases: 15
+  total_plans: 19
+  completed_plans: 19
+---
+
+---
+gsd_state_version: 1.0
 milestone: v3.12
 milestone_name: Progress Unit Scoping
 status: executing
@@ -27,7 +41,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 **Milestone:** v3.12 Progress Unit Scoping
 **Phase:** Phase 128
 **Plan:** 01 complete (1/1)
-**Status:** Executing
+**Status:** Ready to plan
 **Last activity:** 2026-03-08 -- Completed 128-01 (unit-filtered progress + clean migration)
 
 ```
