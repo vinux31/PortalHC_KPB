@@ -55,6 +55,19 @@ public class ProtonProgressSubModel
     // Chart: deliverable status distribution (doughnut)
     public List<string> StatusLabels { get; set; } = new();
     public List<int> StatusData { get; set; } = new();
+
+    // Filter state (Phase 121)
+    public string? FilterSection { get; set; }
+    public string? FilterUnit { get; set; }
+    public string? FilterCategory { get; set; }
+    public string? FilterTrack { get; set; }
+    public int RoleLevel { get; set; }
+    public string? LockedSection { get; set; }
+    public string? LockedUnit { get; set; }
+    public List<string> AvailableSections { get; set; } = new();
+    public List<string> AvailableUnits { get; set; } = new();
+    public List<string> AvailableCategories { get; set; } = new();
+    public List<string> AvailableTracks { get; set; } = new();
 }
 
 // ============================================================
@@ -79,6 +92,12 @@ public class AssessmentAnalyticsSubModel
     public ReportFilters CurrentFilters { get; set; } = new();
     public List<string> AvailableCategories { get; set; } = new();
     public List<string> AvailableSections { get; set; } = new();
+    public List<string> AvailableUnits { get; set; } = new();
+
+    // Current filter state (for export link and AJAX round-trip)
+    public string? FilterSection { get; set; }
+    public string? FilterUnit { get; set; }
+    public string? FilterCategory { get; set; }
 
     // Chart data
     public List<CategoryStatistic> CategoryStats { get; set; } = new();

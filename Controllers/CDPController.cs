@@ -232,11 +232,9 @@ namespace HcPortal.Controllers
         }
 
         public async Task<IActionResult> Dashboard(
-            string? analyticsCategory = null,
-            DateTime? analyticsStartDate = null,
-            DateTime? analyticsEndDate = null,
             string? analyticsSection = null,
-            string? analyticsUserSearch = null,
+            string? analyticsUnit = null,
+            string? analyticsCategory = null,
             int analyticsPage = 1,
             int analyticsPageSize = 20)
         {
@@ -265,11 +263,42 @@ namespace HcPortal.Controllers
             if (isHCAccess)
             {
                 model.AssessmentAnalyticsData = await BuildAnalyticsSubModelAsync(
-                    analyticsCategory, analyticsStartDate, analyticsEndDate,
-                    analyticsSection, analyticsUserSearch, analyticsPage, analyticsPageSize);
+                    analyticsSection, analyticsUnit, analyticsCategory, analyticsPage, analyticsPageSize);
             }
 
             return View(model);
+        }
+
+        // ============================================================
+        // Phase 121: AJAX endpoint — filter Coaching Proton content
+        // ============================================================
+        [HttpGet]
+        public async Task<IActionResult> FilterCoachingProton(string? section, string? unit, string? category, string? track)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Unauthorized();
+            var roles = await _userManager.GetRolesAsync(user);
+            var userRole = roles.FirstOrDefault() ?? "";
+
+            // Server-side enforcement: override section/unit for restricted roles
+            int roleLevel = UserRoles.GetRoleLevel(userRole);
+            if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
+            else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
+
+            var model = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
+            return PartialView("Shared/_CoachingProtonContentPartial", model);
+        }
+
+        // ============================================================
+        // Phase 121: Cascade options endpoint — returns units for section
+        // ============================================================
+        [HttpGet]
+        public IActionResult GetCascadeOptions(string? section)
+        {
+            var units = string.IsNullOrEmpty(section) ? new List<string>() : OrganizationStructure.GetUnitsForSection(section);
+            var categories = _context.ProtonTracks.Select(t => t.TrackType).Distinct().OrderBy(t => t).ToList();
+            var tracks = _context.ProtonTracks.OrderBy(t => t.Urutan).Select(t => t.DisplayName).ToList();
+            return Json(new { units, categories, tracks });
         }
 
         // ============================================================
@@ -317,7 +346,7 @@ namespace HcPortal.Controllers
         // Helper: Proton Progress sub-model (supervisor / HC view)
         // Scoping: HC/Admin=all, SrSpv/SectionHead=section, Coach=unit
         // ============================================================
-        private async Task<ProtonProgressSubModel> BuildProtonProgressSubModelAsync(ApplicationUser user, string userRole)
+        private async Task<ProtonProgressSubModel> BuildProtonProgressSubModelAsync(ApplicationUser user, string userRole, string? section = null, string? unit = null, string? category = null, string? track = null)
         {
             // DASH-02: Build scoped coachee ID list
             List<string> scopedCoacheeIds;
@@ -364,20 +393,40 @@ namespace HcPortal.Controllers
             var coacheeUsers = await _context.Users
                 .Where(u => scopedCoacheeIds.Contains(u.Id))
                 .ToListAsync();
+
+            // Phase 121: Apply additional section/unit filters for full-access roles
+            int roleLevel = UserRoles.GetRoleLevel(userRole);
+            if (!string.IsNullOrEmpty(section) && UserRoles.HasFullAccess(roleLevel))
+                coacheeUsers = coacheeUsers.Where(u => u.Section == section).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                coacheeUsers = coacheeUsers.Where(u => u.Unit == unit).ToList();
+
+            var filteredCoacheeIds = coacheeUsers.Select(u => u.Id).ToList();
             var userNames = coacheeUsers.ToDictionary(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
 
             var allProgresses = await _context.ProtonDeliverableProgresses
-                .Where(p => scopedCoacheeIds.Contains(p.CoacheeId))
+                .Where(p => filteredCoacheeIds.Contains(p.CoacheeId))
                 .ToListAsync();
 
             var assignments = await _context.ProtonTrackAssignments
                 .Include(a => a.ProtonTrack)
-                .Where(a => scopedCoacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                .Where(a => filteredCoacheeIds.Contains(a.CoacheeId) && a.IsActive)
                 .ToListAsync();
+
+            // Phase 121: Apply category/track filters
+            if (!string.IsNullOrEmpty(category))
+                assignments = assignments.Where(a => a.ProtonTrack?.TrackType == category).ToList();
+            if (!string.IsNullOrEmpty(track))
+                assignments = assignments.Where(a => a.ProtonTrack?.DisplayName == track).ToList();
+
+            // Phase 121: Collect available filter options from loaded data
+            var availableCategories = assignments.Select(a => a.ProtonTrack?.TrackType).Where(t => t != null).Distinct().OrderBy(t => t).ToList()!;
+            var availableTracks = assignments.OrderBy(a => a.ProtonTrack?.Urutan).Select(a => a.ProtonTrack?.DisplayName).Where(t => t != null).Distinct().ToList()!;
+
             var assignmentDict = assignments.ToDictionary(a => a.CoacheeId, a => a);
 
             var finalAssessments = await _context.ProtonFinalAssessments
-                .Where(fa => scopedCoacheeIds.Contains(fa.CoacheeId))
+                .Where(fa => filteredCoacheeIds.Contains(fa.CoacheeId))
                 .ToListAsync();
             var finalAssessmentDict = finalAssessments
                 .GroupBy(fa => fa.CoacheeId)
@@ -387,8 +436,13 @@ namespace HcPortal.Controllers
             var progressByCoachee = allProgresses.GroupBy(p => p.CoacheeId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
+            // When category/track filter is active, only show coachees that have matching assignments
+            var displayCoacheeIds = (!string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(track))
+                ? filteredCoacheeIds.Where(id => assignmentDict.ContainsKey(id)).ToList()
+                : filteredCoacheeIds;
+
             var coacheeRows = new List<CoacheeProgressRow>();
-            foreach (var coacheeId in scopedCoacheeIds)
+            foreach (var coacheeId in displayCoacheeIds)
             {
                 var progresses = progressByCoachee.GetValueOrDefault(coacheeId) ?? new List<ProtonDeliverableProgress>();
                 var assignment = assignmentDict.GetValueOrDefault(coacheeId);
@@ -447,9 +501,20 @@ namespace HcPortal.Controllers
                 allProgresses.Count(p => p.Status == "Rejected")
             };
 
+            // Phase 121: Determine locked values and available options
+            string? lockedSection = null, lockedUnit = null;
+            if (UserRoles.HasSectionAccess(roleLevel)) { lockedSection = user.Section; }
+            else if (UserRoles.IsCoachingRole(roleLevel)) { lockedSection = user.Section; lockedUnit = user.Unit; }
+
+            var availableSections = OrganizationStructure.GetAllSections();
+            var effectiveSection = lockedSection ?? section;
+            var availableUnits = !string.IsNullOrEmpty(effectiveSection)
+                ? OrganizationStructure.GetUnitsForSection(effectiveSection)
+                : new List<string>();
+
             var subModel = new ProtonProgressSubModel
             {
-                TotalCoachees = scopedCoacheeIds.Count,
+                TotalCoachees = displayCoacheeIds.Count,
                 TotalDeliverables = allProgresses.Count,
                 ApprovedDeliverables = allProgresses.Count(p => p.Status == "Approved"),
                 PendingSpvApprovals = pendingSpv,
@@ -459,7 +524,19 @@ namespace HcPortal.Controllers
                 TrendLabels = trendLabels,
                 TrendValues = trendValues,
                 StatusLabels = statusLabels,
-                StatusData = statusData
+                StatusData = statusData,
+                // Phase 121: Filter state
+                FilterSection = section,
+                FilterUnit = unit,
+                FilterCategory = category,
+                FilterTrack = track,
+                RoleLevel = roleLevel,
+                LockedSection = lockedSection,
+                LockedUnit = lockedUnit,
+                AvailableSections = availableSections,
+                AvailableUnits = availableUnits,
+                AvailableCategories = availableCategories!,
+                AvailableTracks = availableTracks!
             };
 
             // Propagate scope label to wrapper model via a field that helper sets on ProtonProgressSubModel is not wired
@@ -480,11 +557,9 @@ namespace HcPortal.Controllers
         // Logic copied from CMPController.ReportsIndex()
         // ============================================================
         private async Task<AssessmentAnalyticsSubModel> BuildAnalyticsSubModelAsync(
-            string? category,
-            DateTime? startDate,
-            DateTime? endDate,
             string? section,
-            string? userSearch,
+            string? unit,
+            string? category,
             int page,
             int pageSize)
         {
@@ -496,22 +571,11 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(category))
                 query = query.Where(a => a.Category == category);
 
-            if (startDate.HasValue)
-                query = query.Where(a => a.CompletedAt >= startDate.Value);
-
-            if (endDate.HasValue)
-            {
-                var endOfDay = endDate.Value.Date.AddDays(1);
-                query = query.Where(a => a.CompletedAt < endOfDay);
-            }
-
             if (!string.IsNullOrEmpty(section))
                 query = query.Where(a => a.User != null && a.User.Section == section);
 
-            if (!string.IsNullOrEmpty(userSearch))
-                query = query.Where(a => a.User != null &&
-                    (a.User.FullName.Contains(userSearch) ||
-                     (a.User.NIP != null && a.User.NIP.Contains(userSearch))));
+            if (!string.IsNullOrEmpty(unit))
+                query = query.Where(a => a.User != null && a.User.Unit == unit);
 
             // Summary stats
             var totalCompleted = await query.CountAsync();
@@ -581,6 +645,9 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             var sections = OrganizationStructure.GetAllSections();
+            var units = !string.IsNullOrEmpty(section)
+                ? OrganizationStructure.GetUnitsForSection(section)
+                : new List<string>();
 
             return new AssessmentAnalyticsSubModel
             {
@@ -596,16 +663,29 @@ namespace HcPortal.Controllers
                 CurrentFilters = new ReportFilters
                 {
                     Category = category,
-                    StartDate = startDate,
-                    EndDate = endDate,
-                    Section = section,
-                    UserSearch = userSearch
+                    Section = section
                 },
                 AvailableCategories = categories,
                 AvailableSections = sections,
+                AvailableUnits = units,
+                FilterSection = section,
+                FilterUnit = unit,
+                FilterCategory = category,
                 CategoryStats = categoryStats,
                 ScoreDistribution = scoreDistribution
             };
+        }
+
+        // ============================================================
+        // FilterAssessmentAnalytics: AJAX endpoint for Assessment Analytics tab
+        // ============================================================
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> FilterAssessmentAnalytics(
+            string? section, string? unit, string? category, int page = 1, int pageSize = 20)
+        {
+            var model = await BuildAnalyticsSubModelAsync(section, unit, category, page, pageSize);
+            return PartialView("Shared/_AssessmentAnalyticsContentPartial", model);
         }
 
         // ============================================================
@@ -614,11 +694,9 @@ namespace HcPortal.Controllers
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ExportAnalyticsResults(
-            string? category,
-            DateTime? startDate,
-            DateTime? endDate,
             string? section,
-            string? userSearch)
+            string? unit,
+            string? category)
         {
             // Base query: only completed assessments
             var query = _context.AssessmentSessions
@@ -628,22 +706,11 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(category))
                 query = query.Where(a => a.Category == category);
 
-            if (startDate.HasValue)
-                query = query.Where(a => a.CompletedAt >= startDate.Value);
-
-            if (endDate.HasValue)
-            {
-                var endOfDay = endDate.Value.Date.AddDays(1);
-                query = query.Where(a => a.CompletedAt < endOfDay);
-            }
-
             if (!string.IsNullOrEmpty(section))
                 query = query.Where(a => a.User != null && a.User.Section == section);
 
-            if (!string.IsNullOrEmpty(userSearch))
-                query = query.Where(a => a.User != null &&
-                    (a.User.FullName.Contains(userSearch) ||
-                     (a.User.NIP != null && a.User.NIP.Contains(userSearch))));
+            if (!string.IsNullOrEmpty(unit))
+                query = query.Where(a => a.User != null && a.User.Unit == unit);
 
             // Get all matching results (capped at 10,000 for performance)
             var maxExportRows = 10000;
