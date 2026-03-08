@@ -2334,12 +2334,12 @@ namespace HcPortal.Controllers
                     page.Content().Column(col =>
                     {
                         // Header
-                        col.Item().AlignCenter().Column(header =>
+                        col.Item().Row(headerRow =>
                         {
-                            if (logoBytes != null)
-                                header.Item().AlignCenter().Width(80).Image(logoBytes);
-                            header.Item().PaddingTop(8).AlignCenter()
+                            headerRow.RelativeItem().AlignCenter().PaddingTop(10)
                                 .Text("EVIDENCE COACHING REPORT").FontSize(16).Bold().FontColor(accentColor);
+                            if (logoBytes != null)
+                                headerRow.AutoItem().Width(80).Image(logoBytes);
                         });
 
                         col.Item().PaddingTop(20).Column(fields =>
@@ -2373,7 +2373,7 @@ namespace HcPortal.Controllers
                     });
 
                     page.Footer().AlignCenter()
-                        .Text($"Generated: {DateTime.Now:dd MMM yyyy HH:mm} — Page 1 of 1 — PortalHC KPB").FontSize(7);
+                        .Text($"Generated: {DateTime.Now:dd MMMM yyyy} — Page 1 of 1 — PortalHC KPB").FontSize(7);
                 });
             });
 
