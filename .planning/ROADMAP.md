@@ -288,4 +288,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 123. Data Model & Migration | 1/1 | Complete    | 2026-03-08 |
 | 124. CDP Access & Lifecycle | 2/2 | Complete    | 2026-03-08 |
-| 125. Mapping UI | 1/1 | Complete   | 2026-03-08 |
+| 125. Mapping UI | 1/1 | Complete    | 2026-03-08 |
