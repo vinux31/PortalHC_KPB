@@ -180,6 +180,9 @@ nPlans:
   4. Deliverable detail page has a "Download PDF" button that downloads the generated PDF
 **Plans**: 1 plan
 
+Plans:
+- [ ] 120-01-PLAN.md — DownloadEvidencePdf action + download button in Deliverable Card 3
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -188,4 +191,4 @@ nPlans:
 | 117. Status History | 1/1 | Complete    | 2026-03-07 |
 | 118. P-Sign Infrastructure | 1/1 | Complete    | 2026-03-07 |
 | 119. Deliverable Page Restructure | 1/1 | Complete    | 2026-03-08 |
-| 120. PDF Evidence | 0/? | Not started | - |
+| 120. PDF Evidence | 0/1 | Planning    | - |
