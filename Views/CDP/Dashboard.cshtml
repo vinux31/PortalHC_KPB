@@ -16,6 +16,11 @@
         z-index: 10;
     }
     @@keyframes spin { to { transform: rotate(360deg); } }
+    .dashboard-spinner {
+        display: none; position: absolute; top: 50%; left: 50%;
+        transform: translate(-50%, -50%); z-index: 11;
+    }
+    .dashboard-loading .dashboard-spinner { display: block; }
 </style>
 
 <div class="container-fluid px-4">
@@ -67,6 +72,110 @@
 </div>
 
 <script>
+    // ============================================================
+    // Coaching Proton Cascade Filters (Phase 121)
+    // ============================================================
+    (function () {
+        var sectionEl = document.getElementById('protonFilterSection');
+        var unitEl = document.getElementById('protonFilterUnit');
+        var categoryEl = document.getElementById('protonFilterCategory');
+        var trackEl = document.getElementById('protonFilterTrack');
+        var resetBtn = document.getElementById('protonFilterReset');
+        if (!sectionEl) return; // proton filters not rendered (coachee view)
+
+        var protonAbort = null;
+        var allTracks = []; // cached full track list for client-side filtering
+
+        // Cache initial tracks from server
+        fetch('/CDP/GetCascadeOptions?section=')
+            .then(function (r) { return r.json(); })
+            .then(function (data) { allTracks = data.tracks || []; });
+
+        sectionEl.addEventListener('change', function () {
+            var section = this.value;
+            unitEl.innerHTML = '<option value="">Semua Unit</option>';
+            if (section) {
+                fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section))
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        (data.units || []).forEach(function (u) {
+                            var opt = document.createElement('option');
+                            opt.value = u; opt.textContent = u;
+                            unitEl.appendChild(opt);
+                        });
+                    });
+            }
+            categoryEl.value = '';
+            trackEl.value = '';
+            refreshProtonContent();
+        });
+
+        unitEl.addEventListener('change', function () { refreshProtonContent(); });
+
+        categoryEl.addEventListener('change', function () {
+            // Client-side track filtering by category prefix
+            var cat = this.value;
+            trackEl.innerHTML = '<option value="">Semua</option>';
+            var filtered = cat ? allTracks.filter(function (t) { return t.indexOf(cat) === 0; }) : allTracks;
+            filtered.forEach(function (t) {
+                var opt = document.createElement('option');
+                opt.value = t; opt.textContent = t;
+                trackEl.appendChild(opt);
+            });
+            refreshProtonContent();
+        });
+
+        trackEl.addEventListener('change', function () { refreshProtonContent(); });
+
+        resetBtn.addEventListener('click', function () {
+            if (!sectionEl.disabled) sectionEl.value = '';
+            if (!unitEl.disabled) {
+                unitEl.innerHTML = '<option value="">Semua Unit</option>';
+            }
+            categoryEl.value = '';
+            trackEl.innerHTML = '<option value="">Semua</option>';
+            allTracks.forEach(function (t) {
+                var opt = document.createElement('option');
+                opt.value = t; opt.textContent = t;
+                trackEl.appendChild(opt);
+            });
+            refreshProtonContent();
+        });
+
+        function refreshProtonContent() {
+            var container = document.getElementById('proton-content');
+            if (!container) return;
+            container.classList.add('dashboard-loading');
+
+            var params = new URLSearchParams();
+            if (sectionEl.value) params.set('section', sectionEl.value);
+            if (unitEl.value) params.set('unit', unitEl.value);
+            if (categoryEl.value) params.set('category', categoryEl.value);
+            if (trackEl.value) params.set('track', trackEl.value);
+
+            if (protonAbort) protonAbort.abort();
+            protonAbort = new AbortController();
+
+            fetch('/CDP/FilterCoachingProton?' + params, { signal: protonAbort.signal })
+                .then(function (resp) { return resp.text(); })
+                .then(function (html) {
+                    container.innerHTML = html;
+                    container.querySelectorAll('script').forEach(function (old) {
+                        var s = document.createElement('script');
+                        s.textContent = old.textContent;
+                        old.parentNode.replaceChild(s, old);
+                    });
+                    container.classList.remove('dashboard-loading');
+                })
+                .catch(function (e) {
+                    if (e.name !== 'AbortError') {
+                        console.error(e);
+                        container.classList.remove('dashboard-loading');
+                    }
+                });
+        }
+    })();
+
     // ============================================================
     // Assessment Analytics AJAX Filters
     // ============================================================
