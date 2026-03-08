@@ -2333,14 +2333,13 @@ namespace HcPortal.Controllers
 
                     page.Content().Column(col =>
                     {
-                        // Header
-                        col.Item().Row(headerRow =>
-                        {
-                            headerRow.RelativeItem().AlignCenter().PaddingTop(10)
-                                .Text("EVIDENCE COACHING REPORT").FontSize(16).Bold().FontColor(accentColor);
-                            if (logoBytes != null)
-                                headerRow.AutoItem().Width(80).Image(logoBytes);
-                        });
+                        // Header - Logo top-right
+                        if (logoBytes != null)
+                            col.Item().AlignRight().Width(100).Image(logoBytes);
+
+                        // Title
+                        col.Item().PaddingTop(5).AlignCenter()
+                            .Text("EVIDENCE COACHING REPORT").FontSize(16).Bold().FontColor(accentColor);
 
                         col.Item().PaddingTop(20).Column(fields =>
                         {
