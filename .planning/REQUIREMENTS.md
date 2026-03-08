@@ -9,13 +9,13 @@ Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya b
 
 ### Progress Creation
 
-- [ ] **PROG-01**: `AutoCreateProgressForAssignment` hanya membuat progress untuk deliverable yang `ProtonKompetensi.Unit` == `CoachCoacheeMapping.AssignmentUnit`
+- [x] **PROG-01**: `AutoCreateProgressForAssignment` hanya membuat progress untuk deliverable yang `ProtonKompetensi.Unit` == `CoachCoacheeMapping.AssignmentUnit`
 - [ ] **PROG-02**: `SilabusSave` auto-sync hanya sync deliverable baru ke assignments yang Unit-nya match
 
 ### Data Migration
 
-- [ ] **MIG-01**: Migration menghapus semua ProtonDeliverableProgress, CoachingSessions, dan DeliverableStatusHistory
-- [ ] **MIG-02**: Migration me-recreate progress dari semua active ProtonTrackAssignment dengan filter Unit yang benar
+- [x] **MIG-01**: Migration menghapus semua ProtonDeliverableProgress, CoachingSessions, dan DeliverableStatusHistory
+- [x] **MIG-02**: Migration me-recreate progress dari semua active ProtonTrackAssignment dengan filter Unit yang benar
 
 ### Reassignment
 
@@ -37,10 +37,10 @@ Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya b
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROG-01 | Phase 128 | Pending |
+| PROG-01 | Phase 128 | Complete |
 | PROG-02 | Phase 129 | Pending |
-| MIG-01 | Phase 128 | Pending |
-| MIG-02 | Phase 128 | Pending |
+| MIG-01 | Phase 128 | Complete |
+| MIG-02 | Phase 128 | Complete |
 | REASSIGN-01 | Phase 129 | Pending |
 | QUERY-01 | Phase 129 | Pending |
 
