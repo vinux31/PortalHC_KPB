@@ -10,7 +10,7 @@ Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya b
 ### Progress Creation
 
 - [x] **PROG-01**: `AutoCreateProgressForAssignment` hanya membuat progress untuk deliverable yang `ProtonKompetensi.Unit` == `CoachCoacheeMapping.AssignmentUnit`
-- [ ] **PROG-02**: `SilabusSave` auto-sync hanya sync deliverable baru ke assignments yang Unit-nya match
+- [x] **PROG-02**: `SilabusSave` auto-sync hanya sync deliverable baru ke assignments yang Unit-nya match
 
 ### Data Migration
 
@@ -19,11 +19,11 @@ Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya b
 
 ### Reassignment
 
-- [ ] **REASSIGN-01**: Saat AssignmentUnit berubah (edit mapping), progress lama dihapus dan dibuat baru sesuai unit baru
+- [x] **REASSIGN-01**: Saat AssignmentUnit berubah (edit mapping), progress lama dihapus dan dibuat baru sesuai unit baru
 
 ### Query
 
-- [ ] **QUERY-01**: CoachingProton belt-and-suspenders filter tambah validasi `ProtonKompetensi.Unit` == assignment's Unit (defensive)
+- [x] **QUERY-01**: CoachingProton belt-and-suspenders filter tambah validasi `ProtonKompetensi.Unit` == assignment's Unit (defensive)
 
 ## Out of Scope
 
@@ -38,11 +38,11 @@ Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya b
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | PROG-01 | Phase 128 | Complete |
-| PROG-02 | Phase 129 | Pending |
+| PROG-02 | Phase 129 | Complete |
 | MIG-01 | Phase 128 | Complete |
 | MIG-02 | Phase 128 | Complete |
-| REASSIGN-01 | Phase 129 | Pending |
-| QUERY-01 | Phase 129 | Pending |
+| REASSIGN-01 | Phase 129 | Complete |
+| QUERY-01 | Phase 129 | Complete |
 
 **Coverage:**
 - v3.12 requirements: 6 total

@@ -347,7 +347,7 @@ Plans:
 ## Phases
 
 - [x] **Phase 128: Unit-Filtered Progress & Clean Migration** - AutoCreateProgress filters by AssignmentUnit + migration wipes and recreates all progress data (completed 2026-03-08)
-- [ ] **Phase 129: Sync, Reassignment & Defensive Query** - SilabusSave unit-aware sync, edit-mapping reassignment handler, and CoachingProton belt-and-suspenders filter
+- [x] **Phase 129: Sync, Reassignment & Defensive Query** - SilabusSave unit-aware sync, edit-mapping reassignment handler, and CoachingProton belt-and-suspenders filter (completed 2026-03-08)
 
 ## Phase Details
 
@@ -384,4 +384,4 @@ nPlans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 128. Unit-Filtered Progress & Clean Migration | 1/1 | Complete    | 2026-03-08 |
-| 129. Sync, Reassignment & Defensive Query | 0/1 | Not started | - |
+| 129. Sync, Reassignment & Defensive Query | 1/1 | Complete   | 2026-03-08 |

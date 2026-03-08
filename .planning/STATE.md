@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
 status: planning
-last_updated: "2026-03-08T10:16:10.682Z"
+last_updated: "2026-03-08T10:50:47.263Z"
 last_activity: 2026-03-08 -- Completed 128-01 (unit-filtered progress + clean migration)
 progress:
   total_phases: 17
-  completed_phases: 15
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 16
+  total_plans: 20
+  completed_plans: 20
 ---
 
 ---
@@ -64,6 +64,8 @@ Progress: [##........] 25% (0/2 phases, 1/1 plans in phase 128)
 - Phase 129 = secondary paths (PROG-02, REASSIGN-01, QUERY-01) -- all small changes building on Phase 128
 - ProtonTrack uses DisplayName (not Name) -- discovered during 128-01
 - SQL table names: ProtonDeliverableList (singular), ProtonKompetensiList, ProtonSubKompetensiList -- not EF pluralized defaults
+- [Phase 129]: In-memory post-filter for defensive unit check on progress queries
+- [Phase 129]: SilabusSave auto-sync status changed to Belum Mulai for consistency with Phase 128
 
 ### Blockers/Concerns
 
