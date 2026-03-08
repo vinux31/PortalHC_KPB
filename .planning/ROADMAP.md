@@ -166,6 +166,8 @@ Plans:
   2. Riwayat Status section displays a chronological timeline of all status changes from DeliverableStatusHistory
   3. Evidence Coach section shows Catatan Coach, Kesimpulan, Result, and a download button for the evidence file
 **Plans**: 1 plan
+nPlans:
+- [ ] 119-01-PLAN.md — Rewrite Deliverable.cshtml with 4-card sectioned layout
 
 ### Phase 120: PDF Evidence
 **Goal**: Coach can download a professional PDF evidence form after submitting coaching evidence
@@ -185,5 +187,5 @@ Plans:
 | 116. Modal Cleanup | 1/1 | Complete    | 2026-03-07 |
 | 117. Status History | 1/1 | Complete    | 2026-03-07 |
 | 118. P-Sign Infrastructure | 1/1 | Complete    | 2026-03-07 |
-| 119. Deliverable Page Restructure | 0/? | Not started | - |
+| 119. Deliverable Page Restructure | 0/1 | Planned | - |
 | 120. PDF Evidence | 0/? | Not started | - |
