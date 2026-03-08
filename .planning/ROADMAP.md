@@ -62,6 +62,8 @@
   2. In edit mode, user can type a target value into the Target field and save it via SilabusSave
   3. Existing silabus rows display correctly with empty/null Target values
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [x] 113-01: Migration, model, DTO, save logic, and UI for Target column
@@ -76,6 +78,8 @@ Plans:
   3. Each Track node shows a green checkmark in the Silabus column when at least 1 active Kompetensi exists
   4. Each Track node shows a green checkmark in the Guidance column when at least 1 guidance file exists
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [x] 114-01: StatusData endpoint and Status tab UI
@@ -90,6 +94,8 @@ Plans:
   3. Delete is blocked with a message when ProtonDeliverableProgress records reference deliverables under that Kompetensi
   4. After successful delete, PlanIdp and CoachingProton pages still function correctly (consumer audit verified)
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 115-01-PLAN.md — Backend cascade delete endpoints + frontend delete button and confirmation modal
@@ -115,6 +121,8 @@ Plans:
   5. Excel export respects active filter selections
   6. Assessment Analytics filter change no longer redirects to Coaching Proton tab
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 121-01-PLAN.md — Backend AJAX endpoints + Coaching Proton tab cascade filters
@@ -132,6 +140,8 @@ Plans:
   4. Build succeeds with no errors
   5. Old analytics URLs land on Dashboard without errors
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 122-01-PLAN.md — Remove analytics backend/frontend code and simplify Dashboard to single-section
@@ -161,6 +171,8 @@ Plans:
   2. Submitting evidence succeeds without sending koacheeCompetencies data
   3. CoachingSession records created after this change have no koacheeCompetencies value stored
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [x] 116-01-PLAN.md — Remove CoacheeCompetencies from modal, controller, model, views + data-clearing migration
@@ -176,6 +188,8 @@ Plans:
   4. Re-submitting evidence after rejection creates a "Re-submitted" history entry
 **Plans**: 1 plan
 nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
+nPlans:
 - [ ] 117-01-PLAN.md — DeliverableStatusHistory model, migration, and CDPController wiring
 
 ### Phase 118: P-Sign Infrastructure
@@ -187,6 +201,8 @@ nPlans:
   2. P-Sign badge renders with Logo Pertamina, Role + Unit, and full name
   3. P-Sign can be rendered as an embeddable HTML component and as an image for PDF embedding
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 118-01-PLAN.md — PSignViewModel, _PSign.cshtml partial view, and Settings page preview
@@ -201,6 +217,8 @@ Plans:
   3. Evidence Coach section shows Catatan Coach, Kesimpulan, Result, and a download button for the evidence file
 **Plans**: 1 plan
 nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
+nPlans:
 - [ ] 119-01-PLAN.md — Rewrite Deliverable.cshtml with 4-card sectioned layout
 
 ### Phase 120: PDF Evidence
@@ -213,6 +231,8 @@ nPlans:
   3. PDF displays the Coach's P-Sign badge in the bottom-right corner
   4. Deliverable detail page has a "Download PDF" button that downloads the generated PDF
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 120-01-PLAN.md — DownloadEvidencePdf action + download button in Deliverable Card 3
@@ -273,6 +293,8 @@ Plans:
   3. Attempting to create a second active mapping for the same coachee is rejected by the database unique filtered index
   4. Migration applies cleanly on existing data without data loss
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 123-01-PLAN.md — Model fields, migration with duplicate cleanup, unique index, and assign validation
@@ -288,6 +310,8 @@ Plans:
   4. Reactivating a mapping presents the option to re-assign ProtonTrack to the coachee
   5. Coach without an active mapping for a coachee cannot access that coachee's Deliverable page
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 
@@ -300,6 +324,8 @@ Plans:
   2. Assign modal includes AssignmentSection and AssignmentUnit dropdown fields that default to the coachee's own section/unit
   3. Excel export includes both home and assignment unit/section columns with correct data per row
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 125-01-PLAN.md — Table columns, assign/edit modal dropdowns, and Excel export
@@ -335,6 +361,8 @@ Plans:
   3. After migration runs, every active ProtonTrackAssignment has fresh progress rows created with the correct unit filter applied
   4. A coachee assigned to unit "Alkylation" sees only Alkylation-scoped kompetensi in their CoachingProton table (no cross-unit leakage)
 **Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 Plans:
 - [ ] 128-01-PLAN.md — Unit-filtered AutoCreateProgress + clean migration
@@ -347,11 +375,13 @@ Plans:
   1. When HC saves new silabus deliverables via SilabusSave, auto-sync only creates progress for assignments whose AssignmentUnit matches the deliverable's ProtonKompetensi.Unit
   2. When Admin/HC edits a mapping's AssignmentUnit, the coachee's old progress is deleted and new progress is created matching the new unit
   3. CoachingProton query includes a defensive filter ensuring displayed deliverables belong to kompetensi matching the assignment's unit
-**Plans**: TBD
+**Plans**: 1 plan
+nPlans:
+- [ ] 129-01-PLAN.md — SilabusSave auto-sync + reassignment rebuild + defensive unit filter
 
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 128. Unit-Filtered Progress & Clean Migration | 1/1 | Complete    | 2026-03-08 |
-| 129. Sync, Reassignment & Defensive Query | 0/? | Not started | - |
+| 129. Sync, Reassignment & Defensive Query | 0/1 | Not started | - |
