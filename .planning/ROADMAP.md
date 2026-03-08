@@ -242,7 +242,7 @@ Plans:
 **Goal:** Link ProtonDeliverableProgress to ProtonTrackAssignment, auto-create progress on assign, rewrite all CDP scoping to assignment-based, and add silabus sync/cascade cleanup
 **Requirements**: TBD
 **Depends on:** Phase 125
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
 - [ ] 127-01-PLAN.md — Migration + model FK + auto-create/cleanup in Assign/Edit

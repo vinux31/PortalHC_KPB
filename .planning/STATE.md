@@ -40,10 +40,10 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 ## Current Position
 
 **Milestone:** v3.11 CoachCoacheeMapping Overhaul
-**Phase:** 123 (next to plan)
-**Plan:** --
-**Status:** Milestone complete
-**Last activity:** 2026-03-08 — Roadmap created with 3 phases (123-125)
+**Phase:** 127
+**Plan:** 01 complete, 02 next
+**Status:** Executing phase 127
+**Last activity:** 2026-03-08 — Completed 127-01 (Link Progress to Assignment)
 
 ```
 [=                   ] 0% (0/3 phases)
@@ -74,9 +74,13 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - [Phase 124]: Reactivate toast auto-dismisses after 8s with page reload after 1.5s
 - [Phase 125]: Auto-fill assignment from coachee home unit when single coachee selected
 
+- [Phase 127-01]: ProtonTrackAssignmentId FK required (not nullable) with CASCADE delete
+- [Phase 127-01]: Unique constraint changed from (CoacheeId, DeliverableId) to (AssignmentId, DeliverableId)
+- [Phase 127-01]: Migration wipes all existing progress/sessions/history and repopulates from active assignments
+
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-03-08 after roadmap creation*
+*State updated: 2026-03-08 after 127-01 execution*
