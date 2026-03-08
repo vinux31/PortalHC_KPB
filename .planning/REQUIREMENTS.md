@@ -9,9 +9,9 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 
 ### Data Model
 
-- [ ] **MODEL-01**: CoachCoacheeMapping memiliki field `AssignmentSection` untuk section penugasan (bisa beda dari section pekerja)
-- [ ] **MODEL-02**: CoachCoacheeMapping memiliki field `AssignmentUnit` untuk unit penugasan (bisa beda dari unit pekerja)
-- [ ] **MODEL-03**: Database memiliki unique filtered index untuk one-active-coach-per-coachee constraint (`CoacheeId` WHERE `IsActive = 1`)
+- [x] **MODEL-01**: CoachCoacheeMapping memiliki field `AssignmentSection` untuk section penugasan (bisa beda dari section pekerja)
+- [x] **MODEL-02**: CoachCoacheeMapping memiliki field `AssignmentUnit` untuk unit penugasan (bisa beda dari unit pekerja)
+- [x] **MODEL-03**: Database memiliki unique filtered index untuk one-active-coach-per-coachee constraint (`CoacheeId` WHERE `IsActive = 1`)
 
 ### CDP Access
 
@@ -42,9 +42,9 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MODEL-01 | Phase 123 | Pending |
-| MODEL-02 | Phase 123 | Pending |
-| MODEL-03 | Phase 123 | Pending |
+| MODEL-01 | Phase 123 | Complete |
+| MODEL-02 | Phase 123 | Complete |
+| MODEL-03 | Phase 123 | Complete |
 | ACCESS-01 | Phase 124 | Pending |
 | ACCESS-02 | Phase 124 | Pending |
 | ACCESS-03 | Phase 124 | Pending |

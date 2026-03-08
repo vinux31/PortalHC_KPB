@@ -1,12 +1,27 @@
 ---
 gsd_state_version: 1.0
+milestone: v3.9
+milestone_name: ProtonData Enhancement
+status: completed
+last_updated: "2026-03-08T06:53:02.110Z"
+last_activity: 2026-03-08 — Roadmap created with 3 phases (123-125)
+progress:
+  total_phases: 13
+  completed_phases: 11
+  total_plans: 12
+  completed_plans: 12
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
 milestone: v3.11
 milestone_name: CoachCoacheeMapping Overhaul
 status: roadmap_complete
 last_updated: "2026-03-08"
 last_activity: 2026-03-08 — Roadmap created with 3 phases (123-125)
 progress:
-  total_phases: 3
+  [██████████] 100%
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -52,6 +67,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - Phase numbering starts at 123 (v3.9 used 113-115, v3.10 used 116-120, v3.9+ used 121-122)
 - Phase 124 and 125 both depend on 123; 124 and 125 are independent of each other
 - MODEL requirements grouped into foundation phase; ACCESS+LIFE into behavior phase; UI into presentation phase
+- [Phase 123]: Nullable AssignmentSection/Unit fields for backward compat; duplicate active mappings auto-deactivated in migration
 
 ### Blockers/Concerns
 
