@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v3.11
 milestone_name: CoachCoacheeMapping Overhaul
-status: planning
+status: roadmap_complete
 last_updated: "2026-03-08"
-last_activity: 2026-03-08 — Milestone v3.11 started
+last_activity: 2026-03-08 — Roadmap created with 3 phases (123-125)
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,15 +20,19 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.11 CoachCoacheeMapping Overhaul — defining requirements
+**Current focus:** v3.11 CoachCoacheeMapping Overhaul — roadmap complete, ready for planning
 
 ## Current Position
 
 **Milestone:** v3.11 CoachCoacheeMapping Overhaul
-**Phase:** Not started (defining requirements)
-**Plan:** —
-**Status:** Defining requirements
-**Last activity:** 2026-03-08 — Milestone v3.11 started
+**Phase:** 123 (next to plan)
+**Plan:** --
+**Status:** Roadmap complete
+**Last activity:** 2026-03-08 — Roadmap created with 3 phases (123-125)
+
+```
+[=                   ] 0% (0/3 phases)
+```
 
 ## Performance Metrics
 
@@ -41,15 +45,17 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 ### Roadmap Evolution
 
-(New milestone — no roadmap changes yet)
+- 2026-03-08: v3.11 roadmap created — 3 phases, 11 requirements, 100% coverage
 
 ### Decisions
 
 - Phase numbering starts at 123 (v3.9 used 113-115, v3.10 used 116-120, v3.9+ used 121-122)
+- Phase 124 and 125 both depend on 123; 124 and 125 are independent of each other
+- MODEL requirements grouped into foundation phase; ACCESS+LIFE into behavior phase; UI into presentation phase
 
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-03-08 after milestone v3.11 started*
+*State updated: 2026-03-08 after roadmap creation*

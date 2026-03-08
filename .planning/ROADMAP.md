@@ -226,3 +226,58 @@ Plans:
 | 118. P-Sign Infrastructure | 1/1 | Complete    | 2026-03-07 |
 | 119. Deliverable Page Restructure | 1/1 | Complete    | 2026-03-08 |
 | 120. PDF Evidence | 1/1 | Complete    | 2026-03-08 |
+
+---
+
+## v3.11 CoachCoacheeMapping Overhaul
+
+**Milestone Goal:** Perbaiki sistem CoachCoacheeMapping agar mendukung cross-section assignment, tambah field penugasan, perbaiki CDP access check, tambah database constraint, dan cleanup ProtonTrackAssignment lifecycle.
+
+## Phases
+
+- [ ] **Phase 123: Data Model & Migration** - Add AssignmentUnit/AssignmentSection fields and unique constraint to CoachCoacheeMapping
+- [ ] **Phase 124: CDP Access & Lifecycle** - Rewrite all CDP scope queries to mapping-based access and wire ProtonTrackAssignment cleanup on deactivate
+- [ ] **Phase 125: Mapping UI** - Display assignment columns, update assign modal, and include in Excel export
+
+## Phase Details
+
+### Phase 123: Data Model & Migration
+**Goal**: CoachCoacheeMapping supports cross-section assignment with database-enforced one-active-coach-per-coachee constraint
+**Depends on**: Nothing (foundation phase)
+**Requirements**: MODEL-01, MODEL-02, MODEL-03
+**Success Criteria** (what must be TRUE):
+  1. CoachCoacheeMapping has nullable AssignmentSection and AssignmentUnit string fields that persist to the database
+  2. Existing mappings with null AssignmentSection/AssignmentUnit continue to work (fallback to worker's own section/unit)
+  3. Attempting to create a second active mapping for the same coachee is rejected by the database unique filtered index
+  4. Migration applies cleanly on existing data without data loss
+**Plans**: TBD
+
+### Phase 124: CDP Access & Lifecycle
+**Goal**: Coaches can access coachees across sections via mapping, and deactivating a mapping cleans up associated ProtonTrackAssignments
+**Depends on**: Phase 123 (needs AssignmentSection/AssignmentUnit fields)
+**Requirements**: ACCESS-01, ACCESS-02, ACCESS-03, LIFE-01, LIFE-02
+**Success Criteria** (what must be TRUE):
+  1. Coach can open Deliverable page for a coachee in a different section when an active mapping exists
+  2. CoachingProton, HistoriProton, GetCoacheeDeliverables, and batch submit all show coachees based on active mapping (not section match)
+  3. Deactivating a mapping automatically deactivates all ProtonTrackAssignment records for that coach-coachee pair
+  4. Reactivating a mapping presents the option to re-assign ProtonTrack to the coachee
+  5. Coach without an active mapping for a coachee cannot access that coachee's Deliverable page
+**Plans**: TBD
+
+### Phase 125: Mapping UI
+**Goal**: Admin/HC can see and set assignment unit/section when managing coach-coachee mappings, with full export support
+**Depends on**: Phase 123 (needs AssignmentSection/AssignmentUnit fields)
+**Requirements**: UI-01, UI-02, UI-03
+**Success Criteria** (what must be TRUE):
+  1. CoachCoacheeMapping list page shows separate columns for worker's home unit/section and assignment unit/section
+  2. Assign modal includes AssignmentSection and AssignmentUnit dropdown fields that default to the coachee's own section/unit
+  3. Excel export includes both home and assignment unit/section columns with correct data per row
+**Plans**: TBD
+
+## Progress
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 123. Data Model & Migration | 0/0 | Not started | - |
+| 124. CDP Access & Lifecycle | 0/0 | Not started | - |
+| 125. Mapping UI | 0/0 | Not started | - |

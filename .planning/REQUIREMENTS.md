@@ -42,23 +42,23 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MODEL-01 | TBD | Pending |
-| MODEL-02 | TBD | Pending |
-| MODEL-03 | TBD | Pending |
-| ACCESS-01 | TBD | Pending |
-| ACCESS-02 | TBD | Pending |
-| ACCESS-03 | TBD | Pending |
-| LIFE-01 | TBD | Pending |
-| LIFE-02 | TBD | Pending |
-| UI-01 | TBD | Pending |
-| UI-02 | TBD | Pending |
-| UI-03 | TBD | Pending |
+| MODEL-01 | Phase 123 | Pending |
+| MODEL-02 | Phase 123 | Pending |
+| MODEL-03 | Phase 123 | Pending |
+| ACCESS-01 | Phase 124 | Pending |
+| ACCESS-02 | Phase 124 | Pending |
+| ACCESS-03 | Phase 124 | Pending |
+| LIFE-01 | Phase 124 | Pending |
+| LIFE-02 | Phase 124 | Pending |
+| UI-01 | Phase 125 | Pending |
+| UI-02 | Phase 125 | Pending |
+| UI-03 | Phase 125 | Pending |
 
 **Coverage:**
 - v3.11 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after initial definition*
+*Last updated: 2026-03-08 after roadmap creation*
