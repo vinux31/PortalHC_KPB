@@ -1,64 +1,54 @@
-# Requirements: Portal HC KPB v3.11
+# Requirements: Portal HC KPB v3.12
 
 **Defined:** 2026-03-08
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.11 Requirements
+## v3.12 Requirements
 
-Requirements for CoachCoacheeMapping Overhaul milestone.
+Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya berisi kompetensi sesuai unit penugasan coachee.
 
-### Data Model
+### Progress Creation
 
-- [x] **MODEL-01**: CoachCoacheeMapping memiliki field `AssignmentSection` untuk section penugasan (bisa beda dari section pekerja)
-- [x] **MODEL-02**: CoachCoacheeMapping memiliki field `AssignmentUnit` untuk unit penugasan (bisa beda dari unit pekerja)
-- [x] **MODEL-03**: Database memiliki unique filtered index untuk one-active-coach-per-coachee constraint (`CoacheeId` WHERE `IsActive = 1`)
+- [ ] **PROG-01**: `AutoCreateProgressForAssignment` hanya membuat progress untuk deliverable yang `ProtonKompetensi.Unit` == `CoachCoacheeMapping.AssignmentUnit`
+- [ ] **PROG-02**: `SilabusSave` auto-sync hanya sync deliverable baru ke assignments yang Unit-nya match
 
-### CDP Access
+### Data Migration
 
-- [x] **ACCESS-01**: Deliverable page menggunakan CoachCoacheeMapping check (bukan section match) untuk validasi akses coach
-- [x] **ACCESS-02**: Coach bisa akses coachee dari section lain jika ada active mapping
-- [x] **ACCESS-03**: Semua CDP scope query (CoachingProton, HistoriProton, GetCoacheeDeliverables, batch submit) konsisten menggunakan mapping-based access
+- [ ] **MIG-01**: Migration menghapus semua ProtonDeliverableProgress, CoachingSessions, dan DeliverableStatusHistory
+- [ ] **MIG-02**: Migration me-recreate progress dari semua active ProtonTrackAssignment dengan filter Unit yang benar
 
-### Lifecycle
+### Reassignment
 
-- [x] **LIFE-01**: Deactivate mapping otomatis deactivate ProtonTrackAssignment terkait
-- [x] **LIFE-02**: Reactivate mapping menampilkan opsi untuk re-assign ProtonTrack
+- [ ] **REASSIGN-01**: Saat AssignmentUnit berubah (edit mapping), progress lama dihapus dan dibuat baru sesuai unit baru
 
-### UI
+### Query
 
-- [x] **UI-01**: CoachCoacheeMapping page menampilkan kolom "Unit Penugasan" dan "Seksi Penugasan" terpisah dari unit/seksi asal pekerja
-- [x] **UI-02**: Assign modal memiliki field AssignmentSection dan AssignmentUnit
-- [x] **UI-03**: Export Excel menyertakan kolom unit/seksi penugasan vs unit/seksi asal
+- [ ] **QUERY-01**: CoachingProton belt-and-suspenders filter tambah validasi `ProtonKompetensi.Unit` == assignment's Unit (defensive)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Tahun field di mapping | Tahun sudah tracked via ProtonTrack.TahunKe di ProtonTrackAssignment |
-| Coach self-assign UI | Violates admin-only mapping control |
-| Auto-migrate existing mappings | Existing mappings retain null AssignmentSection/Unit (fallback to worker's own) |
+| Filter by Bagian | Coachee hanya ditugaskan di unit dalam bagian sendiri — unit filter cukup |
+| Tambah Unit field di ProtonTrackAssignment | Unit info sudah ada di CoachCoacheeMapping.AssignmentUnit |
+| UI changes di CoachingProton | Hanya fix data source, tampilan tetap sama |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MODEL-01 | Phase 123 | Complete |
-| MODEL-02 | Phase 123 | Complete |
-| MODEL-03 | Phase 123 | Complete |
-| ACCESS-01 | Phase 124 | Complete |
-| ACCESS-02 | Phase 124 | Complete |
-| ACCESS-03 | Phase 124 | Complete |
-| LIFE-01 | Phase 124 | Complete |
-| LIFE-02 | Phase 124 | Complete |
-| UI-01 | Phase 125 | Complete |
-| UI-02 | Phase 125 | Complete |
-| UI-03 | Phase 125 | Complete |
+| PROG-01 | TBD | Pending |
+| PROG-02 | TBD | Pending |
+| MIG-01 | TBD | Pending |
+| MIG-02 | TBD | Pending |
+| REASSIGN-01 | TBD | Pending |
+| QUERY-01 | TBD | Pending |
 
 **Coverage:**
-- v3.11 requirements: 11 total
-- Mapped to phases: 11
-- Unmapped: 0
+- v3.12 requirements: 6 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 6
 
 ---
 *Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after roadmap creation*
+*Last updated: 2026-03-08 after initial definition*
