@@ -32,5 +32,15 @@ namespace HcPortal.Models
         /// Tanggal selesai coaching (opsional)
         /// </summary>
         public DateTime? EndDate { get; set; }
+
+        /// <summary>
+        /// Section penugasan (bisa beda dari section pekerja). Null = fallback ke section pekerja.
+        /// </summary>
+        public string? AssignmentSection { get; set; }
+
+        /// <summary>
+        /// Unit penugasan (bisa beda dari unit pekerja). Null = fallback ke unit pekerja.
+        /// </summary>
+        public string? AssignmentUnit { get; set; }
     }
 }

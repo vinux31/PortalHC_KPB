@@ -262,7 +262,10 @@ namespace HcPortal.Data
             builder.Entity<CoachCoacheeMapping>(entity =>
             {
                 entity.HasIndex(m => m.CoachId);
-                entity.HasIndex(m => m.CoacheeId);
+                entity.HasIndex(m => m.CoacheeId)
+                    .HasFilter("[IsActive] = 1")
+                    .IsUnique()
+                    .HasDatabaseName("IX_CoachCoacheeMappings_CoacheeId_ActiveUnique");
                 entity.HasIndex(m => new { m.CoachId, m.CoacheeId });
             });
 
