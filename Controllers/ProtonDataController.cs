@@ -408,37 +408,66 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
 
-            // Auto-sync: create progress records for newly added deliverables across active assignments
+            // Phase 129: Auto-sync new deliverables to matching-unit assignments only
             if (newDelivIds.Any())
             {
                 // Remove any orphan-deleted IDs from newDelivIds
                 var survivingNewDelivIds = newDelivIds.Where(id => !orphanDelivIdSet.Contains(id)).ToList();
                 if (survivingNewDelivIds.Any())
                 {
+                    // Find active assignments for this track, resolve each assignment's unit
                     var activeAssignments = await _context.ProtonTrackAssignments
                         .Where(a => a.ProtonTrackId == trackId && a.IsActive)
+                        .Select(a => new { a.Id, a.CoacheeId })
                         .ToListAsync();
 
-                    foreach (var assignment in activeAssignments)
+                    // Resolve unit per assignment: AssignmentUnit from active mapping, fallback to User.Unit
+                    var assignmentCoacheeIds = activeAssignments.Select(a => a.CoacheeId).Distinct().ToList();
+                    var mappingUnits = await _context.CoachCoacheeMappings
+                        .Where(m => m.IsActive && assignmentCoacheeIds.Contains(m.CoacheeId))
+                        .Select(m => new { m.CoacheeId, m.AssignmentUnit })
+                        .ToListAsync();
+                    var userUnits = await _context.Users
+                        .Where(u => assignmentCoacheeIds.Contains(u.Id))
+                        .Select(u => new { u.Id, u.Unit })
+                        .ToDictionaryAsync(u => u.Id, u => u.Unit);
+
+                    // Filter to assignments whose resolved unit matches the deliverable's unit
+                    var matchingAssignments = activeAssignments.Where(a =>
                     {
-                        foreach (var deliverableId in survivingNewDelivIds)
+                        var resolvedUnit = (mappingUnits.FirstOrDefault(m => m.CoacheeId == a.CoacheeId)?.AssignmentUnit
+                                            ?? userUnits.GetValueOrDefault(a.CoacheeId))?.Trim() ?? "";
+                        return resolvedUnit == unit.Trim();
+                    }).ToList();
+
+                    if (matchingAssignments.Any())
+                    {
+                        var matchingIds = matchingAssignments.Select(a => a.Id).ToList();
+                        var existingPairs = await _context.ProtonDeliverableProgresses
+                            .Where(p => matchingIds.Contains(p.ProtonTrackAssignmentId) && survivingNewDelivIds.Contains(p.ProtonDeliverableId))
+                            .Select(p => new { p.ProtonTrackAssignmentId, p.ProtonDeliverableId })
+                            .ToListAsync();
+                        var existingSet = new HashSet<string>(existingPairs.Select(p => $"{p.ProtonTrackAssignmentId}|{p.ProtonDeliverableId}"));
+
+                        foreach (var assignment in matchingAssignments)
                         {
-                            var exists = await _context.ProtonDeliverableProgresses
-                                .AnyAsync(p => p.ProtonTrackAssignmentId == assignment.Id && p.ProtonDeliverableId == deliverableId);
-                            if (!exists)
+                            foreach (var deliverableId in survivingNewDelivIds)
                             {
-                                _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
+                                if (!existingSet.Contains($"{assignment.Id}|{deliverableId}"))
                                 {
-                                    CoacheeId = assignment.CoacheeId,
-                                    ProtonDeliverableId = deliverableId,
-                                    ProtonTrackAssignmentId = assignment.Id,
-                                    Status = "Pending",
-                                    CreatedAt = DateTime.UtcNow
-                                });
+                                    _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
+                                    {
+                                        CoacheeId = assignment.CoacheeId,
+                                        ProtonDeliverableId = deliverableId,
+                                        ProtonTrackAssignmentId = assignment.Id,
+                                        Status = "Belum Mulai",
+                                        CreatedAt = DateTime.UtcNow
+                                    });
+                                }
                             }
                         }
+                        await _context.SaveChangesAsync();
                     }
-                    await _context.SaveChangesAsync();
                 }
             }
 
