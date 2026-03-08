@@ -2,11 +2,26 @@
 gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
+status: executing
+last_updated: "2026-03-08T09:20:17.416Z"
+last_activity: 2026-03-08 — Completed 127-01 (Link Progress to Assignment)
+progress:
+  total_phases: 15
+  completed_phases: 14
+  total_plans: 18
+  completed_plans: 18
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.9
+milestone_name: ProtonData Enhancement
 status: completed
 last_updated: "2026-03-08T08:01:59.706Z"
 last_activity: 2026-03-08 — Roadmap created with 3 phases (123-125)
 progress:
-  total_phases: 13
+  [██████████] 100%
   completed_phases: 13
   total_plans: 15
   completed_plans: 15
@@ -41,9 +56,9 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 
 **Milestone:** v3.11 CoachCoacheeMapping Overhaul
 **Phase:** 127
-**Plan:** 01 complete, 02 next
+**Plan:** 02 complete, 03 next
 **Status:** Executing phase 127
-**Last activity:** 2026-03-08 — Completed 127-01 (Link Progress to Assignment)
+**Last activity:** 2026-03-08 — Completed 127-02 (Dashboard and CoachingProton scoping rewrite)
 
 ```
 [=                   ] 0% (0/3 phases)
@@ -77,6 +92,8 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - [Phase 127-01]: ProtonTrackAssignmentId FK required (not nullable) with CASCADE delete
 - [Phase 127-01]: Unique constraint changed from (CoacheeId, DeliverableId) to (AssignmentId, DeliverableId)
 - [Phase 127-01]: Migration wipes all existing progress/sessions/history and repopulates from active assignments
+- [Phase 127]: All coachee visibility flows through active ProtonTrackAssignment, not RoleLevel==6 user queries
+- [Phase 127]: Belt-and-suspenders track validation on progress queries
 
 ### Blockers/Concerns
 
