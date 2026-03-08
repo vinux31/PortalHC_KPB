@@ -3,10 +3,25 @@ gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
 status: completed
+last_updated: "2026-03-08T05:22:37.581Z"
+last_activity: 2026-03-07 — Completed 116-01 Modal Cleanup
+progress:
+  total_phases: 9
+  completed_phases: 8
+  total_plans: 10
+  completed_plans: 9
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.9
+milestone_name: ProtonData Enhancement
+status: completed
 last_updated: "2026-03-08T04:27:37.814Z"
 last_activity: 2026-03-07 — Completed 116-01 Modal Cleanup
 progress:
-  total_phases: 8
+  [██████████] 100%
   completed_phases: 8
   total_plans: 8
   completed_plans: 8
@@ -91,6 +106,7 @@ Progress: [██████████] 100%
 - [Phase 119]: Approval Chain stepper always visible, removed status gate
 - [Phase 119]: Upload Evidence form removed from Deliverable page
 - [Phase 120]: PDF Evidence: logo top-right, date-only footer, green button
+- [Phase 121]: Reused GetCascadeOptions endpoint for both tabs instead of creating duplicate
 
 ### Blockers/Concerns
 
