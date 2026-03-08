@@ -15,6 +15,7 @@
     var eligibleCoachees = ViewBag.EligibleCoachees as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     var allUsers = ViewBag.AllUsers as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     var protonTracks = ViewBag.ProtonTracks as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+    var sectionUnits = ViewBag.SectionUnits as Dictionary<string, List<string>> ?? new Dictionary<string, List<string>>();
 }
 
 @Html.AntiForgeryToken()
@@ -105,7 +106,8 @@ else
             <tr>
                 <th>Nama</th>
                 <th>NIP</th>
-                <th>Seksi</th>
+                <th>Bagian Penugasan</th>
+                <th>Unit Penugasan</th>
                 <th>Jabatan</th>
                 <th>Proton Track</th>
                 <th>Status</th>
@@ -119,7 +121,7 @@ else
             <!-- Coach header row -->
             <tbody>
                 <tr class="table-primary" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-@idx">
-                    <td colspan="8" class="fw-semibold">
+                    <td colspan="9" class="fw-semibold">
                         <i class="bi bi-chevron-down me-2 small"></i>
                         @group.CoachName
                         @if (!string.IsNullOrEmpty((string)group.CoachSection))
@@ -137,7 +139,8 @@ else
                     <tr class="@(coachee.IsActive ? "" : "table-light text-muted")">
                         <td>@coachee.CoacheeName</td>
                         <td>@coachee.CoacheeNIP</td>
-                        <td>@coachee.CoacheeSection</td>
+                        <td>@(string.IsNullOrEmpty((string)coachee.AssignmentSection) ? "\u2014" : coachee.AssignmentSection)</td>
+                        <td>@(string.IsNullOrEmpty((string)coachee.AssignmentUnit) ? "\u2014" : coachee.AssignmentUnit)</td>
                         <td>@coachee.CoacheePosition</td>
                         <td>
                             @if (!string.IsNullOrEmpty((string)coachee.ProtonTrack))
@@ -163,7 +166,7 @@ else
                         <td>
                             <div class="d-flex gap-1">
                                 <button class="btn btn-sm btn-outline-secondary"
-                                        onclick="openEditModal(@coachee.Id, '@coachee.CoachId', 0, '@coachee.StartDate.ToString("yyyy-MM-dd")', '@coachee.CoacheeName')">
+                                        onclick="openEditModal(@coachee.Id, '@coachee.CoachId', 0, '@coachee.StartDate.ToString("yyyy-MM-dd")', '@coachee.CoacheeName', '@coachee.AssignmentSection', '@coachee.AssignmentUnit')">
                                     <i class="bi bi-pencil"></i> Edit
                                 </button>
                                 @if (coachee.IsActive)
@@ -251,9 +254,9 @@ else
                     <div id="coacheeChecklist" style="max-height:200px; overflow-y:auto; border:1px solid #ced4da; border-radius:6px; padding:0.5rem;">
                         @foreach (var coachee in eligibleCoachees)
                         {
-                            <div class="form-check coachee-item" data-section="@coachee.Section">
+                            <div class="form-check coachee-item" data-section="@coachee.Section" data-unit="@coachee.Unit">
                                 <input class="form-check-input coachee-checkbox" type="checkbox"
-                                       id="chk-@coachee.Id" value="@coachee.Id" />
+                                       id="chk-@coachee.Id" value="@coachee.Id" onchange="updateAssignmentDefaults()" />
                                 <label class="form-check-label" for="chk-@coachee.Id">
                                     @coachee.FullName
                                     @if (!string.IsNullOrEmpty((string)coachee.NIP))
@@ -272,6 +275,22 @@ else
                             <p class="text-muted small mb-0">Tidak ada coachee yang tersedia (semua sudah memiliki coach aktif).</p>
                         }
                     </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Bagian Penugasan <span class="text-danger">*</span></label>
+                    <select id="assignAssignmentSection" class="form-select" onchange="filterAssignmentUnits('assign')">
+                        <option value="">— Pilih Bagian —</option>
+                        @foreach (var sec in sectionUnits.Keys)
+                        {
+                            <option value="@sec">@sec</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Unit Penugasan <span class="text-danger">*</span></label>
+                    <select id="assignAssignmentUnit" class="form-select">
+                        <option value="">— Pilih Unit —</option>
+                    </select>
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Proton Track (opsional)</label>
@@ -323,6 +342,22 @@ else
                         {
                             <option value="@coach.Id">@coach.FullName @(string.IsNullOrEmpty((string)coach.Section) ? "" : $"({coach.Section})")</option>
                         }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Bagian Penugasan <span class="text-danger">*</span></label>
+                    <select id="editAssignmentSection" class="form-select" onchange="filterAssignmentUnits('edit')">
+                        <option value="">— Pilih Bagian —</option>
+                        @foreach (var sec in sectionUnits.Keys)
+                        {
+                            <option value="@sec">@sec</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Unit Penugasan <span class="text-danger">*</span></label>
+                    <select id="editAssignmentUnit" class="form-select">
+                        <option value="">— Pilih Unit —</option>
                     </select>
                 </div>
                 <div class="mb-3">
@@ -379,6 +414,23 @@ else
 
 @section Scripts {
 <script>
+    // ========== Section-Unit cascade data ==========
+    var sectionUnitsMap = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(sectionUnits));
+
+    function filterAssignmentUnits(prefix) {
+        var sectionVal = document.getElementById(prefix + 'AssignmentSection').value;
+        var unitSelect = document.getElementById(prefix + 'AssignmentUnit');
+        unitSelect.innerHTML = '<option value="">— Pilih Unit —</option>';
+        if (sectionVal && sectionUnitsMap[sectionVal]) {
+            sectionUnitsMap[sectionVal].forEach(function(u) {
+                var opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                unitSelect.appendChild(opt);
+            });
+        }
+    }
+
     // ========== Filter helpers ==========
 
     function resetPageAndSubmit() {
@@ -400,20 +452,57 @@ else
         });
     }
 
+    function updateAssignmentDefaults() {
+        var checked = document.querySelectorAll('.coachee-checkbox:checked');
+        if (checked.length === 0) return;
+
+        var sections = new Set();
+        var units = new Set();
+        checked.forEach(function(cb) {
+            var item = cb.closest('.coachee-item');
+            var sec = item.getAttribute('data-section') || '';
+            var unit = item.getAttribute('data-unit') || '';
+            if (sec) sections.add(sec);
+            if (unit) units.add(unit);
+        });
+
+        // Find which bagian contains these units
+        if (units.size === 1) {
+            var theUnit = Array.from(units)[0];
+            // Find the section (bagian) that contains this unit
+            for (var bagian in sectionUnitsMap) {
+                if (sectionUnitsMap[bagian].indexOf(theUnit) >= 0) {
+                    var secSelect = document.getElementById('assignAssignmentSection');
+                    secSelect.value = bagian;
+                    filterAssignmentUnits('assign');
+                    document.getElementById('assignAssignmentUnit').value = theUnit;
+                    return;
+                }
+            }
+        }
+        // Multiple different units or no match — don't auto-fill
+    }
+
     function submitAssign() {
         var coachId = document.getElementById('assignCoachSelect').value;
         var coacheeIds = Array.from(document.querySelectorAll('.coachee-checkbox:checked')).map(cb => cb.value);
         var trackId = document.getElementById('assignProtonTrack').value;
         var startDate = document.getElementById('assignStartDate').value;
+        var assignmentSection = document.getElementById('assignAssignmentSection').value;
+        var assignmentUnit = document.getElementById('assignAssignmentUnit').value;
 
         if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
         if (coacheeIds.length === 0) { alert('Pilih minimal satu coachee.'); return; }
+        if (!assignmentSection) { alert('Pilih Bagian Penugasan.'); return; }
+        if (!assignmentUnit) { alert('Pilih Unit Penugasan.'); return; }
 
         var payload = {
             CoachId: coachId,
             CoacheeIds: coacheeIds,
             ProtonTrackId: trackId ? parseInt(trackId) : null,
-            StartDate: startDate || null
+            StartDate: startDate || null,
+            AssignmentSection: assignmentSection,
+            AssignmentUnit: assignmentUnit
         };
 
         fetch('/Admin/CoachCoacheeMappingAssign', {
@@ -434,7 +523,7 @@ else
 
     // ========== Edit Modal ==========
 
-    function openEditModal(id, coachId, trackId, startDate, coacheeName) {
+    function openEditModal(id, coachId, trackId, startDate, coacheeName, assignmentSection, assignmentUnit) {
         document.getElementById('editMappingId').value = id;
         document.getElementById('editCoacheeName').textContent = coacheeName || '';
         var coachSelect = document.getElementById('editCoachSelect');
@@ -442,6 +531,15 @@ else
         var trackSelect = document.getElementById('editProtonTrack');
         trackSelect.value = (trackId && trackId > 0) ? String(trackId) : '';
         document.getElementById('editStartDate').value = startDate || '';
+
+        // Set assignment section and trigger cascade
+        var secSelect = document.getElementById('editAssignmentSection');
+        secSelect.value = assignmentSection || '';
+        filterAssignmentUnits('edit');
+        if (assignmentUnit) {
+            document.getElementById('editAssignmentUnit').value = assignmentUnit;
+        }
+
         var modal = new bootstrap.Modal(document.getElementById('editModal'));
         modal.show();
     }
@@ -451,15 +549,21 @@ else
         var coachId = document.getElementById('editCoachSelect').value;
         var trackId = document.getElementById('editProtonTrack').value;
         var startDate = document.getElementById('editStartDate').value;
+        var assignmentSection = document.getElementById('editAssignmentSection').value;
+        var assignmentUnit = document.getElementById('editAssignmentUnit').value;
 
         if (!coachId) { alert('Pilih coach terlebih dahulu.'); return; }
         if (!startDate) { alert('Isi tanggal mulai.'); return; }
+        if (!assignmentSection) { alert('Pilih Bagian Penugasan.'); return; }
+        if (!assignmentUnit) { alert('Pilih Unit Penugasan.'); return; }
 
         var payload = {
             MappingId: parseInt(mappingId),
             CoachId: coachId,
             ProtonTrackId: trackId ? parseInt(trackId) : null,
-            StartDate: startDate || null
+            StartDate: startDate || null,
+            AssignmentSection: assignmentSection,
+            AssignmentUnit: assignmentUnit
         };
 
         fetch('/Admin/CoachCoacheeMappingEdit', {

@@ -2801,7 +2801,7 @@ namespace HcPortal.Controllers
 
             // 1. Load all users once (avoid N+1); use all for mapping display dict, active-only for modal dropdowns
             var allUsers = await _context.Users
-                .Select(u => new { u.Id, u.FullName, u.NIP, u.Section, u.Position, u.RoleLevel, u.IsActive })
+                .Select(u => new { u.Id, u.FullName, u.NIP, u.Section, u.Unit, u.Position, u.RoleLevel, u.IsActive })
                 .ToListAsync();
             var userDict = allUsers.ToDictionary(u => u.Id);
             var activeUsers = allUsers.Where(u => u.IsActive).ToList();
@@ -2866,7 +2866,9 @@ namespace HcPortal.Controllers
                         CoacheeSection = r.Coachee?.Section ?? "",
                         CoacheePosition = r.Coachee?.Position ?? "",
                         r.Mapping.CoacheeId,
-                        ProtonTrack = trackByCoachee.GetValueOrDefault(r.Mapping.CoacheeId, "")
+                        ProtonTrack = trackByCoachee.GetValueOrDefault(r.Mapping.CoacheeId, ""),
+                        AssignmentSection = r.Mapping.AssignmentSection ?? "",
+                        AssignmentUnit = r.Mapping.AssignmentUnit ?? ""
                     }).OrderBy(c => c.CoacheeName).ToList()
                 })
                 .OrderBy(g => g.CoachName)
@@ -2893,6 +2895,7 @@ namespace HcPortal.Controllers
             ViewBag.SearchTerm = search;
             ViewBag.SectionFilter = section;
             ViewBag.Sections = OrganizationStructure.GetAllSections();
+            ViewBag.SectionUnits = OrganizationStructure.SectionUnits;
             // Phase 74: Coach role only — not level (Supervisor is level 5 but never a coach)
             // Filter to active users only so deactivated workers don't appear in assignment modals
             var coachRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coach);
@@ -3023,6 +3026,8 @@ namespace HcPortal.Controllers
             mapping.CoachId = req.CoachId;
             if (req.StartDate.HasValue)
                 mapping.StartDate = req.StartDate.Value;
+            mapping.AssignmentSection = req.AssignmentSection?.Trim();
+            mapping.AssignmentUnit = req.AssignmentUnit?.Trim();
 
             // ProtonTrack side-effect
             if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
@@ -5224,4 +5229,6 @@ public class CoachEditRequest
     public string CoachId { get; set; } = "";
     public int? ProtonTrackId { get; set; }
     public DateTime? StartDate { get; set; }
+    public string? AssignmentSection { get; set; }
+    public string? AssignmentUnit { get; set; }
 }
