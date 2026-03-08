@@ -366,7 +366,28 @@ namespace HcPortal.Controllers
                 foreach (var s in k.SubKompetensiList)
                 {
                     var orphanDelivs = s.Deliverables.Where(d => !savedDelivIds.Contains(d.Id) && d.Id > 0).ToList();
-                    _context.ProtonDeliverableList.RemoveRange(orphanDelivs);
+                    if (orphanDelivs.Any())
+                    {
+                        // Cascade delete progress records for orphaned deliverables (FK is Restrict)
+                        var orphanDIds = orphanDelivs.Select(d => d.Id).ToList();
+                        var orphanProgressIds = await _context.ProtonDeliverableProgresses
+                            .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
+                            .Select(p => p.Id)
+                            .ToListAsync();
+                        if (orphanProgressIds.Any())
+                        {
+                            var orphanSessions = await _context.CoachingSessions
+                                .Include(cs => cs.ActionItems)
+                                .Where(cs => cs.ProtonDeliverableProgressId != null && orphanProgressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                                .ToListAsync();
+                            _context.CoachingSessions.RemoveRange(orphanSessions);
+                            var orphanProgresses = await _context.ProtonDeliverableProgresses
+                                .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
+                                .ToListAsync();
+                            _context.ProtonDeliverableProgresses.RemoveRange(orphanProgresses);
+                        }
+                        _context.ProtonDeliverableList.RemoveRange(orphanDelivs);
+                    }
                     deleted += orphanDelivs.Count;
                     foreach (var od in orphanDelivs) orphanDelivIdSet.Add(od.Id);
                 }
@@ -386,6 +407,40 @@ namespace HcPortal.Controllers
             deleted += orphanKomps.Count;
 
             await _context.SaveChangesAsync();
+
+            // Auto-sync: create progress records for newly added deliverables across active assignments
+            if (newDelivIds.Any())
+            {
+                // Remove any orphan-deleted IDs from newDelivIds
+                var survivingNewDelivIds = newDelivIds.Where(id => !orphanDelivIdSet.Contains(id)).ToList();
+                if (survivingNewDelivIds.Any())
+                {
+                    var activeAssignments = await _context.ProtonTrackAssignments
+                        .Where(a => a.ProtonTrackId == trackId && a.IsActive)
+                        .ToListAsync();
+
+                    foreach (var assignment in activeAssignments)
+                    {
+                        foreach (var deliverableId in survivingNewDelivIds)
+                        {
+                            var exists = await _context.ProtonDeliverableProgresses
+                                .AnyAsync(p => p.ProtonTrackAssignmentId == assignment.Id && p.ProtonDeliverableId == deliverableId);
+                            if (!exists)
+                            {
+                                _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
+                                {
+                                    CoacheeId = assignment.CoacheeId,
+                                    ProtonDeliverableId = deliverableId,
+                                    ProtonTrackAssignmentId = assignment.Id,
+                                    Status = "Pending",
+                                    CreatedAt = DateTime.UtcNow
+                                });
+                            }
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
+            }
 
             await _auditLog.LogAsync(user.Id, user.FullName, "Update",
                 $"Silabus saved for {bagian}/{unit}/Track {trackId}: {created} created, {updated} updated, {deleted} orphans removed ({rows.Count} rows total)",
