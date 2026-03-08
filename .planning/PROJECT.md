@@ -12,22 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.10 — started 2026-03-07)
+## Current State (v3.11 — started 2026-03-08)
 
-**v1.0 through v3.8 shipped** — 25 milestones, 112 phases. v3.9 in parallel.
+**v1.0 through v3.10 shipped** — 27 milestones, 122 phases.
 
-## Current Milestone: v3.10 Evidence Coaching & Deliverable Redesign
+## Current Milestone: v3.11 CoachCoacheeMapping Overhaul
 
-**Goal:** Redesign evidence coaching flow — cleanup modal, add status history tracking, restructure Deliverable detail page, build P-Sign infrastructure, and auto-generate PDF evidence coaching forms.
+**Goal:** Perbaiki sistem CoachCoacheeMapping agar mendukung cross-section assignment, tambah field penugasan (AssignmentUnit/Section/Tahun), perbaiki CDP access check, tambah database constraint, dan cleanup ProtonTrackAssignment lifecycle.
 
 **Target features:**
-- Hapus field "Kompetensi Coachee" dari evidence modal CoachingProton
-- Status History system — tabel baru untuk record semua perubahan status deliverable (termasuk rejection + resubmit)
-- Deliverable detail page restructure — split jadi sections: Detail Coachee/Kompetensi, Evidence Coach, Approval Chain, Riwayat Status
-- P-Sign infrastructure — setiap user/role memiliki P-Sign sendiri (Logo Pertamina + Role+Unit + Nama)
-- PDF Evidence coaching — auto-generate PDF form setelah submit evidence, dengan P-Sign Coach
-
-**Parallel:** v3.9 ProtonData Enhancement (Phases 113-115) dikerjakan di terminal terpisah
+- Tambah field AssignmentUnit, AssignmentSection di CoachCoacheeMapping untuk penugasan cross-section
+- Perbaiki Deliverable access check — ganti section check dengan mapping check
+- Cleanup ProtonTrackAssignment saat mapping di-deactivate
+- Tambah database uniqueness constraint untuk one-active-coach-per-coachee
+- Update CoachCoacheeMapping UI — tampilkan unit penugasan vs unit asal pekerja
+- Perbaiki CDP scoping di semua page (CoachingProton, HistoriProton, GetCoacheeDeliverables) untuk handle cross-section
 
 ## Architecture Decisions
 
