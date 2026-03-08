@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.9
 milestone_name: ProtonData Enhancement
 status: planning
-last_updated: "2026-03-08T06:54:40.486Z"
+last_updated: "2026-03-08T07:31:50.029Z"
 last_activity: 2026-03-08 — Roadmap created with 3 phases (123-125)
 progress:
   total_phases: 13
   completed_phases: 11
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
   percent: 100
 ---
 
@@ -68,6 +68,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 - Phase 124 and 125 both depend on 123; 124 and 125 are independent of each other
 - MODEL requirements grouped into foundation phase; ACCESS+LIFE into behavior phase; UI into presentation phase
 - [Phase 123]: Nullable AssignmentSection/Unit fields for backward compat; duplicate active mappings auto-deactivated in migration
+- [Phase 124]: Approve/Reject/HCReview already L4/HC-only; no coach access path needs fixing
 
 ### Blockers/Concerns
 

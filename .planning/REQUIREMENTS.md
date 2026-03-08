@@ -15,9 +15,9 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 
 ### CDP Access
 
-- [ ] **ACCESS-01**: Deliverable page menggunakan CoachCoacheeMapping check (bukan section match) untuk validasi akses coach
-- [ ] **ACCESS-02**: Coach bisa akses coachee dari section lain jika ada active mapping
-- [ ] **ACCESS-03**: Semua CDP scope query (CoachingProton, HistoriProton, GetCoacheeDeliverables, batch submit) konsisten menggunakan mapping-based access
+- [x] **ACCESS-01**: Deliverable page menggunakan CoachCoacheeMapping check (bukan section match) untuk validasi akses coach
+- [x] **ACCESS-02**: Coach bisa akses coachee dari section lain jika ada active mapping
+- [x] **ACCESS-03**: Semua CDP scope query (CoachingProton, HistoriProton, GetCoacheeDeliverables, batch submit) konsisten menggunakan mapping-based access
 
 ### Lifecycle
 
@@ -45,9 +45,9 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 | MODEL-01 | Phase 123 | Complete |
 | MODEL-02 | Phase 123 | Complete |
 | MODEL-03 | Phase 123 | Complete |
-| ACCESS-01 | Phase 124 | Pending |
-| ACCESS-02 | Phase 124 | Pending |
-| ACCESS-03 | Phase 124 | Pending |
+| ACCESS-01 | Phase 124 | Complete |
+| ACCESS-02 | Phase 124 | Complete |
+| ACCESS-03 | Phase 124 | Complete |
 | LIFE-01 | Phase 124 | Pending |
 | LIFE-02 | Phase 124 | Pending |
 | UI-01 | Phase 125 | Pending |
