@@ -234,8 +234,8 @@
                     }
                     if (k === j) {
                         html += '<td rowspan="' + subSpan + '" class="align-middle">' + escHtml(dRow.SubKompetensi) + '</td>';
-                        html += '<td rowspan="' + subSpan + '" class="align-middle">' + escHtml(dRow.Target || '-') + '</td>';
                     }
+                    html += '<td class="align-middle">' + escHtml(dRow.Target || '-') + '</td>';
                     html += '<td>' + escHtml(dRow.Deliverable) + '</td>';
                     html += '</tr>';
                 }
