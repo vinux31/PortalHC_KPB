@@ -471,6 +471,25 @@ namespace HcPortal.Controllers
             var subKomp = deliv.ProtonSubKompetensi;
             var komp = subKomp?.ProtonKompetensi;
 
+            // Cascade delete progress records for this deliverable (FK is Restrict)
+            var progressIds = await _context.ProtonDeliverableProgresses
+                .Where(p => p.ProtonDeliverableId == deliv.Id)
+                .Select(p => p.Id)
+                .ToListAsync();
+            if (progressIds.Any())
+            {
+                var sessions = await _context.CoachingSessions
+                    .Include(cs => cs.ActionItems)
+                    .Where(cs => cs.ProtonDeliverableProgressId != null && progressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                    .ToListAsync();
+                _context.CoachingSessions.RemoveRange(sessions);
+
+                var progresses = await _context.ProtonDeliverableProgresses
+                    .Where(p => p.ProtonDeliverableId == deliv.Id)
+                    .ToListAsync();
+                _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+            }
+
             _context.ProtonDeliverableList.Remove(deliv);
             await _context.SaveChangesAsync();
 
