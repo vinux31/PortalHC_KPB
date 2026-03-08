@@ -42,7 +42,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 **Phase:** Phase 128
 **Plan:** 01 complete (1/1)
 **Status:** Milestone complete
-**Last activity:** 2026-03-08 -- Completed 128-01 (unit-filtered progress + clean migration)
+**Last activity:** 2026-03-08 - Completed quick task 20: Move Target from SubKompetensi to Deliverable level
 
 ```
 Progress: [##........] 25% (0/2 phases, 1/1 plans in phase 128)
@@ -71,5 +71,11 @@ Progress: [##........] 25% (0/2 phases, 1/1 plans in phase 128)
 
 None.
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 20 | Move Target from SubKompetensi to Deliverable level | 2026-03-08 | 3878552 | [20-move-target-to-deliverable](./quick/20-move-target-to-deliverable/) |
+
 ---
-*State updated: 2026-03-08 after 128-01 execution*
+*State updated: 2026-03-08 after quick-20 execution*
