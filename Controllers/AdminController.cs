@@ -4078,7 +4078,8 @@ namespace HcPortal.Controllers
             // Header row
             var headers = new[] {
                 "Coach Name", "Coach Section", "Coachee Name", "Coachee NIP",
-                "Coachee Section", "Coachee Position", "Current Track", "Status", "Start Date", "End Date"
+                "Coachee Section", "Coachee Position", "Bagian Penugasan", "Unit Penugasan",
+                "Current Track", "Status", "Start Date", "End Date"
             };
             for (int i = 0; i < headers.Length; i++)
             {
@@ -4104,10 +4105,12 @@ namespace HcPortal.Controllers
                 ws.Cell(row, 4).Value = coachee?.NIP ?? "";
                 ws.Cell(row, 5).Value = coachee?.Section ?? "";
                 ws.Cell(row, 6).Value = coachee?.Position ?? "";
-                ws.Cell(row, 7).Value = track;
-                ws.Cell(row, 8).Value = status;
-                ws.Cell(row, 9).Value = m.StartDate.ToString("yyyy-MM-dd");
-                ws.Cell(row, 10).Value = m.EndDate.HasValue ? m.EndDate.Value.ToString("yyyy-MM-dd") : "";
+                ws.Cell(row, 7).Value = string.IsNullOrEmpty(m.AssignmentSection) ? "\u2014" : m.AssignmentSection;
+                ws.Cell(row, 8).Value = string.IsNullOrEmpty(m.AssignmentUnit) ? "\u2014" : m.AssignmentUnit;
+                ws.Cell(row, 9).Value = track;
+                ws.Cell(row, 10).Value = status;
+                ws.Cell(row, 11).Value = m.StartDate.ToString("yyyy-MM-dd");
+                ws.Cell(row, 12).Value = m.EndDate.HasValue ? m.EndDate.Value.ToString("yyyy-MM-dd") : "";
                 row++;
             }
 
