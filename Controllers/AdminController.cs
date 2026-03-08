@@ -2983,6 +2983,10 @@ namespace HcPortal.Controllers
                     AssignedAt = DateTime.UtcNow
                 }).ToList();
                 _context.ProtonTrackAssignments.AddRange(newTracks);
+                await _context.SaveChangesAsync(); // flush to get assignment IDs
+
+                foreach (var t in newTracks)
+                    await AutoCreateProgressForAssignment(t.Id, t.ProtonTrackId, t.CoacheeId);
             }
 
             await _context.SaveChangesAsync();
@@ -3037,16 +3041,23 @@ namespace HcPortal.Controllers
                     .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
                     .ToListAsync();
                 foreach (var t in existingTracks)
+                {
                     t.IsActive = false;
+                    await CleanupProgressForAssignment(t.Id);
+                }
 
-                _context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+                var newAssignment = new ProtonTrackAssignment
                 {
                     CoacheeId = mapping.CoacheeId,
                     AssignedById = actor.Id,
                     ProtonTrackId = req.ProtonTrackId.Value,
                     IsActive = true,
                     AssignedAt = DateTime.UtcNow
-                });
+                };
+                _context.ProtonTrackAssignments.Add(newAssignment);
+                await _context.SaveChangesAsync(); // flush to get assignment ID
+
+                await AutoCreateProgressForAssignment(newAssignment.Id, newAssignment.ProtonTrackId, mapping.CoacheeId);
             }
 
             await _context.SaveChangesAsync();
@@ -5212,6 +5223,54 @@ namespace HcPortal.Controllers
 
         private static string MakePackageFingerprint(string q, string a, string b, string c, string d)
             => string.Join("|||", new[] { q, a, b, c, d }.Select(NormalizePackageText));
+
+        #endregion
+
+        #region Proton Progress Helpers
+
+        private async Task AutoCreateProgressForAssignment(int assignmentId, int protonTrackId, string coacheeId)
+        {
+            var deliverableIds = await _context.ProtonDeliverableList
+                .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrackId == protonTrackId)
+                .Select(d => d.Id)
+                .ToListAsync();
+
+            var progresses = deliverableIds.Select(dId => new ProtonDeliverableProgress
+            {
+                CoacheeId = coacheeId,
+                ProtonDeliverableId = dId,
+                ProtonTrackAssignmentId = assignmentId,
+                Status = "Pending",
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+
+            _context.ProtonDeliverableProgresses.AddRange(progresses);
+        }
+
+        private async Task CleanupProgressForAssignment(int assignmentId)
+        {
+            var progressIds = await _context.ProtonDeliverableProgresses
+                .Where(p => p.ProtonTrackAssignmentId == assignmentId)
+                .Select(p => p.Id)
+                .ToListAsync();
+
+            if (!progressIds.Any()) return;
+
+            var histories = await _context.DeliverableStatusHistories
+                .Where(h => progressIds.Contains(h.ProtonDeliverableProgressId))
+                .ToListAsync();
+            _context.DeliverableStatusHistories.RemoveRange(histories);
+
+            var sessions = await _context.CoachingSessions
+                .Where(s => s.ProtonDeliverableProgressId.HasValue && progressIds.Contains(s.ProtonDeliverableProgressId.Value))
+                .ToListAsync();
+            _context.CoachingSessions.RemoveRange(sessions);
+
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Where(p => p.ProtonTrackAssignmentId == assignmentId)
+                .ToListAsync();
+            _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+        }
 
         #endregion
     }
