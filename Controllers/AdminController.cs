@@ -3067,6 +3067,18 @@ namespace HcPortal.Controllers
             return Json(new { success = true, count = activeSessionCount });
         }
 
+        // GET /Admin/CoachCoacheeMappingActiveAssignmentCount
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CoachCoacheeMappingActiveAssignmentCount(int id)
+        {
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(id);
+            if (mapping == null) return Json(new { count = 0 });
+            var count = await _context.ProtonTrackAssignments
+                .CountAsync(a => a.CoacheeId == mapping.CoacheeId && a.IsActive);
+            return Json(new { count });
+        }
+
         // POST /Admin/CoachCoacheeMappingDeactivate
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
@@ -3086,12 +3098,19 @@ namespace HcPortal.Controllers
             mapping.IsActive = false;
             mapping.EndDate = DateTime.Today;
 
+            // Cascade: deactivate all ProtonTrackAssignments for this coachee
+            var activeAssignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                .ToListAsync();
+            foreach (var a in activeAssignments) { a.IsActive = false; }
+            int cascadeCount = activeAssignments.Count;
+
             await _context.SaveChangesAsync();
 
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Deactivate",
-                $"Deactivated coach-coachee mapping #{id}", targetId: id, targetType: "CoachCoacheeMapping");
+                $"Deactivated coach-coachee mapping #{id} — {cascadeCount} ProtonTrackAssignment(s) also deactivated", targetId: id, targetType: "CoachCoacheeMapping");
 
-            return Json(new { success = true, message = "Mapping berhasil dinonaktifkan." });
+            return Json(new { success = true, message = $"Mapping berhasil dinonaktifkan. {cascadeCount} track assignment juga dinonaktifkan." });
         }
 
         // POST /Admin/CoachCoacheeMappingReactivate
@@ -3124,7 +3143,12 @@ namespace HcPortal.Controllers
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Reactivate",
                 $"Reactivated coach-coachee mapping #{id}", targetId: id, targetType: "CoachCoacheeMapping");
 
-            return Json(new { success = true, message = "Mapping berhasil diaktifkan kembali." });
+            var coacheeUser = await _context.Users.FindAsync(mapping.CoacheeId);
+            return Json(new { success = true,
+                message = "Mapping berhasil diaktifkan kembali.",
+                showAssignPrompt = true,
+                coacheeName = coacheeUser?.FullName ?? "",
+                assignUrl = Url.Action("PlanIdp", "CDP") });
         }
 
         // ==================== MANAGE WORKERS (migrated from CMP) ====================
@@ -3714,6 +3738,16 @@ namespace HcPortal.Controllers
                 .ToListAsync();
             foreach (var m in activeMappings) { m.IsActive = false; m.EndDate = DateTime.Today; }
 
+            // Cascade: deactivate ProtonTrackAssignments for all deactivated mappings
+            var coacheeIds = activeMappings.Where(m => m.CoacheeId == id).Select(m => m.CoacheeId)
+                .Union(activeMappings.Where(m => m.CoachId == id).Select(m => m.CoacheeId))
+                .Distinct().ToList();
+            var activeTrackAssignments = await _context.ProtonTrackAssignments
+                .Where(a => coacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                .ToListAsync();
+            foreach (var a in activeTrackAssignments) { a.IsActive = false; }
+            var trackAssignmentCount = activeTrackAssignments.Count;
+
             // Auto-cancel active assessment sessions
             var activeSessions = await _context.AssessmentSessions
                 .Where(a => a.UserId == id && (a.Status == "Open" || a.Status == "Upcoming" || a.Status == "InProgress"))
@@ -3729,7 +3763,7 @@ namespace HcPortal.Controllers
             {
                 var actorName = string.IsNullOrWhiteSpace(currentUser.NIP) ? currentUser.FullName : $"{currentUser.NIP} - {currentUser.FullName}";
                 await _auditLog.LogAsync(currentUser.Id, actorName, "DeactivateWorker",
-                    $"Nonaktifkan user '{user.FullName}' ({user.Email}). {activeCoachingCount} coaching ditutup, {activeAssessmentCount} assessment dibatalkan. UserId={id}",
+                    $"Nonaktifkan user '{user.FullName}' ({user.Email}). {activeCoachingCount} coaching ditutup, {activeAssessmentCount} assessment dibatalkan, {trackAssignmentCount} track assignment dinonaktifkan. UserId={id}",
                     null, "ApplicationUser");
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeactivateWorker (userId={Id})", id); }
@@ -3737,6 +3771,7 @@ namespace HcPortal.Controllers
             var detail = "";
             if (activeCoachingCount > 0) detail += $" {activeCoachingCount} coaching aktif ditutup.";
             if (activeAssessmentCount > 0) detail += $" {activeAssessmentCount} assessment dibatalkan.";
+            if (trackAssignmentCount > 0) detail += $" {trackAssignmentCount} track assignment dinonaktifkan.";
             TempData["Success"] = $"User '{user.FullName}' berhasil dinonaktifkan.{detail}";
             return RedirectToAction("ManageWorkers", new { showInactive = true });
         }
