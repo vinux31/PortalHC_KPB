@@ -236,7 +236,7 @@ Plans:
 ## Phases
 
 - [x] **Phase 123: Data Model & Migration** - Add AssignmentUnit/AssignmentSection fields and unique constraint to CoachCoacheeMapping (completed 2026-03-08)
-- [ ] **Phase 124: CDP Access & Lifecycle** - Rewrite all CDP scope queries to mapping-based access and wire ProtonTrackAssignment cleanup on deactivate
+- [x] **Phase 124: CDP Access & Lifecycle** - Rewrite all CDP scope queries to mapping-based access and wire ProtonTrackAssignment cleanup on deactivate (completed 2026-03-08)
 - [ ] **Phase 125: Mapping UI** - Display assignment columns, update assign modal, and include in Excel export
 
 ## Phase Details
@@ -290,5 +290,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 123. Data Model & Migration | 1/1 | Complete    | 2026-03-08 |
-| 124. CDP Access & Lifecycle | 1/2 | In Progress|  |
+| 124. CDP Access & Lifecycle | 2/2 | Complete   | 2026-03-08 |
 | 125. Mapping UI | 0/0 | Not started | - |

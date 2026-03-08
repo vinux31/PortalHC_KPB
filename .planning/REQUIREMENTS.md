@@ -21,8 +21,8 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 
 ### Lifecycle
 
-- [ ] **LIFE-01**: Deactivate mapping otomatis deactivate ProtonTrackAssignment terkait
-- [ ] **LIFE-02**: Reactivate mapping menampilkan opsi untuk re-assign ProtonTrack
+- [x] **LIFE-01**: Deactivate mapping otomatis deactivate ProtonTrackAssignment terkait
+- [x] **LIFE-02**: Reactivate mapping menampilkan opsi untuk re-assign ProtonTrack
 
 ### UI
 
@@ -48,8 +48,8 @@ Requirements for CoachCoacheeMapping Overhaul milestone.
 | ACCESS-01 | Phase 124 | Complete |
 | ACCESS-02 | Phase 124 | Complete |
 | ACCESS-03 | Phase 124 | Complete |
-| LIFE-01 | Phase 124 | Pending |
-| LIFE-02 | Phase 124 | Pending |
+| LIFE-01 | Phase 124 | Complete |
+| LIFE-02 | Phase 124 | Complete |
 | UI-01 | Phase 125 | Pending |
 | UI-02 | Phase 125 | Pending |
 | UI-03 | Phase 125 | Pending |
