@@ -3037,8 +3037,13 @@ namespace HcPortal.Controllers
             mapping.CoachId = req.CoachId;
             if (req.StartDate.HasValue)
                 mapping.StartDate = req.StartDate.Value;
+
+            // Phase 129: Detect AssignmentUnit change for progress rebuild
+            var oldUnit = mapping.AssignmentUnit;
             mapping.AssignmentSection = req.AssignmentSection?.Trim();
             mapping.AssignmentUnit = req.AssignmentUnit?.Trim();
+            var newUnit = mapping.AssignmentUnit;
+            bool unitChanged = (oldUnit?.Trim() ?? "") != (newUnit?.Trim() ?? "");
 
             // ProtonTrack side-effect
             if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
@@ -3069,6 +3074,35 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Phase 129: If unit changed and ProtonTrack wasn't already rebuilt, rebuild progress for new unit
+            if (unitChanged && !(req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0))
+            {
+                var activeAssignments = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                    .ToListAsync();
+
+                int deletedCount = 0, createdCount = 0;
+                foreach (var a in activeAssignments)
+                {
+                    // Count existing progress before cleanup
+                    deletedCount += await _context.ProtonDeliverableProgresses
+                        .CountAsync(p => p.ProtonTrackAssignmentId == a.Id);
+                    await CleanupProgressForAssignment(a.Id);
+                }
+                await _context.SaveChangesAsync(); // flush deletes before recreate
+
+                foreach (var a in activeAssignments)
+                {
+                    var warnings = await AutoCreateProgressForAssignment(a.Id, a.ProtonTrackId, mapping.CoacheeId);
+                    createdCount += await _context.ProtonDeliverableProgresses
+                        .CountAsync(p => p.ProtonTrackAssignmentId == a.Id);
+                    if (warnings.Any())
+                        TempData["Warning"] = string.Join("\n", warnings);
+                }
+
+                TempData["Info"] = $"Unit berubah dari '{oldUnit}' ke '{newUnit}' → {deletedCount} progress dihapus, {createdCount} progress baru dibuat untuk unit {newUnit}";
+            }
 
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Edit",
                 $"Edited coach-coachee mapping #{mapping.Id}", targetId: mapping.Id, targetType: "CoachCoacheeMapping");
