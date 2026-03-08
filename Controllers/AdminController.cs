@@ -2921,6 +2921,9 @@ namespace HcPortal.Controllers
             if (req.CoacheeIds.Contains(req.CoachId))
                 return Json(new { success = false, message = "Coach tidak dapat menjadi coachee dirinya sendiri." });
 
+            if (string.IsNullOrWhiteSpace(req.AssignmentSection) || string.IsNullOrWhiteSpace(req.AssignmentUnit))
+                return Json(new { success = false, message = "Assignment Section dan Unit wajib diisi." });
+
             // Check for duplicate active mappings
             var existingMappings = await _context.CoachCoacheeMappings
                 .Where(m => req.CoacheeIds.Contains(m.CoacheeId) && m.IsActive)
@@ -2951,7 +2954,9 @@ namespace HcPortal.Controllers
                 CoachId = req.CoachId,
                 CoacheeId = id,
                 IsActive = true,
-                StartDate = startDate
+                StartDate = startDate,
+                AssignmentSection = req.AssignmentSection!.Trim(),
+                AssignmentUnit = req.AssignmentUnit!.Trim()
             }).ToList();
 
             _context.CoachCoacheeMappings.AddRange(newMappings);
@@ -2980,7 +2985,8 @@ namespace HcPortal.Controllers
 
             var count = newMappings.Count;
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Assign",
-                $"Assigned coach to {count} coachee(s)", targetType: "CoachCoacheeMapping");
+                $"Assigned coach to {count} coachee(s) [Section: {req.AssignmentSection}, Unit: {req.AssignmentUnit}]",
+                targetType: "CoachCoacheeMapping");
 
             return Json(new { success = true, message = $"{count} mapping berhasil dibuat." });
         }
@@ -5173,6 +5179,8 @@ public class CoachAssignRequest
     public List<string> CoacheeIds { get; set; } = new();
     public int? ProtonTrackId { get; set; }
     public DateTime? StartDate { get; set; }
+    public string? AssignmentSection { get; set; }
+    public string? AssignmentUnit { get; set; }
 }
 
 public class CoachEditRequest
