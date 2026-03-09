@@ -2441,8 +2441,8 @@ namespace HcPortal.Controllers
                                 ks.Item().PaddingBottom(10).Column(ksi =>
                                 {
                                     ksi.Item().PaddingBottom(3).Text("Kesimpulan:").FontSize(10).Bold();
-                                    ksi.Item().Text(t => { t.Span(IsMatch(session.Kesimpulan, "Kompeten") ? "☑ " : "☐ ").FontSize(12); t.Span("Kompeten").FontSize(9); });
-                                    ksi.Item().Text(t => { t.Span(IsMatch(session.Kesimpulan, "Perlu Pengembangan") ? "☑ " : "☐ ").FontSize(12); t.Span("Perlu Pengembangan").FontSize(9); });
+                                    ksi.Item().Text(t => { t.Span(IsMatch(session.Kesimpulan, "Kompeten secara mandiri") ? "☑ " : "☐ ").FontSize(12); t.Span("Kompeten secara mandiri").FontSize(9); });
+                                    ksi.Item().Text(t => { t.Span(IsMatch(session.Kesimpulan, "Masih perlu dikembangkan") ? "☑ " : "☐ ").FontSize(12); t.Span("Masih perlu dikembangkan").FontSize(9); });
                                 });
 
                                 // Result checkboxes
