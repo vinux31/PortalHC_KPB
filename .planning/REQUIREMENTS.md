@@ -18,10 +18,10 @@
 - [x] **COACH-01**: Coach menerima notifikasi saat di-assign coachee baru via CoachCoacheeMappingAssign
 - [x] **COACH-02**: Coach dan coachee menerima notifikasi saat mapping di-edit (coach/unit berubah)
 - [x] **COACH-03**: Coach dan coachee menerima notifikasi saat mapping di-deactivate
-- [ ] **COACH-04**: SrSpv/SectionHead menerima notifikasi saat deliverable di-submit oleh coach (perlu review)
-- [ ] **COACH-05**: Coachee dan coach menerima notifikasi saat deliverable di-approve (SrSpv/SH)
-- [ ] **COACH-06**: Coachee dan coach menerima notifikasi saat deliverable di-reject (perlu resubmit)
-- [ ] **COACH-07**: Semua HC users menerima notifikasi saat semua deliverable coachee complete (migrasi dari ProtonNotification ke UserNotification)
+- [x] **COACH-04**: SrSpv/SectionHead menerima notifikasi saat deliverable di-submit oleh coach (perlu review)
+- [x] **COACH-05**: Coachee dan coach menerima notifikasi saat deliverable di-approve (SrSpv/SH)
+- [x] **COACH-06**: Coachee dan coach menerima notifikasi saat deliverable di-reject (perlu resubmit)
+- [x] **COACH-07**: Semua HC users menerima notifikasi saat semua deliverable coachee complete (migrasi dari ProtonNotification ke UserNotification)
 
 ### Assessment Triggers (ASMT)
 
@@ -49,10 +49,10 @@
 | COACH-01 | Phase 131 | Complete |
 | COACH-02 | Phase 131 | Complete |
 | COACH-03 | Phase 131 | Complete |
-| COACH-04 | Phase 131 | Pending |
-| COACH-05 | Phase 131 | Pending |
-| COACH-06 | Phase 131 | Pending |
-| COACH-07 | Phase 131 | Pending |
+| COACH-04 | Phase 131 | Complete |
+| COACH-05 | Phase 131 | Complete |
+| COACH-06 | Phase 131 | Complete |
+| COACH-07 | Phase 131 | Complete |
 | ASMT-01 | Phase 132 | Pending |
 | ASMT-02 | Phase 132 | Pending |
 

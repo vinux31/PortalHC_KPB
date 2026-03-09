@@ -52,7 +52,7 @@
 ## Phases
 
 - [x] **Phase 130: Notification Infrastructure** - Bell icon UI, dropdown, mark read/dismiss, and helper service (completed 2026-03-09)
-- [ ] **Phase 131: Coaching Proton Triggers** - Notifications for mapping, deliverable, and completion events
+- [x] **Phase 131: Coaching Proton Triggers** - Notifications for mapping, deliverable, and completion events (completed 2026-03-09)
 - [ ] **Phase 132: Assessment Triggers** - Notifications for assessment assignment and group completion
 
 ## Phase Details
@@ -108,5 +108,5 @@ Phase 130 first, then 131 and 132 can run in parallel (both depend only on 130).
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 130. Notification Infrastructure | 1/1 | Complete    | 2026-03-09 |
-| 131. Coaching Proton Triggers | 1/2 | In Progress|  |
+| 131. Coaching Proton Triggers | 2/2 | Complete   | 2026-03-09 |
 | 132. Assessment Triggers | 0/1 | Not started | - |

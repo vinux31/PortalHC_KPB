@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.13
 milestone_name: In-App Notifications
 status: planning
-last_updated: "2026-03-09T01:56:30.383Z"
+last_updated: "2026-03-09T01:57:07.107Z"
 last_activity: 2026-03-09 — Roadmap created
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 ---
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 - ProtonNotification to be migrated to UserNotification in COACH-07
 - Phase 131 and 132 are independent (can run in any order after 130)
 - [Phase 131]: Fail-silent try-catch around notification calls to avoid disrupting mapping operations
+- [Phase 131]: Direct SendAsync with inline Bahasa strings for all deliverable triggers
 
 ### Blockers/Concerns
 
