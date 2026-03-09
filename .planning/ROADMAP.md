@@ -70,7 +70,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 130-01-PLAN.md — Bell icon, dropdown UI, API endpoints, and DeleteAsync service enhancement
+- [x] 130-01-PLAN.md — Bell icon, dropdown UI, API endpoints, and DeleteAsync service enhancement
 
 ### Phase 131: Coaching Proton Triggers
 **Goal**: Coaching Proton lifecycle events automatically notify relevant users
@@ -82,11 +82,11 @@ Plans:
   3. SrSpv/SectionHead receives notification when a deliverable is submitted for review
   4. Coach and coachee receive notification when a deliverable is approved or rejected
   5. All HC users receive notification when all deliverables for a coachee are complete (ProtonNotification migrated to UserNotification)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 131-01: Mapping triggers (assign, edit, deactivate) — COACH-01, COACH-02, COACH-03
-- [ ] 131-02: Deliverable triggers (submit, approve, reject, all complete) — COACH-04, COACH-05, COACH-06, COACH-07
+- [ ] 131-01-PLAN.md — Mapping triggers (assign, edit, deactivate) — COACH-01, COACH-02, COACH-03
+- [ ] 131-02-PLAN.md — Deliverable triggers (submit, approve, reject, all complete) — COACH-04, COACH-05, COACH-06, COACH-07
 
 ### Phase 132: Assessment Triggers
 **Goal**: Assessment lifecycle events automatically notify relevant users
