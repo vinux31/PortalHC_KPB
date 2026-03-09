@@ -1,4 +1,4 @@
-# Roadmap: Portal HC KPB
+# Roadmap: Portal HC KBP
 
 ## Shipped Milestones
 
@@ -166,10 +166,10 @@ Plans:
   1. Modal form menampilkan grouped card "Acuan" dengan 4 textarea (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen)
   2. CoachingSession model memiliki 4 property baru dan migration berhasil dijalankan
   3. Submit evidence menyimpan data Acuan ke database dan data tampil di Deliverable detail page
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 143-01: TBD
+- [ ] 143-01-PLAN.md — Add Acuan fields to model, migration, controller, modal UI, and detail display
 
 ### Phase 144: Export PDF Form GAST
 **Goal**: Export PDF evidence coaching menghasilkan dokumen sesuai layout Form Coaching GAST Pertamina
@@ -191,5 +191,5 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 143. Modal Form Evidence Acuan | 0/? | Not started | - |
+| 143. Modal Form Evidence Acuan | 0/1 | Not started | - |
 | 144. Export PDF Form GAST | 0/? | Not started | - |
