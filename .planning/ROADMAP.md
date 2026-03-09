@@ -67,11 +67,10 @@
   3. User can mark individual notification as read and mark all as read — badge count updates accordingly
   4. User can dismiss/delete a notification from the dropdown list
   5. Any controller can call the notification helper service to create a UserNotification for a target user
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 130-01: Bell icon and notification dropdown UI in _Layout.cshtml
-- [ ] 130-02: Notification API endpoints (list, mark read, mark all read, dismiss) and helper service
+- [ ] 130-01-PLAN.md — Bell icon, dropdown UI, API endpoints, and DeleteAsync service enhancement
 
 ### Phase 131: Coaching Proton Triggers
 **Goal**: Coaching Proton lifecycle events automatically notify relevant users
@@ -108,6 +107,6 @@ Phase 130 first, then 131 and 132 can run in parallel (both depend only on 130).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 130. Notification Infrastructure | 0/2 | Not started | - |
+| 130. Notification Infrastructure | 0/1 | Not started | - |
 | 131. Coaching Proton Triggers | 0/2 | Not started | - |
 | 132. Assessment Triggers | 0/1 | Not started | - |
