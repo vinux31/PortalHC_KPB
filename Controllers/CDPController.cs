@@ -1015,39 +1015,32 @@ namespace HcPortal.Controllers
 
         private async Task CreateHCNotificationAsync(string coacheeId)
         {
-            // Deduplication: check if notification already exists for this coachee
-            bool alreadyNotified = await _context.ProtonNotifications
-                .AnyAsync(n => n.CoacheeId == coacheeId && n.Type == "AllDeliverablesComplete");
-            if (alreadyNotified) return;
-
-            var coachee = await _context.Users
-                .Where(u => u.Id == coacheeId)
-                .Select(u => new { u.FullName, u.UserName })
-                .FirstOrDefaultAsync();
-            var coacheeName = coachee?.FullName ?? coachee?.UserName ?? coacheeId;
-
-            var hcUsers = await _userManager.GetUsersInRoleAsync(UserRoles.HC);
-
-            var notifications = hcUsers.Select(hc => new ProtonNotification
-            {
-                RecipientId = hc.Id,
-                CoacheeId = coacheeId,
-                CoacheeName = coacheeName,
-                Message = $"{coacheeName} telah menyelesaikan semua deliverable Proton.",
-                Type = "AllDeliverablesComplete",
-                IsRead = false,
-                CreatedAt = DateTime.UtcNow
-            }).ToList();
-
-            _context.ProtonNotifications.AddRange(notifications);
             try
             {
-                await _context.SaveChangesAsync();
+                // Deduplication: check UserNotification instead of ProtonNotification
+                bool alreadyNotified = await _context.UserNotifications
+                    .AnyAsync(n => n.Type == "COACH_ALL_COMPLETE" && n.Message.Contains(coacheeId));
+                if (alreadyNotified) return;
+
+                var coachee = await _context.Users
+                    .Where(u => u.Id == coacheeId)
+                    .Select(u => new { u.FullName, u.UserName })
+                    .FirstOrDefaultAsync();
+                var coacheeName = coachee?.FullName ?? coachee?.UserName ?? coacheeId;
+
+                var hcUsers = await _userManager.GetUsersInRoleAsync(UserRoles.HC);
+                foreach (var hc in hcUsers)
+                {
+                    await _notificationService.SendAsync(
+                        hc.Id,
+                        "COACH_ALL_COMPLETE",
+                        "Semua Deliverable Selesai",
+                        $"Semua deliverable {coacheeName} telah selesai",
+                        "/CDP/CoachingProton"
+                    );
+                }
             }
-            catch (DbUpdateException)
-            {
-                // Concurrent request already created the notification — safe to ignore
-            }
+            catch { /* fail silently */ }
         }
 
         [HttpPost]
