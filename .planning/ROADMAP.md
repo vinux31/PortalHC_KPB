@@ -27,7 +27,7 @@
 </details>
 
 <details>
-<summary>v3.0 through v3.12 (Phases 82-129) — shipped 2026-03-02 to 2026-03-08</summary>
+<summary>v3.0 through v3.13 (Phases 82-132) — shipped 2026-03-02 to 2026-03-09</summary>
 
 - **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 CPDP (shipped 2026-03-03)
@@ -40,73 +40,90 @@
 - **v3.10 Evidence Coaching & Deliverable Redesign** — Phases 116-120 (shipped 2026-03-08)
 - **v3.11 CoachCoacheeMapping Overhaul** — Phases 123-125 (shipped 2026-03-08)
 - **v3.12 Progress Unit Scoping** — Phases 128-129 (shipped 2026-03-08)
+- **v3.13 In-App Notifications** — Phases 130-132 (shipped 2026-03-09)
 
 </details>
 
 ---
 
-## v3.13 In-App Notifications
+## v3.14 Bug Hunting Per Case
 
-**Milestone Goal:** Sistem notifikasi in-app (bell icon di navbar) untuk semua role — coaching proton events dan assessment events, dengan mark as read/dismiss.
+**Milestone Goal:** Audit menyeluruh per use-case untuk mencari bug, error, dan inkonsistensi di seluruh website — organized by functional case (Assessment, Coaching, IDP, Admin, General).
 
 ## Phases
 
-- [x] **Phase 130: Notification Infrastructure** - Bell icon UI, dropdown, mark read/dismiss, and helper service (completed 2026-03-09)
-- [x] **Phase 131: Coaching Proton Triggers** - Notifications for mapping, deliverable, and completion events (completed 2026-03-09)
-- [x] **Phase 132: Assessment Triggers** - Notifications for assessment assignment and group completion (completed 2026-03-09)
+- [ ] **Phase 133: Assessment Lifecycle Audit** - Audit assessment creation, exam flow, results, records, monitoring, and notifications
+- [ ] **Phase 134: Coaching Proton Lifecycle Audit** - Audit coaching mapping, evidence upload, approval chain, export, and history
+- [ ] **Phase 135: PlanIDP & Deliverable Audit** - Audit PlanIDP tabs, Deliverable progress, and CDP Dashboard
+- [ ] **Phase 136: Admin Data Management Audit** - Audit ManageWorkers, ProtonData, and ManageAssessment
+- [ ] **Phase 137: General & Cross-cutting Audit** - Audit login, homepage, notifications, profile, and navigation
 
 ## Phase Details
 
-### Phase 130: Notification Infrastructure
-**Goal**: Users can see and interact with in-app notifications via bell icon in navbar
-**Depends on**: Nothing (first phase)
-**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05
+### Phase 133: Assessment Lifecycle Audit
+**Goal**: Every step of the assessment lifecycle works correctly end-to-end — from admin creating assessments to workers completing exams to HC monitoring
+**Depends on**: Nothing (all phases independent)
+**Requirements**: ASMT-01, ASMT-02, ASMT-03, ASMT-04, ASMT-05, ASMT-06
 **Success Criteria** (what must be TRUE):
-  1. Authenticated user sees bell icon in navbar with unread count badge (badge hidden when count is 0)
-  2. Clicking bell opens dropdown showing notification title, message, and relative timestamp
-  3. User can mark individual notification as read and mark all as read — badge count updates accordingly
-  4. User can dismiss/delete a notification from the dropdown list
-  5. Any controller can call the notification helper service to create a UserNotification for a target user
-**Plans**: 1 plan
+  1. Admin can create assessment with question package, assign workers, and set schedule without errors
+  2. Worker can start exam, answer questions with working auto-save, and submit successfully
+  3. Results page shows correct score, pass/fail status, and competency earned after submission
+  4. Records page displays accurate assessment and training history with working filters
+  5. HC monitoring shows live progress with functional reset/force close actions, and notifications reach correct users
+**Plans**: TBD
 
-Plans:
-- [x] 130-01-PLAN.md — Bell icon, dropdown UI, API endpoints, and DeleteAsync service enhancement
-
-### Phase 131: Coaching Proton Triggers
-**Goal**: Coaching Proton lifecycle events automatically notify relevant users
-**Depends on**: Phase 130
-**Requirements**: COACH-01, COACH-02, COACH-03, COACH-04, COACH-05, COACH-06, COACH-07
+### Phase 134: Coaching Proton Lifecycle Audit
+**Goal**: The full coaching workflow operates correctly — from admin mapping coaches to approval chain completion
+**Depends on**: Nothing (all phases independent)
+**Requirements**: COACH-01, COACH-02, COACH-03, COACH-04, COACH-05
 **Success Criteria** (what must be TRUE):
-  1. Coach receives notification when assigned a new coachee, and when mapping is edited or deactivated
-  2. Coachee receives notification when their mapping is edited or deactivated
-  3. SrSpv/SectionHead receives notification when a deliverable is submitted for review
-  4. Coach and coachee receive notification when a deliverable is approved or rejected
-  5. All HC users receive notification when all deliverables for a coachee are complete (ProtonNotification migrated to UserNotification)
-**Plans**: 2 plans
+  1. Admin can assign, edit, and deactivate coaching mappings with notifications sent correctly
+  2. Coachee can upload evidence and submit deliverable without errors
+  3. Approval chain (SrSpv to SectionHead to HC) works with notifications at each step
+  4. PDF and Excel exports from CoachingProton page produce correct output
+  5. Histori Proton displays accurate timeline per worker with correct data
+**Plans**: TBD
 
-Plans:
-- [x] 131-01-PLAN.md — Mapping triggers (assign, edit, deactivate) — COACH-01, COACH-02, COACH-03
-- [x] 131-02-PLAN.md — Deliverable triggers (submit, approve, reject, all complete) — COACH-04, COACH-05, COACH-06, COACH-07
-
-### Phase 132: Assessment Triggers
-**Goal**: Assessment lifecycle events automatically notify relevant users
-**Depends on**: Phase 130
-**Requirements**: ASMT-01, ASMT-02
+### Phase 135: PlanIDP & Deliverable Audit
+**Goal**: CDP information pages display correct role-scoped data for planning and progress tracking
+**Depends on**: Nothing (all phases independent)
+**Requirements**: IDP-01, IDP-02, IDP-03
 **Success Criteria** (what must be TRUE):
-  1. Worker receives notification when a new assessment is assigned to them
-  2. HC/Admin users receive notification when all workers in an assessment group have completed the exam
-**Plans**: 1 plan
+  1. PlanIDP shows Silabus and Coaching Guidance tabs with correct data per role
+  2. Deliverable page shows accurate progress tracking per coachee
+  3. CDP Dashboard displays correct Proton Progress and Assessment Analytics per role
+**Plans**: TBD
 
-Plans:
-- [ ] 132-01-PLAN.md — Assessment notification triggers (assign and group completion)
+### Phase 136: Admin Data Management Audit
+**Goal**: All admin CRUD operations for master data and assessment management work without errors
+**Depends on**: Nothing (all phases independent)
+**Requirements**: ADM-01, ADM-02, ADM-03
+**Success Criteria** (what must be TRUE):
+  1. ManageWorkers CRUD, import template download, file import, and export all function correctly
+  2. ProtonData Silabus, Coaching Guidance, and Override tabs CRUD operations work without errors
+  3. ManageAssessment create, edit, delete and AssessmentMonitoring actions function correctly
+**Plans**: TBD
+
+### Phase 137: General & Cross-cutting Audit
+**Goal**: Core infrastructure — authentication, navigation, notifications, and user profile — works correctly across all roles
+**Depends on**: Nothing (all phases independent)
+**Requirements**: GEN-01, GEN-02, GEN-03, GEN-04, GEN-05
+**Success Criteria** (what must be TRUE):
+  1. Login (local and AD), logout, and inactive user blocking all work correctly
+  2. Homepage dashboard shows correct role-scoped data
+  3. Notification bell, dropdown, mark-read, and dismiss all function properly
+  4. Profile view and settings (edit name, change password) work without errors
+  5. Navigation between all menus is consistent with no broken links or unauthorized access
+**Plans**: TBD
 
 ## Progress
 
-**Execution Order:**
-Phase 130 first, then 131 and 132 can run in parallel (both depend only on 130).
+**Execution Order:** All phases are independent and can execute in any order.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 130. Notification Infrastructure | 1/1 | Complete    | 2026-03-09 |
-| 131. Coaching Proton Triggers | 2/2 | Complete    | 2026-03-09 |
-| 132. Assessment Triggers | 1/1 | Complete    | 2026-03-09 |
+| 133. Assessment Lifecycle Audit | 0/? | Not started | - |
+| 134. Coaching Proton Lifecycle Audit | 0/? | Not started | - |
+| 135. PlanIDP & Deliverable Audit | 0/? | Not started | - |
+| 136. Admin Data Management Audit | 0/? | Not started | - |
+| 137. General & Cross-cutting Audit | 0/? | Not started | - |

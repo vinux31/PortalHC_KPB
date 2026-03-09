@@ -54,34 +54,34 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ASMT-01 | TBD | Pending |
-| ASMT-02 | TBD | Pending |
-| ASMT-03 | TBD | Pending |
-| ASMT-04 | TBD | Pending |
-| ASMT-05 | TBD | Pending |
-| ASMT-06 | TBD | Pending |
-| COACH-01 | TBD | Pending |
-| COACH-02 | TBD | Pending |
-| COACH-03 | TBD | Pending |
-| COACH-04 | TBD | Pending |
-| COACH-05 | TBD | Pending |
-| IDP-01 | TBD | Pending |
-| IDP-02 | TBD | Pending |
-| IDP-03 | TBD | Pending |
-| ADM-01 | TBD | Pending |
-| ADM-02 | TBD | Pending |
-| ADM-03 | TBD | Pending |
-| GEN-01 | TBD | Pending |
-| GEN-02 | TBD | Pending |
-| GEN-03 | TBD | Pending |
-| GEN-04 | TBD | Pending |
-| GEN-05 | TBD | Pending |
+| ASMT-01 | Phase 133 | Pending |
+| ASMT-02 | Phase 133 | Pending |
+| ASMT-03 | Phase 133 | Pending |
+| ASMT-04 | Phase 133 | Pending |
+| ASMT-05 | Phase 133 | Pending |
+| ASMT-06 | Phase 133 | Pending |
+| COACH-01 | Phase 134 | Pending |
+| COACH-02 | Phase 134 | Pending |
+| COACH-03 | Phase 134 | Pending |
+| COACH-04 | Phase 134 | Pending |
+| COACH-05 | Phase 134 | Pending |
+| IDP-01 | Phase 135 | Pending |
+| IDP-02 | Phase 135 | Pending |
+| IDP-03 | Phase 135 | Pending |
+| ADM-01 | Phase 136 | Pending |
+| ADM-02 | Phase 136 | Pending |
+| ADM-03 | Phase 136 | Pending |
+| GEN-01 | Phase 137 | Pending |
+| GEN-02 | Phase 137 | Pending |
+| GEN-03 | Phase 137 | Pending |
+| GEN-04 | Phase 137 | Pending |
+| GEN-05 | Phase 137 | Pending |
 
 **Coverage:**
 - v3.14 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Last updated: 2026-03-09 after roadmap creation*
