@@ -12,6 +12,10 @@ namespace HcPortal.Models
         public string CatatanCoach { get; set; } = "";          // multi-line text
         public string Kesimpulan { get; set; } = "";             // "Kompeten" or "Perlu Pengembangan"
         public string Result { get; set; } = "";                 // "Need Improvement" / "Suitable" / "Good" / "Excellence"
+        public string? AcuanPedoman { get; set; }
+        public string? AcuanTko { get; set; }
+        public string? AcuanBestPractice { get; set; }
+        public string? AcuanDokumen { get; set; }
         public string Status { get; set; } = "Draft";  // "Draft", "Submitted"
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

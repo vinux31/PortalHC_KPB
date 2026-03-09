@@ -1917,7 +1917,11 @@ namespace HcPortal.Controllers
             [FromForm] string catatanCoach,
             [FromForm] string kesimpulan,
             [FromForm] string result,
-            IFormFile? evidenceFile)
+            IFormFile? evidenceFile,
+            [FromForm] string? acuanPedoman,
+            [FromForm] string? acuanTko,
+            [FromForm] string? acuanBestPractice,
+            [FromForm] string? acuanDokumen)
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Json(new { success = false, message = "Tidak terautentikasi." });
@@ -2031,6 +2035,10 @@ namespace HcPortal.Controllers
                     CatatanCoach = catatanCoach,
                     Kesimpulan = kesimpulan,
                     Result = result,
+                    AcuanPedoman = acuanPedoman ?? "",
+                    AcuanTko = acuanTko ?? "",
+                    AcuanBestPractice = acuanBestPractice ?? "",
+                    AcuanDokumen = acuanDokumen ?? "",
                     Status = "Submitted",
                     ProtonDeliverableProgressId = progress.Id,
                     CreatedAt = now
