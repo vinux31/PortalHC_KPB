@@ -7,11 +7,11 @@
 
 ### Assessment Lifecycle (ASMT)
 
-- [ ] **ASMT-01**: Admin dapat create assessment baru dengan question package, assign worker, dan set schedule tanpa error
+- [x] **ASMT-01**: Admin dapat create assessment baru dengan question package, assign worker, dan set schedule tanpa error
 - [ ] **ASMT-02**: Worker dapat mulai exam, menjawab soal, auto-save berfungsi, dan submit exam berhasil
 - [ ] **ASMT-03**: Results ditampilkan dengan benar (score, pass/fail, competency earned) setelah submit
 - [ ] **ASMT-04**: Records/Riwayat menampilkan history assessment dan training dengan filter yang benar
-- [ ] **ASMT-05**: HC monitoring menampilkan live progress, status, dan aksi (reset, force close) berfungsi
+- [x] **ASMT-05**: HC monitoring menampilkan live progress, status, dan aksi (reset, force close) berfungsi
 - [ ] **ASMT-06**: Notifikasi assessment (assign + group completion) terkirim ke user yang benar
 
 ### Coaching Proton Lifecycle (COACH)
@@ -54,11 +54,11 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ASMT-01 | Phase 133 | Pending |
+| ASMT-01 | Phase 133 | Complete |
 | ASMT-02 | Phase 133 | Pending |
 | ASMT-03 | Phase 133 | Pending |
 | ASMT-04 | Phase 133 | Pending |
-| ASMT-05 | Phase 133 | Pending |
+| ASMT-05 | Phase 133 | Complete |
 | ASMT-06 | Phase 133 | Pending |
 | COACH-01 | Phase 134 | Pending |
 | COACH-02 | Phase 134 | Pending |

@@ -126,7 +126,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Assessment Lifecycle Audit | 0/3 | Planned | - |
+| 133. Assessment Lifecycle Audit | 1/3 | In Progress|  |
 | 134. Coaching Proton Lifecycle Audit | 0/? | Not started | - |
 | 135. PlanIDP & Deliverable Audit | 0/? | Not started | - |
 | 136. Admin Data Management Audit | 0/? | Not started | - |
