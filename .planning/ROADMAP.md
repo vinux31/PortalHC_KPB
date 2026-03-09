@@ -109,4 +109,4 @@ Phase 130 first, then 131 and 132 can run in parallel (both depend only on 130).
 |-------|----------------|--------|-----------|
 | 130. Notification Infrastructure | 1/1 | Complete    | 2026-03-09 |
 | 131. Coaching Proton Triggers | 2/2 | Complete    | 2026-03-09 |
-| 132. Assessment Triggers | 1/1 | Complete   | 2026-03-09 |
+| 132. Assessment Triggers | 1/1 | Complete    | 2026-03-09 |
