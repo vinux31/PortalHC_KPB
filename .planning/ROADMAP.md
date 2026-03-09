@@ -156,7 +156,7 @@ Plans:
 ## Phases
 
 - [x] **Phase 143: Modal Form Evidence Acuan** - Tambah bagian Acuan (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen) ke modal form evidence coaching + DB migration + controller update (completed 2026-03-09)
-- [ ] **Phase 144: Export PDF Form GAST** - Redesign DownloadEvidencePdf dengan 3-column table layout, checkbox Kesimpulan/Result, TTD Coach + Nopeg, branding Pertamina
+- [x] **Phase 144: Export PDF Form GAST** - Redesign DownloadEvidencePdf dengan 3-column table layout, checkbox Kesimpulan/Result, TTD Coach + Nopeg, branding Pertamina (completed 2026-03-09)
 
 ### Phase 143: Modal Form Evidence Acuan
 **Goal**: Modal form evidence coaching memiliki bagian Acuan yang tersimpan ke database
@@ -183,7 +183,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 144-01-PLAN.md — Redesign DownloadEvidencePdf with GAST landscape 3-column layout
+- [x] 144-01-PLAN.md - Redesign DownloadEvidencePdf with GAST landscape 3-column layout
 
 ## Progress
 
@@ -192,4 +192,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 143. Modal Form Evidence Acuan | 1/1 | Complete    | 2026-03-09 |
-| 144. Export PDF Form GAST | 0/1 | Not started | - |
+| 144. Export PDF Form GAST | 1/1 | Complete | 2026-03-09 |
