@@ -21,6 +21,7 @@ namespace HcPortal.Controllers
         private readonly IConfiguration _config;
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<AdminController> _logger;
+        private readonly INotificationService _notificationService;
 
         public AdminController(
             ApplicationDbContext context,
@@ -29,7 +30,8 @@ namespace HcPortal.Controllers
             IMemoryCache cache,
             IConfiguration config,
             IWebHostEnvironment env,
-            ILogger<AdminController> logger)
+            ILogger<AdminController> logger,
+            INotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
@@ -38,6 +40,7 @@ namespace HcPortal.Controllers
             _config = config;
             _env = env;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         // GET /Admin/Index
