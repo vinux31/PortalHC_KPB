@@ -246,6 +246,11 @@
                                             </button>
                                             <ul class="dropdown-menu dropdown-menu-end">
                                                 <li>
+                                                    <a class="dropdown-item" href="@Url.Action("AssessmentMonitoringDetail", "Admin", new { title = (string)group.Title, category = (string)group.Category, scheduleDate = ((DateTime)group.Schedule).Date.ToString("yyyy-MM-dd") })">
+                                                        <i class="bi bi-binoculars me-2"></i>Monitoring
+                                                    </a>
+                                                </li>
+                                                <li>
                                                     <a class="dropdown-item" asp-action="EditAssessment" asp-controller="Admin"
                                                        asp-route-id="@group.RepresentativeId">
                                                         <i class="bi bi-pencil me-2"></i>Edit

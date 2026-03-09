@@ -2351,9 +2351,10 @@ namespace HcPortal.Controllers
         {
             // Load the target user
             var targetUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (targetUser == null)
+            if (string.IsNullOrEmpty(userId) || targetUser == null)
             {
-                return NotFound();
+                TempData["Error"] = "User not found or invalid userId.";
+                return RedirectToAction("ManageAssessment");
             }
 
             // Query completed assessments for this user
