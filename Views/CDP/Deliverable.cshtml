@@ -321,6 +321,22 @@ else
                             <small class="text-muted">@session.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small>
                         </div>
                         <table class="table table-sm table-borderless mb-0">
+                            @if (!string.IsNullOrEmpty(session.AcuanPedoman))
+                            {
+                                <tr><td class="text-muted">Pedoman</td><td style="white-space:pre-line">@session.AcuanPedoman</td></tr>
+                            }
+                            @if (!string.IsNullOrEmpty(session.AcuanTko))
+                            {
+                                <tr><td class="text-muted">TKO / TKI / TKPA</td><td style="white-space:pre-line">@session.AcuanTko</td></tr>
+                            }
+                            @if (!string.IsNullOrEmpty(session.AcuanBestPractice))
+                            {
+                                <tr><td class="text-muted">Best Practice</td><td style="white-space:pre-line">@session.AcuanBestPractice</td></tr>
+                            }
+                            @if (!string.IsNullOrEmpty(session.AcuanDokumen))
+                            {
+                                <tr><td class="text-muted">Dokumen</td><td style="white-space:pre-line">@session.AcuanDokumen</td></tr>
+                            }
                             <tr>
                                 <td class="text-muted">Catatan Coach</td>
                                 <td style="white-space:pre-line">@session.CatatanCoach</td>

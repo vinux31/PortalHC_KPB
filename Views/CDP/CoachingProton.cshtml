@@ -866,6 +866,28 @@
                     <label class="form-label">Tanggal</label>
                     <input type="date" class="form-control" id="evidenceDate" />
                 </div>
+                @* Acuan *@
+                <div class="card mb-3">
+                    <div class="card-header bg-light">Acuan</div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label">Pedoman</label>
+                            <textarea class="form-control" id="acuanPedoman" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">TKO / TKI / TKPA</label>
+                            <textarea class="form-control" id="acuanTko" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Best Practice</label>
+                            <textarea class="form-control" id="acuanBestPractice" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Dokumen</label>
+                            <textarea class="form-control" id="acuanDokumen" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
                 @* Catatan Coach *@
                 <div class="mb-3">
                     <label class="form-label">Catatan Coach</label>
@@ -1379,6 +1401,10 @@ if (btnSubmitEvidence) {
         formData.append('catatanCoach', document.getElementById('evidenceCatatan').value);
         formData.append('kesimpulan', kesimpulan);
         formData.append('result', result);
+        formData.append('acuanPedoman', document.getElementById('acuanPedoman').value);
+        formData.append('acuanTko', document.getElementById('acuanTko').value);
+        formData.append('acuanBestPractice', document.getElementById('acuanBestPractice').value);
+        formData.append('acuanDokumen', document.getElementById('acuanDokumen').value);
         if (fileInput && fileInput.files[0]) {
             formData.append('evidenceFile', fileInput.files[0]);
         }
