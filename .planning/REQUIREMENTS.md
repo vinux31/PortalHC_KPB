@@ -41,26 +41,26 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| INFRA-04 | — | Pending |
-| INFRA-05 | — | Pending |
-| COACH-01 | — | Pending |
-| COACH-02 | — | Pending |
-| COACH-03 | — | Pending |
-| COACH-04 | — | Pending |
-| COACH-05 | — | Pending |
-| COACH-06 | — | Pending |
-| COACH-07 | — | Pending |
-| ASMT-01 | — | Pending |
-| ASMT-02 | — | Pending |
+| INFRA-01 | Phase 130 | Pending |
+| INFRA-02 | Phase 130 | Pending |
+| INFRA-03 | Phase 130 | Pending |
+| INFRA-04 | Phase 130 | Pending |
+| INFRA-05 | Phase 130 | Pending |
+| COACH-01 | Phase 131 | Pending |
+| COACH-02 | Phase 131 | Pending |
+| COACH-03 | Phase 131 | Pending |
+| COACH-04 | Phase 131 | Pending |
+| COACH-05 | Phase 131 | Pending |
+| COACH-06 | Phase 131 | Pending |
+| COACH-07 | Phase 131 | Pending |
+| ASMT-01 | Phase 132 | Pending |
+| ASMT-02 | Phase 132 | Pending |
 
 **Coverage:**
 - v3.13 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14
+- Mapped to phases: 14
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Last updated: 2026-03-09 after roadmap creation — all 14 requirements mapped*
