@@ -7,9 +7,9 @@
 
 ### Modal Form Evidence (FORM)
 
-- [ ] **FORM-01**: Modal form evidence coaching memiliki bagian Acuan yang grouped (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen) sebagai textarea
-- [ ] **FORM-02**: Data Acuan tersimpan di database (CoachingSession model + migration)
-- [ ] **FORM-03**: JS submit handler mengirim 4 field Acuan baru ke controller dan tersimpan
+- [x] **FORM-01**: Modal form evidence coaching memiliki bagian Acuan yang grouped (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen) sebagai textarea
+- [x] **FORM-02**: Data Acuan tersimpan di database (CoachingSession model + migration)
+- [x] **FORM-03**: JS submit handler mengirim 4 field Acuan baru ke controller dan tersimpan
 
 ### Export PDF (PDF)
 
@@ -30,9 +30,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORM-01 | Phase 143 | Pending |
-| FORM-02 | Phase 143 | Pending |
-| FORM-03 | Phase 143 | Pending |
+| FORM-01 | Phase 143 | Complete |
+| FORM-02 | Phase 143 | Complete |
+| FORM-03 | Phase 143 | Complete |
 | PDF-01 | Phase 144 | Pending |
 | PDF-02 | Phase 144 | Pending |
 | PDF-03 | Phase 144 | Pending |
