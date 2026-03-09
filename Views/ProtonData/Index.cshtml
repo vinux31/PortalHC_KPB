@@ -318,23 +318,33 @@
             var currentBagian = '', currentUnit = '';
             data.forEach(function(row) {
                 if (row.bagian !== currentBagian) {
-                    html += '<tr class="table-light"><td class="fw-bold">' + row.bagian + '</td><td></td><td></td></tr>';
+                    var bagianId = row.bagian.replace(/\s+/g, '-');
+                    html += '<tr class="table-light bagian-toggle" style="cursor:pointer" data-bagian-id="' + bagianId + '"><td class="fw-bold"><i class="bi bi-chevron-right bagian-chevron me-1"></i>' + row.bagian + '</td><td></td><td></td></tr>';
                     currentBagian = row.bagian;
                     currentUnit = '';
                 }
                 if (row.unit !== currentUnit) {
-                    html += '<tr><td style="padding-left:2rem" class="fw-semibold">' + row.unit + '</td><td></td><td></td></tr>';
+                    var bagianId = currentBagian.replace(/\s+/g, '-');
+                    html += '<tr class="bagian-child" data-bagian="' + bagianId + '" style="display:none"><td style="padding-left:2rem" class="fw-semibold">' + row.unit + '</td><td></td><td></td></tr>';
                     currentUnit = row.unit;
                 }
+                var bagianId = currentBagian.replace(/\s+/g, '-');
                 var silabusIcon = row.silabusOk
                     ? '<i class="bi bi-check-circle-fill text-success"></i>'
                     : '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
                 var guidanceIcon = row.guidanceOk
                     ? '<i class="bi bi-check-circle-fill text-success"></i>'
                     : '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
-                html += '<tr><td style="padding-left:4rem">' + row.trackName + '</td><td class="text-center">' + silabusIcon + '</td><td class="text-center">' + guidanceIcon + '</td></tr>';
+                html += '<tr class="bagian-child" data-bagian="' + bagianId + '" style="display:none"><td style="padding-left:4rem">' + row.trackName + '</td><td class="text-center">' + silabusIcon + '</td><td class="text-center">' + guidanceIcon + '</td></tr>';
             });
             $('#statusTableBody').html(html);
+            $('#statusTableBody').off('click', '.bagian-toggle').on('click', '.bagian-toggle', function() {
+                var bagianId = $(this).data('bagian-id');
+                var children = $('#statusTableBody tr.bagian-child[data-bagian="' + bagianId + '"]');
+                var chevron = $(this).find('.bagian-chevron');
+                children.toggle();
+                chevron.toggleClass('bi-chevron-right bi-chevron-down');
+            });
         });
     }
 
