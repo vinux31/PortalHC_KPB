@@ -25,6 +25,7 @@ namespace HcPortal.Controllers
         private readonly AuditLogService _auditLog;
         private readonly IMemoryCache _cache;
         private readonly ILogger<CMPController> _logger;
+        private readonly INotificationService _notificationService;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -34,7 +35,8 @@ namespace HcPortal.Controllers
             IWebHostEnvironment env,
             AuditLogService auditLog,
             IMemoryCache cache,
-            ILogger<CMPController> logger)
+            ILogger<CMPController> logger,
+            INotificationService notificationService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -44,6 +46,7 @@ namespace HcPortal.Controllers
             _auditLog = auditLog;
             _cache = cache;
             _logger = logger;
+            _notificationService = notificationService;
         }
 
         public IActionResult Index()
@@ -426,7 +429,7 @@ namespace HcPortal.Controllers
 
             if (roleLevel <= 4)
             {
-                // Scope enforcement: Level 4 (SrSupervisor) locked to their own section
+                // Scope enforcement: Level 4 (SectionHead, SrSupervisor) locked to their own section
                 string? sectionFilter = null;
                 if (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
                 {
@@ -456,7 +459,7 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
-            // Scope enforcement: Level 4 (SrSupervisor) locked to their own section
+            // Scope enforcement: Level 4 (SectionHead, SrSupervisor) locked to their own section
             string? sectionFilter = null;
             if (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
             {
@@ -483,7 +486,7 @@ namespace HcPortal.Controllers
             {
                 // Level 5-6 (Coach, Coachee): cannot view other workers
                 if (roleLevel >= 5) return Forbid();
-                // Level 4 (SrSupervisor): section-scoped
+                // Level 4 (SectionHead, SrSupervisor): section-scoped
                 if (roleLevel == 4)
                 {
                     var targetUser = await _context.Users.FindAsync(workerId);
@@ -1657,6 +1660,9 @@ namespace HcPortal.Controllers
                     await _context.SaveChangesAsync();
                 }
 
+                // ASMT-02: Check group completion and notify HC/Admin
+                await NotifyIfGroupCompleted(assessment);
+
                 return RedirectToAction("Results", new { id });
             }
             else
@@ -1737,6 +1743,9 @@ namespace HcPortal.Controllers
 
                 _context.AssessmentSessions.Update(assessment);
                 await _context.SaveChangesAsync();
+
+                // ASMT-02: Check group completion and notify HC/Admin
+                await NotifyIfGroupCompleted(assessment);
 
                 // Redirect to Results Page
                 return RedirectToAction("Results", new { id = id });
@@ -2007,5 +2016,37 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        // ASMT-02: Check if all siblings in an assessment group completed, notify HC/Admin
+        private async Task NotifyIfGroupCompleted(AssessmentSession completedSession)
+        {
+            var allSiblings = await _context.AssessmentSessions
+                .Where(s => s.Title == completedSession.Title &&
+                            s.Category == completedSession.Category &&
+                            s.Schedule.Date == completedSession.Schedule.Date)
+                .ToListAsync();
+
+            if (!allSiblings.All(s => s.Status == "Completed")) return;
+
+            var hcUsers = await _userManager.GetUsersInRoleAsync("HC");
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var recipientIds = hcUsers.Concat(adminUsers)
+                .Select(u => u.Id).Distinct().ToList();
+
+            foreach (var recipientId in recipientIds)
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        recipientId,
+                        "ASMT_ALL_COMPLETED",
+                        "Assessment Selesai",
+                        $"Semua peserta assessment \"{completedSession.Title}\" telah menyelesaikan ujian",
+                        "/CMP/Assessment"
+                    );
+                }
+                catch { /* fail silently */ }
+            }
+        }
     }
 }
