@@ -1,66 +1,87 @@
-# Requirements: Portal HC KPB — v3.13 In-App Notifications
+# Requirements: Portal HC KPB — v3.14 Bug Hunting Per Case
 
 **Defined:** 2026-03-09
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.13 Requirements
+## v3.14 Requirements
 
-### Infrastructure (INFRA)
+### Assessment Lifecycle (ASMT)
 
-- [ ] **INFRA-01**: Bell icon di navbar menampilkan unread notification count badge untuk semua authenticated users
-- [ ] **INFRA-02**: Dropdown notification list muncul saat bell icon di-click, menampilkan notifikasi terbaru dengan title, message, dan timestamp
-- [ ] **INFRA-03**: User dapat mark notification as read (individual dan mark all as read)
-- [ ] **INFRA-04**: User dapat dismiss/hapus notification dari list
-- [ ] **INFRA-05**: Notification helper service yang bisa dipanggil dari controller mana saja untuk create UserNotification
+- [ ] **ASMT-01**: Admin dapat create assessment baru dengan question package, assign worker, dan set schedule tanpa error
+- [ ] **ASMT-02**: Worker dapat mulai exam, menjawab soal, auto-save berfungsi, dan submit exam berhasil
+- [ ] **ASMT-03**: Results ditampilkan dengan benar (score, pass/fail, competency earned) setelah submit
+- [ ] **ASMT-04**: Records/Riwayat menampilkan history assessment dan training dengan filter yang benar
+- [ ] **ASMT-05**: HC monitoring menampilkan live progress, status, dan aksi (reset, force close) berfungsi
+- [ ] **ASMT-06**: Notifikasi assessment (assign + group completion) terkirim ke user yang benar
 
-### Coaching Proton Triggers (COACH)
+### Coaching Proton Lifecycle (COACH)
 
-- [x] **COACH-01**: Coach menerima notifikasi saat di-assign coachee baru via CoachCoacheeMappingAssign
-- [x] **COACH-02**: Coach dan coachee menerima notifikasi saat mapping di-edit (coach/unit berubah)
-- [x] **COACH-03**: Coach dan coachee menerima notifikasi saat mapping di-deactivate
-- [x] **COACH-04**: SrSpv/SectionHead menerima notifikasi saat deliverable di-submit oleh coach (perlu review)
-- [x] **COACH-05**: Coachee dan coach menerima notifikasi saat deliverable di-approve (SrSpv/SH)
-- [x] **COACH-06**: Coachee dan coach menerima notifikasi saat deliverable di-reject (perlu resubmit)
-- [x] **COACH-07**: Semua HC users menerima notifikasi saat semua deliverable coachee complete (migrasi dari ProtonNotification ke UserNotification)
+- [ ] **COACH-01**: Admin dapat assign/edit/deactivate coaching mapping dan notifikasi terkirim
+- [ ] **COACH-02**: Coachee dapat upload evidence dan submit deliverable tanpa error
+- [ ] **COACH-03**: Approval chain berfungsi (SrSpv → SectionHead → HC) dengan notifikasi di setiap step
+- [ ] **COACH-04**: Export PDF dan Excel dari CoachingProton page berfungsi
+- [ ] **COACH-05**: Histori Proton menampilkan timeline yang benar per worker dengan data yang akurat
 
-### Assessment Triggers (ASMT)
+### PlanIDP & Deliverable (IDP)
 
-- [x] **ASMT-01**: Worker menerima notifikasi saat assessment baru di-assign
-- [x] **ASMT-02**: HC/Admin menerima notifikasi saat semua worker dalam satu assessment group selesai ujian
+- [ ] **IDP-01**: PlanIDP menampilkan Silabus dan Coaching Guidance tabs dengan data yang benar per role
+- [ ] **IDP-02**: Deliverable page menampilkan progress tracking yang benar
+- [ ] **IDP-03**: CDP Dashboard menampilkan data yang benar per role (Proton Progress + Assessment Analytics)
+
+### Admin Data Management (ADM)
+
+- [ ] **ADM-01**: ManageWorkers CRUD, import template, dan export berfungsi tanpa error
+- [ ] **ADM-02**: ProtonData tabs (Silabus, Coaching Guidance, Override) CRUD berfungsi
+- [ ] **ADM-03**: ManageAssessment create/edit/delete dan AssessmentMonitoring berfungsi
+
+### General & Cross-cutting (GEN)
+
+- [ ] **GEN-01**: Login flow (local + AD), logout, dan inactive user block berfungsi
+- [ ] **GEN-02**: Homepage dashboard menampilkan data yang benar per role
+- [ ] **GEN-03**: Notification bell icon, dropdown, mark read, dismiss berfungsi
+- [ ] **GEN-04**: Profile view dan settings (edit nama, change password) berfungsi
+- [ ] **GEN-05**: Navigasi antar menu konsisten, tidak ada broken link atau unauthorized access
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Email notifications | In-app only untuk v3.13 |
-| Notification preferences/settings | Semua user terima semua yang relevan |
-| Real-time push (WebSocket/SignalR) | Polling/page refresh cukup untuk v3.13 |
-| Notification untuk admin/data events | Training records, worker management, silabus — terlalu noisy |
+| Penambahan fitur baru | Fokus audit bug saja |
+| Refactoring/optimization | Hanya fix bug yang ditemukan |
+| Mobile responsive audit | Desktop-first untuk v3.14 |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 130 | Pending |
-| INFRA-02 | Phase 130 | Pending |
-| INFRA-03 | Phase 130 | Pending |
-| INFRA-04 | Phase 130 | Pending |
-| INFRA-05 | Phase 130 | Pending |
-| COACH-01 | Phase 131 | Complete |
-| COACH-02 | Phase 131 | Complete |
-| COACH-03 | Phase 131 | Complete |
-| COACH-04 | Phase 131 | Complete |
-| COACH-05 | Phase 131 | Complete |
-| COACH-06 | Phase 131 | Complete |
-| COACH-07 | Phase 131 | Complete |
-| ASMT-01 | Phase 132 | Complete |
-| ASMT-02 | Phase 132 | Complete |
+| ASMT-01 | TBD | Pending |
+| ASMT-02 | TBD | Pending |
+| ASMT-03 | TBD | Pending |
+| ASMT-04 | TBD | Pending |
+| ASMT-05 | TBD | Pending |
+| ASMT-06 | TBD | Pending |
+| COACH-01 | TBD | Pending |
+| COACH-02 | TBD | Pending |
+| COACH-03 | TBD | Pending |
+| COACH-04 | TBD | Pending |
+| COACH-05 | TBD | Pending |
+| IDP-01 | TBD | Pending |
+| IDP-02 | TBD | Pending |
+| IDP-03 | TBD | Pending |
+| ADM-01 | TBD | Pending |
+| ADM-02 | TBD | Pending |
+| ADM-03 | TBD | Pending |
+| GEN-01 | TBD | Pending |
+| GEN-02 | TBD | Pending |
+| GEN-03 | TBD | Pending |
+| GEN-04 | TBD | Pending |
+| GEN-05 | TBD | Pending |
 
 **Coverage:**
-- v3.13 requirements: 14 total
-- Mapped to phases: 14
-- Unmapped: 0
+- v3.14 requirements: 22 total
+- Mapped to phases: 0
+- Unmapped: 22 ⚠️
 
 ---
 *Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after roadmap creation — all 14 requirements mapped*
+*Last updated: 2026-03-09 after initial definition*
