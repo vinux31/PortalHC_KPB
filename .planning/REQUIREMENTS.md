@@ -15,9 +15,9 @@
 
 ### Coaching Proton Triggers (COACH)
 
-- [ ] **COACH-01**: Coach menerima notifikasi saat di-assign coachee baru via CoachCoacheeMappingAssign
-- [ ] **COACH-02**: Coach dan coachee menerima notifikasi saat mapping di-edit (coach/unit berubah)
-- [ ] **COACH-03**: Coach dan coachee menerima notifikasi saat mapping di-deactivate
+- [x] **COACH-01**: Coach menerima notifikasi saat di-assign coachee baru via CoachCoacheeMappingAssign
+- [x] **COACH-02**: Coach dan coachee menerima notifikasi saat mapping di-edit (coach/unit berubah)
+- [x] **COACH-03**: Coach dan coachee menerima notifikasi saat mapping di-deactivate
 - [ ] **COACH-04**: SrSpv/SectionHead menerima notifikasi saat deliverable di-submit oleh coach (perlu review)
 - [ ] **COACH-05**: Coachee dan coach menerima notifikasi saat deliverable di-approve (SrSpv/SH)
 - [ ] **COACH-06**: Coachee dan coach menerima notifikasi saat deliverable di-reject (perlu resubmit)
@@ -46,9 +46,9 @@
 | INFRA-03 | Phase 130 | Pending |
 | INFRA-04 | Phase 130 | Pending |
 | INFRA-05 | Phase 130 | Pending |
-| COACH-01 | Phase 131 | Pending |
-| COACH-02 | Phase 131 | Pending |
-| COACH-03 | Phase 131 | Pending |
+| COACH-01 | Phase 131 | Complete |
+| COACH-02 | Phase 131 | Complete |
+| COACH-03 | Phase 131 | Complete |
 | COACH-04 | Phase 131 | Pending |
 | COACH-05 | Phase 131 | Pending |
 | COACH-06 | Phase 131 | Pending |

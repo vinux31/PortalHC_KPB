@@ -108,5 +108,5 @@ Phase 130 first, then 131 and 132 can run in parallel (both depend only on 130).
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 130. Notification Infrastructure | 1/1 | Complete    | 2026-03-09 |
-| 131. Coaching Proton Triggers | 0/2 | Not started | - |
+| 131. Coaching Proton Triggers | 1/2 | In Progress|  |
 | 132. Assessment Triggers | 0/1 | Not started | - |
