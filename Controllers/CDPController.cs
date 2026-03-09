@@ -2321,7 +2321,7 @@ namespace HcPortal.Controllers
 
             var coachInfo = await _context.Users
                 .Where(u => u.Id == session.CoachId)
-                .Select(u => new { u.FullName, u.Position, u.Unit })
+                .Select(u => new { u.FullName, u.Position, u.Unit, u.NIP, u.Section })
                 .FirstOrDefaultAsync();
 
             var track = progress.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrack;
@@ -2330,73 +2330,115 @@ namespace HcPortal.Controllers
             var subKompetensi = progress.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "-";
             var deliverable = progress.ProtonDeliverable?.NamaDeliverable ?? "-";
 
-            // Load logo
+            // Load logos
             var logoPath = Path.Combine(_env.WebRootPath, "images", "psign-pertamina.png");
             byte[]? logoBytes = System.IO.File.Exists(logoPath) ? System.IO.File.ReadAllBytes(logoPath) : null;
+            var logo135Path = Path.Combine(_env.WebRootPath, "images", "logo-135.png");
+            byte[]? logo135Bytes = System.IO.File.Exists(logo135Path) ? System.IO.File.ReadAllBytes(logo135Path) : null;
 
-            var accentColor = "#005B96";
-
-            // Helper for form fields
-            void AddField(QuestPDF.Infrastructure.IContainer container, string label, string value)
-            {
-                container.Row(row =>
-                {
-                    row.RelativeItem(1).Background(accentColor).Padding(6)
-                        .Text(label).FontSize(9).Bold().FontColor(QuestPDF.Helpers.Colors.White);
-                    row.RelativeItem(2).BorderBottom(1).BorderColor("#dee2e6").Padding(6)
-                        .Text(string.IsNullOrWhiteSpace(value) ? "-" : value).FontSize(10);
-                });
-            }
+            var headerBg = "#005B96";
+            string Or(string? val) => string.IsNullOrWhiteSpace(val) ? "-" : val;
+            string Check(string current, string match) => current == match ? "\u2611" : "\u2610";
 
             var pdf = QuestPDF.Fluent.Document.Create(container =>
             {
                 container.Page(page =>
                 {
-                    page.Size(QuestPDF.Helpers.PageSizes.A4);
-                    page.Margin(2, QuestPDF.Infrastructure.Unit.Centimetre);
+                    page.Size(QuestPDF.Helpers.PageSizes.A4.Landscape());
+                    page.Margin(1.5f, QuestPDF.Infrastructure.Unit.Centimetre);
 
-                    page.Content().Column(col =>
+                    page.Header().Row(hdr =>
                     {
-                        // Header - Logo top-right
-                        if (logoBytes != null)
-                            col.Item().AlignRight().Width(100).Image(logoBytes);
+                        hdr.RelativeItem().AlignLeft().AlignBottom()
+                            .Text(session.Date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"))).FontSize(10);
+                        hdr.AutoItem().Width(120).Image(logoBytes ?? Array.Empty<byte>());
+                    });
 
-                        // Title
-                        col.Item().PaddingTop(5).AlignCenter()
-                            .Text("EVIDENCE COACHING REPORT").FontSize(16).Bold().FontColor(accentColor);
-
-                        col.Item().PaddingTop(20).Column(fields =>
+                    page.Content().PaddingTop(10).Row(mainRow =>
+                    {
+                        // LEFT COLUMN — ACUAN
+                        mainRow.RelativeItem(3).Border(1).Column(left =>
                         {
-                            AddField(fields.Item(), "Nama Coachee", coacheeName);
-                            AddField(fields.Item(), "Track", trackDisplay);
-                            AddField(fields.Item(), "Kompetensi", kompetensi);
-                            AddField(fields.Item(), "Sub Kompetensi", subKompetensi);
-                            AddField(fields.Item(), "Deliverable", deliverable);
-                            AddField(fields.Item(), "Tanggal Coaching", session.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")));
-                            AddField(fields.Item(), "Catatan Coach", session.CatatanCoach);
-                            AddField(fields.Item(), "Kesimpulan", session.Kesimpulan);
-                            AddField(fields.Item(), "Result", session.Result);
+                            left.Item().Background(headerBg).Padding(6).AlignCenter()
+                                .Text("ACUAN").FontSize(10).Bold().FontColor(QuestPDF.Helpers.Colors.White);
+
+                            void LeftRow(QuestPDF.Infrastructure.IContainer c, string label, string value)
+                            {
+                                c.BorderBottom(1).BorderColor("#dee2e6").Padding(6).Column(inner =>
+                                {
+                                    inner.Item().Text(label).FontSize(8).Bold();
+                                    inner.Item().Text(Or(value)).FontSize(9);
+                                });
+                            }
+
+                            LeftRow(left.Item(), "Kompetensi", kompetensi);
+                            LeftRow(left.Item(), "Sub Kompetensi", subKompetensi);
+                            LeftRow(left.Item(), "Deliverable", deliverable);
+
+                            left.Item().BorderBottom(1).BorderColor("#dee2e6").Padding(6)
+                                .Text("Acuan").FontSize(9).Bold();
+
+                            LeftRow(left.Item(), "Pedoman:", session.AcuanPedoman);
+                            LeftRow(left.Item(), "TKO/TKI/TKPA:", session.AcuanTko);
+                            LeftRow(left.Item(), "Best Practice:", session.AcuanBestPractice);
+                            LeftRow(left.Item(), "Dokumen:", session.AcuanDokumen);
                         });
 
-                        // P-Sign badge at bottom-left
-                        col.Item().PaddingTop(30).Row(row =>
+                        // CENTER COLUMN — CATATAN COACH
+                        mainRow.RelativeItem(4).Border(1).Column(center =>
                         {
-                            row.RelativeItem(1).Width(170).Border(1.5f).BorderColor("#adb5bd").Padding(8).Column(badge =>
+                            center.Item().Background(headerBg).Padding(6).AlignCenter()
+                                .Text("CATATAN COACH").FontSize(10).Bold().FontColor(QuestPDF.Helpers.Colors.White);
+
+                            center.Item().Padding(8)
+                                .Text(Or(session.CatatanCoach)).FontSize(9);
+                        });
+
+                        // RIGHT COLUMN — KESIMPULAN DARI COACH
+                        mainRow.RelativeItem(3).Border(1).Column(right =>
+                        {
+                            right.Item().Background(headerBg).Padding(6).AlignCenter()
+                                .Text("KESIMPULAN DARI COACH").FontSize(10).Bold().FontColor(QuestPDF.Helpers.Colors.White);
+
+                            // Kesimpulan checkboxes
+                            right.Item().BorderBottom(1).BorderColor("#dee2e6").Padding(6).Column(ks =>
+                            {
+                                ks.Item().Text("Kesimpulan:").FontSize(8).Bold();
+                                ks.Item().Text($"{Check(session.Kesimpulan, "Kompeten")} Kompeten").FontSize(9);
+                                ks.Item().Text($"{Check(session.Kesimpulan, "Perlu Pengembangan")} Perlu Pengembangan").FontSize(9);
+                            });
+
+                            // Result checkboxes
+                            right.Item().BorderBottom(1).BorderColor("#dee2e6").Padding(6).Column(rs =>
+                            {
+                                rs.Item().Text("Result:").FontSize(8).Bold();
+                                rs.Item().Text($"{Check(session.Result, "Need Improvement")} Need Improvement").FontSize(9);
+                                rs.Item().Text($"{Check(session.Result, "Suitable")} Suitable").FontSize(9);
+                                rs.Item().Text($"{Check(session.Result, "Good")} Good").FontSize(9);
+                                rs.Item().Text($"{Check(session.Result, "Excellence")} Excellence").FontSize(9);
+                            });
+
+                            // TTD Coach P-Sign
+                            right.Item().Padding(8).AlignCenter().Width(160).Border(1).BorderColor("#adb5bd").Padding(6).Column(psign =>
                             {
                                 if (logoBytes != null)
-                                    badge.Item().AlignCenter().Width(50).Image(logoBytes);
-                                if (!string.IsNullOrWhiteSpace(coachInfo?.Position))
-                                    badge.Item().AlignCenter().Text(coachInfo.Position).FontSize(8);
-                                if (!string.IsNullOrWhiteSpace(coachInfo?.Unit))
-                                    badge.Item().AlignCenter().Text(coachInfo.Unit).FontSize(8);
-                                badge.Item().AlignCenter().Text(coachInfo?.FullName ?? "Coach").FontSize(9).Bold();
+                                    psign.Item().AlignCenter().Width(50).Image(logoBytes);
+                                var coachRole = Or(coachInfo?.Position);
+                                var coachUnit = !string.IsNullOrWhiteSpace(coachInfo?.Unit) ? coachInfo.Unit : Or(coachInfo?.Section);
+                                psign.Item().AlignCenter().Text($"{coachRole} - {coachUnit}").FontSize(7);
+                                psign.Item().AlignCenter().Text(coachInfo?.FullName ?? "Coach").FontSize(9).Bold();
+                                psign.Item().AlignCenter().Text($"NIP: {Or(coachInfo?.NIP)}").FontSize(8);
                             });
-                            row.RelativeItem(1);
                         });
                     });
 
-                    page.Footer().AlignCenter()
-                        .Text($"Generated: {DateTime.Now:dd MMMM yyyy} — Page 1 of 1 — PortalHC KPB").FontSize(7);
+                    page.Footer().Height(40).Row(ftr =>
+                    {
+                        ftr.RelativeItem(1).Background("#CC0000").Padding(8).AlignLeft().AlignMiddle()
+                            .Text("ptkpi.pertamina.com").FontSize(10).FontColor(QuestPDF.Helpers.Colors.White);
+                        if (logo135Bytes != null)
+                            ftr.AutoItem().AlignBottom().Width(80).Image(logo135Bytes);
+                    });
                 });
             });
 
