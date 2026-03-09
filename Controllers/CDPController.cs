@@ -9,6 +9,7 @@ using ClosedXML.Excel;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using System.Globalization;
+using HcPortal.Services;
 
 namespace HcPortal.Controllers
 {
@@ -35,13 +36,15 @@ namespace HcPortal.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly INotificationService _notificationService;
 
-        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env)
+        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env, INotificationService notificationService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _env = env;
+            _notificationService = notificationService;
         }
 
         public IActionResult Index()
@@ -836,6 +839,37 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
 
+            // COACH-05: Notify coach and coachee on approval
+            try
+            {
+                var approveMapping = await _context.CoachCoacheeMappings
+                    .FirstOrDefaultAsync(m => m.CoacheeId == progress.CoacheeId && m.IsActive);
+                var approveCoachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.FullName, u.UserName })
+                    .FirstOrDefaultAsync();
+                var approveCoacheeName = approveCoachee?.FullName ?? approveCoachee?.UserName ?? progress.CoacheeId;
+
+                if (approveMapping != null)
+                {
+                    await _notificationService.SendAsync(
+                        approveMapping.CoachId,
+                        "COACH_EVIDENCE_APPROVED",
+                        "Deliverable Disetujui",
+                        $"Deliverable {approveCoacheeName} telah disetujui",
+                        "/CDP/CoachingProton"
+                    );
+                }
+                await _notificationService.SendAsync(
+                    progress.CoacheeId,
+                    "COACH_EVIDENCE_APPROVED",
+                    "Deliverable Disetujui",
+                    "Deliverable Anda telah disetujui",
+                    "/CDP/CoachingProton"
+                );
+            }
+            catch { /* fail silently */ }
+
             if (allApproved)
             {
                 await CreateHCNotificationAsync(progress.CoacheeId);
@@ -916,8 +950,67 @@ namespace HcPortal.Controllers
 
             await _context.SaveChangesAsync();
 
+            // COACH-06: Notify coach and coachee on rejection
+            try
+            {
+                var rejectMapping = await _context.CoachCoacheeMappings
+                    .FirstOrDefaultAsync(m => m.CoacheeId == progress.CoacheeId && m.IsActive);
+                var rejectCoachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.FullName, u.UserName })
+                    .FirstOrDefaultAsync();
+                var rejectCoacheeName = rejectCoachee?.FullName ?? rejectCoachee?.UserName ?? progress.CoacheeId;
+
+                if (rejectMapping != null)
+                {
+                    await _notificationService.SendAsync(
+                        rejectMapping.CoachId,
+                        "COACH_EVIDENCE_REJECTED",
+                        "Deliverable Ditolak",
+                        $"Deliverable {rejectCoacheeName} telah ditolak",
+                        "/CDP/CoachingProton"
+                    );
+                }
+                await _notificationService.SendAsync(
+                    progress.CoacheeId,
+                    "COACH_EVIDENCE_REJECTED",
+                    "Deliverable Ditolak",
+                    "Deliverable Anda telah ditolak",
+                    "/CDP/CoachingProton"
+                );
+            }
+            catch { /* fail silently */ }
+
             TempData["Success"] = "Deliverable berhasil ditolak.";
             return RedirectToAction("Deliverable", new { id = progressId });
+        }
+
+        private async Task NotifyReviewersAsync(string coacheeId, string coacheeName)
+        {
+            try
+            {
+                var mapping = await _context.CoachCoacheeMappings
+                    .FirstOrDefaultAsync(m => m.CoacheeId == coacheeId && m.IsActive);
+                if (mapping == null) return;
+
+                var section = mapping.AssignmentSection;
+                var reviewers = await _context.Users
+                    .Where(u => u.IsActive && u.Section == section && u.RoleLevel == 4)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+
+                foreach (var reviewerId in reviewers)
+                {
+                    await _notificationService.SendAsync(
+                        reviewerId,
+                        "COACH_EVIDENCE_SUBMITTED",
+                        "Deliverable Disubmit",
+                        $"Deliverable {coacheeName} telah disubmit untuk review",
+                        "/CDP/CoachingProton"
+                    );
+                }
+            }
+            catch { /* fail silently */ }
         }
 
         private async Task CreateHCNotificationAsync(string coacheeId)
@@ -1080,6 +1173,14 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // COACH-04: Notify section reviewers
+            var coacheeForNotify = await _context.Users
+                .Where(u => u.Id == progress.CoacheeId)
+                .Select(u => new { u.FullName, u.UserName })
+                .FirstOrDefaultAsync();
+            var coacheeNameForNotify = coacheeForNotify?.FullName ?? coacheeForNotify?.UserName ?? progress.CoacheeId;
+            await NotifyReviewersAsync(progress.CoacheeId, coacheeNameForNotify);
 
             TempData["Success"] = "Evidence berhasil diupload. Menunggu review approver.";
             return RedirectToAction("Deliverable", new { id = progressId });
@@ -1946,6 +2047,23 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // COACH-04: Notify section reviewers (one per unique coachee)
+            try
+            {
+                var uniqueCoacheeIds = progresses.Select(p => p.CoacheeId).Distinct().ToList();
+                var coacheeNames = await _context.Users
+                    .Where(u => uniqueCoacheeIds.Contains(u.Id))
+                    .Select(u => new { u.Id, u.FullName, u.UserName })
+                    .ToListAsync();
+                foreach (var cid in uniqueCoacheeIds)
+                {
+                    var c = coacheeNames.FirstOrDefault(x => x.Id == cid);
+                    var cName = c?.FullName ?? c?.UserName ?? cid;
+                    await NotifyReviewersAsync(cid, cName);
+                }
+            }
+            catch { /* fail silently */ }
 
             return Json(new
             {
