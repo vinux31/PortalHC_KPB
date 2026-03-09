@@ -25,8 +25,8 @@
 
 ### Assessment Triggers (ASMT)
 
-- [ ] **ASMT-01**: Worker menerima notifikasi saat assessment baru di-assign
-- [ ] **ASMT-02**: HC/Admin menerima notifikasi saat semua worker dalam satu assessment group selesai ujian
+- [x] **ASMT-01**: Worker menerima notifikasi saat assessment baru di-assign
+- [x] **ASMT-02**: HC/Admin menerima notifikasi saat semua worker dalam satu assessment group selesai ujian
 
 ## Out of Scope
 
@@ -53,8 +53,8 @@
 | COACH-05 | Phase 131 | Complete |
 | COACH-06 | Phase 131 | Complete |
 | COACH-07 | Phase 131 | Complete |
-| ASMT-01 | Phase 132 | Pending |
-| ASMT-02 | Phase 132 | Pending |
+| ASMT-01 | Phase 132 | Complete |
+| ASMT-02 | Phase 132 | Complete |
 
 **Coverage:**
 - v3.13 requirements: 14 total

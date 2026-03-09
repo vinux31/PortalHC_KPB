@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v3.13
 milestone_name: In-App Notifications
 status: planning
-last_updated: "2026-03-09T01:59:02.718Z"
+last_updated: "2026-03-09T02:12:22.729Z"
 last_activity: 2026-03-09 — Roadmap created
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
 ---
 
 ---
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 - Phase 131 and 132 are independent (can run in any order after 130)
 - [Phase 131]: Fail-silent try-catch around notification calls to avoid disrupting mapping operations
 - [Phase 131]: Direct SendAsync with inline Bahasa strings for all deliverable triggers
+- [Phase 132]: Helper method NotifyIfGroupCompleted avoids duplicating sibling-check logic across both SubmitExam paths
 
 ### Blockers/Concerns
 
