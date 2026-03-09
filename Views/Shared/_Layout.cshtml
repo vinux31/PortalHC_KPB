@@ -81,6 +81,9 @@
                     <div class="d-flex align-items-center border-start ps-lg-4 ms-lg-2 mt-3 mt-lg-0">
                         @if (SignInManager.IsSignedIn(User) && currentUser != null)
                         {
+                            <div class="position-relative me-3">
+                                @await Component.InvokeAsync("NotificationBell")
+                            </div>
                             <div class="text-end me-3 d-none d-lg-block">
                                 <div class="fw-bold text-dark small">@currentUser.FullName</div>
                                 <div class="d-flex align-items-center justify-content-end gap-1">

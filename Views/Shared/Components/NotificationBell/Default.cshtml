@@ -1,0 +1,175 @@
+@model int
+
+<div id="notificationBellContainer" class="position-relative">
+    <button type="button" class="btn btn-link text-dark position-relative p-1" id="notificationBellBtn"
+            style="font-size: 1.25rem; text-decoration: none;">
+        <i class="bi bi-bell"></i>
+        <span id="notificationBadge"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              style="font-size: 0.6rem; @(Model == 0 ? "display:none;" : "")">
+            @Model
+        </span>
+    </button>
+
+    <div id="notificationDropdown"
+         style="display:none; position:absolute; right:0; top:100%; width:360px; max-height:400px; overflow-y:auto; z-index:1050;"
+         class="bg-white border rounded shadow-sm mt-1">
+
+        <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+            <span class="fw-bold small">Notifikasi</span>
+            <a href="javascript:void(0)" onclick="markAllAsRead()" class="text-primary small text-decoration-none">
+                Tandai semua dibaca
+            </a>
+        </div>
+
+        <div id="notificationLoading" class="text-center py-3" style="display:none;">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        </div>
+
+        <div id="notificationList"></div>
+
+        <div id="notificationEmpty" class="text-center py-3 text-muted small" style="display:none;">
+            Tidak ada notifikasi
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var bellBtn = document.getElementById('notificationBellBtn');
+    var dropdown = document.getElementById('notificationDropdown');
+    var isOpen = false;
+
+    bellBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (isOpen) {
+            dropdown.style.display = 'none';
+            isOpen = false;
+        } else {
+            dropdown.style.display = 'block';
+            isOpen = true;
+            loadNotifications();
+        }
+    });
+
+    document.addEventListener('click', function (e) {
+        if (isOpen && !document.getElementById('notificationBellContainer').contains(e.target)) {
+            dropdown.style.display = 'none';
+            isOpen = false;
+        }
+    });
+
+    function loadNotifications() {
+        var list = document.getElementById('notificationList');
+        var loading = document.getElementById('notificationLoading');
+        var empty = document.getElementById('notificationEmpty');
+
+        loading.style.display = 'block';
+        list.innerHTML = '';
+        empty.style.display = 'none';
+
+        fetch('/Notification/List')
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                loading.style.display = 'none';
+                if (!data || data.length === 0) {
+                    empty.style.display = 'block';
+                    return;
+                }
+                data.forEach(function (n) {
+                    var item = document.createElement('div');
+                    item.className = 'px-3 py-2 border-bottom position-relative notification-item' + (n.isRead ? ' bg-light' : '');
+                    item.style.cursor = 'pointer';
+                    item.setAttribute('data-id', n.id);
+
+                    item.innerHTML =
+                        '<div class="d-flex justify-content-between align-items-start">' +
+                            '<div class="pe-3" style="min-width:0; flex:1;">' +
+                                '<div class="fw-bold small text-truncate">' + escapeHtml(n.title) + '</div>' +
+                                '<div class="small text-truncate">' + escapeHtml(n.message) + '</div>' +
+                                '<div class="small text-muted">' + escapeHtml(n.createdAt) + '</div>' +
+                            '</div>' +
+                            '<button class="btn btn-sm text-muted p-0 dismiss-btn" onclick="dismissNotification(' + n.id + ', event)" ' +
+                                'style="opacity:0; transition:opacity 0.15s; position:absolute; right:8px; top:8px;" title="Hapus">' +
+                                '<i class="bi bi-x-lg"></i>' +
+                            '</button>' +
+                        '</div>';
+
+                    item.addEventListener('click', function () {
+                        markAsRead(n.id, n.actionUrl);
+                    });
+
+                    item.addEventListener('mouseenter', function () {
+                        var btn = item.querySelector('.dismiss-btn');
+                        if (btn) btn.style.opacity = '1';
+                    });
+                    item.addEventListener('mouseleave', function () {
+                        var btn = item.querySelector('.dismiss-btn');
+                        if (btn) btn.style.opacity = '0';
+                    });
+
+                    list.appendChild(item);
+                });
+            })
+            .catch(function () {
+                loading.style.display = 'none';
+                empty.style.display = 'block';
+            });
+    }
+
+    window.markAsRead = function (id, actionUrl) {
+        fetch('/Notification/MarkAsRead/' + id, { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                updateBadge(data.unreadCount);
+                var item = document.querySelector('[data-id="' + id + '"]');
+                if (item) item.classList.add('bg-light');
+                if (actionUrl) {
+                    window.location.href = actionUrl;
+                }
+            });
+    };
+
+    window.markAllAsRead = function () {
+        fetch('/Notification/MarkAllAsRead', { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                updateBadge(data.unreadCount);
+                var items = document.querySelectorAll('.notification-item');
+                items.forEach(function (item) { item.classList.add('bg-light'); });
+            });
+    };
+
+    window.dismissNotification = function (id, event) {
+        event.stopPropagation();
+        fetch('/Notification/Dismiss/' + id, { method: 'POST' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                updateBadge(data.unreadCount);
+                var item = document.querySelector('[data-id="' + id + '"]');
+                if (item) item.remove();
+                var list = document.getElementById('notificationList');
+                if (!list.children.length) {
+                    document.getElementById('notificationEmpty').style.display = 'block';
+                }
+            });
+    };
+
+    function updateBadge(count) {
+        var badge = document.getElementById('notificationBadge');
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        var div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+})();
+</script>
