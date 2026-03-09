@@ -5,7 +5,6 @@ using HcPortal.Models;
 using QuestPDF.Infrastructure;
 
 QuestPDF.Settings.License = LicenseType.Community;
-QuestPDF.Settings.EnableDebugging = true;
 
 var builder = WebApplication.CreateBuilder(args);
 
