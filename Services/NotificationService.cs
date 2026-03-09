@@ -257,5 +257,30 @@ namespace HcPortal.Services
                 return false;
             }
         }
+
+        /// <summary>
+        /// Delete a specific notification (hard delete).
+        /// </summary>
+        public async Task<bool> DeleteAsync(int notificationId, string userId)
+        {
+            try
+            {
+                var notification = await _context.UserNotifications.FindAsync(notificationId);
+
+                if (notification == null || notification.UserId != userId)
+                {
+                    return false;
+                }
+
+                _context.UserNotifications.Remove(notification);
+                await _context.SaveChangesAsync();
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

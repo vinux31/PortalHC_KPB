@@ -58,5 +58,13 @@ namespace HcPortal.Services
         /// <param name="context">Dictionary of placeholder values (e.g., { "AssessmentTitle": "Safety OJT", "AssessmentId": "123" })</param>
         /// <returns>True if notification sent successfully, false if template not found or send failed</returns>
         Task<bool> SendByTemplateAsync(string userId, string type, Dictionary<string, object>? context = null);
+
+        /// <summary>
+        /// Delete a specific notification (hard delete).
+        /// </summary>
+        /// <param name="notificationId">Notification ID to delete</param>
+        /// <param name="userId">User ID (for authorization - users can only delete their own notifications)</param>
+        /// <returns>True if deleted successfully, false if not found or not owned by user</returns>
+        Task<bool> DeleteAsync(int notificationId, string userId);
     }
 }
