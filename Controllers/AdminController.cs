@@ -1132,29 +1132,44 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageAssessment");
             }
 
-            // Update only allowed fields
-            assessment.Title = model.Title;
-            assessment.Category = model.Category;
-            assessment.Schedule = model.Schedule;
-            assessment.DurationMinutes = model.DurationMinutes;
-            assessment.Status = model.Status;
-            assessment.BannerColor = model.BannerColor;
-            assessment.IsTokenRequired = model.IsTokenRequired;
-            assessment.PassPercentage = model.PassPercentage;
-            assessment.AllowAnswerReview = model.AllowAnswerReview;
-            assessment.ExamWindowCloseDate = model.ExamWindowCloseDate;
+            // Capture original group key before updating (needed to find siblings)
+            var origTitle = assessment.Title;
+            var origCategory = assessment.Category;
+            var origScheduleDate = assessment.Schedule.Date;
 
-            // Update token if token is required
+            // Resolve new token value
+            string newToken;
             if (model.IsTokenRequired && !string.IsNullOrWhiteSpace(model.AccessToken))
-            {
-                assessment.AccessToken = model.AccessToken.ToUpper();
-            }
+                newToken = model.AccessToken.ToUpper();
             else if (!model.IsTokenRequired)
-            {
-                assessment.AccessToken = "";
-            }
+                newToken = "";
+            else
+                newToken = assessment.AccessToken ?? "";
 
-            assessment.UpdatedAt = DateTime.UtcNow;
+            // Fetch all sibling sessions (same group key) to propagate shared field changes
+            var siblings = await _context.AssessmentSessions
+                .Where(a => a.Title == origTitle
+                         && a.Category == origCategory
+                         && a.Schedule.Date == origScheduleDate)
+                .ToListAsync();
+
+            // Update shared fields on ALL siblings (including the current session)
+            var now = DateTime.UtcNow;
+            foreach (var sibling in siblings)
+            {
+                sibling.Title = model.Title;
+                sibling.Category = model.Category;
+                sibling.Schedule = model.Schedule;
+                sibling.DurationMinutes = model.DurationMinutes;
+                sibling.Status = model.Status;
+                sibling.BannerColor = model.BannerColor;
+                sibling.IsTokenRequired = model.IsTokenRequired;
+                sibling.AccessToken = newToken;
+                sibling.PassPercentage = model.PassPercentage;
+                sibling.AllowAnswerReview = model.AllowAnswerReview;
+                sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
+                sibling.UpdatedAt = now;
+            }
 
             // Fetch actor info before try block so it is available for both edit and bulk-assign audit calls
             var editUser = await _userManager.GetUserAsync(User);
@@ -1162,7 +1177,6 @@ namespace HcPortal.Controllers
 
             try
             {
-                _context.AssessmentSessions.Update(assessment);
                 await _context.SaveChangesAsync();
 
                 // Audit log — edit
