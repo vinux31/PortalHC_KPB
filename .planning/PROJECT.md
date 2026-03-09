@@ -12,20 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.13 — started 2026-03-09)
+## Current State (v3.14 — started 2026-03-09)
 
-**v1.0 through v3.12 shipped** — 29 milestones, 129 phases.
+**v1.0 through v3.13 shipped** — 30 milestones, 132 phases.
 
-## Current Milestone: v3.13 In-App Notifications
+## Current Milestone: v3.14 Bug Hunting Per Menu
 
-**Goal:** Sistem notifikasi in-app (bell icon di navbar) untuk semua role — coaching proton events dan assessment events, dengan mark as read/dismiss.
+**Goal:** Audit menyeluruh per menu untuk mencari bug, error, dan inkonsistensi di seluruh website — CMP, CDP, Kelola Data, Homepage, Notifications, dan Account.
 
 **Target features:**
-- Bell icon di navbar dengan unread count badge
-- Dropdown notification list dengan mark as read/dismiss
-- Coaching Proton triggers: mapping assign/edit/deactivate, deliverable submit/approve/reject, all deliverables complete
-- Assessment triggers: assessment assigned, semua worker selesai ujian
-- Existing Notification/UserNotification models sudah ada di codebase
+- Audit CMP menu (Assessment, Records, KKJ)
+- Audit CDP menu (CoachingProton, PlanIDP, Deliverable, Histori Proton, Dashboard)
+- Audit Kelola Data / Admin menu
+- Audit Homepage, Notifications, Account/Profile
 
 ## Architecture Decisions
 

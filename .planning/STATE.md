@@ -1,28 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.13
-milestone_name: In-App Notifications
-status: completed
-last_updated: "2026-03-09T02:13:52.997Z"
-last_activity: 2026-03-09 — Roadmap created
-progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
----
-
----
-gsd_state_version: 1.0
-milestone: v3.13
-milestone_name: In-App Notifications
-status: ready_to_plan
+milestone: v3.14
+milestone_name: Bug Hunting Per Menu
+status: defining_requirements
 last_updated: "2026-03-09"
-last_activity: 2026-03-09 — Roadmap created (3 phases, 14 requirements)
+last_activity: 2026-03-09 — Milestone v3.14 started
 progress:
-  total_phases: 3
+  total_phases: 0
   completed_phases: 0
-  total_plans: 5
+  total_plans: 0
   completed_plans: 0
 ---
 
@@ -33,15 +19,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.13 In-App Notifications — Phase 130 ready to plan
+**Current focus:** v3.14 Bug Hunting Per Menu — Defining requirements
 
 ## Current Position
 
-**Milestone:** v3.13 In-App Notifications
-**Phase:** 130 of 132 (Notification Infrastructure)
+**Milestone:** v3.14 Bug Hunting Per Menu
+**Phase:** Not started (defining requirements)
 **Plan:** —
-**Status:** Milestone complete
-**Last activity:** 2026-03-09 — Roadmap created
+**Status:** Defining requirements
+**Last activity:** 2026-03-09 — Milestone v3.14 started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -49,19 +35,11 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Roadmap Evolution
 
-- 2026-03-09: v3.13 roadmap created — 3 phases (130-132), 14 requirements mapped
+- 2026-03-09: v3.14 milestone started — bug hunting per menu
 
 ### Decisions
 
-- In-app only (no email notifications)
-- No notification preferences (all users receive all relevant)
-- No SignalR/WebSocket — polling or page refresh
-- Existing Notification/UserNotification models already in codebase
-- ProtonNotification to be migrated to UserNotification in COACH-07
-- Phase 131 and 132 are independent (can run in any order after 130)
-- [Phase 131]: Fail-silent try-catch around notification calls to avoid disrupting mapping operations
-- [Phase 131]: Direct SendAsync with inline Bahasa strings for all deliverable triggers
-- [Phase 132]: Helper method NotifyIfGroupCompleted avoids duplicating sibling-check logic across both SubmitExam paths
+(none yet)
 
 ### Blockers/Concerns
 
@@ -73,4 +51,4 @@ None.
 |---|-------------|------|--------|-----------|
 
 ---
-*State updated: 2026-03-09 after roadmap creation*
+*State updated: 2026-03-09 after milestone start*
