@@ -12,17 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.15 — started 2026-03-09)
+## Current State (v3.16 — started 2026-03-09)
 
-**v1.0 through v3.14 shipped** — 31 milestones, 137 phases.
+**v1.0 through v3.15 shipped** — 32 milestones, 142 phases.
 
-## Current Milestone: v3.15 Assessment Real Time Test
+## Current Milestone: v3.16 Form Coaching GAST Redesign
 
-**Goal:** Simulasi assessment end-to-end secara real untuk memverifikasi seluruh flow berjalan tanpa error — dari sisi HC membuat & memonitor assessment, hingga sisi Worker mengerjakan ujian, dengan validasi real-time monitoring.
+**Goal:** Redesign modal form evidence coaching dan export PDF sesuai Form Coaching GAST Pertamina.
 
 **Target features:**
-- Assessment setup & monitoring overview (create, import soal, assign, group list)
-- Worker exam lifecycle (token, start, auto-save, summary, submit, results, competency update)
+- Update modal form evidence coaching: tambah bagian Acuan (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen) + DB migration
+- Redesign export PDF: 3-column table layout, checkbox Kesimpulan/Result, TTD Coach + Nopeg, branding Pertamina
 - HC real-time monitoring & actions (Reset, ForceClose, CloseEarly, RegenerateToken)
 - Post-exam & records validation (results, competency, notifications, attempt history)
 - Edge cases & integration (resume, timer expiry, stale detection, audit log)

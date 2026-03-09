@@ -146,3 +146,50 @@ Plans:
 | 140. HC Real-Time Monitoring & Actions | 0/? | Not started | - |
 | 141. Post-Exam & Records Validation | 0/? | Not started | - |
 | 142. Edge Cases & Integration | 0/? | Not started | - |
+
+---
+
+## v3.16 Form Coaching GAST Redesign
+
+**Milestone Goal:** Redesign modal form evidence coaching dan export PDF sesuai Form Coaching GAST Pertamina — tambah field Acuan di form + DB, lalu redesign PDF dengan layout 3-column table, checkbox, TTD Coach, dan branding Pertamina.
+
+## Phases
+
+- [ ] **Phase 143: Modal Form Evidence Acuan** - Tambah bagian Acuan (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen) ke modal form evidence coaching + DB migration + controller update
+- [ ] **Phase 144: Export PDF Form GAST** - Redesign DownloadEvidencePdf dengan 3-column table layout, checkbox Kesimpulan/Result, TTD Coach + Nopeg, branding Pertamina
+
+### Phase 143: Modal Form Evidence Acuan
+**Goal**: Modal form evidence coaching memiliki bagian Acuan yang tersimpan ke database
+**Depends on**: Nothing
+**Requirements**: FORM-01, FORM-02, FORM-03
+**Success Criteria** (what must be TRUE):
+  1. Modal form menampilkan grouped card "Acuan" dengan 4 textarea (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen)
+  2. CoachingSession model memiliki 4 property baru dan migration berhasil dijalankan
+  3. Submit evidence menyimpan data Acuan ke database dan data tampil di Deliverable detail page
+**Plans**: TBD
+
+Plans:
+- [ ] 143-01: TBD
+
+### Phase 144: Export PDF Form GAST
+**Goal**: Export PDF evidence coaching menghasilkan dokumen sesuai layout Form Coaching GAST Pertamina
+**Depends on**: Phase 143 (butuh data Acuan dari DB)
+**Requirements**: PDF-01, PDF-02, PDF-03, PDF-04
+**Success Criteria** (what must be TRUE):
+  1. PDF menggunakan layout 3-column table (Acuan / Catatan Coach / Kesimpulan dari Coach)
+  2. Kesimpulan menampilkan checkbox checked dan Result menampilkan checkbox checked sesuai value
+  3. TTD Coach dengan nama dan Nopeg ditampilkan (tanpa TTD Coachee)
+  4. Header menampilkan Sub Kompetensi, Deliverable, Tanggal dan footer menampilkan www.pertamina.com, red wave, logo Pertamina
+**Plans**: TBD
+
+Plans:
+- [ ] 144-01: TBD
+
+## Progress
+
+**Execution Order:** 143 → 144
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 143. Modal Form Evidence Acuan | 0/? | Not started | - |
+| 144. Export PDF Form GAST | 0/? | Not started | - |
