@@ -12,19 +12,20 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.12 — started 2026-03-08)
+## Current State (v3.13 — started 2026-03-09)
 
-**v1.0 through v3.11 shipped** — 28 milestones, 127 phases.
+**v1.0 through v3.12 shipped** — 29 milestones, 129 phases.
 
-## Current Milestone: v3.12 Progress Unit Scoping
+## Current Milestone: v3.13 In-App Notifications
 
-**Goal:** Fix progress data agar hanya berisi kompetensi sesuai unit penugasan coachee — AutoCreateProgress filter by AssignmentUnit, clean migration hapus & recreate progress, dan reassignment handler.
+**Goal:** Sistem notifikasi in-app (bell icon di navbar) untuk semua role — coaching proton events dan assessment events, dengan mark as read/dismiss.
 
 **Target features:**
-- AutoCreateProgressForAssignment filter deliverable by AssignmentUnit dari CoachCoacheeMapping
-- Clean migration — hapus semua progress lama, recreate berdasarkan active assignments + unit filter
-- Reassignment handler — saat coachee pindah unit, hapus progress lama, buat baru sesuai unit baru
-- CoachingProton table menampilkan hanya kompetensi yang match unit penugasan
+- Bell icon di navbar dengan unread count badge
+- Dropdown notification list dengan mark as read/dismiss
+- Coaching Proton triggers: mapping assign/edit/deactivate, deliverable submit/approve/reject, all deliverables complete
+- Assessment triggers: assessment assigned, semua worker selesai ujian
+- Existing Notification/UserNotification models sudah ada di codebase
 
 ## Architecture Decisions
 

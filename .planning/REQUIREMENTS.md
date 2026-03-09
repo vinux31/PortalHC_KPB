@@ -1,54 +1,66 @@
-# Requirements: Portal HC KPB v3.12
+# Requirements: Portal HC KPB — v3.13 In-App Notifications
 
-**Defined:** 2026-03-08
+**Defined:** 2026-03-09
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.12 Requirements
+## v3.13 Requirements
 
-Requirements for Progress Unit Scoping milestone. Fix progress data agar hanya berisi kompetensi sesuai unit penugasan coachee.
+### Infrastructure (INFRA)
 
-### Progress Creation
+- [ ] **INFRA-01**: Bell icon di navbar menampilkan unread notification count badge untuk semua authenticated users
+- [ ] **INFRA-02**: Dropdown notification list muncul saat bell icon di-click, menampilkan notifikasi terbaru dengan title, message, dan timestamp
+- [ ] **INFRA-03**: User dapat mark notification as read (individual dan mark all as read)
+- [ ] **INFRA-04**: User dapat dismiss/hapus notification dari list
+- [ ] **INFRA-05**: Notification helper service yang bisa dipanggil dari controller mana saja untuk create UserNotification
 
-- [x] **PROG-01**: `AutoCreateProgressForAssignment` hanya membuat progress untuk deliverable yang `ProtonKompetensi.Unit` == `CoachCoacheeMapping.AssignmentUnit`
-- [x] **PROG-02**: `SilabusSave` auto-sync hanya sync deliverable baru ke assignments yang Unit-nya match
+### Coaching Proton Triggers (COACH)
 
-### Data Migration
+- [ ] **COACH-01**: Coach menerima notifikasi saat di-assign coachee baru via CoachCoacheeMappingAssign
+- [ ] **COACH-02**: Coach dan coachee menerima notifikasi saat mapping di-edit (coach/unit berubah)
+- [ ] **COACH-03**: Coach dan coachee menerima notifikasi saat mapping di-deactivate
+- [ ] **COACH-04**: SrSpv/SectionHead menerima notifikasi saat deliverable di-submit oleh coach (perlu review)
+- [ ] **COACH-05**: Coachee dan coach menerima notifikasi saat deliverable di-approve (SrSpv/SH)
+- [ ] **COACH-06**: Coachee dan coach menerima notifikasi saat deliverable di-reject (perlu resubmit)
+- [ ] **COACH-07**: Semua HC users menerima notifikasi saat semua deliverable coachee complete (migrasi dari ProtonNotification ke UserNotification)
 
-- [x] **MIG-01**: Migration menghapus semua ProtonDeliverableProgress, CoachingSessions, dan DeliverableStatusHistory
-- [x] **MIG-02**: Migration me-recreate progress dari semua active ProtonTrackAssignment dengan filter Unit yang benar
+### Assessment Triggers (ASMT)
 
-### Reassignment
-
-- [x] **REASSIGN-01**: Saat AssignmentUnit berubah (edit mapping), progress lama dihapus dan dibuat baru sesuai unit baru
-
-### Query
-
-- [x] **QUERY-01**: CoachingProton belt-and-suspenders filter tambah validasi `ProtonKompetensi.Unit` == assignment's Unit (defensive)
+- [ ] **ASMT-01**: Worker menerima notifikasi saat assessment baru di-assign
+- [ ] **ASMT-02**: HC/Admin menerima notifikasi saat semua worker dalam satu assessment group selesai ujian
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Filter by Bagian | Coachee hanya ditugaskan di unit dalam bagian sendiri — unit filter cukup |
-| Tambah Unit field di ProtonTrackAssignment | Unit info sudah ada di CoachCoacheeMapping.AssignmentUnit |
-| UI changes di CoachingProton | Hanya fix data source, tampilan tetap sama |
+| Email notifications | In-app only untuk v3.13 |
+| Notification preferences/settings | Semua user terima semua yang relevan |
+| Real-time push (WebSocket/SignalR) | Polling/page refresh cukup untuk v3.13 |
+| Notification untuk admin/data events | Training records, worker management, silabus — terlalu noisy |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PROG-01 | Phase 128 | Complete |
-| PROG-02 | Phase 129 | Complete |
-| MIG-01 | Phase 128 | Complete |
-| MIG-02 | Phase 128 | Complete |
-| REASSIGN-01 | Phase 129 | Complete |
-| QUERY-01 | Phase 129 | Complete |
+| INFRA-01 | — | Pending |
+| INFRA-02 | — | Pending |
+| INFRA-03 | — | Pending |
+| INFRA-04 | — | Pending |
+| INFRA-05 | — | Pending |
+| COACH-01 | — | Pending |
+| COACH-02 | — | Pending |
+| COACH-03 | — | Pending |
+| COACH-04 | — | Pending |
+| COACH-05 | — | Pending |
+| COACH-06 | — | Pending |
+| COACH-07 | — | Pending |
+| ASMT-01 | — | Pending |
+| ASMT-02 | — | Pending |
 
 **Coverage:**
-- v3.12 requirements: 6 total
-- Mapped to phases: 6
-- Unmapped: 0
+- v3.13 requirements: 14 total
+- Mapped to phases: 0
+- Unmapped: 14
 
 ---
-*Requirements defined: 2026-03-08*
-*Last updated: 2026-03-08 after roadmap creation*
+*Requirements defined: 2026-03-09*
+*Last updated: 2026-03-09 after initial definition*
