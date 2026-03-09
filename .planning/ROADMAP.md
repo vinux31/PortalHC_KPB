@@ -70,7 +70,11 @@
   3. Results page shows correct score, pass/fail status, and competency earned after submission
   4. Records page displays accurate assessment and training history with working filters
   5. HC monitoring shows live progress with functional reset/force close actions, and notifications reach correct users
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 133-01-PLAN.md — Fix 5 diagnosed assessment bugs from debug folder
+- [ ] 133-02-PLAN.md — Audit and fix create/assign, exam, and results flows
+- [ ] 133-03-PLAN.md — Audit and fix records, monitoring, and notifications
 
 ### Phase 134: Coaching Proton Lifecycle Audit
 **Goal**: The full coaching workflow operates correctly — from admin mapping coaches to approval chain completion
@@ -122,7 +126,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Assessment Lifecycle Audit | 0/? | Not started | - |
+| 133. Assessment Lifecycle Audit | 0/3 | Planned | - |
 | 134. Coaching Proton Lifecycle Audit | 0/? | Not started | - |
 | 135. PlanIDP & Deliverable Audit | 0/? | Not started | - |
 | 136. Admin Data Management Audit | 0/? | Not started | - |
