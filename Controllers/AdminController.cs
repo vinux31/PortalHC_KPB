@@ -3005,6 +3005,23 @@ namespace HcPortal.Controllers
                 $"Assigned coach to {count} coachee(s) [Section: {req.AssignmentSection}, Unit: {req.AssignmentUnit}]",
                 targetType: "CoachCoacheeMapping");
 
+            // COACH-01: Notify coach for each coachee assigned
+            try
+            {
+                var coacheeUsers = await _context.Users
+                    .Where(u => req.CoacheeIds.Contains(u.Id))
+                    .ToDictionaryAsync(u => u.Id, u => u.FullName ?? u.UserName ?? u.Id);
+                foreach (var coacheeId in req.CoacheeIds)
+                {
+                    var coacheeName = coacheeUsers.GetValueOrDefault(coacheeId, coacheeId);
+                    await _notificationService.SendAsync(req.CoachId, "COACH_ASSIGNED",
+                        "Coach Ditunjuk",
+                        $"Anda ditunjuk sebagai coach untuk {coacheeName}",
+                        "/CDP/CoachingProton");
+                }
+            }
+            catch { /* fail-silent */ }
+
             return Json(new { success = true, message = $"{count} mapping berhasil dibuat." });
         }
 
@@ -3110,6 +3127,25 @@ namespace HcPortal.Controllers
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Edit",
                 $"Edited coach-coachee mapping #{mapping.Id}", targetId: mapping.Id, targetType: "CoachCoacheeMapping");
 
+            // COACH-02: Notify both coach and coachee about mapping edit
+            try
+            {
+                var coachUser = await _context.Users.FindAsync(mapping.CoachId);
+                var coacheeUser = await _context.Users.FindAsync(mapping.CoacheeId);
+                var coachName = coachUser?.FullName ?? coachUser?.UserName ?? mapping.CoachId;
+                var coacheeName = coacheeUser?.FullName ?? coacheeUser?.UserName ?? mapping.CoacheeId;
+
+                await _notificationService.SendAsync(mapping.CoachId, "COACH_MAPPING_EDITED",
+                    "Mapping Coaching Diubah",
+                    $"Mapping coaching Anda dengan {coacheeName} telah diubah",
+                    "/CDP/CoachingProton");
+                await _notificationService.SendAsync(mapping.CoacheeId, "COACH_MAPPING_EDITED",
+                    "Mapping Coaching Diubah",
+                    $"Mapping coaching Anda dengan {coachName} telah diubah",
+                    "/CDP/CoachingProton");
+            }
+            catch { /* fail-silent */ }
+
             return Json(new { success = true, message = "Mapping berhasil diperbarui." });
         }
 
@@ -3171,6 +3207,25 @@ namespace HcPortal.Controllers
 
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Deactivate",
                 $"Deactivated coach-coachee mapping #{id} — {cascadeCount} ProtonTrackAssignment(s) also deactivated", targetId: id, targetType: "CoachCoacheeMapping");
+
+            // COACH-03: Notify both coach and coachee about deactivation
+            try
+            {
+                var coachUser = await _context.Users.FindAsync(mapping.CoachId);
+                var coacheeUser = await _context.Users.FindAsync(mapping.CoacheeId);
+                var coachName = coachUser?.FullName ?? coachUser?.UserName ?? mapping.CoachId;
+                var coacheeName = coacheeUser?.FullName ?? coacheeUser?.UserName ?? mapping.CoacheeId;
+
+                await _notificationService.SendAsync(mapping.CoachId, "COACH_MAPPING_DEACTIVATED",
+                    "Mapping Coaching Dinonaktifkan",
+                    $"Mapping coaching Anda dengan {coacheeName} telah dinonaktifkan",
+                    "/CDP/CoachingProton");
+                await _notificationService.SendAsync(mapping.CoacheeId, "COACH_MAPPING_DEACTIVATED",
+                    "Mapping Coaching Dinonaktifkan",
+                    $"Mapping coaching Anda dengan {coachName} telah dinonaktifkan",
+                    "/CDP/CoachingProton");
+            }
+            catch { /* fail-silent */ }
 
             return Json(new { success = true, message = $"Mapping berhasil dinonaktifkan. {cascadeCount} track assignment juga dinonaktifkan." });
         }
