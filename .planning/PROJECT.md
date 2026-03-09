@@ -12,19 +12,20 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.14 — started 2026-03-09)
+## Current State (v3.15 — started 2026-03-09)
 
-**v1.0 through v3.13 shipped** — 30 milestones, 132 phases.
+**v1.0 through v3.14 shipped** — 31 milestones, 137 phases.
 
-## Current Milestone: v3.14 Bug Hunting Per Menu
+## Current Milestone: v3.15 Assessment Real Time Test
 
-**Goal:** Audit menyeluruh per menu untuk mencari bug, error, dan inkonsistensi di seluruh website — CMP, CDP, Kelola Data, Homepage, Notifications, dan Account.
+**Goal:** Simulasi assessment end-to-end secara real untuk memverifikasi seluruh flow berjalan tanpa error — dari sisi HC membuat & memonitor assessment, hingga sisi Worker mengerjakan ujian, dengan validasi real-time monitoring.
 
 **Target features:**
-- Audit CMP menu (Assessment, Records, KKJ)
-- Audit CDP menu (CoachingProton, PlanIDP, Deliverable, Histori Proton, Dashboard)
-- Audit Kelola Data / Admin menu
-- Audit Homepage, Notifications, Account/Profile
+- Assessment setup & monitoring overview (create, import soal, assign, group list)
+- Worker exam lifecycle (token, start, auto-save, summary, submit, results, competency update)
+- HC real-time monitoring & actions (Reset, ForceClose, CloseEarly, RegenerateToken)
+- Post-exam & records validation (results, competency, notifications, attempt history)
+- Edge cases & integration (resume, timer expiry, stale detection, audit log)
 
 ## Architecture Decisions
 

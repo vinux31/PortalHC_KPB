@@ -1,30 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.14
-milestone_name: Bug Hunting Per Case
+milestone: v3.15
+milestone_name: Assessment Real Time Test
 status: planning
-last_updated: "2026-03-09T07:16:01.154Z"
-last_activity: 2026-03-09 — Completed 133-03 (records, monitoring, notifications audit)
+last_updated: "2026-03-09"
+last_activity: 2026-03-09 — Milestone v3.15 started
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
----
-
----
-gsd_state_version: 1.0
-milestone: v3.14
-milestone_name: Bug Hunting Per Case
-status: completed
-last_updated: "2026-03-09T07:13:32.011Z"
-last_activity: 2026-03-09 — Completed 133-03 (records, monitoring, notifications audit)
-progress:
-  total_phases: 5
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Portal HC KPB
@@ -34,39 +19,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.14 Bug Hunting Per Case — ready to plan phases
+**Current focus:** v3.15 Assessment Real Time Test — defining requirements
 
 ## Current Position
 
-**Milestone:** v3.14 Bug Hunting Per Case
-**Phase:** 133 of 137 (Assessment Lifecycle Audit)
-**Plan:** 3 of 3 (phase complete)
-**Status:** Ready to plan
-**Last activity:** 2026-03-09 — Completed 133-03 (records, monitoring, notifications audit)
-
-Progress: [██████████] 100%
+**Milestone:** v3.15 Assessment Real Time Test
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-03-09 — Milestone v3.15 started
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
-- 2026-03-09: v3.14 roadmap created — 5 independent phases (133-137), 22 requirements mapped
+- 2026-03-09: v3.15 milestone started — Assessment Real Time Test simulation
 
 ### Decisions
 
-- All 5 phases are independent (no dependencies) — can execute in any order
-- 133-01: Used composite group key (title+category+scheduleDate) for stable assessment group identification
-- 133-02: EditAssessment must propagate to sibling sessions; exam/results flows correct (no bugs)
-- 133-03: Audit confirmed no code changes needed — records, monitoring, notifications all correct after 133-01 fixes
+- Skip research (QA/simulation milestone, no new features to research)
+- 5 phases planned: Setup, Worker Exam, HC Monitoring, Post-Exam, Edge Cases
 
 ### Blockers/Concerns
 
 None.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-
 ---
-*State updated: 2026-03-09 after completing 133-03 (phase 133 complete)*
+*State updated: 2026-03-09 after milestone v3.15 initialization*
