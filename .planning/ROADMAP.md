@@ -27,7 +27,7 @@
 </details>
 
 <details>
-<summary>v3.0 through v3.13 (Phases 82-132) — shipped 2026-03-02 to 2026-03-09</summary>
+<summary>v3.0 through v3.14 (Phases 82-137) — shipped 2026-03-02 to 2026-03-09</summary>
 
 - **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 CPDP (shipped 2026-03-03)
@@ -41,93 +41,108 @@
 - **v3.11 CoachCoacheeMapping Overhaul** — Phases 123-125 (shipped 2026-03-08)
 - **v3.12 Progress Unit Scoping** — Phases 128-129 (shipped 2026-03-08)
 - **v3.13 In-App Notifications** — Phases 130-132 (shipped 2026-03-09)
+- **v3.14 Bug Hunting Per Case** — Phases 133-137 (in progress)
 
 </details>
 
 ---
 
-## v3.14 Bug Hunting Per Case
+## v3.15 Assessment Real Time Test
 
-**Milestone Goal:** Audit menyeluruh per use-case untuk mencari bug, error, dan inkonsistensi di seluruh website — organized by functional case (Assessment, Coaching, IDP, Admin, General).
+**Milestone Goal:** Simulasi assessment end-to-end secara real untuk memverifikasi seluruh flow berjalan tanpa error — dari sisi HC membuat & memonitor assessment, hingga sisi Worker mengerjakan ujian, dengan validasi real-time monitoring.
 
 ## Phases
 
-- [x] **Phase 133: Assessment Lifecycle Audit** - Audit assessment creation, exam flow, results, records, monitoring, and notifications (completed 2026-03-09)
-- [ ] **Phase 134: Coaching Proton Lifecycle Audit** - Audit coaching mapping, evidence upload, approval chain, export, and history
-- [ ] **Phase 135: PlanIDP & Deliverable Audit** - Audit PlanIDP tabs, Deliverable progress, and CDP Dashboard
-- [ ] **Phase 136: Admin Data Management Audit** - Audit ManageWorkers, ProtonData, and ManageAssessment
-- [ ] **Phase 137: General & Cross-cutting Audit** - Audit login, homepage, notifications, profile, and navigation
+- [ ] **Phase 138: Assessment Setup & Monitoring Overview** - Verify HC can create, import, assign, and view assessment groups without errors
+- [ ] **Phase 139: Worker Exam Lifecycle** - Verify worker exam flow from token entry through submission with auto-save and timer
+- [ ] **Phase 140: HC Real-Time Monitoring & Actions** - Verify HC monitoring dashboard and all HC actions (Reset, ForceClose, CloseEarly, RegenerateToken)
+- [ ] **Phase 141: Post-Exam & Records Validation** - Verify results display, competency updates, notifications, and attempt history
+- [ ] **Phase 142: Edge Cases & Integration** - Verify timer enforcement, window expiry, stale detection, audit logging, and worker redirect
 
 ## Phase Details
 
-### Phase 133: Assessment Lifecycle Audit
-**Goal**: Every step of the assessment lifecycle works correctly end-to-end — from admin creating assessments to workers completing exams to HC monitoring
-**Depends on**: Nothing (all phases independent)
-**Requirements**: ASMT-01, ASMT-02, ASMT-03, ASMT-04, ASMT-05, ASMT-06
+### Phase 138: Assessment Setup & Monitoring Overview
+**Goal**: HC can set up a complete assessment and see accurate monitoring overview
+**Depends on**: Nothing (first phase)
+**Requirements**: SETUP-01, SETUP-02, SETUP-03, SETUP-04
 **Success Criteria** (what must be TRUE):
-  1. Admin can create assessment with question package, assign workers, and set schedule without errors
-  2. Worker can start exam, answer questions with working auto-save, and submit successfully
-  3. Results page shows correct score, pass/fail status, and competency earned after submission
-  4. Records page displays accurate assessment and training history with working filters
-  5. HC monitoring shows live progress with functional reset/force close actions, and notifications reach correct users
-**Plans**: 3 plans
+  1. HC creates assessment with all fields (title, category, schedule, duration, pass%) and it persists correctly
+  2. HC imports question package and questions/options map correctly to the assessment
+  3. HC assigns workers and they appear in the monitoring participant list
+  4. Assessment Monitoring group list shows correct participant count, completed count, passed count, and status badge
+**Plans**: TBD
+
 Plans:
-- [ ] 133-01-PLAN.md — Fix 5 diagnosed assessment bugs from debug folder
-- [ ] 133-02-PLAN.md — Audit and fix create/assign, exam, and results flows
-- [ ] 133-03-PLAN.md — Audit and fix records, monitoring, and notifications
+- [ ] 138-01: TBD
 
-### Phase 134: Coaching Proton Lifecycle Audit
-**Goal**: The full coaching workflow operates correctly — from admin mapping coaches to approval chain completion
-**Depends on**: Nothing (all phases independent)
-**Requirements**: COACH-01, COACH-02, COACH-03, COACH-04, COACH-05
+### Phase 139: Worker Exam Lifecycle
+**Goal**: Worker can complete an exam end-to-end with correct auto-save, resume, and timer behavior
+**Depends on**: Phase 138
+**Requirements**: EXAM-01, EXAM-02, EXAM-03, EXAM-04, EXAM-05, EXAM-06
 **Success Criteria** (what must be TRUE):
-  1. Admin can assign, edit, and deactivate coaching mappings with notifications sent correctly
-  2. Coachee can upload evidence and submit deliverable without errors
-  3. Approval chain (SrSpv to SectionHead to HC) works with notifications at each step
-  4. PDF and Excel exports from CoachingProton page produce correct output
-  5. Histori Proton displays accurate timeline per worker with correct data
+  1. Worker enters valid token and starts exam successfully on both Package and Legacy paths
+  2. Each answer selection triggers auto-save and persists to the correct response table
+  3. Exam Summary page accurately reflects answered vs unanswered question counts
+  4. After submission, worker sees correct score and pass/fail status matching server calculation
+  5. On page reload mid-exam, session resumes with correct elapsed time, page position, and pre-populated answers
 **Plans**: TBD
 
-### Phase 135: PlanIDP & Deliverable Audit
-**Goal**: CDP information pages display correct role-scoped data for planning and progress tracking
-**Depends on**: Nothing (all phases independent)
-**Requirements**: IDP-01, IDP-02, IDP-03
+Plans:
+- [ ] 139-01: TBD
+
+### Phase 140: HC Real-Time Monitoring & Actions
+**Goal**: HC can monitor live exam progress and execute all management actions correctly
+**Depends on**: Phase 139
+**Requirements**: MON-01, MON-02, MON-03, MON-04, MON-05, MON-06
 **Success Criteria** (what must be TRUE):
-  1. PlanIDP shows Silabus and Coaching Guidance tabs with correct data per role
-  2. Deliverable page shows accurate progress tracking per coachee
-  3. CDP Dashboard displays correct Proton Progress and Assessment Analytics per role
+  1. Monitoring detail page shows live answered/total progress, status, score, and remaining time per worker with 10s polling refresh
+  2. Reset clears worker data, archives attempt history, and worker can restart the exam from scratch
+  3. Force Close marks session as Completed with score 0 and fail, and Force Close All bulk-closes all Open/InProgress sessions
+  4. Close Early auto-scores current answers and completes all InProgress sessions in the group
+  5. Regenerate Token generates a new token applied to all sibling sessions in the group
 **Plans**: TBD
 
-### Phase 136: Admin Data Management Audit
-**Goal**: All admin CRUD operations for master data and assessment management work without errors
-**Depends on**: Nothing (all phases independent)
-**Requirements**: ADM-01, ADM-02, ADM-03
+Plans:
+- [ ] 140-01: TBD
+
+### Phase 141: Post-Exam & Records Validation
+**Goal**: Post-exam data is accurate across results, competency updates, notifications, and history
+**Depends on**: Phase 140
+**Requirements**: POST-01, POST-02, POST-03, POST-04, POST-05
 **Success Criteria** (what must be TRUE):
-  1. ManageWorkers CRUD, import template download, file import, and export all function correctly
-  2. ProtonData Silabus, Coaching Guidance, and Override tabs CRUD operations work without errors
-  3. ManageAssessment create, edit, delete and AssessmentMonitoring actions function correctly
+  1. Results page displays correct score, pass/fail status, and earned competencies after submission
+  2. Passing assessment triggers competency auto-update via AssessmentCompetencyMap with correct level
+  3. Notifications are sent to the correct users after assessment completion
+  4. Riwayat Assessment tab shows the completed assessment with accurate score, date, and status
+  5. After Reset and re-exam, Attempt History shows previous attempts with correct sequential numbering
 **Plans**: TBD
 
-### Phase 137: General & Cross-cutting Audit
-**Goal**: Core infrastructure — authentication, navigation, notifications, and user profile — works correctly across all roles
-**Depends on**: Nothing (all phases independent)
-**Requirements**: GEN-01, GEN-02, GEN-03, GEN-04, GEN-05
+Plans:
+- [ ] 141-01: TBD
+
+### Phase 142: Edge Cases & Integration
+**Goal**: Edge case handling and audit integration work correctly under non-happy-path conditions
+**Depends on**: Phase 141
+**Requirements**: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05
 **Success Criteria** (what must be TRUE):
-  1. Login (local and AD), logout, and inactive user blocking all work correctly
-  2. Homepage dashboard shows correct role-scoped data
-  3. Notification bell, dropdown, mark-read, and dismiss all function properly
-  4. Profile view and settings (edit name, change password) work without errors
-  5. Navigation between all menus is consistent with no broken links or unauthorized access
+  1. Server rejects exam submission after DurationMinutes + 2min grace period has elapsed
+  2. Exam entry is blocked when the assessment window close date has expired
+  3. Stale question detection clears worker progress when question count changes mid-exam
+  4. All HC actions (Reset, ForceClose, CloseEarly, RegenerateToken) produce AuditLog entries with actor, timestamp, and details
+  5. Worker is redirected correctly when HC triggers CloseEarly (CheckExamStatus detects closed state)
 **Plans**: TBD
+
+Plans:
+- [ ] 142-01: TBD
 
 ## Progress
 
-**Execution Order:** All phases are independent and can execute in any order.
+**Execution Order:** 138 → 139 → 140 → 141 → 142
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 133. Assessment Lifecycle Audit | 3/3 | Complete    | 2026-03-09 |
-| 134. Coaching Proton Lifecycle Audit | 0/? | Not started | - |
-| 135. PlanIDP & Deliverable Audit | 0/? | Not started | - |
-| 136. Admin Data Management Audit | 0/? | Not started | - |
-| 137. General & Cross-cutting Audit | 0/? | Not started | - |
+| 138. Assessment Setup & Monitoring Overview | 0/? | Not started | - |
+| 139. Worker Exam Lifecycle | 0/? | Not started | - |
+| 140. HC Real-Time Monitoring & Actions | 0/? | Not started | - |
+| 141. Post-Exam & Records Validation | 0/? | Not started | - |
+| 142. Edge Cases & Integration | 0/? | Not started | - |
