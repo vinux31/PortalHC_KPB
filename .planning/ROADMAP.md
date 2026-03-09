@@ -70,7 +70,7 @@
   2. HC imports question package and questions/options map correctly to the assessment
   3. HC assigns workers and they appear in the monitoring participant list
   4. Assessment Monitoring group list shows correct participant count, completed count, passed count, and status badge
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
 - [ ] 138-01: TBD
@@ -85,7 +85,7 @@ Plans:
   3. Exam Summary page accurately reflects answered vs unanswered question counts
   4. After submission, worker sees correct score and pass/fail status matching server calculation
   5. On page reload mid-exam, session resumes with correct elapsed time, page position, and pre-populated answers
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
 - [ ] 139-01: TBD
@@ -100,7 +100,7 @@ Plans:
   3. Force Close marks session as Completed with score 0 and fail, and Force Close All bulk-closes all Open/InProgress sessions
   4. Close Early auto-scores current answers and completes all InProgress sessions in the group
   5. Regenerate Token generates a new token applied to all sibling sessions in the group
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
 - [ ] 140-01: TBD
@@ -115,7 +115,7 @@ Plans:
   3. Notifications are sent to the correct users after assessment completion
   4. Riwayat Assessment tab shows the completed assessment with accurate score, date, and status
   5. After Reset and re-exam, Attempt History shows previous attempts with correct sequential numbering
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
 - [ ] 141-01: TBD
@@ -130,7 +130,7 @@ Plans:
   3. Stale question detection clears worker progress when question count changes mid-exam
   4. All HC actions (Reset, ForceClose, CloseEarly, RegenerateToken) produce AuditLog entries with actor, timestamp, and details
   5. Worker is redirected correctly when HC triggers CloseEarly (CheckExamStatus detects closed state)
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
 - [ ] 142-01: TBD
@@ -141,11 +141,11 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 138. Assessment Setup & Monitoring Overview | 0/? | Not started | - |
-| 139. Worker Exam Lifecycle | 0/? | Not started | - |
-| 140. HC Real-Time Monitoring & Actions | 0/? | Not started | - |
-| 141. Post-Exam & Records Validation | 0/? | Not started | - |
-| 142. Edge Cases & Integration | 0/? | Not started | - |
+| 138. Assessment Setup & Monitoring Overview | 0/1 | Not started | - |
+| 139. Worker Exam Lifecycle | 0/1 | Not started | - |
+| 140. HC Real-Time Monitoring & Actions | 0/1 | Not started | - |
+| 141. Post-Exam & Records Validation | 0/1 | Not started | - |
+| 142. Edge Cases & Integration | 0/1 | Not started | - |
 
 ---
 
@@ -180,10 +180,10 @@ Plans:
   2. Kesimpulan menampilkan checkbox checked dan Result menampilkan checkbox checked sesuai value
   3. TTD Coach dengan nama dan Nopeg ditampilkan (tanpa TTD Coachee)
   4. Header menampilkan Sub Kompetensi, Deliverable, Tanggal dan footer menampilkan www.pertamina.com, red wave, logo Pertamina
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 144-01: TBD
+- [ ] 144-01-PLAN.md — Redesign DownloadEvidencePdf with GAST landscape 3-column layout
 
 ## Progress
 
@@ -192,4 +192,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 143. Modal Form Evidence Acuan | 1/1 | Complete    | 2026-03-09 |
-| 144. Export PDF Form GAST | 0/? | Not started | - |
+| 144. Export PDF Form GAST | 0/1 | Not started | - |
