@@ -85,8 +85,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 131-01-PLAN.md — Mapping triggers (assign, edit, deactivate) — COACH-01, COACH-02, COACH-03
-- [ ] 131-02-PLAN.md — Deliverable triggers (submit, approve, reject, all complete) — COACH-04, COACH-05, COACH-06, COACH-07
+- [x] 131-01-PLAN.md — Mapping triggers (assign, edit, deactivate) — COACH-01, COACH-02, COACH-03
+- [x] 131-02-PLAN.md — Deliverable triggers (submit, approve, reject, all complete) — COACH-04, COACH-05, COACH-06, COACH-07
 
 ### Phase 132: Assessment Triggers
 **Goal**: Assessment lifecycle events automatically notify relevant users
@@ -95,10 +95,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Worker receives notification when a new assessment is assigned to them
   2. HC/Admin users receive notification when all workers in an assessment group have completed the exam
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 132-01: Assessment notification triggers (assign and group completion)
+- [ ] 132-01-PLAN.md — Assessment notification triggers (assign and group completion)
 
 ## Progress
 
