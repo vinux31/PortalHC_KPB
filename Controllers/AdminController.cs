@@ -941,6 +941,22 @@ namespace HcPortal.Controllers
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
 
+                    // ASMT-01: Notify each assigned worker
+                    foreach (var session in sessions)
+                    {
+                        try
+                        {
+                            await _notificationService.SendAsync(
+                                session.UserId,
+                                "ASMT_ASSIGNED",
+                                "Assessment Baru",
+                                $"Anda telah di-assign assessment \"{session.Title}\"",
+                                $"/CMP/StartExam/{session.Id}"
+                            );
+                        }
+                        catch { /* fail silently */ }
+                    }
+
                     // Audit log
                     var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
                     await _auditLog.LogAsync(
@@ -1234,6 +1250,22 @@ namespace HcPortal.Controllers
                             {
                                 await _context.SaveChangesAsync();
                                 await transaction.CommitAsync();
+
+                                // ASMT-01: Notify each newly assigned worker
+                                foreach (var ns in newSessions)
+                                {
+                                    try
+                                    {
+                                        await _notificationService.SendAsync(
+                                            ns.UserId,
+                                            "ASMT_ASSIGNED",
+                                            "Assessment Baru",
+                                            $"Anda telah di-assign assessment \"{ns.Title}\"",
+                                            $"/CMP/StartExam/{ns.Id}"
+                                        );
+                                    }
+                                    catch { /* fail silently */ }
+                                }
 
                                 // Audit log — bulk assign
                                 await _auditLog.LogAsync(
