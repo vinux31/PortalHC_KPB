@@ -42,7 +42,7 @@ See: .planning/PROJECT.md (updated 2026-03-08)
 **Phase:** Phase 128
 **Plan:** 01 complete (1/1)
 **Status:** Milestone complete
-**Last activity:** 2026-03-08 - Completed quick task 20: Move Target from SubKompetensi to Deliverable level
+**Last activity:** 2026-03-08 - Completed quick task 21: buat table bagian bisa expand dan collapse di ProtonData Index
 
 ```
 Progress: [##........] 25% (0/2 phases, 1/1 plans in phase 128)
@@ -76,6 +76,7 @@ None.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 20 | Move Target from SubKompetensi to Deliverable level | 2026-03-08 | 3878552 | [20-move-target-to-deliverable](./quick/20-move-target-to-deliverable/) |
+| 21 | Buat table bagian bisa expand dan collapse di ProtonData Index | 2026-03-08 | d402d26 | [21-buat-table-bagian-bisa-expand-dan-collap](./quick/21-buat-table-bagian-bisa-expand-dan-collap/) |
 
 ---
 *State updated: 2026-03-08 after quick-20 execution*
