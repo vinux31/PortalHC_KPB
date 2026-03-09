@@ -180,7 +180,7 @@ Plans:
   2. Kesimpulan menampilkan checkbox checked dan Result menampilkan checkbox checked sesuai value
   3. TTD Coach dengan nama dan Nopeg ditampilkan (tanpa TTD Coachee)
   4. Header menampilkan Sub Kompetensi, Deliverable, Tanggal dan footer menampilkan www.pertamina.com, red wave, logo Pertamina
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [x] 144-01-PLAN.md - Redesign DownloadEvidencePdf with GAST landscape 3-column layout
@@ -192,4 +192,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 143. Modal Form Evidence Acuan | 1/1 | Complete    | 2026-03-09 |
-| 144. Export PDF Form GAST | 1/1 | Complete | 2026-03-09 |
+| 144. Export PDF Form GAST | 1/1 | Complete    | 2026-03-09 |
