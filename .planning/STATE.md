@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v3.13
 milestone_name: In-App Notifications
 status: planning
-last_updated: "2026-03-09T01:57:07.107Z"
+last_updated: "2026-03-09T01:59:02.718Z"
 last_activity: 2026-03-09 — Roadmap created
 progress:
   total_phases: 3
