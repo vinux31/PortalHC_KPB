@@ -72,7 +72,7 @@
 
 ## Phases
 
-- [ ] **Phase 145: Data Model & Migration** - Add SubCompetency nullable string field to PackageQuestion with DB migration and ViewModel class
+- [x] **Phase 145: Data Model & Migration** - Add SubCompetency nullable string field to PackageQuestion with DB migration and ViewModel class (completed 2026-03-10)
 - [ ] **Phase 146: Excel Import Update** - Update import template and parsing logic to support optional Sub Kompetensi column
 - [ ] **Phase 147: Scoring & Results UI** - Calculate per-sub-competency scores and render radar chart + summary table on Results page
 
@@ -86,7 +86,7 @@
   1. PackageQuestion model has a nullable string SubCompetency property
   2. EF Core migration runs successfully and adds the column to the database
   3. Existing PackageQuestion rows retain NULL SubCompetency without errors (backward compatible)
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 145-01-PLAN.md — Add SubCompetency property + EF Core migration
@@ -126,6 +126,6 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 145. Data Model & Migration | 0/1 | Not started | - |
+| 145. Data Model & Migration | 1/1 | Complete   | 2026-03-10 |
 | 146. Excel Import Update | 0/1 | Not started | - |
 | 147. Scoring & Results UI | 0/1 | Not started | - |

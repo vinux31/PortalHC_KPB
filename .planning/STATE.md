@@ -3,10 +3,25 @@ gsd_state_version: 1.0
 milestone: v3.17
 milestone_name: Assessment Sub-Competency Analysis
 status: planning
+last_updated: "2026-03-10T01:46:03.217Z"
+last_activity: 2026-03-10 — Roadmap created
+progress:
+  total_phases: 3
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.17
+milestone_name: Assessment Sub-Competency Analysis
+status: planning
 last_updated: "2026-03-10"
 last_activity: 2026-03-10 — Roadmap created for v3.17 (3 phases, 7 requirements)
 progress:
-  total_phases: 3
+  [██████████] 100%
   completed_phases: 0
   total_plans: 3
   completed_plans: 0
@@ -46,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 - Case normalization during import (trim + consistent casing)
 - Minimum 3 sub-competencies for radar chart; below that table only
 - On-the-fly LINQ GroupBy for scoring (no pre-computed table)
+- [Phase 145]: SubCompetency as nullable nvarchar(max) -- free-text, no FK constraint
 
 ### Blockers/Concerns
 
