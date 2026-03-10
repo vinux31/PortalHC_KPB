@@ -46,22 +46,22 @@ None for this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| HOME-01 | — | Pending |
-| HOME-02 | — | Pending |
-| HOME-03 | — | Pending |
-| HOME-04 | — | Pending |
-| HERO-01 | — | Pending |
-| HERO-02 | — | Pending |
-| QUICK-01 | — | Pending |
-| CSS-01 | — | Pending |
-| CSS-02 | — | Pending |
-| CSS-03 | — | Pending |
+| CSS-01 | Phase 148 | Pending |
+| CSS-02 | Phase 148 | Pending |
+| CSS-03 | Phase 148 | Pending |
+| HOME-01 | Phase 149 | Pending |
+| HOME-02 | Phase 149 | Pending |
+| HOME-03 | Phase 149 | Pending |
+| HOME-04 | Phase 149 | Pending |
+| HERO-01 | Phase 149 | Pending |
+| HERO-02 | Phase 149 | Pending |
+| QUICK-01 | Phase 149 | Pending |
 
 **Coverage:**
 - v3.18 requirements: 10 total
-- Mapped to phases: 0
-- Unmapped: 10
+- Mapped to phases: 10
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after initial definition*
+*Last updated: 2026-03-10 after roadmap creation*

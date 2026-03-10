@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v3.18
 milestone_name: Homepage Minimalist Redesign
-status: planning
+status: roadmap_created
 last_updated: "2026-03-10"
-last_activity: 2026-03-10 — Milestone v3.18 started
+last_activity: 2026-03-10 — Roadmap created, 2 phases defined (148-149)
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.18 Homepage Minimalist Redesign
+**Current focus:** v3.18 Homepage Minimalist Redesign — Phase 148 ready to plan
 
 ## Current Position
 
 **Milestone:** v3.18 Homepage Minimalist Redesign
-**Phase:** Not started (defining requirements)
+**Phase:** 148 of 149 (CSS Audit & Cleanup)
 **Plan:** —
-**Status:** Defining requirements
-**Last activity:** 2026-03-10 — Milestone v3.18 started
+**Status:** Ready to plan
+**Last activity:** 2026-03-10 — Roadmap created (2 phases: 148-149)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -38,7 +38,7 @@ Progress: [░░░░░░░░░░] 0%
 
 - 2026-03-09: v3.16 shipped — 2 phases (143-144) complete
 - 2026-03-10: v3.17 shipped — 3 phases (145-147) complete
-- 2026-03-10: v3.18 started — Homepage Minimalist Redesign
+- 2026-03-10: v3.18 started — Homepage Minimalist Redesign, roadmap defined
 
 ### Decisions
 
@@ -46,6 +46,8 @@ Progress: [░░░░░░░░░░] 0%
 - Remove glass cards (IDP, Assessment, Training), Timeline, Deadlines
 - Match styling to CMP/CDP pages (Bootstrap cards, shadow-sm, no glassmorphism)
 - Color scheme unchanged — only design/layout simplification
+- AOS library stays in _Layout.cshtml (used by Guide.cshtml) — remove only data-aos attributes from homepage
+- CSS audit MUST run before view changes to detect any shared class names across CMP/CDP/Admin pages
 
 ### Blockers/Concerns
 
@@ -58,4 +60,4 @@ None.
 | 22 | Fix CMP Records breadcrumb link pointing to error page instead of CMP Index | 2026-03-10 | 3cb34b6 | [22-fix-cmp-records-breadcrumb-link-pointing](./quick/22-fix-cmp-records-breadcrumb-link-pointing/) |
 
 ---
-*State updated: 2026-03-10 after milestone v3.18 started*
+*State updated: 2026-03-10 after roadmap creation for v3.18*
