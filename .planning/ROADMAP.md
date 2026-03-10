@@ -105,7 +105,10 @@ Plans:
   4. Hero section displays user greeting, nama, position, unit, and tanggal with no glassmorphism or gradient pseudo-elements
   5. Quick Access cards use Bootstrap card pattern (border-0, shadow-sm) matching CMP/CDP Index styling
   6. HomeController.Index no longer executes activity or deadline database queries
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 149-01-PLAN.md — Rewrite View (hero + Quick Access only), simplify ViewModel and Controller, strip unused CSS
 
 ## Progress
 
