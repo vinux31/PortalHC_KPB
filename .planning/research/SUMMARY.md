@@ -1,120 +1,123 @@
 # Project Research Summary
 
-**Project:** PortalHC KPB — v3.9 ProtonData Enhancement
-**Domain:** Admin tooling for Proton silabus management
-**Researched:** 2026-03-07
+**Project:** PortalHC KPB — v3.17 Assessment Sub-Competency Analysis
+**Domain:** Assessment visualization (sub-competency tagging + radar chart)
+**Researched:** 2026-03-10
 **Confidence:** HIGH
 
 ## Executive Summary
 
-This milestone enhances the existing ProtonData admin page with four features: a Status tab showing silabus/guidance completeness as a tree checklist, a Target column on the silabus table, a hard delete button for Kompetensi records, and an audit of silabus consumer connections. All four features build on the existing ProtonDataController and require zero new dependencies — the current stack (ASP.NET Core 8, EF Core, Bootstrap 5, vanilla JS) handles everything.
+This is a small, focused enhancement to an existing ASP.NET Core assessment portal: add a SubCompetency string tag to exam questions, flow it through Excel import, compute per-sub-competency scores server-side, and render a Chart.js radar chart on the Results page. No new packages, tables, controllers, or endpoints are needed. Every technology required is already in the codebase.
 
-The recommended approach is to build in order of risk: Target column first (simple migration, zero risk), Status tab second (read-only aggregation, medium complexity), then hard delete last (destructive operation requiring manual cascade due to FK Restrict constraints). The audit task folds into the delete phase as a prerequisite step rather than a standalone phase.
+The recommended approach is strictly sequential: DB migration first, then import update, then scoring logic and UI. The architecture is intentionally simple — a nullable string field, LINQ GroupBy for scoring, and a conditional Chart.js radar chart. This avoids over-engineering traps like master data CRUD for sub-competencies or client-side score calculation.
 
-The primary risk is the hard delete feature. All Proton entity FK relationships use `DeleteBehavior.Restrict`, so deletion must be done bottom-up in application code within a transaction. More importantly, deleting a Kompetensi permanently destroys coachee progress records. The safest approach is to block deletion when progress records exist, limiting hard delete to incorrectly entered master data with no user progress attached.
+The primary risks are (1) breaking backward compatibility for existing Excel templates and historical assessment data with NULL sub-competency values, (2) the import fingerprint dedup system silently blocking re-imports with new sub-competency data, and (3) radar chart edge cases with fewer than 3 or more than 8 axes. All are preventable with nullable fields, fingerprint updates, and conditional rendering logic.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new packages needed. All features use patterns already established in the codebase.
+No additions needed. The existing stack handles everything.
 
-**Core technologies (unchanged):**
-- EF Core 8.0: Migration for Target column, manual cascade delete logic
-- Bootstrap 5 accordion: Nested tree UI for Status tab (3 levels deep, no JS tree library needed)
-- Vanilla JS: AJAX fetch for Status data endpoint, server-first delete pattern
+**Core technologies (all existing):**
+- **EF Core 8.0:** New migration adding nullable string column to PackageQuestion
+- **Chart.js (CDN, already in _Layout.cshtml):** Radar chart type is built-in, no plugins needed
+- **Existing Excel library:** Add one column to template and parsing logic
 
 ### Expected Features
 
 **Must have (table stakes):**
-- Target column on ProtonSubKompetensi — free-text field, nullable, displayed between SubKompetensi and Deliverable columns
-- Hard delete for Kompetensi — bottom-up cascade in transaction, only for inactive Kompetensi with zero progress records
-- Confirmation dialog with impact counts before any hard delete
+- SubCompetency field on PackageQuestion (DB migration)
+- Excel import parses "Sub Kompetensi" column
+- Summary table on Results page (Sub Kompetensi / Benar / Total / %)
+- Radar chart on Results page
+- Graceful handling of untagged questions (NULL SubCompetency)
 
-**Should have (differentiators):**
-- Status tab as first/default tab — tree checklist showing silabus + guidance completeness per Bagian/Unit/Track
-- Summary counts at each tree level (e.g., "RFCC: 4/18 complete")
+**Should have (differentiators, if cheap):**
+- Color-coded pass/fail per radar axis (LOW complexity)
+- Comparative radar overlay for retake comparison (MEDIUM complexity)
 
 **Defer (v2+):**
-- Bulk hard delete (too dangerous, single-item only)
-- Undo/restore for hard-deleted data (soft-delete already covers reversible removal)
-- Evidence file cleanup on hard delete (orphan files are acceptable for now)
+- Sub-competency breakdown in AssessmentMonitoring (HIGH complexity, different controller)
+- PDF export of analysis card
+- Sub-competency master data CRUD (anti-feature — keep as free-text)
 
 ### Architecture Approach
 
-All new features stay within ProtonDataController. Status tab uses a new AJAX endpoint (`StatusData`) returning JSON, rendered client-side as a Bootstrap accordion tree. Target column adds a nullable string to ProtonSubKompetensi with propagation through SilabusRowDto and SilabusSave. Hard delete adds a `SilabusKompetensiDelete` POST action with explicit bottom-up removal in a DB transaction.
+Extend existing models and flows with minimal surface area. Add `string? SubCompetency` to PackageQuestion, extend the ViewModel with `List<SubCompetencyScore>`, compute scores in CMPController.Results via LINQ GroupBy, render conditionally in Results.cshtml. Two independent tracks after migration: import update and scoring logic, converging at the Results view.
 
-**Major components:**
-1. ProtonDataController.StatusData — JSON endpoint returning completeness tree aggregated from ProtonKompetensi hierarchy + CoachingGuidanceFiles
-2. ProtonSubKompetensi.Target — nullable string column (max 500 chars), integrated into existing SilabusSave batch upsert
-3. ProtonDataController.SilabusKompetensiDelete — manual cascade delete with pre-check for progress records, uses existing SilabusKompetensiRequest DTO
+**Major components modified:**
+1. **PackageQuestion model** — add SubCompetency field + migration
+2. **AdminController import pipeline** — parse new column, update template
+3. **CMPController.Results** — add sub-competency score aggregation
+4. **Results.cshtml** — conditional radar chart + summary table
 
 ### Critical Pitfalls
 
-1. **FK Restrict blocks naive delete** — All Proton FKs use Restrict. Must delete bottom-up: Progress -> Deliverable -> SubKompetensi -> Kompetensi, wrapped in a transaction.
-2. **Hard delete destroys coachee progress permanently** — Block delete when ProtonDeliverableProgress records exist. Only allow hard delete on Kompetensi with zero progress.
-3. **Target column NULL handling** — Use nullable string (`string?`), display empty input for NULL in edit mode, dash in view mode. Existing rows get NULL automatically.
-4. **Status tab performance** — Filter by Bagian/Unit/Track (same dropdowns as Silabus tab). Use projection queries, not Include chains.
-5. **Delete button JS state desync** — Call server first, update DOM only on success response. Never optimistically remove rows.
+1. **NULL handling for existing data** — Use nullable field, show "data not available" for historical sessions, never crash on missing sub-competency
+2. **Import fingerprint dedup blocks re-import** — Update fingerprint hash to include SubCompetency so re-imports with new tags are recognized as updates
+3. **Radar chart edge cases** — Require minimum 3 sub-competencies for radar; below that show table only. Cap readability at ~8 axes
+4. **Case sensitivity in free-text tags** — Normalize casing during import ("komunikasi" vs "Komunikasi" must merge)
+5. **Backward compatibility of import template** — Make "Sub Kompetensi" column optional; old 6-column templates must still work
 
 ## Implications for Roadmap
 
-### Phase 1: Target Column + Migration
-**Rationale:** Lowest risk, simplest change, immediate value for silabus editing. Unblocks any UI work that depends on the updated table structure.
-**Delivers:** New `Target` nullable string column on ProtonSubKompetensi; updated SilabusSave to persist Target; updated silabus table UI with Target column.
-**Addresses:** Target column feature
-**Avoids:** NULL handling pitfall (use nullable string, handle in UI)
+Based on research, suggested phase structure:
 
-### Phase 2: Status Tab
-**Rationale:** Read-only feature with no data mutation risk. Can be built independently after Phase 1.
-**Delivers:** New Status tab (first/default tab) with tree checklist showing silabus + guidance completeness per Bagian/Unit/Track. AJAX endpoint returning JSON aggregation.
-**Addresses:** Status tab feature, completeness visibility
-**Avoids:** Performance pitfall (filtered queries, projection DTOs, no ViewBag)
+### Phase 1: Data Model + Migration
+**Rationale:** Everything depends on the SubCompetency field existing in the database
+**Delivers:** PackageQuestion.SubCompetency nullable string column, SubCompetencyScore ViewModel class
+**Addresses:** Core data model (table stakes)
+**Avoids:** Pitfall 2 (NULL handling) by making field nullable from the start
 
-### Phase 3: Hard Delete + Consumer Audit
-**Rationale:** Highest risk feature, must come last. Audit of consumer connections is a prerequisite step folded into this phase rather than a separate phase.
-**Delivers:** Hard delete button for inactive Kompetensi (blocked when progress exists); consumer audit confirming no broken references; confirmation dialog with impact counts.
-**Addresses:** Delete button feature, audit connections feature
-**Avoids:** FK Restrict pitfall (manual cascade), progress data loss pitfall (block when progress exists), JS desync pitfall (server-first pattern)
+### Phase 2: Excel Import Update
+**Rationale:** Questions enter the system exclusively via import; no point building scoring without data
+**Delivers:** Updated template with "Sub Kompetensi" column, updated parsing for both Excel and paste paths, case normalization
+**Addresses:** Import feature (table stakes), backward compatibility
+**Avoids:** Pitfall 5 (breaking change) by keeping column optional; Pitfall 4 (case sensitivity) by normalizing during import
+
+### Phase 3: Scoring Logic + Results UI
+**Rationale:** With data in the DB, compute and display. Scoring and UI are tightly coupled — ship together for end-to-end testability
+**Delivers:** Per-sub-competency score calculation in CMPController.Results, radar chart, summary table, edge case handling
+**Addresses:** Radar chart + summary table (table stakes), graceful degradation
+**Avoids:** Pitfall 1 (cross-package normalization) by using percentages; Pitfall 3 (chart edge cases) by conditional rendering
 
 ### Phase Ordering Rationale
 
-- Target column first because it is a simple additive migration with zero risk and no dependencies on other features
-- Status tab second because it is read-only and independent, but slightly more complex (new endpoint + JS tree rendering)
-- Hard delete last because it is destructive, needs the consumer audit as input, and benefits from the developer having already worked in the ProtonData codebase during phases 1-2
+- Strictly sequential dependency chain: migration -> import -> scoring -> UI
+- Phases 2 and 3 could technically start in parallel after Phase 1, but Phase 3 needs imported data to test end-to-end
+- Three phases is the right granularity — fewer would be too large to review, more would be over-splitting a simple feature
 
 ### Research Flags
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Target Column):** Standard EF Core migration + column add. Well-established pattern in this codebase.
-- **Phase 2 (Status Tab):** Standard AJAX endpoint + Bootstrap accordion. No novel patterns.
-- **Phase 3 (Hard Delete):** The cascade logic is well-documented in this research. The audit findings are already captured in FEATURES.md. No further research needed.
+- **All phases:** This is well-trodden territory (EF migration, Excel parsing, Chart.js radar). No phase needs additional research. Patterns are fully documented in ARCHITECTURE.md with exact line numbers and code snippets.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | No new packages; all patterns already in codebase |
-| Features | HIGH | All based on direct codebase analysis of models, controllers, FK config |
-| Architecture | HIGH | Extends existing ProtonDataController with established patterns |
-| Pitfalls | HIGH | FK Restrict behavior confirmed from ApplicationDbContext.cs; cascade order verified |
+| Stack | HIGH | All technologies already in codebase, verified by file inspection |
+| Features | HIGH | Small scope, clear requirements, well-understood domain |
+| Architecture | HIGH | Extends existing patterns with minimal new surface area |
+| Pitfalls | HIGH | Based on direct codebase analysis of import dedup, shuffle, and Results flow |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **"Complete" definition for Status tab:** Research identified ambiguity. Recommendation: define "complete" as silabus exists (active Kompetensi with children) AND guidance files exist for that Bagian/Unit/Track. Confirm with user during Phase 2 planning.
-- **Target column type:** FEATURES.md says free-text string, PITFALLS.md mentions `int?` in some examples. Recommendation: use `string?` (nvarchar 500) as FEATURES.md and ARCHITECTURE.md consistently recommend. The `int` references in PITFALLS.md appear to be generic examples.
-- **Evidence file cleanup on hard delete:** Deferred. Orphaned files on disk are acceptable for now; can be addressed in a future cleanup phase.
+- **Import fingerprint logic:** Exact fingerprint hash implementation needs inspection during Phase 2 planning to determine how to include SubCompetency in dedup
+- **Chart.js version:** CDN loads "latest" — should pin to specific version to avoid future breaking changes (minor, address in Phase 3)
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Direct codebase analysis: `Models/ProtonModels.cs`, `Data/ApplicationDbContext.cs`, `Controllers/ProtonDataController.cs`, `Controllers/CDPController.cs`
-- FK configuration: ApplicationDbContext.cs lines 279-331 (all Restrict)
-- OrganizationStructure: `Models/OrganizationStructure.cs`
-- Existing patterns: `SilabusSave`, `SilabusDelete`, `SilabusKompetensiToggle` actions
+- Direct codebase analysis: `Models/AssessmentPackage.cs`, `Models/AssessmentResultsViewModel.cs`, `Controllers/AdminController.cs`, `Controllers/CMPController.cs`, `Views/CMP/Results.cshtml`
+- `Views/Shared/_Layout.cshtml` line 168 — Chart.js CDN confirmed present
+
+### Secondary (MEDIUM confidence)
+- Chart.js radar chart API documentation (training data, stable API)
 
 ---
-*Research completed: 2026-03-07*
+*Research completed: 2026-03-10*
 *Ready for roadmap: yes*

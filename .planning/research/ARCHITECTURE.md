@@ -1,169 +1,234 @@
 # Architecture Patterns
 
-**Domain:** ProtonData Enhancement (v3.9)
-**Researched:** 2026-03-07
+**Domain:** Sub-competency tagging + radar chart for existing assessment portal
+**Researched:** 2026-03-10
 
-## Current State
+## Recommended Architecture
 
-### Entity Hierarchy (all FK = DeleteBehavior.Restrict)
+### Overview
 
-```
-ProtonTrack (6 rows, seeded)
-  -> ProtonKompetensi (Bagian, Unit, TrackId, IsActive soft-delete)
-       -> ProtonSubKompetensi
-            -> ProtonDeliverable
-                 -> ProtonDeliverableProgress (per-user tracking)
-                 -> CoachingSession (linked via ProtonDeliverableProgressId)
-```
+Add a `SubCompetency` string field to `PackageQuestion`, flow it through the existing import pipeline and Results action, compute per-sub-competency scores server-side in the ViewModel, and render a Chart.js radar chart client-side on Results.cshtml. No new tables, no new controllers, no new endpoints.
 
-### Controller: ProtonDataController
-- `[Authorize(Roles = "Admin,HC")]`
-- `Index(bagian, unit, trackId, showInactive)` - serves both Silabus + Guidance tabs
-- `SilabusSave` - batch upsert rows via JSON POST
-- `SilabusDelete` - soft-delete single deliverable
-- `SilabusKompetensiToggle` - toggle IsActive on Kompetensi
-- Guidance CRUD actions
-- `Override` - separate page
+### Component Boundaries
 
-### View: ProtonData/Index.cshtml
-- 2 Bootstrap tabs: Silabus (active default), Coaching Guidance
-- Silabus uses client-side JS table with JSON data from ViewBag
-- Filter: Bagian > Unit > Track dropdowns
+| Component | Responsibility | What Changes |
+|-----------|---------------|--------------|
+| `PackageQuestion` model | Store sub-competency label per question | ADD `SubCompetency` string field |
+| EF Migration | Schema update | NEW migration adding column |
+| `DownloadQuestionTemplate` | Generate Excel template | ADD column G "Sub Kompetensi" |
+| `ImportPackageQuestions` POST | Parse Excel/paste rows | READ column 7 (Excel) or field index 6 (paste), set `SubCompetency` |
+| `ImportPackageQuestions.cshtml` | Show format reference | UPDATE format string to include "Sub Kompetensi" |
+| `AssessmentResultsViewModel` | Carry result data to view | ADD `List<SubCompetencyScore>` property |
+| `CMPController.Results` | Build ViewModel | ADD sub-competency grouping/scoring logic |
+| `Results.cshtml` | Display results | ADD radar chart canvas + summary table section |
 
-## Recommended Architecture for New Features
-
-### 1. Status Tab (new first tab)
-
-**Approach:** New AJAX endpoint, no new model.
+### Data Flow
 
 ```
-GET /ProtonData/StatusData?bagian={}&unit={}&trackId={}
-Returns JSON: tree of Kompetensi > SubKompetensi > Deliverable with completeness counts
+Import Flow (unchanged shape, wider data):
+  Excel/Paste -> AdminController.ImportPackageQuestions
+    -> Parse col 7 as SubCompetency (nullable, backward-compatible)
+    -> Save PackageQuestion with SubCompetency field
+
+Results Flow (new aggregation step):
+  CMPController.Results(id)
+    -> Load PackageQuestions (already loaded, includes SubCompetency now)
+    -> Load PackageUserResponses (already loaded)
+    -> NEW: Group questions by SubCompetency
+    -> NEW: For each group, count correct/total
+    -> Populate vm.SubCompetencyScores
+    -> Return View
+
+View Rendering:
+  Results.cshtml
+    -> Existing score card (unchanged)
+    -> NEW: If SubCompetencyScores has items, render:
+      1. Radar chart (Chart.js canvas)
+      2. Summary table (Sub Kompetensi | Benar | Total | %)
+    -> Existing question review list (unchanged)
 ```
 
-**Rationale:** Status is a read-only aggregation view. Query joins ProtonKompetensi hierarchy with ProtonDeliverableProgress grouped by coachee. No new tables needed.
+## New Models
 
-**View change:** Add Status tab as first tab in Index.cshtml. Make it the default active tab. Silabus and Guidance become tabs 2 and 3.
+```csharp
+// Add to PackageQuestion (Models/AssessmentPackage.cs)
+public string? SubCompetency { get; set; }
 
-**Data shape returned:**
-```json
+// Add to AssessmentResultsViewModel (Models/AssessmentResultsViewModel.cs)
+public List<SubCompetencyScore>? SubCompetencyScores { get; set; }
+
+// New class in same file
+public class SubCompetencyScore
 {
-  "kompetensiList": [
-    {
-      "id": 1,
-      "nama": "...",
-      "subKompetensiList": [
-        {
-          "id": 1,
-          "nama": "...",
-          "deliverables": [
-            { "id": 1, "nama": "...", "totalAssigned": 5, "approved": 3, "submitted": 1, "pending": 1 }
-          ]
-        }
-      ]
-    }
-  ],
-  "summary": { "totalDeliverables": 20, "totalApproved": 12, "completionPercent": 60 }
+    public string SubCompetency { get; set; } = "";
+    public int Correct { get; set; }
+    public int Total { get; set; }
+    public int Percentage => Total > 0 ? (int)Math.Round(Correct * 100.0 / Total) : 0;
 }
 ```
 
-### 2. Target Column on Silabus
+## Integration Points (Detailed)
 
-**Approach:** Add `Target` string property to `ProtonSubKompetensi` model.
+### 1. Model + Migration
 
-**Why SubKompetensi level:** The PROJECT.md says "kolom Target di tabel Silabus setelah SubKompetensi, sebelum Deliverable." Target describes a learning objective per sub-competency, not per deliverable.
+**File:** `Models/AssessmentPackage.cs` line ~41
+**Change:** Add `public string? SubCompetency { get; set; }` to `PackageQuestion`
+**Migration:** `dotnet ef migrations add AddSubCompetencyToPackageQuestion`
+**Risk:** None. Nullable column, zero impact on existing data.
 
-**Migration:**
+### 2. Excel Template
+
+**File:** `Controllers/AdminController.cs` ~line 5073
+**Current headers:** `{ "Question", "Option A", "Option B", "Option C", "Option D", "Correct" }`
+**New headers:** `{ "Question", "Option A", "Option B", "Option C", "Option D", "Correct", "Sub Kompetensi" }`
+**Also update:** Example row (line ~5083) add example sub-competency value. Instruction row (line ~5100) note the new column.
+
+### 3. Import Parsing (Excel path)
+
+**File:** `Controllers/AdminController.cs` ~line 5168-5174
+**Current:** Reads cells 1-6
+**Add:** `var sub = row.Cell(7).GetString().Trim();` after line 5173
+**Change tuple type** from 6-field to 7-field, or add SubCompetency to question creation.
+**Backward compat:** If cell 7 is empty/missing, SubCompetency = null. Old templates still work.
+
+### 4. Import Parsing (Paste path)
+
+**File:** Same controller, paste parsing section
+**Current:** Splits tab-delimited into 6 fields
+**Add:** Read 7th field if present, default to null if missing
+**Backward compat:** Old 6-column pastes still parse correctly (check field count).
+
+### 5. Question Creation
+
+**File:** Same controller, where `new PackageQuestion { ... }` is constructed
+**Add:** `SubCompetency = sub` (or whatever the parsed value is)
+
+### 6. Results Scoring
+
+**File:** `Controllers/CMPController.cs` ~line 1840-1926 (package path)
+**Where:** After the existing `foreach` loop that builds `questionReviews` or counts correct
+**Add:** Group `packageQuestions` by `SubCompetency` (skip null/empty), for each group count how many the user got right using `responseDict`, build `List<SubCompetencyScore>`.
+**Important:** This logic runs regardless of `AllowAnswerReview` -- the sub-competency breakdown should always show.
+
 ```csharp
-// Add nullable string column - no data loss
-migrationBuilder.AddColumn<string>(
-    name: "Target",
-    table: "ProtonSubKompetensiList",
-    type: "nvarchar(500)",
-    maxLength: 500,
-    nullable: true);
+// After building questionReviews / counting correctCount
+var subScores = packageQuestions
+    .Where(q => !string.IsNullOrEmpty(q.SubCompetency))
+    .GroupBy(q => q.SubCompetency!)
+    .Select(g => {
+        int total = g.Count();
+        int correct = g.Count(q => {
+            responseDict.TryGetValue(q.Id, out var resp);
+            if (resp?.PackageOptionId == null) return false;
+            var opt = q.Options.FirstOrDefault(o => o.Id == resp.PackageOptionId);
+            return opt != null && opt.IsCorrect;
+        });
+        return new SubCompetencyScore { SubCompetency = g.Key, Correct = correct, Total = total };
+    })
+    .OrderBy(s => s.SubCompetency)
+    .ToList();
 ```
 
-**Propagation:** Update SilabusRowDto to include `Target` field. Update SilabusSave to persist it. Update Index.cshtml JS table to show/edit Target column.
+Set `viewModel.SubCompetencyScores = subScores.Any() ? subScores : null;`
 
-**Consumer impact:** CDPController reads SubKompetensi via Include chains but never displays Target - no changes needed there.
+### 7. Results View - Radar Chart
 
-### 3. Hard Delete for Kompetensi
+**File:** `Views/CMP/Results.cshtml`
+**Where:** Between the score summary card and the question review section
+**What:** Conditional block: only render if `Model.SubCompetencyScores` has items
 
-**Approach:** Manual cascade delete in a single transaction because all FK relationships use `DeleteBehavior.Restrict`.
-
-**Delete order (innermost first):**
-1. Find all DeliverableIds under the Kompetensi
-2. Delete `CoachingSessions` where ProtonDeliverableProgressId links to those deliverables
-3. Delete `ProtonDeliverableProgress` rows for those DeliverableIds
-4. Delete `ProtonDeliverable` rows
-5. Delete `ProtonSubKompetensi` rows
-6. Delete `ProtonKompetensi` row
-
-**Action:** `POST /ProtonData/SilabusKompetensiDelete` with KompetensiId.
-
-**Safety:** Require confirmation dialog. Log to AuditLog. Only available in view mode (not edit mode).
-
-**Why not change to Cascade in DbContext:** Changing FK behavior requires a migration that alters constraints on production data. The Restrict behavior is intentional - it prevents accidental data loss. Manual cascade in a transaction is safer and more explicit.
-
-### 4. Silabus Audit (consumer connection check)
-
-**Approach:** No architecture change. This is investigative work.
-
-**Consumers of silabus data:**
-- `CDPController` - CoachingProton page (reads Kompetensi/SubKompetensi/Deliverable hierarchy)
-- `CDPController` - PlanIdp (reads deliverable names)
-- `CDPController` - Dashboard (aggregates progress counts)
-- `ProtonDataController` - Override (reads progress with deliverable joins)
-- `CoachingSession` model - links to ProtonDeliverableProgressId
-
-**Audit checklist:** Verify each consumer handles:
-- Soft-deleted (IsActive=false) Kompetensi correctly (filters them out)
-- Hard-deleted Kompetensi gracefully (no null reference crashes)
-- New Target column (ignored or displayed as appropriate)
-
-## Build Order
-
-```
-Phase 1: Migration + Target column
-  - Add Target to ProtonSubKompetensi model
-  - Migration
-  - Update SilabusRowDto, SilabusSave, Index.cshtml JS
-  - Low risk, no breaking changes
-
-Phase 2: Status tab
-  - Add StatusData endpoint
-  - Add Status tab to Index.cshtml (make it first/default)
-  - Client-side JS to fetch and render tree
-  - Medium complexity, read-only
-
-Phase 3: Hard delete + Audit
-  - Add SilabusKompetensiDelete action with manual cascade
-  - Audit all consumers for null-safety
-  - Fix any consumers that break on deleted data
-  - Highest risk, do last
+```html
+@if (Model.SubCompetencyScores?.Any() == true)
+{
+    <!-- Sub-Competency Analysis -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header"><h5>Analisa Sub Kompetensi</h5></div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <canvas id="radarChart" height="300"></canvas>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm"><!-- summary table --></table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
 ```
 
-**Rationale:** Target column is a simple additive migration with zero risk - ship first to unblock silabus editing improvements. Status tab is new UI with no model changes. Delete is destructive and needs audit first - must come after understanding all consumer code paths.
+**Chart.js:** Add via CDN `<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>`. Serialize labels and data as JSON inline.
+
+```javascript
+new Chart(document.getElementById('radarChart'), {
+    type: 'radar',
+    data: {
+        labels: @Html.Raw(Json.Serialize(Model.SubCompetencyScores.Select(s => s.SubCompetency))),
+        datasets: [{
+            label: 'Score %',
+            data: @Html.Raw(Json.Serialize(Model.SubCompetencyScores.Select(s => s.Percentage))),
+            fill: true,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            pointBackgroundColor: 'rgb(54, 162, 235)'
+        }]
+    },
+    options: {
+        scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } },
+        plugins: { legend: { display: false } }
+    }
+});
+```
+
+## Patterns to Follow
+
+### Pattern 1: Nullable Field for Backward Compatibility
+**What:** `SubCompetency` is `string?` (nullable). Import accepts old templates without the column.
+**Why:** Existing questions in DB get null. Existing Excel files without col 7 still import. Radar chart only shows when data exists.
+
+### Pattern 2: Server-Side Aggregation, Client-Side Rendering
+**What:** Compute scores in controller, serialize to view, let Chart.js render.
+**Why:** No AJAX needed. Follows existing Results pattern (all data in ViewModel). Chart.js is lightweight (~60KB CDN).
+
+### Pattern 3: Conditional UI Section
+**What:** Radar + table only render when `SubCompetencyScores` is populated.
+**Why:** Old assessment results (before migration) show no radar -- graceful degradation.
 
 ## Anti-Patterns to Avoid
 
-### Do NOT add a new controller
-ProtonDataController already owns this page. Adding StatusController or similar fragments the ownership. Keep all actions in ProtonDataController.
+### Anti-Pattern 1: Separate Sub-Competency Table
+**What:** Creating a `SubCompetency` entity with FK from `PackageQuestion`
+**Why bad:** Over-engineering. Sub-competency is just a label for grouping. A simple string field is sufficient. No need for CRUD on sub-competencies separately.
+**Instead:** `string? SubCompetency` on PackageQuestion.
 
-### Do NOT use ViewBag for Status data
-Status tab data is potentially large (all coachees x all deliverables). Use AJAX endpoint returning JSON, not ViewBag preloading on every Index GET.
+### Anti-Pattern 2: Client-Side Score Calculation
+**What:** Sending raw question data to JS and computing scores in browser
+**Why bad:** Leaks answer keys to client. Inconsistent with existing server-side grading.
+**Instead:** Compute in controller, send only aggregated percentages.
 
-### Do NOT change DeleteBehavior to Cascade
-Tempting but dangerous. Changing FK constraints on production requires careful migration and risks unintended cascade deletes from other code paths. Manual cascade in a transaction is explicit and auditable.
+### Anti-Pattern 3: Modifying Exam Submission Logic
+**What:** Computing sub-competency scores at submission time and storing them
+**Why bad:** Unnecessary denormalization. Results page already loads all questions + responses. Computing on-the-fly is fast (typically 20-50 questions).
+**Instead:** Compute in Results action from existing data.
 
-### Do NOT make Target a separate table
-A simple nullable string column on ProtonSubKompetensi is sufficient. No need for a TargetMaster or similar over-engineering.
+## Build Order (Dependency-Aware)
+
+| Step | What | Depends On | Files Modified |
+|------|------|------------|----------------|
+| 1 | Add `SubCompetency` to model + migration | Nothing | `Models/AssessmentPackage.cs`, new migration |
+| 2 | Update Excel template + import parsing | Step 1 | `Controllers/AdminController.cs` |
+| 3 | Update import view format reference | Step 2 | `Views/Admin/ImportPackageQuestions.cshtml` |
+| 4 | Add `SubCompetencyScore` to ViewModel | Step 1 | `Models/AssessmentResultsViewModel.cs` |
+| 5 | Add scoring logic in Results action | Steps 1, 4 | `Controllers/CMPController.cs` |
+| 6 | Add radar chart + table to Results view | Steps 4, 5 | `Views/CMP/Results.cshtml` |
+
+Steps 2-3 (import) and 4-5 (scoring) are independent tracks that can be built in parallel after step 1. Step 6 depends on both tracks being complete for end-to-end testing.
+
+## Scalability Considerations
+
+Not applicable -- assessment packages have 20-50 questions max. No performance concerns with in-memory grouping.
 
 ## Sources
 
-- Controllers/ProtonDataController.cs - existing action structure
-- Data/ApplicationDbContext.cs lines 279-331 - FK relationships all Restrict
-- Models/ProtonModels.cs - entity hierarchy
-- Controllers/CDPController.cs - consumer references to silabus models
-- .planning/PROJECT.md - feature requirements
+- Direct codebase analysis of existing models, controllers, and views
+- Chart.js radar chart documentation (training data, HIGH confidence -- Chart.js radar API is stable and well-known)

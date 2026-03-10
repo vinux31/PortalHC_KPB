@@ -1,183 +1,181 @@
-# Domain Pitfalls — ProtonData Enhancement
+# Pitfalls Research
 
-**Domain:** Adding Status tab, Target column, Delete Kompetensi to existing ProtonData CRUD
-**Researched:** 2026-03-07
-**Confidence:** HIGH (based on direct codebase analysis)
+**Domain:** Sub-competency tagging + radar chart on existing assessment system
+**Researched:** 2026-03-10
+**Confidence:** HIGH (based on codebase analysis of existing models and patterns)
 
 ## Critical Pitfalls
 
-### Pitfall 1: FK Restrict Blocks Kompetensi Delete — Cascade Must Be Manual
+### Pitfall 1: Sub-competency score calculation ignores cross-package question sharing
 
-**What goes wrong:** Deleting a ProtonKompetensi throws a SQL FK violation because all relationships use `DeleteBehavior.Restrict`:
-- `ProtonSubKompetensi.ProtonKompetensiId` -> Restrict
-- `ProtonDeliverable.ProtonSubKompetensiId` -> Restrict
-- `ProtonDeliverableProgress.ProtonDeliverableId` -> Restrict
+**What goes wrong:**
+Users in different packages may get different questions for the same sub-competency, or the same question appears in multiple packages. If sub-competency scoring assumes all users answer the same questions per sub-competency, radar charts become misleading — comparing users who answered different question sets.
 
-Calling `_context.ProtonKompetensiList.Remove(komp); SaveChangesAsync()` will crash if any SubKompetensi, Deliverable, or DeliverableProgress rows reference the chain.
+**Why it happens:**
+The system uses cross-package question assignment and Fisher-Yates shuffle. A sub-competency might have 5 questions in Paket A but 3 in Paket B. Developers calculate percentage scores without normalizing for question count per sub-competency per package.
 
-**Why it happens:** The existing `SilabusDelete` action only deletes a single Deliverable (leaf), then cleans empty parents bottom-up. Deleting a whole Kompetensi (top-down) is the reverse direction and hits every Restrict constraint.
+**How to avoid:**
+Always calculate sub-competency scores as percentage (correct/total for that sub-competency within that user's assigned package). Never use raw counts for comparison. The radar chart must show percentages, not absolute scores.
 
-**Consequences:** Unhandled `DbUpdateException` returns 500 to the user. If caught but not handled properly, Kompetensi appears deleted in JS but still exists in DB.
+**Warning signs:**
+- Radar chart axes have different max values across users
+- Users with fewer questions in a sub-competency appear to score lower
 
-**Prevention:** Before removing a Kompetensi, explicitly delete in bottom-up order within a transaction:
-```csharp
-using var tx = await _context.Database.BeginTransactionAsync();
-var delivIds = await _context.ProtonDeliverableList
-    .Where(d => d.ProtonSubKompetensi!.ProtonKompetensiId == kompId)
-    .Select(d => d.Id).ToListAsync();
+**Phase to address:**
+Score calculation phase (the phase that computes per-sub-competency results at exam submission time).
 
-// 1. Delete progress records referencing these deliverables
-_context.ProtonDeliverableProgresses.RemoveRange(
-    await _context.ProtonDeliverableProgresses
-        .Where(p => delivIds.Contains(p.ProtonDeliverableId)).ToListAsync());
+---
 
-// 2. Delete deliverables
-_context.ProtonDeliverableList.RemoveRange(
-    await _context.ProtonDeliverableList
-        .Where(d => delivIds.Contains(d.Id)).ToListAsync());
+### Pitfall 2: Adding SubCompetency column without handling NULL for existing data
 
-// 3. Delete sub-kompetensi
-_context.ProtonSubKompetensiList.RemoveRange(
-    await _context.ProtonSubKompetensiList
-        .Where(s => s.ProtonKompetensiId == kompId).ToListAsync());
+**What goes wrong:**
+Migration adds `SubCompetency` to `PackageQuestion` but existing rows (from all prior assessments) have NULL. Results page crashes or shows empty radar chart for historical sessions. Admin re-import is required to backfill, but the fingerprint dedup system skips already-imported questions.
 
-// 4. Delete kompetensi
-_context.ProtonKompetensiList.Remove(komp);
-await _context.SaveChangesAsync();
-await tx.CommitAsync();
-```
+**Why it happens:**
+The Excel import uses fingerprint-based deduplication. If you add SubCompetency to the model but the import fingerprint does not include it, re-importing the same questions with sub-competency tags will be treated as duplicates and skipped.
 
-**Detection:** Test delete on a Kompetensi where at least one coachee has a ProtonDeliverableProgress record against one of its deliverables.
+**How to avoid:**
+1. Use a nullable `string? SubCompetency` column — do NOT make it required.
+2. Update the import fingerprint hash to include SubCompetency so re-imports with new sub-competency data are recognized as updates (not new rows) and the field gets populated.
+3. Results page must gracefully handle sessions where SubCompetency is NULL — show "Sub-competency data not available" instead of an empty/broken chart.
 
-### Pitfall 2: Hard Delete Destroys Coachee Progress History
+**Warning signs:**
+- Re-importing Excel with sub-competency column does not update existing questions
+- Historical assessment results show broken chart
 
-**What goes wrong:** Deleting a Kompetensi cascade-removes all ProtonDeliverableProgress records. Coachees who submitted evidence, got approvals, or have approval chains in progress lose that data permanently. The coaching history views (Histori Proton, CoachingProton) will show gaps or incorrect completion percentages.
+**Phase to address:**
+DB migration phase + import logic update phase (must be coordinated).
 
-**Why it happens:** ProtonDeliverableProgress stores evidence paths, approval statuses, timestamps. Hard delete erases the audit trail.
+---
 
-**Consequences:**
-- Coachee loses uploaded evidence files (orphaned on disk or deleted)
-- SrSpv/SH approval history vanishes
-- ProtonFinalAssessment references a track that now has fewer deliverables, making completion percentages retroactively wrong
+### Pitfall 3: Radar chart with too many or too few axes
 
-**Prevention:** Two options:
-1. **Block delete if progress exists** — Check for any ProtonDeliverableProgress rows. If found, return error: "Kompetensi ini memiliki data progress pekerja. Hapus tidak diperbolehkan." This is the safest approach.
-2. **Confirm with warning** — Show a confirmation dialog listing how many progress records will be deleted. Only allow Admin (not HC) to force-delete.
+**What goes wrong:**
+Chart.js radar chart becomes unreadable with >8 axes (sub-competencies) or degenerates with <3. Some assessment sessions may have only 1-2 sub-competencies tagged, producing a meaningless line or dot instead of a polygon.
 
-**Recommendation:** Option 1 (block) for the initial implementation. Hard delete should only work on Kompetensi with zero progress records — i.e., recently created master data that was entered incorrectly.
+**Why it happens:**
+Sub-competency count varies per assessment package. Developer builds a one-size-fits-all radar chart without considering edge cases.
 
-### Pitfall 3: Adding Target Column Migration With NULL Existing Data
+**How to avoid:**
+- Minimum 3 sub-competencies required to show radar chart; below that, show a bar chart or table only.
+- For >8 sub-competencies, consider grouping or showing top-level competency aggregation with drill-down.
+- Always show the summary table alongside the chart as a fallback.
 
-**What goes wrong:** Adding a `Target` column (e.g., `int Target` or `string Target`) to an existing table with rows causes migration failure or unintended defaults.
+**Warning signs:**
+- Radar chart looks like a triangle with 3 points (acceptable) or a line with 2 points (broken)
+- Chart is so dense with 12+ axes that labels overlap
 
-**Why it happens:** If the column is non-nullable and no default is specified, EF migration generates `ALTER TABLE ADD COLUMN Target int NOT NULL` which fails on SQL Server because existing rows have no value. If you use `int? Target` (nullable), existing rows get NULL but then your UI must handle NULL vs 0 vs empty.
+**Phase to address:**
+Results page UI phase (radar chart rendering).
 
-**Consequences:** Migration fails in production, or existing data silently gets wrong default values.
+---
 
-**Prevention:**
-- Use nullable type: `public int? Target { get; set; }` — existing rows get NULL
-- OR use non-nullable with explicit default: `public int Target { get; set; } = 0;` and in migration: `.HasDefaultValue(0)`
-- Decide the semantic meaning: does NULL mean "no target set" (show dash) or does 0 mean "no target"? Pick one, document it, and handle it consistently in the Status tab query.
+### Pitfall 4: Shuffle breaks sub-competency grouping assumption
 
-**Recommendation:** Use `public int? Target { get; set; }` (nullable). NULL means "target not yet configured." The Status tab can filter for `Target != null` to identify configured vs unconfigured entries. The Silabus edit UI shows an empty input for NULL.
+**What goes wrong:**
+Developer assumes questions are displayed grouped by sub-competency (for UX or analysis), but Fisher-Yates shuffle randomizes all questions regardless of sub-competency. If someone later wants to show "section-by-section" analysis or the exam UI groups by sub-competency, the shuffle must be sub-competency-aware.
 
-## Moderate Pitfalls
+**Why it happens:**
+The existing shuffle is a flat shuffle of all questions. Sub-competency is metadata for analysis, not for display grouping. But a future request to "show questions grouped by sub-competency" would conflict with the anti-cheating shuffle.
 
-### Pitfall 4: SilabusSave Batch Upsert — Adding Target Field Without Breaking Existing Logic
+**How to avoid:**
+Keep the flat shuffle as-is. Sub-competency tagging is purely for post-exam analysis. Do NOT change the exam flow or question ordering. Document this decision explicitly to prevent future confusion.
 
-**What goes wrong:** The existing `SilabusSave` accepts `List<SilabusRowDto>` and upserts Kompetensi/SubKompetensi/Deliverable in a nested loop. Adding a `Target` field to `SilabusRowDto` means:
-1. The JS that builds the row array must include the new field
-2. The C# upsert logic must set `Target` on the correct entity (which entity gets the Target? Deliverable? Kompetensi? SubKompetensi?)
-3. Existing saved data sent back from the server must populate the Target input
+**Warning signs:**
+- Requirements mentioning "show sub-competency sections during exam"
+- Attempts to modify the shuffle algorithm
 
-**Prevention:**
-- Decide WHERE Target lives in the model hierarchy first. If Target is per-Deliverable, add it to `ProtonDeliverable`. If per-Kompetensi, add to `ProtonKompetensi`.
-- Add `Target` to `SilabusRowDto` with a default (e.g., `public int? Target { get; set; }`)
-- In the upsert loop, set `entity.Target = row.Target` alongside the existing field assignments
-- In the JS, when building rows from the table, read the Target input value
-- Test: save without changing Target (should preserve existing value), save with new Target (should update)
+**Phase to address:**
+Architecture decision — document in the first phase, enforce in all subsequent phases.
 
-### Pitfall 5: Status Tab Performance — Querying All Bagian/Unit Without Filters
+---
 
-**What goes wrong:** The Status tab needs to show completion status across all Bagian/Unit combinations. A naive query loads ALL ProtonKompetensi with ALL SubKompetensi, ALL Deliverables, and ALL ProtonDeliverableProgress, then groups in memory.
+### Pitfall 5: Import template breaking change for existing users
 
-**Why it happens:** The tree structure (Track -> Kompetensi -> SubKompetensi -> Deliverable -> Progress) with 6 tracks, ~10 Bagian, multiple Units each, can produce thousands of rows when joined with per-user progress.
+**What goes wrong:**
+Adding a "Sub Kompetensi" column to the Excel import template breaks existing workflows if the column is made mandatory. HC users who have saved old templates get import errors.
 
-**Prevention:**
-- Filter by Bagian/Unit on page load (use the same dropdown pattern as Silabus tab)
-- Use projection queries (`Select` into DTOs) instead of `Include` chains
-- For "completeness" calculation, use a single aggregate query:
-```csharp
-var stats = await _context.ProtonDeliverableList
-    .Where(d => d.ProtonSubKompetensi!.ProtonKompetensi!.Bagian == bagian
-             && d.ProtonSubKompetensi.ProtonKompetensi.Unit == unit
-             && d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == trackId)
-    .Select(d => new {
-        d.Id,
-        d.Target,
-        ProgressCount = _context.ProtonDeliverableProgresses
-            .Count(p => p.ProtonDeliverableId == d.Id && p.Status == "Approved")
-    }).ToListAsync();
-```
+**Why it happens:**
+Developer makes SubCompetency a required import column without considering backwards compatibility.
 
-### Pitfall 6: "Complete" vs "Incomplete" Definition Ambiguity
+**How to avoid:**
+Make the "Sub Kompetensi" column optional in the import parser. If absent or empty, set SubCompetency to NULL. Update the downloadable template to include the column, but don't reject uploads that lack it.
 
-**What goes wrong:** The tree checklist (Kompetensi -> SubKompetensi -> Deliverable) needs a "complete" indicator, but the definition is unclear. Is a Deliverable "complete" when:
-- At least one coachee has Status == "Approved"?
-- ALL assigned coachees have Status == "Approved"?
-- Target number of approvals reached?
-- The Target column value is met?
+**Warning signs:**
+- Import fails on old-format Excel files
+- HC users complaining about template changes
 
-A SubKompetensi is "complete" when all its Deliverables are complete? Or when any are?
+**Phase to address:**
+Import logic update phase.
 
-**Prevention:** Define the semantics before coding:
-- **Per the Status tab context:** "Complete" likely means Target is set AND at least [Target] number of coachees have approved progress for that deliverable within the filtered Bagian/Unit scope.
-- If Target is NULL/0, the deliverable is "not configured" — show a warning icon, not complete/incomplete.
-- SubKompetensi is complete when ALL its deliverables are complete.
-- Kompetensi is complete when ALL its SubKompetensi are complete.
+---
 
-### Pitfall 7: Delete Button JS State Desync
+## Technical Debt Patterns
 
-**What goes wrong:** The existing Silabus edit mode uses a JS array to track rows. If a user clicks Delete on a Kompetensi, the JS must:
-1. Remove all child rows from the array
-2. Call the server endpoint
-3. Re-render the table with updated rowspans
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Store sub-competency as free-text string | No master table needed, fast to implement | Typos create duplicate sub-competencies ("Komunikasi" vs "komunikasi") | Acceptable if import is the only entry point and you normalize casing during import |
+| Calculate scores on-the-fly at Results page load | No storage migration for scores | Slow for large sessions, recalculated every page view | Never for production — cache or store at submit time |
+| Hard-code Chart.js config in cshtml | Fast to ship | Cannot reuse for other charts, hard to maintain | Acceptable for v1 if only one chart exists |
 
-If the server call fails (e.g., progress records exist) but JS already removed the rows visually, the UI is out of sync.
+## Integration Gotchas
 
-**Prevention:**
-- Call server FIRST, then remove from JS array only on success response
-- Show a loading spinner on the delete button during the request
-- On failure, show the error message from the server and do NOT modify the JS array
-- Pattern: same as existing `SilabusDelete` but check the `success` field in the response before DOM manipulation
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Chart.js radar in existing Results page | Loading Chart.js globally, conflicting with existing scripts | Load Chart.js only on Results page, use specific version, check for conflicts with existing JS |
+| Excel import with new column | Positional column parsing breaks when new column is inserted | Use header-name-based column lookup (match "Sub Kompetensi" header), not column index |
+| PackageUserResponse join to get sub-competency | N+1 query: load responses, then load question, then load sub-competency | Single query: join PackageUserResponse -> PackageQuestion, group by SubCompetency |
 
-## Minor Pitfalls
+## Performance Traps
 
-### Pitfall 8: Evidence File Orphans on Hard Delete
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Calculating sub-competency scores per-request | Results page loads slowly (>2s) | Pre-compute at exam submission, store in a summary table or JSON field | >50 questions per session |
+| Loading all PackageQuestions with Options eagerly for score calc | Memory spike on server | Use projection query (SELECT only needed fields) | >500 questions per assessment |
 
-**What goes wrong:** ProtonDeliverableProgress records have `EvidencePath` pointing to uploaded files on disk. Deleting progress records leaves orphan files in `/uploads/evidence/`.
+## UX Pitfalls
 
-**Prevention:** If implementing hard delete with cascade, also delete the physical evidence files. Loop through progress records before removing them, collect `EvidencePath` values, and delete from disk after successful DB delete.
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Showing radar chart without context | Users don't know what 60% on "Komunikasi" means | Show benchmark/passing line on radar chart, or at minimum show passing threshold per axis |
+| Radar chart only, no table | Users can't extract exact numbers | Always pair radar chart with summary table (Sub Kompetensi, Benar, Total, %) |
+| Showing sub-competency analysis for incomplete exams | Misleading partial data | Only show analysis for completed/submitted exams |
 
-### Pitfall 9: Existing SilabusDeleteRequest DTO Name Collision
+## "Looks Done But Isn't" Checklist
 
-**What goes wrong:** There is already a `SilabusDeleteRequest` DTO (takes `DeliverableId`). A new Kompetensi-level delete needs a different DTO or a different property. The existing `SilabusKompetensiRequest` DTO (takes `KompetensiId`) already exists and could be reused.
+- [ ] **Sub-competency scores:** Often missing normalization to percentage — verify scores are % not raw count
+- [ ] **Radar chart:** Often missing the case where all sub-competencies score 0% (chart collapses to center point) — verify it still renders
+- [ ] **Import template:** Often missing the downloadable template update — verify the new template includes "Sub Kompetensi" column
+- [ ] **Historical data:** Often missing graceful degradation — verify Results page works for sessions imported before sub-competency was added
+- [ ] **Case sensitivity:** Often missing normalization — verify "komunikasi" and "Komunikasi" are treated as the same sub-competency
 
-**Prevention:** Use the existing `SilabusKompetensiRequest` class for the Kompetensi delete endpoint. Do not create a new DTO with a confusingly similar name.
+## Recovery Strategies
 
-## Phase-Specific Warnings
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Fingerprint dedup blocks re-import with sub-competency | LOW | Update fingerprint logic, re-import affected packages |
+| Free-text typos in sub-competency names | MEDIUM | Write a data cleanup migration to normalize existing values |
+| Scores stored as raw counts instead of percentages | MEDIUM | Add migration to recompute stored scores; update display logic |
+| Chart.js version conflict | LOW | Pin Chart.js version, use noConflict or module scope |
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Add Target column migration | NULL handling for existing data | Use nullable int, handle NULL in UI as "not configured" |
-| Delete Kompetensi endpoint | FK Restrict blocks cascade | Manual bottom-up delete in transaction; block if progress exists |
-| Status tab query | N+1 or full-table scan | Filter by Bagian/Unit/Track, use projection queries |
-| SilabusSave with Target | JS not sending Target value | Add Target to SilabusRowDto AND to JS row builder |
-| Tree completeness indicator | Ambiguous "complete" definition | Define as Target met per deliverable, roll up to parents |
-| Delete button UX | Optimistic UI removal before server confirms | Server-first pattern, update DOM only on success |
+## Pitfall-to-Phase Mapping
+
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| NULL SubCompetency on existing data | DB Migration phase | Query for NULL SubCompetency rows; confirm Results page handles them |
+| Import fingerprint not updated | Import Logic phase | Re-import same Excel with added sub-competency; verify field is populated |
+| Import template backwards compatibility | Import Logic phase | Upload old-format Excel; verify no errors |
+| Cross-package score normalization | Score Calculation phase | Compare radar charts for users in different packages with different question counts per sub-competency |
+| Radar chart edge cases (<3 or >8 axes) | Results UI phase | Test with 1, 2, 3, 8, 12 sub-competencies |
+| Case-insensitive sub-competency matching | Import Logic phase | Import "komunikasi" and "Komunikasi"; verify they merge |
 
 ## Sources
 
-- Direct codebase analysis: `Models/ProtonModels.cs`, `Data/ApplicationDbContext.cs`, `Controllers/ProtonDataController.cs`
-- FK configuration: All Proton entity relationships use `DeleteBehavior.Restrict` (ApplicationDbContext.cs lines 279-331)
-- Existing delete pattern: `SilabusDelete` action (ProtonDataController.cs line 336) — single deliverable delete with bottom-up parent cleanup
+- Codebase analysis: `Models/AssessmentPackage.cs` (PackageQuestion has no SubCompetency field yet)
+- Codebase analysis: `Models/PackageUserResponse.cs` (grading uses PackageOptionId, ID-based)
+- Codebase analysis: existing Fisher-Yates shuffle in cross-package assignment (phase 45 docs)
+- Chart.js radar chart documentation (training data, HIGH confidence — well-established library)
+
+---
+*Pitfalls research for: Sub-competency tagging + radar chart analysis on existing assessment portal*
+*Researched: 2026-03-10*

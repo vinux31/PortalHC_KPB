@@ -1,11 +1,11 @@
 # Technology Stack
 
-**Project:** PortalHC KPB — v3.9 ProtonData Enhancement
-**Researched:** 2026-03-07
+**Project:** PortalHC KPB — v3.17 Assessment Sub-Competency Analysis
+**Researched:** 2026-03-10
 
 ## Verdict: No New Packages Needed
 
-The existing stack handles all v3.9 requirements. No NuGet additions required.
+The existing stack handles all v3.17 requirements. Chart.js is already loaded via CDN. No NuGet or JS additions required.
 
 ## Current Stack (unchanged)
 
@@ -15,82 +15,88 @@ The existing stack handles all v3.9 requirements. No NuGet additions required.
 | EF Core | 8.0.0 | ORM + migrations |
 | SQL Server | — | Database |
 | Bootstrap 5 | — | UI framework |
-| Bootstrap Icons | — | Icon set |
-| Vanilla JS | — | Client-side logic |
-| Razor Views | — | Server-side rendering |
-| ClosedXML | 0.105.0 | Excel import/export |
+| Chart.js | latest (CDN) | Charts — **already in `_Layout.cshtml` line 168** |
+| EPPlus / ClosedXML | — | Excel import/export |
 | QuestPDF | 2026.2.2 | PDF generation |
 
 ## Feature-by-Feature Stack Mapping
 
-### 1. Target Column in Silabus Table
+### 1. SubCompetency Column on PackageQuestion
 
-**Need:** Add `string Target` property to Silabus model, EF Core migration.
+**Need:** Add `string? SubCompetency` to `PackageQuestion` model, EF Core migration.
 
-**Stack:** EF Core migrations (already in use). Standard `dotnet ef migrations add AddSilabusTarget` workflow. No new packages.
+**Stack:** EF Core migrations. Standard nullable string column addition. No new packages.
 
-**Migration approach:**
 ```csharp
-// Nullable string column, no breaking change
-migrationBuilder.AddColumn<string>(
-    name: "Target",
-    table: "Silabus",  // verify actual table name
-    nullable: true);
+// PackageQuestion addition
+public string? SubCompetency { get; set; }
 ```
 
-### 2. Tree Checklist UI (Status Tab)
+### 2. Excel Import Update (Sub Kompetensi column)
 
-**Need:** Hierarchical display: Bagian > Unit > Track with completeness indicators.
+**Need:** Add "Sub Kompetensi" column to import template, parse during import.
 
-**Stack:** Bootstrap 5 accordion (nested) + Bootstrap Icons for check/uncheck states. No third-party tree library needed.
+**Stack:** Existing Excel library already handles this. Add one column read in the import logic.
 
-**Why not a tree library:**
-- Only 3 levels deep (Bagian > Unit > Track) — accordion handles this natively
-- Bootstrap accordion is already loaded and used in the project
-- Adding a JS tree library (jstree, etc.) would be overhead for a read-only status display
-- Checkmarks are display-only, not interactive tree-select
+### 3. Radar Chart (Spider Web) on Results Page
 
-**Pattern:**
-```html
-<!-- Outer accordion: Bagian -->
-<div class="accordion" id="statusTree">
-  <div class="accordion-item">
-    <h2 class="accordion-header">
-      <button class="accordion-button">
-        <i class="bi bi-check-circle-fill text-success"></i> Bagian Name
-      </button>
-    </h2>
-    <div class="accordion-collapse">
-      <!-- Inner accordion: Unit > Track rows -->
-    </div>
-  </div>
-</div>
+**Need:** Chart.js radar chart showing percentage score per sub-competency.
+
+**Stack:** Chart.js `type: 'radar'` — built-in chart type, no plugins needed. Already loaded globally via CDN.
+
+```javascript
+new Chart(ctx, {
+    type: 'radar',
+    data: {
+        labels: subCompetencyNames,   // from server via JSON
+        datasets: [{
+            label: 'Skor (%)',
+            data: percentages,
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)'
+        }]
+    },
+    options: {
+        scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } }
+    }
+});
 ```
 
-**Icons:** `bi-check-circle-fill` (complete), `bi-circle` (incomplete), `bi-dash-circle` (partial). Already available via Bootstrap Icons.
+### 4. Summary Table (Sub Kompetensi | Benar | Total | %)
 
-### 3. Cascade Delete at Kompetensi Level
+**Need:** Server-side calculation, render as Bootstrap table.
 
-**Need:** Hard delete Kompetensi + all child records (SubKompetensi, Silabus, etc.).
+**Stack:** LINQ GroupBy on `PackageQuestion.SubCompetency`, join with `PackageUserResponse`. Pure C# + Razor.
 
-**Stack:** EF Core cascade delete behavior, configured via `OnDelete(DeleteBehavior.Cascade)` in DbContext or handled explicitly in controller with `Include()` + `RemoveRange()`.
+### 5. ViewModel Extension
 
-**Recommendation:** Explicit removal in controller (load children, RemoveRange) rather than relying on DB cascade — gives more control and clearer audit trail. This is the safer pattern for a brownfield app where FK constraints may not all have cascade configured.
+```csharp
+public List<SubCompetencyScoreItem>? SubCompetencyScores { get; set; }
 
-### 4. Audit Silabus Table Connections
+public class SubCompetencyScoreItem
+{
+    public string SubCompetency { get; set; } = "";
+    public int Correct { get; set; }
+    public int Total { get; set; }
+    public int Percentage { get; set; }
+}
+```
 
-**Need:** Trace all FK references to Silabus from PlanIdp, CoachingProton, etc.
+## What NOT to Add
 
-**Stack:** No tooling needed. Code grep + EF Core model inspection. Pure analysis task.
-
-## Alternatives Considered
-
-| Need | Considered | Verdict |
-|------|-----------|---------|
-| Tree UI | jstree, Treeview.js | Overkill for 3-level read-only display |
-| Tree UI | Custom CSS tree | Bootstrap accordion already does this |
-| Cascade delete | DB-level CASCADE | Explicit code removal is safer in brownfield |
+| Library | Why Not |
+|---------|---------|
+| Chart.js NuGet package | Already loaded via CDN — do not duplicate |
+| chartjs-plugin-datalabels | Radar chart tooltips/labels work natively |
+| D3.js or other charting lib | Chart.js radar is sufficient; D3 is overkill |
+| Any server-side chart rendering | Client-side Chart.js handles it |
 
 ## Confidence: HIGH
 
-All features use patterns already established in the codebase. Zero new dependencies.
+All features use patterns already established in the codebase. Chart.js confirmed present in `_Layout.cshtml`. Zero new dependencies.
+
+## Sources
+
+- Verified: `Views/Shared/_Layout.cshtml` line 168 — Chart.js CDN
+- Verified: `Models/AssessmentPackage.cs` — PackageQuestion model
+- Verified: `Models/AssessmentResultsViewModel.cs` — current ViewModel
