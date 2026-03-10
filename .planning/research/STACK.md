@@ -1,102 +1,206 @@
-# Technology Stack
+# Stack Research: Homepage Minimalist Redesign
 
-**Project:** PortalHC KPB — v3.17 Assessment Sub-Competency Analysis
+**Domain:** ASP.NET Core MVC Portal — UI Simplification
 **Researched:** 2026-03-10
+**Confidence:** HIGH
 
-## Verdict: No New Packages Needed
+## Summary
 
-The existing stack handles all v3.17 requirements. Chart.js is already loaded via CDN. No NuGet or JS additions required.
+Homepage redesign requires **ZERO new library additions**. The existing validated stack (Bootstrap 5.3, Chart.js, jQuery, Font Awesome, Bootstrap Icons, Inter font, AOS) is complete. This is a **pure CSS refactor** — removing glassmorphism, gradients, and animations from `home.css` to match the clean, simple card styling already established in CMP/CDP pages.
 
-## Current Stack (unchanged)
+## Recommended Stack
 
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| ASP.NET Core | .NET 8.0 | Web framework |
-| EF Core | 8.0.0 | ORM + migrations |
-| SQL Server | — | Database |
-| Bootstrap 5 | — | UI framework |
-| Chart.js | latest (CDN) | Charts — **already in `_Layout.cshtml` line 168** |
-| EPPlus / ClosedXML | — | Excel import/export |
-| QuestPDF | 2026.2.2 | PDF generation |
+### Core Technologies (No Changes)
 
-## Feature-by-Feature Stack Mapping
+| Technology | Current Version | Purpose | Status |
+|------------|-----------------|---------|--------|
+| Bootstrap | 5.3.0 | Card components, grid, responsive layout | Keep as-is (already used in CMP/CDP) |
+| Font Awesome | 6.5.1 | Icon library for cards | Keep as-is |
+| Bootstrap Icons | 1.10.0 | Icon library for badges/UI | Keep as-is |
+| Inter Font | 300–800 weights | Typography system | Keep as-is |
+| jQuery | 3.7.1 | Legacy AJAX/DOM manipulation | Keep as-is |
 
-### 1. SubCompetency Column on PackageQuestion
+### Supporting Libraries (Reduced Usage on Homepage)
 
-**Need:** Add `string? SubCompetency` to `PackageQuestion` model, EF Core migration.
+| Library | Current Version | Purpose | Homepage Status |
+|---------|-----------------|---------|-----------------|
+| AOS (Animate On Scroll) | 2.3.1 | Scroll animations | Remove from homepage; keep for other pages |
+| Chart.js | Latest via CDN | Dashboard visualizations | Not used on homepage (keep in _Layout.cshtml) |
 
-**Stack:** EF Core migrations. Standard nullable string column addition. No new packages.
+## What to Use on Homepage (CMP/CDP Pattern)
 
-```csharp
-// PackageQuestion addition
-public string? SubCompetency { get; set; }
+Homepage should follow the **exact styling pattern** already proven in CMP/CDP Index views:
+
+```html
+<div class="card border-0 shadow-sm h-100">
+  <div class="card-body">
+    <div class="d-flex align-items-center mb-3">
+      <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+        <i class="bi bi-[icon] fs-3"></i>
+      </div>
+      <div>
+        <h5 class="mb-0">Card Title</h5>
+        <small class="text-muted">Subtitle</small>
+      </div>
+    </div>
+    <p class="text-muted mb-3">Description text</p>
+    <a href="#" class="btn btn-primary w-100">Action</a>
+  </div>
+</div>
 ```
 
-### 2. Excel Import Update (Sub Kompetensi column)
+**Key Bootstrap utility classes to embrace:**
+- `border-0` — Remove default card border
+- `shadow-sm` — Light, subtle shadow (no glassmorphism)
+- `bg-opacity-10` — Subtle background color for icon boxes
+- `rounded-3` — Bootstrap's rounded corners (no custom blur/effects)
+- `text-muted` — Standard gray text for descriptions
+- `g-4` — Gap/spacing between grid items
+- `h-100` — Full height cards
 
-**Need:** Add "Sub Kompetensi" column to import template, parse during import.
+## What NOT to Use on Homepage
 
-**Stack:** Existing Excel library already handles this. Add one column read in the import logic.
+| Avoid (Remove from home.css) | Why | Use Instead |
+|------------------------------|-----|-------------|
+| Glassmorphism effects (backdrop-filter: blur) | Creates visual complexity, inconsistent with CMP/CDP | Plain Bootstrap cards with `shadow-sm` |
+| Custom gradient backgrounds | Overcomplicated hero section | Simple `bg-primary` or solid color background |
+| CSS gradient text (`-webkit-background-clip: text`) | Hard to maintain, accessibility issues | Plain text or `text-primary` classes |
+| Circular progress SVG with gradients | Unnecessary complexity for status display | Simple progress bars or text percentage |
+| AOS animation library on homepage | Page feels cluttered, inconsistent with CDP simplicity | Bootstrap `fade` animations only (CSS-only, no JS) |
+| Custom timeline styling with pseudo-elements | Recent Activity section will be removed | N/A (section removed per project brief) |
+| Rounded pill buttons (`rounded-pill`) | Too playful for professional portal | Standard Bootstrap button classes (`btn-primary`, etc.) |
+| Hero section with gradient + blur overlays | Excessive visual weight | Simple solid background with clear typography |
 
-### 3. Radar Chart (Spider Web) on Results Page
+## CSS Changes Scope
 
-**Need:** Chart.js radar chart showing percentage score per sub-competency.
+### Remove from home.css
 
-**Stack:** Chart.js `type: 'radar'` — built-in chart type, no plugins needed. Already loaded globally via CDN.
+1. **Hero section glassmorphism**
+   - Remove `::before` and `::after` pseudo-elements with blur effects
+   - Remove `backdrop-filter: blur(10px)` from `.hero-badge` and `.hero-avatar`
+   - Simplify to solid background or Bootstrap's `bg-primary` class
 
-```javascript
-new Chart(ctx, {
-    type: 'radar',
-    data: {
-        labels: subCompetencyNames,   // from server via JSON
-        datasets: [{
-            label: 'Skor (%)',
-            data: percentages,
-            backgroundColor: 'rgba(54, 162, 235, 0.2)',
-            borderColor: 'rgb(54, 162, 235)'
-        }]
-    },
-    options: {
-        scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } }
-    }
-});
-```
+2. **Glass card styling**
+   - Remove entire `.glass-card` class and variants
+   - Remove `backdrop-filter`, custom borders, gradient overlays
+   - Replace with Bootstrap's `.card.border-0.shadow-sm`
 
-### 4. Summary Table (Sub Kompetensi | Benar | Total | %)
+3. **Circular progress visualization**
+   - Remove SVG-based circular progress
+   - Replace with simple text percentage or Bootstrap progress bar if needed
 
-**Need:** Server-side calculation, render as Bootstrap table.
+4. **Quick Access card animations**
+   - Remove `transform: scale()` and custom transitions
+   - Use Bootstrap's standard card styling with `shadow-sm`
+   - Keep simple hover effect: `box-shadow` only (no transform)
 
-**Stack:** LINQ GroupBy on `PackageQuestion.SubCompetency`, join with `PackageUserResponse`. Pure C# + Razor.
+5. **Timeline and Deadline cards**
+   - Remove `.timeline` and `.deadline-card` sections entirely (per project spec)
+   - Remove custom gradient borders, markers, pseudo-elements
 
-### 5. ViewModel Extension
+6. **Custom gradient utilities**
+   - Remove `:root` CSS variables for gradients
+   - Remove `.gradient-text` class
+   - Remove `.badge-gradient` class
 
-```csharp
-public List<SubCompetencyScoreItem>? SubCompetencyScores { get; set; }
+### Keep from home.css
 
-public class SubCompetencyScoreItem
-{
-    public string SubCompetency { get; set; } = "";
-    public int Correct { get; set; }
-    public int Total { get; set; }
-    public int Percentage { get; set; }
-}
-```
+1. **Responsive design media queries** (adapt to new simpler card structure)
+2. **Typography hierarchy** (keep Inter font sizing, but simplify)
+3. **Icon box styling** (adapt to Bootstrap's `bg-opacity-10` pattern)
+4. **Basic spacing and padding** (Bootstrap grid already handles this)
 
-## What NOT to Add
+### Add/Verify in home.css
 
-| Library | Why Not |
-|---------|---------|
-| Chart.js NuGet package | Already loaded via CDN — do not duplicate |
-| chartjs-plugin-datalabels | Radar chart tooltips/labels work natively |
-| D3.js or other charting lib | Chart.js radar is sufficient; D3 is overkill |
-| Any server-side chart rendering | Client-side Chart.js handles it |
+1. **Simple card hover effect**
+   ```css
+   .card {
+       transition: transform 0.2s, box-shadow 0.2s;
+   }
+   .card:hover {
+       transform: translateY(-5px);
+       box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+   }
+   ```
+   *(Copy from CMP/CDP Index views — already proven pattern)*
 
-## Confidence: HIGH
+2. **Icon box standardization**
+   ```css
+   .icon-box {
+       width: 60px;
+       height: 60px;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+   }
+   ```
+   *(Copy from CMP/CDP Index views)*
 
-All features use patterns already established in the codebase. Chart.js confirmed present in `_Layout.cshtml`. Zero new dependencies.
+## Installation / Update
+
+**NO npm packages to install or update.**
+
+Only action required:
+1. Edit `wwwroot/css/home.css` to remove glassmorphism/animation styles
+2. Update `Views/Home/Index.cshtml` to remove:
+   - `data-aos` attributes from all elements
+   - Glass card classes → use Bootstrap `.card.border-0.shadow-sm`
+   - Circular progress SVG → use simple text percentage
+   - Timeline section (Recent Activity) → remove entirely per spec
+   - Upcoming Deadlines section → remove entirely per spec
+   - Quick Access cards → simplify styling to match CMP/CDP pattern
+
+3. `Views/Shared/_Layout.cshtml`: No changes needed (AOS library stays for other pages)
+
+## Stack Validation Against Existing Pages
+
+Homepage redesign maintains **full compatibility** with CMP/CDP:
+
+| Component | Bootstrap Version | Used On | Notes |
+|-----------|------------------|---------|-------|
+| Card component | 5.3.0 | CMP Index, CDP Index, Homepage (new) | No version conflicts |
+| Icon system | FA 6.5.1 + BI 1.10.0 | All pages | No changes needed |
+| Spacing/grid | Bootstrap 5.3 utilities | All pages | Harmonizes design language |
+| Shadows | Bootstrap `.shadow-sm` utility | CMP/CDP (new on Homepage) | No custom shadow CSS needed |
+
+## Why This Stack for Minimalist Redesign
+
+1. **Bootstrap 5.3 is proven** — CMP/CDP pages already use it successfully with clean card styling
+2. **Zero additional libraries** — avoids bloat, maintains performance
+3. **Reduced JavaScript dependency** — removing AOS from homepage reduces JS execution
+4. **Consistency with platform** — users see unified design language across all features
+5. **Maintainability** — simple Bootstrap utilities are easier to update than custom glassmorphism CSS
+6. **Accessibility** — plain text and standard contrasts better than gradient text
+7. **Performance** — no `backdrop-filter` (GPU-intensive) = faster paint operations
+
+## Alternatives Considered
+
+| Original Choice | Alternative | Why Not Used |
+|-----------------|-------------|--------------|
+| Remove glassmorphism entirely | Keep limited glassmorphism on hero only | Dilutes simplification goal; CMP/CDP don't use it anywhere |
+| Keep AOS animations on homepage | Remove all AOS from homepage | Homepage should feel fast/direct; animations clash with minimalist theme |
+| Create custom "hybrid" CSS | Follow CMP/CDP pattern exactly | Reduces tech debt; easier for future maintainers |
+| Use custom progress visualization | Bootstrap progress bar or text-only | Text percentage is clearest for IDP status |
+
+## Compatibility Notes
+
+- **Bootstrap 5.3.0** is compatible with the existing _Layout.cshtml setup — no version upgrades needed
+- **Removing AOS from homepage** does NOT break _Layout.cshtml (library loaded globally but won't initialize on removed `data-aos` attributes)
+- **Custom home.css** will be much smaller after glassmorphism removal (~40% size reduction estimated)
 
 ## Sources
 
-- Verified: `Views/Shared/_Layout.cshtml` line 168 — Chart.js CDN
-- Verified: `Models/AssessmentPackage.cs` — PackageQuestion model
-- Verified: `Models/AssessmentResultsViewModel.cs` — current ViewModel
+- **Existing codebase validation:**
+  - `Views/CMP/Index.cshtml` — Reference pattern for simple card styling
+  - `Views/CDP/Index.cshtml` — Reference pattern for simple card styling
+  - `Views/Shared/_Layout.cshtml` — Verified Bootstrap 5.3.0 and dependencies
+  - `wwwroot/css/home.css` — Current implementation (512 lines of glassmorphism)
+
+- **Bootstrap 5.3 documentation** — Standard card and utility class usage (already proven in use)
+- **User preference** — From MEMORY.md: "User loves clean Bootstrap styling (as in CMP/CDP pages)"
+
+---
+
+**Stack Research for:** Homepage Minimalist Redesign — ASP.NET Core MVC Portal
+**Researched:** 2026-03-10
+**Conclusion:** No new libraries needed. Pure CSS refactor to match proven CMP/CDP styling pattern.
