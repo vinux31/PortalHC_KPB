@@ -55,7 +55,7 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 **Phase:** 144 of 144 (Export PDF Form GAST)
 **Plan:** 1 of 1 (complete)
 **Status:** Milestone complete
-**Last activity:** 2026-03-09 — Completed 144-01 Export PDF Form GAST
+**Last activity:** 2026-03-10 - Completed quick task 22: Fix CMP Records breadcrumb link pointing to error page instead of CMP Index
 
 Progress: [██████████] 100%
 
@@ -76,6 +76,12 @@ Progress: [██████████] 100%
 ### Blockers/Concerns
 
 None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 22 | Fix CMP Records breadcrumb link pointing to error page instead of CMP Index | 2026-03-10 | 3cb34b6 | [22-fix-cmp-records-breadcrumb-link-pointing](./quick/22-fix-cmp-records-breadcrumb-link-pointing/) |
 
 ---
 *State updated: 2026-03-09 after completing 144-01 Export PDF Form GAST*
