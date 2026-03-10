@@ -100,6 +100,114 @@
         </div>
     }
 
+    <!-- Analisis Sub Kompetensi -->
+    @if (Model.SubCompetencyScores != null && Model.SubCompetencyScores.Any())
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-radar me-2 text-primary"></i>Analisis Sub Kompetensi</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.SubCompetencyScores.Count >= 3)
+                {
+                    <div class="text-center mb-4">
+                        <canvas id="subCompRadarChart" style="max-height: 350px;"></canvas>
+                    </div>
+                }
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sub Kompetensi</th>
+                                <th class="text-center">Benar</th>
+                                <th class="text-center">Total</th>
+                                <th class="text-center">Persentase</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sc in Model.SubCompetencyScores)
+                            {
+                                <tr>
+                                    <td>@sc.Name</td>
+                                    <td class="text-center">@sc.Correct</td>
+                                    <td class="text-center">@sc.Total</td>
+                                    <td class="text-center">
+                                        <span class="badge @(sc.Percentage >= Model.PassPercentage ? "bg-success" : "bg-danger")">
+                                            @sc.Percentage%
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light fw-bold">
+                            @{
+                                var totalBenar = Model.SubCompetencyScores.Sum(s => s.Correct);
+                                var totalSoal = Model.SubCompetencyScores.Sum(s => s.Total);
+                                var totalPct = totalSoal > 0 ? Math.Round((double)totalBenar / totalSoal * 100, 1) : 0;
+                            }
+                            <tr>
+                                <td>Total</td>
+                                <td class="text-center">@totalBenar</td>
+                                <td class="text-center">@totalSoal</td>
+                                <td class="text-center">
+                                    <span class="badge @(totalPct >= Model.PassPercentage ? "bg-success" : "bg-danger")">
+                                        @totalPct%
+                                    </span>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.SubCompetencyScores.Count >= 3)
+        {
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var labels = @Html.Raw(Json.Serialize(Model.SubCompetencyScores.Select(s => s.Name)));
+                var data = @Html.Raw(Json.Serialize(Model.SubCompetencyScores.Select(s => s.Percentage)));
+                var truncated = labels.map(function(l) { return l.length > 20 ? l.substring(0, 20) + '...' : l; });
+
+                new Chart(document.getElementById('subCompRadarChart'), {
+                    type: 'radar',
+                    data: {
+                        labels: truncated,
+                        datasets: [{
+                            label: 'Persentase Benar',
+                            data: data,
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(items) { return labels[items[0].dataIndex]; },
+                                    label: function(item) { return item.raw + '%'; }
+                                }
+                            }
+                        },
+                        scales: {
+                            r: {
+                                min: 0,
+                                max: 100,
+                                ticks: { stepSize: 25, callback: function(v) { return v + '%'; } },
+                                pointLabels: { font: { size: 11 } }
+                            }
+                        }
+                    }
+                });
+            });
+            </script>
+        }
+    }
+
     <!-- Kompetensi Diperoleh (Competencies Earned) -->
     @if (Model.CompetencyGains != null && Model.CompetencyGains.Any())
     {
@@ -224,3 +332,11 @@
         </a>
     </div>
 </div>
+
+<style>
+    @@media print {
+        #subCompRadarChart { width: 500px !important; height: 500px !important; }
+        .card.shadow-sm { break-inside: avoid; }
+        .badge { border: 1px solid #000; }
+    }
+</style>
