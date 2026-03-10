@@ -7,9 +7,9 @@
 
 ### Sub-Competency Tagging
 
-- [ ] **SUBTAG-01**: HC dapat import soal dengan kolom opsional "Sub Kompetensi" di template Excel
+- [x] **SUBTAG-01**: HC dapat import soal dengan kolom opsional "Sub Kompetensi" di template Excel
 - [x] **SUBTAG-02**: PackageQuestion menyimpan field SubCompetency (nullable string) via migration
-- [ ] **SUBTAG-03**: Import logic memparse, menormalisasi (trim/case), dan menyimpan Sub Kompetensi per soal — backward compatible dengan template lama
+- [x] **SUBTAG-03**: Import logic memparse, menormalisasi (trim/case), dan menyimpan Sub Kompetensi per soal — backward compatible dengan template lama
 
 ### Assessment Analysis
 
@@ -35,9 +35,9 @@ None deferred.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUBTAG-01 | Phase 146 | Pending |
+| SUBTAG-01 | Phase 146 | Complete |
 | SUBTAG-02 | Phase 145 | Complete |
-| SUBTAG-03 | Phase 146 | Pending |
+| SUBTAG-03 | Phase 146 | Complete |
 | ANAL-01 | Phase 147 | Pending |
 | ANAL-02 | Phase 147 | Pending |
 | ANAL-03 | Phase 147 | Pending |

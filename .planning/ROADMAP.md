@@ -73,7 +73,7 @@
 ## Phases
 
 - [x] **Phase 145: Data Model & Migration** - Add SubCompetency nullable string field to PackageQuestion with DB migration and ViewModel class (completed 2026-03-10)
-- [ ] **Phase 146: Excel Import Update** - Update import template and parsing logic to support optional Sub Kompetensi column
+- [x] **Phase 146: Excel Import Update** - Update import template and parsing logic to support optional Sub Kompetensi column (completed 2026-03-10)
 - [ ] **Phase 147: Scoring & Results UI** - Calculate per-sub-competency scores and render radar chart + summary table on Results page
 
 ## Phase Details
@@ -100,7 +100,7 @@ Plans:
   2. Import with Sub Kompetensi values saves normalized (trimmed, consistent casing) SubCompetency per question
   3. Import with old template (no Sub Kompetensi column) still works without errors — backward compatible
   4. Questions with different casing of the same sub-competency name are normalized to a single canonical form
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 146-01-PLAN.md — Add Sub Kompetensi column to template, extend import parsing with normalization
@@ -127,5 +127,5 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 145. Data Model & Migration | 1/1 | Complete    | 2026-03-10 |
-| 146. Excel Import Update | 0/1 | Not started | - |
+| 146. Excel Import Update | 1/1 | Complete   | 2026-03-10 |
 | 147. Scoring & Results UI | 0/1 | Not started | - |
