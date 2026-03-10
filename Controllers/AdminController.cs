@@ -8,6 +8,7 @@ using HcPortal.Models.Competency;
 using HcPortal.Data;
 using HcPortal.Services;
 using ClosedXML.Excel;
+using System.Globalization;
 
 namespace HcPortal.Controllers
 {
@@ -5070,7 +5071,7 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Question Import");
 
-            var headers = new[] { "Question", "Option A", "Option B", "Option C", "Option D", "Correct" };
+            var headers = new[] { "Question", "Option A", "Option B", "Option C", "Option D", "Correct", "Sub Kompetensi" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -5087,7 +5088,8 @@ namespace HcPortal.Controllers
                 "Memurnikan air limbah industri",
                 "Menghasilkan energi listrik dari gas alam",
                 "Mengolah bahan baku batubara menjadi coke",
-                "A"
+                "A",
+                "Sub Kompetensi x.x"
             };
             for (int i = 0; i < example.Length; i++)
             {
@@ -5096,10 +5098,14 @@ namespace HcPortal.Controllers
                 ws.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray;
             }
 
-            // Instruction row
+            // Instruction rows
             ws.Cell(3, 1).Value = "Kolom Correct: isi dengan huruf A, B, C, atau D (tidak peka huruf besar/kecil)";
             ws.Cell(3, 1).Style.Font.Italic = true;
             ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+
+            ws.Cell(4, 1).Value = "Kolom Sub Kompetensi: opsional, isi nama sub-kompetensi. Kosongkan jika tidak ada.";
+            ws.Cell(4, 1).Style.Font.Italic = true;
+            ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
 
             ws.Columns().AdjustToContents();
 
@@ -5363,6 +5369,13 @@ namespace HcPortal.Controllers
             if (raw.StartsWith("OPTION ") && raw.Length > 7 && "ABCD".Contains(raw[7]))
                 return raw[7].ToString();
             return raw;
+        }
+
+        private static string? NormalizeSubCompetency(string? raw)
+        {
+            if (string.IsNullOrWhiteSpace(raw)) return null;
+            var cleaned = System.Text.RegularExpressions.Regex.Replace(raw.Trim(), @"\s+", " ");
+            return CultureInfo.InvariantCulture.TextInfo.ToTitleCase(cleaned.ToLowerInvariant());
         }
 
         private static string NormalizePackageText(string s)
