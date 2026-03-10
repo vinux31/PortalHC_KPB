@@ -100,10 +100,10 @@ Plans:
   2. Import with Sub Kompetensi values saves normalized (trimmed, consistent casing) SubCompetency per question
   3. Import with old template (no Sub Kompetensi column) still works without errors — backward compatible
   4. Questions with different casing of the same sub-competency name are normalized to a single canonical form
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 146-01: TBD
+- [ ] 146-01-PLAN.md — Add Sub Kompetensi column to template, extend import parsing with normalization
 
 ### Phase 147: Scoring & Results UI
 **Goal**: Results page displays per-sub-competency analysis with radar chart and summary table
