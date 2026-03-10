@@ -82,7 +82,7 @@
 ## Phases
 
 - [x] **Phase 148: CSS Audit & Cleanup** - Audit CSS dependencies then strip glassmorphism, animation, timeline, and deadline styles from home.css (completed 2026-03-10)
-- [ ] **Phase 149: Homepage View & Controller Redesign** - Remove glass cards, timeline, deadlines from view; simplify hero and quick access markup; optimize controller data-fetching
+- [x] **Phase 149: Homepage View & Controller Redesign** - Remove glass cards, timeline, deadlines from view; simplify hero and quick access markup; optimize controller data-fetching (completed 2026-03-10)
 
 ## Phase Details
 
@@ -117,4 +117,4 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 148. CSS Audit & Cleanup | 1/1 | Complete    | 2026-03-10 |
-| 149. Homepage View & Controller Redesign | 0/TBD | Not started | - |
+| 149. Homepage View & Controller Redesign | 1/1 | Complete   | 2026-03-10 |
