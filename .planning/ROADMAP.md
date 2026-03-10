@@ -89,13 +89,10 @@
 ### Phase 148: CSS Audit & Cleanup
 **Goal**: home.css contains only styles required by the simplified homepage — glassmorphism, blur effects, animation, and unused section styles are gone
 **Depends on**: Nothing (first phase)
-**Requirements**: CSS-01, CSS-02, CSS-03
-**Success Criteria** (what must be TRUE):
-  1. home.css contains no glass-card, backdrop-filter, or blur pseudo-element rules
-  2. home.css contains no timeline or deadline-card styling rules
-  3. No data-aos animation attributes appear on Homepage elements
-  4. CMP, CDP, and Admin pages are visually unaffected — no classes were shared and removed
-**Plans**: TBD
+: 1 plan
+
+Plans:
+- [ ] 148-01-PLAN.md — Remove glassmorphism, timeline, and deadline CSS; strip data-aos from Homepage
 
 ### Phase 149: Homepage View & Controller Redesign
 **Goal**: Homepage displays a clean hero greeting and Quick Access cards only — no glass cards, no timeline, no deadlines — and the controller fetches only the data the page actually uses
@@ -116,5 +113,5 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 148. CSS Audit & Cleanup | 0/TBD | Not started | - |
+| 148. CSS Audit & Cleanup | 0/1 | Not started | - |
 | 149. Homepage View & Controller Redesign | 0/TBD | Not started | - |
