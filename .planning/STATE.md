@@ -2,11 +2,26 @@
 gsd_state_version: 1.0
 milestone: v3.18
 milestone_name: Homepage Minimalist Redesign
+status: planning
+last_updated: "2026-03-10T07:16:49.716Z"
+last_activity: "2026-03-10 — Roadmap created (2 phases: 148-149)"
+progress:
+  total_phases: 2
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.18
+milestone_name: Homepage Minimalist Redesign
 status: roadmap_created
 last_updated: "2026-03-10"
 last_activity: 2026-03-10 — Roadmap created, 2 phases defined (148-149)
 progress:
-  total_phases: 2
+  [██████████] 100%
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -48,6 +63,8 @@ Progress: [░░░░░░░░░░] 0%
 - Color scheme unchanged — only design/layout simplification
 - AOS library stays in _Layout.cshtml (used by Guide.cshtml) — remove only data-aos attributes from homepage
 - CSS audit MUST run before view changes to detect any shared class names across CMP/CDP/Admin pages
+- [Phase 148-css-audit-cleanup]: Removed glassmorphism CSS (glass-card, blur pseudo-elements, backdrop-filter) from home.css while preserving .hero-section base rule for Phase 149 reuse
+- [Phase 148-css-audit-cleanup]: AOS library stays in _Layout.cshtml; only homepage data-aos attributes removed (Guide.cshtml retains its own)
 
 ### Blockers/Concerns
 

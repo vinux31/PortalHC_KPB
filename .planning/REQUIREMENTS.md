@@ -25,9 +25,9 @@ Requirements for Homepage Minimalist Redesign. Each maps to roadmap phases.
 
 ### CSS Cleanup
 
-- [ ] **CSS-01**: home.css tidak mengandung unused glassmorphism styles (glass-card, backdrop-filter, blur pseudo-elements)
-- [ ] **CSS-02**: home.css tidak mengandung unused timeline/deadline styles
-- [ ] **CSS-03**: Homepage tidak menggunakan data-aos animation attributes
+- [x] **CSS-01**: home.css tidak mengandung unused glassmorphism styles (glass-card, backdrop-filter, blur pseudo-elements)
+- [x] **CSS-02**: home.css tidak mengandung unused timeline/deadline styles
+- [x] **CSS-03**: Homepage tidak menggunakan data-aos animation attributes
 
 ## Future Requirements
 
@@ -46,9 +46,9 @@ None for this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CSS-01 | Phase 148 | Pending |
-| CSS-02 | Phase 148 | Pending |
-| CSS-03 | Phase 148 | Pending |
+| CSS-01 | Phase 148 | Complete |
+| CSS-02 | Phase 148 | Complete |
+| CSS-03 | Phase 148 | Complete |
 | HOME-01 | Phase 149 | Pending |
 | HOME-02 | Phase 149 | Pending |
 | HOME-03 | Phase 149 | Pending |
