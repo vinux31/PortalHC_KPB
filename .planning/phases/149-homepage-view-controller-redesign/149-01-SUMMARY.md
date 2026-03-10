@@ -21,10 +21,11 @@ decisions:
   - Kept Font Awesome icons in hero section (consistent with existing hero markup)
   - Used Bootstrap Icons (bi-*) for Quick Access cards to match CMP/CDP Index page pattern
   - Removed hero-stats and hero-stat-item CSS rules as they had no HTML usage in the new view
+requirements_completed: [HOME-01, HOME-02, HOME-03, HOME-04, HERO-01, HERO-02, QUICK-01]
 metrics:
-  duration: ~10 minutes
-  completed: "2026-03-10T08:50:37Z"
-  tasks_completed: 2
+  duration: ~25 minutes
+  completed: "2026-03-10"
+  tasks_completed: 3
   files_modified: 4
 ---
 
@@ -92,9 +93,14 @@ None — plan executed exactly as written.
 - `1562a9b`: feat(149-01): simplify ViewModel and Controller for homepage redesign
 - `bc31275`: feat(149-01): rewrite homepage view and strip unused CSS
 
-## Awaiting
+## Task 3: Visual Verification — APPROVED
 
-Task 3 (checkpoint:human-verify) requires visual verification of the redesigned homepage in the browser.
+User verified in browser (2026-03-10):
+- Hero section with gradient background confirmed
+- Greeting, full name, position badge, unit badge, and date all render correctly
+- Three Quick Access cards (CDP, Assessment, CMP) display with Bootstrap styling
+- No glass cards, no timeline, no deadlines section visible
+- CMP and CDP pages load normally
 
 ## Self-Check: PASSED
 

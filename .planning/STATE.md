@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v3.18
 milestone_name: Homepage Minimalist Redesign
 status: planning
-last_updated: "2026-03-10T08:51:20.251Z"
+last_updated: "2026-03-10T08:56:26.386Z"
 last_activity: "2026-03-10 — Roadmap created (2 phases: 148-149)"
 progress:
   total_phases: 2
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 148-css-audit-cleanup]: Removed glassmorphism CSS (glass-card, blur pseudo-elements, backdrop-filter) from home.css while preserving .hero-section base rule for Phase 149 reuse
 - [Phase 148-css-audit-cleanup]: AOS library stays in _Layout.cshtml; only homepage data-aos attributes removed (Guide.cshtml retains its own)
 - [Phase 149]: Removed _context DI from HomeController entirely; hero-stats CSS removed as no HTML usage in new view
+- [Phase 149-homepage-view-controller-redesign]: Removed _context DI from HomeController entirely — no remaining action uses it after redesign
 
 ### Blockers/Concerns
 
