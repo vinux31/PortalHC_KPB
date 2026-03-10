@@ -115,10 +115,10 @@ Plans:
   3. Results page displays a summary table with columns: Sub Kompetensi, Benar, Total, Persentase
   4. Radar chart and summary table are hidden when questions have no SubCompetency data (graceful degradation for legacy assessments)
   5. Radar chart renders correctly for 3-8 sub-competency axes; below 3 only the table is shown
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 147-01: TBD
+- [ ] 147-01-PLAN.md — Sub-competency scoring, radar chart, and summary table on Results page
 
 ## Progress
 
