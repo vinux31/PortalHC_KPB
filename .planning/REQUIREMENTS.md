@@ -9,19 +9,19 @@ Requirements for Homepage Minimalist Redesign. Each maps to roadmap phases.
 
 ### Homepage Cleanup
 
-- [ ] **HOME-01**: Homepage tidak menampilkan glass cards (IDP Status, Pending Assessment, Mandatory Training)
-- [ ] **HOME-02**: Homepage tidak menampilkan Recent Activity timeline section
-- [ ] **HOME-03**: Homepage tidak menampilkan Upcoming Deadlines section
-- [ ] **HOME-04**: Controller/ViewModel tidak lagi fetch data yang tidak dipakai (activities, deadlines)
+- [x] **HOME-01**: Homepage tidak menampilkan glass cards (IDP Status, Pending Assessment, Mandatory Training)
+- [x] **HOME-02**: Homepage tidak menampilkan Recent Activity timeline section
+- [x] **HOME-03**: Homepage tidak menampilkan Upcoming Deadlines section
+- [x] **HOME-04**: Controller/ViewModel tidak lagi fetch data yang tidak dipakai (activities, deadlines)
 
 ### Hero Redesign
 
-- [ ] **HERO-01**: Hero section menggunakan styling clean tanpa glassmorphism/gradient pseudo-elements
-- [ ] **HERO-02**: Hero section tetap menampilkan greeting, nama, position, unit, dan tanggal
+- [x] **HERO-01**: Hero section menggunakan styling clean tanpa glassmorphism/gradient pseudo-elements
+- [x] **HERO-02**: Hero section tetap menampilkan greeting, nama, position, unit, dan tanggal
 
 ### Quick Access
 
-- [ ] **QUICK-01**: Quick Access cards menggunakan Bootstrap card pattern (shadow-sm, border-0) seperti CMP/CDP
+- [x] **QUICK-01**: Quick Access cards menggunakan Bootstrap card pattern (shadow-sm, border-0) seperti CMP/CDP
 
 ### CSS Cleanup
 
@@ -49,13 +49,13 @@ None for this milestone.
 | CSS-01 | Phase 148 | Complete |
 | CSS-02 | Phase 148 | Complete |
 | CSS-03 | Phase 148 | Complete |
-| HOME-01 | Phase 149 | Pending |
-| HOME-02 | Phase 149 | Pending |
-| HOME-03 | Phase 149 | Pending |
-| HOME-04 | Phase 149 | Pending |
-| HERO-01 | Phase 149 | Pending |
-| HERO-02 | Phase 149 | Pending |
-| QUICK-01 | Phase 149 | Pending |
+| HOME-01 | Phase 149 | Complete |
+| HOME-02 | Phase 149 | Complete |
+| HOME-03 | Phase 149 | Complete |
+| HOME-04 | Phase 149 | Complete |
+| HERO-01 | Phase 149 | Complete |
+| HERO-02 | Phase 149 | Complete |
+| QUICK-01 | Phase 149 | Complete |
 
 **Coverage:**
 - v3.18 requirements: 10 total
