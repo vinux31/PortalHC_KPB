@@ -13,10 +13,10 @@
 
 ### Assessment Analysis
 
-- [ ] **ANAL-01**: Sistem menghitung skor per sub-competency setelah worker submit exam (GroupBy SubCompetency → % benar)
-- [ ] **ANAL-02**: Results page menampilkan spider web radar chart (Chart.js) dengan axis per sub-competency
-- [ ] **ANAL-03**: Results page menampilkan summary tabel (Sub Kompetensi | Benar | Total | %)
-- [ ] **ANAL-04**: Radar chart dan tabel hanya tampil jika soal memiliki data SubCompetency (graceful hide untuk data lama)
+- [x] **ANAL-01**: Sistem menghitung skor per sub-competency setelah worker submit exam (GroupBy SubCompetency → % benar)
+- [x] **ANAL-02**: Results page menampilkan spider web radar chart (Chart.js) dengan axis per sub-competency
+- [x] **ANAL-03**: Results page menampilkan summary tabel (Sub Kompetensi | Benar | Total | %)
+- [x] **ANAL-04**: Radar chart dan tabel hanya tampil jika soal memiliki data SubCompetency (graceful hide untuk data lama)
 
 ## Future Requirements
 
@@ -38,10 +38,10 @@ None deferred.
 | SUBTAG-01 | Phase 146 | Complete |
 | SUBTAG-02 | Phase 145 | Complete |
 | SUBTAG-03 | Phase 146 | Complete |
-| ANAL-01 | Phase 147 | Pending |
-| ANAL-02 | Phase 147 | Pending |
-| ANAL-03 | Phase 147 | Pending |
-| ANAL-04 | Phase 147 | Pending |
+| ANAL-01 | Phase 147 | Complete |
+| ANAL-02 | Phase 147 | Complete |
+| ANAL-03 | Phase 147 | Complete |
+| ANAL-04 | Phase 147 | Complete |
 
 **Coverage:**
 - v3.17 requirements: 7 total

@@ -74,7 +74,7 @@
 
 - [x] **Phase 145: Data Model & Migration** - Add SubCompetency nullable string field to PackageQuestion with DB migration and ViewModel class (completed 2026-03-10)
 - [x] **Phase 146: Excel Import Update** - Update import template and parsing logic to support optional Sub Kompetensi column (completed 2026-03-10)
-- [ ] **Phase 147: Scoring & Results UI** - Calculate per-sub-competency scores and render radar chart + summary table on Results page
+- [x] **Phase 147: Scoring & Results UI** - Calculate per-sub-competency scores and render radar chart + summary table on Results page (completed 2026-03-10)
 
 ## Phase Details
 
@@ -115,7 +115,7 @@ Plans:
   3. Results page displays a summary table with columns: Sub Kompetensi, Benar, Total, Persentase
   4. Radar chart and summary table are hidden when questions have no SubCompetency data (graceful degradation for legacy assessments)
   5. Radar chart renders correctly for 3-8 sub-competency axes; below 3 only the table is shown
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 147-01-PLAN.md — Sub-competency scoring, radar chart, and summary table on Results page
@@ -128,4 +128,4 @@ Plans:
 |-------|----------------|--------|-----------|
 | 145. Data Model & Migration | 1/1 | Complete    | 2026-03-10 |
 | 146. Excel Import Update | 1/1 | Complete    | 2026-03-10 |
-| 147. Scoring & Results UI | 0/1 | Not started | - |
+| 147. Scoring & Results UI | 1/1 | Complete   | 2026-03-10 |
