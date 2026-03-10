@@ -1,53 +1,67 @@
-# Requirements: Portal HC KPB — v3.17 Assessment Sub-Competency Analysis
+# Requirements: Portal HC KPB — v3.18 Homepage Minimalist Redesign
 
 **Defined:** 2026-03-10
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.17 Requirements
+## v3.18 Requirements
 
-### Sub-Competency Tagging
+Requirements for Homepage Minimalist Redesign. Each maps to roadmap phases.
 
-- [x] **SUBTAG-01**: HC dapat import soal dengan kolom opsional "Sub Kompetensi" di template Excel
-- [x] **SUBTAG-02**: PackageQuestion menyimpan field SubCompetency (nullable string) via migration
-- [x] **SUBTAG-03**: Import logic memparse, menormalisasi (trim/case), dan menyimpan Sub Kompetensi per soal — backward compatible dengan template lama
+### Homepage Cleanup
 
-### Assessment Analysis
+- [ ] **HOME-01**: Homepage tidak menampilkan glass cards (IDP Status, Pending Assessment, Mandatory Training)
+- [ ] **HOME-02**: Homepage tidak menampilkan Recent Activity timeline section
+- [ ] **HOME-03**: Homepage tidak menampilkan Upcoming Deadlines section
+- [ ] **HOME-04**: Controller/ViewModel tidak lagi fetch data yang tidak dipakai (activities, deadlines)
 
-- [x] **ANAL-01**: Sistem menghitung skor per sub-competency setelah worker submit exam (GroupBy SubCompetency → % benar)
-- [x] **ANAL-02**: Results page menampilkan spider web radar chart (Chart.js) dengan axis per sub-competency
-- [x] **ANAL-03**: Results page menampilkan summary tabel (Sub Kompetensi | Benar | Total | %)
-- [x] **ANAL-04**: Radar chart dan tabel hanya tampil jika soal memiliki data SubCompetency (graceful hide untuk data lama)
+### Hero Redesign
+
+- [ ] **HERO-01**: Hero section menggunakan styling clean tanpa glassmorphism/gradient pseudo-elements
+- [ ] **HERO-02**: Hero section tetap menampilkan greeting, nama, position, unit, dan tanggal
+
+### Quick Access
+
+- [ ] **QUICK-01**: Quick Access cards menggunakan Bootstrap card pattern (shadow-sm, border-0) seperti CMP/CDP
+
+### CSS Cleanup
+
+- [ ] **CSS-01**: home.css tidak mengandung unused glassmorphism styles (glass-card, backdrop-filter, blur pseudo-elements)
+- [ ] **CSS-02**: home.css tidak mengandung unused timeline/deadline styles
+- [ ] **CSS-03**: Homepage tidak menggunakan data-aos animation attributes
 
 ## Future Requirements
 
-None deferred.
+None for this milestone.
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Sub-competency master data management | Free-text tags cukup, tidak perlu CRUD terpisah |
-| Legacy path (non-package) sub-competency | Hanya package path yang digunakan |
-| Bar chart fallback untuk <3 sub-competency | Tabel summary sudah cukup sebagai fallback |
-| Pre-compute scoring di tabel terpisah | On-the-fly LINQ GroupBy cukup performant |
+| CMP/CDP Index redesign | Focus Homepage only per user request |
+| Color scheme change | User confirmed colors stay, only design/layout changes |
+| Role-based Quick Access | Differentiator, defer to future milestone |
+| Personalized shortcut reordering | Differentiator, defer to future milestone |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUBTAG-01 | Phase 146 | Complete |
-| SUBTAG-02 | Phase 145 | Complete |
-| SUBTAG-03 | Phase 146 | Complete |
-| ANAL-01 | Phase 147 | Complete |
-| ANAL-02 | Phase 147 | Complete |
-| ANAL-03 | Phase 147 | Complete |
-| ANAL-04 | Phase 147 | Complete |
+| HOME-01 | — | Pending |
+| HOME-02 | — | Pending |
+| HOME-03 | — | Pending |
+| HOME-04 | — | Pending |
+| HERO-01 | — | Pending |
+| HERO-02 | — | Pending |
+| QUICK-01 | — | Pending |
+| CSS-01 | — | Pending |
+| CSS-02 | — | Pending |
+| CSS-03 | — | Pending |
 
 **Coverage:**
-- v3.17 requirements: 7 total
-- Mapped to phases: 7
-- Unmapped: 0
+- v3.18 requirements: 10 total
+- Mapped to phases: 0
+- Unmapped: 10
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after roadmap creation*
+*Last updated: 2026-03-10 after initial definition*
