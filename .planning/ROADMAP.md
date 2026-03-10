@@ -86,10 +86,10 @@
   1. PackageQuestion model has a nullable string SubCompetency property
   2. EF Core migration runs successfully and adds the column to the database
   3. Existing PackageQuestion rows retain NULL SubCompetency without errors (backward compatible)
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 145-01: TBD
+- [ ] 145-01-PLAN.md — Add SubCompetency property + EF Core migration
 
 ### Phase 146: Excel Import Update
 **Goal**: HC can import questions with optional Sub Kompetensi column via Excel template
