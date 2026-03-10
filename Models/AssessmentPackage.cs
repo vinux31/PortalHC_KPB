@@ -40,6 +40,9 @@ namespace HcPortal.Models
 
         public int ScoreValue { get; set; } = 10;
 
+        /// <summary>Optional sub-competency tag for analysis grouping (e.g. "Pengetahuan Proses").</summary>
+        public string? SubCompetency { get; set; }
+
         // Navigation
         public virtual ICollection<PackageOption> Options { get; set; } = new List<PackageOption>();
     }
