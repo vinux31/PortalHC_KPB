@@ -12,21 +12,22 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.17 — started 2026-03-10)
+## Current State (v3.18 — started 2026-03-10)
 
-**v1.0 through v3.16 shipped** — 33 milestones, 144 phases.
+**v1.0 through v3.17 shipped** — 34 milestones, 147 phases.
 
-## Current Milestone: v3.17 Assessment Sub-Competency Analysis
+## Current Milestone: v3.18 Homepage Minimalist Redesign
 
-**Goal:** Tambah identitas sub-kompetensi pada soal assessment dan tampilkan analisa spider web (radar chart) + tabel summary di Results page.
+**Goal:** Sederhanakan Homepage agar minimalis dan clean — seragamkan styling dengan halaman CMP/CDP yang sudah ada.
 
 **Target features:**
-- Tambah field SubCompetency di PackageQuestion + DB migration
-- Update import template Excel dengan kolom "Sub Kompetensi"
-- Update import logic untuk parse kolom Sub Kompetensi
-- Kalkulasi skor per sub-competency saat submit exam
-- Spider web radar chart (Chart.js) di Results page
-- Summary tabel (Sub Kompetensi | Benar | Total | %) di Results page
+- Simplify Hero section (tone down glassmorphism/gradient effects)
+- Keep Quick Access section with cleaner styling
+- Remove glass cards (IDP Status, Pending Assessment, Mandatory Training)
+- Remove Recent Activity timeline
+- Remove Upcoming Deadlines section
+- Clean up home.css — remove unused glassmorphism/animation styles
+- Seragamkan design language dengan CMP/CDP pages (Bootstrap cards, shadow-sm, simple)
 
 ## Architecture Decisions
 

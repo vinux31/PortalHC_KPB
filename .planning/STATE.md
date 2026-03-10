@@ -1,30 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.17
-milestone_name: Assessment Sub-Competency Analysis
-status: completed
-last_updated: "2026-03-10T03:00:33.727Z"
-last_activity: 2026-03-10 — Roadmap created
-progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
----
-
----
-gsd_state_version: 1.0
-milestone: v3.17
-milestone_name: Assessment Sub-Competency Analysis
+milestone: v3.18
+milestone_name: Homepage Minimalist Redesign
 status: planning
 last_updated: "2026-03-10"
-last_activity: 2026-03-10 — Roadmap created for v3.17 (3 phases, 7 requirements)
+last_activity: 2026-03-10 — Milestone v3.18 started
 progress:
-  [██████████] 100%
+  total_phases: 0
   completed_phases: 0
-  total_plans: 3
+  total_plans: 0
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -34,15 +20,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.17 Assessment Sub-Competency Analysis
+**Current focus:** v3.18 Homepage Minimalist Redesign
 
 ## Current Position
 
-**Milestone:** v3.17 Assessment Sub-Competency Analysis
-**Phase:** 145 — Data Model & Migration (next up)
+**Milestone:** v3.18 Homepage Minimalist Redesign
+**Phase:** Not started (defining requirements)
 **Plan:** —
-**Status:** Milestone complete
-**Last activity:** 2026-03-10 — Roadmap created
+**Status:** Defining requirements
+**Last activity:** 2026-03-10 — Milestone v3.18 started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -51,19 +37,15 @@ Progress: [░░░░░░░░░░] 0%
 ### Roadmap Evolution
 
 - 2026-03-09: v3.16 shipped — 2 phases (143-144) complete
-- 2026-03-10: v3.17 roadmap created — 3 phases (145-147), 7 requirements mapped
+- 2026-03-10: v3.17 shipped — 3 phases (145-147) complete
+- 2026-03-10: v3.18 started — Homepage Minimalist Redesign
 
 ### Decisions
 
-- SubCompetency as nullable string on PackageQuestion (free-text, no master data CRUD)
-- Strictly sequential: migration → import → scoring+UI
-- Radar chart via existing Chart.js CDN (already in _Layout.cshtml)
-- Case normalization during import (trim + consistent casing)
-- Minimum 3 sub-competencies for radar chart; below that table only
-- On-the-fly LINQ GroupBy for scoring (no pre-computed table)
-- [Phase 145]: SubCompetency as nullable nvarchar(max) -- free-text, no FK constraint
-- [Phase 146]: Title Case normalization via ToLowerInvariant then ToTitleCase for ALL-CAPS handling
-- [Phase 147]: Badge color threshold uses PassPercentage from assessment config
+- Keep Hero section and Quick Access on Homepage
+- Remove glass cards (IDP, Assessment, Training), Timeline, Deadlines
+- Match styling to CMP/CDP pages (Bootstrap cards, shadow-sm, no glassmorphism)
+- Color scheme unchanged — only design/layout simplification
 
 ### Blockers/Concerns
 
@@ -76,4 +58,4 @@ None.
 | 22 | Fix CMP Records breadcrumb link pointing to error page instead of CMP Index | 2026-03-10 | 3cb34b6 | [22-fix-cmp-records-breadcrumb-link-pointing](./quick/22-fix-cmp-records-breadcrumb-link-pointing/) |
 
 ---
-*State updated: 2026-03-10 after roadmap creation for v3.17*
+*State updated: 2026-03-10 after milestone v3.18 started*
