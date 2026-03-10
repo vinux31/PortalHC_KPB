@@ -35,19 +35,19 @@ None deferred.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SUBTAG-01 | TBD | Pending |
-| SUBTAG-02 | TBD | Pending |
-| SUBTAG-03 | TBD | Pending |
-| ANAL-01 | TBD | Pending |
-| ANAL-02 | TBD | Pending |
-| ANAL-03 | TBD | Pending |
-| ANAL-04 | TBD | Pending |
+| SUBTAG-01 | Phase 146 | Pending |
+| SUBTAG-02 | Phase 145 | Pending |
+| SUBTAG-03 | Phase 146 | Pending |
+| ANAL-01 | Phase 147 | Pending |
+| ANAL-02 | Phase 147 | Pending |
+| ANAL-03 | Phase 147 | Pending |
+| ANAL-04 | Phase 147 | Pending |
 
 **Coverage:**
 - v3.17 requirements: 7 total
-- Mapped to phases: 0
-- Unmapped: 7 ⚠️
+- Mapped to phases: 7
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after initial definition*
+*Last updated: 2026-03-10 after roadmap creation*
