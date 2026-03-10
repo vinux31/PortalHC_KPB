@@ -15,6 +15,7 @@ namespace HcPortal.Models
         public int CorrectAnswers { get; set; }
         public List<QuestionReviewItem>? QuestionReviews { get; set; }
         public List<CompetencyGainItem>? CompetencyGains { get; set; }
+        public List<SubCompetencyScore>? SubCompetencyScores { get; set; }
     }
 
     public class QuestionReviewItem
@@ -32,6 +33,14 @@ namespace HcPortal.Models
         public string OptionText { get; set; } = "";
         public bool IsCorrect { get; set; }
         public bool IsSelected { get; set; }
+    }
+
+    public class SubCompetencyScore
+    {
+        public string Name { get; set; } = "";
+        public int Correct { get; set; }
+        public int Total { get; set; }
+        public double Percentage { get; set; }
     }
 
     public class CompetencyGainItem

@@ -1909,6 +1909,39 @@ namespace HcPortal.Controllers
                     }
                 }
 
+                // Sub-competency scoring
+                List<SubCompetencyScore>? subCompScores = null;
+                var examQuestions = orderedQuestionIds
+                    .Where(qid => questionLookup.ContainsKey(qid))
+                    .Select(qid => questionLookup[qid])
+                    .ToList();
+                var hasRealSubCompetency = examQuestions.Any(q => !string.IsNullOrWhiteSpace(q.SubCompetency));
+                if (hasRealSubCompetency)
+                {
+                    subCompScores = examQuestions
+                        .GroupBy(q => string.IsNullOrWhiteSpace(q.SubCompetency) ? "Lainnya" : q.SubCompetency!)
+                        .Select(g =>
+                        {
+                            var total = g.Count();
+                            var correct = g.Count(q =>
+                            {
+                                if (!responseDict.TryGetValue(q.Id, out var resp)) return false;
+                                if (resp.PackageOptionId == null) return false;
+                                var sel = q.Options.FirstOrDefault(o => o.Id == resp.PackageOptionId);
+                                return sel != null && sel.IsCorrect;
+                            });
+                            return new SubCompetencyScore
+                            {
+                                Name = g.Key,
+                                Correct = correct,
+                                Total = total,
+                                Percentage = Math.Round((double)correct / total * 100, 1)
+                            };
+                        })
+                        .OrderBy(s => s.Name)
+                        .ToList();
+                }
+
                 viewModel = new AssessmentResultsViewModel
                 {
                     AssessmentId = assessment.Id,
@@ -1922,7 +1955,8 @@ namespace HcPortal.Controllers
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = orderedQuestionIds.Count,
                     CorrectAnswers = correctCount,
-                    QuestionReviews = questionReviews
+                    QuestionReviews = questionReviews,
+                    SubCompetencyScores = subCompScores
                 };
             }
             else
