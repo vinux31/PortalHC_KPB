@@ -1,48 +1,53 @@
-# Requirements: Portal HC KPB — v3.16 Form Coaching GAST Redesign
+# Requirements: Portal HC KPB — v3.17 Assessment Sub-Competency Analysis
 
-**Defined:** 2026-03-09
+**Defined:** 2026-03-10
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.16 Requirements
+## v3.17 Requirements
 
-### Modal Form Evidence (FORM)
+### Sub-Competency Tagging
 
-- [x] **FORM-01**: Modal form evidence coaching memiliki bagian Acuan yang grouped (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen) sebagai textarea
-- [x] **FORM-02**: Data Acuan tersimpan di database (CoachingSession model + migration)
-- [x] **FORM-03**: JS submit handler mengirim 4 field Acuan baru ke controller dan tersimpan
+- [ ] **SUBTAG-01**: HC dapat import soal dengan kolom opsional "Sub Kompetensi" di template Excel
+- [ ] **SUBTAG-02**: PackageQuestion menyimpan field SubCompetency (nullable string) via migration
+- [ ] **SUBTAG-03**: Import logic memparse, menormalisasi (trim/case), dan menyimpan Sub Kompetensi per soal — backward compatible dengan template lama
 
-### Export PDF (PDF)
+### Assessment Analysis
 
-- [ ] **PDF-01**: Export PDF menggunakan layout 3-column table (Acuan / Catatan Coach / Kesimpulan dari Coach) sesuai Form GAST
-- [ ] **PDF-02**: Kesimpulan dan Result ditampilkan sebagai checkbox (checked sesuai value)
-- [ ] **PDF-03**: TTD Coach + Nopeg di bagian bawah (tanpa TTD Coachee)
-- [ ] **PDF-04**: Header (SUB.KOMPETENSI, DELIVERABLES, Tanggal) dan footer branding Pertamina (logo, red wave, www.pertamina.com)
+- [ ] **ANAL-01**: Sistem menghitung skor per sub-competency setelah worker submit exam (GroupBy SubCompetency → % benar)
+- [ ] **ANAL-02**: Results page menampilkan spider web radar chart (Chart.js) dengan axis per sub-competency
+- [ ] **ANAL-03**: Results page menampilkan summary tabel (Sub Kompetensi | Benar | Total | %)
+- [ ] **ANAL-04**: Radar chart dan tabel hanya tampil jika soal memiliki data SubCompetency (graceful hide untuk data lama)
+
+## Future Requirements
+
+None deferred.
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Coachee's Competencies column | Tidak dibutuhkan per user request |
-| TTD Coachee di PDF | Hanya TTD Coach yang diperlukan |
-| Perubahan approval chain | Fokus hanya pada form dan PDF |
+| Sub-competency master data management | Free-text tags cukup, tidak perlu CRUD terpisah |
+| Legacy path (non-package) sub-competency | Hanya package path yang digunakan |
+| Bar chart fallback untuk <3 sub-competency | Tabel summary sudah cukup sebagai fallback |
+| Pre-compute scoring di tabel terpisah | On-the-fly LINQ GroupBy cukup performant |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORM-01 | Phase 143 | Complete |
-| FORM-02 | Phase 143 | Complete |
-| FORM-03 | Phase 143 | Complete |
-| PDF-01 | Phase 144 | Pending |
-| PDF-02 | Phase 144 | Pending |
-| PDF-03 | Phase 144 | Pending |
-| PDF-04 | Phase 144 | Pending |
+| SUBTAG-01 | TBD | Pending |
+| SUBTAG-02 | TBD | Pending |
+| SUBTAG-03 | TBD | Pending |
+| ANAL-01 | TBD | Pending |
+| ANAL-02 | TBD | Pending |
+| ANAL-03 | TBD | Pending |
+| ANAL-04 | TBD | Pending |
 
 **Coverage:**
-- v3.16 requirements: 7 total
-- Mapped to phases: 7
-- Unmapped: 0
+- v3.17 requirements: 7 total
+- Mapped to phases: 0
+- Unmapped: 7 ⚠️
 
 ---
-*Requirements defined: 2026-03-09*
-*Last updated: 2026-03-09 after initial definition*
+*Requirements defined: 2026-03-10*
+*Last updated: 2026-03-10 after initial definition*
