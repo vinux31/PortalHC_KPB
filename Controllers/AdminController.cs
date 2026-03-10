@@ -5156,12 +5156,12 @@ namespace HcPortal.Controllers
             }).ToHashSet();
             var seenInBatch = new HashSet<string>();
 
-            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct)> rows;
+            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? SubCompetency)> rows;
             var errors = new List<string>();
 
             if (excelFile != null && excelFile.Length > 0)
             {
-                rows = new List<(string, string, string, string, string, string)>();
+                rows = new List<(string, string, string, string, string, string, string?)>();
                 try
                 {
                     using var stream = excelFile.OpenReadStream();
@@ -5177,7 +5177,9 @@ namespace HcPortal.Controllers
                         var c   = row.Cell(4).GetString().Trim();
                         var d   = row.Cell(5).GetString().Trim();
                         var cor = row.Cell(6).GetString().Trim().ToUpper();
-                        rows.Add((q, a, b, c, d, cor));
+                        var cell7 = row.Cell(7).GetString().Trim();
+                        string? subComp = string.IsNullOrWhiteSpace(cell7) ? null : cell7;
+                        rows.Add((q, a, b, c, d, cor, subComp));
                     }
                 }
                 catch (Exception ex)
@@ -5189,7 +5191,7 @@ namespace HcPortal.Controllers
             }
             else if (!string.IsNullOrWhiteSpace(pasteText))
             {
-                rows = new List<(string, string, string, string, string, string)>();
+                rows = new List<(string, string, string, string, string, string, string?)>();
                 var lines = pasteText.Split('\n')
                     .Select(l => l.TrimEnd('\r'))
                     .Where(l => !string.IsNullOrWhiteSpace(l))
@@ -5208,12 +5210,15 @@ namespace HcPortal.Controllers
                     var cells = lines[i].Split('\t');
                     if (cells.Length < 6)
                     {
-                        errors.Add($"Row {i + 1}: expected 6 columns, got {cells.Length}.");
+                        errors.Add($"Row {i + 1}: expected at least 6 columns, got {cells.Length}.");
                         continue;
                     }
+                    string? subComp = cells.Length >= 7 ? cells[6].Trim() : null;
+                    if (string.IsNullOrWhiteSpace(subComp)) subComp = null;
                     rows.Add((
                         cells[0].Trim(), cells[1].Trim(), cells[2].Trim(),
-                        cells[3].Trim(), cells[4].Trim(), cells[5].Trim().ToUpper()
+                        cells[3].Trim(), cells[4].Trim(), cells[5].Trim().ToUpper(),
+                        subComp
                     ));
                 }
             }
@@ -5245,7 +5250,7 @@ namespace HcPortal.Controllers
                 {
                     var validRowCount = rows.Count(r =>
                     {
-                        var (rq, ra, rb, rc, rd, rcor) = r;
+                        var (rq, ra, rb, rc, rd, rcor, _) = r;
                         var normalizedCor = ExtractPackageCorrectLetter(rcor);
                         return !string.IsNullOrWhiteSpace(rq) &&
                                !string.IsNullOrWhiteSpace(ra) && !string.IsNullOrWhiteSpace(rb) &&
@@ -5269,7 +5274,7 @@ namespace HcPortal.Controllers
             int skipped = 0;
             for (int i = 0; i < rows.Count; i++)
             {
-                var (q, a, b, c, d, cor) = rows[i];
+                var (q, a, b, c, d, cor, rawSubComp) = rows[i];
                 var normalizedCor = ExtractPackageCorrectLetter(cor);
                 if (string.IsNullOrWhiteSpace(q))
                 {
@@ -5301,7 +5306,8 @@ namespace HcPortal.Controllers
                     AssessmentPackageId = packageId,
                     QuestionText = q,
                     Order = order++,
-                    ScoreValue = 10
+                    ScoreValue = 10,
+                    SubCompetency = NormalizeSubCompetency(rawSubComp)
                 };
                 _context.PackageQuestions.Add(newQ);
                 await _context.SaveChangesAsync();
@@ -5349,6 +5355,32 @@ namespace HcPortal.Controllers
             catch (Exception auditEx)
             {
                 _logger.LogWarning(auditEx, "Audit log write failed for ImportPackageQuestions {PackageId}", packageId);
+            }
+
+            // Cross-package SubCompetency mismatch warning
+            if (added > 0 && targetSession != null)
+            {
+                var currentSubComps = rows
+                    .Select(r => NormalizeSubCompetency(r.SubCompetency))
+                    .Where(s => s != null)
+                    .Distinct()
+                    .ToHashSet();
+
+                if (currentSubComps.Any())
+                {
+                    var siblingSubComps = await _context.PackageQuestions
+                        .Where(pq => pq.AssessmentPackage!.AssessmentSessionId == pkg.AssessmentSessionId
+                                  && pq.AssessmentPackageId != packageId
+                                  && pq.SubCompetency != null)
+                        .Select(pq => pq.SubCompetency!)
+                        .Distinct()
+                        .ToListAsync();
+
+                    if (siblingSubComps.Any() && !currentSubComps.SetEquals(siblingSubComps.ToHashSet()))
+                    {
+                        TempData["Warning"] = "Sub Kompetensi pada paket ini berbeda dari paket lain dalam assessment yang sama. Pastikan konsistensi antar paket.";
+                    }
+                }
             }
 
             if (excelFile != null && excelFile.Length > 0)
