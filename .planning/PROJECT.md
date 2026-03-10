@@ -12,20 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.16 — started 2026-03-09)
+## Current State (v3.17 — started 2026-03-10)
 
-**v1.0 through v3.15 shipped** — 32 milestones, 142 phases.
+**v1.0 through v3.16 shipped** — 33 milestones, 144 phases.
 
-## Current Milestone: v3.16 Form Coaching GAST Redesign
+## Current Milestone: v3.17 Assessment Sub-Competency Analysis
 
-**Goal:** Redesign modal form evidence coaching dan export PDF sesuai Form Coaching GAST Pertamina.
+**Goal:** Tambah identitas sub-kompetensi pada soal assessment dan tampilkan analisa spider web (radar chart) + tabel summary di Results page.
 
 **Target features:**
-- Update modal form evidence coaching: tambah bagian Acuan (Pedoman, TKO/TKI/TKPA, Best Practice, Dokumen) + DB migration
-- Redesign export PDF: 3-column table layout, checkbox Kesimpulan/Result, TTD Coach + Nopeg, branding Pertamina
-- HC real-time monitoring & actions (Reset, ForceClose, CloseEarly, RegenerateToken)
-- Post-exam & records validation (results, competency, notifications, attempt history)
-- Edge cases & integration (resume, timer expiry, stale detection, audit log)
+- Tambah field SubCompetency di PackageQuestion + DB migration
+- Update import template Excel dengan kolom "Sub Kompetensi"
+- Update import logic untuk parse kolom Sub Kompetensi
+- Kalkulasi skor per sub-competency saat submit exam
+- Spider web radar chart (Chart.js) di Results page
+- Summary tabel (Sub Kompetensi | Benar | Total | %) di Results page
 
 ## Architecture Decisions
 

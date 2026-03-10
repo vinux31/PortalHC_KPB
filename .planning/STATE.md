@@ -44,34 +44,34 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-09)
+See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.16 Form Coaching GAST Redesign — Complete
+**Current focus:** v3.17 Assessment Sub-Competency Analysis
 
 ## Current Position
 
-**Milestone:** v3.16 Form Coaching GAST Redesign
-**Phase:** 144 of 144 (Export PDF Form GAST)
-**Plan:** 1 of 1 (complete)
-**Status:** Milestone complete
-**Last activity:** 2026-03-10 - Completed quick task 22: Fix CMP Records breadcrumb link pointing to error page instead of CMP Index
+**Milestone:** v3.17 Assessment Sub-Competency Analysis
+**Phase:** Not started (defining requirements)
+**Plan:** —
+**Status:** Defining requirements
+**Last activity:** 2026-03-10 — Milestone v3.17 started
 
-Progress: [██████████] 100%
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
 - 2026-03-09: v3.16 milestone created — 2 phases (143-144), 7 requirements mapped
+- 2026-03-10: v3.17 milestone started — Assessment Sub-Competency Analysis
 
 ### Decisions
 
 - Phase 143 → 144 sequential (PDF depends on Acuan DB fields from Phase 143)
-- Coachee's Competencies column excluded from both form and PDF
-- TTD Coachee excluded from PDF, only TTD Coach + Nopeg
-- Used Row with RelativeItems (not Table RowSpan) for PDF 3-column layout
-- Unicode ballot box characters for PDF checkbox rendering
+- SubCompetency field on PackageQuestion (per-question tagging, set via import range)
+- Spider web radar chart using Chart.js on Results page
+- HC views same Results page via AssessmentMonitoring > View Result (no separate HC page needed)
 
 ### Blockers/Concerns
 
@@ -84,4 +84,4 @@ None.
 | 22 | Fix CMP Records breadcrumb link pointing to error page instead of CMP Index | 2026-03-10 | 3cb34b6 | [22-fix-cmp-records-breadcrumb-link-pointing](./quick/22-fix-cmp-records-breadcrumb-link-pointing/) |
 
 ---
-*State updated: 2026-03-09 after completing 144-01 Export PDF Form GAST*
+*State updated: 2026-03-10 after starting milestone v3.17*
