@@ -12,15 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.21 — shipped 2026-03-11)
+## Current State (v4.0 — started 2026-03-11)
 
 **v1.0 through v3.21 shipped** — 38 milestones, 152 phases.
 
-### Recently Shipped: v3.21 Account Profile & Settings Cleanup
-- Class-level `[Authorize]` on AccountController with `[AllowAnonymous]` on public routes
-- ProfileViewModel replacing ViewBag for role display
-- Client-side validation on Settings, international phone regex
-- Profile UI fixes (button label, row spacing)
+## Current Milestone: v4.0 E2E Use-Case Audit
+
+**Goal:** Audit komprehensif seluruh portal — analisa kode per use-case flow, identifikasi bug/edge case/security issue, lalu verifikasi di browser (Hybrid: Code + Browser).
+
+**Target cases:**
+- Case 1: Assessment Flow (Create → Assign → Take Exam → Results → Certificate)
+- Case 2: Coaching Proton Flow (Mapping → Sessions → Evidence → Approval Chain → Final Assessment)
+- Case 3: Admin Kelola Data (Workers CRUD, Import, Proton Data, KKJ/CPDP files)
+- Case 4: PlanIDP & CDP Dashboard
+- Case 5: Account & Auth (Login, Profile, Settings, Password)
+- Case 6: Homepage & Navigation (Dashboard, Guide, role-scoped nav)
 
 ## Architecture Decisions
 
