@@ -176,6 +176,23 @@ namespace HcPortal.Controllers
                 _context.KkjFiles.Add(kkjFile);
                 await _context.SaveChangesAsync();
 
+                // Audit log
+                try
+                {
+                    var uploadActorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(
+                        currentUser?.Id ?? "",
+                        uploadActorName,
+                        "UploadKKJFile",
+                        $"Uploaded KKJ file '{file.FileName}' ({file.Length} bytes) to bagian {bagian.Name} [BagianId={bagianId}]",
+                        kkjFile.Id,
+                        "KkjFile");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "Audit log write failed for KkjUpload");
+                }
+
                 TempData["Success"] = $"File '{file.FileName}' berhasil di-upload ke bagian {bagian.Name}.";
                 return RedirectToAction("KkjMatrix", new { bagian = bagianId });
             }
@@ -497,6 +514,23 @@ namespace HcPortal.Controllers
                 _context.CpdpFiles.Add(cpdpFile);
                 await _context.SaveChangesAsync();
 
+                // Audit log
+                try
+                {
+                    var uploadActorName = string.IsNullOrWhiteSpace(currentUser?.NIP) ? (currentUser?.FullName ?? "Unknown") : $"{currentUser.NIP} - {currentUser.FullName}";
+                    await _auditLog.LogAsync(
+                        currentUser?.Id ?? "",
+                        uploadActorName,
+                        "UploadCPDPFile",
+                        $"Uploaded CPDP file '{file.FileName}' ({file.Length} bytes) to bagian {bagian.Name} [BagianId={bagianId}]",
+                        cpdpFile.Id,
+                        "CpdpFile");
+                }
+                catch (Exception auditEx)
+                {
+                    _logger.LogWarning(auditEx, "Audit log write failed for CpdpUpload");
+                }
+
                 TempData["Success"] = $"File '{file.FileName}' berhasil di-upload ke bagian {bagian.Name}.";
                 return RedirectToAction("CpdpFiles", new { bagian = bagianId });
             }
@@ -525,9 +559,13 @@ namespace HcPortal.Controllers
 
             if (!System.IO.File.Exists(physicalPath)) return NotFound();
 
-            var contentType = cpdpFile.FileType == "pdf"
-                ? "application/pdf"
-                : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            var contentType = cpdpFile.FileType switch
+            {
+                "pdf"  => "application/pdf",
+                "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xls"  => "application/vnd.ms-excel",
+                _      => "application/octet-stream"
+            };
 
             var fileBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
             return File(fileBytes, contentType, cpdpFile.FileName);
@@ -543,8 +581,28 @@ namespace HcPortal.Controllers
             if (cpdpFile == null) return Json(new { success = false, message = "File tidak ditemukan." });
 
             // Soft delete: archive the file (moves to history view, physical file retained)
+            string cpdpFileName = cpdpFile.FileName;
+            int cpdpBagianId = cpdpFile.BagianId;
             cpdpFile.IsArchived = true;
             await _context.SaveChangesAsync();
+
+            // Audit log
+            try
+            {
+                var archiveUser = await _userManager.GetUserAsync(User);
+                var archiveActorName = string.IsNullOrWhiteSpace(archiveUser?.NIP) ? (archiveUser?.FullName ?? "Unknown") : $"{archiveUser.NIP} - {archiveUser.FullName}";
+                await _auditLog.LogAsync(
+                    archiveUser?.Id ?? "",
+                    archiveActorName,
+                    "ArchiveCPDPFile",
+                    $"Archived CPDP file '{cpdpFileName}' [ID={id}] in bagian {cpdpBagianId}",
+                    id,
+                    "CpdpFile");
+            }
+            catch (Exception auditEx)
+            {
+                _logger.LogWarning(auditEx, "Audit log write failed for CpdpFileArchive {Id}", id);
+            }
 
             return Json(new { success = true, message = "File berhasil diarsipkan." });
         }
@@ -3879,6 +3937,13 @@ namespace HcPortal.Controllers
                 .ToListAsync();
             if (protonProgress.Any())
                 _context.ProtonDeliverableProgresses.RemoveRange(protonProgress);
+
+            // ProtonFinalAssessments (Restrict on ProtonTrackAssignment — must be deleted before assignments)
+            var protonFinalAssessments = await _context.ProtonFinalAssessments
+                .Where(fa => fa.CoacheeId == id)
+                .ToListAsync();
+            if (protonFinalAssessments.Any())
+                _context.ProtonFinalAssessments.RemoveRange(protonFinalAssessments);
 
             // ProtonTrackAssignments
             var protonAssignments = await _context.ProtonTrackAssignments
