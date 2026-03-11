@@ -12,20 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.19 — started 2026-03-11)
+## Current State (v3.21 — started 2026-03-11)
 
-**v1.0 through v3.18 shipped** — 35 milestones, 149 phases.
+**v1.0 through v3.20 shipped** — 37 milestones, 151 phases.
 
-## Current Milestone: v3.19 Assessment Certificate Toggle
+## Current Milestone: v3.21 Account Profile & Settings Cleanup
 
-**Goal:** Tambah toggle on/off sertifikat saat HC membuat assessment — agar assessment/training yang tidak butuh sertifikat tidak menampilkan tombol "View Certificate".
+**Goal:** Merapikan dan fix bug di halaman Account — Profile dan Settings. Perbaiki authorization pattern, validation, UI consistency, dan code quality.
 
 **Target features:**
-- Field `GenerateCertificate` (bool, default true) di AssessmentSession model
-- Toggle switch "Terbitkan Sertifikat" di form CreateAssessment dan EditAssessment
-- Results page hanya tampilkan tombol certificate jika flag ON dan IsPassed
-- Certificate action guard: return NotFound jika flag OFF
-- Backward compatible — semua assessment existing tetap punya sertifikat (default true)
+- Class-level `[Authorize]` on AccountController dengan `[AllowAnonymous]` pada public actions
+- Tambah `_ValidationScriptsPartial` di Settings.cshtml (client-side validation broken)
+- Fix phone regex agar terima format internasional (`+62 812-3456-7890`)
+- Pindahkan Role dari ViewBag ke ViewModel di Profile page
+- Fix misleading "Edit Profile" button label di Profile.cshtml
+- UI consistency antara Profile dan Settings pages
 
 ## Architecture Decisions
 
