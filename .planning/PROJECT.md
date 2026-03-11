@@ -12,21 +12,15 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.21 — started 2026-03-11)
+## Current State (v3.21 — shipped 2026-03-11)
 
-**v1.0 through v3.20 shipped** — 37 milestones, 151 phases.
+**v1.0 through v3.21 shipped** — 38 milestones, 152 phases.
 
-## Current Milestone: v3.21 Account Profile & Settings Cleanup
-
-**Goal:** Merapikan dan fix bug di halaman Account — Profile dan Settings. Perbaiki authorization pattern, validation, UI consistency, dan code quality.
-
-**Target features:**
-- Class-level `[Authorize]` on AccountController dengan `[AllowAnonymous]` pada public actions
-- Tambah `_ValidationScriptsPartial` di Settings.cshtml (client-side validation broken)
-- Fix phone regex agar terima format internasional (`+62 812-3456-7890`)
-- Pindahkan Role dari ViewBag ke ViewModel di Profile page
-- Fix misleading "Edit Profile" button label di Profile.cshtml
-- UI consistency antara Profile dan Settings pages
+### Recently Shipped: v3.21 Account Profile & Settings Cleanup
+- Class-level `[Authorize]` on AccountController with `[AllowAnonymous]` on public routes
+- ProfileViewModel replacing ViewBag for role display
+- Client-side validation on Settings, international phone regex
+- Profile UI fixes (button label, row spacing)
 
 ## Architecture Decisions
 

@@ -1,4 +1,21 @@
 # Milestones
+## v3.21 Account Profile & Settings Cleanup (Shipped: 2026-03-11)
+
+**Phases completed:** 1 phase (152), 1 plan, 2 tasks
+**Timeline:** 2026-03-11
+**Files modified:** 5 (4 modified, 1 created)
+
+**Delivered:** Account Profile & Settings page cleanup — authorization pattern, client-side validation, phone regex, ViewModel refactor, button label fix, and UI spacing consistency.
+
+**Key accomplishments:**
+1. Class-level `[Authorize]` on AccountController with `[AllowAnonymous]` on Login/AccessDenied
+2. New ProfileViewModel replacing ViewBag for role display on Profile page
+3. Client-side validation on Settings page via `_ValidationScriptsPartial`
+4. Phone regex updated to accept international formats (+62 812-3456-7890)
+5. Profile button label corrected to "Pengaturan", all rows unified to mb-3
+
+---
+
 ## v3.8 CoachingProton UI Redesign (Shipped: 2026-03-07)
 
 **Phases completed:** 1 phase (112), 1 plan, 2 tasks

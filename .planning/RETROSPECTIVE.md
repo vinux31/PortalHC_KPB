@@ -4,6 +4,37 @@
 
 ---
 
+## Milestone: v3.21 — Account Profile & Settings Cleanup
+
+**Shipped:** 2026-03-11
+**Phases:** 1 (Phase 152) | **Plans:** 1 | **Tasks:** 2
+
+### What Was Built
+- AccountController authorization hardened with class-level `[Authorize]` + `[AllowAnonymous]` on Login/AccessDenied
+- ProfileViewModel decoupling Profile view from ApplicationUser entity
+- Client-side validation on Settings page, international phone regex support
+- Profile page UI polish (button label, row spacing)
+
+### What Worked
+- Single-phase milestone for small cleanup tasks — fast turnaround, no dependency overhead
+- Budget model profile (sonnet executor) handled the straightforward changes efficiently
+
+### What Was Inefficient
+- Nothing significant — simple milestone executed cleanly
+
+### Patterns Established
+- Read-only profile pages should use a dedicated ViewModel, not the entity model directly
+
+### Key Lessons
+- Small cleanup milestones (6 requirements, 1 phase) can ship in a single session with minimal overhead
+
+### Cost Observations
+- Model mix: 100% sonnet (executor + verifier)
+- Sessions: 1
+- Notable: Entire milestone (plan → execute → verify → UAT → archive) completed in one session
+
+---
+
 ## Milestone: v2.2 — Attempt History
 
 **Shipped:** 2026-02-26

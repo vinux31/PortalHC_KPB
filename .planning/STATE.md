@@ -1,30 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v3.21
-milestone_name: Account Profile & Settings Cleanup
-status: ready_to_plan
-last_updated: "2026-03-11T08:46:15.744Z"
-last_activity: 2026-03-11 — Roadmap created, Phase 152 ready to plan
-progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
-  percent: 100
----
-
----
-gsd_state_version: 1.0
-milestone: v3.21
-milestone_name: Account Profile & Settings Cleanup
-status: ready_to_plan
+milestone: null
+milestone_name: null
+status: between_milestones
 last_updated: "2026-03-11"
-last_activity: 2026-03-11 — Roadmap created, Phase 152 defined
+last_activity: 2026-03-11 — v3.21 Account Profile & Settings Cleanup completed and archived
 progress:
-  [██████████] 100%
+  total_phases: 0
   completed_phases: 0
-  total_plans: 1
+  total_plans: 0
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -34,27 +20,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v3.21 — Phase 152: Account Cleanup
+**Current focus:** Between milestones — v3.21 shipped, ready for next milestone
 
 ## Current Position
 
-Phase: 152 of 152 (Account Cleanup)
-Plan: 0 of 1 in current phase
-Status: Ready to plan
-Last activity: 2026-03-11 — Roadmap created, Phase 152 ready to plan
-
-Progress: [░░░░░░░░░░] 0%
+Milestone: v3.21 shipped 2026-03-11
+Status: Between milestones
+Last activity: 2026-03-11 — v3.21 completed (38 milestones, 152 phases total)
 
 ## Accumulated Context
 
 ### Decisions
 
-- All 6 v3.21 requirements (SEC-01, VAL-01, VAL-02, CODE-01, UI-01, UI-02) fit in a single phase — they are small targeted fixes to AccountController and Account views with no dependencies between them
-- [Phase 152]: Class-level [Authorize] on AccountController with [AllowAnonymous] on Login/AccessDenied — ProfileViewModel introduced to decouple Profile view from ApplicationUser entity
+(Cleared — see .planning/milestones/ for historical decisions)
 
 ### Blockers/Concerns
 
 None.
 
 ---
-*State updated: 2026-03-11 after roadmap creation*
+*State updated: 2026-03-11 after v3.21 milestone completion*
