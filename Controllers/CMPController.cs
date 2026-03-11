@@ -694,7 +694,8 @@ namespace HcPortal.Controllers
                 IsPassed = a.IsPassed,
                 Status = a.IsPassed == true ? "Passed" : "Failed",
                 SortPriority = 0,
-                AssessmentSessionId = a.Id
+                AssessmentSessionId = a.Id,
+                GenerateCertificate = a.GenerateCertificate
             }));
 
             unified.AddRange(trainings.Select(t => new UnifiedTrainingRecord
@@ -1778,6 +1779,10 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Assessment");
             }
 
+            // Guard: certificate generation disabled for this assessment
+            if (!assessment.GenerateCertificate)
+                return NotFound();
+
             return View(assessment);
         }
 
@@ -1952,6 +1957,7 @@ namespace HcPortal.Controllers
                     PassPercentage = passPercentage,
                     IsPassed = score >= passPercentage,
                     AllowAnswerReview = assessment.AllowAnswerReview,
+                    GenerateCertificate = assessment.GenerateCertificate,
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = orderedQuestionIds.Count,
                     CorrectAnswers = correctCount,
@@ -2016,6 +2022,7 @@ namespace HcPortal.Controllers
                     PassPercentage = passPercentage,
                     IsPassed = score >= passPercentage,
                     AllowAnswerReview = assessment.AllowAnswerReview,
+                    GenerateCertificate = assessment.GenerateCertificate,
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = legacyQuestions.Count,
                     CorrectAnswers = correctCount,

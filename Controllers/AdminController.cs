@@ -913,6 +913,7 @@ namespace HcPortal.Controllers
                         AccessToken = model.AccessToken,
                         PassPercentage = model.PassPercentage,
                         AllowAnswerReview = model.AllowAnswerReview,
+                        GenerateCertificate = model.GenerateCertificate,
                         ExamWindowCloseDate = model.ExamWindowCloseDate,
                         Progress = 0,
                         UserId = userId,
@@ -1168,6 +1169,7 @@ namespace HcPortal.Controllers
                 sibling.AccessToken = newToken;
                 sibling.PassPercentage = model.PassPercentage;
                 sibling.AllowAnswerReview = model.AllowAnswerReview;
+                sibling.GenerateCertificate = model.GenerateCertificate;
                 sibling.ExamWindowCloseDate = model.ExamWindowCloseDate;
                 sibling.UpdatedAt = now;
             }
@@ -1252,6 +1254,7 @@ namespace HcPortal.Controllers
                                 AccessToken = savedAssessment.AccessToken,
                                 PassPercentage = savedAssessment.PassPercentage,
                                 AllowAnswerReview = savedAssessment.AllowAnswerReview,
+                                GenerateCertificate = savedAssessment.GenerateCertificate,
                                 ExamWindowCloseDate = savedAssessment.ExamWindowCloseDate,
                                 Progress = 0,
                                 UserId = uid,
