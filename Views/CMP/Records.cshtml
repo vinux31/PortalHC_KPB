@@ -184,7 +184,14 @@
                                                         <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
                                                     }
                                                 } else { <span class="text-muted">—</span> }
-                                            } else { <span class="text-muted">—</span> }
+                                            } else if (item.RecordType == "Assessment Online" && item.GenerateCertificate && item.AssessmentSessionId.HasValue) {
+                                                <a asp-action="Certificate" asp-controller="CMP" asp-route-id="@item.AssessmentSessionId.Value"
+                                                   class="btn btn-sm btn-outline-primary" target="_blank">
+                                                    <i class="bi bi-award me-1"></i>Lihat
+                                                </a>
+                                            } else {
+                                                <span class="text-muted">—</span>
+                                            }
                                         </td>
                                     </tr>
                                 }

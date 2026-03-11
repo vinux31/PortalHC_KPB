@@ -321,7 +321,7 @@
 
     <!-- Action Buttons -->
     <div class="d-flex gap-2 mb-4">
-        @if (Model.IsPassed)
+        @if (Model.IsPassed && Model.GenerateCertificate)
         {
             <a asp-action="Certificate" asp-route-id="@Model.AssessmentId" class="btn btn-primary" target="_blank">
                 <i class="bi bi-award me-1"></i>View Certificate
