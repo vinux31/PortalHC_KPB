@@ -4384,7 +4384,16 @@ namespace HcPortal.Controllers
                 .Select(d => d.Id)
                 .ToListAsync();
 
-            if (!trackDeliverableIds.Any()) return Json(new List<object>());
+            // Tahun 3 (interview) tracks have no deliverables — all assigned coachees are eligible
+            if (!trackDeliverableIds.Any())
+            {
+                var allAssigned = await _context.Users
+                    .Where(u => assignedCoacheeIds.Contains(u.Id))
+                    .Select(u => new { u.Id, u.FullName, u.Email, u.NIP, u.Section })
+                    .OrderBy(u => u.FullName)
+                    .ToListAsync();
+                return Json(allAssigned);
+            }
 
             // Batch-load progress records for all assigned coachees on this track's deliverables
             var progressRecords = await _context.ProtonDeliverableProgresses
