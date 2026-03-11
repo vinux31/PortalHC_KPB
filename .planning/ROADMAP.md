@@ -98,7 +98,11 @@ Plans:
   3. Coach can create a coaching session with notes, conclusion, and action items linked to the correct coachee and deliverable
   4. SrSpv and SectionHead each see only their scoped deliverables for approval and can approve or reject with a reason that is visible to the coachee
   5. HC can create Assessment Proton (Tahun 1-2 online, Tahun 3 interview) and Histori Proton timeline shows the complete coachee journey in correct order
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 154-01-PLAN.md — Audit coach-coachee mapping setup (PROTON-01)
+- [ ] 154-02-PLAN.md — Audit evidence upload, coaching sessions, approval chain (PROTON-02, PROTON-03, PROTON-04)
+- [ ] 154-03-PLAN.md — Audit HC oversight, Assessment Proton, Histori Proton (PROTON-05, PROTON-06, PROTON-07)
 
 ### Phase 155: Admin Kelola Data Audit
 **Goal**: All admin data management operations work correctly with proper role gates and audit logging
@@ -149,7 +153,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 153. Assessment Flow Audit | 4/4 | Complete   | 2026-03-11 | - |
-| 154. Coaching Proton Flow Audit | v4.0 | 0/TBD | Not started | - |
+| 154. Coaching Proton Flow Audit | v4.0 | 0/3 | Not started | - |
 | 155. Admin Kelola Data Audit | v4.0 | 0/TBD | Not started | - |
 | 156. PlanIDP & CDP Dashboard Audit | v4.0 | 0/TBD | Not started | - |
 | 157. Account & Auth Audit | v4.0 | 0/TBD | Not started | - |
