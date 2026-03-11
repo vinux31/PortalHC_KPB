@@ -1,67 +1,40 @@
-# Requirements: Portal HC KPB — v3.18 Homepage Minimalist Redesign
+# Requirements: Portal HC KPB — v3.19 Assessment Certificate Toggle
 
-**Defined:** 2026-03-10
+**Defined:** 2026-03-11
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v3.18 Requirements
+## v3.19 Requirements
 
-Requirements for Homepage Minimalist Redesign. Each maps to roadmap phases.
+### Certificate Toggle
 
-### Homepage Cleanup
-
-- [x] **HOME-01**: Homepage tidak menampilkan glass cards (IDP Status, Pending Assessment, Mandatory Training)
-- [x] **HOME-02**: Homepage tidak menampilkan Recent Activity timeline section
-- [x] **HOME-03**: Homepage tidak menampilkan Upcoming Deadlines section
-- [x] **HOME-04**: Controller/ViewModel tidak lagi fetch data yang tidak dipakai (activities, deadlines)
-
-### Hero Redesign
-
-- [x] **HERO-01**: Hero section menggunakan styling clean tanpa glassmorphism/gradient pseudo-elements
-- [x] **HERO-02**: Hero section tetap menampilkan greeting, nama, position, unit, dan tanggal
-
-### Quick Access
-
-- [x] **QUICK-01**: Quick Access cards menggunakan Bootstrap card pattern (shadow-sm, border-0) seperti CMP/CDP
-
-### CSS Cleanup
-
-- [x] **CSS-01**: home.css tidak mengandung unused glassmorphism styles (glass-card, backdrop-filter, blur pseudo-elements)
-- [x] **CSS-02**: home.css tidak mengandung unused timeline/deadline styles
-- [x] **CSS-03**: Homepage tidak menggunakan data-aos animation attributes
-
-## Future Requirements
-
-None for this milestone.
+- [ ] **CERT-01**: HC can enable/disable certificate generation when creating an assessment (toggle "Terbitkan Sertifikat", default ON)
+- [ ] **CERT-02**: HC can edit the certificate toggle on existing assessments via EditAssessment
+- [ ] **CERT-03**: Results page hides "View Certificate" button when GenerateCertificate is false, even if worker passed
+- [ ] **CERT-04**: Certificate action returns 404 when GenerateCertificate is false (server-side guard)
+- [ ] **CERT-05**: All existing assessments retain certificate access (migration default = true)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| CMP/CDP Index redesign | Focus Homepage only per user request |
-| Color scheme change | User confirmed colors stay, only design/layout changes |
-| Role-based Quick Access | Differentiator, defer to future milestone |
-| Personalized shortcut reordering | Differentiator, defer to future milestone |
+| PDF certificate file storage | Current HTML-based on-demand generation is sufficient |
+| Certificate template customization | Not requested, future enhancement |
+| Per-worker certificate override | Toggle is per-assessment, not per-worker |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CSS-01 | Phase 148 | Complete |
-| CSS-02 | Phase 148 | Complete |
-| CSS-03 | Phase 148 | Complete |
-| HOME-01 | Phase 149 | Complete |
-| HOME-02 | Phase 149 | Complete |
-| HOME-03 | Phase 149 | Complete |
-| HOME-04 | Phase 149 | Complete |
-| HERO-01 | Phase 149 | Complete |
-| HERO-02 | Phase 149 | Complete |
-| QUICK-01 | Phase 149 | Complete |
+| CERT-01 | Phase 150 | Pending |
+| CERT-02 | Phase 150 | Pending |
+| CERT-03 | Phase 150 | Pending |
+| CERT-04 | Phase 150 | Pending |
+| CERT-05 | Phase 150 | Pending |
 
 **Coverage:**
-- v3.18 requirements: 10 total
-- Mapped to phases: 10
+- v3.19 requirements: 5 total
+- Mapped to phases: 5
 - Unmapped: 0
 
 ---
-*Requirements defined: 2026-03-10*
-*Last updated: 2026-03-10 after roadmap creation*
+*Requirements defined: 2026-03-11*
