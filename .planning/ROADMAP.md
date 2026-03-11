@@ -114,7 +114,11 @@ Plans:
   3. HC/Admin can upload, download, and archive KKJ and CPDP files per bagian with version history preserved
   4. HC/Admin can manage Proton Data (silabus CRUD, guidance file upload, override status) and changes take effect immediately for coachees
   5. Every admin action (create, edit, delete, import, override) is recorded in AuditLog with the correct actor NIP, timestamp, and action detail
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 155-01-PLAN.md — Audit worker CRUD and Excel import (ADMIN-01, ADMIN-02)
+- [ ] 155-02-PLAN.md — Audit KKJ and CPDP file management (ADMIN-03, ADMIN-04)
+- [ ] 155-03-PLAN.md — Audit Proton Data management and audit log matrix (ADMIN-05, ADMIN-06)
 
 ### Phase 156: PlanIDP & CDP Dashboard Audit
 **Goal**: Silabus browsing, coaching guidance access, and CDP dashboard show correct data for all roles
@@ -154,7 +158,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 153. Assessment Flow Audit | 4/4 | Complete   | 2026-03-11 | - |
 | 154. Coaching Proton Flow Audit | 2/3 | In Progress|  | - |
-| 155. Admin Kelola Data Audit | v4.0 | 0/TBD | Not started | - |
+| 155. Admin Kelola Data Audit | v4.0 | 0/3 | Not started | - |
 | 156. PlanIDP & CDP Dashboard Audit | v4.0 | 0/TBD | Not started | - |
 | 157. Account & Auth Audit | v4.0 | 0/TBD | Not started | - |
 | 158. Homepage & Navigation Audit | v4.0 | 0/TBD | Not started | - |
