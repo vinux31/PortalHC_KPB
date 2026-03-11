@@ -27,7 +27,7 @@
 </details>
 
 <details>
-<summary>v3.0 through v3.18 (Phases 82-149) — shipped 2026-03-02 to 2026-03-10</summary>
+<summary>v3.0 through v3.20 (Phases 82-151) — shipped 2026-03-02 to 2026-03-11</summary>
 
 - **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 CPDP (shipped 2026-03-03)
@@ -46,53 +46,43 @@
 - **v3.16 Form Coaching GAST Redesign** — Phases 143-144 (shipped 2026-03-09)
 - **v3.17 Assessment Sub-Competency Analysis** — Phases 145-147 (shipped 2026-03-10)
 - **v3.18 Homepage Minimalist Redesign** — Phases 148-149 (shipped 2026-03-10)
+- **v3.19 Assessment Certificate Toggle** — Phase 150 (shipped 2026-03-11)
+- **v3.20 Homepage Progress & Events Fix** — Phase 151 (shipped 2026-03-11)
 
 </details>
 
-### Phase 151: Homepage Progress Overview and Upcoming Events Fix
-
-**Goal:** Check dan perbaiki logic Progress Overview dan Upcoming Events di homepage
-**Requirements**: None
-**Depends on:** Phase 150
-**Plans:** 1/1 plans complete
-**Notes:**
-- Upcoming Events seharusnya hanya menunjukkan event hari ini atau besok (bukan semua upcoming events)
-
-Plans:
-- [ ] 151-01-PLAN.md — Fix today/tomorrow filter for events + add Coaching progress bar
-
 ---
 
-## v3.19 Assessment Certificate Toggle
+## v3.21 Account Profile & Settings Cleanup
 
-**Milestone Goal:** Tambah toggle on/off sertifikat saat HC membuat assessment — agar assessment/training yang tidak butuh sertifikat tidak menampilkan tombol "View Certificate".
+**Milestone Goal:** Merapikan dan fix bug di halaman Account — Profile dan Settings. Perbaiki authorization pattern, validation, UI consistency, dan code quality.
 
 ## Phases
 
-- [x] **Phase 150: Certificate Toggle Implementation** - Add GenerateCertificate field, migration, UI toggle in Create/Edit forms, and guard in Results/Certificate actions (completed 2026-03-11)
+- [ ] **Phase 152: Account Cleanup** - Fix authorization pattern, client-side validation, phone regex, ViewModel refactor, button label, and UI consistency on Profile and Settings pages
 
 ## Phase Details
 
-### Phase 150: Certificate Toggle Implementation
-**Goal**: HC can control whether an assessment generates certificates via a toggle; Results and Certificate pages respect this flag
+### Phase 152: Account Cleanup
+**Goal**: Account pages are secure, validated, and consistent — authorization is explicit, forms validate client-side, phone accepts international formats, Profile uses ViewModel properly, and Profile/Settings pages look visually consistent
 **Depends on**: Nothing (single phase)
-**Requirements**: CERT-01, CERT-02, CERT-03, CERT-04, CERT-05
+**Requirements**: SEC-01, VAL-01, VAL-02, CODE-01, UI-01, UI-02
 **Success Criteria** (what must be TRUE):
-  1. AssessmentSession has GenerateCertificate bool field (default true)
-  2. CreateAssessment form shows "Terbitkan Sertifikat" toggle switch (default ON)
-  3. EditAssessment form shows the same toggle with current value
-  4. Results page "View Certificate" button only appears when GenerateCertificate is true AND IsPassed is true
-  5. Certificate action returns 404 when GenerateCertificate is false
-  6. Existing assessments have GenerateCertificate = true after migration
-**Plans**: 1 plan
+  1. Unauthenticated users visiting /Account/Profile or /Account/Settings are redirected to login; Login and AccessDenied pages remain accessible without login
+  2. Settings page validates form fields client-side (error messages appear immediately without a round-trip) when invalid data is submitted
+  3. Phone number field on Settings page accepts formats like +62 812-3456-7890 without validation error
+  4. Profile page displays the user's role without relying on ViewBag (role comes from the ViewModel)
+  5. The button on Profile page that navigates to Settings is labeled accurately (not "Edit Profile")
+  6. Profile and Settings pages have consistent row spacing and padding so they look like a cohesive pair
+**Plans**: TBD
 
 Plans:
-- [ ] 150-01-PLAN.md — Model + migration + Create/Edit forms + Results/Certificate guards
+- [ ] 152-01-PLAN.md — AccountController auth pattern + ValidationScripts + phone regex + ViewModel + button label + UI spacing
 
 ## Progress
 
-**Execution Order:** 150
+**Execution Order:** 152
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 150. Certificate Toggle Implementation | 1/1 | Complete    | 2026-03-11 |
+| 152. Account Cleanup | 0/1 | Not started | - |

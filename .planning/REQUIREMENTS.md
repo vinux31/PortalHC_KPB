@@ -37,18 +37,18 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | — | Pending |
-| VAL-01 | — | Pending |
-| VAL-02 | — | Pending |
-| CODE-01 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
+| SEC-01 | Phase 152 | Pending |
+| VAL-01 | Phase 152 | Pending |
+| VAL-02 | Phase 152 | Pending |
+| CODE-01 | Phase 152 | Pending |
+| UI-01 | Phase 152 | Pending |
+| UI-02 | Phase 152 | Pending |
 
 **Coverage:**
 - v3.21 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6
+- Mapped to phases: 6
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initial definition*
+*Last updated: 2026-03-11 after roadmap creation*
