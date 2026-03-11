@@ -3,8 +3,11 @@
 
 @{
     ViewData["Title"] = "Assessment Results";
-    var backUrl = Context.Request.Query["returnUrl"].ToString();
-    if (string.IsNullOrEmpty(backUrl)) backUrl = Url.Action("Assessment", "CMP")!;
+    // SEC-02: Validate returnUrl is a local path to prevent open-redirect attacks
+    var rawReturnUrl = Context.Request.Query["returnUrl"].ToString();
+    var backUrl = (!string.IsNullOrEmpty(rawReturnUrl) && Uri.IsWellFormedUriString(rawReturnUrl, UriKind.Relative))
+        ? rawReturnUrl
+        : Url.Action("Assessment", "CMP")!;
 }
 
 <div class="container-fluid px-4 py-4">
