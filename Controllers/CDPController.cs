@@ -1124,6 +1124,14 @@ namespace HcPortal.Controllers
                 return Forbid();
             }
 
+            // [154-02 Security Fix A] IDOR: verify this coach is mapped to the coachee
+            var isCoachMapped = await _context.CoachCoacheeMappings
+                .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == progress.CoacheeId && m.IsActive);
+            if (!isCoachMapped)
+            {
+                return Forbid();
+            }
+
             // Status check: must be Pending or Rejected
             if (progress.Status != "Pending" && progress.Status != "Rejected")
             {
@@ -1205,13 +1213,22 @@ namespace HcPortal.Controllers
             {
                 // Own data or full-access role — allow
             }
-            else if (isSectionScoped || isCoach)
+            else if (isSectionScoped)
             {
+                // [154-02 Fix B] SrSpv/SectionHead: section-equality check
                 var coachee = await _context.Users
                     .Where(u => u.Id == progress.CoacheeId)
                     .Select(u => new { u.Section })
                     .FirstOrDefaultAsync();
                 if (coachee == null || coachee.Section != user.Section)
+                    return Forbid();
+            }
+            else if (isCoach)
+            {
+                // [154-02 Fix B] Coach: mapping-based check (cross-section coaching supported)
+                var hasMapping = await _context.CoachCoacheeMappings
+                    .AnyAsync(m => m.CoachId == user.Id && m.CoacheeId == progress.CoacheeId && m.IsActive);
+                if (!hasMapping)
                     return Forbid();
             }
             else
@@ -1886,6 +1903,10 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync(p => p.Id == progressId);
             if (progress == null)
                 return Json(new { success = false, message = "Data tidak ditemukan." });
+
+            // [154-02 Fix C] Idempotency guard — prevent duplicate review entries
+            if (progress.HCApprovalStatus != "Pending")
+                return Json(new { success = false, message = "Deliverable sudah direview HC sebelumnya." });
 
             var now = DateTime.UtcNow;
             progress.HCApprovalStatus = "Reviewed";
