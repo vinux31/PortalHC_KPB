@@ -1917,10 +1917,42 @@ namespace HcPortal.Controllers
             session.IsPassed = isPassed;
             session.Status = "Completed";
             session.CompletedAt = DateTime.UtcNow;
+
+            // [PROTON-06 FIX] Create ProtonFinalAssessment when interview passes so that
+            // HistoriProton and CoachingProton dashboard correctly reflect completion status.
+            var actorForFix = await _userManager.GetUserAsync(User);
+            if (isPassed && session.ProtonTrackId.HasValue)
+            {
+                var assignment = await _context.ProtonTrackAssignments
+                    .FirstOrDefaultAsync(a => a.CoacheeId == session.UserId
+                                           && a.ProtonTrackId == session.ProtonTrackId.Value
+                                           && a.IsActive);
+                if (assignment != null)
+                {
+                    // Avoid duplicate: only create if none exists for this assignment
+                    var alreadyExists = await _context.ProtonFinalAssessments
+                        .AnyAsync(fa => fa.ProtonTrackAssignmentId == assignment.Id);
+                    if (!alreadyExists)
+                    {
+                        _context.ProtonFinalAssessments.Add(new ProtonFinalAssessment
+                        {
+                            CoacheeId = session.UserId,
+                            CreatedById = actorForFix?.Id ?? "",
+                            ProtonTrackAssignmentId = assignment.Id,
+                            Status = "Completed",
+                            CompetencyLevelGranted = 0, // Interview track does not grant a numeric level
+                            Notes = $"Interview Tahun 3 lulus. Assessor: {dto.Judges}",
+                            CreatedAt = DateTime.UtcNow,
+                            CompletedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             // Audit log
-            var user = await _userManager.GetUserAsync(User);
+            var user = actorForFix;
             if (user != null)
             {
                 var actorName = string.IsNullOrWhiteSpace(user.NIP) ? (user.FullName ?? "Unknown") : $"{user.NIP} - {user.FullName}";
