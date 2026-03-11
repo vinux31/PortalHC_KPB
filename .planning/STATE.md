@@ -3,10 +3,25 @@ gsd_state_version: 1.0
 milestone: v3.21
 milestone_name: Account Profile & Settings Cleanup
 status: ready_to_plan
+last_updated: "2026-03-11T08:24:06.727Z"
+last_activity: 2026-03-11 — Roadmap created, Phase 152 ready to plan
+progress:
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.21
+milestone_name: Account Profile & Settings Cleanup
+status: ready_to_plan
 last_updated: "2026-03-11"
 last_activity: 2026-03-11 — Roadmap created, Phase 152 defined
 progress:
-  total_phases: 1
+  [██████████] 100%
   completed_phases: 0
   total_plans: 1
   completed_plans: 0
@@ -35,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 ### Decisions
 
 - All 6 v3.21 requirements (SEC-01, VAL-01, VAL-02, CODE-01, UI-01, UI-02) fit in a single phase — they are small targeted fixes to AccountController and Account views with no dependencies between them
+- [Phase 152]: Class-level [Authorize] on AccountController with [AllowAnonymous] on Login/AccessDenied — ProfileViewModel introduced to decouple Profile view from ApplicationUser entity
 
 ### Blockers/Concerns
 

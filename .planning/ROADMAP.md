@@ -59,7 +59,7 @@
 
 ## Phases
 
-- [ ] **Phase 152: Account Cleanup** - Fix authorization pattern, client-side validation, phone regex, ViewModel refactor, button label, and UI consistency on Profile and Settings pages
+- [x] **Phase 152: Account Cleanup** - Fix authorization pattern, client-side validation, phone regex, ViewModel refactor, button label, and UI consistency on Profile and Settings pages (completed 2026-03-11)
 
 ## Phase Details
 
@@ -85,4 +85,4 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 152. Account Cleanup | 0/1 | Not started | - |
+| 152. Account Cleanup | 1/1 | Complete   | 2026-03-11 |

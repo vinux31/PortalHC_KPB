@@ -7,21 +7,21 @@
 
 ### Security
 
-- [ ] **SEC-01**: AccountController uses class-level `[Authorize]` with `[AllowAnonymous]` on Login, Login POST, and AccessDenied
+- [x] **SEC-01**: AccountController uses class-level `[Authorize]` with `[AllowAnonymous]` on Login, Login POST, and AccessDenied
 
 ### Validation
 
-- [ ] **VAL-01**: Settings.cshtml includes `_ValidationScriptsPartial` for client-side form validation
-- [ ] **VAL-02**: Phone number regex accepts international formats (digits, spaces, dashes, plus, parentheses)
+- [x] **VAL-01**: Settings.cshtml includes `_ValidationScriptsPartial` for client-side form validation
+- [x] **VAL-02**: Phone number regex accepts international formats (digits, spaces, dashes, plus, parentheses)
 
 ### Code Quality
 
-- [ ] **CODE-01**: Profile page receives Role via ViewModel instead of ViewBag
+- [x] **CODE-01**: Profile page receives Role via ViewModel instead of ViewBag
 
 ### UI/UX
 
-- [ ] **UI-01**: Profile page "Edit Profile" button label accurately reflects destination (Settings page)
-- [ ] **UI-02**: Profile and Settings pages have consistent row spacing/padding
+- [x] **UI-01**: Profile page "Edit Profile" button label accurately reflects destination (Settings page)
+- [x] **UI-02**: Profile and Settings pages have consistent row spacing/padding
 
 ## Out of Scope
 
@@ -37,12 +37,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEC-01 | Phase 152 | Pending |
-| VAL-01 | Phase 152 | Pending |
-| VAL-02 | Phase 152 | Pending |
-| CODE-01 | Phase 152 | Pending |
-| UI-01 | Phase 152 | Pending |
-| UI-02 | Phase 152 | Pending |
+| SEC-01 | Phase 152 | Complete |
+| VAL-01 | Phase 152 | Complete |
+| VAL-02 | Phase 152 | Complete |
+| CODE-01 | Phase 152 | Complete |
+| UI-01 | Phase 152 | Complete |
+| UI-02 | Phase 152 | Complete |
 
 **Coverage:**
 - v3.21 requirements: 6 total
