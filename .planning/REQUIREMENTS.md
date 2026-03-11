@@ -33,8 +33,8 @@
 - [ ] **ADMIN-02**: HC/Admin can bulk import workers via Excel template
 - [ ] **ADMIN-03**: HC/Admin can manage KKJ files (upload, download, archive per bagian)
 - [ ] **ADMIN-04**: HC/Admin can manage CPDP files (upload, download, archive per bagian)
-- [ ] **ADMIN-05**: HC/Admin can manage Proton Data (silabus CRUD, guidance upload, override status)
-- [ ] **ADMIN-06**: Audit log records all admin actions with actor, timestamp, details
+- [x] **ADMIN-05**: HC/Admin can manage Proton Data (silabus CRUD, guidance upload, override status)
+- [x] **ADMIN-06**: Audit log records all admin actions with actor, timestamp, details
 
 ### Case 4: PlanIDP & CDP Dashboard
 
@@ -88,8 +88,8 @@
 | ADMIN-02 | Phase 155 | Pending |
 | ADMIN-03 | Phase 155 | Pending |
 | ADMIN-04 | Phase 155 | Pending |
-| ADMIN-05 | Phase 155 | Pending |
-| ADMIN-06 | Phase 155 | Pending |
+| ADMIN-05 | Phase 155 | Complete |
+| ADMIN-06 | Phase 155 | Complete |
 | CDP-01 | Phase 156 | Pending |
 | CDP-02 | Phase 156 | Pending |
 | CDP-03 | Phase 156 | Pending |
