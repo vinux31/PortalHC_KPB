@@ -74,7 +74,7 @@
   4. Profile page displays the user's role without relying on ViewBag (role comes from the ViewModel)
   5. The button on Profile page that navigates to Settings is labeled accurately (not "Edit Profile")
   6. Profile and Settings pages have consistent row spacing and padding so they look like a cohesive pair
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 152-01-PLAN.md — AccountController auth pattern + ValidationScripts + phone regex + ViewModel + button label + UI spacing
