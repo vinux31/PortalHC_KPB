@@ -3338,17 +3338,24 @@ namespace HcPortal.Controllers
             mapping.IsActive = true;
             mapping.EndDate = null;
 
+            // Cascade: reactivate ProtonTrackAssignments that were deactivated with this mapping
+            var inactiveAssignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == mapping.CoacheeId && !a.IsActive)
+                .ToListAsync();
+            foreach (var a in inactiveAssignments) { a.IsActive = true; }
+            int reactivatedCount = inactiveAssignments.Count;
+
             await _context.SaveChangesAsync();
 
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Reactivate",
-                $"Reactivated coach-coachee mapping #{id}", targetId: id, targetType: "CoachCoacheeMapping");
+                $"Reactivated coach-coachee mapping #{id} — {reactivatedCount} ProtonTrackAssignment(s) also reactivated", targetId: id, targetType: "CoachCoacheeMapping");
 
             var coacheeUser = await _context.Users.FindAsync(mapping.CoacheeId);
             return Json(new { success = true,
-                message = "Mapping berhasil diaktifkan kembali.",
-                showAssignPrompt = true,
+                message = $"Mapping berhasil diaktifkan kembali. {reactivatedCount} track assignment juga diaktifkan kembali.",
+                showAssignPrompt = reactivatedCount == 0,
                 coacheeName = coacheeUser?.FullName ?? "",
-                assignUrl = Url.Action("PlanIdp", "CDP") });
+                assignUrl = Url.Action("CoachCoacheeMapping", "Admin") });
         }
 
         // ==================== MANAGE WORKERS (migrated from CMP) ====================
