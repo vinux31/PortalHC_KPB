@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: E2E Use-Case Audit
 status: executing
-stopped_at: Phase 155-03 complete — awaiting UAT checkpoint (Task 2)
-last_updated: "2026-03-11T23:19:11.373Z"
+stopped_at: Completed 155-02-PLAN.md
+last_updated: "2026-03-11T23:26:08.741Z"
 last_activity: "2026-03-11 — 153-04 ASSESS-08 gap closure: TrainingRecord auto-creation in SubmitExam()"
 progress:
   total_phases: 6
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 10
 ---
 
 ---
@@ -67,6 +67,10 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - [153-03 ASSESS-07]: ForceCloseAll sets Abandoned (no score); ForceCloseAssessment sets Completed+score=0 — intentional design difference
 - [Phase 154]: PROTON-06 BUG: SubmitInterviewResults now creates ProtonFinalAssessment on isPassed=true — canonical completion marker used by HistoriProton and dashboard
 - [Phase 155-admin-kelola-data-audit]: ADMIN-05 edge-cases (delete without active-progress warning, unconstrained override status) deferred — not blocking UAT
+- [Phase 155-admin-kelola-data-audit]: AuditLog records with deleted user preserved by design — audit trail integrity
+- [Phase 155-admin-kelola-data-audit]: ReactivateWorker restores IsActive only; closed mappings/sessions not restored by design
+- [Phase 155-admin-kelola-data-audit]: CPDP download .xls MIME type bug fixed inline during ADMIN-04 audit
+- [Phase 155-admin-kelola-data-audit]: CpdpFileArchive audit log added for parity with KkjFileDelete (ADMIN-04)
 
 ### Blockers/Concerns
 
@@ -75,8 +79,8 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
 ## Session Continuity
 
-Last session: 2026-03-11T23:19:06.535Z
-Stopped at: Phase 155-03 complete — awaiting UAT checkpoint (Task 2)
+Last session: 2026-03-11T23:26:04.037Z
+Stopped at: Completed 155-02-PLAN.md
 Resume file: None
 
 ---

@@ -29,10 +29,10 @@
 
 ### Case 3: Admin Kelola Data
 
-- [ ] **ADMIN-01**: HC/Admin can CRUD workers (create, edit, deactivate, delete with cascade)
-- [ ] **ADMIN-02**: HC/Admin can bulk import workers via Excel template
-- [ ] **ADMIN-03**: HC/Admin can manage KKJ files (upload, download, archive per bagian)
-- [ ] **ADMIN-04**: HC/Admin can manage CPDP files (upload, download, archive per bagian)
+- [x] **ADMIN-01**: HC/Admin can CRUD workers (create, edit, deactivate, delete with cascade)
+- [x] **ADMIN-02**: HC/Admin can bulk import workers via Excel template
+- [x] **ADMIN-03**: HC/Admin can manage KKJ files (upload, download, archive per bagian)
+- [x] **ADMIN-04**: HC/Admin can manage CPDP files (upload, download, archive per bagian)
 - [x] **ADMIN-05**: HC/Admin can manage Proton Data (silabus CRUD, guidance upload, override status)
 - [x] **ADMIN-06**: Audit log records all admin actions with actor, timestamp, details
 
@@ -84,10 +84,10 @@
 | PROTON-05 | Phase 154 | Complete |
 | PROTON-06 | Phase 154 | Complete |
 | PROTON-07 | Phase 154 | Complete |
-| ADMIN-01 | Phase 155 | Pending |
-| ADMIN-02 | Phase 155 | Pending |
-| ADMIN-03 | Phase 155 | Pending |
-| ADMIN-04 | Phase 155 | Pending |
+| ADMIN-01 | Phase 155 | Complete |
+| ADMIN-02 | Phase 155 | Complete |
+| ADMIN-03 | Phase 155 | Complete |
+| ADMIN-04 | Phase 155 | Complete |
 | ADMIN-05 | Phase 155 | Complete |
 | ADMIN-06 | Phase 155 | Complete |
 | CDP-01 | Phase 156 | Pending |
