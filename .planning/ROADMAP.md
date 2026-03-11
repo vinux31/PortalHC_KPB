@@ -81,11 +81,12 @@
   3. Worker sees only assessments filtered by correct status (Open/Upcoming/Completed) and cannot access closed or unassigned assessments via direct URL
   4. Worker can start exam with token, answer questions with auto-save, resume after disconnect, submit, and view results — all without data loss
   5. Worker can download certificate only when GenerateCertificate=true and IsPassed=true; HC can monitor live, reset, force-close, and regenerate token; completed assessment creates TrainingRecord and updates competency level
-**Plans**: 3 plans
+**Plans**: 4 plans
 Plans:
 - [ ] 153-01-PLAN.md — Audit HC assessment creation and question import (ASSESS-01, ASSESS-02)
 - [ ] 153-02-PLAN.md — Audit worker exam lifecycle (ASSESS-03, ASSESS-04, ASSESS-05)
 - [ ] 153-03-PLAN.md — Audit certificate, monitoring, and training records (ASSESS-06, ASSESS-07, ASSESS-08)
+- [ ] 153-04-PLAN.md — Gap closure: TrainingRecord auto-creation on exam completion (ASSESS-08)
 
 ### Phase 154: Coaching Proton Flow Audit
 **Goal**: The full coaching Proton workflow works correctly for all roles with no bugs or authorization gaps
@@ -147,7 +148,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 153. Assessment Flow Audit | 3/3 | Complete   | 2026-03-11 | - |
+| 153. Assessment Flow Audit | 3/4 | In progress | 2026-03-11 | - |
 | 154. Coaching Proton Flow Audit | v4.0 | 0/TBD | Not started | - |
 | 155. Admin Kelola Data Audit | v4.0 | 0/TBD | Not started | - |
 | 156. PlanIDP & CDP Dashboard Audit | v4.0 | 0/TBD | Not started | - |
