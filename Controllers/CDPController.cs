@@ -312,8 +312,10 @@ namespace HcPortal.Controllers
             subModel.TrackType = track.TrackType ?? "";
             subModel.TahunKe = track.TahunKe ?? "";
 
+            // FIX (156-02): Scope progresses to active assignment only — prevents stale deliverables
+            // from prior inactive assignments inflating coachee counts (mirrors supervisor view logic)
             var progresses = await _context.ProtonDeliverableProgresses
-                .Where(p => p.CoacheeId == userId)
+                .Where(p => p.ProtonTrackAssignmentId == assignment.Id)
                 .ToListAsync();
 
             subModel.TotalDeliverables = progresses.Count;
@@ -334,7 +336,7 @@ namespace HcPortal.Controllers
 
         // ============================================================
         // Helper: Proton Progress sub-model (supervisor / HC view)
-        // Scoping: HC/Admin=all, SrSpv/SectionHead=section, Coach=unit
+        // Scoping: HC/Admin/Direktur/VP/Manager=all, SrSpv/SectionHead=section, Coach/Supervisor=unit
         // ============================================================
         private async Task<ProtonProgressSubModel> BuildProtonProgressSubModelAsync(ApplicationUser user, string userRole, string? section = null, string? unit = null, string? category = null, string? track = null)
         {
