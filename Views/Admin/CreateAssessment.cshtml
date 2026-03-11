@@ -68,6 +68,16 @@
         </div>
     }
 
+    <!-- Warning Alert -->
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            @TempData["Warning"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <!-- Create Assessment Form -->
     <div class="card shadow-sm border-0">
         <div class="card-body">

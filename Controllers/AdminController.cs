@@ -1134,6 +1134,38 @@ namespace HcPortal.Controllers
                 return RedirectToAction("ManageAssessment");
             }
 
+            // Validate editable fields (mirrors CreateAssessment POST validation)
+            var editErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(model.Title))
+                editErrors.Add("Title is required.");
+
+            if (model.Schedule < DateTime.Today)
+                editErrors.Add("Schedule date cannot be in the past.");
+            if (model.Schedule > DateTime.Today.AddYears(2))
+                editErrors.Add("Schedule date too far in future (maximum 2 years).");
+
+            bool editIsProtonYear3 = model.Category == "Assessment Proton" && model.ProtonTrackId.HasValue && model.DurationMinutes == 0;
+            if (!editIsProtonYear3)
+            {
+                if (model.DurationMinutes <= 0)
+                    editErrors.Add("Duration must be greater than 0.");
+                if (model.DurationMinutes > 480)
+                    editErrors.Add("Duration cannot exceed 480 minutes (8 hours).");
+            }
+
+            if (model.PassPercentage < 0 || model.PassPercentage > 100)
+                editErrors.Add("Pass Percentage must be between 0 and 100.");
+
+            if (model.IsTokenRequired && string.IsNullOrWhiteSpace(model.AccessToken))
+                editErrors.Add("Access Token is required when token security is enabled.");
+
+            if (editErrors.Any())
+            {
+                TempData["Error"] = string.Join(" ", editErrors);
+                return RedirectToAction("EditAssessment", new { id });
+            }
+
             // Capture original group key before updating (needed to find siblings)
             var origTitle = assessment.Title;
             var origCategory = assessment.Category;
@@ -4871,6 +4903,7 @@ namespace HcPortal.Controllers
             };
 
             _context.AssessmentQuestions.Add(newQuestion);
+            // Save question first to get its Id, then add options atomically in a single round-trip
             await _context.SaveChangesAsync();
 
             for (int i = 0; i < options.Count; i++)
@@ -4885,7 +4918,19 @@ namespace HcPortal.Controllers
                     });
                 }
             }
-            await _context.SaveChangesAsync();
+            // Save all options in a single round-trip (atomic with question via SaveChangesAsync)
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                // Roll back orphaned question if options save fails
+                _context.AssessmentQuestions.Remove(newQuestion);
+                await _context.SaveChangesAsync();
+                TempData["Error"] = "Gagal menyimpan opsi jawaban. Pertanyaan dibatalkan.";
+                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
+            }
 
             return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
         }
@@ -4900,6 +4945,13 @@ namespace HcPortal.Controllers
 
             int assessmentId = question.AssessmentSessionId;
             string questionText = question.QuestionText;
+
+            // Delete UserResponses first: UserResponse.AssessmentQuestionId has Restrict FK
+            var responses = await _context.UserResponses
+                .Where(r => r.AssessmentQuestionId == id)
+                .ToListAsync();
+            if (responses.Any())
+                _context.UserResponses.RemoveRange(responses);
 
             _context.AssessmentQuestions.Remove(question);
             await _context.SaveChangesAsync();
@@ -5141,6 +5193,13 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> ImportPackageQuestions(
             int packageId, IFormFile? excelFile, string? pasteText)
         {
+            // File size guard: reject files larger than 5 MB to avoid memory pressure
+            if (excelFile != null && excelFile.Length > 5 * 1024 * 1024)
+            {
+                TempData["Error"] = "File terlalu besar. Maksimal ukuran file adalah 5 MB.";
+                return RedirectToAction("ImportPackageQuestions", new { packageId });
+            }
+
             var pkg = await _context.AssessmentPackages
                 .Include(p => p.Questions)
                     .ThenInclude(q => q.Options)
@@ -5275,6 +5334,8 @@ namespace HcPortal.Controllers
             int order = pkg.Questions.Count + 1;
             int added = 0;
             int skipped = 0;
+            // Collect all new questions (with options embedded) before saving — avoids N+1 SaveChangesAsync
+            var newQuestions = new List<PackageQuestion>();
             for (int i = 0; i < rows.Count; i++)
             {
                 var (q, a, b, c, d, cor, rawSubComp) = rows[i];
@@ -5304,30 +5365,42 @@ namespace HcPortal.Controllers
                 }
                 seenInBatch.Add(fp);
 
+                int correctIndex = normalizedCor == "A" ? 0 : normalizedCor == "B" ? 1 : normalizedCor == "C" ? 2 : 3;
                 var newQ = new PackageQuestion
                 {
                     AssessmentPackageId = packageId,
                     QuestionText = q,
                     Order = order++,
                     ScoreValue = 10,
-                    SubCompetency = NormalizeSubCompetency(rawSubComp)
-                };
-                _context.PackageQuestions.Add(newQ);
-                await _context.SaveChangesAsync();
-
-                int correctIndex = normalizedCor == "A" ? 0 : normalizedCor == "B" ? 1 : normalizedCor == "C" ? 2 : 3;
-                var opts = new[] { a, b, c, d };
-                for (int oi = 0; oi < opts.Length; oi++)
-                {
-                    _context.PackageOptions.Add(new PackageOption
+                    SubCompetency = NormalizeSubCompetency(rawSubComp),
+                    // Add options directly to the navigation collection (EF resolves FK after save)
+                    Options = new List<PackageOption>
                     {
-                        PackageQuestionId = newQ.Id,
-                        OptionText = opts[oi],
-                        IsCorrect = (oi == correctIndex)
-                    });
-                }
-                await _context.SaveChangesAsync();
+                        new PackageOption { OptionText = a, IsCorrect = (0 == correctIndex) },
+                        new PackageOption { OptionText = b, IsCorrect = (1 == correctIndex) },
+                        new PackageOption { OptionText = c, IsCorrect = (2 == correctIndex) },
+                        new PackageOption { OptionText = d, IsCorrect = (3 == correctIndex) }
+                    }
+                };
+                newQuestions.Add(newQ);
                 added++;
+            }
+
+            // Persist all new questions + options in a single transaction (single SaveChangesAsync)
+            if (newQuestions.Count > 0)
+            {
+                _context.PackageQuestions.AddRange(newQuestions);
+                using var importTx = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    await _context.SaveChangesAsync();
+                    await importTx.CommitAsync();
+                }
+                catch
+                {
+                    await importTx.RollbackAsync();
+                    throw;
+                }
             }
 
             if (added == 0 && skipped == 0)
