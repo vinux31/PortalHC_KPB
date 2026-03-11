@@ -69,45 +69,45 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ASSESS-01 | — | Pending |
-| ASSESS-02 | — | Pending |
-| ASSESS-03 | — | Pending |
-| ASSESS-04 | — | Pending |
-| ASSESS-05 | — | Pending |
-| ASSESS-06 | — | Pending |
-| ASSESS-07 | — | Pending |
-| ASSESS-08 | — | Pending |
-| PROTON-01 | — | Pending |
-| PROTON-02 | — | Pending |
-| PROTON-03 | — | Pending |
-| PROTON-04 | — | Pending |
-| PROTON-05 | — | Pending |
-| PROTON-06 | — | Pending |
-| PROTON-07 | — | Pending |
-| ADMIN-01 | — | Pending |
-| ADMIN-02 | — | Pending |
-| ADMIN-03 | — | Pending |
-| ADMIN-04 | — | Pending |
-| ADMIN-05 | — | Pending |
-| ADMIN-06 | — | Pending |
-| CDP-01 | — | Pending |
-| CDP-02 | — | Pending |
-| CDP-03 | — | Pending |
-| CDP-04 | — | Pending |
-| AUTH-01 | — | Pending |
-| AUTH-02 | — | Pending |
-| AUTH-03 | — | Pending |
-| AUTH-04 | — | Pending |
-| NAV-01 | — | Pending |
-| NAV-02 | — | Pending |
-| NAV-03 | — | Pending |
-| NAV-04 | — | Pending |
+| ASSESS-01 | Phase 153 | Pending |
+| ASSESS-02 | Phase 153 | Pending |
+| ASSESS-03 | Phase 153 | Pending |
+| ASSESS-04 | Phase 153 | Pending |
+| ASSESS-05 | Phase 153 | Pending |
+| ASSESS-06 | Phase 153 | Pending |
+| ASSESS-07 | Phase 153 | Pending |
+| ASSESS-08 | Phase 153 | Pending |
+| PROTON-01 | Phase 154 | Pending |
+| PROTON-02 | Phase 154 | Pending |
+| PROTON-03 | Phase 154 | Pending |
+| PROTON-04 | Phase 154 | Pending |
+| PROTON-05 | Phase 154 | Pending |
+| PROTON-06 | Phase 154 | Pending |
+| PROTON-07 | Phase 154 | Pending |
+| ADMIN-01 | Phase 155 | Pending |
+| ADMIN-02 | Phase 155 | Pending |
+| ADMIN-03 | Phase 155 | Pending |
+| ADMIN-04 | Phase 155 | Pending |
+| ADMIN-05 | Phase 155 | Pending |
+| ADMIN-06 | Phase 155 | Pending |
+| CDP-01 | Phase 156 | Pending |
+| CDP-02 | Phase 156 | Pending |
+| CDP-03 | Phase 156 | Pending |
+| CDP-04 | Phase 156 | Pending |
+| AUTH-01 | Phase 157 | Pending |
+| AUTH-02 | Phase 157 | Pending |
+| AUTH-03 | Phase 157 | Pending |
+| AUTH-04 | Phase 157 | Pending |
+| NAV-01 | Phase 158 | Pending |
+| NAV-02 | Phase 158 | Pending |
+| NAV-03 | Phase 158 | Pending |
+| NAV-04 | Phase 158 | Pending |
 
 **Coverage:**
-- v4.0 requirements: 27 total
-- Mapped to phases: 0
-- Unmapped: 27 ⚠️
+- v4.0 requirements: 33 total
+- Mapped to phases: 33
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initial definition*
+*Last updated: 2026-03-11 after roadmap creation — all 33 requirements mapped to Phases 153-158*
