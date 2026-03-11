@@ -77,10 +77,10 @@ namespace HcPortal.Controllers
                     if (firstKomp != null)
                     {
                         coacheeBagian = firstKomp.Bagian;
-                        // Force bagian to coachee's own — ignore URL param
+                        // Force all 3 params to coachee's assigned values — ignore URL params entirely
                         bagian = coacheeBagian;
-                        unit ??= firstKomp.Unit;
-                        trackId ??= assignment.ProtonTrackId;
+                        unit = firstKomp.Unit;
+                        trackId = assignment.ProtonTrackId;
                     }
                     ViewBag.HasAssignment = true;
                     ViewBag.AssignedTrackId = assignment.ProtonTrackId;
