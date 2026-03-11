@@ -27,7 +27,7 @@
 </details>
 
 <details>
-<summary>v3.0 through v3.14 (Phases 82-137) — shipped 2026-03-02 to 2026-03-09</summary>
+<summary>v3.0 through v3.18 (Phases 82-149) — shipped 2026-03-02 to 2026-03-10</summary>
 
 - **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
 - **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 CPDP (shipped 2026-03-03)
@@ -42,79 +42,45 @@
 - **v3.12 Progress Unit Scoping** — Phases 128-129 (shipped 2026-03-08)
 - **v3.13 In-App Notifications** — Phases 130-132 (shipped 2026-03-09)
 - **v3.14 Bug Hunting Per Case** — Phases 133-137 (shipped 2026-03-09)
-
-</details>
-
-<details>
-<summary>v3.15 Assessment Real Time Test (Phases 138-142) — shipped 2026-03-09</summary>
-
-- Phase 138: Assessment Setup & Monitoring Overview
-- Phase 139: Worker Exam Lifecycle
-- Phase 140: HC Real-Time Monitoring & Actions
-- Phase 141: Post-Exam & Records Validation
-- Phase 142: Edge Cases & Integration
-
-</details>
-
-<details>
-<summary>v3.16 Form Coaching GAST Redesign (Phases 143-144) — shipped 2026-03-09</summary>
-
-- Phase 143: Modal Form Evidence Acuan (completed 2026-03-09)
-- Phase 144: Export PDF Form GAST (completed 2026-03-09)
-
-</details>
-
-<details>
-<summary>v3.17 Assessment Sub-Competency Analysis (Phases 145-147) — shipped 2026-03-10</summary>
-
-- Phase 145: Data Model & Migration (completed 2026-03-10)
-- Phase 146: Excel Import Update (completed 2026-03-10)
-- Phase 147: Scoring & Results UI (completed 2026-03-10)
+- **v3.15 Assessment Real Time Test** — Phases 138-142 (shipped 2026-03-09)
+- **v3.16 Form Coaching GAST Redesign** — Phases 143-144 (shipped 2026-03-09)
+- **v3.17 Assessment Sub-Competency Analysis** — Phases 145-147 (shipped 2026-03-10)
+- **v3.18 Homepage Minimalist Redesign** — Phases 148-149 (shipped 2026-03-10)
 
 </details>
 
 ---
 
-## v3.18 Homepage Minimalist Redesign
+## v3.19 Assessment Certificate Toggle
 
-**Milestone Goal:** Sederhanakan Homepage agar minimalis dan clean — seragamkan styling dengan halaman CMP/CDP yang sudah ada.
+**Milestone Goal:** Tambah toggle on/off sertifikat saat HC membuat assessment — agar assessment/training yang tidak butuh sertifikat tidak menampilkan tombol "View Certificate".
 
 ## Phases
 
-- [x] **Phase 148: CSS Audit & Cleanup** - Audit CSS dependencies then strip glassmorphism, animation, timeline, and deadline styles from home.css (completed 2026-03-10)
-- [x] **Phase 149: Homepage View & Controller Redesign** - Remove glass cards, timeline, deadlines from view; simplify hero and quick access markup; optimize controller data-fetching (completed 2026-03-10)
+- [ ] **Phase 150: Certificate Toggle Implementation** - Add GenerateCertificate field, migration, UI toggle in Create/Edit forms, and guard in Results/Certificate actions
 
 ## Phase Details
 
-### Phase 148: CSS Audit & Cleanup
-**Goal**: home.css contains only styles required by the simplified homepage — glassmorphism, blur effects, animation, and unused section styles are gone
-**Depends on**: Nothing (first phase)
-: 1 plan
-
-Plans:
-- [ ] 148-01-PLAN.md — Remove glassmorphism, timeline, and deadline CSS; strip data-aos from Homepage
-
-### Phase 149: Homepage View & Controller Redesign
-**Goal**: Homepage displays a clean hero greeting and Quick Access cards only — no glass cards, no timeline, no deadlines — and the controller fetches only the data the page actually uses
-**Depends on**: Phase 148
-**Requirements**: HOME-01, HOME-02, HOME-03, HOME-04, HERO-01, HERO-02, QUICK-01
+### Phase 150: Certificate Toggle Implementation
+**Goal**: HC can control whether an assessment generates certificates via a toggle; Results and Certificate pages respect this flag
+**Depends on**: Nothing (single phase)
+**Requirements**: CERT-01, CERT-02, CERT-03, CERT-04, CERT-05
 **Success Criteria** (what must be TRUE):
-  1. Homepage does not show IDP Status, Pending Assessment, or Mandatory Training cards for any role
-  2. Homepage does not show a Recent Activity timeline section
-  3. Homepage does not show an Upcoming Deadlines section
-  4. Hero section displays user greeting, nama, position, unit, and tanggal with no glassmorphism or gradient pseudo-elements
-  5. Quick Access cards use Bootstrap card pattern (border-0, shadow-sm) matching CMP/CDP Index styling
-  6. HomeController.Index no longer executes activity or deadline database queries
+  1. AssessmentSession has GenerateCertificate bool field (default true)
+  2. CreateAssessment form shows "Terbitkan Sertifikat" toggle switch (default ON)
+  3. EditAssessment form shows the same toggle with current value
+  4. Results page "View Certificate" button only appears when GenerateCertificate is true AND IsPassed is true
+  5. Certificate action returns 404 when GenerateCertificate is false
+  6. Existing assessments have GenerateCertificate = true after migration
 **Plans**: 1 plan
 
 Plans:
-- [ ] 149-01-PLAN.md — Rewrite View (hero + Quick Access only), simplify ViewModel and Controller, strip unused CSS
+- [ ] 150-01-PLAN.md — Model + migration + Create/Edit forms + Results/Certificate guards
 
 ## Progress
 
-**Execution Order:** 148 → 149
+**Execution Order:** 150
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 148. CSS Audit & Cleanup | 1/1 | Complete    | 2026-03-10 |
-| 149. Homepage View & Controller Redesign | 1/1 | Complete    | 2026-03-10 |
+| 150. Certificate Toggle Implementation | 0/1 | Not started | - |
