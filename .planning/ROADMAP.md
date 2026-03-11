@@ -49,6 +49,16 @@
 
 </details>
 
+### Phase 151: Homepage Progress Overview and Upcoming Events Fix
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 150
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 151 to break down)
+
 ---
 
 ## v3.19 Assessment Certificate Toggle

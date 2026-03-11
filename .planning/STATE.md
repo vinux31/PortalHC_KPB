@@ -55,6 +55,10 @@ Progress: [██████████] 100%
 - Toggle placed in CreateAssessment and EditAssessment forms alongside ExamWindowCloseDate
 - Certificate action returns NotFound when flag is OFF (not just hide button)
 
+### Roadmap Evolution
+
+- Phase 151 added: Homepage Progress Overview and Upcoming Events Fix
+
 ### Blockers/Concerns
 
 None.
