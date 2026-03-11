@@ -1783,6 +1783,13 @@ namespace HcPortal.Controllers
             if (!assessment.GenerateCertificate)
                 return NotFound();
 
+            // Guard: certificate only available for passed assessments
+            if (assessment.IsPassed != true)
+            {
+                TempData["Error"] = "Certificate is only available for passed assessments.";
+                return RedirectToAction("Results", new { id });
+            }
+
             return View(assessment);
         }
 
