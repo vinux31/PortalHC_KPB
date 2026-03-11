@@ -32,6 +32,9 @@ namespace HcPortal.Models
         [Display(Name = "Allow Answer Review")]
         public bool AllowAnswerReview { get; set; } = true;
 
+        [Display(Name = "Terbitkan Sertifikat")]
+        public bool GenerateCertificate { get; set; } = false;
+
         public bool? IsPassed { get; set; }
         public DateTime? CompletedAt { get; set; }
         public DateTime? StartedAt { get; set; }

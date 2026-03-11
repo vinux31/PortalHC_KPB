@@ -10,6 +10,7 @@ namespace HcPortal.Models
         public int PassPercentage { get; set; }
         public bool IsPassed { get; set; }
         public bool AllowAnswerReview { get; set; }
+        public bool GenerateCertificate { get; set; }
         public DateTime? CompletedAt { get; set; }
         public int TotalQuestions { get; set; }
         public int CorrectAnswers { get; set; }

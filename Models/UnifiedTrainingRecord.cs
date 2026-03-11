@@ -45,6 +45,9 @@ namespace HcPortal.Models
         // AssessmentSession.Id — null for Training Manual rows; used to build Results link in Records view
         public int? AssessmentSessionId { get; set; }
 
+        // Assessment-only: whether this assessment generates certificates. False for Training Manual rows.
+        public bool GenerateCertificate { get; set; } = false;
+
         // Training Manual-only fields for Edit modal pre-population (null for Assessment rows)
         public string? Kategori { get; set; }
         public string? Kota { get; set; }
