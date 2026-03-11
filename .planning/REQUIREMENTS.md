@@ -10,9 +10,9 @@
 
 - [ ] **ASSESS-01**: HC can create assessment with all fields (title, category, schedule, duration, pass%, packages, users, token, certificate toggle)
 - [ ] **ASSESS-02**: HC can import questions via Excel template into assessment packages
-- [ ] **ASSESS-03**: Worker can view available assessments filtered by status (Open/Upcoming/Completed)
-- [ ] **ASSESS-04**: Worker can start exam with token verification and complete exam with auto-save
-- [ ] **ASSESS-05**: Worker can submit exam, view results (score, pass/fail), and review answers if allowed
+- [x] **ASSESS-03**: Worker can view available assessments filtered by status (Open/Upcoming/Completed)
+- [x] **ASSESS-04**: Worker can start exam with token verification and complete exam with auto-save
+- [x] **ASSESS-05**: Worker can submit exam, view results (score, pass/fail), and review answers if allowed
 - [ ] **ASSESS-06**: Worker can view/download certificate when GenerateCertificate=true and IsPassed=true
 - [ ] **ASSESS-07**: HC can monitor live exam progress, reset/force-close/regenerate token
 - [ ] **ASSESS-08**: Assessment completion creates TrainingRecord and updates competency level
@@ -71,9 +71,9 @@
 |-------------|-------|--------|
 | ASSESS-01 | Phase 153 | Pending |
 | ASSESS-02 | Phase 153 | Pending |
-| ASSESS-03 | Phase 153 | Pending |
-| ASSESS-04 | Phase 153 | Pending |
-| ASSESS-05 | Phase 153 | Pending |
+| ASSESS-03 | Phase 153 | Complete |
+| ASSESS-04 | Phase 153 | Complete |
+| ASSESS-05 | Phase 153 | Complete |
 | ASSESS-06 | Phase 153 | Pending |
 | ASSESS-07 | Phase 153 | Pending |
 | ASSESS-08 | Phase 153 | Pending |
