@@ -12,22 +12,20 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v3.18 — started 2026-03-10)
+## Current State (v3.19 — started 2026-03-11)
 
-**v1.0 through v3.17 shipped** — 34 milestones, 147 phases.
+**v1.0 through v3.18 shipped** — 35 milestones, 149 phases.
 
-## Current Milestone: v3.18 Homepage Minimalist Redesign
+## Current Milestone: v3.19 Assessment Certificate Toggle
 
-**Goal:** Sederhanakan Homepage agar minimalis dan clean — seragamkan styling dengan halaman CMP/CDP yang sudah ada.
+**Goal:** Tambah toggle on/off sertifikat saat HC membuat assessment — agar assessment/training yang tidak butuh sertifikat tidak menampilkan tombol "View Certificate".
 
 **Target features:**
-- Simplify Hero section (tone down glassmorphism/gradient effects)
-- Keep Quick Access section with cleaner styling
-- Remove glass cards (IDP Status, Pending Assessment, Mandatory Training)
-- Remove Recent Activity timeline
-- Remove Upcoming Deadlines section
-- Clean up home.css — remove unused glassmorphism/animation styles
-- Seragamkan design language dengan CMP/CDP pages (Bootstrap cards, shadow-sm, simple)
+- Field `GenerateCertificate` (bool, default true) di AssessmentSession model
+- Toggle switch "Terbitkan Sertifikat" di form CreateAssessment dan EditAssessment
+- Results page hanya tampilkan tombol certificate jika flag ON dan IsPassed
+- Certificate action guard: return NotFound jika flag OFF
+- Backward compatible — semua assessment existing tetap punya sertifikat (default true)
 
 ## Architecture Decisions
 
