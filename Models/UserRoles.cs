@@ -15,8 +15,8 @@ namespace HcPortal.Models
         public const string Direktur = "Direktur";
         public const string VP = "VP";
         public const string Manager = "Manager";
-        
-        // Level 4 - Supervisory
+
+        // Level 4 - Section Supervisory
         public const string SectionHead = "Section Head";
         public const string SrSupervisor = "Sr Supervisor";
         
@@ -45,9 +45,9 @@ namespace HcPortal.Models
             {
                 Admin => 1,
                 HC => 2,
-                Direktur or VP or Manager or SectionHead => 3,  // SectionHead: 4 → 3 (full access)
-                SrSupervisor => 4,
-                Coach or Supervisor => 5,                        // Supervisor: new at level 5
+                Direktur or VP or Manager => 3,
+                SectionHead or SrSupervisor => 4,
+                Coach or Supervisor => 5,
                 Coachee => 6,
                 _ => 6 // Default to lowest level
             };

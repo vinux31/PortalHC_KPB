@@ -1,0 +1,12 @@
+Email                                Password    Role
+---------------------------------    --------    ------------
+admin@pertamina.com                  123456      Admin
+rino.prasetyo@pertamina.com          123456      Coachee
+meylisa.tjiang@pertamina.com         123456      HC
+direktur@pertamina.com               123456      Direktur
+vp@pertamina.com                     123456      VP
+manager@pertamina.com                123456      Manager
+taufik.hartopo@pertamina.com         123456      SectionHead
+choirul.anam@pertamina.com           123456      SrSupervisor
+rustam.nugroho@pertamina.com         123456      Coach
+iwan3@pertamina.com                  123456      Coachee

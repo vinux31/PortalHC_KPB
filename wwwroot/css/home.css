@@ -60,6 +60,74 @@
 }
 
 /* ============================================
+   Menu Cards
+   ============================================ */
+.menu-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.menu-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12) !important;
+}
+
+/* ============================================
+   Upcoming Events Card
+   ============================================ */
+.upcoming-events-card {
+    border-radius: 16px;
+}
+
+.upcoming-events-card .card-header {
+    padding-bottom: 0;
+}
+
+.event-item-card {
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.event-item-card:hover {
+    border-color: var(--bs-primary) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.event-icon {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.min-width-0 {
+    min-width: 0;
+}
+
+/* ============================================
+   Progress Card
+   ============================================ */
+.progress-card {
+    border-radius: 16px;
+}
+
+.progress-card .card-header {
+    padding-bottom: 0;
+}
+
+.progress-item .progress {
+    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.progress-item .progress-bar {
+    border-radius: 8px;
+    transition: width 0.6s ease;
+}
+
+/* ============================================
    Responsive Design
    ============================================ */
 @media (max-width: 768px) {
@@ -69,5 +137,19 @@
 
     .hero-greeting {
         font-size: 1.75rem;
+    }
+
+    .upcoming-events-card {
+        margin-top: 0;
+    }
+
+    .events-list {
+        max-height: 220px;
+    }
+}
+
+@media (max-width: 992px) {
+    .upcoming-events-card {
+        margin-top: 0;
     }
 }

@@ -4,6 +4,7 @@ using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HcPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260308111015_MoveTargetToDeliverable")]
+    partial class MoveTargetToDeliverable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -345,9 +348,6 @@ namespace HcPortal.Migrations
                     b.Property<DateTime?>("ExamWindowCloseDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<bool>("GenerateCertificate")
-                        .HasColumnType("bit");
-
                     b.Property<string>("InterviewResultsJson")
                         .HasColumnType("TEXT");
 
@@ -639,18 +639,6 @@ namespace HcPortal.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AcuanBestPractice")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AcuanDokumen")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AcuanPedoman")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AcuanTko")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CatatanCoach")
                         .IsRequired()
@@ -1096,9 +1084,6 @@ namespace HcPortal.Migrations
 
                     b.Property<int>("ScoreValue")
                         .HasColumnType("int");
-
-                    b.Property<string>("SubCompetency")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 

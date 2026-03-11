@@ -4,7 +4,7 @@ milestone: v4.0
 milestone_name: E2E Use-Case Audit
 status: in_progress
 last_updated: "2026-03-11"
-last_activity: 2026-03-11 — 153-02 worker exam flow audit complete (approved)
+last_activity: 2026-03-11 — 153-03 certificate/monitoring/training-records audit complete (approved)
 progress:
   total_phases: 6
   completed_phases: 0
