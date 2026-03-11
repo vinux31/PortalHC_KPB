@@ -13,9 +13,9 @@
 - [x] **ASSESS-03**: Worker can view available assessments filtered by status (Open/Upcoming/Completed)
 - [x] **ASSESS-04**: Worker can start exam with token verification and complete exam with auto-save
 - [x] **ASSESS-05**: Worker can submit exam, view results (score, pass/fail), and review answers if allowed
-- [ ] **ASSESS-06**: Worker can view/download certificate when GenerateCertificate=true and IsPassed=true
-- [ ] **ASSESS-07**: HC can monitor live exam progress, reset/force-close/regenerate token
-- [ ] **ASSESS-08**: Assessment completion creates TrainingRecord and updates competency level
+- [x] **ASSESS-06**: Worker can view/download certificate when GenerateCertificate=true and IsPassed=true
+- [x] **ASSESS-07**: HC can monitor live exam progress, reset/force-close/regenerate token
+- [x] **ASSESS-08**: Assessment completion creates TrainingRecord and updates competency level
 
 ### Case 2: Coaching Proton Flow
 
@@ -74,9 +74,9 @@
 | ASSESS-03 | Phase 153 | Complete |
 | ASSESS-04 | Phase 153 | Complete |
 | ASSESS-05 | Phase 153 | Complete |
-| ASSESS-06 | Phase 153 | Pending |
-| ASSESS-07 | Phase 153 | Pending |
-| ASSESS-08 | Phase 153 | Pending |
+| ASSESS-06 | Phase 153 | Complete |
+| ASSESS-07 | Phase 153 | Complete |
+| ASSESS-08 | Phase 153 | Complete |
 | PROTON-01 | Phase 154 | Pending |
 | PROTON-02 | Phase 154 | Pending |
 | PROTON-03 | Phase 154 | Pending |

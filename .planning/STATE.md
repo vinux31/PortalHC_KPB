@@ -47,6 +47,9 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - [Phase 153-assessment-flow-audit]: EditAssessment validation added inline (TempData redirect) to match controller style — no ModelState return needed
 - [Phase 153-assessment-flow-audit]: ImportPackageQuestions batch refactor: PackageQuestion.Options navigation collection for single SaveChangesAsync
 - [Phase 153-assessment-flow-audit]: Timer manipulation via forged elapsedSeconds is low impact — mitigated by server-side StartedAt check in SubmitExam
+- [153-03 ASSESS-06]: Certificate() now requires IsPassed=true in addition to GenerateCertificate=true (bug fix applied)
+- [153-03 ASSESS-08]: TrainingRecord auto-creation on exam submission NOT implemented — user decision: implement as new feature in gap-closure phase
+- [153-03 ASSESS-07]: ForceCloseAll sets Abandoned (no score); ForceCloseAssessment sets Completed+score=0 — intentional design difference
 
 ### Blockers/Concerns
 
@@ -56,7 +59,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Completed 153-02-PLAN.md (all 3 plans in Phase 153 complete)
+Stopped at: Completed 153-03-PLAN.md — all 3 plans in Phase 153 complete; ASSESS-08 gap logged for gap-closure phase
 Resume file: None
 
 ---
