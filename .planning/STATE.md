@@ -3,10 +3,25 @@ gsd_state_version: 1.0
 milestone: v3.19
 milestone_name: Assessment Certificate Toggle
 status: completed
+last_updated: "2026-03-11T01:55:16.823Z"
+last_activity: 2026-03-11 — Completed 150-01-PLAN.md
+progress:
+  total_phases: 2
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v3.19
+milestone_name: Assessment Certificate Toggle
+status: completed
 last_updated: "2026-03-11T01:32:51.411Z"
 last_activity: 2026-03-11 — Completed 150-01-PLAN.md
 progress:
-  total_phases: 1
+  [██████████] 100%
   completed_phases: 1
   total_plans: 1
   completed_plans: 1
@@ -38,11 +53,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 ## Current Position
 
-**Milestone:** v3.19 Assessment Certificate Toggle
-**Phase:** 150-certificate-toggle-implementation
+**Milestone:** v3.20 Homepage Progress Overview and Upcoming Events Fix
+**Phase:** 151-homepage-progress-overview-and-upcoming-events-fix
 **Plan:** 01 (complete)
 **Status:** Milestone complete
-**Last activity:** 2026-03-11 — Completed 150-01-PLAN.md
+**Last activity:** 2026-03-11 — Completed 151-01-PLAN.md
 
 Progress: [██████████] 100%
 
@@ -54,6 +69,8 @@ Progress: [██████████] 100%
 - Existing rows get defaultValue: true via migration (backward compatible)
 - Toggle placed in CreateAssessment and EditAssessment forms alongside ExamWindowCloseDate
 - Certificate action returns NotFound when flag is OFF (not just hide button)
+- Upcoming Events filters use DateTime.Today.AddDays(2).AddTicks(-1) as end-of-tomorrow boundary
+- Coaching Sessions progress bar uses bg-warning (yellow) matching CDP (blue) and Assessment (green)
 
 ### Roadmap Evolution
 
@@ -64,4 +81,4 @@ Progress: [██████████] 100%
 None.
 
 ---
-*State updated: 2026-03-11 after completing 150-01-PLAN.md*
+*State updated: 2026-03-11 after completing 151-01-PLAN.md*

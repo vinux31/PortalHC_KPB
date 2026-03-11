@@ -54,7 +54,7 @@
 **Goal:** Check dan perbaiki logic Progress Overview dan Upcoming Events di homepage
 **Requirements**: None
 **Depends on:** Phase 150
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 **Notes:**
 - Upcoming Events seharusnya hanya menunjukkan event hari ini atau besok (bukan semua upcoming events)
 
