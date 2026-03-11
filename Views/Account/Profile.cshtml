@@ -1,7 +1,7 @@
-@model HcPortal.Models.ApplicationUser
+@model HcPortal.Models.ProfileViewModel
 @{
     ViewData["Title"] = "Profil Saya";
-    var userRole = ViewBag.UserRole as string ?? "—";
+    var userRole = Model.Role ?? "—";
     var fullName = string.IsNullOrEmpty(Model.FullName) ? "" : Model.FullName;
     var nameParts = fullName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
     var initials = nameParts.Length >= 2
@@ -29,25 +29,25 @@
         @* Section: Identitas *@
         <p class="text-uppercase fw-bold small text-muted mb-3">Identitas</p>
 
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Nama Lengkap</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.FullName)) { @Model.FullName } else { <span class="text-muted">—</span> }
             </div>
         </div>
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">NIP</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.NIP)) { @Model.NIP } else { <span class="text-muted">—</span> }
             </div>
         </div>
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Email</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.Email)) { @Model.Email } else { <span class="text-muted">—</span> }
             </div>
         </div>
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Telepon</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.PhoneNumber)) { @Model.PhoneNumber } else { <span class="text-muted">—</span> }
@@ -59,31 +59,31 @@
         @* Section: Organisasi *@
         <p class="text-uppercase fw-bold small text-muted mb-3">Organisasi</p>
 
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Direktorat</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.Directorate)) { @Model.Directorate } else { <span class="text-muted">—</span> }
             </div>
         </div>
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Bagian</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.Section)) { @Model.Section } else { <span class="text-muted">—</span> }
             </div>
         </div>
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Unit</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.Unit)) { @Model.Unit } else { <span class="text-muted">—</span> }
             </div>
         </div>
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Jabatan</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(Model.Position)) { @Model.Position } else { <span class="text-muted">—</span> }
             </div>
         </div>
-        <div class="row mb-2 py-1">
+        <div class="row mb-3">
             <div class="col-sm-4 text-muted small fw-medium">Role</div>
             <div class="col-sm-8">
                 @if (!string.IsNullOrEmpty(userRole) && userRole != "No Role") { @userRole } else { <span class="text-muted">—</span> }
@@ -92,7 +92,7 @@
 
         <div class="d-flex justify-content-end mt-4">
             <a asp-controller="Account" asp-action="Settings" class="btn btn-outline-secondary">
-                <i class="bi bi-gear me-1"></i> Edit Profile
+                <i class="bi bi-gear me-1"></i> Pengaturan
             </a>
         </div>
 
