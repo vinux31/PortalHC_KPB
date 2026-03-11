@@ -7,12 +7,12 @@
 
 ### Certificate Toggle
 
-- [ ] **CERT-01**: HC can enable/disable certificate generation when creating an assessment (toggle "Terbitkan Sertifikat", default OFF) — *user decision overrides initial spec; new assessments default to GenerateCertificate = false*
-- [ ] **CERT-02**: HC can edit the certificate toggle on existing assessments via EditAssessment
-- [ ] **CERT-03**: Results page hides "View Certificate" button when GenerateCertificate is false, even if worker passed
-- [ ] **CERT-04**: Certificate action returns 404 when GenerateCertificate is false (server-side guard)
-- [ ] **CERT-05**: All existing assessments retain certificate access (migration default = true)
-- [ ] **CERT-06**: Training Records views hide certificate link/column (show dash) when GenerateCertificate is false for assessment rows
+- [x] **CERT-01**: HC can enable/disable certificate generation when creating an assessment (toggle "Terbitkan Sertifikat", default OFF) — *user decision overrides initial spec; new assessments default to GenerateCertificate = false*
+- [x] **CERT-02**: HC can edit the certificate toggle on existing assessments via EditAssessment
+- [x] **CERT-03**: Results page hides "View Certificate" button when GenerateCertificate is false, even if worker passed
+- [x] **CERT-04**: Certificate action returns 404 when GenerateCertificate is false (server-side guard)
+- [x] **CERT-05**: All existing assessments retain certificate access (migration default = true)
+- [x] **CERT-06**: Training Records views hide certificate link/column (show dash) when GenerateCertificate is false for assessment rows
 
 ## Out of Scope
 
@@ -26,12 +26,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CERT-01 | Phase 150 | Pending |
-| CERT-02 | Phase 150 | Pending |
-| CERT-03 | Phase 150 | Pending |
-| CERT-04 | Phase 150 | Pending |
-| CERT-05 | Phase 150 | Pending |
-| CERT-06 | Phase 150 | Pending |
+| CERT-01 | Phase 150 | Complete |
+| CERT-02 | Phase 150 | Complete |
+| CERT-03 | Phase 150 | Complete |
+| CERT-04 | Phase 150 | Complete |
+| CERT-05 | Phase 150 | Complete |
+| CERT-06 | Phase 150 | Complete |
 
 **Coverage:**
 - v3.19 requirements: 6 total

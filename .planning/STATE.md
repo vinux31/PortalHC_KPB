@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v3.19
 milestone_name: Assessment Certificate Toggle
-status: defining_requirements
+status: complete
 last_updated: "2026-03-11"
-last_activity: "2026-03-11 — Milestone v3.19 started"
+last_activity: "2026-03-11 — Completed 150-01-PLAN.md"
 progress:
-  total_phases: 0
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
 ---
 
 # Project State: Portal HC KPB
@@ -25,19 +25,20 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 **Milestone:** v3.19 Assessment Certificate Toggle
-**Phase:** Not started (defining requirements)
-**Plan:** —
-**Status:** Defining requirements
-**Last activity:** 2026-03-11 — Milestone v3.19 started
+**Phase:** 150-certificate-toggle-implementation
+**Plan:** 01 (complete)
+**Status:** Complete
+**Last activity:** 2026-03-11 — Completed 150-01-PLAN.md
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Accumulated Context
 
 ### Decisions
 
-- GenerateCertificate default = true for backward compatibility
-- Toggle placed in CreateAssessment and EditAssessment forms
+- GenerateCertificate default = false for new assessments (toggle OFF in form)
+- Existing rows get defaultValue: true via migration (backward compatible)
+- Toggle placed in CreateAssessment and EditAssessment forms alongside ExamWindowCloseDate
 - Certificate action returns NotFound when flag is OFF (not just hide button)
 
 ### Blockers/Concerns
@@ -45,4 +46,4 @@ Progress: [░░░░░░░░░░] 0%
 None.
 
 ---
-*State updated: 2026-03-11 after milestone v3.19 start*
+*State updated: 2026-03-11 after completing 150-01-PLAN.md*

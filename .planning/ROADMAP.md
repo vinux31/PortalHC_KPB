@@ -57,7 +57,7 @@
 
 ## Phases
 
-- [ ] **Phase 150: Certificate Toggle Implementation** - Add GenerateCertificate field, migration, UI toggle in Create/Edit forms, and guard in Results/Certificate actions
+- [x] **Phase 150: Certificate Toggle Implementation** - Add GenerateCertificate field, migration, UI toggle in Create/Edit forms, and guard in Results/Certificate actions (completed 2026-03-11)
 
 ## Phase Details
 
@@ -83,4 +83,4 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 150. Certificate Toggle Implementation | 0/1 | Not started | - |
+| 150. Certificate Toggle Implementation | 1/1 | Complete   | 2026-03-11 |
