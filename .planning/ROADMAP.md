@@ -128,7 +128,10 @@ Plans:
   1. Coachee sees their assigned track silabus with deliverable targets and the list matches their active ProtonTrackAssignment
   2. HC/Admin can browse any section/unit/track silabus without errors and coaching guidance files are downloadable per bagian/unit/track
   3. CDP Dashboard shows role-scoped progress metrics — coachee sees own data, coach sees their coachees, HC/Admin see all — with no cross-role data leakage
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 156-01-PLAN.md — Audit PlanIdp silabus browsing and guidance downloads (CDP-01, CDP-02, CDP-03)
+- [ ] 156-02-PLAN.md — Audit CDP Dashboard role-scoped metrics and filtering (CDP-04)
 
 ### Phase 157: Account & Auth Audit
 **Goal**: Login, profile, settings, and authorization enforcement work correctly for all roles and edge cases
@@ -139,7 +142,10 @@ Plans:
   2. Profile page shows correct role, section, unit, and position data for the logged-in user with no ViewBag null-reference errors
   3. User can change password and edit profile fields (FullName, Position) and changes persist after re-login
   4. Accessing a role-restricted URL without the required role redirects to the AccessDenied page, not a 500 error
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 156-01-PLAN.md — Audit PlanIdp silabus browsing and guidance downloads (CDP-01, CDP-02, CDP-03)
+- [ ] 156-02-PLAN.md — Audit CDP Dashboard role-scoped metrics and filtering (CDP-04)
 
 ### Phase 158: Homepage & Navigation Audit
 **Goal**: The homepage dashboard, guide pages, and all navigation links are correct and role-appropriate for every role
@@ -150,7 +156,10 @@ Plans:
   2. Navbar shows exactly the correct menu items for each role — no extra items visible, no missing items — including Kelola Data visibility for HC
   3. Guide pages are accessible for the appropriate roles and display role-relevant content without broken links or 404s
   4. Every navbar link and hub card link resolves to a working page with no dead links or redirect loops
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 156-01-PLAN.md — Audit PlanIdp silabus browsing and guidance downloads (CDP-01, CDP-02, CDP-03)
+- [ ] 156-02-PLAN.md — Audit CDP Dashboard role-scoped metrics and filtering (CDP-04)
 
 ## Progress
 
