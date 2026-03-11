@@ -8,8 +8,8 @@
 
 ### Case 1: Assessment Flow
 
-- [ ] **ASSESS-01**: HC can create assessment with all fields (title, category, schedule, duration, pass%, packages, users, token, certificate toggle)
-- [ ] **ASSESS-02**: HC can import questions via Excel template into assessment packages
+- [x] **ASSESS-01**: HC can create assessment with all fields (title, category, schedule, duration, pass%, packages, users, token, certificate toggle)
+- [x] **ASSESS-02**: HC can import questions via Excel template into assessment packages
 - [x] **ASSESS-03**: Worker can view available assessments filtered by status (Open/Upcoming/Completed)
 - [x] **ASSESS-04**: Worker can start exam with token verification and complete exam with auto-save
 - [x] **ASSESS-05**: Worker can submit exam, view results (score, pass/fail), and review answers if allowed
@@ -69,8 +69,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ASSESS-01 | Phase 153 | Pending |
-| ASSESS-02 | Phase 153 | Pending |
+| ASSESS-01 | Phase 153 | Complete |
+| ASSESS-02 | Phase 153 | Complete |
 | ASSESS-03 | Phase 153 | Complete |
 | ASSESS-04 | Phase 153 | Complete |
 | ASSESS-05 | Phase 153 | Complete |
