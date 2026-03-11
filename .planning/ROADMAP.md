@@ -51,10 +51,12 @@
 
 ### Phase 151: Homepage Progress Overview and Upcoming Events Fix
 
-**Goal:** [To be planned]
+**Goal:** Check dan perbaiki logic Progress Overview dan Upcoming Events di homepage
 **Requirements**: TBD
 **Depends on:** Phase 150
 **Plans:** 0 plans
+**Notes:**
+- Upcoming Events seharusnya hanya menunjukkan event hari ini atau besok (bukan semua upcoming events)
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 151 to break down)
