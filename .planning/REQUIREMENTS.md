@@ -41,7 +41,7 @@
 - [x] **CDP-01**: Coachee sees assigned track silabus with deliverable targets
 - [x] **CDP-02**: HC/Admin can browse any section/unit/track silabus
 - [x] **CDP-03**: Coaching guidance files downloadable per bagian/unit/track
-- [ ] **CDP-04**: CDP Dashboard shows role-scoped progress metrics and drill-down
+- [x] **CDP-04**: CDP Dashboard shows role-scoped progress metrics and drill-down
 
 ### Case 5: Account & Auth
 
@@ -93,7 +93,7 @@
 | CDP-01 | Phase 156 | Complete |
 | CDP-02 | Phase 156 | Complete |
 | CDP-03 | Phase 156 | Complete |
-| CDP-04 | Phase 156 | Pending |
+| CDP-04 | Phase 156 | Complete |
 | AUTH-01 | Phase 157 | Pending |
 | AUTH-02 | Phase 157 | Pending |
 | AUTH-03 | Phase 157 | Pending |
