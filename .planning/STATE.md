@@ -4,7 +4,7 @@ milestone: v4.0
 milestone_name: E2E Use-Case Audit
 status: in_progress
 last_updated: "2026-03-11"
-last_activity: 2026-03-11 — 153-03 certificate/monitoring/training-records audit complete (approved)
+last_activity: 2026-03-11 — 153-04 ASSESS-08 gap closure complete
 progress:
   total_phases: 6
   completed_phases: 0
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Milestone:** v4.0 E2E Use-Case Audit
 **Phase:** 153 of 158 (Assessment Flow Audit)
-**Plan:** 3 of 3 complete
+**Plan:** 4 of 4 complete
 **Status:** In progress
-**Last activity:** 2026-03-11 — 153-02 worker exam flow audit complete, browser-verified and approved
+**Last activity:** 2026-03-11 — 153-04 ASSESS-08 gap closure: TrainingRecord auto-creation in SubmitExam()
 
 Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
@@ -59,7 +59,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 ## Session Continuity
 
 Last session: 2026-03-11
-Stopped at: Completed 153-03-PLAN.md — all 3 plans in Phase 153 complete; ASSESS-08 gap logged for gap-closure phase
+Stopped at: Completed 153-04-PLAN.md — ASSESS-08 gap closed; TrainingRecord auto-created on exam submission
 Resume file: None
 
 ---

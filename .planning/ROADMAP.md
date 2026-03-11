@@ -148,7 +148,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 153. Assessment Flow Audit | 3/4 | In progress | 2026-03-11 | - |
+| 153. Assessment Flow Audit | 4/4 | Complete   | 2026-03-11 | - |
 | 154. Coaching Proton Flow Audit | v4.0 | 0/TBD | Not started | - |
 | 155. Admin Kelola Data Audit | v4.0 | 0/TBD | Not started | - |
 | 156. PlanIDP & CDP Dashboard Audit | v4.0 | 0/TBD | Not started | - |
