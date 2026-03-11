@@ -20,9 +20,9 @@
 ### Case 2: Coaching Proton Flow
 
 - [ ] **PROTON-01**: HC can create coach-coachee mapping with section/unit assignment
-- [ ] **PROTON-02**: Coachee can view assigned deliverables and upload evidence
-- [ ] **PROTON-03**: Coach can create coaching session with notes, conclusion, and action items
-- [ ] **PROTON-04**: SrSpv/SectionHead can approve or reject deliverables with reason
+- [x] **PROTON-02**: Coachee can view assigned deliverables and upload evidence
+- [x] **PROTON-03**: Coach can create coaching session with notes, conclusion, and action items
+- [x] **PROTON-04**: SrSpv/SectionHead can approve or reject deliverables with reason
 - [ ] **PROTON-05**: HC can review deliverables and track overall progress
 - [ ] **PROTON-06**: HC can create Assessment Proton (Tahun 1-2 online, Tahun 3 interview)
 - [ ] **PROTON-07**: Histori Proton timeline shows complete coachee journey
@@ -78,9 +78,9 @@
 | ASSESS-07 | Phase 153 | Complete |
 | ASSESS-08 | Phase 153 | Pending |
 | PROTON-01 | Phase 154 | Pending |
-| PROTON-02 | Phase 154 | Pending |
-| PROTON-03 | Phase 154 | Pending |
-| PROTON-04 | Phase 154 | Pending |
+| PROTON-02 | Phase 154 | Complete |
+| PROTON-03 | Phase 154 | Complete |
+| PROTON-04 | Phase 154 | Complete |
 | PROTON-05 | Phase 154 | Pending |
 | PROTON-06 | Phase 154 | Pending |
 | PROTON-07 | Phase 154 | Pending |
