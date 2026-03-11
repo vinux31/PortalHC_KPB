@@ -83,4 +83,4 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 150. Certificate Toggle Implementation | 1/1 | Complete   | 2026-03-11 |
+| 150. Certificate Toggle Implementation | 1/1 | Complete    | 2026-03-11 |
