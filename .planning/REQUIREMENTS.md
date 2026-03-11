@@ -23,9 +23,9 @@
 - [x] **PROTON-02**: Coachee can view assigned deliverables and upload evidence
 - [x] **PROTON-03**: Coach can create coaching session with notes, conclusion, and action items
 - [x] **PROTON-04**: SrSpv/SectionHead can approve or reject deliverables with reason
-- [ ] **PROTON-05**: HC can review deliverables and track overall progress
-- [ ] **PROTON-06**: HC can create Assessment Proton (Tahun 1-2 online, Tahun 3 interview)
-- [ ] **PROTON-07**: Histori Proton timeline shows complete coachee journey
+- [x] **PROTON-05**: HC can review deliverables and track overall progress
+- [x] **PROTON-06**: HC can create Assessment Proton (Tahun 1-2 online, Tahun 3 interview)
+- [x] **PROTON-07**: Histori Proton timeline shows complete coachee journey
 
 ### Case 3: Admin Kelola Data
 
@@ -81,9 +81,9 @@
 | PROTON-02 | Phase 154 | Complete |
 | PROTON-03 | Phase 154 | Complete |
 | PROTON-04 | Phase 154 | Complete |
-| PROTON-05 | Phase 154 | Pending |
-| PROTON-06 | Phase 154 | Pending |
-| PROTON-07 | Phase 154 | Pending |
+| PROTON-05 | Phase 154 | Complete |
+| PROTON-06 | Phase 154 | Complete |
+| PROTON-07 | Phase 154 | Complete |
 | ADMIN-01 | Phase 155 | Pending |
 | ADMIN-02 | Phase 155 | Pending |
 | ADMIN-03 | Phase 155 | Pending |
