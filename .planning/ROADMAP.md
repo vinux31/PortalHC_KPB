@@ -52,14 +52,14 @@
 ### Phase 151: Homepage Progress Overview and Upcoming Events Fix
 
 **Goal:** Check dan perbaiki logic Progress Overview dan Upcoming Events di homepage
-**Requirements**: TBD
+**Requirements**: None
 **Depends on:** Phase 150
-**Plans:** 0 plans
+**Plans:** 1 plan
 **Notes:**
 - Upcoming Events seharusnya hanya menunjukkan event hari ini atau besok (bukan semua upcoming events)
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 151 to break down)
+- [ ] 151-01-PLAN.md — Fix today/tomorrow filter for events + add Coaching progress bar
 
 ---
 
