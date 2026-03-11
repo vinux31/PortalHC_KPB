@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: E2E Use-Case Audit
 status: planning
-stopped_at: Phase 156 context gathered
-last_updated: "2026-03-11T23:49:22.161Z"
+stopped_at: Completed 156-01-PLAN.md — awaiting UAT checkpoint
+last_updated: "2026-03-11T23:57:20.092Z"
 last_activity: "2026-03-11 — 153-04 ASSESS-08 gap closure: TrainingRecord auto-creation in SubmitExam()"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
 ---
 
 ---
@@ -71,6 +71,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - [Phase 155-admin-kelola-data-audit]: ReactivateWorker restores IsActive only; closed mappings/sessions not restored by design
 - [Phase 155-admin-kelola-data-audit]: CPDP download .xls MIME type bug fixed inline during ADMIN-04 audit
 - [Phase 155-admin-kelola-data-audit]: CpdpFileArchive audit log added for parity with KkjFileDelete (ADMIN-04)
+- [Phase 156-planidp-cdp-dashboard-audit]: Coachee unit/trackId URL override: changed ??= to = so all 3 filter params are always force-set from assignment data
 
 ### Blockers/Concerns
 
@@ -79,9 +80,9 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
 ## Session Continuity
 
-Last session: 2026-03-11T23:49:22.157Z
-Stopped at: Phase 156 context gathered
-Resume file: .planning/phases/156-planidp-cdp-dashboard-audit/156-CONTEXT.md
+Last session: 2026-03-11T23:57:16.016Z
+Stopped at: Completed 156-01-PLAN.md — awaiting UAT checkpoint
+Resume file: None
 
 ---
 *State updated: 2026-03-11 after 153-02 completion*
