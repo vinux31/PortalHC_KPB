@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using HcPortal.Models;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace HcPortal.Controllers
 {
+    [Authorize]
     public class AccountController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -26,6 +28,7 @@ namespace HcPortal.Controllers
         }
 
         // 1. Tampilkan Halaman Login (GET)
+        [AllowAnonymous]
         public IActionResult Login(string? returnUrl = null)
         {
             // Jika sudah login, redirect ke Home
@@ -39,6 +42,7 @@ namespace HcPortal.Controllers
         }
 
         // 2. Proses saat tombol Login ditekan (POST)
+        [AllowAnonymous]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password, bool rememberMe = false, string? returnUrl = null)
@@ -129,11 +133,6 @@ namespace HcPortal.Controllers
         // 4. Halaman Profile User
         public async Task<IActionResult> Profile()
         {
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                return RedirectToAction("Login");
-            }
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -141,19 +140,26 @@ namespace HcPortal.Controllers
             }
 
             var roles = await _userManager.GetRolesAsync(user);
-            ViewBag.UserRole = roles.FirstOrDefault() ?? "No Role";
 
-            return View(user);
+            var model = new ProfileViewModel
+            {
+                FullName = user.FullName,
+                NIP = user.NIP,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                Position = user.Position,
+                Directorate = user.Directorate,
+                Section = user.Section,
+                Unit = user.Unit,
+                Role = roles.FirstOrDefault() ?? "No Role"
+            };
+
+            return View(model);
         }
 
         // 5. Halaman Settings
         public async Task<IActionResult> Settings()
         {
-            if (User.Identity?.IsAuthenticated != true)
-            {
-                return RedirectToAction("Login");
-            }
-
             var user = await _userManager.GetUserAsync(User);
             if (user == null)
             {
@@ -272,6 +278,7 @@ namespace HcPortal.Controllers
         }
 
         // 6. Access Denied Page
+        [AllowAnonymous]
         public IActionResult AccessDenied()
         {
             return View();

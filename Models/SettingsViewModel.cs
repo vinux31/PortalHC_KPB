@@ -36,8 +36,8 @@ namespace HcPortal.Models
         [StringLength(100)]
         public string? Position { get; set; }
 
-        [StringLength(20)]
-        [RegularExpression(@"^[0-9]+$", ErrorMessage = "Nomor telepon hanya boleh angka")]
+        [StringLength(30)]
+        [RegularExpression(@"^[\d\s\-\+\(\)]+$", ErrorMessage = "Format nomor telepon tidak valid")]
         public string? PhoneNumber { get; set; }
     }
 
