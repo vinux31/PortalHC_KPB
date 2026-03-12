@@ -65,6 +65,16 @@
 
 </details>
 
+### Phase 161: Fix deliverable ordering in CoachingProton table
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 160
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 161 to break down)
+
 ---
 
 ## v4.1 Coaching Proton Deduplication (In Progress)

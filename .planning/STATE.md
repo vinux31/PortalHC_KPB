@@ -65,6 +65,9 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 159-deduplication-fix-guard P01 | 15 | 2 tasks | 4 files |
 | Phase 160-assignment-removal P01 | 8 | 2 tasks | 2 files |
 
+### Roadmap Evolution
+- Phase 161 added: Fix deliverable ordering in CoachingProton table
+
 ### Decisions
 
 - Out of scope: FK from ProtonTrackAssignment to CoachCoacheeMapping (high migration risk; timestamp correlation sufficient)
