@@ -5689,6 +5689,22 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        #region Maintenance
+
+        /// <summary>
+        /// CLN-01: Manual trigger to deactivate duplicate active ProtonTrackAssignments.
+        /// Returns JSON { cleaned: N }.
+        /// </summary>
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> CleanupDuplicateAssignments()
+        {
+            var cleaned = await SeedData.DeduplicateProtonTrackAssignments(_context);
+            return Json(new { cleaned });
+        }
+
+        #endregion
     }
 }
 

@@ -77,6 +77,8 @@ public class ProtonTrackAssignment
     public ProtonTrack? ProtonTrack { get; set; }
     public bool IsActive { get; set; } = true;
     public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+    /// <summary>Set when deactivated via mapping cascade. Used to correlate assignments with their deactivation event for safe reactivation.</summary>
+    public DateTime? DeactivatedAt { get; set; }
 }
 
 /// <summary>

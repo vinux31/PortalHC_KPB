@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
 
 namespace HcPortal.Data
@@ -12,12 +13,60 @@ namespace HcPortal.Data
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
             // 1. Create Roles
             await CreateRolesAsync(roleManager);
 
             // 2. Create Sample Users
             await CreateUsersAsync(userManager);
+
+            // 3. One-time cleanup: deactivate duplicate active ProtonTrackAssignments (CLN-01)
+            await DeduplicateProtonTrackAssignments(context);
+        }
+
+        /// <summary>
+        /// CLN-01: Deactivates all but the latest active ProtonTrackAssignment per (CoacheeId, ProtonTrackId) pair.
+        /// Idempotent — does nothing if no duplicates exist.
+        /// </summary>
+        public static async Task<int> DeduplicateProtonTrackAssignments(ApplicationDbContext context)
+        {
+            // Load all active assignments grouped by coachee+track
+            var activeAssignments = await context.ProtonTrackAssignments
+                .Where(a => a.IsActive)
+                .OrderByDescending(a => a.AssignedAt)
+                .ThenByDescending(a => a.Id)
+                .ToListAsync();
+
+            var grouped = activeAssignments
+                .GroupBy(a => new { a.CoacheeId, a.ProtonTrackId });
+
+            var toDeactivate = new List<ProtonTrackAssignment>();
+            foreach (var group in grouped)
+            {
+                if (group.Count() > 1)
+                {
+                    // Keep the first (latest AssignedAt / highest Id), deactivate the rest
+                    toDeactivate.AddRange(group.Skip(1));
+                }
+            }
+
+            if (toDeactivate.Count == 0)
+            {
+                Console.WriteLine("CLN-01: No duplicate active ProtonTrackAssignments found.");
+                return 0;
+            }
+
+            var now = DateTime.UtcNow;
+            foreach (var assignment in toDeactivate)
+            {
+                assignment.IsActive = false;
+                assignment.DeactivatedAt = now;
+            }
+
+            await context.SaveChangesAsync();
+            Console.WriteLine($"CLN-01: Deactivated {toDeactivate.Count} duplicate ProtonTrackAssignment(s).");
+            return toDeactivate.Count;
         }
 
         private static async Task CreateRolesAsync(RoleManager<IdentityRole> roleManager)
