@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Coaching Proton Deduplication
 status: ready_to_plan
-stopped_at: Phase 160 context gathered
-last_updated: "2026-03-12T07:43:35.615Z"
+stopped_at: Completed 160-01-PLAN.md
+last_updated: "2026-03-12T10:41:08.157Z"
 last_activity: 2026-03-12 — Roadmap created, Phase 159 ready to plan
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 ## Accumulated Context
 | Phase 159-deduplication-fix-guard P02 | 10 | 2 tasks | 3 files |
 | Phase 159-deduplication-fix-guard P01 | 15 | 2 tasks | 4 files |
+| Phase 160-assignment-removal P01 | 8 | 2 tasks | 2 files |
 
 ### Decisions
 
@@ -71,6 +72,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 159-02]: Used max Id (not AssignedAt) as dedup tiebreaker for reliable EF Core translation
 - [Phase 159-01]: DeactivatedAt timestamp-correlation prevents reactivate cascade from restoring unrelated inactive assignments
 - [Phase 159-01]: FIX-02 reuses existing inactive ProtonTrackAssignment to prevent duplicates on re-assign
+- [Phase 160-01]: Cascade delete ALL ProtonTrackAssignments for coachee on mapping deletion (not timestamp-correlated) since deactivated mapping means no other active mapping context
 
 ### Blockers/Concerns
 
@@ -78,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-12T07:43:35.613Z
-Stopped at: Phase 160 context gathered
-Resume file: .planning/phases/160-assignment-removal/160-CONTEXT.md
+Last session: 2026-03-12T10:41:08.152Z
+Stopped at: Completed 160-01-PLAN.md
+Resume file: None

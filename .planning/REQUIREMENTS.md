@@ -22,8 +22,8 @@ Requirements for Coaching Proton Deduplication milestone.
 
 ### Assignment Removal
 
-- [ ] **RMV-01**: CoachCoacheeMapping page has "Hapus" button for deactivated mappings that permanently deletes the mapping, its ProtonTrackAssignments, and all associated ProtonDeliverableProgress rows with confirmation dialog
-- [ ] **RMV-02**: Remove action only available on deactivated (not active) mappings; action logged to AuditLog
+- [x] **RMV-01**: CoachCoacheeMapping page has "Hapus" button for deactivated mappings that permanently deletes the mapping, its ProtonTrackAssignments, and all associated ProtonDeliverableProgress rows with confirmation dialog
+- [x] **RMV-02**: Remove action only available on deactivated (not active) mappings; action logged to AuditLog
 
 ## Out of Scope
 
@@ -40,8 +40,8 @@ Requirements for Coaching Proton Deduplication milestone.
 | FIX-02 | Phase 159 | Complete |
 | CLN-01 | Phase 159 | Complete |
 | DEF-01 | Phase 159 | Complete |
-| RMV-01 | Phase 160 | Pending |
-| RMV-02 | Phase 160 | Pending |
+| RMV-01 | Phase 160 | Complete |
+| RMV-02 | Phase 160 | Complete |
 
 **Coverage:**
 - v4.1 requirements: 6 total

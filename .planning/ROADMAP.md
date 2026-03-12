@@ -74,7 +74,7 @@
 ### Phases
 
 - [x] **Phase 159: Deduplication Fix & Guard** - Fix reactivate cascade, add upsert on assign, clean up existing duplicates, add defensive query guard (completed 2026-03-12)
-- [ ] **Phase 160: Assignment Removal** - Add "Hapus" action on deactivated mappings for permanent deletion with audit logging
+- [x] **Phase 160: Assignment Removal** - Add "Hapus" action on deactivated mappings for permanent deletion with audit logging (completed 2026-03-12)
 
 ## Phase Details
 
@@ -101,7 +101,7 @@ Plans:
   2. Clicking "Hapus" shows a confirmation dialog; confirming permanently deletes the mapping, its ProtonTrackAssignments, and all associated ProtonDeliverableProgress rows
   3. After deletion, the mapping and all its child records no longer appear anywhere in the portal
   4. The deletion action appears in the AuditLog with actor, timestamp, and the deleted mapping's details
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 160-01-PLAN.md -- Add Hapus button, delete modal, controller actions, and audit logging
 
@@ -110,4 +110,4 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 159. Deduplication Fix & Guard | v4.1 | 2/2 | Complete | 2026-03-12 |
-| 160. Assignment Removal | v4.1 | 0/1 | Not started | - |
+| 160. Assignment Removal | 1/1 | Complete   | 2026-03-12 | - |
