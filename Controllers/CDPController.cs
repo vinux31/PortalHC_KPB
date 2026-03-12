@@ -117,14 +117,14 @@ namespace HcPortal.Controllers
                     .Include(k => k.SubKompetensiList)
                         .ThenInclude(s => s.Deliverables)
                     .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && k.IsActive)
-                    .OrderBy(k => k.Urutan)
+                    .OrderBy(k => k.NamaKompetensi)
                     .ToListAsync();
 
                 foreach (var k in kompetensiList)
                 {
-                    foreach (var s in k.SubKompetensiList.OrderBy(s => s.Urutan))
+                    foreach (var s in k.SubKompetensiList.OrderBy(s => s.NamaSubKompetensi))
                     {
-                        foreach (var d in s.Deliverables.OrderBy(d => d.Urutan))
+                        foreach (var d in s.Deliverables.OrderBy(d => d.NamaDeliverable))
                         {
                             silabusRows.Add(new {
                                 KompetensiId = k.Id,

@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Milestone:** None (v4.0 shipped 2026-03-12)
 **Status:** Between milestones
-**Last activity:** 2026-03-12 — v4.0 E2E Use-Case Audit completed (39 milestones, 158 phases shipped total)
+**Last activity:** 2026-03-12 — Completed quick task 23: Sort silabus tables alphabetically
 
 ## Accumulated Context
 
@@ -37,6 +37,12 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 ### Blockers/Concerns
 
 (None)
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 23 | Sort silabus tables alphabetically on ProtonData and PlanIdp | 2026-03-12 | pending | [23-sort-silabus](./quick/23-sort-silabus-tables-alphabetically-on-pr/) |
 
 ## Session Continuity
 
