@@ -42,7 +42,8 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 23 | Sort silabus tables alphabetically on ProtonData and PlanIdp | 2026-03-12 | pending | [23-sort-silabus](./quick/23-sort-silabus-tables-alphabetically-on-pr/) |
+| 23 | Sort silabus tables alphabetically on ProtonData and PlanIdp | 2026-03-12 | 1020131 | [23-sort-silabus](./quick/23-sort-silabus-tables-alphabetically-on-pr/) |
+| 24 | Hide No column from PlanIdp silabus table | 2026-03-12 | pending | [24-hide-no](./quick/24-hide-no-column-from-planidp-silabus-tabl/) |
 
 ## Session Continuity
 

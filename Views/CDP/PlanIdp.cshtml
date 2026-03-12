@@ -202,7 +202,6 @@
         html += '<div class="table-responsive"><table class="table table-bordered table-sm">' +
             '<thead class="table-light">' +
             '<tr>' +
-            '<th style="width:60px">No</th>' +
             '<th>Kompetensi</th>' +
             '<th>Sub Kompetensi</th>' +
             '<th>Target</th>' +
@@ -229,7 +228,6 @@
                     const dRow = silabusRows[k];
                     html += '<tr>';
                     if (k === i) {
-                        html += '<td rowspan="' + kompSpan + '" class="align-middle fw-semibold text-center bg-light">' + escHtml(dRow.No) + '</td>';
                         html += '<td rowspan="' + kompSpan + '" class="align-middle fw-semibold">' + escHtml(dRow.Kompetensi) + '</td>';
                     }
                     if (k === j) {
