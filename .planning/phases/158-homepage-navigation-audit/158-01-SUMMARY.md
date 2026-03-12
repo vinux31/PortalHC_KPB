@@ -53,10 +53,10 @@ completed: 2026-03-12
 
 ## Performance
 
-- **Duration:** ~20 min
+- **Duration:** ~30 min
 - **Started:** 2026-03-12
 - **Completed:** 2026-03-12
-- **Tasks:** 1 of 2 (Task 2 is human-verify checkpoint)
+- **Tasks:** 2 of 2 (complete)
 - **Files modified:** 1
 
 ## Accomplishments
@@ -71,6 +71,9 @@ completed: 2026-03-12
 
 1. **Task 1: Code audit — Homepage dashboard and navbar** - `c2eda01` (fix)
    - Note: This commit was made in a prior session under the phase name 158-02; the fix is the same work.
+2. **Task 2: UAT — Homepage and navbar per role** - checkpoint approved by user (no code changes)
+
+**Plan metadata:** `c1dd1e4` (docs: complete homepage & navbar code audit — NAV-01 NAV-02 verified)
 
 ## Files Created/Modified
 - `Controllers/HomeController.cs` - Added `module = module?.ToLowerInvariant() ?? ""` normalization in GuideDetail
@@ -102,8 +105,9 @@ completed: 2026-03-12
 - Build shows MSB file-lock errors only (running app prevents copy of exe) — no C# compilation errors confirmed.
 
 ## Next Phase Readiness
-- Task 2 (UAT checkpoint) pending user verification across roles
-- All code verified correct; homepage and navbar ready for browser UAT
+- NAV-01 and NAV-02 fully closed (code audit + UAT passed)
+- Phase 158 plan 02 (Panduan / Guide navigation audit) ready to execute
+- No blockers — homepage and navbar confirmed correct across all 5 roles
 
 ## Self-Check
 
