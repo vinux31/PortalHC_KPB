@@ -87,7 +87,10 @@
   2. Admin deactivates then reactivates a CoachCoacheeMapping; only that mapping's ProtonTrackAssignments are restored (assignments from unrelated prior mappings remain inactive)
   3. HC assigns a coachee to a track they were previously assigned to; no new ProtonTrackAssignment row is created — the existing inactive one is reused
   4. After running the migration/seed cleanup, no coachee+track combination has more than one active ProtonTrackAssignment in the database
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 159-01-PLAN.md -- Add DeactivatedAt field, fix Reactivate cascade and Assign idempotency
+- [ ] 159-02-PLAN.md -- Data cleanup and defensive query guard
 
 ### Phase 160: Assignment Removal
 **Goal**: HC and Admin can permanently delete deactivated coach-coachee mappings and all their associated data with a confirmation dialog, and the action is logged
@@ -98,7 +101,10 @@
   2. Clicking "Hapus" shows a confirmation dialog; confirming permanently deletes the mapping, its ProtonTrackAssignments, and all associated ProtonDeliverableProgress rows
   3. After deletion, the mapping and all its child records no longer appear anywhere in the portal
   4. The deletion action appears in the AuditLog with actor, timestamp, and the deleted mapping's details
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 159-01-PLAN.md -- Add DeactivatedAt field, fix Reactivate cascade and Assign idempotency
+- [ ] 159-02-PLAN.md -- Data cleanup and defensive query guard
 
 ## Progress
 
