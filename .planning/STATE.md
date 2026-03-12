@@ -4,13 +4,13 @@ milestone: v4.0
 milestone_name: E2E Use-Case Audit
 status: planning
 stopped_at: Completed 156-01-PLAN.md — awaiting UAT checkpoint
-last_updated: "2026-03-11T23:57:20.092Z"
+last_updated: "2026-03-12T00:08:23.220Z"
 last_activity: "2026-03-11 — 153-04 ASSESS-08 gap closure: TrainingRecord auto-creation in SubmitExam()"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 ---
@@ -72,6 +72,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - [Phase 155-admin-kelola-data-audit]: CPDP download .xls MIME type bug fixed inline during ADMIN-04 audit
 - [Phase 155-admin-kelola-data-audit]: CpdpFileArchive audit log added for parity with KkjFileDelete (ADMIN-04)
 - [Phase 156-planidp-cdp-dashboard-audit]: Coachee unit/trackId URL override: changed ??= to = so all 3 filter params are always force-set from assignment data
+- [Phase 156-planidp-cdp-dashboard-audit]: CDP-04: assignmentDict uses GroupBy+First — handles coachees with multiple active assignments without crashing
 
 ### Blockers/Concerns
 
