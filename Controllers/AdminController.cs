@@ -3144,28 +3144,53 @@ namespace HcPortal.Controllers
             // ProtonTrack side-effect
             if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
             {
+                // Deactivate any currently active assignments for a different track
                 var existingTracks = await _context.ProtonTrackAssignments
-                    .Where(a => req.CoacheeIds.Contains(a.CoacheeId) && a.IsActive)
+                    .Where(a => req.CoacheeIds.Contains(a.CoacheeId) && a.IsActive && a.ProtonTrackId != req.ProtonTrackId.Value)
                     .ToListAsync();
                 foreach (var t in existingTracks)
+                {
                     t.IsActive = false;
+                    t.DeactivatedAt = DateTime.UtcNow;
+                }
 
-                var newTracks = req.CoacheeIds.Select(id => new ProtonTrackAssignment
-                {
-                    CoacheeId = id,
-                    AssignedById = actor.Id,
-                    ProtonTrackId = req.ProtonTrackId.Value,
-                    IsActive = true,
-                    AssignedAt = DateTime.UtcNow
-                }).ToList();
-                _context.ProtonTrackAssignments.AddRange(newTracks);
-                await _context.SaveChangesAsync(); // flush to get assignment IDs
-
+                // FIX-02: For each coachee, reuse an existing inactive assignment for this track instead of creating a duplicate.
                 var allWarnings = new List<string>();
-                foreach (var t in newTracks)
+                foreach (var coacheeId in req.CoacheeIds)
                 {
-                    var w = await AutoCreateProgressForAssignment(t.Id, t.ProtonTrackId, t.CoacheeId);
-                    allWarnings.AddRange(w);
+                    // Check if already active for this track (no-op)
+                    var alreadyActive = await _context.ProtonTrackAssignments
+                        .AnyAsync(a => a.CoacheeId == coacheeId && a.ProtonTrackId == req.ProtonTrackId.Value && a.IsActive);
+                    if (alreadyActive) continue;
+
+                    // Check for an existing inactive assignment for this coachee+track
+                    var existing = await _context.ProtonTrackAssignments
+                        .Where(a => a.CoacheeId == coacheeId && a.ProtonTrackId == req.ProtonTrackId.Value && !a.IsActive)
+                        .OrderByDescending(a => a.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (existing != null)
+                    {
+                        // Reuse it — existing ProtonDeliverableProgress rows are already linked
+                        existing.IsActive = true;
+                        existing.DeactivatedAt = null;
+                    }
+                    else
+                    {
+                        // Create a new assignment and auto-create progress rows
+                        var newAssignment = new ProtonTrackAssignment
+                        {
+                            CoacheeId = coacheeId,
+                            AssignedById = actor.Id,
+                            ProtonTrackId = req.ProtonTrackId.Value,
+                            IsActive = true,
+                            AssignedAt = DateTime.UtcNow
+                        };
+                        _context.ProtonTrackAssignments.Add(newAssignment);
+                        await _context.SaveChangesAsync(); // flush to get assignment ID
+                        var w = await AutoCreateProgressForAssignment(newAssignment.Id, newAssignment.ProtonTrackId, coacheeId);
+                        allWarnings.AddRange(w);
+                    }
                 }
                 if (allWarnings.Any())
                     TempData["Warning"] = string.Join("\n", allWarnings);
@@ -3367,13 +3392,19 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, message = "Sesi tidak valid." });
 
             mapping.IsActive = false;
-            mapping.EndDate = DateTime.Today;
+            mapping.EndDate = DateTime.UtcNow;
 
             // Cascade: deactivate all ProtonTrackAssignments for this coachee
+            // FIX-01: stamp DeactivatedAt so reactivation can correlate assignments back to this event
+            var deactivationTime = mapping.EndDate.Value;
             var activeAssignments = await _context.ProtonTrackAssignments
                 .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
                 .ToListAsync();
-            foreach (var a in activeAssignments) { a.IsActive = false; }
+            foreach (var a in activeAssignments)
+            {
+                a.IsActive = false;
+                a.DeactivatedAt = deactivationTime;
+            }
             int cascadeCount = activeAssignments.Count;
 
             await _context.SaveChangesAsync();
@@ -3428,11 +3459,46 @@ namespace HcPortal.Controllers
             mapping.IsActive = true;
             mapping.EndDate = null;
 
-            // Cascade: reactivate ProtonTrackAssignments that were deactivated with this mapping
-            var inactiveAssignments = await _context.ProtonTrackAssignments
-                .Where(a => a.CoacheeId == mapping.CoacheeId && !a.IsActive)
-                .ToListAsync();
-            foreach (var a in inactiveAssignments) { a.IsActive = true; }
+            // FIX-01: Only reactivate assignments that were deactivated as part of this mapping's deactivation event.
+            // We correlate by DeactivatedAt timestamp (within 5 seconds of mapping.EndDate) to avoid restoring
+            // assignments that were independently deactivated for other reasons.
+            var deactivationTime = mapping.EndDate; // was EndDate before we cleared it; read below from DB snapshot
+            // Re-read EndDate before clearing (mapping.EndDate is now null after line above — capture it first)
+            // NOTE: The deactivationTime is captured before clearing EndDate. We need to reload it.
+            var mappingEndDate = await _context.CoachCoacheeMappings
+                .Where(m => m.Id == id)
+                .Select(m => m.EndDate)
+                .FirstOrDefaultAsync();
+            // mappingEndDate is already null because we set mapping.EndDate = null above and it's tracked.
+            // We need the original EndDate — use the one we captured before the change.
+            // Since we haven't saved yet, re-read from OriginalValues via EF change tracker.
+            var entry = _context.Entry(mapping);
+            var originalEndDate = (DateTime?)entry.OriginalValues["EndDate"];
+
+            List<ProtonTrackAssignment> inactiveAssignments;
+            if (originalEndDate.HasValue)
+            {
+                inactiveAssignments = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId == mapping.CoacheeId
+                        && !a.IsActive
+                        && a.DeactivatedAt != null
+                        && EF.Functions.DateDiffSecond(a.DeactivatedAt!.Value, originalEndDate.Value) >= -5
+                        && EF.Functions.DateDiffSecond(a.DeactivatedAt!.Value, originalEndDate.Value) <= 5)
+                    .ToListAsync();
+            }
+            else
+            {
+                // Mapping was deactivated before DeactivatedAt existed — fall back to all inactive assignments
+                inactiveAssignments = await _context.ProtonTrackAssignments
+                    .Where(a => a.CoacheeId == mapping.CoacheeId && !a.IsActive && a.DeactivatedAt == null)
+                    .ToListAsync();
+            }
+
+            foreach (var a in inactiveAssignments)
+            {
+                a.IsActive = true;
+                a.DeactivatedAt = null;
+            }
             int reactivatedCount = inactiveAssignments.Count;
 
             await _context.SaveChangesAsync();
