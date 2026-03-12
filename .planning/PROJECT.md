@@ -12,18 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v4.1 Coaching Proton Deduplication
+## Current Milestone: v4.2 Real-time Assessment
 
-**Goal:** Fix duplicate deliverable rows in CoachingProton caused by overly broad reactivate cascade creating multiple active ProtonTrackAssignments per coachee+track.
+**Goal:** Add SignalR-based real-time communication to assessment/exam flow so HC actions (Reset, ForceClose) push instantly to worker exam pages, and worker progress pushes to HC monitoring — replacing polling.
 
-**Target fixes:**
-- Fix `CoachCoacheeMappingReactivate` cascade to only restore assignments belonging to the reactivated mapping
-- Data cleanup: deactivate duplicate active assignments (keep latest per coachee+track)
-- Defensive guard in CoachingProton query to prevent duplicate rows even with bad data
+**Target features:**
+- SignalR infrastructure (Hub, client library, Program.cs registration)
+- HC → Worker push: Reset and ForceClose events update worker exam page without reload
+- Worker → HC push: Exam progress and submission events update monitoring page in real-time
+- Replace 10-second polling on HC monitoring with push-based updates
 
-## Current State (v4.0 shipped 2026-03-12)
+## Current State (v4.1 shipped 2026-03-12)
 
-**v1.0 through v4.0 shipped** — 39 milestones, 158 phases.
+**v1.0 through v4.1 shipped** — 40 milestones, 161 phases.
 
 All 6 use-case flows audited end-to-end (code review + browser UAT). 33 requirements verified, 10+ bugs fixed. Portal is stable and fully audited.
 
