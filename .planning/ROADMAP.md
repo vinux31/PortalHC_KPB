@@ -110,4 +110,4 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 159. Deduplication Fix & Guard | v4.1 | 2/2 | Complete | 2026-03-12 |
-| 160. Assignment Removal | 1/1 | Complete   | 2026-03-12 | - |
+| 160. Assignment Removal | 1/1 | Complete    | 2026-03-12 | - |
