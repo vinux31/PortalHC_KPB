@@ -2135,7 +2135,7 @@ namespace HcPortal.Controllers
                         "/CMP/Assessment"
                     );
                 }
-                catch { /* fail silently */ }
+                catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
             }
         }
     }

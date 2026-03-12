@@ -37,14 +37,16 @@ namespace HcPortal.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly INotificationService _notificationService;
+        private readonly ILogger<CDPController> _logger;
 
-        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env, INotificationService notificationService)
+        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env, INotificationService notificationService, ILogger<CDPController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _env = env;
             _notificationService = notificationService;
+            _logger = logger;
         }
 
         public IActionResult Index()
@@ -872,7 +874,7 @@ namespace HcPortal.Controllers
                     "/CDP/CoachingProton"
                 );
             }
-            catch { /* fail silently */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
 
             if (allApproved)
             {
@@ -983,7 +985,7 @@ namespace HcPortal.Controllers
                     "/CDP/CoachingProton"
                 );
             }
-            catch { /* fail silently */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
 
             TempData["Success"] = "Deliverable berhasil ditolak.";
             return RedirectToAction("Deliverable", new { id = progressId });
@@ -1014,7 +1016,7 @@ namespace HcPortal.Controllers
                     );
                 }
             }
-            catch { /* fail silently */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
         }
 
         private async Task CreateHCNotificationAsync(string coacheeId)
@@ -1044,7 +1046,7 @@ namespace HcPortal.Controllers
                     );
                 }
             }
-            catch { /* fail silently */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
         }
 
         [HttpPost]
@@ -2106,7 +2108,7 @@ namespace HcPortal.Controllers
                     await NotifyReviewersAsync(cid, cName);
                 }
             }
-            catch { /* fail silently */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
 
             return Json(new
             {

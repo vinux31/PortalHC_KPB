@@ -1014,7 +1014,7 @@ namespace HcPortal.Controllers
                                 $"/CMP/StartExam/{session.Id}"
                             );
                         }
-                        catch { /* fail silently */ }
+                        catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
                     }
 
                     // Audit log
@@ -1372,7 +1372,7 @@ namespace HcPortal.Controllers
                                             $"/CMP/StartExam/{ns.Id}"
                                         );
                                     }
-                                    catch { /* fail silently */ }
+                                    catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
                                 }
 
                                 // Audit log — bulk assign
@@ -3218,7 +3218,7 @@ namespace HcPortal.Controllers
                         "/CDP/CoachingProton");
                 }
             }
-            catch { /* fail-silent */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
 
             return Json(new { success = true, message = $"{count} mapping berhasil dibuat." });
         }
@@ -3342,7 +3342,7 @@ namespace HcPortal.Controllers
                     $"Mapping coaching Anda dengan {coachName} telah diubah",
                     "/CDP/CoachingProton");
             }
-            catch { /* fail-silent */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
 
             return Json(new { success = true, message = "Mapping berhasil diperbarui." });
         }
@@ -3429,7 +3429,7 @@ namespace HcPortal.Controllers
                     $"Mapping coaching Anda dengan {coachName} telah dinonaktifkan",
                     "/CDP/CoachingProton");
             }
-            catch { /* fail-silent */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
 
             return Json(new { success = true, message = $"Mapping berhasil dinonaktifkan. {cascadeCount} track assignment juga dinonaktifkan." });
         }
