@@ -3514,6 +3514,85 @@ namespace HcPortal.Controllers
                 assignUrl = Url.Action("CoachCoacheeMapping", "Admin") });
         }
 
+        // GET /Admin/CoachCoacheeMappingDeletePreview
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CoachCoacheeMappingDeletePreview(int id)
+        {
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(id);
+            if (mapping == null)
+                return NotFound(new { success = false, message = "Mapping tidak ditemukan." });
+            if (mapping.IsActive)
+                return BadRequest(new { success = false, message = "Hanya mapping nonaktif yang dapat dihapus." });
+
+            var coachUser = await _context.Users.FindAsync(mapping.CoachId);
+            var coacheeUser = await _context.Users.FindAsync(mapping.CoacheeId);
+            var coachName = coachUser?.FullName ?? coachUser?.UserName ?? mapping.CoachId;
+            var coacheeName = coacheeUser?.FullName ?? coacheeUser?.UserName ?? mapping.CoacheeId;
+
+            var assignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == mapping.CoacheeId)
+                .Select(a => a.Id)
+                .ToListAsync();
+
+            var progressCount = await _context.ProtonDeliverableProgresses
+                .CountAsync(p => assignments.Contains(p.ProtonTrackAssignmentId));
+
+            return Json(new
+            {
+                coachName,
+                coacheeName,
+                assignmentCount = assignments.Count,
+                progressCount
+            });
+        }
+
+        // POST /Admin/CoachCoacheeMappingDelete
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CoachCoacheeMappingDelete(int id)
+        {
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(id);
+            if (mapping == null)
+                return Json(new { success = false, message = "Mapping tidak ditemukan." });
+            if (mapping.IsActive)
+                return Json(new { success = false, message = "Hanya mapping nonaktif yang dapat dihapus." });
+
+            var coachUser = await _context.Users.FindAsync(mapping.CoachId);
+            var coacheeUser = await _context.Users.FindAsync(mapping.CoacheeId);
+            var coachName = coachUser?.FullName ?? coachUser?.UserName ?? mapping.CoachId;
+            var coacheeName = coacheeUser?.FullName ?? coacheeUser?.UserName ?? mapping.CoacheeId;
+
+            var actor = await _userManager.GetUserAsync(User);
+            if (actor == null)
+                return Json(new { success = false, message = "Sesi tidak valid." });
+
+            var assignments = await _context.ProtonTrackAssignments
+                .Where(a => a.CoacheeId == mapping.CoacheeId)
+                .ToListAsync();
+
+            var assignmentIds = assignments.Select(a => a.Id).ToList();
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Where(p => assignmentIds.Contains(p.ProtonTrackAssignmentId))
+                .ToListAsync();
+
+            int assignmentCount = assignments.Count;
+            int progressCount = progresses.Count;
+
+            _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+            _context.ProtonTrackAssignments.RemoveRange(assignments);
+            _context.CoachCoacheeMappings.Remove(mapping);
+
+            await _context.SaveChangesAsync();
+
+            await _auditLog.LogAsync(actor.Id, actor.FullName, "DeleteMapping",
+                $"Hapus mapping: Coach {coachName} -> Coachee {coacheeName}, {assignmentCount} track assignments, {progressCount} progress records deleted",
+                targetId: id, targetType: "CoachCoacheeMapping");
+
+            return Json(new { success = true, message = "Mapping berhasil dihapus." });
+        }
+
         // ==================== MANAGE WORKERS (migrated from CMP) ====================
 
         // GET /Admin/ManageWorkers
