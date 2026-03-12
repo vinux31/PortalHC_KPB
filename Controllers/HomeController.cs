@@ -169,6 +169,9 @@ public class HomeController : Controller
         var userRoles = await _userManager.GetRolesAsync(user);
         var userRole = userRoles.FirstOrDefault() ?? "User";
 
+        // Normalize module to lowercase so /Home/GuideDetail?module=CMP works same as ?module=cmp
+        module = module?.ToLowerInvariant() ?? "";
+
         // Validate module & role access
         var adminModules = new[] { "data", "admin" };
         if (adminModules.Contains(module) && userRole != "Admin" && userRole != "HC")
