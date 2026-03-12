@@ -1,432 +1,356 @@
-# Architecture Patterns — Homepage Minimalist Redesign
+# Architecture Research
 
-**Project:** Portal HC KPB v3.18
-**Researched:** 2026-03-10
-**Milestone:** Homepage Minimalist Redesign (v3.18)
+**Domain:** Real-time SignalR integration into existing ASP.NET Core 8 MVC + Identity app
+**Researched:** 2026-03-13
+**Confidence:** HIGH (official Microsoft docs verified)
 
-## Current Architecture Overview
+## Standard Architecture
 
-The homepage currently follows a **premium/glassmorphism design pattern** that contrasts sharply with the rest of the application (CMP, CDP, Admin pages use clean Bootstrap card design). The redesign goal is alignment: move homepage to the same simple, professional card-based design language used throughout the portal.
-
-### Design Inconsistency Gap
-
-| Aspect | Homepage (Current) | CMP/CDP Pages | Target |
-|--------|-------------------|---------------|--------|
-| Card style | `.glass-card` (glassmorphism, blurred bg) | `.card.border-0.shadow-sm` (Bootstrap native) | Align to CMP/CDP |
-| Color scheme | Gradient backgrounds + backdrop-filter | Solid white + icon-box bg-opacity-10 | Simplify to solid |
-| Animation | AOS (Animate On Scroll) via data-aos | No animations | Remove from homepage |
-| Typography | Premium spacing, shadows, effects | Standard Bootstrap spacing | Simplify |
-| Hero section | Large gradient + pseudo-elements | Not present elsewhere | Reduce decoration |
-
-## Recommended Architecture for v3.18
-
-### 1. Hero Section Simplification
-
-**Current:** Large gradient background, pseudo-element blur circles, excess styling
-
-**Target:** Clean, simple header with user greeting
-
-```html
-<!-- CURRENT (bloated) -->
-<div class="hero-section" data-aos="fade-down">
-  <div class="hero-content">
-    <h1 class="hero-greeting">Selamat Pagi, [Name]</h1>
-    <!-- pseudos: ::before blur circles, ::after more blur circles -->
-  </div>
-</div>
-
-<!-- TARGET (minimal) -->
-<div class="container py-4 mb-4">
-  <h2 class="mb-1">
-    <i class="bi bi-house-door me-2"></i>Dashboard
-  </h2>
-  <p class="text-muted">Selamat @Model.Greeting, @Model.CurrentUser.FullName</p>
-</div>
-```
-
-**CSS to Remove:**
-- `.hero-section` (entire rule block)
-- `.hero-avatar`, `.hero-greeting`, `.hero-subtitle`, `.hero-badge`, `.hero-stats`
-- `.hero-section::before`, `.hero-section::after` (pseudo-element blur circles)
-
-**Lines affected:** ~127 lines (23-149 in home.css)
-
-### 2. Dashboard Cards Transformation
-
-**Current:** Three glass cards with individual styling (IDP Status, Pending Assessment, Mandatory Training)
-
-**Target:** Standard Bootstrap cards with icon-box pattern (matches CMP/CDP)
-
-```html
-<!-- CURRENT (glassmorphism) -->
-<div class="glass-card card-primary h-100">
-  <div class="card-icon-wrapper icon-primary">
-    <i class="fas fa-chart-line"></i>
-  </div>
-  <h5 class="card-title fw-bold mb-3">My IDP Status</h5>
-  <!-- circular progress SVG with gradient -->
-</div>
-
-<!-- TARGET (Bootstrap simple) -->
-<div class="card border-0 shadow-sm h-100">
-  <div class="card-body">
-    <div class="d-flex align-items-center mb-3">
-      <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
-        <i class="bi bi-graph-up-arrow fs-3"></i>
-      </div>
-      <div>
-        <h5 class="mb-0">IDP Status</h5>
-        <small class="text-muted">Progress</small>
-      </div>
-    </div>
-    <p class="text-muted mb-3">[Summary of progress]</p>
-    <a href="#" class="btn btn-primary w-100">View Details</a>
-  </div>
-</div>
-```
-
-**CSS to Remove:**
-- `.glass-card` (entire rule block including hover states)
-- `.glass-card.card-primary`, `.glass-card.card-warning`, `.glass-card.card-success`
-- `.glass-card::before` (gradient top border on hover)
-- `.glass-card:hover` (translate/shadow effects)
-- `.card-icon-wrapper`, `.card-icon-wrapper.icon-primary`, etc.
-
-**Lines affected:** ~85 lines (131-215 in home.css)
-
-### 3. Quick Access Section
-
-**Current:** Uses custom `.quick-access-card` with animation, gradient icons
-
-**Target:** Keep the concept but use Bootstrap cards + AOS removal
-
-**Note:** Quick Access section is intentionally KEPT in simplified form because it's highly functional (3 quick links to main features). Only remove animations and glassmorphism styling.
-
-```html
-<!-- KEEP structure but simplify CSS -->
-<div class="row g-4 mb-5">
-  <div class="col-md-4 col-6">  <!-- Remove data-aos -->
-    <a asp-controller="CDP" asp-action="Index" class="card border-0 shadow-sm h-100 text-decoration-none">
-      <div class="card-body text-center">
-        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-3 mx-auto mb-3" style="width:fit-content;">
-          <i class="bi bi-calendar-alt fs-3"></i>
-        </div>
-        <h6 class="card-title">My IDP</h6>
-      </div>
-    </a>
-  </div>
-</div>
-```
-
-**CSS to Remove:**
-- `.quick-access-card` (replace with standard `.card` from Bootstrap)
-- `.quick-access-icon` (replace with `.icon-box` pattern)
-- `.quick-access-card:hover` transforms and scales
-- `.quick-access-card:hover .quick-access-icon` animation
-
-**CSS to Keep:**
-- The card link pattern itself (good UX)
-- The 3-column layout on desktop, 2-column on mobile
-
-**Lines affected:** ~45 lines (261-305 in home.css)
-
-### 4. Timeline & Deadline Sections — REMOVE
-
-**Current:** "Recent Activity Timeline" and "Upcoming Deadlines" sections with custom styling
-
-**Target:** REMOVE entirely
-
-**Rationale:**
-- Data fetching adds complexity to HomeController
-- These sections are often empty for new users
-- Information is already available in CMP/CDP dashboards
-- Simplification goal = less content on homepage
-
-**Code Impact:**
-
-*HomeController.cs:*
-- Remove method: `GetRecentActivities()` (~60 lines)
-- Remove method: `GetUpcomingDeadlines()` (~75 lines)
-- Remove property setup in `Index()` action (lines 60-63)
-- Remove urgency check logic (lines 71-75)
-
-*DashboardHomeViewModel.cs:*
-- Remove property: `RecentActivities`
-- Remove property: `UpcomingDeadlines`
-
-*Views/Home/Index.cshtml:*
-- Remove: Recent Activity Timeline section (lines 204-240)
-- Remove: Upcoming Deadlines section (lines 242-299)
-- Remove: data-aos attributes from timeline/deadline markup
-
-*home.css:*
-- Remove: `.timeline` and all `.timeline-*` classes (~65 lines)
-- Remove: `.deadline-card` and all `.deadline-*` classes (~65 lines)
-- Remove: `.section-header` (used only by removed sections)
-- Remove: `.section-icon` (used only by removed sections)
-
-**Lines affected:** ~130 lines (309-442 in home.css) + controller methods
-
-### 5. AOS Animation Library
-
-**Decision:** REMOVE from layout for homepage only, keep globally available
-
-**Rationale:**
-- Guide.cshtml still uses AOS extensively (data-aos on guide cards, breadcrumbs, hero)
-- Other pages may use it in the future
-- AOS has minimal performance impact (24KB minified, loaded once globally)
-- Removing from `_Layout.cshtml` would break Guide page
-
-**Implementation:**
-- Keep `<script src="https://unpkg.com/aos@2.3.1/dist/aos.js">` in `_Layout.cshtml`
-- Remove ALL `data-aos` attributes from `Views/Home/Index.cshtml`
-- Remove AOS initialization code from home.css or skip initialization if no data-aos elements exist
-
-**No code removal needed** — just remove HTML attributes (data-aos, data-aos-delay)
-
-### 6. CSS Cleanup
-
-**home.css file structure after cleanup:**
+### System Overview
 
 ```
-KEEP:
-- :root variables (gradients, shadows) — LOW impact, useful for future
-- Quick Access cards styling (simplified)
-- Button styles
-- Responsive design rules
-
-REMOVE:
-- Hero section (entire ~27 rule block)
-- Glassmorphism cards (glass-card, glass-card.card-*, .card-icon-wrapper)
-- Timeline and deadline components
-- Section header/icon styling (only used by removed sections)
-- Premium shadows and animation utilities
-- Pseudo-element blur effects
-
-EXPECTED SIZE REDUCTION:
-- Current: 11,622 bytes (513 lines)
-- Target: ~4,000 bytes (180 lines) — 65% reduction
+  Browser: HC Monitoring Page              Browser: Worker Exam Page
+  (AssessmentMonitoringDetail.cshtml)      (StartExam.cshtml)
+        |                                        |
+  SignalR JS client                        SignalR JS client
+        |                                        |
+        +------------------+  +-----------------+
+                           |  |
+              WebSocket / SSE / Long-poll (auto-negotiated)
+                           |
+                  [ /hubs/assessment ]
+                           |
+                  AssessmentHub.cs
+                   (Hub class, Hubs/)
+                     |           |
+              IHubContext    Groups in memory
+                     |           |
+           AdminController   On JS connect:
+           CMPController      worker invokes JoinExamGroup(sessionId)
+           (inject IHubContext  HC invokes JoinMonitorGroup(title, category, date)
+            to push events)
+                     |
+              ApplicationDbContext
+              (state still persisted in DB — SignalR is additive, not a replacement)
 ```
 
-**Lines removed:**
-- Hero: 127 lines (23-149)
-- Glassmorphism: 85 lines (131-215)
-- Circular progress: 38 lines (219-256)
-- Quick Access: 45 lines (261-305)
-- Timeline: 65 lines (309-373)
-- Deadlines: 65 lines (378-442)
-- **Total: ~425 lines** (but some utility spacing survives)
+### Component Responsibilities
 
-## Integration Points with Existing Architecture
+| Component | Responsibility | Location |
+|-----------|----------------|----------|
+| `AssessmentHub` | Hub class — defines client-callable methods, manages group join/leave | `Hubs/AssessmentHub.cs` (NEW) |
+| `IHubContext<AssessmentHub>` | Injected into controllers to push server-initiated events | Used in `AdminController`, `CMPController` |
+| Worker exam group `exam-{sessionId}` | Receives HC-to-Worker pushes: `examReset`, `examForceClosed` | Joined by worker on `StartExam` page load |
+| Monitor group `monitor-{title}-{category}-{date}` | Receives Worker-to-HC pushes: `progressUpdate`, `examSubmitted` | Joined by HC on `AssessmentMonitoringDetail` page load |
+| JS client (monitoring view) | Connects hub, handles `progressUpdate` event, replaces `setInterval(fetchProgress, 10000)` | `AssessmentMonitoringDetail.cshtml` (MODIFIED) |
+| JS client (exam view) | Connects hub, handles `examReset` and `examForceClosed` events, replaces `setInterval(checkExamStatus, 10000)` | `StartExam.cshtml` (MODIFIED) |
 
-### 1. View Model (DashboardHomeViewModel.cs)
+## Recommended Project Structure
 
-**SAFE TO REMOVE:**
+```
+PortalHC_KPB/
+├── Hubs/
+│   └── AssessmentHub.cs          # NEW — single Hub class for all assessment real-time events
+├── Controllers/
+│   ├── AdminController.cs        # MODIFIED — inject IHubContext, push after Reset/ForceClose
+│   └── CMPController.cs          # MODIFIED — inject IHubContext, push after SaveAnswer/SubmitExam
+├── Program.cs                    # MODIFIED — AddSignalR(), MapHub<AssessmentHub>()
+├── Views/
+│   ├── Admin/
+│   │   └── AssessmentMonitoringDetail.cshtml  # MODIFIED — replace polling with hub events
+│   └── CMP/
+│       └── StartExam.cshtml                   # MODIFIED — replace status poll with hub events
+└── wwwroot/
+    └── lib/
+        └── microsoft/
+            └── signalr/
+                └── dist/
+                    └── browser/
+                        └── signalr.min.js     # NEW — installed via libman or npm
+```
+
+### Structure Rationale
+
+- **Hubs/**: Single folder matches ASP.NET Core convention. One hub is sufficient — all assessment real-time events share the same connection lifecycle and auth context.
+- **No new controller**: Hub handles its own connection lifecycle (OnConnectedAsync, OnDisconnectedAsync). Controllers push via IHubContext, not by calling Hub methods directly.
+- **Single hub**: Two hubs would require two JS connections. One hub with named groups is simpler. The URL `/hubs/assessment` is clean and scope-specific.
+
+## Architectural Patterns
+
+### Pattern 1: Hub Groups for Exam Sessions
+
+**What:** On page load, the JS client calls a hub method (`JoinExamGroup` or `JoinMonitorGroup`) which adds the connection to an in-memory named group. All subsequent server pushes target the group name, not individual connection IDs.
+
+**When to use:** Always — this is the correct model for this use case. Worker group is per-session (one session, one worker). Monitor group is per-assessment-batch (one batch, potentially multiple HC users).
+
+**Trade-offs:** Groups are in-memory only. Server restart clears all group memberships. The JS client must re-join groups after reconnect via the `onreconnected` callback. For a single-server intranet deployment this is fully sufficient.
+
+**Example:**
 ```csharp
-public List<RecentActivityItem> RecentActivities { get; set; } = new();
-public List<DeadlineItem> UpcomingDeadlines { get; set; } = new();
-```
+// Hubs/AssessmentHub.cs
+[Authorize]
+public class AssessmentHub : Hub
+{
+    public async Task JoinExamGroup(int sessionId)
+    {
+        // Worker joins group for their own exam session
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"exam-{sessionId}");
+    }
 
-**KEEP (still needed for Quick Access + info display):**
-```csharp
-public ApplicationUser CurrentUser { get; set; } = null!;
-public string Greeting { get; set; } = string.Empty;
-public int IdpTotalCount { get; set; }
-public int IdpCompletedCount { get; set; }
-public int IdpProgressPercentage { get; set; }
-public int PendingAssessmentCount { get; set; }
-public bool HasUrgentAssessments { get; set; }
-public TrainingStatusInfo MandatoryTrainingStatus { get; set; } = new();
-```
-
-**Note:** With dashboard cards removed, some ViewModel properties (IdpProgressPercentage, MandatoryTrainingStatus, etc.) become unused. Can remove in a future cleanup phase, but safe to leave for now.
-
-### 2. HomeController.cs
-
-**SAFE TO REMOVE (complex LINQ logic):**
-- `GetRecentActivities()` — fetches AssessmentSessions, IdpItems, CoachingLogs
-- `GetUpcomingDeadlines()` — calculates deadlines, urgency, date formatting
-- Related setup in `Index()` action (lines 60-63, 71-75)
-
-**KEEP (minimal logic):**
-- `Index()` action setup for greeting, basic counts (can optimize later)
-- `Guide()` and `GuideDetail()` actions (unchanged)
-- Helper: `GetTimeBasedGreeting()` (still needed)
-- `Error()` action (unchanged)
-
-**Performance benefit:** Removes 4 database queries from homepage load:
-1. AssessmentSessions query (up to 2 recent)
-2. IdpItems query (up to 2 recent)
-3. CoachingLogs query (up to 2 recent)
-4. TrainingRecords query for urgency check
-
-### 3. _Layout.cshtml (Shared)
-
-**NO CHANGES NEEDED** — AOS stays in layout (used by Guide.cshtml). Removing data-aos attributes from Index.cshtml is sufficient to prevent unnecessary initialization.
-
-**Option to optimize later:** Add conditional check in AOS initialization:
-```javascript
-// Only init AOS if page has data-aos elements
-if (document.querySelector('[data-aos]')) {
-  AOS.init({ ... });
+    public async Task JoinMonitorGroup(string title, string category, string scheduleDate)
+    {
+        // HC joins monitoring group for an assessment batch
+        var groupName = $"monitor-{title}-{category}-{scheduleDate}";
+        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+    }
 }
 ```
 
-### 4. Navigation & Routing
+### Pattern 2: IHubContext Push from MVC Controllers
 
-**NO IMPACT** — All links (CDP, CMP, Admin) still work. Quick Access buttons remain functional.
+**What:** After HC performs Reset or ForceClose (POST actions in AdminController), inject `IHubContext<AssessmentHub>` and call `Clients.Group(...).SendAsync(...)` to push the event to affected workers. After SaveAnswer or SubmitExam in CMPController, push a `progressUpdate` to the HC monitoring group.
 
-## Data Flow — Before vs After
+**When to use:** When the event origin is an HTTP POST action in a controller, not a hub method call. This is the correct pattern — do not try to call Hub methods from controllers.
 
-### BEFORE (Current)
-```
-HomeController.Index()
-  ├─ Get user + roles
-  ├─ Calculate IDP stats (DB query 1)
-  ├─ Count pending assessments (DB query 2)
-  ├─ Get mandatory training status (DB query 3)
-  ├─ GetRecentActivities()    (DB queries 4-6)  ← REMOVE
-  ├─ GetUpcomingDeadlines()   (DB queries 7-9)  ← REMOVE
-  └─ GetUrgentAssessments()   (DB query 10)     ← REMOVE
+**Trade-offs:** IHubContext does not have access to `Context` (no caller info). It can only push to users, groups, or all. This is fine since these are server-originated events.
 
-  → DashboardHomeViewModel
-    → Index.cshtml renders:
-       - Hero section
-       - 3 Glass cards (IDP, Assessment, Training)
-       - Quick Access (3 links)
-       - Timeline section (from RecentActivities)
-       - Deadlines section (from UpcomingDeadlines)
-       - All with AOS animations
-```
+**Example:**
+```csharp
+// AdminController.cs — constructor addition
+private readonly IHubContext<AssessmentHub> _hub;
 
-### AFTER (Simplified)
-```
-HomeController.Index()
-  ├─ Get user + roles
-  ├─ Calculate IDP stats (DB query 1)
-  ├─ Count pending assessments (DB query 2)
-  ├─ Get mandatory training status (DB query 3)
+// In ResetAssessment POST — after DB save:
+await _hub.Clients.Group($"exam-{id}").SendAsync("examReset", new {
+    sessionId = id,
+    message   = "Ujian telah direset oleh HC."
+});
 
-  → DashboardHomeViewModel (simpler)
-    → Index.cshtml renders:
-       - Simple header greeting
-       - Quick Access (3 links) — cleaned up styling
-       - REMOVED: 3 glass cards
-       - REMOVED: Timeline section
-       - REMOVED: Deadlines section
-       - REMOVED: All AOS animations
+// In ForceCloseAssessment POST — after DB save:
+await _hub.Clients.Group($"exam-{id}").SendAsync("examForceClosed", new {
+    sessionId   = id,
+    redirectUrl = Url.Action("Assessment", "CMP")
+});
 ```
 
-**Database query reduction:** 10 → 3 queries
+### Pattern 3: Cookie Auth Flows Automatically — No Extra Config
 
-## Component Boundaries & Dependencies
+**What:** Because this is a browser-based MVC app using ASP.NET Identity cookie auth, the SignalR JS client automatically sends the auth cookie on the WebSocket/SSE upgrade request. The hub sees `Context.User` populated with the same claims as MVC controllers.
 
-### Current Components
+**When to use:** Always — this is the default behavior for browser clients with cookie auth. The official ASP.NET Core 8 docs confirm: "If the user is logged in to an app, the SignalR connection automatically inherits this authentication."
 
-| Component | Type | Dependencies | Status |
-|-----------|------|--------------|--------|
-| Hero Section | View + CSS | home.css only | Remove |
-| Dashboard Cards (3) | View + CSS + ViewModel | home.css + IDP/Assessment/Training data | Remove or simplify |
-| Quick Access | View + CSS | home.css + route links | Keep (simplify CSS) |
-| Timeline | View + CSS + Controller method | home.css + GetRecentActivities() | Remove |
-| Deadlines | View + CSS + Controller method | home.css + GetUpcomingDeadlines() | Remove |
-| AOS Library | JavaScript | Global _Layout.cshtml | Keep in layout, remove from Index.cshtml |
+**Trade-offs:** None for this project. The only additional step is placing `[Authorize]` on the Hub class to reject unauthenticated connections at the hub level, mirroring the `[Authorize]` already on all MVC controllers.
 
-### New Components (Post-v3.18)
+**Example:**
+```csharp
+[Authorize]  // mirrors pattern on all MVC controllers in this app
+public class AssessmentHub : Hub
+{
+    // Context.User is the authenticated ApplicationUser
+    // Context.UserIdentifier is ClaimTypes.NameIdentifier (ASP.NET Identity user ID)
+}
+```
 
-None — this is a removal/simplification phase, not a feature addition.
+## Data Flow
 
-## Build Order & Dependencies
+### HC ForceClose to Worker Push
 
-### Phase 1: CSS Cleanup (No-risk)
-1. Create backup of `home.css`
-2. Remove hero section styling (lines 23-149)
-3. Remove glassmorphism card styling (lines 131-215)
-4. Remove timeline/deadline styling (lines 309-442)
-5. Simplify `.quick-access-card` to use Bootstrap `.card` pattern
-6. Remove `.section-header`, `.section-icon` rules
-7. Test: Homepage should still load without JS errors
+```
+HC clicks "Tutup Paksa"
+    |
+    v
+POST /Admin/ForceCloseAssessment/{id}  [Authorize(Roles="Admin,HC")]
+    |
+    v
+AdminController: update DB status = "Completed"  (DB write first)
+    |
+    v
+IHubContext<AssessmentHub>.Clients.Group("exam-{id}").SendAsync("examForceClosed", payload)
+    |
+    v
+AssessmentHub (in-memory) resolves group "exam-{id}"
+    |
+    v
+WebSocket push to worker's browser
+    |
+    v
+Worker JS: receives "examForceClosed" event
+    |
+    v
+JS handler: show forceCloseModal, then redirect
+(replaces: setInterval(checkExamStatus, 10000) polling /CMP/CheckExamStatus)
+```
 
-### Phase 2: View Markup Removal (Straightforward)
-1. Remove `<div class="row g-4">` for dashboard cards (lines 44-166 in Index.cshtml)
-2. Remove Recent Activity section (lines 206-240)
-3. Remove Upcoming Deadlines section (lines 242-299)
-4. Remove ALL `data-aos` attributes from remaining Index.cshtml markup
-5. Replace hero section with simple header (5 lines)
-6. Test in browser: Verify Quick Access still works
+### Worker Progress to HC Monitoring Push
 
-### Phase 3: Controller & ViewModel Cleanup (Requires Testing)
-1. Remove `GetRecentActivities()` method from HomeController
-2. Remove `GetUpcomingDeadlines()` method from HomeController
-3. Remove collection setup in `Index()` action (lines 60-63, 71-75)
-4. Remove properties from DashboardHomeViewModel:
-   - `RecentActivities`
-   - `UpcomingDeadlines`
-5. Remove properties from DashboardHomeViewModel (safe now):
-   - `IdpTotalCount`, `IdpCompletedCount`, `IdpProgressPercentage` (if dashboard cards removed)
-   - `PendingAssessmentCount`, `HasUrgentAssessments` (if dashboard cards removed)
-6. Test: Homepage still loads, no runtime errors
+```
+Worker answers question
+    |
+    v
+POST /CMP/SaveAnswer  (existing endpoint)
+    |
+    v
+CMPController: save answer in DB
+    |
+    v
+IHubContext<AssessmentHub>.Clients
+    .Group("monitor-{title}-{category}-{date}")
+    .SendAsync("progressUpdate", dto)
+    |
+    v
+AssessmentHub resolves monitoring group
+    |
+    v
+WebSocket push to all HC browsers watching that batch
+    |
+    v
+HC monitoring view JS: receives "progressUpdate" — calls existing updateRow(data)
+(replaces: setInterval(fetchProgress, 10000) polling /Admin/GetMonitoringProgress)
+```
 
-### Phase 4: Cross-Page Testing
-1. Verify Quick Access links work (CDP, CMP, Assessment)
-2. Verify Guide page still animates with AOS
-3. Verify no console errors
-4. Check responsive design on mobile
-5. Performance test: Measure load time improvement (should be ~50-100ms faster)
+### Connection Lifecycle
 
-## Key Decisions & Rationale
+```
+Worker loads StartExam page
+    |
+    v
+JS: new HubConnectionBuilder().withUrl("/hubs/assessment").withAutomaticReconnect().build()
+    |   (auth cookie sent automatically on WS upgrade — no extra config needed)
+    v
+connection.start()  =>  Hub.OnConnectedAsync fires
+    |
+    v
+JS: connection.invoke("JoinExamGroup", sessionId)
+    |
+    v
+Hub: Groups.AddToGroupAsync(connectionId, "exam-{sessionId}")
+    |
+    v
+Worker is now in group — receives push events until disconnect
 
-### Why Remove Timeline & Deadlines?
-- **Duplication:** Same information in CMP/CDP dashboards
-- **Complexity:** Requires 3-4 database queries per page load
-- **Often empty:** New users see empty state frequently
-- **Goal alignment:** Minimize homepage, maximize performance
+On reconnect (withAutomaticReconnect handles this automatically):
+    |
+    v
+connection.onreconnected(() => { connection.invoke("JoinExamGroup", sessionId); })
+(Group membership is not preserved across reconnect — must re-join explicitly)
+```
 
-### Why Keep Quick Access?
-- **Utility:** Users commonly access 3 main features from homepage
-- **Performance:** No data fetching needed (just route links)
-- **Simplicity:** Single CSS rule block to maintain
+## Integration Points
 
-### Why Keep AOS Globally?
-- **Used elsewhere:** Guide.cshtml heavily uses AOS animations
-- **Cost:** Minimal (24KB JS + CSS bundle)
-- **Future-proof:** Other pages may adopt animations later
-- **Risk:** Removing from layout might break existing Guide functionality
+### New Components
 
-### Why NOT Simplify Dashboard Cards?
-- **Data needed:** Still showing IDP progress, pending assessments, training status
-- **User expectation:** Users want quick status overview on homepage
-- **Decision:** Convert to Bootstrap cards instead of full removal
-  - **OR:** Remove cards entirely, keep only Quick Access
-  - *Recommended: Keep but simplify to match CMP/CDP style* (current plan)
+| Component | File | What It Is |
+|-----------|------|-----------|
+| `AssessmentHub` | `Hubs/AssessmentHub.cs` | New Hub class — cookie auth, group join methods |
+| SignalR client lib | `wwwroot/lib/microsoft/signalr/dist/browser/signalr.min.js` | Client JS library via libman install |
+| Program.cs SignalR wiring | `Program.cs` | `builder.Services.AddSignalR()` + `app.MapHub<AssessmentHub>("/hubs/assessment")` |
 
-## Risks & Mitigations
+### Modified Components
 
-| Risk | Severity | Mitigation |
-|------|----------|-----------|
-| Breaking Guide page AOS | High | Test Guide.cshtml before/after. Keep AOS in layout, only remove from Index.cshtml |
-| Database connection issues during removal | Medium | Controller refactoring should be done carefully. Unit test the simplified Index() |
-| Responsive design breaks on mobile | Medium | Test Quick Access cards on viewport sizes 320px, 768px, 1024px |
-| Unused ViewModel properties | Low | Mark as [Obsolete] first phase, remove in cleanup phase |
-| CSS specificity conflicts | Low | new `.card` styles use Bootstrap native classes (no conflicts) |
+| Component | File | What Changes |
+|-----------|------|-------------|
+| `AdminController` | `Controllers/AdminController.cs` | Inject `IHubContext<AssessmentHub>` in constructor; push `examReset` after ResetAssessment; push `examForceClosed` after ForceCloseAssessment and ForceCloseAll |
+| `CMPController` | `Controllers/CMPController.cs` | Inject `IHubContext<AssessmentHub>` in constructor; push `progressUpdate` after SaveAnswer; push `examSubmitted` after SubmitExam |
+| Monitoring view JS | `Views/Admin/AssessmentMonitoringDetail.cshtml` | Replace `setInterval(fetchProgress, 10000)` with hub connection + `JoinMonitorGroup` call + `progressUpdate` event handler; existing `updateRow()` and `updateSummary()` functions can be reused as-is |
+| Exam view JS | `Views/CMP/StartExam.cshtml` | Replace `setInterval(checkExamStatus, 10000)` with hub connection + `JoinExamGroup` call + `examForceClosed` / `examReset` event handlers; existing force-close modal and redirect logic reused |
 
-## Files Affected Summary
+### Unchanged Components
 
-| File | Type | Changes | Lines |
-|------|------|---------|-------|
-| `wwwroot/css/home.css` | CSS | Remove: hero, cards, timeline, deadlines | -425 |
-| `Views/Home/Index.cshtml` | View | Remove: markup, data-aos attrs | -250 |
-| `Controllers/HomeController.cs` | Controller | Remove: GetRecentActivities(), GetUpcomingDeadlines() | -135 |
-| `Models/DashboardHomeViewModel.cs` | Model | Remove: 2 properties | -4 |
-| `Views/Shared/_Layout.cshtml` | Layout | No changes | 0 |
+| Component | Reason |
+|-----------|--------|
+| `CheckExamStatus` action in CMPController | Keep as legacy fallback during rollout; remove in cleanup phase after UAT |
+| `GetMonitoringProgress` action in AdminController | Keep as legacy fallback during rollout; remove in cleanup phase after UAT |
+| All DB schema / migrations | No migration needed — SignalR is transport only, all state stays in `AssessmentSession` table |
+| `INotificationService` | Different system (persistent in-app notifications stored in DB) — not replaced by SignalR |
+| `AssessmentSession.Status` column | Remains source of truth — DB write always happens before hub push |
 
-**Total lines affected:** ~814 lines removed
+## Build Order
+
+Dependencies must be addressed in this sequence:
+
+**Step 1: Install SignalR client library**
+`wwwroot/lib` must have `signalr.min.js` before view JS can reference it. Use `libman install @microsoft/signalr` or copy from node_modules. This is a prerequisite for Steps 6 and 7.
+
+**Step 2: Create `Hubs/AssessmentHub.cs`**
+Must exist before Program.cs can reference `AssessmentHub` in `MapHub<>`.
+
+**Step 3: Update `Program.cs`**
+Add `builder.Services.AddSignalR()` after existing services. Add `app.MapHub<AssessmentHub>("/hubs/assessment")` after `app.UseAuthorization()` — the middleware order matters. This makes the hub reachable.
+
+**Step 4: Inject IHubContext into AdminController**
+Add `IHubContext<AssessmentHub>` as constructor parameter. Push `examReset` from ResetAssessment, `examForceClosed` from ForceCloseAssessment and ForceCloseAll. No DB changes needed.
+
+**Step 5: Inject IHubContext into CMPController**
+Add `IHubContext<AssessmentHub>` as constructor parameter. Push `progressUpdate` from SaveAnswer (each answer saved), `examSubmitted` from SubmitExam. No DB changes needed.
+
+**Step 6: Update `StartExam.cshtml` JS**
+Replace `checkExamStatus` polling block with hub connection, `JoinExamGroup` invocation, and `examForceClosed` / `examReset` handlers. Keep existing timer, submit logic, and modal markup unchanged.
+
+**Step 7: Update `AssessmentMonitoringDetail.cshtml` JS**
+Replace `fetchProgress` polling block with hub connection, `JoinMonitorGroup` invocation, and `progressUpdate` handler. The existing `updateRow()` and `updateSummary()` functions can be called directly from the handler since the DTO shape from the hub push should match what the polling endpoint returned.
+
+Steps 4 and 5 can be done in parallel. Steps 6 and 7 can be done in parallel. Each step is independently deployable — the polling fallback continues to function during the migration.
+
+## Scaling Considerations
+
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| Single-server intranet (current) | In-memory SignalR groups — fully sufficient, zero additional infra |
+| Multi-server / load-balanced | Add Redis backplane: `builder.Services.AddSignalR().AddStackExchangeRedis(connectionString)` — no Hub code changes |
+| Azure-hosted | Azure SignalR Service replaces in-memory transport with a managed service — one config change in Program.cs |
+
+### Scaling Priorities
+
+1. **Current project:** No scaling concern. Single intranet server. In-memory groups are the correct and simplest choice.
+2. **If multi-server ever required:** Redis backplane is one line addition. Hub code and client JS are unchanged.
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Calling Hub Methods Directly from Controller
+
+**What people do:** Try to call methods defined in `AssessmentHub` from `AdminController` via `new AssessmentHub(...)` or a static reference.
+
+**Why it's wrong:** Hub instances are created per-connection by the SignalR infrastructure. Manually instantiating a Hub does not give access to the connection pool — no clients receive the message.
+
+**Do this instead:** Inject `IHubContext<AssessmentHub>` into the controller. This gives access to `Clients`, `Groups`, and `Users` without a hub instance.
+
+### Anti-Pattern 2: Un-scoped Group Names
+
+**What people do:** Use generic group names like `"monitoring"` or `"exam"` without per-session scoping.
+
+**Why it's wrong:** All HC users across all active assessments receive each other's updates. ForceClose events fire on the wrong workers' screens.
+
+**Do this instead:** Scope group names to the entity. `"exam-{sessionId}"` for worker groups (one session = one worker). `"monitor-{title}-{category}-{date}"` for HC monitoring groups — this key already exists in the codebase (`GetMonitoringProgress` uses the same three parameters as the batch identifier).
+
+### Anti-Pattern 3: Replacing DB State with SignalR State
+
+**What people do:** Stop persisting status changes to DB and rely on SignalR push as the source of truth.
+
+**Why it's wrong:** SignalR connections are ephemeral. Worker refreshes page mid-exam — no event is replayed. HC opens a second browser tab — they see stale data. The DB is the only reliable state store.
+
+**Do this instead:** DB write always happens first. SignalR push happens after the DB write succeeds. The push is a notification that something changed, not the change itself.
+
+### Anti-Pattern 4: Removing Polling Endpoints Before Hub Is Proven Stable
+
+**What people do:** Delete `CheckExamStatus` and `GetMonitoringProgress` in the same commit that adds SignalR.
+
+**Why it's wrong:** If the hub has a configuration bug or WebSocket is blocked by a corporate proxy, workers and HC have no fallback.
+
+**Do this instead:** Keep both endpoints during the first milestone. Mark them `// LEGACY: fallback for SignalR`. Remove in a subsequent cleanup phase after UAT confirms the hub is reliable.
+
+### Anti-Pattern 5: Not Re-joining Groups After Reconnect
+
+**What people do:** Set up group join on initial connect but forget the `onreconnected` callback.
+
+**Why it's wrong:** `withAutomaticReconnect()` re-establishes the WebSocket connection but does NOT restore group membership (groups are keyed by connection ID, which changes on reconnect). The worker appears connected but receives no push events.
+
+**Do this instead:** Register `connection.onreconnected(() => { connection.invoke("JoinExamGroup", sessionId); })` in the exam view JS. Same pattern for the monitoring view.
 
 ## Sources
 
-- CMP Index.cshtml (Bootstrap card design reference)
-- CDP Index.cshtml (icon-box pattern reference)
-- Current Index.cshtml and home.css (existing implementation)
-- HomeController.cs (data fetching logic)
-- DashboardHomeViewModel.cs (view model structure)
-- _Layout.cshtml (AOS initialization, global scripts)
+- [Authentication and authorization in ASP.NET Core SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz?view=aspnetcore-8.0) — HIGH confidence, official Microsoft docs
+- [Manage users and groups in SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/groups?view=aspnetcore-10.0) — HIGH confidence, official Microsoft docs
+- Direct code inspection: `Controllers/AdminController.cs` (GetMonitoringProgress, ResetAssessment, ForceCloseAssessment, ForceCloseAll), `Controllers/CMPController.cs` (CheckExamStatus, SubmitExam, SaveAnswer), `Views/Admin/AssessmentMonitoringDetail.cshtml` (polling JS), `Views/CMP/StartExam.cshtml` (statusPollInterval JS)
+
+---
+*Architecture research for: SignalR real-time assessment integration, ASP.NET Core 8 MVC*
+*Researched: 2026-03-13*
