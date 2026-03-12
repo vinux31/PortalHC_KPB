@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Phase 156 — PlanIDP & CDP Dashboard Audit Report</title>
+<style>
+  @page { margin: 20mm 15mm; size: A4; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 11px; color: #1a1a1a; line-height: 1.5; }
+  h1 { font-size: 20px; color: #0d47a1; border-bottom: 3px solid #0d47a1; padding-bottom: 8px; margin-top: 0; }
+  h2 { font-size: 15px; color: #1565c0; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin-top: 24px; }
+  h3 { font-size: 13px; color: #333; margin-top: 16px; }
+  .header { text-align: center; margin-bottom: 20px; }
+  .header .project { font-size: 12px; color: #666; }
+  .header .phase { font-size: 22px; font-weight: bold; color: #0d47a1; }
+  .header .date { font-size: 11px; color: #888; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 10px; font-weight: bold; color: white; }
+  .badge-pass { background: #2e7d32; }
+  .badge-fix { background: #e65100; }
+  .badge-info { background: #1565c0; }
+  .badge-defer { background: #757575; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; font-size: 10.5px; }
+  th { background: #e3f2fd; color: #0d47a1; text-align: left; padding: 6px 8px; border: 1px solid #bbdefb; }
+  td { padding: 5px 8px; border: 1px solid #e0e0e0; vertical-align: top; }
+  tr:nth-child(even) { background: #fafafa; }
+  .summary-box { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px 16px; margin: 12px 0; border-radius: 4px; }
+  .summary-box .score { font-size: 18px; font-weight: bold; color: #2e7d32; }
+  .warn-box { background: #fff3e0; border-left: 4px solid #e65100; padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  .info-box { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 10px 14px; margin: 10px 0; border-radius: 4px; }
+  .commit { font-family: 'Consolas', monospace; font-size: 10px; background: #f5f5f5; padding: 1px 4px; border-radius: 3px; }
+  ul { margin: 4px 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  .page-break { page-break-before: always; }
+  .footer { text-align: center; font-size: 9px; color: #999; margin-top: 30px; border-top: 1px solid #ddd; padding-top: 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="project">PortalHC KPB — Milestone v4.0: E2E Use-Case Audit</div>
+  <div class="phase">Phase 156: PlanIDP & CDP Dashboard Audit</div>
+  <div class="date">Completed: 12 Maret 2026</div>
+  <div style="margin-top:8px;">
+    <span class="badge badge-pass">PASSED — 6/6 Verified</span>
+    <span class="badge badge-info">2 Plans</span>
+    <span class="badge badge-fix">3 Bugs Fixed</span>
+  </div>
+</div>
+
+<div class="summary-box">
+  <div class="score">&#10003; Phase Goal Achieved</div>
+  <p style="margin:4px 0 0;">Silabus browsing, coaching guidance access, and CDP dashboard audited across all roles (Coachee, Coach, SectionHead, HC/Admin). 4 requirements (CDP-01 through CDP-04) satisfied. Browser UAT completed with 8 screenshots across 4 roles.</p>
+</div>
+
+<h2>1. Executive Summary</h2>
+<table>
+  <tr><th width="25%">Item</th><th>Detail</th></tr>
+  <tr><td><strong>Scope</strong></td><td>Full code review + browser UAT of CDPController: PlanIdp, GuidanceDownload, Dashboard, FilterCoachingProton</td></tr>
+  <tr><td><strong>Plans Executed</strong></td><td>2/2 — both in Wave 1 (parallel)</td></tr>
+  <tr><td><strong>Requirements</strong></td><td>CDP-01 through CDP-04 — all SATISFIED</td></tr>
+  <tr><td><strong>Verification Score</strong></td><td>6/6 observable truths verified</td></tr>
+  <tr><td><strong>Bugs Found & Fixed</strong></td><td>3 (coachee URL bypass, deliverable count scoping, duplicate-key crash)</td></tr>
+  <tr><td><strong>Informational Findings</strong></td><td>2 (no per-action role gates on PlanIdp/GuidanceDownload; Chart.js not loaded on Dashboard)</td></tr>
+  <tr><td><strong>UAT Status</strong></td><td>All roles tested in browser — 8 screenshots captured</td></tr>
+</table>
+
+<h2>2. Plan Execution Overview</h2>
+<table>
+  <tr>
+    <th>Plan</th><th>Scope</th><th>Requirements</th><th>Status</th>
+  </tr>
+  <tr>
+    <td><strong>156-01</strong></td>
+    <td>PlanIdp silabus browsing + coaching guidance downloads</td>
+    <td>CDP-01, CDP-02, CDP-03</td>
+    <td><span class="badge badge-pass">PASS</span></td>
+  </tr>
+  <tr>
+    <td><strong>156-02</strong></td>
+    <td>CDP Dashboard role-scoped metrics + AJAX filtering</td>
+    <td>CDP-04</td>
+    <td><span class="badge badge-pass">PASS</span></td>
+  </tr>
+</table>
+
+<h2>3. Requirements Traceability</h2>
+<table>
+  <tr><th>ID</th><th>Description</th><th>Plan</th><th>Status</th><th>Evidence</th></tr>
+  <tr>
+    <td>CDP-01</td>
+    <td>Coachee sees assigned track silabus with deliverable targets</td>
+    <td>01</td>
+    <td><span class="badge badge-pass">SATISFIED</span></td>
+    <td>Bug fixed: unit/trackId URL params now force-overridden (= not ??=). UAT confirmed coachee locked to assigned track.</td>
+  </tr>
+  <tr>
+    <td>CDP-02</td>
+    <td>HC/Admin can browse any section/unit/track silabus</td>
+    <td>01</td>
+    <td><span class="badge badge-pass">SATISFIED</span></td>
+    <td>No issues found. HC can freely browse all bagian/unit/track combinations. SectionHead locked to own section.</td>
+  </tr>
+  <tr>
+    <td>CDP-03</td>
+    <td>Coaching guidance files downloadable per bagian/unit/track</td>
+    <td>01</td>
+    <td><span class="badge badge-pass">SATISFIED</span></td>
+    <td>No issues found. Path traversal prevention verified. Content-type mapping correct. Download tested in browser.</td>
+  </tr>
+  <tr>
+    <td>CDP-04</td>
+    <td>CDP Dashboard shows role-scoped progress metrics and drill-down</td>
+    <td>02</td>
+    <td><span class="badge badge-pass">SATISFIED</span></td>
+    <td>2 bugs fixed (deliverable scoping + duplicate-key crash). All 4 role branches (Coachee/Coach/SectionHead/HC) verified in browser.</td>
+  </tr>
+</table>
+
+<h2>4. Bugs Found & Fixed</h2>
+<table>
+  <tr><th>ID</th><th>Severity</th><th>Description</th><th>Fix</th><th>Commit</th></tr>
+  <tr>
+    <td>CDP-01-BUG1</td>
+    <td><span class="badge badge-fix">Security</span></td>
+    <td>Coachee could view silabus for a different unit/track by URL manipulation — <code>unit</code> and <code>trackId</code> used <code>??=</code> (null-coalescing) instead of <code>=</code> (force override)</td>
+    <td>Changed lines 81-83 of CDPController.cs to always force bagian/unit/trackId from coachee's ProtonTrackAssignment</td>
+    <td><span class="commit">80e85c6</span></td>
+  </tr>
+  <tr>
+    <td>CDP-04-BUG1</td>
+    <td><span class="badge badge-fix">Bug</span></td>
+    <td>BuildCoacheeSubModelAsync counted deliverables by CoacheeId only — coachees with prior inactive assignments saw inflated counts</td>
+    <td>Added filter by ProtonTrackAssignmentId == assignment.Id (line 315)</td>
+    <td><span class="commit">88c2a6e</span></td>
+  </tr>
+  <tr>
+    <td>CDP-04-BUG2</td>
+    <td><span class="badge badge-fix">Crash</span></td>
+    <td>BuildProtonProgressSubModelAsync crashed with ArgumentException (duplicate key) when coachee has multiple active ProtonTrackAssignments</td>
+    <td>Changed <code>ToDictionary</code> to <code>GroupBy + First</code> (line 451)</td>
+    <td><span class="commit">1a8ae8e</span></td>
+  </tr>
+</table>
+
+<h2>5. Security Audit Summary</h2>
+<table>
+  <tr><th>Check</th><th>PlanIdp</th><th>Guidance Download</th><th>Dashboard</th></tr>
+  <tr><td>Authorization (Class-level)</td><td>&#10003; [Authorize]</td><td>&#10003; [Authorize]</td><td>&#10003; [Authorize]</td></tr>
+  <tr><td>Per-Action Role Gate</td><td><span class="badge badge-defer">Info</span> None (any auth user)</td><td><span class="badge badge-defer">Info</span> None (any auth user)</td><td>N/A (query-scoped)</td></tr>
+  <tr><td>URL Param Override</td><td>&#10003; Coachee forced to assignment</td><td>N/A</td><td>&#10003; FilterCoachingProton enforced</td></tr>
+  <tr><td>Path Traversal</td><td>N/A</td><td>&#10003; GetFullPath + StartsWith check</td><td>N/A</td></tr>
+  <tr><td>Query-Level Scoping</td><td>&#10003; Role-based branch</td><td>N/A</td><td>&#10003; Assignment-based scoping</td></tr>
+  <tr><td>AJAX Scoping Bypass</td><td>N/A</td><td>N/A</td><td>&#10003; Server-side override (lines 274-276)</td></tr>
+</table>
+
+<h2>6. UAT Results</h2>
+<div class="info-box">
+  All 4 roles tested via browser on <strong>http://localhost:5002</strong>. 8 screenshots captured as evidence.
+</div>
+<table>
+  <tr><th>#</th><th>Test</th><th>Role</th><th>Result</th><th>Screenshot</th></tr>
+  <tr><td>1</td><td>Coachee sees assigned track silabus</td><td>Coachee</td><td>&#10003; Pass — GAST / RFCC NHT / Operator Tahun 1</td><td>uat-156-01</td></tr>
+  <tr><td>2</td><td>URL manipulation blocked (bagian/unit/trackId)</td><td>Coachee</td><td>&#10003; Pass — server overrides to actual assignment</td><td>uat-156-02</td></tr>
+  <tr><td>3</td><td>Coaching Guidance tab + file download</td><td>Coachee</td><td>&#10003; Pass — files listed, download works</td><td>uat-156-03</td></tr>
+  <tr><td>4</td><td>Coachee Dashboard metrics (0/2, In Progress)</td><td>Coachee</td><td>&#10003; Pass — metrics match expected</td><td>uat-156-04</td></tr>
+  <tr><td>5</td><td>Coach Dashboard (initial crash — duplicate key)</td><td>Coach</td><td><span class="badge badge-fix">BUG</span> Found &amp; fixed</td><td>uat-156-05</td></tr>
+  <tr><td>6</td><td>Coach Dashboard (after fix) — scoped to mapped coachees</td><td>Coach</td><td>&#10003; Pass — 2 coachees, unit-scoped</td><td>uat-156-06</td></tr>
+  <tr><td>7</td><td>SectionHead Dashboard — section-scoped</td><td>SectionHead</td><td>&#10003; Pass — GAST section, unit filter enabled</td><td>uat-156-07</td></tr>
+  <tr><td>8</td><td>HC Dashboard — all sections, all filters</td><td>HC</td><td>&#10003; Pass — "All Sections" scope</td><td>uat-156-08</td></tr>
+</table>
+
+<h2>7. Informational Findings (Non-blocking)</h2>
+<table>
+  <tr><th>#</th><th>Item</th><th>Severity</th><th>Notes</th></tr>
+  <tr><td>1</td><td>PlanIdp and GuidanceDownload have no per-action role gate — any authenticated user can access</td><td><span class="badge badge-defer">Info</span></td><td>Data is query-scoped; non-proton users see empty data. No security risk.</td></tr>
+  <tr><td>2</td><td>Chart.js not rendering on Dashboard (console: "Chart is not defined")</td><td><span class="badge badge-defer">Info</span></td><td>Pre-existing issue — Chart.js CDN or bundle not loaded. Not a Phase 156 regression.</td></tr>
+</table>
+
+<h2>8. Commits</h2>
+<table>
+  <tr><th>Hash</th><th>Message</th><th>Plan</th></tr>
+  <tr><td><span class="commit">80e85c6</span></td><td>fix(156-01): fix coachee unit/trackId URL override in PlanIdp; add audit report</td><td>01</td></tr>
+  <tr><td><span class="commit">88c2a6e</span></td><td>fix(156-02): audit CDP Dashboard metrics and scoping (CDP-04)</td><td>02</td></tr>
+  <tr><td><span class="commit">1a8ae8e</span></td><td>fix(156): prevent duplicate key crash in BuildProtonProgressSubModelAsync</td><td>02 (UAT)</td></tr>
+  <tr><td><span class="commit">42b4bde</span></td><td>docs(phase-156): complete phase execution</td><td>—</td></tr>
+</table>
+
+<div class="footer">
+  PortalHC KPB — Phase 156 Audit Report — Generated 12 Maret 2026 — Claude Code
+</div>
+
+</body>
+</html>
