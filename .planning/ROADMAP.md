@@ -144,8 +144,10 @@ Plans:
   4. Accessing a role-restricted URL without the required role redirects to the AccessDenied page, not a 500 error
 **Plans**: 2 plans
 Plans:
-- [ ] 156-01-PLAN.md — Audit PlanIdp silabus browsing and guidance downloads (CDP-01, CDP-02, CDP-03)
-- [ ] 156-02-PLAN.md — Audit CDP Dashboard role-scoped metrics and filtering (CDP-04)
+- [ ] 157-01-PLAN.md — Audit login, profile, and settings (AUTH-01, AUTH-02, AUTH-03)
+- [ ] 157-02-PLAN.md — Audit authorization enforcement and AccessDenied (AUTH-04)
+
+
 
 ### Phase 158: Homepage & Navigation Audit
 **Goal**: The homepage dashboard, guide pages, and all navigation links are correct and role-appropriate for every role
