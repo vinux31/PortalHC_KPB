@@ -448,7 +448,9 @@ namespace HcPortal.Controllers
             var availableCategories = assignments.Select(a => a.ProtonTrack?.TrackType).Where(t => t != null).Distinct().OrderBy(t => t).ToList()!;
             var availableTracks = assignments.OrderBy(a => a.ProtonTrack?.Urutan).Select(a => a.ProtonTrack?.DisplayName).Where(t => t != null).Distinct().ToList()!;
 
-            var assignmentDict = assignments.ToDictionary(a => a.CoacheeId, a => a);
+            var assignmentDict = assignments
+                .GroupBy(a => a.CoacheeId)
+                .ToDictionary(g => g.Key, g => g.First());
 
             var finalAssessments = await _context.ProtonFinalAssessments
                 .Where(fa => filteredCoacheeIds.Contains(fa.CoacheeId))
