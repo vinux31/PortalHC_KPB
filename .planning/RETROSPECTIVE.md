@@ -4,6 +4,45 @@
 
 ---
 
+## Milestone: v4.0 — E2E Use-Case Audit
+
+**Shipped:** 2026-03-12
+**Phases:** 6 (153-158) | **Plans:** 16
+
+### What Was Built
+- Assessment flow audit: Fixed FK crash, open redirect, certificate access control, TrainingRecord auto-creation
+- Coaching Proton audit: Fixed mapping reactivation cascade, ProtonFinalAssessment creation on interview pass
+- Admin Kelola Data audit: Fixed DeleteWorker cascade order, CPDP MIME type, missing audit log entries
+- CDP Dashboard audit: Fixed URL manipulation, duplicate key crash on multiple assignments
+- Auth audit: Full 7-controller authorization matrix verified
+- Navigation audit: All links verified, GuideDetail case-sensitivity fix
+
+### What Worked
+- **Use-case flow audit format**: Organizing by flow (not by page/role) caught cross-cutting bugs (e.g., cascade order in DeleteWorker affecting coaching data)
+- **Hybrid code+browser UAT**: Code review found bugs that browser testing alone would miss (security issues, edge cases); browser UAT confirmed fixes worked
+- **Independent phases**: All 6 audit phases were independent — could execute in any order without blocking
+- **Budget model profile**: Sonnet executor handled audit-style work (read → analyze → fix → verify) efficiently
+
+### What Was Inefficient
+- **SUMMARY frontmatter gaps**: All SUMMARY files have empty `requirements_completed` arrays — systematic gap in audit-style summary writing
+- **Nyquist validation skipped**: All 6 phases missing VALIDATION.md — audit phases don't fit the Nyquist pattern well (they're verification, not feature-building)
+
+### Patterns Established
+- **Audit phase pattern**: Code review → findings document → targeted fixes → browser UAT → VERIFICATION.md
+- **Authorization matrix**: Full controller-level authorization audit as a reusable verification approach
+
+### Key Lessons
+1. Audit milestones are faster than build milestones — 6 phases in 2 days vs typical 3-4 days
+2. The v3.0 known gaps (Phase 89 PlanIDP, ASSESS-04 PositionTargetHelper) were both resolved by this audit
+3. Tech debt documentation (10 items) provides a clear backlog for future work without blocking the milestone
+
+### Cost Observations
+- Model mix: 100% sonnet (executor)
+- Sessions: ~4 sessions across 2 days
+- Notable: Highest requirements-per-day ratio (33 requirements in 2 days)
+
+---
+
 ## Milestone: v3.21 — Account Profile & Settings Cleanup
 
 **Shipped:** 2026-03-11
@@ -376,5 +415,7 @@
 | v3.0 | 10 | 34 | 4 | 8.5 |
 | v3.6 | 2 | 4 | 1 | 4 |
 | v3.8 | 1 | 1 | 1 | 1 |
+| v3.21 | 1 | 1 | 1 | 1 |
+| v4.0 | 6 | 16 | 2 | 8 |
 
-**Running total:** 88 phases, ~205 plans, 24 days
+**Running total:** 95 phases, ~222 plans, 27 days

@@ -1,4 +1,30 @@
 # Milestones
+## v4.0 E2E Use-Case Audit (Shipped: 2026-03-12)
+
+**Phases completed:** 6 phases (153-158), 16 plans
+**Timeline:** 2026-03-11 → 2026-03-12 (2 days)
+**Code changes:** 18 files changed, +2,737 / -66 lines
+**Commits:** 72
+
+**Delivered:** Comprehensive end-to-end audit of the entire portal organized by 6 use-case flows — code review + browser UAT per flow. All 33 requirements verified, 10+ bugs fixed, 10 tech debt items documented.
+
+**Key accomplishments:**
+1. Assessment flow hardened — Fixed DeleteQuestion FK crash, open redirect in Results, certificate access control (IsPassed guard), TrainingRecord auto-creation on exam submission
+2. Coaching Proton bugs fixed — CoachCoacheeMappingReactivate cascades to restore ProtonTrackAssignments; SubmitInterviewResults creates ProtonFinalAssessment on pass
+3. Admin data management audited — Fixed ProtonFinalAssessment cascade order in DeleteWorker, CPDP download MIME type, added missing audit log entries
+4. CDP Dashboard scoping fixed — Coachee URL manipulation prevented (server-side override), duplicate key crash on multiple assignments resolved
+5. Auth & authorization verified — Full controller authorization matrix confirmed across all 7 controllers, AccessDenied flow validated
+6. Navigation integrity confirmed — All navbar links, guide pages, and hub cards verified; GuideDetail case-sensitivity bug fixed
+
+**Tech Debt (10 items):**
+- 2 deferred browser tests (assessment validation, certificate negative test)
+- 3 coaching edge cases (ExportProgressExcel role attr, evidence storage, download auth)
+- 2 admin edge cases (silabus delete warning, override status validation)
+- 1 pre-existing (Chart.js rendering)
+- 2 silent catch blocks (AD sync)
+
+---
+
 ## v3.21 Account Profile & Settings Cleanup (Shipped: 2026-03-11)
 
 **Phases completed:** 1 phase (152), 1 plan, 2 tasks

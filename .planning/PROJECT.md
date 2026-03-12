@@ -12,21 +12,13 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v4.0 — started 2026-03-11)
+## Current State (v4.0 shipped 2026-03-12)
 
-**v1.0 through v3.21 shipped** — 38 milestones, 152 phases.
+**v1.0 through v4.0 shipped** — 39 milestones, 158 phases.
 
-## Current Milestone: v4.0 E2E Use-Case Audit
+All 6 use-case flows audited end-to-end (code review + browser UAT). 33 requirements verified, 10+ bugs fixed. Portal is stable and fully audited.
 
-**Goal:** Audit komprehensif seluruh portal — analisa kode per use-case flow, identifikasi bug/edge case/security issue, lalu verifikasi di browser (Hybrid: Code + Browser).
-
-**Target cases:**
-- Case 1: Assessment Flow (Create → Assign → Take Exam → Results → Certificate)
-- Case 2: Coaching Proton Flow (Mapping → Sessions → Evidence → Approval Chain → Final Assessment)
-- Case 3: Admin Kelola Data (Workers CRUD, Import, Proton Data, KKJ/CPDP files)
-- Case 4: PlanIDP & CDP Dashboard
-- Case 5: Account & Auth (Login, Profile, Settings, Password)
-- Case 6: Homepage & Navigation (Dashboard, Guide, role-scoped nav)
+**Between milestones** — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 
@@ -39,6 +31,30 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v4.0 - E2E Use-Case Audit (2026-03-12)
+
+**Delivered:** Comprehensive end-to-end audit of 6 use-case flows — code review + browser UAT per flow. All 33 requirements verified, 10+ bugs fixed, 10 tech debt items documented.
+
+**What Shipped:**
+1. **Assessment Flow Audit** — Fixed DeleteQuestion FK crash, open redirect, certificate IsPassed guard, TrainingRecord auto-creation
+2. **Coaching Proton Audit** — Fixed mapping reactivation cascade, SubmitInterviewResults ProtonFinalAssessment creation
+3. **Admin Kelola Data Audit** — Fixed DeleteWorker cascade order, CPDP MIME type, added missing audit log entries
+4. **CDP Dashboard Audit** — Fixed coachee URL manipulation, duplicate key crash on multiple assignments
+5. **Auth & Authorization Audit** — Full 7-controller authorization matrix verified, AccessDenied flow confirmed
+6. **Navigation Audit** — All links verified, GuideDetail case-sensitivity fix
+
+**Known Gaps (resolved):**
+- Phase 89 PlanIDP gap: covered by Phase 156 audit
+- ASSESS-04 PositionTargetHelper: confirmed removed in Phase 90
+
+**Tech Debt:** 10 items (deferred browser tests, coaching edge cases, silent catch blocks)
+
+**Metrics:**
+- 6 phases (153-158), 16 plans, 72 commits
+- 2026-03-11 → 2026-03-12
+
+---
 
 ### ✅ v3.0 - Full QA & Feature Completion (2026-03-05)
 
