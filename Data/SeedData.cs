@@ -23,6 +23,9 @@ namespace HcPortal.Data
 
             // 3. One-time cleanup: deactivate duplicate active ProtonTrackAssignments (CLN-01)
             await DeduplicateProtonTrackAssignments(context);
+
+            // 4. One-time cleanup: merge split Kompetensi/SubKompetensi records and remove junk (CLN-02)
+            await MergeProtonCatalogDuplicates(context);
         }
 
         /// <summary>
@@ -67,6 +70,119 @@ namespace HcPortal.Data
             await context.SaveChangesAsync();
             Console.WriteLine($"CLN-01: Deactivated {toDeactivate.Count} duplicate ProtonTrackAssignment(s).");
             return toDeactivate.Count;
+        }
+
+        /// <summary>
+        /// CLN-02: Merges split Kompetensi/SubKompetensi records for "1. Safe Work Practice" and removes junk test data.
+        /// Problem: Kompetensi "1. Safe Work Practice &amp; Lifesaving Rules" was split across KId=2,5,6 and
+        /// SubKompetensi "1.1 Safe Work Practice" across SKId=4,5,8 — causing deliverables 3-7 to appear before 1-2.
+        /// Also removes junk test records (KId=3 "21312", KId=4 "eqweqw").
+        /// Idempotent — does nothing if already merged (KId=2 no longer exists).
+        /// </summary>
+        public static async Task MergeProtonCatalogDuplicates(ApplicationDbContext context)
+        {
+            // Check if merge is needed — if KId=2 doesn't exist, already done
+            var kompToMerge = await context.ProtonKompetensiList.FindAsync(2);
+            if (kompToMerge == null)
+            {
+                Console.WriteLine("CLN-02: Kompetensi catalog already consolidated.");
+                return;
+            }
+
+            int changes = 0;
+
+            // --- Step 1: Merge SubKompetensi "1.1 Safe Work Practice" ---
+            // SKId=8 (under KId=5) is the survivor — has deliverables 3-7
+            // SKId=4 (under KId=2) has deliverable "1. Menjelaskan tingkatan budaya HSSE"
+            // SKId=5 (under KId=2) has deliverable "2. Melakukan indentifikasi bahaya"
+            // Move their deliverables to SKId=8
+            var delivsToMove = await context.ProtonDeliverableList
+                .Where(d => d.ProtonSubKompetensiId == 4 || d.ProtonSubKompetensiId == 5)
+                .ToListAsync();
+            foreach (var d in delivsToMove)
+            {
+                d.ProtonSubKompetensiId = 8; // survivor SK "1.1 Safe Work Practice"
+            }
+            changes += delivsToMove.Count;
+
+            // --- Step 2: Fix deliverable Urutan under SKId=8 ---
+            // After merge, SKId=8 will have all 7 deliverables — set Urutan 1-7 by name prefix
+            var allDelivsInSK8 = await context.ProtonDeliverableList
+                .Where(d => d.ProtonSubKompetensiId == 8)
+                .ToListAsync();
+            // Include the ones we just moved (they're tracked but not yet saved)
+            var combined = allDelivsInSK8.Union(delivsToMove).Distinct().ToList();
+            foreach (var d in combined)
+            {
+                // Extract leading number from name like "3.\tMemberikan..."
+                var name = d.NamaDeliverable.TrimStart();
+                if (name.Length > 0 && char.IsDigit(name[0]))
+                {
+                    var numStr = new string(name.TakeWhile(c => char.IsDigit(c)).ToArray());
+                    if (int.TryParse(numStr, out var num))
+                        d.Urutan = num;
+                }
+            }
+
+            // --- Step 3: Move SubKompetensi from KId=6 to KId=5 ---
+            // SKId=9 "1.2. Lifesaving Rules" and SKId=10 "1.3. Emergency Response"
+            var subsToMove = await context.ProtonSubKompetensiList
+                .Where(sk => sk.ProtonKompetensiId == 6)
+                .ToListAsync();
+            foreach (var sk in subsToMove)
+            {
+                sk.ProtonKompetensiId = 5; // survivor Kompetensi
+            }
+            changes += subsToMove.Count;
+
+            // --- Step 4: Fix SubKompetensi Urutan under KId=5 ---
+            // After merge: SK8 "1.1" → Urutan=1, SK9 "1.2" → Urutan=2, SK10 "1.3" → Urutan=3
+            var sk8 = await context.ProtonSubKompetensiList.FindAsync(8);
+            if (sk8 != null) sk8.Urutan = 1;
+            var sk9 = await context.ProtonSubKompetensiList.FindAsync(9);
+            if (sk9 != null) sk9.Urutan = 2;
+            var sk10 = await context.ProtonSubKompetensiList.FindAsync(10);
+            if (sk10 != null) sk10.Urutan = 3;
+
+            // --- Step 5: Fix Kompetensi Urutan ---
+            // KId=5 "1. Safe Work Practice" → Urutan=1 (was 3)
+            var k5 = await context.ProtonKompetensiList.FindAsync(5);
+            if (k5 != null) k5.Urutan = 1;
+
+            // --- Step 6: Delete empty SubKompetensi (SKId=4, SKId=5) ---
+            var emptySubs = await context.ProtonSubKompetensiList
+                .Where(sk => sk.Id == 4 || sk.Id == 5)
+                .ToListAsync();
+            context.ProtonSubKompetensiList.RemoveRange(emptySubs);
+
+            // --- Step 7: Delete orphaned Kompetensi (KId=2, KId=6) ---
+            var orphanKomps = await context.ProtonKompetensiList
+                .Where(k => k.Id == 2 || k.Id == 6)
+                .ToListAsync();
+            context.ProtonKompetensiList.RemoveRange(orphanKomps);
+
+            // --- Step 8: Delete junk test records (KId=3 "21312", KId=4 "eqweqw") ---
+            var junkKomps = await context.ProtonKompetensiList
+                .Where(k => k.Id == 3 || k.Id == 4)
+                .ToListAsync();
+            if (junkKomps.Any())
+            {
+                var junkKIds = junkKomps.Select(k => k.Id).ToList();
+                var junkSubs = await context.ProtonSubKompetensiList
+                    .Where(sk => junkKIds.Contains(sk.ProtonKompetensiId))
+                    .ToListAsync();
+                var junkSKIds = junkSubs.Select(sk => sk.Id).ToList();
+                var junkDelivs = await context.ProtonDeliverableList
+                    .Where(d => junkSKIds.Contains(d.ProtonSubKompetensiId))
+                    .ToListAsync();
+                context.ProtonDeliverableList.RemoveRange(junkDelivs);
+                context.ProtonSubKompetensiList.RemoveRange(junkSubs);
+                context.ProtonKompetensiList.RemoveRange(junkKomps);
+                changes += junkDelivs.Count + junkSubs.Count + junkKomps.Count;
+            }
+
+            await context.SaveChangesAsync();
+            Console.WriteLine($"CLN-02: Merged split Kompetensi/SubKompetensi and removed junk ({changes} records affected).");
         }
 
         private static async Task CreateRolesAsync(RoleManager<IdentityRole> roleManager)
