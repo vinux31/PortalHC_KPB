@@ -12,13 +12,20 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v4.1 Coaching Proton Deduplication
+
+**Goal:** Fix duplicate deliverable rows in CoachingProton caused by overly broad reactivate cascade creating multiple active ProtonTrackAssignments per coachee+track.
+
+**Target fixes:**
+- Fix `CoachCoacheeMappingReactivate` cascade to only restore assignments belonging to the reactivated mapping
+- Data cleanup: deactivate duplicate active assignments (keep latest per coachee+track)
+- Defensive guard in CoachingProton query to prevent duplicate rows even with bad data
+
 ## Current State (v4.0 shipped 2026-03-12)
 
 **v1.0 through v4.0 shipped** — 39 milestones, 158 phases.
 
 All 6 use-case flows audited end-to-end (code review + browser UAT). 33 requirements verified, 10+ bugs fixed. Portal is stable and fully audited.
-
-**Between milestones** — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 

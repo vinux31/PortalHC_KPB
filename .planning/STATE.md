@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between_milestones
-stopped_at: v4.0 milestone archived
+milestone: v4.1
+milestone_name: Coaching Proton Deduplication
+status: defining_requirements
+stopped_at: null
 last_updated: "2026-03-12"
-last_activity: "2026-03-12 — v4.0 E2E Use-Case Audit milestone completed and archived"
+last_activity: "2026-03-12 — Milestone v4.1 started"
 progress:
   total_phases: 0
   completed_phases: 0
@@ -20,13 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Between milestones — ready for `/gsd:new-milestone`
+**Current focus:** v4.1 Coaching Proton Deduplication
 
 ## Current Position
 
-**Milestone:** None (v4.0 shipped 2026-03-12)
-**Status:** Between milestones
-**Last activity:** 2026-03-12 — Completed quick task 23: Sort silabus tables alphabetically
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-12 — Milestone v4.1 started
 
 ## Accumulated Context
 
@@ -42,14 +43,12 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
-| 23 | Sort silabus tables alphabetically on ProtonData and PlanIdp | 2026-03-12 | 1020131 | [23-sort-silabus](./quick/23-sort-silabus-tables-alphabetically-on-pr/) |
-| 24 | Hide No column from PlanIdp silabus table | 2026-03-12 | pending | [24-hide-no](./quick/24-hide-no-column-from-planidp-silabus-tabl/) |
 
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: v4.0 milestone archived
+Stopped at: Defining requirements for v4.1
 Resume file: None
 
 ---
-*State updated: 2026-03-12 after v4.0 milestone completion*
+*State updated: 2026-03-12 after milestone v4.1 start*
