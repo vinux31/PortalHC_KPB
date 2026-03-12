@@ -1417,9 +1417,12 @@ namespace HcPortal.Controllers
             int pendingApprovals = 0;
 
             // Phase 127: Query progress via ProtonTrackAssignmentId join
+            // DEF-01: Group by (CoacheeId, ProtonTrackId) and keep only the latest assignment per group
+            // to prevent duplicate deliverable rows if duplicate active assignments exist.
             var activeAssignmentIds = await _context.ProtonTrackAssignments
                 .Where(a => a.IsActive && dataCoacheeIds.Contains(a.CoacheeId))
-                .Select(a => a.Id)
+                .GroupBy(a => new { a.CoacheeId, a.ProtonTrackId })
+                .Select(g => g.OrderByDescending(a => a.Id).First().Id)
                 .ToListAsync();
 
             var query = _context.ProtonDeliverableProgresses
