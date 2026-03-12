@@ -4368,15 +4368,15 @@ namespace HcPortal.Controllers
 
                 foreach (var row in ws.RowsUsed().Skip(1))
                 {
-                    var nama = row.Cell(1).GetString().Trim();
-                    var email = row.Cell(2).GetString().Trim();
-                    var nip = row.Cell(3).GetString().Trim();
-                    var jabatan = row.Cell(4).GetString().Trim();
-                    var bagian = row.Cell(5).GetString().Trim();
-                    var unit = row.Cell(6).GetString().Trim();
-                    var directorate = row.Cell(7).GetString().Trim();
-                    var role = row.Cell(8).GetString().Trim();
-                    var tglStr = row.Cell(9).GetString().Trim();
+                    var nama = (row.Cell(1).GetString() ?? "").Trim();
+                    var email = (row.Cell(2).GetString() ?? "").Trim();
+                    var nip = (row.Cell(3).GetString() ?? "").Trim();
+                    var jabatan = (row.Cell(4).GetString() ?? "").Trim();
+                    var bagian = (row.Cell(5).GetString() ?? "").Trim();
+                    var unit = (row.Cell(6).GetString() ?? "").Trim();
+                    var directorate = (row.Cell(7).GetString() ?? "").Trim();
+                    var role = (row.Cell(8).GetString() ?? "").Trim();
+                    var tglStr = (row.Cell(9).GetString() ?? "").Trim();
 
                     // Skip blank rows (e.g. notes/example rows)
                     if (string.IsNullOrWhiteSpace(nama) && string.IsNullOrWhiteSpace(email)) continue;
@@ -4391,7 +4391,7 @@ namespace HcPortal.Controllers
                     }
                     else
                     {
-                        password = row.Cell(10).GetString().Trim();
+                        password = (row.Cell(10).GetString() ?? "").Trim();
                     }
 
                     var errors = new List<string>();
@@ -5496,13 +5496,13 @@ namespace HcPortal.Controllers
                     foreach (var row in ws.RowsUsed().Skip(1))
                     {
                         rowNum++;
-                        var q   = row.Cell(1).GetString().Trim();
-                        var a   = row.Cell(2).GetString().Trim();
-                        var b   = row.Cell(3).GetString().Trim();
-                        var c   = row.Cell(4).GetString().Trim();
-                        var d   = row.Cell(5).GetString().Trim();
-                        var cor = row.Cell(6).GetString().Trim().ToUpper();
-                        var cell7 = row.Cell(7).GetString().Trim();
+                        var q   = (row.Cell(1).GetString() ?? "").Trim();
+                        var a   = (row.Cell(2).GetString() ?? "").Trim();
+                        var b   = (row.Cell(3).GetString() ?? "").Trim();
+                        var c   = (row.Cell(4).GetString() ?? "").Trim();
+                        var d   = (row.Cell(5).GetString() ?? "").Trim();
+                        var cor = (row.Cell(6).GetString() ?? "").Trim().ToUpper();
+                        var cell7 = (row.Cell(7).GetString() ?? "").Trim();
                         string? subComp = string.IsNullOrWhiteSpace(cell7) ? null : cell7;
                         rows.Add((q, a, b, c, d, cor, subComp));
                     }

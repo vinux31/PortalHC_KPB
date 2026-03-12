@@ -3,8 +3,10 @@
 @{
     Layout = null; // No standard layout for certificate
     var date = DateTime.Now.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"));
-    var certBackUrl = Context.Request.Query["returnUrl"].ToString();
-    if (string.IsNullOrEmpty(certBackUrl)) certBackUrl = Url.Action("Assessment", "CMP")!;
+    var rawReturnUrl = Context.Request.Query["returnUrl"].ToString();
+    var certBackUrl = (!string.IsNullOrEmpty(rawReturnUrl) && Uri.IsWellFormedUriString(rawReturnUrl, UriKind.Relative))
+        ? rawReturnUrl
+        : Url.Action("Assessment", "CMP")!;
 }
 
 <!DOCTYPE html>
