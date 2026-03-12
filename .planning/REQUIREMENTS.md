@@ -45,10 +45,10 @@
 
 ### Case 5: Account & Auth
 
-- [ ] **AUTH-01**: User can login (local + AD mode) with inactive user block
-- [ ] **AUTH-02**: User can view profile with correct role/section/unit data
-- [ ] **AUTH-03**: User can change password and edit profile fields
-- [ ] **AUTH-04**: Unauthorized access redirects to AccessDenied page
+- [x] **AUTH-01**: User can login (local + AD mode) with inactive user block
+- [x] **AUTH-02**: User can view profile with correct role/section/unit data
+- [x] **AUTH-03**: User can change password and edit profile fields
+- [x] **AUTH-04**: Unauthorized access redirects to AccessDenied page
 
 ### Case 6: Homepage & Navigation
 
@@ -94,10 +94,10 @@
 | CDP-02 | Phase 156 | Complete |
 | CDP-03 | Phase 156 | Complete |
 | CDP-04 | Phase 156 | Complete |
-| AUTH-01 | Phase 157 | Pending |
-| AUTH-02 | Phase 157 | Pending |
-| AUTH-03 | Phase 157 | Pending |
-| AUTH-04 | Phase 157 | Pending |
+| AUTH-01 | Phase 157 | Complete |
+| AUTH-02 | Phase 157 | Complete |
+| AUTH-03 | Phase 157 | Complete |
+| AUTH-04 | Phase 157 | Complete |
 | NAV-01 | Phase 158 | Pending |
 | NAV-02 | Phase 158 | Pending |
 | NAV-03 | Phase 158 | Pending |

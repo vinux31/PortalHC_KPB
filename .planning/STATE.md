@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: E2E Use-Case Audit
 status: planning
-stopped_at: Completed 156-01-PLAN.md — awaiting UAT checkpoint
-last_updated: "2026-03-12T00:10:41.792Z"
+stopped_at: Completed 157-02-PLAN.md — AUTH-04 authorization enforcement audit complete
+last_updated: "2026-03-12T00:41:07.890Z"
 last_activity: "2026-03-11 — 153-04 ASSESS-08 gap closure: TrainingRecord auto-creation in SubmitExam()"
 progress:
   total_phases: 6
-  completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 5
+  total_plans: 14
+  completed_plans: 14
 ---
 
 ---
@@ -73,6 +73,8 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - [Phase 155-admin-kelola-data-audit]: CpdpFileArchive audit log added for parity with KkjFileDelete (ADMIN-04)
 - [Phase 156-planidp-cdp-dashboard-audit]: Coachee unit/trackId URL override: changed ??= to = so all 3 filter params are always force-set from assignment data
 - [Phase 156-planidp-cdp-dashboard-audit]: CDP-04: assignmentDict uses GroupBy+First — handles coachees with multiple active assignments without crashing
+- [Phase 157-account-auth-audit]: AUTH-01/02/03: No code changes required — all three auth flows pass clean. Minor issues (silent AD sync catch, multi-unit display gap, PRG per-field validation) deferred.
+- [Phase 157-account-auth-audit]: AUTH-04: Authorization enforcement confirmed correct — no bugs found, ASP.NET cookie auth middleware correctly redirects 403 to AccessDenied and 401 to Login
 
 ### Blockers/Concerns
 
@@ -81,8 +83,8 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
 ## Session Continuity
 
-Last session: 2026-03-11T23:57:16.016Z
-Stopped at: Completed 156-01-PLAN.md — awaiting UAT checkpoint
+Last session: 2026-03-12T00:41:04.039Z
+Stopped at: Completed 157-02-PLAN.md — AUTH-04 authorization enforcement audit complete
 Resume file: None
 
 ---

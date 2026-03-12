@@ -66,7 +66,7 @@
 - [ ] **Phase 154: Coaching Proton Flow Audit** - Audit full coaching flow from mapping to histori
 - [x] **Phase 155: Admin Kelola Data Audit** - Audit all admin data management operations (completed 2026-03-11)
 - [x] **Phase 156: PlanIDP & CDP Dashboard Audit** - Audit silabus browsing and dashboard metrics (completed 2026-03-11)
-- [ ] **Phase 157: Account & Auth Audit** - Audit login, profile, settings, and access control
+- [x] **Phase 157: Account & Auth Audit** - Audit login, profile, settings, and access control (completed 2026-03-12)
 - [ ] **Phase 158: Homepage & Navigation Audit** - Audit dashboard, guide, and nav correctness
 
 ## Phase Details
@@ -171,5 +171,5 @@ Plans:
 | 154. Coaching Proton Flow Audit | 2/3 | In Progress|  | - |
 | 155. Admin Kelola Data Audit | 3/3 | Complete    | 2026-03-11 | - |
 | 156. PlanIDP & CDP Dashboard Audit | 2/2 | Complete    | 2026-03-12 | - |
-| 157. Account & Auth Audit | v4.0 | 0/TBD | Not started | - |
+| 157. Account & Auth Audit | 2/2 | Complete   | 2026-03-12 | - |
 | 158. Homepage & Navigation Audit | v4.0 | 0/TBD | Not started | - |
