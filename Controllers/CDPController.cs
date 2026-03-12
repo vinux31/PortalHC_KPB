@@ -1519,7 +1519,21 @@ namespace HcPortal.Controllers
                 ShApprovedAt = p.ShApprovedAt.HasValue ? p.ShApprovedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID")) : "",
                 HcReviewerName = p.HCReviewedById != null && approverNames.ContainsKey(p.HCReviewedById) ? approverNames[p.HCReviewedById] : "",
                 HcReviewedAt = p.HCReviewedAt.HasValue ? p.HCReviewedAt.Value.ToLocalTime().ToString("dd MMM yyyy HH:mm", CultureInfo.GetCultureInfo("id-ID")) : "",
+                // Phase 161: Carry Urutan values for stable post-mapping sort
+                KompetensiUrutan = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.Urutan ?? 0,
+                SubKompetensiUrutan = p.ProtonDeliverable?.ProtonSubKompetensi?.Urutan ?? 0,
+                DeliverableUrutan = p.ProtonDeliverable?.Urutan ?? 0,
             }).ToList();
+
+            // Phase 161: Re-sort after mapping to guarantee deliverable order is stable before pagination GroupBy.
+            // GroupBy preserves first-seen insertion order within groups, but an explicit sort here makes ordering
+            // bulletproof regardless of any upstream DB or EF translation behaviour.
+            data = data
+                .OrderBy(d => d.CoacheeName)
+                .ThenBy(d => d.KompetensiUrutan)
+                .ThenBy(d => d.SubKompetensiUrutan)
+                .ThenBy(d => d.DeliverableUrutan)
+                .ToList();
 
             // --- PAGINATION: Group-boundary slicing (UI-04) ---
             const int targetRowsPerPage = 20;

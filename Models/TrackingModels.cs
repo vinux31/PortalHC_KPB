@@ -24,5 +24,10 @@ namespace HcPortal.Models
         public string HcReviewerName { get; set; } = "";
         public string HcReviewedAt { get; set; } = "";
         public string Status { get; set; } = "Pending"; // Overall deliverable status for button enable logic
+
+        // Phase 161: Urutan fields for explicit post-mapping sort (prevents scrambled order after GroupBy pagination)
+        public int KompetensiUrutan { get; set; }
+        public int SubKompetensiUrutan { get; set; }
+        public int DeliverableUrutan { get; set; }
     }
 }
