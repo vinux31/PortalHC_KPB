@@ -67,8 +67,42 @@
 
 ---
 
-## Between Milestones
+## 🚧 v4.1 Coaching Proton Deduplication (In Progress)
 
-All milestones v1.0 through v4.0 shipped (39 milestones, 158 phases).
+**Milestone Goal:** Fix duplicate deliverable rows in CoachingProton caused by overly broad reactivate cascade creating multiple active ProtonTrackAssignments per coachee+track. Includes data cleanup, defensive guard, and a new assignment removal feature.
 
-Ready for `/gsd:new-milestone` to start next milestone.
+### Phases
+
+- [ ] **Phase 159: Deduplication Fix & Guard** - Fix reactivate cascade, add upsert on assign, clean up existing duplicates, add defensive query guard
+- [ ] **Phase 160: Assignment Removal** - Add "Hapus" action on deactivated mappings for permanent deletion with audit logging
+
+## Phase Details
+
+### Phase 159: Deduplication Fix & Guard
+**Goal**: CoachingProton shows no duplicate deliverable rows for any coachee — reactivate cascade is safe, assign flow is idempotent, existing dirty data is cleaned, and the query itself tolerates any surviving bad data
+**Depends on**: Nothing (first phase of milestone)
+**Requirements**: FIX-01, FIX-02, CLN-01, DEF-01
+**Success Criteria** (what must be TRUE):
+  1. Coach views CoachingProton page and sees each deliverable row exactly once per coachee, with no duplicates — even for coachees who were deactivated and reactivated multiple times
+  2. Admin deactivates then reactivates a CoachCoacheeMapping; only that mapping's ProtonTrackAssignments are restored (assignments from unrelated prior mappings remain inactive)
+  3. HC assigns a coachee to a track they were previously assigned to; no new ProtonTrackAssignment row is created — the existing inactive one is reused
+  4. After running the migration/seed cleanup, no coachee+track combination has more than one active ProtonTrackAssignment in the database
+**Plans**: TBD
+
+### Phase 160: Assignment Removal
+**Goal**: HC and Admin can permanently delete deactivated coach-coachee mappings and all their associated data with a confirmation dialog, and the action is logged
+**Depends on**: Phase 159
+**Requirements**: RMV-01, RMV-02
+**Success Criteria** (what must be TRUE):
+  1. CoachCoacheeMapping page shows a "Hapus" button only on deactivated (not active) mappings
+  2. Clicking "Hapus" shows a confirmation dialog; confirming permanently deletes the mapping, its ProtonTrackAssignments, and all associated ProtonDeliverableProgress rows
+  3. After deletion, the mapping and all its child records no longer appear anywhere in the portal
+  4. The deletion action appears in the AuditLog with actor, timestamp, and the deleted mapping's details
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 159. Deduplication Fix & Guard | v4.1 | 0/? | Not started | - |
+| 160. Assignment Removal | v4.1 | 0/? | Not started | - |

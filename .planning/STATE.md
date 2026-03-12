@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Coaching Proton Deduplication
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-03-12"
-last_activity: "2026-03-12 — Milestone v4.1 started"
+last_activity: "2026-03-12 — Roadmap created, Phase 159 ready to plan"
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,35 +20,43 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-12)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v4.1 Coaching Proton Deduplication
+**Current focus:** v4.1 Coaching Proton Deduplication — Phase 159
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 159 of 160 (Deduplication Fix & Guard)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-12 — Milestone v4.1 started
+Status: Ready to plan
+Last activity: 2026-03-12 — Roadmap created, Phase 159 ready to plan
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0
+- Average duration: —
+- Total execution time: —
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
 
 ## Accumulated Context
 
 ### Decisions
 
-(Cleared at milestone boundary)
+- Out of scope: FK from ProtonTrackAssignment to CoachCoacheeMapping (high migration risk; timestamp correlation sufficient)
+- Out of scope: Rewriting Deactivate cascade to be mapping-scoped (current behavior is correct since a coachee has one active mapping)
 
 ### Blockers/Concerns
 
-(None)
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
+None.
 
 ## Session Continuity
 
 Last session: 2026-03-12
-Stopped at: Defining requirements for v4.1
+Stopped at: Roadmap created — ready to plan Phase 159
 Resume file: None
-
----
-*State updated: 2026-03-12 after milestone v4.1 start*

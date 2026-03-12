@@ -36,18 +36,18 @@ Requirements for Coaching Proton Deduplication milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Pending | Pending |
-| FIX-02 | Pending | Pending |
-| CLN-01 | Pending | Pending |
-| DEF-01 | Pending | Pending |
-| RMV-01 | Pending | Pending |
-| RMV-02 | Pending | Pending |
+| FIX-01 | Phase 159 | Pending |
+| FIX-02 | Phase 159 | Pending |
+| CLN-01 | Phase 159 | Pending |
+| DEF-01 | Phase 159 | Pending |
+| RMV-01 | Phase 160 | Pending |
+| RMV-02 | Phase 160 | Pending |
 
 **Coverage:**
 - v4.1 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6 ⚠️
+- Mapped to phases: 6
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-12*
-*Last updated: 2026-03-12 after initial definition*
+*Last updated: 2026-03-12 — traceability mapped to phases 159-160*
