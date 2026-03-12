@@ -103,6 +103,7 @@ None.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 25 | fix Seed Data Masih Ada | 2026-03-12 | bbe8676 | [25-fix-seed-data-masih-ada](./quick/25-fix-seed-data-masih-ada/) |
+| 26 | critical and high-priority bug fixes (open redirect, null Excel crash, silent catches) | 2026-03-12 | ff39b6f | [26-critical-and-high-priority-bug-fixes-fro](./quick/26-critical-and-high-priority-bug-fixes-fro/) |
 
 ## Session Continuity
 
