@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.0
 milestone_name: E2E Use-Case Audit
 status: planning
-stopped_at: Checkpoint reached in 158-01 — Task 2 awaiting human UAT verification
-last_updated: "2026-03-12T00:57:17.854Z"
+stopped_at: Completed 158-02 — NAV-03 and NAV-04 verified, Phase 158 complete
+last_updated: "2026-03-12T01:02:36.688Z"
 last_activity: "2026-03-11 — 153-04 ASSESS-08 gap closure: TrainingRecord auto-creation in SubmitExam()"
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 ---
@@ -77,6 +77,7 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 - [Phase 157-account-auth-audit]: AUTH-04: Authorization enforcement confirmed correct — no bugs found, ASP.NET cookie auth middleware correctly redirects 403 to AccessDenied and 401 to Login
 - [Phase 158-homepage-navigation-audit]: NAV-01: CoachingSession Status=Submitted confirmed terminal; CDP uses FirstOrDefaultAsync for single active track; Assessment Open|Upcoming confirmed canonical
 - [Phase 158-homepage-navigation-audit]: NAV-02: Kelola Data on Admin|HC matches AdminController; CDP visible to all roles by design
+- [Phase 158-homepage-navigation-audit]: NAV-03/NAV-04: All guide pages and navigation links verified passing UAT — no additional fixes needed beyond case-sensitivity normalization
 
 ### Blockers/Concerns
 
@@ -85,8 +86,8 @@ Progress: [░░░░░░░░░░] 0% (0/6 phases complete)
 
 ## Session Continuity
 
-Last session: 2026-03-12T00:57:13.163Z
-Stopped at: Checkpoint reached in 158-01 — Task 2 awaiting human UAT verification
+Last session: 2026-03-12T01:02:36.685Z
+Stopped at: Completed 158-02 — NAV-03 and NAV-04 verified, Phase 158 complete
 Resume file: None
 
 ---

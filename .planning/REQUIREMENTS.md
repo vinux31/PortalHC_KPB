@@ -54,8 +54,8 @@
 
 - [x] **NAV-01**: Homepage shows personalized dashboard with progress bars and upcoming events
 - [x] **NAV-02**: Role-scoped navbar shows correct menu items per role
-- [ ] **NAV-03**: Guide pages accessible with role-appropriate content
-- [ ] **NAV-04**: All navigation links resolve to correct pages (no dead links)
+- [x] **NAV-03**: Guide pages accessible with role-appropriate content
+- [x] **NAV-04**: All navigation links resolve to correct pages (no dead links)
 
 ## Out of Scope
 
@@ -100,8 +100,8 @@
 | AUTH-04 | Phase 157 | Complete |
 | NAV-01 | Phase 158 | Complete |
 | NAV-02 | Phase 158 | Complete |
-| NAV-03 | Phase 158 | Pending |
-| NAV-04 | Phase 158 | Pending |
+| NAV-03 | Phase 158 | Complete |
+| NAV-04 | Phase 158 | Complete |
 
 **Coverage:**
 - v4.0 requirements: 33 total

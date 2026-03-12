@@ -67,7 +67,7 @@
 - [x] **Phase 155: Admin Kelola Data Audit** - Audit all admin data management operations (completed 2026-03-11)
 - [x] **Phase 156: PlanIDP & CDP Dashboard Audit** - Audit silabus browsing and dashboard metrics (completed 2026-03-11)
 - [x] **Phase 157: Account & Auth Audit** - Audit login, profile, settings, and access control (completed 2026-03-12)
-- [ ] **Phase 158: Homepage & Navigation Audit** - Audit dashboard, guide, and nav correctness
+- [x] **Phase 158: Homepage & Navigation Audit** - Audit dashboard, guide, and nav correctness (completed 2026-03-12)
 
 ## Phase Details
 
@@ -172,4 +172,4 @@ Plans:
 | 155. Admin Kelola Data Audit | 3/3 | Complete    | 2026-03-11 | - |
 | 156. PlanIDP & CDP Dashboard Audit | 2/2 | Complete    | 2026-03-12 | - |
 | 157. Account & Auth Audit | 2/2 | Complete    | 2026-03-12 | - |
-| 158. Homepage & Navigation Audit | 1/2 | In Progress|  | - |
+| 158. Homepage & Navigation Audit | 2/2 | Complete   | 2026-03-12 | - |
