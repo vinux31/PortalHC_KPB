@@ -58,7 +58,7 @@ See: .planning/PROJECT.md (updated 2026-03-12)
 Phase: 159 of 160 (Deduplication Fix & Guard)
 Plan: —
 Status: Ready to plan
-Last activity: 2026-03-12 — Roadmap created, Phase 159 ready to plan
+Last activity: 2026-03-12 - Completed quick task 25: fix Seed Data Masih Ada
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -97,6 +97,12 @@ Progress: [░░░░░░░░░░] 0%
 ### Blockers/Concerns
 
 None.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 25 | fix Seed Data Masih Ada | 2026-03-12 | bbe8676 | [25-fix-seed-data-masih-ada](./quick/25-fix-seed-data-masih-ada/) |
 
 ## Session Continuity
 
