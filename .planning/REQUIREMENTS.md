@@ -14,11 +14,11 @@ Requirements for Coaching Proton Deduplication milestone.
 
 ### Data Cleanup
 
-- [ ] **CLN-01**: One-time migration/seed cleanup deactivates duplicate active ProtonTrackAssignments per coachee+track (keeps latest by AssignedAt)
+- [x] **CLN-01**: One-time migration/seed cleanup deactivates duplicate active ProtonTrackAssignments per coachee+track (keeps latest by AssignedAt)
 
 ### Defensive Guard
 
-- [ ] **DEF-01**: CoachingProton query deduplicates by selecting only progress rows from the latest active assignment per coachee+track
+- [x] **DEF-01**: CoachingProton query deduplicates by selecting only progress rows from the latest active assignment per coachee+track
 
 ### Assignment Removal
 
@@ -38,8 +38,8 @@ Requirements for Coaching Proton Deduplication milestone.
 |-------------|-------|--------|
 | FIX-01 | Phase 159 | Pending |
 | FIX-02 | Phase 159 | Pending |
-| CLN-01 | Phase 159 | Pending |
-| DEF-01 | Phase 159 | Pending |
+| CLN-01 | Phase 159 | Complete |
+| DEF-01 | Phase 159 | Complete |
 | RMV-01 | Phase 160 | Pending |
 | RMV-02 | Phase 160 | Pending |
 

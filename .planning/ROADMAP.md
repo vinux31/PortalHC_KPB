@@ -87,7 +87,7 @@
   2. Admin deactivates then reactivates a CoachCoacheeMapping; only that mapping's ProtonTrackAssignments are restored (assignments from unrelated prior mappings remain inactive)
   3. HC assigns a coachee to a track they were previously assigned to; no new ProtonTrackAssignment row is created — the existing inactive one is reused
   4. After running the migration/seed cleanup, no coachee+track combination has more than one active ProtonTrackAssignment in the database
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 159-01-PLAN.md -- Add DeactivatedAt field, fix Reactivate cascade and Assign idempotency
 - [ ] 159-02-PLAN.md -- Data cleanup and defensive query guard
@@ -110,5 +110,5 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 159. Deduplication Fix & Guard | v4.1 | 0/? | Not started | - |
+| 159. Deduplication Fix & Guard | 1/2 | In Progress|  | - |
 | 160. Assignment Removal | v4.1 | 0/? | Not started | - |
