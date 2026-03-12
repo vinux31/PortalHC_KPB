@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.1
 milestone_name: Coaching Proton Deduplication
 status: ready_to_plan
-stopped_at: Phase 161 context gathered
-last_updated: "2026-03-12T11:01:55.409Z"
+stopped_at: Completed 161-01-PLAN.md
+last_updated: "2026-03-12T11:38:35.803Z"
 last_activity: 2026-03-12 — Roadmap created, Phase 159 ready to plan
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
 ---
 
 ---
@@ -91,6 +91,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 159-01]: DeactivatedAt timestamp-correlation prevents reactivate cascade from restoring unrelated inactive assignments
 - [Phase 159-01]: FIX-02 reuses existing inactive ProtonTrackAssignment to prevent duplicates on re-assign
 - [Phase 160-01]: Cascade delete ALL ProtonTrackAssignments for coachee on mapping deletion (not timestamp-correlated) since deactivated mapping means no other active mapping context
+- [Phase 161]: Added KompetensiUrutan/SubKompetensiUrutan/DeliverableUrutan to TrackingItem for stable post-mapping sort
+- [Phase 161]: Merged split Kompetensi/SubKompetensi seed records as root cause fix for scrambled deliverable order
 
 ### Blockers/Concerns
 
@@ -98,6 +100,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-12T11:01:55.407Z
-Stopped at: Phase 161 context gathered
-Resume file: .planning/phases/161-fix-deliverable-ordering-in-coachingproton-table/161-CONTEXT.md
+Last session: 2026-03-12T11:38:35.629Z
+Stopped at: Completed 161-01-PLAN.md
+Resume file: None

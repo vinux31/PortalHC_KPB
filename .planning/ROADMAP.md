@@ -70,7 +70,7 @@
 **Goal:** CoachingProton table displays deliverables in correct numerical order (1, 2, 3, ...) within each sub-competency, consistent with the silabus page
 **Requirements**: None (bug fix)
 **Depends on:** Phase 160
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
 - [ ] 161-01-PLAN.md — Diagnose and fix deliverable ordering, add Urutan fields to TrackingItem for stable sort
