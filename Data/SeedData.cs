@@ -9,17 +9,24 @@ namespace HcPortal.Data
     /// </summary>
     public static class SeedData
     {
-        public static async Task InitializeAsync(IServiceProvider serviceProvider)
+        public static async Task InitializeAsync(IServiceProvider serviceProvider, Microsoft.AspNetCore.Hosting.IWebHostEnvironment environment)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
-            // 1. Create Roles
+            // 1. Create Roles (always — needed in all environments)
             await CreateRolesAsync(roleManager);
 
-            // 2. Create Sample Users
-            await CreateUsersAsync(userManager);
+            // 2. Create Sample Users (Development only — test accounts with weak passwords)
+            if (environment.IsDevelopment())
+            {
+                await CreateUsersAsync(userManager);
+            }
+            else
+            {
+                Console.WriteLine("Skipping test user seeding (non-Development environment).");
+            }
 
             // 3. One-time cleanup: deactivate duplicate active ProtonTrackAssignments (CLN-01)
             await DeduplicateProtonTrackAssignments(context);

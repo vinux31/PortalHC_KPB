@@ -104,7 +104,7 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.Migrate(); // Apply migrations
-        await SeedData.InitializeAsync(services); // Seed roles & users
+        await SeedData.InitializeAsync(services, app.Environment); // Seed roles & users
         
         // SeedMasterData removed — sample training records only needed for dev/QA
         await SeedCompetencyMappings.SeedAsync(context);
