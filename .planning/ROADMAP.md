@@ -160,8 +160,8 @@ Plans:
   4. Every navbar link and hub card link resolves to a working page with no dead links or redirect loops
 **Plans**: 2 plans
 Plans:
-- [ ] 156-01-PLAN.md — Audit PlanIdp silabus browsing and guidance downloads (CDP-01, CDP-02, CDP-03)
-- [ ] 156-02-PLAN.md — Audit CDP Dashboard role-scoped metrics and filtering (CDP-04)
+- [ ] 158-01-PLAN.md — Audit homepage dashboard and navbar role-scoping (NAV-01, NAV-02)
+- [ ] 158-02-PLAN.md — Audit guide pages and navigation link integrity (NAV-03, NAV-04)
 
 ## Progress
 
@@ -172,4 +172,4 @@ Plans:
 | 155. Admin Kelola Data Audit | 3/3 | Complete    | 2026-03-11 | - |
 | 156. PlanIDP & CDP Dashboard Audit | 2/2 | Complete    | 2026-03-12 | - |
 | 157. Account & Auth Audit | 2/2 | Complete    | 2026-03-12 | - |
-| 158. Homepage & Navigation Audit | v4.0 | 0/TBD | Not started | - |
+| 158. Homepage & Navigation Audit | v4.0 | 0/2 | Not started | - |
