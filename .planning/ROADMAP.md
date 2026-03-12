@@ -67,7 +67,7 @@
 
 ---
 
-## 🚧 v4.1 Coaching Proton Deduplication (In Progress)
+## v4.1 Coaching Proton Deduplication (In Progress)
 
 **Milestone Goal:** Fix duplicate deliverable rows in CoachingProton caused by overly broad reactivate cascade creating multiple active ProtonTrackAssignments per coachee+track. Includes data cleanup, defensive guard, and a new assignment removal feature.
 
@@ -89,8 +89,8 @@
   4. After running the migration/seed cleanup, no coachee+track combination has more than one active ProtonTrackAssignment in the database
 **Plans:** 2/2 plans complete
 Plans:
-- [ ] 159-01-PLAN.md -- Add DeactivatedAt field, fix Reactivate cascade and Assign idempotency
-- [ ] 159-02-PLAN.md -- Data cleanup and defensive query guard
+- [x] 159-01-PLAN.md -- Add DeactivatedAt field, fix Reactivate cascade and Assign idempotency
+- [x] 159-02-PLAN.md -- Data cleanup and defensive query guard
 
 ### Phase 160: Assignment Removal
 **Goal**: HC and Admin can permanently delete deactivated coach-coachee mappings and all their associated data with a confirmation dialog, and the action is logged
@@ -101,14 +101,13 @@ Plans:
   2. Clicking "Hapus" shows a confirmation dialog; confirming permanently deletes the mapping, its ProtonTrackAssignments, and all associated ProtonDeliverableProgress rows
   3. After deletion, the mapping and all its child records no longer appear anywhere in the portal
   4. The deletion action appears in the AuditLog with actor, timestamp, and the deleted mapping's details
-**Plans:** 2 plans
+**Plans:** 1 plan
 Plans:
-- [ ] 159-01-PLAN.md -- Add DeactivatedAt field, fix Reactivate cascade and Assign idempotency
-- [ ] 159-02-PLAN.md -- Data cleanup and defensive query guard
+- [ ] 160-01-PLAN.md -- Add Hapus button, delete modal, controller actions, and audit logging
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 159. Deduplication Fix & Guard | 2/2 | Complete    | 2026-03-12 | - |
-| 160. Assignment Removal | v4.1 | 0/? | Not started | - |
+| 159. Deduplication Fix & Guard | v4.1 | 2/2 | Complete | 2026-03-12 |
+| 160. Assignment Removal | v4.1 | 0/1 | Not started | - |
