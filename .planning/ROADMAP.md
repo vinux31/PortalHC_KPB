@@ -172,4 +172,4 @@ Plans:
 | 155. Admin Kelola Data Audit | 3/3 | Complete    | 2026-03-11 | - |
 | 156. PlanIDP & CDP Dashboard Audit | 2/2 | Complete    | 2026-03-12 | - |
 | 157. Account & Auth Audit | 2/2 | Complete    | 2026-03-12 | - |
-| 158. Homepage & Navigation Audit | v4.0 | 0/2 | Not started | - |
+| 158. Homepage & Navigation Audit | 1/2 | In Progress|  | - |
