@@ -136,7 +136,7 @@ else
             <tbody class="collapse show" id="collapse-@idx">
                 @foreach (var coachee in group.Coachees)
                 {
-                    <tr class="@(coachee.IsActive ? "" : "table-light text-muted")">
+                    <tr class="@(coachee.IsActive ? "" : "table-light text-muted")" data-mapping-id="@coachee.Id">
                         <td>@coachee.CoacheeName</td>
                         <td>@coachee.CoacheeNIP</td>
                         <td>@(string.IsNullOrEmpty((string)coachee.AssignmentSection) ? "\u2014" : coachee.AssignmentSection)</td>
@@ -181,6 +181,10 @@ else
                                     <button class="btn btn-sm btn-outline-success"
                                             onclick="reactivateMapping(@coachee.Id)">
                                         <i class="bi bi-arrow-repeat"></i> Aktifkan
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            onclick="confirmDelete(@coachee.Id, '@coachee.CoacheeName')">
+                                        <i class="bi bi-trash me-1"></i> Hapus
                                     </button>
                                 }
                             </div>
@@ -406,6 +410,39 @@ else
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
                 <button type="button" class="btn btn-danger" onclick="submitDeactivate()">
                     <i class="bi bi-x-circle me-1"></i>Nonaktifkan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== DELETE CONFIRMATION MODAL ==================== -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">
+                    <i class="bi bi-exclamation-triangle me-2 text-danger"></i>Konfirmasi Hapus Permanen
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="deleteMappingId" value="" />
+                <p>Hapus mapping coach-coachee ini? Data berikut akan dihapus permanen:</p>
+                <ul id="deleteDetails" class="list-unstyled">
+                    <li>Coach: <strong id="deleteCoachName"></strong></li>
+                    <li>Coachee: <strong id="deleteCoacheeName"></strong></li>
+                    <li>Track assignments: <strong id="deleteAssignmentCount"></strong></li>
+                    <li>Progress records: <strong id="deleteProgressCount"></strong></li>
+                </ul>
+                <div class="alert alert-danger small mb-0">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Tindakan ini tidak dapat dibatalkan.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-danger" onclick="submitDelete()">
+                    <i class="bi bi-trash me-1"></i>Hapus Permanen
                 </button>
             </div>
         </div>
@@ -643,6 +680,65 @@ else
         .then(data => {
             if (data.success) location.reload();
             else alert(data.message);
+        })
+        .catch(err => alert('Terjadi kesalahan: ' + err.message));
+    }
+
+    // ========== Delete Modal ==========
+
+    var deleteModal = null;
+
+    function confirmDelete(id, coacheeName) {
+        document.getElementById('deleteMappingId').value = id;
+        document.getElementById('deleteCoachName').textContent = 'Memuat...';
+        document.getElementById('deleteCoacheeName').textContent = coacheeName || '';
+        document.getElementById('deleteAssignmentCount').textContent = '...';
+        document.getElementById('deleteProgressCount').textContent = '...';
+
+        deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        deleteModal.show();
+
+        fetch('/Admin/CoachCoacheeMappingDeletePreview?id=' + id)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('deleteCoachName').textContent = data.coachName || '';
+            document.getElementById('deleteCoacheeName').textContent = data.coacheeName || '';
+            document.getElementById('deleteAssignmentCount').textContent = data.assignmentCount;
+            document.getElementById('deleteProgressCount').textContent = data.progressCount;
+        })
+        .catch(err => {
+            document.getElementById('deleteCoachName').textContent = 'Gagal memuat';
+        });
+    }
+
+    function submitDelete() {
+        var id = document.getElementById('deleteMappingId').value;
+        if (!id) return;
+
+        fetch('/Admin/CoachCoacheeMappingDelete', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+            },
+            body: 'id=' + id
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                if (deleteModal) deleteModal.hide();
+                var row = document.querySelector('tr[data-mapping-id="' + id + '"]');
+                if (row) row.remove();
+                var toast = document.createElement('div');
+                toast.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 end-0 m-3';
+                toast.style.zIndex = '9999';
+                toast.innerHTML = '<i class="bi bi-check-circle me-2"></i>' + data.message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                document.body.appendChild(toast);
+                setTimeout(function() { toast.remove(); }, 4000);
+            } else {
+                alert(data.message);
+            }
         })
         .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
