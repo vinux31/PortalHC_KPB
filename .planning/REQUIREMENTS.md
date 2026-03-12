@@ -9,8 +9,8 @@ Requirements for Coaching Proton Deduplication milestone.
 
 ### Bug Fix
 
-- [ ] **FIX-01**: Add `DeactivatedAt` timestamp to ProtonTrackAssignment; Deactivate cascade records the timestamp; Reactivate only restores assignments where DeactivatedAt correlates with the mapping's deactivation
-- [ ] **FIX-02**: Assign flow checks for existing inactive assignments for same coachee+track and reuses them instead of creating duplicates
+- [x] **FIX-01**: Add `DeactivatedAt` timestamp to ProtonTrackAssignment; Deactivate cascade records the timestamp; Reactivate only restores assignments where DeactivatedAt correlates with the mapping's deactivation
+- [x] **FIX-02**: Assign flow checks for existing inactive assignments for same coachee+track and reuses them instead of creating duplicates
 
 ### Data Cleanup
 
@@ -36,8 +36,8 @@ Requirements for Coaching Proton Deduplication milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 159 | Pending |
-| FIX-02 | Phase 159 | Pending |
+| FIX-01 | Phase 159 | Complete |
+| FIX-02 | Phase 159 | Complete |
 | CLN-01 | Phase 159 | Complete |
 | DEF-01 | Phase 159 | Complete |
 | RMV-01 | Phase 160 | Pending |
