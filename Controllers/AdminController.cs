@@ -3577,9 +3577,14 @@ namespace HcPortal.Controllers
                 .Where(p => assignmentIds.Contains(p.ProtonTrackAssignmentId))
                 .ToListAsync();
 
+            var finalAssessments = await _context.ProtonFinalAssessments
+                .Where(fa => assignmentIds.Contains(fa.ProtonTrackAssignmentId))
+                .ToListAsync();
+
             int assignmentCount = assignments.Count;
             int progressCount = progresses.Count;
 
+            _context.ProtonFinalAssessments.RemoveRange(finalAssessments);
             _context.ProtonDeliverableProgresses.RemoveRange(progresses);
             _context.ProtonTrackAssignments.RemoveRange(assignments);
             _context.CoachCoacheeMappings.Remove(mapping);
