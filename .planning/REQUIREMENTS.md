@@ -37,8 +37,8 @@ Requirements for Real-time Assessment milestone. Each maps to roadmap phases.
 
 ### Activity Log (Opsional)
 
-- [ ] **LOG-01**: Per-worker activity timeline stored server-side (question opens, answers, page nav, disconnect/reconnect)
-- [ ] **LOG-02**: HC can view activity log from monitoring detail page
+- [x] **LOG-01**: Per-worker activity timeline stored server-side (question opens, answers, page nav, disconnect/reconnect)
+- [x] **LOG-02**: HC can view activity log from monitoring detail page
 
 ### Item Analysis (Opsional)
 
@@ -84,8 +84,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MONITOR-02 | Phase 165 | Complete |
 | MONITOR-03 | Phase 165 | Complete |
 | CLEAN-01 | Phase 165 | Pending |
-| LOG-01 | Phase 166 | Pending |
-| LOG-02 | Phase 166 | Pending |
+| LOG-01 | Phase 166 | Complete |
+| LOG-02 | Phase 166 | Complete |
 | STATS-01 | Phase 167 | Pending |
 | STATS-02 | Phase 167 | Pending |
 

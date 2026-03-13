@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Real-time Assessment
 status: in_progress
-stopped_at: Phase 166 context gathered
-last_updated: "2026-03-13T04:41:31.904Z"
+stopped_at: Completed 166-01-PLAN.md
+last_updated: "2026-03-13T05:00:37.197Z"
 last_activity: "2026-03-13 — Completed Plan 01: backend SignalR push + HC monitoring event handlers"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 7
+  total_plans: 10
+  completed_plans: 8
 ---
 
 ---
@@ -84,6 +84,8 @@ Progress: [████████░░] 80% (v4.2 Phase 165)
 - [Phase 165-01]: updateSummaryFromDOM reads .status-cell badge text from DOM — simpler, no sync bugs vs parallel JS state
 - [Phase 165-01]: workerSubmitted inline row update (not calling updateRow from IIFE) — updateRow is in closure not accessible from @section Scripts
 - [Phase 165-01]: monitor-{batchKey} group naming; JoinMonitor joined on hub connect (2s timeout) and onreconnected
+- [Phase 166-01]: IServiceScopeFactory injected into Hub — DbContext must be scoped per Task.Run to avoid threading issues
+- [Phase 166-01]: LogActivityAsync in CMPController reuses request-scoped _context — safe because it runs in same request, not background thread
 
 ### Blockers/Concerns
 
@@ -100,6 +102,6 @@ Progress: [████████░░] 80% (v4.2 Phase 165)
 
 ## Session Continuity
 
-Last session: 2026-03-13T04:41:31.900Z
-Stopped at: Phase 166 context gathered
-Resume file: .planning/phases/166-activity-log-per-worker/166-CONTEXT.md
+Last session: 2026-03-13T05:00:33.451Z
+Stopped at: Completed 166-01-PLAN.md
+Resume file: None
