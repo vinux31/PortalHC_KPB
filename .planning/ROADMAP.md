@@ -116,7 +116,10 @@ Plans:
   3. Simulating browser disconnect then reconnect (DevTools offline/online toggle) causes the JS client to re-join its SignalR group automatically — no manual page reload required
   4. `AkhiriUjian` and `SubmitExam` both use status-guarded `ExecuteUpdateAsync` so a worker who submits in the same moment HC closes does not have their score silently overwritten
   5. No `Dictionary<userId, connectionId>` exists in the codebase — per-worker targeting uses `Clients.User()` or named groups only
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 163-01-PLAN.md — SignalR Hub + Program.cs config + vendored JS client + assessment-hub.js reconnect module + page wiring
+- [ ] 163-02-PLAN.md — Race condition guards on AkhiriUjian, SubmitExam, ResetAssessment, SaveAnswer
 
 ### Phase 164: HC-to-Worker Push Events
 **Goal**: HC Akhiri Ujian and Reset actions reach the worker's exam page in sub-second time, eliminating the 10-second window where workers answer questions against a closed session
@@ -165,7 +168,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete    | 2026-03-13 | - |
-| 163. Hub Infrastructure & Safety Foundations | v4.2 | 0/TBD | Not started | - |
+| 163. Hub Infrastructure & Safety Foundations | v4.2 | 0/2 | Not started | - |
 | 164. HC-to-Worker Push Events | v4.2 | 0/TBD | Not started | - |
 | 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/TBD | Not started | - |
 | 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
