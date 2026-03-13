@@ -7,6 +7,8 @@ using HcPortal.Models;
 using HcPortal.Models.Competency;
 using HcPortal.Data;
 using HcPortal.Services;
+using HcPortal.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using ClosedXML.Excel;
 using System.Globalization;
 
@@ -23,6 +25,7 @@ namespace HcPortal.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly ILogger<AdminController> _logger;
         private readonly INotificationService _notificationService;
+        private readonly IHubContext<AssessmentHub> _hubContext;
 
         public AdminController(
             ApplicationDbContext context,
@@ -32,7 +35,8 @@ namespace HcPortal.Controllers
             IConfiguration config,
             IWebHostEnvironment env,
             ILogger<AdminController> logger,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IHubContext<AssessmentHub> hubContext)
         {
             _context = context;
             _userManager = userManager;
@@ -42,6 +46,7 @@ namespace HcPortal.Controllers
             _env = env;
             _logger = logger;
             _notificationService = notificationService;
+            _hubContext = hubContext;
         }
 
         // GET /Admin/Index
