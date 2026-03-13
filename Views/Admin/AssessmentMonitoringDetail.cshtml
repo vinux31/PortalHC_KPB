@@ -248,14 +248,14 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted">\u2014</span>
+                                            <span class="text-muted">—</span>
                                         }
                                     </td>
                                     <td class="result-cell @resultClass">@resultText</td>
                                     <td class="completedat-cell text-muted small">
                                         @(session.CompletedAt.HasValue ? session.CompletedAt.Value.ToString("dd MMM yyyy HH:mm") : "\u2014")
                                     </td>
-                                    <td class="timeremaining-cell text-muted">\u2014</td>
+                                    <td class="timeremaining-cell text-muted">—</td>
                                     <td>
                                         @* Reshuffle -- package mode, Not started or Abandoned (always enabled) *@
                                         @if (Model.IsPackageMode && (session.UserStatus == "Not started" || session.UserStatus == "Abandoned"))
@@ -328,7 +328,7 @@
     <!-- Last updated + error indicator -->
     <div class="d-flex align-items-center gap-3 mt-2 px-1">
         <small class="text-muted">
-            Last updated: <span id="last-updated-time">\u2014</span>
+            Last updated: <span id="last-updated-time">—</span>
         </small>
     </div>
 
