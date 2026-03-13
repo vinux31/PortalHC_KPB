@@ -960,6 +960,9 @@
 
 <script>
 // ---- Activity Log Modal ----
+var _activityLogInterval = null;
+var _activityLogSessionId = null;
+
 function showActivityLog(sessionId, workerName) {
     document.getElementById('logWorkerName').textContent = workerName;
     document.getElementById('logSummary').innerHTML = '';
@@ -968,8 +971,31 @@ function showActivityLog(sessionId, workerName) {
     var loadingEl = document.getElementById('logLoading');
     loadingEl.classList.remove('d-none');
 
+    _activityLogSessionId = sessionId;
+
     var modal = new bootstrap.Modal(document.getElementById('activityLogModal'));
     modal.show();
+
+    fetchActivityLog(sessionId, true);
+
+    // Auto-refresh every 3 seconds while modal is open
+    clearInterval(_activityLogInterval);
+    _activityLogInterval = setInterval(function() {
+        fetchActivityLog(sessionId, false);
+    }, 3000);
+
+    // Stop refreshing when modal closes
+    document.getElementById('activityLogModal').addEventListener('hidden.bs.modal', function handler() {
+        clearInterval(_activityLogInterval);
+        _activityLogInterval = null;
+        _activityLogSessionId = null;
+        document.getElementById('activityLogModal').removeEventListener('hidden.bs.modal', handler);
+    });
+}
+
+function fetchActivityLog(sessionId, showLoading) {
+    var loadingEl = document.getElementById('logLoading');
+    if (showLoading) loadingEl.classList.remove('d-none');
 
     fetch('/Admin/GetActivityLog?sessionId=' + sessionId)
         .then(function(r) { return r.json(); })

@@ -5960,6 +5960,7 @@ namespace HcPortal.Controllers
             if (session == null)
                 return NotFound(new { error = "Session not found." });
 
+            var wib = TimeZoneInfo.FindSystemTimeZoneById("SE Asia Standard Time");
             var events = await _context.ExamActivityLogs
                 .Where(l => l.SessionId == sessionId)
                 .OrderBy(l => l.Timestamp)
@@ -5967,9 +5968,16 @@ namespace HcPortal.Controllers
                 {
                     l.EventType,
                     l.Detail,
-                    Timestamp = l.Timestamp.ToString("HH:mm:ss")
+                    TimestampUtc = l.Timestamp
                 })
                 .ToListAsync();
+
+            var eventsFormatted = events.Select(e => new
+            {
+                e.EventType,
+                e.Detail,
+                Timestamp = TimeZoneInfo.ConvertTimeFromUtc(e.TimestampUtc, wib).ToString("HH:mm:ss")
+            }).ToList();
 
             var answeredCount = await _context.UserResponses
                 .CountAsync(r => r.AssessmentSessionId == sessionId);
@@ -5991,18 +5999,22 @@ namespace HcPortal.Controllers
                 timeSpentSeconds = (int)(endTime - session.StartedAt.Value).TotalSeconds;
             }
 
-            var disconnectCount = events.Count(e => e.EventType == "disconnected");
+            var disconnectCount = eventsFormatted.Count(e => e.EventType == "disconnected");
 
             var summary = new
             {
                 answeredCount = totalAnswered,
                 disconnectCount,
                 timeSpentSeconds,
-                startedAt = session.StartedAt?.ToString("HH:mm:ss"),
-                completedAt = session.CompletedAt?.ToString("HH:mm:ss")
+                startedAt = session.StartedAt.HasValue
+                    ? TimeZoneInfo.ConvertTimeFromUtc(session.StartedAt.Value, wib).ToString("HH:mm:ss")
+                    : null,
+                completedAt = session.CompletedAt.HasValue
+                    ? TimeZoneInfo.ConvertTimeFromUtc(session.CompletedAt.Value, wib).ToString("HH:mm:ss")
+                    : null
             };
 
-            return Json(new { summary, events });
+            return Json(new { summary, events = eventsFormatted });
         }
 
         #endregion
