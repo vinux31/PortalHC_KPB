@@ -16,11 +16,11 @@ Requirements for Real-time Assessment milestone. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: SignalR Hub class registered with `AddSignalR()` and `MapHub` in Program.cs
-- [ ] **INFRA-02**: `@microsoft/signalr@8.x` JS client library installed in wwwroot
-- [ ] **INFRA-03**: Cookie auth configured to return 401 (not 302 redirect) on SignalR negotiate endpoint
-- [ ] **INFRA-04**: SQLite WAL mode enabled on application startup to prevent concurrent write locks
-- [ ] **INFRA-05**: Client-side reconnect handling re-joins SignalR groups after connection restore
+- [x] **INFRA-01**: SignalR Hub class registered with `AddSignalR()` and `MapHub` in Program.cs
+- [x] **INFRA-02**: `@microsoft/signalr@8.x` JS client library installed in wwwroot
+- [x] **INFRA-03**: Cookie auth configured to return 401 (not 302 redirect) on SignalR negotiate endpoint
+- [x] **INFRA-04**: SQLite WAL mode enabled on application startup to prevent concurrent write locks
+- [x] **INFRA-05**: Client-side reconnect handling re-joins SignalR groups after connection restore
 
 ### HC → Worker Push
 
@@ -72,11 +72,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLOSE-02 | Phase 162 | Complete |
 | CLOSE-03 | Phase 162 | Complete |
 | CLOSE-04 | Phase 162 | Complete |
-| INFRA-01 | Phase 163 | Pending |
-| INFRA-02 | Phase 163 | Pending |
-| INFRA-03 | Phase 163 | Pending |
-| INFRA-04 | Phase 163 | Pending |
-| INFRA-05 | Phase 163 | Pending |
+| INFRA-01 | Phase 163 | Complete |
+| INFRA-02 | Phase 163 | Complete |
+| INFRA-03 | Phase 163 | Complete |
+| INFRA-04 | Phase 163 | Complete |
+| INFRA-05 | Phase 163 | Complete |
 | PUSH-01 | Phase 164 | Pending |
 | PUSH-02 | Phase 164 | Pending |
 | PUSH-03 | Phase 164 | Pending |
