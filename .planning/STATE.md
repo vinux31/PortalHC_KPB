@@ -2,30 +2,15 @@
 gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Real-time Assessment
-status: ready_to_plan
-stopped_at: Phase 162 context gathered
-last_updated: "2026-03-13T01:02:07.449Z"
-last_activity: "2026-03-13 — Roadmap revised: added Phase 162 (close action simplification), Phase 166-167 (activity log, item analysis), 6 phases total (162-167)"
+status: in_progress
+stopped_at: "Completed 162-01-PLAN.md"
+last_updated: "2026-03-13T01:22:00Z"
+last_activity: "2026-03-13 — Completed Plan 01: backend AkhiriUjian/AkhiriSemuaUjian with auto-grading"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
----
-
----
-gsd_state_version: 1.0
-milestone: v4.2
-milestone_name: Real-time Assessment
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-13"
-last_activity: "2026-03-13 — Roadmap revised: added Phase 162 (close action simplification), Phase 166-167 (activity log, item analysis), 6 phases total (162-167)"
-progress:
-  total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State: Portal HC KPB
@@ -40,16 +25,18 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 ## Current Position
 
 Phase: 162 of 167 (Simplifikasi Action Close + Auto-Grade)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-13 — Roadmap revised: added Phase 162 (close action simplification), Phase 166-167 (activity log, item analysis), 6 phases total (162-167)
+Plan: 1 of 2 in current phase (Plan 01 complete)
+Status: In progress
+Last activity: 2026-03-13 — Completed Plan 01: backend AkhiriUjian/AkhiriSemuaUjian with auto-grading
 
-Progress: [░░░░░░░░░░] 0% (v4.2)
+Progress: [█████░░░░░] 50% (v4.2 Phase 162)
 
 ## Accumulated Context
 
 ### Decisions
 
+- GradeFromSavedAnswers duplicated NotifyIfGroupCompleted in AdminController with Cancelled-aware group completion (treats Cancelled + Completed as "done")
+- Cancelled sessions redirect to Assessment page (not Results) since they have no score
 - SignalR Hub methods handle group join/leave only — no DB writes inside Hub methods ever
 - WAL mode and race condition guards must be in place before any SignalR features are built on top (retrofitting is costly or breaks data)
 - Polling fallback (CheckExamStatus, GetMonitoringProgress) stays active throughout phases 162-164; removed only in Phase 165 after UAT confirms SignalR stable
@@ -71,6 +58,6 @@ Progress: [░░░░░░░░░░] 0% (v4.2)
 
 ## Session Continuity
 
-Last session: 2026-03-13T01:02:07.446Z
-Stopped at: Phase 162 context gathered
-Resume file: .planning/phases/162-simplifikasi-action-close-auto-grade/162-CONTEXT.md
+Last session: 2026-03-13T01:22:00Z
+Stopped at: Completed 162-01-PLAN.md
+Resume file: .planning/phases/162-simplifikasi-action-close-auto-grade/162-01-SUMMARY.md

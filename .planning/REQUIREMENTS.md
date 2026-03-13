@@ -7,6 +7,13 @@
 
 Requirements for Real-time Assessment milestone. Each maps to roadmap phases.
 
+### Close Action Simplification
+
+- [x] **CLOSE-01**: "Akhiri Ujian" (individual) auto-grades saved answers and sets real score — not hardcoded 0
+- [x] **CLOSE-02**: "Akhiri Semua" (group) auto-grades all InProgress workers from saved answers
+- [x] **CLOSE-03**: Workers who haven't started get status "Cancelled" (not "Completed" or "Abandoned") on Akhiri Semua
+- [x] **CLOSE-04**: Old ForceClose, ForceCloseAll, CloseEarly actions removed — replaced by 2 new actions
+
 ### Infrastructure
 
 - [ ] **INFRA-01**: SignalR Hub class registered with `AddSignalR()` and `MapHub` in Program.cs
@@ -18,19 +25,25 @@ Requirements for Real-time Assessment milestone. Each maps to roadmap phases.
 ### HC → Worker Push
 
 - [ ] **PUSH-01**: Worker exam page updates instantly when HC resets their session
-- [ ] **PUSH-02**: Worker exam page redirects to results when HC force-closes their session
-- [ ] **PUSH-03**: All workers in a batch are notified when HC closes the exam early (CloseEarly)
-- [ ] **PUSH-05**: All workers in a batch are notified when HC force-closes all sessions (ForceCloseAll)
+- [ ] **PUSH-02**: Worker exam page redirects to results when HC closes their session (Akhiri Ujian)
+- [ ] **PUSH-03**: All workers in a batch are notified when HC closes all sessions (Akhiri Semua)
 
-### Worker → HC Push
+### Worker → HC Push + Cleanup
 
 - [ ] **MONITOR-01**: HC monitoring page shows real-time answer progress without polling
 - [ ] **MONITOR-02**: HC monitoring page instantly shows when a worker completes their exam
 - [ ] **MONITOR-03**: HC monitoring page instantly shows when a worker starts their exam
-
-### Cleanup
-
 - [ ] **CLEAN-01**: Polling code (setInterval) removed from monitoring and exam pages after SignalR proven working
+
+### Activity Log (Opsional)
+
+- [ ] **LOG-01**: Per-worker activity timeline stored server-side (question opens, answers, page nav, disconnect/reconnect)
+- [ ] **LOG-02**: HC can view activity log from monitoring detail page
+
+### Item Analysis (Opsional)
+
+- [ ] **STATS-01**: Per-question difficulty percentage and answer distribution displayed after assessment completes
+- [ ] **STATS-02**: Questions ranked by difficulty for HC to identify problematic questions
 
 ## Future Requirements
 
@@ -55,25 +68,32 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 162 | Pending |
-| INFRA-02 | Phase 162 | Pending |
-| INFRA-03 | Phase 162 | Pending |
-| INFRA-04 | Phase 162 | Pending |
-| INFRA-05 | Phase 162 | Pending |
-| PUSH-01 | Phase 163 | Pending |
-| PUSH-02 | Phase 163 | Pending |
-| PUSH-03 | Phase 163 | Pending |
-| PUSH-05 | Phase 163 | Pending |
-| MONITOR-01 | Phase 164 | Pending |
-| MONITOR-02 | Phase 164 | Pending |
-| MONITOR-03 | Phase 164 | Pending |
+| CLOSE-01 | Phase 162 | Complete |
+| CLOSE-02 | Phase 162 | Complete |
+| CLOSE-03 | Phase 162 | Complete |
+| CLOSE-04 | Phase 162 | Complete |
+| INFRA-01 | Phase 163 | Pending |
+| INFRA-02 | Phase 163 | Pending |
+| INFRA-03 | Phase 163 | Pending |
+| INFRA-04 | Phase 163 | Pending |
+| INFRA-05 | Phase 163 | Pending |
+| PUSH-01 | Phase 164 | Pending |
+| PUSH-02 | Phase 164 | Pending |
+| PUSH-03 | Phase 164 | Pending |
+| MONITOR-01 | Phase 165 | Pending |
+| MONITOR-02 | Phase 165 | Pending |
+| MONITOR-03 | Phase 165 | Pending |
 | CLEAN-01 | Phase 165 | Pending |
+| LOG-01 | Phase 166 | Pending |
+| LOG-02 | Phase 166 | Pending |
+| STATS-01 | Phase 167 | Pending |
+| STATS-02 | Phase 167 | Pending |
 
 **Coverage:**
-- v4.2 requirements: 13 total
-- Mapped to phases: 13
+- v4.2 requirements: 20 total (16 core + 4 opsional)
+- Mapped to phases: 20
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 — traceability mapped after roadmap creation*
+*Last updated: 2026-03-13 — revised with close action simplification, activity log, and item analysis*
