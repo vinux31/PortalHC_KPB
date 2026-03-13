@@ -5943,6 +5943,69 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        #region Activity Log (Phase 166)
+
+        /// <summary>
+        /// Returns the activity log for a given exam session as JSON.
+        /// Used by HC to audit worker behaviour during the exam.
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetActivityLog(int sessionId)
+        {
+            var session = await _context.AssessmentSessions
+                .FirstOrDefaultAsync(s => s.Id == sessionId);
+
+            if (session == null)
+                return NotFound(new { error = "Session not found." });
+
+            var events = await _context.ExamActivityLogs
+                .Where(l => l.SessionId == sessionId)
+                .OrderBy(l => l.Timestamp)
+                .Select(l => new
+                {
+                    l.EventType,
+                    l.Detail,
+                    Timestamp = l.Timestamp.ToString("HH:mm:ss")
+                })
+                .ToListAsync();
+
+            var answeredCount = await _context.UserResponses
+                .CountAsync(r => r.AssessmentSessionId == sessionId);
+
+            // Also count package responses if the session uses a package
+            var packageAnsweredCount = await _context.PackageUserResponses
+                .CountAsync(r => r.AssessmentSessionId == sessionId);
+
+            int totalAnswered = answeredCount + packageAnsweredCount;
+
+            var lastEventTime = await _context.ExamActivityLogs
+                .Where(l => l.SessionId == sessionId)
+                .MaxAsync(l => (DateTime?)l.Timestamp);
+
+            int? timeSpentSeconds = null;
+            if (session.StartedAt.HasValue)
+            {
+                var endTime = session.CompletedAt ?? lastEventTime ?? DateTime.UtcNow;
+                timeSpentSeconds = (int)(endTime - session.StartedAt.Value).TotalSeconds;
+            }
+
+            var disconnectCount = events.Count(e => e.EventType == "disconnected");
+
+            var summary = new
+            {
+                answeredCount = totalAnswered,
+                disconnectCount,
+                timeSpentSeconds,
+                startedAt = session.StartedAt?.ToString("HH:mm:ss"),
+                completedAt = session.CompletedAt?.ToString("HH:mm:ss")
+            };
+
+            return Json(new { summary, events });
+        }
+
+        #endregion
     }
 }
 

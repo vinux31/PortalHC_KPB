@@ -1065,6 +1065,9 @@ namespace HcPortal.Controllers
                 var startBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
                 await _hubContext.Clients.Group($"monitor-{startBatchKey}").SendAsync("workerStarted",
                     new { sessionId = assessment.Id, workerName = user.FullName, status = "InProgress" });
+
+                // Activity log: record exam start (fire-and-forget — must never break exam flow)
+                _ = LogActivityAsync(assessment.Id, "started");
             }
 
             // Packages are attached to the representative session (the one HC used when clicking "Packages"),
@@ -1731,6 +1734,9 @@ namespace HcPortal.Controllers
                 // ASMT-02: Check group completion and notify HC/Admin
                 await NotifyIfGroupCompleted(assessment);
 
+                // Activity log: record exam submission (fire-and-forget)
+                _ = LogActivityAsync(id, "submitted");
+
                 return RedirectToAction("Results", new { id });
             }
             else
@@ -1857,10 +1863,36 @@ namespace HcPortal.Controllers
                 // ASMT-02: Check group completion and notify HC/Admin
                 await NotifyIfGroupCompleted(assessment);
 
+                // Activity log: record exam submission (fire-and-forget)
+                _ = LogActivityAsync(id, "submitted");
+
                 // Redirect to Results Page
                 return RedirectToAction("Results", new { id = id });
             }
         }
+        /// <summary>
+        /// Fire-and-forget helper to log exam activity. Errors are swallowed — logging must
+        /// never break the exam flow.
+        /// </summary>
+        private async Task LogActivityAsync(int sessionId, string eventType, string? detail = null)
+        {
+            try
+            {
+                _context.ExamActivityLogs.Add(new HcPortal.Models.ExamActivityLog
+                {
+                    SessionId = sessionId,
+                    EventType = eventType,
+                    Detail = detail,
+                    Timestamp = DateTime.UtcNow
+                });
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                // Swallow all errors — logging must never block exam flow
+            }
+        }
+
         [HttpGet]
         public async Task<IActionResult> Certificate(int id)
         {
