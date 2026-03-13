@@ -2241,8 +2241,14 @@ namespace HcPortal.Controllers
 
             if (session == null) return NotFound();
 
-            // Only InProgress sessions can be ended (per decision: not Open)
-            if (session.Status != "InProgress")
+            // Only InProgress sessions can be ended — use same logic as monitoring view:
+            // StartedAt set + not yet completed/scored, and not Cancelled/Abandoned
+            var isInProgress = session.StartedAt != null
+                && session.CompletedAt == null
+                && session.Score == null
+                && session.Status != "Cancelled"
+                && session.Status != "Abandoned";
+            if (!isInProgress)
             {
                 TempData["Error"] = "Akhiri Ujian hanya dapat dilakukan pada sesi yang berstatus InProgress.";
                 return RedirectToAction("AssessmentMonitoringDetail", new {
@@ -2293,7 +2299,7 @@ namespace HcPortal.Controllers
             if (!sessionsToEnd.Any())
             {
                 TempData["Error"] = "Tidak ada sesi Open atau InProgress untuk diakhiri.";
-                return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+                return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate = scheduleDate.Date.ToString("yyyy-MM-dd") });
             }
 
             int gradedCount = 0;
@@ -2334,7 +2340,7 @@ namespace HcPortal.Controllers
                 "AssessmentSession");
 
             TempData["Success"] = $"Berhasil mengakhiri ujian: {gradedCount} peserta dinilai dari jawaban tersimpan, {cancelledCount} peserta dibatalkan.";
-            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate = scheduleDate.Date.ToString("yyyy-MM-dd") });
         }
 
         // --- GET AKHIRI SEMUA COUNTS (for confirmation modal) ---
