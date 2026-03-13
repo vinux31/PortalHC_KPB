@@ -608,6 +608,13 @@ else
         updatePanel();
         saveSessionProgress();  // Save elapsed time + new page on every navigation
         window.scrollTo(0, 0);
+        // Log page navigation event via SignalR (fire-and-forget, never blocks)
+        try {
+            if (window.assessmentHub && window.assessmentHub.state === 'Connected') {
+                window.assessmentHub.invoke('LogPageNav', SESSION_ID, currentPage)
+                    .catch(function() { /* ignore logging errors */ });
+            }
+        } catch (e) { /* ignore */ }
     }
 
     // -------- ReviewSubmitBtn: block form submit until saves complete --------

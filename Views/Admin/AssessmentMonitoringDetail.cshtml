@@ -300,6 +300,13 @@
                                                 View Results
                                             </a>
                                         }
+                                        @* Activity Log button -- always shown, enabled if session has started *@
+                                        <button type="button"
+                                                class="btn btn-outline-secondary btn-sm ms-1"
+                                                onclick="showActivityLog(@session.Id, '@Html.Raw(session.UserFullName.Replace("'", "\\'"))')"
+                                                title="Lihat activity log">
+                                            <i class="bi bi-clock-history"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -396,6 +403,28 @@
                             <i class="bi bi-x-circle me-1"></i>Ya, Akhiri Semua
                         </button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Log Modal -->
+    <div class="modal fade" id="activityLogModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-clock-history me-2 text-primary"></i>Activity Log:
+                        <span id="logWorkerName" class="text-primary"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="logSummary" class="mb-3 p-2 bg-light rounded small text-muted"></div>
+                    <div id="logTimeline"></div>
+                    <div id="logLoading" class="text-center d-none">
+                        <div class="spinner-border spinner-border-sm me-2"></div>Memuat...
+                    </div>
                 </div>
             </div>
         </div>
@@ -696,6 +725,16 @@
                 + ' class="btn btn-success btn-sm">View Results</a>';
         }
 
+        // Activity Log button -- always shown
+        // Worker name from DOM (col 0 of the row)
+        var wn = '';
+        var trRow = document.querySelector('tr[data-session-id="' + session.sessionId + '"]');
+        if (trRow) { wn = trRow.querySelectorAll('td')[0].textContent.trim().replace(/'/g, "\\'"); }
+        html += '<button type="button"'
+            + ' class="btn btn-outline-secondary btn-sm ms-1"'
+            + ' onclick="showActivityLog(' + session.sessionId + ', \'' + wn + '\')"'
+            + ' title="Lihat activity log"><i class="bi bi-clock-history"></i></button>';
+
         return html;
     }
 
@@ -918,6 +957,70 @@
     }
     </script>
 }
+
+<script>
+// ---- Activity Log Modal ----
+function showActivityLog(sessionId, workerName) {
+    document.getElementById('logWorkerName').textContent = workerName;
+    document.getElementById('logSummary').innerHTML = '';
+    document.getElementById('logTimeline').innerHTML = '';
+
+    var loadingEl = document.getElementById('logLoading');
+    loadingEl.classList.remove('d-none');
+
+    var modal = new bootstrap.Modal(document.getElementById('activityLogModal'));
+    modal.show();
+
+    fetch('/Admin/GetActivityLog?sessionId=' + sessionId)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            loadingEl.classList.add('d-none');
+
+            // Render summary
+            var s = data.summary;
+            var minutes = s.timeSpentSeconds != null ? Math.round(s.timeSpentSeconds / 60) : '--';
+            document.getElementById('logSummary').innerHTML =
+                '<i class="bi bi-bar-chart-fill me-1"></i>' +
+                '<strong>Dijawab:</strong> ' + (s.answeredCount || 0) + ' &nbsp;|&nbsp; ' +
+                '<strong>Waktu:</strong> ' + minutes + ' menit &nbsp;|&nbsp; ' +
+                '<strong>Terputus:</strong> ' + (s.disconnectCount || 0) + 'x';
+
+            // Render timeline
+            var events = data.events || [];
+            if (events.length === 0) {
+                document.getElementById('logTimeline').innerHTML =
+                    '<p class="text-muted text-center">Belum ada aktivitas tercatat.</p>';
+                return;
+            }
+
+            var html = '<table class="table table-sm table-borderless">' +
+                '<thead><tr><th style="width:90px">Waktu</th><th>Aktivitas</th></tr></thead><tbody>';
+            events.forEach(function(e) {
+                var label = eventLabel(e.eventType, e.detail);
+                html += '<tr><td class="text-muted small font-monospace">' + e.timestamp + '</td>' +
+                    '<td>' + label + '</td></tr>';
+            });
+            html += '</tbody></table>';
+            document.getElementById('logTimeline').innerHTML = html;
+        })
+        .catch(function() {
+            loadingEl.classList.add('d-none');
+            document.getElementById('logSummary').innerHTML =
+                '<span class="text-danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Gagal memuat log.</span>';
+        });
+}
+
+function eventLabel(eventType, detail) {
+    switch (eventType) {
+        case 'started':      return '<i class="bi bi-play-circle-fill text-success me-1"></i>Memulai Ujian';
+        case 'page_nav':     return '<i class="bi bi-arrow-right-circle text-primary me-1"></i>Pindah ke ' + (detail || 'halaman');
+        case 'disconnected': return '<i class="bi bi-wifi-off text-danger me-1"></i>Terputus';
+        case 'reconnected':  return '<i class="bi bi-wifi text-warning me-1"></i>Tersambung Kembali';
+        case 'submitted':    return '<i class="bi bi-check-circle-fill text-success me-1"></i>Menyelesaikan Ujian';
+        default:             return eventType + (detail ? ' — ' + detail : '');
+    }
+}
+</script>
 
 @section Scripts {
 <link rel="stylesheet" href="~/css/assessment-hub.css" />

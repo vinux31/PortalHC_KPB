@@ -2237,5 +2237,6 @@ namespace HcPortal.Controllers
                 catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
             }
         }
+
     }
 }

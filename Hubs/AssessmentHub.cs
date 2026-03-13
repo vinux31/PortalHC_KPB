@@ -52,7 +52,7 @@ namespace HcPortal.Hubs
                     {
                         SessionId = sessionId,
                         EventType = "page_nav",
-                        Detail = $"Halaman {pageNumber}",
+                        Detail = $"Halaman {pageNumber + 1}",
                         Timestamp = DateTime.UtcNow
                     });
                     await db.SaveChangesAsync();
