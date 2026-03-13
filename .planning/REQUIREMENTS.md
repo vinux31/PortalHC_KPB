@@ -55,25 +55,25 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Pending | Pending |
-| INFRA-02 | Pending | Pending |
-| INFRA-03 | Pending | Pending |
-| INFRA-04 | Pending | Pending |
-| INFRA-05 | Pending | Pending |
-| PUSH-01 | Pending | Pending |
-| PUSH-02 | Pending | Pending |
-| PUSH-03 | Pending | Pending |
-| PUSH-05 | Pending | Pending |
-| MONITOR-01 | Pending | Pending |
-| MONITOR-02 | Pending | Pending |
-| MONITOR-03 | Pending | Pending |
-| CLEAN-01 | Pending | Pending |
+| INFRA-01 | Phase 162 | Pending |
+| INFRA-02 | Phase 162 | Pending |
+| INFRA-03 | Phase 162 | Pending |
+| INFRA-04 | Phase 162 | Pending |
+| INFRA-05 | Phase 162 | Pending |
+| PUSH-01 | Phase 163 | Pending |
+| PUSH-02 | Phase 163 | Pending |
+| PUSH-03 | Phase 163 | Pending |
+| PUSH-05 | Phase 163 | Pending |
+| MONITOR-01 | Phase 164 | Pending |
+| MONITOR-02 | Phase 164 | Pending |
+| MONITOR-03 | Phase 164 | Pending |
+| CLEAN-01 | Phase 165 | Pending |
 
 **Coverage:**
 - v4.2 requirements: 13 total
-- Mapped to phases: 0
-- Unmapped: 13 ⚠️
+- Mapped to phases: 13
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after initial definition*
+*Last updated: 2026-03-13 — traceability mapped after roadmap creation*

@@ -65,59 +65,81 @@
 
 </details>
 
-### Phase 161: Fix deliverable ordering in CoachingProton table
+<details>
+<summary>v4.1 Coaching Proton Deduplication (Phases 159-161) — shipped 2026-03-12</summary>
 
-**Goal:** CoachingProton table displays deliverables in correct numerical order (1, 2, 3, ...) within each sub-competency, consistent with the silabus page
-**Requirements**: None (bug fix)
-**Depends on:** Phase 160
-**Plans:** 1/1 plans complete
+- **v4.1 Coaching Proton Deduplication** — Phases 159-161 (shipped 2026-03-12)
+  - Phase 159: Deduplication Fix & Guard (2 plans)
+  - Phase 160: Assignment Removal (1 plan)
+  - Phase 161: Fix deliverable ordering in CoachingProton table (1 plan)
 
-Plans:
-- [ ] 161-01-PLAN.md — Diagnose and fix deliverable ordering, add Urutan fields to TrackingItem for stable sort
+</details>
 
 ---
 
-## v4.1 Coaching Proton Deduplication (In Progress)
+## v4.2 Real-time Assessment (In Progress)
 
-**Milestone Goal:** Fix duplicate deliverable rows in CoachingProton caused by overly broad reactivate cascade creating multiple active ProtonTrackAssignments per coachee+track. Includes data cleanup, defensive guard, and a new assignment removal feature.
+**Milestone Goal:** Add SignalR-based real-time communication to assessment/exam flow so HC actions (Reset, ForceClose) push instantly to worker exam pages and worker progress pushes to HC monitoring — replacing 10-second polling.
 
 ### Phases
 
-- [x] **Phase 159: Deduplication Fix & Guard** - Fix reactivate cascade, add upsert on assign, clean up existing duplicates, add defensive query guard (completed 2026-03-12)
-- [x] **Phase 160: Assignment Removal** - Add "Hapus" action on deactivated mappings for permanent deletion with audit logging (completed 2026-03-12)
+- [ ] **Phase 162: Hub Infrastructure & Safety Foundations** - SignalR Hub, JS client, auth config, SQLite WAL mode, race condition guards, reconnect handling
+- [ ] **Phase 163: HC-to-Worker Push Events** - Reset and ForceClose push instantly to targeted worker; ForceCloseAll and CloseEarly broadcast to all workers in batch
+- [ ] **Phase 164: Worker-to-HC Progress Push** - HC monitoring page receives real-time answer progress, exam start, and exam completion events without polling
+- [ ] **Phase 165: Cleanup & Polling Removal** - Remove setInterval polling from both views after SignalR confirmed working in UAT
 
 ## Phase Details
 
-### Phase 159: Deduplication Fix & Guard
-**Goal**: CoachingProton shows no duplicate deliverable rows for any coachee — reactivate cascade is safe, assign flow is idempotent, existing dirty data is cleaned, and the query itself tolerates any surviving bad data
-**Depends on**: Nothing (first phase of milestone)
-**Requirements**: FIX-01, FIX-02, CLN-01, DEF-01
+### Phase 162: Hub Infrastructure & Safety Foundations
+**Goal**: A working, authenticated SignalR endpoint at `/hubs/assessment` with SQLite concurrency protection and reconnect-safe group membership — the prerequisite for all real-time features
+**Depends on**: Phase 161
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05
 **Success Criteria** (what must be TRUE):
-  1. Coach views CoachingProton page and sees each deliverable row exactly once per coachee, with no duplicates — even for coachees who were deactivated and reactivated multiple times
-  2. Admin deactivates then reactivates a CoachCoacheeMapping; only that mapping's ProtonTrackAssignments are restored (assignments from unrelated prior mappings remain inactive)
-  3. HC assigns a coachee to a track they were previously assigned to; no new ProtonTrackAssignment row is created — the existing inactive one is reused
-  4. After running the migration/seed cleanup, no coachee+track combination has more than one active ProtonTrackAssignment in the database
-**Plans:** 2/2 plans complete
-Plans:
-- [x] 159-01-PLAN.md -- Add DeactivatedAt field, fix Reactivate cascade and Assign idempotency
-- [x] 159-02-PLAN.md -- Data cleanup and defensive query guard
+  1. `/hubs/assessment/negotiate` returns a WebSocket upgrade (101) or JSON token response (200), not a 302 redirect or HTML login page, when checked in browser DevTools Network tab while logged in
+  2. `PRAGMA journal_mode;` query on the running database returns `wal`, confirming SQLite WAL mode is active
+  3. Simulating browser disconnect then reconnect (DevTools offline/online toggle) causes the JS client to re-join its SignalR group automatically — no manual page reload required
+  4. `ForceCloseAssessment` and `SubmitExam` both use status-guarded `ExecuteUpdateAsync` so a worker who submits in the same moment HC force-closes does not have their score silently overwritten
+  5. No `Dictionary<userId, connectionId>` exists in the codebase — per-worker targeting uses `Clients.User()` or named groups only
+**Plans**: TBD
 
-### Phase 160: Assignment Removal
-**Goal**: HC and Admin can permanently delete deactivated coach-coachee mappings and all their associated data with a confirmation dialog, and the action is logged
-**Depends on**: Phase 159
-**Requirements**: RMV-01, RMV-02
+### Phase 163: HC-to-Worker Push Events
+**Goal**: HC Reset and ForceClose actions reach the worker's exam page in sub-second time, eliminating the 10-second window where workers answer questions against a locked/zeroed session
+**Depends on**: Phase 162
+**Requirements**: PUSH-01, PUSH-02, PUSH-03, PUSH-05
 **Success Criteria** (what must be TRUE):
-  1. CoachCoacheeMapping page shows a "Hapus" button only on deactivated (not active) mappings
-  2. Clicking "Hapus" shows a confirmation dialog; confirming permanently deletes the mapping, its ProtonTrackAssignments, and all associated ProtonDeliverableProgress rows
-  3. After deletion, the mapping and all its child records no longer appear anywhere in the portal
-  4. The deletion action appears in the AuditLog with actor, timestamp, and the deleted mapping's details
-**Plans:** 1/1 plans complete
-Plans:
-- [x] 160-01-PLAN.md -- Add Hapus button, delete modal, controller actions, and audit logging
+  1. HC clicks Reset on a worker's session; that worker's exam page shows a "Sesi direset oleh HC" modal within 1 second — without any page polling interval completing
+  2. HC clicks ForceClose on a worker's session; that worker's exam page shows a countdown modal and redirects to results within 1 second of the HC action
+  3. HC clicks Close Early on an assessment; all workers currently on StartExam receive the `examWindowClosed` event and are redirected within 1 second
+  4. HC clicks ForceClose All; every active worker in the batch receives the force-close event simultaneously within 1 second
+  5. A connection status badge ("Live" / "Reconnecting...") is visible on the worker exam page and accurately reflects the SignalR connection state
+**Plans**: TBD
+
+### Phase 164: Worker-to-HC Progress Push
+**Goal**: The HC monitoring page shows worker exam progress, start events, and submission events in near-real-time without polling — HC situational awareness is continuous, not batched at 10-second intervals
+**Depends on**: Phase 163
+**Requirements**: MONITOR-01, MONITOR-02, MONITOR-03
+**Success Criteria** (what must be TRUE):
+  1. When a worker answers questions, the HC monitoring detail page updates that worker's answered-count and progress bar within 1-2 seconds — without a polling interval completing
+  2. When a worker submits their exam, the HC monitoring page immediately shows their status as "Selesai" and their score — not up to 10 seconds later
+  3. When a worker opens their exam for the first time, the HC monitoring page immediately shows their status as "Dalam Pengerjaan"
+  4. A connection status badge ("Live" / "Reconnecting...") is visible on the HC monitoring page and re-joins the monitor group automatically after reconnect
+**Plans**: TBD
+
+### Phase 165: Cleanup & Polling Removal
+**Goal**: The codebase has one refresh mechanism (SignalR push) for assessment status data — polling setInterval calls are removed after UAT confirms real-time push is stable
+**Depends on**: Phase 164
+**Requirements**: CLEAN-01
+**Success Criteria** (what must be TRUE):
+  1. No `setInterval` calls related to exam status checking or monitoring progress remain in `StartExam.cshtml` or `AssessmentMonitoringDetail.cshtml`
+  2. The worker exam page and HC monitoring page continue to update correctly in real-time after polling removal — SignalR push is the sole update mechanism
+  3. The legacy polling endpoints (`CheckExamStatus`, `GetMonitoringProgress`) are either removed or clearly marked as deprecated with no JS callers in the views
+**Plans**: TBD
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 159. Deduplication Fix & Guard | v4.1 | 2/2 | Complete | 2026-03-12 |
-| 160. Assignment Removal | 1/1 | Complete    | 2026-03-12 | - |
+| 162. Hub Infrastructure & Safety Foundations | v4.2 | 0/TBD | Not started | - |
+| 163. HC-to-Worker Push Events | v4.2 | 0/TBD | Not started | - |
+| 164. Worker-to-HC Progress Push | v4.2 | 0/TBD | Not started | - |
+| 165. Cleanup & Polling Removal | v4.2 | 0/TBD | Not started | - |
