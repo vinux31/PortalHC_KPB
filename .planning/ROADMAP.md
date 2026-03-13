@@ -130,7 +130,10 @@ Plans:
   2. HC clicks "Akhiri Ujian" on a worker's session; that worker's exam page shows a countdown modal and redirects to results within 1 second
   3. HC clicks "Akhiri Semua" on an assessment; all workers currently on StartExam receive the close event and are redirected within 1 second
   4. A connection status badge ("Live" / "Reconnecting...") is visible on the worker exam page and accurately reflects the SignalR connection state
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
+- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
 
 ### Phase 165: Worker-to-HC Progress Push + Polling Removal
 **Goal**: The HC monitoring page shows worker exam progress, start events, and submission events in near-real-time via SignalR push — then legacy polling is removed after UAT confirms stability
@@ -143,7 +146,10 @@ Plans:
   4. A connection status badge ("Live" / "Reconnecting...") is visible on the HC monitoring page and re-joins the monitor group automatically after reconnect
   5. No `setInterval` calls related to exam status checking or monitoring progress remain in `StartExam.cshtml` or `AssessmentMonitoringDetail.cshtml`
   6. The legacy polling endpoints (`CheckExamStatus`, `GetMonitoringProgress`) are either removed or clearly marked as deprecated with no JS callers
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
+- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
 
 ### Phase 166: Activity Log Per-Worker
 **Goal**: HC can view a detailed timeline of each worker's exam activity — question opens, answer changes, page navigation, disconnect/reconnect events — for audit and fairness purposes
@@ -152,7 +158,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. HC clicks a worker row in monitoring detail and sees a chronological activity log with timestamps for each event (start, answer, page change, disconnect, reconnect, submit)
   2. Activity data is stored server-side and survives browser refresh — not client-only
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
+- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
 
 ### Phase 167: Item Analysis / Statistik Per-Soal
 **Goal**: After an assessment group completes, HC can view per-question statistics — difficulty index, discrimination index, answer distribution — to evaluate question quality
@@ -161,7 +170,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. HC monitoring detail page shows a "Statistik Soal" section with per-question difficulty percentage and answer distribution chart
   2. Questions are ranked by difficulty so HC can identify problematic questions
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
+- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
 
 ## Progress
 
@@ -169,7 +181,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete    | 2026-03-13 | - |
 | 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
-| 164. HC-to-Worker Push Events | v4.2 | 0/TBD | Not started | - |
+| 164. HC-to-Worker Push Events | v4.2 | 0/2 | Not started | - |
 | 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/TBD | Not started | - |
 | 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
 | 167. Item Analysis / Statistik Per-Soal | v4.2 | 0/TBD | Not started | - |
