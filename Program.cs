@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Data;
 using HcPortal.Models;
+using HcPortal.Hubs;
 using QuestPDF.Infrastructure;
 
 QuestPDF.Settings.License = LicenseType.Community;
@@ -92,7 +93,23 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromHours(8); // Session 8 jam
     options.SlidingExpiration = true;
+    // Return 401 for SignalR hub endpoints instead of redirecting to login page
+    options.Events.OnRedirectToLogin = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/hubs"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+        }
+        else
+        {
+            context.Response.Redirect(context.RedirectUri);
+        }
+        return Task.CompletedTask;
+    };
 });
+
+// SignalR
+builder.Services.AddSignalR();
 
 var app = builder.Build();
 
@@ -109,6 +126,15 @@ using (var scope = app.Services.CreateScope())
         // SeedMasterData removed — sample training records only needed for dev/QA
         await SeedCompetencyMappings.SeedAsync(context);
         await SeedProtonData.SeedAsync(context);
+
+        // Activate WAL mode for SQLite to allow concurrent reads during SignalR writes
+        if (context.Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            await context.Database.ExecuteSqlRawAsync("PRAGMA journal_mode=WAL;");
+            var mode = await context.Database.SqlQueryRaw<string>("PRAGMA journal_mode;").FirstOrDefaultAsync();
+            logger.LogInformation("SQLite journal mode: {Mode}", mode);
+        }
     }
     catch (Exception ex)
     {
@@ -158,5 +184,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
+
+app.MapHub<AssessmentHub>("/hubs/assessment");
 
 app.Run();
