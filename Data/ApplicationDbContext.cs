@@ -75,6 +75,9 @@ namespace HcPortal.Data
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserNotification> UserNotifications { get; set; }
 
+        // Exam Activity Log — Phase 166
+        public DbSet<ExamActivityLog> ExamActivityLogs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -501,6 +504,18 @@ namespace HcPortal.Data
                 entity.Property(n => n.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
                 entity.Property(n => n.IsRead).HasDefaultValue(false);
                 entity.Property(n => n.DeliveryStatus).HasDefaultValue("Delivered");
+            });
+
+            // ========== Exam Activity Log (Phase 166) ==========
+            builder.Entity<ExamActivityLog>(entity =>
+            {
+                entity.HasOne(l => l.Session)
+                    .WithMany()
+                    .HasForeignKey(l => l.SessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(l => l.SessionId);
+                entity.HasIndex(l => l.Timestamp);
             });
         }
     }
