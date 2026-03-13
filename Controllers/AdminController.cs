@@ -2244,6 +2244,8 @@ namespace HcPortal.Controllers
                 id,
                 "AssessmentSession");
 
+            await _hubContext.Clients.User(assessment.UserId).SendAsync("sessionReset", new { reason = "hc_reset" });
+
             TempData["Success"] = "Sesi ujian telah direset. Peserta dapat mengikuti ujian kembali.";
             return RedirectToAction("AssessmentMonitoringDetail", new {
                 title = assessment.Title,
@@ -2326,6 +2328,8 @@ namespace HcPortal.Controllers
                 id,
                 "AssessmentSession");
 
+            await _hubContext.Clients.User(session.UserId).SendAsync("examClosed", new { reason = "hc_closed" });
+
             TempData["Success"] = "Ujian telah diakhiri dan dinilai dari jawaban tersimpan.";
             return RedirectToAction("AssessmentMonitoringDetail", new {
                 title = session.Title,
@@ -2390,6 +2394,9 @@ namespace HcPortal.Controllers
                 $"Ended all exams for '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) — {gradedCount} graded, {cancelledCount} cancelled",
                 null,
                 "AssessmentSession");
+
+            var batchKey = $"{title}|{category}|{scheduleDate.Date:yyyy-MM-dd}";
+            await _hubContext.Clients.Group($"batch-{batchKey}").SendAsync("examClosed", new { reason = "hc_closed" });
 
             TempData["Success"] = $"Berhasil mengakhiri ujian: {gradedCount} peserta dinilai dari jawaban tersimpan, {cancelledCount} peserta dibatalkan.";
             return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate = scheduleDate.Date.ToString("yyyy-MM-dd") });
