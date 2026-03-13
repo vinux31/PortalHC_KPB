@@ -5,12 +5,10 @@ using HcPortal.Models;
 using HcPortal.Data;
 using Microsoft.EntityFrameworkCore;
 using ClosedXML.Excel;
-using HcPortal.Models.Competency;
 // PositionTargetHelper removed in Phase 90 (KKJ tables dropped)
 using System.Text.Json;
 using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.SignalR;
 using HcPortal.Hubs;
 

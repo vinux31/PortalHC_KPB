@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using HcPortal.Models;
-using HcPortal.Models.Competency;
 using HcPortal.Data;
 using HcPortal.Services;
 using HcPortal.Hubs;
