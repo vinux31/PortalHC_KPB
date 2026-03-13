@@ -148,8 +148,8 @@ Plans:
   6. The legacy polling endpoints (`CheckExamStatus`, `GetMonitoringProgress`) are either removed or clearly marked as deprecated with no JS callers
 **Plans:** 2 plans
 Plans:
-- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
-- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
+- [ ] 165-01-PLAN.md — Backend: IHubContext in CMPController + 3 push calls + frontend event handlers, row flash, toast
+- [ ] 165-02-PLAN.md — UAT checkpoint + polling removal (CheckExamStatus, GetMonitoringProgress)
 
 ### Phase 166: Activity Log Per-Worker
 **Goal**: HC can view a detailed timeline of each worker's exam activity — question opens, answer changes, page navigation, disconnect/reconnect events — for audit and fairness purposes
@@ -182,6 +182,6 @@ Plans:
 | 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete    | 2026-03-13 | - |
 | 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
 | 164. HC-to-Worker Push Events | 2/2 | Complete   | 2026-03-13 | - |
-| 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/TBD | Not started | - |
+| 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/2 | Not started | - |
 | 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
 | 167. Item Analysis / Statistik Per-Soal | v4.2 | 0/TBD | Not started | - |
