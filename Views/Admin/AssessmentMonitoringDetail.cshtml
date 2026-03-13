@@ -330,7 +330,6 @@
         <small class="text-muted">
             Last updated: <span id="last-updated-time">\u2014</span>
         </small>
-        <span id="poll-error" class="badge bg-warning text-dark" style="display:none;">Update error -- retrying</span>
     </div>
 
     @if (Model.IsPackageMode)
@@ -651,8 +650,6 @@
 (function () {
     // ---- State ----
     var countdownMap = {}; // { sessionId: remainingSeconds | null }
-    var pollingActive = true;
-    var pollingTimer = null;
     var countdownTimer = null;
 
     // ---- Read page params from hidden fields ----
@@ -828,59 +825,8 @@
         if (elCancelled)  elCancelled.textContent  = cancelled;
     }
 
-    // ---- Update "Last updated" timestamp ----
-    function updateLastUpdated() {
-        var el = document.getElementById('last-updated-time');
-        if (el) el.textContent = new Date().toLocaleTimeString('id-ID');
-        // Hide error indicator on success
-        var errEl = document.getElementById('poll-error');
-        if (errEl) errEl.style.display = 'none';
-    }
-
-    // ---- Show error indicator on fetch failure ----
-    function showErrorIndicator() {
-        var errEl = document.getElementById('poll-error');
-        if (errEl) errEl.style.display = '';
-    }
-
-    // ---- Main poll function ----
-    async function fetchProgress() {
-        if (!pollingActive) return;
-        try {
-            var url = '/Admin/GetMonitoringProgress'
-                + '?title=' + encodeURIComponent(hTitle)
-                + '&category=' + encodeURIComponent(hCategory)
-                + '&scheduleDate=' + encodeURIComponent(hScheduleDate);
-
-            var resp = await fetch(url);
-            if (!resp.ok) { showErrorIndicator(); return; }
-
-            var sessions = await resp.json();
-            sessions.forEach(updateRow);
-            updateSummary(sessions);
-            updateLastUpdated();
-
-            // Stop polling when all sessions are in a terminal state (Completed, Cancelled, Abandoned)
-            if (sessions.length > 0 && sessions.every(function (s) { return s.status === 'Completed' || s.status === 'Cancelled' || s.status === 'Abandoned'; })) {
-                clearInterval(pollingTimer);
-                clearInterval(countdownTimer);
-                pollingActive = false;
-
-                // Hide "Akhiri Semua Ujian" button
-                var akhiriBtn = document.getElementById('akhiriSemuaBtn');
-                if (akhiriBtn) akhiriBtn.style.display = 'none';
-            }
-        } catch (e) {
-            showErrorIndicator();
-        }
-    }
-
-    // ---- Start intervals ----
-    pollingTimer   = setInterval(fetchProgress, 10000);
+    // ---- Start countdown interval ----
     countdownTimer = setInterval(tickCountdowns, 1000);
-
-    // Run first poll immediately (don't wait 10s)
-    fetchProgress();
 
     // ---- Akhiri Semua Modal: fetch counts on open ----
     var akhiriModal = document.getElementById('akhiriSemuaModal');
@@ -1129,7 +1075,6 @@ function eventLabel(eventType, detail) {
                 : '\u2014';
         }
         flashRow(tr, 'flash-update');
-        // updateLastUpdated is already defined in the IIFE above (page scope accessible)
         var el = document.getElementById('last-updated-time');
         if (el) el.textContent = new Date().toLocaleTimeString('id-ID');
     });

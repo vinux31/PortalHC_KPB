@@ -744,53 +744,7 @@ else
         window.onbeforeunload = null;
     });
 
-    // -------- Poll CheckExamStatus every 10s (detect early close by HC) --------
-    const CHECK_STATUS_URL = '@Url.Action("CheckExamStatus", "CMP")?sessionId=' + SESSION_ID;
-    var statusPollInterval = null;
     var examClosed = false;
-
-    function checkExamStatus() {
-        if (examClosed) return;
-        fetch(CHECK_STATUS_URL)
-            .then(function(resp) { return resp.json(); })
-            .then(function(data) {
-                if (data.closed && !examClosed) {
-                    examClosed = true;
-                    clearInterval(statusPollInterval);
-                    clearInterval(timerInterval);
-                    window.onbeforeunload = null;
-
-                    // Cancelled workers (never started) redirect to Assessment list
-                    var redirectTarget = data.redirectUrl || '/CMP/Assessment';
-
-                    // Set dynamic reason text (polling trigger = timer/auto-close)
-                    document.getElementById('examClosedReason').textContent = 'Waktu ujian habis.';
-
-                    var modal = new bootstrap.Modal(document.getElementById('examClosedModal'));
-                    modal.show();
-
-                    // Immediate redirect button
-                    document.getElementById('closedViewResultsBtn').addEventListener('click', function() {
-                        window.location.href = redirectTarget;
-                    });
-
-                    // 5-second countdown then auto-redirect
-                    var countdown = 5;
-                    var countdownEl = document.getElementById('closedCountdown');
-                    var countdownInterval = setInterval(function() {
-                        countdown--;
-                        countdownEl.textContent = countdown;
-                        if (countdown <= 0) {
-                            clearInterval(countdownInterval);
-                            window.location.href = redirectTarget;
-                        }
-                    }, 1000);
-                }
-            })
-            .catch(function() { /* ignore network errors during poll */ });
-    }
-
-    statusPollInterval = setInterval(checkExamStatus, 10000);
 
     // -------- SignalR push event handlers --------
 
@@ -798,7 +752,6 @@ else
     window.assessmentHub.on('examClosed', function(payload) {
         if (examClosed) return; // dual-trigger guard: if polling already fired, skip
         examClosed = true;
-        clearInterval(statusPollInterval);
         clearInterval(timerInterval);
         window.onbeforeunload = null;
 
@@ -830,7 +783,6 @@ else
     // sessionReset: HC reset this worker's session
     window.assessmentHub.on('sessionReset', function(payload) {
         clearInterval(timerInterval);
-        clearInterval(statusPollInterval);
         window.onbeforeunload = null;
 
         // Disable all form controls so worker cannot continue answering
