@@ -14,13 +14,15 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 ## Current Milestone: v4.2 Real-time Assessment
 
-**Goal:** Add SignalR-based real-time communication to assessment/exam flow so HC actions (Reset, ForceClose) push instantly to worker exam pages, and worker progress pushes to HC monitoring — replacing polling.
+**Goal:** Simplify assessment close actions (3→2 with auto-grading), add SignalR-based real-time communication so HC monitoring updates live and HC actions push instantly to workers, then add activity logging and item analysis for post-assessment insights.
 
 **Target features:**
+- Simplifikasi close actions: merge ForceClose/ForceCloseAll/CloseEarly → "Akhiri Ujian" (individual, auto-grade) + "Akhiri Semua" (bulk, auto-grade)
 - SignalR infrastructure (Hub, client library, Program.cs registration)
-- HC → Worker push: Reset and ForceClose events update worker exam page without reload
+- HC → Worker push: Reset and Akhiri Ujian events update worker exam page without reload
 - Worker → HC push: Exam progress and submission events update monitoring page in real-time
 - Replace 10-second polling on HC monitoring with push-based updates
+- Activity log per-worker dan item analysis per-soal (opsional)
 
 ## Current State (v4.1 shipped 2026-03-12)
 
