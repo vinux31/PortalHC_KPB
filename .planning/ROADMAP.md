@@ -110,7 +110,7 @@
   2. All known logic bugs across controllers are identified, documented, and either fixed or explicitly deferred with justification
   3. No unused `using` statements or unnecessary namespace imports remain in any .cs file
   4. No .cshtml view file exists in the Views directory without a corresponding reachable controller action
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 168-01-PLAN.md — Dead code removal and orphaned views cleanup
 - [ ] 168-02-PLAN.md — Logic bug audit and fixes
@@ -143,6 +143,6 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 168. Code Audit | 1/3 | In Progress|  | - |
+| 168. Code Audit | 2/3 | In Progress|  | - |
 | 169. File & Database Audit | v4.3 | 0/TBD | Not started | - |
 | 170. Security Review | v4.3 | 0/TBD | Not started | - |
