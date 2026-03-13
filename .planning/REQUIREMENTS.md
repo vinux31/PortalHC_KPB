@@ -24,9 +24,9 @@ Requirements for Real-time Assessment milestone. Each maps to roadmap phases.
 
 ### HC → Worker Push
 
-- [ ] **PUSH-01**: Worker exam page updates instantly when HC resets their session
-- [ ] **PUSH-02**: Worker exam page redirects to results when HC closes their session (Akhiri Ujian)
-- [ ] **PUSH-03**: All workers in a batch are notified when HC closes all sessions (Akhiri Semua)
+- [x] **PUSH-01**: Worker exam page updates instantly when HC resets their session
+- [x] **PUSH-02**: Worker exam page redirects to results when HC closes their session (Akhiri Ujian)
+- [x] **PUSH-03**: All workers in a batch are notified when HC closes all sessions (Akhiri Semua)
 
 ### Worker → HC Push + Cleanup
 
@@ -77,9 +77,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-03 | Phase 163 | Complete |
 | INFRA-04 | Phase 163 | Complete |
 | INFRA-05 | Phase 163 | Complete |
-| PUSH-01 | Phase 164 | Pending |
-| PUSH-02 | Phase 164 | Pending |
-| PUSH-03 | Phase 164 | Pending |
+| PUSH-01 | Phase 164 | Complete |
+| PUSH-02 | Phase 164 | Complete |
+| PUSH-03 | Phase 164 | Complete |
 | MONITOR-01 | Phase 165 | Pending |
 | MONITOR-02 | Phase 165 | Pending |
 | MONITOR-03 | Phase 165 | Pending |

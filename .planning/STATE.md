@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Real-time Assessment
 status: in_progress
-stopped_at: Phase 164 context gathered
-last_updated: "2026-03-13T03:30:41.783Z"
+stopped_at: Completed 164-01-PLAN.md
+last_updated: "2026-03-13T03:51:33.486Z"
 last_activity: "2026-03-13 — Completed Plan 02: close action UI with worker notification modal"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 ---
@@ -63,6 +63,7 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 - [Phase 163]: SubmitExam: rowsAffected==0 redirects to Results with Info (not error)
 - [Phase 163]: All 4 assessment write actions use WHERE-clause-guarded ExecuteUpdateAsync for first-write-wins
 - [Phase 163]: SignalR hub methods handle group join/leave only — no DB writes inside Hub methods
+- [Phase 164]: IHubContext<AssessmentHub> injected as 9th constructor param; SendAsync gated after DB write; AkhiriSemuaUjian uses Clients.Group() with batch-{title}|{category}|{date} key
 
 ### Blockers/Concerns
 
@@ -79,6 +80,6 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 
 ## Session Continuity
 
-Last session: 2026-03-13T03:30:41.780Z
-Stopped at: Phase 164 context gathered
-Resume file: .planning/phases/164-hc-to-worker-push-events/164-CONTEXT.md
+Last session: 2026-03-13T03:51:33.483Z
+Stopped at: Completed 164-01-PLAN.md
+Resume file: None

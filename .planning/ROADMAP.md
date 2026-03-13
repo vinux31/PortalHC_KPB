@@ -130,7 +130,7 @@ Plans:
   2. HC clicks "Akhiri Ujian" on a worker's session; that worker's exam page shows a countdown modal and redirects to results within 1 second
   3. HC clicks "Akhiri Semua" on an assessment; all workers currently on StartExam receive the close event and are redirected within 1 second
   4. A connection status badge ("Live" / "Reconnecting...") is visible on the worker exam page and accurately reflects the SignalR connection state
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
 - [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
@@ -181,7 +181,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete    | 2026-03-13 | - |
 | 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
-| 164. HC-to-Worker Push Events | v4.2 | 0/2 | Not started | - |
+| 164. HC-to-Worker Push Events | 1/2 | In Progress|  | - |
 | 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/TBD | Not started | - |
 | 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
 | 167. Item Analysis / Statistik Per-Soal | v4.2 | 0/TBD | Not started | - |
