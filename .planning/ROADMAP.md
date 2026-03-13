@@ -96,7 +96,7 @@
 ### Phases
 
 - [x] **Phase 168: Code Audit** - Identify and remove dead code, fix logic bugs, clean unused imports, remove orphaned views (completed 2026-03-13)
-- [ ] **Phase 169: File & Database Audit** - Remove unused files, orphaned JS/CSS, temp artifacts; clean orphaned DB records, unused tables, stale data, verify integrity
+- [x] **Phase 169: File & Database Audit** - Remove unused files, orphaned JS/CSS, temp artifacts; clean orphaned DB records, unused tables, stale data, verify integrity (completed 2026-03-13)
 - [ ] **Phase 170: Security Review** - Audit authorization attributes, CSRF protection, input validation gaps, file upload security
 
 ## Phase Details
@@ -126,7 +126,7 @@ Plans:
   3. No duplicate or near-duplicate code blocks exist across views or controllers that could be unified into a shared partial or method
   4. All database records have valid foreign key references — no orphaned rows pointing to deleted or non-existent parents
   5. All seed data and test data that is not required for production operation is identified and removed or clearly marked
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 169-01-PLAN.md — Temp file cleanup and orphaned JS/CSS audit
 - [ ] 169-02-PLAN.md — View reachability re-verification and duplicate code audit
@@ -148,5 +148,5 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 168. Code Audit | 3/3 | Complete    | 2026-03-13 | - |
-| 169. File & Database Audit | 1/3 | In Progress|  | - |
+| 169. File & Database Audit | 3/3 | Complete   | 2026-03-13 | - |
 | 170. Security Review | v4.3 | 0/TBD | Not started | - |
