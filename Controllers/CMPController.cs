@@ -29,6 +29,7 @@ namespace HcPortal.Controllers
         private readonly ILogger<CMPController> _logger;
         private readonly INotificationService _notificationService;
         private readonly IHubContext<AssessmentHub> _hubContext;
+        private readonly IServiceScopeFactory _scopeFactory;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -40,7 +41,8 @@ namespace HcPortal.Controllers
             IMemoryCache cache,
             ILogger<CMPController> logger,
             INotificationService notificationService,
-            IHubContext<AssessmentHub> hubContext)
+            IHubContext<AssessmentHub> hubContext,
+            IServiceScopeFactory scopeFactory)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -52,6 +54,7 @@ namespace HcPortal.Controllers
             _logger = logger;
             _notificationService = notificationService;
             _hubContext = hubContext;
+            _scopeFactory = scopeFactory;
         }
 
         public IActionResult Index()
@@ -349,52 +352,6 @@ namespace HcPortal.Controllers
             }
 
             return Json(new { success = true });
-        }
-
-        // --- CHECK EXAM STATUS (polled by worker JS every 10s to detect early close) ---
-        [HttpGet]
-        public async Task<IActionResult> CheckExamStatus(int sessionId)
-        {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var session = await _context.AssessmentSessions.FindAsync(sessionId);
-            if (session == null) return NotFound();
-
-            // Only the session owner may poll status
-            if (session.UserId != user.Id)
-                return Json(new { closed = false });
-
-            string cacheKey = $"exam-status-{sessionId}";
-
-            // Return cached result if available (5-second TTL — reduces DB load for concurrent workers)
-            if (_cache.TryGetValue(cacheKey, out (bool closed, string url) hit))
-                return Json(new { closed = hit.closed, redirectUrl = hit.url });
-
-            bool isClosed = false;
-
-            // Closed if ExamWindowCloseDate has been set and is in the past
-            if (session.ExamWindowCloseDate.HasValue && DateTime.UtcNow > session.ExamWindowCloseDate.Value)
-                isClosed = true;
-
-            // Closed if session is already Completed (auto-graded by AkhiriUjian/AkhiriSemuaUjian or SubmitExam)
-            if (session.Status == "Completed")
-                isClosed = true;
-
-            // Cancelled by AkhiriSemuaUjian (not-started worker) — redirect to Assessment page, not Results
-            if (session.Status == "Cancelled")
-                isClosed = true;
-
-            string redirectUrl = isClosed
-                ? (session.Status == "Cancelled"
-                    ? (Url.Action("Assessment") ?? "/CMP/Assessment")
-                    : (Url.Action("Results", new { id = sessionId }) ?? "/CMP/Assessment"))
-                : "";
-
-            // Cache result for 5 seconds (ownership already verified above)
-            _cache.Set(cacheKey, (isClosed, redirectUrl), TimeSpan.FromSeconds(5));
-
-            return Json(new { closed = isClosed, redirectUrl });
         }
 
         // --- UPDATE SESSION PROGRESS (saves elapsed time + current page for resume) ---
@@ -1067,7 +1024,7 @@ namespace HcPortal.Controllers
                     new { sessionId = assessment.Id, workerName = user.FullName, status = "InProgress" });
 
                 // Activity log: record exam start (fire-and-forget — must never break exam flow)
-                _ = LogActivityAsync(assessment.Id, "started");
+                LogActivityAsync(assessment.Id, "started");
             }
 
             // Packages are attached to the representative session (the one HC used when clicking "Packages"),
@@ -1735,7 +1692,7 @@ namespace HcPortal.Controllers
                 await NotifyIfGroupCompleted(assessment);
 
                 // Activity log: record exam submission (fire-and-forget)
-                _ = LogActivityAsync(id, "submitted");
+                LogActivityAsync(id, "submitted");
 
                 return RedirectToAction("Results", new { id });
             }
@@ -1864,7 +1821,7 @@ namespace HcPortal.Controllers
                 await NotifyIfGroupCompleted(assessment);
 
                 // Activity log: record exam submission (fire-and-forget)
-                _ = LogActivityAsync(id, "submitted");
+                LogActivityAsync(id, "submitted");
 
                 // Redirect to Results Page
                 return RedirectToAction("Results", new { id = id });
@@ -1874,23 +1831,28 @@ namespace HcPortal.Controllers
         /// Fire-and-forget helper to log exam activity. Errors are swallowed — logging must
         /// never break the exam flow.
         /// </summary>
-        private async Task LogActivityAsync(int sessionId, string eventType, string? detail = null)
+        private void LogActivityAsync(int sessionId, string eventType, string? detail = null)
         {
-            try
+            _ = Task.Run(async () =>
             {
-                _context.ExamActivityLogs.Add(new HcPortal.Models.ExamActivityLog
+                try
                 {
-                    SessionId = sessionId,
-                    EventType = eventType,
-                    Detail = detail,
-                    Timestamp = DateTime.UtcNow
-                });
-                await _context.SaveChangesAsync();
-            }
-            catch
-            {
-                // Swallow all errors — logging must never block exam flow
-            }
+                    using var scope = _scopeFactory.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    db.ExamActivityLogs.Add(new HcPortal.Models.ExamActivityLog
+                    {
+                        SessionId = sessionId,
+                        EventType = eventType,
+                        Detail = detail,
+                        Timestamp = DateTime.UtcNow
+                    });
+                    await db.SaveChangesAsync();
+                }
+                catch
+                {
+                    // Swallow all errors — logging must never block exam flow
+                }
+            });
         }
 
         [HttpGet]
