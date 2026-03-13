@@ -4348,6 +4348,21 @@ namespace HcPortal.Controllers
                 return View();
             }
 
+            var allowedImportExtensions = new[] { ".xlsx", ".xls" };
+            var importExt = Path.GetExtension(excelFile.FileName).ToLowerInvariant();
+            if (!allowedImportExtensions.Contains(importExt))
+            {
+                TempData["Error"] = "Hanya file Excel (.xlsx, .xls) yang didukung.";
+                return View();
+            }
+
+            const long maxImportSize = 10 * 1024 * 1024; // 10MB
+            if (excelFile.Length > maxImportSize)
+            {
+                TempData["Error"] = "Ukuran file terlalu besar (maksimal 10MB).";
+                return View();
+            }
+
             var results = new List<ImportWorkerResult>();
             var useAD = _config.GetValue<bool>("Authentication:UseActiveDirectory", false);
 
@@ -5447,6 +5462,18 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> ImportPackageQuestions(
             int packageId, IFormFile? excelFile, string? pasteText)
         {
+            // File type guard: only allow Excel files
+            if (excelFile != null && excelFile.Length > 0)
+            {
+                var allowedQuestionsExtensions = new[] { ".xlsx", ".xls" };
+                var questionsExt = Path.GetExtension(excelFile.FileName).ToLowerInvariant();
+                if (!allowedQuestionsExtensions.Contains(questionsExt))
+                {
+                    TempData["Error"] = "Hanya file Excel (.xlsx, .xls) yang didukung.";
+                    return RedirectToAction("ImportPackageQuestions", new { packageId });
+                }
+            }
+
             // File size guard: reject files larger than 5 MB to avoid memory pressure
             if (excelFile != null && excelFile.Length > 5 * 1024 * 1024)
             {
