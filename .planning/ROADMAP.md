@@ -97,7 +97,7 @@
 
 - [x] **Phase 168: Code Audit** - Identify and remove dead code, fix logic bugs, clean unused imports, remove orphaned views (completed 2026-03-13)
 - [x] **Phase 169: File & Database Audit** - Remove unused files, orphaned JS/CSS, temp artifacts; clean orphaned DB records, unused tables, stale data, verify integrity (completed 2026-03-13)
-- [ ] **Phase 170: Security Review** - Audit authorization attributes, CSRF protection, input validation gaps, file upload security
+- [x] **Phase 170: Security Review** - Audit authorization attributes, CSRF protection, input validation gaps, file upload security (completed 2026-03-13)
 
 ## Phase Details
 
@@ -141,7 +141,7 @@ Plans:
   2. Every POST action that changes state has `[ValidateAntiForgeryToken]` — no state-changing form can be submitted via cross-site request forgery
   3. No user-supplied string is rendered unescaped in any view, no redirect target accepts unvalidated URL input, and no raw SQL is constructed from user input
   4. All file upload endpoints validate file type (allowlist extension check), enforce a maximum file size, and resolve upload paths server-side — no path traversal is possible
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 170-01-PLAN.md — Authorization attributes and CSRF protection audit
 - [ ] 170-02-PLAN.md — Input validation gaps and file upload security audit
@@ -152,4 +152,4 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 168. Code Audit | 3/3 | Complete    | 2026-03-13 | - |
 | 169. File & Database Audit | 3/3 | Complete    | 2026-03-13 | - |
-| 170. Security Review | 1/2 | In Progress|  | - |
+| 170. Security Review | 2/2 | Complete   | 2026-03-13 | - |

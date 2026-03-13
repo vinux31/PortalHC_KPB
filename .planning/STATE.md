@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Bug Finder
 status: in_progress
-stopped_at: Completed 170-01-PLAN.md
-last_updated: "2026-03-13T07:50:19.539Z"
+stopped_at: Completed 170-02-PLAN.md
+last_updated: "2026-03-13T07:51:11.480Z"
 last_activity: 2026-03-13 — Roadmap created, 3 phases mapped to 16 requirements
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 100
 ---
 
@@ -79,6 +79,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 169]: KkjUpload/CpdpUpload and KkjFileHistory/CpdpFileHistory left as 2-view pairs — extraction cost exceeds benefit for 2-view only duplications
 - [Phase 169]: Alert blocks not extracted — each uses different TempData key; parameterized partial adds indirection with minimal benefit
 - [Phase 170-security-review]: NotificationController CSRF gap closed: [IgnoreAntiforgeryToken] removed, all 3 POST actions now have [ValidateAntiForgeryToken], JS updated to pass token header
+- [Phase 170-02]: Json.Serialize() used instead of Html.Raw(x.Replace()) for all JS string contexts
+- [Phase 170-02]: Import endpoints get .xlsx/.xls extension allowlist — 6/8 upload endpoints were already secured
 
 ### Quick Tasks Completed
 
@@ -93,6 +95,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T07:50:19.535Z
-Stopped at: Completed 170-01-PLAN.md
+Last session: 2026-03-13T07:51:06.471Z
+Stopped at: Completed 170-02-PLAN.md
 Resume file: None
