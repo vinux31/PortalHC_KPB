@@ -12,21 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v4.2 Real-time Assessment
+## Current Milestone: v4.3 Bug Finder
 
-**Goal:** Simplify assessment close actions (3→2 with auto-grading), add SignalR-based real-time communication so HC monitoring updates live and HC actions push instantly to workers, then add activity logging and item analysis for post-assessment insights.
+**Goal:** Audit menyeluruh seluruh codebase, database, dan file — temukan bug, file tidak terpakai, data tidak penting, dan dead code.
 
 **Target features:**
-- Simplifikasi close actions: merge ForceClose/ForceCloseAll/CloseEarly → "Akhiri Ujian" (individual, auto-grade) + "Akhiri Semua" (bulk, auto-grade)
-- SignalR infrastructure (Hub, client library, Program.cs registration)
-- HC → Worker push: Reset and Akhiri Ujian events update worker exam page without reload
-- Worker → HC push: Exam progress and submission events update monitoring page in real-time
-- Replace 10-second polling on HC monitoring with push-based updates
-- Activity log per-worker dan item analysis per-soal (opsional)
+- Code audit: cari bug, dead code, unused imports, unreachable routes
+- Database audit: data orphan, tabel tidak terpakai, kolom redundan
+- File audit: file tidak terpakai (views, models, scripts, CSS)
+- Cleanup: hapus semua yang tidak perlu
 
-## Current State (v4.1 shipped 2026-03-12)
+## Current State (v4.2 shipped 2026-03-13)
 
-**v1.0 through v4.1 shipped** — 40 milestones, 161 phases.
+**v1.0 through v4.2 shipped** — 41 milestones, 167 phases.
 
 All 6 use-case flows audited end-to-end (code review + browser UAT). 33 requirements verified, 10+ bugs fixed. Portal is stable and fully audited.
 
