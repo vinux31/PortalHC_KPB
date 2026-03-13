@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
-using HcPortal.Models.Competency;
 using HcPortal.Data;
 using ClosedXML.Excel;
 using QuestPDF.Fluent;
@@ -1982,8 +1981,9 @@ namespace HcPortal.Controllers
             {
                 progressIds = System.Text.Json.JsonSerializer.Deserialize<List<int>>(progressIdsJson) ?? new List<int>();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to deserialize progressIdsJson in SubmitEvidenceWithCoaching");
                 return Json(new { success = false, message = "Format data tidak valid." });
             }
 

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using HcPortal.Models;
 using HcPortal.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace HcPortal.Controllers
 {
@@ -14,17 +15,20 @@ namespace HcPortal.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IAuthService _authService;
         private readonly IConfiguration _config;
+        private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IAuthService authService,
-            IConfiguration config)
+            IConfiguration config,
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _authService = authService;
             _config = config;
+            _logger = logger;
         }
 
         // 1. Tampilkan Halaman Login (GET)
@@ -103,9 +107,10 @@ namespace HcPortal.Controllers
                     {
                         await _userManager.UpdateAsync(user);
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         // Sync failure is non-fatal — auth succeeded, login continues
+                        _logger.LogWarning(ex, "AD profile sync failed for user {Email} — login proceeds", email);
                     }
                 }
             }
