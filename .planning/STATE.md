@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Real-time Assessment
 status: in_progress
-stopped_at: Phase 163 context gathered
-last_updated: "2026-03-13T01:56:00.402Z"
+stopped_at: Completed 163-02-PLAN.md
+last_updated: "2026-03-13T02:23:20.566Z"
 last_activity: "2026-03-13 — Completed Plan 02: close action UI with worker notification modal"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 ---
@@ -59,6 +59,9 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 - DB write always happens before SignalR push; SignalR is notifications-only, not state source
 - Never use `Dictionary<userId, connectionId>` — use `Clients.User()` or named groups; connection IDs change on every reconnect
 - [Phase 162]: Separate modals for expired vs HC-closed exam for clarity
+- [Phase 163]: AkhiriUjian: rowsAffected==0 returns Info TempData (silent skip)
+- [Phase 163]: SubmitExam: rowsAffected==0 redirects to Results with Info (not error)
+- [Phase 163]: All 4 assessment write actions use WHERE-clause-guarded ExecuteUpdateAsync for first-write-wins
 
 ### Blockers/Concerns
 
@@ -75,6 +78,6 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 
 ## Session Continuity
 
-Last session: 2026-03-13T01:56:00.400Z
-Stopped at: Phase 163 context gathered
-Resume file: .planning/phases/163-hub-infrastructure-safety-foundations/163-CONTEXT.md
+Last session: 2026-03-13T02:23:15.153Z
+Stopped at: Completed 163-02-PLAN.md
+Resume file: None
