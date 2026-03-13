@@ -11,6 +11,8 @@ using System.Text.Json;
 using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.SignalR;
+using HcPortal.Hubs;
 
 namespace HcPortal.Controllers
 {
@@ -26,6 +28,7 @@ namespace HcPortal.Controllers
         private readonly IMemoryCache _cache;
         private readonly ILogger<CMPController> _logger;
         private readonly INotificationService _notificationService;
+        private readonly IHubContext<AssessmentHub> _hubContext;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -36,7 +39,8 @@ namespace HcPortal.Controllers
             AuditLogService auditLog,
             IMemoryCache cache,
             ILogger<CMPController> logger,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IHubContext<AssessmentHub> hubContext)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -47,6 +51,7 @@ namespace HcPortal.Controllers
             _cache = cache;
             _logger = logger;
             _notificationService = notificationService;
+            _hubContext = hubContext;
         }
 
         public IActionResult Index()
@@ -283,6 +288,19 @@ namespace HcPortal.Controllers
                 });
                 await _context.SaveChangesAsync();
             }
+
+            // SignalR push: notify HC monitor group of progress update (DB write above is always first)
+            var answeredCount = await _context.PackageUserResponses
+                .CountAsync(r => r.AssessmentSessionId == sessionId);
+
+            var assignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == sessionId);
+            int totalQuestions = assignment?.GetShuffledQuestionIds().Count ?? 0;
+
+            var batchKey = $"{session.Title}|{session.Category}|{session.Schedule.Date:yyyy-MM-dd}";
+            var progressPayload = new { sessionId, progress = answeredCount, totalQuestions };
+            await _hubContext.Clients.Group($"monitor-{batchKey}").SendAsync("progressUpdate", progressPayload);
+            await _hubContext.Clients.User(session.UserId).SendAsync("progressUpdate", progressPayload);
 
             return Json(new { success = true });
         }
@@ -1033,11 +1051,20 @@ namespace HcPortal.Controllers
             }
 
             // Mark InProgress on first load only (idempotent — skip if already started)
-            if (assessment.StartedAt == null)
+            bool justStarted = assessment.StartedAt == null;
+            if (justStarted)
             {
                 assessment.Status = "InProgress";
                 assessment.StartedAt = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+            }
+
+            // SignalR push: notify HC monitor group that worker started (only on first entry)
+            if (justStarted)
+            {
+                var startBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
+                await _hubContext.Clients.Group($"monitor-{startBatchKey}").SendAsync("workerStarted",
+                    new { sessionId = assessment.Id, workerName = user.FullName, status = "InProgress" });
             }
 
             // Packages are attached to the representative session (the one HC used when clicking "Packages"),
@@ -1666,6 +1693,15 @@ namespace HcPortal.Controllers
                     return RedirectToAction("Results", new { id });
                 }
 
+                // SignalR push: notify HC monitor group that worker submitted (package path)
+                {
+                    var submitBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
+                    var result = finalPercentage >= assessment.PassPercentage ? "Pass" : "Fail";
+                    int totalQuestionsSubmit = shuffledIds.Count;
+                    await _hubContext.Clients.Group($"monitor-{submitBatchKey}").SendAsync("workerSubmitted",
+                        new { sessionId = id, workerName = user.FullName, score = finalPercentage, result, status = "Completed", totalQuestions = totalQuestionsSubmit });
+                }
+
                 // Update assignment completion separately
                 await _context.UserPackageAssignments
                     .Where(a => a.AssessmentSessionId == id)
@@ -1786,6 +1822,15 @@ namespace HcPortal.Controllers
                 {
                     TempData["Info"] = "Ujian Anda sudah diakhiri oleh pengawas.";
                     return RedirectToAction("Results", new { id });
+                }
+
+                // SignalR push: notify HC monitor group that worker submitted (legacy path)
+                {
+                    var legacyBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
+                    var legacyResult = finalPercentage >= assessment.PassPercentage ? "Pass" : "Fail";
+                    int legacyTotalQ = questionsForGrading.Count;
+                    await _hubContext.Clients.Group($"monitor-{legacyBatchKey}").SendAsync("workerSubmitted",
+                        new { sessionId = id, workerName = user.FullName, score = finalPercentage, result = legacyResult, status = "Completed", totalQuestions = legacyTotalQ });
                 }
 
                 // ASSESS-08: Auto-create TrainingRecord on exam completion (duplicate guard prevents double-insert on retry)

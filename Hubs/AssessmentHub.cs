@@ -15,5 +15,15 @@ namespace HcPortal.Hubs
         {
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"batch-{batchKey}");
         }
+
+        public async Task JoinMonitor(string batchKey)
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, $"monitor-{batchKey}");
+        }
+
+        public async Task LeaveMonitor(string batchKey)
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"monitor-{batchKey}");
+        }
     }
 }
