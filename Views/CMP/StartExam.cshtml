@@ -22,6 +22,7 @@
         </div>
         <div class="text-end">
             <span class="fw-bold fs-5" id="examTimer">--:--</span>
+            <span id="hubStatusBadge" class="badge bg-secondary ms-2 small">Connecting...</span>
             <div class="small text-muted">Time Remaining</div>
         </div>
     </div>
@@ -234,12 +235,36 @@ else
                 </h5>
             </div>
             <div class="modal-body text-center py-3">
-                <p class="mb-2 fw-semibold">Ujian Anda telah diakhiri oleh penyelenggara.</p>
+                <p class="mb-2 fw-semibold"><span id="examClosedReason">Ujian Anda telah diakhiri.</span></p>
                 <p class="text-muted small mb-0">Anda akan diarahkan ke halaman hasil dalam <strong id="closedCountdown">5</strong> detik...</p>
             </div>
             <div class="modal-footer justify-content-center border-top-0">
                 <button type="button" class="btn btn-warning fw-semibold" id="closedViewResultsBtn">
                     <i class="bi bi-eye me-1"></i>Lihat Hasil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Session reset modal (blocking, no dismiss) -->
+<div class="modal fade" id="sessionResetModal" tabindex="-1"
+     data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+     style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Sesi Direset
+                </h5>
+            </div>
+            <div class="modal-body text-center py-3">
+                <p class="mb-2 fw-semibold">Sesi ujian Anda telah direset oleh pengawas.</p>
+                <p class="text-muted small mb-0">Klik tombol di bawah untuk kembali ke daftar ujian.</p>
+            </div>
+            <div class="modal-footer justify-content-center border-top-0">
+                <button type="button" class="btn btn-danger fw-semibold" id="resetKembaliBtn">
+                    <i class="bi bi-arrow-left me-1"></i>Kembali
                 </button>
             </div>
         </div>
@@ -731,6 +756,9 @@ else
                     // Cancelled workers (never started) redirect to Assessment list
                     var redirectTarget = data.redirectUrl || '/CMP/Assessment';
 
+                    // Set dynamic reason text (polling trigger = timer/auto-close)
+                    document.getElementById('examClosedReason').textContent = 'Waktu ujian habis.';
+
                     var modal = new bootstrap.Modal(document.getElementById('examClosedModal'));
                     modal.show();
 
@@ -756,6 +784,80 @@ else
     }
 
     statusPollInterval = setInterval(checkExamStatus, 10000);
+
+    // -------- SignalR push event handlers --------
+
+    // examClosed: HC closed this worker's session (or Akhiri Semua)
+    window.assessmentHub.on('examClosed', function(payload) {
+        if (examClosed) return; // dual-trigger guard: if polling already fired, skip
+        examClosed = true;
+        clearInterval(statusPollInterval);
+        clearInterval(timerInterval);
+        window.onbeforeunload = null;
+
+        var reasonText = (payload && payload.reason === 'hc_closed')
+            ? 'Ujian diakhiri oleh pengawas.'
+            : 'Waktu ujian habis.';
+        document.getElementById('examClosedReason').textContent = reasonText;
+
+        var redirectTarget = '@Url.Action("ExamResults", "CMP")?sessionId=' + SESSION_ID;
+        var modal = new bootstrap.Modal(document.getElementById('examClosedModal'));
+        modal.show();
+
+        document.getElementById('closedViewResultsBtn').onclick = function() {
+            window.location.href = redirectTarget;
+        };
+
+        var countdown = 5;
+        var countdownEl = document.getElementById('closedCountdown');
+        var countdownInterval = setInterval(function() {
+            countdown--;
+            countdownEl.textContent = countdown;
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = redirectTarget;
+            }
+        }, 1000);
+    });
+
+    // sessionReset: HC reset this worker's session
+    window.assessmentHub.on('sessionReset', function(payload) {
+        clearInterval(timerInterval);
+        clearInterval(statusPollInterval);
+        window.onbeforeunload = null;
+
+        // Disable all form controls so worker cannot continue answering
+        document.querySelectorAll('#examForm input, #examForm textarea, #examForm button, #examForm select').forEach(function(el) {
+            el.disabled = true;
+        });
+
+        var modal = new bootstrap.Modal(document.getElementById('sessionResetModal'));
+        modal.show();
+    });
+
+    // resetKembaliBtn: redirect to Assessment list
+    document.getElementById('resetKembaliBtn').addEventListener('click', function() {
+        window.location.href = '@Url.Action("Assessment", "CMP")';
+    });
+
+    // -------- Connection status badge --------
+    var hubBadge = document.getElementById('hubStatusBadge');
+    window.assessmentHub.onreconnecting(function() {
+        if (hubBadge) { hubBadge.className = 'badge bg-warning ms-2 small'; hubBadge.textContent = 'Reconnecting...'; }
+    });
+    window.assessmentHub.onreconnected(function() {
+        if (hubBadge) { hubBadge.className = 'badge bg-success ms-2 small'; hubBadge.textContent = 'Live'; }
+    });
+    window.assessmentHub.onclose(function() {
+        if (hubBadge) { hubBadge.className = 'badge bg-danger ms-2 small'; hubBadge.textContent = 'Disconnected'; }
+    });
+    // Set initial "Live" state after hub connects (assessment-hub.js starts immediately)
+    setTimeout(function() {
+        if (hubBadge && window.assessmentHub && window.assessmentHub.state === 'Connected') {
+            hubBadge.className = 'badge bg-success ms-2 small';
+            hubBadge.textContent = 'Live';
+        }
+    }, 2000);
 </script>
 }
 
