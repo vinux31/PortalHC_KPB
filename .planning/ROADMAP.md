@@ -79,67 +79,94 @@
 
 ## v4.2 Real-time Assessment (In Progress)
 
-**Milestone Goal:** Add SignalR-based real-time communication to assessment/exam flow so HC actions (Reset, ForceClose) push instantly to worker exam pages and worker progress pushes to HC monitoring — replacing 10-second polling.
+**Milestone Goal:** Simplify assessment close actions (3→2 with auto-grading), add SignalR-based real-time communication so HC monitoring updates live and HC actions push instantly to workers, then add activity logging and item analysis for post-assessment insights.
 
 ### Phases
 
-- [ ] **Phase 162: Hub Infrastructure & Safety Foundations** - SignalR Hub, JS client, auth config, SQLite WAL mode, race condition guards, reconnect handling
-- [ ] **Phase 163: HC-to-Worker Push Events** - Reset and ForceClose push instantly to targeted worker; ForceCloseAll and CloseEarly broadcast to all workers in batch
-- [ ] **Phase 164: Worker-to-HC Progress Push** - HC monitoring page receives real-time answer progress, exam start, and exam completion events without polling
-- [ ] **Phase 165: Cleanup & Polling Removal** - Remove setInterval polling from both views after SignalR confirmed working in UAT
+- [ ] **Phase 162: Simplifikasi Action Close + Auto-Grade** - Merge 3 close actions into 2 consistent actions that auto-grade saved answers
+- [ ] **Phase 163: Hub Infrastructure & Safety Foundations** - SignalR Hub, JS client, auth config, SQLite WAL mode, race condition guards, reconnect handling
+- [ ] **Phase 164: HC-to-Worker Push Events** - Reset and Akhiri Ujian push instantly to targeted worker; Akhiri Semua broadcasts to all workers in batch
+- [ ] **Phase 165: Worker-to-HC Progress Push + Polling Removal** - HC monitoring receives real-time progress events; remove legacy setInterval polling after confirmed working
+- [ ] **Phase 166: Activity Log Per-Worker** - Track per-question timestamps, page navigation, disconnect events for HC audit trail (opsional)
+- [ ] **Phase 167: Item Analysis / Statistik Per-Soal** - Difficulty index, discrimination index, answer distribution per question (opsional)
 
 ## Phase Details
 
-### Phase 162: Hub Infrastructure & Safety Foundations
-**Goal**: A working, authenticated SignalR endpoint at `/hubs/assessment` with SQLite concurrency protection and reconnect-safe group membership — the prerequisite for all real-time features
+### Phase 162: Simplifikasi Action Close + Auto-Grade
+**Goal**: Replace 3 inconsistent close actions (ForceClose=score 0, ForceCloseAll=Abandoned, CloseEarly=partial grade) with 2 consistent actions that always auto-grade saved answers — matching industry standard behavior (Exam.net, Canvas)
 **Depends on**: Phase 161
+**Requirements**: CLOSE-01, CLOSE-02, CLOSE-03, CLOSE-04
+**Success Criteria** (what must be TRUE):
+  1. HC clicks "Akhiri Ujian" on an InProgress worker; the worker's saved answers are graded and a real score/pass-fail is assigned — not hardcoded 0
+  2. HC clicks "Akhiri Semua" on a group; all InProgress workers get auto-graded from saved answers, all Open/Not-started workers get status "Cancelled" (not "Completed" or "Abandoned")
+  3. The old ForceClose, ForceCloseAll, and CloseEarly actions no longer exist in the codebase — replaced by the 2 new actions
+  4. Worker polling (CheckExamStatus) still detects the new close actions and redirects correctly
+**Plans:** 2 plans
+Plans:
+- [ ] 162-01-PLAN.md — Backend: extract shared grading, create AkhiriUjian + AkhiriSemuaUjian, remove old actions, handle Cancelled status
+- [ ] 162-02-PLAN.md — Frontend: update monitoring detail buttons/modals, add worker close notification modal
+
+### Phase 163: Hub Infrastructure & Safety Foundations
+**Goal**: A working, authenticated SignalR endpoint at `/hubs/assessment` with SQLite concurrency protection and reconnect-safe group membership — the prerequisite for all real-time features
+**Depends on**: Phase 162
 **Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05
 **Success Criteria** (what must be TRUE):
   1. `/hubs/assessment/negotiate` returns a WebSocket upgrade (101) or JSON token response (200), not a 302 redirect or HTML login page, when checked in browser DevTools Network tab while logged in
   2. `PRAGMA journal_mode;` query on the running database returns `wal`, confirming SQLite WAL mode is active
   3. Simulating browser disconnect then reconnect (DevTools offline/online toggle) causes the JS client to re-join its SignalR group automatically — no manual page reload required
-  4. `ForceCloseAssessment` and `SubmitExam` both use status-guarded `ExecuteUpdateAsync` so a worker who submits in the same moment HC force-closes does not have their score silently overwritten
+  4. `AkhiriUjian` and `SubmitExam` both use status-guarded `ExecuteUpdateAsync` so a worker who submits in the same moment HC closes does not have their score silently overwritten
   5. No `Dictionary<userId, connectionId>` exists in the codebase — per-worker targeting uses `Clients.User()` or named groups only
 **Plans**: TBD
 
-### Phase 163: HC-to-Worker Push Events
-**Goal**: HC Reset and ForceClose actions reach the worker's exam page in sub-second time, eliminating the 10-second window where workers answer questions against a locked/zeroed session
-**Depends on**: Phase 162
-**Requirements**: PUSH-01, PUSH-02, PUSH-03, PUSH-05
+### Phase 164: HC-to-Worker Push Events
+**Goal**: HC Akhiri Ujian and Reset actions reach the worker's exam page in sub-second time, eliminating the 10-second window where workers answer questions against a closed session
+**Depends on**: Phase 163
+**Requirements**: PUSH-01, PUSH-02, PUSH-03
 **Success Criteria** (what must be TRUE):
   1. HC clicks Reset on a worker's session; that worker's exam page shows a "Sesi direset oleh HC" modal within 1 second — without any page polling interval completing
-  2. HC clicks ForceClose on a worker's session; that worker's exam page shows a countdown modal and redirects to results within 1 second of the HC action
-  3. HC clicks Close Early on an assessment; all workers currently on StartExam receive the `examWindowClosed` event and are redirected within 1 second
-  4. HC clicks ForceClose All; every active worker in the batch receives the force-close event simultaneously within 1 second
-  5. A connection status badge ("Live" / "Reconnecting...") is visible on the worker exam page and accurately reflects the SignalR connection state
+  2. HC clicks "Akhiri Ujian" on a worker's session; that worker's exam page shows a countdown modal and redirects to results within 1 second
+  3. HC clicks "Akhiri Semua" on an assessment; all workers currently on StartExam receive the close event and are redirected within 1 second
+  4. A connection status badge ("Live" / "Reconnecting...") is visible on the worker exam page and accurately reflects the SignalR connection state
 **Plans**: TBD
 
-### Phase 164: Worker-to-HC Progress Push
-**Goal**: The HC monitoring page shows worker exam progress, start events, and submission events in near-real-time without polling — HC situational awareness is continuous, not batched at 10-second intervals
-**Depends on**: Phase 163
-**Requirements**: MONITOR-01, MONITOR-02, MONITOR-03
+### Phase 165: Worker-to-HC Progress Push + Polling Removal
+**Goal**: The HC monitoring page shows worker exam progress, start events, and submission events in near-real-time via SignalR push — then legacy polling is removed after UAT confirms stability
+**Depends on**: Phase 164
+**Requirements**: MONITOR-01, MONITOR-02, MONITOR-03, CLEAN-01
 **Success Criteria** (what must be TRUE):
   1. When a worker answers questions, the HC monitoring detail page updates that worker's answered-count and progress bar within 1-2 seconds — without a polling interval completing
-  2. When a worker submits their exam, the HC monitoring page immediately shows their status as "Selesai" and their score — not up to 10 seconds later
+  2. When a worker submits their exam, the HC monitoring page immediately shows their status as "Selesai" and their score
   3. When a worker opens their exam for the first time, the HC monitoring page immediately shows their status as "Dalam Pengerjaan"
   4. A connection status badge ("Live" / "Reconnecting...") is visible on the HC monitoring page and re-joins the monitor group automatically after reconnect
+  5. No `setInterval` calls related to exam status checking or monitoring progress remain in `StartExam.cshtml` or `AssessmentMonitoringDetail.cshtml`
+  6. The legacy polling endpoints (`CheckExamStatus`, `GetMonitoringProgress`) are either removed or clearly marked as deprecated with no JS callers
 **Plans**: TBD
 
-### Phase 165: Cleanup & Polling Removal
-**Goal**: The codebase has one refresh mechanism (SignalR push) for assessment status data — polling setInterval calls are removed after UAT confirms real-time push is stable
-**Depends on**: Phase 164
-**Requirements**: CLEAN-01
+### Phase 166: Activity Log Per-Worker
+**Goal**: HC can view a detailed timeline of each worker's exam activity — question opens, answer changes, page navigation, disconnect/reconnect events — for audit and fairness purposes
+**Depends on**: Phase 165
+**Requirements**: LOG-01, LOG-02
 **Success Criteria** (what must be TRUE):
-  1. No `setInterval` calls related to exam status checking or monitoring progress remain in `StartExam.cshtml` or `AssessmentMonitoringDetail.cshtml`
-  2. The worker exam page and HC monitoring page continue to update correctly in real-time after polling removal — SignalR push is the sole update mechanism
-  3. The legacy polling endpoints (`CheckExamStatus`, `GetMonitoringProgress`) are either removed or clearly marked as deprecated with no JS callers in the views
+  1. HC clicks a worker row in monitoring detail and sees a chronological activity log with timestamps for each event (start, answer, page change, disconnect, reconnect, submit)
+  2. Activity data is stored server-side and survives browser refresh — not client-only
+**Plans**: TBD
+
+### Phase 167: Item Analysis / Statistik Per-Soal
+**Goal**: After an assessment group completes, HC can view per-question statistics — difficulty index, discrimination index, answer distribution — to evaluate question quality
+**Depends on**: Phase 165
+**Requirements**: STATS-01, STATS-02
+**Success Criteria** (what must be TRUE):
+  1. HC monitoring detail page shows a "Statistik Soal" section with per-question difficulty percentage and answer distribution chart
+  2. Questions are ranked by difficulty so HC can identify problematic questions
 **Plans**: TBD
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 162. Hub Infrastructure & Safety Foundations | v4.2 | 0/TBD | Not started | - |
-| 163. HC-to-Worker Push Events | v4.2 | 0/TBD | Not started | - |
-| 164. Worker-to-HC Progress Push | v4.2 | 0/TBD | Not started | - |
-| 165. Cleanup & Polling Removal | v4.2 | 0/TBD | Not started | - |
+| 162. Simplifikasi Action Close + Auto-Grade | v4.2 | 0/2 | Not started | - |
+| 163. Hub Infrastructure & Safety Foundations | v4.2 | 0/TBD | Not started | - |
+| 164. HC-to-Worker Push Events | v4.2 | 0/TBD | Not started | - |
+| 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/TBD | Not started | - |
+| 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
+| 167. Item Analysis / Statistik Per-Soal | v4.2 | 0/TBD | Not started | - |
