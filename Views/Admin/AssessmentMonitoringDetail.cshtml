@@ -936,12 +936,150 @@
     window.assessmentHub.onclose(function() {
         if (monBadge) { monBadge.className = 'badge bg-danger ms-1 small'; monBadge.textContent = 'Disconnected'; }
     });
-    // Set initial "Live" state after hub connects
+    // Set initial "Live" state after hub connects, then join monitor group
     setTimeout(function() {
         if (monBadge && window.assessmentHub && window.assessmentHub.state === 'Connected') {
             monBadge.className = 'badge bg-success ms-1 small';
             monBadge.textContent = 'Live';
         }
+        if (window.assessmentBatchKey && window.assessmentHub && window.assessmentHub.state === 'Connected') {
+            window.assessmentHub.invoke('JoinMonitor', window.assessmentBatchKey)
+                .catch(function(err) { console.warn('[monitor] JoinMonitor failed:', err); });
+        }
     }, 2000);
+
+    // Rejoin monitor group after reconnect
+    window.assessmentHub.onreconnected(function() {
+        if (window.assessmentBatchKey) {
+            window.assessmentHub.invoke('JoinMonitor', window.assessmentBatchKey)
+                .catch(function(err) { console.warn('[monitor] JoinMonitor after reconnect failed:', err); });
+        }
+    });
+
+    // ---- Row flash helper ----
+    function flashRow(tr, cssClass) {
+        if (!tr) return;
+        tr.classList.remove('flash-update', 'flash-complete');
+        void tr.offsetWidth; // force reflow to restart animation
+        tr.classList.add(cssClass);
+        setTimeout(function() { tr.classList.remove(cssClass); }, 1300);
+    }
+
+    // ---- Update summary counts from DOM (used by push events) ----
+    function updateSummaryFromDOM() {
+        var rows = document.querySelectorAll('tbody tr[data-session-id]');
+        var total = rows.length;
+        var completed = 0, inProgress = 0, notStarted = 0, cancelled = 0;
+        rows.forEach(function(tr) {
+            var statusCell = tr.querySelector('.status-cell');
+            if (!statusCell) return;
+            var text = statusCell.textContent.trim();
+            if (text === 'Completed') completed++;
+            else if (text === 'InProgress') inProgress++;
+            else if (text === 'Dibatalkan') cancelled++;
+            else notStarted++;
+        });
+        var el;
+        el = document.getElementById('count-total');      if (el) el.textContent = total;
+        el = document.getElementById('count-completed');  if (el) el.textContent = completed;
+        el = document.getElementById('count-inprogress'); if (el) el.textContent = inProgress;
+        el = document.getElementById('count-notstarted'); if (el) el.textContent = notStarted;
+        el = document.getElementById('count-cancelled');  if (el) el.textContent = cancelled;
+    }
+
+    // ---- SignalR push event handlers ----
+
+    // progressUpdate: worker answered a question
+    window.assessmentHub.on('progressUpdate', function(data) {
+        var tr = document.querySelector('tr[data-session-id="' + data.sessionId + '"]');
+        if (!tr) return;
+        var progressCell = tr.querySelector('.progress-cell');
+        if (progressCell) {
+            progressCell.textContent = data.totalQuestions > 0
+                ? (data.progress + '/' + data.totalQuestions)
+                : '\u2014';
+        }
+        flashRow(tr, 'flash-update');
+        // updateLastUpdated is already defined in the IIFE above (page scope accessible)
+        var el = document.getElementById('last-updated-time');
+        if (el) el.textContent = new Date().toLocaleTimeString('id-ID');
+    });
+
+    // workerStarted: worker opened exam for the first time
+    window.assessmentHub.on('workerStarted', function(data) {
+        var tr = document.querySelector('tr[data-session-id="' + data.sessionId + '"]');
+        if (!tr) return;
+        var statusCell = tr.querySelector('.status-cell');
+        if (statusCell) {
+            statusCell.innerHTML = '<span class="badge bg-warning text-dark">InProgress</span>';
+        }
+        flashRow(tr, 'flash-update');
+        if (typeof window.showAssessmentToast === 'function') {
+            window.showAssessmentToast(data.workerName + ' memulai ujian');
+        }
+        updateSummaryFromDOM();
+        var el = document.getElementById('last-updated-time');
+        if (el) el.textContent = new Date().toLocaleTimeString('id-ID');
+    });
+
+    // workerSubmitted: worker submitted exam
+    window.assessmentHub.on('workerSubmitted', function(data) {
+        var tr = document.querySelector('tr[data-session-id="' + data.sessionId + '"]');
+        // Build session object matching updateRow() signature
+        var session = {
+            sessionId: data.sessionId,
+            status: 'Completed',
+            score: data.score,
+            result: data.result,
+            progress: data.totalQuestions,
+            totalQuestions: data.totalQuestions,
+            remainingSeconds: null,
+            completedAt: new Date().toISOString()
+        };
+        // updateRow is defined in the IIFE; since it is inside an IIFE it is not directly accessible here.
+        // Re-implement minimal row update for workerSubmitted:
+        if (tr) {
+            var tds = tr.querySelectorAll('td');
+            // Progress (col 1)
+            if (tds[1] && data.totalQuestions > 0) tds[1].textContent = data.totalQuestions + '/' + data.totalQuestions;
+            // Status (col 2)
+            if (tds[2]) tds[2].innerHTML = '<span class="badge bg-success">Completed</span>';
+            // Score (col 3)
+            if (tds[3]) tds[3].textContent = data.score !== null && data.score !== undefined ? data.score + '%' : '\u2014';
+            // Result (col 4)
+            if (tds[4]) {
+                tds[4].textContent = data.result || '\u2014';
+                tds[4].className = 'result-cell ' + (data.result === 'Pass' ? 'text-success fw-semibold' : (data.result === 'Fail' ? 'text-danger fw-semibold' : 'text-muted'));
+            }
+            // CompletedAt (col 5)
+            if (tds[5]) {
+                var d = new Date();
+                tds[5].textContent = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+                    + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            }
+            flashRow(tr, 'flash-complete');
+        }
+        if (typeof window.showAssessmentToast === 'function') {
+            window.showAssessmentToast(data.workerName + ' menyelesaikan ujian (Skor: ' + data.score + '%)');
+        }
+        updateSummaryFromDOM();
+        var elLu = document.getElementById('last-updated-time');
+        if (elLu) elLu.textContent = new Date().toLocaleTimeString('id-ID');
+
+        // If all rows are terminal, hide Akhiri Semua button
+        var rows = document.querySelectorAll('tbody tr[data-session-id]');
+        var allDone = true;
+        rows.forEach(function(row) {
+            var sc = row.querySelector('.status-cell');
+            if (sc) {
+                var txt = sc.textContent.trim();
+                if (txt !== 'Completed' && txt !== 'Dibatalkan' && txt !== 'Abandoned') allDone = false;
+            }
+        });
+        if (allDone) {
+            var akhiriBtn = document.getElementById('akhiriSemuaBtn');
+            if (akhiriBtn) akhiriBtn.style.display = 'none';
+        }
+    });
 </script>
 }

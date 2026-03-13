@@ -92,4 +92,5 @@
     startHub();
 
     window.assessmentHub = connection;
+    window.showAssessmentToast = showToast;
 }());

@@ -44,3 +44,14 @@
 .assessment-toast--error {
     background-color: #c62828;
 }
+
+@keyframes rowFlashUpdate {
+    0%   { background-color: #e8f4ff; }
+    100% { background-color: transparent; }
+}
+@keyframes rowFlashComplete {
+    0%   { background-color: #d4edda; }
+    100% { background-color: transparent; }
+}
+.flash-update { animation: rowFlashUpdate 1s ease-out forwards; }
+.flash-complete { animation: rowFlashComplete 1.2s ease-out forwards; }
