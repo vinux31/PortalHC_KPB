@@ -3,97 +3,75 @@
 **Defined:** 2026-03-13
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v4.2 Requirements
+## v4.3 Requirements
 
-Requirements for Real-time Assessment milestone. Each maps to roadmap phases.
+### Code Audit
 
-### Close Action Simplification
+- [ ] **CODE-01**: Identify and remove dead code (unused methods, unreachable actions, orphaned helpers)
+- [ ] **CODE-02**: Identify and fix logic bugs across all controllers
+- [ ] **CODE-03**: Remove unused `using` imports and clean up namespaces
+- [ ] **CODE-04**: Identify and remove orphaned views (views with no controller action)
 
-- [x] **CLOSE-01**: "Akhiri Ujian" (individual) auto-grades saved answers and sets real score — not hardcoded 0
-- [x] **CLOSE-02**: "Akhiri Semua" (group) auto-grades all InProgress workers from saved answers
-- [x] **CLOSE-03**: Workers who haven't started get status "Cancelled" (not "Completed" or "Abandoned") on Akhiri Semua
-- [x] **CLOSE-04**: Old ForceClose, ForceCloseAll, CloseEarly actions removed — replaced by 2 new actions
+### Database Audit
 
-### Infrastructure
+- [ ] **DB-01**: Identify orphaned records (FK references to deleted/inactive parents)
+- [ ] **DB-02**: Identify unused tables and columns in schema
+- [ ] **DB-03**: Clean up stale seed data and test data
+- [ ] **DB-04**: Verify data integrity (missing required fields, broken relationships)
 
-- [x] **INFRA-01**: SignalR Hub class registered with `AddSignalR()` and `MapHub` in Program.cs
-- [x] **INFRA-02**: `@microsoft/signalr@8.x` JS client library installed in wwwroot
-- [x] **INFRA-03**: Cookie auth configured to return 401 (not 302 redirect) on SignalR negotiate endpoint
-- [x] **INFRA-04**: SQLite WAL mode enabled on application startup to prevent concurrent write locks
-- [x] **INFRA-05**: Client-side reconnect handling re-joins SignalR groups after connection restore
+### File Audit
 
-### HC → Worker Push
+- [ ] **FILE-01**: Identify and remove unused view files (.cshtml with no route)
+- [ ] **FILE-02**: Identify and remove orphaned JS/CSS files not referenced anywhere
+- [ ] **FILE-03**: Identify and remove temp/leftover files (screenshots, logs, debug artifacts)
+- [ ] **FILE-04**: Identify duplicate or near-duplicate code blocks
 
-- [x] **PUSH-01**: Worker exam page updates instantly when HC resets their session
-- [x] **PUSH-02**: Worker exam page redirects to results when HC closes their session (Akhiri Ujian)
-- [x] **PUSH-03**: All workers in a batch are notified when HC closes all sessions (Akhiri Semua)
+### Security Review
 
-### Worker → HC Push + Cleanup
-
-- [x] **MONITOR-01**: HC monitoring page shows real-time answer progress without polling
-- [x] **MONITOR-02**: HC monitoring page instantly shows when a worker completes their exam
-- [x] **MONITOR-03**: HC monitoring page instantly shows when a worker starts their exam
-- [ ] **CLEAN-01**: Polling code (setInterval) removed from monitoring and exam pages after SignalR proven working
-
-### Activity Log (Opsional)
-
-- [x] **LOG-01**: Per-worker activity timeline stored server-side (question opens, answers, page nav, disconnect/reconnect)
-- [x] **LOG-02**: HC can view activity log from monitoring detail page
-
-### Item Analysis (Opsional)
-
-- [ ] **STATS-01**: Per-question difficulty percentage and answer distribution displayed after assessment completes
-- [ ] **STATS-02**: Questions ranked by difficulty for HC to identify problematic questions
+- [ ] **SEC-01**: Audit authorization attributes on all controller actions
+- [ ] **SEC-02**: Check for missing CSRF protection (ValidateAntiForgeryToken)
+- [ ] **SEC-03**: Check for input validation gaps (SQL injection, XSS, open redirect)
+- [ ] **SEC-04**: Verify file upload security (type validation, size limits, path traversal)
 
 ## Future Requirements
 
-### Notifications
-- **NOTIF-01**: In-app notification bell with real-time push via SignalR
-- **NOTIF-02**: Coaching Proton approval notifications
+(None — this is a standalone audit milestone)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Per-answer content push | Sends answer data over WebSocket — security risk, no value to HC |
-| Real-time chat | High complexity, not core to assessment |
-| Proctoring/screen monitoring | Out of scope for this portal |
-| OS/browser notifications | Requires extra permission UX, SignalR in-page push sufficient |
-| Replacing auto-save with SignalR | HTTP auto-save is reliable and proven; SignalR is for notifications only |
-| SignalR for non-assessment features | Scope limited to assessment/exam flow per user decision |
+| Performance optimization | Separate milestone if needed |
+| UI/UX redesign | Not part of audit scope |
+| New features | This milestone is cleanup only |
+| Database migration restructuring | Too risky for audit milestone |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLOSE-01 | Phase 162 | Complete |
-| CLOSE-02 | Phase 162 | Complete |
-| CLOSE-03 | Phase 162 | Complete |
-| CLOSE-04 | Phase 162 | Complete |
-| INFRA-01 | Phase 163 | Complete |
-| INFRA-02 | Phase 163 | Complete |
-| INFRA-03 | Phase 163 | Complete |
-| INFRA-04 | Phase 163 | Complete |
-| INFRA-05 | Phase 163 | Complete |
-| PUSH-01 | Phase 164 | Complete |
-| PUSH-02 | Phase 164 | Complete |
-| PUSH-03 | Phase 164 | Complete |
-| MONITOR-01 | Phase 165 | Complete |
-| MONITOR-02 | Phase 165 | Complete |
-| MONITOR-03 | Phase 165 | Complete |
-| CLEAN-01 | Phase 165 | Pending |
-| LOG-01 | Phase 166 | Complete |
-| LOG-02 | Phase 166 | Complete |
-| STATS-01 | Phase 167 | Pending |
-| STATS-02 | Phase 167 | Pending |
+| CODE-01 | — | Pending |
+| CODE-02 | — | Pending |
+| CODE-03 | — | Pending |
+| CODE-04 | — | Pending |
+| DB-01 | — | Pending |
+| DB-02 | — | Pending |
+| DB-03 | — | Pending |
+| DB-04 | — | Pending |
+| FILE-01 | — | Pending |
+| FILE-02 | — | Pending |
+| FILE-03 | — | Pending |
+| FILE-04 | — | Pending |
+| SEC-01 | — | Pending |
+| SEC-02 | — | Pending |
+| SEC-03 | — | Pending |
+| SEC-04 | — | Pending |
 
 **Coverage:**
-- v4.2 requirements: 20 total (16 core + 4 opsional)
-- Mapped to phases: 20
-- Unmapped: 0 ✓
+- v4.3 requirements: 16 total
+- Mapped to phases: 0
+- Unmapped: 16 ⚠️
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 — revised with close action simplification, activity log, and item analysis*
+*Last updated: 2026-03-13 after initial definition*
