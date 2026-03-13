@@ -120,28 +120,34 @@
 
     <!-- Summary cards -->
     <div class="row g-3 mb-4">
-        <div class="col-sm-3">
+        <div class="col">
             <div class="card border-0 shadow-sm text-center py-3">
                 <div class="fs-3 fw-bold text-primary" id="count-total">@Model.TotalCount</div>
                 <div class="text-muted small">Total Assigned</div>
             </div>
         </div>
-        <div class="col-sm-3">
+        <div class="col">
             <div class="card border-0 shadow-sm text-center py-3">
                 <div class="fs-3 fw-bold text-success" id="count-completed">@Model.CompletedCount</div>
                 <div class="text-muted small">Completed</div>
             </div>
         </div>
-        <div class="col-sm-3">
+        <div class="col">
             <div class="card border-0 shadow-sm text-center py-3">
                 <div class="fs-3 fw-bold text-warning" id="count-inprogress">@(Model.Sessions.Count(s => s.UserStatus == "InProgress"))</div>
                 <div class="text-muted small">In Progress</div>
             </div>
         </div>
-        <div class="col-sm-3">
+        <div class="col">
             <div class="card border-0 shadow-sm text-center py-3">
                 <div class="fs-3 fw-bold text-secondary" id="count-notstarted">@Model.PendingCount</div>
                 <div class="text-muted small">Not Started</div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card border-0 shadow-sm text-center py-3">
+                <div class="fs-3 fw-bold text-secondary" id="count-cancelled">@Model.CancelledCount</div>
+                <div class="text-muted small">Dibatalkan</div>
             </div>
         </div>
     </div>
@@ -162,25 +168,11 @@
                         <i class="bi bi-download me-1"></i>Export Results
                     </button>
                 </form>
-                @if (Model.GroupStatus == "Open")
-                {
-                    <!-- Close Early: triggers Bootstrap modal confirmation -->
-                    <button type="button" class="btn btn-warning btn-sm" id="closeEarlyBtn"
-                            data-bs-toggle="modal" data-bs-target="#closeEarlyModal">
-                        <i class="bi bi-clock-history me-1"></i>Submit Assessment
-                    </button>
-                }
-                <!-- Force Close All: POST with antiforgery, confirm() guard -->
-                <form asp-action="ForceCloseAll" asp-controller="Admin" method="post" class="d-inline"
-                      onsubmit="return confirm('Tutup paksa semua sesi Open/InProgress? Sesi akan ditandai Abandoned dan tidak dapat dikembalikan.')">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="title" value="@Model.Title" />
-                    <input type="hidden" name="category" value="@Model.Category" />
-                    <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
-                    <button type="submit" class="btn btn-danger btn-sm">
-                        <i class="bi bi-x-circle me-1"></i>Force Close All
-                    </button>
-                </form>
+                <!-- Akhiri Semua Ujian: triggers Bootstrap modal confirmation -->
+                <button type="button" class="btn btn-danger btn-sm" id="akhiriSemuaBtn"
+                        data-bs-toggle="modal" data-bs-target="#akhiriSemuaModal">
+                    <i class="bi bi-x-circle me-1"></i>Akhiri Semua Ujian
+                </button>
                 @if (Model.IsPackageMode && Model.PendingCount > 0)
                 {
                     <button type="button" class="btn btn-outline-primary btn-sm"
@@ -220,8 +212,11 @@
                                 {
                                     "Completed"  => "bg-success",
                                     "InProgress" => "bg-warning text-dark",
+                                    "Cancelled"  => "bg-secondary",
                                     _            => "bg-light text-dark border"
                                 };
+
+                                var statusLabel = session.UserStatus == "Cancelled" ? "Dibatalkan" : session.UserStatus;
 
                                 string resultText;
                                 string resultClass;
@@ -244,7 +239,7 @@
                                 <tr data-session-id="@session.Id">
                                     <td class="fw-semibold">@session.UserFullName</td>
                                     <td class="text-center progress-cell">@(session.QuestionCount > 0 ? $"\u2014/{session.QuestionCount}" : "\u2014")</td>
-                                    <td class="status-cell"><span class="badge @statusClass">@session.UserStatus</span></td>
+                                    <td class="status-cell"><span class="badge @statusClass">@statusLabel</span></td>
                                     <td class="score-cell">
                                         @if (session.Score.HasValue)
                                         {
@@ -272,27 +267,30 @@
                                                 <i class="bi bi-shuffle me-1"></i>Reshuffle
                                             </button>
                                         }
-                                        @* Force Close -- InProgress only *@
+                                        @* Akhiri Ujian -- InProgress only *@
                                         @if (session.UserStatus == "InProgress")
                                         {
-                                            <form asp-action="ForceCloseAssessment" asp-controller="Admin" method="post" class="d-inline me-1"
-                                                  onsubmit="return confirm('Tutup paksa sesi ini? Skor akan dicatat sebagai 0 dan peserta dinyatakan tidak lulus.')">
+                                            <form asp-action="AkhiriUjian" asp-controller="Admin" method="post" class="d-inline me-1"
+                                                  onsubmit="return confirm('Akhiri ujian untuk @(session.UserFullName)? Jawaban tersimpan akan dinilai otomatis.')">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@session.Id" />
                                                 <button type="submit" class="btn btn-danger btn-sm">
-                                                    <i class="bi bi-x-circle me-1"></i>Force Close
+                                                    <i class="bi bi-x-circle me-1"></i>Akhiri Ujian
                                                 </button>
                                             </form>
                                         }
-                                        @* Reset -- all statuses *@
-                                        <form asp-action="ResetAssessment" asp-controller="Admin" method="post" class="d-inline me-1"
-                                              onsubmit="return confirm('Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.')">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="id" value="@session.Id" />
-                                            <button type="submit" class="btn btn-warning btn-sm">
-                                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-                                            </button>
-                                        </form>
+                                        @* Reset -- all statuses except Cancelled *@
+                                        @if (session.UserStatus != "Cancelled")
+                                        {
+                                            <form asp-action="ResetAssessment" asp-controller="Admin" method="post" class="d-inline me-1"
+                                                  onsubmit="return confirm('Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@session.Id" />
+                                                <button type="submit" class="btn btn-warning btn-sm">
+                                                    <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                                                </button>
+                                            </form>
+                                        }
                                         @* View Results -- Completed only *@
                                         @if (session.UserStatus == "Completed")
                                         {
@@ -363,43 +361,44 @@
         </div>
     }
 
-    @if (Model.GroupStatus == "Open")
-    {
-        <!-- Close Early Confirmation Modal -->
-        <div class="modal fade" id="closeEarlyModal" tabindex="-1" aria-labelledby="closeEarlyModalLabel" aria-hidden="true">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-warning">
-                        <h5 class="modal-title fw-semibold" id="closeEarlyModalLabel">
-                            <i class="bi bi-clock-history me-2"></i>Submit Assessment
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <!-- Akhiri Semua Ujian Confirmation Modal -->
+    <div class="modal fade" id="akhiriSemuaModal" tabindex="-1" aria-labelledby="akhiriSemuaModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-semibold" id="akhiriSemuaModalLabel">
+                        <i class="bi bi-x-circle me-2"></i>Akhiri Semua Ujian
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="akhiriSemuaLoading" class="text-center py-3">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Memuat data...
                     </div>
-                    <div class="modal-body">
-                        <p class="mb-2">Tindakan ini akan <strong>menutup grup ujian "@Model.Title" lebih awal</strong> secara permanen dan tidak dapat dibatalkan.</p>
+                    <div id="akhiriSemuaContent" style="display:none;">
+                        <p class="mb-2 fw-semibold">Akhiri semua ujian?</p>
                         <ul class="mb-2">
-                            <li><strong>Peserta yang sedang mengerjakan (InProgress)</strong> akan diberi skor berdasarkan jawaban yang sudah mereka kirimkan.</li>
-                            <li><strong>Peserta yang belum mulai (Not Started)</strong> akan dikunci dan tidak dapat mengakses ujian.</li>
-                            <li>Peserta yang sudah selesai tidak akan terpengaruh.</li>
+                            <li><strong id="akhiriInProgressCount">0</strong> peserta InProgress akan dinilai dari jawaban tersimpan.</li>
+                            <li><strong id="akhiriNotStartedCount">0</strong> peserta belum mulai akan dibatalkan.</li>
                         </ul>
-                        <p class="text-danger mb-0"><i class="bi bi-exclamation-triangle-fill me-1"></i>Apakah Anda yakin ingin menutup ujian ini lebih awal?</p>
+                        <p class="text-danger mb-0"><i class="bi bi-exclamation-triangle-fill me-1"></i>Tindakan ini tidak dapat dibatalkan.</p>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <form asp-action="CloseEarly" asp-controller="Admin" method="post" class="d-inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="title" value="@Model.Title" />
-                            <input type="hidden" name="category" value="@Model.Category" />
-                            <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-clock-history me-1"></i>Ya, Submit Assessment
-                            </button>
-                        </form>
-                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <form asp-action="AkhiriSemuaUjian" asp-controller="Admin" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="title" value="@Model.Title" />
+                        <input type="hidden" name="category" value="@Model.Category" />
+                        <input type="hidden" name="scheduleDate" value="@Model.Schedule.ToString("yyyy-MM-dd")" />
+                        <button type="submit" class="btn btn-danger" id="akhiriSemuaSubmitBtn">
+                            <i class="bi bi-x-circle me-1"></i>Ya, Akhiri Semua
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
-    }
+    </div>
 
     @if (isProtonInterview)
     {
@@ -642,13 +641,23 @@
         if (status === 'Completed')  return 'badge bg-success';
         if (status === 'InProgress') return 'badge bg-warning text-dark';
         if (status === 'Abandoned')  return 'badge bg-secondary';
+        if (status === 'Cancelled')  return 'badge bg-secondary';
         return 'badge bg-light text-dark border'; // Not started
+    }
+
+    // ---- Status display label ----
+    function statusDisplayLabel(status) {
+        if (status === 'Cancelled') return 'Dibatalkan';
+        return status;
     }
 
     // ---- Build actions HTML per status ----
     function buildActionsHtml(session, isPackageMode) {
         var html = '';
         var token = getToken();
+
+        // Cancelled -- no actions at all
+        if (session.status === 'Cancelled') return html;
 
         // Reshuffle -- package mode, Not started or Abandoned only (always enabled)
         if (isPackageMode && (session.status === 'Not started' || session.status === 'Abandoned')) {
@@ -659,17 +668,20 @@
                 + '><i class="bi bi-shuffle me-1"></i>Reshuffle</button>';
         }
 
-        // Force Close -- InProgress only
+        // Akhiri Ujian -- InProgress only
         if (session.status === 'InProgress') {
-            html += '<form class="d-inline me-1" method="post" action="/Admin/ForceCloseAssessment"'
-                + ' onsubmit="return confirm(\'Tutup paksa sesi ini? Skor akan dicatat sebagai 0 dan peserta dinyatakan tidak lulus.\')">'
+            // Get worker name from the existing row (col 0)
+            var tr = document.querySelector('tr[data-session-id="' + session.sessionId + '"]');
+            var workerName = tr ? tr.querySelectorAll('td')[0].textContent.trim().replace(/'/g, "\\'") : '';
+            html += '<form class="d-inline me-1" method="post" action="/Admin/AkhiriUjian"'
+                + ' onsubmit="return confirm(\'Akhiri ujian untuk ' + workerName + '? Jawaban tersimpan akan dinilai otomatis.\')">'
                 + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
                 + '<input type="hidden" name="id" value="' + session.sessionId + '" />'
-                + '<button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-circle me-1"></i>Force Close</button>'
+                + '<button type="submit" class="btn btn-danger btn-sm"><i class="bi bi-x-circle me-1"></i>Akhiri Ujian</button>'
                 + '</form>';
         }
 
-        // Reset -- all statuses
+        // Reset -- all statuses except Cancelled
         html += '<form class="d-inline me-1" method="post" action="/Admin/ResetAssessment"'
             + ' onsubmit="return confirm(\'Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.\')">'
             + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
@@ -711,7 +723,7 @@
         tds[1].textContent = total > 0 ? (session.progress + '/' + total) : '\u2014';
 
         // Status (col 2)
-        tds[2].innerHTML = '<span class="' + statusBadgeClass(session.status) + '">' + session.status + '</span>';
+        tds[2].innerHTML = '<span class="' + statusBadgeClass(session.status) + '">' + statusDisplayLabel(session.status) + '</span>';
 
         // Score (col 3)
         tds[3].textContent = session.score !== null && session.score !== undefined ? session.score + '%' : '\u2014';
@@ -761,16 +773,19 @@
         var completed  = sessions.filter(function (s) { return s.status === 'Completed'; }).length;
         var inProgress = sessions.filter(function (s) { return s.status === 'InProgress'; }).length;
         var notStarted = sessions.filter(function (s) { return s.status === 'Not started'; }).length;
+        var cancelled  = sessions.filter(function (s) { return s.status === 'Cancelled'; }).length;
 
         var elTotal      = document.getElementById('count-total');
         var elCompleted  = document.getElementById('count-completed');
         var elInProgress = document.getElementById('count-inprogress');
         var elNotStarted = document.getElementById('count-notstarted');
+        var elCancelled  = document.getElementById('count-cancelled');
 
         if (elTotal)      elTotal.textContent      = total;
         if (elCompleted)  elCompleted.textContent  = completed;
         if (elInProgress) elInProgress.textContent = inProgress;
         if (elNotStarted) elNotStarted.textContent = notStarted;
+        if (elCancelled)  elCancelled.textContent  = cancelled;
     }
 
     // ---- Update "Last updated" timestamp ----
@@ -805,15 +820,15 @@
             updateSummary(sessions);
             updateLastUpdated();
 
-            // Stop polling when all sessions are Completed
-            if (sessions.length > 0 && sessions.every(function (s) { return s.status === 'Completed'; })) {
+            // Stop polling when all sessions are in a terminal state (Completed, Cancelled, Abandoned)
+            if (sessions.length > 0 && sessions.every(function (s) { return s.status === 'Completed' || s.status === 'Cancelled' || s.status === 'Abandoned'; })) {
                 clearInterval(pollingTimer);
                 clearInterval(countdownTimer);
                 pollingActive = false;
 
-                // Hide "Tutup Lebih Awal" button
-                var closeBtn = document.getElementById('closeEarlyBtn');
-                if (closeBtn) closeBtn.style.display = 'none';
+                // Hide "Akhiri Semua Ujian" button
+                var akhiriBtn = document.getElementById('akhiriSemuaBtn');
+                if (akhiriBtn) akhiriBtn.style.display = 'none';
             }
         } catch (e) {
             showErrorIndicator();
@@ -826,6 +841,34 @@
 
     // Run first poll immediately (don't wait 10s)
     fetchProgress();
+
+    // ---- Akhiri Semua Modal: fetch counts on open ----
+    var akhiriModal = document.getElementById('akhiriSemuaModal');
+    if (akhiriModal) {
+        akhiriModal.addEventListener('show.bs.modal', function () {
+            var loading = document.getElementById('akhiriSemuaLoading');
+            var content = document.getElementById('akhiriSemuaContent');
+            loading.style.display = '';
+            content.style.display = 'none';
+
+            var url = '/Admin/GetAkhiriSemuaCounts'
+                + '?title=' + encodeURIComponent(hTitle)
+                + '&category=' + encodeURIComponent(hCategory)
+                + '&scheduleDate=' + encodeURIComponent(hScheduleDate);
+
+            fetch(url)
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    document.getElementById('akhiriInProgressCount').textContent = data.inProgressCount || 0;
+                    document.getElementById('akhiriNotStartedCount').textContent = data.notStartedCount || 0;
+                    loading.style.display = 'none';
+                    content.style.display = '';
+                })
+                .catch(function () {
+                    loading.innerHTML = '<span class="text-danger">Gagal memuat data. Tutup dan coba lagi.</span>';
+                });
+        });
+    }
 })();
 </script>
 
