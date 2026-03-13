@@ -110,7 +110,11 @@
   2. All known logic bugs across controllers are identified, documented, and either fixed or explicitly deferred with justification
   3. No unused `using` statements or unnecessary namespace imports remain in any .cs file
   4. No .cshtml view file exists in the Views directory without a corresponding reachable controller action
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 168-01-PLAN.md — Dead code removal and orphaned views cleanup
+- [ ] 168-02-PLAN.md — Logic bug audit and fixes
+- [ ] 168-03-PLAN.md — Unused imports cleanup
 
 ### Phase 169: File & Database Audit
 **Goal**: The file system and database contain no orphaned, duplicate, or stale artifacts — every file is referenced and every DB record is valid
@@ -139,6 +143,6 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 168. Code Audit | v4.3 | 0/TBD | Not started | - |
+| 168. Code Audit | v4.3 | 0/3 | Not started | - |
 | 169. File & Database Audit | v4.3 | 0/TBD | Not started | - |
 | 170. Security Review | v4.3 | 0/TBD | Not started | - |
