@@ -6,7 +6,6 @@ using System.Security.Claims;
 namespace HcPortal.Controllers
 {
     [Authorize]
-    [IgnoreAntiforgeryToken]
     public class NotificationController : Controller
     {
         private readonly INotificationService _notificationService;
@@ -39,6 +38,7 @@ namespace HcPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAsRead(int id)
         {
             var userId = GetUserId();
@@ -48,6 +48,7 @@ namespace HcPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> MarkAllAsRead()
         {
             var userId = GetUserId();
@@ -56,6 +57,7 @@ namespace HcPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Dismiss(int id)
         {
             var userId = GetUserId();

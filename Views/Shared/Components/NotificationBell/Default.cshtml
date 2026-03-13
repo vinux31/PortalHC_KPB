@@ -117,8 +117,20 @@
             });
     }
 
+    function getAntiforgeryToken() {
+        var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+        return tokenEl ? tokenEl.value : '';
+    }
+
+    function postWithToken(url) {
+        return fetch(url, {
+            method: 'POST',
+            headers: { 'RequestVerificationToken': getAntiforgeryToken() }
+        });
+    }
+
     window.markAsRead = function (id, actionUrl) {
-        fetch('/Notification/MarkAsRead/' + id, { method: 'POST' })
+        postWithToken('/Notification/MarkAsRead/' + id)
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 updateBadge(data.unreadCount);
@@ -131,7 +143,7 @@
     };
 
     window.markAllAsRead = function () {
-        fetch('/Notification/MarkAllAsRead', { method: 'POST' })
+        postWithToken('/Notification/MarkAllAsRead')
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 updateBadge(data.unreadCount);
@@ -142,7 +154,7 @@
 
     window.dismissNotification = function (id, event) {
         event.stopPropagation();
-        fetch('/Notification/Dismiss/' + id, { method: 'POST' })
+        postWithToken('/Notification/Dismiss/' + id)
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 updateBadge(data.unreadCount);
