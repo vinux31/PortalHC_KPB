@@ -580,31 +580,6 @@ namespace HcPortal.Controllers
         // Stores scope label from BuildProtonProgressSubModelAsync for Dashboard() to retrieve
         private string _lastScopeLabel = "";
 
-        // ============================================================
-        // SearchUsers: moved from CMPController (only used by ReportsIndex autocomplete)
-        // ============================================================
-        [HttpGet]
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> SearchUsers(string term)
-        {
-            if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
-                return Json(new List<object>());
-
-            var users = await _context.Users
-                .Where(u => u.FullName.Contains(term) ||
-                             (u.NIP != null && u.NIP.Contains(term)))
-                .OrderBy(u => u.FullName)
-                .Take(10)
-                .Select(u => new {
-                    fullName = u.FullName,
-                    nip = u.NIP ?? "",
-                    section = u.Section ?? ""
-                })
-                .ToListAsync();
-
-            return Json(users);
-        }
-
         public async Task<IActionResult> Deliverable(int id)
         {
             var user = await _userManager.GetUserAsync(User);
