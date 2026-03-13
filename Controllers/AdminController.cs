@@ -2198,18 +2198,33 @@ namespace HcPortal.Controllers
             if (assignment != null)
                 _context.UserPackageAssignments.Remove(assignment);
 
-            // 3. Reset session state to Open
-            assessment.Status = "Open";
-            assessment.Score = null;
-            assessment.IsPassed = null;
-            assessment.CompletedAt = null;
-            assessment.StartedAt = null;
-            assessment.ElapsedSeconds = 0;
-            assessment.LastActivePage = null;
-            assessment.Progress = 0;
-            assessment.UpdatedAt = DateTime.UtcNow;
+            // 3. Reset session state to Open via status-guarded ExecuteUpdateAsync
+            // (Cancelled is the only status that is NOT resettable — guard prevents double-reset race)
+            await _context.SaveChangesAsync(); // flush archive + delete operations first
 
-            await _context.SaveChangesAsync();
+            var rsRowsAffected = await _context.AssessmentSessions
+                .Where(s => s.Id == id && s.Status != "Cancelled")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Status, "Open")
+                    .SetProperty(r => r.Score, (int?)null)
+                    .SetProperty(r => r.IsPassed, (bool?)null)
+                    .SetProperty(r => r.Progress, 0)
+                    .SetProperty(r => r.StartedAt, (DateTime?)null)
+                    .SetProperty(r => r.CompletedAt, (DateTime?)null)
+                    .SetProperty(r => r.ElapsedSeconds, (int)0)
+                    .SetProperty(r => r.LastActivePage, (int?)null)
+                    .SetProperty(r => r.UpdatedAt, DateTime.UtcNow)
+                );
+
+            if (rsRowsAffected == 0)
+            {
+                TempData["Error"] = "Sesi tidak dapat direset (mungkin sudah dibatalkan).";
+                return RedirectToAction("AssessmentMonitoringDetail", new {
+                    title = assessment.Title,
+                    category = assessment.Category,
+                    scheduleDate = assessment.Schedule.Date.ToString("yyyy-MM-dd")
+                });
+            }
 
             // Audit log
             var rsUser = await _userManager.GetUserAsync(User);
@@ -2259,7 +2274,37 @@ namespace HcPortal.Controllers
             }
 
             await GradeFromSavedAnswers(session);
-            await _context.SaveChangesAsync();
+
+            // Status-guarded write: detach the tracked entity and use ExecuteUpdateAsync with a WHERE guard
+            // so that if SubmitExam or another AkhiriUjian already completed this session, we skip silently.
+            _context.Entry(session).State = EntityState.Detached;
+
+            var rowsAffected = await _context.AssessmentSessions
+                .Where(s => s.Id == id
+                         && s.StartedAt != null
+                         && s.CompletedAt == null
+                         && s.Score == null
+                         && s.Status != "Cancelled"
+                         && s.Status != "Abandoned"
+                         && s.Status != "Completed")
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Status, "Completed")
+                    .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                    .SetProperty(r => r.Score, session.Score)
+                    .SetProperty(r => r.IsPassed, session.IsPassed)
+                    .SetProperty(r => r.Progress, 100)
+                );
+
+            if (rowsAffected == 0)
+            {
+                // Race: another request already completed or cancelled this session — silent skip
+                TempData["Info"] = "Sesi sudah selesai atau dibatalkan.";
+                return RedirectToAction("AssessmentMonitoringDetail", new {
+                    title = session.Title,
+                    category = session.Category,
+                    scheduleDate = session.Schedule.Date.ToString("yyyy-MM-dd")
+                });
+            }
 
             _cache.Remove($"exam-status-{id}");
 
