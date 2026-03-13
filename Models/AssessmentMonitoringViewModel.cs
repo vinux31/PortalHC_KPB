@@ -12,6 +12,8 @@ namespace HcPortal.Models
         public int PassedCount { get; set; }            // sessions where IsPassed == true
         public bool IsPackageMode { get; set; }         // true when the assessment group has packages attached
         public int PendingCount { get; set; }           // count of "Not started" sessions (for Reshuffle All confirmation dialog)
+        public int CancelledCount { get; set; }          // count of "Cancelled" sessions (bulk close: not-started workers)
+        public int InProgressCount { get; set; }         // count of "InProgress" sessions
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
         public List<MonitoringSessionViewModel> Sessions { get; set; } = new();

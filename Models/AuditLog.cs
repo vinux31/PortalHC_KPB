@@ -23,7 +23,7 @@ namespace HcPortal.Models
         /// Machine-readable action type. Values:
         /// CreateAssessment, EditAssessment, BulkAssign,
         /// DeleteAssessment, DeleteAssessmentGroup,
-        /// ForceCloseAssessment, ResetAssessment
+        /// AkhiriUjian, AkhiriSemuaUjian, ResetAssessment
         /// </summary>
         [Required]
         [MaxLength(50)]

@@ -1827,6 +1827,8 @@ namespace HcPortal.Controllers
                 string userStatus;
                 if (a.CompletedAt != null || a.Score != null)
                     userStatus = "Completed";
+                else if (a.Status == "Cancelled")
+                    userStatus = "Dibatalkan";
                 else if (a.Status == "Abandoned")
                     userStatus = "Abandoned";
                 else if (a.StartedAt != null)
@@ -1865,7 +1867,9 @@ namespace HcPortal.Controllers
                 GroupStatus    = sessions.Any(a => a.Status == "Open" || a.Status == "InProgress") ? "Open"
                                : sessions.Any(a => a.Status == "Upcoming") ? "Upcoming" : "Closed",
                 IsPackageMode  = isPackageMode,
-                PendingCount   = sessionViewModels.Count(s => s.UserStatus == "Not started")
+                PendingCount   = sessionViewModels.Count(s => s.UserStatus == "Not started"),
+                CancelledCount = sessionViewModels.Count(s => s.UserStatus == "Dibatalkan"),
+                InProgressCount = sessionViewModels.Count(s => s.UserStatus == "InProgress")
             };
 
             model.IsTokenRequired = firstSession.IsTokenRequired;
@@ -2139,7 +2143,7 @@ namespace HcPortal.Controllers
 
             if (assessment == null) return NotFound();
 
-            // Reset is valid for any active status (Open, InProgress, Completed, Abandoned)
+            // Reset is valid for any active status (Open, InProgress, Completed, Abandoned) — Cancelled is final and NOT resettable
             if (assessment.Status != "Open" && assessment.Status != "InProgress" && assessment.Status != "Completed" && assessment.Status != "Abandoned")
             {
                 TempData["Error"] = "Status sesi tidak valid untuk direset.";
@@ -2226,102 +2230,276 @@ namespace HcPortal.Controllers
             });
         }
 
-        // --- FORCE CLOSE ASSESSMENT ---
+        // --- AKHIRI UJIAN (individual: auto-grade from saved answers) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForceCloseAssessment(int id)
+        public async Task<IActionResult> AkhiriUjian(int id)
         {
-            var assessment = await _context.AssessmentSessions
+            var session = await _context.AssessmentSessions
                 .FirstOrDefaultAsync(a => a.Id == id);
 
-            if (assessment == null) return NotFound();
+            if (session == null) return NotFound();
 
-            // Only force-close Open or InProgress sessions
-            if (assessment.Status != "Open" && assessment.Status != "InProgress")
+            // Only InProgress sessions can be ended (per decision: not Open)
+            if (session.Status != "InProgress")
             {
-                TempData["Error"] = "Force Close hanya dapat dilakukan pada sesi yang berstatus Open atau InProgress.";
+                TempData["Error"] = "Akhiri Ujian hanya dapat dilakukan pada sesi yang berstatus InProgress.";
                 return RedirectToAction("AssessmentMonitoringDetail", new {
-                    title = assessment.Title,
-                    category = assessment.Category,
-                    scheduleDate = assessment.Schedule.Date.ToString("yyyy-MM-dd")
+                    title = session.Title,
+                    category = session.Category,
+                    scheduleDate = session.Schedule.Date.ToString("yyyy-MM-dd")
                 });
             }
 
-            // Mark as Completed with system score of 0
-            // 90-review: ForceClose does NOT archive to AssessmentAttemptHistory before closing.
-            // This is acceptable design — force-close is an admin override, not a real completion.
-            // If HC later Resets the session, no attempt history entry exists for this force-closed attempt.
-            assessment.Status = "Completed";
-            assessment.Score = 0;
-            assessment.IsPassed = false;
-            assessment.CompletedAt = DateTime.UtcNow;
-            assessment.Progress = 100;
-            assessment.UpdatedAt = DateTime.UtcNow;
-
+            await GradeFromSavedAnswers(session);
             await _context.SaveChangesAsync();
 
+            _cache.Remove($"exam-status-{id}");
+
             // Audit log
-            var fcUser = await _userManager.GetUserAsync(User);
-            var fcActorName = string.IsNullOrWhiteSpace(fcUser?.NIP) ? (fcUser?.FullName ?? "Unknown") : $"{fcUser.NIP} - {fcUser.FullName}";
+            var auUser = await _userManager.GetUserAsync(User);
+            var auActorName = string.IsNullOrWhiteSpace(auUser?.NIP) ? (auUser?.FullName ?? "Unknown") : $"{auUser.NIP} - {auUser.FullName}";
             await _auditLog.LogAsync(
-                fcUser?.Id ?? "",
-                fcActorName,
-                "ForceCloseAssessment",
-                $"Force-closed assessment '{assessment.Title}' for user {assessment.UserId} [ID={id}]",
+                auUser?.Id ?? "",
+                auActorName,
+                "AkhiriUjian",
+                $"Ended exam '{session.Title}' for user {session.UserId} [ID={id}], auto-graded score: {session.Score}%",
                 id,
                 "AssessmentSession");
 
-            TempData["Success"] = "Sesi ujian telah ditutup paksa oleh sistem dengan skor 0.";
+            TempData["Success"] = "Ujian telah diakhiri dan dinilai dari jawaban tersimpan.";
             return RedirectToAction("AssessmentMonitoringDetail", new {
-                title = assessment.Title,
-                category = assessment.Category,
-                scheduleDate = assessment.Schedule.Date.ToString("yyyy-MM-dd")
+                title = session.Title,
+                category = session.Category,
+                scheduleDate = session.Schedule.Date.ToString("yyyy-MM-dd")
             });
         }
 
-        // --- FORCE CLOSE ALL SESSIONS IN GROUP ---
+        // --- AKHIRI SEMUA UJIAN (bulk: auto-grade InProgress + cancel not-started) ---
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ForceCloseAll(string title, string category, DateTime scheduleDate)
+        public async Task<IActionResult> AkhiriSemuaUjian(string title, string category, DateTime scheduleDate)
         {
             // Find all Open or InProgress sessions in this assessment group
-            var sessionsToClose = await _context.AssessmentSessions
+            var sessionsToEnd = await _context.AssessmentSessions
                 .Where(a => a.Title == title
                          && a.Category == category
                          && a.Schedule.Date == scheduleDate.Date
                          && (a.Status == "Open" || a.Status == "InProgress"))
                 .ToListAsync();
 
-            if (!sessionsToClose.Any())
+            if (!sessionsToEnd.Any())
             {
-                TempData["Error"] = "No Open or InProgress sessions to close.";
+                TempData["Error"] = "Tidak ada sesi Open atau InProgress untuk diakhiri.";
                 return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
             }
 
-            // Bulk-transition to Abandoned (session period ended -- no score recorded)
-            foreach (var session in sessionsToClose)
+            int gradedCount = 0;
+            int cancelledCount = 0;
+
+            foreach (var session in sessionsToEnd)
             {
-                session.Status    = "Abandoned";
-                session.UpdatedAt = DateTime.UtcNow;
+                bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
+                if (isInProgress)
+                {
+                    await GradeFromSavedAnswers(session);
+                    gradedCount++;
+                }
+                else
+                {
+                    // Open / not-started → Cancelled
+                    session.Status = "Cancelled";
+                    session.UpdatedAt = DateTime.UtcNow;
+                    cancelledCount++;
+                }
             }
 
             await _context.SaveChangesAsync();
 
-            // Audit log -- one summary entry for the bulk action (AuditLogService saves immediately)
+            // Invalidate cache for all affected sessions
+            foreach (var s in sessionsToEnd)
+                _cache.Remove($"exam-status-{s.Id}");
+
+            // Audit log
             var actor = await _userManager.GetUserAsync(User);
             var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
             await _auditLog.LogAsync(
                 actor?.Id ?? "",
                 actorName,
-                "ForceCloseAll",
-                $"Force-closed all Open/InProgress sessions for '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) -- {sessionsToClose.Count} session(s) closed",
+                "AkhiriSemuaUjian",
+                $"Ended all exams for '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) — {gradedCount} graded, {cancelledCount} cancelled",
                 null,
                 "AssessmentSession");
 
-            TempData["Success"] = $"Berhasil menutup {sessionsToClose.Count} sesi ujian.";
+            TempData["Success"] = $"Berhasil mengakhiri ujian: {gradedCount} peserta dinilai dari jawaban tersimpan, {cancelledCount} peserta dibatalkan.";
             return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
+        }
+
+        // --- GET AKHIRI SEMUA COUNTS (for confirmation modal) ---
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetAkhiriSemuaCounts(string title, string category, DateTime scheduleDate)
+        {
+            var sessions = await _context.AssessmentSessions
+                .Where(a => a.Title == title
+                         && a.Category == category
+                         && a.Schedule.Date == scheduleDate.Date
+                         && (a.Status == "Open" || a.Status == "InProgress"))
+                .ToListAsync();
+
+            int inProgressCount = sessions.Count(s => s.StartedAt != null && s.CompletedAt == null && s.Score == null);
+            int notStartedCount = sessions.Count(s => s.StartedAt == null);
+
+            return Json(new { inProgressCount, notStartedCount });
+        }
+
+        /// <summary>
+        /// Auto-grade a single InProgress session from its saved answers.
+        /// Handles both package and legacy paths. Creates TrainingRecord (with duplicate guard)
+        /// and fires group completion notification. Does NOT call SaveChangesAsync — caller handles it.
+        /// </summary>
+        private async Task GradeFromSavedAnswers(AssessmentSession session)
+        {
+            // Detect package mode
+            var packageAssignment = await _context.UserPackageAssignments
+                .FirstOrDefaultAsync(a => a.AssessmentSessionId == session.Id);
+
+            int totalScore = 0;
+            int maxScore = 0;
+
+            if (packageAssignment != null)
+            {
+                // ---- PACKAGE PATH ----
+                var shuffledIds = packageAssignment.GetShuffledQuestionIds();
+
+                var packageQuestions = await _context.PackageQuestions
+                    .Include(q => q.Options)
+                    .Where(q => shuffledIds.Contains(q.Id))
+                    .ToListAsync();
+                var questionLookup = packageQuestions.ToDictionary(q => q.Id);
+
+                var responses = await _context.PackageUserResponses
+                    .Where(r => r.AssessmentSessionId == session.Id)
+                    .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
+
+                foreach (var qId in shuffledIds)
+                {
+                    if (!questionLookup.TryGetValue(qId, out var q)) continue;
+                    maxScore += q.ScoreValue;
+                    if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                    {
+                        var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                        if (selectedOption != null && selectedOption.IsCorrect)
+                            totalScore += q.ScoreValue;
+                    }
+                }
+
+                packageAssignment.IsCompleted = true;
+            }
+            else
+            {
+                // ---- LEGACY PATH ----
+                // Find sibling session that has questions attached
+                var siblingSessionIds = await _context.AssessmentSessions
+                    .Where(s => s.Title == session.Title &&
+                                s.Category == session.Category &&
+                                s.Schedule.Date == session.Schedule.Date)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
+                var siblingWithQuestions = await _context.AssessmentSessions
+                    .Include(a => a.Questions)
+                        .ThenInclude(q => q.Options)
+                    .Where(a => siblingSessionIds.Contains(a.Id) && a.Questions.Any())
+                    .FirstOrDefaultAsync();
+
+                var legacyQuestions = siblingWithQuestions?.Questions?.ToList() ?? new List<AssessmentQuestion>();
+
+                var userResponses = await _context.UserResponses
+                    .Where(r => r.AssessmentSessionId == session.Id)
+                    .ToDictionaryAsync(r => r.AssessmentQuestionId, r => r.SelectedOptionId);
+
+                foreach (var question in legacyQuestions)
+                {
+                    maxScore += question.ScoreValue;
+                    if (userResponses.TryGetValue(question.Id, out var selectedOptionId) && selectedOptionId.HasValue)
+                    {
+                        var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId.Value);
+                        if (selectedOption != null && selectedOption.IsCorrect)
+                            totalScore += question.ScoreValue;
+                    }
+                }
+            }
+
+            int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
+
+            session.Score = finalPercentage;
+            session.Status = "Completed";
+            session.Progress = 100;
+            session.IsPassed = finalPercentage >= session.PassPercentage;
+            session.CompletedAt = DateTime.UtcNow;
+            session.UpdatedAt = DateTime.UtcNow;
+
+            // TrainingRecord creation (duplicate guard: same as SubmitExam)
+            var judul = $"Assessment: {session.Title}";
+            bool trainingRecordExists = await _context.TrainingRecords.AnyAsync(t =>
+                t.UserId == session.UserId &&
+                t.Judul == judul &&
+                t.Tanggal == session.Schedule);
+            if (!trainingRecordExists)
+            {
+                _context.TrainingRecords.Add(new TrainingRecord
+                {
+                    UserId = session.UserId,
+                    Judul = judul,
+                    Kategori = session.Category ?? "Assessment",
+                    Tanggal = session.Schedule,
+                    TanggalSelesai = session.CompletedAt,
+                    Penyelenggara = "Internal",
+                    Status = session.IsPassed == true ? "Passed" : "Failed"
+                });
+            }
+
+            // Group completion notification
+            await NotifyIfGroupCompleted(session);
+        }
+
+        /// <summary>
+        /// Check if all sessions in an assessment group are Completed (or Cancelled),
+        /// and if so, notify HC/Admin users.
+        /// </summary>
+        private async Task NotifyIfGroupCompleted(AssessmentSession completedSession)
+        {
+            var allSiblings = await _context.AssessmentSessions
+                .Where(s => s.Title == completedSession.Title &&
+                            s.Category == completedSession.Category &&
+                            s.Schedule.Date == completedSession.Schedule.Date)
+                .ToListAsync();
+
+            // Group is "done" when every session is either Completed or Cancelled (no Open/InProgress left)
+            if (!allSiblings.All(s => s.Status == "Completed" || s.Status == "Cancelled")) return;
+
+            var hcUsers = await _userManager.GetUsersInRoleAsync("HC");
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var recipientIds = hcUsers.Concat(adminUsers)
+                .Select(u => u.Id).Distinct().ToList();
+
+            foreach (var recipientId in recipientIds)
+            {
+                try
+                {
+                    await _notificationService.SendAsync(
+                        recipientId,
+                        "ASMT_ALL_COMPLETED",
+                        "Assessment Selesai",
+                        $"Semua peserta assessment \"{completedSession.Title}\" telah menyelesaikan ujian",
+                        "/CMP/Assessment"
+                    );
+                }
+                catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
+            }
         }
 
         // --- EXPORT ASSESSMENT RESULTS ---
@@ -2377,7 +2555,9 @@ namespace HcPortal.Controllers
             var rows = sessions.Select(a =>
             {
                 string userStatus;
-                if (a.CompletedAt != null || a.Score != null)
+                if (a.Status == "Cancelled")
+                    userStatus = "Dibatalkan";
+                else if (a.CompletedAt != null || a.Score != null)
                     userStatus = "Completed";
                 else if (a.Status == "Abandoned")
                     userStatus = "Abandoned";
@@ -2386,7 +2566,8 @@ namespace HcPortal.Controllers
                 else
                     userStatus = "Not Started";
 
-                string resultText = a.IsPassed == true ? "Pass"
+                string resultText = a.Status == "Cancelled" ? "\u2014"
+                                  : a.IsPassed == true ? "Pass"
                                   : a.IsPassed == false ? "Fail"
                                   : "\u2014";
 
@@ -2396,7 +2577,7 @@ namespace HcPortal.Controllers
                     UserNIP       = a.User?.NIP ?? "",
                     QuestionCount = questionCountMap.TryGetValue(a.Id, out var qcnt) ? qcnt : 0,
                     UserStatus    = userStatus,
-                    Score         = a.Score.HasValue ? (object)a.Score.Value : "\u2014",
+                    Score         = a.Status == "Cancelled" ? (object)"\u2014" : (a.Score.HasValue ? (object)a.Score.Value : "\u2014"),
                     Result        = resultText,
                     CompletedAt   = a.CompletedAt.HasValue
                                     ? a.CompletedAt.Value.ToString("yyyy-MM-dd HH:mm")
@@ -2568,165 +2749,7 @@ namespace HcPortal.Controllers
             return View(logs);
         }
 
-        // POST /Admin/CloseEarly — score InProgress sessions from submitted answers, lock all
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CloseEarly(string title, string category, DateTime scheduleDate)
-        {
-            // Step 1 — Load all sibling sessions
-            var allSessions = await _context.AssessmentSessions
-                .Where(a => a.Title == title
-                         && a.Category == category
-                         && a.Schedule.Date == scheduleDate.Date)
-                .ToListAsync();
-
-            if (!allSessions.Any())
-            {
-                TempData["Error"] = "Assessment group not found.";
-                return RedirectToAction("ManageAssessment");
-            }
-
-            // Step 2 — Detect package mode
-            var siblingIds = allSessions.Select(s => s.Id).ToList();
-            var packageCount = await _context.AssessmentPackages
-                .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
-            var isPackageMode = packageCount > 0;
-
-            // Step 3 — For package mode: preload all packages + questions + options + assignments in bulk
-            Dictionary<int, UserPackageAssignment> sessionAssignmentMap = new();
-            Dictionary<int, PackageQuestion> allQuestionLookup = new();
-
-            if (isPackageMode)
-            {
-                var assignments = await _context.UserPackageAssignments
-                    .Where(a => siblingIds.Contains(a.AssessmentSessionId))
-                    .ToListAsync();
-                foreach (var a in assignments)
-                    sessionAssignmentMap[a.AssessmentSessionId] = a;
-
-                var allSiblingPackages = await _context.AssessmentPackages
-                    .Include(p => p.Questions)
-                        .ThenInclude(q => q.Options)
-                    .Where(p => siblingIds.Contains(p.AssessmentSessionId))
-                    .ToListAsync();
-                allQuestionLookup = allSiblingPackages
-                    .SelectMany(p => p.Questions)
-                    .ToDictionary(q => q.Id);
-            }
-
-            // Step 4 — For legacy mode: preload questions + options
-            List<AssessmentQuestion> legacyQuestions = new();
-            if (!isPackageMode)
-            {
-                var siblingWithQuestions = await _context.AssessmentSessions
-                    .Include(a => a.Questions)
-                        .ThenInclude(q => q.Options)
-                    .Where(a => siblingIds.Contains(a.Id) && a.Questions.Any())
-                    .FirstOrDefaultAsync();
-                legacyQuestions = siblingWithQuestions?.Questions?.ToList() ?? new();
-            }
-
-            // Step 5 — Loop over all sessions, set ExamWindowCloseDate, score InProgress sessions
-            int inProgressCount = 0;
-
-            foreach (var session in allSessions)
-            {
-                session.ExamWindowCloseDate = DateTime.UtcNow;
-                session.UpdatedAt = DateTime.UtcNow;
-
-                bool isInProgress = session.StartedAt != null && session.CompletedAt == null && session.Score == null;
-                if (!isInProgress) continue;
-
-                inProgressCount++;
-
-                if (isPackageMode)
-                {
-                    if (!sessionAssignmentMap.TryGetValue(session.Id, out var assignment)) continue;
-                    var sessionShuffledIds = assignment.GetShuffledQuestionIds();
-                    if (!sessionShuffledIds.Any()) continue;
-
-                    var responses = await _context.PackageUserResponses
-                        .Where(r => r.AssessmentSessionId == session.Id)
-                        .ToDictionaryAsync(r => r.PackageQuestionId, r => r.PackageOptionId);
-
-                    int totalScore = 0;
-                    int maxScore = 0;
-
-                    foreach (var qId in sessionShuffledIds)
-                    {
-                        if (!allQuestionLookup.TryGetValue(qId, out var q)) continue;
-                        maxScore += q.ScoreValue;
-                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
-                        {
-                            var selectedOption = q.Options.FirstOrDefault(o => o.Id == optId.Value);
-                            if (selectedOption != null && selectedOption.IsCorrect)
-                                totalScore += q.ScoreValue;
-                        }
-                    }
-
-                    int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-
-                    session.Score = finalPercentage;
-                    session.Status = "Completed";
-                    session.Progress = 100;
-                    session.IsPassed = finalPercentage >= session.PassPercentage;
-                    session.CompletedAt = DateTime.UtcNow;
-                    assignment.IsCompleted = true;
-
-                    // Competency tracking removed (Phase 90: KKJ tables dropped)
-                }
-                else
-                {
-                    var userResponses = await _context.UserResponses
-                        .Where(r => r.AssessmentSessionId == session.Id)
-                        .ToDictionaryAsync(r => r.AssessmentQuestionId, r => r.SelectedOptionId);
-
-                    int totalScore = 0;
-                    int maxScore = 0;
-
-                    foreach (var question in legacyQuestions)
-                    {
-                        maxScore += question.ScoreValue;
-                        if (userResponses.TryGetValue(question.Id, out var selectedOptionId) && selectedOptionId.HasValue)
-                        {
-                            var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId.Value);
-                            if (selectedOption != null && selectedOption.IsCorrect)
-                                totalScore += question.ScoreValue;
-                        }
-                    }
-
-                    int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-
-                    session.Score = finalPercentage;
-                    session.Status = "Completed";
-                    session.Progress = 100;
-                    session.IsPassed = finalPercentage >= session.PassPercentage;
-                    session.CompletedAt = DateTime.UtcNow;
-
-                    // Competency tracking removed (Phase 90: KKJ tables dropped)
-                }
-            }
-
-            // Step 6 — SaveChangesAsync + cache invalidation + audit log + redirect
-            await _context.SaveChangesAsync();
-
-            foreach (var s in allSessions)
-                _cache.Remove($"exam-status-{s.Id}");
-
-            var actor = await _userManager.GetUserAsync(User);
-            var actorName = string.IsNullOrWhiteSpace(actor?.NIP) ? (actor?.FullName ?? "Unknown") : $"{actor.NIP} - {actor.FullName}";
-            await _auditLog.LogAsync(
-                actor?.Id ?? "",
-                actorName,
-                "CloseEarly",
-                $"Closed early assessment group '{title}' (Category: {category}, Date: {scheduleDate:yyyy-MM-dd}) — {inProgressCount} session(s) scored from answers, {allSessions.Count} total session(s) locked",
-                null,
-                "AssessmentSession");
-
-            TempData["Success"] = $"Assessment group ditutup lebih awal. {inProgressCount} sesi diberi skor berdasarkan jawaban yang sudah dikerjakan.";
-            return RedirectToAction("AssessmentMonitoringDetail", new { title, category, scheduleDate });
-        }
+        // CloseEarly removed in Phase 162 — replaced by AkhiriSemuaUjian with auto-grading
 
         // POST /Admin/ReshufflePackage — reshuffle package for single worker
         [HttpPost]
