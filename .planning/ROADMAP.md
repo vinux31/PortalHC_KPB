@@ -152,4 +152,4 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 168. Code Audit | 3/3 | Complete    | 2026-03-13 | - |
 | 169. File & Database Audit | 3/3 | Complete    | 2026-03-13 | - |
-| 170. Security Review | 2/2 | Complete   | 2026-03-13 | - |
+| 170. Security Review | 2/2 | Complete    | 2026-03-13 | - |
