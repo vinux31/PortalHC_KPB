@@ -160,8 +160,8 @@ Plans:
   2. Activity data is stored server-side and survives browser refresh — not client-only
 **Plans:** 2 plans
 Plans:
-- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
-- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
+- [ ] 166-01-PLAN.md — Backend: ExamActivityLog model, Hub overrides, controller logging, GET endpoint
+- [ ] 166-02-PLAN.md — Frontend: log button per worker row, activity log modal, page nav logging
 
 ### Phase 167: Item Analysis / Statistik Per-Soal
 **Goal**: After an assessment group completes, HC can view per-question statistics — difficulty index, discrimination index, answer distribution — to evaluate question quality
@@ -183,5 +183,5 @@ Plans:
 | 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
 | 164. HC-to-Worker Push Events | 2/2 | Complete   | 2026-03-13 | - |
 | 165. Worker-to-HC Progress Push + Polling Removal | 1/2 | In Progress|  | - |
-| 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
+| 166. Activity Log Per-Worker | v4.2 | 0/2 | Not started | - |
 | 167. Item Analysis / Statistik Per-Soal | v4.2 | 0/TBD | Not started | - |
