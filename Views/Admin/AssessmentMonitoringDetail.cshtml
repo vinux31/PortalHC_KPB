@@ -78,6 +78,7 @@
         <div class="d-flex align-items-center gap-2 mb-1">
             <span class="badge @catBadgeClass">@Model.Category</span>
             <span class="badge @statusBadgeClass">@Model.GroupStatus</span>
+            <span id="hubStatusBadge" class="badge bg-secondary ms-1 small">Connecting...</span>
         </div>
         <h2 class="fw-bold mb-1">@Model.Title</h2>
         <p class="text-muted mb-0">
@@ -923,4 +924,24 @@
 <script src="~/lib/signalr/signalr.min.js"></script>
 <script>window.assessmentBatchKey = '@ViewBag.AssessmentBatchKey';</script>
 <script src="~/js/assessment-hub.js"></script>
+<script>
+    // -------- Connection status badge --------
+    var monBadge = document.getElementById('hubStatusBadge');
+    window.assessmentHub.onreconnecting(function() {
+        if (monBadge) { monBadge.className = 'badge bg-warning ms-1 small'; monBadge.textContent = 'Reconnecting...'; }
+    });
+    window.assessmentHub.onreconnected(function() {
+        if (monBadge) { monBadge.className = 'badge bg-success ms-1 small'; monBadge.textContent = 'Live'; }
+    });
+    window.assessmentHub.onclose(function() {
+        if (monBadge) { monBadge.className = 'badge bg-danger ms-1 small'; monBadge.textContent = 'Disconnected'; }
+    });
+    // Set initial "Live" state after hub connects
+    setTimeout(function() {
+        if (monBadge && window.assessmentHub && window.assessmentHub.state === 'Connected') {
+            monBadge.className = 'badge bg-success ms-1 small';
+            monBadge.textContent = 'Live';
+        }
+    }, 2000);
+</script>
 }
