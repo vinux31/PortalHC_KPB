@@ -40,12 +40,12 @@ See: .planning/PROJECT.md (updated 2026-03-13)
 
 ## Current Position
 
-Phase: 162 of 167 (Simplifikasi Action Close + Auto-Grade)
-Plan: 2 of 2 in current phase (Phase 162 complete)
+Phase: 165 of 167 (Worker-to-HC Progress Push + Polling Removal)
+Plan: 1 of 2 in current phase (Phase 165 Plan 01 complete)
 Status: In progress
-Last activity: 2026-03-13 — Completed Plan 02: close action UI with worker notification modal
+Last activity: 2026-03-13 — Completed Plan 01: backend SignalR push + HC monitoring event handlers
 
-Progress: [██████████] 100% (v4.2 Phase 162)
+Progress: [████████░░] 80% (v4.2 Phase 165)
 
 ## Accumulated Context
 
@@ -65,6 +65,10 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 - [Phase 163]: SignalR hub methods handle group join/leave only — no DB writes inside Hub methods
 - [Phase 164]: IHubContext<AssessmentHub> injected as 9th constructor param; SendAsync gated after DB write; AkhiriSemuaUjian uses Clients.Group() with batch-{title}|{category}|{date} key
 - [Phase 164]: Badge initial state: 2s setTimeout + state check, no change to shared assessment-hub.js
+- [Phase 165-01]: workerStarted push gated by justStarted flag (StartedAt==null before SaveChangesAsync) to prevent duplicate push on page reload
+- [Phase 165-01]: updateSummaryFromDOM reads .status-cell badge text from DOM — simpler, no sync bugs vs parallel JS state
+- [Phase 165-01]: workerSubmitted inline row update (not calling updateRow from IIFE) — updateRow is in closure not accessible from @section Scripts
+- [Phase 165-01]: monitor-{batchKey} group naming; JoinMonitor joined on hub connect (2s timeout) and onreconnected
 
 ### Blockers/Concerns
 
@@ -81,6 +85,6 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 
 ## Session Continuity
 
-Last session: 2026-03-13T04:08:58.667Z
-Stopped at: Phase 165 context gathered
-Resume file: .planning/phases/165-worker-to-hc-progress-push-polling-removal/165-CONTEXT.md
+Last session: 2026-03-13T04:45:00.000Z
+Stopped at: Completed 165-01-PLAN.md
+Resume file: .planning/phases/165-worker-to-hc-progress-push-polling-removal/165-01-SUMMARY.md

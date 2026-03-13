@@ -30,9 +30,9 @@ Requirements for Real-time Assessment milestone. Each maps to roadmap phases.
 
 ### Worker → HC Push + Cleanup
 
-- [ ] **MONITOR-01**: HC monitoring page shows real-time answer progress without polling
-- [ ] **MONITOR-02**: HC monitoring page instantly shows when a worker completes their exam
-- [ ] **MONITOR-03**: HC monitoring page instantly shows when a worker starts their exam
+- [x] **MONITOR-01**: HC monitoring page shows real-time answer progress without polling
+- [x] **MONITOR-02**: HC monitoring page instantly shows when a worker completes their exam
+- [x] **MONITOR-03**: HC monitoring page instantly shows when a worker starts their exam
 - [ ] **CLEAN-01**: Polling code (setInterval) removed from monitoring and exam pages after SignalR proven working
 
 ### Activity Log (Opsional)
@@ -80,9 +80,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PUSH-01 | Phase 164 | Complete |
 | PUSH-02 | Phase 164 | Complete |
 | PUSH-03 | Phase 164 | Complete |
-| MONITOR-01 | Phase 165 | Pending |
-| MONITOR-02 | Phase 165 | Pending |
-| MONITOR-03 | Phase 165 | Pending |
+| MONITOR-01 | Phase 165 | Complete |
+| MONITOR-02 | Phase 165 | Complete |
+| MONITOR-03 | Phase 165 | Complete |
 | CLEAN-01 | Phase 165 | Pending |
 | LOG-01 | Phase 166 | Pending |
 | LOG-02 | Phase 166 | Pending |

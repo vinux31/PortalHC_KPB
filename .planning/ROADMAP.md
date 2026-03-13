@@ -146,7 +146,7 @@ Plans:
   4. A connection status badge ("Live" / "Reconnecting...") is visible on the HC monitoring page and re-joins the monitor group automatically after reconnect
   5. No `setInterval` calls related to exam status checking or monitoring progress remain in `StartExam.cshtml` or `AssessmentMonitoringDetail.cshtml`
   6. The legacy polling endpoints (`CheckExamStatus`, `GetMonitoringProgress`) are either removed or clearly marked as deprecated with no JS callers
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 165-01-PLAN.md — Backend: IHubContext in CMPController + 3 push calls + frontend event handlers, row flash, toast
 - [ ] 165-02-PLAN.md — UAT checkpoint + polling removal (CheckExamStatus, GetMonitoringProgress)
@@ -182,6 +182,6 @@ Plans:
 | 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete    | 2026-03-13 | - |
 | 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
 | 164. HC-to-Worker Push Events | 2/2 | Complete   | 2026-03-13 | - |
-| 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/2 | Not started | - |
+| 165. Worker-to-HC Progress Push + Polling Removal | 1/2 | In Progress|  | - |
 | 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
 | 167. Item Analysis / Statistik Per-Soal | v4.2 | 0/TBD | Not started | - |
