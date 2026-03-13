@@ -223,19 +223,24 @@ else
     }
 </style>
 
-<!-- Force-close notification modal -->
-<div class="modal fade" id="forceCloseModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<!-- HC-closed notification modal (non-dismissable, 5-second countdown) -->
+<div class="modal fade" id="examClosedModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-hidden="true"
+     style="z-index: 9999;">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-warning">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Ujian Ditutup</h5>
+            <div class="modal-header bg-warning border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Ujian Diakhiri
+                </h5>
             </div>
             <div class="modal-body text-center py-3">
-                <p class="mb-0">Ujian ini telah ditutup oleh HC/Administrator.</p>
-                <p class="text-muted small mt-1">Anda akan diarahkan ke halaman utama.</p>
+                <p class="mb-2 fw-semibold">Ujian Anda telah diakhiri oleh penyelenggara.</p>
+                <p class="text-muted small mb-0">Anda akan diarahkan ke halaman hasil dalam <strong id="closedCountdown">5</strong> detik...</p>
             </div>
             <div class="modal-footer justify-content-center border-top-0">
-                <button type="button" class="btn btn-warning" id="forceCloseOkBtn">OK</button>
+                <button type="button" class="btn btn-warning fw-semibold" id="closedViewResultsBtn">
+                    <i class="bi bi-eye me-1"></i>Lihat Hasil
+                </button>
             </div>
         </div>
     </div>
@@ -719,14 +724,28 @@ else
                     clearInterval(timerInterval);
                     window.onbeforeunload = null;
 
+                    // Cancelled workers (never started) redirect to Assessment list
                     var redirectTarget = data.redirectUrl || '/CMP/Assessment';
-                    var modal = new bootstrap.Modal(document.getElementById('forceCloseModal'), {backdrop: 'static'});
+
+                    var modal = new bootstrap.Modal(document.getElementById('examClosedModal'));
                     modal.show();
-                    document.getElementById('forceCloseOkBtn').addEventListener('click', function() {
+
+                    // Immediate redirect button
+                    document.getElementById('closedViewResultsBtn').addEventListener('click', function() {
                         window.location.href = redirectTarget;
                     });
-                    // Auto-redirect after 10s if user doesn't click OK
-                    setTimeout(function() { window.location.href = redirectTarget; }, 10000);
+
+                    // 5-second countdown then auto-redirect
+                    var countdown = 5;
+                    var countdownEl = document.getElementById('closedCountdown');
+                    var countdownInterval = setInterval(function() {
+                        countdown--;
+                        countdownEl.textContent = countdown;
+                        if (countdown <= 0) {
+                            clearInterval(countdownInterval);
+                            window.location.href = redirectTarget;
+                        }
+                    }, 1000);
                 }
             })
             .catch(function() { /* ignore network errors during poll */ });
