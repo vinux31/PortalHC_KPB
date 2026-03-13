@@ -50,28 +50,28 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CODE-01 | — | Pending |
-| CODE-02 | — | Pending |
-| CODE-03 | — | Pending |
-| CODE-04 | — | Pending |
-| DB-01 | — | Pending |
-| DB-02 | — | Pending |
-| DB-03 | — | Pending |
-| DB-04 | — | Pending |
-| FILE-01 | — | Pending |
-| FILE-02 | — | Pending |
-| FILE-03 | — | Pending |
-| FILE-04 | — | Pending |
-| SEC-01 | — | Pending |
-| SEC-02 | — | Pending |
-| SEC-03 | — | Pending |
-| SEC-04 | — | Pending |
+| CODE-01 | Phase 168 | Pending |
+| CODE-02 | Phase 168 | Pending |
+| CODE-03 | Phase 168 | Pending |
+| CODE-04 | Phase 168 | Pending |
+| DB-01 | Phase 169 | Pending |
+| DB-02 | Phase 169 | Pending |
+| DB-03 | Phase 169 | Pending |
+| DB-04 | Phase 169 | Pending |
+| FILE-01 | Phase 169 | Pending |
+| FILE-02 | Phase 169 | Pending |
+| FILE-03 | Phase 169 | Pending |
+| FILE-04 | Phase 169 | Pending |
+| SEC-01 | Phase 170 | Pending |
+| SEC-02 | Phase 170 | Pending |
+| SEC-03 | Phase 170 | Pending |
+| SEC-04 | Phase 170 | Pending |
 
 **Coverage:**
 - v4.3 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 ⚠️
+- Mapped to phases: 16
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-13*
-*Last updated: 2026-03-13 after initial definition*
+*Last updated: 2026-03-13 — traceability mapped after roadmap creation*

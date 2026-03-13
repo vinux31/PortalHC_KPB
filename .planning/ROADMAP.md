@@ -75,100 +75,70 @@
 
 </details>
 
+<details>
+<summary>v4.2 Real-time Assessment (Phases 162-166) — shipped 2026-03-13</summary>
+
+- **v4.2 Real-time Assessment** — Phases 162-166 (shipped 2026-03-13)
+  - Phase 162: Simplifikasi Action Close + Auto-Grade (2 plans)
+  - Phase 163: Hub Infrastructure & Safety Foundations (2 plans)
+  - Phase 164: HC-to-Worker Push Events (2 plans)
+  - Phase 165: Worker-to-HC Progress Push + Polling Removal (2 plans)
+  - Phase 166: Activity Log Per-Worker (2 plans)
+
+</details>
+
 ---
 
-## v4.2 Real-time Assessment (In Progress)
+## v4.3 Bug Finder (In Progress)
 
-**Milestone Goal:** Simplify assessment close actions (3→2 with auto-grading), add SignalR-based real-time communication so HC monitoring updates live and HC actions push instantly to workers, then add activity logging and item analysis for post-assessment insights.
+**Milestone Goal:** Audit menyeluruh seluruh codebase, database, dan file — temukan bug, file tidak terpakai, data tidak penting, dan dead code. Hasilkan portal yang bersih, aman, dan bebas technical debt.
 
 ### Phases
 
-- [x] **Phase 162: Simplifikasi Action Close + Auto-Grade** - Merge 3 close actions into 2 consistent actions that auto-grade saved answers (completed 2026-03-13)
-- [x] **Phase 163: Hub Infrastructure & Safety Foundations** - SignalR Hub, JS client, auth config, SQLite WAL mode, race condition guards, reconnect handling (completed 2026-03-13)
-- [x] **Phase 164: HC-to-Worker Push Events** - Reset and Akhiri Ujian push instantly to targeted worker; Akhiri Semua broadcasts to all workers in batch (completed 2026-03-13)
-- [x] **Phase 165: Worker-to-HC Progress Push + Polling Removal** - HC monitoring receives real-time progress events; remove legacy setInterval polling after confirmed working (completed 2026-03-13)
-- [x] **Phase 166: Activity Log Per-Worker** - Track per-question timestamps, page navigation, disconnect events for HC audit trail (opsional) (completed 2026-03-13)
-
+- [ ] **Phase 168: Code Audit** - Identify and remove dead code, fix logic bugs, clean unused imports, remove orphaned views
+- [ ] **Phase 169: File & Database Audit** - Remove unused files, orphaned JS/CSS, temp artifacts; clean orphaned DB records, unused tables, stale data, verify integrity
+- [ ] **Phase 170: Security Review** - Audit authorization attributes, CSRF protection, input validation gaps, file upload security
 
 ## Phase Details
 
-### Phase 162: Simplifikasi Action Close + Auto-Grade
-**Goal**: Replace 3 inconsistent close actions (ForceClose=score 0, ForceCloseAll=Abandoned, CloseEarly=partial grade) with 2 consistent actions that always auto-grade saved answers — matching industry standard behavior (Exam.net, Canvas)
-**Depends on**: Phase 161
-**Requirements**: CLOSE-01, CLOSE-02, CLOSE-03, CLOSE-04
+### Phase 168: Code Audit
+**Goal**: The codebase contains no dead code, logic bugs, unused imports, or orphaned views — every file and method is reachable and correct
+**Depends on**: Nothing (first phase of milestone)
+**Requirements**: CODE-01, CODE-02, CODE-03, CODE-04
 **Success Criteria** (what must be TRUE):
-  1. HC clicks "Akhiri Ujian" on an InProgress worker; the worker's saved answers are graded and a real score/pass-fail is assigned — not hardcoded 0
-  2. HC clicks "Akhiri Semua" on a group; all InProgress workers get auto-graded from saved answers, all Open/Not-started workers get status "Cancelled" (not "Completed" or "Abandoned")
-  3. The old ForceClose, ForceCloseAll, and CloseEarly actions no longer exist in the codebase — replaced by the 2 new actions
-  4. Worker polling (CheckExamStatus) still detects the new close actions and redirects correctly
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 162-01-PLAN.md — Backend: extract shared grading, create AkhiriUjian + AkhiriSemuaUjian, remove old actions, handle Cancelled status
-- [ ] 162-02-PLAN.md — Frontend: update monitoring detail buttons/modals, add worker close notification modal
+  1. No controller action, helper method, or class exists that cannot be reached through any route or call chain in the application
+  2. All known logic bugs across controllers are identified, documented, and either fixed or explicitly deferred with justification
+  3. No unused `using` statements or unnecessary namespace imports remain in any .cs file
+  4. No .cshtml view file exists in the Views directory without a corresponding reachable controller action
+**Plans**: TBD
 
-### Phase 163: Hub Infrastructure & Safety Foundations
-**Goal**: A working, authenticated SignalR endpoint at `/hubs/assessment` with SQLite concurrency protection and reconnect-safe group membership — the prerequisite for all real-time features
-**Depends on**: Phase 162
-**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05
+### Phase 169: File & Database Audit
+**Goal**: The file system and database contain no orphaned, duplicate, or stale artifacts — every file is referenced and every DB record is valid
+**Depends on**: Phase 168
+**Requirements**: FILE-01, FILE-02, FILE-03, FILE-04, DB-01, DB-02, DB-03, DB-04
 **Success Criteria** (what must be TRUE):
-  1. `/hubs/assessment/negotiate` returns a WebSocket upgrade (101) or JSON token response (200), not a 302 redirect or HTML login page, when checked in browser DevTools Network tab while logged in
-  2. `PRAGMA journal_mode;` query on the running database returns `wal`, confirming SQLite WAL mode is active
-  3. Simulating browser disconnect then reconnect (DevTools offline/online toggle) causes the JS client to re-join its SignalR group automatically — no manual page reload required
-  4. `AkhiriUjian` and `SubmitExam` both use status-guarded `ExecuteUpdateAsync` so a worker who submits in the same moment HC closes does not have their score silently overwritten
-  5. No `Dictionary<userId, connectionId>` exists in the codebase — per-worker targeting uses `Clients.User()` or named groups only
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 163-01-PLAN.md — SignalR Hub + Program.cs config + vendored JS client + assessment-hub.js reconnect module + page wiring
-- [ ] 163-02-PLAN.md — Race condition guards on AkhiriUjian, SubmitExam, ResetAssessment, SaveAnswer
+  1. No .cshtml, .js, or .css file exists in the project that is not referenced by any route, bundle, or layout
+  2. No temporary files (screenshots, debug logs, test artifacts) remain in the project directory tree
+  3. No duplicate or near-duplicate code blocks exist across views or controllers that could be unified into a shared partial or method
+  4. All database records have valid foreign key references — no orphaned rows pointing to deleted or non-existent parents
+  5. All seed data and test data that is not required for production operation is identified and removed or clearly marked
+**Plans**: TBD
 
-### Phase 164: HC-to-Worker Push Events
-**Goal**: HC Akhiri Ujian and Reset actions reach the worker's exam page in sub-second time, eliminating the 10-second window where workers answer questions against a closed session
-**Depends on**: Phase 163
-**Requirements**: PUSH-01, PUSH-02, PUSH-03
+### Phase 170: Security Review
+**Goal**: All controller actions have correct authorization, all forms have CSRF protection, and no input validation gaps or unsafe file upload paths exist
+**Depends on**: Phase 169
+**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04
 **Success Criteria** (what must be TRUE):
-  1. HC clicks Reset on a worker's session; that worker's exam page shows a "Sesi direset oleh HC" modal within 1 second — without any page polling interval completing
-  2. HC clicks "Akhiri Ujian" on a worker's session; that worker's exam page shows a countdown modal and redirects to results within 1 second
-  3. HC clicks "Akhiri Semua" on an assessment; all workers currently on StartExam receive the close event and are redirected within 1 second
-  4. A connection status badge ("Live" / "Reconnecting...") is visible on the worker exam page and accurately reflects the SignalR connection state
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
-- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
-
-### Phase 165: Worker-to-HC Progress Push + Polling Removal
-**Goal**: The HC monitoring page shows worker exam progress, start events, and submission events in near-real-time via SignalR push — then legacy polling is removed after UAT confirms stability
-**Depends on**: Phase 164
-**Requirements**: MONITOR-01, MONITOR-02, MONITOR-03, CLEAN-01
-**Success Criteria** (what must be TRUE):
-  1. When a worker answers questions, the HC monitoring detail page updates that worker's answered-count and progress bar within 1-2 seconds — without a polling interval completing
-  2. When a worker submits their exam, the HC monitoring page immediately shows their status as "Selesai" and their score
-  3. When a worker opens their exam for the first time, the HC monitoring page immediately shows their status as "Dalam Pengerjaan"
-  4. A connection status badge ("Live" / "Reconnecting...") is visible on the HC monitoring page and re-joins the monitor group automatically after reconnect
-  5. No `setInterval` calls related to exam status checking or monitoring progress remain in `StartExam.cshtml` or `AssessmentMonitoringDetail.cshtml`
-  6. The legacy polling endpoints (`CheckExamStatus`, `GetMonitoringProgress`) are either removed or clearly marked as deprecated with no JS callers
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 165-01-PLAN.md — Backend: IHubContext in CMPController + 3 push calls + frontend event handlers, row flash, toast
-- [ ] 165-02-PLAN.md — UAT checkpoint + polling removal (CheckExamStatus, GetMonitoringProgress)
-
-### Phase 166: Activity Log Per-Worker
-**Goal**: HC can view a detailed timeline of each worker's exam activity — question opens, answer changes, page navigation, disconnect/reconnect events — for audit and fairness purposes
-**Depends on**: Phase 165
-**Requirements**: LOG-01, LOG-02
-**Success Criteria** (what must be TRUE):
-  1. HC clicks a worker row in monitoring detail and sees a chronological activity log with timestamps for each event (start, answer, page change, disconnect, reconnect, submit)
-  2. Activity data is stored server-side and survives browser refresh — not client-only
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 166-01-PLAN.md — Backend: ExamActivityLog model, Hub overrides, controller logging, GET endpoint
-- [ ] 166-02-PLAN.md — Frontend: log button per worker row, activity log modal, page nav logging
+  1. Every controller action that modifies data or returns sensitive information has an explicit `[Authorize]` attribute with the correct role scope — no action is accidentally open to unauthenticated or under-privileged users
+  2. Every POST action that changes state has `[ValidateAntiForgeryToken]` — no state-changing form can be submitted via cross-site request forgery
+  3. No user-supplied string is rendered unescaped in any view, no redirect target accepts unvalidated URL input, and no raw SQL is constructed from user input
+  4. All file upload endpoints validate file type (allowlist extension check), enforce a maximum file size, and resolve upload paths server-side — no path traversal is possible
+**Plans**: TBD
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete    | 2026-03-13 | - |
-| 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
-| 164. HC-to-Worker Push Events | 2/2 | Complete   | 2026-03-13 | - |
-| 165. Worker-to-HC Progress Push + Polling Removal | 1/2 | Complete    | 2026-03-13 | - |
-| 166. Activity Log Per-Worker | 2/2 | Complete   | 2026-03-13 | - |
+| 168. Code Audit | v4.3 | 0/TBD | Not started | - |
+| 169. File & Database Audit | v4.3 | 0/TBD | Not started | - |
+| 170. Security Review | v4.3 | 0/TBD | Not started | - |
