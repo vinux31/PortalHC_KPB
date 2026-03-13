@@ -1,32 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v4.3
-milestone_name: Bug Finder
-status: in_progress
-stopped_at: Completed 170-02-PLAN.md
-last_updated: "2026-03-13T07:53:58.343Z"
-last_activity: 2026-03-13 — Roadmap created, 3 phases mapped to 16 requirements
-progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
----
-
----
-gsd_state_version: 1.0
-milestone: v4.3
-milestone_name: Bug Finder
-status: in_progress
-stopped_at: Roadmap created, ready to plan Phase 168
+milestone: none
+milestone_name: Between milestones
+status: complete
+stopped_at: v4.3 Bug Finder completed
 last_updated: "2026-03-13"
-last_activity: "2026-03-13 — Roadmap created for v4.3 Bug Finder (3 phases, 16 requirements)"
+last_activity: "2026-03-13 — v4.3 Bug Finder milestone completed and archived"
 progress:
-  [██████████] 100%
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -36,51 +21,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-13)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Milestone v4.3 — Bug Finder (Phase 168: Code Audit)
+**Current focus:** Between milestones — run `/gsd:new-milestone` to start next
 
 ## Current Position
 
-Phase: 168 of 170 (Code Audit)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-13 — Roadmap created, 3 phases mapped to 16 requirements
-
-Progress: [░░░░░░░░░░] 0%
-
-## Performance Metrics
-
-**Velocity:**
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
+Phase: — (no active milestone)
+Plan: —
+Status: Between milestones
+Last activity: 2026-03-13 — v4.3 Bug Finder completed (3 phases, 8 plans, 16/16 requirements)
 
 ## Accumulated Context
-| Phase 168 P01 | 5m | 2 tasks | 2 files |
-| Phase 169 P01 | 5m | 1 tasks | 1 files |
-| Phase 170-security-review P01 | 8 | 2 tasks | 2 files |
 
 ### Decisions
 
-(Carried from v4.2)
+(Carried forward)
 - SignalR Hub methods handle group join/leave only — no DB writes inside Hub methods ever
 - DB write always happens before SignalR push; SignalR is notifications-only, not state source
-- [Phase 168-code-audit]: Silent catch blocks must log at Warning level — bare catch without logging is forbidden in all controllers
-- [Phase 168]: CleanupDuplicateAssignments removed — POST utility with no UI link; SeedData.DeduplicateProtonTrackAssignments logic retained
-- [Phase 168]: CDPController.SearchUsers removed — only referenced by ReportsIndex autocomplete which does not exist in main codebase
-- [Phase 169]: wwwroot images kept as legitimate app assets; all 4 custom CSS/JS files verified referenced
-- [Phase 169-03]: All 27 DbSets confirmed as actively used — no unused tables found
-- [Phase 169-03]: CLN-01 and CLN-02 seed utilities retained as idempotent historical utilities with clarifying comments
-- [Phase 169]: KkjUpload/CpdpUpload and KkjFileHistory/CpdpFileHistory left as 2-view pairs — extraction cost exceeds benefit for 2-view only duplications
-- [Phase 169]: Alert blocks not extracted — each uses different TempData key; parameterized partial adds indirection with minimal benefit
-- [Phase 170-security-review]: NotificationController CSRF gap closed: [IgnoreAntiforgeryToken] removed, all 3 POST actions now have [ValidateAntiForgeryToken], JS updated to pass token header
-- [Phase 170-02]: Json.Serialize() used instead of Html.Raw(x.Replace()) for all JS string contexts
-- [Phase 170-02]: Import endpoints get .xlsx/.xls extension allowlist — 6/8 upload endpoints were already secured
+- Silent catch blocks must log at Warning level — bare catch without logging is forbidden in all controllers
+- Json.Serialize() is the canonical pattern for JS string contexts (not Html.Raw with Replace)
+- All file uploads must have extension allowlists and size limits
 
 ### Quick Tasks Completed
 
@@ -91,10 +50,10 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
-Last session: 2026-03-13T07:51:06.471Z
-Stopped at: Completed 170-02-PLAN.md
+Last session: 2026-03-13
+Stopped at: v4.3 milestone completed
 Resume file: None

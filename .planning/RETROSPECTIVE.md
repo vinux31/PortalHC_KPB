@@ -390,6 +390,40 @@
 
 ---
 
+## Milestone: v4.3 — Bug Finder
+
+**Shipped:** 2026-03-13
+**Phases:** 3 (168-170) | **Plans:** 8
+
+### What Was Built
+- Code audit: 2 dead actions removed, 2 silent catches fixed, 3 unused imports cleaned
+- File & database audit: 40+ temp files removed, .gitignore hardened, all 35 DbSets verified active
+- Security review: NotificationController CSRF gap closed, 4 XSS patterns fixed, 2 import endpoints secured
+
+### What Worked
+- **Audit milestone structure**: 3 orthogonal phases (code/files/security) with zero cross-phase dependencies — all 3 ran in Wave 1 in parallel
+- **Pre-scan in planner**: Planner agent pre-scanned codebase during planning, identified specific gaps (e.g., NotificationController CSRF) — executor had precise targets
+- **Budget model profile**: All 8 plans executed with sonnet — audit/fix work doesn't need opus-level reasoning
+
+### What Was Inefficient
+- **SUMMARY frontmatter still empty**: `requirements_completed` arrays still null in all 8 SUMMARYs — same gap as v4.0
+- **Nyquist validation skipped again**: Audit phases don't produce VALIDATION.md — pattern doesn't fit audit work
+
+### Patterns Established
+- **Security audit template**: Auth → CSRF → XSS/SQLi → uploads is a clean 4-step security checklist
+- **Json.Serialize() for JS contexts**: Replaces unsafe Html.Raw(x.Replace()) pattern — established as canonical approach
+
+### Key Lessons
+- Audit milestones complete fast (1 day for 3 phases) because scope is well-defined and findings are binary (gap exists or doesn't)
+- File cleanup should happen early in project lifecycle — 40+ screenshots accumulated over 167 phases
+
+### Cost Observations
+- Model mix: 100% sonnet (executor + verifier + checker + integration)
+- Sessions: 1
+- Notable: Entire milestone (plan + execute + verify + audit) completed in a single session
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -417,5 +451,6 @@
 | v3.8 | 1 | 1 | 1 | 1 |
 | v3.21 | 1 | 1 | 1 | 1 |
 | v4.0 | 6 | 16 | 2 | 8 |
+| v4.3 | 3 | 8 | 1 | 8 |
 
-**Running total:** 95 phases, ~222 plans, 27 days
+**Running total:** 98 phases, ~230 plans, 28 days

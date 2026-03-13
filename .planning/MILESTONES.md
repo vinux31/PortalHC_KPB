@@ -1,4 +1,30 @@
 # Milestones
+## v4.3 Bug Finder (Shipped: 2026-03-13)
+
+**Phases completed:** 3 phases (168-170), 8 plans
+**Timeline:** 2026-03-13 (1 day)
+**Code changes:** 49 files changed, +2,319 / -325 lines
+**Commits:** 17
+
+**Delivered:** Comprehensive codebase, file system, database, and security audit. Removed dead code, temp files, and unused imports. Fixed CSRF gap, XSS patterns, and file upload validation. Portal is clean, secure, and free of technical debt.
+
+**Key accomplishments:**
+1. Dead code removed — 2 unreachable controller actions (CleanupDuplicateAssignments, SearchUsers), 3 unused imports cleaned
+2. Logic bugs fixed — 2 silent catch blocks now log at Warning level, all null dereference risks verified
+3. File system cleaned — 40+ temp screenshots/artifacts removed, .gitignore hardened with 5 new patterns
+4. Database verified — All 35 DbSets active, FK integrity confirmed, seed data properly gated
+5. CSRF gap closed — NotificationController's [IgnoreAntiforgeryToken] removed, JS updated to send token header
+6. XSS patterns fixed — 4 unsafe Html.Raw(x.Replace()) replaced with Json.Serialize, all 8 upload endpoints secured
+
+**Tech Debt (5 items, all non-blocking):**
+- Pre-existing bare catch at AdminController:1072 (intentional audit-log pattern)
+- 1 null-forgiving operator deferred ([Authorize] guarantee)
+- 3 orphaned KkjMatrixItemId columns (documented from Phase 90)
+- 5 near-duplicate code pairs (below extraction threshold)
+- SUMMARY prose counting error (27 vs 35 DbSets, non-blocking)
+
+---
+
 ## v4.0 E2E Use-Case Audit (Shipped: 2026-03-12)
 
 **Phases completed:** 6 phases (153-158), 16 plans

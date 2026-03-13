@@ -87,69 +87,16 @@
 
 </details>
 
+<details>
+<summary>v4.3 Bug Finder (Phases 168-170) — shipped 2026-03-13</summary>
+
+- **v4.3 Bug Finder** — Phases 168-170 (shipped 2026-03-13)
+  - Phase 168: Code Audit (3 plans)
+  - Phase 169: File & Database Audit (3 plans)
+  - Phase 170: Security Review (2 plans)
+
+</details>
+
 ---
 
-## v4.3 Bug Finder (In Progress)
-
-**Milestone Goal:** Audit menyeluruh seluruh codebase, database, dan file — temukan bug, file tidak terpakai, data tidak penting, dan dead code. Hasilkan portal yang bersih, aman, dan bebas technical debt.
-
-### Phases
-
-- [x] **Phase 168: Code Audit** - Identify and remove dead code, fix logic bugs, clean unused imports, remove orphaned views (completed 2026-03-13)
-- [x] **Phase 169: File & Database Audit** - Remove unused files, orphaned JS/CSS, temp artifacts; clean orphaned DB records, unused tables, stale data, verify integrity (completed 2026-03-13)
-- [x] **Phase 170: Security Review** - Audit authorization attributes, CSRF protection, input validation gaps, file upload security (completed 2026-03-13)
-
-## Phase Details
-
-### Phase 168: Code Audit
-**Goal**: The codebase contains no dead code, logic bugs, unused imports, or orphaned views — every file and method is reachable and correct
-**Depends on**: Nothing (first phase of milestone)
-**Requirements**: CODE-01, CODE-02, CODE-03, CODE-04
-**Success Criteria** (what must be TRUE):
-  1. No controller action, helper method, or class exists that cannot be reached through any route or call chain in the application
-  2. All known logic bugs across controllers are identified, documented, and either fixed or explicitly deferred with justification
-  3. No unused `using` statements or unnecessary namespace imports remain in any .cs file
-  4. No .cshtml view file exists in the Views directory without a corresponding reachable controller action
-**Plans:** 3/3 plans complete
-Plans:
-- [ ] 168-01-PLAN.md — Dead code removal and orphaned views cleanup
-- [ ] 168-02-PLAN.md — Logic bug audit and fixes
-- [ ] 168-03-PLAN.md — Unused imports cleanup
-
-### Phase 169: File & Database Audit
-**Goal**: The file system and database contain no orphaned, duplicate, or stale artifacts — every file is referenced and every DB record is valid
-**Depends on**: Phase 168
-**Requirements**: FILE-01, FILE-02, FILE-03, FILE-04, DB-01, DB-02, DB-03, DB-04
-**Success Criteria** (what must be TRUE):
-  1. No .cshtml, .js, or .css file exists in the project that is not referenced by any route, bundle, or layout
-  2. No temporary files (screenshots, debug logs, test artifacts) remain in the project directory tree
-  3. No duplicate or near-duplicate code blocks exist across views or controllers that could be unified into a shared partial or method
-  4. All database records have valid foreign key references — no orphaned rows pointing to deleted or non-existent parents
-  5. All seed data and test data that is not required for production operation is identified and removed or clearly marked
-**Plans:** 3/3 plans complete
-Plans:
-- [ ] 169-01-PLAN.md — Temp file cleanup and orphaned JS/CSS audit
-- [ ] 169-02-PLAN.md — View reachability re-verification and duplicate code audit
-- [ ] 169-03-PLAN.md — Database schema, FK integrity, and seed data audit
-
-### Phase 170: Security Review
-**Goal**: All controller actions have correct authorization, all forms have CSRF protection, and no input validation gaps or unsafe file upload paths exist
-**Depends on**: Phase 169
-**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04
-**Success Criteria** (what must be TRUE):
-  1. Every controller action that modifies data or returns sensitive information has an explicit `[Authorize]` attribute with the correct role scope — no action is accidentally open to unauthenticated or under-privileged users
-  2. Every POST action that changes state has `[ValidateAntiForgeryToken]` — no state-changing form can be submitted via cross-site request forgery
-  3. No user-supplied string is rendered unescaped in any view, no redirect target accepts unvalidated URL input, and no raw SQL is constructed from user input
-  4. All file upload endpoints validate file type (allowlist extension check), enforce a maximum file size, and resolve upload paths server-side — no path traversal is possible
-**Plans:** 2/2 plans complete
-Plans:
-- [ ] 170-01-PLAN.md — Authorization attributes and CSRF protection audit
-- [ ] 170-02-PLAN.md — Input validation gaps and file upload security audit
-
-## Progress
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 168. Code Audit | 3/3 | Complete    | 2026-03-13 | - |
-| 169. File & Database Audit | 3/3 | Complete    | 2026-03-13 | - |
-| 170. Security Review | 2/2 | Complete    | 2026-03-13 | - |
+*No active milestone — run `/gsd:new-milestone` to start next.*

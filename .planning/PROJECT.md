@@ -12,21 +12,15 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v4.3 Bug Finder
+## Current Milestone: None (between milestones)
 
-**Goal:** Audit menyeluruh seluruh codebase, database, dan file — temukan bug, file tidak terpakai, data tidak penting, dan dead code.
+Run `/gsd:new-milestone` to start next milestone.
 
-**Target features:**
-- Code audit: cari bug, dead code, unused imports, unreachable routes
-- Database audit: data orphan, tabel tidak terpakai, kolom redundan
-- File audit: file tidak terpakai (views, models, scripts, CSS)
-- Cleanup: hapus semua yang tidak perlu
+## Current State (v4.3 shipped 2026-03-13)
 
-## Current State (v4.2 shipped 2026-03-13)
+**v1.0 through v4.3 shipped** — 42 milestones, 170 phases.
 
-**v1.0 through v4.2 shipped** — 41 milestones, 167 phases.
-
-All 6 use-case flows audited end-to-end (code review + browser UAT). 33 requirements verified, 10+ bugs fixed. Portal is stable and fully audited.
+Portal is fully audited: 6 use-case flows verified (v4.0), codebase cleaned of dead code and unused imports (v4.3 Phase 168), file system and database verified clean (v4.3 Phase 169), security hardened with CSRF/XSS/upload fixes (v4.3 Phase 170). All 16 audit requirements satisfied, 0 critical tech debt.
 
 ## Architecture Decisions
 
@@ -39,6 +33,21 @@ All 6 use-case flows audited end-to-end (code review + browser UAT). 33 requirem
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v4.3 - Bug Finder (2026-03-13)
+
+**Delivered:** Full codebase, file system, database, and security audit. Dead code removed, temp files cleaned, CSRF/XSS gaps closed, all uploads secured.
+
+**What Shipped:**
+1. **Code Audit** — 2 dead actions removed, 2 silent catches fixed with logging, 3 unused imports cleaned, 53 views verified reachable
+2. **File & Database Audit** — 40+ temp files removed, .gitignore hardened, all 35 DbSets verified active, seed data properly gated
+3. **Security Review** — NotificationController CSRF gap closed, 4 Html.Raw XSS patterns fixed, 2 import endpoints secured with file type allowlists
+
+**Metrics:**
+- 3 phases (168-170), 8 plans, 17 commits
+- 49 files changed, +2,319 / -325 lines
+
+---
 
 ### ✅ v4.0 - E2E Use-Case Audit (2026-03-12)
 
@@ -707,4 +716,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-05 after v3.2 milestone started*
+*Last updated: 2026-03-13 after v4.3 milestone*
