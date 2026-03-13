@@ -760,7 +760,7 @@ else
             : 'Waktu ujian habis.';
         document.getElementById('examClosedReason').textContent = reasonText;
 
-        var redirectTarget = '@Url.Action("ExamResults", "CMP")?sessionId=' + SESSION_ID;
+        var redirectTarget = '@Url.Action("Results", "CMP")/' + SESSION_ID;
         var modal = new bootstrap.Modal(document.getElementById('examClosedModal'));
         modal.show();
 
