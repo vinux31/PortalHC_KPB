@@ -1261,6 +1261,8 @@ namespace HcPortal.Controllers
                 }
             }
 
+            ViewBag.AssessmentBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
+
             return View(vm);
         }
 

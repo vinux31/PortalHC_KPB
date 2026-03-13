@@ -917,3 +917,10 @@
     }
     </script>
 }
+
+@section Scripts {
+<link rel="stylesheet" href="~/css/assessment-hub.css" />
+<script src="~/lib/signalr/signalr.min.js"></script>
+<script>window.assessmentBatchKey = '@ViewBag.AssessmentBatchKey';</script>
+<script src="~/js/assessment-hub.js"></script>
+}
