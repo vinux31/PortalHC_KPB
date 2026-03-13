@@ -83,7 +83,7 @@
 
 ### Phases
 
-- [ ] **Phase 162: Simplifikasi Action Close + Auto-Grade** - Merge 3 close actions into 2 consistent actions that auto-grade saved answers
+- [x] **Phase 162: Simplifikasi Action Close + Auto-Grade** - Merge 3 close actions into 2 consistent actions that auto-grade saved answers (completed 2026-03-13)
 - [ ] **Phase 163: Hub Infrastructure & Safety Foundations** - SignalR Hub, JS client, auth config, SQLite WAL mode, race condition guards, reconnect handling
 - [ ] **Phase 164: HC-to-Worker Push Events** - Reset and Akhiri Ujian push instantly to targeted worker; Akhiri Semua broadcasts to all workers in batch
 - [ ] **Phase 165: Worker-to-HC Progress Push + Polling Removal** - HC monitoring receives real-time progress events; remove legacy setInterval polling after confirmed working
@@ -101,7 +101,7 @@
   2. HC clicks "Akhiri Semua" on a group; all InProgress workers get auto-graded from saved answers, all Open/Not-started workers get status "Cancelled" (not "Completed" or "Abandoned")
   3. The old ForceClose, ForceCloseAll, and CloseEarly actions no longer exist in the codebase — replaced by the 2 new actions
   4. Worker polling (CheckExamStatus) still detects the new close actions and redirects correctly
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 162-01-PLAN.md — Backend: extract shared grading, create AkhiriUjian + AkhiriSemuaUjian, remove old actions, handle Cancelled status
 - [ ] 162-02-PLAN.md — Frontend: update monitoring detail buttons/modals, add worker close notification modal
@@ -164,7 +164,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 162. Simplifikasi Action Close + Auto-Grade | 1/2 | In Progress|  | - |
+| 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete   | 2026-03-13 | - |
 | 163. Hub Infrastructure & Safety Foundations | v4.2 | 0/TBD | Not started | - |
 | 164. HC-to-Worker Push Events | v4.2 | 0/TBD | Not started | - |
 | 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/TBD | Not started | - |
