@@ -28,10 +28,13 @@ namespace HcPortal.Data
                 Console.WriteLine("Skipping test user seeding (non-Development environment).");
             }
 
-            // 3. One-time cleanup: deactivate duplicate active ProtonTrackAssignments (CLN-01)
+            // 3. Historical utility: deactivate duplicate active ProtonTrackAssignments (CLN-01)
+            // Retained for reference — idempotent (no writes if no duplicates found).
+            // This was a one-time data correction; the query runs on every startup but is safe.
             await DeduplicateProtonTrackAssignments(context);
 
-            // 4. One-time cleanup: merge split Kompetensi/SubKompetensi records and remove junk (CLN-02)
+            // 4. Historical utility: merge split Kompetensi/SubKompetensi records and remove junk (CLN-02)
+            // Retained for reference — self-guarded (returns early if KId=2 not found, i.e., already run).
             await MergeProtonCatalogDuplicates(context);
         }
 
