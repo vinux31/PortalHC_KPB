@@ -497,3 +497,10 @@ test.txt
 
 # Git worktrees
 .worktrees/
+
+# Temp/debug artifacts
+*.png
+!wwwroot/**/*.png
+*.db-shm
+*.db-wal
+.playwright-mcp/
