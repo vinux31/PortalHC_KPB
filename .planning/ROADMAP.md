@@ -87,8 +87,8 @@
 - [x] **Phase 163: Hub Infrastructure & Safety Foundations** - SignalR Hub, JS client, auth config, SQLite WAL mode, race condition guards, reconnect handling (completed 2026-03-13)
 - [x] **Phase 164: HC-to-Worker Push Events** - Reset and Akhiri Ujian push instantly to targeted worker; Akhiri Semua broadcasts to all workers in batch (completed 2026-03-13)
 - [ ] **Phase 165: Worker-to-HC Progress Push + Polling Removal** - HC monitoring receives real-time progress events; remove legacy setInterval polling after confirmed working
-- [ ] **Phase 166: Activity Log Per-Worker** - Track per-question timestamps, page navigation, disconnect events for HC audit trail (opsional)
-- [ ] **Phase 167: Item Analysis / Statistik Per-Soal** - Difficulty index, discrimination index, answer distribution per question (opsional)
+- [x] **Phase 166: Activity Log Per-Worker** - Track per-question timestamps, page navigation, disconnect events for HC audit trail (opsional) (completed 2026-03-13)
+
 
 ## Phase Details
 
@@ -158,22 +158,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. HC clicks a worker row in monitoring detail and sees a chronological activity log with timestamps for each event (start, answer, page change, disconnect, reconnect, submit)
   2. Activity data is stored server-side and survives browser refresh — not client-only
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 166-01-PLAN.md — Backend: ExamActivityLog model, Hub overrides, controller logging, GET endpoint
 - [ ] 166-02-PLAN.md — Frontend: log button per worker row, activity log modal, page nav logging
-
-### Phase 167: Item Analysis / Statistik Per-Soal
-**Goal**: After an assessment group completes, HC can view per-question statistics — difficulty index, discrimination index, answer distribution — to evaluate question quality
-**Depends on**: Phase 165
-**Requirements**: STATS-01, STATS-02
-**Success Criteria** (what must be TRUE):
-  1. HC monitoring detail page shows a "Statistik Soal" section with per-question difficulty percentage and answer distribution chart
-  2. Questions are ranked by difficulty so HC can identify problematic questions
-**Plans:** 2 plans
-Plans:
-- [ ] 164-01-PLAN.md — Backend: inject IHubContext, add SendAsync to Reset/AkhiriUjian/AkhiriSemuaUjian
-- [ ] 164-02-PLAN.md — Frontend: push event handlers, reset modal, dynamic text, connection badges
 
 ## Progress
 
@@ -183,5 +171,4 @@ Plans:
 | 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
 | 164. HC-to-Worker Push Events | 2/2 | Complete   | 2026-03-13 | - |
 | 165. Worker-to-HC Progress Push + Polling Removal | 1/2 | In Progress|  | - |
-| 166. Activity Log Per-Worker | 1/2 | In Progress|  | - |
-| 167. Item Analysis / Statistik Per-Soal | v4.2 | 0/TBD | Not started | - |
+| 166. Activity Log Per-Worker | 2/2 | Complete   | 2026-03-13 | - |

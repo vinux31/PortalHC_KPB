@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Real-time Assessment
 status: in_progress
-stopped_at: Completed 166-01-PLAN.md
-last_updated: "2026-03-13T05:00:37.197Z"
+stopped_at: Completed 166-02-PLAN.md
+last_updated: "2026-03-13T05:35:54.298Z"
 last_activity: "2026-03-13 — Completed Plan 01: backend SignalR push + HC monitoring event handlers"
 progress:
-  total_phases: 6
-  completed_phases: 3
+  total_phases: 5
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 ---
@@ -86,6 +86,7 @@ Progress: [████████░░] 80% (v4.2 Phase 165)
 - [Phase 165-01]: monitor-{batchKey} group naming; JoinMonitor joined on hub connect (2s timeout) and onreconnected
 - [Phase 166-01]: IServiceScopeFactory injected into Hub — DbContext must be scoped per Task.Run to avoid threading issues
 - [Phase 166-01]: LogActivityAsync in CMPController reuses request-scoped _context — safe because it runs in same request, not background thread
+- [Phase 166]: showActivityLog defined outside IIFE to be accessible from inline onclick attributes
 
 ### Blockers/Concerns
 
@@ -102,6 +103,6 @@ Progress: [████████░░] 80% (v4.2 Phase 165)
 
 ## Session Continuity
 
-Last session: 2026-03-13T05:00:33.451Z
-Stopped at: Completed 166-01-PLAN.md
+Last session: 2026-03-13T05:35:49.961Z
+Stopped at: Completed 166-02-PLAN.md
 Resume file: None

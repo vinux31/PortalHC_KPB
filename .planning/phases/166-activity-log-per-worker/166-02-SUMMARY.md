@@ -23,9 +23,9 @@ decisions:
   - "showActivityLog defined outside IIFE to be accessible from inline onclick attributes"
   - "pageNumber sent as 0-based from JS, stored as 1-based via Hub (pageNumber + 1)"
 metrics:
-  duration: "25 minutes"
+  duration: "30 minutes"
   completed_date: "2026-03-13"
-  tasks_completed: 1
+  tasks_completed: 2
   files_modified: 4
 ---
 
@@ -87,9 +87,9 @@ metrics:
 
 ## Self-Check: PASSED
 
-## Awaiting Human Verification
+## Human Verification: PASSED
 
-Task 2 is a checkpoint:human-verify. The HC must verify end-to-end:
-1. Worker takes exam, navigates pages, submits
-2. HC opens monitoring detail, clicks log button
-3. Modal shows summary + timeline with Bahasa Indonesia labels
+Task 2 checkpoint approved by user on 2026-03-13.
+- Worker page navigation logging confirmed working via SignalR LogPageNav
+- HC activity log modal confirmed showing summary + Bahasa Indonesia timeline
+- Fix commit 65814fc: WIB timezone conversion, real-time auto-refresh modal, empty migration fix
