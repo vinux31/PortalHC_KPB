@@ -261,7 +261,7 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, error = "Unauthorized" });
 
             // Session must still be in progress
-            if (session.Status == "Completed" || session.Status == "Abandoned")
+            if (session.Status == "Completed" || session.Status == "Abandoned" || session.Status == "Cancelled")
                 return Json(new { success = false, error = "Session already closed" });
 
             // Atomic upsert: update existing row, or insert if none exists
@@ -309,7 +309,7 @@ namespace HcPortal.Controllers
                 return Json(new { success = false, error = "Unauthorized" });
 
             // Session must still be in progress
-            if (session.Status == "Completed" || session.Status == "Abandoned")
+            if (session.Status == "Completed" || session.Status == "Abandoned" || session.Status == "Cancelled")
                 return Json(new { success = false, error = "Session already closed" });
 
             // Atomic upsert: update existing row, or insert if none exists
@@ -1638,34 +1638,36 @@ namespace HcPortal.Controllers
 
                 int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
-                assessment.Score = finalPercentage;
-                assessment.Status = "Completed";
-                assessment.Progress = 100;
-                assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
-                assessment.CompletedAt = DateTime.UtcNow;
-
-                packageAssignment.IsCompleted = true;
-
                 // Competency auto-update removed in Phase 90 (KKJ tables dropped)
 
-                // Use concurrency-safe update to prevent late SaveAnswer from corrupting score
-                _context.AssessmentSessions.Update(assessment);
-                try
+                // Save PackageUserResponses first (answer persistence is safe to run before status claim)
+                await _context.SaveChangesAsync();
+
+                // Status-guarded write: detach entity and use ExecuteUpdateAsync so that if AkhiriUjian
+                // already completed this session, we get rowsAffected==0 and skip silently.
+                _context.Entry(assessment).State = EntityState.Detached;
+
+                var rowsAffected = await _context.AssessmentSessions
+                    .Where(s => s.Id == id && s.Status != "Completed")
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(r => r.Score, finalPercentage)
+                        .SetProperty(r => r.Status, "Completed")
+                        .SetProperty(r => r.Progress, 100)
+                        .SetProperty(r => r.IsPassed, finalPercentage >= assessment.PassPercentage)
+                        .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                    );
+
+                if (rowsAffected == 0)
                 {
-                    await _context.SaveChangesAsync();
+                    // Race: AkhiriUjian already completed this session — inform user and redirect to results
+                    TempData["Info"] = "Ujian Anda sudah diakhiri oleh pengawas.";
+                    return RedirectToAction("Results", new { id });
                 }
-                catch (Microsoft.EntityFrameworkCore.DbUpdateConcurrencyException)
-                {
-                    // Reload and retry once — late SaveAnswer may have touched the session
-                    await _context.Entry(assessment).ReloadAsync();
-                    assessment.Score = finalPercentage;
-                    assessment.Status = "Completed";
-                    assessment.Progress = 100;
-                    assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
-                    assessment.CompletedAt = DateTime.UtcNow;
-                    _context.AssessmentSessions.Update(assessment);
-                    await _context.SaveChangesAsync();
-                }
+
+                // Update assignment completion separately
+                await _context.UserPackageAssignments
+                    .Where(a => a.AssessmentSessionId == id)
+                    .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
 
                 // ASSESS-08: Auto-create TrainingRecord on exam completion (duplicate guard prevents double-insert on retry)
                 var judul = $"Assessment: {assessment.Title}";
@@ -1761,16 +1763,28 @@ namespace HcPortal.Controllers
                 // Model.Score is int, usually 0-100 logic is preferred.
                 int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
-                assessment.Score = finalPercentage;
-                assessment.Status = "Completed";
-                assessment.Progress = 100;
-                assessment.IsPassed = finalPercentage >= assessment.PassPercentage;
-                assessment.CompletedAt = DateTime.UtcNow;
-
                 // Competency auto-update removed in Phase 90 (KKJ tables dropped)
 
-                _context.AssessmentSessions.Update(assessment);
+                // Save UserResponses first, then status-guarded claim
                 await _context.SaveChangesAsync();
+
+                _context.Entry(assessment).State = EntityState.Detached;
+
+                var legacyRowsAffected = await _context.AssessmentSessions
+                    .Where(s => s.Id == id && s.Status != "Completed")
+                    .ExecuteUpdateAsync(s => s
+                        .SetProperty(r => r.Score, finalPercentage)
+                        .SetProperty(r => r.Status, "Completed")
+                        .SetProperty(r => r.Progress, 100)
+                        .SetProperty(r => r.IsPassed, finalPercentage >= assessment.PassPercentage)
+                        .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
+                    );
+
+                if (legacyRowsAffected == 0)
+                {
+                    TempData["Info"] = "Ujian Anda sudah diakhiri oleh pengawas.";
+                    return RedirectToAction("Results", new { id });
+                }
 
                 // ASSESS-08: Auto-create TrainingRecord on exam completion (duplicate guard prevents double-insert on retry)
                 var judulLegacy = $"Assessment: {assessment.Title}";
