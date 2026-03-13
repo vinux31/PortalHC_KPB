@@ -168,7 +168,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 162. Simplifikasi Action Close + Auto-Grade | 2/2 | Complete    | 2026-03-13 | - |
-| 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete   | 2026-03-13 | - |
+| 163. Hub Infrastructure & Safety Foundations | 2/2 | Complete    | 2026-03-13 | - |
 | 164. HC-to-Worker Push Events | v4.2 | 0/TBD | Not started | - |
 | 165. Worker-to-HC Progress Push + Polling Removal | v4.2 | 0/TBD | Not started | - |
 | 166. Activity Log Per-Worker | v4.2 | 0/TBD | Not started | - |
