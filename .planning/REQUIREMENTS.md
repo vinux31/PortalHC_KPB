@@ -28,8 +28,8 @@
 
 ### Security Review
 
-- [ ] **SEC-01**: Audit authorization attributes on all controller actions
-- [ ] **SEC-02**: Check for missing CSRF protection (ValidateAntiForgeryToken)
+- [x] **SEC-01**: Audit authorization attributes on all controller actions
+- [x] **SEC-02**: Check for missing CSRF protection (ValidateAntiForgeryToken)
 - [ ] **SEC-03**: Check for input validation gaps (SQL injection, XSS, open redirect)
 - [ ] **SEC-04**: Verify file upload security (type validation, size limits, path traversal)
 
@@ -62,8 +62,8 @@
 | FILE-02 | Phase 169 | Complete |
 | FILE-03 | Phase 169 | Complete |
 | FILE-04 | Phase 169 | Complete |
-| SEC-01 | Phase 170 | Pending |
-| SEC-02 | Phase 170 | Pending |
+| SEC-01 | Phase 170 | Complete |
+| SEC-02 | Phase 170 | Complete |
 | SEC-03 | Phase 170 | Pending |
 | SEC-04 | Phase 170 | Pending |
 

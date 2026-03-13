@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v4.3
 milestone_name: Bug Finder
 status: in_progress
-stopped_at: Completed 169-02-PLAN.md
-last_updated: "2026-03-13T07:14:09.745Z"
+stopped_at: Completed 170-01-PLAN.md
+last_updated: "2026-03-13T07:50:19.539Z"
 last_activity: 2026-03-13 — Roadmap created, 3 phases mapped to 16 requirements
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
   percent: 100
 ---
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 ## Accumulated Context
 | Phase 168 P01 | 5m | 2 tasks | 2 files |
 | Phase 169 P01 | 5m | 1 tasks | 1 files |
+| Phase 170-security-review P01 | 8 | 2 tasks | 2 files |
 
 ### Decisions
 
@@ -77,6 +78,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 169-03]: CLN-01 and CLN-02 seed utilities retained as idempotent historical utilities with clarifying comments
 - [Phase 169]: KkjUpload/CpdpUpload and KkjFileHistory/CpdpFileHistory left as 2-view pairs — extraction cost exceeds benefit for 2-view only duplications
 - [Phase 169]: Alert blocks not extracted — each uses different TempData key; parameterized partial adds indirection with minimal benefit
+- [Phase 170-security-review]: NotificationController CSRF gap closed: [IgnoreAntiforgeryToken] removed, all 3 POST actions now have [ValidateAntiForgeryToken], JS updated to pass token header
 
 ### Quick Tasks Completed
 
@@ -91,6 +93,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-13T07:11:21.012Z
-Stopped at: Completed 169-02-PLAN.md
+Last session: 2026-03-13T07:50:19.535Z
+Stopped at: Completed 170-01-PLAN.md
 Resume file: None
