@@ -133,12 +133,11 @@
                                             </a>
                                             @{
                                                 var aCount = assignmentCounts.ContainsKey(pkg.Id) ? assignmentCounts[pkg.Id] : 0;
-                                                var confirmMsg = aCount > 0
-                                                    ? $"PERINGATAN: {aCount} peserta sudah ditugaskan ke {pkg.PackageName}. Menghapus paket ini akan menghapus semua data jawaban dan penugasan mereka.\\n\\nLanjutkan hapus?"
-                                                    : $"Hapus {pkg.PackageName} dan semua pertanyaannya?";
                                             }
                                             <form asp-action="DeletePackage" method="post"
-                                                  onsubmit="return confirm('@Html.Raw(confirmMsg)');">
+                                                  data-pkg-name="@pkg.PackageName"
+                                                  data-assign-count="@aCount"
+                                                  onsubmit="return confirmDeletePackage(this);">
                                                 <input type="hidden" name="packageId" value="@pkg.Id" />
                                                 <button type="submit" class="btn btn-sm btn-outline-danger">
                                                     <i class="bi bi-trash"></i>
@@ -155,3 +154,16 @@
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        function confirmDeletePackage(form) {
+            var pkgName = form.getAttribute('data-pkg-name');
+            var aCount = parseInt(form.getAttribute('data-assign-count'), 10);
+            var msg = aCount > 0
+                ? 'PERINGATAN: ' + aCount + ' peserta sudah ditugaskan ke ' + pkgName + '. Menghapus paket ini akan menghapus semua data jawaban dan penugasan mereka.\n\nLanjutkan hapus?'
+                : 'Hapus ' + pkgName + ' dan semua pertanyaannya?';
+            return confirm(msg);
+        }
+    </script>
+}

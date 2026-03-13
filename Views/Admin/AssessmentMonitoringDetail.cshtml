@@ -303,7 +303,7 @@
                                         @* Activity Log button -- always shown, enabled if session has started *@
                                         <button type="button"
                                                 class="btn btn-outline-secondary btn-sm ms-1"
-                                                onclick="showActivityLog(@session.Id, '@Html.Raw(session.UserFullName.Replace("'", "\\'"))')"
+                                                onclick="showActivityLog(@session.Id, @Json.Serialize(session.UserFullName))"
                                                 title="Lihat activity log">
                                             <i class="bi bi-clock-history"></i>
                                         </button>
@@ -605,7 +605,7 @@
             url: '/Admin/ReshuffleAll',
             type: 'POST',
             data: {
-                title: '@Html.Raw(Model.Title.Replace("'", "\\'"))',
+                title: @Json.Serialize(Model.Title),
                 category: '@Model.Category',
                 scheduleDate: '@Model.Schedule.ToString("yyyy-MM-dd")',
                 __RequestVerificationToken: antiForgeryToken

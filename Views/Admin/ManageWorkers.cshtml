@@ -271,7 +271,7 @@
                                             </a>
                                             @if (user.IsActive)
                                             {
-                                                <form method="post" action="@Url.Action("DeactivateWorker", "Admin")" style="display:inline;" onsubmit="return confirmDeactivate('@Html.Raw(user.FullName.Replace("'", "\\'"))');">
+                                                <form method="post" action="@Url.Action("DeactivateWorker", "Admin")" style="display:inline;" onsubmit="return confirmDeactivate(@Json.Serialize(user.FullName));">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
                                                     <button type="submit" class="btn btn-sm btn-outline-warning" title="Nonaktifkan">
