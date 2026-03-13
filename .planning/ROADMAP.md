@@ -95,7 +95,7 @@
 
 ### Phases
 
-- [ ] **Phase 168: Code Audit** - Identify and remove dead code, fix logic bugs, clean unused imports, remove orphaned views
+- [x] **Phase 168: Code Audit** - Identify and remove dead code, fix logic bugs, clean unused imports, remove orphaned views (completed 2026-03-13)
 - [ ] **Phase 169: File & Database Audit** - Remove unused files, orphaned JS/CSS, temp artifacts; clean orphaned DB records, unused tables, stale data, verify integrity
 - [ ] **Phase 170: Security Review** - Audit authorization attributes, CSRF protection, input validation gaps, file upload security
 
@@ -110,7 +110,7 @@
   2. All known logic bugs across controllers are identified, documented, and either fixed or explicitly deferred with justification
   3. No unused `using` statements or unnecessary namespace imports remain in any .cs file
   4. No .cshtml view file exists in the Views directory without a corresponding reachable controller action
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 168-01-PLAN.md — Dead code removal and orphaned views cleanup
 - [ ] 168-02-PLAN.md — Logic bug audit and fixes
@@ -143,6 +143,6 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 168. Code Audit | 2/3 | In Progress|  | - |
+| 168. Code Audit | 3/3 | Complete   | 2026-03-13 | - |
 | 169. File & Database Audit | v4.3 | 0/TBD | Not started | - |
 | 170. Security Review | v4.3 | 0/TBD | Not started | - |
