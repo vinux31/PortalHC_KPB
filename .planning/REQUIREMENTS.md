@@ -21,10 +21,10 @@
 
 ### File Audit
 
-- [ ] **FILE-01**: Identify and remove unused view files (.cshtml with no route)
+- [x] **FILE-01**: Identify and remove unused view files (.cshtml with no route)
 - [x] **FILE-02**: Identify and remove orphaned JS/CSS files not referenced anywhere
 - [x] **FILE-03**: Identify and remove temp/leftover files (screenshots, logs, debug artifacts)
-- [ ] **FILE-04**: Identify duplicate or near-duplicate code blocks
+- [x] **FILE-04**: Identify duplicate or near-duplicate code blocks
 
 ### Security Review
 
@@ -58,10 +58,10 @@
 | DB-02 | Phase 169 | Complete |
 | DB-03 | Phase 169 | Complete |
 | DB-04 | Phase 169 | Complete |
-| FILE-01 | Phase 169 | Pending |
+| FILE-01 | Phase 169 | Complete |
 | FILE-02 | Phase 169 | Complete |
 | FILE-03 | Phase 169 | Complete |
-| FILE-04 | Phase 169 | Pending |
+| FILE-04 | Phase 169 | Complete |
 | SEC-01 | Phase 170 | Pending |
 | SEC-02 | Phase 170 | Pending |
 | SEC-03 | Phase 170 | Pending |

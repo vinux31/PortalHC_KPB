@@ -4,7 +4,7 @@ milestone: v4.3
 milestone_name: Bug Finder
 status: in_progress
 stopped_at: Completed 169-02-PLAN.md
-last_updated: "2026-03-13T07:11:21.015Z"
+last_updated: "2026-03-13T07:11:26.892Z"
 last_activity: 2026-03-13 — Roadmap created, 3 phases mapped to 16 requirements
 progress:
   total_phases: 3
@@ -75,6 +75,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 169]: wwwroot images kept as legitimate app assets; all 4 custom CSS/JS files verified referenced
 - [Phase 169-03]: All 27 DbSets confirmed as actively used — no unused tables found
 - [Phase 169-03]: CLN-01 and CLN-02 seed utilities retained as idempotent historical utilities with clarifying comments
+- [Phase 169]: KkjUpload/CpdpUpload and KkjFileHistory/CpdpFileHistory left as 2-view pairs — extraction cost exceeds benefit for 2-view only duplications
+- [Phase 169]: Alert blocks not extracted — each uses different TempData key; parameterized partial adds indirection with minimal benefit
 
 ### Quick Tasks Completed
 
