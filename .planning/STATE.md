@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v4.2
 milestone_name: Real-time Assessment
 status: in_progress
-stopped_at: "Checkpoint: 163-01 Task 3 human-verify — awaiting browser SignalR verification"
-last_updated: "2026-03-13T02:28:45.235Z"
+stopped_at: Completed 163-01-PLAN.md
+last_updated: "2026-03-13T02:35:36.547Z"
 last_activity: "2026-03-13 — Completed Plan 02: close action UI with worker notification modal"
 progress:
   total_phases: 6
@@ -62,6 +62,7 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 - [Phase 163]: AkhiriUjian: rowsAffected==0 returns Info TempData (silent skip)
 - [Phase 163]: SubmitExam: rowsAffected==0 redirects to Results with Info (not error)
 - [Phase 163]: All 4 assessment write actions use WHERE-clause-guarded ExecuteUpdateAsync for first-write-wins
+- [Phase 163]: SignalR hub methods handle group join/leave only — no DB writes inside Hub methods
 
 ### Blockers/Concerns
 
@@ -78,6 +79,6 @@ Progress: [██████████] 100% (v4.2 Phase 162)
 
 ## Session Continuity
 
-Last session: 2026-03-13T02:28:45.232Z
-Stopped at: Checkpoint: 163-01 Task 3 human-verify — awaiting browser SignalR verification
+Last session: 2026-03-13T02:35:33.234Z
+Stopped at: Completed 163-01-PLAN.md
 Resume file: None
