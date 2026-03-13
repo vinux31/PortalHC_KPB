@@ -355,16 +355,22 @@ namespace HcPortal.Controllers
 
             bool isClosed = false;
 
-            // Closed if ExamWindowCloseDate has been set and is in the past (CloseEarly fired)
+            // Closed if ExamWindowCloseDate has been set and is in the past
             if (session.ExamWindowCloseDate.HasValue && DateTime.UtcNow > session.ExamWindowCloseDate.Value)
                 isClosed = true;
 
-            // Also closed if session is already Completed (CloseEarly scored it)
+            // Closed if session is already Completed (auto-graded by AkhiriUjian/AkhiriSemuaUjian or SubmitExam)
             if (session.Status == "Completed")
                 isClosed = true;
 
+            // Cancelled by AkhiriSemuaUjian (not-started worker) — redirect to Assessment page, not Results
+            if (session.Status == "Cancelled")
+                isClosed = true;
+
             string redirectUrl = isClosed
-                ? Url.Action("Results", new { id = sessionId }) ?? "/CMP/Assessment"
+                ? (session.Status == "Cancelled"
+                    ? (Url.Action("Assessment") ?? "/CMP/Assessment")
+                    : (Url.Action("Results", new { id = sessionId }) ?? "/CMP/Assessment"))
                 : "";
 
             // Cache result for 5 seconds (ownership already verified above)
