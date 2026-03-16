@@ -54,7 +54,9 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   1. User clicks Export Excel on Records page and receives an .xlsx file containing their personal training history
   2. Atasan/HC/Admin clicks Export Excel on RecordsTeam page and receives an .xlsx file containing team training records
   3. Exported files contain all visible columns (nama pelatihan, tanggal, status, etc.) matching the on-screen table
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
 
 ### Phase 177: Import CoachCoacheeMapping
 **Goal**: Admin/HC can bulk-create coach-coachee mappings from an Excel file instead of one-by-one
@@ -64,7 +66,9 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   1. Admin/HC can download a pre-filled Excel template for CoachCoacheeMapping with column headers and example row
   2. Admin/HC can upload a filled template and have valid rows created as new CoachCoacheeMapping records
   3. Invalid rows (missing data, unknown NIP) show clear error messages without crashing the import
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
 
 ### Phase 178: Export AuditLog
 **Goal**: Admin/HC can download the audit trail as Excel for offline review and compliance
@@ -74,7 +78,9 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   1. Admin/HC clicks Export Excel on AuditLog page and receives an .xlsx file
   2. Export respects the current date filter (start/end date) so only filtered entries are exported
   3. Exported file contains all AuditLog columns (timestamp, actor, action, detail)
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
 
 ### Phase 179: Export & Import Silabus Proton
 **Goal**: Admin/HC can roundtrip Silabus Proton data via Excel -- export current data and bulk-import new/updated entries
@@ -85,7 +91,9 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   2. Admin/HC can download a pre-filled Excel template for Silabus Proton with column headers and example row
   3. Admin/HC can upload a filled template and have valid rows created/updated as Silabus records
   4. Invalid rows show clear error messages without crashing the import
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
 
 ### Phase 180: Import Training & Export HistoriProton
 **Goal**: Admin/HC can bulk-import training records and export Proton history for offline review
@@ -96,7 +104,9 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   2. Admin/HC can upload a filled template and have valid rows created as Training records
   3. Invalid rows show clear error messages without crashing the import
   4. Coach/HC/Admin clicks Export Excel on Histori Proton page and receives an .xlsx file with history data
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
 
 ## Progress
 
