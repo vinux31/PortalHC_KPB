@@ -6,6 +6,7 @@ namespace HcPortal.Models;
 /// </summary>
 public class AllWorkersHistoryRow
 {
+    public string WorkerId { get; set; } = "";
     public string WorkerName { get; set; } = "";
     public string? WorkerNIP { get; set; }
 

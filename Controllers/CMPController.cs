@@ -596,15 +596,14 @@ namespace HcPortal.Controllers
 
             var (assessmentRows, _) = await GetAllWorkersHistory();
 
-            // Get filtered worker NIPs from GetWorkersInSection
+            // Get filtered worker IDs from GetWorkersInSection
             var filteredWorkers = await GetWorkersInSection(sectionFilter, unit, null, search, statusFilter);
-            var filteredNips = filteredWorkers
-                .Where(w => !string.IsNullOrEmpty(w.NIP))
-                .Select(w => w.NIP)
+            var filteredIds = filteredWorkers
+                .Select(w => w.WorkerId)
                 .ToHashSet();
 
             var filtered = assessmentRows
-                .Where(r => !string.IsNullOrEmpty(r.WorkerNIP) && filteredNips.Contains(r.WorkerNIP))
+                .Where(r => filteredIds.Contains(r.WorkerId))
                 .ToList();
 
             using var workbook = new XLWorkbook();
@@ -662,15 +661,14 @@ namespace HcPortal.Controllers
 
             var (_, trainingRows) = await GetAllWorkersHistory();
 
-            // Get filtered worker NIPs from GetWorkersInSection
+            // Get filtered worker IDs from GetWorkersInSection
             var filteredWorkers = await GetWorkersInSection(sectionFilter, unit, category, search, statusFilter);
-            var filteredNips = filteredWorkers
-                .Where(w => !string.IsNullOrEmpty(w.NIP))
-                .Select(w => w.NIP)
+            var filteredIds = filteredWorkers
+                .Select(w => w.WorkerId)
                 .ToHashSet();
 
             var filtered = trainingRows
-                .Where(r => !string.IsNullOrEmpty(r.WorkerNIP) && filteredNips.Contains(r.WorkerNIP))
+                .Where(r => filteredIds.Contains(r.WorkerId))
                 .ToList();
 
             using var workbook = new XLWorkbook();
@@ -924,6 +922,7 @@ namespace HcPortal.Controllers
 
             assessmentRows.AddRange(archivedAttempts.Select(h => new AllWorkersHistoryRow
             {
+                WorkerId      = h.UserId,
                 WorkerName    = h.User?.FullName ?? h.UserId,
                 WorkerNIP     = h.User?.NIP,
                 RecordType    = "Assessment Online",
@@ -946,6 +945,7 @@ namespace HcPortal.Controllers
                 int archived = archivedCountLookup.TryGetValue(key, out var c) ? c : 0;
                 return new AllWorkersHistoryRow
                 {
+                    WorkerId      = a.UserId,
                     WorkerName    = a.User?.FullName ?? a.UserId,
                     WorkerNIP     = a.User?.NIP,
                     RecordType    = "Assessment Online",
@@ -970,6 +970,7 @@ namespace HcPortal.Controllers
 
             var trainingRows = trainings.Select(t => new AllWorkersHistoryRow
             {
+                WorkerId      = t.UserId,
                 WorkerName    = t.User?.FullName ?? t.UserId,
                 WorkerNIP     = t.User?.NIP,
                 RecordType    = "Manual",
