@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
 using HcPortal.Data;
 using HcPortal.Services;
+using ClosedXML.Excel;
 
 namespace HcPortal.Controllers
 {
@@ -21,6 +22,16 @@ namespace HcPortal.Controllers
         public string Bagian { get; set; } = "";
         public string Unit { get; set; } = "";
         public int TrackId { get; set; }
+    }
+
+    public class ImportSilabusResult
+    {
+        public int RowNumber { get; set; }
+        public string Kompetensi { get; set; } = "";
+        public string SubKompetensi { get; set; } = "";
+        public string Deliverable { get; set; } = "";
+        public string Status { get; set; } = ""; // "Created", "Updated", "Error"
+        public string Message { get; set; } = "";
     }
 
     public class SilabusDeleteRequest
@@ -586,6 +597,293 @@ namespace HcPortal.Controllers
                 targetId: komp.Id, targetType: "ProtonKompetensi");
 
             return Json(new { success = true, message = $"Silabus '{komp.NamaKompetensi}' berhasil diaktifkan kembali." });
+        }
+
+        // GET: /ProtonData/ExportSilabus
+        [HttpGet]
+        public async Task<IActionResult> ExportSilabus(string? bagian, string? unit, int? trackId)
+        {
+            if (string.IsNullOrEmpty(bagian) || string.IsNullOrEmpty(unit) || !trackId.HasValue)
+                return BadRequest("Parameter bagian, unit, dan trackId wajib diisi.");
+
+            var kompetensiList = await _context.ProtonKompetensiList
+                .Include(k => k.SubKompetensiList)
+                    .ThenInclude(s => s.Deliverables)
+                .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && k.IsActive)
+                .OrderBy(k => k.NamaKompetensi)
+                .ToListAsync();
+
+            var track = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == trackId.Value);
+            var trackName = track?.DisplayName ?? trackId.Value.ToString();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Silabus Proton");
+
+            ws.Cell(1, 1).Value = "Bagian";
+            ws.Cell(1, 2).Value = "Unit";
+            ws.Cell(1, 3).Value = "Track";
+            ws.Cell(1, 4).Value = "Kompetensi";
+            ws.Cell(1, 5).Value = "SubKompetensi";
+            ws.Cell(1, 6).Value = "Deliverable";
+            ws.Cell(1, 7).Value = "Target";
+
+            var headerRange = ws.Range(1, 1, 1, 7);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            int row = 2;
+            foreach (var k in kompetensiList)
+            {
+                foreach (var s in k.SubKompetensiList.OrderBy(x => x.Urutan))
+                {
+                    foreach (var d in s.Deliverables.OrderBy(x => x.Urutan))
+                    {
+                        ws.Cell(row, 1).Value = k.Bagian;
+                        ws.Cell(row, 2).Value = k.Unit;
+                        ws.Cell(row, 3).Value = trackName;
+                        ws.Cell(row, 4).Value = k.NamaKompetensi;
+                        ws.Cell(row, 5).Value = s.NamaSubKompetensi;
+                        ws.Cell(row, 6).Value = d.NamaDeliverable;
+                        ws.Cell(row, 7).Value = d.Target ?? "";
+                        row++;
+                    }
+                }
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = $"SilabusProton_{bagian}_{unit}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        // GET: /ProtonData/DownloadSilabusTemplate
+        [HttpGet]
+        public async Task<IActionResult> DownloadSilabusTemplate(string? bagian, string? unit, int? trackId)
+        {
+            if (string.IsNullOrEmpty(bagian) || string.IsNullOrEmpty(unit) || !trackId.HasValue)
+                return BadRequest("Parameter bagian, unit, dan trackId wajib diisi.");
+
+            var kompetensiList = await _context.ProtonKompetensiList
+                .Include(k => k.SubKompetensiList)
+                    .ThenInclude(s => s.Deliverables)
+                .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value && k.IsActive)
+                .OrderBy(k => k.NamaKompetensi)
+                .ToListAsync();
+
+            var track = await _context.ProtonTracks.FirstOrDefaultAsync(t => t.Id == trackId.Value);
+            var trackName = track?.DisplayName ?? trackId.Value.ToString();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Silabus Proton");
+
+            string[] headers = { "Bagian", "Unit", "Track", "Kompetensi", "SubKompetensi", "Deliverable", "Target" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#16A34A");
+                ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+            }
+
+            int row = 2;
+            foreach (var k in kompetensiList)
+            {
+                foreach (var s in k.SubKompetensiList.OrderBy(x => x.Urutan))
+                {
+                    foreach (var d in s.Deliverables.OrderBy(x => x.Urutan))
+                    {
+                        ws.Cell(row, 1).Value = k.Bagian;
+                        ws.Cell(row, 2).Value = k.Unit;
+                        ws.Cell(row, 3).Value = trackName;
+                        ws.Cell(row, 4).Value = k.NamaKompetensi;
+                        ws.Cell(row, 5).Value = s.NamaSubKompetensi;
+                        ws.Cell(row, 6).Value = d.NamaDeliverable;
+                        ws.Cell(row, 7).Value = d.Target ?? "";
+                        row++;
+                    }
+                }
+            }
+
+            // Append 10 empty rows
+            for (int i = 0; i < 10; i++) row++;
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = $"SilabusProton_Template_{bagian}_{unit}_{DateTime.Now:yyyyMMdd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        // GET: /ProtonData/ImportSilabus
+        [HttpGet]
+        public IActionResult ImportSilabus()
+        {
+            return View();
+        }
+
+        // POST: /ProtonData/ImportSilabus
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportSilabus(IFormFile? excelFile, string? bagian, string? unit, int? trackId)
+        {
+            if (excelFile == null || excelFile.Length == 0)
+            {
+                TempData["Error"] = "File tidak boleh kosong.";
+                return View();
+            }
+
+            var ext = Path.GetExtension(excelFile.FileName).ToLowerInvariant();
+            if (ext != ".xlsx" && ext != ".xls")
+            {
+                TempData["Error"] = "Hanya file .xlsx atau .xls yang didukung.";
+                return View();
+            }
+
+            if (excelFile.Length > 10 * 1024 * 1024)
+            {
+                TempData["Error"] = "Ukuran file maksimal 10 MB.";
+                return View();
+            }
+
+            var results = new List<ImportSilabusResult>();
+
+            try
+            {
+                using var stream = new MemoryStream();
+                await excelFile.CopyToAsync(stream);
+                stream.Position = 0;
+
+                using var workbook = new XLWorkbook(stream);
+                var ws = workbook.Worksheets.First();
+                var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
+
+                for (int rowNum = 2; rowNum <= lastRow; rowNum++)
+                {
+                    var colBagian   = ws.Cell(rowNum, 1).GetString().Trim();
+                    var colUnit     = ws.Cell(rowNum, 2).GetString().Trim();
+                    var colTrack    = ws.Cell(rowNum, 3).GetString().Trim();
+                    var colKomp     = ws.Cell(rowNum, 4).GetString().Trim();
+                    var colSub      = ws.Cell(rowNum, 5).GetString().Trim();
+                    var colDel      = ws.Cell(rowNum, 6).GetString().Trim();
+                    var colTarget   = ws.Cell(rowNum, 7).GetString().Trim();
+
+                    // Skip blank rows
+                    if (string.IsNullOrEmpty(colKomp) && string.IsNullOrEmpty(colSub) &&
+                        string.IsNullOrEmpty(colDel) && string.IsNullOrEmpty(colTarget) &&
+                        string.IsNullOrEmpty(colBagian) && string.IsNullOrEmpty(colUnit))
+                        continue;
+
+                    var result = new ImportSilabusResult
+                    {
+                        RowNumber = rowNum,
+                        Kompetensi = colKomp,
+                        SubKompetensi = colSub,
+                        Deliverable = colDel
+                    };
+
+                    // Validate
+                    if (string.IsNullOrEmpty(colKomp) || string.IsNullOrEmpty(colSub) || string.IsNullOrEmpty(colDel))
+                    {
+                        result.Status = "Error";
+                        result.Message = "Kompetensi, SubKompetensi, dan Deliverable wajib diisi.";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(bagian) || string.IsNullOrEmpty(unit) || !trackId.HasValue)
+                    {
+                        result.Status = "Error";
+                        result.Message = "Parameter bagian, unit, dan trackId tidak valid.";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    // Upsert Kompetensi
+                    var komp = await _context.ProtonKompetensiList
+                        .FirstOrDefaultAsync(k => k.Bagian == bagian && k.Unit == unit &&
+                                                  k.ProtonTrackId == trackId.Value && k.NamaKompetensi == colKomp);
+                    if (komp == null)
+                    {
+                        var maxUrutan = await _context.ProtonKompetensiList
+                            .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value)
+                            .MaxAsync(k => (int?)k.Urutan) ?? 0;
+                        komp = new ProtonKompetensi
+                        {
+                            Bagian = bagian,
+                            Unit = unit,
+                            ProtonTrackId = trackId.Value,
+                            NamaKompetensi = colKomp,
+                            Urutan = maxUrutan + 1,
+                            IsActive = true
+                        };
+                        _context.ProtonKompetensiList.Add(komp);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Upsert SubKompetensi
+                    var sub = await _context.ProtonSubKompetensiList
+                        .FirstOrDefaultAsync(s => s.ProtonKompetensiId == komp.Id && s.NamaSubKompetensi == colSub);
+                    if (sub == null)
+                    {
+                        var maxUrutan = await _context.ProtonSubKompetensiList
+                            .Where(s => s.ProtonKompetensiId == komp.Id)
+                            .MaxAsync(s => (int?)s.Urutan) ?? 0;
+                        sub = new ProtonSubKompetensi
+                        {
+                            ProtonKompetensiId = komp.Id,
+                            NamaSubKompetensi = colSub,
+                            Urutan = maxUrutan + 1
+                        };
+                        _context.ProtonSubKompetensiList.Add(sub);
+                        await _context.SaveChangesAsync();
+                    }
+
+                    // Upsert Deliverable
+                    var del = await _context.ProtonDeliverableList
+                        .FirstOrDefaultAsync(d => d.ProtonSubKompetensiId == sub.Id && d.NamaDeliverable == colDel);
+                    bool isNew = del == null;
+                    if (del == null)
+                    {
+                        var maxUrutan = await _context.ProtonDeliverableList
+                            .Where(d => d.ProtonSubKompetensiId == sub.Id)
+                            .MaxAsync(d => (int?)d.Urutan) ?? 0;
+                        del = new ProtonDeliverable
+                        {
+                            ProtonSubKompetensiId = sub.Id,
+                            NamaDeliverable = colDel,
+                            Urutan = maxUrutan + 1
+                        };
+                        _context.ProtonDeliverableList.Add(del);
+                    }
+                    del.Target = string.IsNullOrEmpty(colTarget) ? null : colTarget;
+
+                    result.Status = isNew ? "Created" : "Updated";
+                    result.Message = isNew ? "Berhasil dibuat." : "Target diperbarui.";
+                    results.Add(result);
+                }
+
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Gagal memproses file: {ex.Message}";
+                return View();
+            }
+
+            ViewBag.ImportResults = results;
+
+            bool hasErrors = results.Any(r => r.Status == "Error");
+            if (!hasErrors && !string.IsNullOrEmpty(bagian) && !string.IsNullOrEmpty(unit) && trackId.HasValue)
+                return RedirectToAction("Index", new { bagian, unit, trackId, tab = "silabus" });
+
+            return View();
         }
 
         // GET: /ProtonData/GuidanceList?bagian=X&unit=Y&trackId=Z
