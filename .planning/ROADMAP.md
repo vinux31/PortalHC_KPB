@@ -39,7 +39,7 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 **Milestone Goal:** Add Excel export and import+template features to pages that lack them, enabling bulk data download and bulk input for operational data.
 
 - [x] **Phase 176: Export Records & RecordsTeam** - Export personal and team training records to Excel (completed 2026-03-16)
-- [ ] **Phase 177: Import CoachCoacheeMapping** - Bulk import coach-coachee mapping via Excel template
+- [x] **Phase 177: Import CoachCoacheeMapping** - Bulk import coach-coachee mapping via Excel template (completed 2026-03-16)
 - [ ] **Phase 178: Export AuditLog** - Export audit trail to Excel with date filter
 - [ ] **Phase 179: Export & Import Silabus Proton** - Roundtrip Excel for Proton syllabus data
 - [ ] **Phase 180: Import Training & Export HistoriProton** - Bulk import training records and export Proton history
@@ -113,7 +113,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 176. Export Records & RecordsTeam | 1/1 | Complete    | 2026-03-16 | - |
-| 177. Import CoachCoacheeMapping | v7.1 | 0/1 | Planned | - |
+| 177. Import CoachCoacheeMapping | 1/1 | Complete   | 2026-03-16 | - |
 | 178. Export AuditLog | v7.1 | 0/? | Not started | - |
 | 179. Export & Import Silabus Proton | v7.1 | 0/? | Not started | - |
 | 180. Import Training & Export HistoriProton | v7.1 | 0/? | Not started | - |

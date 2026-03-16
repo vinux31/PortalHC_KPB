@@ -27,8 +27,8 @@
 
 ### Import Data
 
-- [ ] **IMP-01**: Admin/HC dapat download template Excel untuk CoachCoacheeMapping
-- [ ] **IMP-02**: Admin/HC dapat import CoachCoacheeMapping dari file Excel
+- [x] **IMP-01**: Admin/HC dapat download template Excel untuk CoachCoacheeMapping
+- [x] **IMP-02**: Admin/HC dapat import CoachCoacheeMapping dari file Excel
 - [ ] **IMP-03**: Admin/HC dapat download template Excel untuk Silabus Proton
 - [ ] **IMP-04**: Admin/HC dapat import Silabus Proton dari file Excel
 - [ ] **IMP-05**: Admin/HC dapat download template Excel untuk Training record
@@ -61,8 +61,8 @@
 | EXP-03 | Phase 178 | Pending |
 | EXP-04 | Phase 179 | Pending |
 | EXP-05 | Phase 180 | Pending |
-| IMP-01 | Phase 177 | Pending |
-| IMP-02 | Phase 177 | Pending |
+| IMP-01 | Phase 177 | Complete |
+| IMP-02 | Phase 177 | Complete |
 | IMP-03 | Phase 179 | Pending |
 | IMP-04 | Phase 179 | Pending |
 | IMP-05 | Phase 180 | Pending |
