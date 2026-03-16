@@ -700,6 +700,188 @@ namespace HcPortal.Controllers
             return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.document", filename);
         }
 
+        // ====================================================================
+        // PHASE 180: IMPORT TRAINING — Admin/HC bulk import via Excel
+        // ====================================================================
+
+        // GET /CMP/DownloadImportTrainingTemplate
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult DownloadImportTrainingTemplate()
+        {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Import Training");
+
+            var headers = new[] { "NIP", "Judul", "Kategori", "Tanggal (YYYY-MM-DD)", "Penyelenggara", "Status", "ValidUntil (YYYY-MM-DD, opsional)", "NomorSertifikat (opsional)" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.FromHtml("#16A34A");
+                ws.Cell(1, i + 1).Style.Font.FontColor = XLColor.White;
+            }
+
+            // Example row
+            ws.Cell(2, 1).Value = "123456";
+            ws.Cell(2, 2).Value = "Pelatihan K3 Dasar";
+            ws.Cell(2, 3).Value = "MANDATORY";
+            ws.Cell(2, 4).Value = "2024-03-15";
+            ws.Cell(2, 5).Value = "Internal";
+            ws.Cell(2, 6).Value = "Passed";
+            ws.Cell(2, 7).Value = "2027-03-15";
+            ws.Cell(2, 8).Value = "CERT-001";
+            for (int i = 1; i <= 8; i++)
+            {
+                ws.Cell(2, i).Style.Font.Italic = true;
+                ws.Cell(2, i).Style.Font.FontColor = XLColor.Gray;
+            }
+
+            ws.Cell(3, 1).Value = "Kolom Kategori: PROTON / OJT / MANDATORY";
+            ws.Cell(3, 1).Style.Font.Italic = true;
+            ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+
+            ws.Cell(4, 1).Value = "Kolom Status: Passed / Wait Certificate / Valid";
+            ws.Cell(4, 1).Style.Font.Italic = true;
+            ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "training_import_template.xlsx");
+        }
+
+        // GET /CMP/ImportTraining
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult ImportTraining()
+        {
+            return View();
+        }
+
+        // POST /CMP/ImportTraining
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportTraining(IFormFile? excelFile)
+        {
+            if (excelFile == null || excelFile.Length == 0)
+            {
+                TempData["Error"] = "Pilih file Excel terlebih dahulu.";
+                return View();
+            }
+
+            var allowedExtensions = new[] { ".xlsx", ".xls" };
+            var ext = Path.GetExtension(excelFile.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(ext))
+            {
+                TempData["Error"] = "Hanya file Excel (.xlsx, .xls) yang didukung.";
+                return View();
+            }
+
+            const long maxSize = 10 * 1024 * 1024;
+            if (excelFile.Length > maxSize)
+            {
+                TempData["Error"] = "Ukuran file terlalu besar (maksimal 10MB).";
+                return View();
+            }
+
+            var results = new List<HcPortal.Models.ImportTrainingResult>();
+
+            try
+            {
+                using var fileStream = excelFile.OpenReadStream();
+                using var workbook = new XLWorkbook(fileStream);
+                var ws = workbook.Worksheets.First();
+
+                foreach (var row in ws.RowsUsed().Skip(1))
+                {
+                    var nip = row.Cell(1).GetString().Trim();
+                    var judul = row.Cell(2).GetString().Trim();
+                    var kategori = row.Cell(3).GetString().Trim();
+                    var tanggalStr = row.Cell(4).GetString().Trim();
+                    var penyelenggara = row.Cell(5).GetString().Trim();
+                    var status = row.Cell(6).GetString().Trim();
+                    var validUntilStr = row.Cell(7).GetString().Trim();
+                    var nomorSertifikat = row.Cell(8).GetString().Trim();
+
+                    // Skip completely blank rows
+                    if (string.IsNullOrWhiteSpace(nip) && string.IsNullOrWhiteSpace(judul)) continue;
+
+                    var result = new HcPortal.Models.ImportTrainingResult { NIP = nip, Judul = judul };
+
+                    if (string.IsNullOrWhiteSpace(nip))
+                    {
+                        result.Status = "Error";
+                        result.Message = "NIP tidak boleh kosong";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(judul))
+                    {
+                        result.Status = "Error";
+                        result.Message = "Judul tidak boleh kosong";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(tanggalStr) || !DateTime.TryParse(tanggalStr, out var parsedDate))
+                    {
+                        result.Status = "Error";
+                        result.Message = "Format Tanggal tidak valid (YYYY-MM-DD)";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    var targetUser = await _context.Users.FirstOrDefaultAsync(u => u.NIP == nip);
+                    if (targetUser == null)
+                    {
+                        result.Status = "Error";
+                        result.Message = $"NIP '{nip}' tidak ditemukan dalam sistem";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    try
+                    {
+                        var record = new HcPortal.Models.TrainingRecord
+                        {
+                            UserId = targetUser.Id,
+                            Judul = judul,
+                            Kategori = kategori,
+                            Tanggal = parsedDate,
+                            Penyelenggara = penyelenggara,
+                            Status = status,
+                            ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? vu : (DateTime?)null,
+                            NomorSertifikat = nomorSertifikat
+                        };
+                        _context.TrainingRecords.Add(record);
+                        await _context.SaveChangesAsync();
+                        result.Status = "Success";
+                        result.Message = $"Training record berhasil dibuat untuk {targetUser.FullName}";
+                    }
+                    catch (Exception ex)
+                    {
+                        result.Status = "Error";
+                        result.Message = $"Gagal menyimpan: {ex.Message}";
+                    }
+
+                    results.Add(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Gagal memproses file: {ex.Message}";
+                return View();
+            }
+
+            ViewBag.ImportResults = results;
+            return View();
+        }
+
         // Phase 20: HC Edit Training Record — POST only (no GET; modal is pre-populated inline via Razor in WorkerDetail.cshtml)
         [HttpPost]
         [ValidateAntiForgeryToken]
