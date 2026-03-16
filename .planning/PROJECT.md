@@ -12,24 +12,15 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.1 Export & Import Data
-
-**Goal:** Menambahkan fitur export Excel dan import Excel + template di page-page yang belum punya, agar data operasional bisa di-download dan di-bulk-input.
-
-**Target features:**
-- Export Excel untuk Records & RecordsTeam (bukti pelatihan personal & tim)
-- Import Excel + Template untuk CoachCoacheeMapping (bulk mapping coach-coachee)
-- Export Excel untuk AuditLog (audit trail)
-- Export + Import Excel untuk Silabus Proton (bulk kompetensi framework)
-- Import Excel + Template untuk Training (bulk input riwayat pelatihan)
-- Export Excel untuk HistoriProton (rekap historis coaching)
-
-## Current State (v7.1 started 2026-03-16)
+## Current State (after v7.1, 2026-03-16)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
+**v7.1 shipped** — Export & Import Data, 5 phases (176-180).
 
-Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled with simplified accordions, dynamic role-based counts, FAQ expand/collapse, unified CSS badges/buttons, back-to-top navigation, and breadcrumb navigation (v5.0). All requirements satisfied, 0 critical tech debt.
+Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled (v5.0). Excel export/import added across 6 data areas using ClosedXML (v7.1). All requirements satisfied, 0 critical tech debt.
+
+**Between milestones** — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 
@@ -42,6 +33,23 @@ Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v7.1 - Export & Import Data (2026-03-16)
+
+**Delivered:** Excel export and import capabilities across 6 data areas — Records, RecordsTeam, CoachCoacheeMapping, AuditLog, Silabus Proton, Training, and HistoriProton. All using ClosedXML with consistent patterns.
+
+**What Shipped:**
+1. **Export Records & RecordsTeam** — Personal training history export + team export with role-scoped filters (Assessment & Training tabs)
+2. **Import CoachCoacheeMapping** — Bulk coach-coachee mapping via Excel template with NIP-based lookup and validation
+3. **Export AuditLog** — Date-filtered audit trail export for compliance review
+4. **Export & Import Silabus Proton** — Roundtrip 3-level hierarchy (Kompetensi→SubKompetensi→Deliverable) with upsert logic
+5. **Import Training & Export HistoriProton** — Bulk training record import + worker Proton history summary export
+
+**Metrics:**
+- 5 phases (176-180), 5 plans, 11 feat commits
+- Timeline: 2026-03-16 (single day)
+
+---
 
 ### ✅ v5.0 - Guide Page Overhaul (2026-03-16)
 

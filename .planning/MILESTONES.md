@@ -1,4 +1,13 @@
 # Milestones
+## v7.1 Export & Import Data (Shipped: 2026-03-16)
+
+**Phases completed:** 5 phases, 5 plans, 0 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v6.0 Deployment Preparation (Closed: 2026-03-16)
 
 **Phases defined:** 2 phases (173-174), 0 plans executed
