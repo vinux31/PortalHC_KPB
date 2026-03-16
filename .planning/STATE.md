@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: v6.0
-milestone_name: Deployment Preparation
-status: completed
+milestone: v7.0
+milestone_name: Assessment Terminology Fix
+status: active
 stopped_at: null
 last_updated: "2026-03-16"
-last_activity: "2026-03-16 — Milestone v6.0 closed without execution"
+last_activity: "2026-03-16 — Milestone v7.0 started"
 progress:
-  total_phases: 2
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Between milestones — ready for next milestone
+**Current focus:** v7.0 Assessment Terminology Fix
 
 ## Current Position
 
-Phase: None (between milestones)
+Phase: Not started (defining requirements)
 Plan: —
-Status: v6.0 closed, ready for next milestone
-Last activity: 2026-03-16 — Milestone v6.0 closed without execution
+Status: Defining requirements
+Last activity: 2026-03-16 — Milestone v7.0 started
 
 ## Accumulated Context
 
@@ -45,5 +45,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: Milestone v6.0 closed
+Stopped at: Defining requirements for v7.0
 Resume file: None

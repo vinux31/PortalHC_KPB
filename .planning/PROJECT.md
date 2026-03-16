@@ -12,7 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v6.0 closed 2026-03-16)
+## Current Milestone: v7.0 Assessment Terminology Fix
+
+**Goal:** Rename "Sub Kompetensi" to "Elemen Teknis" across all assessment-related UI (Results spider web, import template, warning messages).
+
+**Target features:**
+- Rename spider web chart section title and table header on Results page
+- Rename Excel import template headers and help text
+- Rename cross-package warning message
+
+## Current State (v7.0 started 2026-03-16)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
