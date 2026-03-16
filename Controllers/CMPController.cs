@@ -503,6 +503,205 @@ namespace HcPortal.Controllers
             return View(viewModel);
         }
 
+        // Phase 176: Export personal records as Excel (2 sheets: Assessment + Training)
+        [HttpGet]
+        public async Task<IActionResult> ExportRecords()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var unified = await GetUnifiedRecords(user.Id);
+
+            using var workbook = new XLWorkbook();
+
+            // Sheet 1: Assessment
+            var wsAssessment = workbook.Worksheets.Add("Assessment");
+            wsAssessment.Cell(1, 1).Value = "No";
+            wsAssessment.Cell(1, 2).Value = "Tanggal";
+            wsAssessment.Cell(1, 3).Value = "Judul";
+            wsAssessment.Cell(1, 4).Value = "Skor";
+            wsAssessment.Cell(1, 5).Value = "Status";
+            wsAssessment.Cell(1, 6).Value = "Sertifikat";
+            wsAssessment.Range(1, 1, 1, 6).Style.Font.Bold = true;
+
+            var assessmentRecords = unified.Where(r => r.RecordType == "Assessment Online").ToList();
+            for (int i = 0; i < assessmentRecords.Count; i++)
+            {
+                var r = assessmentRecords[i];
+                wsAssessment.Cell(i + 2, 1).Value = i + 1;
+                wsAssessment.Cell(i + 2, 2).Value = r.Date.ToString("yyyy-MM-dd");
+                wsAssessment.Cell(i + 2, 3).Value = r.Title;
+                wsAssessment.Cell(i + 2, 4).Value = r.Score?.ToString() ?? "";
+                wsAssessment.Cell(i + 2, 5).Value = r.Status;
+                wsAssessment.Cell(i + 2, 6).Value = r.GenerateCertificate == true ? "Ya" : "Tidak";
+            }
+            wsAssessment.Columns().AdjustToContents();
+
+            // Sheet 2: Training
+            var wsTraining = workbook.Worksheets.Add("Training");
+            wsTraining.Cell(1, 1).Value = "No";
+            wsTraining.Cell(1, 2).Value = "Tanggal";
+            wsTraining.Cell(1, 3).Value = "Judul";
+            wsTraining.Cell(1, 4).Value = "Penyelenggara";
+            wsTraining.Cell(1, 5).Value = "Kategori";
+            wsTraining.Cell(1, 6).Value = "Kota";
+            wsTraining.Cell(1, 7).Value = "Nomor Sertifikat";
+            wsTraining.Cell(1, 8).Value = "Valid Until";
+            wsTraining.Cell(1, 9).Value = "Status";
+            wsTraining.Range(1, 1, 1, 9).Style.Font.Bold = true;
+
+            var trainingRecords = unified.Where(r => r.RecordType == "Training Manual").ToList();
+            for (int i = 0; i < trainingRecords.Count; i++)
+            {
+                var r = trainingRecords[i];
+                wsTraining.Cell(i + 2, 1).Value = i + 1;
+                wsTraining.Cell(i + 2, 2).Value = r.Date.ToString("yyyy-MM-dd");
+                wsTraining.Cell(i + 2, 3).Value = r.Title;
+                wsTraining.Cell(i + 2, 4).Value = r.Penyelenggara ?? "";
+                wsTraining.Cell(i + 2, 5).Value = r.Kategori ?? "";
+                wsTraining.Cell(i + 2, 6).Value = r.Kota ?? "";
+                wsTraining.Cell(i + 2, 7).Value = r.NomorSertifikat ?? "";
+                wsTraining.Cell(i + 2, 8).Value = r.ValidUntil?.ToString("yyyy-MM-dd") ?? "";
+                wsTraining.Cell(i + 2, 9).Value = r.Status ?? "";
+            }
+            wsTraining.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+            var safeName = (user.FullName ?? user.Id).Replace(" ", "_");
+            var filename = $"Records_{safeName}_{DateTime.Now:yyyy-MM-dd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.document", filename);
+        }
+
+        // Phase 176: Export team assessment records as Excel (filtered by current view params)
+        [HttpGet]
+        public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+
+            if (roleLevel >= 5) return Forbid();
+
+            // Scope enforcement: Level 4 locked to their own section
+            string? sectionFilter = section;
+            if (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
+            {
+                sectionFilter = user.Section;
+            }
+
+            var (assessmentRows, _) = await GetAllWorkersHistory();
+
+            // Get filtered worker NIPs from GetWorkersInSection
+            var filteredWorkers = await GetWorkersInSection(sectionFilter, unit, null, search, statusFilter);
+            var filteredNips = filteredWorkers
+                .Where(w => !string.IsNullOrEmpty(w.NIP))
+                .Select(w => w.NIP)
+                .ToHashSet();
+
+            var filtered = assessmentRows
+                .Where(r => !string.IsNullOrEmpty(r.WorkerNIP) && filteredNips.Contains(r.WorkerNIP))
+                .ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Assessment");
+            ws.Cell(1, 1).Value = "No";
+            ws.Cell(1, 2).Value = "Nama";
+            ws.Cell(1, 3).Value = "NIP";
+            ws.Cell(1, 4).Value = "Judul";
+            ws.Cell(1, 5).Value = "Tanggal";
+            ws.Cell(1, 6).Value = "Skor";
+            ws.Cell(1, 7).Value = "Status";
+            ws.Cell(1, 8).Value = "Attempt";
+            ws.Range(1, 1, 1, 8).Style.Font.Bold = true;
+
+            for (int i = 0; i < filtered.Count; i++)
+            {
+                var r = filtered[i];
+                ws.Cell(i + 2, 1).Value = i + 1;
+                ws.Cell(i + 2, 2).Value = r.WorkerName;
+                ws.Cell(i + 2, 3).Value = r.WorkerNIP ?? "";
+                ws.Cell(i + 2, 4).Value = r.Title;
+                ws.Cell(i + 2, 5).Value = r.Date.ToString("yyyy-MM-dd");
+                ws.Cell(i + 2, 6).Value = r.Score?.ToString() ?? "";
+                ws.Cell(i + 2, 7).Value = r.IsPassed == true ? "Passed" : (r.IsPassed == false ? "Failed" : "");
+                ws.Cell(i + 2, 8).Value = r.AttemptNumber?.ToString() ?? "";
+            }
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+            var filename = $"RecordsTeam_Assessment_{DateTime.Now:yyyy-MM-dd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.document", filename);
+        }
+
+        // Phase 176: Export team training records as Excel (filtered by current view params)
+        [HttpGet]
+        public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            var userRole = userRoles.FirstOrDefault();
+            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+
+            if (roleLevel >= 5) return Forbid();
+
+            // Scope enforcement: Level 4 locked to their own section
+            string? sectionFilter = section;
+            if (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
+            {
+                sectionFilter = user.Section;
+            }
+
+            var (_, trainingRows) = await GetAllWorkersHistory();
+
+            // Get filtered worker NIPs from GetWorkersInSection
+            var filteredWorkers = await GetWorkersInSection(sectionFilter, unit, category, search, statusFilter);
+            var filteredNips = filteredWorkers
+                .Where(w => !string.IsNullOrEmpty(w.NIP))
+                .Select(w => w.NIP)
+                .ToHashSet();
+
+            var filtered = trainingRows
+                .Where(r => !string.IsNullOrEmpty(r.WorkerNIP) && filteredNips.Contains(r.WorkerNIP))
+                .ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Training");
+            ws.Cell(1, 1).Value = "No";
+            ws.Cell(1, 2).Value = "Nama";
+            ws.Cell(1, 3).Value = "NIP";
+            ws.Cell(1, 4).Value = "Judul";
+            ws.Cell(1, 5).Value = "Tanggal";
+            ws.Cell(1, 6).Value = "Penyelenggara";
+            ws.Range(1, 1, 1, 6).Style.Font.Bold = true;
+
+            for (int i = 0; i < filtered.Count; i++)
+            {
+                var r = filtered[i];
+                ws.Cell(i + 2, 1).Value = i + 1;
+                ws.Cell(i + 2, 2).Value = r.WorkerName;
+                ws.Cell(i + 2, 3).Value = r.WorkerNIP ?? "";
+                ws.Cell(i + 2, 4).Value = r.Title;
+                ws.Cell(i + 2, 5).Value = r.Date.ToString("yyyy-MM-dd");
+                ws.Cell(i + 2, 6).Value = r.Penyelenggara ?? "";
+            }
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+            var filename = $"RecordsTeam_Training_{DateTime.Now:yyyy-MM-dd}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.document", filename);
+        }
+
         // Phase 20: HC Edit Training Record — POST only (no GET; modal is pre-populated inline via Razor in WorkerDetail.cshtml)
         [HttpPost]
         [ValidateAntiForgeryToken]
