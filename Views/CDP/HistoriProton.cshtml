@@ -84,6 +84,14 @@
                         <i class="bi bi-x-circle me-1"></i>Reset
                     </button>
                 </div>
+                <div class="col-12 col-md-auto">
+                    <label class="form-label small text-muted d-block">&nbsp;</label>
+                    <a id="btnExportHistoriProton"
+                       href="@Url.Action("ExportHistoriProton", "CDP")"
+                       class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -344,6 +352,30 @@
 
     // Initial render
     render();
+
+    // Export href updater
+    function updateExportHref() {
+        const search = document.getElementById('searchInput')?.value ?? '';
+        const section = document.getElementById('filterBagian')?.value ?? '';
+        const unit = document.getElementById('filterUnit')?.value ?? '';
+        const jalur = document.getElementById('filterJalur')?.value ?? '';
+        const status = document.getElementById('filterStatus')?.value ?? '';
+        const params = new URLSearchParams();
+        if (search) params.set('search', search);
+        if (section) params.set('section', section);
+        if (unit) params.set('unit', unit);
+        if (jalur) params.set('jalur', jalur);
+        if (status) params.set('status', status);
+        const base = '@Url.Action("ExportHistoriProton", "CDP")';
+        const qs = params.toString();
+        document.getElementById('btnExportHistoriProton').href = base + (qs ? '?' + qs : '');
+    }
+
+    ['searchInput','filterBagian','filterUnit','filterJalur','filterStatus'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('change', updateExportHref);
+        if (el && el.tagName === 'INPUT') el.addEventListener('input', updateExportHref);
+    });
 })();
 </script>
 }

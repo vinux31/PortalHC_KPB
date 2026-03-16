@@ -2748,6 +2748,176 @@ namespace HcPortal.Controllers
             return View(viewModel);
         }
 
+        // GET /CDP/ExportHistoriProton
+        [HttpGet]
+        public async Task<IActionResult> ExportHistoriProton(
+            string? search, string? section, string? unit, string? jalur, string? status)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            int userLevel = user.RoleLevel;
+
+            // Level 6 (Coachee) redirect to own detail
+            if (userLevel >= 6)
+                return RedirectToAction("HistoriProtonDetail", new { userId = user.Id });
+
+            // --- Role-scoped coachee IDs via active ProtonTrackAssignment ---
+            List<string> scopedCoacheeIds;
+
+            if (userLevel <= 3)
+            {
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
+            }
+            else if (userLevel == 4)
+            {
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Join(_context.Users, a => a.CoacheeId, u => u.Id, (a, u) => new { a.CoacheeId, u.Section })
+                    .Where(x => x.Section == user.Section)
+                    .Select(x => x.CoacheeId).Distinct().ToListAsync();
+            }
+            else // Level 5 (Coach)
+            {
+                var mappedIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Select(m => m.CoacheeId).ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => mappedIds.Contains(a.CoacheeId))
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
+            }
+
+            var assignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .Where(a => scopedCoacheeIds.Contains(a.CoacheeId))
+                .ToListAsync();
+
+            var coacheeIdsWithAssignments = assignments.Select(a => a.CoacheeId).Distinct().ToList();
+
+            var assignmentIds = assignments.Select(a => a.Id).ToList();
+            var assessments = await _context.ProtonFinalAssessments
+                .Where(fa => assignmentIds.Contains(fa.ProtonTrackAssignmentId))
+                .ToListAsync();
+            var assessmentsByAssignmentId = assessments.ToDictionary(fa => fa.ProtonTrackAssignmentId);
+
+            var coacheeUsers = await _context.Users
+                .Where(u => coacheeIdsWithAssignments.Contains(u.Id) && u.IsActive)
+                .ToListAsync();
+
+            var coacheeGroups = assignments.GroupBy(a => a.CoacheeId);
+            var workers = new List<HistoriProtonWorkerRow>();
+
+            foreach (var group in coacheeGroups)
+            {
+                var coacheeUser = coacheeUsers.FirstOrDefault(u => u.Id == group.Key);
+                if (coacheeUser == null) continue;
+
+                var coacheeAssignments = group.ToList();
+                var latestAssignment = coacheeAssignments.OrderByDescending(a => a.AssignedAt).First();
+
+                string jalurValue = latestAssignment.ProtonTrack?.TrackType ?? "";
+
+                bool tahun1Done = false, tahun2Done = false, tahun3Done = false;
+                bool tahun1InProgress = false, tahun2InProgress = false, tahun3InProgress = false;
+
+                foreach (var a in coacheeAssignments)
+                {
+                    if (a.ProtonTrack == null) continue;
+                    string tahunKe = a.ProtonTrack.TahunKe;
+                    bool hasAssessment = assessmentsByAssignmentId.ContainsKey(a.Id);
+
+                    if (tahunKe == "Tahun 1")
+                    {
+                        if (hasAssessment) tahun1Done = true;
+                        else tahun1InProgress = true;
+                    }
+                    else if (tahunKe == "Tahun 2")
+                    {
+                        if (hasAssessment) tahun2Done = true;
+                        else tahun2InProgress = true;
+                    }
+                    else if (tahunKe == "Tahun 3")
+                    {
+                        if (hasAssessment) tahun3Done = true;
+                        else tahun3InProgress = true;
+                    }
+                }
+
+                string workerStatus = assessmentsByAssignmentId.ContainsKey(latestAssignment.Id) ? "Lulus" : "Dalam Proses";
+
+                workers.Add(new HistoriProtonWorkerRow
+                {
+                    UserId = coacheeUser.Id,
+                    Nama = coacheeUser.FullName,
+                    NIP = coacheeUser.NIP ?? "",
+                    Section = coacheeUser.Section ?? "",
+                    Unit = coacheeUser.Unit ?? "",
+                    Jalur = jalurValue,
+                    Tahun1Done = tahun1Done,
+                    Tahun2Done = tahun2Done,
+                    Tahun3Done = tahun3Done,
+                    Tahun1InProgress = tahun1InProgress,
+                    Tahun2InProgress = tahun2InProgress,
+                    Tahun3InProgress = tahun3InProgress,
+                    Status = workerStatus
+                });
+            }
+
+            workers = workers.OrderBy(w => w.Nama).ToList();
+
+            // Apply filters
+            if (!string.IsNullOrEmpty(search))
+            {
+                var s = search.ToLower();
+                workers = workers.Where(w =>
+                    w.Nama.ToLower().Contains(s) || w.NIP.ToLower().Contains(s)).ToList();
+            }
+            if (!string.IsNullOrEmpty(section))
+                workers = workers.Where(w => w.Section == section).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                workers = workers.Where(w => w.Unit == unit).ToList();
+            if (!string.IsNullOrEmpty(jalur))
+                workers = workers.Where(w => w.Jalur == jalur).ToList();
+            if (!string.IsNullOrEmpty(status))
+                workers = workers.Where(w => w.Status == status).ToList();
+
+            // Build Excel
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Histori Proton");
+
+            var headers = new[] { "No", "NIP", "Nama", "Unit", "Jalur", "Tahun 1", "Tahun 2", "Tahun 3", "Status" };
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cell(1, i + 1).Value = headers[i];
+                ws.Cell(1, i + 1).Style.Font.Bold = true;
+                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.LightBlue;
+            }
+
+            for (int i = 0; i < workers.Count; i++)
+            {
+                var w = workers[i];
+                var t1 = w.Tahun1Done ? "Lulus" : w.Tahun1InProgress ? "Dalam Proses" : "-";
+                var t2 = w.Tahun2Done ? "Lulus" : w.Tahun2InProgress ? "Dalam Proses" : "-";
+                var t3 = w.Tahun3Done ? "Lulus" : w.Tahun3InProgress ? "Dalam Proses" : "-";
+                ws.Cell(i + 2, 1).Value = i + 1;
+                ws.Cell(i + 2, 2).Value = w.NIP;
+                ws.Cell(i + 2, 3).Value = w.Nama;
+                ws.Cell(i + 2, 4).Value = w.Unit;
+                ws.Cell(i + 2, 5).Value = w.Jalur;
+                ws.Cell(i + 2, 6).Value = t1;
+                ws.Cell(i + 2, 7).Value = t2;
+                ws.Cell(i + 2, 8).Value = t3;
+                ws.Cell(i + 2, 9).Value = w.Status;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                $"histori_proton_{DateTime.Now:yyyyMMdd}.xlsx");
+        }
+
         public async Task<IActionResult> HistoriProtonDetail(string userId)
         {
             var user = await _userManager.GetUserAsync(User);
