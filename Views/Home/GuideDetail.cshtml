@@ -9,32 +9,39 @@
     string moduleIcon = "";
     string moduleCategory = "";
     
+    string moduleBreadcrumb = "";
+
     switch (module)
     {
         case "cmp":
             moduleTitle = "CMP — Competency Management";
             moduleIcon = "bi-journal-bookmark-fill";
             moduleCategory = "cmp";
+            moduleBreadcrumb = "CMP";
             break;
         case "cdp":
             moduleTitle = "CDP — Career Development Portal";
             moduleIcon = "bi-graph-up-arrow";
             moduleCategory = "cdp";
+            moduleBreadcrumb = "CDP";
             break;
         case "account":
             moduleTitle = "Akun & Profil";
             moduleIcon = "bi-person-circle";
             moduleCategory = "account";
+            moduleBreadcrumb = "Akun";
             break;
         case "data":
             moduleTitle = "Kelola Data";
             moduleIcon = "bi-database-fill";
             moduleCategory = "data";
+            moduleBreadcrumb = "Kelola Data";
             break;
         case "admin":
             moduleTitle = "Admin Panel";
             moduleIcon = "bi-gear-wide-connected";
             moduleCategory = "admin";
+            moduleBreadcrumb = "Admin Panel";
             break;
     }
 }
@@ -42,11 +49,19 @@
 <link rel="stylesheet" href="~/css/guide.css" />
 
 <main role="main" id="main-content">
-<!-- Breadcrumb / Back Navigation -->
-<nav role="navigation" aria-label="Breadcrumb navigasi" class="guide-detail-nav" data-aos="fade-down">
-    <a asp-action="Guide" class="btn btn-sm btn-light guide-back-btn">
-        <i class="bi bi-arrow-left me-1" aria-hidden="true"></i> Kembali ke Pusat Bantuan
-    </a>
+<!-- Breadcrumb -->
+<nav role="navigation" aria-label="Breadcrumb navigasi" class="guide-breadcrumb mb-3" data-aos="fade-down">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+            <a asp-controller="Home" asp-action="Index" class="text-decoration-none text-muted">
+                <i class="bi bi-house-door me-1" aria-hidden="true"></i>Beranda
+            </a>
+        </li>
+        <li class="breadcrumb-item">
+            <a asp-controller="Home" asp-action="Guide" class="text-decoration-none text-muted">Panduan</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">@moduleBreadcrumb</li>
+    </ol>
 </nav>
 
 <!-- Header Detail -->
@@ -201,7 +216,7 @@ else if (module == "admin")
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="cmpHeading7">
                     <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse7" aria-expanded="false">
-                        Cara Monitoring Records Tim <span class="guide-step-badge-role ms-2">Atasan / HC</span>
+                        Cara Monitoring Records Tim <span class="guide-role-badge ms-2">Atasan / HC</span>
                     </button>
                 </h2>
                 <div id="cmpCollapse7" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
@@ -244,7 +259,7 @@ else if (module == "admin")
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="cdpHeading5">
                     <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse5">
-                        Cara Approve / Reject Deliverable (Coaching Guidance) <span class="guide-step-badge-role ms-2 bg-success text-white border-0">Admin / HC</span>
+                        Cara Approve / Reject Deliverable (Coaching Guidance) <span class="guide-role-badge ms-2">Admin / HC</span>
                     </button>
                 </h2>
                 <div id="cdpCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
@@ -265,7 +280,7 @@ else if (module == "admin")
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="cdpHeading6">
                     <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse6">
-                        Cara Melihat Coaching Proton Dashboard <span class="guide-step-badge-role ms-2">Admin / HC</span>
+                        Cara Melihat Coaching Proton Dashboard <span class="guide-role-badge ms-2">Admin / HC</span>
                     </button>
                 </h2>
                 <div id="cdpCollapse6" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
@@ -435,9 +450,9 @@ else if (module == "admin")
                 <div id="admCollapse1" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Pekerja</strong><span>Pilih <b>Admin Panel → Kelola Pekerja (Manage Workers)</b>.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>CRUD Pekerja</strong><span>Anda bisa Tambah baru, edit jabatan pekerja yang ada, atur active/deactive status, atau hapus pekerja.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Mass Import / Export</strong><span>Gunakan tombol <b>Import Workers</b> beserta template Excel yang tersedia untuk input data besar. Untuk backup, klik <b>Export Excel</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Pekerja</strong><span>Pilih <b>Admin Panel → Kelola Pekerja (Manage Workers)</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>CRUD Pekerja</strong><span>Anda bisa Tambah baru, edit jabatan pekerja yang ada, atur active/deactive status, atau hapus pekerja.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Mass Import / Export</strong><span>Gunakan tombol <b>Import Workers</b> beserta template Excel yang tersedia untuk input data besar. Untuk backup, klik <b>Export Excel</b>.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -453,8 +468,8 @@ else if (module == "admin")
                 <div id="admCollapse2" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Upload File KKJ / CPDP</strong><span>Pilih <b>Admin Panel → KKJ Matrix</b> atau <b>Admin Panel → CPDP Files</b>.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Histori Matrix</strong><span>Pilih Bagian divisi tujuan, lalu Upload dokumen PDF terkait KKJ / mapping matriksnya agar tampil di module CMP bagi seluruh pekerja. Catatan historis file sebelumnya bisa dilihat di submenu History.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Upload File KKJ / CPDP</strong><span>Pilih <b>Admin Panel → KKJ Matrix</b> atau <b>Admin Panel → CPDP Files</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Histori Matrix</strong><span>Pilih Bagian divisi tujuan, lalu Upload dokumen PDF terkait KKJ / mapping matriksnya agar tampil di module CMP bagi seluruh pekerja. Catatan historis file sebelumnya bisa dilihat di submenu History.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -470,8 +485,8 @@ else if (module == "admin")
                 <div id="admCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Setting Mapping</strong><span>Pilih <b>Admin Panel → Coach Coachee Mapping</b>. Di sini tersimpan seluruh relasi siapa membimbing siapa.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Assign / Cabut Akses</strong><span>Anda dapat assign Coach baru (Assign Mapping), mengubah coach untuk periode tertentu (Edit), atau mencabut hak apabila transfer staff / resign (Deactivate).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Setting Mapping</strong><span>Pilih <b>Admin Panel → Coach Coachee Mapping</b>. Di sini tersimpan seluruh relasi siapa membimbing siapa.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Assign / Cabut Akses</strong><span>Anda dapat assign Coach baru (Assign Mapping), mengubah coach untuk periode tertentu (Edit), atau mencabut hak apabila transfer staff / resign (Deactivate).</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -487,10 +502,10 @@ else if (module == "admin")
                 <div id="admCollapse4" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Paket Soal</strong><span>Di <b>Admin Panel → Kelola Paket Soal</b>, klik tombol <b>Buat Paket Soal Baru</b> untuk membuat kategori paket ujian.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Import Soal dari Template</strong><span>Download template Excel yang tersedia, isi soal dan kunci jawaban, lalu upload kembali untuk mass import soal.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Define Kunci Jawaban</strong><span>Tentukan jawaban benar untuk setiap soal. Anda juga dapat memberikan pembahasan atau feedback untuk setiap opsi jawaban.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Kategorikan Paket Soal</strong><span>Tag paket soal dengan kategori kompetensi, level jabatan, atau unit kerja untuk memudahkan filtering saat membuat jadwal assessment.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Paket Soal</strong><span>Di <b>Admin Panel → Kelola Paket Soal</b>, klik tombol <b>Buat Paket Soal Baru</b> untuk membuat kategori paket ujian.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Import Soal dari Template</strong><span>Download template Excel yang tersedia, isi soal dan kunci jawaban, lalu upload kembali untuk mass import soal.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Define Kunci Jawaban</strong><span>Tentukan jawaban benar untuk setiap soal. Anda juga dapat memberikan pembahasan atau feedback untuk setiap opsi jawaban.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Kategorikan Paket Soal</strong><span>Tag paket soal dengan kategori kompetensi, level jabatan, atau unit kerja untuk memudahkan filtering saat membuat jadwal assessment.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -506,10 +521,10 @@ else if (module == "admin")
                 <div id="admCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Assessment</strong><span>Pilih <b>Admin Panel → Kelola Assessment</b>, lalu klik tombol <b>Create New Assessment</b>.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Set Durasi dan Tanggal</strong><span>Masukkan nama ujian, durasi (menit), batas tanggal mulai dan selesai, serta passing grade minimum.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Pilih Paket Soal</strong><span>Pilih satu atau beberapa paket soal yang sudah dibuat sebelumnya dari Bank Soal.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Assign Peserta</strong><span>Pilih peserta individu atau assign berdasarkan group/unit kerja, lalu klik <b>Save</b> untuk mempublish jadwal assessment.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Assessment</strong><span>Pilih <b>Admin Panel → Kelola Assessment</b>, lalu klik tombol <b>Create New Assessment</b>.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Set Durasi dan Tanggal</strong><span>Masukkan nama ujian, durasi (menit), batas tanggal mulai dan selesai, serta passing grade minimum.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Pilih Paket Soal</strong><span>Pilih satu atau beberapa paket soal yang sudah dibuat sebelumnya dari Bank Soal.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Assign Peserta</strong><span>Pilih peserta individu atau assign berdasarkan group/unit kerja, lalu klik <b>Save</b> untuk mempublish jadwal assessment.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -525,10 +540,10 @@ else if (module == "admin")
                 <div id="admCollapse6" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Assessment Monitoring</strong><span>Pilih <b>Admin Panel → Assessment Monitoring</b> untuk melihat semua ujian yang sedang berlangsung.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Real-time Monitoring</strong><span>Pantau progres user secara realtime: status login, waktu tersisa, jumlah soal terjawab, dan persentase penyelesaian.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Force-Close User</strong><span>Jika ada kendala teknis (browser freeze, dll), Anda dapat melakukan <i>Force-Close</i> untuk mengakhiri sesi user. Sistem akan otomatis submit skor sesuai progres yang sudah dicapai.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>View Progress User</strong><span>Klik nama user untuk melihat detail progress: jawaban per soal, waktu pengerjaan, dan status penyelesaian.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Assessment Monitoring</strong><span>Pilih <b>Admin Panel → Assessment Monitoring</b> untuk melihat semua ujian yang sedang berlangsung.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Real-time Monitoring</strong><span>Pantau progres user secara realtime: status login, waktu tersisa, jumlah soal terjawab, dan persentase penyelesaian.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Force-Close User</strong><span>Jika ada kendala teknis (browser freeze, dll), Anda dapat melakukan <i>Force-Close</i> untuk mengakhiri sesi user. Sistem akan otomatis submit skor sesuai progres yang sudah dicapai.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>View Progress User</strong><span>Klik nama user untuk melihat detail progress: jawaban per soal, waktu pengerjaan, dan status penyelesaian.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -544,10 +559,10 @@ else if (module == "admin")
                 <div id="admCollapse7" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Add Training</strong><span>Pilih <b>Add Training</b> dari panel utama Admin Panel untuk membuka formulir input training.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Input Data Pelatihan</strong><span>Isi data karyawan yang mengikuti pelatihan, nama training, penyelenggara, tanggal pelaksanaan, dan durasi (jam pelatihan).</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Set Kategori</strong><span>Tentukan kategori training: <b>Mandatory</b> (wajib, terkait kompetensi jabatan) atau <b>Opsional</b> (pengembangan tambahan).</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Upload Sertifikat</strong><span>Jika ada, lampirkan file sertifikat sebagai bukti kelulusan training. Data akan muncul di tab Training Records di CMP.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Add Training</strong><span>Pilih <b>Add Training</b> dari panel utama Admin Panel untuk membuka formulir input training.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Input Data Pelatihan</strong><span>Isi data karyawan yang mengikuti pelatihan, nama training, penyelenggara, tanggal pelaksanaan, dan durasi (jam pelatihan).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Set Kategori</strong><span>Tentukan kategori training: <b>Mandatory</b> (wajib, terkait kompetensi jabatan) atau <b>Opsional</b> (pengembangan tambahan).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Upload Sertifikat</strong><span>Jika ada, lampirkan file sertifikat sebagai bukti kelulusan training. Data akan muncul di tab Training Records di CMP.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -563,10 +578,10 @@ else if (module == "admin")
                 <div id="admCollapse8" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Audit Log</strong><span>Pilih <b>Admin Panel → Audit Log</b> untuk mengakses catatan aktivitas sistem.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Filter Data</strong><span>Filter berdasarkan user, jenis aksi, atau rentang waktu untuk menemukan aktivitas spesifik.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Lihat Detail Aktivitas</strong><span>Review IP address, waktu akses, dan aktivitas sensitif seperti Force-Close, Override, Delete data, atau perubahan role.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Investigasi</strong><span>Gunakan Audit Log untuk melacak siapa yang melakukan perubahan, mengidentifikasi aktivitas mencurigakan, atau menginvestigasi kendala sistem.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Audit Log</strong><span>Pilih <b>Admin Panel → Audit Log</b> untuk mengakses catatan aktivitas sistem.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Filter Data</strong><span>Filter berdasarkan user, jenis aksi, atau rentang waktu untuk menemukan aktivitas spesifik.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Lihat Detail Aktivitas</strong><span>Review IP address, waktu akses, dan aktivitas sensitif seperti Force-Close, Override, Delete data, atau perubahan role.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Investigasi</strong><span>Gunakan Audit Log untuk melacak siapa yang melakukan perubahan, mengidentifikasi aktivitas mencurigakan, atau menginvestigasi kendala sistem.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -582,10 +597,10 @@ else if (module == "admin")
                 <div id="admCollapse9" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Units</strong><span>Pilih <b>Admin Panel → Kelola Units</b> untuk mengelola struktur organisasi (Bagian/Divisi).</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Tambah Unit Baru</strong><span>Klik <b>Tambah Unit</b>, masukkan nama unit, kode unit, dan deskripsi. Tentukan unit parent jika ada hierarki.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Edit atau Hapus Unit</strong><span>Edit informasi unit yang sudah ada atau nonaktifkan unit yang tidak digunakan. Pastikan tidak ada pekerja terassign sebelum menghapus.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Assign Pekerja ke Unit</strong><span>Di halaman <b>Kelola Pekerja</b>, edit data pekerja dan set unit assignment sesuai struktur organisasi.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Units</strong><span>Pilih <b>Admin Panel → Kelola Units</b> untuk mengelola struktur organisasi (Bagian/Divisi).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Tambah Unit Baru</strong><span>Klik <b>Tambah Unit</b>, masukkan nama unit, kode unit, dan deskripsi. Tentukan unit parent jika ada hierarki.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Edit atau Hapus Unit</strong><span>Edit informasi unit yang sudah ada atau nonaktifkan unit yang tidak digunakan. Pastikan tidak ada pekerja terassign sebelum menghapus.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Assign Pekerja ke Unit</strong><span>Di halaman <b>Kelola Pekerja</b>, edit data pekerja dan set unit assignment sesuai struktur organisasi.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -601,10 +616,10 @@ else if (module == "admin")
                 <div id="admCollapse10" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Positions</strong><span>Pilih <b>Admin Panel → Kelola Positions</b> untuk mengelola daftar jabatan di organisasi.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Tambah Jabatan Baru</strong><span>Klik <b>Tambah Position</b>, masukkan nama jabatan, kode, level/jenjang, dan deskripsi tanggung jawab.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Mapping KKJ ke Position</strong><span>Assign KKJ (Kebutuhan Kompetensi Jabatan) yang sesuai untuk setiap jabatan agar sistem dapat merekomendasikan assessment dan training.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Set Level Jabatan</strong><span>Tentukan jenjang karier (Staff, Supervisor, Manager, dll) untuk mengatur hak akses dan kategori development path.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Positions</strong><span>Pilih <b>Admin Panel → Kelola Positions</b> untuk mengelola daftar jabatan di organisasi.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Tambah Jabatan Baru</strong><span>Klik <b>Tambah Position</b>, masukkan nama jabatan, kode, level/jenjang, dan deskripsi tanggung jawab.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Mapping KKJ ke Position</strong><span>Assign KKJ (Kebutuhan Kompetensi Jabatan) yang sesuai untuk setiap jabatan agar sistem dapat merekomendasikan assessment dan training.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Set Level Jabatan</strong><span>Tentukan jenjang karier (Staff, Supervisor, Manager, dll) untuk mengatur hak akses dan kategori development path.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -620,10 +635,10 @@ else if (module == "admin")
                 <div id="admCollapse11" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Notifications</strong><span>Pilih <b>Admin Panel → Kelola Notifications</b> untuk membuat pengumuman sistem.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buat Notification Baru</strong><span>Klik <b>Buat Notification</b>, masukkan judul, pesan, dan tipe notifikasi (Info, Warning, Urgent).</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Target Audience</strong><span>Pilih target notifikasi: All Users, specific Role (Admin/HC/Coachee), atau specific Unit kerja.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Schedule Notifications</strong><span>Atur tanggal aktif dan kedaluwarsa. Notifikasi akan otomatis muncul di dashboard user sesuai periode yang ditentukan.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Kelola Notifications</strong><span>Pilih <b>Admin Panel → Kelola Notifications</b> untuk membuat pengumuman sistem.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Buat Notification Baru</strong><span>Klik <b>Buat Notification</b>, masukkan judul, pesan, dan tipe notifikasi (Info, Warning, Urgent).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Target Audience</strong><span>Pilih target notifikasi: All Users, specific Role (Admin/HC/Coachee), atau specific Unit kerja.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Schedule Notifications</strong><span>Atur tanggal aktif dan kedaluwarsa. Notifikasi akan otomatis muncul di dashboard user sesuai periode yang ditentukan.</span></div></li>
                         </ul>
                     </div>
                 </div>
@@ -639,10 +654,10 @@ else if (module == "admin")
                 <div id="admCollapse12" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka System Settings</strong><span>Pilih <b>Admin Panel → System Settings</b> untuk mengakses konfigurasi global portal.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Configure Assessment Defaults</strong><span>Set durasi default assessment, passing grade standar, dan jumlah maksimal percobaan (retake).</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Manage System Parameters</strong><span>Atur parameter sistem seperti maksimal upload size, format file yang diizinkan, dan timeout session.</span></div></li>
-                            <li class="guide-step-item step-variant-pink"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Global Portal Settings</strong><span>Konfigurasi nama organisasi, logo, email admin sistem, dan pengaturan email notifications.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka System Settings</strong><span>Pilih <b>Admin Panel → System Settings</b> untuk mengakses konfigurasi global portal.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Configure Assessment Defaults</strong><span>Set durasi default assessment, passing grade standar, dan jumlah maksimal percobaan (retake).</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Manage System Parameters</strong><span>Atur parameter sistem seperti maksimal upload size, format file yang diizinkan, dan timeout session.</span></div></li>
+                            <li class="guide-step-item step-variant-blue"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Global Portal Settings</strong><span>Konfigurasi nama organisasi, logo, email admin sistem, dan pengaturan email notifications.</span></div></li>
                         </ul>
                     </div>
                 </div>
