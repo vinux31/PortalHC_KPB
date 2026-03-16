@@ -118,10 +118,24 @@
             </div>
         </div>
 
-        @* Tampilkan Inactive toggle *@
+        @* Silabus toolbar: Export/Import + Tampilkan Inactive toggle *@
         @if (!string.IsNullOrEmpty(selectedBagian) && !string.IsNullOrEmpty(selectedUnit) && selectedTrackId.HasValue)
         {
-            <div class="d-flex justify-content-end mb-2">
+            <div class="d-flex justify-content-end align-items-center gap-2 mb-2 flex-wrap">
+                @* Export/Import toolbar — only shown when filter is active *@
+                <a href="@Url.Action("ExportSilabus", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId })"
+                   class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                </a>
+                <a href="@Url.Action("ImportSilabus", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId })"
+                   class="btn btn-primary btn-sm">
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i>Import Excel
+                </a>
+                <a href="@Url.Action("DownloadSilabusTemplate", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId })"
+                   class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-download me-1"></i>Download Template
+                </a>
+                @* Existing toggle button *@
                 @if (showInactive)
                 {
                     <a href="@Url.Action("Index", "ProtonData", new { bagian = selectedBagian, unit = selectedUnit, trackId = selectedTrackId, showInactive = false })"
