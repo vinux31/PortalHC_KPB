@@ -1,102 +1,71 @@
-# Roadmap: Portal HC KBP
+# Roadmap: v5.0 Guide Page Overhaul
 
-## Shipped Milestones
+**Created:** 2026-03-16
+**Milestone:** v5.0
+**Phases:** 4 (171-174)
+**Requirements:** 12
 
-<details>
-<summary>v1.0 through v2.7 (Phases 1-81) — See milestones/ for details</summary>
+## Phase Overview
 
-- v1.0 CMP Assessment Completion (Phases 1-3, shipped 2026-02-17)
-- v1.1 CDP Coaching Management (Phases 4-8, shipped 2026-02-18)
-- v1.2 UX Consolidation (Phases 9-12, shipped 2026-02-19)
-- v1.3 Assessment Management UX (Phases 13-15, shipped 2026-02-19)
-- v1.4 Assessment Monitoring (Phase 16, shipped 2026-02-19)
-- v1.5 Question and Exam UX (Phase 17, shipped 2026-02-19)
-- v1.6 Training Records Management (Phases 18-20, shipped 2026-02-20)
-- v1.7 Assessment System Integrity (Phases 21-26, shipped 2026-02-21)
-- v1.8 Assessment Polish (Phases 27-32, shipped 2026-02-23)
-- v1.9 Proton Catalog Management (Phases 33-37, shipped 2026-02-24)
-- v2.0 Assessment Management & Training History (Phases 38-40, shipped 2026-02-24)
-- v2.1 Assessment Resilience & Real-Time Monitoring (Phases 41-45, shipped 2026-02-25)
-- v2.2 Attempt History (Phase 46, shipped 2026-02-26)
-- v2.3 Admin Portal (Phases 47-53, 59, shipped 2026-03-01)
-- v2.4 CDP Progress (Phases 61-64, shipped 2026-03-01)
-- v2.5 User Infrastructure & AD Readiness (Phases 65-72, shipped 2026-03-01)
-- v2.6 Codebase Cleanup (Phases 73-78, shipped 2026-03-01)
-- v2.7 Assessment Monitoring (Phases 79-81, shipped 2026-03-01)
+| # | Phase | Goal | Requirements | Success Criteria |
+|---|-------|------|--------------|------------------|
+| 171 | Guide Content Cleanup | Remove/simplify redundant accordion guides and fix card counts | GUIDE-01, GUIDE-02, GUIDE-03, GUIDE-04 | 4 |
+| 172 | FAQ Reorder & Expand/Collapse | Reorganize FAQ with expand/collapse all and logical reordering | FAQ-01, FAQ-02, FAQ-03 | 3 |
+| 173 | UI Consistency | Unify badge, button, and step styling across Guide system | UI-01, UI-02, UI-03 | 3 |
+| 174 | Navigation Improvements | Add back-to-top button and improve breadcrumbs | NAV-01, NAV-02 | 2 |
 
-</details>
+## Phase Details
 
-<details>
-<summary>v3.0 through v3.21 (Phases 82-152) — shipped 2026-03-02 to 2026-03-11</summary>
+### Phase 171: Guide Content Cleanup
 
-- **v3.0 Full QA & Feature Completion** — Phases 82-91 (shipped 2026-03-05)
-- **v3.1 CPDP Mapping File-Based Rewrite** — Phase 88 CPDP (shipped 2026-03-03)
-- **v3.2 Bug Hunting & Quality Audit** — Phases 92-98 (shipped 2026-03-05)
-- **v3.5 User Guide** — Phases 105-106 (shipped 2026-03-06)
-- **v3.6 Histori Proton** — Phases 107-108 (shipped 2026-03-06)
-- **v3.7 Role Access & Filter Audit** — Phases 109-111 (shipped 2026-03-07)
-- **v3.8 CoachingProton UI Redesign** — Phase 112 (shipped 2026-03-07)
-- **v3.9 ProtonData Enhancement** — Phases 113-115 (shipped 2026-03-07)
-- **v3.10 Evidence Coaching & Deliverable Redesign** — Phases 116-120 (shipped 2026-03-08)
-- **v3.11 CoachCoacheeMapping Overhaul** — Phases 123-125 (shipped 2026-03-08)
-- **v3.12 Progress Unit Scoping** — Phases 128-129 (shipped 2026-03-08)
-- **v3.13 In-App Notifications** — Phases 130-132 (shipped 2026-03-09)
-- **v3.14 Bug Hunting Per Case** — Phases 133-137 (shipped 2026-03-09)
-- **v3.15 Assessment Real Time Test** — Phases 138-142 (shipped 2026-03-09)
-- **v3.16 Form Coaching GAST Redesign** — Phases 143-144 (shipped 2026-03-09)
-- **v3.17 Assessment Sub-Competency Analysis** — Phases 145-147 (shipped 2026-03-10)
-- **v3.18 Homepage Minimalist Redesign** — Phases 148-149 (shipped 2026-03-10)
-- **v3.19 Assessment Certificate Toggle** — Phase 150 (shipped 2026-03-11)
-- **v3.20 Homepage Progress & Events Fix** — Phase 151 (shipped 2026-03-11)
-- **v3.21 Account Profile & Settings Cleanup** — Phase 152 (shipped 2026-03-11)
+**Goal:** Remove redundant accordion guides already covered by PDF tutorials and fix guide counts.
 
-</details>
+**Requirements:** GUIDE-01, GUIDE-02, GUIDE-03, GUIDE-04
 
-<details>
-<summary>v4.0 E2E Use-Case Audit (Phases 153-158) — shipped 2026-03-12</summary>
-
-- **v4.0 E2E Use-Case Audit** — Phases 153-158 (shipped 2026-03-12)
-  - Phase 153: Assessment Flow Audit (4 plans)
-  - Phase 154: Coaching Proton Flow Audit (3 plans)
-  - Phase 155: Admin Kelola Data Audit (3 plans)
-  - Phase 156: PlanIDP & CDP Dashboard Audit (2 plans)
-  - Phase 157: Account & Auth Audit (2 plans)
-  - Phase 158: Homepage & Navigation Audit (2 plans)
-
-</details>
-
-<details>
-<summary>v4.1 Coaching Proton Deduplication (Phases 159-161) — shipped 2026-03-12</summary>
-
-- **v4.1 Coaching Proton Deduplication** — Phases 159-161 (shipped 2026-03-12)
-  - Phase 159: Deduplication Fix & Guard (2 plans)
-  - Phase 160: Assignment Removal (1 plan)
-  - Phase 161: Fix deliverable ordering in CoachingProton table (1 plan)
-
-</details>
-
-<details>
-<summary>v4.2 Real-time Assessment (Phases 162-166) — shipped 2026-03-13</summary>
-
-- **v4.2 Real-time Assessment** — Phases 162-166 (shipped 2026-03-13)
-  - Phase 162: Simplifikasi Action Close + Auto-Grade (2 plans)
-  - Phase 163: Hub Infrastructure & Safety Foundations (2 plans)
-  - Phase 164: HC-to-Worker Push Events (2 plans)
-  - Phase 165: Worker-to-HC Progress Push + Polling Removal (2 plans)
-  - Phase 166: Activity Log Per-Worker (2 plans)
-
-</details>
-
-<details>
-<summary>v4.3 Bug Finder (Phases 168-170) — shipped 2026-03-13</summary>
-
-- **v4.3 Bug Finder** — Phases 168-170 (shipped 2026-03-13)
-  - Phase 168: Code Audit (3 plans)
-  - Phase 169: File & Database Audit (3 plans)
-  - Phase 170: Security Review (2 plans)
-
-</details>
+**Success Criteria:**
+1. CMP GuideDetail: accordion items covered by PDF Assessment tutorial are simplified (kept as short summaries pointing to PDF)
+2. CDP GuideDetail: accordion items covered by PDF Coaching Proton tutorial are simplified similarly
+3. Guide card counts dynamically match actual visible guides per user role (not hardcoded)
+4. Tutorial PDF cards styled via guide.css classes, not inline styles
 
 ---
 
-*No active milestone — run `/gsd:new-milestone` to start next.*
+### Phase 172: FAQ Reorder & Expand/Collapse
+
+**Goal:** Improve FAQ usability with expand/collapse all button and logical reordering.
+
+**Requirements:** FAQ-01, FAQ-02, FAQ-03
+
+**Success Criteria:**
+1. "Expand All" / "Collapse All" toggle button visible above FAQ section
+2. FAQ items reordered: most common questions (login, assessment, coaching) appear first
+3. FAQ categories cleaned up — items that purely duplicate GuideDetail content are removed or consolidated
+
+---
+
+### Phase 173: UI Consistency
+
+**Goal:** Standardize visual styling across the Guide system.
+
+**Requirements:** UI-01, UI-02, UI-03
+
+**Success Criteria:**
+1. Role badges (Admin/HC, Coach/Atasan) use same CSS class everywhere (no inline bg-success overrides)
+2. FAQ collapse buttons and GuideDetail accordion buttons share unified base styling
+3. CMP step badges use blue variant matching CMP module icon (not default gradient)
+
+---
+
+### Phase 174: Navigation Improvements
+
+**Goal:** Add back-to-top and improve breadcrumb navigation.
+
+**Requirements:** NAV-01, NAV-02
+
+**Success Criteria:**
+1. Floating back-to-top button appears after scrolling 300px, smooth-scrolls to top on click
+2. GuideDetail breadcrumb shows: Home > Panduan > [Module Name] with clickable links
+
+---
+*Roadmap created: 2026-03-16*
+*Last updated: 2026-03-16*

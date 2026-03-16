@@ -1,13 +1,13 @@
 ---
 gsd_state_version: 1.0
-milestone: none
-milestone_name: Between milestones
-status: complete
-stopped_at: v4.3 Bug Finder completed
-last_updated: "2026-03-13"
-last_activity: "2026-03-13 — v4.3 Bug Finder milestone completed and archived"
+milestone: v5.0
+milestone_name: Guide Page Overhaul
+status: not_started
+stopped_at: Milestone defined, ready to plan Phase 171
+last_updated: "2026-03-16"
+last_activity: "2026-03-16 — Milestone v5.0 started"
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -18,17 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-13)
+See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Between milestones — run `/gsd:new-milestone` to start next
+**Current focus:** v5.0 Guide Page Overhaul — Phase 171 next
 
 ## Current Position
 
-Phase: — (no active milestone)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Between milestones
-Last activity: 2026-03-13 — v4.3 Bug Finder completed (3 phases, 8 plans, 16/16 requirements)
+Status: Defining requirements
+Last activity: 2026-03-16 — Milestone v5.0 started
 
 ## Accumulated Context
 
@@ -41,12 +41,10 @@ Last activity: 2026-03-13 — v4.3 Bug Finder completed (3 phases, 8 plans, 16/1
 - Json.Serialize() is the canonical pattern for JS string contexts (not Html.Raw with Replace)
 - All file uploads must have extension allowlists and size limits
 
-### Quick Tasks Completed
+### Pre-milestone Work (this session)
 
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 25 | fix Seed Data Masih Ada | 2026-03-12 | bbe8676 | [25-fix-seed-data-masih-ada](./quick/25-fix-seed-data-masih-ada/) |
-| 26 | critical and high-priority bug fixes (open redirect, null Excel crash, silent catches) | 2026-03-12 | ff39b6f | [26-critical-and-high-priority-bug-fixes-fro](./quick/26-critical-and-high-priority-bug-fixes-fro/) |
+- Created 2 HTML tutorial files: Panduan-Lengkap-Assessment.html and Panduan-Lengkap-Coaching-Proton.html in wwwroot/documents/guides/
+- Integrated tutorial cards into GuideDetail.cshtml (CMP and CDP modules)
 
 ### Blockers/Concerns
 
@@ -54,6 +52,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-13
-Stopped at: v4.3 milestone completed
+Last session: 2026-03-16
+Stopped at: Milestone v5.0 defined, ready to plan Phase 171
 Resume file: None

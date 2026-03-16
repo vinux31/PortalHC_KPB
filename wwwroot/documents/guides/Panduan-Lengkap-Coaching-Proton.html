@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Panduan Lengkap Coaching Proton — Portal HC KPB</title>
+<style>
+  @page { size: A4; margin: 18mm 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.7; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 60px 20px 40px; margin-bottom: 30px; border-bottom: 3px solid #2e7d32; }
+  .cover-icon { font-size: 48pt; margin-bottom: 12px; }
+  .cover h1 { color: #2e7d32; font-size: 24pt; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .cover .subtitle { color: #555; font-size: 11pt; margin-bottom: 4px; }
+  .cover .version { color: #888; font-size: 9.5pt; margin-top: 16px; }
+
+  /* TOC */
+  .toc { background: #f8f9fa; border-radius: 8px; padding: 20px 28px; margin-bottom: 28px; }
+  .toc h2 { color: #2e7d32; font-size: 13pt; margin-bottom: 12px; border: none; padding: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 5px; font-size: 10.5pt; }
+  .toc a { color: #2e7d32; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .toc-section { font-weight: 700; margin-top: 8px; color: #1a1a1a; }
+
+  /* Sections */
+  h2 { color: #2e7d32; font-size: 14pt; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #2e7d32; padding-left: 12px; }
+  h2.section-coach { color: #1565c0; border-left-color: #1565c0; }
+  h2.section-atasan { color: #e65100; border-left-color: #e65100; }
+  h3 { color: #333; font-size: 12pt; margin-top: 18px; margin-bottom: 8px; }
+  p { margin-bottom: 8px; }
+  ul, ol { padding-left: 24px; margin-bottom: 8px; }
+  li { margin-bottom: 4px; }
+
+  /* Part headers */
+  .part-header { background: #2e7d32; color: #fff; padding: 14px 20px; border-radius: 8px; margin: 30px 0 16px; font-size: 14pt; font-weight: 700; }
+  .part-header.part-coach { background: #1565c0; }
+  .part-header.part-atasan { background: #e65100; }
+
+  /* Step cards */
+  .step { background: #f5f7fa; border-radius: 8px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #2e7d32; }
+  .step.step-coach { border-left-color: #1565c0; }
+  .step.step-atasan { border-left-color: #e65100; }
+  .step-header { display: flex; align-items: center; margin-bottom: 8px; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; background: #2e7d32; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11pt; margin-right: 10px; flex-shrink: 0; }
+  .step-num.num-coach { background: #1565c0; }
+  .step-num.num-atasan { background: #e65100; }
+  .step-title { font-weight: 700; font-size: 11.5pt; color: #2e7d32; }
+  .step-title.title-coach { color: #1565c0; }
+  .step-title.title-atasan { color: #e65100; }
+  .step-body { margin-left: 40px; font-size: 10.5pt; color: #333; }
+  .step-body ul, .step-body ol { margin-top: 4px; }
+
+  /* Callout boxes */
+  .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .info-title { font-weight: 700; color: #1565c0; margin-bottom: 4px; }
+  .warn { background: #fff3e0; border-left: 4px solid #e65100; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .warn-title { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .success { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .success-title { font-weight: 700; color: #2e7d32; margin-bottom: 4px; }
+
+  /* Flow diagram */
+  .diagram { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 18px; margin: 14px 0; font-family: 'Cascadia Code', Consolas, monospace; font-size: 9pt; white-space: pre; line-height: 1.8; overflow-x: auto; }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+  .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10pt; }
+  th { background: #2e7d32; color: #fff; padding: 10px 14px; text-align: left; }
+  td { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+
+  /* Print */
+  .no-print { }
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+  }
+
+  /* Action buttons */
+  .action-bar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
+  .action-bar button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 10pt; font-weight: 600; cursor: pointer; }
+  .btn-print { background: #2e7d32; color: #fff; }
+  .btn-print:hover { background: #1b5e20; }
+</style>
+</head>
+<body>
+
+<div class="action-bar no-print">
+  <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- COVER -->
+<!-- ============================================================ -->
+<div class="cover">
+  <div class="cover-icon">&#127919;</div>
+  <h1>Panduan Lengkap Coaching Proton</h1>
+  <p class="subtitle">Career Development Portal (CDP) &mdash; Portal HC KPB</p>
+  <p class="subtitle">Panduan end-to-end untuk Coachee, Coach, dan Atasan</p>
+  <p class="version">Versi 1.0 &bull; Maret 2026 &bull; Untuk Semua Pengguna</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- DAFTAR ISI -->
+<!-- ============================================================ -->
+<div class="toc">
+  <h2>Daftar Isi</h2>
+  <ol>
+    <li class="toc-section">Bagian A &mdash; Pengantar</li>
+    <li><a href="#overview">Apa Itu Coaching Proton?</a></li>
+    <li><a href="#jalur">Jalur &amp; Tahun Coaching</a></li>
+    <li><a href="#mapping">Mapping Coach-Coachee</a></li>
+    <li><a href="#rantai">Rantai Approval Deliverable</a></li>
+    <li><a href="#alur">Alur Proses End-to-End</a></li>
+
+    <li class="toc-section" style="margin-top:10px;">Bagian B &mdash; Untuk Coachee</li>
+    <li><a href="#c-akses">Mengakses Halaman CDP</a></li>
+    <li><a href="#c-planidp">Melihat Plan IDP / Silabus</a></li>
+    <li><a href="#c-guidance">Melihat Coaching Guidance</a></li>
+    <li><a href="#c-progress">Melihat Progress di Coaching Proton</a></li>
+    <li><a href="#c-detail">Melihat Detail Deliverable</a></li>
+    <li><a href="#c-deliverable">Melihat Halaman Deliverable</a></li>
+    <li><a href="#c-dashboard">Melihat Dashboard Coaching</a></li>
+    <li><a href="#c-histori">Melihat Histori Proton</a></li>
+    <li><a href="#c-selesai">Menyelesaikan Semua Deliverable</a></li>
+    <li><a href="#c-final">Final Assessment</a></li>
+    <li><a href="#c-next">Progres ke Tahun Berikutnya</a></li>
+
+    <li class="toc-section" style="margin-top:10px;">Bagian C &mdash; Untuk Coach</li>
+    <li><a href="#co-akses">Mengakses Coaching Proton</a></li>
+    <li><a href="#co-pilih">Memilih Coachee</a></li>
+    <li><a href="#co-lihat">Melihat Deliverable Coachee</a></li>
+    <li><a href="#co-upload">Upload Evidence</a></li>
+    <li><a href="#co-session">Mengisi Data Coaching Session</a></li>
+    <li><a href="#co-submit">Submit Evidence</a></li>
+    <li><a href="#co-resubmit">Re-submit jika Ditolak</a></li>
+    <li><a href="#co-monitor">Monitoring Progress Coachee</a></li>
+
+    <li class="toc-section" style="margin-top:10px;">Bagian D &mdash; Untuk Atasan (Sr. Supervisor / Section Head)</li>
+    <li><a href="#a-akses">Mengakses Coaching Proton</a></li>
+    <li><a href="#a-review">Melihat Deliverable Menunggu Review</a></li>
+    <li><a href="#a-tinjau">Review Evidence</a></li>
+    <li><a href="#a-approve">Approve Deliverable</a></li>
+    <li><a href="#a-reject">Reject Deliverable</a></li>
+
+    <li class="toc-section" style="margin-top:10px;">Lampiran</li>
+    <li><a href="#status">Daftar Status Deliverable</a></li>
+    <li><a href="#faq">FAQ (Pertanyaan Umum)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<!--  BAGIAN A — PENGANTAR  -->
+<!-- ============================================================ -->
+<div class="part-header">Bagian A &mdash; Pengantar Coaching Proton</div>
+
+<h2 id="overview">1. Apa Itu Coaching Proton?</h2>
+
+<p>Coaching Proton adalah <strong>program coaching terstruktur</strong> di Portal HC KPB yang bertujuan untuk mengembangkan kompetensi pekerja secara bertahap dan terukur.</p>
+
+<p>Dalam program ini:</p>
+<ul>
+  <li>Setiap <strong>coachee</strong> (pekerja) memiliki <strong>deliverable</strong> &mdash; tugas pengembangan kompetensi yang harus diselesaikan.</li>
+  <li>Setiap deliverable harus dibuktikan dengan <strong>evidence</strong> (bukti penyelesaian) yang di-upload oleh <strong>coach</strong>.</li>
+  <li>Evidence kemudian di-review dan di-approve oleh <strong>atasan</strong> (Sr. Supervisor dan Section Head).</li>
+  <li>Setelah semua deliverable selesai, coachee berhak mengikuti <strong>Final Assessment</strong>.</li>
+</ul>
+
+<!-- ============================================================ -->
+<h2 id="jalur">2. Jalur &amp; Tahun Coaching</h2>
+
+<p>Coaching Proton terdiri dari <strong>2 jalur</strong> dan <strong>3 tahun</strong>:</p>
+
+<table>
+  <tr><th>Jalur</th><th>Keterangan</th></tr>
+  <tr><td><span class="badge badge-blue">Panelman</span></td><td>Jalur pengembangan untuk posisi Panelman</td></tr>
+  <tr><td><span class="badge badge-green">Operator</span></td><td>Jalur pengembangan untuk posisi Operator</td></tr>
+</table>
+
+<p>Setiap jalur terbagi menjadi <strong>3 tahun</strong> progresif:</p>
+
+<table>
+  <tr><th>Tahun</th><th>Keterangan</th></tr>
+  <tr><td><strong>Tahun 1</strong></td><td>Fondasi &mdash; kompetensi dasar dan pengenalan proses kerja. Deliverable fokus pada pemahaman prosedur, keselamatan, dan operasi dasar.</td></tr>
+  <tr><td><strong>Tahun 2</strong></td><td>Pengembangan &mdash; kompetensi menengah dan pendalaman teknis. Deliverable lebih kompleks, mencakup troubleshooting dan analisis proses.</td></tr>
+  <tr><td><strong>Tahun 3</strong></td><td>Penguasaan &mdash; kompetensi tinggi dan kemandirian. Deliverable mencakup pengambilan keputusan, leadership teknis, dan best practice.</td></tr>
+</table>
+
+<p>Setiap tahun memiliki <strong>set kompetensi, sub-kompetensi, dan deliverable yang berbeda</strong>. Coachee harus menyelesaikan Tahun 1 sebelum lanjut ke Tahun 2, dan seterusnya.</p>
+
+<div class="info">
+  <div class="info-title">Struktur Hierarki Deliverable</div>
+  Setiap track memiliki struktur: <strong>Kompetensi</strong> &rarr; <strong>Sub-Kompetensi</strong> &rarr; <strong>Deliverable</strong>. Contoh: Kompetensi "Operasi Unit" &rarr; Sub-Kompetensi "Start-up Procedure" &rarr; Deliverable "Melakukan start-up unit sesuai SOP".
+</div>
+
+<!-- ============================================================ -->
+<h2 id="mapping">3. Mapping Coach-Coachee</h2>
+
+<p>Sebelum coaching dimulai, <strong>HC/Admin melakukan mapping</strong>:</p>
+
+<ol>
+  <li><strong>Assign Track</strong> &mdash; HC menentukan jalur dan tahun coaching untuk coachee (misal: Operator Tahun 1).</li>
+  <li><strong>Assign Coach</strong> &mdash; HC menentukan siapa coach yang membimbing coachee tersebut.</li>
+  <li>Setelah mapping aktif, <strong>deliverable otomatis muncul</strong> di akun coachee sesuai track yang di-assign.</li>
+</ol>
+
+<div class="info">
+  <div class="info-title">Catatan</div>
+  Anda tidak perlu melakukan mapping sendiri &mdash; ini dilakukan oleh HC/Admin. Jika Anda belum melihat deliverable di halaman Coaching Proton, hubungi HC untuk memastikan mapping sudah dibuat.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="rantai">4. Rantai Approval Deliverable</h2>
+
+<p>Setiap evidence yang di-submit oleh coach akan melewati <strong>3 tahap review</strong> secara berurutan:</p>
+
+<div class="diagram">
+  Coach Upload      Sr. Supervisor      Section Head        HC Review
+   Evidence            Review              Review
+
+ &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+ &#9474; Submitted &#9474; &#9658;&#9658; &#9474; Approve /   &#9474; &#9658;&#9658; &#9474; Approve /   &#9474; &#9658;&#9658; &#9474; Reviewed &#9474;
+ &#9474;          &#9474;    &#9474; Reject      &#9474;    &#9474; Reject      &#9474;    &#9474;          &#9474;
+ &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                        &#9474;                    &#9474;
+                   Jika Reject           Jika Reject
+                        &#9474;                    &#9474;
+                        &#9660;                    &#9660;
+                  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+                  &#9474; Kembali ke Coach untuk     &#9474;
+                  &#9474; re-submit evidence baru    &#9474;
+                  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</div>
+
+<table>
+  <tr><th>Tahap</th><th>Reviewer</th><th>Aksi</th></tr>
+  <tr><td>1</td><td><strong>Sr. Supervisor</strong></td><td>Approve atau Reject (dengan alasan)</td></tr>
+  <tr><td>2</td><td><strong>Section Head</strong></td><td>Approve atau Reject (dengan alasan)</td></tr>
+  <tr><td>3</td><td><strong>HC</strong></td><td>Review (mark as Reviewed)</td></tr>
+</table>
+
+<div class="warn">
+  <div class="warn-title">Jika Ditolak (Rejected)</div>
+  Jika salah satu reviewer menolak evidence, status deliverable kembali ke <strong>Rejected</strong>. Seluruh rantai approval di-reset. Coach harus memperbaiki dan <strong>upload ulang</strong> evidence baru. Coachee dan coach akan menerima <strong>notifikasi</strong> beserta alasan penolakan.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="alur">5. Alur Proses End-to-End</h2>
+
+<div class="diagram">
+  &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;   &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+  &#9474;  HC Mapping &#9474; &#9658; &#9474;  Coachee   &#9474; &#9658; &#9474;   Coach    &#9474; &#9658; &#9474;  Atasan   &#9474; &#9658; &#9474;   Final    &#9474;
+  &#9474; Coach +     &#9474;   &#9474;  Lihat    &#9474;   &#9474;  Upload   &#9474;   &#9474;  Approve  &#9474;   &#9474; Assessment &#9474;
+  &#9474; Track Assign&#9474;   &#9474; Deliverable&#9474;   &#9474;  Evidence &#9474;   &#9474; / Reject  &#9474;   &#9474;  (by HC)   &#9474;
+  &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;   &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+                                                                         &#9474;
+                                                              &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+                                                              &#9474; Lanjut ke  &#9474;
+                                                              &#9474; Tahun      &#9474;
+                                                              &#9474; Berikutnya &#9474;
+                                                              &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  BAGIAN B — UNTUK COACHEE  -->
+<!-- ============================================================ -->
+<div class="part-header">Bagian B &mdash; Untuk Coachee</div>
+
+<h2 id="c-akses">6. Mengakses Halaman CDP</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka Menu CDP</span>
+  </div>
+  <div class="step-body">
+    Setelah login ke Portal HC, klik menu <strong>CDP</strong> (Career Development Portal) di <strong>navbar bagian atas</strong>. Anda akan melihat halaman hub CDP dengan beberapa kartu fitur:
+    <ul>
+      <li><strong>Plan IDP / Silabus</strong> &mdash; Kurikulum pengembangan Anda</li>
+      <li><strong>Coaching Proton</strong> &mdash; Tabel tracking deliverable dan progress</li>
+      <li><strong>Deliverable</strong> &mdash; Daftar lengkap deliverable beserta status</li>
+      <li><strong>Coaching Proton Dashboard</strong> &mdash; Ringkasan statistik progress</li>
+      <li><strong>Histori Proton</strong> &mdash; Riwayat coaching per tahun</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-planidp">7. Melihat Plan IDP / Silabus</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Lihat Kurikulum Pengembangan Anda</span>
+  </div>
+  <div class="step-body">
+    Klik kartu <strong>Plan IDP / Silabus</strong> di halaman CDP.
+    <ul>
+      <li>Sistem menampilkan <strong>seluruh hierarki</strong>: Kompetensi &rarr; Sub-Kompetensi &rarr; Deliverable yang harus Anda selesaikan.</li>
+      <li>Konten silabus disesuaikan dengan <strong>track dan tahun</strong> yang di-assign kepada Anda (misal: Operator Tahun 1).</li>
+      <li>Anda <strong>tidak bisa memilih track lain</strong> &mdash; sistem otomatis menampilkan track Anda.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-guidance">8. Melihat Coaching Guidance</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Download Materi Panduan Belajar</span>
+  </div>
+  <div class="step-body">
+    Di halaman Plan IDP, klik tab <strong>Coaching Guidance</strong>:
+    <ul>
+      <li>Lihat daftar <strong>materi panduan</strong> (file PDF, Word, Excel, PPT) yang disiapkan oleh HC.</li>
+      <li>Materi ini disesuaikan dengan <strong>Bagian, Unit, dan Track</strong> Anda.</li>
+      <li>Klik <strong>Download</strong> untuk mengunduh file sebagai referensi belajar.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="success">
+  <div class="success-title">Tips</div>
+  Pelajari materi Coaching Guidance <strong>sebelum</strong> memulai deliverable. Materi ini berisi prosedur, standar, dan referensi teknis yang menjadi dasar penilaian evidence Anda.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-progress">9. Melihat Progress di Coaching Proton</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">4</span>
+    <span class="step-title">Pantau Tabel Deliverable dan Status</span>
+  </div>
+  <div class="step-body">
+    Klik kartu <strong>Coaching Proton</strong> di halaman CDP:
+    <ul>
+      <li>Tabel menampilkan <strong>semua deliverable</strong> Anda yang dikelompokkan per Kompetensi dan Sub-Kompetensi.</li>
+      <li>Setiap baris menampilkan kolom:
+        <ul>
+          <li><strong>Deliverable</strong> &mdash; Nama tugas yang harus diselesaikan</li>
+          <li><strong>Evidence</strong> &mdash; Status upload: <span class="badge badge-green">Sudah Upload</span> atau <span class="badge badge-gray">Belum Upload</span></li>
+          <li><strong>Sr. Spv Approval</strong> &mdash; Status approval Sr. Supervisor</li>
+          <li><strong>Section Head Approval</strong> &mdash; Status approval Section Head</li>
+          <li><strong>HC Review</strong> &mdash; Status review HC</li>
+          <li><strong>Detail</strong> &mdash; Link ke halaman detail deliverable</li>
+        </ul>
+      </li>
+    </ul>
+
+    <p><strong>Progress Bar</strong> di atas tabel menunjukkan persentase penyelesaian keseluruhan:</p>
+    <ul>
+      <li><span class="badge badge-green">Approved</span> = dihitung 100%</li>
+      <li><span class="badge badge-blue">Submitted</span> = dihitung 50%</li>
+      <li><span class="badge badge-gray">Pending</span> / <span class="badge badge-red">Rejected</span> = dihitung 0%</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-detail">10. Melihat Detail Deliverable</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">5</span>
+    <span class="step-title">Lihat Informasi Lengkap per Deliverable</span>
+  </div>
+  <div class="step-body">
+    Klik <strong>Lihat Detail</strong> pada deliverable untuk membuka halaman detail yang berisi:
+
+    <h3 style="margin-top:10px; margin-left:0;">Informasi Coachee &amp; Kompetensi</h3>
+    <ul>
+      <li>Nama coachee, track (Panelman/Operator), tahun ke, dan nama kompetensi/sub-kompetensi/deliverable.</li>
+    </ul>
+
+    <h3 style="margin-top:10px; margin-left:0;">Rantai Approval (Timeline Vertikal)</h3>
+    <ul>
+      <li>Status per reviewer: Sr. Supervisor, Section Head, dan HC.</li>
+      <li>Menampilkan nama reviewer, tanggal approval, dan status (Pending/Approved/Rejected/Reviewed).</li>
+      <li>Jika ditolak, alasan penolakan ditampilkan dalam kotak merah.</li>
+    </ul>
+
+    <h3 style="margin-top:10px; margin-left:0;">Evidence &amp; Coaching Session</h3>
+    <ul>
+      <li>File evidence yang di-upload beserta tombol <strong>Download</strong>.</li>
+      <li>Detail coaching session: tanggal, catatan coach, kesimpulan, hasil (Competent/Not Yet Competent).</li>
+      <li>Referensi coaching: Pedoman, TKO, Best Practice, Dokumen.</li>
+    </ul>
+
+    <h3 style="margin-top:10px; margin-left:0;">Riwayat Status (Timeline)</h3>
+    <ul>
+      <li>Log kronologis semua perubahan status: Created, Submitted, Approved, Rejected, Reviewed.</li>
+      <li>Menampilkan nama pelaku, role, dan waktu perubahan.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-deliverable">11. Melihat Halaman Deliverable</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">6</span>
+    <span class="step-title">Daftar Lengkap Deliverable &amp; Filter</span>
+  </div>
+  <div class="step-body">
+    Klik kartu <strong>Deliverable</strong> di halaman CDP:
+    <ul>
+      <li>Menampilkan <strong>seluruh deliverable</strong> Anda dalam format tabel.</li>
+      <li>Status ditampilkan dengan badge berwarna: <span class="badge badge-gray">Pending</span>, <span class="badge badge-blue">Submitted</span>, <span class="badge badge-green">Approved</span>, <span class="badge badge-red">Rejected</span>.</li>
+      <li>Klik judul deliverable untuk melihat detail lengkap (lihat Step 5).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-dashboard">12. Melihat Dashboard Coaching</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">7</span>
+    <span class="step-title">Ringkasan Statistik Progress Anda</span>
+  </div>
+  <div class="step-body">
+    Klik kartu <strong>Coaching Proton Dashboard</strong> di halaman CDP. Sebagai coachee, Anda akan melihat <strong>4 kartu statistik</strong>:
+
+    <table>
+      <tr><th>Kartu</th><th>Keterangan</th></tr>
+      <tr><td><strong>Approved Deliverables</strong></td><td>Jumlah deliverable yang sudah disetujui (Approved)</td></tr>
+      <tr><td><strong>Current Status</strong></td><td>"In Progress" jika masih ada deliverable aktif, atau "Completed" jika sudah Final Assessment</td></tr>
+      <tr><td><strong>Competency Level</strong></td><td>Level kompetensi yang diberikan dari Final Assessment terakhir (skala 1-5)</td></tr>
+      <tr><td><strong>Active Deliverables</strong></td><td>Jumlah deliverable yang masih berstatus Pending (belum ada evidence)</td></tr>
+    </table>
+
+    <p>Di bawah kartu, terdapat <strong>progress bar</strong> total: Approved / Total Deliverables.</p>
+  </div>
+</div>
+
+<div class="success">
+  <div class="success-title">Selamat!</div>
+  Jika progress bar menunjukkan 100%, artinya semua deliverable Anda sudah Approved. Anda siap untuk <strong>Final Assessment</strong>.
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<h2 id="c-histori">13. Melihat Histori Proton</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">8</span>
+    <span class="step-title">Timeline Perjalanan Coaching Anda</span>
+  </div>
+  <div class="step-body">
+    Klik kartu <strong>Histori Proton</strong> di halaman CDP:
+    <ul>
+      <li>Menampilkan <strong>timeline</strong> perjalanan coaching Anda dari Tahun 1 hingga Tahun 3.</li>
+      <li>Setiap node timeline menampilkan:
+        <ul>
+          <li><strong>Tahun Ke</strong> (Tahun 1, 2, 3)</li>
+          <li><strong>Unit</strong> tempat coaching dilakukan</li>
+          <li><strong>Nama Coach</strong> yang membimbing</li>
+          <li><strong>Status</strong>: <span class="badge badge-green">Done</span> (selesai + Final Assessment) atau <span class="badge badge-blue">In Progress</span></li>
+          <li><strong>Competency Level</strong> yang diperoleh (jika sudah selesai)</li>
+          <li><strong>Tanggal mulai &amp; selesai</strong></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-selesai">14. Menyelesaikan Semua Deliverable</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">9</span>
+    <span class="step-title">Syarat untuk Lanjut ke Final Assessment</span>
+  </div>
+  <div class="step-body">
+    Untuk berhak mengikuti Final Assessment, <strong>semua deliverable</strong> dalam penugasan Anda harus memenuhi 2 syarat:
+
+    <ol>
+      <li>Status keseluruhan: <span class="badge badge-green">Approved</span> &mdash; artinya Sr. Supervisor dan Section Head telah menyetujui.</li>
+      <li>HC Review: <span class="badge badge-green">Reviewed</span> &mdash; artinya HC telah me-review deliverable tersebut.</li>
+    </ol>
+
+    <p>Jika kedua syarat terpenuhi untuk <strong>semua</strong> deliverable, nama Anda akan masuk ke daftar <strong>"Ready for Final Assessment"</strong> di sisi HC.</p>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Notifikasi Otomatis</div>
+  Saat semua deliverable Anda selesai di-approve dan di-review, sistem akan <strong>otomatis mengirim notifikasi</strong> ke seluruh HC: <em>"Semua deliverable [Nama Anda] telah selesai"</em>.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-final">15. Final Assessment</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">10</span>
+    <span class="step-title">Penilaian Akhir oleh HC</span>
+  </div>
+  <div class="step-body">
+    Setelah semua deliverable selesai, HC akan membuat <strong>Final Assessment</strong> untuk Anda:
+
+    <ul>
+      <li>HC menentukan <strong>Competency Level</strong> yang diberikan (skala 1-5).</li>
+      <li>Level ini mencerminkan tingkat penguasaan kompetensi Anda berdasarkan seluruh deliverable yang diselesaikan.</li>
+      <li>Level kompetensi akan <strong>tercatat di profil</strong> Anda dan terlihat di Dashboard.</li>
+    </ul>
+
+    <p>Final Assessment <strong>per tahun</strong>:</p>
+    <table>
+      <tr><th>Tahun</th><th>Keterangan Final Assessment</th></tr>
+      <tr><td><strong>Tahun 1</strong></td><td>Penilaian kompetensi dasar. Level diberikan berdasarkan penguasaan prosedur dan operasi dasar.</td></tr>
+      <tr><td><strong>Tahun 2</strong></td><td>Penilaian kompetensi menengah. Level mencerminkan kemampuan troubleshooting dan analisis teknis.</td></tr>
+      <tr><td><strong>Tahun 3</strong></td><td>Penilaian kompetensi penguasaan. Level mencerminkan kemandirian, leadership teknis, dan penerapan best practice.</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="c-next">16. Progres ke Tahun Berikutnya</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">11</span>
+    <span class="step-title">Lanjut ke Track Tahun Berikutnya</span>
+  </div>
+  <div class="step-body">
+    Setelah Final Assessment selesai untuk satu tahun:
+
+    <ol>
+      <li>Status Anda di Histori Proton berubah menjadi <span class="badge badge-green">Done</span> untuk tahun tersebut.</li>
+      <li>HC dapat <strong>meng-assign Anda ke tahun berikutnya</strong> (misal: dari Operator Tahun 1 ke Operator Tahun 2).</li>
+      <li>Set deliverable <strong>baru</strong> akan muncul sesuai track tahun baru.</li>
+      <li>Proses coaching berulang: coach upload evidence &rarr; atasan approve &rarr; HC review &rarr; Final Assessment.</li>
+    </ol>
+
+    <p>Progress per tahun bisa dipantau di halaman <strong>Histori Proton</strong>:</p>
+    <table>
+      <tr><th>Kolom</th><th>Status</th></tr>
+      <tr><td>Tahun 1</td><td><span class="badge badge-green">Done</span> &mdash; sudah Final Assessment</td></tr>
+      <tr><td>Tahun 2</td><td><span class="badge badge-blue">In Progress</span> &mdash; sedang berjalan</td></tr>
+      <tr><td>Tahun 3</td><td><span class="badge badge-gray">Belum dimulai</span></td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  BAGIAN C — UNTUK COACH  -->
+<!-- ============================================================ -->
+<div class="part-header part-coach">Bagian C &mdash; Untuk Coach</div>
+
+<h2 id="co-akses" class="section-coach">17. Mengakses Coaching Proton</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">12</span>
+    <span class="step-title title-coach">Buka Halaman Coaching Proton</span>
+  </div>
+  <div class="step-body">
+    Klik menu <strong>CDP</strong> di navbar &rarr; klik kartu <strong>Coaching Proton</strong>. Sebagai coach, halaman akan menampilkan daftar coachee yang di-mapping kepada Anda.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="co-pilih" class="section-coach">18. Memilih Coachee</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">13</span>
+    <span class="step-title title-coach">Pilih Coachee dari Dropdown</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li>Di bagian atas halaman, pilih coachee dari <strong>dropdown</strong>.</li>
+      <li>Hanya coachee yang <strong>di-mapping kepada Anda</strong> dan memiliki <strong>assignment aktif</strong> yang ditampilkan.</li>
+      <li>Anda juga dapat menggunakan <strong>filter</strong> berdasarkan track type dan tahun.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="co-lihat" class="section-coach">19. Melihat Deliverable Coachee</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">14</span>
+    <span class="step-title title-coach">Tabel Deliverable &amp; Status</span>
+  </div>
+  <div class="step-body">
+    Setelah memilih coachee, tabel akan menampilkan seluruh deliverable coachee tersebut:
+    <ul>
+      <li>Kolom <strong>Evidence</strong>: menampilkan tombol <span class="badge badge-blue">Submit Evidence</span> jika status Pending/Rejected, atau <span class="badge badge-green">Sudah Upload</span> jika sudah disubmit.</li>
+      <li>Kolom <strong>Sr. Spv / SH / HC</strong>: status approval per reviewer.</li>
+      <li>Kolom <strong>Detail</strong>: link ke halaman detail deliverable.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="co-upload" class="section-coach">20. Upload Evidence</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">15</span>
+    <span class="step-title title-coach">Klik Submit Evidence</span>
+  </div>
+  <div class="step-body">
+    Klik tombol <strong>Submit Evidence</strong> (biru) pada deliverable yang berstatus <span class="badge badge-gray">Pending</span> atau <span class="badge badge-red">Rejected</span>. Modal form akan terbuka untuk mengisi data coaching dan upload file.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="co-session" class="section-coach">21. Mengisi Data Coaching Session</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">16</span>
+    <span class="step-title title-coach">Lengkapi Form Coaching</span>
+  </div>
+  <div class="step-body">
+    Di modal form, isi data berikut:
+
+    <table>
+      <tr><th>Field</th><th>Keterangan</th></tr>
+      <tr><td><strong>Tanggal Coaching</strong></td><td>Tanggal sesi coaching dilakukan</td></tr>
+      <tr><td><strong>Catatan Coach</strong></td><td>Catatan dan observasi selama sesi coaching</td></tr>
+      <tr><td><strong>Kesimpulan</strong></td><td>Kesimpulan dari hasil coaching</td></tr>
+      <tr><td><strong>Hasil</strong></td><td>Pilih: <span class="badge badge-green">Competent</span> atau <span class="badge badge-orange">Not Yet Competent</span></td></tr>
+      <tr><td><strong>Acuan Pedoman</strong></td><td>Referensi pedoman yang digunakan (opsional)</td></tr>
+      <tr><td><strong>Acuan TKO</strong></td><td>Referensi TKO yang digunakan (opsional)</td></tr>
+      <tr><td><strong>Acuan Best Practice</strong></td><td>Referensi best practice (opsional)</td></tr>
+      <tr><td><strong>Acuan Dokumen</strong></td><td>Referensi dokumen lain (opsional)</td></tr>
+      <tr><td><strong>Upload File Evidence</strong></td><td>File bukti penyelesaian. Format: <strong>PDF, JPG, PNG</strong>. Maksimal: <strong>10 MB</strong></td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="co-submit" class="section-coach">22. Submit Evidence</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">17</span>
+    <span class="step-title title-coach">Kirim Evidence untuk Review</span>
+  </div>
+  <div class="step-body">
+    Klik <strong>Simpan</strong> pada modal form. Setelah submit:
+    <ul>
+      <li>Status deliverable berubah menjadi <span class="badge badge-blue">Submitted</span>.</li>
+      <li><strong>Notifikasi otomatis</strong> terkirim ke Sr. Supervisor dan Section Head di section coachee.</li>
+      <li>Anda tidak bisa mengubah evidence yang sudah disubmit kecuali ditolak (Rejected).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="co-resubmit" class="section-coach">23. Re-submit jika Ditolak</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">18</span>
+    <span class="step-title title-coach">Perbaiki dan Upload Ulang</span>
+  </div>
+  <div class="step-body">
+    Jika evidence ditolak oleh atasan:
+    <ol>
+      <li>Anda dan coachee akan menerima <strong>notifikasi</strong> beserta <strong>alasan penolakan</strong>.</li>
+      <li>Status deliverable kembali ke <span class="badge badge-red">Rejected</span>.</li>
+      <li>Tombol <strong>Submit Evidence</strong> muncul kembali pada deliverable tersebut.</li>
+      <li>Perbaiki evidence sesuai feedback, lalu <strong>upload ulang</strong>.</li>
+      <li>Seluruh rantai approval akan <strong>di-reset otomatis</strong> &mdash; proses approval dimulai dari awal.</li>
+    </ol>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="co-monitor" class="section-coach">24. Monitoring Progress Coachee</h2>
+
+<div class="step step-coach">
+  <div class="step-header">
+    <span class="step-num num-coach">19</span>
+    <span class="step-title title-coach">Pantau Seluruh Progress</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li>Di tabel Coaching Proton, <strong>badge berwarna</strong> menunjukkan status setiap deliverable secara visual.</li>
+      <li>Gunakan <strong>filter track/tahun</strong> untuk mempersempit tampilan jika Anda memiliki banyak coachee.</li>
+      <li>Klik <strong>Detail</strong> untuk melihat riwayat lengkap per deliverable.</li>
+      <li>Anda juga bisa melihat <strong>Dashboard</strong> untuk ringkasan progress seluruh coachee.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  BAGIAN D — UNTUK ATASAN  -->
+<!-- ============================================================ -->
+<div class="part-header part-atasan">Bagian D &mdash; Untuk Atasan (Sr. Supervisor / Section Head)</div>
+
+<h2 id="a-akses" class="section-atasan">25. Mengakses Coaching Proton</h2>
+
+<div class="step step-atasan">
+  <div class="step-header">
+    <span class="step-num num-atasan">20</span>
+    <span class="step-title title-atasan">Buka Halaman Coaching Proton</span>
+  </div>
+  <div class="step-body">
+    Klik menu <strong>CDP</strong> di navbar &rarr; klik kartu <strong>Coaching Proton</strong>. Sebagai atasan (Sr. Supervisor atau Section Head), Anda akan melihat daftar coachee <strong>di section Anda</strong> yang memiliki assignment coaching aktif.
+    <ul>
+      <li>Gunakan <strong>filter</strong> berdasarkan Bagian, Unit, Track, dan Tahun untuk mempersempit tampilan.</li>
+      <li>Pilih coachee dari <strong>dropdown</strong> untuk melihat deliverable-nya.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="a-review" class="section-atasan">26. Melihat Deliverable Menunggu Review</h2>
+
+<div class="step step-atasan">
+  <div class="step-header">
+    <span class="step-num num-atasan">21</span>
+    <span class="step-title title-atasan">Identifikasi Deliverable yang Perlu Ditinjau</span>
+  </div>
+  <div class="step-body">
+    Di tabel Coaching Proton, deliverable yang memerlukan review Anda ditandai dengan tombol <strong>Tinjau</strong> (kuning) di kolom approval Anda:
+    <ul>
+      <li><strong>Sr. Supervisor</strong>: tombol Tinjau muncul di kolom "Sr. Spv Approval" jika status deliverable <span class="badge badge-blue">Submitted</span> dan approval Anda masih <span class="badge badge-gray">Pending</span>.</li>
+      <li><strong>Section Head</strong>: tombol Tinjau muncul di kolom "SH Approval" jika Sr. Supervisor sudah approve dan approval Anda masih <span class="badge badge-gray">Pending</span>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="a-tinjau" class="section-atasan">27. Review Evidence</h2>
+
+<div class="step step-atasan">
+  <div class="step-header">
+    <span class="step-num num-atasan">22</span>
+    <span class="step-title title-atasan">Periksa Evidence dan Catatan Coaching</span>
+  </div>
+  <div class="step-body">
+    Klik tombol <strong>Tinjau</strong> atau klik <strong>Detail</strong> pada deliverable untuk membuka halaman detail:
+    <ul>
+      <li><strong>Download evidence</strong> &mdash; klik tombol Download untuk mengunduh file bukti penyelesaian yang di-upload oleh coach.</li>
+      <li><strong>Review catatan coaching</strong> &mdash; baca catatan coach, kesimpulan, dan hasil coaching session (Competent/Not Yet Competent).</li>
+      <li><strong>Periksa referensi</strong> &mdash; lihat acuan Pedoman, TKO, Best Practice, dan Dokumen yang digunakan.</li>
+      <li><strong>Lihat riwayat</strong> &mdash; periksa timeline status untuk memahami riwayat deliverable.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="a-approve" class="section-atasan">28. Approve Deliverable</h2>
+
+<div class="step step-atasan">
+  <div class="step-header">
+    <span class="step-num num-atasan">23</span>
+    <span class="step-title title-atasan">Setujui Evidence yang Memenuhi Standar</span>
+  </div>
+  <div class="step-body">
+    Jika evidence memenuhi standar dan kriteria yang ditetapkan:
+    <ol>
+      <li>Klik tombol <strong>Approve</strong> (hijau).</li>
+      <li>Status approval Anda berubah menjadi <span class="badge badge-green">Approved</span>.</li>
+      <li>Proses berlanjut ke reviewer berikutnya:
+        <ul>
+          <li>Jika Anda <strong>Sr. Supervisor</strong> &rarr; dilanjutkan ke <strong>Section Head</strong> untuk review.</li>
+          <li>Jika Anda <strong>Section Head</strong> &rarr; status keseluruhan berubah menjadi <span class="badge badge-green">Approved</span>, dilanjutkan ke <strong>HC Review</strong>.</li>
+        </ul>
+      </li>
+    </ol>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Notifikasi Otomatis</div>
+  Saat semua deliverable coachee telah di-approve, sistem otomatis mengirim notifikasi ke HC bahwa coachee tersebut siap untuk <strong>Final Assessment</strong>.
+</div>
+
+<!-- ============================================================ -->
+<h2 id="a-reject" class="section-atasan">29. Reject Deliverable</h2>
+
+<div class="step step-atasan">
+  <div class="step-header">
+    <span class="step-num num-atasan">24</span>
+    <span class="step-title title-atasan">Tolak Evidence yang Belum Memenuhi Standar</span>
+  </div>
+  <div class="step-body">
+    Jika evidence belum memenuhi standar:
+    <ol>
+      <li>Klik tombol <strong>Reject</strong> (merah).</li>
+      <li>Form akan muncul &mdash; isi <strong>alasan penolakan</strong> yang jelas dan konstruktif agar coach dan coachee memahami perbaikan yang diperlukan.</li>
+      <li>Klik <strong>Konfirmasi Reject</strong>.</li>
+    </ol>
+
+    <p>Setelah reject:</p>
+    <ul>
+      <li>Status deliverable berubah menjadi <span class="badge badge-red">Rejected</span>.</li>
+      <li>Seluruh rantai approval <strong>di-reset</strong> (semua approval kembali ke Pending).</li>
+      <li><strong>Notifikasi</strong> beserta alasan penolakan terkirim ke coach dan coachee.</li>
+      <li>Coach harus memperbaiki dan <strong>upload ulang</strong> evidence baru.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Tips untuk Reviewer</div>
+  <ul>
+    <li>Berikan alasan penolakan yang <strong>spesifik</strong> dan <strong>actionable</strong> agar coach tahu persis apa yang harus diperbaiki.</li>
+    <li>Review evidence sesegera mungkin untuk tidak menghambat progress coaching coachee.</li>
+    <li>Jika ragu, lihat halaman <strong>Detail</strong> deliverable untuk konteks lengkap termasuk coaching session dan referensi yang digunakan.</li>
+  </ul>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!--  LAMPIRAN  -->
+<!-- ============================================================ -->
+<div class="part-header" style="background: #455a64;">Lampiran</div>
+
+<h2 id="status" style="color: #455a64; border-left-color: #455a64;">30. Daftar Status Deliverable</h2>
+
+<table>
+  <tr><th>Status</th><th>Warna</th><th>Keterangan</th></tr>
+  <tr><td><span class="badge badge-gray">Pending</span></td><td>Abu-abu</td><td>Deliverable belum ada evidence. Menunggu coach untuk upload.</td></tr>
+  <tr><td><span class="badge badge-blue">Submitted</span></td><td>Biru</td><td>Evidence sudah di-upload oleh coach. Menunggu review atasan.</td></tr>
+  <tr><td><span class="badge badge-green">Approved</span></td><td>Hijau</td><td>Evidence disetujui oleh Sr. Supervisor dan Section Head.</td></tr>
+  <tr><td><span class="badge badge-red">Rejected</span></td><td>Merah</td><td>Evidence ditolak oleh atasan. Perlu perbaikan dan re-submit.</td></tr>
+  <tr><td><span class="badge badge-purple">Reviewed</span></td><td>Ungu</td><td>HC telah me-review deliverable (status HC Review).</td></tr>
+</table>
+
+<h3>Status per Reviewer</h3>
+<table>
+  <tr><th>Reviewer</th><th>Status Possible</th></tr>
+  <tr><td>Sr. Supervisor</td><td><span class="badge badge-gray">Pending</span> &rarr; <span class="badge badge-green">Approved</span> atau <span class="badge badge-red">Rejected</span></td></tr>
+  <tr><td>Section Head</td><td><span class="badge badge-gray">Pending</span> &rarr; <span class="badge badge-green">Approved</span> atau <span class="badge badge-red">Rejected</span></td></tr>
+  <tr><td>HC</td><td><span class="badge badge-gray">Pending</span> &rarr; <span class="badge badge-purple">Reviewed</span></td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2 id="faq" style="color: #455a64; border-left-color: #455a64;">31. FAQ (Pertanyaan Umum)</h2>
+
+<div class="step" style="border-left-color: #455a64;">
+  <div class="step-header">
+    <span class="step-title" style="color: #455a64;">Kenapa saya tidak melihat deliverable di Coaching Proton?</span>
+  </div>
+  <div class="step-body">
+    Deliverable hanya muncul jika HC/Admin sudah melakukan <strong>mapping</strong> &mdash; yaitu meng-assign Anda ke track tertentu (misal: Operator Tahun 1) dan menetapkan coach Anda. Hubungi HC untuk memastikan mapping sudah dibuat.
+  </div>
+</div>
+
+<div class="step" style="border-left-color: #455a64;">
+  <div class="step-header">
+    <span class="step-title" style="color: #455a64;">Apakah coachee bisa upload evidence sendiri?</span>
+  </div>
+  <div class="step-body">
+    <strong>Tidak</strong>. Hanya <strong>coach</strong> yang dapat upload evidence. Ini memastikan bahwa setiap evidence telah melalui sesi coaching dan divalidasi oleh coach sebelum disubmit.
+  </div>
+</div>
+
+<div class="step" style="border-left-color: #455a64;">
+  <div class="step-header">
+    <span class="step-title" style="color: #455a64;">Apa yang terjadi jika evidence ditolak?</span>
+  </div>
+  <div class="step-body">
+    Seluruh rantai approval <strong>di-reset</strong>. Coach harus memperbaiki evidence dan upload ulang. Proses approval dimulai dari awal (Sr. Supervisor &rarr; Section Head &rarr; HC). Coachee dan coach akan menerima notifikasi beserta alasan penolakan.
+  </div>
+</div>
+
+<div class="step" style="border-left-color: #455a64;">
+  <div class="step-header">
+    <span class="step-title" style="color: #455a64;">Berapa lama proses coaching dari Tahun 1 sampai Tahun 3?</span>
+  </div>
+  <div class="step-body">
+    Durasi tergantung pada kecepatan penyelesaian deliverable dan proses approval. Setiap tahun bisa memakan waktu <strong>beberapa bulan hingga 1 tahun</strong>, tergantung jumlah deliverable dan kompleksitas kompetensi.
+  </div>
+</div>
+
+<div class="step" style="border-left-color: #455a64;">
+  <div class="step-header">
+    <span class="step-title" style="color: #455a64;">Format file apa yang bisa di-upload sebagai evidence?</span>
+  </div>
+  <div class="step-body">
+    File yang didukung: <strong>PDF, JPG, JPEG, PNG</strong>. Ukuran maksimal: <strong>10 MB</strong> per file.
+  </div>
+</div>
+
+<div class="step" style="border-left-color: #455a64;">
+  <div class="step-header">
+    <span class="step-title" style="color: #455a64;">Siapa yang melakukan Final Assessment?</span>
+  </div>
+  <div class="step-body">
+    <strong>HC</strong> yang membuat dan menentukan hasil Final Assessment. Setelah semua deliverable di-approve dan di-review oleh HC, coachee akan muncul di daftar "Ready for Final Assessment" di sisi HC.
+  </div>
+</div>
+
+<div class="step" style="border-left-color: #455a64;">
+  <div class="step-header">
+    <span class="step-title" style="color: #455a64;">Bagaimana jika coach saya berubah?</span>
+  </div>
+  <div class="step-body">
+    HC/Admin dapat mengubah mapping coach-coachee kapan saja. Coach baru akan langsung bisa melihat deliverable Anda dan melanjutkan proses coaching. Riwayat evidence dan coaching session sebelumnya <strong>tetap tersimpan</strong>.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FOOTER -->
+<!-- ============================================================ -->
+<div class="footer">
+  Portal HC KPB &mdash; Panduan Lengkap Coaching Proton &bull; Versi 1.0 &bull; Maret 2026<br>
+  Dokumen ini dibuat untuk keperluan internal. Hubungi tim HC jika ada pertanyaan.
+</div>
+
+</body>
+</html>

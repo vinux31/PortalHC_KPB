@@ -12,9 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: None (between milestones)
+## Current Milestone: v5.0 Guide Page Overhaul
 
-Run `/gsd:new-milestone` to start next milestone.
+**Goal:** Clean up, reorganize, and improve the Guide & FAQ system now that comprehensive PDF tutorials exist.
+
+**Target features:**
+- Cleanup redundant accordion guides covered by PDF tutorials
+- Fix guide count mismatches (conditional role-based counts)
+- FAQ reorder with expand/collapse all functionality
+- UI consistency (badges, buttons, card styling)
+- Navigation improvements (back-to-top, breadcrumbs)
 
 ## Current State (v4.3 shipped 2026-03-13)
 

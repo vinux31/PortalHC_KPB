@@ -1,0 +1,65 @@
+# Requirements: Portal HC KPB
+
+**Defined:** 2026-03-16
+**Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
+
+## v5.0 Requirements
+
+### Guide Cleanup
+
+- [ ] **GUIDE-01**: Redundant CMP accordion items (covered by PDF Assessment tutorial) are simplified or removed
+- [ ] **GUIDE-02**: Redundant CDP accordion items (covered by PDF Coaching Proton tutorial) are simplified or removed
+- [ ] **GUIDE-03**: Guide card counts ("X panduan tersedia") dynamically reflect actual visible guides per user role
+- [ ] **GUIDE-04**: Tutorial PDF cards use consistent CSS classes instead of inline styles
+
+### FAQ Improvements
+
+- [ ] **FAQ-01**: User can expand all / collapse all FAQ items with a single button
+- [ ] **FAQ-02**: FAQ items are reordered logically by priority (most common questions first)
+- [ ] **FAQ-03**: FAQ categories are reorganized to reduce redundancy with GuideDetail content
+
+### UI Consistency
+
+- [ ] **UI-01**: Role badge styling is consistent across Guide.cshtml and GuideDetail.cshtml
+- [ ] **UI-02**: Accordion button/toggle styles are unified across FAQ and GuideDetail sections
+- [ ] **UI-03**: Step badge color variants are consistent with module icon colors
+
+### Navigation
+
+- [ ] **NAV-01**: Back-to-top button is available on Guide and GuideDetail pages after scrolling
+- [ ] **NAV-02**: GuideDetail breadcrumb shows full path (Home > Panduan > Module Name)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Guide ratings/feedback | Low priority, adds complexity |
+| Search improvements (faceted, fuzzy) | Current search adequate for guide count |
+| PDF tutorials for Account/Data/Admin modules | Not enough content to justify separate PDFs |
+| Print table of contents | Low usage of print feature |
+
+## Traceability
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| GUIDE-01 | Phase 171 | Pending |
+| GUIDE-02 | Phase 171 | Pending |
+| GUIDE-03 | Phase 171 | Pending |
+| GUIDE-04 | Phase 171 | Pending |
+| FAQ-01 | Phase 172 | Pending |
+| FAQ-02 | Phase 172 | Pending |
+| FAQ-03 | Phase 172 | Pending |
+| UI-01 | Phase 173 | Pending |
+| UI-02 | Phase 173 | Pending |
+| UI-03 | Phase 173 | Pending |
+| NAV-01 | Phase 174 | Pending |
+| NAV-02 | Phase 174 | Pending |
+
+**Coverage:**
+- v5.0 requirements: 12 total
+- Mapped to phases: 12
+- Unmapped: 0
+
+---
+*Requirements defined: 2026-03-16*
+*Last updated: 2026-03-16 after milestone v5.0 definition*

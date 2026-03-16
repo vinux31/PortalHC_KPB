@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Panduan Lengkap Assessment — Portal HC KPB</title>
+<style>
+  @page { size: A4; margin: 18mm 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.7; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 60px 20px 40px; margin-bottom: 30px; border-bottom: 3px solid #1565c0; }
+  .cover-icon { font-size: 48pt; margin-bottom: 12px; }
+  .cover h1 { color: #1565c0; font-size: 24pt; margin-bottom: 6px; letter-spacing: -0.5px; }
+  .cover .subtitle { color: #555; font-size: 11pt; margin-bottom: 4px; }
+  .cover .version { color: #888; font-size: 9.5pt; margin-top: 16px; }
+
+  /* TOC */
+  .toc { background: #f8f9fa; border-radius: 8px; padding: 20px 28px; margin-bottom: 28px; }
+  .toc h2 { color: #1565c0; font-size: 13pt; margin-bottom: 12px; border: none; padding: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 5px; font-size: 10.5pt; }
+  .toc a { color: #1565c0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Sections */
+  h2 { color: #1565c0; font-size: 14pt; margin-top: 30px; margin-bottom: 12px; border-left: 4px solid #1565c0; padding-left: 12px; }
+  h3 { color: #2e7d32; font-size: 12pt; margin-top: 18px; margin-bottom: 8px; }
+  p { margin-bottom: 8px; }
+  ul, ol { padding-left: 24px; margin-bottom: 8px; }
+  li { margin-bottom: 4px; }
+  strong { color: #1a1a1a; }
+
+  /* Step cards */
+  .step { background: #f5f7fa; border-radius: 8px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #1565c0; }
+  .step-header { display: flex; align-items: center; margin-bottom: 8px; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; background: #1565c0; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11pt; margin-right: 10px; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 11.5pt; color: #1565c0; }
+  .step-body { margin-left: 40px; font-size: 10.5pt; color: #333; }
+  .step-body ul { margin-top: 4px; }
+
+  /* Callout boxes */
+  .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .info-title { font-weight: 700; color: #1565c0; margin-bottom: 4px; }
+  .warn { background: #fff3e0; border-left: 4px solid #e65100; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .warn-title { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .success { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .success-title { font-weight: 700; color: #2e7d32; margin-bottom: 4px; }
+
+  /* Flow diagram */
+  .diagram { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 18px; margin: 14px 0; font-family: 'Cascadia Code', Consolas, monospace; font-size: 9.5pt; white-space: pre; line-height: 1.8; text-align: center; }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10pt; }
+  th { background: #1565c0; color: #fff; padding: 10px 14px; text-align: left; }
+  td { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+
+  /* Print */
+  .no-print { }
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+  }
+
+  /* Action buttons (top right, no-print) */
+  .action-bar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
+  .action-bar button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 10pt; font-weight: 600; cursor: pointer; }
+  .btn-print { background: #1565c0; color: #fff; }
+  .btn-print:hover { background: #0d47a1; }
+</style>
+</head>
+<body>
+
+<div class="action-bar no-print">
+  <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- COVER -->
+<!-- ============================================================ -->
+<div class="cover">
+  <div class="cover-icon">&#128221;</div>
+  <h1>Panduan Lengkap Assessment</h1>
+  <p class="subtitle">Competency Management Program (CMP) &mdash; Portal HC KPB</p>
+  <p class="subtitle">Panduan langkah demi langkah mengerjakan ujian kompetensi</p>
+  <p class="version">Versi 1.0 &bull; Maret 2026 &bull; Untuk Semua Pengguna</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- DAFTAR ISI -->
+<!-- ============================================================ -->
+<div class="toc">
+  <h2>Daftar Isi</h2>
+  <ol>
+    <li><a href="#overview">Apa Itu Assessment?</a></li>
+    <li><a href="#alur">Alur Proses Assessment</a></li>
+    <li><a href="#step1">Mengakses Halaman CMP</a></li>
+    <li><a href="#step2">Melihat Daftar Assessment</a></li>
+    <li><a href="#step3">Memasukkan Token Akses</a></li>
+    <li><a href="#step4">Memulai Ujian</a></li>
+    <li><a href="#step5">Mengerjakan Soal</a></li>
+    <li><a href="#step6">Auto-Save Jawaban</a></li>
+    <li><a href="#step7">Melanjutkan Ujian (Resume)</a></li>
+    <li><a href="#step8">Review Sebelum Submit</a></li>
+    <li><a href="#step9">Submit Ujian</a></li>
+    <li><a href="#step10">Auto-Submit jika Waktu Habis</a></li>
+    <li><a href="#step11">Melihat Hasil Assessment</a></li>
+    <li><a href="#step12">Melihat Riwayat Ujian</a></li>
+    <li><a href="#step13">Download Sertifikat</a></li>
+    <li><a href="#tips">Tips &amp; Hal Penting</a></li>
+    <li><a href="#faq">FAQ (Pertanyaan Umum)</a></li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<!-- OVERVIEW -->
+<!-- ============================================================ -->
+<h2 id="overview">1. Apa Itu Assessment?</h2>
+
+<p>Assessment adalah <strong>ujian kompetensi</strong> yang digunakan untuk mengukur tingkat pengetahuan dan kemampuan Anda sesuai dengan Kebutuhan Kompetensi Jabatan (KKJ) pada posisi Anda di organisasi.</p>
+
+<p>Assessment dikategorikan berdasarkan jenis pelatihan:</p>
+
+<table>
+  <tr><th>Kategori</th><th>Keterangan</th></tr>
+  <tr><td><span class="badge badge-blue">OJT</span></td><td>On the Job Training &mdash; pelatihan berbasis praktik kerja</td></tr>
+  <tr><td><span class="badge badge-green">IHT</span></td><td>In House Training &mdash; pelatihan internal organisasi</td></tr>
+  <tr><td><span class="badge badge-red">Training Licencor</span></td><td>Pelatihan sertifikasi/lisensi resmi</td></tr>
+  <tr><td><span class="badge badge-purple">Proton</span></td><td>Ujian terkait program Coaching Proton</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<!-- ALUR -->
+<!-- ============================================================ -->
+<h2 id="alur">2. Alur Proses Assessment</h2>
+
+<div class="diagram">
+&#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;    &#9484;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9488;
+&#9474; Lihat Daftar &#9474; &#9658;&#9474; Masuk Token  &#9474; &#9658;&#9474; Kerjakan Soal &#9474; &#9658;&#9474; Review &amp;    &#9474; &#9658;&#9474; Lihat Hasil &  &#9474;
+&#9474;  Assessment  &#9474;    &#9474;  (jika perlu) &#9474;    &#9474; + Auto-Save  &#9474;    &#9474;   Submit    &#9474;    &#9474;  Sertifikat   &#9474;
+&#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;    &#9492;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9472;&#9496;
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 1 -->
+<!-- ============================================================ -->
+<h2 id="step1">3. Mengakses Halaman CMP</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka Menu CMP</span>
+  </div>
+  <div class="step-body">
+    Setelah login ke Portal HC, klik menu <strong>CMP</strong> (Competency Management Program) di <strong>navbar bagian atas</strong> halaman. Anda akan diarahkan ke halaman utama CMP yang menampilkan seluruh informasi kompetensi dan assessment Anda.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 2 -->
+<!-- ============================================================ -->
+<h2 id="step2">4. Melihat Daftar Assessment</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Pahami Tab Assessment</span>
+  </div>
+  <div class="step-body">
+    Di halaman CMP, Anda akan melihat daftar assessment yang ditugaskan kepada Anda. Assessment ditampilkan dalam <strong>2 tab</strong>:
+
+    <ul>
+      <li><strong>Open</strong> &mdash; Ujian yang <strong>sudah bisa dikerjakan</strong> saat ini. Klik tombol "Mulai" untuk memulai.</li>
+      <li><strong>Upcoming</strong> &mdash; Ujian yang <strong>sudah terjadwal tetapi belum dibuka</strong>. Akan menampilkan tanggal dan waktu kapan ujian dapat dimulai (contoh: <em>"Opens 20 Mar 2026, 08:00 WIB"</em>).</li>
+    </ul>
+
+    <p>Setiap kartu assessment menampilkan informasi:</p>
+    <ul>
+      <li><strong>Judul ujian</strong> dan <strong>kategori</strong> (badge berwarna: OJT, IHT, Proton, dll)</li>
+      <li><strong>Durasi</strong> waktu pengerjaan (dalam menit/jam)</li>
+      <li><strong>Status</strong>: Open (siap dikerjakan), Upcoming (belum buka), InProgress (sedang dikerjakan)</li>
+      <li><strong>Akses</strong>: ikon gembok jika memerlukan token, atau "Open Access" jika tidak</li>
+    </ul>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Pencarian</div>
+  Gunakan kolom <strong>pencarian</strong> di atas daftar assessment untuk mencari berdasarkan judul atau kategori ujian.
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 3 -->
+<!-- ============================================================ -->
+<h2 id="step3">5. Memasukkan Token Akses</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Masukkan Token (Jika Diperlukan)</span>
+  </div>
+  <div class="step-body">
+    Beberapa assessment memerlukan <strong>token 6 digit</strong> untuk bisa diakses. Token ini diberikan oleh HC atau Admin sebelum ujian dimulai (biasanya diumumkan di lokasi ujian).
+
+    <ul>
+      <li>Jika assessment menampilkan <strong>ikon gembok</strong>, klik tombol <strong>Mulai</strong>.</li>
+      <li>Modal (pop-up) akan muncul &mdash; masukkan <strong>token 6 digit</strong> yang diberikan.</li>
+      <li>Jika token benar, Anda akan langsung masuk ke halaman ujian.</li>
+      <li>Jika token salah, akan muncul pesan error. Periksa kembali token Anda.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Catatan</div>
+  Jika assessment bertanda <strong>"Open Access"</strong> (tanpa gembok), Anda tidak perlu memasukkan token &mdash; langsung klik Mulai.
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 4 -->
+<!-- ============================================================ -->
+<h2 id="step4">6. Memulai Ujian</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">4</span>
+    <span class="step-title">Klik Mulai untuk Mengerjakan</span>
+  </div>
+  <div class="step-body">
+    Klik tombol <strong>Mulai</strong> pada assessment berstatus <strong>Open</strong>. Beberapa hal yang terjadi saat Anda memulai:
+
+    <ul>
+      <li>Sistem mencatat <strong>waktu mulai</strong> Anda secara otomatis.</li>
+      <li><strong>Timer</strong> langsung berjalan di pojok kanan atas halaman ujian.</li>
+      <li>Status assessment berubah menjadi <strong>InProgress</strong>.</li>
+      <li>Soal-soal ujian ditampilkan dan siap dikerjakan.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Setelah Anda klik Mulai, <strong>timer tidak bisa dihentikan atau di-pause</strong>. Pastikan Anda sudah siap sebelum memulai ujian.
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!-- STEP 5 -->
+<!-- ============================================================ -->
+<h2 id="step5">7. Mengerjakan Soal</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">5</span>
+    <span class="step-title">Pilih Jawaban dan Navigasi Soal</span>
+  </div>
+  <div class="step-body">
+    Halaman ujian terdiri dari beberapa komponen utama:
+
+    <h3 style="margin-top:12px; margin-left: 0;">Area Soal (Bagian Utama)</h3>
+    <ul>
+      <li>Soal ditampilkan <strong>per halaman</strong> (10 soal per halaman).</li>
+      <li>Setiap soal memiliki <strong>opsi jawaban</strong> (A, B, C, D) dalam format radio button.</li>
+      <li>Klik pada opsi yang Anda pilih &mdash; jawaban yang dipilih akan ditandai.</li>
+    </ul>
+
+    <h3 style="margin-top:12px; margin-left: 0;">Panel Navigasi Soal (Sidebar)</h3>
+    <ul>
+      <li>Di samping kanan terdapat <strong>panel nomor soal</strong>.</li>
+      <li>Nomor berwarna <strong>hijau</strong> = sudah dijawab.</li>
+      <li>Nomor berwarna <strong>abu-abu</strong> = belum dijawab.</li>
+      <li>Klik nomor soal untuk langsung loncat ke soal tersebut.</li>
+    </ul>
+
+    <h3 style="margin-top:12px; margin-left: 0;">Timer</h3>
+    <ul>
+      <li>Timer menghitung mundur di <strong>pojok kanan atas</strong>.</li>
+      <li>Format: <strong>MM:SS</strong> (menit:detik).</li>
+      <li>Timer akan berubah <strong>merah</strong> saat sisa waktu kurang dari 5 menit.</li>
+    </ul>
+
+    <h3 style="margin-top:12px; margin-left: 0;">Navigasi Halaman</h3>
+    <ul>
+      <li>Gunakan tombol <strong>"Previous Page"</strong> dan <strong>"Next Page"</strong> untuk berpindah halaman soal.</li>
+      <li>Di halaman terakhir, tombol berubah menjadi <strong>"Review and Submit"</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 6 -->
+<!-- ============================================================ -->
+<h2 id="step6">8. Auto-Save Jawaban</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">6</span>
+    <span class="step-title">Jawaban Otomatis Tersimpan</span>
+  </div>
+  <div class="step-body">
+    Setiap kali Anda <strong>memilih jawaban</strong>, sistem akan <strong>otomatis menyimpan</strong> jawaban tersebut ke server. Anda akan melihat indikator kecil di pojok kanan bawah:
+    <ul>
+      <li><em>"Soal no. X, menyimpan..."</em> &mdash; jawaban sedang disimpan.</li>
+      <li><em>"Soal no. X, saved"</em> &mdash; jawaban berhasil tersimpan.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="success">
+  <div class="success-title">Keuntungan Auto-Save</div>
+  Anda <strong>tidak perlu khawatir</strong> jawaban hilang jika terjadi kendala teknis (browser freeze, koneksi terputus, listrik mati). Semua jawaban yang sudah dipilih <strong>aman tersimpan</strong> di server.
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 7 -->
+<!-- ============================================================ -->
+<h2 id="step7">9. Melanjutkan Ujian (Resume)</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">7</span>
+    <span class="step-title">Lanjutkan dari Soal Terakhir</span>
+  </div>
+  <div class="step-body">
+    Jika browser tertutup, koneksi terputus, atau Anda tidak sengaja keluar dari halaman ujian:
+
+    <ol>
+      <li>Kembali ke halaman <strong>CMP</strong>.</li>
+      <li>Assessment Anda akan berstatus <strong>InProgress</strong>.</li>
+      <li>Klik tombol <strong>Mulai</strong> lagi pada assessment tersebut.</li>
+      <li>Sistem akan menampilkan dialog: <em>"Ada ujian yang belum selesai &mdash; Lanjutkan dari soal no. X?"</em></li>
+      <li>Klik <strong>Lanjutkan</strong> &mdash; Anda akan kembali ke halaman soal terakhir dengan <strong>sisa waktu</strong> yang masih tersimpan.</li>
+      <li>Semua jawaban yang sudah dipilih sebelumnya <strong>tetap ada</strong>.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Timer <strong>tetap berjalan</strong> meskipun Anda keluar dari halaman ujian. Waktu yang tersisa dihitung dari saat Anda pertama kali memulai ujian, bukan saat resume.
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 8 -->
+<!-- ============================================================ -->
+<h2 id="step8">10. Review Sebelum Submit</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">8</span>
+    <span class="step-title">Periksa Ringkasan Jawaban</span>
+  </div>
+  <div class="step-body">
+    Setelah mengerjakan semua soal, klik tombol <strong>"Review and Submit"</strong> di halaman terakhir. Anda akan diarahkan ke <strong>halaman ringkasan</strong> yang menampilkan:
+
+    <ul>
+      <li>Tabel semua soal beserta <strong>jawaban yang Anda pilih</strong>.</li>
+      <li>Soal yang <strong>belum dijawab</strong> ditandai dengan warna <strong>kuning</strong>.</li>
+      <li>Counter: <em>"You have X unanswered question(s)"</em> jika masih ada yang kosong.</li>
+      <li>Jika semua soal sudah dijawab: badge hijau <em>"All Y questions answered. Ready to submit."</em></li>
+    </ul>
+
+    <p>Pada halaman ini Anda memiliki 2 pilihan:</p>
+    <ul>
+      <li><strong>Back to Exam</strong> &mdash; kembali ke halaman soal untuk mengubah jawaban.</li>
+      <li><strong>Submit Exam</strong> &mdash; kirim jawaban final.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!-- STEP 9 -->
+<!-- ============================================================ -->
+<h2 id="step9">11. Submit Ujian</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">9</span>
+    <span class="step-title">Kirim Jawaban Final</span>
+  </div>
+  <div class="step-body">
+    <ol>
+      <li>Klik tombol <strong>Submit Exam</strong> pada halaman review.</li>
+      <li>Jika masih ada soal yang belum dijawab, sistem akan menampilkan <strong>dialog peringatan</strong>.</li>
+      <li>Konfirmasi untuk melanjutkan submit.</li>
+      <li>Sistem akan <strong>menghitung skor</strong> Anda secara otomatis berdasarkan jawaban yang benar.</li>
+      <li>Anda akan langsung diarahkan ke halaman <strong>Hasil Assessment</strong>.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Penting</div>
+  Setelah submit, Anda <strong>tidak bisa mengubah jawaban</strong>. Pastikan Anda sudah yakin dengan semua jawaban sebelum menekan Submit.
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 10 -->
+<!-- ============================================================ -->
+<h2 id="step10">12. Auto-Submit jika Waktu Habis</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">10</span>
+    <span class="step-title">Waktu Habis = Otomatis Tersubmit</span>
+  </div>
+  <div class="step-body">
+    Jika timer mencapai <strong>00:00</strong> sebelum Anda menekan Submit secara manual:
+
+    <ul>
+      <li>Semua jawaban yang sudah tersimpan (auto-save) akan <strong>otomatis tersubmit</strong>.</li>
+      <li>Soal yang belum dijawab akan dianggap <strong>kosong</strong> (tidak mendapat nilai).</li>
+      <li>Anda akan diarahkan ke halaman <strong>Hasil Assessment</strong>.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Sesi Ditutup oleh HC</div>
+  Dalam situasi tertentu, HC dapat <strong>mengakhiri sesi ujian Anda</strong> secara langsung (misalnya karena kendala teknis). Jika ini terjadi, akan muncul notifikasi: <em>"Ujian Diakhiri &mdash; Anda akan diarahkan dalam 5 detik..."</em>. Skor dihitung berdasarkan jawaban yang sudah tersimpan.
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 11 -->
+<!-- ============================================================ -->
+<h2 id="step11">13. Melihat Hasil Assessment</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">11</span>
+    <span class="step-title">Lihat Skor dan Status Kelulusan</span>
+  </div>
+  <div class="step-body">
+    Setelah submit (atau auto-submit), Anda akan melihat halaman <strong>Results</strong> yang menampilkan:
+
+    <h3 style="margin-top:10px; margin-left:0;">Ringkasan Hasil</h3>
+    <ul>
+      <li><strong>Skor Anda</strong>: persentase (%) dengan detail jumlah jawaban benar dari total soal.</li>
+      <li><strong>Batas Kelulusan</strong> (Passing Grade): persentase minimum yang harus dicapai.</li>
+      <li><strong>Status</strong>: <span class="badge badge-green">LULUS (Passed)</span> atau <span class="badge badge-red">TIDAK LULUS (Failed)</span></li>
+      <li>Kategori ujian dan tanggal penyelesaian.</li>
+    </ul>
+
+    <h3 style="margin-top:10px; margin-left:0;">Analisis Sub-Kompetensi</h3>
+    <ul>
+      <li>Jika ujian memiliki beberapa sub-kompetensi, sistem menampilkan <strong>grafik radar</strong> dan tabel persentase per sub-kompetensi.</li>
+      <li>Anda bisa melihat area mana yang sudah kuat dan mana yang perlu ditingkatkan.</li>
+    </ul>
+
+    <h3 style="margin-top:10px; margin-left:0;">Review Jawaban Detail</h3>
+    <ul>
+      <li>Jika diaktifkan oleh Admin, Anda dapat melihat <strong>tabel detail</strong>: nomor soal, pertanyaan, jawaban Anda, jawaban yang benar, dan status (benar/salah).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 12 -->
+<!-- ============================================================ -->
+<h2 id="step12">14. Melihat Riwayat Ujian</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">12</span>
+    <span class="step-title">Akses Riwayat Semua Ujian</span>
+  </div>
+  <div class="step-body">
+    Di halaman CMP bagian bawah terdapat section <strong>Riwayat Ujian (Exam History)</strong>:
+
+    <ul>
+      <li>Menampilkan <strong>semua assessment</strong> yang pernah Anda kerjakan.</li>
+      <li>Informasi: Judul, Kategori, Tanggal Selesai, Skor (%), Status (Lulus/Tidak Lulus).</li>
+      <li>Klik tombol <strong>Detail</strong> untuk membuka kembali halaman hasil assessment.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 13 -->
+<!-- ============================================================ -->
+<h2 id="step13">15. Download Sertifikat</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">13</span>
+    <span class="step-title">Unduh atau Cetak Sertifikat Kelulusan</span>
+  </div>
+  <div class="step-body">
+    Jika Anda <strong>lulus</strong> assessment dan fitur sertifikat diaktifkan oleh Admin:
+
+    <ol>
+      <li>Buka halaman <strong>CMP</strong>.</li>
+      <li>Klik tab <strong>Sertifikat</strong>.</li>
+      <li>Klik tombol <strong>Download</strong> pada sertifikat yang tersedia.</li>
+      <li>Sertifikat ditampilkan dalam format <strong>A4 Landscape</strong> yang berisi:
+        <ul>
+          <li>Nama lengkap Anda</li>
+          <li>Judul assessment dan kategori</li>
+          <li>Tanggal penyelesaian</li>
+          <li>Skor yang diperoleh</li>
+        </ul>
+      </li>
+      <li>Klik <strong>Print Certificate</strong> untuk mencetak atau simpan sebagai PDF melalui browser.</li>
+    </ol>
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Catatan</div>
+  Sertifikat <strong>hanya tersedia</strong> untuk assessment yang statusnya <strong>Lulus (Passed)</strong>. Jika Anda tidak lulus, sertifikat tidak akan muncul.
+</div>
+
+<div class="page-break"></div>
+
+<!-- ============================================================ -->
+<!-- TIPS -->
+<!-- ============================================================ -->
+<h2 id="tips">16. Tips &amp; Hal Penting</h2>
+
+<div class="success">
+  <div class="success-title">Tips Sebelum Ujian</div>
+  <ul>
+    <li>Gunakan browser <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong>, atau <strong>Mozilla Firefox</strong> versi terbaru.</li>
+    <li>Pastikan <strong>koneksi internet stabil</strong> selama ujian berlangsung.</li>
+    <li>Jangan membuka banyak tab lain saat ujian &mdash; fokuskan pada halaman ujian.</li>
+    <li>Siapkan token dari HC/Admin jika assessment memerlukan token akses.</li>
+  </ul>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Hal yang Perlu Dihindari</div>
+  <ul>
+    <li><strong>Jangan menutup browser</strong> secara sengaja saat ujian berlangsung &mdash; timer tetap berjalan.</li>
+    <li><strong>Jangan menekan tombol Back</strong> di browser &mdash; gunakan navigasi soal yang disediakan.</li>
+    <li><strong>Jangan menunggu hingga detik terakhir</strong> untuk submit &mdash; sisakan waktu untuk review.</li>
+  </ul>
+</div>
+
+<div class="info">
+  <div class="info-title">Jika Terjadi Kendala Teknis</div>
+  <ul>
+    <li>Browser freeze: tutup tab, buka kembali CMP, lanjutkan ujian (resume).</li>
+    <li>Koneksi terputus: jawaban yang sudah auto-save tetap aman. Sambungkan kembali dan resume.</li>
+    <li>Masalah lain: hubungi <strong>HC atau Admin</strong> yang bertugas. Mereka dapat membantu memonitor sesi Anda.</li>
+  </ul>
+</div>
+
+<!-- ============================================================ -->
+<!-- FAQ -->
+<!-- ============================================================ -->
+<h2 id="faq">17. FAQ (Pertanyaan Umum)</h2>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Apakah saya bisa mengulang assessment?</span>
+  </div>
+  <div class="step-body">
+    Tergantung konfigurasi dari Admin. Beberapa assessment hanya boleh dikerjakan <strong>1 kali</strong>, sementara yang lain dapat diulang. Hubungi HC jika Anda memerlukan izin untuk mengulang.
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Apakah jawaban saya aman jika browser crash?</span>
+  </div>
+  <div class="step-body">
+    <strong>Ya</strong>. Sistem auto-save menyimpan setiap jawaban ke server secara real-time. Anda bisa resume dari halaman terakhir tanpa kehilangan jawaban.
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Bagaimana jika waktu habis saat saya belum selesai?</span>
+  </div>
+  <div class="step-body">
+    Jawaban yang sudah tersimpan (auto-save) akan <strong>otomatis tersubmit</strong>. Soal yang belum dijawab dianggap kosong dan tidak mendapat nilai.
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Siapa yang bisa melihat hasil assessment saya?</span>
+  </div>
+  <div class="step-body">
+    Hasil assessment Anda dapat dilihat oleh <strong>Anda sendiri</strong>, serta oleh <strong>HC dan Admin</strong> untuk keperluan monitoring dan evaluasi.
+  </div>
+</div>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-title">Kenapa sertifikat tidak muncul?</span>
+  </div>
+  <div class="step-body">
+    Sertifikat hanya muncul jika: (1) Status assessment Anda <strong>Lulus</strong>, dan (2) Fitur sertifikat <strong>diaktifkan</strong> oleh Admin untuk assessment tersebut.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- FOOTER -->
+<!-- ============================================================ -->
+<div class="footer">
+  Portal HC KPB &mdash; Panduan Lengkap Assessment &bull; Versi 1.0 &bull; Maret 2026<br>
+  Dokumen ini dibuat untuk keperluan internal. Hubungi tim HC jika ada pertanyaan.
+</div>
+
+</body>
+</html>

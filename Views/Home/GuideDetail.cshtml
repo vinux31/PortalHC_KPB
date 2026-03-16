@@ -60,6 +60,56 @@
     </div>
 </div>
 
+<!-- Tutorial Lengkap (PDF-style guides) -->
+@if (module == "cmp")
+{
+<div class="guide-tutorial-card" data-aos="fade-up" data-aos-delay="150">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-3" style="background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%); border-radius: 10px; border: 1px solid #bbdefb;">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width:48px; height:48px; border-radius:12px; background:#1565c0; display:flex; align-items:center; justify-content:center;">
+                <i class="bi bi-file-earmark-pdf-fill text-white fs-4"></i>
+            </div>
+            <div>
+                <h5 class="mb-1 fw-bold" style="color:#1565c0;">Panduan Lengkap Assessment</h5>
+                <p class="mb-0 text-muted small">Tutorial end-to-end mengerjakan assessment: dari mulai ujian, mengerjakan soal, submit, melihat hasil, hingga download sertifikat.</p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/documents/guides/Panduan-Lengkap-Assessment.html" target="_blank" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-eye me-1"></i> Lihat
+            </a>
+            <a href="/documents/guides/Panduan-Lengkap-Assessment.html" download="Panduan-Lengkap-Assessment.html" class="btn btn-primary btn-sm">
+                <i class="bi bi-download me-1"></i> Download
+            </a>
+        </div>
+    </div>
+</div>
+}
+else if (module == "cdp")
+{
+<div class="guide-tutorial-card" data-aos="fade-up" data-aos-delay="150">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-3" style="background: linear-gradient(135deg, #e8f5e9 0%, #f5f5f5 100%); border-radius: 10px; border: 1px solid #a5d6a7;">
+        <div class="d-flex align-items-center gap-3">
+            <div style="width:48px; height:48px; border-radius:12px; background:#2e7d32; display:flex; align-items:center; justify-content:center;">
+                <i class="bi bi-file-earmark-pdf-fill text-white fs-4"></i>
+            </div>
+            <div>
+                <h5 class="mb-1 fw-bold" style="color:#2e7d32;">Panduan Lengkap Coaching Proton</h5>
+                <p class="mb-0 text-muted small">Tutorial end-to-end untuk Coachee, Coach, dan Atasan: dari melihat silabus, upload evidence, approval, hingga Final Assessment.</p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/documents/guides/Panduan-Lengkap-Coaching-Proton.html" target="_blank" class="btn btn-outline-success btn-sm">
+                <i class="bi bi-eye me-1"></i> Lihat
+            </a>
+            <a href="/documents/guides/Panduan-Lengkap-Coaching-Proton.html" download="Panduan-Lengkap-Coaching-Proton.html" class="btn btn-success btn-sm">
+                <i class="bi bi-download me-1"></i> Download
+            </a>
+        </div>
+    </div>
+</div>
+}
+
 <!-- List Panduan (Fungsi expandable steps) -->
 <div class="guide-detail-content" data-aos="fade-up" data-aos-delay="200">
     
