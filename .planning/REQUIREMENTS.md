@@ -27,19 +27,19 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TERM-01 | — | Pending |
-| TERM-02 | — | Pending |
-| TERM-03 | — | Pending |
-| TERM-04 | — | Pending |
-| TERM-05 | — | Pending |
-| TERM-06 | — | Pending |
-| TERM-07 | — | Pending |
+| TERM-01 | Phase 175 | Pending |
+| TERM-02 | Phase 175 | Pending |
+| TERM-03 | Phase 175 | Pending |
+| TERM-04 | Phase 175 | Pending |
+| TERM-05 | Phase 175 | Pending |
+| TERM-06 | Phase 175 | Pending |
+| TERM-07 | Phase 175 | Pending |
 
 **Coverage:**
 - v7.0 requirements: 7 total
-- Mapped to phases: 0
-- Unmapped: 7 ⚠️
+- Mapped to phases: 7
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 — traceability mapped to Phase 175*
