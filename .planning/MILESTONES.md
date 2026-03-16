@@ -1,4 +1,20 @@
 # Milestones
+## v6.0 Deployment Preparation (Closed: 2026-03-16)
+
+**Phases defined:** 2 phases (173-174), 0 plans executed
+**Timeline:** 2026-03-16 (defined and closed same day)
+**Status:** Closed without execution
+
+**Intent:** Prepare production-ready release package and deployment documentation for IT team (IIS + AD + SSMS database).
+
+**Known Gaps (all 4 requirements unstarted):**
+- REL-01: Release folder creation
+- REL-02: Production config (AD enabled)
+- DOC-01: SSMS database export guide
+- DOC-02: IIS deployment guide
+
+---
+
 ## v5.0 Guide Page Overhaul (Shipped: 2026-03-16)
 
 **Phases completed:** 2 phases (171-172), 4 plans, 8 tasks
