@@ -116,4 +116,4 @@ Plans:
 | 177. Import CoachCoacheeMapping | 1/1 | Complete    | 2026-03-16 | - |
 | 178. Export AuditLog | 1/1 | Complete    | 2026-03-16 | - |
 | 179. Export & Import Silabus Proton | 1/1 | Complete    | 2026-03-16 | - |
-| 180. Import Training & Export HistoriProton | 1/1 | Complete   | 2026-03-16 | - |
+| 180. Import Training & Export HistoriProton | 1/1 | Complete    | 2026-03-16 | - |
