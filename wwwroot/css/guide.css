@@ -1117,6 +1117,80 @@ mark.search-highlight {
 /* ========================================================================= */
 /* 5. GUIDE DETAIL PAGE STYLES */
 /* ========================================================================= */
+
+/* ============================================
+   Tutorial Card Variants
+   ============================================ */
+.guide-tutorial-inner {
+    padding: 1rem;
+}
+
+.guide-tutorial-icon i {
+    color: #fff;
+}
+
+/* CMP — purple */
+.guide-tutorial-card--cmp > .guide-tutorial-inner {
+    background: linear-gradient(135deg, #ede7f6 0%, #f5f5f5 100%);
+    border-radius: 10px;
+    border: 1px solid #c5cae9;
+}
+
+.guide-tutorial-card--cmp .guide-tutorial-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #5c35cc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guide-tutorial-card--cmp .guide-tutorial-title {
+    color: #5c35cc;
+}
+
+/* CDP — green */
+.guide-tutorial-card--cdp > .guide-tutorial-inner {
+    background: linear-gradient(135deg, #e8f5e9 0%, #f5f5f5 100%);
+    border-radius: 10px;
+    border: 1px solid #a5d6a7;
+}
+
+.guide-tutorial-card--cdp .guide-tutorial-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #2e7d32;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guide-tutorial-card--cdp .guide-tutorial-title {
+    color: #2e7d32;
+}
+
+/* Admin — pink */
+.guide-tutorial-card--admin > .guide-tutorial-inner {
+    background: linear-gradient(135deg, #fce4ec 0%, #f5f5f5 100%);
+    border-radius: 10px;
+    border: 1px solid #f48fb1;
+}
+
+.guide-tutorial-card--admin .guide-tutorial-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #c2185b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.guide-tutorial-card--admin .guide-tutorial-title {
+    color: #c2185b;
+}
 .guide-detail-nav {
     margin-bottom: 2rem;
 }
