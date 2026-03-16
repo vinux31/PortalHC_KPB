@@ -23,8 +23,8 @@
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 171-01-PLAN.md — Simplify GuideDetail accordions, fix tutorial card styles, add AD tutorial card
-- [ ] 171-02-PLAN.md — Dynamic card counts, FAQ reorder/cleanup, expand/collapse toggle
+- [x] 171-01-PLAN.md — Simplify GuideDetail accordions, fix tutorial card styles, add AD tutorial card
+- [x] 171-02-PLAN.md — Dynamic card counts, FAQ reorder/cleanup, expand/collapse toggle
 
 **Success Criteria:**
 1. CMP GuideDetail accordion items covered by PDF tutorial simplified to short summaries pointing to PDF
@@ -43,6 +43,12 @@ Plans:
 
 **Requirements:** UI-01, UI-02, UI-03, NAV-01, NAV-02
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 172-01-PLAN.md — Unify role badges, step badge colors, accordion base styles
+- [ ] 172-02-PLAN.md — Back-to-top button, GuideDetail breadcrumb
+
 **Success Criteria:**
 1. Role badges consistent across Guide.cshtml and GuideDetail.cshtml (no inline overrides)
 2. FAQ collapse buttons and GuideDetail accordion buttons share unified base styling
@@ -52,4 +58,4 @@ Plans:
 
 ---
 *Roadmap created: 2026-03-16*
-*Last updated: 2026-03-16 — phase 171 planned (2 plans)*
+*Last updated: 2026-03-16 — phase 172 planned (2 plans)*
