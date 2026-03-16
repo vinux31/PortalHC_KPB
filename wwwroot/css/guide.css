@@ -758,7 +758,6 @@ mark.search-highlight {
     .faq-question,
     .faq-chevron,
     .guide-step-badge,
-    .guide-back-btn,
     .guide-list-btn {
         transition: none !important;
         animation: none !important;
@@ -917,16 +916,6 @@ mark.search-highlight {
         align-items: center;
     }
 
-    /* Back button mobile enhancements */
-    .guide-back-btn {
-        width: 100%;
-        text-align: center;
-        margin-bottom: 1rem;
-        padding: 0.75rem 1.5rem;
-        display: block;
-        min-height: 48px;
-    }
-
     /* Prevent horizontal scroll */
     body, .container, .container-fluid {
         overflow-x: hidden;
@@ -1010,7 +999,6 @@ mark.search-highlight {
     .guide-search-wrapper,
     .guide-card-chevron,
     .faq-chevron,
-    .guide-back-btn,
     .no-results-msg {
         display: none !important;
     }
@@ -1224,26 +1212,6 @@ mark.search-highlight {
 .guide-tutorial-card--admin .guide-tutorial-title {
     color: #c2185b;
 }
-.guide-detail-nav {
-    margin-bottom: 2rem;
-}
-
-.guide-back-btn {
-    border-radius: 50px;
-    padding: 0.5rem 1.25rem;
-    font-weight: 500;
-    font-size: 0.95rem;
-    box-shadow: var(--shadow-sm);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
-                background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.guide-back-btn:hover {
-    transform: translateX(-5px);
-    box-shadow: var(--shadow-md);
-}
 
 .guide-detail-header {
     border-radius: 20px;
@@ -1418,12 +1386,6 @@ mark.search-highlight {
 .guide-search-input:focus-visible {
     outline: 3px solid #667eea;
     outline-offset: 2px;
-}
-
-/* Back button focus */
-.guide-back-btn:focus-visible {
-    outline: 3px solid #667eea;
-    outline-offset: 3px;
 }
 
 /* Accordion button focus */
