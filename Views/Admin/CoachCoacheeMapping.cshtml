@@ -16,6 +16,15 @@
     var allUsers = ViewBag.AllUsers as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     var protonTracks = ViewBag.ProtonTracks as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
     var sectionUnits = ViewBag.SectionUnits as Dictionary<string, List<string>> ?? new Dictionary<string, List<string>>();
+
+    var importResultsJson = TempData["ImportResults"] as string;
+    var importResults = !string.IsNullOrEmpty(importResultsJson)
+        ? System.Text.Json.JsonSerializer.Deserialize<List<HcPortal.Models.ImportMappingResult>>(importResultsJson)
+        : null;
+    var importSuccessCount = importResults?.Count(r => r.Status == "Success") ?? 0;
+    var importReactivatedCount = importResults?.Count(r => r.Status == "Reactivated") ?? 0;
+    var importSkipCount = importResults?.Count(r => r.Status == "Skip") ?? 0;
+    var importErrorCount = importResults?.Count(r => r.Status == "Error") ?? 0;
 }
 
 @Html.AntiForgeryToken()
@@ -37,6 +46,12 @@
         <span class="text-muted small">@totalCount coach group(s)</span>
     </div>
     <div class="d-flex gap-2">
+        <a href="@Url.Action("DownloadMappingImportTemplate", "Admin")" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-download me-1"></i>Download Template
+        </a>
+        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importMappingModal">
+            <i class="bi bi-file-earmark-arrow-up me-1"></i>Import Excel
+        </button>
         <a href="/Admin/CoachCoacheeMappingExport" class="btn btn-sm btn-outline-success">
             <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
         </a>
@@ -45,6 +60,85 @@
         </button>
     </div>
 </div>
+
+@if (TempData["ImportError"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ImportError"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (importResults != null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-success">@importSuccessCount</div>
+                <div class="small text-muted">Berhasil Dibuat</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-info">@importReactivatedCount</div>
+                <div class="small text-muted">Diaktifkan Kembali</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-warning">@importSkipCount</div>
+                <div class="small text-muted">Dilewati (duplikat)</div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card border-0 shadow-sm text-center p-3">
+                <div class="fs-2 fw-bold text-danger">@importErrorCount</div>
+                <div class="small text-muted">Error</div>
+            </div>
+        </div>
+    </div>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header border-0">
+            <h6 class="mb-0 fw-bold">Hasil Import — @importResults.Count baris diproses</h6>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-sm align-middle mb-0">
+                    <thead class="sticky-top bg-white">
+                        <tr>
+                            <th class="p-3">Baris</th>
+                            <th class="p-3">NIP Coach</th>
+                            <th class="p-3">NIP Coachee</th>
+                            <th class="p-3 text-center">Status</th>
+                            <th class="p-3">Keterangan</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in importResults)
+                        {
+                            var rowClass = r.Status switch { "Success" => "table-success", "Reactivated" => "table-info", "Error" => "table-danger", "Skip" => "table-warning", _ => "" };
+                            var statusBadge = r.Status switch
+                            {
+                                "Success" => "<span class=\"badge bg-success\"><i class=\"bi bi-check-lg me-1\"></i>Berhasil</span>",
+                                "Reactivated" => "<span class=\"badge bg-info text-dark\"><i class=\"bi bi-arrow-repeat me-1\"></i>Diaktifkan</span>",
+                                "Error" => "<span class=\"badge bg-danger\"><i class=\"bi bi-x-lg me-1\"></i>Error</span>",
+                                "Skip" => "<span class=\"badge bg-warning text-dark\"><i class=\"bi bi-skip-forward me-1\"></i>Skip</span>",
+                                _ => "<span class=\"badge bg-secondary\">?</span>"
+                            };
+                            <tr class="@rowClass">
+                                <td class="p-3">@r.RowNum</td>
+                                <td class="p-3"><small>@r.NipCoach</small></td>
+                                <td class="p-3"><small>@r.NipCoachee</small></td>
+                                <td class="p-3 text-center">@Html.Raw(statusBadge)</td>
+                                <td class="p-3"><small>@r.Message</small></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
 
 <!-- Filter Form -->
 <form method="get" asp-action="CoachCoacheeMapping" asp-controller="Admin" id="filterForm" class="mb-3">
@@ -778,5 +872,39 @@ else
         })
         .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
+
+    document.getElementById('importMappingFile')?.addEventListener('change', function() {
+        document.getElementById('btnImportMapping').disabled = !this.files.length;
+    });
 </script>
+
+<!-- Import Mapping Modal -->
+<div class="modal fade" id="importMappingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2 text-primary"></i>Import Coach-Coachee Mapping</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form asp-action="ImportCoachCoacheeMapping" asp-controller="Admin" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <div class="alert alert-info small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>Upload file Excel dengan kolom <strong>NIP Coach</strong> dan <strong>NIP Coachee</strong>. StartDate otomatis hari ini.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">File Excel (.xlsx)</label>
+                        <input type="file" name="excelFile" class="form-control" accept=".xlsx,.xls" required id="importMappingFile" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary" id="btnImportMapping" disabled>
+                        <i class="bi bi-upload me-1"></i>Upload & Proses
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 }
