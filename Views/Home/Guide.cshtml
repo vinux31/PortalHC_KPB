@@ -5,6 +5,18 @@
 
     // Set print date for footer
     var printDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+
+    // Guide counts: accordion items + PDF tutorial card per module per role
+    // CMP: 3 accordion items (all users) + 1 Admin/HC accordion + 1 PDF tutorial card
+    int cmpCount = isAdminOrHc ? 5 : 4;
+    // CDP: 2 accordion items (all users) + 2 Admin/HC accordions + 1 PDF tutorial card
+    int cdpCount = isAdminOrHc ? 5 : 3;
+    // Account: 4 accordion items, no PDF tutorial
+    int accountCount = 4;
+    // Kelola Data: 3 accordion items (Admin/HC only)
+    int dataCount = 3;
+    // Admin Panel: 12 accordion items + 1 AD tutorial card
+    int adminCount = 13;
 }
 
 <link rel="stylesheet" href="~/css/guide.css" />
@@ -72,36 +84,36 @@
 <div class="guide-card-grid" id="guide-modules" role="list">
 
     <!-- ===== CARD 1: CMP ===== -->
-    <a asp-action="GuideDetail" asp-route-module="cmp" class="guide-module-card card-cmp searchable-card text-decoration-none" data-keywords="cmp competency assessment kkj cpdp mapping sertifikat training records library ujian soal" data-aos="fade-up" data-aos-delay="100" role="article" aria-label="Panduan CMP - 7 panduan tersedia">
+    <a asp-action="GuideDetail" asp-route-module="cmp" class="guide-module-card card-cmp searchable-card text-decoration-none" data-keywords="cmp competency assessment kkj cpdp mapping sertifikat training records library ujian soal" data-aos="fade-up" data-aos-delay="100" role="article" aria-label="Panduan CMP - @cmpCount panduan tersedia">
         <div class="guide-card-header">
             <div class="guide-card-header-icon icon-cmp"><i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i></div>
             <div class="guide-card-header-text">
                 <h5>CMP — Competency Management</h5>
-                <p id="card-desc-cmp">7 panduan tersedia</p>
+                <p id="card-desc-cmp">@cmpCount panduan tersedia</p>
             </div>
             <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
         </div>
     </a>
 
     <!-- ===== CARD 2: CDP ===== -->
-    <a asp-action="GuideDetail" asp-route-module="cdp" class="guide-module-card card-cdp searchable-card text-decoration-none" data-keywords="cdp career development idp silabus coaching proton deliverable evidence upload approval plan" data-aos="fade-up" data-aos-delay="150" role="article" aria-label="Panduan CDP - 7 panduan tersedia">
+    <a asp-action="GuideDetail" asp-route-module="cdp" class="guide-module-card card-cdp searchable-card text-decoration-none" data-keywords="cdp career development idp silabus coaching proton deliverable evidence upload approval plan" data-aos="fade-up" data-aos-delay="150" role="article" aria-label="Panduan CDP - @cdpCount panduan tersedia">
         <div class="guide-card-header">
             <div class="guide-card-header-icon icon-cdp"><i class="bi bi-graph-up-arrow" aria-hidden="true"></i></div>
             <div class="guide-card-header-text">
                 <h5>CDP — Career Development Portal</h5>
-                <p>7 panduan tersedia</p>
+                <p>@cdpCount panduan tersedia</p>
             </div>
             <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
         </div>
     </a>
 
     <!-- ===== CARD 3: Akun & Profil ===== -->
-    <a asp-action="GuideDetail" asp-route-module="account" class="guide-module-card card-account searchable-card text-decoration-none" data-keywords="akun profil password ganti settings login logout edit nama" data-aos="fade-up" data-aos-delay="200" role="article" aria-label="Panduan Akun & Profil - 4 panduan tersedia">
+    <a asp-action="GuideDetail" asp-route-module="account" class="guide-module-card card-account searchable-card text-decoration-none" data-keywords="akun profil password ganti settings login logout edit nama" data-aos="fade-up" data-aos-delay="200" role="article" aria-label="Panduan Akun & Profil - @accountCount panduan tersedia">
         <div class="guide-card-header">
             <div class="guide-card-header-icon icon-account"><i class="bi bi-person-circle" aria-hidden="true"></i></div>
             <div class="guide-card-header-text">
                 <h5>Akun & Profil</h5>
-                <p>4 panduan tersedia</p>
+                <p>@accountCount panduan tersedia</p>
             </div>
             <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
         </div>
@@ -110,24 +122,24 @@
     @if (isAdminOrHc)
     {
         <!-- ===== CARD 4: Kelola Data (Admin/HC only) ===== -->
-        <a asp-action="GuideDetail" asp-route-module="data" class="guide-module-card card-data searchable-card text-decoration-none" data-keywords="kelola data proton import sinkronisasi override sync" data-aos="fade-up" data-aos-delay="250" role="article" aria-label="Panduan Kelola Data - 3 panduan tersedia">
+        <a asp-action="GuideDetail" asp-route-module="data" class="guide-module-card card-data searchable-card text-decoration-none" data-keywords="kelola data proton import sinkronisasi override sync" data-aos="fade-up" data-aos-delay="250" role="article" aria-label="Panduan Kelola Data - @dataCount panduan tersedia">
             <div class="guide-card-header">
                 <div class="guide-card-header-icon icon-data"><i class="bi bi-database-fill" aria-hidden="true"></i></div>
                 <div class="guide-card-header-text">
                     <h5>Kelola Data <span class="guide-step-badge-role ms-1">Admin & HC</span></h5>
-                    <p>3 panduan tersedia</p>
+                    <p>@dataCount panduan tersedia</p>
                 </div>
                 <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
             </div>
         </a>
 
         <!-- ===== CARD 5: Admin Panel (Admin/HC only) ===== -->
-        <a asp-action="GuideDetail" asp-route-module="admin" class="guide-module-card card-admin searchable-card text-decoration-none" data-keywords="admin panel kelola pekerja kkj cpdp upload mapping coach coachee assessment monitoring audit log" data-aos="fade-up" data-aos-delay="300" role="article" aria-label="Panduan Admin Panel - 12 panduan tersedia">
+        <a asp-action="GuideDetail" asp-route-module="admin" class="guide-module-card card-admin searchable-card text-decoration-none" data-keywords="admin panel kelola pekerja kkj cpdp upload mapping coach coachee assessment monitoring audit log" data-aos="fade-up" data-aos-delay="300" role="article" aria-label="Panduan Admin Panel - @adminCount panduan tersedia">
             <div class="guide-card-header">
                 <div class="guide-card-header-icon icon-admin"><i class="bi bi-gear-wide-connected" aria-hidden="true"></i></div>
                 <div class="guide-card-header-text">
                     <h5>Admin Panel <span class="guide-step-badge-role ms-1">Admin & HC</span></h5>
-                    <p>12 panduan tersedia</p>
+                    <p>@adminCount panduan tersedia</p>
                 </div>
                 <i class="bi bi-chevron-right guide-card-chevron" aria-hidden="true"></i>
             </div>
@@ -151,6 +163,12 @@
         <h2 id="faq-heading">Frequently Asked Questions</h2>
     </div>
     <p class="faq-subtitle">Pertanyaan yang sering diajukan. Klik pertanyaan untuk melihat jawabannya.</p>
+
+    <div class="d-flex justify-content-end mb-3">
+        <button type="button" class="btn btn-outline-secondary btn-sm" id="faqToggleAll" onclick="toggleAllFaq()">
+            <i class="bi bi-arrows-expand me-1"></i> Buka Semua
+        </button>
+    </div>
 
     <!-- ─── Akun & Login ─── -->
     <div class="faq-category" id="faqGroup-akun">
@@ -511,6 +529,27 @@
 
 @section Scripts {
 <script>
+function toggleAllFaq() {
+    var btn = document.getElementById('faqToggleAll');
+    var allCollapses = document.querySelectorAll('.faq-answer');
+    var anyOpen = Array.from(allCollapses).some(function(el) { return el.classList.contains('show'); });
+
+    allCollapses.forEach(function(el) {
+        var bsCollapse = bootstrap.Collapse.getOrCreateInstance(el, { toggle: false });
+        if (anyOpen) {
+            bsCollapse.hide();
+        } else {
+            bsCollapse.show();
+        }
+    });
+
+    if (anyOpen) {
+        btn.innerHTML = '<i class="bi bi-arrows-expand me-1"></i> Buka Semua';
+    } else {
+        btn.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i> Tutup Semua';
+    }
+}
+
 (function () {
     // ─── Mobile-specific placeholder text ───
     var searchInput = document.getElementById('guideSearchInput');
