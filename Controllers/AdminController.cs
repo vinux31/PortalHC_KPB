@@ -3080,6 +3080,216 @@ namespace HcPortal.Controllers
             return View();
         }
 
+        // GET /Admin/DownloadMappingImportTemplate
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public IActionResult DownloadMappingImportTemplate()
+        {
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("Import CoachCoachee");
+
+            // Row 1: Headers
+            ws.Cell(1, 1).Value = "NIP Coach";
+            ws.Cell(1, 2).Value = "NIP Coachee";
+            for (int i = 1; i <= 2; i++)
+            {
+                ws.Cell(1, i).Style.Font.Bold = true;
+                ws.Cell(1, i).Style.Fill.BackgroundColor = XLColor.FromHtml("#16A34A");
+                ws.Cell(1, i).Style.Font.FontColor = XLColor.White;
+            }
+
+            // Row 2: Example data
+            ws.Cell(2, 1).Value = "123456";
+            ws.Cell(2, 2).Value = "789012";
+            ws.Cell(2, 1).Style.Font.Italic = true;
+            ws.Cell(2, 1).Style.Font.FontColor = XLColor.Gray;
+            ws.Cell(2, 2).Style.Font.Italic = true;
+            ws.Cell(2, 2).Style.Font.FontColor = XLColor.Gray;
+
+            // Row 3: Note
+            ws.Cell(3, 1).Value = "Isi NIP Coach dan NIP Coachee. StartDate otomatis hari ini, IsActive otomatis true.";
+            ws.Cell(3, 1).Style.Font.Italic = true;
+            ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new System.IO.MemoryStream();
+            workbook.SaveAs(stream);
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "coach_coachee_import_template.xlsx");
+        }
+
+        // POST /Admin/ImportCoachCoacheeMapping
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportCoachCoacheeMapping(IFormFile? excelFile)
+        {
+            if (excelFile == null || excelFile.Length == 0)
+            {
+                TempData["ImportError"] = "Pilih file Excel terlebih dahulu.";
+                return RedirectToAction(nameof(CoachCoacheeMapping));
+            }
+
+            var allowedExtensions = new[] { ".xlsx", ".xls" };
+            var ext = Path.GetExtension(excelFile.FileName).ToLowerInvariant();
+            if (!allowedExtensions.Contains(ext))
+            {
+                TempData["ImportError"] = "Hanya file Excel (.xlsx, .xls) yang didukung.";
+                return RedirectToAction(nameof(CoachCoacheeMapping));
+            }
+
+            const long maxSize = 10 * 1024 * 1024; // 10MB
+            if (excelFile.Length > maxSize)
+            {
+                TempData["ImportError"] = "Ukuran file terlalu besar (maksimal 10MB).";
+                return RedirectToAction(nameof(CoachCoacheeMapping));
+            }
+
+            // Load users keyed by NIP (handle duplicate NIPs by taking first)
+            var usersByNip = (await _context.Users
+                .Where(u => u.NIP != null)
+                .Select(u => new { u.Id, u.NIP, u.Section, u.Unit })
+                .ToListAsync())
+                .GroupBy(u => u.NIP!)
+                .ToDictionary(g => g.Key, g => g.First());
+
+            // Load all existing mappings
+            var allMappings = await _context.CoachCoacheeMappings.ToListAsync();
+
+            var results = new List<ImportMappingResult>();
+            var newMappings = new List<CoachCoacheeMapping>();
+            var reactivatedMappings = new List<CoachCoacheeMapping>();
+
+            try
+            {
+                using var fileStream = excelFile.OpenReadStream();
+                using var workbook = new XLWorkbook(fileStream);
+                var ws = workbook.Worksheets.First();
+
+                foreach (var row in ws.RowsUsed().Skip(1))
+                {
+                    var nipCoach = (row.Cell(1).GetString() ?? "").Trim();
+                    var nipCoachee = (row.Cell(2).GetString() ?? "").Trim();
+
+                    // Skip completely blank rows
+                    if (string.IsNullOrWhiteSpace(nipCoach) && string.IsNullOrWhiteSpace(nipCoachee))
+                        continue;
+
+                    var result = new ImportMappingResult
+                    {
+                        RowNum = row.RowNumber(),
+                        NipCoach = nipCoach,
+                        NipCoachee = nipCoachee
+                    };
+
+                    if (string.IsNullOrWhiteSpace(nipCoach) || string.IsNullOrWhiteSpace(nipCoachee))
+                    {
+                        result.Status = "Error";
+                        result.Message = "NIP Coach atau NIP Coachee kosong";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    if (!usersByNip.TryGetValue(nipCoach, out var coachUser))
+                    {
+                        result.Status = "Error";
+                        result.Message = $"NIP Coach '{nipCoach}' tidak ditemukan";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    if (!usersByNip.TryGetValue(nipCoachee, out var coacheeUser))
+                    {
+                        result.Status = "Error";
+                        result.Message = $"NIP Coachee '{nipCoachee}' tidak ditemukan";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    if (coachUser.Id == coacheeUser.Id)
+                    {
+                        result.Status = "Error";
+                        result.Message = "Coach tidak dapat menjadi coachee dirinya sendiri";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    // Check for existing active mapping
+                    var activeMapping = allMappings.FirstOrDefault(m =>
+                        m.CoachId == coachUser.Id && m.CoacheeId == coacheeUser.Id && m.IsActive);
+                    if (activeMapping != null)
+                    {
+                        result.Status = "Skip";
+                        result.Message = "Mapping sudah aktif";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    // Check for existing inactive mapping (reactivate)
+                    var inactiveMapping = allMappings.FirstOrDefault(m =>
+                        m.CoachId == coachUser.Id && m.CoacheeId == coacheeUser.Id && !m.IsActive);
+                    if (inactiveMapping != null)
+                    {
+                        inactiveMapping.IsActive = true;
+                        inactiveMapping.StartDate = DateTime.Today;
+                        inactiveMapping.EndDate = null;
+                        reactivatedMappings.Add(inactiveMapping);
+                        result.Status = "Reactivated";
+                        result.Message = "Mapping diaktifkan kembali";
+                        results.Add(result);
+                        continue;
+                    }
+
+                    // Create new mapping
+                    var newMapping = new CoachCoacheeMapping
+                    {
+                        CoachId = coachUser.Id,
+                        CoacheeId = coacheeUser.Id,
+                        IsActive = true,
+                        StartDate = DateTime.Today,
+                        AssignmentSection = coacheeUser.Section,
+                        AssignmentUnit = coacheeUser.Unit
+                    };
+                    newMappings.Add(newMapping);
+                    result.Status = "Success";
+                    result.Message = "Berhasil dibuat";
+                    results.Add(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ImportError"] = $"Gagal membaca file Excel: {ex.Message}";
+                return RedirectToAction(nameof(CoachCoacheeMapping));
+            }
+
+            if (newMappings.Any())
+                _context.CoachCoacheeMappings.AddRange(newMappings);
+
+            await _context.SaveChangesAsync();
+
+            var successCount = results.Count(r => r.Status == "Success");
+            var reactivatedCount = results.Count(r => r.Status == "Reactivated");
+            var skipCount = results.Count(r => r.Status == "Skip");
+            var errorCount = results.Count(r => r.Status == "Error");
+
+            var actor = await _userManager.GetUserAsync(User);
+            _context.AuditLogs.Add(new AuditLog
+            {
+                ActorUserId = actor?.Id ?? "system",
+                ActorName = actor?.FullName ?? "system",
+                ActionType = "ImportCoachCoacheeMapping",
+                Description = $"Import {successCount} mapping baru, {reactivatedCount} diaktifkan kembali, {skipCount} dilewati, {errorCount} error",
+                TargetType = "CoachCoacheeMapping",
+                CreatedAt = DateTime.UtcNow
+            });
+            await _context.SaveChangesAsync();
+
+            TempData["ImportResults"] = System.Text.Json.JsonSerializer.Serialize(results);
+            return RedirectToAction(nameof(CoachCoacheeMapping));
+        }
+
         // POST /Admin/CoachCoacheeMappingAssign
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
