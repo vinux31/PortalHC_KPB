@@ -100,6 +100,20 @@
         </div>
     </div>
 
+    <!-- Export Buttons -->
+    <div class="row g-3 mt-1 mb-3">
+        <div class="col-12 col-md-6 col-lg-3">
+            <a id="btnExportAssessment" class="btn btn-outline-success w-100">
+                <i class="bi bi-file-earmark-arrow-down me-1"></i>Export Assessment
+            </a>
+        </div>
+        <div class="col-12 col-md-6 col-lg-3">
+            <a id="btnExportTraining" class="btn btn-outline-success w-100">
+                <i class="bi bi-file-earmark-arrow-down me-1"></i>Export Training
+            </a>
+        </div>
+    </div>
+
     <!-- Worker Counter -->
     <div class="mb-3">
         <small class="text-muted">
@@ -227,6 +241,28 @@ function updateUnitOptions() {
     }
 }
 
+function updateExportLinks() {
+    const section = document.getElementById('sectionFilter').value;
+    const unit = document.getElementById('unitFilter').value;
+    const status = document.getElementById('statusFilter').value;
+    const search = document.getElementById('searchFilter').value;
+    const category = document.getElementById('categoryFilter')?.value || '';
+
+    const baseAssessment = '@Url.Action("ExportRecordsTeamAssessment", "CMP")';
+    const baseTraining = '@Url.Action("ExportRecordsTeamTraining", "CMP")';
+
+    const params = new URLSearchParams();
+    if (section) params.set('section', section);
+    if (unit) params.set('unit', unit);
+    if (search) params.set('search', search);
+    if (status && status !== 'ALL') params.set('statusFilter', status);
+    if (category) params.set('category', category);
+
+    const qs = params.toString();
+    document.getElementById('btnExportAssessment').href = baseAssessment + (qs ? '?' + qs : '');
+    document.getElementById('btnExportTraining').href = baseTraining + (qs ? '?' + qs : '');
+}
+
 function filterTeamTable() {
     const section = document.getElementById('sectionFilter').value.toLowerCase();
     const unit = document.getElementById('unitFilter').value.toLowerCase();
@@ -267,6 +303,8 @@ function filterTeamTable() {
     // Update worker counter
     document.getElementById('workerCount').textContent = visibleCount;
 
+    updateExportLinks();
+
     // Empty state handling
     var emptyRow = document.getElementById('emptyStateRow');
     if (visibleCount === 0 && document.querySelectorAll('.worker-row').length > 0) {
@@ -300,6 +338,7 @@ function resetTeamFilters() {
         updateUnitOptions();
     }
     filterTeamTable();
+    updateExportLinks();
 }
 
 // Initial setup on page load
@@ -310,5 +349,6 @@ document.addEventListener('DOMContentLoaded', function() {
         updateUnitOptions();
     }
     filterTeamTable();
+    updateExportLinks();
 });
 </script>
