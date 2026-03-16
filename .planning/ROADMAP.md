@@ -113,7 +113,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 176. Export Records & RecordsTeam | 1/1 | Complete    | 2026-03-16 | - |
-| 177. Import CoachCoacheeMapping | 1/1 | Complete   | 2026-03-16 | - |
+| 177. Import CoachCoacheeMapping | 1/1 | Complete    | 2026-03-16 | - |
 | 178. Export AuditLog | v7.1 | 0/? | Not started | - |
 | 179. Export & Import Silabus Proton | v7.1 | 0/? | Not started | - |
 | 180. Import Training & Export HistoriProton | v7.1 | 0/? | Not started | - |
