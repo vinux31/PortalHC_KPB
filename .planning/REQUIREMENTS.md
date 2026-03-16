@@ -9,14 +9,14 @@
 
 - [x] **GUIDE-01**: Redundant CMP accordion items (covered by PDF Assessment tutorial) are simplified or removed
 - [x] **GUIDE-02**: Redundant CDP accordion items (covered by PDF Coaching Proton tutorial) are simplified or removed
-- [ ] **GUIDE-03**: Guide card counts ("X panduan tersedia") dynamically reflect actual visible guides per user role
+- [x] **GUIDE-03**: Guide card counts ("X panduan tersedia") dynamically reflect actual visible guides per user role
 - [x] **GUIDE-04**: Tutorial PDF cards use consistent CSS classes instead of inline styles
 
 ### FAQ Improvements
 
-- [ ] **FAQ-01**: User can expand all / collapse all FAQ items with a single button
-- [ ] **FAQ-02**: FAQ items are reordered logically by priority (most common questions first)
-- [ ] **FAQ-03**: FAQ categories are reorganized to reduce redundancy with GuideDetail content
+- [x] **FAQ-01**: User can expand all / collapse all FAQ items with a single button
+- [x] **FAQ-02**: FAQ items are reordered logically by priority (most common questions first)
+- [x] **FAQ-03**: FAQ categories are reorganized to reduce redundancy with GuideDetail content
 
 ### UI Consistency
 
@@ -44,11 +44,11 @@
 |-------------|-------|--------|
 | GUIDE-01 | Phase 171 | Complete |
 | GUIDE-02 | Phase 171 | Complete |
-| GUIDE-03 | Phase 171 | Pending |
+| GUIDE-03 | Phase 171 | Complete |
 | GUIDE-04 | Phase 171 | Complete |
-| FAQ-01 | Phase 171 | Pending |
-| FAQ-02 | Phase 171 | Pending |
-| FAQ-03 | Phase 171 | Pending |
+| FAQ-01 | Phase 171 | Complete |
+| FAQ-02 | Phase 171 | Complete |
+| FAQ-03 | Phase 171 | Complete |
 | UI-01 | Phase 172 | Pending |
 | UI-02 | Phase 172 | Pending |
 | UI-03 | Phase 172 | Pending |

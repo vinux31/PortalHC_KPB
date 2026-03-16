@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: milestone
 status: not_started
-stopped_at: Completed 171-01-PLAN.md
-last_updated: "2026-03-16T01:47:13.888Z"
+stopped_at: Completed 171-02-PLAN.md
+last_updated: "2026-03-16T01:58:34.304Z"
 last_activity: 2026-03-16 — Milestone v5.0 started
 progress:
   total_phases: 2
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 ---
@@ -58,6 +58,8 @@ Last activity: 2026-03-16 — Milestone v5.0 started
 - [Phase 171-guide-faq-cleanup]: CMP accordion reduced to 4 items (5 for Admin/HC) — assessment/results/certificate items removed as covered by PDF tutorial
 - [Phase 171-guide-faq-cleanup]: CDP 5 (Approve/Reject Deliverable) gated to Admin/HC only
 - [Phase 171-guide-faq-cleanup]: Tutorial card CSS uses variant modifier pattern (guide-tutorial-card--cmp/cdp/admin) replacing inline styles
+- [Phase 171-guide-faq-cleanup]: FAQ category order: Akun & Login, Assessment, CDP & Coaching, Umum, KKJ & CPDP, Admin & Kelola Data — Umum moved before KKJ as more universally applicable
+- [Phase 171-guide-faq-cleanup]: Removed step-by-step FAQ items covered by PDF tutorials; kept conceptual/policy FAQ items
 
 ### Pre-milestone Work (this session)
 
@@ -70,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T01:47:05.602Z
-Stopped at: Completed 171-01-PLAN.md
+Last session: 2026-03-16T01:58:24.782Z
+Stopped at: Completed 171-02-PLAN.md
 Resume file: None
