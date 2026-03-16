@@ -63,14 +63,14 @@
 <!-- Tutorial Lengkap (PDF-style guides) -->
 @if (module == "cmp")
 {
-<div class="guide-tutorial-card" data-aos="fade-up" data-aos-delay="150">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-3" style="background: linear-gradient(135deg, #e3f2fd 0%, #f5f5f5 100%); border-radius: 10px; border: 1px solid #bbdefb;">
+<div class="guide-tutorial-card guide-tutorial-card--cmp" data-aos="fade-up" data-aos-delay="150">
+    <div class="guide-tutorial-inner d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div class="d-flex align-items-center gap-3">
-            <div style="width:48px; height:48px; border-radius:12px; background:#1565c0; display:flex; align-items:center; justify-content:center;">
-                <i class="bi bi-file-earmark-pdf-fill text-white fs-4"></i>
+            <div class="guide-tutorial-icon">
+                <i class="bi bi-file-earmark-pdf-fill fs-4"></i>
             </div>
             <div>
-                <h5 class="mb-1 fw-bold" style="color:#1565c0;">Panduan Lengkap Assessment</h5>
+                <h5 class="guide-tutorial-title mb-1 fw-bold">Panduan Lengkap Assessment</h5>
                 <p class="mb-0 text-muted small">Tutorial end-to-end mengerjakan assessment: dari mulai ujian, mengerjakan soal, submit, melihat hasil, hingga download sertifikat.</p>
             </div>
         </div>
@@ -87,14 +87,14 @@
 }
 else if (module == "cdp")
 {
-<div class="guide-tutorial-card" data-aos="fade-up" data-aos-delay="150">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 p-3" style="background: linear-gradient(135deg, #e8f5e9 0%, #f5f5f5 100%); border-radius: 10px; border: 1px solid #a5d6a7;">
+<div class="guide-tutorial-card guide-tutorial-card--cdp" data-aos="fade-up" data-aos-delay="150">
+    <div class="guide-tutorial-inner d-flex align-items-center justify-content-between flex-wrap gap-3">
         <div class="d-flex align-items-center gap-3">
-            <div style="width:48px; height:48px; border-radius:12px; background:#2e7d32; display:flex; align-items:center; justify-content:center;">
-                <i class="bi bi-file-earmark-pdf-fill text-white fs-4"></i>
+            <div class="guide-tutorial-icon">
+                <i class="bi bi-file-earmark-pdf-fill fs-4"></i>
             </div>
             <div>
-                <h5 class="mb-1 fw-bold" style="color:#2e7d32;">Panduan Lengkap Coaching Proton</h5>
+                <h5 class="guide-tutorial-title mb-1 fw-bold">Panduan Lengkap Coaching Proton</h5>
                 <p class="mb-0 text-muted small">Tutorial end-to-end untuk Coachee, Coach, dan Atasan: dari melihat silabus, upload evidence, approval, hingga Final Assessment.</p>
             </div>
         </div>
@@ -108,6 +108,33 @@ else if (module == "cdp")
         </div>
     </div>
 </div>
+}
+else if (module == "admin")
+{
+@if (userRole == "Admin" || userRole == "HC")
+{
+<div class="guide-tutorial-card guide-tutorial-card--admin" data-aos="fade-up" data-aos-delay="150">
+    <div class="guide-tutorial-inner d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-3">
+            <div class="guide-tutorial-icon">
+                <i class="bi bi-file-earmark-pdf-fill fs-4"></i>
+            </div>
+            <div>
+                <h5 class="guide-tutorial-title mb-1 fw-bold">Panduan Konfigurasi Active Directory</h5>
+                <p class="mb-0 text-muted small">Tutorial lengkap konfigurasi Active Directory untuk integrasi autentikasi HC Portal.</p>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/documents/guides/ActiveDirectory-Guide.html" target="_blank" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-eye me-1"></i> Lihat
+            </a>
+            <a href="/documents/guides/ActiveDirectory-Guide.html" download="ActiveDirectory-Guide.html" class="btn btn-danger btn-sm">
+                <i class="bi bi-download me-1"></i> Download
+            </a>
+        </div>
+    </div>
+</div>
+}
 }
 
 <!-- List Panduan (Fungsi expandable steps) -->
@@ -151,61 +178,7 @@ else if (module == "cdp")
                 </div>
             </div>
 
-            <!-- CMP 3 -->
-            <div class="guide-list-item accordion-item">
-                <h2 class="accordion-header" id="cmpHeading3">
-                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse3" aria-expanded="false">
-                        Cara Mengerjakan Assessment (Mulai Ujian)
-                    </button>
-                </h2>
-                <div id="cmpCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
-                    <div class="accordion-body guide-list-body">
-                        <ul class="guide-steps">
-                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Lihat Daftar Ujian</strong><span>Pada tab <b>My Assessments</b>, Anda akan melihat semua ujian yang ditugaskan kepada Anda.</span></div></li>
-                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Mulai</strong><span>Klik tombol <b>Mulai</b> pada assessment yang bersatus <i>Not Started</i>.</span></div></li>
-                            <li class="guide-step-item"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Isi Jawaban & Navigasi</strong><span>Pilih jawaban yang benar. Gunakan panel nomor di samping untuk berpindah soal. Timer akan berjalan di pojok kanan atas.</span></div></li>
-                            <li class="guide-step-item"><div class="guide-step-badge">4</div><div class="guide-step-text"><strong>Submit Ujian</strong><span>Jika sudah yakin, klik <b>Submit</b> pada soal terakhir atau gunakan tombol submit di panel navigasi.</span></div></li>
-                        </ul>
-                        <div class="guide-tip"><i class="bi bi-info-circle-fill"></i><span>Jika waktu habis, jawaban yang sudah dipilih akan otomatis tersubmit.</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CMP 4 -->
-            <div class="guide-list-item accordion-item">
-                <h2 class="accordion-header" id="cmpHeading4">
-                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse4" aria-expanded="false">
-                        Cara Melihat Hasil Assessment
-                    </button>
-                </h2>
-                <div id="cmpCollapse4" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
-                    <div class="accordion-body guide-list-body">
-                        <ul class="guide-steps">
-                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Tab Results</strong><span>Di menu CMP, klik tab <b>Results</b>.</span></div></li>
-                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Detail Nilai</strong><span>Klik tombol <b>Detail</b> pada assessment yang dituju untuk melihat persentase skor, status kelulusan, dan feedback per jawaban (jika diaktifkan Admin).</span></div></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CMP 5 -->
-            <div class="guide-list-item accordion-item">
-                <h2 class="accordion-header" id="cmpHeading5">
-                    <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse5" aria-expanded="false">
-                        Cara Download Sertifikat Assessment
-                    </button>
-                </h2>
-                <div id="cmpCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
-                    <div class="accordion-body guide-list-body">
-                        <ul class="guide-steps">
-                            <li class="guide-step-item"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Buka Tab Sertifikat</strong><span>Di menu CMP, klik tab <b>Sertifikat</b>.</span></div></li>
-                            <li class="guide-step-item"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Download</strong><span>Klik <b>Download</b>. Sertifikat hanya akan muncul jika Anda sudah Lulus (Passed) ujian kompetensi bersangkutan.</span></div></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CMP 6 -->
+            <!-- CMP 3 (Training Records) -->
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="cmpHeading6">
                     <button class="accordion-button collapsed guide-list-btn" type="button" data-bs-toggle="collapse" data-bs-target="#cmpCollapse6" aria-expanded="false">
@@ -263,74 +236,28 @@ else if (module == "cdp")
                 </div>
             </div>
 
-            <!-- CDP 2 -->
-            <div class="guide-list-item accordion-item">
-                <h2 class="accordion-header" id="cdpHeading2">
-                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse2">
-                        Cara Menggunakan Coaching Proton (Melihat Progress)
-                    </button>
-                </h2>
-                <div id="cdpCollapse2" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
-                    <div class="accordion-body guide-list-body">
-                        <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Coaching Proton</strong><span>Di menu kiri CDP, klik <b>Coaching Proton</b>. Halaman ini adalah wadah diskusi interaktif Anda dengan Coach mengenai kegiatan pengembangan yang sedang berjalan.</span></div></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <!-- CDP 2-4 removed: covered by Panduan Lengkap Coaching Proton PDF tutorial -->
 
-            <!-- CDP 3 -->
-            <div class="guide-list-item accordion-item">
-                <h2 class="accordion-header" id="cdpHeading3">
-                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse3">
-                        Cara Membuat dan Mengelola Deliverable
-                    </button>
-                </h2>
-                <div id="cdpCollapse3" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
-                    <div class="accordion-body guide-list-body">
-                        <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Tambah Deliverable</strong><span>Di dalam Coaching Proton, jika ada sesi aktif, Anda dapat menambahkan hasil deliverable yang harus diberikan.</span></div></li>
-                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Isi Detail & Target</strong><span>Isi nama deliverable, target tanggal selesai, lalu simpan. Deliverable akan muncul di daftar tugas Anda.</span></div></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CDP 4 -->
-            <div class="guide-list-item accordion-item">
-                <h2 class="accordion-header" id="cdpHeading4">
-                    <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse4">
-                        Cara Upload Evidence Deliverable
-                    </button>
-                </h2>
-                <div id="cdpCollapse4" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
-                    <div class="accordion-body guide-list-body">
-                        <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Pilih Deliverable</strong><span>Klik pada judul deliverable Anda untuk membuka panel detailnya.</span></div></li>
-                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Upload File</strong><span>Klik tombol <b>Upload Evidence</b>. Pilih file (PDF / DOCX / JPG).</span></div></li>
-                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Kirim untuk Review</strong><span>Klik <b>Simpan Action/Evidence</b>. Status tugas Anda akan berubah menjadi <i>Menunggu Review (Pending Approval)</i>.</span></div></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CDP 5 -->
+            <!-- CDP 5 (Approve/Reject — Admin/HC only) -->
+            @if (userRole == "Admin" || userRole == "HC")
+            {
             <div class="guide-list-item accordion-item">
                 <h2 class="accordion-header" id="cdpHeading5">
                     <button class="accordion-button collapsed guide-list-btn btn-cdp" type="button" data-bs-toggle="collapse" data-bs-target="#cdpCollapse5">
-                        Cara Approve / Reject Deliverable (Coaching Guidance) <span class="guide-step-badge-role ms-2 bg-success text-white border-0">Coach / Atasan</span>
+                        Cara Approve / Reject Deliverable (Coaching Guidance) <span class="guide-step-badge-role ms-2 bg-success text-white border-0">Admin / HC</span>
                     </button>
                 </h2>
                 <div id="cdpCollapse5" class="accordion-collapse collapse" data-bs-parent="#guideAccordion">
                     <div class="accordion-body guide-list-body">
                         <ul class="guide-steps">
-                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Cek Request Masuk</strong><span>Bila Anda merupakan Coach/Atasan, buka CDP dan cek notifikasi approval yang muncul saat coachee submit evidence.</span></div></li>
+                            <li class="guide-step-item step-variant-green"><div class="guide-step-badge">1</div><div class="guide-step-text"><strong>Cek Request Masuk</strong><span>Buka CDP dan cek notifikasi approval yang muncul saat coachee submit evidence.</span></div></li>
                             <li class="guide-step-item step-variant-green"><div class="guide-step-badge">2</div><div class="guide-step-text"><strong>Review Bukti</strong><span>Download evidence yang disertakan coachee tersebut. Review kelengkapannya.</span></div></li>
                             <li class="guide-step-item step-variant-green"><div class="guide-step-badge">3</div><div class="guide-step-text"><strong>Aksi Approve/Reject</strong><span>Klik tombol <b>Approve</b> hijau jika sesuai, atau <b>Reject</b> (beri catatan perbaikan) jika evidence belum memenuhi standar.</span></div></li>
                         </ul>
                     </div>
                 </div>
             </div>
+            }
 
             <!-- CDP 6: Coaching Proton Dashboard -->
             @if (userRole == "Admin" || userRole == "HC")
