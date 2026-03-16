@@ -37,10 +37,10 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   3. Downloaded Excel import template shows "Elemen Teknis" in the column header, example row, and help text
   4. Import page hint text reads "Elemen Teknis (opsional)"
   5. Cross-package warning message contains "Elemen Teknis"
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 175-01: Replace all "Sub Kompetensi" occurrences in Results view, import template generation, import page hint, and cross-package warning message
+- [ ] 175-01-PLAN.md — Replace all "Sub Kompetensi" with "Elemen Teknis" in Results view, AdminController, and ImportPackageQuestions view
 
 ## Progress
 
