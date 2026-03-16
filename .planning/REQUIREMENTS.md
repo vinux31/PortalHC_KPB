@@ -7,13 +7,13 @@
 
 ### Terminology
 
-- [ ] **TERM-01**: Assessment Results page shows "Analisis Elemen Teknis" as section title (was "Analisis Sub Kompetensi")
-- [ ] **TERM-02**: Assessment Results table header shows "Elemen Teknis" (was "Sub Kompetensi")
-- [ ] **TERM-03**: Import template Excel header shows "Elemen Teknis" (was "Sub Kompetensi")
-- [ ] **TERM-04**: Import template example row shows "Elemen Teknis x.x" (was "Sub Kompetensi x.x")
-- [ ] **TERM-05**: Import template help text shows "Kolom Elemen Teknis" (was "Kolom Sub Kompetensi")
-- [ ] **TERM-06**: Import page hint shows "Elemen Teknis (opsional)" (was "Sub Kompetensi (opsional)")
-- [ ] **TERM-07**: Cross-package warning message shows "Elemen Teknis" (was "Sub Kompetensi")
+- [x] **TERM-01**: Assessment Results page shows "Analisis Elemen Teknis" as section title (was "Analisis Sub Kompetensi")
+- [x] **TERM-02**: Assessment Results table header shows "Elemen Teknis" (was "Sub Kompetensi")
+- [x] **TERM-03**: Import template Excel header shows "Elemen Teknis" (was "Sub Kompetensi")
+- [x] **TERM-04**: Import template example row shows "Elemen Teknis x.x" (was "Sub Kompetensi x.x")
+- [x] **TERM-05**: Import template help text shows "Kolom Elemen Teknis" (was "Kolom Sub Kompetensi")
+- [x] **TERM-06**: Import page hint shows "Elemen Teknis (opsional)" (was "Sub Kompetensi (opsional)")
+- [x] **TERM-07**: Cross-package warning message shows "Elemen Teknis" (was "Sub Kompetensi")
 
 ## Out of Scope
 
@@ -27,13 +27,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TERM-01 | Phase 175 | Pending |
-| TERM-02 | Phase 175 | Pending |
-| TERM-03 | Phase 175 | Pending |
-| TERM-04 | Phase 175 | Pending |
-| TERM-05 | Phase 175 | Pending |
-| TERM-06 | Phase 175 | Pending |
-| TERM-07 | Phase 175 | Pending |
+| TERM-01 | Phase 175 | Complete |
+| TERM-02 | Phase 175 | Complete |
+| TERM-03 | Phase 175 | Complete |
+| TERM-04 | Phase 175 | Complete |
+| TERM-05 | Phase 175 | Complete |
+| TERM-06 | Phase 175 | Complete |
+| TERM-07 | Phase 175 | Complete |
 
 **Coverage:**
 - v7.0 requirements: 7 total
