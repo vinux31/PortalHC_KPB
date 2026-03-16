@@ -56,7 +56,7 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   3. Exported files contain all visible columns (nama pelatihan, tanggal, status, etc.) matching the on-screen table
 **Plans**: 1 plan
 Plans:
-- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
+- [x] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
 
 ### Phase 177: Import CoachCoacheeMapping
 **Goal**: Admin/HC can bulk-create coach-coachee mappings from an Excel file instead of one-by-one
@@ -68,7 +68,7 @@ Plans:
   3. Invalid rows (missing data, unknown NIP) show clear error messages without crashing the import
 **Plans**: 1 plan
 Plans:
-- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
+- [ ] 177-01-PLAN.md — Import actions + template download + modal UI for CoachCoacheeMapping
 
 ### Phase 178: Export AuditLog
 **Goal**: Admin/HC can download the audit trail as Excel for offline review and compliance
@@ -80,7 +80,7 @@ Plans:
   3. Exported file contains all AuditLog columns (timestamp, actor, action, detail)
 **Plans**: 1 plan
 Plans:
-- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
+- [ ] 178-01-PLAN.md — Export action + button for AuditLog
 
 ### Phase 179: Export & Import Silabus Proton
 **Goal**: Admin/HC can roundtrip Silabus Proton data via Excel -- export current data and bulk-import new/updated entries
@@ -93,7 +93,7 @@ Plans:
   4. Invalid rows show clear error messages without crashing the import
 **Plans**: 1 plan
 Plans:
-- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
+- [ ] 179-01-PLAN.md — Export + import actions for Silabus Proton
 
 ### Phase 180: Import Training & Export HistoriProton
 **Goal**: Admin/HC can bulk-import training records and export Proton history for offline review
@@ -106,14 +106,14 @@ Plans:
   4. Coach/HC/Admin clicks Export Excel on Histori Proton page and receives an .xlsx file with history data
 **Plans**: 1 plan
 Plans:
-- [ ] 176-01-PLAN.md — Export actions + buttons for Records and RecordsTeam
+- [ ] 180-01-PLAN.md — Import training + export Histori Proton
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 176. Export Records & RecordsTeam | 1/1 | Complete    | 2026-03-16 | - |
-| 177. Import CoachCoacheeMapping | v7.1 | 0/? | Not started | - |
+| 177. Import CoachCoacheeMapping | v7.1 | 0/1 | Planned | - |
 | 178. Export AuditLog | v7.1 | 0/? | Not started | - |
 | 179. Export & Import Silabus Proton | v7.1 | 0/? | Not started | - |
 | 180. Import Training & Export HistoriProton | v7.1 | 0/? | Not started | - |
