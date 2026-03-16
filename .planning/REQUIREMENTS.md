@@ -23,7 +23,7 @@
 - [x] **EXP-02**: Atasan/HC/Admin dapat export riwayat pelatihan tim (RecordsTeam) ke Excel
 - [x] **EXP-03**: Admin/HC dapat export AuditLog ke Excel dengan filter tanggal
 - [x] **EXP-04**: Admin/HC dapat export data Silabus Proton ke Excel
-- [ ] **EXP-05**: Coach/HC/Admin dapat export data Histori Proton ke Excel
+- [x] **EXP-05**: Coach/HC/Admin dapat export data Histori Proton ke Excel
 
 ### Import Data
 
@@ -31,8 +31,8 @@
 - [x] **IMP-02**: Admin/HC dapat import CoachCoacheeMapping dari file Excel
 - [x] **IMP-03**: Admin/HC dapat download template Excel untuk Silabus Proton
 - [x] **IMP-04**: Admin/HC dapat import Silabus Proton dari file Excel
-- [ ] **IMP-05**: Admin/HC dapat download template Excel untuk Training record
-- [ ] **IMP-06**: Admin/HC dapat import Training record dari file Excel
+- [x] **IMP-05**: Admin/HC dapat download template Excel untuk Training record
+- [x] **IMP-06**: Admin/HC dapat import Training record dari file Excel
 
 ## Out of Scope
 
@@ -60,13 +60,13 @@
 | EXP-02 | Phase 176 | Complete |
 | EXP-03 | Phase 178 | Complete |
 | EXP-04 | Phase 179 | Complete |
-| EXP-05 | Phase 180 | Pending |
+| EXP-05 | Phase 180 | Complete |
 | IMP-01 | Phase 177 | Complete |
 | IMP-02 | Phase 177 | Complete |
 | IMP-03 | Phase 179 | Complete |
 | IMP-04 | Phase 179 | Complete |
-| IMP-05 | Phase 180 | Pending |
-| IMP-06 | Phase 180 | Pending |
+| IMP-05 | Phase 180 | Complete |
+| IMP-06 | Phase 180 | Complete |
 
 **Coverage:**
 - v7.0 requirements: 7 total (all complete)

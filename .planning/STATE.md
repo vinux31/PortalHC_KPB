@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: Export & Import Data
 status: active
-last_updated: "2026-03-16T11:16:30.084Z"
+last_updated: "2026-03-16T11:36:36.488Z"
 last_activity: 2026-03-16 — Roadmap created for v7.1
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 5
+  total_plans: 5
+  completed_plans: 5
   percent: 100
 ---
 
@@ -65,6 +65,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 177]: AuditLog uses ActorUserId/ActorName/ActionType/Description fields
 - [Phase 178-export-auditlog]: Inclusive end-date filter via endDate.Value.AddDays(1); export button href built server-side
 - [Phase 179]: ProtonDeliverableList is the correct DbSet name (not ProtonDeliverables)
+- [Phase 180]: ImportTrainingResult defined as public model class in Models/ for clean view casting
+- [Phase 180]: ExportHistoriProton duplicates HistoriProton worker-building logic; applies filters post-build
 
 ### Blockers/Concerns
 

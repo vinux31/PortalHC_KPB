@@ -42,7 +42,7 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 - [x] **Phase 177: Import CoachCoacheeMapping** - Bulk import coach-coachee mapping via Excel template (completed 2026-03-16)
 - [x] **Phase 178: Export AuditLog** - Export audit trail to Excel with date filter (completed 2026-03-16)
 - [x] **Phase 179: Export & Import Silabus Proton** - Roundtrip Excel for Proton syllabus data (completed 2026-03-16)
-- [ ] **Phase 180: Import Training & Export HistoriProton** - Bulk import training records and export Proton history
+- [x] **Phase 180: Import Training & Export HistoriProton** - Bulk import training records and export Proton history (completed 2026-03-16)
 
 ## Phase Details
 
@@ -116,4 +116,4 @@ Plans:
 | 177. Import CoachCoacheeMapping | 1/1 | Complete    | 2026-03-16 | - |
 | 178. Export AuditLog | 1/1 | Complete    | 2026-03-16 | - |
 | 179. Export & Import Silabus Proton | 1/1 | Complete    | 2026-03-16 | - |
-| 180. Import Training & Export HistoriProton | v7.1 | 0/? | Not started | - |
+| 180. Import Training & Export HistoriProton | 1/1 | Complete   | 2026-03-16 | - |
