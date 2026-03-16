@@ -10,7 +10,7 @@
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 171 | 2/2 | Complete    | 2026-03-16 | 7 |
-| 172 | 2/2 | Complete   | 2026-03-16 | 5 |
+| 172 | 2/2 | Complete    | 2026-03-16 | 5 |
 
 ## Phase Details
 
