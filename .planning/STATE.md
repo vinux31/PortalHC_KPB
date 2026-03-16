@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: milestone
 status: not_started
-stopped_at: Phase 172 context gathered
-last_updated: "2026-03-16T02:09:25.331Z"
+stopped_at: Completed 172-01-PLAN.md
+last_updated: "2026-03-16T02:20:05.762Z"
 last_activity: 2026-03-16 — Milestone v5.0 started
 progress:
   total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 ---
@@ -60,6 +60,8 @@ Last activity: 2026-03-16 — Milestone v5.0 started
 - [Phase 171-guide-faq-cleanup]: Tutorial card CSS uses variant modifier pattern (guide-tutorial-card--cmp/cdp/admin) replacing inline styles
 - [Phase 171-guide-faq-cleanup]: FAQ category order: Akun & Login, Assessment, CDP & Coaching, Umum, KKJ & CPDP, Admin & Kelola Data — Umum moved before KKJ as more universally applicable
 - [Phase 171-guide-faq-cleanup]: Removed step-by-step FAQ items covered by PDF tutorials; kept conceptual/policy FAQ items
+- [Phase 172-ui-navigation-polish]: guide-role-badge is the canonical role badge class for both Guide and GuideDetail pages
+- [Phase 172-ui-navigation-polish]: step-variant-pink removed; step-variant-blue used for CMP and admin module steps
 
 ### Pre-milestone Work (this session)
 
@@ -72,6 +74,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:09:25.329Z
-Stopped at: Phase 172 context gathered
-Resume file: .planning/phases/172-ui-navigation-polish/172-CONTEXT.md
+Last session: 2026-03-16T02:20:00.067Z
+Stopped at: Completed 172-01-PLAN.md
+Resume file: None

@@ -10,7 +10,7 @@
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
 | 171 | 2/2 | Complete    | 2026-03-16 | 7 |
-| 172 | UI & Navigation Polish | Unify styling, back-to-top button, breadcrumb improvements | UI-01~03, NAV-01~02 | 5 |
+| 172 | 1/2 | In Progress|  | 5 |
 
 ## Phase Details
 
@@ -43,7 +43,7 @@ Plans:
 
 **Requirements:** UI-01, UI-02, UI-03, NAV-01, NAV-02
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 172-01-PLAN.md — Unify role badges, step badge colors, accordion base styles

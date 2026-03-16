@@ -20,9 +20,9 @@
 
 ### UI Consistency
 
-- [ ] **UI-01**: Role badge styling is consistent across Guide.cshtml and GuideDetail.cshtml
-- [ ] **UI-02**: Accordion button/toggle styles are unified across FAQ and GuideDetail sections
-- [ ] **UI-03**: Step badge color variants are consistent with module icon colors
+- [x] **UI-01**: Role badge styling is consistent across Guide.cshtml and GuideDetail.cshtml
+- [x] **UI-02**: Accordion button/toggle styles are unified across FAQ and GuideDetail sections
+- [x] **UI-03**: Step badge color variants are consistent with module icon colors
 
 ### Navigation
 
@@ -49,9 +49,9 @@
 | FAQ-01 | Phase 171 | Complete |
 | FAQ-02 | Phase 171 | Complete |
 | FAQ-03 | Phase 171 | Complete |
-| UI-01 | Phase 172 | Pending |
-| UI-02 | Phase 172 | Pending |
-| UI-03 | Phase 172 | Pending |
+| UI-01 | Phase 172 | Complete |
+| UI-02 | Phase 172 | Complete |
+| UI-03 | Phase 172 | Complete |
 | NAV-01 | Phase 172 | Pending |
 | NAV-02 | Phase 172 | Pending |
 
