@@ -46,4 +46,4 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 175. Terminology Rename | 1/1 | Complete   | 2026-03-16 | - |
+| 175. Terminology Rename | 1/1 | Complete    | 2026-03-16 | - |
