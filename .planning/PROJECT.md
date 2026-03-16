@@ -12,13 +12,21 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v6.0 Deployment Preparation
+
+**Goal:** Prepare production-ready release package with deployment and database guides for IT team.
+
+**Target features:**
+- Release folder with only necessary project files (exclude dev artifacts)
+- Production config with Active Directory enabled
+- SSMS database export guide
+- IT deployment guide
+
 ## Current State (v5.0 shipped 2026-03-16)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 
 Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled with simplified accordions, dynamic role-based counts, FAQ expand/collapse, unified CSS badges/buttons, back-to-top navigation, and breadcrumb navigation (v5.0). All requirements satisfied, 0 critical tech debt.
-
-**Between milestones** — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 

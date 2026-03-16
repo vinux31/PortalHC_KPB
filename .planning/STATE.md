@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between_milestones
-stopped_at: v5.0 completed and archived
+milestone: v6.0
+milestone_name: Deployment Preparation
+status: defining_requirements
+stopped_at: null
 last_updated: "2026-03-16"
-last_activity: "2026-03-16 — Milestone v5.0 completed and archived"
+last_activity: "2026-03-16 — Milestone v6.0 started"
 progress:
   total_phases: 0
   completed_phases: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Between milestones — ready for `/gsd:new-milestone`
+**Current focus:** v6.0 Deployment Preparation
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: Between milestones
-Last activity: 2026-03-16 — Milestone v5.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-03-16 — Milestone v6.0 started
 
 ## Accumulated Context
 
