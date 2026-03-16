@@ -1,32 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v5.0
-milestone_name: milestone
-status: not_started
-stopped_at: Completed 172-02-PLAN.md
-last_updated: "2026-03-16T02:22:51.825Z"
-last_activity: 2026-03-16 — Milestone v5.0 started
-progress:
-  total_phases: 2
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
----
-
----
-gsd_state_version: 1.0
-milestone: v5.0
-milestone_name: Guide Page Overhaul
-status: not_started
-stopped_at: Milestone defined, ready to plan Phase 171
+milestone: null
+milestone_name: null
+status: between_milestones
+stopped_at: v5.0 completed and archived
 last_updated: "2026-03-16"
-last_activity: "2026-03-16 — Milestone v5.0 started"
+last_activity: "2026-03-16 — Milestone v5.0 completed and archived"
 progress:
-  total_phases: 4
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -36,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v5.0 Guide Page Overhaul — Phase 171 next
+**Current focus:** Between milestones — ready for `/gsd:new-milestone`
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: —
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-16 — Milestone v5.0 started
+Status: Between milestones
+Last activity: 2026-03-16 — Milestone v5.0 completed and archived
 
 ## Accumulated Context
 
@@ -55,19 +39,8 @@ Last activity: 2026-03-16 — Milestone v5.0 started
 - Silent catch blocks must log at Warning level — bare catch without logging is forbidden in all controllers
 - Json.Serialize() is the canonical pattern for JS string contexts (not Html.Raw with Replace)
 - All file uploads must have extension allowlists and size limits
-- [Phase 171-guide-faq-cleanup]: CMP accordion reduced to 4 items (5 for Admin/HC) — assessment/results/certificate items removed as covered by PDF tutorial
-- [Phase 171-guide-faq-cleanup]: CDP 5 (Approve/Reject Deliverable) gated to Admin/HC only
-- [Phase 171-guide-faq-cleanup]: Tutorial card CSS uses variant modifier pattern (guide-tutorial-card--cmp/cdp/admin) replacing inline styles
-- [Phase 171-guide-faq-cleanup]: FAQ category order: Akun & Login, Assessment, CDP & Coaching, Umum, KKJ & CPDP, Admin & Kelola Data — Umum moved before KKJ as more universally applicable
-- [Phase 171-guide-faq-cleanup]: Removed step-by-step FAQ items covered by PDF tutorials; kept conceptual/policy FAQ items
-- [Phase 172-ui-navigation-polish]: guide-role-badge is the canonical role badge class for both Guide and GuideDetail pages
-- [Phase 172-ui-navigation-polish]: step-variant-pink removed; step-variant-blue used for CMP and admin module steps
-- [Phase 172-ui-navigation-polish]: GuideDetail back button replaced with breadcrumb (Beranda > Panduan > Module)
-
-### Pre-milestone Work (this session)
-
-- Created 2 HTML tutorial files: Panduan-Lengkap-Assessment.html and Panduan-Lengkap-Coaching-Proton.html in wwwroot/documents/guides/
-- Integrated tutorial cards into GuideDetail.cshtml (CMP and CDP modules)
+- guide-role-badge is the canonical role badge class for Guide system
+- step-variant-blue replaces step-variant-pink for CMP/admin module steps
 
 ### Blockers/Concerns
 
@@ -75,6 +48,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:20:29.057Z
-Stopped at: Completed 172-02-PLAN.md
+Last session: 2026-03-16
+Stopped at: v5.0 completed and archived
 Resume file: None

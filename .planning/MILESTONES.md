@@ -1,4 +1,26 @@
 # Milestones
+## v5.0 Guide Page Overhaul (Shipped: 2026-03-16)
+
+**Phases completed:** 2 phases (171-172), 4 plans, 8 tasks
+**Timeline:** 2026-03-16 (1 day)
+**Code changes:** 17 files changed, +1,709 / -385 lines
+**Commits:** 18
+
+**Delivered:** Guide & FAQ system cleanup and UI polish — redundant accordion guides removed (covered by PDF tutorials), dynamic role-based card counts, FAQ expand/collapse toggle, unified badge and button styling, back-to-top navigation, and breadcrumb navigation on GuideDetail pages.
+
+**Key accomplishments:**
+1. GuideDetail accordion simplification — CMP reduced from 7 to 4 items (5 for Admin/HC), CDP reduced from 7 to 3 items (5 for Admin/HC), redundant step-by-step items removed as covered by PDF tutorials
+2. Tutorial card CSS refactor — Inline styles replaced with CSS variant modifier classes (guide-tutorial-card--cmp/cdp/admin), AD guide tutorial card added for admin module
+3. Dynamic guide card counts — All 5 module cards show role-conditional counts via Razor int variables, matching actual GuideDetail accordion item counts
+4. FAQ improvements — Expand/collapse all toggle button, categories reordered by priority, redundant step-by-step FAQ items removed
+5. UI consistency — Unified .guide-role-badge class across Guide and GuideDetail, .step-variant-blue replacing pink, shared accordion base styling
+6. Navigation — Floating back-to-top button on both Guide pages, GuideDetail breadcrumb (Beranda > Panduan > Module Name) replacing back button
+
+**Tech Debt (1 item, non-blocking):**
+- Legacy CSS alias .guide-step-badge-role kept in guide.css (no view references it)
+
+---
+
 ## v4.3 Bug Finder (Shipped: 2026-03-13)
 
 **Phases completed:** 3 phases (168-170), 8 plans

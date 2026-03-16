@@ -12,22 +12,13 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v5.0 Guide Page Overhaul
+## Current State (v5.0 shipped 2026-03-16)
 
-**Goal:** Clean up, reorganize, and improve the Guide & FAQ system now that comprehensive PDF tutorials exist.
+**v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 
-**Target features:**
-- Cleanup redundant accordion guides covered by PDF tutorials
-- Fix guide count mismatches (conditional role-based counts)
-- FAQ reorder with expand/collapse all functionality
-- UI consistency (badges, buttons, card styling)
-- Navigation improvements (back-to-top, breadcrumbs)
+Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled with simplified accordions, dynamic role-based counts, FAQ expand/collapse, unified CSS badges/buttons, back-to-top navigation, and breadcrumb navigation (v5.0). All requirements satisfied, 0 critical tech debt.
 
-## Current State (v4.3 shipped 2026-03-13)
-
-**v1.0 through v4.3 shipped** — 42 milestones, 170 phases.
-
-Portal is fully audited: 6 use-case flows verified (v4.0), codebase cleaned of dead code and unused imports (v4.3 Phase 168), file system and database verified clean (v4.3 Phase 169), security hardened with CSRF/XSS/upload fixes (v4.3 Phase 170). All 16 audit requirements satisfied, 0 critical tech debt.
+**Between milestones** — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 
@@ -40,6 +31,22 @@ Portal is fully audited: 6 use-case flows verified (v4.0), codebase cleaned of d
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v5.0 - Guide Page Overhaul (2026-03-16)
+
+**Delivered:** Guide & FAQ system cleanup and UI polish — redundant accordion guides removed, dynamic card counts, FAQ toggle, unified badge/button styling, back-to-top button, and breadcrumb navigation.
+
+**What Shipped:**
+1. **Guide Cleanup** — CMP/CDP accordions simplified (redundant items covered by PDF tutorials removed), tutorial card CSS refactored, AD guide tutorial card added
+2. **FAQ Improvements** — Expand/collapse all toggle, categories reordered, redundant step-by-step FAQ items removed
+3. **UI Consistency** — Unified .guide-role-badge class, .step-variant-blue, shared accordion base styling
+4. **Navigation** — Back-to-top button on Guide pages, GuideDetail breadcrumb (Beranda > Panduan > Module)
+
+**Metrics:**
+- 2 phases (171-172), 4 plans, 18 commits
+- 17 files changed, +1,709 / -385 lines
+
+---
 
 ### ✅ v4.3 - Bug Finder (2026-03-13)
 

@@ -4,6 +4,46 @@
 
 ---
 
+## Milestone: v5.0 — Guide Page Overhaul
+
+**Shipped:** 2026-03-16
+**Phases:** 2 (171-172) | **Plans:** 4
+
+### What Was Built
+- GuideDetail accordion simplification: CMP 7→4 items, CDP 7→3 items, redundant step-by-step guides removed (covered by PDF tutorials)
+- Tutorial card CSS refactor: inline styles → CSS variant modifier classes, AD guide tutorial card added
+- Dynamic role-conditional guide card counts via Razor int variables
+- FAQ expand/collapse all toggle, category reorder, redundant FAQ items removed
+- Unified .guide-role-badge class, .step-variant-blue, shared accordion base styling
+- Back-to-top floating button on both Guide pages, breadcrumb navigation on GuideDetail
+
+### What Worked
+- **PDF-first content strategy**: Removing accordion items covered by PDF tutorials was clean — content deduplication reduced maintenance burden
+- **CSS variant modifier pattern**: guide-tutorial-card--cmp/cdp/admin is extensible and eliminates inline style drift
+- **Browser UAT via Playwright**: All 5 UAT tests verified programmatically — faster and more reliable than manual browser testing
+- **Small milestone scope**: 2 phases, 4 plans — entire milestone (plan → execute → verify → UAT → audit → archive) completed in a single session
+
+### What Was Inefficient
+- **SUMMARY frontmatter**: 171 SUMMARYs missing one_liner field, 172 SUMMARYs had it — inconsistent template adherence across executor runs
+- **Nyquist validation still missing**: Both phases lack VALIDATION.md — pattern continues to be skipped for non-feature-building work
+
+### Patterns Established
+- **guide-role-badge**: Canonical class for role indicator badges across Guide system — replaces divergent .role-badge / .guide-step-badge-role
+- **Back-to-top pattern**: Fixed-position button with scroll threshold toggle (.visible class at 300px), smooth scroll to top, hidden on print
+- **Breadcrumb with module switch**: Razor switch block maps module param to friendly name, reuses existing .guide-breadcrumb CSS
+
+### Key Lessons
+1. UI polish milestones execute fast — mostly CSS/Razor changes with minimal controller logic
+2. Playwright-based UAT is a reliable replacement for manual browser verification on CSS/JS features
+3. Deduplication work (removing accordion items covered by PDFs) is low-risk, high-clarity improvement
+
+### Cost Observations
+- Model mix: sonnet (executor, verifier, integration checker), opus (orchestrator)
+- Sessions: 1
+- Notable: Entire milestone lifecycle completed in one session (~2 hours total)
+
+---
+
 ## Milestone: v4.0 — E2E Use-Case Audit
 
 **Shipped:** 2026-03-12
@@ -453,4 +493,6 @@
 | v4.0 | 6 | 16 | 2 | 8 |
 | v4.3 | 3 | 8 | 1 | 8 |
 
-**Running total:** 98 phases, ~230 plans, 28 days
+| v5.0 | 2 | 4 | 1 | 4 |
+
+**Running total:** 100 phases, ~234 plans, 29 days
