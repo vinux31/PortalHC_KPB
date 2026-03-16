@@ -2693,18 +2693,25 @@ namespace HcPortal.Controllers
         // GET /Admin/AuditLog
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> AuditLog(int page = 1)
+        public async Task<IActionResult> AuditLog(int page = 1, DateTime? startDate = null, DateTime? endDate = null)
         {
             const int pageSize = 25;
 
-            var totalCount = await _context.AuditLogs.CountAsync();
+            var query = _context.AuditLogs.AsQueryable();
+
+            if (startDate.HasValue)
+                query = query.Where(a => a.CreatedAt >= startDate.Value);
+            if (endDate.HasValue)
+                query = query.Where(a => a.CreatedAt < endDate.Value.AddDays(1));
+
+            var totalCount = await query.CountAsync();
             var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
 
             // Clamp page to valid range
             if (page < 1) page = 1;
             if (page > totalPages && totalPages > 0) page = totalPages;
 
-            var logs = await _context.AuditLogs
+            var logs = await query
                 .OrderByDescending(a => a.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -2713,8 +2720,58 @@ namespace HcPortal.Controllers
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
             ViewBag.TotalCount = totalCount;
+            ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
+            ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
             return View(logs);
+        }
+
+        // GET /Admin/ExportAuditLog
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportAuditLog(DateTime? startDate = null, DateTime? endDate = null)
+        {
+            var query = _context.AuditLogs.AsQueryable();
+
+            if (startDate.HasValue)
+                query = query.Where(a => a.CreatedAt >= startDate.Value);
+            if (endDate.HasValue)
+                query = query.Where(a => a.CreatedAt < endDate.Value.AddDays(1));
+
+            var logs = await query
+                .OrderByDescending(a => a.CreatedAt)
+                .ToListAsync();
+
+            using var workbook = new XLWorkbook();
+            var ws = workbook.Worksheets.Add("AuditLog");
+
+            // Header
+            ws.Cell(1, 1).Value = "Waktu";
+            ws.Cell(1, 2).Value = "Aktor";
+            ws.Cell(1, 3).Value = "Aksi";
+            ws.Cell(1, 4).Value = "Detail";
+
+            var headerRange = ws.Range(1, 1, 1, 4);
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            for (int i = 0; i < logs.Count; i++)
+            {
+                var log = logs[i];
+                ws.Cell(i + 2, 1).Value = log.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm");
+                ws.Cell(i + 2, 2).Value = log.ActorName;
+                ws.Cell(i + 2, 3).Value = log.ActionType;
+                ws.Cell(i + 2, 4).Value = log.Description;
+            }
+
+            ws.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            stream.Position = 0;
+
+            var fileName = $"AuditLog_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         // CloseEarly removed in Phase 162 — replaced by AkhiriSemuaUjian with auto-grading
