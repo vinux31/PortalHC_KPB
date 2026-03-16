@@ -12,16 +12,19 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.0 Assessment Terminology Fix
+## Current Milestone: v7.1 Export & Import Data
 
-**Goal:** Rename "Sub Kompetensi" to "Elemen Teknis" across all assessment-related UI (Results spider web, import template, warning messages).
+**Goal:** Menambahkan fitur export Excel dan import Excel + template di page-page yang belum punya, agar data operasional bisa di-download dan di-bulk-input.
 
 **Target features:**
-- Rename spider web chart section title and table header on Results page
-- Rename Excel import template headers and help text
-- Rename cross-package warning message
+- Export Excel untuk Records & RecordsTeam (bukti pelatihan personal & tim)
+- Import Excel + Template untuk CoachCoacheeMapping (bulk mapping coach-coachee)
+- Export Excel untuk AuditLog (audit trail)
+- Export + Import Excel untuk Silabus Proton (bulk kompetensi framework)
+- Import Excel + Template untuk Training (bulk input riwayat pelatihan)
+- Export Excel untuk HistoriProton (rekap historis coaching)
 
-## Current State (v7.0 started 2026-03-16)
+## Current State (v7.1 started 2026-03-16)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
