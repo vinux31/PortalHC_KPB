@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: Export & Import Data
 status: active
-last_updated: "2026-03-16T10:53:34.289Z"
+last_updated: "2026-03-16T11:14:06.702Z"
 last_activity: 2026-03-16 — Roadmap created for v7.1
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 4
+  total_plans: 4
+  completed_plans: 4
   percent: 100
 ---
 
@@ -64,6 +64,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 176]: Personal export uses GetUnifiedRecords with no filter params (all personal records)
 - [Phase 177]: AuditLog uses ActorUserId/ActorName/ActionType/Description fields
 - [Phase 178-export-auditlog]: Inclusive end-date filter via endDate.Value.AddDays(1); export button href built server-side
+- [Phase 179]: ProtonDeliverableList is the correct DbSet name (not ProtonDeliverables)
 
 ### Blockers/Concerns
 

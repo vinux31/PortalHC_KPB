@@ -22,15 +22,15 @@
 - [x] **EXP-01**: User dapat export riwayat pelatihan pribadi (Records) ke Excel
 - [x] **EXP-02**: Atasan/HC/Admin dapat export riwayat pelatihan tim (RecordsTeam) ke Excel
 - [x] **EXP-03**: Admin/HC dapat export AuditLog ke Excel dengan filter tanggal
-- [ ] **EXP-04**: Admin/HC dapat export data Silabus Proton ke Excel
+- [x] **EXP-04**: Admin/HC dapat export data Silabus Proton ke Excel
 - [ ] **EXP-05**: Coach/HC/Admin dapat export data Histori Proton ke Excel
 
 ### Import Data
 
 - [x] **IMP-01**: Admin/HC dapat download template Excel untuk CoachCoacheeMapping
 - [x] **IMP-02**: Admin/HC dapat import CoachCoacheeMapping dari file Excel
-- [ ] **IMP-03**: Admin/HC dapat download template Excel untuk Silabus Proton
-- [ ] **IMP-04**: Admin/HC dapat import Silabus Proton dari file Excel
+- [x] **IMP-03**: Admin/HC dapat download template Excel untuk Silabus Proton
+- [x] **IMP-04**: Admin/HC dapat import Silabus Proton dari file Excel
 - [ ] **IMP-05**: Admin/HC dapat download template Excel untuk Training record
 - [ ] **IMP-06**: Admin/HC dapat import Training record dari file Excel
 
@@ -59,12 +59,12 @@
 | EXP-01 | Phase 176 | Complete |
 | EXP-02 | Phase 176 | Complete |
 | EXP-03 | Phase 178 | Complete |
-| EXP-04 | Phase 179 | Pending |
+| EXP-04 | Phase 179 | Complete |
 | EXP-05 | Phase 180 | Pending |
 | IMP-01 | Phase 177 | Complete |
 | IMP-02 | Phase 177 | Complete |
-| IMP-03 | Phase 179 | Pending |
-| IMP-04 | Phase 179 | Pending |
+| IMP-03 | Phase 179 | Complete |
+| IMP-04 | Phase 179 | Complete |
 | IMP-05 | Phase 180 | Pending |
 | IMP-06 | Phase 180 | Pending |
 
