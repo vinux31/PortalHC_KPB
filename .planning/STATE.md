@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v5.0
 milestone_name: milestone
 status: not_started
-stopped_at: Phase 171 context gathered
-last_updated: "2026-03-16T01:31:35.750Z"
+stopped_at: Completed 171-01-PLAN.md
+last_updated: "2026-03-16T01:47:13.888Z"
 last_activity: 2026-03-16 — Milestone v5.0 started
 progress:
   total_phases: 2
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 ---
@@ -55,6 +55,9 @@ Last activity: 2026-03-16 — Milestone v5.0 started
 - Silent catch blocks must log at Warning level — bare catch without logging is forbidden in all controllers
 - Json.Serialize() is the canonical pattern for JS string contexts (not Html.Raw with Replace)
 - All file uploads must have extension allowlists and size limits
+- [Phase 171-guide-faq-cleanup]: CMP accordion reduced to 4 items (5 for Admin/HC) — assessment/results/certificate items removed as covered by PDF tutorial
+- [Phase 171-guide-faq-cleanup]: CDP 5 (Approve/Reject Deliverable) gated to Admin/HC only
+- [Phase 171-guide-faq-cleanup]: Tutorial card CSS uses variant modifier pattern (guide-tutorial-card--cmp/cdp/admin) replacing inline styles
 
 ### Pre-milestone Work (this session)
 
@@ -67,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T01:31:35.747Z
-Stopped at: Phase 171 context gathered
-Resume file: .planning/phases/171-guide-faq-cleanup/171-CONTEXT.md
+Last session: 2026-03-16T01:47:05.602Z
+Stopped at: Completed 171-01-PLAN.md
+Resume file: None

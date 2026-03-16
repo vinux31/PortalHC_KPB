@@ -9,7 +9,7 @@
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 171 | Guide & FAQ Cleanup | Cleanup redundant guides, fix counts, FAQ reorder + expand/collapse | GUIDE-01~04, FAQ-01~03 | 7 |
+| 171 | 1/2 | In Progress|  | 7 |
 | 172 | UI & Navigation Polish | Unify styling, back-to-top button, breadcrumb improvements | UI-01~03, NAV-01~02 | 5 |
 
 ## Phase Details
@@ -20,7 +20,7 @@
 
 **Requirements:** GUIDE-01, GUIDE-02, GUIDE-03, GUIDE-04, FAQ-01, FAQ-02, FAQ-03
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 171-01-PLAN.md — Simplify GuideDetail accordions, fix tutorial card styles, add AD tutorial card

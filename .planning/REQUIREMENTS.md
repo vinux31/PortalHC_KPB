@@ -7,10 +7,10 @@
 
 ### Guide Cleanup
 
-- [ ] **GUIDE-01**: Redundant CMP accordion items (covered by PDF Assessment tutorial) are simplified or removed
-- [ ] **GUIDE-02**: Redundant CDP accordion items (covered by PDF Coaching Proton tutorial) are simplified or removed
+- [x] **GUIDE-01**: Redundant CMP accordion items (covered by PDF Assessment tutorial) are simplified or removed
+- [x] **GUIDE-02**: Redundant CDP accordion items (covered by PDF Coaching Proton tutorial) are simplified or removed
 - [ ] **GUIDE-03**: Guide card counts ("X panduan tersedia") dynamically reflect actual visible guides per user role
-- [ ] **GUIDE-04**: Tutorial PDF cards use consistent CSS classes instead of inline styles
+- [x] **GUIDE-04**: Tutorial PDF cards use consistent CSS classes instead of inline styles
 
 ### FAQ Improvements
 
@@ -42,10 +42,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GUIDE-01 | Phase 171 | Pending |
-| GUIDE-02 | Phase 171 | Pending |
+| GUIDE-01 | Phase 171 | Complete |
+| GUIDE-02 | Phase 171 | Complete |
 | GUIDE-03 | Phase 171 | Pending |
-| GUIDE-04 | Phase 171 | Pending |
+| GUIDE-04 | Phase 171 | Complete |
 | FAQ-01 | Phase 171 | Pending |
 | FAQ-02 | Phase 171 | Pending |
 | FAQ-03 | Phase 171 | Pending |
