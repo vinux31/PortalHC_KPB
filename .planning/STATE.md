@@ -3,11 +3,26 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: Export & Import Data
 status: active
+last_updated: "2026-03-16T08:31:05.131Z"
+last_activity: 2026-03-16 — Roadmap created for v7.1
+progress:
+  total_phases: 5
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v7.1
+milestone_name: Export & Import Data
+status: active
 stopped_at: null
 last_updated: "2026-03-16"
 last_activity: "2026-03-16 — Roadmap created for v7.1 (5 phases, 176-180)"
 progress:
-  total_phases: 5
+  [██████████] 100%
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -46,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 - ClosedXML (XLWorkbook) is the canonical library for Excel generation
 - Import pattern: Download template button + file upload + process + redirect to list
 - Reference implementation: AdminController ImportWorkers + DownloadImportTemplate + ExportWorkers
+- [Phase 176]: Personal export uses GetUnifiedRecords with no filter params (all personal records)
 
 ### Blockers/Concerns
 

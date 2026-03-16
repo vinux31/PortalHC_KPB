@@ -19,8 +19,8 @@
 
 ### Export Data
 
-- [ ] **EXP-01**: User dapat export riwayat pelatihan pribadi (Records) ke Excel
-- [ ] **EXP-02**: Atasan/HC/Admin dapat export riwayat pelatihan tim (RecordsTeam) ke Excel
+- [x] **EXP-01**: User dapat export riwayat pelatihan pribadi (Records) ke Excel
+- [x] **EXP-02**: Atasan/HC/Admin dapat export riwayat pelatihan tim (RecordsTeam) ke Excel
 - [ ] **EXP-03**: Admin/HC dapat export AuditLog ke Excel dengan filter tanggal
 - [ ] **EXP-04**: Admin/HC dapat export data Silabus Proton ke Excel
 - [ ] **EXP-05**: Coach/HC/Admin dapat export data Histori Proton ke Excel
@@ -56,8 +56,8 @@
 | TERM-05 | Phase 175 | Complete |
 | TERM-06 | Phase 175 | Complete |
 | TERM-07 | Phase 175 | Complete |
-| EXP-01 | Phase 176 | Pending |
-| EXP-02 | Phase 176 | Pending |
+| EXP-01 | Phase 176 | Complete |
+| EXP-02 | Phase 176 | Complete |
 | EXP-03 | Phase 178 | Pending |
 | EXP-04 | Phase 179 | Pending |
 | EXP-05 | Phase 180 | Pending |
