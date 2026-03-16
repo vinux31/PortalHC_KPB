@@ -883,6 +883,38 @@ namespace HcPortal.Migrations
                     b.ToTable("DeliverableStatusHistories");
                 });
 
+            modelBuilder.Entity("HcPortal.Models.ExamActivityLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Detail")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("SessionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
+
+                    b.HasIndex("Timestamp");
+
+                    b.ToTable("ExamActivityLogs");
+                });
+
             modelBuilder.Entity("HcPortal.Models.IdpItem", b =>
                 {
                     b.Property<int>("Id")
@@ -1936,6 +1968,17 @@ namespace HcPortal.Migrations
                         .IsRequired();
 
                     b.Navigation("ProtonDeliverableProgress");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.ExamActivityLog", b =>
+                {
+                    b.HasOne("HcPortal.Models.AssessmentSession", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
                 });
 
             modelBuilder.Entity("HcPortal.Models.IdpItem", b =>

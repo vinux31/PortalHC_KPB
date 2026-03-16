@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Panduan Konfigurasi Active Directory — Portal HC KPB</title>
+<style>
+  @page { size: A4; margin: 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.6; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+  h1 { color: #c62828; font-size: 20pt; border-bottom: 3px solid #c62828; padding-bottom: 8px; margin-bottom: 6px; }
+  .subtitle { color: #555; font-size: 10pt; margin-bottom: 24px; }
+  h2 { color: #1565c0; font-size: 14pt; margin-top: 24px; margin-bottom: 10px; border-left: 4px solid #1565c0; padding-left: 10px; }
+  h3 { color: #2e7d32; font-size: 12pt; margin-top: 16px; margin-bottom: 8px; }
+  p, li { margin-bottom: 6px; }
+  ul, ol { padding-left: 24px; }
+  code { background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-family: 'Cascadia Code', Consolas, monospace; font-size: 10pt; }
+  pre { background: #263238; color: #eeffff; padding: 14px 18px; border-radius: 6px; overflow-x: auto; margin: 10px 0 16px; font-size: 9.5pt; line-height: 1.5; }
+  pre code { background: none; color: inherit; padding: 0; }
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 10pt; }
+  th { background: #1565c0; color: #fff; padding: 8px 12px; text-align: left; }
+  td { padding: 8px 12px; border-bottom: 1px solid #ddd; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-off { background: #ffcdd2; color: #b71c1c; }
+  .badge-on { background: #c8e6c9; color: #1b5e20; }
+  .warn { background: #fff3e0; border-left: 4px solid #e65100; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 10px 14px; margin: 12px 0; border-radius: 0 6px 6px 0; }
+  .step { background: #f5f5f5; border-radius: 8px; padding: 14px 18px; margin: 10px 0; }
+  .step-num { display: inline-block; background: #1565c0; color: #fff; width: 28px; height: 28px; border-radius: 50%; text-align: center; line-height: 28px; font-weight: 700; margin-right: 8px; font-size: 10pt; }
+  .diagram { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 16px; margin: 12px 0; font-family: 'Cascadia Code', Consolas, monospace; font-size: 9.5pt; white-space: pre; line-height: 1.7; }
+  .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+  @media print { body { padding: 0; } .page-break { page-break-before: always; } }
+</style>
+</head>
+<body>
+
+<h1>Panduan Konfigurasi Active Directory</h1>
+<p class="subtitle">Portal HC KPB &mdash; Dokumen Teknis | Versi 1.0 | Maret 2026</p>
+
+<!-- ============================================================ -->
+<h2>1. Status Saat Ini</h2>
+
+<p>Active Directory pada Portal HC KPB saat ini: <span class="badge badge-off">NON-AKTIF</span></p>
+
+<p>Sistem menggunakan <strong>Local Authentication</strong> (ASP.NET Identity) &mdash; semua user login menggunakan password yang tersimpan di database lokal.</p>
+
+<table>
+<tr><th>Komponen</th><th>File</th><th>Keterangan</th></tr>
+<tr><td>Interface</td><td><code>Services/IAuthService.cs</code></td><td>Kontrak <code>AuthenticateAsync(email, password)</code></td></tr>
+<tr><td>Local Auth</td><td><code>Services/LocalAuthService.cs</code></td><td>Login via Identity PasswordHash</td></tr>
+<tr><td>LDAP Auth</td><td><code>Services/LdapAuthService.cs</code></td><td>Login via Active Directory (LDAP bind)</td></tr>
+<tr><td>Hybrid Auth</td><td><code>Services/HybridAuthService.cs</code></td><td>AD-first, fallback lokal untuk admin</td></tr>
+<tr><td>Config POCO</td><td><code>Services/AuthenticationConfig.cs</code></td><td>Mapping konfigurasi dari appsettings</td></tr>
+<tr><td>Registrasi</td><td><code>Program.cs</code> baris 56-86</td><td>Toggle berdasarkan config</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>2. Arsitektur Authentication</h2>
+
+<div class="diagram">
+                    ┌─────────────────────┐
+                    │   appsettings.json   │
+                    │  UseActiveDirectory  │
+                    └─────────┬───────────┘
+                              │
+                 ┌────────────┴────────────┐
+                 │                         │
+          false (default)              true
+                 │                         │
+     ┌───────────▼──────────┐  ┌───────────▼──────────┐
+     │  LocalAuthService    │  │  HybridAuthService    │
+     │  (Identity DB only)  │  │                       │
+     └──────────────────────┘  │  ┌─────────────────┐  │
+                               │  │ LdapAuthService  │◄─┤── Coba AD dulu
+                               │  └────────┬────────┘  │
+                               │           │ Gagal?     │
+                               │  ┌────────▼────────┐  │
+                               │  │LocalAuthService  │◄─┤── Fallback (admin only)
+                               │  └─────────────────┘  │
+                               └────────────────────────┘
+</div>
+
+<div class="info">
+<strong>Hybrid Mode:</strong> Semua user di-autentikasi via AD terlebih dahulu. Jika AD gagal, <em>hanya</em> akun <code>admin@pertamina.com</code> yang mendapat fallback ke login lokal. User lain akan gagal login jika AD tidak merespons.
+</div>
+
+<!-- ============================================================ -->
+<h2>3. Cara Mengaktifkan Active Directory</h2>
+
+<h3>Opsi A: Via appsettings.json</h3>
+
+<div class="step">
+<span class="step-num">1</span> Buka file <code>appsettings.json</code> di root project
+</div>
+
+<div class="step">
+<span class="step-num">2</span> Ubah nilai <code>UseActiveDirectory</code> dari <code>false</code> menjadi <code>true</code>:
+</div>
+
+<pre><code>{
+  "Authentication": {
+    "UseActiveDirectory": true,
+    "LdapPath": "LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com",
+    "LdapTimeout": 5000,
+    "AttributeMapping": {
+      "Email": "mail",
+      "FullName": "displayName",
+      "NIP": "employeeID"
+    }
+  }
+}</code></pre>
+
+<div class="step">
+<span class="step-num">3</span> Restart aplikasi (bukan hot-reload &mdash; harus restart penuh karena service registration terjadi saat startup)
+</div>
+
+<h3>Opsi B: Via Environment Variable</h3>
+
+<p>Tanpa mengubah file, set environment variable:</p>
+
+<pre><code># Windows (Command Prompt)
+set Authentication__UseActiveDirectory=true
+
+# Windows (PowerShell)
+$env:Authentication__UseActiveDirectory = "true"
+
+# Linux / Docker
+export Authentication__UseActiveDirectory=true</code></pre>
+
+<div class="info">
+<strong>Prioritas:</strong> Environment variable akan meng-override nilai di <code>appsettings.json</code>. Cocok untuk deployment tanpa mengubah file konfigurasi.
+</div>
+
+<!-- ============================================================ -->
+<h2 class="page-break">4. Konfigurasi LDAP</h2>
+
+<table>
+<tr><th>Parameter</th><th>Nilai Saat Ini</th><th>Penjelasan</th></tr>
+<tr>
+  <td><code>LdapPath</code></td>
+  <td><code>LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com</code></td>
+  <td>Path LDAP ke Organizational Unit tempat user berada. Sesuaikan dengan struktur AD perusahaan.</td>
+</tr>
+<tr>
+  <td><code>LdapTimeout</code></td>
+  <td><code>5000</code> (5 detik)</td>
+  <td>Batas waktu koneksi ke AD server. Jika lebih dari 5 detik, login dianggap gagal.</td>
+</tr>
+<tr>
+  <td><code>AttributeMapping.Email</code></td>
+  <td><code>mail</code></td>
+  <td>Atribut AD yang berisi email user</td>
+</tr>
+<tr>
+  <td><code>AttributeMapping.FullName</code></td>
+  <td><code>displayName</code></td>
+  <td>Atribut AD yang berisi nama lengkap</td>
+</tr>
+<tr>
+  <td><code>AttributeMapping.NIP</code></td>
+  <td><code>employeeID</code></td>
+  <td>Atribut AD yang berisi NIP/Employee ID</td>
+</tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>5. Hal-Hal yang Perlu Diperhatikan</h2>
+
+<h3>5.1 Prasyarat Server</h3>
+<ul>
+  <li><strong>Server harus tergabung dalam domain</strong> (domain-joined) atau memiliki konektivitas jaringan ke Domain Controller.</li>
+  <li>Port LDAP (<strong>389</strong>) atau LDAPS (<strong>636</strong>) harus terbuka dari server aplikasi ke Domain Controller.</li>
+  <li>Jika menggunakan Docker, container harus memiliki akses jaringan ke AD server.</li>
+</ul>
+
+<h3>5.2 Data User Harus Sinkron</h3>
+<div class="warn">
+<strong>Penting:</strong> User harus terdaftar di <em>kedua</em> sistem &mdash; baik di Active Directory maupun di database Portal HC. AD hanya memverifikasi password; role, unit, dan data profil tetap dari database lokal.
+</div>
+<ul>
+  <li>Email di AD (<code>mail</code> attribute) harus <strong>sama persis</strong> dengan email di tabel <code>AspNetUsers</code>.</li>
+  <li>Jika user ada di AD tapi tidak ada di database Portal, login akan gagal.</li>
+  <li>Jika user ada di database tapi tidak ada di AD, login juga akan gagal (kecuali <code>admin@pertamina.com</code>).</li>
+</ul>
+
+<h3>5.3 Akun Admin Fallback</h3>
+<ul>
+  <li>Hanya <code>admin@pertamina.com</code> yang memiliki fallback ke login lokal saat AD aktif.</li>
+  <li>Ini adalah <em>safety net</em> agar admin tetap bisa masuk meskipun AD server down.</li>
+  <li>Akun admin lain <strong>tidak</strong> mendapat fallback &mdash; hanya email tersebut yang di-hardcode di <code>HybridAuthService</code>.</li>
+</ul>
+
+<h3>5.4 Keamanan LDAP</h3>
+<ul>
+  <li><code>LdapAuthService</code> sudah memiliki proteksi <strong>LDAP injection</strong> via method <code>EscapeLdapFilterValue</code>.</li>
+  <li>Autentikasi dilakukan dengan <strong>user credential bind</strong> (bukan service account) &mdash; password user dikirim langsung ke AD untuk validasi.</li>
+  <li>Disarankan menggunakan <strong>LDAPS</strong> (LDAP over SSL, port 636) di production untuk mengenkripsi transmisi password.</li>
+</ul>
+
+<h3>5.5 Timeout &amp; Error Handling</h3>
+<ul>
+  <li>Timeout 5 detik mencegah login hang jika AD server tidak merespons.</li>
+  <li>Pesan error ditampilkan dalam <strong>Bahasa Indonesia</strong> (&ldquo;Gagal terhubung ke server autentikasi&rdquo;, dll.).</li>
+  <li>Error AD di-log ke <code>ILogger</code> &mdash; periksa log aplikasi jika ada masalah login.</li>
+</ul>
+
+<h3>5.6 LdapPath Harus Tepat</h3>
+<div class="warn">
+<strong>Perhatian:</strong> Jika <code>LdapPath</code> tidak sesuai dengan struktur Organizational Unit di AD, tidak ada user yang akan bisa login. Pastikan path sudah diverifikasi oleh tim IT/Infrastructure sebelum diaktifkan.
+</div>
+
+<!-- ============================================================ -->
+<h2>6. Checklist Sebelum Mengaktifkan</h2>
+
+<table>
+<tr><th>#</th><th>Item</th><th>Status</th></tr>
+<tr><td>1</td><td>Server terhubung ke domain / bisa akses Domain Controller</td><td>☐</td></tr>
+<tr><td>2</td><td>Port LDAP (389) atau LDAPS (636) terbuka</td><td>☐</td></tr>
+<tr><td>3</td><td><code>LdapPath</code> sudah diverifikasi oleh tim IT</td><td>☐</td></tr>
+<tr><td>4</td><td>Email user di AD sama persis dengan email di database Portal</td><td>☐</td></tr>
+<tr><td>5</td><td>Akun <code>admin@pertamina.com</code> ada di database dengan password lokal</td><td>☐</td></tr>
+<tr><td>6</td><td>Test login dengan 1-2 user AD terlebih dahulu</td><td>☐</td></tr>
+<tr><td>7</td><td>Monitoring log aktif untuk memantau error autentikasi</td><td>☐</td></tr>
+</table>
+
+<!-- ============================================================ -->
+<h2>7. Rollback (Kembali ke Login Lokal)</h2>
+
+<p>Jika terjadi masalah setelah mengaktifkan AD:</p>
+
+<div class="step">
+<span class="step-num">1</span> Ubah <code>UseActiveDirectory</code> kembali ke <code>false</code> di <code>appsettings.json</code>
+</div>
+<div class="step">
+<span class="step-num">2</span> Atau hapus environment variable <code>Authentication__UseActiveDirectory</code>
+</div>
+<div class="step">
+<span class="step-num">3</span> Restart aplikasi &mdash; semua user kembali login dengan password lokal (Identity)
+</div>
+
+<div class="info">
+<strong>Tidak ada data yang hilang.</strong> Mengaktifkan/menonaktifkan AD tidak mengubah data di database. Hanya mekanisme verifikasi password yang berubah.
+</div>
+
+<div class="footer">
+Portal HC KPB &mdash; Dokumen Teknis Active Directory &mdash; Maret 2026<br>
+Dibuat otomatis &mdash; simpan sebagai PDF via browser (Ctrl+P → Save as PDF)
+</div>
+
+</body>
+</html>
