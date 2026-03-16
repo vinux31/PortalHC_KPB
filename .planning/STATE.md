@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.1
 milestone_name: Export & Import Data
 status: active
-last_updated: "2026-03-16T10:22:31.763Z"
+last_updated: "2026-03-16T10:51:25.291Z"
 last_activity: 2026-03-16 — Roadmap created for v7.1
 progress:
   total_phases: 5
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
   percent: 100
 ---
 
@@ -63,6 +63,7 @@ Progress: [░░░░░░░░░░] 0%
 - Reference implementation: AdminController ImportWorkers + DownloadImportTemplate + ExportWorkers
 - [Phase 176]: Personal export uses GetUnifiedRecords with no filter params (all personal records)
 - [Phase 177]: AuditLog uses ActorUserId/ActorName/ActionType/Description fields
+- [Phase 178-export-auditlog]: Inclusive end-date filter via endDate.Value.AddDays(1); export button href built server-side
 
 ### Blockers/Concerns
 
