@@ -9,7 +9,7 @@
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
-| 171 | 2/2 | Complete   | 2026-03-16 | 7 |
+| 171 | 2/2 | Complete    | 2026-03-16 | 7 |
 | 172 | UI & Navigation Polish | Unify styling, back-to-top button, breadcrumb improvements | UI-01~03, NAV-01~02 | 5 |
 
 ## Phase Details
