@@ -26,8 +26,8 @@
 
 ### Navigation
 
-- [ ] **NAV-01**: Back-to-top button is available on Guide and GuideDetail pages after scrolling
-- [ ] **NAV-02**: GuideDetail breadcrumb shows full path (Home > Panduan > Module Name)
+- [x] **NAV-01**: Back-to-top button is available on Guide and GuideDetail pages after scrolling
+- [x] **NAV-02**: GuideDetail breadcrumb shows full path (Home > Panduan > Module Name)
 
 ## Out of Scope
 
@@ -52,8 +52,8 @@
 | UI-01 | Phase 172 | Complete |
 | UI-02 | Phase 172 | Complete |
 | UI-03 | Phase 172 | Complete |
-| NAV-01 | Phase 172 | Pending |
-| NAV-02 | Phase 172 | Pending |
+| NAV-01 | Phase 172 | Complete |
+| NAV-02 | Phase 172 | Complete |
 
 **Coverage:**
 - v5.0 requirements: 12 total
