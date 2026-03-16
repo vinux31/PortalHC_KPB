@@ -110,6 +110,22 @@
     font-weight: 600;
 }
 
+/* Unified role badge — used in both Guide hero and GuideDetail accordion headers */
+.guide-role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(102, 126, 234, 0.12);
+    color: #667eea;
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    padding: 0.15rem 0.6rem;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
 /* ============================================
    Search Bar
    ============================================ */
@@ -418,9 +434,9 @@
     box-shadow: 0 3px 8px rgba(247, 151, 30, 0.3);
 }
 
-.guide-step-item.step-variant-pink .guide-step-badge {
-    background: var(--gradient-warning);
-    box-shadow: 0 3px 8px rgba(245, 87, 108, 0.3);
+.guide-step-item.step-variant-blue .guide-step-badge {
+    background: linear-gradient(135deg, #0d6efd 0%, #4dabf7 100%);
+    box-shadow: 0 3px 8px rgba(13, 110, 253, 0.3);
 }
 
 /* Variant-specific hover glow colors */
@@ -439,9 +455,9 @@
     animation-name: pulse-glow-orange;
 }
 
-.guide-step-item.step-variant-pink:hover .guide-step-badge {
-    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
-    animation-name: pulse-glow-pink;
+.guide-step-item.step-variant-blue:hover .guide-step-badge {
+    box-shadow: 0 6px 20px rgba(13, 110, 253, 0.5);
+    animation-name: pulse-glow-blue;
 }
 
 .guide-step-text {
@@ -697,12 +713,12 @@ mark.search-highlight {
     }
 }
 
-@keyframes pulse-glow-pink {
+@keyframes pulse-glow-blue {
     0%, 100% {
-        box-shadow: 0 3px 8px rgba(245, 87, 108, 0.3);
+        box-shadow: 0 3px 8px rgba(13, 110, 253, 0.3);
     }
     50% {
-        box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
+        box-shadow: 0 6px 20px rgba(13, 110, 253, 0.5);
     }
 }
 
@@ -813,7 +829,8 @@ mark.search-highlight {
         align-items: center;
     }
 
-    .role-badge {
+    .role-badge,
+    .guide-role-badge {
         margin-top: 0.5rem;
     }
 
@@ -1452,6 +1469,56 @@ mark.search-highlight {
         background: #000000 !important;
         color: #ffffff !important;
         border: 2px solid #ffffff !important;
+    }
+}
+
+/* ============================================
+   Back-to-Top Button
+   ============================================ */
+.guide-back-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1040;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    cursor: pointer;
+    border: 1px solid #dee2e6;
+    color: #667eea;
+    font-size: 1.1rem;
+}
+
+.guide-back-to-top.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.guide-back-to-top:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .guide-back-to-top {
+        width: 38px;
+        height: 38px;
+        bottom: 1rem;
+        right: 1rem;
+    }
+}
+
+@media print {
+    .guide-back-to-top {
+        display: none !important;
     }
 }
 

@@ -465,10 +465,26 @@
     }
 
 </div><!-- end faq section -->
+
+<button type="button" class="guide-back-to-top" id="backToTopBtn" aria-label="Kembali ke atas" title="Kembali ke atas">
+    <i class="bi bi-chevron-up"></i>
+</button>
 </main>
 
 @section Scripts {
 <script>
+// ─── Back-to-top button ───
+(function () {
+    var btn = document.getElementById('backToTopBtn');
+    if (!btn) return;
+    window.addEventListener('scroll', function () {
+        btn.classList.toggle('visible', window.scrollY > 300);
+    });
+    btn.addEventListener('click', function () {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+})();
+
 function toggleAllFaq() {
     var btn = document.getElementById('faqToggleAll');
     var allCollapses = document.querySelectorAll('.faq-answer');
