@@ -56,24 +56,24 @@
 | TERM-05 | Phase 175 | Complete |
 | TERM-06 | Phase 175 | Complete |
 | TERM-07 | Phase 175 | Complete |
-| EXP-01 | Pending | Pending |
-| EXP-02 | Pending | Pending |
-| EXP-03 | Pending | Pending |
-| EXP-04 | Pending | Pending |
-| EXP-05 | Pending | Pending |
-| IMP-01 | Pending | Pending |
-| IMP-02 | Pending | Pending |
-| IMP-03 | Pending | Pending |
-| IMP-04 | Pending | Pending |
-| IMP-05 | Pending | Pending |
-| IMP-06 | Pending | Pending |
+| EXP-01 | Phase 176 | Pending |
+| EXP-02 | Phase 176 | Pending |
+| EXP-03 | Phase 178 | Pending |
+| EXP-04 | Phase 179 | Pending |
+| EXP-05 | Phase 180 | Pending |
+| IMP-01 | Phase 177 | Pending |
+| IMP-02 | Phase 177 | Pending |
+| IMP-03 | Phase 179 | Pending |
+| IMP-04 | Phase 179 | Pending |
+| IMP-05 | Phase 180 | Pending |
+| IMP-06 | Phase 180 | Pending |
 
 **Coverage:**
 - v7.0 requirements: 7 total (all complete)
 - v7.1 requirements: 11 total
-- Mapped to phases: 0 ⚠️
-- Unmapped: 11
+- Mapped to phases: 11/11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after v7.1 requirements definition*
+*Last updated: 2026-03-16 after v7.1 roadmap creation*
