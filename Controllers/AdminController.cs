@@ -5395,7 +5395,7 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Question Import");
 
-            var headers = new[] { "Question", "Option A", "Option B", "Option C", "Option D", "Correct", "Sub Kompetensi" };
+            var headers = new[] { "Question", "Option A", "Option B", "Option C", "Option D", "Correct", "Elemen Teknis" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -5413,7 +5413,7 @@ namespace HcPortal.Controllers
                 "Menghasilkan energi listrik dari gas alam",
                 "Mengolah bahan baku batubara menjadi coke",
                 "A",
-                "Sub Kompetensi x.x"
+                "Elemen Teknis x.x"
             };
             for (int i = 0; i < example.Length; i++)
             {
@@ -5427,7 +5427,7 @@ namespace HcPortal.Controllers
             ws.Cell(3, 1).Style.Font.Italic = true;
             ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
 
-            ws.Cell(4, 1).Value = "Kolom Sub Kompetensi: opsional, isi nama sub-kompetensi. Kosongkan jika tidak ada.";
+            ws.Cell(4, 1).Value = "Kolom Elemen Teknis: opsional, isi nama elemen teknis. Kosongkan jika tidak ada.";
             ws.Cell(4, 1).Style.Font.Italic = true;
             ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
 
@@ -5735,7 +5735,7 @@ namespace HcPortal.Controllers
 
                     if (siblingSubComps.Any() && !currentSubComps.SetEquals(siblingSubComps.ToHashSet()))
                     {
-                        TempData["Warning"] = "Sub Kompetensi pada paket ini berbeda dari paket lain dalam assessment yang sama. Pastikan konsistensi antar paket.";
+                        TempData["Warning"] = "Elemen Teknis pada paket ini berbeda dari paket lain dalam assessment yang sama. Pastikan konsistensi antar paket.";
                     }
                 }
             }
