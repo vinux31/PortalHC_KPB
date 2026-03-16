@@ -20,6 +20,12 @@
 
 **Requirements:** GUIDE-01, GUIDE-02, GUIDE-03, GUIDE-04, FAQ-01, FAQ-02, FAQ-03
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 171-01-PLAN.md — Simplify GuideDetail accordions, fix tutorial card styles, add AD tutorial card
+- [ ] 171-02-PLAN.md — Dynamic card counts, FAQ reorder/cleanup, expand/collapse toggle
+
 **Success Criteria:**
 1. CMP GuideDetail accordion items covered by PDF tutorial simplified to short summaries pointing to PDF
 2. CDP GuideDetail accordion items covered by PDF tutorial simplified similarly
@@ -46,4 +52,4 @@
 
 ---
 *Roadmap created: 2026-03-16*
-*Last updated: 2026-03-16 — consolidated from 4 to 2 phases*
+*Last updated: 2026-03-16 — phase 171 planned (2 plans)*
