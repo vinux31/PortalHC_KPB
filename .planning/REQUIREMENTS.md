@@ -46,14 +46,14 @@
 | GUIDE-02 | Phase 171 | Pending |
 | GUIDE-03 | Phase 171 | Pending |
 | GUIDE-04 | Phase 171 | Pending |
-| FAQ-01 | Phase 172 | Pending |
-| FAQ-02 | Phase 172 | Pending |
-| FAQ-03 | Phase 172 | Pending |
-| UI-01 | Phase 173 | Pending |
-| UI-02 | Phase 173 | Pending |
-| UI-03 | Phase 173 | Pending |
-| NAV-01 | Phase 174 | Pending |
-| NAV-02 | Phase 174 | Pending |
+| FAQ-01 | Phase 171 | Pending |
+| FAQ-02 | Phase 171 | Pending |
+| FAQ-03 | Phase 171 | Pending |
+| UI-01 | Phase 172 | Pending |
+| UI-02 | Phase 172 | Pending |
+| UI-03 | Phase 172 | Pending |
+| NAV-01 | Phase 172 | Pending |
+| NAV-02 | Phase 172 | Pending |
 
 **Coverage:**
 - v5.0 requirements: 12 total
