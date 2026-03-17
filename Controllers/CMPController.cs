@@ -2412,6 +2412,18 @@ namespace HcPortal.Controllers
             var completedAt = assessment.CompletedAt ?? assessment.UpdatedAt ?? assessment.CreatedAt;
             var dateStr = completedAt.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("id-ID"));
 
+            // Generate watermark SVG as image for the PDF
+            byte[]? watermarkBytes = null;
+            try
+            {
+                var svgContent = @"<svg viewBox='0 0 400 350' xmlns='http://www.w3.org/2000/svg'>
+                    <path d='M200 20L30 330H370L200 20ZM200 80L325 310H75L200 80Z' fill='#1a4a8d' opacity='0.05'/>
+                </svg>";
+                var svgPath = Path.Combine(Path.GetTempPath(), "cert_watermark.svg");
+                System.IO.File.WriteAllText(svgPath, svgContent);
+            }
+            catch { /* Skip watermark if SVG fails */ }
+
             var pdf = Document.Create(container =>
             {
                 container.Page(page =>
@@ -2419,129 +2431,135 @@ namespace HcPortal.Controllers
                     page.Size(PageSizes.A4.Landscape());
                     page.Margin(15);
 
-                    // Outer blue border + inner gold border
+                    // Outer blue border + inner gold double border (matches HTML)
                     page.Content()
                         .Border(2).BorderColor("#1a4a8d")
-                        .Padding(5)
+                        .Padding(4)
                         .Border(1).BorderColor("#c49a00")
-                        .Padding(10)
-                        .Column(col =>
+                        .Padding(1)
+                        .Border(1).BorderColor("#c49a00")
+                        .Layers(layers =>
                         {
-                            col.Spacing(0);
+                            // Watermark triangle (matches HTML SVG at 5% opacity)
+                            layers.Layer().AlignCenter().AlignMiddle()
+                                .Width(PageSizes.A4.Landscape().Width * 0.55f)
+                                .Height(PageSizes.A4.Landscape().Height * 0.65f)
+                                .Svg("<svg viewBox='0 0 400 350' xmlns='http://www.w3.org/2000/svg'><path d='M200 20L30 330H370L200 20ZM200 80L325 310H75L200 80Z' fill='#1a4a8d' opacity='0.05'/></svg>");
 
-                            // Header: HC PORTAL KPB
-                            col.Item().AlignCenter().PaddingTop(8)
-                                .Text("HC PORTAL KPB")
-                                .FontFamily("Playfair Display").FontSize(18).Bold()
-                                .FontColor("#1a4a8d");
-
-                            // Certificate of Completion
-                            col.Item().AlignCenter().PaddingTop(4)
-                                .Text("Certificate of Completion")
-                                .FontFamily("Playfair Display").FontSize(36).Bold()
-                                .FontColor("#1a4a8d");
-
-                            // This verifies that
-                            col.Item().AlignCenter().PaddingTop(4)
-                                .Text("This verifies that")
-                                .FontFamily("Lato").FontSize(14).Italic()
-                                .FontColor("#555555");
-
-                            // Recipient name with underline
-                            col.Item().AlignCenter().PaddingTop(6).PaddingBottom(2)
-                                .BorderBottom(1.5f).BorderColor("#cccccc")
-                                .Text(assessment.User?.FullName ?? "")
-                                .FontFamily("Playfair Display").FontSize(32).Bold().Italic();
-
-                            // NIP (if available)
-                            if (!string.IsNullOrEmpty(assessment.User?.NIP))
+                            // Score badge at bottom-right as circle (matches HTML .badge-score)
+                            if (assessment.Score.HasValue)
                             {
-                                col.Item().AlignCenter().PaddingTop(4)
-                                    .Text($"NIP: {assessment.User.NIP}")
-                                    .FontFamily("Lato").FontSize(13)
-                                    .FontColor("#555555");
+                                // Circle badge via SVG
+                                layers.Layer().AlignRight().AlignBottom()
+                                    .Padding(20)
+                                    .Width(80).Height(80)
+                                    .Svg($"<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><circle cx='50' cy='50' r='50' fill='#c49a00'/><circle cx='50' cy='50' r='46' fill='#1a4a8d'/><text x='50' y='38' text-anchor='middle' fill='white' font-family='Lato,sans-serif' font-size='12' font-weight='bold'>SCORE</text><text x='50' y='68' text-anchor='middle' fill='white' font-family='Lato,sans-serif' font-size='28' font-weight='bold'>{assessment.Score}%</text></svg>");
                             }
 
-                            // Achievement text
-                            col.Item().AlignCenter().PaddingTop(8)
-                                .Text("Has successfully completed the competency assessment module")
-                                .FontFamily("Lato").FontSize(13)
-                                .FontColor("#444444");
-
-                            // Assessment title in gold
-                            col.Item().AlignCenter().PaddingTop(4)
-                                .Text((assessment.Title ?? "").ToUpperInvariant())
-                                .FontFamily("Lato").FontSize(20).Bold()
-                                .FontColor("#c49a00");
-
-                            // Proficiency text
-                            col.Item().AlignCenter().PaddingTop(4)
-                                .Text("Demonstrating proficiency and understanding of the subject matter.")
-                                .FontFamily("Lato").FontSize(13)
-                                .FontColor("#444444");
-
-                            // Footer row
-                            col.Item().PaddingTop(14).Row(row =>
-                            {
-                                // Left: date + certificate info
-                                row.RelativeItem().Column(left =>
+                            // Main content (vertically centered like HTML flexbox)
+                            layers.PrimaryLayer()
+                                .AlignCenter().AlignMiddle()
+                                .Width(PageSizes.A4.Landscape().Width * 0.75f)
+                                .Column(col =>
                                 {
-                                    left.Item()
-                                        .Text(dateStr)
-                                        .FontFamily("Lato").FontSize(14).Bold();
-                                    left.Item().BorderTop(1).BorderColor("#333333").PaddingTop(2)
-                                        .Text("Date of Issue")
-                                        .FontFamily("Lato").FontSize(11)
-                                        .FontColor("#666666");
-                                    if (!string.IsNullOrEmpty(assessment.NomorSertifikat))
-                                    {
-                                        left.Item().PaddingTop(3)
-                                            .Text($"No. Sertifikat: {assessment.NomorSertifikat}")
-                                            .FontFamily("Lato").FontSize(11)
-                                            .FontColor("#666666");
-                                    }
-                                    if (assessment.ValidUntil.HasValue)
-                                    {
-                                        left.Item().PaddingTop(2)
-                                            .Text($"Berlaku Hingga: {assessment.ValidUntil.Value.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("id-ID"))}")
-                                            .FontFamily("Lato").FontSize(11)
-                                            .FontColor("#666666");
-                                    }
-                                });
+                                    col.Spacing(0);
 
-                                // Center: score badge (if available)
-                                if (assessment.Score.HasValue)
-                                {
-                                    row.ConstantItem(80).AlignCenter()
-                                        .Background("#1a4a8d")
-                                        .Border(3).BorderColor("#c49a00")
-                                        .Padding(6)
-                                        .Column(badge =>
-                                        {
-                                            badge.Item().AlignCenter()
-                                                .Text("SCORE")
-                                                .FontFamily("Lato").FontSize(9).Bold()
-                                                .FontColor("#ffffff");
-                                            badge.Item().AlignCenter()
-                                                .Text($"{assessment.Score}%")
-                                                .FontFamily("Lato").FontSize(20).Bold()
-                                                .FontColor("#ffffff");
-                                        });
-                                }
-
-                                // Right: signature
-                                row.RelativeItem().AlignRight().Column(right =>
-                                {
-                                    right.Item().AlignRight()
-                                        .Text("Authorized Sig.")
-                                        .FontFamily("Playfair Display").FontSize(18)
+                                    // Header: HC PORTAL KPB
+                                    col.Item().AlignCenter().PaddingBottom(20)
+                                        .Text("HC PORTAL KPB")
+                                        .FontFamily("Playfair Display").FontSize(20).Bold()
+                                        .LetterSpacing(0.05f)
                                         .FontColor("#1a4a8d");
-                                    right.Item().AlignRight().BorderTop(1).BorderColor("#333333").PaddingTop(2)
-                                        .Text("HC Manager")
-                                        .FontFamily("Lato").FontSize(11)
-                                        .FontColor("#666666");
+
+                                    // Certificate of Completion
+                                    col.Item().AlignCenter().PaddingBottom(6)
+                                        .Text("Certificate of Completion")
+                                        .FontFamily("Playfair Display").FontSize(42).Bold()
+                                        .FontColor("#1a4a8d");
+
+                                    // This verifies that
+                                    col.Item().AlignCenter().PaddingBottom(28)
+                                        .Text("This verifies that")
+                                        .FontFamily("Lato").FontSize(15).Italic()
+                                        .FontColor("#555555");
+
+                                    // Recipient name with underline
+                                    col.Item().AlignCenter().PaddingBottom(20)
+                                        .BorderBottom(1.5f).BorderColor("#cccccc")
+                                        .PaddingBottom(4)
+                                        .Text(assessment.User?.FullName ?? "")
+                                        .FontFamily("Playfair Display").FontSize(36).Bold().Italic();
+
+                                    // NIP (if available)
+                                    if (!string.IsNullOrEmpty(assessment.User?.NIP))
+                                    {
+                                        col.Item().AlignCenter().PaddingBottom(15)
+                                            .Text($"NIP: {assessment.User.NIP}")
+                                            .FontFamily("Lato").FontSize(15)
+                                            .FontColor("#555555");
+                                    }
+
+                                    // Achievement text
+                                    col.Item().AlignCenter().PaddingBottom(6)
+                                        .Text("Has successfully completed the competency assessment module")
+                                        .FontFamily("Lato").FontSize(15)
+                                        .FontColor("#444444");
+
+                                    // Assessment title in gold
+                                    col.Item().AlignCenter().PaddingBottom(6)
+                                        .Text((assessment.Title ?? "").ToUpperInvariant())
+                                        .FontFamily("Lato").FontSize(24).Bold()
+                                        .FontColor("#c49a00");
+
+                                    // Proficiency text
+                                    col.Item().AlignCenter().PaddingBottom(40)
+                                        .Text("Demonstrating proficiency and understanding of the subject matter.")
+                                        .FontFamily("Lato").FontSize(15)
+                                        .FontColor("#444444");
+
+                                    // Footer row: Date left, Signature right
+                                    col.Item().PaddingHorizontal(30).Row(row =>
+                                    {
+                                        // Left: date + certificate info
+                                        row.RelativeItem().Column(left =>
+                                        {
+                                            left.Item()
+                                                .Text(dateStr)
+                                                .FontFamily("Lato").FontSize(15).Bold();
+                                            left.Item().BorderTop(1).BorderColor("#333333").PaddingTop(3)
+                                                .Text("Date of Issue")
+                                                .FontFamily("Lato").FontSize(12)
+                                                .FontColor("#666666");
+                                            if (!string.IsNullOrEmpty(assessment.NomorSertifikat))
+                                            {
+                                                left.Item().PaddingTop(4)
+                                                    .Text($"No. Sertifikat: {assessment.NomorSertifikat}")
+                                                    .FontFamily("Lato").FontSize(12)
+                                                    .FontColor("#666666");
+                                            }
+                                            if (assessment.ValidUntil.HasValue)
+                                            {
+                                                left.Item().PaddingTop(2)
+                                                    .Text($"Berlaku Hingga: {assessment.ValidUntil.Value.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("id-ID"))}")
+                                                    .FontFamily("Lato").FontSize(12)
+                                                    .FontColor("#666666");
+                                            }
+                                        });
+
+                                        // Right: signature
+                                        row.RelativeItem().AlignRight().Column(right =>
+                                        {
+                                            right.Item().AlignRight()
+                                                .Text("Authorized Sig.")
+                                                .FontFamily("Playfair Display").FontSize(20)
+                                                .FontColor("#1a4a8d");
+                                            right.Item().AlignRight().BorderTop(1).BorderColor("#333333").PaddingTop(3)
+                                                .Text("HC Manager")
+                                                .FontFamily("Lato").FontSize(12)
+                                                .FontColor("#666666");
+                                        });
+                                    });
                                 });
-                            });
                         });
                 });
             });
