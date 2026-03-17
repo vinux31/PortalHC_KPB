@@ -2375,13 +2375,43 @@ namespace HcPortal.Controllers
                     page.Size(QuestPDF.Helpers.PageSizes.A4.Landscape());
                     page.Margin(1.5f, QuestPDF.Infrastructure.Unit.Centimetre);
 
-                    // HEADER — logo top-right, tanggal below-left
+                    // HEADER — coachee info left, logo right
                     page.Header().PaddingBottom(12).Column(hdrCol =>
                     {
-                        if (logoBytes != null && logoBytes.Length > 0)
-                            hdrCol.Item().AlignRight().MaxWidth(140).Image(logoBytes);
-                        hdrCol.Item().PaddingTop(6).AlignLeft()
-                            .Text($"Tanggal Coaching : {session.Date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"))}").FontSize(10);
+                        // Side-by-side: info left, logo right
+                        hdrCol.Item().Row(row =>
+                        {
+                            row.RelativeItem(3).Column(info =>
+                            {
+                                // Tabular label layout — pad labels to equal width for colon alignment
+                                // Labels: "Nama Coachee", "Unit Coachee", "Track", "Tanggal Coaching"
+                                // Longest label is "Tanggal Coaching" (17 chars) — pad others with spaces
+                                var lines = new[]
+                                {
+                                    ("Nama Coachee      ", Or(coacheeName == "Coachee" ? null : coacheeName)),
+                                    ("Unit Coachee      ", Or(coacheeUnit == "-" ? null : coacheeUnit)),
+                                    ("Track             ", Or(trackDisplay == "-" ? null : trackDisplay)),
+                                    ("Tanggal Coaching  ", session.Date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID")))
+                                };
+                                foreach (var (label, value) in lines)
+                                {
+                                    info.Item().Text(text =>
+                                    {
+                                        text.Span($"{label}: ").FontSize(10);
+                                        text.Span(value).FontSize(10);
+                                    });
+                                }
+                            });
+
+                            row.RelativeItem(2).AlignRight().AlignMiddle().Column(logoCol =>
+                            {
+                                if (logoBytes != null && logoBytes.Length > 0)
+                                    logoCol.Item().MaxWidth(140).Image(logoBytes);
+                            });
+                        });
+
+                        // Horizontal separator line
+                        hdrCol.Item().PaddingTop(6).LineHorizontal(0.5f).LineColor("#CCCCCC");
                     });
 
                     // CONTENT — 3 column table
