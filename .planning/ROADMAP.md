@@ -60,13 +60,13 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 
 ### Phase 182: CDP/CoachingProton Evidence Column Clarification (Loose Phase)
 
-**Goal**: [To be planned]
-**Requirements**: TBD
+**Goal**: Fix Evidence column to derive display from Status field instead of EvidencePath
+**Requirements**: None (loose phase)
 **Depends on**: Phase 181
-**Plans**: 0 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 182 to break down)
+- [ ] 182-01-PLAN.md — Fix EvidenceStatus mapping and view badges
 
 ---
 
