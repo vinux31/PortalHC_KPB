@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Completed 190-01-PLAN.md
-last_updated: "2026-03-17T11:37:49.386Z"
+stopped_at: Completed 190-02-PLAN.md
+last_updated: "2026-03-17T11:43:53.175Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 ---
@@ -61,6 +61,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 | Phase 190 P01 | 2 | 2 tasks | 4 files |
+| Phase 190 P02 | 10min | 2 tasks | 5 files |
 
 ### Decisions
 
@@ -70,6 +71,8 @@ Progress: [░░░░░░░░░░] 0%
 - [v7.5 Roadmap]: NomorSertifikat needs UNIQUE constraint + retry loop (up to 3 attempts on DbUpdateException)
 - [v7.5 Roadmap]: Phase 193 (Clone) depends on Phase 191 (stable wizard) — pre-fill must land in correct step
 - [Phase 190]: Used migrationBuilder.Sql MERGE pattern for seed data (not HasData) — consistent with project convention
+- [Phase 190]: EditCategory GET re-renders ManageCategories view with ViewBag.EditCategory (inline editing pattern)
+- [Phase 190]: ViewBag.Categories must be set in all POST re-render paths to prevent NullReferenceException on form re-render
 
 ### Blockers/Concerns
 
@@ -78,6 +81,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T11:37:49.382Z
-Stopped at: Completed 190-01-PLAN.md
+Last session: 2026-03-17T11:43:53.172Z
+Stopped at: Completed 190-02-PLAN.md
 Resume file: None

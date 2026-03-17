@@ -173,7 +173,7 @@ Plans:
 
 **Milestone Goal:** Simplify assessment creation with a 4-step wizard, add database-driven categories with Admin CRUD, clone/duplicate existing assessments, add certificate expiry dates and auto-generated numbers, and provide server-side PDF certificate download.
 
-- [ ] **Phase 190: DB Categories Foundation** — AssessmentCategory model, EF migration, Admin CRUD, and ViewBag wiring in CreateAssessment
+- [x] **Phase 190: DB Categories Foundation** — AssessmentCategory model, EF migration, Admin CRUD, and ViewBag wiring in CreateAssessment (completed 2026-03-17)
 - [ ] **Phase 191: Wizard UI** — 4-step Bootstrap wizard restructuring CreateAssessment.cshtml with step validation and Confirm summary
 - [ ] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering
 - [ ] **Phase 193: Clone Assessment** — CloneAssessment GET action with deep-copy of full AssessmentPackage question graph and pre-fill into wizard
@@ -265,7 +265,7 @@ Plans:
 | 187. Full-Page Controller Action and Static View | v7.4 | 0/TBD | Not started | - |
 | 188. AJAX Filter Bar | v7.4 | 0/TBD | Not started | - |
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
-| 190. DB Categories Foundation | 1/2 | In Progress|  | - |
+| 190. DB Categories Foundation | 2/2 | Complete   | 2026-03-17 | - |
 | 191. Wizard UI | v7.5 | 0/TBD | Not started | - |
 | 192. ValidUntil & NomorSertifikat | v7.5 | 0/TBD | Not started | - |
 | 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
