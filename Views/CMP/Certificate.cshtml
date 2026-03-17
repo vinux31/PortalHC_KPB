@@ -2,7 +2,8 @@
 @using System.Globalization
 @{
     Layout = null; // No standard layout for certificate
-    var date = DateTime.Now.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"));
+    var completedAt = Model.CompletedAt ?? Model.UpdatedAt ?? Model.CreatedAt;
+    var date = completedAt.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"));
     var rawReturnUrl = Context.Request.Query["returnUrl"].ToString();
     var certBackUrl = (!string.IsNullOrEmpty(rawReturnUrl) && Uri.IsWellFormedUriString(rawReturnUrl, UriKind.Relative))
         ? rawReturnUrl
@@ -216,6 +217,12 @@
     <div class="no-print">
         <a href="@certBackUrl" class="btn-print btn-back"><i class="bi bi-arrow-left"></i> Kembali</a>
         <button onclick="window.print()" class="btn-print"><i class="bi bi-printer"></i> Print / Save as PDF</button>
+        <a href="@Url.Action("CertificatePdf", "CMP", new { id = Model.Id })"
+           class="btn-print"
+           style="background: #198754; margin-left: 10px;"
+           download>
+            <i class="bi bi-download"></i> Download PDF
+        </a>
     </div>
 
     <div class="certificate-container">
@@ -238,6 +245,11 @@
 
             <div class="recipient-name">@Model.User?.FullName</div>
 
+            @if (!string.IsNullOrEmpty(Model.User?.NIP))
+            {
+                <div style="font-size: 18px; color: #555; margin-bottom: 20px;">NIP: @Model.User.NIP</div>
+            }
+
             <div class="achievement-text">
                 Has successfully completed the competency assessment module
             </div>
@@ -253,6 +265,16 @@
                     <div style="font-size: 18px; font-weight: bold;">@date</div>
                     <div class="signature-line"></div>
                     <div class="signature-label">Date of Issue</div>
+                    @if (!string.IsNullOrEmpty(Model.NomorSertifikat))
+                    {
+                        <div style="font-size: 14px; color: #666; margin-top: 5px;">No. Sertifikat: @Model.NomorSertifikat</div>
+                    }
+                    @if (Model.ValidUntil.HasValue)
+                    {
+                        <div style="font-size: 14px; color: #666; margin-top: 3px;">
+                            Berlaku Hingga: @Model.ValidUntil.Value.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID"))
+                        </div>
+                    }
                 </div>
 
                 <div class="signature-section">
