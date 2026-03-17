@@ -1677,10 +1677,12 @@ namespace HcPortal.Controllers
         }
 
         /// <summary>
-        /// Builds a cross-package ShuffledQuestionIds list using the slot-list algorithm.
-        /// Per user decision: guaranteed even distribution (K/N per package, remainder randomly allocated),
-        /// Fisher-Yates shuffle of the slot list, then position i → package[slot[i]].Questions ordered by Order, take index pkgCounter[pkgIdx].
-        /// For 1 package: returns questions in original DB order (no shuffle).
+        /// Builds a cross-package ShuffledQuestionIds list using the ET-aware distribution algorithm.
+        /// For 1 package: returns all questions shuffled (ET coverage is inherent).
+        /// For N packages: Phase 1 guarantees at least one question per ElemenTeknis group (best-effort),
+        /// Phase 2 fills remaining quota with balanced package distribution,
+        /// Phase 3 Fisher-Yates shuffles the combined list.
+        /// Falls back to original slot-list algorithm when no questions have ElemenTeknis data.
         /// All packages must be loaded with .Include(p => p.Questions) — questions ordered by q.Order.
         /// </summary>
         private static List<int> BuildCrossPackageAssignment(List<AssessmentPackage> packages, Random rng)
@@ -1704,42 +1706,128 @@ namespace HcPortal.Controllers
             if (K == 0)
                 return new List<int>();
 
-            int N = packages.Count;
-            int baseCount = K / N;
-            int remainder = K % N;
+            // Collect all questions across all packages with their package index
+            var allQuestions = packages.SelectMany((p, pIdx) =>
+                p.Questions.Select(q => new { Question = q, PackageIndex = pIdx })).ToList();
 
-            // Decide which package indices get +1 question (random allocation of remainder)
-            var remainderIndices = Enumerable.Range(0, N)
-                .OrderBy(_ => rng.Next())
-                .Take(remainder)
-                .ToHashSet();
+            // Identify distinct ET groups (non-null ElemenTeknis values across all packages)
+            var etGroups = allQuestions
+                .Where(x => !string.IsNullOrWhiteSpace(x.Question.ElemenTeknis))
+                .Select(x => x.Question.ElemenTeknis!)
+                .Distinct()
+                .ToList();
 
-            // Build slot list: [pkg0 × baseCount(+1?), pkg1 × baseCount(+1?), ...]
-            var slots = new List<int>();
-            for (int i = 0; i < N; i++)
+            // Fallback: if no questions have ElemenTeknis, use original slot-list algorithm
+            if (etGroups.Count == 0)
             {
-                int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
-                for (int j = 0; j < count; j++)
-                    slots.Add(i);
+                // No ElemenTeknis data — fall back to original slot-list distribution
+                int N0 = packages.Count;
+                int baseCount0 = K / N0;
+                int remainder0 = K % N0;
+                var remainderIndices0 = Enumerable.Range(0, N0)
+                    .OrderBy(_ => rng.Next())
+                    .Take(remainder0)
+                    .ToHashSet();
+                var slots0 = new List<int>();
+                for (int i = 0; i < N0; i++)
+                {
+                    int count = baseCount0 + (remainderIndices0.Contains(i) ? 1 : 0);
+                    for (int j = 0; j < count; j++)
+                        slots0.Add(i);
+                }
+                Shuffle(slots0, rng);
+                var pkgCounter0 = new int[N0];
+                var fallbackIds = new List<int>();
+                var orderedQuestions0 = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
+                for (int pos = 0; pos < K; pos++)
+                {
+                    int pkgIdx = slots0[pos];
+                    var question = orderedQuestions0[pkgIdx][pkgCounter0[pkgIdx]];
+                    pkgCounter0[pkgIdx]++;
+                    fallbackIds.Add(question.Id);
+                }
+                return fallbackIds;
             }
 
-            // Fisher-Yates shuffle the slot list
-            Shuffle(slots, rng);
+            // ET-aware distribution
+            var selectedIds = new HashSet<int>();
+            var selectedList = new List<int>();
 
-            // Build ShuffledQuestionIds: for position p, take package[slots[p]].Questions ordered by Order, at index pkgCounter[pkgIdx]
-            var pkgCounter = new int[N];
-            var shuffledIds = new List<int>();
-            var orderedQuestions = packages.Select(p => p.Questions.OrderBy(q => q.Order).ToList()).ToList();
-
-            for (int pos = 0; pos < K; pos++)
+            // Phase 1 — Guarantee one question per ET group (best-effort, capped at K)
+            // NULL ElemenTeknis questions are excluded from Phase 1 (they participate in Phase 2 only)
+            foreach (var etGroup in etGroups)
             {
-                int pkgIdx = slots[pos];
-                var question = orderedQuestions[pkgIdx][pkgCounter[pkgIdx]];
-                pkgCounter[pkgIdx]++;
-                shuffledIds.Add(question.Id);
+                if (selectedIds.Count >= K) break;
+
+                var candidates = allQuestions
+                    .Where(x => x.Question.ElemenTeknis == etGroup && !selectedIds.Contains(x.Question.Id))
+                    .Select(x => x.Question.Id)
+                    .ToList();
+
+                Shuffle(candidates, rng);
+                if (candidates.Count > 0)
+                {
+                    int picked = candidates[0];
+                    selectedIds.Add(picked);
+                    selectedList.Add(picked);
+                }
             }
 
-            return shuffledIds;
+            // Phase 2 — Fill remaining quota with balanced package distribution
+            int remaining = K - selectedIds.Count;
+            if (remaining > 0)
+            {
+                int N = packages.Count;
+                var orderedByPackage = packages
+                    .Select(p => p.Questions.OrderBy(q => q.Order)
+                        .Where(q => !selectedIds.Contains(q.Id))
+                        .ToList())
+                    .ToList();
+
+                // Build slot list for remaining slots using balanced distribution
+                int baseCount = remaining / N;
+                int remainder = remaining % N;
+                var remainderIndices = Enumerable.Range(0, N)
+                    .OrderBy(_ => rng.Next())
+                    .Take(remainder)
+                    .ToHashSet();
+
+                var slots = new List<int>();
+                for (int i = 0; i < N; i++)
+                {
+                    int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
+                    for (int j = 0; j < count; j++)
+                        slots.Add(i);
+                }
+                Shuffle(slots, rng);
+
+                var pkgCounter = new int[N];
+                var pkgAvailable = orderedByPackage.Select(q => q.Count).ToArray();
+
+                foreach (int pkgIdx in slots)
+                {
+                    // Find a package with available unselected questions
+                    int targetPkg = pkgIdx;
+                    if (pkgCounter[targetPkg] >= pkgAvailable[targetPkg])
+                    {
+                        // Redistribute: find any package with remaining questions
+                        targetPkg = -1;
+                        for (int i = 0; i < N; i++)
+                        {
+                            if (pkgCounter[i] < pkgAvailable[i]) { targetPkg = i; break; }
+                        }
+                        if (targetPkg == -1) break; // All packages exhausted
+                    }
+                    var q = orderedByPackage[targetPkg][pkgCounter[targetPkg]];
+                    pkgCounter[targetPkg]++;
+                    selectedIds.Add(q.Id);
+                    selectedList.Add(q.Id);
+                }
+            }
+
+            // Phase 3 — Fisher-Yates shuffle the combined list
+            Shuffle(selectedList, rng);
+            return selectedList;
         }
 
         // Helper: extract A/B/C/D from common Correct-column formats
@@ -2502,6 +2590,11 @@ namespace HcPortal.Controllers
                     }
                 }
 
+                // ElemenTeknis scoring for legacy path
+                // AssessmentQuestion (legacy model) does not carry ElemenTeknis — legacy ET scores remain null.
+                // This block is a no-op placeholder so the viewModel is consistent with the package path.
+                List<ElemenTeknisScore>? legacyEtScores = null;
+
                 viewModel = new AssessmentResultsViewModel
                 {
                     AssessmentId = assessment.Id,
@@ -2516,7 +2609,8 @@ namespace HcPortal.Controllers
                     CompletedAt = assessment.CompletedAt,
                     TotalQuestions = legacyQuestions.Count,
                     CorrectAnswers = correctCount,
-                    QuestionReviews = questionReviews
+                    QuestionReviews = questionReviews,
+                    ElemenTeknisScores = legacyEtScores
                 };
             }
 
