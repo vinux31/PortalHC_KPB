@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** PortalHC KPB — CDP Certificate Monitoring Dashboard (v7.4)
-**Domain:** Internal HR portal — certificate monitoring extension to CDP module
+**Project:** PortalHC KPB — v7.5 Assessment Form Revamp & Certificate Enhancement
+**Domain:** Brownfield ASP.NET Core MVC — Wizard Form, DB-Driven Categories, Certificate Auto-Numbering, PDF Download
 **Researched:** 2026-03-17
 **Confidence:** HIGH
 
 ## Executive Summary
 
-The certificate monitoring dashboard is a read-only compliance overview page extending the existing CDP module. It unifies two already-modeled data sources — `TrainingRecord` (manual training certificates) and `AssessmentSession` (online assessment certificates) — into a single role-scoped table with expiry status badges, summary counters, filter controls, and an Excel export. All required dependencies (EF Core, ClosedXML, Bootstrap 5, QuestPDF) are already installed; no new packages are needed. The implementation follows established patterns in `CDPController` and can reuse or copy verbatim the role-scoping helper, the cascade filter endpoint, and the ClosedXML export action.
+This milestone is a well-scoped brownfield enhancement to an existing MVC portal. The goal is to replace a single long-page assessment creation form with a 4-step wizard, move assessment categories from hardcoded view values to a database-driven table, add certificate auto-numbering and expiry tracking to `AssessmentSession`, and introduce a QuestPDF-generated certificate download. All required libraries are already installed — no new NuGet packages are needed. The pattern for every new capability has a direct existing analogue in the codebase (ViewBag-driven dropdowns, QuestPDF in CDPController, admin CRUD pattern, EF migrations).
 
-The recommended approach is a straightforward MVC extension: one new ViewModel file (`MonitoringSertifikatViewModel`), three new controller actions (`MonitoringSertifikat`, `FilterMonitoringSertifikat`, `ExportSertifikatExcel`) plus a private `BuildSertifikatRowsAsync` helper, and two new views (full page + AJAX partial). All role-scoping, filter wiring, and export logic mirrors code already present and tested in the same controller. The build sequence is well-defined by dependency order and produces independently testable increments.
+The recommended implementation approach is strictly incremental: lay down the data layer first (migrations for `AssessmentCategories` table and new `AssessmentSession` columns), then isolate each UI and logic change to its own phase. The wizard must be implemented as a single-page client-side show/hide restructure — NOT as multi-action server round-trips — to preserve the existing 310-line POST action without risky refactoring. Clone, auto-numbering, and PDF certificate are independent and can be phased safely after the data layer is stable.
 
-The primary risks are correctness traps in the dual-source ViewModel mapping layer, not in infrastructure. The two most dangerous are: (1) overloading `ValidUntil == null` to mean both "permanent assessment cert" and "training cert with missing validity date," and (2) applying role-scoping to `TrainingRecord` but forgetting to apply the same scope to `AssessmentSession`. Both are avoidable by defining a `RecordType` discriminator on the ViewModel and building a single `GetAllowedUserIdsAsync` helper consumed by both queries. These must be addressed in the ViewModel and query phases before any view or filter work begins.
+The primary risks are correctness risks, not capability risks. Category seed data must exactly match the six existing string values used in controller branching logic. Auto-generated certificate numbers need a DB-level UNIQUE constraint from day one plus a retry loop to be safe under concurrent exam completions. Wizard "Back" navigation must explicitly re-sync the multi-user selection hidden input or it will produce sessions for unintended workers. QuestPDF certificate layout must use relative (not absolute) positioning to handle long employee names without clipping.
 
 ---
 
@@ -19,111 +19,126 @@ The primary risks are correctness traps in the dual-source ViewModel mapping lay
 
 ### Recommended Stack
 
-The feature requires no new packages. All infrastructure is in place and validated in production by earlier milestones. EF Core 8 handles the LINQ queries; ClosedXML 0.105.0 (installed v7.1) covers export; Bootstrap 5 (CDN) handles the UI. Server-rendered Razor was chosen over DataTables.js because role-scoped filtering must be server-enforced — sending the full unfiltered dataset to the client is incompatible with the access model.
+All required technology is already in the project. No new packages are needed. The stack decisions are about which existing patterns to follow, not which libraries to add.
 
 **Core technologies:**
-- ASP.NET Core MVC (.NET 8, existing): New actions in `CDPController` — no friction, shared DI constructor
-- EF Core 8 SqlServer (existing): LINQ projection of `TrainingRecord` + `AssessmentSession` into flat ViewModel rows
-- ClosedXML 0.105.0 (existing): Excel export using the same `XLWorkbook` + `FileStreamResult` pattern as `AdminController`
-- Bootstrap 5 / Bootstrap Icons (existing CDN): Summary cards, status badges, responsive table — no custom CSS needed
+- ASP.NET Core MVC (net8.0): wizard form POST, clone action, certificate PDF action — all fit the existing MVC action pattern
+- EF Core 8.0 + SQL Server: two migrations cover all DB changes (`AssessmentCategories` table; `ValidUntil` + `NomorSertifikat` on `AssessmentSessions`)
+- QuestPDF 2026.2.2: certificate PDF download — Community license active in `Program.cs`; inline `Document.Create` lambda pattern already used in `CDPController.cs`
+- Bootstrap 5 nav-tabs + jQuery: wizard step UI — zero new dependency; sufficient for a 4-step linear form
+
+**Patterns to follow (not invent):**
+- ViewBag category list: follows `ViewBag.ProtonTracks` / `ViewBag.Sections` pattern already in `CreateAssessment GET`
+- Admin CRUD for categories: copy ManageWorkers CRUD pattern from `AdminController`
+- PDF download action: copy inline QuestPDF pattern from `CDPController.ExportProgressPdf` (lines 2189–2539)
 
 ### Expected Features
 
-All P1 features are table stakes for a monitoring dashboard and map directly to existing infrastructure. P2 features add value but are not blocking.
+**Must have (table stakes — all in scope for v7.5):**
+- Wizard step indicator and per-step client-side validation — users expect multi-step forms to have progress indicators
+- DB-driven category dropdown — HC admins need to add categories without developer deployment
+- Clone / duplicate existing assessment — HC admins recreate recurring assessments manually today
+- `ValidUntil` field on `AssessmentSession` — certificates need expiry dates like `TrainingRecord` already has
+- Auto-generated `NomorSertifikat` on `AssessmentSession` — unique, traceable certificate numbers for online assessments
+- QuestPDF certificate download — deterministic PDF needed; browser print-to-PDF is unreliable
 
-**Must have (table stakes):**
-- Unified certificate table (role-scoped, dual-source) — core purpose of the page
-- Summary stat cards: Total / Aktif / Akan Expired / Expired — standard monitoring convention
-- Expiry status badge per row with color-coded row highlight — required for at-a-glance scanning
-- Role-scoped data access (Admin/HC = all, SH/SrSpv = own Bagian, Coach/Coachee = own records)
-- Bagian > Unit cascade filter + status filter + text search (client-side JS)
-- Export to Excel (Admin/HC only, ClosedXML) — HC needs offline reporting
-- CDP/Index entry card — navigation discovery
+**Should have (differentiators — add after core phases validated):**
+- Wizard Confirm/Review step showing all selections before submit
+- Category-driven default autofill (pass threshold, cert flag) via `data-pass-percentage` on `<option>` elements
+- Certificate expiry warning extended to online assessment certs (reuse existing `IsExpiringSoon` pattern)
 
-**Should have (differentiators):**
-- Days-until-expiry numeric column — enables SH to prioritize by urgency
-- "Permanen" label for online assessment certs — clarifies no expiry vs. null date
-- View certificate action per row — immediate document verification without navigating elsewhere
-
-**Defer (v2+):**
-- Automated email/notification alerts for expiring certs — requires background scheduler and email infra
-- Renewal request workflow
-- Sortable days-remaining column (low complexity, low demand — add post-validation)
+**Defer to v2+:**
+- Server round-trip save between wizard steps (unnecessary complexity for a 2-minute form)
+- Editable certificate template via UI (out of scope; use QuestPDF static layout with AppSettings config)
+- `AssessmentCategory` hierarchy / subcategories (not confirmed as requirement; adds migration complexity)
 
 ### Architecture Approach
 
-The feature adds three public actions and one private helper to `CDPController`, one new ViewModel file, one full-page view, and one AJAX partial. Nothing is restructured. The AJAX filter pattern mirrors `FilterCoachingProton` exactly; the cascade dropdown reuses the existing `GetCascadeOptions` endpoint unchanged; the export mirrors CDPController lines 2137-2184. The key architectural decision is the `BuildSertifikatRowsAsync` private helper that centralizes role-scope enforcement and both queries — all three public actions consume this helper to guarantee consistent scoping.
+All changes fit within the existing project folder structure — no new controllers, no new service layer, no new folders. The boundary is: `AdminController` handles session creation (modify `CreateAssessment GET/POST`, add `CloneAssessment GET`); `CMPController` handles certificate delivery (add `CertificatePdf GET`); `ApplicationDbContext` gains one new `DbSet` and two new columns via a single migration. The wizard is a client-side restructure of `CreateAssessment.cshtml` only — the POST action signature and all server-side validation remain unchanged.
 
 **Major components:**
-1. `MonitoringSertifikatViewModel` + `SertifikatRow` — flat ViewModel with `RecordType` discriminator, `CertificateStatus` (computed string), canonical date fields, and summary counters
-2. `CDPController.BuildSertifikatRowsAsync` — private helper; single role-scoped user ID set applied to both `TrainingRecord` and `AssessmentSession` queries before concatenation
-3. `MonitoringSertifikat.cshtml` + `_MonitoringSertifikatTablePartial.cshtml` — full page and AJAX partial; table and summary cards always derived from the same filtered list
+1. `AssessmentCategory` model + EF migration — DB table replacing hardcoded category strings; seed with 6 exact existing values
+2. `AdminController.CreateAssessment GET/POST` (modified) — loads categories from DB; maps `ValidUntil`; auto-generates `NomorSertifikat` in POST loop
+3. `AdminController.CloneAssessment GET` (new) — reads existing session; redirects to `CreateAssessment` with pre-fill query string
+4. `CreateAssessment.cshtml` (major rewrite) — 4-step wizard via Bootstrap tabs + jQuery; categories from ViewBag
+5. `CMPController.CertificatePdf GET` (new) — QuestPDF A4 landscape binary stream; same auth guard as existing `Certificate` action
 
 ### Critical Pitfalls
 
-1. **Null ValidUntil overloading** — `ValidUntil == null` means "Permanent" for assessment rows but "unknown/missing" for training rows. Fix: add `RecordType` discriminator to `SertifikatRow`; derive `CertificateStatus` server-side in the mapping layer, never in Razor.
+1. **Wizard server-side validation gap** — client-side step validation is UX only; an empty `Category` string passes `[Required]` and corrupts the monitoring view. Add explicit `ModelState` check for whitespace `Category` in the POST action as a backstop.
 
-2. **Role-scoping applied to only one source** — Scoping `TrainingRecord` but forgetting `AssessmentSession` causes SH to see cross-section assessment certs. Fix: build a single `HashSet<string>` of allowed user IDs once, apply to both queries via `.Where(x => allowedIds.Contains(x.UserId))`.
+2. **JS `categoryDefaults` object diverges from DB** — the existing hardcoded `categoryDefaults` JS object in `CreateAssessment.cshtml` must be deleted in the same commit that adds `data-pass-percentage` attributes to `<option>` elements. Never let both exist simultaneously.
 
-3. **Expiry status computed in Razor view** — Summary card counts diverge from table rows when filters are applied. Fix: compute `CertificateStatus` as a stored string on `SertifikatRow`; derive summary counts from `.Count()` on the already-filtered ViewModel list.
+3. **Auto-number race condition under concurrent exam completions** — read-increment-write is not atomic. Add a UNIQUE constraint on `NomorSertifikat` from the initial migration and wrap generation in a retry loop (up to 3 attempts catching `DbUpdateException`).
 
-4. **Failed assessment sessions appearing as certificates** — `IsPassed` is `bool?`; filtering only on `Status == "Completed"` includes failed exams. Fix: always filter with `IsPassed == true && GenerateCertificate == true`.
+4. **Wizard Back navigation desyncs multi-user selection** — the JS user-selection module must expose a `setSelectedUsers()` setter so that navigating Back to Step 2 re-initializes the displayed list from the hidden input. Implement from the start, not as a later fix.
 
-5. **Coach role-scoping copies coaching oversight pattern** — CDPController's existing Coach scope shows coachees' data; certificate monitoring needs own-records only. Fix: for Coach/Coachee, scope to `userId == currentUser.Id`; do not traverse `CoachCoacheeMapping`.
+5. **Clone deep-copy must include `AssessmentPackage` hierarchy** — cloning only `AssessmentSession` fields leaves zero questions; the exam engine reads from `AssessmentPackage → PackageQuestion → PackageOption`. Query and deep-copy the full three-level tree, always creating new entities with `Id = 0`.
+
+6. **QuestPDF certificate layout must use relative positioning** — never use `element.Absolute()` for content containers. Test with the longest `FullName` in the Workers table before finalizing.
 
 ---
 
 ## Implications for Roadmap
 
-Based on research, the natural build order flows from ViewModel definition through data query, then controller actions, then views, then wiring. Each step is independently testable before the next begins.
+Based on the combined research, the recommended phase structure is 6 phases. The data layer must come first as every other phase depends on the migrations being applied. DB categories must precede the wizard rewrite (otherwise wizard has nothing to bind to). `ValidUntil`/`NomorSertifikat` columns must exist before the wizard can capture them. Clone depends on a stable wizard. PDF certificate only requires Phase 1 (columns must exist) and can be built in parallel with Phases 3–5 if needed.
 
-### Phase 1: ViewModel and Data Model Foundation
-**Rationale:** All downstream phases depend on `SertifikatRow` and `MonitoringSertifikatViewModel` being correct. Pitfalls 1, 3, and 5 (null overloading, status in view, wrong date anchor) must be prevented here before any query or view code is written.
-**Delivers:** `Models/MonitoringSertifikatViewModel.cs` with `SertifikatRow` — `RecordType` discriminator, `CertificateStatus` as a computed string, canonical date mapping (`TanggalSelesai ?? TanggalMulai ?? Tanggal` for training; `CompletedAt ?? Schedule` for assessment) documented in comments.
-**Addresses:** Unified certificate table structure, expiry status badge logic for both sources.
-**Avoids:** Pitfalls 1, 3, 5 — null overloading, view-side status derivation, wrong date baseline.
+### Phase 1: Data Layer
+**Rationale:** Every subsequent phase depends on the new DB schema. Running migrations first eliminates the risk of partially-built phases breaking because columns don't exist yet.
+**Delivers:** `AssessmentCategory` model, `DbSet<AssessmentCategory>` in `ApplicationDbContext`, EF migration creating `AssessmentCategories` table with 6 seeded rows, EF migration adding `ValidUntil DateTime?` and `NomorSertifikat string?` (with UNIQUE constraint) to `AssessmentSessions`.
+**Addresses:** DB-driven categories (table stakes), ValidUntil, NomorSertifikat
+**Avoids:** Pitfall 4 (ValidUntil missing in downstream views) — update all downstream ViewModel projections in this same phase; Pitfall 5 (race condition) — UNIQUE constraint added from day one
 
-### Phase 2: Role-Scoped Data Query
-**Rationale:** Data access correctness must be established before any view renders to avoid leaking cross-scope records. Pitfalls 2 and 6 (scoping asymmetry, coach role confusion) are addressed here and nowhere else.
-**Delivers:** `BuildSertifikatRowsAsync` private helper in `CDPController` — single allowed-user-ID set applied to both sources; Pitfall 4 guard (`IsPassed == true && GenerateCertificate == true`); all four role tiers documented in code comments.
-**Addresses:** Role-scoped data access for all roles, dual-source query merge.
-**Avoids:** Pitfalls 2, 4, 6 — scoping asymmetry, failed sessions, coach sees coachees.
+### Phase 2: DB Categories in Form
+**Rationale:** Smallest isolated change before tackling the full wizard rewrite. Proves category loading works end-to-end with the existing single-page form before introducing step navigation complexity.
+**Delivers:** Modified `CreateAssessment GET` queries `AssessmentCategories` from DB; `CreateAssessment.cshtml` renders `<select>` from `ViewBag.Categories` with `data-pass-percentage` on each `<option>`; hardcoded `categoryDefaults` JS object deleted.
+**Avoids:** Pitfall 2 (JS/DB divergence) — both sources cannot coexist; category seed naming must use exact existing string values to preserve `AdminController` branching on `"Assessment Proton"`
+**Research flag:** None — standard ViewBag pattern already in this codebase
 
-### Phase 3: Full-Page Controller Action and Static View
-**Rationale:** With ViewModel and query helper in place, the main GET action and static Razor view are low-risk. Summary cards are computed from the filtered list in a single pass — no separate DB queries.
-**Delivers:** `CDPController.MonitoringSertifikat` action + `Views/CDP/MonitoringSertifikat.cshtml` with static table (no AJAX yet) + summary stat cards (Total / Aktif / Akan Expired / Expired).
-**Uses:** EF Core, Bootstrap 5 card/badge/table-responsive components.
-**Implements:** Full-page data flow (architecture steps 3-4).
+### Phase 3: Wizard UI
+**Rationale:** UI restructure only — no POST action changes. Safe to build after Phase 2 confirms category loading. This is the highest-risk phase for UX correctness (step validation, Back navigation).
+**Delivers:** 4-step `CreateAssessment.cshtml` wizard (Bootstrap tabs + jQuery step controller); per-step client-side validation; Confirm/summary step; `ValidUntil` datepicker in Step 3.
+**Uses:** Bootstrap 5 nav-tabs, jQuery (both on CDN, no install), existing unobtrusive validation
+**Avoids:** Pitfall 1 (server-side validation gap) — add explicit ModelState check for Category whitespace; Pitfall 7 (Back navigation desync) — implement `setSelectedUsers()` from the start
+**Research flag:** None — well-established pattern; Bootstrap tabs behavior is fully documented
 
-### Phase 4: AJAX Filter and Cascade Dropdown
-**Rationale:** Filter wiring is decoupled from the base page; the AJAX partial can be developed and tested independently once the base view exists.
-**Delivers:** `FilterMonitoringSertifikat` AJAX action + `_MonitoringSertifikatTablePartial.cshtml` + JS filter bar wired in `MonitoringSertifikat.cshtml` + Bagian > Unit cascade (reusing existing `GetCascadeOptions` endpoint unchanged).
-**Uses:** Vanilla `fetch()`, existing `GetCascadeOptions` endpoint (no modifications needed).
-**Implements:** AJAX filter pattern mirroring `FilterCoachingProton`.
+### Phase 4: ValidUntil + NomorSertifikat on Session
+**Rationale:** Depends on Phase 1 (columns exist) and Phase 3 (wizard has the ValidUntil field in Step 3). Isolated to the POST action only — no view changes.
+**Delivers:** `CreateAssessment POST` maps `ValidUntil` from model; auto-generates `NomorSertifikat` inside POST loop using count-before-loop + in-memory increment pattern; retry logic on `DbUpdateException` for uniqueness.
+**Avoids:** Pitfall 5 (race condition) — retry loop + UNIQUE constraint enforced
 
-### Phase 5: Excel Export and CDP Entry Card
-**Rationale:** Export depends on `BuildSertifikatRowsAsync` (Phase 2) but not on AJAX filter wiring; it can proceed once the query helper and ViewModel are stable. Entry card requires the page to exist (Phase 3). Both are low-complexity.
-**Delivers:** `ExportSertifikatExcel` action (Admin/HC role-gated) + Export button in view + CDP/Index entry card.
-**Uses:** ClosedXML `XLWorkbook` pattern (copy from CDPController lines 2137-2184).
-**Implements:** Architecture export flow.
+### Phase 5: Clone Assessment
+**Rationale:** Depends on Phase 3 (stable wizard must exist for pre-fill to land in correct step). Highest implementation risk due to question deep-copy complexity.
+**Delivers:** `AdminController.CloneAssessment GET` reads session + full `AssessmentPackage → PackageQuestion → PackageOption` tree; redirects to `CreateAssessment` with pre-fill query string; `CreateAssessment GET` reads clone params from `Request.Query`; "Clone" button on assessment list/detail view.
+**Avoids:** Pitfall 3 (partial deep-copy) — inspect `CMPController` exam-taking actions first to confirm full entity graph required
+**Research flag:** Read `CMPController` PackageExam action before coding to verify question entity graph depth
+
+### Phase 6: PDF Certificate Download
+**Rationale:** Only dependency is Phase 1 (NomorSertifikat and ValidUntil columns must exist). Can be developed in parallel with Phases 3–5 if desired, or sequentially after all others.
+**Delivers:** `CMPController.CertificatePdf GET` action; QuestPDF A4 landscape document with relative layout; "Download PDF" button on `Certificate.cshtml`; filename `Sertifikat_{NIP}_{Title}_{Year}.pdf`.
+**Uses:** QuestPDF 2026.2.2 (already installed); inline `Document.Create` lambda matching CDPController style
+**Avoids:** Pitfall 6 (QuestPDF absolute positioning) — use `.Column()` / `.Row()` / `.AlignCenter()`; test with longest FullName in DB
+**Research flag:** None — QuestPDF already used in CDPController; Community license already set
 
 ### Phase Ordering Rationale
 
-- ViewModel first because all pitfalls root-cause to incorrect ViewModel design; fixing them later is medium recovery cost per the PITFALLS.md recovery table.
-- Query helper second because all three public actions consume it — building the helper before any action prevents copy-paste scope divergence.
-- Static page before AJAX filter because the base view is independently testable; AJAX is an incremental layer.
-- Export and entry card last because they have no blockers once the core page and query helper are complete; they are independently parallelizable within Phase 5.
+- Phase 1 before everything: all DB-dependent code needs the schema to exist before end-to-end testing is possible
+- Phase 2 before Phase 3: isolates the category wiring risk from the wizard navigation risk; each can be tested independently
+- Phase 4 after Phase 3: wizard must exist before the POST can receive `ValidUntil` from Step 3
+- Phase 5 after Phase 3: clone pre-fill must land in a stable wizard; unreliable to implement before wizard step layout is final
+- Phase 6 any time after Phase 1: fully decoupled from UX changes; can be built last or in parallel
 
 ### Research Flags
 
-Phases with standard, well-documented patterns — no `/gsd:research-phase` needed:
-- **Phase 3 (Controller action + static view):** Standard CDPController pattern; no unknowns.
-- **Phase 4 (AJAX filter):** Direct structural copy of `FilterCoachingProton`; endpoint reuse confirmed with line number.
-- **Phase 5 (Export + entry card):** ClosedXML export pattern proven in v7.1; card markup is a direct copy from existing CDP/Index cards.
+Phases requiring targeted code-reading during planning (not a full research cycle):
+- **Phase 5 (Clone):** Read `CMPController` exam-taking actions (`PackageExam`, `SubmitAnswers`) before writing clone logic to verify whether the exam engine uses `AssessmentQuestion` (legacy), `AssessmentPackage` (current), or both. The deep-copy scope depends on this.
 
-Phases that benefit from reading specific existing code before writing (not a full research cycle):
-- **Phase 1 (ViewModel):** Read `Models/AllWorkersHistoryRow.cs` for the Phase 40 `RecordType` discriminator precedent, and `Models/TrainingRecord.cs` nullable fields before finalizing `SertifikatRow` shape.
-- **Phase 2 (Query helper):** Read the role-scoping block in `CDPController.BuildProtonProgressSubModelAsync` and confirm `AssessmentSession` FK structure (no navigation property to `ApplicationUser`) before writing the query.
+Phases with standard patterns (skip additional research):
+- **Phase 1 (Data Layer):** EF Core migration + seed data — fully documented, identical to prior migrations in this project
+- **Phase 2 (DB Categories):** ViewBag list rendering — identical to `ProtonTracks` and `Sections` already in `CreateAssessment GET`
+- **Phase 3 (Wizard UI):** Bootstrap 5 tabs + jQuery — standard pattern; no third-party dependency
+- **Phase 4 (AutoNumber):** Count-before-loop + in-memory increment with retry — self-contained; no external service
+- **Phase 6 (PDF):** QuestPDF inline lambda — copy from `CDPController.ExportProgressPdf` structure
 
 ---
 
@@ -131,34 +146,36 @@ Phases that benefit from reading specific existing code before writing (not a fu
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All packages confirmed in `HcPortal.csproj`; versions verified; no new dependencies required |
-| Features | HIGH | Derived from direct `PROJECT.md` v7.4 spec + model inspection; requirements are unambiguous |
-| Architecture | HIGH | Derived from direct CDPController inspection; all reference patterns identified with line numbers |
-| Pitfalls | HIGH | Based on model inspection revealing actual nullable types and missing navigation properties |
+| Stack | HIGH | All packages confirmed by direct csproj and source file inspection; no new dependencies required |
+| Features | HIGH | All features confirmed by direct model, controller, and view inspection; no ambiguous scope items |
+| Architecture | HIGH | All integration points identified by direct source inspection; no speculative components |
+| Pitfalls | HIGH | All pitfalls identified from direct inspection of affected code paths (`categoryDefaults` JS object, `AssessmentPackage` hierarchy, QuestPDF CDPController pattern) |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **`SertifikatUrl` file serving approach:** PITFALLS.md flags that raw `SertifikatUrl` should not be exposed as a direct `<a href>` path because it points to `wwwroot/uploads/certificates/`. Decide in Phase 3 whether to serve files through a controller action with ownership verification or to confirm the URL is an absolute/external path safe to link directly. Do not defer this until the view is built.
-
-- **`TrainingRecord` rows without `ValidUntil`:** Existing records may predate the `ValidUntil` column. Decide in Phase 1 whether these display as "Tidak Diketahui" or are excluded from the active/expiry counts. Verify against actual DB data before finalizing `CertificateStatus` derivation logic.
+- **Clone question graph depth:** Pitfall 3 identifies that `AssessmentSession` has two potential question sources. During Phase 5 planning, read `CMPController.PackageExam` to confirm whether the exam engine uses `AssessmentQuestion`, `AssessmentPackage`, or both. Scope the deep-copy accordingly.
+- **Category seed string values:** `ARCHITECTURE.md` flags that `AdminController.CreateAssessment POST` has Proton-specific branching logic keyed on the exact string `"Assessment Proton"`. Confirm the exact six production strings in the DB before writing the migration seed to avoid silent branching breakage.
+- **`EditAssessment` view:** Both `PITFALLS.md` and `ARCHITECTURE.md` note that `EditAssessment` (if it exists as a separate view) also needs `ViewBag.Categories` loaded and the `categoryDefaults` JS map removed. Verify whether an `EditAssessment` action/view exists before closing Phase 2.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `HcPortal.csproj` — confirmed all installed packages and exact versions
-- `Models/TrainingRecord.cs` — confirmed `ValidUntil` (nullable), `CertificateType`, `DaysUntilExpiry`, `IsExpiringSoon`, `SertifikatUrl`
-- `Models/AssessmentSession.cs` — confirmed `IsPassed` is `bool?`, `GenerateCertificate` is `bool`, no `ValidUntil` field, no EF navigation property to `ApplicationUser`
-- `Models/UnifiedTrainingRecord.cs` + `Models/AllWorkersHistoryRow.cs` — established ViewModel patterns for dual-source unified rows with `RecordType` discriminator
-- `Controllers/CDPController.cs` — `FilterCoachingProton` (L267), `GetCascadeOptions` (L287), ClosedXML export block (L2137-2184), role-scoping pattern
-- `Models/UserRoles.cs` — role level hierarchy, `HasSectionAccess()`, `IsCoachingRole()` helpers
-- `PROJECT.md` v7.4 — feature specification and role-scope requirements
-
-### Secondary (MEDIUM confidence)
-- Standard certificate/compliance monitoring dashboard UX conventions — summary cards + filterable table + export is the established pattern for internal HR compliance dashboards
+- `HcPortal.csproj` — package versions confirmed
+- `Program.cs` — QuestPDF Community license confirmed at line 8
+- `Controllers/AdminController.cs` — `CreateAssessment GET` (L759), `POST` (L795–1104), ManageWorkers CRUD pattern
+- `Controllers/CMPController.cs` — `Certificate` action (L2327), unified TrainingRecord helper (L1031)
+- `Controllers/CDPController.cs` — `ExportProgressPdf` QuestPDF pattern (L2189–2539)
+- `Models/AssessmentSession.cs` — confirmed absence of `ValidUntil`, `NomorSertifikat`; `IsPassed bool?`; `GenerateCertificate bool`
+- `Models/AssessmentPackage.cs` — three-level hierarchy (`AssessmentPackage → PackageQuestion → PackageOption`) confirmed
+- `Models/TrainingRecord.cs` — `ValidUntil`, `NomorSertifikat`, `IsExpiringSoon` already present
+- `Views/Admin/CreateAssessment.cshtml` — hardcoded `categoryDefaults` at line 538; single-page form confirmed
+- `Views/CMP/Certificate.cshtml` — A4 landscape HTML layout reference
+- `Data/ApplicationDbContext.cs` — `DbSet` inventory; no `AssessmentCategory` present
+- `.planning/PROJECT.md` — v7.5 milestone scope confirmed
 
 ---
 *Research completed: 2026-03-17*

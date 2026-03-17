@@ -1,142 +1,194 @@
 # Feature Research
 
-**Domain:** Certificate Monitoring Dashboard (CDP module, internal HR portal)
+**Domain:** ASP.NET MVC HR Portal — Assessment Form UX & Certificate Enhancement (v7.5)
 **Researched:** 2026-03-17
-**Confidence:** HIGH — direct inspection of TrainingRecord, UnifiedTrainingRecord, and PROJECT.md v7.4 specification
+**Confidence:** HIGH — existing codebase fully inspected (models, controller, views)
+
+---
 
 ## Feature Landscape
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist. Missing these = dashboard feels broken.
+Features that HC admins and workers assume will work correctly. Missing or broken = system feels unreliable.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Unified certificate table | Core purpose — show all certs in one place | LOW | UnifiedTrainingRecord ViewModel exists; extend with UserId/UserName/Bagian/Unit for multi-user view |
-| Expiry status badge per row | Visual at-a-glance — can't scan 100 rows of raw dates | LOW | `IsExpired` already on UnifiedTrainingRecord; add "Akan Expired" (≤30 days) using `DaysUntilExpiry` from TrainingRecord |
-| Summary stat cards (Total / Aktif / Akan Expired / Expired) | Standard monitoring dashboard convention | LOW | Computed from same query result set — no extra DB round-trip |
-| Role-scoped data visibility | Admin/HC see all; SH/SrSpv see own Bagian; Coach/Coachee see own records | MEDIUM | Pattern established in CDPController/CMPController — replicate Bagian>Unit cascade filter logic |
-| Status filter dropdown | Users need to isolate just expired or just expiring-soon rows | LOW | Client-side JS filter sufficient at this data scale |
-| Bagian > Unit cascade filter | HC/SH drill down by org unit | LOW | Pattern already built in CMP/CDP filters — copy pattern verbatim |
-| Text search (worker name or cert title) | Find specific person or cert quickly | LOW | JS filter on rendered table; no server round-trip needed |
-| Export to Excel | HC needs offline reporting and to share status list | LOW | ClosedXML pattern from v7.1 export — direct reuse |
-| CDP/Index entry card | Discovery — users navigate to monitoring from CDP hub | LOW | One new card on CDP/Index; same card layout as existing cards |
+| Wizard step indicator (breadcrumb/progress bar) | Multi-step forms without progress indication feel broken; users do not know how far along they are | LOW | Pure HTML/CSS + JS show/hide — no server round-trips between steps; all steps in single `<form>` |
+| Step validation before advancing to next step | Clicking "Next" on incomplete step should show inline errors, not silently skip | MEDIUM | Client-side JS validation per-step + server-side on final POST; prevents partial or wrong data |
+| Category dropdown populated from DB | HC admins must add categories without a developer deployment; hardcoded list in view is a maintenance liability | MEDIUM | New `AssessmentCategories` table seeded with existing 6 values; CMPController passes list to view via ViewBag |
+| Clone / duplicate existing assessment | Recreating a recurring assessment (e.g., annual HSSE Training) manually every time wastes HC time | MEDIUM | GET `CloneAssessment(id)` reads source AssessmentSession; returns pre-filled CreateAssessment view; new row only on POST |
+| ValidUntil on AssessmentSession | Passed online assessments issue certificates — those certificates need expiry dates like TrainingRecord already has | LOW | New nullable `DateTime?` column on AssessmentSession via EF migration; displayed on certificate view and PDF |
+| Auto-generated NomorSertifikat on AssessmentSession | Certificate numbers must be unique and traceable; the existing manual-entry path for TrainingRecord is not appropriate for auto-issued online certs | MEDIUM | Generate on `IsPassed = true AND GenerateCertificate = true AND NomorSertifikat IS NULL`; store on session row |
+| PDF certificate download | Print-to-PDF via browser is unreliable (margins, fonts, color vary per browser/OS); HC needs a deterministic distributable file | HIGH | QuestPDF library; new `DownloadCertificate(id)` action returning `FileContentResult`; layout mirrors existing Certificate.cshtml |
 
 ### Differentiators (Competitive Advantage)
 
-Features that make the dashboard genuinely useful beyond minimum viability.
+Features that make this portal noticeably better than a plain CRUD form.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Days-until-expiry numeric column | SH can see exactly who is 3 days vs 25 days away — actionable prioritization | LOW | `DaysUntilExpiry` already computed on TrainingRecord; null/blank for Permanent certs |
-| Color-coded row highlighting | Red = expired, amber = expiring soon, green = valid — instant visual scan | LOW | CSS class on `<tr>` based on status; zero additional logic |
-| "Permanent" label for online assessment certs | Clarifies these never expire vs training certs that do | LOW | AssessmentSession rows have no ValidUntil — show "Permanen" badge instead of a date |
-| View certificate action per row | HC can immediately verify the actual document without navigating elsewhere | LOW | `SertifikatUrl` on TrainingRecord; link to assessment cert view for online rows |
+| Wizard Confirm/Review step | Final step shows all selections read-only before submit — eliminates batch-creation errors for 10+ user assessments | LOW | Summary panel populated from hidden inputs or JS in-memory state; no extra DB calls |
+| Category-driven default autofill | Selecting "Mandatory HSSE Training" auto-populates pass threshold, cert flag, banner color — reduces setup errors | MEDIUM | Defaults stored per-category row in DB; JS fetches on category select (or inline JSON in page); no model change needed |
+| Clone from Assessment list (one-click) | "Duplicate" button on existing assessment index row → pre-fills wizard at Step 1; HC only changes title and date | LOW | Clone button in Assessment table row; GET action redirects to CreateAssessment with query params or TempData |
+| Certificate expiry warning for online assessments | Extend the existing IsExpiringSoon warning (already on TrainingRecord/UnifiedTrainingRecord) to cover online assessment certs | LOW | Add ValidUntil to AssessmentSession; UnifiedTrainingRecord unified helper already merges both source types |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Automatic renewal email alerts | "Remind me before cert expires" | Background scheduler + email infra + preference management = 3x milestone scope | Surface expiry date and days-remaining prominently; SH/HC export and act manually |
-| Inline cert editing from monitoring page | "Quick fix the validity date here" | Mixes read and write concerns; existing Edit modal in CMP/Records is the correct write path | Link from monitoring row to CMP Records page for edits |
-| Bulk status update from dashboard | Mass-update expired certs at once | Online cert status is derived (not stored) — bulk write creates inconsistency; manual training certs have diverse validity periods | Export Excel → review offline → use existing Import if batch update needed |
-| Server-side pagination with AJAX | "Scales to large data sets" | Adds controller complexity + loading states + URL state management; this portal serves a bounded single-refinery workforce | Client-side JS filter; revisit only if rows per role scope exceed ~500 |
+| Server round-trip save between wizard steps | "What if the browser closes mid-form?" | Creates partial/orphan AssessmentSession rows needing cleanup; overkill for a 4-step form that completes in <2 minutes | Single POST on final step; use JS hidden inputs to carry earlier step values; optionally localStorage for draft |
+| PDF generation via headless Chrome / Puppeteer | Reuses existing HTML cert template exactly | Heavy dependency; server RAM usage; Windows service startup latency; complex deployment | QuestPDF is .NET-native, deterministic, fast; minor effort to replicate layout in C# fluent API |
+| AssessmentCategory hierarchy (subcategories) | "OJT has subtypes (OJT-1, OJT-2)" | Cascading dropdowns; migration complexity; existing AssessmentCompetencyMap uses flat category string | Flat list with optional `DisplayOrder`; add `ParentId` only if subcategory requirement is confirmed |
+| Editable certificate template via UI | "Change logo or signatory without deploying" | Template builder is a product in itself; far out of scope for this milestone | Static QuestPDF layout; configurable text fields (signatory name, org name) via AppSettings or a small config table |
+| Wizard state persisted in DB between browser sessions | Resume half-filled assessment creation later | Stale draft rows, orphan cleanup, extra table; not justified for a 2-minute form | Not needed; use `localStorage` if a "save draft" requirement is ever raised |
+
+---
 
 ## Feature Dependencies
 
 ```
-Summary stat cards (Total / Aktif / Akan Expired / Expired)
-    └──requires──> Unified certificate query (multi-user, role-scoped)
-                       └──requires──> Role scope resolution (Bagian/Unit for current user)
+[DB-driven AssessmentCategories table]
+    └──enables──> [Category dropdown in Wizard Step 1]
+    └──enables──> [Category-driven default autofill via JS]
+    └──enables──> [Admin CRUD for categories]
 
-Bagian > Unit cascade filter
-    └──requires──> Bagian + Unit lists in DB (already exist)
-    └──requires──> Role scope resolution (limits which Bagian options are shown)
+[Wizard Step UI (client-side restructure)]
+    └──requires──> [DB-driven Categories] for Step 1 dropdown
+    └──enhances──> [Clone Assessment] — Clone sets initial wizard state
 
-Color-coded row highlight + expiry badge
-    └──requires──> Expiry status computed per row (IsExpired on UnifiedTrainingRecord; extend with IsExpiringSoon)
+[ValidUntil on AssessmentSession] (new DB column, EF migration)
+    └──enables──> [Certificate expiry display on Records (IsExpiringSoon)]
+    └──enables──> [ValidUntil printed on PDF certificate]
 
-Export Excel
-    └──requires──> Same unified certificate query as table (pass same role-scope params)
+[NomorSertifikat on AssessmentSession] (new DB column, auto-generated)
+    └──requires──> [IsPassed=true AND GenerateCertificate=true gate] (already exists)
+    └──displayed on──> [QuestPDF certificate download]
 
-View certificate action
-    └──requires──> SertifikatUrl populated (Training Manual rows) OR GenerateCertificate path (Assessment Online rows)
-
-CDP/Index entry card
-    └──requires──> CDPController action for monitoring page registered and returning a view
+[QuestPDF Certificate Download]
+    └──requires──> [NomorSertifikat on AssessmentSession]
+    └──requires──> [ValidUntil on AssessmentSession]
+    └──references──> [Existing Certificate.cshtml] (layout only — no code reuse)
 ```
 
 ### Dependency Notes
 
-- **Summary cards require the same query as the table:** Compute counts in a single pass over the filtered result list — do not issue separate COUNT queries.
-- **Export must respect role scope:** Export action receives same Bagian/Unit/status filter parameters as the table action; HC export should not leak records beyond the user's scope.
-- **Role scope resolution is a prerequisite for all data features:** Admin/HC get all records; SH/SrSpv filter by their Bagian; Coach/Coachee filter by their own UserId. This branching must be resolved before any query runs.
+- **DB-driven Categories requires migration first:** Seed with the exact 6 existing hardcoded strings to avoid breaking Category filters on existing AssessmentSession rows.
+- **AssessmentSession.Category stays as `string` (no FK):** Consistent with the existing `AssessmentCompetencyMap.AssessmentCategory` string pattern; avoids cascade-delete risk on historical data.
+- **Wizard requires no new DB columns:** It is purely a UX restructure of the existing `CreateAssessment` form. The POST action signature and `AssessmentSession` model binding are unchanged.
+- **Clone creates no draft row:** GET `CloneAssessment(id)` returns a pre-populated view. A new row is only committed on the user's final POST submit.
+- **QuestPDF must be phased after NomorSertifikat and ValidUntil:** PDF layout references both fields. If PDF ships without them, the certificate is incomplete.
+
+---
 
 ## MVP Definition
 
-### Launch With (v7.4 — this milestone)
+This is a brownfield milestone — all features in scope are confirmed by the product owner. "MVP" here means phase ordering for safe incremental delivery.
 
-- [ ] CDPController action (`MonitoringSertifikat`) + View
-- [ ] Unified certificate query: all `TrainingRecord` rows (role-scoped by Bagian/Unit/UserId) + passed `AssessmentSession` rows where `GenerateCertificate = true` (role-scoped same way)
-- [ ] Extend ViewModel for multi-user: add `UserName`, `Bagian`, `Unit` fields (training manual rows have these via User navigation; assessment rows via User)
-- [ ] Summary stat cards: Total, Aktif, Akan Expired (≤30 days), Expired
-- [ ] Table columns: Nama Pekerja, Judul Sertifikat, Jenis (Training Manual / Assessment Online), Tipe (Permanent / Annual / 3-Year), Tanggal, Berlaku Hingga, Status badge
-- [ ] Color-coded row highlight (red/amber/green) + days-remaining for non-permanent certs
-- [ ] Role-scoped data access: Admin/HC all, SH/SrSpv their Bagian, Coach/Coachee own records
-- [ ] Bagian > Unit cascade filter + Status filter + text search (client-side JS)
-- [ ] View certificate action (SertifikatUrl link or assessment cert link)
-- [ ] Export Excel — same columns, same role scope
-- [ ] CDP/Index entry card
+### Phase 1 — Foundation (DB + Wizard)
+- [ ] `AssessmentCategories` table with EF migration and seed data — unblocks all other features
+- [ ] Admin CRUD for categories (new action in AdminController or CMPController) — HC self-service
+- [ ] Wizard step UI on `CreateAssessment.cshtml` (JS step visibility, progress indicator, confirm/summary step)
 
-### Add After Validation (v1.x)
+### Phase 2 — Data Enhancements
+- [ ] `ValidUntil` nullable column on `AssessmentSession` (EF migration)
+- [ ] `NomorSertifikat` nullable string column on `AssessmentSession` (EF migration) + auto-generation on pass
+- [ ] Clone assessment action (`GET CloneAssessment(id)` → pre-filled wizard)
 
-- [ ] Direct download button for certificate file (distinct from "view" link) — needs affordance to distinguish file path vs external URL
-- [ ] Sortable "Hari Tersisa" column for SH to prioritize by urgency
+### Phase 3 — PDF Certificate
+- [ ] QuestPDF NuGet package integration
+- [ ] `DownloadCertificate(id)` action returning `FileContentResult` as `application/pdf`
+- [ ] "Download PDF" button on existing `Certificate.cshtml` view
 
-### Future Consideration (v2+)
+### Add After Validation
+- [ ] Category-driven default autofill (JS on category select)
+- [ ] Expiry warning on Records for online assessment ValidUntil (extend existing IsExpiringSoon display)
 
-- [ ] Email/notification alerts for expiring certs — requires background service (out of scope)
-- [ ] Renewal request workflow
+---
 
 ## Feature Prioritization Matrix
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Unified cert table (role-scoped) | HIGH | MEDIUM | P1 |
-| Summary stat cards | HIGH | LOW | P1 |
-| Expiry status badge + row color | HIGH | LOW | P1 |
-| Bagian > Unit cascade filter | HIGH | LOW | P1 |
-| Status + text search filter | HIGH | LOW | P1 |
-| Export Excel | MEDIUM | LOW | P1 |
-| CDP/Index entry card | HIGH | LOW | P1 |
-| View certificate link | MEDIUM | LOW | P1 |
-| Days-until-expiry column | MEDIUM | LOW | P2 |
-| Sortable days-remaining | LOW | LOW | P2 |
-| Download certificate file | LOW | LOW | P2 |
+| Wizard step UI | HIGH | MEDIUM | P1 |
+| DB-driven categories | HIGH | MEDIUM | P1 |
+| Admin category CRUD | MEDIUM | LOW | P1 |
+| NomorSertifikat auto-generate | HIGH | LOW | P1 |
+| ValidUntil on AssessmentSession | HIGH | LOW | P1 |
+| Clone assessment | MEDIUM | LOW | P1 |
+| QuestPDF certificate download | HIGH | HIGH | P1 |
+| Category-driven defaults autofill | MEDIUM | MEDIUM | P2 |
+| Expiry warning on Records (online certs) | LOW | LOW | P2 |
+
+---
+
+## Implementation Notes Per Feature
+
+### Wizard Form
+- Existing `CreateAssessment.cshtml` is a single long form. Restructure into 4 visually distinct `<div>` sections with JS `show/hide`. No changes to the POST action.
+- Steps: (1) Category + Title, (2) Select Users (existing multi-user logic unchanged), (3) Settings (schedule, duration, token, pass%, cert toggle, ValidUntil), (4) Confirm/summary.
+- Hidden `<input>` elements carry values from earlier steps into the final POST to avoid losing data on navigation.
+- Bootstrap 5 `nav-pills` or a custom stepper `<ul>` for the progress indicator.
+- Step-level JS validation: required fields highlighted before `next()` is allowed; server-side ModelState still validates on final submit as fallback.
+
+### DB-driven Categories
+- New model: `AssessmentCategory { int Id, string Name, string? DisplayColor, int? DefaultPassPercentage, bool DefaultGenerateCertificate, int DisplayOrder, bool IsActive }`.
+- Seed exactly: `OJT`, `IHT`, `Training Licencor`, `OTS`, `Mandatory HSSE Training`, `Proton` — these match existing `AssessmentSession.Category` string values in production data.
+- `AssessmentSession.Category` remains a plain `string` column (no FK). This avoids cascade-delete risk and matches the existing `AssessmentCompetencyMap.AssessmentCategory` string pattern.
+- CMPController `CreateAssessment` (GET) passes `List<AssessmentCategory>` via `ViewBag.Categories`.
+
+### Clone Assessment
+- `GET /CMP/CloneAssessment/{id}` — load source `AssessmentSession`, map to a new unpersisted ViewModel, return `CreateAssessment` view pre-populated.
+- Do NOT copy: `UserId`, `Questions`, `Responses`, `Score`, `IsPassed`, `CompletedAt`, `StartedAt`, `ElapsedSeconds`, `NomorSertifikat`, `CreatedAt`.
+- Copy: `Title` (prefix with "Salinan - "), `Category`, `DurationMinutes`, `PassPercentage`, `AllowAnswerReview`, `GenerateCertificate`, `BannerColor`, `IsTokenRequired`, `ProtonTrackId`, `TahunKe`.
+- Add `ViewBag.ClonedFrom = originalTitle` so the Confirm step can display "Disalin dari: [original title]".
+
+### ValidUntil on AssessmentSession
+- Single nullable `DateTime?` column. EF migration required.
+- Displayed on Certificate view (HTML) and included in QuestPDF output.
+- HC sets this during assessment creation in Wizard Step 3 — optional field; leave blank for non-expiring certs.
+- The UnifiedTrainingRecord helper in CMPController (around line 1066) already handles `ValidUntil` from TrainingRecord; extend to read from `AssessmentSession.ValidUntil` for online cert rows.
+
+### NomorSertifikat Auto-Generation
+- Generate when: `IsPassed = true AND GenerateCertificate = true AND NomorSertifikat IS NULL`.
+- Trigger point: inside the existing exam-finish logic (wherever `IsPassed` is set — locate the `FinishExam`/`SubmitAnswers` action flow).
+- Format: `CERT-{YEAR}-{SEQ:D4}` (e.g., `CERT-2026-0042`). Sequential counter per year via `MAX` query on existing AssessmentSession NomorSertifikat values with same year prefix. Simple; no separate sequence table needed.
+- New nullable `string? NomorSertifikat` column on `AssessmentSession`; EF migration required.
+- If `GenerateCertificate = false` or assessment fails, NomorSertifikat stays null — no number is issued.
+
+### QuestPDF Certificate Download
+- NuGet: `QuestPDF` (MIT/Community license — free for organizations under $1M revenue; appropriate for internal corporate portal).
+- New action: `GET /CMP/DownloadCertificate/{id}` → access-checks same as existing `Certificate(id)` (must be owner or Admin/HC); returns `File(bytes, "application/pdf", "Sertifikat-{title}.pdf")`.
+- Create a `CertificateDocument` class implementing `IDocument`; layout in C# fluent API, not Razor.
+- Layout matches `Certificate.cshtml`: A4 landscape, employee name prominent, training title, completion date, `NomorSertifikat`, `ValidUntil` if not null, Pertamina logo from `wwwroot/images/`.
+- Embed fonts (e.g., DejaVu Sans or Liberation Sans from NuGet `QuestPDF` built-ins) to avoid server font dependency.
+- Add "Download PDF" button next to existing "Print" button on `Certificate.cshtml`.
+
+---
 
 ## Existing System Integration
 
-These pieces are already built and directly enable the monitoring dashboard.
+| Existing Component | How New Features Use It |
+|-------------------|------------------------|
+| `AssessmentSession` model | Extended with `ValidUntil` and `NomorSertifikat` columns; no other model changes |
+| `CreateAssessment.cshtml` (worktree version) | Restructured into wizard steps; POST action unchanged |
+| `Certificate.cshtml` | Gets a new "Download PDF" button; layout reference for QuestPDF |
+| `CMPController` exam-finish flow | Extended to auto-generate NomorSertifikat on pass |
+| `UnifiedTrainingRecord` helper (CMPController ~line 1031) | Extended to propagate `ValidUntil` from `AssessmentSession` rows |
+| `AssessmentCompetencyMap.AssessmentCategory` (string) | Confirms flat string-per-session category pattern is safe; no FK needed |
+| Admin CRUD pattern (AdminController) | Copy ManageWorkers CRUD pattern for new ManageAssessmentCategories actions |
 
-| Existing Component | How Monitoring Dashboard Uses It |
-|-------------------|----------------------------------|
-| `TrainingRecord` model | Primary source for manual training certs — `ValidUntil`, `CertificateType`, `IsExpiringSoon`, `DaysUntilExpiry`, `NomorSertifikat`, `SertifikatUrl` all present |
-| `AssessmentSession` model | Source for online certs — rows where `IsPassed = true AND GenerateCertificate = true` are Permanent certificates |
-| `UnifiedTrainingRecord` ViewModel | Starting point — extend with `UserName`, `Bagian`, `Unit` to support multi-user monitoring view |
-| Role-scope filter pattern (CDPController) | Copy Coach/Coachee/SH/SrSpv/HC/Admin branching for data access |
-| Bagian > Unit cascade (existing views) | Reuse JS cascade and dropdown population pattern |
-| ClosedXML Excel export (v7.1) | Replicate export action and file-result pattern directly |
-| CMP/Certificate.cshtml | Reference for certificate display link patterns |
-| CDP/Index card layout | Replicate for new Monitoring Sertifikat entry card |
+---
 
 ## Sources
 
-- `PROJECT.md` v7.4 target feature specification (direct project requirements)
-- `Models/TrainingRecord.cs` — inspected; all expiry fields confirmed present
-- `Models/UnifiedTrainingRecord.cs` — inspected; bridging ViewModel structure confirmed
-- Project memory: CDPController role-scope pattern, ClosedXML export pattern (v7.1), cascade filter pattern
-- Standard certificate/compliance monitoring dashboard UX conventions (summary cards + filterable table + export)
+- `Models/AssessmentSession.cs` — inspected; fields confirmed; `Category` is plain string; no `ValidUntil` or `NomorSertifikat` yet
+- `Models/TrainingRecord.cs` — inspected; `ValidUntil`, `NomorSertifikat`, `IsExpiringSoon`, `DaysUntilExpiry` all present
+- `Views/CMP/CreateAssessment.cshtml` (worktree) — inspected; categories hardcoded as `List<SelectListItem>` lines 6-14; single-page form confirmed
+- `Views/CMP/Certificate.cshtml` — inspected; HTML-only, print-focused, A4 landscape layout
+- `Controllers/CMPController.cs` — inspected; Certificate action (line ~2327), unified helper (line ~1031), exam completion flow (line ~1412+)
+- `Data/ApplicationDbContext.cs` — `AssessmentCompetencyMap.AssessmentCategory` index confirms flat string category pattern
 
 ---
-*Feature research for: CDP Certificate Monitoring Dashboard (PortalHC KPB v7.4)*
+*Feature research for: PortalHC KPB — v7.5 Assessment Form Revamp & Certificate Enhancement*
 *Researched: 2026-03-17*
