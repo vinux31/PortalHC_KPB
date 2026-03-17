@@ -35,18 +35,18 @@ None.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SHUF-01 | TBD | Pending |
-| SHUF-02 | TBD | Pending |
-| SHUF-03 | TBD | Pending |
-| RENAME-01 | TBD | Pending |
-| RENAME-02 | TBD | Pending |
-| RENAME-03 | TBD | Pending |
+| RENAME-01 | Phase 183 | Pending |
+| RENAME-02 | Phase 183 | Pending |
+| RENAME-03 | Phase 183 | Pending |
+| SHUF-01 | Phase 184 | Pending |
+| SHUF-02 | Phase 184 | Pending |
+| SHUF-03 | Phase 184 | Pending |
 
 **Coverage:**
 - v7.3 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6 ⚠️
+- Mapped to phases: 6
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 — traceability mapped after roadmap creation*

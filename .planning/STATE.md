@@ -4,9 +4,9 @@ milestone: v7.3
 milestone_name: Elemen Teknis Shuffle & Rename
 status: active
 last_updated: "2026-03-17"
-last_activity: "2026-03-17 — Milestone v7.3 started"
+last_activity: "2026-03-17 — Roadmap created, phases 183–184 defined"
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Defining requirements for v7.3
+**Current focus:** Phase 183 — Internal Rename SubCompetency → ElemenTeknis
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-17 — Milestone v7.3 started
+Phase: 183 of 184 in v7.3 (Internal Rename SubCompetency → ElemenTeknis)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-17 — Roadmap created (phases 183–184)
+
+Progress: [░░░░░░░░░░] 0% (v7.3)
 
 ## Accumulated Context
 
@@ -35,8 +37,16 @@ Last activity: 2026-03-17 — Milestone v7.3 started
 
 - QuestPDF is the canonical library for PDF generation (DownloadEvidencePdf, ExportProgressPdf)
 - v7.0 already renamed user-facing UI labels from "Sub Kompetensi" to "Elemen Teknis"
-- v7.3 focuses on internal code rename + shuffle algorithm fix
+- v7.3 internal rename scope: DB column, C# model/properties/variables/methods, ViewModel class name only — no UI changes
+- Phase 183 (rename) must execute before Phase 184 (shuffle): SHUF code will reference new ElemenTeknis property names
+- ProtonSubKompetensi model/table is explicitly out of scope (different domain)
 
 ### Blockers/Concerns
 
-None.
+- Phase 182 (loose, unplanned from v7.2) sits before Phase 183. It is independent in scope — does not block v7.3. Plan separately via /gsd:plan-phase 182 if needed.
+
+## Session Continuity
+
+Last session: 2026-03-17
+Stopped at: Roadmap created for v7.3
+Resume file: None

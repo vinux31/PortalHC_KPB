@@ -6,7 +6,9 @@
 - ⚠️ **v6.0 Deployment Preparation** - Phases 173–174 (closed 2026-03-16, no work executed)
 - ✅ **v7.0 Assessment Terminology Fix** - Phase 175 (shipped 2026-03-16)
 - ✅ **v7.1 Export & Import Data** - Phases 176–180 (shipped 2026-03-16)
-- 🚧 **v7.2 PDF Evidence Report Enhancement** - Phase 181 (in progress)
+- ✅ **v7.2 PDF Evidence Report Enhancement** - Phase 181 (shipped 2026-03-17)
+- 📋 **v7.2 (loose)** - Phase 182 (unplanned, pending)
+- 🚧 **v7.3 Elemen Teknis Shuffle & Rename** - Phases 183–184 (in progress)
 
 ## Phases
 
@@ -46,28 +48,67 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 
 </details>
 
-### 🚧 v7.2 PDF Evidence Report Enhancement (In Progress)
+<details>
+<summary>✅ v7.2 PDF Evidence Report Enhancement (Phase 181) — SHIPPED 2026-03-17</summary>
 
-**Milestone Goal:** Add coachee identity info (Nama, Unit, Track) to the PDF Evidence Report header on the CDP Deliverable detail page, positioned above Tanggal Coaching in the top-left corner.
+#### Phase 181: PDF Header Coachee Info
+**Goal**: The PDF Evidence Report header displays coachee identity (Nama, Unit, Track) above Tanggal Coaching
+**Requirements**: PDF-01, PDF-02, PDF-03
+**Plans**: 1 plan (complete)
+
+</details>
+
+### Phase 182: CDP/CoachingProton Evidence Column Clarification (Loose Phase)
+
+**Goal**: [To be planned]
+**Requirements**: TBD
+**Depends on**: Phase 181
+**Plans**: 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 182 to break down)
+
+---
+
+### 🚧 v7.3 Elemen Teknis Shuffle & Rename (In Progress)
+
+**Milestone Goal:** Fix cross-package shuffle algorithm to guarantee all Elemen Teknis groups are represented in exam questions, and rename internal code from SubCompetency to ElemenTeknis.
 
 ## Phase Details
 
-### Phase 181: PDF Header Coachee Info
-**Goal**: The PDF Evidence Report header displays coachee identity (Nama, Unit, Track) above Tanggal Coaching
-**Depends on**: Phase 180
-**Requirements**: PDF-01, PDF-02, PDF-03
+### Phase 183: Internal Rename SubCompetency → ElemenTeknis
+**Goal**: All internal C# code, DB column, and ViewModels use ElemenTeknis instead of SubCompetency
+**Depends on**: Phase 182
+**Requirements**: RENAME-01, RENAME-02, RENAME-03
 **Success Criteria** (what must be TRUE):
-  1. When a user generates the PDF Evidence Report, "Nama Coachee" appears in the header above "Tanggal Coaching"
-  2. When a user generates the PDF Evidence Report, "Unit Coachee" appears in the header above "Tanggal Coaching"
-  3. When a user generates the PDF Evidence Report, "Track (Operator/Panelman Tahun X)" appears in the header above "Tanggal Coaching"
-  4. All three coachee fields are positioned in the top-left corner of the header, consistent with existing layout conventions
-**Plans**: 1 plan
+  1. EF Core migration runs without error and the PackageQuestion table column is named ElemenTeknis in the database
+  2. No C# code references SubCompetency as a property name, variable name, or method name — all references use ElemenTeknis
+  3. The ViewModel previously named SubCompetencyScore is named ElemenTeknisScore and all its usages compile and function correctly
+  4. The application builds with zero compilation errors after the rename
+**Plans**: TBD
 
 Plans:
-- [ ] 181-01-PLAN.md — Add coachee identity fields to PDF header with side-by-side layout
+- [ ] 183-01-PLAN.md — TBD (run /gsd:plan-phase 183 to break down)
+
+### Phase 184: Shuffle Algorithm — Guaranteed Elemen Teknis Distribution
+**Goal**: Cross-package and single-package shuffle guarantees at least one question per Elemen Teknis group, and reshuffles preserve that distribution
+**Depends on**: Phase 183
+**Requirements**: SHUF-01, SHUF-02, SHUF-03
+**Success Criteria** (what must be TRUE):
+  1. When a worker starts an exam using a cross-package assessment, the shuffled question set contains at least one question from every Elemen Teknis group present in the packages
+  2. When a worker starts an exam using a single-package assessment, the shuffled question set contains at least one question from every Elemen Teknis group present in the package
+  3. When HC triggers a reshuffle (single or bulk), the reshuffled question set still contains at least one question per Elemen Teknis group — the distribution guarantee is not lost
+  4. The spider web (radar chart) on Results page renders whenever the worker's session has Elemen Teknis score data — it does not silently skip
+**Plans**: TBD
+
+Plans:
+- [ ] 184-01-PLAN.md — TBD (run /gsd:plan-phase 184 to break down)
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 181. PDF Header Coachee Info | 1/1 | Complete    | 2026-03-17 | - |
+| 181. PDF Header Coachee Info | v7.2 | 1/1 | Complete | 2026-03-17 |
+| 182. CDP Evidence Column Clarification | v7.2 (loose) | 0/? | Not started | - |
+| 183. Internal Rename SubCompetency → ElemenTeknis | v7.3 | 0/? | Not started | - |
+| 184. Shuffle Algorithm Elemen Teknis Distribution | v7.3 | 0/? | Not started | - |
