@@ -192,11 +192,11 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 190-01-PLAN.md — AssessmentCategory model + EF migration + DbSet registration
-- [ ] 190-02-PLAN.md — Admin CRUD + ManageCategories view + ViewBag wiring in CreateAssessment/EditAssessment
+- [x] 190-01-PLAN.md — AssessmentCategory model + EF migration + DbSet registration
+- [x] 190-02-PLAN.md — Admin CRUD + ManageCategories view + ViewBag wiring in CreateAssessment/EditAssessment
 
 ### Phase 191: Wizard UI
-**Goal**: Admin/HC can create an assessment via a 4-step wizard (Kategori → Users → Settings → Konfirmasi) with per-step client-side validation, a summary confirm step, and a ValidUntil date picker on the Settings step
+**Goal**: Admin/HC can create an assessment via a 4-step wizard (Kategori -> Users -> Settings -> Konfirmasi) with per-step client-side validation, a summary confirm step, and a ValidUntil date picker on the Settings step
 **Depends on**: Phase 190
 **Requirements**: FORM-01
 **Success Criteria** (what must be TRUE):
@@ -205,10 +205,11 @@ Plans:
   3. The multi-user selection on Step 2 is still intact after navigating Back and then Next again — no users are lost or duplicated
   4. Step 4 (Konfirmasi) shows a read-only summary of all selections (category, selected users count, settings including ValidUntil) before the user submits
   5. Submitting the wizard calls the existing POST action unchanged — no new server round-trips between steps
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 191-01-PLAN.md — CreateAssessment.cshtml wizard restructure: Bootstrap nav-tabs, step controller JS, per-step validation, Confirm summary, ValidUntil datepicker field
+- [ ] 191-01-PLAN.md — ValidUntil property + EF migration + POST ModelState guard
+- [ ] 191-02-PLAN.md — CreateAssessment.cshtml full wizard rewrite (4-step nav-pills, JS controller, per-step validation, Konfirmasi summary)
 
 ### Phase 192: ValidUntil & NomorSertifikat
 **Goal**: Admin/HC can set a certificate expiry date when creating an assessment, and the system generates a unique certificate number automatically for each session when the assessment is created
@@ -266,7 +267,7 @@ Plans:
 | 188. AJAX Filter Bar | v7.4 | 0/TBD | Not started | - |
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
 | 190. DB Categories Foundation | 2/2 | Complete    | 2026-03-17 | - |
-| 191. Wizard UI | v7.5 | 0/TBD | Not started | - |
+| 191. Wizard UI | v7.5 | 0/2 | Not started | - |
 | 192. ValidUntil & NomorSertifikat | v7.5 | 0/TBD | Not started | - |
 | 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
 | 194. PDF Certificate Download | v7.5 | 0/TBD | Not started | - |
