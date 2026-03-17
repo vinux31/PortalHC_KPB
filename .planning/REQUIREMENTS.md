@@ -28,15 +28,15 @@ None.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PDF-01 | — | Pending |
-| PDF-02 | — | Pending |
-| PDF-03 | — | Pending |
+| PDF-01 | Phase 181 | Pending |
+| PDF-02 | Phase 181 | Pending |
+| PDF-03 | Phase 181 | Pending |
 
 **Coverage:**
 - v7.2 requirements: 3 total
-- Mapped to phases: 0
-- Unmapped: 3 ⚠️
+- Mapped to phases: 3
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 — traceability mapped after roadmap creation*

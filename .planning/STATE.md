@@ -4,9 +4,9 @@ milestone: v7.2
 milestone_name: PDF Evidence Report Enhancement
 status: active
 last_updated: "2026-03-17"
-last_activity: "2026-03-17 — Milestone v7.2 started"
+last_activity: "2026-03-17 — Roadmap created, Phase 181 ready to plan"
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v7.2 PDF Evidence Report Enhancement
+**Current focus:** Phase 181 — PDF Header Coachee Info
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-17 — Milestone v7.2 started
+Phase: 181 of 181 (PDF Header Coachee Info)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-17 — Roadmap created for v7.2 (1 phase, 3 requirements)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -42,12 +42,16 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-(Carried forward)
-- ClosedXML (XLWorkbook) is the canonical library for Excel generation
-- Import pattern: Download template button + file upload + process + redirect to list
-- Reference implementation: AdminController ImportWorkers + DownloadImportTemplate + ExportWorkers
 - QuestPDF is the canonical library for PDF generation (DownloadEvidencePdf, ExportProgressPdf)
+- v7.2 scope: Add Nama, Unit, Track to PDF Evidence Report header (DownloadEvidencePdf) only — ExportProgressPdf is explicitly out of scope
+- Header fields positioned top-left, above Tanggal Coaching
 
 ### Blockers/Concerns
 
 None.
+
+## Session Continuity
+
+Last session: 2026-03-17
+Stopped at: Roadmap created — ready to plan Phase 181
+Resume file: None

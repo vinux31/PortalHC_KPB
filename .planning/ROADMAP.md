@@ -6,6 +6,7 @@
 - ⚠️ **v6.0 Deployment Preparation** - Phases 173–174 (closed 2026-03-16, no work executed)
 - ✅ **v7.0 Assessment Terminology Fix** - Phase 175 (shipped 2026-03-16)
 - ✅ **v7.1 Export & Import Data** - Phases 176–180 (shipped 2026-03-16)
+- 🚧 **v7.2 PDF Evidence Report Enhancement** - Phase 181 (in progress)
 
 ## Phases
 
@@ -44,3 +45,26 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 - [x] Phase 180: Import Training & Export HistoriProton (1/1 plans) — completed 2026-03-16
 
 </details>
+
+### 🚧 v7.2 PDF Evidence Report Enhancement (In Progress)
+
+**Milestone Goal:** Add coachee identity info (Nama, Unit, Track) to the PDF Evidence Report header on the CDP Deliverable detail page, positioned above Tanggal Coaching in the top-left corner.
+
+## Phase Details
+
+### Phase 181: PDF Header Coachee Info
+**Goal**: The PDF Evidence Report header displays coachee identity (Nama, Unit, Track) above Tanggal Coaching
+**Depends on**: Phase 180
+**Requirements**: PDF-01, PDF-02, PDF-03
+**Success Criteria** (what must be TRUE):
+  1. When a user generates the PDF Evidence Report, "Nama Coachee" appears in the header above "Tanggal Coaching"
+  2. When a user generates the PDF Evidence Report, "Unit Coachee" appears in the header above "Tanggal Coaching"
+  3. When a user generates the PDF Evidence Report, "Track (Operator/Panelman Tahun X)" appears in the header above "Tanggal Coaching"
+  4. All three coachee fields are positioned in the top-left corner of the header, consistent with existing layout conventions
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 181. PDF Header Coachee Info | v7.2 | 0/TBD | Not started | - |
