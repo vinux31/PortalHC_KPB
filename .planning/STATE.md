@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.3
 milestone_name: Elemen Teknis Shuffle & Rename
 status: active
-stopped_at: Phase 182 context gathered
-last_updated: "2026-03-17T06:12:22.841Z"
+stopped_at: Completed 182-01-PLAN.md
+last_updated: "2026-03-17T06:18:53.452Z"
 last_activity: 2026-03-17 — Roadmap created (phases 183–184)
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 ---
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 - v7.3 internal rename scope: DB column, C# model/properties/variables/methods, ViewModel class name only — no UI changes
 - Phase 183 (rename) must execute before Phase 184 (shuffle): SHUF code will reference new ElemenTeknis property names
 - ProtonSubKompetensi model/table is explicitly out of scope (different domain)
+- [Phase 182]: EvidenceStatus now carries actual workflow Status value (Pending/Submitted/Approved/Rejected) not derived from EvidencePath presence
 
 ### Blockers/Concerns
 
@@ -62,6 +63,6 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 
 ## Session Continuity
 
-Last session: 2026-03-17T06:12:22.839Z
-Stopped at: Phase 182 context gathered
-Resume file: .planning/phases/182-page-cdp-coachingproton-kolom-evidence-jelaskan-status-yang-ada-di-kolom-ini/182-CONTEXT.md
+Last session: 2026-03-17T06:18:53.449Z
+Stopped at: Completed 182-01-PLAN.md
+Resume file: None

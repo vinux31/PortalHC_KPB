@@ -109,6 +109,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 181. PDF Header Coachee Info | v7.2 | 1/1 | Complete | 2026-03-17 |
-| 182. CDP Evidence Column Clarification | v7.2 (loose) | 0/? | Not started | - |
+| 182. CDP Evidence Column Clarification | 1/1 | Complete   | 2026-03-17 | - |
 | 183. Internal Rename SubCompetency → ElemenTeknis | v7.3 | 0/? | Not started | - |
 | 184. Shuffle Algorithm Elemen Teknis Distribution | v7.3 | 0/? | Not started | - |
