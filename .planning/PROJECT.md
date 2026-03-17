@@ -12,15 +12,14 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.2 PDF Evidence Report Enhancement
+## Current Milestone: v7.3 Elemen Teknis Shuffle & Rename
 
-**Goal:** Add coachee identity info (name, unit, track) to the PDF Evidence Report header on the CDP Deliverable detail page.
+**Goal:** Fix cross-package shuffle algorithm to guarantee all Elemen Teknis groups are represented in exam questions, and rename internal code from SubCompetency to ElemenTeknis.
 
 **Target features:**
-- Nama Coachee displayed in PDF header
-- Unit Coachee displayed in PDF header
-- Track (Operator/Panelman Tahun X) displayed in PDF header
-- Positioned above Tanggal Coaching, top-left corner
+- Shuffle algorithm ensures every Elemen Teknis in package is represented (min 1 soal per group)
+- Spider web (radar chart) always displays when Elemen Teknis data exists
+- Internal code rename: SubCompetency → ElemenTeknis (DB column, model, C# code)
 
 ## Current State (after v7.1, 2026-03-16)
 
