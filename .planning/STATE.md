@@ -5,7 +5,7 @@ milestone_name: Elemen Teknis Shuffle & Rename
 status: active
 stopped_at: "Completed quick task 260317-n9w: Rename KKJ Matrix to Kebutuhan Kompetensi Jabatan"
 last_updated: "2026-03-17T08:50:34.752Z"
-last_activity: "2026-03-17 — Completed quick task 260317-n4g: Update Home/Index shortcut cards"
+last_activity: "2026-03-17 — Completed quick task 260317-n9w: Rename KKJ Matrix to Kebutuhan Kompetensi Jabatan"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -103,6 +103,7 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 |---|-------------|------|--------|-----------|
 | 260317-k5k | Fix HistoriProton text issues and logic bugs | 2026-03-17 | 8932020 | [260317-k5k](./quick/260317-k5k-fix-historiproton-text-issues-and-logic-/) |
 | 260317-n4g | Update Home/Index shortcut cards - expand CDP and CMP labels to full names and update logos | 2026-03-17 | a5a294a | [260317-n4g](./quick/260317-n4g-update-home-index-shortcut-cards-expand-/) |
+| 260317-n9w | Rename KKJ Matrix to Kebutuhan Kompetensi Jabatan on CMP/Index and related pages | 2026-03-17 | e7edb17 | [260317-n9w](./quick/260317-n9w-rename-kkj-matrix-to-kebutuhan-kompetens/) |
 
 ## Session Continuity
 
