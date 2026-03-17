@@ -6004,28 +6004,44 @@ namespace HcPortal.Controllers
                 _logger.LogWarning(auditEx, "Audit log write failed for ImportPackageQuestions {PackageId}", packageId);
             }
 
-            // Cross-package ElemenTeknis mismatch warning
+            // Cross-package ElemenTeknis distribution warning
             if (added > 0 && targetSession != null)
             {
-                var currentSubComps = rows
-                    .Select(r => NormalizeElemenTeknis(r.ElemenTeknis))
-                    .Where(s => s != null)
-                    .Distinct()
-                    .ToHashSet();
+                // Gather all ET groups across ALL packages in this assessment (including current)
+                var allPackagesForSession = await _context.AssessmentPackages
+                    .Include(p => p.Questions)
+                    .Where(p => p.AssessmentSessionId == pkg.AssessmentSessionId)
+                    .ToListAsync();
 
-                if (currentSubComps.Any())
+                if (allPackagesForSession.Count > 1)
                 {
-                    var siblingSubComps = await _context.PackageQuestions
-                        .Where(pq => pq.AssessmentPackage!.AssessmentSessionId == pkg.AssessmentSessionId
-                                  && pq.AssessmentPackageId != packageId
-                                  && pq.ElemenTeknis != null)
-                        .Select(pq => pq.ElemenTeknis!)
+                    var allEtGroups = allPackagesForSession
+                        .SelectMany(p => p.Questions)
+                        .Where(q => !string.IsNullOrWhiteSpace(q.ElemenTeknis))
+                        .Select(q => q.ElemenTeknis!.Trim())
                         .Distinct()
-                        .ToListAsync();
+                        .ToHashSet();
 
-                    if (siblingSubComps.Any() && !currentSubComps.SetEquals(siblingSubComps.ToHashSet()))
+                    if (allEtGroups.Any())
                     {
-                        TempData["Warning"] = "Elemen Teknis pada paket ini berbeda dari paket lain dalam assessment yang sama. Pastikan konsistensi antar paket.";
+                        var missingPerPackage = new List<string>();
+                        foreach (var p in allPackagesForSession)
+                        {
+                            var pkgEtGroups = p.Questions
+                                .Where(q => !string.IsNullOrWhiteSpace(q.ElemenTeknis))
+                                .Select(q => q.ElemenTeknis!.Trim())
+                                .Distinct()
+                                .ToHashSet();
+                            var missing = allEtGroups.Except(pkgEtGroups).ToList();
+                            if (missing.Any())
+                                missingPerPackage.Add($"{p.PackageName}: tidak ada soal untuk {string.Join(", ", missing)}");
+                        }
+
+                        if (missingPerPackage.Any())
+                        {
+                            TempData["Warning"] = "Distribusi Elemen Teknis tidak lengkap — " + string.Join("; ", missingPerPackage) +
+                                ". Pastikan setiap paket memiliki minimal 1 soal per Elemen Teknis untuk hasil assessment yang optimal.";
+                        }
                     }
                 }
             }
