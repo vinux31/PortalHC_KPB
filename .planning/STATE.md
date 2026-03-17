@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Phase 192 context gathered
-last_updated: "2026-03-17T14:20:32.274Z"
+stopped_at: Completed 192-01-PLAN.md
+last_updated: "2026-03-17T14:39:26.693Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
 ---
 
 ---
@@ -76,6 +76,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 190]: ViewBag.Categories must be set in all POST re-render paths to prevent NullReferenceException on form re-render
 - [Phase 191-01]: ValidUntil is nullable (DateTime?) — null means no expiry, consistent with ExamWindowCloseDate pattern
 - [Phase 191-wizard-ui]: WizardController IIFE pattern for multi-step Razor forms — single form, JS show/hide, no server round-trips between steps
+- [Phase 192-01]: NomorSertifikat uses D3 zero-padded sequence with Roman month encoding: KPB/001/III/2026 format
+- [Phase 192-01]: Partial filtered UNIQUE index on NomorSertifikat excludes nulls — legacy sessions unaffected
 
 ### Blockers/Concerns
 
@@ -84,6 +86,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T14:20:32.271Z
-Stopped at: Phase 192 context gathered
-Resume file: .planning/phases/192-validuntil-nomorsertifikat/192-CONTEXT.md
+Last session: 2026-03-17T14:39:21.472Z
+Stopped at: Completed 192-01-PLAN.md
+Resume file: None

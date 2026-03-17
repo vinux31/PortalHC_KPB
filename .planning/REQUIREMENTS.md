@@ -15,8 +15,8 @@ Requirements for assessment form revamp and certificate enhancement. Each maps t
 
 ### Certificate Enhancement
 
-- [ ] **CERT-01**: Admin/HC dapat mengatur tanggal expired (ValidUntil) pada sertifikat assessment online
-- [ ] **CERT-02**: Sistem men-generate nomor sertifikat otomatis saat sertifikat terbit (format: CERT-{TAHUN}-{SEQ})
+- [x] **CERT-01**: Admin/HC dapat mengatur tanggal expired (ValidUntil) pada sertifikat assessment online
+- [x] **CERT-02**: Sistem men-generate nomor sertifikat otomatis saat sertifikat terbit (format: CERT-{TAHUN}-{SEQ})
 - [ ] **CERT-03**: User dapat download sertifikat sebagai file PDF (server-side via QuestPDF)
 
 ## Future Requirements
@@ -52,8 +52,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FORM-01 | Phase 191 | Complete |
 | FORM-02 | Phase 190 | Complete |
 | FORM-03 | Phase 193 | Pending |
-| CERT-01 | Phase 192 | Pending |
-| CERT-02 | Phase 192 | Pending |
+| CERT-01 | Phase 192 | Complete |
+| CERT-02 | Phase 192 | Complete |
 | CERT-03 | Phase 194 | Pending |
 
 **Coverage:**

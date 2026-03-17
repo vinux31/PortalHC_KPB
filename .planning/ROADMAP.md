@@ -175,7 +175,7 @@ Plans:
 
 - [x] **Phase 190: DB Categories Foundation** — AssessmentCategory model, EF migration, Admin CRUD, and ViewBag wiring in CreateAssessment (completed 2026-03-17)
 - [x] **Phase 191: Wizard UI** — 4-step Bootstrap wizard restructuring CreateAssessment.cshtml with step validation and Confirm summary (completed 2026-03-17)
-- [ ] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering
+- [x] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering (completed 2026-03-17)
 - [ ] **Phase 193: Clone Assessment** — CloneAssessment GET action with deep-copy of full AssessmentPackage question graph and pre-fill into wizard
 - [ ] **Phase 194: PDF Certificate Download** — CMPController.CertificatePdf QuestPDF action with A4 landscape layout and Download button on Certificate view
 
@@ -268,6 +268,6 @@ Plans:
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
 | 190. DB Categories Foundation | 2/2 | Complete    | 2026-03-17 | - |
 | 191. Wizard UI | 2/2 | Complete    | 2026-03-17 | - |
-| 192. ValidUntil & NomorSertifikat | v7.5 | 0/1 | Not started | - |
+| 192. ValidUntil & NomorSertifikat | 1/1 | Complete   | 2026-03-17 | - |
 | 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
 | 194. PDF Certificate Download | v7.5 | 0/TBD | Not started | - |
