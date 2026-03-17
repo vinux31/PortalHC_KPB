@@ -72,6 +72,58 @@
         </div>
     </div>
 
+    @{
+        var etCoverage = ViewBag.EtCoverage as Dictionary<string, Dictionary<int, int>>;
+        var etGroups = ViewBag.EtGroups as List<string>;
+    }
+    @if (etGroups != null && etGroups.Any() && packages.Any(p => p.Questions.Any()))
+    {
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-grid-3x3 me-2 text-primary"></i>Distribusi Elemen Teknis</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Elemen Teknis</th>
+                                @foreach (var pkg in packages)
+                                {
+                                    <th class="text-center">@pkg.PackageName</th>
+                                }
+                                <th class="text-center fw-bold">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var et in etGroups)
+                            {
+                                var row = etCoverage![et];
+                                var total = row.Values.Sum();
+                                <tr>
+                                    <td>@et</td>
+                                    @foreach (var pkg in packages)
+                                    {
+                                        var count = row.ContainsKey(pkg.Id) ? row[pkg.Id] : 0;
+                                        var cellClass = (count == 0 && et != "(Tanpa ET)") ? "text-danger fw-bold" : "";
+                                        <td class="text-center @cellClass">
+                                            @if (count == 0 && et != "(Tanpa ET)")
+                                            {
+                                                <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                                            }
+                                            @count
+                                        </td>
+                                    }
+                                    <td class="text-center fw-bold">@total</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="row">
         <!-- Create Package Form -->
         <div class="col-md-4">

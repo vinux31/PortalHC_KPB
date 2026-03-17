@@ -5540,6 +5540,29 @@ namespace HcPortal.Controllers
                 .ToDictionaryAsync(x => x.PackageId, x => x.Count);
             ViewBag.AssignmentCounts = assignmentCounts;
 
+            // ET coverage: rows = ET groups, columns = per package
+            var allEtGroups = packages
+                .SelectMany(p => p.Questions)
+                .Select(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "(Tanpa ET)" : q.ElemenTeknis!.Trim())
+                .Distinct()
+                .OrderBy(g => g == "(Tanpa ET)" ? "zzz" : g) // Tanpa ET last
+                .ToList();
+
+            // Dictionary: etGroup -> Dictionary<packageId, questionCount>
+            var etCoverage = new Dictionary<string, Dictionary<int, int>>();
+            foreach (var et in allEtGroups)
+            {
+                etCoverage[et] = new Dictionary<int, int>();
+                foreach (var pkg in packages)
+                {
+                    var count = pkg.Questions.Count(q =>
+                        (string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "(Tanpa ET)" : q.ElemenTeknis!.Trim()) == et);
+                    etCoverage[et][pkg.Id] = count;
+                }
+            }
+            ViewBag.EtCoverage = etCoverage;
+            ViewBag.EtGroups = allEtGroups;
+
             ViewBag.Packages = packages;
             ViewBag.AssessmentTitle = assessment.Title;
             ViewBag.AssessmentId = assessmentId;
