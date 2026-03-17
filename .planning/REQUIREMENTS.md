@@ -15,9 +15,9 @@ Requirements for Elemen Teknis Shuffle & Rename.
 
 ### Internal Rename
 
-- [ ] **RENAME-01**: PackageQuestion.SubCompetency DB column renamed to ElemenTeknis (with EF Core migration)
-- [ ] **RENAME-02**: All C# model properties, variables, and method names use ElemenTeknis instead of SubCompetency
-- [ ] **RENAME-03**: ViewModel class SubCompetencyScore renamed to ElemenTeknisScore
+- [x] **RENAME-01**: PackageQuestion.SubCompetency DB column renamed to ElemenTeknis (with EF Core migration)
+- [x] **RENAME-02**: All C# model properties, variables, and method names use ElemenTeknis instead of SubCompetency
+- [x] **RENAME-03**: ViewModel class SubCompetencyScore renamed to ElemenTeknisScore
 
 ## Future Requirements
 
@@ -35,9 +35,9 @@ None.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RENAME-01 | Phase 183 | Pending |
-| RENAME-02 | Phase 183 | Pending |
-| RENAME-03 | Phase 183 | Pending |
+| RENAME-01 | Phase 183 | Complete |
+| RENAME-02 | Phase 183 | Complete |
+| RENAME-03 | Phase 183 | Complete |
 | SHUF-01 | Phase 184 | Pending |
 | SHUF-02 | Phase 184 | Pending |
 | SHUF-03 | Phase 184 | Pending |

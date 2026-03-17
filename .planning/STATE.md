@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v7.3
 milestone_name: Elemen Teknis Shuffle & Rename
 status: active
+stopped_at: Completed 183-01-PLAN.md
+last_updated: "2026-03-17T06:42:37.330Z"
+last_activity: "2026-03-17 — Completed quick task 260317-k5k: Fix HistoriProton text issues"
+progress:
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v7.3
+milestone_name: Elemen Teknis Shuffle & Rename
+status: active
 stopped_at: Completed 182-01-PLAN.md
 last_updated: "2026-03-17T06:21:42.648Z"
 last_activity: 2026-03-17 — Roadmap created (phases 183–184)
 progress:
-  total_phases: 3
+  [██████████] 100%
   completed_phases: 1
   total_plans: 1
   completed_plans: 1
@@ -56,6 +72,7 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 - Phase 183 (rename) must execute before Phase 184 (shuffle): SHUF code will reference new ElemenTeknis property names
 - ProtonSubKompetensi model/table is explicitly out of scope (different domain)
 - [Phase 182]: EvidenceStatus now carries actual workflow Status value (Pending/Submitted/Approved/Rejected) not derived from EvidencePath presence
+- [Phase 183]: Renamed SubCompetency to ElemenTeknis across all C# sources and DB column via EF RenameColumn migration
 
 ### Blockers/Concerns
 
@@ -69,6 +86,6 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 
 ## Session Continuity
 
-Last session: 2026-03-17T06:18:53.449Z
-Stopped at: Completed 182-01-PLAN.md
+Last session: 2026-03-17T06:42:31.655Z
+Stopped at: Completed 183-01-PLAN.md
 Resume file: None
