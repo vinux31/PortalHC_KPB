@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Checkpoint 191-02 — awaiting browser verify (Task 2)
-last_updated: "2026-03-17T13:34:17.808Z"
+stopped_at: Completed 191-02-PLAN.md
+last_updated: "2026-03-17T13:43:54.422Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
@@ -75,6 +75,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 190]: EditCategory GET re-renders ManageCategories view with ViewBag.EditCategory (inline editing pattern)
 - [Phase 190]: ViewBag.Categories must be set in all POST re-render paths to prevent NullReferenceException on form re-render
 - [Phase 191-01]: ValidUntil is nullable (DateTime?) — null means no expiry, consistent with ExamWindowCloseDate pattern
+- [Phase 191-wizard-ui]: WizardController IIFE pattern for multi-step Razor forms — single form, JS show/hide, no server round-trips between steps
 
 ### Blockers/Concerns
 
@@ -83,6 +84,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T13:34:17.804Z
-Stopped at: Checkpoint 191-02 — awaiting browser verify (Task 2)
+Last session: 2026-03-17T13:43:50.455Z
+Stopped at: Completed 191-02-PLAN.md
 Resume file: None
