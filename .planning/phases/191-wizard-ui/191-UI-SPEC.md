@@ -28,6 +28,14 @@ Source: codebase scan of `Views/Admin/CreateAssessment.cshtml`, `Views/Admin/Man
 
 ---
 
+## Focal Point
+
+**Primary visual anchor:** The horizontal step indicator nav-pills bar at the top of the page is the primary focal point. It occupies full width above all step panels and communicates position within the workflow at a glance. The active step pill (blue, filled) draws the eye and orients the user throughout the form.
+
+Secondary anchor: The active step panel card directly below the step indicator. All user interaction occurs within this card; the inactive panels are hidden (`d-none`).
+
+---
+
 ## Spacing Scale
 
 Declared values (must be multiples of 4):
@@ -56,16 +64,17 @@ Source: existing `px-4 py-4` container pattern from `CreateAssessment.cshtml` li
 | Role | Size | Weight | Line Height | Bootstrap Class |
 |------|------|--------|-------------|-----------------|
 | Body | 16px | 400 (normal) | 1.5 | default (`p`, `form-control`) |
-| Label | 14px | 600 (semibold) | 1.4 | `form-label fw-semibold` |
+| Label | 14px | 700 (bold) | 1.4 | `form-label fw-bold` |
 | Heading | 20px | 700 (bold) | 1.2 | `h5 fw-bold` or `fs-5 fw-bold` |
 | Page title | 28px | 700 (bold) | 1.2 | `h2 fw-bold` |
 
 Notes:
-- Step indicator labels: 14px / weight 600 — use `fw-semibold small` on pill labels
+- Step indicator labels: 14px / weight 700 — use `fw-bold small` on pill labels
 - Konfirmasi card section headers: `fw-bold` at body size (16px)
 - "...dan N lainnya" expand link: 14px / weight 400 / `text-muted small`
+- Only two weights in use: 400 (normal) and 700 (bold). `fw-semibold` is not used anywhere in this phase.
 
-Source: existing `h2 fw-bold` and `form-label fw-semibold` patterns from `CreateAssessment.cshtml`.
+Source: existing `h2 fw-bold` and `form-label` patterns from `CreateAssessment.cshtml`. Weight reduced from 3 to 2 per typography contract rules.
 
 ---
 
