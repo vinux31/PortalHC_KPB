@@ -85,10 +85,10 @@ Plans:
   2. No C# code references SubCompetency as a property name, variable name, or method name — all references use ElemenTeknis
   3. The ViewModel previously named SubCompetencyScore is named ElemenTeknisScore and all its usages compile and function correctly
   4. The application builds with zero compilation errors after the rename
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 183-01-PLAN.md — TBD (run /gsd:plan-phase 183 to break down)
+- [ ] 183-01-PLAN.md — Rename SubCompetency to ElemenTeknis across models, controllers, views, and DB column
 
 ### Phase 184: Shuffle Algorithm — Guaranteed Elemen Teknis Distribution
 **Goal**: Cross-package and single-package shuffle guarantees at least one question per Elemen Teknis group, and reshuffles preserve that distribution
@@ -110,5 +110,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 181. PDF Header Coachee Info | v7.2 | 1/1 | Complete | 2026-03-17 |
 | 182. CDP Evidence Column Clarification | 1/1 | Complete    | 2026-03-17 | - |
-| 183. Internal Rename SubCompetency → ElemenTeknis | v7.3 | 0/? | Not started | - |
+| 183. Internal Rename SubCompetency → ElemenTeknis | v7.3 | 0/1 | Not started | - |
 | 184. Shuffle Algorithm Elemen Teknis Distribution | v7.3 | 0/? | Not started | - |
