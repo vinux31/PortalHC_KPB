@@ -78,6 +78,9 @@ namespace HcPortal.Data
         // Exam Activity Log — Phase 166
         public DbSet<ExamActivityLog> ExamActivityLogs { get; set; }
 
+        // Assessment Categories — Phase 190
+        public DbSet<AssessmentCategory> AssessmentCategories { get; set; }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -516,6 +519,16 @@ namespace HcPortal.Data
 
                 entity.HasIndex(l => l.SessionId);
                 entity.HasIndex(l => l.Timestamp);
+            });
+
+            // ========== Assessment Categories (Phase 190) ==========
+            builder.Entity<AssessmentCategory>(entity =>
+            {
+                entity.ToTable("AssessmentCategories");
+                entity.HasIndex(c => c.Name).IsUnique();
+                entity.HasIndex(c => c.SortOrder);
+                entity.Property(c => c.IsActive).HasDefaultValue(true);
+                entity.Property(c => c.DefaultPassPercentage).HasDefaultValue(70);
             });
         }
     }
