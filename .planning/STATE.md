@@ -42,7 +42,7 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 Phase: 183 of 184 in v7.3 (Internal Rename SubCompetency → ElemenTeknis)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-03-17 — Roadmap created (phases 183–184)
+Last activity: 2026-03-17 — Completed quick task 260317-k5k: Fix HistoriProton text issues
 
 Progress: [░░░░░░░░░░] 0% (v7.3)
 
@@ -60,6 +60,12 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 ### Blockers/Concerns
 
 - Phase 182 (loose, unplanned from v7.2) sits before Phase 183. It is independent in scope — does not block v7.3. Plan separately via /gsd:plan-phase 182 if needed.
+
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260317-k5k | Fix HistoriProton text issues and logic bugs | 2026-03-17 | 8932020 | [260317-k5k](./quick/260317-k5k-fix-historiproton-text-issues-and-logic-/) |
 
 ## Session Continuity
 
