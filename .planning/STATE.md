@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Phase 191 context gathered
-last_updated: "2026-03-17T12:19:10.215Z"
+stopped_at: Completed 191-01-PLAN.md
+last_updated: "2026-03-17T13:27:04.159Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 ---
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 ## Accumulated Context
 | Phase 190 P01 | 2 | 2 tasks | 4 files |
 | Phase 190 P02 | 10min | 2 tasks | 5 files |
+| Phase 191-wizard-ui P01 | 5 | 1 tasks | 5 files |
 
 ### Decisions
 
@@ -73,6 +74,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 190]: Used migrationBuilder.Sql MERGE pattern for seed data (not HasData) — consistent with project convention
 - [Phase 190]: EditCategory GET re-renders ManageCategories view with ViewBag.EditCategory (inline editing pattern)
 - [Phase 190]: ViewBag.Categories must be set in all POST re-render paths to prevent NullReferenceException on form re-render
+- [Phase 191-01]: ValidUntil is nullable (DateTime?) — null means no expiry, consistent with ExamWindowCloseDate pattern
 
 ### Blockers/Concerns
 
@@ -81,6 +83,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T12:19:10.211Z
-Stopped at: Phase 191 context gathered
-Resume file: .planning/phases/191-wizard-ui/191-CONTEXT.md
+Last session: 2026-03-17T13:27:04.156Z
+Stopped at: Completed 191-01-PLAN.md
+Resume file: None

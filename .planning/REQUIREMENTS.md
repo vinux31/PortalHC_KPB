@@ -9,7 +9,7 @@ Requirements for assessment form revamp and certificate enhancement. Each maps t
 
 ### Assessment Form UX
 
-- [ ] **FORM-01**: Admin/HC can create assessment melalui wizard step-based (Kategori → Users → Settings → Konfirmasi)
+- [x] **FORM-01**: Admin/HC can create assessment melalui wizard step-based (Kategori → Users → Settings → Konfirmasi)
 - [x] **FORM-02**: Admin dapat mengelola kategori assessment dari database (CRUD) tanpa perlu edit code
 - [ ] **FORM-03**: Admin/HC dapat membuat assessment baru dari duplikasi assessment yang sudah ada (clone)
 
@@ -49,7 +49,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORM-01 | Phase 191 | Pending |
+| FORM-01 | Phase 191 | Complete |
 | FORM-02 | Phase 190 | Complete |
 | FORM-03 | Phase 193 | Pending |
 | CERT-01 | Phase 192 | Pending |
