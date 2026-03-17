@@ -52,11 +52,12 @@ Source: inspected from `ManageWorkers.cshtml` and `Index.cshtml` — project-wid
 | Role | Size | Weight | Line Height | Bootstrap Class |
 |------|------|--------|-------------|-----------------|
 | Body | 14px (Bootstrap default small) | 400 | 1.5 | `small` or default |
-| Label | 14px | 600 | 1.5 | `fw-semibold` or `fw-bold` |
+| Label | 14px | 700 | 1.5 | `fw-bold` |
 | Heading | 20px | 700 | 1.2 | `h5 fw-bold` |
 | Page title | 24px | 700 | 1.2 | `h2 fw-bold` |
 
 Notes:
+- Two distinct weights only: 400 (Body) and 700 (Label, Heading, Page title).
 - Page title (`h2 fw-bold`) matches the pattern used in ManageWorkers and Admin Index.
 - Section headings (`h5 fw-bold`) match existing Section A/B/C label pattern in Index.cshtml.
 - Table cell text uses default Bootstrap body (14–16px at 400 weight, 1.5 line-height).
@@ -84,6 +85,22 @@ Accent (`text-primary` / `btn-primary`) reserved for:
 
 ---
 
+## Visual Hierarchy
+
+Primary screen: ManageCategories list page.
+
+Focal point: The "Tambah Kategori" (`btn-primary`) button in the top-right of the page header row. It is the only filled primary-color element above the table and draws the eye as the entry point for new records.
+
+Hierarchy order:
+1. Page title (`h2 fw-bold`) + CTA button row — establishes page identity and primary action.
+2. Success / error alert bar (when present) — full-width, visually prominent feedback below the header.
+3. Data table (`table-hover table-bordered`) — dominant content area; column headers in `fw-bold` weight distinguish them from cell body text.
+4. Per-row action buttons (`btn-sm`) — secondary; small size keeps visual weight below table content.
+
+The hub card in Admin/Index Section C follows the same focal hierarchy as existing Section C cards: icon (`text-primary`) leads, card label in `fw-bold` follows, muted description below.
+
+---
+
 ## Component Inventory
 
 All components are Bootstrap 5 native — no installation required.
@@ -104,6 +121,10 @@ All components are Bootstrap 5 native — no installation required.
 | Delete confirm | `data-bs-toggle="modal"` Bootstrap modal | Confirm before delete |
 
 ### New: Admin/Index Hub Card
+
+Placement: Section C (Assessment & Training) — after the existing ManageAssessment and AssessmentMonitoring cards.
+
+> Note on Section discrepancy: CONTEXT.md described the card placement as "Section B (Kelola Assessment)." RESEARCH.md verified the actual code in `Views/Admin/Index.cshtml` places Assessment-related cards at Section C (lines 126–180). Section C is correct. CONTEXT.md contained a labeling error.
 
 Follows exact pattern of existing Section C cards (`ManageAssessment`, `AssessmentMonitoring`):
 
@@ -174,7 +195,7 @@ Language: Bahasa Indonesia (project convention — all admin UI is in Indonesian
 | Error: duplicate name | "Nama kategori sudah digunakan. Gunakan nama yang berbeda." |
 | Error: not found | "Kategori tidak ditemukan." |
 | Error: general | "Terjadi kesalahan. Coba lagi atau hubungi admin." |
-| Destructive: delete action label | "Hapus" |
+| Destructive: delete action label | "Hapus Kategori" |
 | Destructive: delete modal title | "Hapus Kategori" |
 | Destructive: delete modal body | "Yakin ingin menghapus kategori '{name}'? Data sesi assessment yang sudah ada tidak akan terpengaruh." |
 | Destructive: delete modal confirm | "Ya, Hapus" |
@@ -195,7 +216,7 @@ Language: Bahasa Indonesia (project convention — all admin UI is in Indonesian
 |-------------|---------|----------|
 | Add category | Click "Tambah Kategori" button | Navigate to AddCategory form (or inline modal — at executor discretion, matching ManageWorkers inline-vs-page approach) |
 | Edit category | Click "Edit" button in row | Navigate to EditCategory form |
-| Delete category | Click "Hapus" button in row | Bootstrap modal confirmation appears; on confirm POST to DeleteCategory |
+| Delete category | Click "Hapus Kategori" button in row | Bootstrap modal confirmation appears; on confirm POST to DeleteCategory |
 | Toggle active | Click "Nonaktifkan" / "Aktifkan" | POST to ToggleCategoryActive; page reloads with success alert |
 | Success alert | After any POST redirect | `alert alert-success` with `TempData["Success"]` message; auto-dismissible via `btn-close` |
 | Error alert | After failed POST redirect | `alert alert-danger` with `TempData["Error"]` message; auto-dismissible |
