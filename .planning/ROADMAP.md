@@ -167,6 +167,16 @@ Plans:
 Plans:
 - [ ] 189-01-PLAN.md — ACT-01/ACT-02 view and download actions + ExportSertifikatExcel ClosedXML action + Export button (role-gated)
 
+### Phase 195: Certificate Signatory Settings
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 194
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 195 to break down)
+
 ---
 
 ### 📋 v7.5 Assessment Form Revamp & Certificate Enhancement (Planned)
@@ -177,7 +187,7 @@ Plans:
 - [x] **Phase 191: Wizard UI** — 4-step Bootstrap wizard restructuring CreateAssessment.cshtml with step validation and Confirm summary (completed 2026-03-17)
 - [x] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering (completed 2026-03-17)
 - ~~**Phase 193: Clone Assessment**~~ — Removed (user decided feature not needed)
-- [ ] **Phase 194: PDF Certificate Download** — CMPController.CertificatePdf QuestPDF action with A4 landscape layout and Download button on Certificate view
+- [x] **Phase 194: PDF Certificate Download** — CMPController.CertificatePdf QuestPDF action with A4 landscape layout and Download button on Certificate view (completed 2026-03-17)
 
 ### Phase 190: DB Categories Foundation
 **Goal**: Admin/HC can manage assessment categories from the database — the AssessmentCategories table exists with seed data, and CreateAssessment loads categories from DB instead of hardcoded strings
@@ -256,4 +266,4 @@ Plans:
 | 191. Wizard UI | 2/2 | Complete    | 2026-03-17 | - |
 | 192. ValidUntil & NomorSertifikat | 1/1 | Complete    | 2026-03-17 | - |
 | ~~193. Clone Assessment~~ | v7.5 | - | Removed | - |
-| 194. PDF Certificate Download | v7.5 | 0/TBD | Not started | - |
+| 194. PDF Certificate Download | 1/1 | Complete   | 2026-03-17 | - |

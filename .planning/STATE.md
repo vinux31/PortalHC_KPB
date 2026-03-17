@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
+stopped_at: Completed 194-01-PLAN.md
+last_updated: "2026-03-17T16:39:46.126Z"
+last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
+progress:
+  total_phases: 10
+  completed_phases: 4
+  total_plans: 6
+  completed_plans: 6
+  percent: 100
+---
+
+---
+gsd_state_version: 1.0
+milestone: v7.4
+milestone_name: Certification Management
+status: active
 stopped_at: Phase 194 context gathered
 last_updated: "2026-03-17T15:37:58.109Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
-  total_phases: 9
+  [██████████] 100%
   completed_phases: 3
   total_plans: 5
   completed_plans: 5
@@ -78,6 +94,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 190 P01 | 2 | 2 tasks | 4 files |
 | Phase 190 P02 | 10min | 2 tasks | 5 files |
 | Phase 191-wizard-ui P01 | 5 | 1 tasks | 5 files |
+| Phase 194-pdf-certificate-download P01 | 60 | 3 tasks | 8 files |
 
 ### Decisions
 
@@ -91,6 +108,12 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 191-wizard-ui]: WizardController IIFE pattern for multi-step Razor forms — single form, JS show/hide, no server round-trips between steps
 - [Phase 192-01]: NomorSertifikat uses D3 zero-padded sequence with Roman month encoding: KPB/001/III/2026 format
 - [Phase 192-01]: Partial filtered UNIQUE index on NomorSertifikat excludes nulls — legacy sessions unaffected
+- [Phase 194-01]: Font files downloaded and committed to wwwroot/fonts/ for self-contained PDF rendering without runtime HTTP dependency
+- [Phase 194-01]: CertificatePdf auth guard mirrors Certificate action: ownership OR Admin/HC role before serving binary file
+
+### Roadmap Evolution
+
+- Phase 195 added: Certificate Signatory Settings
 
 ### Blockers/Concerns
 
@@ -98,6 +121,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T15:37:58.106Z
-Stopped at: Phase 194 context gathered
-Resume file: .planning/phases/194-pdf-certificate-download/194-CONTEXT.md
+Last session: 2026-03-17T16:39:46.122Z
+Stopped at: Completed 194-01-PLAN.md
+Resume file: None
