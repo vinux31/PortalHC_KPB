@@ -427,9 +427,17 @@
                                                             data-sub-kompetensi="@item.SubKompetensi"
                                                             data-status="@item.Status">Submit Evidence</button>
                                                 }
-                                                else if (item.EvidenceStatus == "Uploaded")
+                                                else if (item.EvidenceStatus == "Submitted")
                                                 {
-                                                    <span class="badge bg-success fw-bold border border-success">Sudah Upload</span>
+                                                    <span class="badge bg-success">Sudah Upload</span>
+                                                }
+                                                else if (item.EvidenceStatus == "Approved")
+                                                {
+                                                    <span class="badge bg-success fw-bold border border-success">Approved</span>
+                                                }
+                                                else if (item.EvidenceStatus == "Rejected")
+                                                {
+                                                    <span class="badge bg-danger">Rejected</span>
                                                 }
                                                 else
                                                 {
@@ -543,9 +551,17 @@
                                                         data-sub-kompetensi="@item.SubKompetensi"
                                                         data-status="@item.Status">Submit Evidence</button>
                                             }
-                                            else if (item.EvidenceStatus == "Uploaded")
+                                            else if (item.EvidenceStatus == "Submitted")
                                             {
-                                                <span class="badge bg-success fw-bold border border-success">Sudah Upload</span>
+                                                <span class="badge bg-success">Sudah Upload</span>
+                                            }
+                                            else if (item.EvidenceStatus == "Approved")
+                                            {
+                                                <span class="badge bg-success fw-bold border border-success">Approved</span>
+                                            }
+                                            else if (item.EvidenceStatus == "Rejected")
+                                            {
+                                                <span class="badge bg-danger">Rejected</span>
                                             }
                                             else
                                             {

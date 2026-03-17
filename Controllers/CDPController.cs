@@ -1480,7 +1480,7 @@ namespace HcPortal.Controllers
                 Kompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
                 SubKompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
                 Deliverable = p.ProtonDeliverable?.NamaDeliverable ?? "",
-                EvidenceStatus = p.EvidencePath != null ? "Uploaded" : "Pending",
+                EvidenceStatus = p.Status,
                 FullEvidencePath = p.EvidencePath ?? "",
                 ApprovalSrSpv = p.SrSpvApprovalStatus,
                 ApprovalSectionHead = p.ShApprovalStatus,
@@ -2381,25 +2381,29 @@ namespace HcPortal.Controllers
                         // Side-by-side: info left, logo right
                         hdrCol.Item().Row(row =>
                         {
-                            row.RelativeItem(3).Column(info =>
+                            row.RelativeItem(3).Table(infoTbl =>
                             {
-                                // Tabular label layout — pad labels to equal width for colon alignment
-                                // Labels: "Nama Coachee", "Unit Coachee", "Track", "Tanggal Coaching"
-                                // Longest label is "Tanggal Coaching" (17 chars) — pad others with spaces
+                                infoTbl.ColumnsDefinition(c =>
+                                {
+                                    c.ConstantColumn(110); // label
+                                    c.ConstantColumn(10);  // colon
+                                    c.RelativeColumn();    // value
+                                });
+
                                 var lines = new[]
                                 {
-                                    ("Nama Coachee      ", Or(coacheeName == "Coachee" ? null : coacheeName)),
-                                    ("Unit Coachee      ", Or(coacheeUnit == "-" ? null : coacheeUnit)),
-                                    ("Track             ", Or(trackDisplay == "-" ? null : trackDisplay)),
-                                    ("Tanggal Coaching  ", session.Date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID")))
+                                    ("Nama Coachee", Or(coacheeName == "Coachee" ? null : coacheeName)),
+                                    ("Unit Coachee", Or(coacheeUnit == "-" ? null : coacheeUnit)),
+                                    ("Track", Or(trackDisplay == "-" ? null : trackDisplay)),
+                                    ("Tanggal Coaching", session.Date.ToString("dd MMMM yyyy", CultureInfo.GetCultureInfo("id-ID")))
                                 };
+                                uint r = 1;
                                 foreach (var (label, value) in lines)
                                 {
-                                    info.Item().Text(text =>
-                                    {
-                                        text.Span($"{label}: ").FontSize(10);
-                                        text.Span(value).FontSize(10);
-                                    });
+                                    infoTbl.Cell().Row(r).Column(1).Text(label).FontSize(10);
+                                    infoTbl.Cell().Row(r).Column(2).Text(":").FontSize(10);
+                                    infoTbl.Cell().Row(r).Column(3).Text(value).FontSize(10);
+                                    r++;
                                 }
                             });
 
