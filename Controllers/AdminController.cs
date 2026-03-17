@@ -1017,6 +1017,8 @@ namespace HcPortal.Controllers
             ModelState.Remove("ExamWindowCloseDate");
             // ValidUntil is optional — remove from ModelState to prevent accidental validation failure
             ModelState.Remove("ValidUntil");
+            // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
+            ModelState.Remove("NomorSertifikat");
 
             // Validate model
             if (!ModelState.IsValid)
@@ -1130,11 +1132,25 @@ namespace HcPortal.Controllers
                     protonTahunKe = protonTrack.TahunKe;
                 }
 
+                // Phase 192: Pre-compute starting sequence number for certificate generation
+                var now = DateTime.Now;
+                int year = now.Year;
+                var existingNumbers = await _context.AssessmentSessions
+                    .Where(s => s.NomorSertifikat != null && s.NomorSertifikat.EndsWith($"/{year}"))
+                    .Select(s => s.NomorSertifikat!)
+                    .ToListAsync();
+                int nextSeq = existingNumbers.Count == 0 ? 1 :
+                    existingNumbers.Select(n => {
+                        var parts = n.Split('/');
+                        return parts.Length > 1 && int.TryParse(parts[1], out int v) ? v : 0;
+                    }).Max() + 1;
+
                 // Create all sessions in memory first
                 var sessions = new List<AssessmentSession>();
 
-                foreach (var userId in UserIds)
+                for (int i = 0; i < UserIds.Count; i++)
                 {
+                    var userId = UserIds[i];
                     var session = new AssessmentSession
                     {
                         Title = model.Title,
@@ -1149,6 +1165,8 @@ namespace HcPortal.Controllers
                         AllowAnswerReview = model.AllowAnswerReview,
                         GenerateCertificate = model.GenerateCertificate,
                         ExamWindowCloseDate = model.ExamWindowCloseDate,
+                        ValidUntil = model.ValidUntil,
+                        NomorSertifikat = BuildCertNumber(nextSeq + i, now),
                         Progress = 0,
                         UserId = userId,
                         CreatedBy = currentUser?.Id
@@ -1170,12 +1188,49 @@ namespace HcPortal.Controllers
                 // Add all sessions
                 _context.AssessmentSessions.AddRange(sessions);
 
-                // Single SaveChanges with transaction (atomicity)
-                using var transaction = await _context.Database.BeginTransactionAsync();
+                // Single SaveChanges with transaction (atomicity); retry up to 3 times on UNIQUE violation
+                var transaction = await _context.Database.BeginTransactionAsync();
+                int attempt = 0;
+                const int maxAttempts = 3;
+                bool saved = false;
                 try
                 {
-                    await _context.SaveChangesAsync();
-                    await transaction.CommitAsync();
+                while (!saved && attempt < maxAttempts)
+                {
+                    attempt++;
+                    try
+                    {
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                        saved = true;
+                    }
+                    catch (DbUpdateException ex) when (attempt < maxAttempts && IsDuplicateKeyException(ex))
+                    {
+                        // Detach tracked sessions, re-query sequence, re-assign numbers
+                        foreach (var s in sessions) _context.Entry(s).State = EntityState.Detached;
+                        await transaction.RollbackAsync();
+                        transaction = await _context.Database.BeginTransactionAsync();
+
+                        // Re-query max seq
+                        var retryNumbers = await _context.AssessmentSessions
+                            .Where(s => s.NomorSertifikat != null && s.NomorSertifikat.EndsWith($"/{year}"))
+                            .Select(s => s.NomorSertifikat!)
+                            .ToListAsync();
+                        nextSeq = retryNumbers.Count == 0 ? 1 :
+                            retryNumbers.Select(n => {
+                                var parts = n.Split('/');
+                                return parts.Length > 1 && int.TryParse(parts[1], out int v) ? v : 0;
+                            }).Max() + 1;
+
+                        // Re-assign and re-add
+                        for (int j = 0; j < sessions.Count; j++)
+                        {
+                            sessions[j].NomorSertifikat = BuildCertNumber(nextSeq + j, now);
+                            sessions[j].Id = 0; // reset for re-insert
+                        }
+                        _context.AssessmentSessions.AddRange(sessions);
+                    }
+                }
 
                     // ASMT-01: Notify each assigned worker
                     foreach (var session in sessions)
@@ -6511,6 +6566,28 @@ namespace HcPortal.Controllers
             };
 
             return Json(new { summary, events = eventsFormatted });
+        }
+
+        #endregion
+
+        #region Certificate Helpers (Phase 192)
+
+        private static string ToRomanMonth(int month) => month switch
+        {
+            1 => "I", 2 => "II", 3 => "III", 4 => "IV",
+            5 => "V", 6 => "VI", 7 => "VII", 8 => "VIII",
+            9 => "IX", 10 => "X", 11 => "XI", 12 => "XII",
+            _ => throw new ArgumentOutOfRangeException(nameof(month))
+        };
+
+        private static string BuildCertNumber(int seq, DateTime date)
+            => $"KPB/{seq:D3}/{ToRomanMonth(date.Month)}/{date.Year}";
+
+        private static bool IsDuplicateKeyException(DbUpdateException ex)
+        {
+            return ex.InnerException?.Message.Contains("IX_AssessmentSessions_NomorSertifikat") == true
+                || ex.InnerException?.Message.Contains("2601") == true
+                || ex.InnerException?.Message.Contains("2627") == true;
         }
 
         #endregion
