@@ -49,18 +49,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORM-01 | — | Pending |
-| FORM-02 | — | Pending |
-| FORM-03 | — | Pending |
-| CERT-01 | — | Pending |
-| CERT-02 | — | Pending |
-| CERT-03 | — | Pending |
+| FORM-01 | Phase 191 | Pending |
+| FORM-02 | Phase 190 | Pending |
+| FORM-03 | Phase 193 | Pending |
+| CERT-01 | Phase 192 | Pending |
+| CERT-02 | Phase 192 | Pending |
+| CERT-03 | Phase 194 | Pending |
 
 **Coverage:**
 - v7.5 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6 ⚠️
+- Mapped to phases: 6
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 after roadmap creation*

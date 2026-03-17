@@ -10,6 +10,7 @@
 - ✅ **v7.2 (loose)** - Phase 182 (shipped 2026-03-17)
 - ✅ **v7.3 Elemen Teknis Shuffle & Rename** - Phases 183–184 (shipped 2026-03-17)
 - 🚧 **v7.4 Certification Management** - Phases 185–189 (in progress)
+- 📋 **v7.5 Assessment Form Revamp & Certificate Enhancement** - Phases 190–194 (planned)
 
 ## Phases
 
@@ -166,6 +167,91 @@ Plans:
 Plans:
 - [ ] 189-01-PLAN.md — ACT-01/ACT-02 view and download actions + ExportSertifikatExcel ClosedXML action + Export button (role-gated)
 
+---
+
+### 📋 v7.5 Assessment Form Revamp & Certificate Enhancement (Planned)
+
+**Milestone Goal:** Simplify assessment creation with a 4-step wizard, add database-driven categories with Admin CRUD, clone/duplicate existing assessments, add certificate expiry dates and auto-generated numbers, and provide server-side PDF certificate download.
+
+- [ ] **Phase 190: DB Categories Foundation** — AssessmentCategory model, EF migration, Admin CRUD, and ViewBag wiring in CreateAssessment
+- [ ] **Phase 191: Wizard UI** — 4-step Bootstrap wizard restructuring CreateAssessment.cshtml with step validation and Confirm summary
+- [ ] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering
+- [ ] **Phase 193: Clone Assessment** — CloneAssessment GET action with deep-copy of full AssessmentPackage question graph and pre-fill into wizard
+- [ ] **Phase 194: PDF Certificate Download** — CMPController.CertificatePdf QuestPDF action with A4 landscape layout and Download button on Certificate view
+
+### Phase 190: DB Categories Foundation
+**Goal**: Admin/HC can manage assessment categories from the database — the AssessmentCategories table exists with seed data, and CreateAssessment loads categories from DB instead of hardcoded strings
+**Depends on**: Phase 189
+**Requirements**: FORM-02
+**Success Criteria** (what must be TRUE):
+  1. Admin can navigate to a Categories management page, add a new category, and see it appear in the list without any code deployment
+  2. Admin can edit an existing category name and delete a category that has no associated sessions
+  3. The CreateAssessment form shows a category dropdown populated from the database, not from hardcoded view values
+  4. The hardcoded categoryDefaults JavaScript object in CreateAssessment.cshtml no longer exists — default values come from data attributes on the option elements
+  5. All six original category string values are present as seed rows so existing AssessmentSession records are not orphaned
+**Plans**: TBD
+
+Plans:
+- [ ] 190-01-PLAN.md — AssessmentCategory model + EF migration (AssessmentCategories table with seed) + DbSet registration
+- [ ] 190-02-PLAN.md — Admin CRUD actions (Index, Create, Edit, Delete) + views + ViewBag wiring in CreateAssessment GET
+
+### Phase 191: Wizard UI
+**Goal**: Admin/HC can create an assessment via a 4-step wizard (Kategori → Users → Settings → Konfirmasi) with per-step client-side validation, a summary confirm step, and a ValidUntil date picker on the Settings step
+**Depends on**: Phase 190
+**Requirements**: FORM-01
+**Success Criteria** (what must be TRUE):
+  1. The CreateAssessment page shows a 4-step progress indicator; clicking Next advances to the next step only when required fields on the current step are filled
+  2. Clicking Back on Step 2 (Users) returns to Step 1 with the previously selected category still selected
+  3. The multi-user selection on Step 2 is still intact after navigating Back and then Next again — no users are lost or duplicated
+  4. Step 4 (Konfirmasi) shows a read-only summary of all selections (category, selected users count, settings including ValidUntil) before the user submits
+  5. Submitting the wizard calls the existing POST action unchanged — no new server round-trips between steps
+**Plans**: TBD
+
+Plans:
+- [ ] 191-01-PLAN.md — CreateAssessment.cshtml wizard restructure: Bootstrap nav-tabs, step controller JS, per-step validation, Confirm summary, ValidUntil datepicker field
+
+### Phase 192: ValidUntil & NomorSertifikat
+**Goal**: Admin/HC can set a certificate expiry date when creating an assessment, and the system generates a unique certificate number automatically for each session when the assessment is created
+**Depends on**: Phase 191
+**Requirements**: CERT-01, CERT-02
+**Success Criteria** (what must be TRUE):
+  1. After creating an assessment with a ValidUntil date, each resulting AssessmentSession record has the ValidUntil date stored correctly
+  2. Each AssessmentSession created in the same batch has a unique NomorSertifikat in the format CERT-{YEAR}-{SEQ} (e.g., CERT-2026-0042)
+  3. Two simultaneous assessment creation requests never produce sessions with duplicate certificate numbers — the UNIQUE constraint on NomorSertifikat prevents it
+  4. Creating an assessment without setting ValidUntil stores null (not an error) — the field is optional
+**Plans**: TBD
+
+Plans:
+- [ ] 192-01-PLAN.md — EF migration (ValidUntil + NomorSertifikat columns with UNIQUE constraint on AssessmentSessions) + CreateAssessment POST logic (ValidUntil mapping, NomorSertifikat auto-generation with retry loop)
+
+### Phase 193: Clone Assessment
+**Goal**: Admin/HC can duplicate an existing assessment — the clone pre-fills all settings from the source and copies the full question graph so the cloned assessment is ready to run without re-entering questions
+**Depends on**: Phase 191
+**Requirements**: FORM-03
+**Success Criteria** (what must be TRUE):
+  1. A "Clone" button on the assessment list or detail view navigates to the CreateAssessment wizard with all settings pre-filled from the source assessment
+  2. The cloned assessment's packages contain the same questions and options as the source — no questions are missing
+  3. The cloned questions are new entities (new IDs) — editing or deleting them does not affect the source assessment's questions
+  4. The Clone action is available to Admin and HC roles only
+**Plans**: TBD
+
+Plans:
+- [ ] 193-01-PLAN.md — CloneAssessment GET action (deep-copy AssessmentSession + AssessmentPackage + PackageQuestion + PackageOption with Id = 0) + pre-fill query string + wizard GET reads clone params + Clone button on list/detail view
+
+### Phase 194: PDF Certificate Download
+**Goal**: Users can download their assessment certificate as a PDF file directly from the Certificate page
+**Depends on**: Phase 192
+**Requirements**: CERT-03
+**Success Criteria** (what must be TRUE):
+  1. A "Download PDF" button appears on the Certificate page for passed assessment sessions with GenerateCertificate = true
+  2. Clicking the button downloads a PDF file named Sertifikat_{NIP}_{Title}_{Year}.pdf
+  3. The PDF displays the worker's full name, NIP, assessment title, NomorSertifikat, issue date, and ValidUntil date (if set) in a readable A4 landscape layout
+  4. A worker cannot download another worker's certificate by manipulating the URL — the action enforces the same auth guard as the existing Certificate view action
+**Plans**: TBD
+
+Plans:
+- [ ] 194-01-PLAN.md — CMPController.CertificatePdf GET action (QuestPDF A4 landscape, inline Document.Create lambda) + Download PDF button on Certificate.cshtml
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -179,3 +265,8 @@ Plans:
 | 187. Full-Page Controller Action and Static View | v7.4 | 0/TBD | Not started | - |
 | 188. AJAX Filter Bar | v7.4 | 0/TBD | Not started | - |
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
+| 190. DB Categories Foundation | v7.5 | 0/TBD | Not started | - |
+| 191. Wizard UI | v7.5 | 0/TBD | Not started | - |
+| 192. ValidUntil & NomorSertifikat | v7.5 | 0/TBD | Not started | - |
+| 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
+| 194. PDF Certificate Download | v7.5 | 0/TBD | Not started | - |
