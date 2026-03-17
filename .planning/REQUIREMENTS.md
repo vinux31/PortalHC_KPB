@@ -9,9 +9,9 @@ Requirements for PDF Evidence Report Enhancement.
 
 ### PDF Evidence Report
 
-- [ ] **PDF-01**: PDF Evidence Report header displays Nama Coachee above Tanggal Coaching (top-left)
-- [ ] **PDF-02**: PDF Evidence Report header displays Unit Coachee above Tanggal Coaching (top-left)
-- [ ] **PDF-03**: PDF Evidence Report header displays Track (Operator/Panelman Tahun X) above Tanggal Coaching (top-left)
+- [x] **PDF-01**: PDF Evidence Report header displays Nama Coachee above Tanggal Coaching (top-left)
+- [x] **PDF-02**: PDF Evidence Report header displays Unit Coachee above Tanggal Coaching (top-left)
+- [x] **PDF-03**: PDF Evidence Report header displays Track (Operator/Panelman Tahun X) above Tanggal Coaching (top-left)
 
 ## Future Requirements
 
@@ -28,9 +28,9 @@ None.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PDF-01 | Phase 181 | Pending |
-| PDF-02 | Phase 181 | Pending |
-| PDF-03 | Phase 181 | Pending |
+| PDF-01 | Phase 181 | Complete |
+| PDF-02 | Phase 181 | Complete |
+| PDF-03 | Phase 181 | Complete |
 
 **Coverage:**
 - v7.2 requirements: 3 total

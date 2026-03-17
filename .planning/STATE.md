@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.2
 milestone_name: PDF Evidence Report Enhancement
 status: active
-stopped_at: Phase 181 context gathered
-last_updated: "2026-03-17T00:39:20.021Z"
+stopped_at: Completed 181-01-PLAN.md
+last_updated: "2026-03-17T00:48:08.406Z"
 last_activity: 2026-03-17 — Roadmap created for v7.2 (1 phase, 3 requirements)
 progress:
   total_phases: 1
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 ---
@@ -60,6 +60,8 @@ Progress: [░░░░░░░░░░] 0%
 - QuestPDF is the canonical library for PDF generation (DownloadEvidencePdf, ExportProgressPdf)
 - v7.2 scope: Add Nama, Unit, Track to PDF Evidence Report header (DownloadEvidencePdf) only — ExportProgressPdf is explicitly out of scope
 - Header fields positioned top-left, above Tanggal Coaching
+- [Phase 181-01]: Single EF query fetches both FullName and Unit via anonymous-type projection (coacheeInfo)
+- [Phase 181-01]: PDF header side-by-side layout: RelativeItem(3) coachee info left, RelativeItem(2) logo right with separator line
 
 ### Blockers/Concerns
 
@@ -67,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T00:39:20.018Z
-Stopped at: Phase 181 context gathered
-Resume file: .planning/phases/181-pdf-header-coachee-info/181-CONTEXT.md
+Last session: 2026-03-17T00:48:02.739Z
+Stopped at: Completed 181-01-PLAN.md
+Resume file: None
