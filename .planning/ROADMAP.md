@@ -234,7 +234,7 @@ Plans:
   2. Clicking the button downloads a PDF file named Sertifikat_{NIP}_{Title}_{Year}.pdf
   3. The PDF displays the worker's full name, NIP, assessment title, NomorSertifikat, issue date, and ValidUntil date (if set) in a readable A4 landscape layout
   4. A worker cannot download another worker's certificate by manipulating the URL — the action enforces the same auth guard as the existing Certificate view action
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 194-01-PLAN.md — CMPController.CertificatePdf GET action (QuestPDF A4 landscape, inline Document.Create lambda) + Download PDF button on Certificate.cshtml
