@@ -70,4 +70,4 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 181. PDF Header Coachee Info | 1/1 | Complete   | 2026-03-17 | - |
+| 181. PDF Header Coachee Info | 1/1 | Complete    | 2026-03-17 | - |
