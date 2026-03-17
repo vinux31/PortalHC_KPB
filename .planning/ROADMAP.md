@@ -61,10 +61,13 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   2. When a user generates the PDF Evidence Report, "Unit Coachee" appears in the header above "Tanggal Coaching"
   3. When a user generates the PDF Evidence Report, "Track (Operator/Panelman Tahun X)" appears in the header above "Tanggal Coaching"
   4. All three coachee fields are positioned in the top-left corner of the header, consistent with existing layout conventions
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 181-01-PLAN.md — Add coachee identity fields to PDF header with side-by-side layout
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 181. PDF Header Coachee Info | v7.2 | 0/TBD | Not started | - |
+| 181. PDF Header Coachee Info | v7.2 | 0/1 | Not started | - |
