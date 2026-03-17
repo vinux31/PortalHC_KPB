@@ -208,8 +208,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 191-01-PLAN.md — ValidUntil property + EF migration + POST ModelState guard
-- [ ] 191-02-PLAN.md — CreateAssessment.cshtml full wizard rewrite (4-step nav-pills, JS controller, per-step validation, Konfirmasi summary)
+- [x] 191-01-PLAN.md — ValidUntil property + EF migration + POST ModelState guard
+- [x] 191-02-PLAN.md — CreateAssessment.cshtml full wizard rewrite (4-step nav-pills, JS controller, per-step validation, Konfirmasi summary)
 
 ### Phase 192: ValidUntil & NomorSertifikat
 **Goal**: Admin/HC can set a certificate expiry date when creating an assessment, and the system generates a unique certificate number automatically for each session when the assessment is created
@@ -217,13 +217,13 @@ Plans:
 **Requirements**: CERT-01, CERT-02
 **Success Criteria** (what must be TRUE):
   1. After creating an assessment with a ValidUntil date, each resulting AssessmentSession record has the ValidUntil date stored correctly
-  2. Each AssessmentSession created in the same batch has a unique NomorSertifikat in the format CERT-{YEAR}-{SEQ} (e.g., CERT-2026-0042)
+  2. Each AssessmentSession created in the same batch has a unique NomorSertifikat in the format KPB/{SEQ}/{ROMAN-MONTH}/{YEAR}
   3. Two simultaneous assessment creation requests never produce sessions with duplicate certificate numbers — the UNIQUE constraint on NomorSertifikat prevents it
   4. Creating an assessment without setting ValidUntil stores null (not an error) — the field is optional
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 192-01-PLAN.md — EF migration (ValidUntil + NomorSertifikat columns with UNIQUE constraint on AssessmentSessions) + CreateAssessment POST logic (ValidUntil mapping, NomorSertifikat auto-generation with retry loop)
+- [ ] 192-01-PLAN.md — NomorSertifikat column + UNIQUE index + certificate number generation + ValidUntil propagation in CreateAssessment POST
 
 ### Phase 193: Clone Assessment
 **Goal**: Admin/HC can duplicate an existing assessment — the clone pre-fills all settings from the source and copies the full question graph so the cloned assessment is ready to run without re-entering questions
@@ -268,6 +268,6 @@ Plans:
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
 | 190. DB Categories Foundation | 2/2 | Complete    | 2026-03-17 | - |
 | 191. Wizard UI | 2/2 | Complete    | 2026-03-17 | - |
-| 192. ValidUntil & NomorSertifikat | v7.5 | 0/TBD | Not started | - |
+| 192. ValidUntil & NomorSertifikat | v7.5 | 0/1 | Not started | - |
 | 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
 | 194. PDF Certificate Download | v7.5 | 0/TBD | Not started | - |
