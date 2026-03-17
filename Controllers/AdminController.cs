@@ -919,6 +919,11 @@ namespace HcPortal.Controllers
             ViewBag.SelectedUserIds = new List<string>();
             ViewBag.Sections = OrganizationStructure.GetAllSections();
             ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+            ViewBag.Categories = await _context.AssessmentCategories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
 
             // Pass created assessment data to view if exists (for success modal)
             if (TempData["CreatedAssessment"] != null)
@@ -1025,6 +1030,11 @@ namespace HcPortal.Controllers
                 ViewBag.SelectedUserIds = UserIds ?? new List<string>();
                 ViewBag.Sections = OrganizationStructure.GetAllSections();
                 ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+                ViewBag.Categories = await _context.AssessmentCategories
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.SortOrder)
+                    .ThenBy(c => c.Name)
+                    .ToListAsync();
                 return View(model);
             }
 
@@ -1090,6 +1100,11 @@ namespace HcPortal.Controllers
                     ViewBag.SelectedUserIds = UserIds ?? new List<string>();
                     ViewBag.Sections = OrganizationStructure.GetAllSections();
                     ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
+                    ViewBag.Categories = await _context.AssessmentCategories
+                        .Where(c => c.IsActive)
+                        .OrderBy(c => c.SortOrder)
+                        .ThenBy(c => c.Name)
+                        .ToListAsync();
                     return View(model);
                 }
 
@@ -1103,6 +1118,11 @@ namespace HcPortal.Controllers
                         TempData["Error"] = "Proton Track tidak ditemukan. Silakan pilih track yang valid.";
                         var users = await _context.Users.OrderBy(u => u.FullName).ToListAsync();
                         ViewBag.Users = users;
+                        ViewBag.Categories = await _context.AssessmentCategories
+                            .Where(c => c.IsActive)
+                            .OrderBy(c => c.SortOrder)
+                            .ThenBy(c => c.Name)
+                            .ToListAsync();
                         return View("CreateAssessment", model);
                     }
                     protonTahunKe = protonTrack.TahunKe;
@@ -1315,6 +1335,11 @@ namespace HcPortal.Controllers
                 .CountAsync(p => siblingIds.Contains(p.AssessmentSessionId));
             ViewBag.PackageCount = packageCount;
             ViewBag.OriginalSchedule = assessment.Schedule.ToString("yyyy-MM-dd");
+            ViewBag.Categories = await _context.AssessmentCategories
+                .Where(c => c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
 
             return View(assessment);
         }

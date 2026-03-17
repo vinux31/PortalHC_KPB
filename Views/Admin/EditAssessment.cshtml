@@ -5,17 +5,6 @@
     ViewData["ContainerClass"] = "container-fluid";
     var packageCount = (int)(ViewBag.PackageCount ?? 0);
     var originalSchedule = (string)(ViewBag.OriginalSchedule ?? "");
-    // Get list of categories for dropdown
-    var categories = new List<SelectListItem>
-    {
-        new SelectListItem { Value = "OJT", Text = "OJT" },
-        new SelectListItem { Value = "IHT", Text = "IHT" },
-        new SelectListItem { Value = "Training Licencor", Text = "Training Licencor" },
-        new SelectListItem { Value = "OTS", Text = "OTS" },
-        new SelectListItem { Value = "Mandatory HSSE Training", Text = "Mandatory HSSE Training" },
-        new SelectListItem { Value = "Assessment Proton", Text = "Assessment Proton" }
-    };
-
     // Status options
     var statuses = new List<SelectListItem>
     {
@@ -122,8 +111,20 @@
                         <label asp-for="Category" class="form-label fw-semibold">
                             Category <span class="text-danger">*</span>
                         </label>
-                        <select asp-for="Category" asp-items="categories" class="form-select" required>
-                            <option value="">-- Select Category --</option>
+                        <select asp-for="Category" class="form-select" id="Category" required>
+                            <option value="">-- Pilih Kategori --</option>
+                            @foreach (var cat in (IEnumerable<HcPortal.Models.AssessmentCategory>)ViewBag.Categories)
+                            {
+                                <option value="@cat.Name"
+                                        data-pass-percentage="@cat.DefaultPassPercentage"
+                                        selected="@(Model.Category == cat.Name)">
+                                    @cat.Name
+                                </option>
+                            }
+                            @if (Model.Category != null && !((IEnumerable<HcPortal.Models.AssessmentCategory>)ViewBag.Categories).Any(c => c.Name == Model.Category))
+                            {
+                                <option value="@Model.Category" selected disabled>@Model.Category (tidak aktif)</option>
+                            }
                         </select>
                         <span asp-validation-for="Category" class="text-danger"></span>
                     </div>
