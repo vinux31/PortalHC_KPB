@@ -105,6 +105,7 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 | 260317-n4g | Update Home/Index shortcut cards - expand CDP and CMP labels to full names and update logos | 2026-03-17 | a5a294a | [260317-n4g](./quick/260317-n4g-update-home-index-shortcut-cards-expand-/) |
 | 260317-n9w | Rename KKJ Matrix to Kebutuhan Kompetensi Jabatan on CMP/Index and related pages | 2026-03-17 | e7edb17 | [260317-n9w](./quick/260317-n9w-rename-kkj-matrix-to-kebutuhan-kompetens/) |
 | 260317-no5 | Rename CPDP Mapping card on CMP/Index to Alignment KKJ & IDP | 2026-03-17 | 191ff3e | [260317-no5](./quick/260317-no5-rename-cpdp-mapping-card-on-cmp-index-to/) |
+| 260317-nw2 | Rename CDP/Index card titles and descriptions to Indonesian | 2026-03-17 | be81f7a | [260317-nw2](./quick/260317-nw2-rename-cdp-index-card-titles-and-descrip/) |
 
 ## Session Continuity
 
