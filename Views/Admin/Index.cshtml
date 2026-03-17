@@ -177,4 +177,20 @@
         </a>
     </div>
     }
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
+        <a href="@Url.Action("ManageCategories", "Admin")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-tags fs-5 text-primary"></i>
+                        <span class="fw-bold">Kategori Assessment</span>
+                    </div>
+                    <small class="text-muted">Kelola kategori assessment dan nilai lulus default</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
 </div>

@@ -1,0 +1,235 @@
+@model IEnumerable<HcPortal.Models.AssessmentCategory>
+
+@{
+    ViewData["Title"] = "Kategori Assessment";
+    var editCategory = ViewBag.EditCategory as HcPortal.Models.AssessmentCategory;
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Kategori Assessment</li>
+        </ol>
+    </nav>
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">
+                <i class="bi bi-tags me-2 text-primary"></i>Kategori Assessment
+            </h2>
+            <p class="text-muted mb-0">Kelola kategori assessment dan nilai lulus default</p>
+        </div>
+        <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addCategoryForm">
+            <i class="bi bi-plus-circle me-2"></i>Tambah Kategori
+        </button>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Add Form -->
+    <div class="collapse @(TempData["ShowAddForm"] != null ? "show" : "") mb-4" id="addCategoryForm">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white fw-bold">
+                <i class="bi bi-plus-circle me-2"></i>Tambah Kategori Baru
+            </div>
+            <div class="card-body">
+                <form method="post" action="@Url.Action("AddCategory", "Admin")">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Nama Kategori <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" placeholder="e.g. OJT" required maxlength="100" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Nilai Lulus Default (%)</label>
+                            <input type="number" name="defaultPassPercentage" class="form-control" value="70" min="0" max="100" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Urutan</label>
+                            <input type="number" name="sortOrder" class="form-control" value="0" min="0" />
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-plus-circle me-1"></i>Tambah
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form (shown when edit is triggered) -->
+    @if (editCategory != null)
+    {
+        <div class="card border-0 shadow-sm mb-4 border-warning">
+            <div class="card-header bg-warning text-dark fw-bold">
+                <i class="bi bi-pencil-square me-2"></i>Edit Kategori: @editCategory.Name
+            </div>
+            <div class="card-body">
+                <form method="post" action="@Url.Action("EditCategory", "Admin", new { id = editCategory.Id })">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label fw-semibold">Nama Kategori <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" value="@editCategory.Name" required maxlength="100" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-semibold">Nilai Lulus Default (%)</label>
+                            <input type="number" name="defaultPassPercentage" class="form-control" value="@editCategory.DefaultPassPercentage" min="0" max="100" />
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label fw-semibold">Urutan</label>
+                            <input type="number" name="sortOrder" class="form-control" value="@editCategory.SortOrder" min="0" />
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end gap-2">
+                            <button type="submit" class="btn btn-warning w-100">
+                                <i class="bi bi-save me-1"></i>Simpan
+                            </button>
+                            <a href="@Url.Action("ManageCategories", "Admin")" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-tags fs-1 d-block mb-3"></i>
+                    <h5>Belum ada kategori</h5>
+                    <p class="small">Tambahkan kategori assessment menggunakan tombol 'Tambah Kategori' di atas.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="p-3" style="width:50px;">#</th>
+                                <th class="p-3">Nama Kategori</th>
+                                <th class="p-3 text-center" style="width:180px;">Nilai Lulus Default (%)</th>
+                                <th class="p-3 text-center" style="width:100px;">Urutan</th>
+                                <th class="p-3 text-center" style="width:110px;">Status</th>
+                                <th class="p-3 text-center" style="width:160px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int idx = 0; }
+                            @foreach (var cat in Model)
+                            {
+                                idx++;
+                                <tr>
+                                    <td class="p-3 text-muted small">@idx</td>
+                                    <td class="p-3 fw-semibold">@cat.Name</td>
+                                    <td class="p-3 text-center">@cat.DefaultPassPercentage%</td>
+                                    <td class="p-3 text-center">@cat.SortOrder</td>
+                                    <td class="p-3 text-center">
+                                        @if (cat.IsActive)
+                                        {
+                                            <span class="badge bg-success">Aktif</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Nonaktif</span>
+                                        }
+                                    </td>
+                                    <td class="p-3 text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="@Url.Action("EditCategory", "Admin", new { id = cat.Id })"
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="bi bi-pencil-square"></i>
+                                            </a>
+                                            <form method="post" action="@Url.Action("ToggleCategoryActive", "Admin")" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@cat.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="@(cat.IsActive ? "Nonaktifkan" : "Aktifkan")">
+                                                    <i class="bi @(cat.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
+                                                </button>
+                                            </form>
+                                            <button type="button" class="btn btn-sm btn-danger"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#deleteModal"
+                                                    data-id="@cat.Id"
+                                                    data-name="@cat.Name"
+                                                    title="Hapus">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus kategori "<strong id="deleteModalName"></strong>"?
+                <br><small class="text-muted">Tindakan ini tidak dapat dibatalkan. Assessment yang sudah menggunakan kategori ini tidak akan terpengaruh.</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <form id="deleteForm" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" id="deleteModalId" />
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Hapus
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var deleteModal = document.getElementById('deleteModal');
+        if (deleteModal) {
+            deleteModal.addEventListener('show.bs.modal', function (event) {
+                var button = event.relatedTarget;
+                var id = button.getAttribute('data-id');
+                var name = button.getAttribute('data-name');
+                document.getElementById('deleteModalName').textContent = name;
+                document.getElementById('deleteModalId').value = id;
+                document.getElementById('deleteForm').action = '@Url.Action("DeleteCategory", "Admin")';
+            });
+        }
+    });
+</script>

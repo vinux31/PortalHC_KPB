@@ -752,6 +752,156 @@ namespace HcPortal.Controllers
             return View();
         }
 
+        // --- CATEGORY MANAGEMENT ---
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ManageCategories()
+        {
+            var categories = await _context.AssessmentCategories
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
+            return View(categories);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddCategory(string name, int defaultPassPercentage, int sortOrder)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                TempData["Error"] = "Nama kategori tidak boleh kosong.";
+                return RedirectToAction("ManageCategories");
+            }
+
+            if (await _context.AssessmentCategories.AnyAsync(c => c.Name == name))
+            {
+                TempData["Error"] = "Nama kategori sudah digunakan. Gunakan nama yang berbeda.";
+                return RedirectToAction("ManageCategories");
+            }
+
+            var category = new AssessmentCategory
+            {
+                Name = name.Trim(),
+                DefaultPassPercentage = defaultPassPercentage,
+                SortOrder = sortOrder,
+                IsActive = true
+            };
+            _context.AssessmentCategories.Add(category);
+            await _context.SaveChangesAsync();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                ? (currentUser?.FullName ?? "Unknown")
+                : $"{currentUser.NIP} - {currentUser.FullName}";
+            await _auditLog.LogAsync(currentUser?.Id ?? "", actorName, "AddCategory",
+                $"Added assessment category '{category.Name}' (DefaultPass: {category.DefaultPassPercentage}%)",
+                category.Id, "AssessmentCategory");
+
+            TempData["Success"] = "Kategori berhasil ditambahkan.";
+            return RedirectToAction("ManageCategories");
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> EditCategory(int id)
+        {
+            var category = await _context.AssessmentCategories.FindAsync(id);
+            if (category == null) return NotFound();
+
+            var categories = await _context.AssessmentCategories
+                .OrderBy(c => c.SortOrder)
+                .ThenBy(c => c.Name)
+                .ToListAsync();
+            ViewBag.EditCategory = category;
+            return View("ManageCategories", categories);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCategory(int id, string name, int defaultPassPercentage, int sortOrder)
+        {
+            var category = await _context.AssessmentCategories.FindAsync(id);
+            if (category == null) return NotFound();
+
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                TempData["Error"] = "Nama kategori tidak boleh kosong.";
+                return RedirectToAction("ManageCategories");
+            }
+
+            if (await _context.AssessmentCategories.AnyAsync(c => c.Name == name && c.Id != id))
+            {
+                TempData["Error"] = "Nama kategori sudah digunakan. Gunakan nama yang berbeda.";
+                return RedirectToAction("ManageCategories");
+            }
+
+            category.Name = name.Trim();
+            category.DefaultPassPercentage = defaultPassPercentage;
+            category.SortOrder = sortOrder;
+            await _context.SaveChangesAsync();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                ? (currentUser?.FullName ?? "Unknown")
+                : $"{currentUser.NIP} - {currentUser.FullName}";
+            await _auditLog.LogAsync(currentUser?.Id ?? "", actorName, "EditCategory",
+                $"Updated assessment category '{category.Name}' (DefaultPass: {category.DefaultPassPercentage}%)",
+                category.Id, "AssessmentCategory");
+
+            TempData["Success"] = "Kategori berhasil diperbarui.";
+            return RedirectToAction("ManageCategories");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            var category = await _context.AssessmentCategories.FindAsync(id);
+            if (category == null) return NotFound();
+
+            _context.AssessmentCategories.Remove(category);
+            await _context.SaveChangesAsync();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                ? (currentUser?.FullName ?? "Unknown")
+                : $"{currentUser.NIP} - {currentUser.FullName}";
+            await _auditLog.LogAsync(currentUser?.Id ?? "", actorName, "DeleteCategory",
+                $"Deleted assessment category '{category.Name}'",
+                category.Id, "AssessmentCategory");
+
+            TempData["Success"] = "Kategori berhasil dihapus.";
+            return RedirectToAction("ManageCategories");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleCategoryActive(int id)
+        {
+            var category = await _context.AssessmentCategories.FindAsync(id);
+            if (category == null) return NotFound();
+
+            category.IsActive = !category.IsActive;
+            await _context.SaveChangesAsync();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var actorName = string.IsNullOrWhiteSpace(currentUser?.NIP)
+                ? (currentUser?.FullName ?? "Unknown")
+                : $"{currentUser.NIP} - {currentUser.FullName}";
+            await _auditLog.LogAsync(currentUser?.Id ?? "", actorName, "ToggleCategoryActive",
+                $"Toggled category '{category.Name}' to {(category.IsActive ? "Active" : "Inactive")}",
+                category.Id, "AssessmentCategory");
+
+            TempData["Success"] = "Status kategori berhasil diubah.";
+            return RedirectToAction("ManageCategories");
+        }
+
         // --- CREATE ASSESSMENT ---
         // GET: Show create assessment form
         [HttpGet]
