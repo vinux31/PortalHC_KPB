@@ -11,6 +11,11 @@ using HcPortal.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.SignalR;
 using HcPortal.Hubs;
+using System.Text.RegularExpressions;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
+using QuestPDF.Drawing;
 
 namespace HcPortal.Controllers
 {
@@ -2362,6 +2367,194 @@ namespace HcPortal.Controllers
             }
 
             return View(assessment);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CertificatePdf(int id)
+        {
+            var assessment = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (assessment == null) return NotFound();
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var userRoles = await _userManager.GetRolesAsync(user);
+            bool isAuthorized = assessment.UserId == user.Id ||
+                                userRoles.Contains("Admin") ||
+                                userRoles.Contains("HC");
+            if (!isAuthorized) return Forbid();
+
+            if (assessment.Status != "Completed")
+            {
+                TempData["Error"] = "Assessment not completed yet.";
+                return RedirectToAction("Assessment");
+            }
+
+            if (!assessment.GenerateCertificate) return NotFound();
+
+            if (assessment.IsPassed != true)
+            {
+                TempData["Error"] = "Certificate is only available for passed assessments.";
+                return RedirectToAction("Results", new { id });
+            }
+
+            // Register fonts from wwwroot/fonts/
+            var fontsPath = Path.Combine(_env.WebRootPath, "fonts");
+            foreach (var fontFile in Directory.GetFiles(fontsPath, "*.ttf"))
+            {
+                using var fontStream = System.IO.File.OpenRead(fontFile);
+                FontManager.RegisterFont(fontStream);
+            }
+
+            var completedAt = assessment.CompletedAt ?? assessment.UpdatedAt ?? assessment.CreatedAt;
+            var dateStr = completedAt.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("id-ID"));
+
+            var pdf = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(15);
+
+                    // Outer blue border + inner gold border
+                    page.Content()
+                        .Border(2).BorderColor("#1a4a8d")
+                        .Padding(5)
+                        .Border(1).BorderColor("#c49a00")
+                        .Padding(10)
+                        .Column(col =>
+                        {
+                            col.Spacing(0);
+
+                            // Header: HC PORTAL KPB
+                            col.Item().AlignCenter().PaddingTop(8)
+                                .Text("HC PORTAL KPB")
+                                .FontFamily("Playfair Display").FontSize(18).Bold()
+                                .FontColor("#1a4a8d");
+
+                            // Certificate of Completion
+                            col.Item().AlignCenter().PaddingTop(4)
+                                .Text("Certificate of Completion")
+                                .FontFamily("Playfair Display").FontSize(36).Bold()
+                                .FontColor("#1a4a8d");
+
+                            // This verifies that
+                            col.Item().AlignCenter().PaddingTop(4)
+                                .Text("This verifies that")
+                                .FontFamily("Lato").FontSize(14).Italic()
+                                .FontColor("#555555");
+
+                            // Recipient name with underline
+                            col.Item().AlignCenter().PaddingTop(6).PaddingBottom(2)
+                                .BorderBottom(1.5f).BorderColor("#cccccc")
+                                .Text(assessment.User?.FullName ?? "")
+                                .FontFamily("Playfair Display").FontSize(32).Bold().Italic();
+
+                            // NIP (if available)
+                            if (!string.IsNullOrEmpty(assessment.User?.NIP))
+                            {
+                                col.Item().AlignCenter().PaddingTop(4)
+                                    .Text($"NIP: {assessment.User.NIP}")
+                                    .FontFamily("Lato").FontSize(13)
+                                    .FontColor("#555555");
+                            }
+
+                            // Achievement text
+                            col.Item().AlignCenter().PaddingTop(8)
+                                .Text("Has successfully completed the competency assessment module")
+                                .FontFamily("Lato").FontSize(13)
+                                .FontColor("#444444");
+
+                            // Assessment title in gold
+                            col.Item().AlignCenter().PaddingTop(4)
+                                .Text((assessment.Title ?? "").ToUpperInvariant())
+                                .FontFamily("Lato").FontSize(20).Bold()
+                                .FontColor("#c49a00");
+
+                            // Proficiency text
+                            col.Item().AlignCenter().PaddingTop(4)
+                                .Text("Demonstrating proficiency and understanding of the subject matter.")
+                                .FontFamily("Lato").FontSize(13)
+                                .FontColor("#444444");
+
+                            // Footer row
+                            col.Item().PaddingTop(14).Row(row =>
+                            {
+                                // Left: date + certificate info
+                                row.RelativeItem().Column(left =>
+                                {
+                                    left.Item()
+                                        .Text(dateStr)
+                                        .FontFamily("Lato").FontSize(14).Bold();
+                                    left.Item().BorderTop(1).BorderColor("#333333").PaddingTop(2)
+                                        .Text("Date of Issue")
+                                        .FontFamily("Lato").FontSize(11)
+                                        .FontColor("#666666");
+                                    if (!string.IsNullOrEmpty(assessment.NomorSertifikat))
+                                    {
+                                        left.Item().PaddingTop(3)
+                                            .Text($"No. Sertifikat: {assessment.NomorSertifikat}")
+                                            .FontFamily("Lato").FontSize(11)
+                                            .FontColor("#666666");
+                                    }
+                                    if (assessment.ValidUntil.HasValue)
+                                    {
+                                        left.Item().PaddingTop(2)
+                                            .Text($"Berlaku Hingga: {assessment.ValidUntil.Value.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("id-ID"))}")
+                                            .FontFamily("Lato").FontSize(11)
+                                            .FontColor("#666666");
+                                    }
+                                });
+
+                                // Center: score badge (if available)
+                                if (assessment.Score.HasValue)
+                                {
+                                    row.ConstantItem(80).AlignCenter()
+                                        .Background("#1a4a8d")
+                                        .Border(3).BorderColor("#c49a00")
+                                        .Padding(6)
+                                        .Column(badge =>
+                                        {
+                                            badge.Item().AlignCenter()
+                                                .Text("SCORE")
+                                                .FontFamily("Lato").FontSize(9).Bold()
+                                                .FontColor("#ffffff");
+                                            badge.Item().AlignCenter()
+                                                .Text($"{assessment.Score}%")
+                                                .FontFamily("Lato").FontSize(20).Bold()
+                                                .FontColor("#ffffff");
+                                        });
+                                }
+
+                                // Right: signature
+                                row.RelativeItem().AlignRight().Column(right =>
+                                {
+                                    right.Item().AlignRight()
+                                        .Text("Authorized Sig.")
+                                        .FontFamily("Playfair Display").FontSize(18)
+                                        .FontColor("#1a4a8d");
+                                    right.Item().AlignRight().BorderTop(1).BorderColor("#333333").PaddingTop(2)
+                                        .Text("HC Manager")
+                                        .FontFamily("Lato").FontSize(11)
+                                        .FontColor("#666666");
+                                });
+                            });
+                        });
+                });
+            });
+
+            var pdfStream = new MemoryStream();
+            pdf.GeneratePdf(pdfStream);
+
+            var nip = assessment.User?.NIP ?? user.Id;
+            var safeTitle = Regex.Replace(assessment.Title ?? "Certificate", @"[^a-zA-Z0-9]", "_");
+            var year = completedAt.Year;
+            var filename = $"Sertifikat_{nip}_{safeTitle}_{year}.pdf";
+
+            return File(pdfStream.ToArray(), "application/pdf", filename);
         }
 
         [HttpGet]
