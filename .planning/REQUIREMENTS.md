@@ -1,52 +1,90 @@
-# Requirements: Portal HC KPB
+# Requirements: Portal HC KPB — v7.4 Monitoring Sertifikat
 
 **Defined:** 2026-03-17
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v7.3 Requirements
+## v7.4 Requirements
 
-Requirements for Elemen Teknis Shuffle & Rename.
+Requirements for certificate monitoring milestone. Each maps to roadmap phases.
 
-### Shuffle Algorithm
+### Monitoring Dashboard
 
-- [x] **SHUF-01**: Cross-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
-- [x] **SHUF-02**: Single-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
-- [x] **SHUF-03**: Reshuffle (single + bulk) preserves Elemen Teknis distribution same as initial shuffle
+- [ ] **DASH-01**: User can see summary cards showing Total Sertifikat, Aktif, Akan Expired, and Expired counts
+- [ ] **DASH-02**: User can see a table listing all certificates with worker name, NIP, certificate name, type, status badge, and expiry date
+- [ ] **DASH-03**: Expired and expiring-soon rows are visually highlighted with distinct colors
+- [ ] **DASH-04**: User can access Monitoring Sertifikat from a new card on CDP/Index
 
-### Internal Rename
+### Role Scoping
 
-- [x] **RENAME-01**: PackageQuestion.SubCompetency DB column renamed to ElemenTeknis (with EF Core migration)
-- [x] **RENAME-02**: All C# model properties, variables, and method names use ElemenTeknis instead of SubCompetency
-- [x] **RENAME-03**: ViewModel class SubCompetencyScore renamed to ElemenTeknisScore
+- [ ] **ROLE-01**: Admin and HC can view certificates for all workers across all units
+- [ ] **ROLE-02**: SectionHead and Sr. Supervisor can view certificates for workers in their section only
+- [ ] **ROLE-03**: Coach and Coachee can view only their own certificates
+
+### Data Integration
+
+- [ ] **DATA-01**: Table includes certificates from TrainingRecord (manual training with uploaded certificates)
+- [ ] **DATA-02**: Table includes certificates from AssessmentSession (online assessment, displayed as Permanent status)
+
+### Filtering
+
+- [ ] **FILT-01**: User can filter by Bagian and Unit via cascade dropdown
+- [ ] **FILT-02**: User can filter by certificate status (Aktif / Akan Expired / Expired / Permanent)
+- [ ] **FILT-03**: User can filter by certificate type (Annual / 3-Year / Permanent)
+- [ ] **FILT-04**: User can search by worker name or NIP
+
+### Actions
+
+- [ ] **ACT-01**: User can view a certificate (online cert opens CMP/Certificate page, manual cert opens file)
+- [ ] **ACT-02**: User can download a certificate file
+- [ ] **ACT-03**: User can export the filtered certificate list to Excel
 
 ## Future Requirements
 
-None.
+### Notifications
+
+- **NOTF-01**: User receives notification when certificate is expiring within 30 days
+- **NOTF-02**: HC receives weekly summary of expiring certificates
+
+### Advanced
+
+- **ADV-01**: Certificate renewal workflow with upload and approval
+- **ADV-02**: Expiry countdown column showing days until expiration
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Change spider web minimum threshold | Not needed — fix shuffle ensures all Elemen Teknis are represented |
-| Rename ProtonSubKompetensi model/table | Different domain (Proton catalog), not related to assessment Elemen Teknis |
-| UI label changes | Already done in v7.0 (Phase 175) |
+| Email alerts for expiring certificates | High complexity, requires email infrastructure not yet built |
+| Inline editing of certificate data | This is a monitoring page, edits happen in TrainingRecord/Assessment management |
+| Certificate generation/creation | Certificates are created via existing TrainingRecord or Assessment flows |
+| Mobile app notifications | Web-first, no mobile infrastructure |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RENAME-01 | Phase 183 | Complete |
-| RENAME-02 | Phase 183 | Complete |
-| RENAME-03 | Phase 183 | Complete |
-| SHUF-01 | Phase 184 | Complete |
-| SHUF-02 | Phase 184 | Complete |
-| SHUF-03 | Phase 184 | Complete |
+| DASH-01 | — | Pending |
+| DASH-02 | — | Pending |
+| DASH-03 | — | Pending |
+| DASH-04 | — | Pending |
+| ROLE-01 | — | Pending |
+| ROLE-02 | — | Pending |
+| ROLE-03 | — | Pending |
+| DATA-01 | — | Pending |
+| DATA-02 | — | Pending |
+| FILT-01 | — | Pending |
+| FILT-02 | — | Pending |
+| FILT-03 | — | Pending |
+| FILT-04 | — | Pending |
+| ACT-01 | — | Pending |
+| ACT-02 | — | Pending |
+| ACT-03 | — | Pending |
 
 **Coverage:**
-- v7.3 requirements: 6 total
-- Mapped to phases: 6
-- Unmapped: 0 ✓
+- v7.4 requirements: 16 total
+- Mapped to phases: 0
+- Unmapped: 16
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 — traceability mapped after roadmap creation*
+*Last updated: 2026-03-17 after initial definition*
