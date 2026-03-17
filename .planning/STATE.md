@@ -21,7 +21,7 @@ status: active
 last_updated: "2026-03-17"
 last_activity: "2026-03-17 — Roadmap created, phases 190-194 defined"
 progress:
-  total_phases: 5
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -68,9 +68,7 @@ Progress: [░░░░░░░░░░] 0%
 
 - [v7.5 Roadmap]: Categories stay as strings in AssessmentSession — no FK, only new AssessmentCategories table (protects historical data)
 - [v7.5 Roadmap]: Wizard is single-page JS show/hide — POST action signature unchanged, no server round-trips between steps
-- [v7.5 Roadmap]: Clone deep-copy scope: AssessmentPackage → PackageQuestion → PackageOption (three levels, all new IDs)
 - [v7.5 Roadmap]: NomorSertifikat needs UNIQUE constraint + retry loop (up to 3 attempts on DbUpdateException)
-- [v7.5 Roadmap]: Phase 193 (Clone) depends on Phase 191 (stable wizard) — pre-fill must land in correct step
 - [Phase 190]: Used migrationBuilder.Sql MERGE pattern for seed data (not HasData) — consistent with project convention
 - [Phase 190]: EditCategory GET re-renders ManageCategories view with ViewBag.EditCategory (inline editing pattern)
 - [Phase 190]: ViewBag.Categories must be set in all POST re-render paths to prevent NullReferenceException on form re-render
@@ -81,7 +79,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Blockers/Concerns
 
-- [Phase 193 planning]: Read CMPController.PackageExam before writing clone — confirm whether exam engine uses AssessmentQuestion (legacy), AssessmentPackage, or both
 - [Phase 190]: Confirm exact six production category strings in AdminController CreateAssessment POST branching before writing seed data
 
 ## Session Continuity

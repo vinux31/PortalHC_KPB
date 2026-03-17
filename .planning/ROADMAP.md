@@ -10,7 +10,7 @@
 - ✅ **v7.2 (loose)** - Phase 182 (shipped 2026-03-17)
 - ✅ **v7.3 Elemen Teknis Shuffle & Rename** - Phases 183–184 (shipped 2026-03-17)
 - 🚧 **v7.4 Certification Management** - Phases 185–189 (in progress)
-- 📋 **v7.5 Assessment Form Revamp & Certificate Enhancement** - Phases 190–194 (planned)
+- 📋 **v7.5 Assessment Form Revamp & Certificate Enhancement** - Phases 190–192, 194 (planned)
 
 ## Phases
 
@@ -171,12 +171,12 @@ Plans:
 
 ### 📋 v7.5 Assessment Form Revamp & Certificate Enhancement (Planned)
 
-**Milestone Goal:** Simplify assessment creation with a 4-step wizard, add database-driven categories with Admin CRUD, clone/duplicate existing assessments, add certificate expiry dates and auto-generated numbers, and provide server-side PDF certificate download.
+**Milestone Goal:** Simplify assessment creation with a 4-step wizard, add database-driven categories with Admin CRUD, add certificate expiry dates and auto-generated numbers, and provide server-side PDF certificate download.
 
 - [x] **Phase 190: DB Categories Foundation** — AssessmentCategory model, EF migration, Admin CRUD, and ViewBag wiring in CreateAssessment (completed 2026-03-17)
 - [x] **Phase 191: Wizard UI** — 4-step Bootstrap wizard restructuring CreateAssessment.cshtml with step validation and Confirm summary (completed 2026-03-17)
 - [x] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering (completed 2026-03-17)
-- [ ] **Phase 193: Clone Assessment** — CloneAssessment GET action with deep-copy of full AssessmentPackage question graph and pre-fill into wizard
+- ~~**Phase 193: Clone Assessment**~~ — Removed (user decided feature not needed)
 - [ ] **Phase 194: PDF Certificate Download** — CMPController.CertificatePdf QuestPDF action with A4 landscape layout and Download button on Certificate view
 
 ### Phase 190: DB Categories Foundation
@@ -225,20 +225,6 @@ Plans:
 Plans:
 - [ ] 192-01-PLAN.md — NomorSertifikat column + UNIQUE index + certificate number generation + ValidUntil propagation in CreateAssessment POST
 
-### Phase 193: Clone Assessment
-**Goal**: Admin/HC can duplicate an existing assessment — the clone pre-fills all settings from the source and copies the full question graph so the cloned assessment is ready to run without re-entering questions
-**Depends on**: Phase 191
-**Requirements**: FORM-03
-**Success Criteria** (what must be TRUE):
-  1. A "Clone" button on the assessment list or detail view navigates to the CreateAssessment wizard with all settings pre-filled from the source assessment
-  2. The cloned assessment's packages contain the same questions and options as the source — no questions are missing
-  3. The cloned questions are new entities (new IDs) — editing or deleting them does not affect the source assessment's questions
-  4. The Clone action is available to Admin and HC roles only
-**Plans**: TBD
-
-Plans:
-- [ ] 193-01-PLAN.md — CloneAssessment GET action (deep-copy AssessmentSession + AssessmentPackage + PackageQuestion + PackageOption with Id = 0) + pre-fill query string + wizard GET reads clone params + Clone button on list/detail view
-
 ### Phase 194: PDF Certificate Download
 **Goal**: Users can download their assessment certificate as a PDF file directly from the Certificate page
 **Depends on**: Phase 192
@@ -269,5 +255,5 @@ Plans:
 | 190. DB Categories Foundation | 2/2 | Complete    | 2026-03-17 | - |
 | 191. Wizard UI | 2/2 | Complete    | 2026-03-17 | - |
 | 192. ValidUntil & NomorSertifikat | 1/1 | Complete    | 2026-03-17 | - |
-| 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
+| ~~193. Clone Assessment~~ | v7.5 | - | Removed | - |
 | 194. PDF Certificate Download | v7.5 | 0/TBD | Not started | - |

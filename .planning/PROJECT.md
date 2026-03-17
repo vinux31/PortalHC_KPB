@@ -19,7 +19,6 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Target features:**
 - Wizard/step-based CreateAssessment form (Category → Users → Settings → Confirm)
 - Assessment categories stored in database (dynamic, no code change to add)
-- Clone/duplicate existing assessment with pre-filled settings
 - ValidUntil field on AssessmentSession for certificate expiry
 - Auto-generated certificate numbers (NomorSertifikat)
 - Server-side PDF certificate download via QuestPDF
