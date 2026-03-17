@@ -4,7 +4,7 @@ milestone: v7.4
 milestone_name: Certification Management
 status: active
 stopped_at: Completed 190-02-PLAN.md
-last_updated: "2026-03-17T11:43:53.175Z"
+last_updated: "2026-03-17T11:46:38.715Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
