@@ -88,7 +88,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 183-01-PLAN.md — Rename SubCompetency to ElemenTeknis across models, controllers, views, and DB column
+- [x] 183-01-PLAN.md — Rename SubCompetency to ElemenTeknis across models, controllers, views, and DB column
 
 ### Phase 184: Shuffle Algorithm — Guaranteed Elemen Teknis Distribution
 **Goal**: Cross-package and single-package shuffle guarantees at least one question per Elemen Teknis group, and reshuffles preserve that distribution
@@ -99,10 +99,11 @@ Plans:
   2. When a worker starts an exam using a single-package assessment, the shuffled question set contains at least one question from every Elemen Teknis group present in the package
   3. When HC triggers a reshuffle (single or bulk), the reshuffled question set still contains at least one question per Elemen Teknis group — the distribution guarantee is not lost
   4. The spider web (radar chart) on Results page renders whenever the worker's session has Elemen Teknis score data — it does not silently skip
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 184-01-PLAN.md — TBD (run /gsd:plan-phase 184 to break down)
+- [ ] 184-01-PLAN.md — ET-aware shuffle algorithm + legacy Results spider web fix
+- [ ] 184-02-PLAN.md — ManagePackages ET coverage table + upload warning enhancement
 
 ## Progress
 
@@ -111,4 +112,4 @@ Plans:
 | 181. PDF Header Coachee Info | v7.2 | 1/1 | Complete | 2026-03-17 |
 | 182. CDP Evidence Column Clarification | 1/1 | Complete    | 2026-03-17 | - |
 | 183. Internal Rename SubCompetency → ElemenTeknis | 1/1 | Complete    | 2026-03-17 | - |
-| 184. Shuffle Algorithm Elemen Teknis Distribution | v7.3 | 0/? | Not started | - |
+| 184. Shuffle Algorithm Elemen Teknis Distribution | v7.3 | 0/2 | Not started | - |
