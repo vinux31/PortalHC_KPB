@@ -58,6 +58,12 @@ namespace HcPortal.Models
         /// </summary>
         public DateTime? ExamWindowCloseDate { get; set; }
 
+        /// <summary>
+        /// Optional certificate expiry date. Null = certificate has no expiry.
+        /// Only relevant when GenerateCertificate = true.
+        /// </summary>
+        public DateTime? ValidUntil { get; set; }
+
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
 

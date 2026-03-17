@@ -1015,6 +1015,8 @@ namespace HcPortal.Controllers
 
             // ExamWindowCloseDate is optional — remove from ModelState to prevent accidental validation failure
             ModelState.Remove("ExamWindowCloseDate");
+            // ValidUntil is optional — remove from ModelState to prevent accidental validation failure
+            ModelState.Remove("ValidUntil");
 
             // Validate model
             if (!ModelState.IsValid)
