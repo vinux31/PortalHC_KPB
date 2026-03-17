@@ -1,48 +1,33 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.1
-milestone_name: Export & Import Data
+milestone: v7.2
+milestone_name: PDF Evidence Report Enhancement
 status: active
-last_updated: "2026-03-16T11:43:23.966Z"
-last_activity: 2026-03-16 — Roadmap created for v7.1
+last_updated: "2026-03-17"
+last_activity: "2026-03-17 — Milestone v7.2 started"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 5
-  completed_plans: 5
-  percent: 100
----
-
----
-gsd_state_version: 1.0
-milestone: v7.1
-milestone_name: Export & Import Data
-status: active
-stopped_at: null
-last_updated: "2026-03-16"
-last_activity: "2026-03-16 — Roadmap created for v7.1 (5 phases, 176-180)"
-progress:
-  [██████████] 100%
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-16)
+See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v7.1 Export & Import Data — Phase 176 ready to plan
+**Current focus:** v7.2 PDF Evidence Report Enhancement
 
 ## Current Position
 
-Phase: 176 of 180 (Export Records & RecordsTeam)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Ready to plan
-Last activity: 2026-03-16 — Roadmap created for v7.1
+Status: Defining requirements
+Last activity: 2026-03-17 — Milestone v7.2 started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -61,12 +46,7 @@ Progress: [░░░░░░░░░░] 0%
 - ClosedXML (XLWorkbook) is the canonical library for Excel generation
 - Import pattern: Download template button + file upload + process + redirect to list
 - Reference implementation: AdminController ImportWorkers + DownloadImportTemplate + ExportWorkers
-- [Phase 176]: Personal export uses GetUnifiedRecords with no filter params (all personal records)
-- [Phase 177]: AuditLog uses ActorUserId/ActorName/ActionType/Description fields
-- [Phase 178-export-auditlog]: Inclusive end-date filter via endDate.Value.AddDays(1); export button href built server-side
-- [Phase 179]: ProtonDeliverableList is the correct DbSet name (not ProtonDeliverables)
-- [Phase 180]: ImportTrainingResult defined as public model class in Models/ for clean view casting
-- [Phase 180]: ExportHistoriProton duplicates HistoriProton worker-building logic; applies filters post-build
+- QuestPDF is the canonical library for PDF generation (DownloadEvidencePdf, ExportProgressPdf)
 
 ### Blockers/Concerns
 

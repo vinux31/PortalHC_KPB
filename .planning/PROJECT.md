@@ -12,6 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v7.2 PDF Evidence Report Enhancement
+
+**Goal:** Add coachee identity info (name, unit, track) to the PDF Evidence Report header on the CDP Deliverable detail page.
+
+**Target features:**
+- Nama Coachee displayed in PDF header
+- Unit Coachee displayed in PDF header
+- Track (Operator/Panelman Tahun X) displayed in PDF header
+- Positioned above Tanggal Coaching, top-left corner
+
 ## Current State (after v7.1, 2026-03-16)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
@@ -19,8 +29,6 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.1 shipped** — Export & Import Data, 5 phases (176-180).
 
 Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled (v5.0). Excel export/import added across 6 data areas using ClosedXML (v7.1). All requirements satisfied, 0 critical tech debt.
-
-**Between milestones** — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 
