@@ -265,7 +265,7 @@ Plans:
 | 187. Full-Page Controller Action and Static View | v7.4 | 0/TBD | Not started | - |
 | 188. AJAX Filter Bar | v7.4 | 0/TBD | Not started | - |
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
-| 190. DB Categories Foundation | v7.5 | 0/2 | Not started | - |
+| 190. DB Categories Foundation | 1/2 | In Progress|  | - |
 | 191. Wizard UI | v7.5 | 0/TBD | Not started | - |
 | 192. ValidUntil & NomorSertifikat | v7.5 | 0/TBD | Not started | - |
 | 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |

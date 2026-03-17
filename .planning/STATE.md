@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Phase 190 context gathered
-last_updated: "2026-03-17T10:48:45.125Z"
+stopped_at: Completed 190-01-PLAN.md
+last_updated: "2026-03-17T11:37:49.386Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 ---
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | - | - | - | - |
 
 ## Accumulated Context
+| Phase 190 P01 | 2 | 2 tasks | 4 files |
 
 ### Decisions
 
@@ -68,6 +69,7 @@ Progress: [░░░░░░░░░░] 0%
 - [v7.5 Roadmap]: Clone deep-copy scope: AssessmentPackage → PackageQuestion → PackageOption (three levels, all new IDs)
 - [v7.5 Roadmap]: NomorSertifikat needs UNIQUE constraint + retry loop (up to 3 attempts on DbUpdateException)
 - [v7.5 Roadmap]: Phase 193 (Clone) depends on Phase 191 (stable wizard) — pre-fill must land in correct step
+- [Phase 190]: Used migrationBuilder.Sql MERGE pattern for seed data (not HasData) — consistent with project convention
 
 ### Blockers/Concerns
 
@@ -76,6 +78,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T10:48:45.122Z
-Stopped at: Phase 190 context gathered
-Resume file: .planning/phases/190-db-categories-foundation/190-CONTEXT.md
+Last session: 2026-03-17T11:37:49.382Z
+Stopped at: Completed 190-01-PLAN.md
+Resume file: None
