@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.3
 milestone_name: Elemen Teknis Shuffle & Rename
 status: active
-stopped_at: Completed 184-02-PLAN.md
-last_updated: "2026-03-17T07:23:15.397Z"
+stopped_at: Completed 184-03-PLAN.md
+last_updated: "2026-03-17T08:21:53.850Z"
 last_activity: "2026-03-17 — Completed quick task 260317-k5k: Fix HistoriProton text issues"
 progress:
   total_phases: 3
   completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 5
+  completed_plans: 5
   percent: 100
 ---
 
@@ -76,6 +76,7 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 - [Phase 184]: AssessmentQuestion legacy model lacks ElemenTeknis — legacy ET scoring is a safe null no-op
 - [Phase 184]: BuildCrossPackageAssignment Phase 1 uses best-effort ET group guarantee capped at K; falls back to original slot-list when no ET data
 - [Phase 184]: (Tanpa ET) row excluded from ET coverage warning — null ET on questions is valid data
+- [Phase 184]: Kept BuildCrossPackageAssignment as private static in AdminController (duplication acceptable, matches CMPController pattern)
 
 ### Blockers/Concerns
 
@@ -89,6 +90,6 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 
 ## Session Continuity
 
-Last session: 2026-03-17T07:23:07.979Z
-Stopped at: Completed 184-02-PLAN.md
+Last session: 2026-03-17T08:21:50.170Z
+Stopped at: Completed 184-03-PLAN.md
 Resume file: None
