@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Mapping KKJ - IDP (CPDP)";
+    ViewData["Title"] = "Mapping Kebutuhan Kompetensi Jabatan - IDP (CPDP)";
     var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
     var filesByBagian = ViewBag.FilesByBagian as Dictionary<int, List<HcPortal.Models.CpdpFile>> ?? new Dictionary<int, List<HcPortal.Models.CpdpFile>>();
     var selectedBagianId = (int)(ViewBag.SelectedBagianId ?? 0);
@@ -13,13 +13,13 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Beranda</a></li>
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "CMP")">CMP</a></li>
-            <li class="breadcrumb-item active">Mapping KKJ-IDP (CPDP)</li>
+            <li class="breadcrumb-item active">Mapping Kebutuhan Kompetensi Jabatan - IDP (CPDP)</li>
         </ol>
     </nav>
 
     <div class="d-flex justify-content-between align-items-start mb-4">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-richtext me-2 text-primary"></i>Mapping KKJ - IDP (CPDP)</h2>
+            <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-richtext me-2 text-primary"></i>Mapping Kebutuhan Kompetensi Jabatan - IDP (CPDP)</h2>
             <p class="text-muted mb-0">Unduh dokumen CPDP per bagian.</p>
         </div>
     </div>
