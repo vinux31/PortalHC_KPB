@@ -12,17 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.4 Certification Management
+## Current Milestone: v7.5 Assessment Form Revamp & Certificate Enhancement
 
-**Goal:** New CDP menu "Certification Management" — track all certificates (training manual + assessment online) with expiry status, role-scoped views, and export capabilities.
+**Goal:** Simplify the CreateAssessment form into a wizard-based flow, add database-driven categories, clone feature, and enhance certificate system with expiry dates, auto-numbering, and PDF download.
 
 **Target features:**
-- New card on CDP/Index linking to Certification Management page
-- Table listing all certificates from TrainingRecord + AssessmentSession (online = Permanent status)
-- Summary cards above table: Total, Aktif, Akan Expired, Expired
-- Role-scoped data: Admin/HC see all, SH/SrSpv see their section, Coach/Coachee see own
-- Filters: Bagian > Unit > status > search
-- Actions: view certificate, download certificate file, export Excel
+- Wizard/step-based CreateAssessment form (Category → Users → Settings → Confirm)
+- Assessment categories stored in database (dynamic, no code change to add)
+- Clone/duplicate existing assessment with pre-filled settings
+- ValidUntil field on AssessmentSession for certificate expiry
+- Auto-generated certificate numbers (NomorSertifikat)
+- Server-side PDF certificate download via QuestPDF
 
 ## Current State (after v7.3, 2026-03-17)
 
@@ -30,6 +30,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v6.0 closed** — Deployment Preparation defined but not executed.
 **v7.1 shipped** — Export & Import Data, 5 phases (176-180).
 **v7.3 shipped** — Elemen Teknis Shuffle & Rename, 3 phases (182-184).
+**v7.4 defined** — Certification Management, 5 phases (185-189), not yet executed.
 
 Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled (v5.0). Excel export/import added across 6 data areas using ClosedXML (v7.1). Internal rename SubCompetency → ElemenTeknis completed (v7.3). All requirements satisfied, 0 critical tech debt.
 

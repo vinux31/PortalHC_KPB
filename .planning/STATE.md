@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.4
-milestone_name: Certification Management
+milestone: v7.5
+milestone_name: Assessment Form Revamp & Certificate Enhancement
 status: active
 last_updated: "2026-03-17"
-last_activity: "2026-03-17 — Roadmap created, 5 phases defined (185-189)"
+last_activity: "2026-03-17 — Milestone v7.5 started"
 progress:
-  total_phases: 5
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-17)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 185 — ViewModel and Data Model Foundation
+**Current focus:** Defining requirements for v7.5
 
 ## Current Position
 
-Phase: 185 of 189 (ViewModel and Data Model Foundation)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Ready to plan
-Last activity: 2026-03-17 — Roadmap created for v7.4 Certification Management
+Status: Defining requirements
+Last activity: 2026-03-17 — Milestone v7.5 started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -50,15 +50,14 @@ Progress: [░░░░░░░░░░] 0%
 
 - QuestPDF is the canonical library for PDF generation (DownloadEvidencePdf, ExportProgressPdf)
 - v7.3 internal rename scope: DB column, C# model/properties/variables/methods, ViewModel class name only
-- For Phase 185: decide whether TrainingRecord rows without ValidUntil display "Tidak Diketahui" or are excluded from expiry counts — verify against actual DB data first
-- For Phase 187: decide whether SertifikatUrl is served via controller action (with ownership check) or linked directly — do not defer until view is built
+- v7.4 phases 185-189 defined but not executed — parallel milestone, may execute later
 
 ### Blockers/Concerns
 
-- Two design decisions must be made before Phase 185 executes (see Decisions above)
+(None)
 
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Roadmap created — ready to plan Phase 185
+Stopped at: Defining requirements for v7.5
 Resume file: None
