@@ -189,11 +189,11 @@ Plans:
   3. The CreateAssessment form shows a category dropdown populated from the database, not from hardcoded view values
   4. The hardcoded categoryDefaults JavaScript object in CreateAssessment.cshtml no longer exists — default values come from data attributes on the option elements
   5. All six original category string values are present as seed rows so existing AssessmentSession records are not orphaned
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 190-01-PLAN.md — AssessmentCategory model + EF migration (AssessmentCategories table with seed) + DbSet registration
-- [ ] 190-02-PLAN.md — Admin CRUD actions (Index, Create, Edit, Delete) + views + ViewBag wiring in CreateAssessment GET
+- [ ] 190-01-PLAN.md — AssessmentCategory model + EF migration + DbSet registration
+- [ ] 190-02-PLAN.md — Admin CRUD + ManageCategories view + ViewBag wiring in CreateAssessment/EditAssessment
 
 ### Phase 191: Wizard UI
 **Goal**: Admin/HC can create an assessment via a 4-step wizard (Kategori → Users → Settings → Konfirmasi) with per-step client-side validation, a summary confirm step, and a ValidUntil date picker on the Settings step
@@ -265,7 +265,7 @@ Plans:
 | 187. Full-Page Controller Action and Static View | v7.4 | 0/TBD | Not started | - |
 | 188. AJAX Filter Bar | v7.4 | 0/TBD | Not started | - |
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
-| 190. DB Categories Foundation | v7.5 | 0/TBD | Not started | - |
+| 190. DB Categories Foundation | v7.5 | 0/2 | Not started | - |
 | 191. Wizard UI | v7.5 | 0/TBD | Not started | - |
 | 192. ValidUntil & NomorSertifikat | v7.5 | 0/TBD | Not started | - |
 | 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
