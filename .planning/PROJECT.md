@@ -12,22 +12,26 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.3 Elemen Teknis Shuffle & Rename
+## Current Milestone: v7.4 Monitoring Sertifikat
 
-**Goal:** Fix cross-package shuffle algorithm to guarantee all Elemen Teknis groups are represented in exam questions, and rename internal code from SubCompetency to ElemenTeknis.
+**Goal:** New CDP menu for certificate monitoring — track all certificates (training manual + assessment online) with expiry status, role-scoped views, and export capabilities.
 
 **Target features:**
-- Shuffle algorithm ensures every Elemen Teknis in package is represented (min 1 soal per group)
-- Spider web (radar chart) always displays when Elemen Teknis data exists
-- Internal code rename: SubCompetency → ElemenTeknis (DB column, model, C# code)
+- New card on CDP/Index linking to certificate monitoring page
+- Table listing all certificates from TrainingRecord + AssessmentSession (online = Permanent status)
+- Summary cards above table: Total, Aktif, Akan Expired, Expired
+- Role-scoped data: Admin/HC see all, SH/SrSpv see their section, Coach/Coachee see own
+- Filters: Bagian > Unit > status > search
+- Actions: view certificate, download certificate file, export Excel
 
-## Current State (after v7.1, 2026-03-16)
+## Current State (after v7.3, 2026-03-17)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
 **v7.1 shipped** — Export & Import Data, 5 phases (176-180).
+**v7.3 shipped** — Elemen Teknis Shuffle & Rename, 3 phases (182-184).
 
-Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled (v5.0). Excel export/import added across 6 data areas using ClosedXML (v7.1). All requirements satisfied, 0 critical tech debt.
+Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled (v5.0). Excel export/import added across 6 data areas using ClosedXML (v7.1). Internal rename SubCompetency → ElemenTeknis completed (v7.3). All requirements satisfied, 0 critical tech debt.
 
 ## Architecture Decisions
 
