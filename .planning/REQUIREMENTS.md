@@ -3,15 +3,21 @@
 **Defined:** 2026-03-17
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v7.2 Requirements
+## v7.3 Requirements
 
-Requirements for PDF Evidence Report Enhancement.
+Requirements for Elemen Teknis Shuffle & Rename.
 
-### PDF Evidence Report
+### Shuffle Algorithm
 
-- [x] **PDF-01**: PDF Evidence Report header displays Nama Coachee above Tanggal Coaching (top-left)
-- [x] **PDF-02**: PDF Evidence Report header displays Unit Coachee above Tanggal Coaching (top-left)
-- [x] **PDF-03**: PDF Evidence Report header displays Track (Operator/Panelman Tahun X) above Tanggal Coaching (top-left)
+- [ ] **SHUF-01**: Cross-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
+- [ ] **SHUF-02**: Single-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
+- [ ] **SHUF-03**: Reshuffle (single + bulk) preserves Elemen Teknis distribution same as initial shuffle
+
+### Internal Rename
+
+- [ ] **RENAME-01**: PackageQuestion.SubCompetency DB column renamed to ElemenTeknis (with EF Core migration)
+- [ ] **RENAME-02**: All C# model properties, variables, and method names use ElemenTeknis instead of SubCompetency
+- [ ] **RENAME-03**: ViewModel class SubCompetencyScore renamed to ElemenTeknisScore
 
 ## Future Requirements
 
@@ -21,22 +27,26 @@ None.
 
 | Feature | Reason |
 |---------|--------|
-| Redesign full PDF layout | Only adding header fields, not restructuring |
-| Add coachee info to ExportProgressPdf | Separate PDF, not requested |
+| Change spider web minimum threshold | Not needed — fix shuffle ensures all Elemen Teknis are represented |
+| Rename ProtonSubKompetensi model/table | Different domain (Proton catalog), not related to assessment Elemen Teknis |
+| UI label changes | Already done in v7.0 (Phase 175) |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PDF-01 | Phase 181 | Complete |
-| PDF-02 | Phase 181 | Complete |
-| PDF-03 | Phase 181 | Complete |
+| SHUF-01 | TBD | Pending |
+| SHUF-02 | TBD | Pending |
+| SHUF-03 | TBD | Pending |
+| RENAME-01 | TBD | Pending |
+| RENAME-02 | TBD | Pending |
+| RENAME-03 | TBD | Pending |
 
 **Coverage:**
-- v7.2 requirements: 3 total
-- Mapped to phases: 3
-- Unmapped: 0 ✓
+- v7.3 requirements: 6 total
+- Mapped to phases: 0
+- Unmapped: 6 ⚠️
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 — traceability mapped after roadmap creation*
+*Last updated: 2026-03-17 after initial definition*
