@@ -5766,7 +5766,7 @@ namespace HcPortal.Controllers
             }).ToHashSet();
             var seenInBatch = new HashSet<string>();
 
-            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? SubCompetency)> rows;
+            List<(string Question, string OptA, string OptB, string OptC, string OptD, string Correct, string? ElemenTeknis)> rows;
             var errors = new List<string>();
 
             if (excelFile != null && excelFile.Length > 0)
@@ -5920,7 +5920,7 @@ namespace HcPortal.Controllers
                     QuestionText = q,
                     Order = order++,
                     ScoreValue = 10,
-                    SubCompetency = NormalizeSubCompetency(rawSubComp),
+                    ElemenTeknis = NormalizeElemenTeknis(rawSubComp),
                     // Add options directly to the navigation collection (EF resolves FK after save)
                     Options = new List<PackageOption>
                     {
@@ -5981,11 +5981,11 @@ namespace HcPortal.Controllers
                 _logger.LogWarning(auditEx, "Audit log write failed for ImportPackageQuestions {PackageId}", packageId);
             }
 
-            // Cross-package SubCompetency mismatch warning
+            // Cross-package ElemenTeknis mismatch warning
             if (added > 0 && targetSession != null)
             {
                 var currentSubComps = rows
-                    .Select(r => NormalizeSubCompetency(r.SubCompetency))
+                    .Select(r => NormalizeElemenTeknis(r.ElemenTeknis))
                     .Where(s => s != null)
                     .Distinct()
                     .ToHashSet();
@@ -5995,8 +5995,8 @@ namespace HcPortal.Controllers
                     var siblingSubComps = await _context.PackageQuestions
                         .Where(pq => pq.AssessmentPackage!.AssessmentSessionId == pkg.AssessmentSessionId
                                   && pq.AssessmentPackageId != packageId
-                                  && pq.SubCompetency != null)
-                        .Select(pq => pq.SubCompetency!)
+                                  && pq.ElemenTeknis != null)
+                        .Select(pq => pq.ElemenTeknis!)
                         .Distinct()
                         .ToListAsync();
 
@@ -6027,7 +6027,7 @@ namespace HcPortal.Controllers
             return raw;
         }
 
-        private static string? NormalizeSubCompetency(string? raw)
+        private static string? NormalizeElemenTeknis(string? raw)
         {
             if (string.IsNullOrWhiteSpace(raw)) return null;
             var cleaned = System.Text.RegularExpressions.Regex.Replace(raw.Trim(), @"\s+", " ");

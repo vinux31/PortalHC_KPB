@@ -2404,17 +2404,17 @@ namespace HcPortal.Controllers
                     }
                 }
 
-                // Sub-competency scoring
-                List<SubCompetencyScore>? subCompScores = null;
+                // ElemenTeknis scoring
+                List<ElemenTeknisScore>? elemenTeknisScores = null;
                 var examQuestions = orderedQuestionIds
                     .Where(qid => questionLookup.ContainsKey(qid))
                     .Select(qid => questionLookup[qid])
                     .ToList();
-                var hasRealSubCompetency = examQuestions.Any(q => !string.IsNullOrWhiteSpace(q.SubCompetency));
-                if (hasRealSubCompetency)
+                var hasRealElemenTeknis = examQuestions.Any(q => !string.IsNullOrWhiteSpace(q.ElemenTeknis));
+                if (hasRealElemenTeknis)
                 {
-                    subCompScores = examQuestions
-                        .GroupBy(q => string.IsNullOrWhiteSpace(q.SubCompetency) ? "Lainnya" : q.SubCompetency!)
+                    elemenTeknisScores = examQuestions
+                        .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis!)
                         .Select(g =>
                         {
                             var total = g.Count();
@@ -2425,7 +2425,7 @@ namespace HcPortal.Controllers
                                 var sel = q.Options.FirstOrDefault(o => o.Id == resp.PackageOptionId);
                                 return sel != null && sel.IsCorrect;
                             });
-                            return new SubCompetencyScore
+                            return new ElemenTeknisScore
                             {
                                 Name = g.Key,
                                 Correct = correct,
@@ -2452,7 +2452,7 @@ namespace HcPortal.Controllers
                     TotalQuestions = orderedQuestionIds.Count,
                     CorrectAnswers = correctCount,
                     QuestionReviews = questionReviews,
-                    SubCompetencyScores = subCompScores
+                    ElemenTeknisScores = elemenTeknisScores
                 };
             }
             else

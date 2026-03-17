@@ -104,14 +104,14 @@
     }
 
     <!-- Analisis Elemen Teknis -->
-    @if (Model.SubCompetencyScores != null && Model.SubCompetencyScores.Any())
+    @if (Model.ElemenTeknisScores != null && Model.ElemenTeknisScores.Any())
     {
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-light">
                 <h5 class="mb-0"><i class="bi bi-radar me-2 text-primary"></i>Analisis Elemen Teknis</h5>
             </div>
             <div class="card-body">
-                @if (Model.SubCompetencyScores.Count >= 3)
+                @if (Model.ElemenTeknisScores.Count >= 3)
                 {
                     <div class="text-center mb-4">
                         <canvas id="subCompRadarChart" style="max-height: 350px;"></canvas>
@@ -128,7 +128,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var sc in Model.SubCompetencyScores)
+                            @foreach (var sc in Model.ElemenTeknisScores)
                             {
                                 <tr>
                                     <td>@sc.Name</td>
@@ -144,8 +144,8 @@
                         </tbody>
                         <tfoot class="table-light fw-bold">
                             @{
-                                var totalBenar = Model.SubCompetencyScores.Sum(s => s.Correct);
-                                var totalSoal = Model.SubCompetencyScores.Sum(s => s.Total);
+                                var totalBenar = Model.ElemenTeknisScores.Sum(s => s.Correct);
+                                var totalSoal = Model.ElemenTeknisScores.Sum(s => s.Total);
                                 var totalPct = totalSoal > 0 ? Math.Round((double)totalBenar / totalSoal * 100, 1) : 0;
                             }
                             <tr>
@@ -164,12 +164,12 @@
             </div>
         </div>
 
-        @if (Model.SubCompetencyScores.Count >= 3)
+        @if (Model.ElemenTeknisScores.Count >= 3)
         {
             <script>
             document.addEventListener('DOMContentLoaded', function() {
-                var labels = @Html.Raw(Json.Serialize(Model.SubCompetencyScores.Select(s => s.Name)));
-                var data = @Html.Raw(Json.Serialize(Model.SubCompetencyScores.Select(s => s.Percentage)));
+                var labels = @Html.Raw(Json.Serialize(Model.ElemenTeknisScores.Select(s => s.Name)));
+                var data = @Html.Raw(Json.Serialize(Model.ElemenTeknisScores.Select(s => s.Percentage)));
                 var truncated = labels.map(function(l) { return l.length > 20 ? l.substring(0, 20) + '...' : l; });
 
                 new Chart(document.getElementById('subCompRadarChart'), {
