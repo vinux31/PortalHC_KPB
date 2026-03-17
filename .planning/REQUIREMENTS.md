@@ -1,4 +1,4 @@
-# Requirements: Portal HC KPB — v7.4 Monitoring Sertifikat
+# Requirements: Portal HC KPB — v7.4 Certification Management
 
 **Defined:** 2026-03-17
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
@@ -12,7 +12,7 @@ Requirements for certificate monitoring milestone. Each maps to roadmap phases.
 - [ ] **DASH-01**: User can see summary cards showing Total Sertifikat, Aktif, Akan Expired, and Expired counts
 - [ ] **DASH-02**: User can see a table listing all certificates with worker name, NIP, certificate name, type, status badge, and expiry date
 - [ ] **DASH-03**: Expired and expiring-soon rows are visually highlighted with distinct colors
-- [ ] **DASH-04**: User can access Monitoring Sertifikat from a new card on CDP/Index
+- [ ] **DASH-04**: User can access Certification Management from a new card on CDP/Index
 
 ### Role Scoping
 
@@ -63,28 +63,28 @@ Requirements for certificate monitoring milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DASH-01 | — | Pending |
-| DASH-02 | — | Pending |
-| DASH-03 | — | Pending |
-| DASH-04 | — | Pending |
-| ROLE-01 | — | Pending |
-| ROLE-02 | — | Pending |
-| ROLE-03 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| FILT-01 | — | Pending |
-| FILT-02 | — | Pending |
-| FILT-03 | — | Pending |
-| FILT-04 | — | Pending |
-| ACT-01 | — | Pending |
-| ACT-02 | — | Pending |
-| ACT-03 | — | Pending |
+| DASH-01 | Phase 187 | Pending |
+| DASH-02 | Phase 187 | Pending |
+| DASH-03 | Phase 187 | Pending |
+| DASH-04 | Phase 187 | Pending |
+| ROLE-01 | Phase 186 | Pending |
+| ROLE-02 | Phase 186 | Pending |
+| ROLE-03 | Phase 186 | Pending |
+| DATA-01 | Phase 185 | Pending |
+| DATA-02 | Phase 185 | Pending |
+| FILT-01 | Phase 188 | Pending |
+| FILT-02 | Phase 188 | Pending |
+| FILT-03 | Phase 188 | Pending |
+| FILT-04 | Phase 188 | Pending |
+| ACT-01 | Phase 189 | Pending |
+| ACT-02 | Phase 189 | Pending |
+| ACT-03 | Phase 189 | Pending |
 
 **Coverage:**
 - v7.4 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16
+- Mapped to phases: 16
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after initial definition*
+*Last updated: 2026-03-17 — traceability updated after roadmap creation*

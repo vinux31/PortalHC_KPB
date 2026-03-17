@@ -12,12 +12,12 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.4 Monitoring Sertifikat
+## Current Milestone: v7.4 Certification Management
 
-**Goal:** New CDP menu for certificate monitoring — track all certificates (training manual + assessment online) with expiry status, role-scoped views, and export capabilities.
+**Goal:** New CDP menu "Certification Management" — track all certificates (training manual + assessment online) with expiry status, role-scoped views, and export capabilities.
 
 **Target features:**
-- New card on CDP/Index linking to certificate monitoring page
+- New card on CDP/Index linking to Certification Management page
 - Table listing all certificates from TrainingRecord + AssessmentSession (online = Permanent status)
 - Summary cards above table: Total, Aktif, Akan Expired, Expired
 - Role-scoped data: Admin/HC see all, SH/SrSpv see their section, Coach/Coachee see own
