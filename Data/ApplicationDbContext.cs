@@ -130,6 +130,12 @@ namespace HcPortal.Data
                 entity.Property(a => a.ProtonTrackId).IsRequired(false);
                 entity.Property(a => a.TahunKe).HasMaxLength(20).IsRequired(false);
                 entity.Property(a => a.InterviewResultsJson).HasColumnType("TEXT").IsRequired(false);
+
+                // Phase 192: Unique filtered index on NomorSertifikat (excludes nulls)
+                entity.HasIndex(a => a.NomorSertifikat)
+                    .IsUnique()
+                    .HasFilter("[NomorSertifikat] IS NOT NULL")
+                    .HasDatabaseName("IX_AssessmentSessions_NomorSertifikat_Unique");
             });
 
             // UserResponse -> AssessmentSession (Restrict Delete to avoid Cycles)

@@ -64,6 +64,13 @@ namespace HcPortal.Models
         /// </summary>
         public DateTime? ValidUntil { get; set; }
 
+        /// <summary>
+        /// Auto-generated certificate number in format KPB/{SEQ}/{ROMAN-MONTH}/{YEAR}.
+        /// Generated at assessment creation time. Null for sessions created before Phase 192.
+        /// UNIQUE constraint enforced at DB level (partial index excludes nulls).
+        /// </summary>
+        public string? NomorSertifikat { get; set; }
+
         public bool IsTokenRequired { get; set; }
         public string AccessToken { get; set; } = "";
 
