@@ -112,4 +112,4 @@ Plans:
 | 181. PDF Header Coachee Info | v7.2 | 1/1 | Complete | 2026-03-17 |
 | 182. CDP Evidence Column Clarification | 1/1 | Complete    | 2026-03-17 | - |
 | 183. Internal Rename SubCompetency → ElemenTeknis | 1/1 | Complete    | 2026-03-17 | - |
-| 184. Shuffle Algorithm Elemen Teknis Distribution | 1/2 | In Progress|  | - |
+| 184. Shuffle Algorithm Elemen Teknis Distribution | 2/2 | Complete   | 2026-03-17 | - |
