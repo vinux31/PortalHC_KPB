@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "KKJ Matrix";
+    ViewData["Title"] = "Kebutuhan Kompetensi Jabatan";
     ViewData["ContainerClass"] = "container-fluid px-4";
     var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
     var filesByBagian = ViewBag.FilesByBagian as Dictionary<int, List<HcPortal.Models.KkjFile>> ?? new Dictionary<int, List<HcPortal.Models.KkjFile>>();
@@ -14,14 +14,14 @@
     <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="@Url.Action("Index", "Admin")">Kelola Data</a></li>
-            <li class="breadcrumb-item active">KKJ Matrix</li>
+            <li class="breadcrumb-item active">Kebutuhan Kompetensi Jabatan</li>
         </ol>
     </nav>
 
     <div class="d-flex justify-content-between align-items-start mb-4">
         <div>
-            <h2 class="fw-bold mb-1"><i class="bi bi-folder2-open me-2 text-primary"></i>KKJ Matrix</h2>
-            <p class="text-muted mb-0">Kelola dokumen KKJ Matrix per bagian. Upload PDF atau Excel untuk setiap bagian.</p>
+            <h2 class="fw-bold mb-1"><i class="bi bi-folder2-open me-2 text-primary"></i>Kebutuhan Kompetensi Jabatan</h2>
+            <p class="text-muted mb-0">Kelola dokumen Kebutuhan Kompetensi Jabatan (KKJ) per bagian. Upload PDF atau Excel untuk setiap bagian.</p>
         </div>
     </div>
 
@@ -94,7 +94,7 @@
                             {
                                 <div class="alert alert-light border text-muted text-center py-4" id="empty-@bagian.Id">
                                     <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
-                                    Belum ada file. Upload file KKJ Matrix untuk bagian ini.
+                                    Belum ada file. Upload file Kebutuhan Kompetensi Jabatan untuk bagian ini.
                                 </div>
                             }
                             else
