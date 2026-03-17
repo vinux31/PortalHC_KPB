@@ -2333,10 +2333,12 @@ namespace HcPortal.Controllers
             if (session == null) return NotFound();
 
             // Load data
-            var coacheeName = await _context.Users
+            var coacheeInfo = await _context.Users
                 .Where(u => u.Id == progress.CoacheeId)
-                .Select(u => u.FullName)
-                .FirstOrDefaultAsync() ?? "Coachee";
+                .Select(u => new { u.FullName, u.Unit })
+                .FirstOrDefaultAsync();
+            var coacheeName = coacheeInfo?.FullName ?? "Coachee";
+            var coacheeUnit = coacheeInfo?.Unit ?? "-";
 
             var coachInfo = await _context.Users
                 .Where(u => u.Id == session.CoachId)
