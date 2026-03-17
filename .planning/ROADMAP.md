@@ -268,6 +268,6 @@ Plans:
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
 | 190. DB Categories Foundation | 2/2 | Complete    | 2026-03-17 | - |
 | 191. Wizard UI | 2/2 | Complete    | 2026-03-17 | - |
-| 192. ValidUntil & NomorSertifikat | 1/1 | Complete   | 2026-03-17 | - |
+| 192. ValidUntil & NomorSertifikat | 1/1 | Complete    | 2026-03-17 | - |
 | 193. Clone Assessment | v7.5 | 0/TBD | Not started | - |
 | 194. PDF Certificate Download | v7.5 | 0/TBD | Not started | - |
