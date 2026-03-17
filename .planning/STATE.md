@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.3
 milestone_name: Elemen Teknis Shuffle & Rename
 status: active
-stopped_at: Phase 184 context gathered
-last_updated: "2026-03-17T07:09:36.173Z"
+stopped_at: Completed 184-01-PLAN.md
+last_updated: "2026-03-17T07:21:51.522Z"
 last_activity: "2026-03-17 — Completed quick task 260317-k5k: Fix HistoriProton text issues"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 100
 ---
 
@@ -73,6 +73,8 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 - ProtonSubKompetensi model/table is explicitly out of scope (different domain)
 - [Phase 182]: EvidenceStatus now carries actual workflow Status value (Pending/Submitted/Approved/Rejected) not derived from EvidencePath presence
 - [Phase 183]: Renamed SubCompetency to ElemenTeknis across all C# sources and DB column via EF RenameColumn migration
+- [Phase 184]: AssessmentQuestion legacy model lacks ElemenTeknis — legacy ET scoring is a safe null no-op
+- [Phase 184]: BuildCrossPackageAssignment Phase 1 uses best-effort ET group guarantee capped at K; falls back to original slot-list when no ET data
 
 ### Blockers/Concerns
 
@@ -86,6 +88,6 @@ Progress: [░░░░░░░░░░] 0% (v7.3)
 
 ## Session Continuity
 
-Last session: 2026-03-17T07:09:36.170Z
-Stopped at: Phase 184 context gathered
-Resume file: .planning/phases/184-shuffle-algorithm-guaranteed-elemen-teknis-distribution/184-CONTEXT.md
+Last session: 2026-03-17T07:21:51.519Z
+Stopped at: Completed 184-01-PLAN.md
+Resume file: None

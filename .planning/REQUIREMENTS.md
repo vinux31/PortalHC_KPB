@@ -9,9 +9,9 @@ Requirements for Elemen Teknis Shuffle & Rename.
 
 ### Shuffle Algorithm
 
-- [ ] **SHUF-01**: Cross-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
-- [ ] **SHUF-02**: Single-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
-- [ ] **SHUF-03**: Reshuffle (single + bulk) preserves Elemen Teknis distribution same as initial shuffle
+- [x] **SHUF-01**: Cross-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
+- [x] **SHUF-02**: Single-package shuffle guarantees at least 1 question per Elemen Teknis group in the shuffled result
+- [x] **SHUF-03**: Reshuffle (single + bulk) preserves Elemen Teknis distribution same as initial shuffle
 
 ### Internal Rename
 
@@ -38,9 +38,9 @@ None.
 | RENAME-01 | Phase 183 | Complete |
 | RENAME-02 | Phase 183 | Complete |
 | RENAME-03 | Phase 183 | Complete |
-| SHUF-01 | Phase 184 | Pending |
-| SHUF-02 | Phase 184 | Pending |
-| SHUF-03 | Phase 184 | Pending |
+| SHUF-01 | Phase 184 | Complete |
+| SHUF-02 | Phase 184 | Complete |
+| SHUF-03 | Phase 184 | Complete |
 
 **Coverage:**
 - v7.3 requirements: 6 total
