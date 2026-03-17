@@ -1,91 +1,72 @@
 # Stack Research
 
-**Domain:** Real-time assessment monitoring — SignalR additions to existing ASP.NET Core 8 MVC app
-**Researched:** 2026-03-13
-**Confidence:** HIGH (verified via official Microsoft docs and NuGet/jsDelivr)
+**Domain:** Certificate monitoring feature — CDP module extension (PortalHC KPB v7.4)
+**Researched:** 2026-03-17
+**Confidence:** HIGH
 
 ---
 
 ## Context: What Already Exists (Do Not Re-add)
 
-The following are already in `HcPortal.csproj` and `Program.cs` — do not reinstall or reconfigure:
+These packages are already installed and validated. The certificate monitoring feature
+uses them directly — no version changes, no new NuGet packages.
 
-- `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 8.0.0
-- `Microsoft.EntityFrameworkCore.Sqlite` / `SqlServer` 8.0.0
-- `ClosedXML`, `QuestPDF`, Bootstrap 5, jQuery, Chart.js
-- `builder.Services.AddControllersWithViews()`, `UseAuthentication()`, `UseAuthorization()`, `UseSession()`, `UseRouting()`
+| Package | Version | Role in this feature |
+|---------|---------|----------------------|
+| `Microsoft.EntityFrameworkCore.SqlServer` | 8.0.0 | Query `TrainingRecord` + `AssessmentSession` |
+| `ClosedXML` | 0.105.0 | Export certificate list to Excel (reuse existing export pattern) |
+| `QuestPDF` | 2026.2.2 | Download/regenerate certificate PDF (CMP pattern already established) |
+| Bootstrap 5 (layout CDN) | 5.x | Summary cards, status badges, responsive table |
+| Bootstrap Icons (layout CDN) | 1.x | Icons on status badges and nav card |
+
+**No new NuGet packages are required for this feature.**
 
 ---
 
-## New Stack Additions
+## Recommended Stack
 
-### Core Technologies (New Only)
+### Core Technologies
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| SignalR server | built-in (net8.0) | Hub, server-push infrastructure | Included in ASP.NET Core shared framework — zero NuGet install needed |
-| `@microsoft/signalr` JS client | 8.0.x (pin to match server) | Browser-side SignalR connection | Official JS client, ships as standalone file, no npm build pipeline needed |
+| ASP.NET Core MVC | .NET 8 (existing) | New `MonitoringSertifikat` action in `CDPController` + Razor view | Fits existing controller/view/model structure with zero friction |
+| EF Core (SqlServer) | 8.0.0 (existing) | LINQ projection joining `TrainingRecord` and `AssessmentSession` into a flat `CertificateMonitoringRow` | Both entities already mapped; `ValidUntil` and `CertificateType` exist on `TrainingRecord` |
+| ClosedXML | 0.105.0 (existing) | Export filtered certificate rows as `.xlsx` | Exact same `FileStreamResult` + `XLWorkbook` pattern as `AdminController.ExportWorkers` — copy and adapt |
+| Bootstrap 5 | Layout CDN (existing) | `card` grid for summary counters, `badge` for expiry status, `table-responsive` for the list | No JS framework needed; server-rendered HTML is sufficient for this data density |
 
-**Critical version note:** The JS client version should match the server .NET version. Since the server is net8.0, use `@microsoft/signalr@8.x` not the latest 10.x. Mismatched major versions can cause protocol negotiation failures. As of 2026-03, `@microsoft/signalr@8.0.7` is the latest 8.x release on the 8.x branch.
+### Supporting Libraries
 
-### Supporting Libraries (New Only)
+No new libraries are needed. Each capability is handled by what already exists:
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| None additional | — | — | SignalR server and JS client are sufficient for this use case |
+| Capability | Handled By | Notes |
+|------------|-----------|-------|
+| Days-until-expiry calculation | `TrainingRecord.DaysUntilExpiry` computed property (already in model) | Returns `int?`; already written — read it in the controller, pass to ViewModel |
+| Expiry status classification | C# in ViewModel mapping (no library) | `CertificateType == "Permanent"` → Permanent; `DaysUntilExpiry < 0` → Expired; `<= 30` → Akan Expired; else → Aktif |
+| Status badge color | Bootstrap contextual classes (`bg-success`, `bg-warning`, `bg-danger`, `bg-secondary`) | No custom CSS needed |
+| Cascade filter dropdown (Bagian > Unit) | Vanilla `fetch()` + existing JSON endpoint pattern | Copy `GetUnitsForSection` AJAX pattern from `CDPController` / Dashboard |
+| Role-scoped data filtering | Existing `User.IsInRole()` + `_userManager.GetUserId()` pattern | Same approach as CDP Dashboard — Admin/HC see all, SH/SrSpv see section, Coach/Coachee see own |
+
+### Development Tools
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| EF Core Tools (existing) | Migration not needed — `ValidUntil` and `CertificateType` columns already exist on `TrainingRecord` | Verify with `dotnet ef migrations list` before starting phases |
 
 ---
 
 ## Installation
 
-### Server Side — No NuGet package needed
-
-SignalR is part of the `Microsoft.NET.Sdk.Web` shared framework in ASP.NET Core 8. Nothing to add to `HcPortal.csproj`.
-
-Verify by checking that `Microsoft.AspNetCore.SignalR` namespace resolves without any package reference — it will.
-
-### JS Client — Download to wwwroot
-
-Use LibMan (available via dotnet tool) or direct download:
-
-```bash
-# Option A: LibMan CLI (recommended for production — local file, no external CDN dependency)
-dotnet tool install -g Microsoft.Web.LibraryManager.Cli
-libman install @microsoft/signalr@8.0.7 -p unpkg -d wwwroot/js/signalr --files dist/browser/signalr.min.js
-```
-
-Target path: `wwwroot/js/signalr/signalr.min.js`
-
-Reference in views:
-```html
-<script src="~/js/signalr/signalr.min.js"></script>
-```
-
-### Program.cs Changes — Two Lines Only
-
-```csharp
-// In builder section (after AddControllersWithViews on line 13):
-builder.Services.AddSignalR();
-
-// In app section (after MapControllerRoute on line 158, before app.Run()):
-app.MapHub<HcPortal.Hubs.AssessmentHub>("/hubs/assessment");
-```
-
-**Placement in existing Program.cs:**
-- `builder.Services.AddSignalR()` — add after line 13 (`AddControllersWithViews()`)
-- `app.MapHub<...>()` — add after line 158 (`app.MapControllerRoute(...)`)
-- No changes to existing middleware order required — SignalR works with current `UseRouting()` / `UseAuthentication()` / `UseAuthorization()` pipeline as-is
+No installation steps required. All dependencies are already in `HcPortal.csproj`.
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| SignalR (built-in) | Long polling (current 10s) | Current polling is fine if sub-10s latency is not required; only replace if HC needs instant feedback |
-| SignalR (built-in) | Raw WebSockets API | SignalR wraps WebSockets + SSE + long-polling fallback — no reason to use raw WebSockets |
-| SignalR (built-in) | Server-Sent Events (SSE) | SSE is unidirectional server→client only; SignalR needed for bidirectional worker↔HC events |
-| Local file in wwwroot | CDN for JS client | CDN is acceptable for dev; production should use local file to avoid external dependency |
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| Server-rendered Razor table | DataTables.js (client-side) | Adds a JS dependency for a feature that already has server-side role-scoped filtering; DataTables is worthwhile only when the full unfiltered dataset is sent to the client, which is incompatible with role scoping |
+| ClosedXML export (existing) | EPPlus | ClosedXML is already installed and the export pattern is proven; no reason to introduce EPPlus |
+| LINQ projection to flat ViewModel | Database view or stored procedure | EF LINQ projection is maintainable and debuggable; a stored proc only makes sense if query performance becomes a bottleneck, which is unlikely at this data volume |
 
 ---
 
@@ -93,41 +74,54 @@ app.MapHub<HcPortal.Hubs.AssessmentHub>("/hubs/assessment");
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `@microsoft/signalr@10.x` | Major version mismatch with net8.0 server — hub protocol v2 differences can cause negotiation failures | `@microsoft/signalr@8.x` (matches server runtime) |
-| `Microsoft.AspNetCore.SignalR.Client` NuGet | Server-to-server .NET SignalR client — only needed if another .NET service calls the hub | Not needed; browser JS client handles all connections |
-| `@aspnet/signalr` npm package | Deprecated legacy package (pre-2.1 era) | `@microsoft/signalr` |
-| `@microsoft/signalr-protocol-msgpack` | Binary MessagePack protocol — adds dependency complexity for no benefit at this scale | JSON protocol (SignalR default) is sufficient for assessment events |
-| Redis backplane (`Microsoft.AspNetCore.SignalR.StackExchangeRedis`) | Only needed for multi-server scale-out | Single-server deployment — not needed |
+| Chart.js / ApexCharts for summary cards | Summary cards are four integer counters — a `<div class="card">` with a large bold number communicates faster and builds faster than a chart | Bootstrap card grid with counter numbers and Bootstrap Icons |
+| SignalR for live expiry updates | Certificate expiry changes at day granularity; a page load or manual refresh is sufficient and already the app's pattern for all monitoring pages | Standard GET action on page load |
+| Background job / hosted service for expiry reclassification | No notifications are in scope; classification is read-only and computed at query time | In-query LINQ `DateTime.Now` comparison |
+| Separate API controller | All other CDP features use MVC actions returning views; a JSON API adds two layers (controller + JS fetch) for no benefit here | Standard `CDPController` action returning `IActionResult` (View) |
 
 ---
 
-## Stack Patterns
+## Stack Patterns by Variant
 
-**For Hub authorization (assessment pages require login):**
-```csharp
-[Authorize]
-public class AssessmentHub : Hub { ... }
-```
-Works with existing Identity cookie auth — no extra configuration. SignalR uses the same auth pipeline as MVC controllers.
+**For Excel export (Admin/HC role only):**
+- Add a `ExportSertifikatExcel` action to `CDPController`
+- Role-gate with `[Authorize(Roles = "Admin,HC")]`
+- Use same `XLWorkbook` + `FileStreamResult` pattern as `AdminController` lines ~1020-1070
+- Apply the same role-scope filter as the main view before building workbook rows
 
-**For group-scoped messaging (HC monitors one exam, not all exams):**
-```csharp
-// On connect, join exam group:
-await Groups.AddToGroupAsync(Context.ConnectionId, $"exam-{examId}");
+**For "download certificate file" action:**
+- `TrainingRecord.SertifikatUrl` stores the path/URL already
+- Serve via `PhysicalFile(path, "application/pdf")` or `Redirect(url)` — no new library
+- Online assessment certificates: reuse QuestPDF regeneration already wired in CMP
 
-// Send to specific exam group only:
-await Clients.Group($"exam-{examId}").SendAsync("WorkerProgress", data);
-```
-Do not use `Clients.All` — exam events are scoped per-exam.
+**For Bagian/Unit cascade filter:**
+- Copy the existing `GetUnitsForSection` JSON endpoint from `CDPController`
+- Wire with inline `<script>` using `fetch()` — same pattern already in `Dashboard.cshtml`
+- No jQuery plugins or external select2 needed
 
-**For client reconnection:**
-```javascript
-const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/hubs/assessment")
-    .withAutomaticReconnect()   // handles transient disconnects
-    .build();
-```
-Always use `.withAutomaticReconnect()` — exam sessions can be 60+ minutes long.
+---
+
+## Data Model Integration
+
+The monitoring page reads from two existing tables:
+
+**`TrainingRecord`** — manual (non-online) certificates
+
+Relevant columns: `UserId`, `Judul`, `Kategori`, `ValidUntil`, `CertificateType`, `Status`, `SertifikatUrl`, `NomorSertifikat`
+
+Status logic:
+- `CertificateType == "Permanent"` → always "Permanent" (ignore `ValidUntil`)
+- `ValidUntil < DateTime.Now` → "Expired"
+- `DaysUntilExpiry <= 30` → "Akan Expired"
+- Otherwise → "Aktif"
+
+**`AssessmentSession`** — online assessment certificates
+
+Relevant columns: `UserId`, `Title`, `Category`, `IsPassed`, `CompletedAt`, `GenerateCertificate`
+
+Status logic: all online assessments with `GenerateCertificate == true && IsPassed == true` → always "Permanent" (no `ValidUntil` field on this entity)
+
+**Unified ViewModel approach:** Project both tables into a `CertificateMonitoringRow` flat record in the controller action, then pass `List<CertificateMonitoringRow>` to the ViewModel. Do not use a database view or stored procedure.
 
 ---
 
@@ -135,23 +129,21 @@ Always use `.withAutomaticReconnect()` — exam sessions can be 60+ minutes long
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| SignalR server (net8.0 built-in) | `@microsoft/signalr@8.x` | Matching major version ensures hub protocol compatibility — HIGH confidence |
-| SignalR server (net8.0 built-in) | `@microsoft/signalr@7.x` | Works but not ideal — pin to 8.x |
-| `@microsoft/signalr@10.x` | net8.0 server | Avoid — v10 JS client may negotiate hub protocol version not fully compatible with 8.0 server |
-| ASP.NET Core SignalR | SQLite / Entity Framework Core | No conflict — SignalR has no persistence layer; SQLite and EF Core continue unchanged |
-| ASP.NET Core SignalR | Session middleware (`UseSession`) | No conflict — SignalR connections are independent of ASP.NET session; existing `UseSession()` untouched |
-| ASP.NET Core SignalR | Identity cookie auth | Compatible — `[Authorize]` on Hub class works automatically |
+| ClosedXML 0.105.0 | .NET 8 | No issues — already shipping via v7.1 export feature |
+| QuestPDF 2026.2.2 | .NET 8 | Already generating certificate PDFs in CMP module |
+| EF Core 8.0.0 SqlServer | SQL Server 2019+ | `DateTime.Now` comparisons in LINQ translate correctly to T-SQL `GETDATE()` |
 
 ---
 
 ## Sources
 
-- [ASP.NET Core SignalR Introduction (Microsoft Docs)](https://learn.microsoft.com/en-us/aspnet/core/signalr/introduction?view=aspnetcore-8.0) — HIGH confidence, official, verified 2026-03-13
-- [Get Started with ASP.NET Core SignalR (Microsoft Docs)](https://learn.microsoft.com/en-us/aspnet/core/tutorials/signalr?view=aspnetcore-8.0) — HIGH confidence, provides exact Program.cs setup and LibMan commands, updated 2026-01-28
-- [NuGet: Microsoft.AspNetCore.SignalR.Client](https://www.nuget.org/packages/Microsoft.AspNetCore.SignalR.Client) — HIGH confidence, version history confirmed 2026-03-13
-- [jsDelivr: @microsoft/signalr](https://www.jsdelivr.com/package/npm/@microsoft/signalr) — MEDIUM confidence, confirmed 8.x and 10.x branches available
+- `HcPortal.csproj` (project root) — confirmed installed packages and exact versions (HIGH confidence)
+- `Models/TrainingRecord.cs` — confirmed `ValidUntil`, `CertificateType`, `DaysUntilExpiry`, `IsExpiringSoon` already exist (HIGH confidence)
+- `Models/AssessmentSession.cs` — confirmed `GenerateCertificate`, `IsPassed`, `CompletedAt` fields (HIGH confidence)
+- `Views/CDP/Index.cshtml` — confirmed Bootstrap 5 card layout pattern used in CDP module (HIGH confidence)
+- `Models/CDPDashboardViewModel.cs` — confirmed role-scoped filter ViewModel structure to replicate (HIGH confidence)
 
 ---
 
-*Stack research for: SignalR real-time assessment — PortalHC KPB v4.2*
-*Researched: 2026-03-13*
+*Stack research for: Certificate monitoring page — CDP module, PortalHC KPB v7.4*
+*Researched: 2026-03-17*

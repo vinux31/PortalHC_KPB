@@ -1,356 +1,404 @@
 # Architecture Research
 
-**Domain:** Real-time SignalR integration into existing ASP.NET Core 8 MVC + Identity app
-**Researched:** 2026-03-13
-**Confidence:** HIGH (official Microsoft docs verified)
+**Domain:** Certificate Monitoring — CDP module extension, ASP.NET Core MVC
+**Researched:** 2026-03-17
+**Confidence:** HIGH (derived from direct codebase inspection)
+
+---
 
 ## Standard Architecture
 
 ### System Overview
 
 ```
-  Browser: HC Monitoring Page              Browser: Worker Exam Page
-  (AssessmentMonitoringDetail.cshtml)      (StartExam.cshtml)
-        |                                        |
-  SignalR JS client                        SignalR JS client
-        |                                        |
-        +------------------+  +-----------------+
-                           |  |
-              WebSocket / SSE / Long-poll (auto-negotiated)
-                           |
-                  [ /hubs/assessment ]
-                           |
-                  AssessmentHub.cs
-                   (Hub class, Hubs/)
-                     |           |
-              IHubContext    Groups in memory
-                     |           |
-           AdminController   On JS connect:
-           CMPController      worker invokes JoinExamGroup(sessionId)
-           (inject IHubContext  HC invokes JoinMonitorGroup(title, category, date)
-            to push events)
-                     |
-              ApplicationDbContext
-              (state still persisted in DB — SignalR is additive, not a replacement)
+┌─────────────────────────────────────────────────────────────────────┐
+│                         Browser (Bootstrap 5)                        │
+│  CDP/Index card  →  MonitoringSertifikat page                        │
+│  Filter bar (Bagian > Unit > Status > Search, AJAX)                  │
+│  Summary cards (Total / Aktif / Akan Expired / Expired)              │
+│  Certificate table + download + Export Excel button                  │
+└─────────────────────┬───────────────────────────────────────────────┘
+                      │ HTTP GET / AJAX partial
+┌─────────────────────▼───────────────────────────────────────────────┐
+│                     CDPController                                     │
+│  MonitoringSertifikat(bagian?, unit?, status?, search?)              │
+│  FilterMonitoringSertifikat(...)   <- AJAX partial reload            │
+│  GetCascadeOptions(section?)       <- reuse existing endpoint        │
+│  ExportSertifikatExcel(...)        <- ClosedXML file response        │
+└─────────────────────┬───────────────────────────────────────────────┘
+                      │ EF Core queries
+┌─────────────────────▼───────────────────────────────────────────────┐
+│                    ApplicationDbContext                               │
+│  TrainingRecords  (+ User navigation)                                 │
+│  AssessmentSessions  (Status=="Completed", IsPassed==true,           │
+│                        GenerateCertificate==true)                    │
+│  AspNetUsers  (Section, Unit, FullName, NIP for scope/display)       │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Location |
-|-----------|----------------|----------|
-| `AssessmentHub` | Hub class — defines client-callable methods, manages group join/leave | `Hubs/AssessmentHub.cs` (NEW) |
-| `IHubContext<AssessmentHub>` | Injected into controllers to push server-initiated events | Used in `AdminController`, `CMPController` |
-| Worker exam group `exam-{sessionId}` | Receives HC-to-Worker pushes: `examReset`, `examForceClosed` | Joined by worker on `StartExam` page load |
-| Monitor group `monitor-{title}-{category}-{date}` | Receives Worker-to-HC pushes: `progressUpdate`, `examSubmitted` | Joined by HC on `AssessmentMonitoringDetail` page load |
-| JS client (monitoring view) | Connects hub, handles `progressUpdate` event, replaces `setInterval(fetchProgress, 10000)` | `AssessmentMonitoringDetail.cshtml` (MODIFIED) |
-| JS client (exam view) | Connects hub, handles `examReset` and `examForceClosed` events, replaces `setInterval(checkExamStatus, 10000)` | `StartExam.cshtml` (MODIFIED) |
+| Component | Responsibility | Implementation |
+|-----------|----------------|----------------|
+| `CDPController.MonitoringSertifikat` | Full-page GET; builds ViewModel with summary counts + rows | New action, same class |
+| `CDPController.FilterMonitoringSertifikat` | AJAX partial; mirrors `FilterCoachingProton` pattern | New action, returns `PartialView` |
+| `CDPController.ExportSertifikatExcel` | ClosedXML workbook stream; mirrors existing export actions | New action, returns `File(...)` |
+| `CDPController.GetCascadeOptions` | Already exists; returns units for a section; reused unchanged | Existing — no modification |
+| `MonitoringSertifikatViewModel` | Page-level ViewModel: summary counts + list rows + filter state | New file in `Models/` |
+| `SertifikatRow` | Flat row ViewModel per certificate (both sources unified) | Inner class or separate file |
+| `Views/CDP/MonitoringSertifikat.cshtml` | Full page: filter bar + summary cards + table | New view |
+| `Views/CDP/Shared/_MonitoringSertifikatTablePartial.cshtml` | Table partial returned by AJAX filter | New partial |
+| `Views/CDP/Index.cshtml` | Add one new card linking to `MonitoringSertifikat` | Modified |
+
+---
 
 ## Recommended Project Structure
 
 ```
-PortalHC_KPB/
-├── Hubs/
-│   └── AssessmentHub.cs          # NEW — single Hub class for all assessment real-time events
-├── Controllers/
-│   ├── AdminController.cs        # MODIFIED — inject IHubContext, push after Reset/ForceClose
-│   └── CMPController.cs          # MODIFIED — inject IHubContext, push after SaveAnswer/SubmitExam
-├── Program.cs                    # MODIFIED — AddSignalR(), MapHub<AssessmentHub>()
-├── Views/
-│   ├── Admin/
-│   │   └── AssessmentMonitoringDetail.cshtml  # MODIFIED — replace polling with hub events
-│   └── CMP/
-│       └── StartExam.cshtml                   # MODIFIED — replace status poll with hub events
-└── wwwroot/
-    └── lib/
-        └── microsoft/
-            └── signalr/
-                └── dist/
-                    └── browser/
-                        └── signalr.min.js     # NEW — installed via libman or npm
+Controllers/
+└── CDPController.cs                   # Add 3 new actions + 1 private helper; no structural change
+
+Models/
+└── MonitoringSertifikatViewModel.cs   # New ViewModel file
+
+Views/
+└── CDP/
+    ├── Index.cshtml                   # Modified: add one card
+    ├── MonitoringSertifikat.cshtml    # New full page
+    └── Shared/
+        └── _MonitoringSertifikatTablePartial.cshtml  # New AJAX partial
 ```
 
 ### Structure Rationale
 
-- **Hubs/**: Single folder matches ASP.NET Core convention. One hub is sufficient — all assessment real-time events share the same connection lifecycle and auth context.
-- **No new controller**: Hub handles its own connection lifecycle (OnConnectedAsync, OnDisconnectedAsync). Controllers push via IHubContext, not by calling Hub methods directly.
-- **Single hub**: Two hubs would require two JS connections. One hub with named groups is simpler. The URL `/hubs/assessment` is clean and scope-specific.
+- **No new controller:** Certificate monitoring is a CDP feature. Adding to `CDPController` keeps routing at `/CDP/MonitoringSertifikat` and shares the existing DI constructor (UserManager, context, env, logger).
+- **Separate ViewModel file:** Other multi-concern ViewModels (`CDPDashboardViewModel.cs`, `CoachingViewModels.cs`) each have their own file. Following that convention avoids bloating an existing model file.
+- **Partial view for AJAX:** Matches the `_CoachingProtonContentPartial` pattern exactly. JS calls `FilterMonitoringSertifikat`, replaces a `div#cert-table-container`. No page reload.
+
+---
 
 ## Architectural Patterns
 
-### Pattern 1: Hub Groups for Exam Sessions
+### Pattern 1: Role-Scoped Data Query
 
-**What:** On page load, the JS client calls a hub method (`JoinExamGroup` or `JoinMonitorGroup`) which adds the connection to an in-memory named group. All subsequent server pushes target the group name, not individual connection IDs.
+**What:** Controller reads the current user's role level then applies a WHERE clause at the query layer — not in the view — to restrict which rows are visible.
 
-**When to use:** Always — this is the correct model for this use case. Worker group is per-session (one session, one worker). Monitor group is per-assessment-batch (one batch, potentially multiple HC users).
+**When to use:** Any action returning data scoped to the caller's organizational position.
 
-**Trade-offs:** Groups are in-memory only. Server restart clears all group memberships. The JS client must re-join groups after reconnect via the `onreconnected` callback. For a single-server intranet deployment this is fully sufficient.
+**Trade-offs:** Server-enforced scoping is safe against client-side bypass. The role-level helpers (`HasFullAccess`, `HasSectionAccess`, `IsCoachingRole`) already exist in `UserRoles` — use them verbatim.
 
 **Example:**
 ```csharp
-// Hubs/AssessmentHub.cs
-[Authorize]
-public class AssessmentHub : Hub
-{
-    public async Task JoinExamGroup(int sessionId)
-    {
-        // Worker joins group for their own exam session
-        await Groups.AddToGroupAsync(Context.ConnectionId, $"exam-{sessionId}");
-    }
+int roleLevel = UserRoles.GetRoleLevel(userRole);
 
-    public async Task JoinMonitorGroup(string title, string category, string scheduleDate)
-    {
-        // HC joins monitoring group for an assessment batch
-        var groupName = $"monitor-{title}-{category}-{scheduleDate}";
-        await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
-    }
+IQueryable<ApplicationUser> usersQuery = _context.Users
+    .Where(u => u.IsActive);
+
+if (UserRoles.HasSectionAccess(roleLevel))        // Level 4: SH/SrSpv
+    usersQuery = usersQuery.Where(u => u.Section == user.Section);
+else if (UserRoles.IsCoachingRole(roleLevel))      // Level 5/6: Coach/Coachee
+    usersQuery = usersQuery.Where(u => u.Id == user.Id);
+// else: Admin/HC/Management — no filter, all users visible
+```
+
+### Pattern 2: Unified Row Projection from Two Sources
+
+**What:** `UnifiedTrainingRecord` already bridges `TrainingRecord` and `AssessmentSession` into a flat row. For certificate monitoring, a new `SertifikatRow` ViewModel follows the same pattern but adds expiry-status fields.
+
+**When to use:** Whenever the page must render rows from heterogeneous tables in one list.
+
+**Trade-offs:** Mirrors existing `UnifiedTrainingRecord` philosophy. Keeps the view simple — one list, one partial, no branching display logic per type.
+
+**SertifikatRow structure:**
+```csharp
+public class SertifikatRow
+{
+    public string WorkerName    { get; set; } = "";
+    public string? NIP          { get; set; }
+    public string? Section      { get; set; }
+    public string? Unit         { get; set; }
+    public string RecordType    { get; set; } = ""; // "Training Manual" | "Assessment Online"
+    public string Title         { get; set; } = "";
+    public DateTime? IssueDate  { get; set; }
+    public DateTime? ValidUntil { get; set; }       // null = Permanent
+    public string CertifikatStatus { get; set; } = ""; // "Aktif" | "Akan Expired" | "Expired" | "Permanent"
+    public string? SertifikatUrl   { get; set; }
+    public int? TrainingRecordId   { get; set; }
+    public int? AssessmentSessionId { get; set; }
 }
 ```
 
-### Pattern 2: IHubContext Push from MVC Controllers
-
-**What:** After HC performs Reset or ForceClose (POST actions in AdminController), inject `IHubContext<AssessmentHub>` and call `Clients.Group(...).SendAsync(...)` to push the event to affected workers. After SaveAnswer or SubmitExam in CMPController, push a `progressUpdate` to the HC monitoring group.
-
-**When to use:** When the event origin is an HTTP POST action in a controller, not a hub method call. This is the correct pattern — do not try to call Hub methods from controllers.
-
-**Trade-offs:** IHubContext does not have access to `Context` (no caller info). It can only push to users, groups, or all. This is fine since these are server-originated events.
-
-**Example:**
+**Expiry status derivation:**
 ```csharp
-// AdminController.cs — constructor addition
-private readonly IHubContext<AssessmentHub> _hub;
+// TrainingRecord rows
+string certStatus = (record.CertificateType == "Permanent" || !record.ValidUntil.HasValue)
+    ? "Permanent"
+    : record.ValidUntil.Value < DateTime.Now
+        ? "Expired"
+        : (record.ValidUntil.Value - DateTime.Now).Days <= 30
+            ? "Akan Expired"
+            : "Aktif";
 
-// In ResetAssessment POST — after DB save:
-await _hub.Clients.Group($"exam-{id}").SendAsync("examReset", new {
-    sessionId = id,
-    message   = "Ujian telah direset oleh HC."
-});
-
-// In ForceCloseAssessment POST — after DB save:
-await _hub.Clients.Group($"exam-{id}").SendAsync("examForceClosed", new {
-    sessionId   = id,
-    redirectUrl = Url.Action("Assessment", "CMP")
-});
+// AssessmentSession rows (GenerateCertificate==true, IsPassed==true)
+// Online assessment certificates are always Permanent
+string certStatus = "Permanent";
 ```
 
-### Pattern 3: Cookie Auth Flows Automatically — No Extra Config
+### Pattern 3: AJAX Filter with Server-Side Override
 
-**What:** Because this is a browser-based MVC app using ASP.NET Identity cookie auth, the SignalR JS client automatically sends the auth cookie on the WebSocket/SSE upgrade request. The hub sees `Context.User` populated with the same claims as MVC controllers.
+**What:** The view sends filter values via AJAX GET to `FilterMonitoringSertifikat`. The controller re-enforces role scoping before querying — even if the client sends a different section/unit.
 
-**When to use:** Always — this is the default behavior for browser clients with cookie auth. The official ASP.NET Core 8 docs confirm: "If the user is logged in to an app, the SignalR connection automatically inherits this authentication."
+**When to use:** All filterable list pages in this project.
 
-**Trade-offs:** None for this project. The only additional step is placing `[Authorize]` on the Hub class to reject unauthenticated connections at the hub level, mirroring the `[Authorize]` already on all MVC controllers.
+**Trade-offs:** Identical to the `FilterCoachingProton` action at lines 267-281. Copy that structure exactly.
 
 **Example:**
 ```csharp
-[Authorize]  // mirrors pattern on all MVC controllers in this app
-public class AssessmentHub : Hub
+[HttpGet]
+public async Task<IActionResult> FilterMonitoringSertifikat(
+    string? section, string? unit, string? status, string? search)
 {
-    // Context.User is the authenticated ApplicationUser
-    // Context.UserIdentifier is ClaimTypes.NameIdentifier (ASP.NET Identity user ID)
+    var user = await _userManager.GetUserAsync(User);
+    if (user == null) return Unauthorized();
+    var roles = await _userManager.GetRolesAsync(user);
+    var userRole = roles.FirstOrDefault() ?? "";
+    int roleLevel = UserRoles.GetRoleLevel(userRole);
+
+    // Server-side scope override — client cannot bypass
+    if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
+    else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
+
+    var rows = await BuildSertifikatRowsAsync(user, userRole, section, unit, status, search);
+    return PartialView("Shared/_MonitoringSertifikatTablePartial", rows);
 }
 ```
+
+### Pattern 4: ClosedXML Excel Export
+
+**What:** Build an `XLWorkbook` in-memory, stream it as a file response. Lines 2137-2184 in `CDPController` demonstrate the exact pattern used throughout this codebase.
+
+**When to use:** All Excel exports in this project.
+
+**Trade-offs:** No streaming concern for this dataset. Certificate counts are bounded by worker headcount.
+
+**Recommended column set:**
+
+| # | Column | Source |
+|---|--------|--------|
+| 1 | Nama Pekerja | `ApplicationUser.FullName` |
+| 2 | NIP | `ApplicationUser.NIP` |
+| 3 | Bagian | `SertifikatRow.Section` |
+| 4 | Unit | `SertifikatRow.Unit` |
+| 5 | Jenis | `SertifikatRow.RecordType` |
+| 6 | Judul | `SertifikatRow.Title` |
+| 7 | Tanggal Terbit | `SertifikatRow.IssueDate` |
+| 8 | Berlaku Hingga | `SertifikatRow.ValidUntil` |
+| 9 | Status | `SertifikatRow.CertifikatStatus` |
+
+---
 
 ## Data Flow
 
-### HC ForceClose to Worker Push
+### Full-Page Load
 
 ```
-HC clicks "Tutup Paksa"
+User navigates to /CDP/MonitoringSertifikat
     |
     v
-POST /Admin/ForceCloseAssessment/{id}  [Authorize(Roles="Admin,HC")]
+CDPController.MonitoringSertifikat(bagian?, unit?, status?, search?)
     |
     v
-AdminController: update DB status = "Completed"  (DB write first)
+GetCurrentUser + GetRoles
     |
     v
-IHubContext<AssessmentHub>.Clients.Group("exam-{id}").SendAsync("examForceClosed", payload)
+BuildSertifikatRowsAsync(user, role, filters...)
+    |-- Enforce scope (role override on section/unit)
+    |-- Query TrainingRecord JOIN User (SertifikatUrl != null OR CertificateType set)
+    |-- Query AssessmentSession JOIN User (Status=="Completed" + IsPassed==true + GenerateCertificate==true)
+    |-- Project both to List<SertifikatRow>
+    |-- Apply filter params (section/unit/status/search)
+    v
+Compute summary counts from row list
+    (Total, Aktif, Akan Expired, Expired — .Count() in memory)
     |
     v
-AssessmentHub (in-memory) resolves group "exam-{id}"
+MonitoringSertifikatViewModel { SummaryCards, Rows, FilterState }
     |
     v
-WebSocket push to worker's browser
-    |
-    v
-Worker JS: receives "examForceClosed" event
-    |
-    v
-JS handler: show forceCloseModal, then redirect
-(replaces: setInterval(checkExamStatus, 10000) polling /CMP/CheckExamStatus)
+View(model) -> MonitoringSertifikat.cshtml
 ```
 
-### Worker Progress to HC Monitoring Push
+### AJAX Filter Reload
 
 ```
-Worker answers question
+User changes filter dropdown
     |
     v
-POST /CMP/SaveAnswer  (existing endpoint)
+JS fetch("/CDP/FilterMonitoringSertifikat?section=...&unit=...&status=...&search=...")
     |
     v
-CMPController: save answer in DB
+FilterMonitoringSertifikat action -> same BuildSertifikatRowsAsync
     |
     v
-IHubContext<AssessmentHub>.Clients
-    .Group("monitor-{title}-{category}-{date}")
-    .SendAsync("progressUpdate", dto)
+PartialView("Shared/_MonitoringSertifikatTablePartial", rows)
     |
     v
-AssessmentHub resolves monitoring group
-    |
-    v
-WebSocket push to all HC browsers watching that batch
-    |
-    v
-HC monitoring view JS: receives "progressUpdate" — calls existing updateRow(data)
-(replaces: setInterval(fetchProgress, 10000) polling /Admin/GetMonitoringProgress)
+JS replaces innerHTML of div#cert-table-container
 ```
 
-### Connection Lifecycle
+### Cascade Dropdown
 
 ```
-Worker loads StartExam page
+User selects Bagian
     |
     v
-JS: new HubConnectionBuilder().withUrl("/hubs/assessment").withAutomaticReconnect().build()
-    |   (auth cookie sent automatically on WS upgrade — no extra config needed)
-    v
-connection.start()  =>  Hub.OnConnectedAsync fires
+JS fetch("/CDP/GetCascadeOptions?section=RFCC")  <- existing endpoint, no change
     |
     v
-JS: connection.invoke("JoinExamGroup", sessionId)
+Returns { units: [...] }
     |
     v
-Hub: Groups.AddToGroupAsync(connectionId, "exam-{sessionId}")
-    |
-    v
-Worker is now in group — receives push events until disconnect
-
-On reconnect (withAutomaticReconnect handles this automatically):
-    |
-    v
-connection.onreconnected(() => { connection.invoke("JoinExamGroup", sessionId); })
-(Group membership is not preserved across reconnect — must re-join explicitly)
+JS populates Unit dropdown
 ```
+
+### Excel Export
+
+```
+User clicks Export Excel
+    |
+    v
+GET /CDP/ExportSertifikatExcel?section=...&unit=...&status=...&search=...
+    |
+    v
+Same BuildSertifikatRowsAsync call with same filter params
+    |
+    v
+XLWorkbook built in memory, columns per table above
+    |
+    v
+File(stream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+     "Sertifikat_{date}.xlsx")
+```
+
+---
 
 ## Integration Points
 
-### New Components
-
-| Component | File | What It Is |
-|-----------|------|-----------|
-| `AssessmentHub` | `Hubs/AssessmentHub.cs` | New Hub class — cookie auth, group join methods |
-| SignalR client lib | `wwwroot/lib/microsoft/signalr/dist/browser/signalr.min.js` | Client JS library via libman install |
-| Program.cs SignalR wiring | `Program.cs` | `builder.Services.AddSignalR()` + `app.MapHub<AssessmentHub>("/hubs/assessment")` |
-
 ### Modified Components
 
-| Component | File | What Changes |
-|-----------|------|-------------|
-| `AdminController` | `Controllers/AdminController.cs` | Inject `IHubContext<AssessmentHub>` in constructor; push `examReset` after ResetAssessment; push `examForceClosed` after ForceCloseAssessment and ForceCloseAll |
-| `CMPController` | `Controllers/CMPController.cs` | Inject `IHubContext<AssessmentHub>` in constructor; push `progressUpdate` after SaveAnswer; push `examSubmitted` after SubmitExam |
-| Monitoring view JS | `Views/Admin/AssessmentMonitoringDetail.cshtml` | Replace `setInterval(fetchProgress, 10000)` with hub connection + `JoinMonitorGroup` call + `progressUpdate` event handler; existing `updateRow()` and `updateSummary()` functions can be reused as-is |
-| Exam view JS | `Views/CMP/StartExam.cshtml` | Replace `setInterval(checkExamStatus, 10000)` with hub connection + `JoinExamGroup` call + `examForceClosed` / `examReset` event handlers; existing force-close modal and redirect logic reused |
-
-### Unchanged Components
-
-| Component | Reason |
+| Component | Change |
 |-----------|--------|
-| `CheckExamStatus` action in CMPController | Keep as legacy fallback during rollout; remove in cleanup phase after UAT |
-| `GetMonitoringProgress` action in AdminController | Keep as legacy fallback during rollout; remove in cleanup phase after UAT |
-| All DB schema / migrations | No migration needed — SignalR is transport only, all state stays in `AssessmentSession` table |
-| `INotificationService` | Different system (persistent in-app notifications stored in DB) — not replaced by SignalR |
-| `AssessmentSession.Status` column | Remains source of truth — DB write always happens before hub push |
+| `Views/CDP/Index.cshtml` | Add one card (col-12 col-md-6 col-lg-4) linking to MonitoringSertifikat — follow existing card markup exactly |
+| `Controllers/CDPController.cs` | Add 3 new public actions + 1 private `BuildSertifikatRowsAsync` helper — no changes to existing actions |
 
-## Build Order
+### New Components
 
-Dependencies must be addressed in this sequence:
+| Component | Depends On |
+|-----------|-----------|
+| `Models/MonitoringSertifikatViewModel.cs` | `SertifikatRow` (inner class or same file) |
+| `Views/CDP/MonitoringSertifikat.cshtml` | ViewModel, Bootstrap 5, existing `site.css` |
+| `Views/CDP/Shared/_MonitoringSertifikatTablePartial.cshtml` | `List<SertifikatRow>` |
 
-**Step 1: Install SignalR client library**
-`wwwroot/lib` must have `signalr.min.js` before view JS can reference it. Use `libman install @microsoft/signalr` or copy from node_modules. This is a prerequisite for Steps 6 and 7.
+### Reused Without Modification
 
-**Step 2: Create `Hubs/AssessmentHub.cs`**
-Must exist before Program.cs can reference `AssessmentHub` in `MapHub<>`.
+| Component | How Reused |
+|-----------|-----------|
+| `CDPController.GetCascadeOptions` | Bagian->Unit cascade; already works for any section |
+| `OrganizationStructure.GetUnitsForSection` | Called inside GetCascadeOptions — no change |
+| `UserRoles.HasFullAccess / HasSectionAccess / IsCoachingRole` | Role-scoping gate logic |
+| `TrainingRecord.IsExpiringSoon / DaysUntilExpiry` | Computed properties already on the model |
+| ClosedXML `XLWorkbook` pattern | Direct structural copy from existing export actions |
 
-**Step 3: Update `Program.cs`**
-Add `builder.Services.AddSignalR()` after existing services. Add `app.MapHub<AssessmentHub>("/hubs/assessment")` after `app.UseAuthorization()` — the middleware order matters. This makes the hub reachable.
+---
 
-**Step 4: Inject IHubContext into AdminController**
-Add `IHubContext<AssessmentHub>` as constructor parameter. Push `examReset` from ResetAssessment, `examForceClosed` from ForceCloseAssessment and ForceCloseAll. No DB changes needed.
+## Suggested Build Order
 
-**Step 5: Inject IHubContext into CMPController**
-Add `IHubContext<AssessmentHub>` as constructor parameter. Push `progressUpdate` from SaveAnswer (each answer saved), `examSubmitted` from SubmitExam. No DB changes needed.
+Dependencies flow in this order. Each step is independently testable before proceeding.
 
-**Step 6: Update `StartExam.cshtml` JS**
-Replace `checkExamStatus` polling block with hub connection, `JoinExamGroup` invocation, and `examForceClosed` / `examReset` handlers. Keep existing timer, submit logic, and modal markup unchanged.
+| Step | Task | Dependency |
+|------|------|------------|
+| 1 | Create `MonitoringSertifikatViewModel.cs` with `SertifikatRow` | None |
+| 2 | Add `BuildSertifikatRowsAsync` private helper to `CDPController` | Step 1 |
+| 3 | Add `MonitoringSertifikat` GET action (full page) | Step 2 |
+| 4 | Create `Views/CDP/MonitoringSertifikat.cshtml` with static table (no AJAX yet) | Step 3 |
+| 5 | Add `FilterMonitoringSertifikat` AJAX action + `_MonitoringSertifikatTablePartial` partial | Step 2 |
+| 6 | Wire JS filter bar in MonitoringSertifikat.cshtml | Step 5 |
+| 7 | Add `ExportSertifikatExcel` action | Step 2 |
+| 8 | Add Export button to view + wire JS | Step 7 |
+| 9 | Add card to `Views/CDP/Index.cshtml` | Step 4 (page must exist first) |
 
-**Step 7: Update `AssessmentMonitoringDetail.cshtml` JS**
-Replace `fetchProgress` polling block with hub connection, `JoinMonitorGroup` invocation, and `progressUpdate` handler. The existing `updateRow()` and `updateSummary()` functions can be called directly from the handler since the DTO shape from the hub push should match what the polling endpoint returned.
+Steps 5 and 7 can be done in parallel (both depend only on Step 2). Steps 6 and 8 can be done in parallel.
 
-Steps 4 and 5 can be done in parallel. Steps 6 and 7 can be done in parallel. Each step is independently deployable — the polling fallback continues to function during the migration.
+---
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Filtering Only in the View
+
+**What people do:** Query all certificates regardless of role, then hide rows in Razor with `@if (userRole == ...)`.
+
+**Why it's wrong:** Malicious users can call `FilterMonitoringSertifikat` directly with arbitrary section/unit params and bypass role scoping.
+
+**Do this instead:** Apply scope in the controller before any filter params are honored, mirroring the `FilterCoachingProton` override block at CDPController lines 274-277.
+
+### Anti-Pattern 2: Using AssessmentSession.User Navigation Property
+
+**What people do:** Rely on `AssessmentSession.User` for Section/Unit display.
+
+**Why it's wrong:** `AssessmentSession` has no EF navigation property to `ApplicationUser` — only a `UserId` string FK. Accessing `.User` causes a null reference or an N+1 query per row.
+
+**Do this instead:** Join explicitly in LINQ or load users into a dictionary keyed by UserId, then look up per row. Example:
+```csharp
+var userIds = sessions.Select(s => s.UserId).Distinct().ToList();
+var userMap = await _context.Users
+    .Where(u => userIds.Contains(u.Id))
+    .ToDictionaryAsync(u => u.Id);
+```
+
+### Anti-Pattern 3: Four Separate COUNT Queries for Summary Cards
+
+**What people do:** Write four `_context.TrainingRecords.CountAsync(...)` calls for the four status buckets.
+
+**Why it's wrong:** Four round-trips for data that is already loaded. Certificate volumes are bounded by headcount — in-memory grouping is negligible cost.
+
+**Do this instead:** Load all rows once into `List<SertifikatRow>`, then compute:
+```csharp
+var total          = rows.Count;
+var aktif          = rows.Count(r => r.CertifikatStatus == "Aktif");
+var akanExpired    = rows.Count(r => r.CertifikatStatus == "Akan Expired");
+var expired        = rows.Count(r => r.CertifikatStatus == "Expired");
+```
+
+### Anti-Pattern 4: Duplicating the Cascade Endpoint
+
+**What people do:** Create a new `GetCertCascadeOptions` endpoint for the Bagian->Unit dropdowns on the monitoring page.
+
+**Why it's wrong:** `GetCascadeOptions` already works for any page; duplicating it creates two endpoints to maintain.
+
+**Do this instead:** Call the existing `/CDP/GetCascadeOptions?section=...` from the monitoring page's filter JS, identical to CoachingProton.
+
+---
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| Single-server intranet (current) | In-memory SignalR groups — fully sufficient, zero additional infra |
-| Multi-server / load-balanced | Add Redis backplane: `builder.Services.AddSignalR().AddStackExchangeRedis(connectionString)` — no Hub code changes |
-| Azure-hosted | Azure SignalR Service replaces in-memory transport with a managed service — one config change in Program.cs |
+| Current (~200 workers) | In-memory row projection is fine; no index changes needed |
+| 1k workers | Add `.AsNoTracking()` to read-only certificate queries (likely already present in similar queries) |
+| 10k+ workers | Move `BuildSertifikatRowsAsync` to a service class; add DB index on `TrainingRecord.UserId` and `AssessmentSession.UserId` + filter columns |
 
-### Scaling Priorities
+Certificate monitoring is read-heavy and introduces no write path.
 
-1. **Current project:** No scaling concern. Single intranet server. In-memory groups are the correct and simplest choice.
-2. **If multi-server ever required:** Redis backplane is one line addition. Hub code and client JS are unchanged.
-
-## Anti-Patterns
-
-### Anti-Pattern 1: Calling Hub Methods Directly from Controller
-
-**What people do:** Try to call methods defined in `AssessmentHub` from `AdminController` via `new AssessmentHub(...)` or a static reference.
-
-**Why it's wrong:** Hub instances are created per-connection by the SignalR infrastructure. Manually instantiating a Hub does not give access to the connection pool — no clients receive the message.
-
-**Do this instead:** Inject `IHubContext<AssessmentHub>` into the controller. This gives access to `Clients`, `Groups`, and `Users` without a hub instance.
-
-### Anti-Pattern 2: Un-scoped Group Names
-
-**What people do:** Use generic group names like `"monitoring"` or `"exam"` without per-session scoping.
-
-**Why it's wrong:** All HC users across all active assessments receive each other's updates. ForceClose events fire on the wrong workers' screens.
-
-**Do this instead:** Scope group names to the entity. `"exam-{sessionId}"` for worker groups (one session = one worker). `"monitor-{title}-{category}-{date}"` for HC monitoring groups — this key already exists in the codebase (`GetMonitoringProgress` uses the same three parameters as the batch identifier).
-
-### Anti-Pattern 3: Replacing DB State with SignalR State
-
-**What people do:** Stop persisting status changes to DB and rely on SignalR push as the source of truth.
-
-**Why it's wrong:** SignalR connections are ephemeral. Worker refreshes page mid-exam — no event is replayed. HC opens a second browser tab — they see stale data. The DB is the only reliable state store.
-
-**Do this instead:** DB write always happens first. SignalR push happens after the DB write succeeds. The push is a notification that something changed, not the change itself.
-
-### Anti-Pattern 4: Removing Polling Endpoints Before Hub Is Proven Stable
-
-**What people do:** Delete `CheckExamStatus` and `GetMonitoringProgress` in the same commit that adds SignalR.
-
-**Why it's wrong:** If the hub has a configuration bug or WebSocket is blocked by a corporate proxy, workers and HC have no fallback.
-
-**Do this instead:** Keep both endpoints during the first milestone. Mark them `// LEGACY: fallback for SignalR`. Remove in a subsequent cleanup phase after UAT confirms the hub is reliable.
-
-### Anti-Pattern 5: Not Re-joining Groups After Reconnect
-
-**What people do:** Set up group join on initial connect but forget the `onreconnected` callback.
-
-**Why it's wrong:** `withAutomaticReconnect()` re-establishes the WebSocket connection but does NOT restore group membership (groups are keyed by connection ID, which changes on reconnect). The worker appears connected but receives no push events.
-
-**Do this instead:** Register `connection.onreconnected(() => { connection.invoke("JoinExamGroup", sessionId); })` in the exam view JS. Same pattern for the monitoring view.
+---
 
 ## Sources
 
-- [Authentication and authorization in ASP.NET Core SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz?view=aspnetcore-8.0) — HIGH confidence, official Microsoft docs
-- [Manage users and groups in SignalR](https://learn.microsoft.com/en-us/aspnet/core/signalr/groups?view=aspnetcore-10.0) — HIGH confidence, official Microsoft docs
-- Direct code inspection: `Controllers/AdminController.cs` (GetMonitoringProgress, ResetAssessment, ForceCloseAssessment, ForceCloseAll), `Controllers/CMPController.cs` (CheckExamStatus, SubmitExam, SaveAnswer), `Views/Admin/AssessmentMonitoringDetail.cshtml` (polling JS), `Views/CMP/StartExam.cshtml` (statusPollInterval JS)
+- Direct inspection: `Controllers/CDPController.cs` — FilterCoachingProton (L267), GetCascadeOptions (L287), ExportProgress ClosedXML block (L2137-2184)
+- Direct inspection: `Models/TrainingRecord.cs`, `Models/AssessmentSession.cs`, `Models/UnifiedTrainingRecord.cs`
+- Direct inspection: `Models/UserRoles.cs`, `Models/ApplicationUser.cs`
+- Direct inspection: `Views/CDP/Index.cshtml` (card markup pattern)
+- Project context: `.planning/PROJECT.md` (v7.4 milestone target features)
 
 ---
-*Architecture research for: SignalR real-time assessment integration, ASP.NET Core 8 MVC*
-*Researched: 2026-03-13*
+*Architecture research for: Certificate Monitoring (CDP module extension)*
+*Researched: 2026-03-17*

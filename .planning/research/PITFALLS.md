@@ -1,169 +1,131 @@
 # Pitfalls Research
 
-**Domain:** ASP.NET Core MVC + SignalR real-time assessment monitoring (brownfield integration)
-**Researched:** 2026-03-13
-**Confidence:** HIGH (based on codebase analysis + official Microsoft docs + community issues)
+**Domain:** Certificate monitoring with dual data sources (TrainingRecord + AssessmentSession)
+**Researched:** 2026-03-17
+**Confidence:** HIGH — based on direct inspection of existing models and controller patterns
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Hub Groups Lost on Reconnect — HC Stops Receiving Worker Updates
+### Pitfall 1: AssessmentSession Has No ValidUntil — Null Overloading Corrupts Expiry Logic
 
 **What goes wrong:**
-HC opens the monitoring page and joins a SignalR group for an assessment batch (e.g., group `"assessment-batch-3"`). Worker progress events are pushed to that group. When the network flickers or the server restarts, the HC's connection reconnects automatically via `withAutomaticReconnect()` — but group membership is NOT restored. The HC's monitoring page reconnects silently, shows no error, but stops receiving worker updates. HC believes the exam is idle while workers are actively submitting.
+`AssessmentSession` has no `ValidUntil` field and no `CertificateType` field. When building a unified certificate row, developers reach for a shared ViewModel property like `ValidUntil` and assign `null` for assessment-sourced rows, then compute expiry status as `ValidUntil == null ? "Permanen" : ...`. The bug emerges when a `TrainingRecord` row also has `ValidUntil == null` (the field is nullable and many existing records predate it). Both cases map to `null`, but they should produce different labels: assessment = "Permanen", training with null ValidUntil = "Tidak Diketahui" or excluded from the "Aktif" count.
 
 **Why it happens:**
-SignalR groups are in-memory, per-connection state on the server. There is no persistence. When `OnConnectedAsync` is not re-called on reconnect (only a new connection triggers it), the client is connected but unjoined. Microsoft's official docs state explicitly: "Reconnection does not automatically restore group membership — this must be handled manually."
-
-The auto-reconnect callbacks (`onreconnected`) are easy to overlook when building the initial happy path.
+The unified ViewModel flattens two sources into one shape. `null` becomes overloaded — it means two different things depending on the source. Without a discriminator field in the ViewModel, callers cannot distinguish them.
 
 **How to avoid:**
-1. In the JS client, register an `onreconnected` handler that calls a hub method to re-join the group:
-   ```javascript
-   connection.onreconnected(async () => {
-       await connection.invoke("RejoinBatch", title, category, scheduleDate);
-   });
-   ```
-2. The hub's `RejoinBatch` method calls `Groups.AddToGroupAsync(Context.ConnectionId, groupName)` — same as the initial join.
-3. After re-joining, request a state sync from the server to refresh stale data accumulated during the disconnect window.
+Add a `RecordType` discriminator string (`"Manual"` / `"Assessment Online"`) to the unified ViewModel — exactly as `AllWorkersHistoryRow` already does (established precedent in Phase 40). Derive `CertificateStatus` in the server-side mapping layer, not in the view. Set status to `"Permanen"` only when `RecordType == "Assessment Online"`, regardless of `ValidUntil`.
 
 **Warning signs:**
-- HC monitoring page shows all workers as "last seen 30 seconds ago" and never updates
-- No JavaScript console errors — reconnect succeeded but HC is silent
-- Exam completes but monitoring page never shows "Completed" badge
+- Summary card "Aktif" count is inflated because training records with `ValidUntil == null` are counted as permanent
+- "Akan Expired" count is always zero even when near-expiry records exist
+- View uses `@if (row.ValidUntil == null)` without also checking `row.RecordType`
 
 **Phase to address:**
-SignalR infrastructure phase. Add `onreconnected` handler and `RejoinBatch` hub method as part of the initial Hub implementation. Not a retrofit.
+ViewModel definition phase (first implementation phase). Define `CertificateMonitorRow` with `RecordType`, `CertificateStatus` (computed string), and `ValidUntil` as separate concerns.
 
 ---
 
-### Pitfall 2: Cookie Auth Redirect on SignalR Negotiate — 401 Becomes 302
+### Pitfall 2: Role-Scoping Applied to Only One Data Source
 
 **What goes wrong:**
-The worker loads the exam page. The SignalR JS client calls `POST /examHub/negotiate`. ASP.NET Core cookie auth middleware intercepts the 401 and redirects to `/Account/Login?returnUrl=...` — returning HTTP 302 instead of 401. The SignalR JS client receives HTML (the login page) instead of a negotiate JSON response, logs a cryptic error, and fails to connect. Exam page appears to load fine but real-time events never work.
+The CDPController has working role-scoping for coaching data. Developers copy the pattern for `TrainingRecord` (filter through a role-scoped user list), but forget to apply the same scope to `AssessmentSession`. The result: Admin/HC see all certificates (correct), but SH/SrSpv see their section's training records and ALL workers' assessment certificates. Or Coach sees only their own training records but every worker's online certificates.
 
 **Why it happens:**
-Cookie auth in ASP.NET Core defaults to redirecting unauthenticated requests to the login page. This is correct for page requests but breaks API-style endpoints. SignalR negotiate is an API endpoint — it expects 401, not 302. The middleware's `OnRedirectToLogin` event must be overridden to return 401 for XHR/negotiate requests.
-
-This is documented in ASP.NET Core 10 release notes: starting ASP.NET Core 10, known API endpoints no longer redirect but return 401/403. Earlier versions require manual configuration.
+`TrainingRecord` is under `ApplicationUser.TrainingRecords` (navigation property exists — easy to scope). `AssessmentSession` is a separate table with no navigation from `ApplicationUser` — it is queried independently. Developers remember to scope one and forget the other.
 
 **How to avoid:**
-In `Program.cs`, configure cookie auth to suppress redirects for API paths:
-```csharp
-builder.Services.ConfigureApplicationCookie(options => {
-    options.Events.OnRedirectToLogin = context => {
-        if (context.Request.Path.StartsWithSegments("/examHub") ||
-            context.Request.Path.StartsWithSegments("/monitorHub")) {
-            context.Response.StatusCode = 401;
-        } else {
-            context.Response.Redirect(context.RedirectUri);
-        }
-        return Task.CompletedTask;
-    };
-});
-```
-Alternatively, add `[Authorize]` on the Hub class — authenticated users already have valid cookies so negotiation proceeds normally. Verify by testing negotiate endpoint directly.
+Build the role-scoped user ID set first (a `HashSet<string>` of allowed user IDs), then apply it as a `.Where(x => allowedUserIds.Contains(x.UserId))` filter to BOTH `TrainingRecords` and `AssessmentSessions` queries before concatenation. Never inline role-scope logic separately inside each branch.
 
 **Warning signs:**
-- Browser DevTools Network tab: `/examHub/negotiate` returns status 302 or 200 with HTML content-type
-- SignalR JS client logs: `"Failed to complete negotiation with the server"` or `"Error: Server returned handshake error: Unexpected character encountered while parsing value"`
-- Works in development (where you're logged in) but fails after fresh login in a new session
+- SH browsing the certificate monitor sees workers from other sections in the assessment rows but not in the training rows
+- Count mismatch between summary cards and table rows when filtered by section
 
 **Phase to address:**
-Phase 1 (Hub infrastructure setup). Test negotiate endpoint immediately after adding the Hub before writing any client-side event handlers.
+Role-scoping implementation phase. Write a single `GetAllowedUserIdsAsync(currentUser)` helper and call it once; both queries consume the result.
 
 ---
 
-### Pitfall 3: SQLite "Database Is Locked" Under Concurrent SignalR + HTTP Writes
+### Pitfall 3: Expiry Status Computed in View — Summary Cards Desync from Table
 
 **What goes wrong:**
-Worker saves an answer via `POST /CMP/SaveAnswer` (HTTP action, writes to `PackageUserResponses`). Simultaneously, HC calls `ForceCloseAssessment` (HTTP action, writes to `AssessmentSessions`). The Hub pushes that ForceClose event to the worker, and the worker's exam page calls `AbandonExam` (HTTP action, writes `AssessmentSessions`). Three concurrent writes to SQLite in the same 100ms window. SQLite throws `SqliteException: database is locked` on one of them. The worker receives no error feedback — the ForceClose write failed silently.
+Status categories (Aktif / Akan Expired / Expired) are computed as Razor conditionals (`@if (row.ValidUntil < DateTime.Now)`). Summary cards call `Count()` on the same in-memory list. This works until filters are applied: when the user filters by Bagian or status, the table is filtered server-side but the summary cards still show unfiltered totals because the count was computed before filtering.
 
 **Why it happens:**
-SQLite only allows one writer at a time per database file. With SignalR, request frequency increases significantly (progress pushes, heartbeats) versus polling. Each push may trigger a DB read/write on the Hub. EF Core's default connection pool for SQLite can also create multiple connections that deadlock each other.
+The pattern is easy to prototype — render rows, count rows, show counts. The bug only surfaces once filters are wired in a later phase.
 
 **How to avoid:**
-1. Enable WAL (Write-Ahead Logging) mode in `Program.cs` or on first DB connection — WAL allows one concurrent writer plus concurrent readers:
-   ```csharp
-   // In DbContext OnConfiguring or Program.cs after migration
-   context.Database.ExecuteSqlRaw("PRAGMA journal_mode=WAL;");
-   ```
-2. Configure a busy timeout so SQLite retries instead of immediately throwing:
-   ```
-   Data Source=HcPortal.db;Busy Timeout=5000
-   ```
-3. Keep Hub methods read-only where possible. Hub pushes state *changes* that already happened via HTTP actions — do not write to DB inside Hub methods. HTTP actions are the single writer.
+Compute `CertificateStatus` as a stored string property on the ViewModel row in the server-side mapping layer. Summary card counts then derive from `model.Rows.Count(r => r.Status == "Aktif")` on the already-filtered list. Table and cards are always in sync.
 
 **Warning signs:**
-- `Microsoft.Data.Sqlite.SqliteException: database is locked` in application logs
-- ForceClose action appears to succeed (returns 200) but session status doesn't change in DB
-- Works fine in single-user testing, fails when 5+ workers are active simultaneously
+- Summary card total does not match visible row count after applying a filter
+- "Expired" count stays constant regardless of the status filter selection
 
 **Phase to address:**
-Phase 1 (Hub infrastructure setup). Enable WAL mode and busy timeout in Program.cs before any SignalR features are built on top. Cannot be retrofitted safely after data exists.
+ViewModel mapping phase. `CertificateStatus` must be computed and stored on the ViewModel row before any filtering; never derive it in the view.
 
 ---
 
-### Pitfall 4: Race Condition Between HTTP SubmitExam and Hub ForceClose Push
+### Pitfall 4: AssessmentSession.IsPassed Is Nullable — Failed Attempts Appear as Certificates
 
 **What goes wrong:**
-Worker clicks "Submit" at the exact moment HC clicks "Force Close" on the monitoring page. Both events reach the server within milliseconds:
-- `SubmitExam` reads `AssessmentSession`, grades it, sets `Status = "Completed"`, calls `SaveChangesAsync()`
-- HC's `ForceCloseAssessment` reads the same session, sets `Status = "Abandoned"`, calls `SaveChangesAsync()`
-
-EF Core's default tracking means one of the writes overwrites the other. The worker's graded result can be replaced by "Abandoned" status, destroying their score. No exception is thrown.
+`AssessmentSession.IsPassed` is `bool?`. A completed session where the worker failed has `Status == "Completed"` and `IsPassed == false`. If the query filters only on `Status == "Completed"`, failed assessments appear in the certificate list. Workers see a certificate row for an exam they failed, with no certificate file to download.
 
 **Why it happens:**
-The existing `SubmitExam` action uses optimistic concurrency (`_context.AssessmentSessions.Update(assessment)`). Adding SignalR increases the likelihood that HC triggers ForceClose while worker submits — previously this race window was 10-second polling latency wide; with SignalR it becomes sub-second.
+The existing `AllWorkersHistoryRow` merge (Phase 40) includes all completed sessions because it is a history view, not a certificate view. The certificate monitor has a stricter semantic — only passed, certificate-intended sessions should appear.
 
 **How to avoid:**
-1. Use `ExecuteUpdateAsync` in both `SubmitExam` and `ForceCloseAssessment` with a status guard:
-   ```csharp
-   // ForceClose only transitions from InProgress → Abandoned, never from Completed
-   var updated = await _context.AssessmentSessions
-       .Where(s => s.Id == id && s.Status != "Completed")
-       .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "Abandoned"));
-   if (updated == 0) return; // Already completed — skip
-   ```
-2. `SubmitExam` similarly: only submit if `Status == "InProgress"`.
-3. After ForceClose completes server-side, Hub pushes to the worker. Worker JS must redirect to a "session ended" page and NOT attempt to submit.
+Filter `AssessmentSession` rows with `IsPassed == true && GenerateCertificate == true`. The `GenerateCertificate` flag on `AssessmentSession` explicitly marks whether a certificate was intended to be issued. Do not rely on `Status == "Completed"` alone.
 
 **Warning signs:**
-- Worker submits exam, sees "Results" page with score, but in admin monitoring the session shows "Abandoned"
-- Graded score exists in DB but session `IsPassed` is null
-- Race visible only during load testing or when HC is very actively monitoring
+- Certificate table shows rows with no download button (no cert file was generated for that session)
+- Worker sees their own failed attempts listed as certificates
 
 **Phase to address:**
-Phase handling ForceClose+Reset SignalR events. Add status-guarded `ExecuteUpdateAsync` in both `ForceCloseAssessment` and `SubmitExam` before wiring up SignalR pushes. This closes the race window that SignalR amplifies.
+Data query phase. Add both guards to the `AssessmentSession` include predicate from the start.
 
 ---
 
-### Pitfall 5: Worker Tab Re-Opens After ForceClose Push — Connection ID Is Stale
+### Pitfall 5: Date Field Mapping Is Ambiguous — Expiry Baseline Is Wrong
 
 **What goes wrong:**
-HC force-closes a worker's session. The Hub sends `forceClose` event to the worker's connection ID. Worker's browser receives it, shows "Session ended" message, and the JS calls `connection.stop()`. Worker then refreshes the page (or presses Back). A new SignalR connection is established with a NEW connection ID. The Hub no longer has a mapping from `userId → connectionId` because the previous connection was stopped. If HC tries Reset → the Hub cannot push the Reset event to the worker's new connection.
+`TrainingRecord` has three date fields: `Tanggal`, `TanggalMulai`, `TanggalSelesai`. `AssessmentSession` has `Schedule`, `CompletedAt`, `StartedAt`. Developers pick one date per source without defining which date represents the certificate issuance date. The result: training records show `Tanggal` (the original record entry date) while assessment records show `CompletedAt`. Some training records have `TanggalSelesai` as the actual completion date. The displayed date is wrong and any `ValidUntil` calculated as a relative offset from the wrong anchor is also wrong.
 
 **Why it happens:**
-Storing `connectionId` per user in memory (a static dictionary or in-memory store) creates stale mappings. Each new page load generates a new connection ID. Server-side user-to-connection mapping becomes invalid on any page reload.
+The two tables were designed for different purposes. Their date semantics are not equivalent. No existing code documents the canonical "certificate issuance date" for each source.
 
 **How to avoid:**
-1. Use SignalR's built-in user-based messaging instead of connection-ID-based messaging:
-   ```csharp
-   // Push to all connections for this user (works across tabs and reconnects)
-   await Clients.User(userId).SendAsync("ForceClose");
-   ```
-   This requires `IUserIdProvider` to be wired up (cookie auth provides `HttpContext.User.Identity.Name` automatically).
-2. Never maintain your own `userId → connectionId` dictionary. Use `Clients.User()` and `Clients.Group()` instead.
-3. HC monitoring group membership is handled via `Groups.AddToGroupAsync` on connect (and re-join on reconnect per Pitfall 1).
+Define the canonical mapping explicitly in a comment inside the ViewModel mapping: training = `TanggalSelesai ?? TanggalMulai ?? Tanggal` (prefer completion date as anchor); assessment = `CompletedAt ?? Schedule`. Use the same field as the baseline if `CertificateType` implies a relative expiry offset.
 
 **Warning signs:**
-- ForceClose works the first time, but after worker refreshes the page, Reset event never reaches them
-- Dictionary key not found exceptions in Hub logs when worker reconnects
-- Working in 1-tab test but failing in UAT where worker opens exam in a second tab
+- Rows sorted by date show assessment rows mixed before older training rows unexpectedly
+- "Akan Expired" threshold appears off by weeks because `ValidUntil` was anchored to `Tanggal` instead of `TanggalSelesai`
 
 **Phase to address:**
-Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-to-connection-ID map and then migrate away from it later.
+ViewModel mapping phase. Nail down the date mapping before building expiry status logic on top of it.
+
+---
+
+### Pitfall 6: Coach Role-Scoping Follows Coaching Pattern Instead of "Own Only"
+
+**What goes wrong:**
+The milestone spec says Coach and Coachee see only their own certificates. The existing CDPController `BuildProtonProgressSubModelAsync` scopes Coach to their mapped coachees (coaching oversight pattern). If the certificate monitor copies this pattern, a Coach sees their coachees' certificates instead of (or in addition to) their own.
+
+**Why it happens:**
+CDPController is the natural reference for CDP role-scoping. Its Coach scope is intentionally designed for coaching oversight. Certificate monitoring is a personal record — the intent is different, but the pattern is the same entry point.
+
+**How to avoid:**
+For Coach and Coachee roles, scope the query to `userId == currentUser.Id` only. Do not traverse `CoachCoacheeMapping`. Add a comment explaining the deliberate divergence from the coaching scoping pattern. The four scope tiers are: Admin/HC = all workers, SH/SrSpv = workers in their `Section`, Coach/Supervisor/Coachee = own `userId` only.
+
+**Warning signs:**
+- A coach browsing the certificate monitor sees certificates belonging to their coachees
+- Removing a coach-coachee mapping causes certificates to disappear from the coach's own view
+
+**Phase to address:**
+Role-scoping phase. Document the four tiers explicitly in the action method before writing any query code.
 
 ---
 
@@ -171,10 +133,10 @@ Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-t
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Keep polling as fallback alongside SignalR | "Insurance if SignalR fails" | Two code paths for the same data; polling queries run even when SignalR is active; monitoring page may show stale polling data conflicting with real-time data | Acceptable only during transition phase. Remove polling JavaScript once SignalR is stable in UAT. Never ship both permanently. |
-| Write to DB inside Hub methods | Simpler — Hub handles everything | SignalR Hub methods execute on a thread-pool thread; concurrent Hub DB writes compound SQLite locking | Never. All DB writes must go through HTTP actions. Hub methods only read state or push notifications. |
-| Store connection IDs in a static Dictionary | Fast to prototype | Stale IDs on reconnect; thread-unsafe access; memory leak if connections are never cleaned up | Never in production. Use `Clients.User()` or `Clients.Group()` from day one. |
-| Hardcode group name without schedule date | Simpler group naming | Two different exam batches with same title but different dates share a group; HC monitoring one batch receives events from another | Never. Group key must include `title + category + scheduleDate` to be unique. |
+| Compute expiry status in Razor view | Faster initial build | Summary card counts diverge from table after filtering is added | Never — status belongs in the ViewModel mapping layer |
+| Reuse `AllWorkersHistoryRow` ViewModel for certificates | Saves defining a new type | Missing fields (`CertificateStatus`, `SertifikatUrl`, `ValidUntil`) force nulls and fragile view conditionals | Never — define a dedicated `CertificateMonitorRow` ViewModel |
+| Query both sources in memory then filter | Simpler code path | Full table scans on both tables; unacceptable once record count grows | Only in a unit test with in-memory DbContext |
+| Hardcode "30 days" expiry warning threshold inline | Quick to ship | Inconsistent with `IsExpiringSoon` on `TrainingRecord` (already uses 30 days) — two sources of truth | Acceptable only if the value matches the existing model property exactly |
 
 ---
 
@@ -182,10 +144,10 @@ Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-t
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Cookie auth + SignalR negotiate | Cookie auth redirects 401 → 302 to login page; SignalR negotiate fails with HTML response | Configure `OnRedirectToLogin` to return 401 for `/examHub` and `/monitorHub` paths; or verify Hub `[Authorize]` lets authenticated users through |
-| EF Core DbContext + Hub | Injecting scoped `DbContext` into a singleton Hub causes ObjectDisposedException | Hub lifetime is transient by default in ASP.NET Core SignalR — scoped DbContext injection is safe. Verify DI lifetime. |
-| jQuery + SignalR JS client | Loading `@microsoft/signalr` via CDN but also bundling it via npm causes two HubConnection instances | Pick one delivery method. For MVC app: CDN script tag with `integrity` hash is simplest. Do not bundle via webpack in addition. |
-| `ForceCloseAll` action + SignalR group push | `ForceCloseAll` closes multiple sessions; must push ForceClose event to EACH affected worker separately | Loop over affected worker userIds, call `Clients.User(userId).SendAsync("ForceClose")` per user. Cannot use `Clients.Group()` for workers since they are not in the same HC group. |
+| TrainingRecord + AssessmentSession UNION | Join on UserId after fetching both full tables into memory | Apply `Where(x => allowedIds.Contains(x.UserId))` at DB level via `IQueryable` before `.ToListAsync()`; project to flat ViewModel before concatenating |
+| Certificate file download (SertifikatUrl) | Assume `SertifikatUrl` is a directly accessible web path for all record types | TrainingRecord stores upload path under `wwwroot/uploads/certificates/`; AssessmentSession has no `SertifikatUrl` field. Serve files through a controller action that verifies ownership before streaming; never expose the raw path |
+| Excel export via ClosedXML | Export all columns including internal IDs and raw nullable types | Follow the v7.1 export pattern: project to a string-typed export DTO with human-readable labels before passing to ClosedXML |
+| OrganizationStructure cascade filter (Bagian > Unit) | Apply section/unit filter independently to each data source | Apply the selected section/unit as `Where` clauses on the role-scoped user ID set first, not separately on each source — use existing `GetCascadeOptions` endpoint already in CDPController |
 
 ---
 
@@ -193,10 +155,9 @@ Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-t
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Hub broadcasts to all clients instead of targeted group | Every connected user receives every exam event | Always scope pushes: `Clients.Group(batchGroupName)` for batch events, `Clients.User(userId)` for per-worker events | Breaks silently at any scale — workers on other exams receive irrelevant events; UX confusion |
-| Progress push on every keystroke / SaveAnswer | 30+ SaveAnswer calls per worker per minute; each triggers a Hub broadcast | Throttle: push progress only on meaningful milestones (every 5th answer, or when tab changes). OR let HC pull progress on demand. | 20 workers × 30 saves/min = 600 Hub broadcasts/min; multiplied by monitoring connections |
-| No server-side keepalive / ping timeout configured | Long-running exam (60 min) drops WebSocket connection silently after 30s idle if worker is reading and not answering | Configure `KeepAliveInterval` and `HandshakeTimeout` in Hub options. Default keep-alive is 15s ping; verify server and reverse proxy (IIS/nginx) WebSocket timeout is longer than exam duration. | Exams longer than default server/proxy timeout (~30s–2min depending on IIS config) |
-| IIS WebSocket not enabled | SignalR falls back to Long Polling; not an error but performance degrades significantly | Ensure IIS WebSocket Protocol feature is installed. Verify in `Program.cs` that `UseWebSockets()` is called. Check transport in browser DevTools Network tab (should show 101 Switching Protocols). | Immediate — every deployment on IIS without WebSocket feature enabled |
+| Loading full `ApplicationUser` via `TrainingRecord.User` in a loop | Slow page load; EF generates N+1 queries | Use `.Include(r => r.User)` once on the query, or project to flat ViewModel with `.Select()` — never access `.User` in a foreach without eager loading | ~200+ records |
+| Fetching all AssessmentSessions then filtering in C# | Acceptable in dev, slow under real data | Apply all `Where` predicates on `IQueryable` before `.ToListAsync()` | ~500+ sessions |
+| Four separate DB queries for summary card counts | 4 extra round-trips per page load | Compute all four counts from the same in-memory list after a single DB fetch | Always wasteful — avoid from day one |
 
 ---
 
@@ -204,9 +165,9 @@ Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-t
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| HC Hub method callable by Worker role | Worker calls `Clients.Group(batchGroup).SendAsync("ForceClose")` to attack peer exams | Add `[Authorize(Roles = "Admin,HC")]` on Hub methods that trigger HC actions (`ForceClose`, `ResetWorker`). Worker-facing Hub methods (join, progress update) can be authenticated-only without role. |
-| No ownership check on Hub methods | Worker passes `sessionId=999` (another worker's session) to Hub method to inject events into another session | Hub methods must verify `session.UserId == Context.UserIdentifier` before processing, same as HTTP actions. |
-| connectionId exposed in client-side JS | JS logs connection ID; attacker can guess other connection IDs and target them | Never expose `connection.connectionId` in HTML or JS variables accessible to page scripts. Use `Clients.User()` server-side — never route messages by client-supplied connectionId. |
+| Certificate download action does not verify ownership | Worker A downloads Worker B's certificate by guessing a record ID or file URL | Before serving any file, verify `record.UserId == currentUser.Id` OR current user's role level grants access to that worker's section; return 403 otherwise |
+| Role-scope bypass via filter query string | Coachee appends `?section=RFCC` to see other sections' data | Server-side: always recompute the allowed user ID set from the authenticated user's role; treat filter parameters as UI narrowing only, never as access control |
+| Raw SertifikatUrl exposed as a static file link | Crafted path could traverse out of `uploads/certificates/` | Serve files through a controller action that resolves the path from the stored filename only (no user-controlled path components); never use `SertifikatUrl` as a direct `<a href>` to the file system path |
 
 ---
 
@@ -214,24 +175,23 @@ Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-t
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| ForceClose push arrives with no visual explanation | Worker's exam page freezes or redirects; worker doesn't understand why | Show modal: "Your exam session has been ended by HC. Please contact your proctor." Before redirecting. Give 5-second countdown. |
-| Reset push causes instant page reload without saving state | Worker loses current answer draft on the page | On Reset event: first save current in-progress answer (call `SaveAnswer` or `SavePackageAnswer`), THEN reload. |
-| Monitoring page shows stale data on reconnect | HC reconnects after disconnect; progress cards show data from before disconnect, never updates | On `onreconnected`: call HTTP polling endpoint once to get full current state, then resume real-time updates. Hybrid: real-time for deltas, HTTP for initial/recovery state. |
-| Worker gets ForceClose event but SaveAnswer was in-flight | In-flight XHR completes after ForceClose — answer saved but session is Abandoned; mismatch | Worker JS should set a flag `sessionEnded = true` on ForceClose event; `SaveAnswer` callback checks flag and ignores late responses. |
+| "Download" button shown for assessment rows where no certificate file exists | User clicks, gets 404 or empty response | Check `SertifikatUrl != null` before rendering the download button; render a disabled or absent button for rows without a file |
+| "Akan Expired" label without showing days remaining | SH cannot prioritize which certificates need immediate action | Show days inline: "Akan Expired (12 hari)" so urgency is immediately visible |
+| Permanent certificate rows show an empty ValidUntil column | Users wonder if data is missing | Display "Permanen" string in the ValidUntil column for permanent certs, not blank or dash |
+| Cascade filter resets Unit when Bagian changes but table does not reload | Stale unit selection causes confusing filter state | On Bagian change: clear Unit dropdown, repopulate via existing `GetCascadeOptions` endpoint (CDPController line 287), then auto-submit |
+| Summary cards count all records regardless of active filter | Cards say "Total: 50" but table shows 12 rows after filtering | Recompute card counts server-side from the filtered set, or add a "(filtered)" label when filters are active |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Auth on negotiate endpoint:** Tested `/examHub/negotiate` returns 101/200 (not 302/HTML). Verified in browser DevTools Network tab.
-- [ ] **Group re-join on reconnect:** `onreconnected` handler calls `RejoinBatch` or equivalent. Verified by simulating disconnect (DevTools → offline → online).
-- [ ] **WAL mode enabled:** `PRAGMA journal_mode=WAL` applied on DB startup. Verified: `PRAGMA journal_mode;` returns `wal`.
-- [ ] **ForceClose race guard:** `ForceCloseAssessment` uses `WHERE Status != 'Completed'` guard. `SubmitExam` uses `WHERE Status == 'InProgress'` guard. Both verified with concurrent browser tabs.
-- [ ] **User-based push, not connection-ID-based:** No `Dictionary<string, string>` mapping userId to connectionId anywhere in code. All server pushes use `Clients.User()` or `Clients.Group()`.
-- [ ] **IIS WebSocket feature:** Browser DevTools shows `101 Switching Protocols` for SignalR connection. Not `200 OK` (long polling fallback).
-- [ ] **Role auth on Hub methods:** HC-only Hub methods have `[Authorize(Roles = "Admin,HC")]`. Verified Worker cannot invoke them.
-- [ ] **ForceCloseAll pushes to each worker:** When HC uses ForceCloseAll, each affected worker receives the ForceClose event individually. Verified with 2+ workers on same batch.
-- [ ] **Polling JS removed after SignalR ships:** `setInterval` polling call removed from monitoring page JS. No duplicate data refresh running alongside SignalR.
+- [ ] **Role-scoping symmetry:** Both `TrainingRecord` and `AssessmentSession` queries are filtered by the same role-scoped user ID set — verify by logging in as SH and confirming only their section appears in both record types
+- [ ] **Permanent cert handling:** `TrainingRecord` rows where `ValidUntil == null` are NOT counted as "Aktif" unless explicitly marked as Permanent type — verify summary card math against known data
+- [ ] **Failed sessions excluded:** Only `IsPassed == true` assessment sessions appear — verify a known-failed session is absent from the table
+- [ ] **Certificate download guard:** Download action returns 403 for records belonging to other workers when accessed by a Coachee — verify with a manually crafted URL
+- [ ] **Export respects role-scope:** Excel export contains only the same rows visible in the table for the current role — verify SH export contains only their section
+- [ ] **Summary card sync:** After applying a Bagian filter, all four summary card counts update to reflect only the filtered rows
+- [ ] **Cascade filter wired:** Changing Bagian clears and repopulates the Unit dropdown without retaining a stale unit from a different section
 
 ---
 
@@ -239,11 +199,11 @@ Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-t
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Group re-join missing (HC silent after reconnect) | LOW | Add `onreconnected` callback + `RejoinBatch` hub method. No DB changes. Deploy and test. |
-| 302 redirect on negotiate (SignalR never connects) | LOW | Add `OnRedirectToLogin` override in `Program.cs`. No schema changes. |
-| SQLite locked errors under load | MEDIUM | Enable WAL mode (`PRAGMA journal_mode=WAL`). Requires brief maintenance window on production DB file. Verify no active connections during switch. |
-| Submit/ForceClose race corrupts scores | HIGH | Add status-guarded `ExecuteUpdateAsync` to both actions. Requires retesting all exam submission paths. Run full UAT on exam lifecycle. |
-| ConnectionId-based push map is stale | MEDIUM | Refactor to `Clients.User()`. Remove static dictionary. Test reconnect, multi-tab, ForceCloseAll scenarios. |
+| Expiry status in view causes wrong summary counts | MEDIUM | Add `CertificateStatus` property to ViewModel row; move derivation to mapping layer; update view to use property; recompute summary counts from `.Count()` on ViewModel list |
+| Role-scoping applied to only one source | LOW | Extract `GetAllowedUserIdsAsync()` helper; apply to both queries; no schema migration needed |
+| Failed assessments appear as certificates | LOW | Add `&& IsPassed == true && GenerateCertificate == true` to AssessmentSession query predicate |
+| Wrong date anchor for expiry math | MEDIUM | Define canonical date mapping in one place; update all `ValidUntil` derivation logic; re-verify summary card counts against known data |
+| Coach sees coachees' certificates | LOW | Replace coaching-scoped user ID derivation with `userId == currentUser.Id` for Coach/Coachee roles |
 
 ---
 
@@ -251,31 +211,25 @@ Phase 1 (Hub design). Use `Clients.User()` from the start. Do NOT build a user-t
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Cookie auth 302 on negotiate | Phase 1: Hub infrastructure | Test negotiate endpoint in browser DevTools before writing any event handlers |
-| WAL mode not enabled | Phase 1: Hub infrastructure | Run `PRAGMA journal_mode;` query after startup, assert `wal` |
-| ConnectionId-based mapping (stale on reconnect) | Phase 1: Hub design | Code review: zero occurrences of `Dictionary<userId, connectionId>` |
-| Group lost on reconnect | Phase 1: Hub infrastructure | Simulate disconnect in DevTools, verify monitoring still receives pushes |
-| Submit/ForceClose race | Phase handling ForceClose/Reset events | Concurrent browser tabs test: submit and force-close at same time, verify winner is Completed not Abandoned |
-| IIS WebSocket not enabled | Phase 1: Hub infrastructure | DevTools Network: 101 Switching Protocols on Hub connection |
-| Role auth missing on Hub methods | Phase 1: Hub infrastructure | Log in as Worker, attempt to invoke HC-only Hub method, expect 403 |
-| ForceClose arrives with no UX explanation | Phase: Worker exam page real-time events | UAT: HC force-closes, worker sees explanatory modal (not silent redirect) |
+| Null ValidUntil overloading (Pitfall 1) | ViewModel definition phase | Confirm TrainingRecord with null ValidUntil maps to status "Tidak Diketahui", not "Permanen" |
+| Role-scoping asymmetry (Pitfall 2) | Role-scoping implementation phase | Log in as SH; confirm both assessment and training rows are section-filtered |
+| Expiry status in view (Pitfall 3) | ViewModel mapping phase | Apply Bagian filter; verify all four summary card counts change accordingly |
+| Failed sessions in cert list (Pitfall 4) | Data query phase | Confirm a known-failed AssessmentSession row is absent from the table |
+| Date column divergence (Pitfall 5) | ViewModel mapping phase | Sort by date; verify mixed-source rows sort chronologically |
+| Coach sees coachees (Pitfall 6) | Role-scoping phase | Log in as Coach; confirm only own certificates appear |
 
 ---
 
 ## Sources
 
-- [Authentication and authorization in ASP.NET Core SignalR — Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/signalr/authn-and-authz?view=aspnetcore-10.0)
-- [Security considerations in ASP.NET Core SignalR — Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/signalr/security?view=aspnetcore-8.0)
-- [Manage users and groups in SignalR — Microsoft Learn](https://learn.microsoft.com/en-us/aspnet/core/signalr/groups?view=aspnetcore-10.0)
-- [How to deal with concurrency when using SignalR? — GitHub Issue #27956](https://github.com/dotnet/AspNetCore.Docs/issues/27956)
-- [SignalR how to reconnect with same connectionId — GitHub Discussion #54818](https://github.com/dotnet/aspnetcore/discussions/54818)
-- [SQLite concurrent writes and "database is locked" errors — Ten Thousand Meters](https://tenthousandmeters.com/blog/sqlite-concurrent-writes-and-database-is-locked-errors/)
-- [Managing SignalR ConnectionIds (or why you shouldn't) — consultwithgriff.com](https://consultwithgriff.com/signalr-connection-ids)
-- [SignalR use old cookie after user logged in — GitHub Issue #39180](https://github.com/dotnet/aspnetcore/issues/39180)
-- Codebase analysis: `Controllers/AdminController.cs` (GetMonitoringProgress, ForceCloseAssessment, ResetAssessment, ForceCloseAll), `Controllers/CMPController.cs` (SubmitExam, SaveAnswer, SavePackageAnswer, AssessmentSessions lifecycle)
+- Direct inspection of `Models/TrainingRecord.cs` — `ValidUntil`, `CertificateType`, `IsExpiringSoon` confirmed nullable/computed
+- Direct inspection of `Models/AssessmentSession.cs` — confirmed no `ValidUntil`, `IsPassed` is `bool?`, `GenerateCertificate` is `bool`
+- Direct inspection of `Models/AllWorkersHistoryRow.cs` — established precedent: dual-source ViewModel uses `RecordType` discriminator (Phase 40)
+- Direct inspection of `Models/UserRoles.cs` — role level hierarchy, `HasSectionAccess()`, `IsCoachingRole()` helpers
+- Direct inspection of `Controllers/CDPController.cs` — existing `BuildProtonProgressSubModelAsync` role-scoping pattern and coaching scope semantics
+- Milestone spec in `PROJECT.md` — role-scope requirements: Admin/HC = all, SH/SrSpv = section, Coach/Coachee = own
+- v7.1 milestone in `PROJECT.md` — ClosedXML export pattern established as project standard
 
 ---
-
-*Pitfalls research for: Portal HC KPB v4.2 — Adding SignalR real-time monitoring to existing assessment system*
-*Specific to: Brownfield integration, cookie auth, SQLite, jQuery clients, HC monitoring + worker exam pages*
-*Date: 2026-03-13 | Confidence: HIGH*
+*Pitfalls research for: Certificate monitoring with dual data sources (TrainingRecord + AssessmentSession)*
+*Researched: 2026-03-17*
