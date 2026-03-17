@@ -99,11 +99,12 @@ Plans:
   2. When a worker starts an exam using a single-package assessment, the shuffled question set contains at least one question from every Elemen Teknis group present in the package
   3. When HC triggers a reshuffle (single or bulk), the reshuffled question set still contains at least one question per Elemen Teknis group — the distribution guarantee is not lost
   4. The spider web (radar chart) on Results page renders whenever the worker's session has Elemen Teknis score data — it does not silently skip
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
 - [ ] 184-01-PLAN.md — ET-aware shuffle algorithm + legacy Results spider web fix
 - [ ] 184-02-PLAN.md — ManagePackages ET coverage table + upload warning enhancement
+- [ ] 184-03-PLAN.md — Gap closure: sync AdminController reshuffle with ET-aware algorithm
 
 ## Progress
 
