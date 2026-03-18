@@ -109,9 +109,20 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 
 </details>
 
+### Phase 190: CertificationManagement filter category/sub-category, role-based view content and access logic
+
+**Goal:** Filter cascade Category/Sub-Category, role-based view content (summary cards, kolom tabel, filter disabled state), dan L5 scope override ke own-data-only
+**Requirements**: ROLE-SCOPE, CATEGORY-FILTER, SUBCATEGORY-COL, EXPORT-SUBCOL, ROLE-VIEW, FILTER-CASCADE, SUBCATEGORY-DISPLAY
+**Depends on:** Phase 189
+**Plans:** 2 plans
+
+Plans:
+- [ ] 190-01-PLAN.md — Backend: model SubKategori/RoleLevel, L5 scope override, GetSubCategories endpoint, filter params, export column
+- [ ] 190-02-PLAN.md — Frontend: filter Category/Sub-Category cascade, role-based conditional rendering, kolom Sub Kategori
+
 ---
 
-### 🚧 v7.4 Certification Management (In Progress)
+### v7.4 Certification Management (In Progress)
 
 **Milestone Goal:** New CDP menu "Certification Management" — unified table of all certificates (TrainingRecord + AssessmentSession) with expiry status, role-scoped views, filters, and Excel export.
 
@@ -121,14 +132,14 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 
 | Source | Certificate Fields | Expiry | Nomor |
 |--------|-------------------|--------|-------|
-| **TrainingRecord** | SertifikatUrl, ValidUntil, CertificateType | ✅ ValidUntil + CertificateType (Permanent/Annual/3-Year) | NomorSertifikat |
-| **AssessmentSession** | GenerateCertificate, ValidUntil | ✅ ValidUntil (nullable = no expiry) | NomorSertifikat (auto KPB/{SEQ}/{ROMAN}/{YEAR}) |
+| **TrainingRecord** | SertifikatUrl, ValidUntil, CertificateType | ValidUntil + CertificateType (Permanent/Annual/3-Year) | NomorSertifikat |
+| **AssessmentSession** | GenerateCertificate, ValidUntil | ValidUntil (nullable = no expiry) | NomorSertifikat (auto KPB/{SEQ}/{ROMAN}/{YEAR}) |
 
 ### Shared Infrastructure (dari v7.5/v7.6)
 
-- `Helpers/ExcelExportHelper.cs` — CreateSheet() + ToFileResult() → Phase 189
-- `Helpers/PaginationHelper.cs` — Calculate() → Phase 187/188
-- `CMPController.GetCurrentUserRoleLevelAsync()` — role-scoping pattern → Phase 186
+- `Helpers/ExcelExportHelper.cs` — CreateSheet() + ToFileResult()
+- `Helpers/PaginationHelper.cs` — Calculate()
+- `CMPController.GetCurrentUserRoleLevelAsync()` — role-scoping pattern
 - `Helpers/FileUploadHelper.cs` — jika perlu upload bukti
 
 ## Phase Details
@@ -141,7 +152,7 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 **Notes**:
 - TrainingRecord sudah punya: ValidUntil, NomorSertifikat, CertificateType, SertifikatUrl, IsExpiringSoon (computed)
 - AssessmentSession sudah punya: ValidUntil, NomorSertifikat, GenerateCertificate, IsPassed
-- CertificateStatus enum: Aktif, AkanExpired (≤30 hari), Expired, TidakAdaExpiry (permanent)
+- CertificateStatus enum: Aktif, AkanExpired, Expired, TidakAdaExpiry (permanent)
 - Tidak perlu migration — semua field sudah ada di DB
 
 Plans:
@@ -165,10 +176,6 @@ Plans:
 **Depends on**: Phase 186
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
 **Plans**: 1 plan
-**Notes**:
-- Gunakan PaginationHelper.Calculate() untuk pagination tabel
-- Summary cards dihitung dari full dataset sebelum pagination
-- Status badge: hijau (Aktif), kuning (Akan Expired), merah (Expired), abu-abu (Permanent)
 
 Plans:
 - [ ] 187-01-PLAN.md — CertificationManagement GET action + View + summary cards + CDP/Index entry card + PaginationHelper
@@ -178,9 +185,6 @@ Plans:
 **Depends on**: Phase 187
 **Requirements**: FILT-01, FILT-02, FILT-03, FILT-04
 **Plans**: 1 plan
-**Notes**:
-- Ikuti pattern AJAX yang sudah ada di CDPController (partial view return)
-- PaginationHelper tetap dipakai di AJAX response
 
 Plans:
 - [ ] 188-01-PLAN.md — FilterCertificationManagement AJAX action + _CertificationManagementTablePartial + JS filter wiring
@@ -190,10 +194,6 @@ Plans:
 **Depends on**: Phase 188
 **Requirements**: ACT-01, ACT-02, ACT-03
 **Plans**: 1 plan
-**Notes**:
-- View/download: TrainingRecord → redirect ke SertifikatUrl, AssessmentSession → redirect ke CMP/CertificatePdf
-- Export: gunakan ExcelExportHelper.CreateSheet() + ToFileResult() (bukan boilerplate ClosedXML manual)
-- Export button hanya tampil untuk Admin/HC (role-gated)
 
 Plans:
 - [ ] 189-01-PLAN.md — View/download actions + ExportSertifikatExcel via ExcelExportHelper + Export button (role-gated)
