@@ -298,8 +298,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 196-01-PLAN.md — IWorkerDataService interface + WorkerDataService implementation + DI registration
-- [ ] 196-02-PLAN.md — Replace private methods in AdminController + CMPController with service calls
+- [x] 196-01-PLAN.md — IWorkerDataService interface + WorkerDataService implementation + DI registration
+- [x] 196-02-PLAN.md — Replace private methods in AdminController + CMPController with service calls
 
 ### Phase 197: Excel Export Helper
 **Goal**: Common Excel export boilerplate (header setup, column formatting, data population) lives in a single ExcelExportHelper class instead of being repeated across 4 controllers
@@ -310,7 +310,10 @@ Plans:
   2. All Excel export actions in AdminController, CMPController, CDPController, and ProtonDataController delegate to the helper — no inline ClosedXML boilerplate remains
   3. Every existing Excel export produces a file with identical content and formatting as before extraction
   4. The project compiles with zero errors
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 197-01-PLAN.md — ExcelExportHelper static class + refactor all 15 export actions across 4 controllers
 
 ### Phase 198: CRUD Consolidation
 **Goal**: Training Record create/edit/delete has exactly one entry point (Admin), Training Import is accessible from Admin context, and Worker Detail views in Admin vs CMP serve clearly distinct purposes
@@ -341,6 +344,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 196. Shared Service Extraction | 2/2 | Complete    | 2026-03-18 | - |
-| 197. Excel Export Helper | v7.6 | 0/TBD | Not started | - |
+| 197. Excel Export Helper | v7.6 | 0/1 | Not started | - |
 | 198. CRUD Consolidation | v7.6 | 0/TBD | Not started | - |
 | 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
