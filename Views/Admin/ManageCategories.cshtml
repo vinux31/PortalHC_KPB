@@ -159,8 +159,14 @@
                                 {
                                     foreach (var pp in (IEnumerable<HcPortal.Models.AssessmentCategory>)ViewBag.PotentialParents)
                                     {
-                                        var isSelected = editCategory.ParentId.HasValue && editCategory.ParentId.Value == pp.Id;
-                                        <option value="@pp.Id" @(isSelected ? "selected" : "")>@(pp.Parent != null ? "↳ " : "")@pp.Name</option>
+                                        if (editCategory.ParentId.HasValue && editCategory.ParentId.Value == pp.Id)
+                                        {
+                                            <option value="@pp.Id" selected>@(pp.Parent != null ? "↳ " : "")@pp.Name</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@pp.Id">@(pp.Parent != null ? "↳ " : "")@pp.Name</option>
+                                        }
                                     }
                                 }
                             </select>
@@ -174,11 +180,19 @@
                                 {
                                     foreach (var u in (IEnumerable<dynamic>)ViewBag.AllUsers)
                                     {
-                                        var isSelected = editCategory.SignatoryUserId == (string)u.Id;
-                                        <option value="@u.Id"
-                                                data-position="@u.Position"
-                                                data-fullname="@u.FullName"
-                                                @(isSelected ? "selected" : "")>@u.FullName (@u.NIP)</option>
+                                        if (editCategory.SignatoryUserId == (string)u.Id)
+                                        {
+                                            <option value="@u.Id"
+                                                    data-position="@u.Position"
+                                                    data-fullname="@u.FullName"
+                                                    selected>@u.FullName (@u.NIP)</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@u.Id"
+                                                    data-position="@u.Position"
+                                                    data-fullname="@u.FullName">@u.FullName (@u.NIP)</option>
+                                        }
                                     }
                                 }
                             </select>

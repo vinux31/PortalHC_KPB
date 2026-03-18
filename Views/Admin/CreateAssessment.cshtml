@@ -100,7 +100,39 @@
                             </label>
                             <select asp-for="Category" class="form-select" id="Category">
                                 <option value="">-- Pilih Kategori --</option>
-                                @if (ViewBag.Categories != null)
+                                @if (ViewBag.ParentCategories != null)
+                                {
+                                    var parents = (IEnumerable<HcPortal.Models.AssessmentCategory>)ViewBag.ParentCategories;
+                                    var standalone = parents.Where(p => !p.Children.Any());
+                                    var withChildren = parents.Where(p => p.Children.Any());
+                                    foreach (var cat in standalone)
+                                    {
+                                        <option value="@cat.Name"
+                                                data-pass-percentage="@cat.DefaultPassPercentage"
+                                                selected="@(Model.Category == cat.Name)">
+                                            @cat.Name
+                                        </option>
+                                    }
+                                    foreach (var parent in withChildren)
+                                    {
+                                        <optgroup label="@parent.Name">
+                                            <option value="@parent.Name"
+                                                    data-pass-percentage="@parent.DefaultPassPercentage"
+                                                    selected="@(Model.Category == parent.Name)">
+                                                @parent.Name (Induk)
+                                            </option>
+                                            @foreach (var child in parent.Children.OrderBy(c => c.SortOrder).ThenBy(c => c.Name))
+                                            {
+                                                <option value="@child.Name"
+                                                        data-pass-percentage="@child.DefaultPassPercentage"
+                                                        selected="@(Model.Category == child.Name)">
+                                                    &nbsp;&nbsp;@child.Name
+                                                </option>
+                                            }
+                                        </optgroup>
+                                    }
+                                }
+                                else if (ViewBag.Categories != null)
                                 {
                                     foreach (var cat in (IEnumerable<HcPortal.Models.AssessmentCategory>)ViewBag.Categories)
                                     {
