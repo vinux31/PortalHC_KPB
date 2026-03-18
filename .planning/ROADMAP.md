@@ -9,9 +9,10 @@
 - ✅ **v7.2 PDF Evidence Report Enhancement** - Phase 181 (shipped 2026-03-17)
 - ✅ **v7.2 (loose)** - Phase 182 (shipped 2026-03-17)
 - ✅ **v7.3 Elemen Teknis Shuffle & Rename** - Phases 183–184 (shipped 2026-03-17)
+- ✅ **v7.4 Certification Management** - Phases 185–190 (shipped 2026-03-18)
 - ✅ **v7.5 Assessment Form Revamp & Certificate Enhancement** - Phases 190–195 (shipped 2026-03-18)
 - ✅ **v7.6 Code Deduplication & Shared Services** - Phases 196–199 (shipped 2026-03-18)
-- 🚧 **v7.4 Certification Management** - Phases 185–189 (in progress)
+- 🚧 **v7.7 Renewal Certificate & Certificate History** - Phases 200–204 (in progress)
 
 ## Phases
 
@@ -88,6 +89,18 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 </details>
 
 <details>
+<summary>✅ v7.4 Certification Management (Phases 185–190) — SHIPPED 2026-03-18</summary>
+
+- [x] Phase 185: ViewModel and Data Model Foundation (1/1 plans) — completed 2026-03-18
+- [x] Phase 186: Role-Scoped Data Query Helper (1/1 plans) — completed 2026-03-18
+- [x] Phase 187: Full-Page Controller Action and Static View (1/1 plans) — completed 2026-03-18
+- [x] Phase 188: AJAX Filter Bar (1/1 plans) — completed 2026-03-18
+- [x] Phase 189: Certificate Actions and Excel Export (1/1 plans) — completed 2026-03-18
+- [x] Phase 190: CertificationManagement filter category/sub-category, role-based view (2/2 plans) — completed 2026-03-18
+
+</details>
+
+<details>
 <summary>✅ v7.5 Assessment Form Revamp & Certificate Enhancement (Phases 190–195) — SHIPPED 2026-03-18</summary>
 
 - [x] Phase 190: DB Categories Foundation (2/2 plans) — completed 2026-03-17
@@ -109,101 +122,88 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 
 </details>
 
-### Phase 190: CertificationManagement filter category/sub-category, role-based view content and access logic
+### 🚧 v7.7 Renewal Certificate & Certificate History (In Progress)
 
-**Goal:** Filter cascade Category/Sub-Category, role-based view content (summary cards, kolom tabel, filter disabled state), dan L5 scope override ke own-data-only
-**Requirements**: ROLE-SCOPE, CATEGORY-FILTER, SUBCATEGORY-COL, EXPORT-SUBCOL, ROLE-VIEW, FILTER-CASCADE, SUBCATEGORY-DISPLAY
-**Depends on:** Phase 189
-**Plans:** 2/2 plans complete
-
-Plans:
-- [ ] 190-01-PLAN.md — Backend: model SubKategori/RoleLevel, L5 scope override, GetSubCategories endpoint, filter params, export column
-- [ ] 190-02-PLAN.md — Frontend: filter Category/Sub-Category cascade, role-based conditional rendering, kolom Sub Kategori
-
----
-
-### v7.4 Certification Management (In Progress)
-
-**Milestone Goal:** New CDP menu "Certification Management" — unified table of all certificates (TrainingRecord + AssessmentSession) with expiry status, role-scoped views, filters, and Excel export.
-
-**Updated 2026-03-18:** Disesuaikan setelah v7.5 & v7.6 shipped — memanfaatkan field baru (ValidUntil, NomorSertifikat) dan shared helpers (ExcelExportHelper, PaginationHelper, GetCurrentUserRoleLevelAsync pattern).
-
-### Data Sources
-
-| Source | Certificate Fields | Expiry | Nomor |
-|--------|-------------------|--------|-------|
-| **TrainingRecord** | SertifikatUrl, ValidUntil, CertificateType | ValidUntil + CertificateType (Permanent/Annual/3-Year) | NomorSertifikat |
-| **AssessmentSession** | GenerateCertificate, ValidUntil | ValidUntil (nullable = no expiry) | NomorSertifikat (auto KPB/{SEQ}/{ROMAN}/{YEAR}) |
-
-### Shared Infrastructure (dari v7.5/v7.6)
-
-- `Helpers/ExcelExportHelper.cs` — CreateSheet() + ToFileResult()
-- `Helpers/PaginationHelper.cs` — Calculate()
-- `CMPController.GetCurrentUserRoleLevelAsync()` — role-scoping pattern
-- `Helpers/FileUploadHelper.cs` — jika perlu upload bukti
+**Milestone Goal:** Certificate renewal workflow untuk HC/Admin (Kelola Data) dan certificate history timeline per pekerja (shared modal). CDP Certification Management ditingkatkan untuk menyembunyikan sertifikat yang sudah di-renew.
 
 ## Phase Details
 
-### Phase 185: ViewModel and Data Model Foundation
-**Goal**: SertifikatRow dan CertificationManagementViewModel didefinisikan dengan RecordType discriminator (Training/Assessment), CertificateStatus derivation dari ValidUntil, dan mapping canonical dari kedua data source
-**Depends on**: Phase 195 (AssessmentSession.ValidUntil & NomorSertifikat sudah ada)
-**Requirements**: DATA-01, DATA-02
-**Plans**: 1 plan
-**Notes**:
-- TrainingRecord sudah punya: ValidUntil, NomorSertifikat, CertificateType, SertifikatUrl, IsExpiringSoon (computed)
-- AssessmentSession sudah punya: ValidUntil, NomorSertifikat, GenerateCertificate, IsPassed
-- CertificateStatus enum: Aktif, AkanExpired, Expired, TidakAdaExpiry (permanent)
-- Tidak perlu migration — semua field sudah ada di DB
+### Phase 200: Renewal Chain Foundation
+**Goal**: AssessmentSession memiliki kolom renewal chain dan BuildSertifikatRowsAsync dapat menentukan apakah suatu sertifikat sudah di-renew secara akurat
+**Depends on**: Phase 199
+**Requirements**: RENEW-01, RENEW-02
+**Success Criteria** (what must be TRUE):
+  1. AssessmentSession di database memiliki kolom RenewsSessionId dan RenewsTrainingId yang dapat diisi tanpa error
+  2. BuildSertifikatRowsAsync mengembalikan flag IsRenewed=true hanya jika ada sesi renewal yang IsPassed==true mengarah ke sertifikat tersebut
+  3. Sertifikat tanpa renewal yang lulus tetap tampil sebagai belum di-renew meskipun ada sesi renewal yang gagal
+**Plans**: TBD
 
 Plans:
-- [ ] 185-01-PLAN.md — Define SertifikatRow, CertificationManagementViewModel, CertificateStatus derivation logic
+- [ ] 200-01-PLAN.md — DB migration RenewsSessionId + RenewsTrainingId + EF model update
+- [ ] 200-02-PLAN.md — BuildSertifikatRowsAsync enhancement: resolve renewal chain, set IsRenewed flag
 
-### Phase 186: Role-Scoped Data Query Helper
-**Goal**: BuildSertifikatRowsAsync helper di CDPController yang menggabungkan TrainingRecord + AssessmentSession dengan role-scoped access mengikuti pattern GetCurrentUserRoleLevelAsync() dari v7.6
-**Depends on**: Phase 185
-**Requirements**: ROLE-01, ROLE-02, ROLE-03
-**Plans**: 1 plan
-**Notes**:
-- Ikuti pattern CMPController.GetCurrentUserRoleLevelAsync() (L1-3 full, L4 section, L5 coach assignments, L6 own data)
-- Gunakan UserRoles.GetRoleLevel() yang sudah ada
-- Query kedua tabel lalu merge ke List<SertifikatRow>
-
-Plans:
-- [ ] 186-01-PLAN.md — BuildSertifikatRowsAsync helper with unified role-scoping and dual-source query merge
-
-### Phase 187: Full-Page Controller Action and Static View
-**Goal**: User bisa navigasi ke Certification Management dari CDP/Index, melihat summary cards (Total, Aktif, Akan Expired, Expired), dan tabel sertifikat dengan status highlighting + pagination
-**Depends on**: Phase 186
-**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
-**Plans**: 1 plan
+### Phase 201: CreateAssessment Renewal Pre-fill
+**Goal**: HC/Admin dapat memulai alur renewal dari sertifikat mana pun dan CreateAssessment otomatis terisi dengan data sertifikat asal
+**Depends on**: Phase 200
+**Requirements**: RENEW-03
+**Success Criteria** (what must be TRUE):
+  1. CreateAssessment yang dibuka dengan query param renewSessionId atau renewTrainingId menampilkan Title, Category, dan daftar peserta yang sudah terisi otomatis
+  2. Field GenerateCertificate otomatis dicentang dan ValidUntil menjadi wajib diisi saat mode renewal aktif
+  3. AssessmentSession yang dibuat dari pre-fill ini menyimpan RenewsSessionId/RenewsTrainingId sesuai param yang dikirim
+**Plans**: TBD
 
 Plans:
-- [ ] 187-01-PLAN.md — CertificationManagement GET action + View + summary cards + CDP/Index entry card + PaginationHelper
+- [ ] 201-01-PLAN.md — CreateAssessment GET pre-fill from renewSessionId/renewTrainingId + POST saves renewal FK
 
-### Phase 188: AJAX Filter Bar
-**Goal**: Filter tabel sertifikat by Bagian/Unit cascade, status, tipe (Training/Assessment), dan free-text search — semua filter update tabel + summary cards via AJAX tanpa reload
-**Depends on**: Phase 187
-**Requirements**: FILT-01, FILT-02, FILT-03, FILT-04
-**Plans**: 1 plan
-
-Plans:
-- [ ] 188-01-PLAN.md — FilterCertificationManagement AJAX action + _CertificationManagementTablePartial + JS filter wiring
-
-### Phase 189: Certificate Actions and Excel Export
-**Goal**: User bisa lihat/download sertifikat individual, Admin/HC bisa export filtered list ke Excel menggunakan ExcelExportHelper
-**Depends on**: Phase 188
-**Requirements**: ACT-01, ACT-02, ACT-03
-**Plans**: 1 plan
+### Phase 202: Renewal Certificate Page (Kelola Data)
+**Goal**: HC/Admin memiliki halaman khusus di Kelola Data untuk melihat dan mengelola semua sertifikat expired/akan expired yang belum di-renew, termasuk aksi renew satuan dan bulk
+**Depends on**: Phase 201
+**Requirements**: RNPAGE-01, RNPAGE-02, RNPAGE-03, RNPAGE-04, RNPAGE-05
+**Success Criteria** (what must be TRUE):
+  1. Card "Renewal Sertifikat" muncul di Kelola Data Section C dan dapat diklik untuk membuka halaman daftar
+  2. Halaman menampilkan hanya sertifikat dengan status Expired atau Akan Expired yang belum memiliki renewal lulus
+  3. Filter Bagian, Unit, dan Kategori mempersempit daftar secara akurat
+  4. Klik tombol Renew pada satu baris membuka CreateAssessment dengan data pre-filled
+  5. Checkbox bulk select aktif hanya untuk sertifikat dengan kategori sama, dan Renew Selected membuka CreateAssessment multi-peserta
+**Plans**: TBD
 
 Plans:
-- [ ] 189-01-PLAN.md — View/download actions + ExportSertifikatExcel via ExcelExportHelper + Export button (role-gated)
+- [ ] 202-01-PLAN.md — RenewalCertificate GET/POST controller actions + ViewModel + filter logic
+- [ ] 202-02-PLAN.md — View: daftar sertifikat, filter bar, tombol Renew, bulk select + Renew Selected, card Kelola Data
+
+### Phase 203: Certificate History Modal
+**Goal**: Setiap sertifikat memiliki tombol/link riwayat yang membuka modal timeline renewal chain per pekerja, dapat digunakan dari dua halaman berbeda
+**Depends on**: Phase 202
+**Requirements**: HIST-01, HIST-02, HIST-03
+**Success Criteria** (what must be TRUE):
+  1. Modal history menampilkan timeline sertifikat per pekerja grouped by renewal chain, dengan sertifikat terbaru di atas
+  2. Dari halaman Renewal Certificate, modal history menyertakan tombol Renew pada sertifikat yang expired/akan expired dan belum di-renew
+  3. Dari CDP Certification Management, klik nama pekerja membuka modal history dalam mode read-only tanpa tombol aksi
+**Plans**: TBD
+
+Plans:
+- [ ] 203-01-PLAN.md — Shared _CertificateHistoryModal partial + CertificateHistoryAsync controller action
+- [ ] 203-02-PLAN.md — Integrasi modal di Renewal page (dengan tombol Renew) dan CDP CertificationManagement (read-only)
+
+### Phase 204: CDP Certification Management Enhancement
+**Goal**: Tabel Certification Management di CDP menyembunyikan sertifikat yang sudah di-renew secara default dan summary card Expired mencerminkan jumlah yang akurat
+**Depends on**: Phase 203
+**Requirements**: CDP-01, CDP-02, CDP-03
+**Success Criteria** (what must be TRUE):
+  1. Sertifikat yang sudah memiliki renewal lulus tidak tampil di tabel secara default
+  2. Toggle "Tampilkan riwayat" menampilkan sertifikat yang sudah di-renew dengan visual berbeda (misalnya baris lebih redup)
+  3. Summary card Expired hanya menghitung sertifikat yang belum di-renew, sehingga jumlah tidak membingungkan pengguna
+**Plans**: TBD
+
+Plans:
+- [ ] 204-01-PLAN.md — CDP CertificationManagement: hide renewed default, toggle show/hide, fix Expired count
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 185. ViewModel and Data Model Foundation | 1/1 | Complete    | 2026-03-18 | - |
-| 186. Role-Scoped Data Query Helper | 1/1 | Complete    | 2026-03-18 | - |
-| 187. Full-Page Controller Action and Static View | 1/1 | Complete    | 2026-03-18 | - |
-| 188. AJAX Filter Bar | 1/1 | Complete    | 2026-03-18 | - |
-| 189. Certificate Actions and Excel Export | 1/1 | Complete    | 2026-03-18 | - |
+| 200. Renewal Chain Foundation | v7.7 | 0/2 | Not started | - |
+| 201. CreateAssessment Renewal Pre-fill | v7.7 | 0/1 | Not started | - |
+| 202. Renewal Certificate Page (Kelola Data) | v7.7 | 0/2 | Not started | - |
+| 203. Certificate History Modal | v7.7 | 0/2 | Not started | - |
+| 204. CDP Certification Management Enhancement | v7.7 | 0/1 | Not started | - |

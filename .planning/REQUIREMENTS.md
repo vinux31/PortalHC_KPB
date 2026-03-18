@@ -45,26 +45,26 @@ Requirements for Renewal Certificate & Certificate History milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RENEW-01 | Pending | Pending |
-| RENEW-02 | Pending | Pending |
-| RENEW-03 | Pending | Pending |
-| RNPAGE-01 | Pending | Pending |
-| RNPAGE-02 | Pending | Pending |
-| RNPAGE-03 | Pending | Pending |
-| RNPAGE-04 | Pending | Pending |
-| RNPAGE-05 | Pending | Pending |
-| HIST-01 | Pending | Pending |
-| HIST-02 | Pending | Pending |
-| HIST-03 | Pending | Pending |
-| CDP-01 | Pending | Pending |
-| CDP-02 | Pending | Pending |
-| CDP-03 | Pending | Pending |
+| RENEW-01 | Phase 200 | Pending |
+| RENEW-02 | Phase 200 | Pending |
+| RENEW-03 | Phase 201 | Pending |
+| RNPAGE-01 | Phase 202 | Pending |
+| RNPAGE-02 | Phase 202 | Pending |
+| RNPAGE-03 | Phase 202 | Pending |
+| RNPAGE-04 | Phase 202 | Pending |
+| RNPAGE-05 | Phase 202 | Pending |
+| HIST-01 | Phase 203 | Pending |
+| HIST-02 | Phase 203 | Pending |
+| HIST-03 | Phase 203 | Pending |
+| CDP-01 | Phase 204 | Pending |
+| CDP-02 | Phase 204 | Pending |
+| CDP-03 | Phase 204 | Pending |
 
 **Coverage:**
 - v7.7 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after milestone v7.7 start*
+*Last updated: 2026-03-18 — traceability mapped after roadmap creation*
