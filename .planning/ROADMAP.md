@@ -206,4 +206,4 @@ Plans:
 | 186. Role-Scoped Data Query Helper | 1/1 | Complete    | 2026-03-18 | - |
 | 187. Full-Page Controller Action and Static View | 1/1 | Complete    | 2026-03-18 | - |
 | 188. AJAX Filter Bar | 1/1 | Complete    | 2026-03-18 | - |
-| 189. Certificate Actions and Excel Export | 1/1 | Complete   | 2026-03-18 | - |
+| 189. Certificate Actions and Excel Export | 1/1 | Complete    | 2026-03-18 | - |
