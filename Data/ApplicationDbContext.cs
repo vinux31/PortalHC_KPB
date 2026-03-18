@@ -535,6 +535,18 @@ namespace HcPortal.Data
                 entity.HasIndex(c => c.SortOrder);
                 entity.Property(c => c.IsActive).HasDefaultValue(true);
                 entity.Property(c => c.DefaultPassPercentage).HasDefaultValue(70);
+
+                // Self-referencing FK — Phase 195
+                entity.HasOne(c => c.Parent)
+                      .WithMany(c => c.Children)
+                      .HasForeignKey(c => c.ParentId)
+                      .OnDelete(DeleteBehavior.Restrict);
+
+                // Signatory FK — Phase 195
+                entity.HasOne(c => c.Signatory)
+                      .WithMany()
+                      .HasForeignKey(c => c.SignatoryUserId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

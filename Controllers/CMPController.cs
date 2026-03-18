@@ -2366,7 +2366,7 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Results", new { id });
             }
 
-            ViewBag.PSign = await ResolveCategorySignatory(assessment.AssessmentCategory);
+            ViewBag.PSign = await ResolveCategorySignatory(assessment.Category);
             return View(assessment);
         }
 
@@ -2429,7 +2429,7 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Results", new { id });
             }
 
-            var pSign = await ResolveCategorySignatory(assessment.AssessmentCategory);
+            var pSign = await ResolveCategorySignatory(assessment.Category);
 
             // Register fonts from wwwroot/fonts/
             var fontsPath = Path.Combine(_env.WebRootPath, "fonts");
@@ -2498,7 +2498,7 @@ namespace HcPortal.Controllers
                                     col.Item().AlignCenter().PaddingBottom(18).Row(headerRow =>
                                     {
                                         var logoPath = Path.Combine(_env.WebRootPath, "images", "psign-pertamina.png");
-                                        if (File.Exists(logoPath))
+                                        if (System.IO.File.Exists(logoPath))
                                         {
                                             headerRow.AutoItem().Height(45)
                                                 .Image(logoPath).FitHeight()
@@ -2596,7 +2596,7 @@ namespace HcPortal.Controllers
                                         row.AutoItem().AlignRight().AlignBottom().PaddingRight(30).Column(right =>
                                         {
                                             var sigLogoPath = Path.Combine(_env.WebRootPath, "images", "psign-pertamina.png");
-                                            if (File.Exists(sigLogoPath))
+                                            if (System.IO.File.Exists(sigLogoPath))
                                             {
                                                 right.Item().AlignCenter().Height(40)
                                                     .Image(sigLogoPath).FitHeight()
