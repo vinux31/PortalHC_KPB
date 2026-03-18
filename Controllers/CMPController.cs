@@ -404,16 +404,11 @@ namespace HcPortal.Controllers
         // HALAMAN 4: CAPABILITY BUILDING RECORDS
         public async Task<IActionResult> Records(string? section, string? unit, string? category, string? search, string? statusFilter, string? isFiltered)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
             // Phase 104: Get worker list for Team View tab (only for users level 1-4)
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var userRole = userRoles.FirstOrDefault();
-            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
-
             if (roleLevel <= 4)
             {
                 // Scope enforcement: Level 4 (SectionHead, SrSupervisor) locked to their own section
@@ -433,12 +428,7 @@ namespace HcPortal.Controllers
         // Phase 104: Team View tab for monitoring team members' training & assessment compliance
         public async Task<IActionResult> RecordsTeam()
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var userRole = userRoles.FirstOrDefault();
-            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
             // Role-based access control: Level 5-6 (Coach, Supervisor, Coachee) forbidden
             if (roleLevel >= 5)
@@ -462,11 +452,7 @@ namespace HcPortal.Controllers
         // Phase 104: Worker Detail page showing unified assessment + training history
         public async Task<IActionResult> RecordsWorkerDetail(string workerId, string? section, string? unit, string? category, string? status, string? search)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
             // Own records: always allowed
             if (workerId != user.Id)
@@ -564,12 +550,7 @@ namespace HcPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var userRole = userRoles.FirstOrDefault();
-            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
             if (roleLevel >= 5) return Forbid();
 
@@ -616,12 +597,7 @@ namespace HcPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category)
         {
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var userRole = userRoles.FirstOrDefault();
-            var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
             if (roleLevel >= 5) return Forbid();
 
@@ -2224,6 +2200,18 @@ namespace HcPortal.Controllers
         }
 
         #region Helper Methods
+
+        /// <summary>
+        /// Returns (user, roleLevel) for the current authenticated user.
+        /// Extracts the repeated role-scoping pattern used across multiple actions.
+        /// </summary>
+        private async Task<(ApplicationUser User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = await _userManager.GetRolesAsync(user!);
+            var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
+            return (user!, roleLevel);
+        }
 
         /// <summary>
         /// Generate cryptographically secure random token
