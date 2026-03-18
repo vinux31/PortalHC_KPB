@@ -140,7 +140,7 @@ Visible only when a signatory is selected. Hidden (`d-none`) when blank.
 <div id="psignPreview" class="mt-3 d-none">
   <div class="text-muted small mb-1">Preview P-Sign pada sertifikat:</div>
   <div class="psign-badge-cert" style="display:inline-block; text-align:center; background:transparent;">
-    <img id="psignPreviewLogo" src="/images/psign-pertamina.png" style="height:48px; margin-bottom:6px;" />
+    <img id="psignPreviewLogo" src="/images/psign-pertamina.png" style="height:48px; margin-bottom:8px;" />
     <div id="psignPreviewPosition" style="font-size:0.85rem; color:#333; line-height:1.3;"></div>
     <div id="psignPreviewName" style="font-size:0.9rem; font-weight:700; color:#000; line-height:1.3; margin-top:4px;"></div>
   </div>
@@ -166,7 +166,7 @@ Replace the existing signature-section div (lines 280–287 of Certificate.cshtm
 
   <!-- Right: P-Sign (no border, compact) — margin-right:32px -->
   <div class="psign-badge" style="text-align:center; background:transparent; margin-right:32px;">
-    <img src="/images/psign-pertamina.png" style="height:48px; margin-bottom:6px;" />
+    <img src="/images/psign-pertamina.png" style="height:48px; margin-bottom:8px;" />
     <div style="font-size:0.85rem; color:#333; line-height:1.3;">{Position}</div>
     <div style="font-size:0.9rem; font-weight:700; color:#000; line-height:1.3; margin-top:4px;">{FullName}</div>
   </div>
