@@ -12,16 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.5 Assessment Form Revamp & Certificate Enhancement
+## Current Milestone: v7.6 Code Deduplication & Shared Services
 
-**Goal:** Simplify the CreateAssessment form into a wizard-based flow, add database-driven categories, clone feature, and enhance certificate system with expiry dates, auto-numbering, and PDF download.
+**Goal:** Clean up duplicate features and logic across controllers — extract shared services, consolidate split CRUD flows, and unify export patterns.
 
 **Target features:**
-- Wizard/step-based CreateAssessment form (Category → Users → Settings → Confirm)
-- Assessment categories stored in database (dynamic, no code change to add)
-- ValidUntil field on AssessmentSession for certificate expiry
-- Auto-generated certificate numbers (NomorSertifikat)
-- Server-side PDF certificate download via QuestPDF
+- Extract GetUnifiedRecords() to shared service (duplicated in AdminController + CMPController)
+- Consolidate Training Record CRUD (split between Admin standalone pages + CMP inline modals)
+- Differentiate Worker Detail views (Admin vs CMP contexts)
+- Consolidate Training Import access (currently only in CMP, not Admin)
+- Extract common Excel export helper (scattered across 4 controllers)
 
 ## Current State (after v7.3, 2026-03-17)
 
