@@ -2140,27 +2140,6 @@ namespace HcPortal.Controllers
                     .Where(a => a.AssessmentSessionId == id)
                     .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
 
-                // ASSESS-08: Auto-create TrainingRecord on exam completion (duplicate guard prevents double-insert on retry)
-                var judul = $"Assessment: {assessment.Title}";
-                bool trainingRecordExists = await _context.TrainingRecords.AnyAsync(t =>
-                    t.UserId == assessment.UserId &&
-                    t.Judul == judul &&
-                    t.Tanggal == assessment.Schedule);
-                if (!trainingRecordExists)
-                {
-                    _context.TrainingRecords.Add(new TrainingRecord
-                    {
-                        UserId = assessment.UserId,
-                        Judul = judul,
-                        Kategori = assessment.Category ?? "Assessment",
-                        Tanggal = assessment.Schedule,
-                        TanggalSelesai = assessment.CompletedAt,
-                        Penyelenggara = "Internal",
-                        Status = assessment.IsPassed == true ? "Passed" : "Failed"
-                    });
-                    await _context.SaveChangesAsync();
-                }
-
                 // ASMT-02: Check group completion and notify HC/Admin
                 await NotifyIfGroupCompleted(assessment);
 
@@ -2267,27 +2246,6 @@ namespace HcPortal.Controllers
                     int legacyTotalQ = questionsForGrading.Count;
                     await _hubContext.Clients.Group($"monitor-{legacyBatchKey}").SendAsync("workerSubmitted",
                         new { sessionId = id, workerName = user.FullName, score = finalPercentage, result = legacyResult, status = "Completed", totalQuestions = legacyTotalQ });
-                }
-
-                // ASSESS-08: Auto-create TrainingRecord on exam completion (duplicate guard prevents double-insert on retry)
-                var judulLegacy = $"Assessment: {assessment.Title}";
-                bool trainingRecordExistsLegacy = await _context.TrainingRecords.AnyAsync(t =>
-                    t.UserId == assessment.UserId &&
-                    t.Judul == judulLegacy &&
-                    t.Tanggal == assessment.Schedule);
-                if (!trainingRecordExistsLegacy)
-                {
-                    _context.TrainingRecords.Add(new TrainingRecord
-                    {
-                        UserId = assessment.UserId,
-                        Judul = judulLegacy,
-                        Kategori = assessment.Category ?? "Assessment",
-                        Tanggal = assessment.Schedule,
-                        TanggalSelesai = assessment.CompletedAt,
-                        Penyelenggara = "Internal",
-                        Status = assessment.IsPassed == true ? "Passed" : "Failed"
-                    });
-                    await _context.SaveChangesAsync();
                 }
 
                 // ASMT-02: Check group completion and notify HC/Admin
