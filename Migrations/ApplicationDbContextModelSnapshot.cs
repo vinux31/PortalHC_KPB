@@ -233,6 +233,12 @@ namespace HcPortal.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SignatoryUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -240,6 +246,10 @@ namespace HcPortal.Migrations
 
                     b.HasIndex("Name")
                         .IsUnique();
+
+                    b.HasIndex("ParentId");
+
+                    b.HasIndex("SignatoryUserId");
 
                     b.HasIndex("SortOrder");
 
@@ -1922,6 +1932,23 @@ namespace HcPortal.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("HcPortal.Models.AssessmentCategory", b =>
+                {
+                    b.HasOne("HcPortal.Models.AssessmentCategory", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("HcPortal.Models.ApplicationUser", "Signatory")
+                        .WithMany()
+                        .HasForeignKey("SignatoryUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Parent");
+
+                    b.Navigation("Signatory");
+                });
+
             modelBuilder.Entity("HcPortal.Models.AssessmentOption", b =>
                 {
                     b.HasOne("HcPortal.Models.AssessmentQuestion", "Question")
@@ -2293,6 +2320,11 @@ namespace HcPortal.Migrations
             modelBuilder.Entity("HcPortal.Models.ApplicationUser", b =>
                 {
                     b.Navigation("TrainingRecords");
+                });
+
+            modelBuilder.Entity("HcPortal.Models.AssessmentCategory", b =>
+                {
+                    b.Navigation("Children");
                 });
 
             modelBuilder.Entity("HcPortal.Models.AssessmentPackage", b =>

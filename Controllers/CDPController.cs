@@ -3288,6 +3288,17 @@ namespace HcPortal.Controllers
             if (scopedUserIds != null)
                 asQuery = asQuery.Where(a => scopedUserIds.Contains(a.UserId));
 
+            // Load category hierarchy for resolving parent/sub-category
+            var allCategories = await _context.AssessmentCategories
+                .Where(c => c.IsActive)
+                .Select(c => new { c.Id, c.Name, c.ParentId })
+                .ToListAsync();
+            var categoryById = allCategories.ToDictionary(c => c.Id);
+            // Map category name → (parentName, childName) for sub-categories
+            var categoryNameLookup = allCategories
+                .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
+                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+
             var assessmentAnon = await asQuery
                 .Select(a => new
                 {
@@ -3303,21 +3314,32 @@ namespace HcPortal.Controllers
                 })
                 .ToListAsync();
 
-            var assessmentRows = assessmentAnon.Select(a => new SertifikatRow
+            var assessmentRows = assessmentAnon.Select(a =>
             {
-                SourceId = a.Id,
-                RecordType = RecordType.Assessment,
-                NamaWorker = a.NamaWorker,
-                Bagian = a.Bagian,
-                Unit = a.Unit,
-                Judul = a.Title,
-                Kategori = a.Category,
-                SubKategori = null, // AssessmentSession tidak menyimpan sub-category
-                NomorSertifikat = a.NomorSertifikat,
-                TanggalTerbit = a.CompletedAt,
-                ValidUntil = a.ValidUntil,
-                Status = SertifikatRow.DeriveCertificateStatus(a.ValidUntil, null),
-                SertifikatUrl = null
+                // If Category matches a child category name, resolve parent as Kategori
+                string kategori = a.Category;
+                string? subKategori = null;
+                if (categoryNameLookup.TryGetValue(a.Category, out var parentName))
+                {
+                    kategori = parentName;
+                    subKategori = a.Category;
+                }
+                return new SertifikatRow
+                {
+                    SourceId = a.Id,
+                    RecordType = RecordType.Assessment,
+                    NamaWorker = a.NamaWorker,
+                    Bagian = a.Bagian,
+                    Unit = a.Unit,
+                    Judul = a.Title,
+                    Kategori = kategori,
+                    SubKategori = subKategori,
+                    NomorSertifikat = a.NomorSertifikat,
+                    TanggalTerbit = a.CompletedAt,
+                    ValidUntil = a.ValidUntil,
+                    Status = SertifikatRow.DeriveCertificateStatus(a.ValidUntil, null),
+                    SertifikatUrl = null
+                };
             }).ToList();
 
             // Merge and return
