@@ -26,49 +26,52 @@
         </div>
     </div>
 
-    <!-- Summary Cards -->
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <div id="count-total" class="fs-2 fw-bold text-primary">@Model.TotalCount</div>
-                    <div class="small text-muted mt-1">
-                        <i class="bi bi-award me-1"></i>Total Sertifikat
+    <!-- Summary Cards — hanya untuk L1-4 -->
+    @if (Model.RoleLevel <= 4)
+    {
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-total" class="fs-2 fw-bold text-primary">@Model.TotalCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-award me-1"></i>Total Sertifikat
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-aktif" class="fs-2 fw-bold text-success">@Model.AktifCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-check-circle me-1"></i>Aktif
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-akan-expired" class="fs-2 fw-bold text-warning">@Model.AkanExpiredCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Akan Expired
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div id="count-expired" class="fs-2 fw-bold text-danger">@Model.ExpiredCount</div>
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-x-circle me-1"></i>Expired
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <div id="count-aktif" class="fs-2 fw-bold text-success">@Model.AktifCount</div>
-                    <div class="small text-muted mt-1">
-                        <i class="bi bi-check-circle me-1"></i>Aktif
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <div id="count-akan-expired" class="fs-2 fw-bold text-warning">@Model.AkanExpiredCount</div>
-                    <div class="small text-muted mt-1">
-                        <i class="bi bi-exclamation-triangle me-1"></i>Akan Expired
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-md-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <div id="count-expired" class="fs-2 fw-bold text-danger">@Model.ExpiredCount</div>
-                    <div class="small text-muted mt-1">
-                        <i class="bi bi-x-circle me-1"></i>Expired
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    }
 
     <!-- Filter Bar -->
     <div class="card border-0 shadow-sm mb-4">
@@ -76,21 +79,32 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-2">
                     <label class="form-label small mb-1">Bagian</label>
-                    <select id="filter-bagian" class="form-select form-select-sm">
-                        <option value="">Semua Bagian</option>
-                        @foreach (var s in (List<string>)ViewBag.AllBagian)
+                    <select id="filter-bagian" class="form-select form-select-sm" @(Model.RoleLevel >= 4 ? "disabled" : "")>
+                        @if (Model.RoleLevel == 4)
                         {
-                            <option value="@s">@s</option>
+                            <option value="@ViewBag.UserBagian" selected>@ViewBag.UserBagian</option>
+                        }
+                        else if (Model.RoleLevel <= 3)
+                        {
+                            <option value="">Semua Bagian</option>
+                            @foreach (var s in (List<string>)ViewBag.AllBagian)
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                        else
+                        {
+                            <option value="">Semua Bagian</option>
                         }
                     </select>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label small mb-1">Unit</label>
-                    <select id="filter-unit" class="form-select form-select-sm" disabled>
+                    <select id="filter-unit" class="form-select form-select-sm" @(Model.RoleLevel >= 5 ? "disabled" : "") disabled>
                         <option value="">Semua Unit</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small mb-1">Status</label>
                     <select id="filter-status" class="form-select form-select-sm">
                         <option value="">Semua Status</option>
@@ -100,7 +114,7 @@
                         <option value="Permanent">Permanent</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <label class="form-label small mb-1">Tipe</label>
                     <select id="filter-tipe" class="form-select form-select-sm">
                         <option value="">Semua Tipe</option>
@@ -108,9 +122,25 @@
                         <option value="Assessment">Assessment</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Kategori</label>
+                    <select id="filter-category" class="form-select form-select-sm">
+                        <option value="">Semua Kategori</option>
+                        @foreach (var cat in (List<string>)ViewBag.AllCategories)
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Sub Kategori</label>
+                    <select id="filter-subcategory" class="form-select form-select-sm" disabled>
+                        <option value="">Semua Sub Kategori</option>
+                    </select>
+                </div>
+                <div class="col-md-1">
                     <label class="form-label small mb-1">Cari</label>
-                    <input type="text" id="filter-search" class="form-control form-control-sm" placeholder="Nama, judul, atau nomor...">
+                    <input type="text" id="filter-search" class="form-control form-control-sm" placeholder="Nama, judul...">
                 </div>
                 <div class="col-md-1">
                     <button id="btn-reset" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
@@ -145,11 +175,14 @@
     var unitEl = document.getElementById('filter-unit');
     var statusEl = document.getElementById('filter-status');
     var tipeEl = document.getElementById('filter-tipe');
+    var categoryEl = document.getElementById('filter-category');
+    var subCategoryEl = document.getElementById('filter-subcategory');
     var searchEl = document.getElementById('filter-search');
     var resetBtn = document.getElementById('btn-reset');
     var container = document.getElementById('cert-table-container');
     var certAbort = null;
     var searchTimer = null;
+    var roleLevel = @Model.RoleLevel;
 
     // Cascade: Bagian -> Unit
     bagianEl.addEventListener('change', function () {
@@ -174,6 +207,26 @@
             });
     });
 
+    // Cascade: Category -> Sub-Category
+    categoryEl.addEventListener('change', function () {
+        var cat = categoryEl.value;
+        subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
+        subCategoryEl.disabled = true;
+        if (!cat) { refreshTable(); return; }
+        fetch('/CDP/GetSubCategories?category=' + encodeURIComponent(cat))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.forEach(function (sc) {
+                    var opt = document.createElement('option');
+                    opt.value = sc; opt.textContent = sc;
+                    subCategoryEl.appendChild(opt);
+                });
+                if (data.length > 0) subCategoryEl.disabled = false;
+                refreshTable();
+            });
+    });
+    subCategoryEl.addEventListener('change', refreshTable);
+
     // Filter change events
     unitEl.addEventListener('change', refreshTable);
     statusEl.addEventListener('change', refreshTable);
@@ -187,11 +240,20 @@
 
     // Reset
     resetBtn.addEventListener('click', function () {
-        bagianEl.value = '';
-        unitEl.innerHTML = '<option value="">Semua Unit</option>';
-        unitEl.disabled = true;
+        if (roleLevel <= 3) {
+            bagianEl.value = '';
+            unitEl.innerHTML = '<option value="">Semua Unit</option>';
+            unitEl.disabled = true;
+        }
+        // L4: keep bagian pre-filled, reset unit selection only
+        if (roleLevel === 4) {
+            unitEl.value = '';
+        }
         statusEl.value = '';
         tipeEl.value = '';
+        categoryEl.value = '';
+        subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
+        subCategoryEl.disabled = true;
         searchEl.value = '';
         refreshTable();
     });
@@ -206,6 +268,8 @@
         if (unitEl.value) params.set('unit', unitEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
         if (tipeEl.value) params.set('tipe', tipeEl.value);
+        if (categoryEl.value) params.set('category', categoryEl.value);
+        if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
         if (searchEl.value.trim()) params.set('search', searchEl.value.trim());
 
         if (certAbort) certAbort.abort();
@@ -254,6 +318,26 @@
     // Wire pagination on initial load too
     wirePagination();
 
+    // L4: auto-load units karena Bagian sudah pre-filled
+    if (roleLevel === 4 && bagianEl.value) {
+        fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(bagianEl.value))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.units.forEach(function (u) {
+                    var opt = document.createElement('option');
+                    opt.value = u; opt.textContent = u;
+                    unitEl.appendChild(opt);
+                });
+                unitEl.disabled = false;
+            });
+    }
+
+    // L5/L6: pastikan Bagian dan Unit tetap disabled
+    if (roleLevel >= 5) {
+        bagianEl.disabled = true;
+        unitEl.disabled = true;
+    }
+
     function exportExcel(e) {
         e.preventDefault();
         var params = new URLSearchParams();
@@ -261,6 +345,8 @@
         if (unitEl.value) params.set('unit', unitEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
         if (tipeEl.value) params.set('tipe', tipeEl.value);
+        if (categoryEl.value) params.set('category', categoryEl.value);
+        if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
         if (searchEl.value.trim()) params.set('search', searchEl.value.trim());
         window.location.href = '/CDP/ExportSertifikatExcel?' + params.toString();
     }

@@ -13,11 +13,15 @@
             <thead class="table-light">
                 <tr>
                     <th class="ps-3">No</th>
-                    <th>Nama</th>
-                    <th class="d-none d-md-table-cell">Bagian</th>
-                    <th class="d-none d-md-table-cell">Unit</th>
+                    @if (Model.RoleLevel <= 4)
+                    {
+                        <th>Nama</th>
+                        <th class="d-none d-md-table-cell">Bagian</th>
+                        <th class="d-none d-md-table-cell">Unit</th>
+                    }
                     <th>Judul</th>
                     <th class="d-none d-md-table-cell">Kategori</th>
+                    <th class="d-none d-md-table-cell">Sub Kategori</th>
                     <th>Nomor Sertifikat</th>
                     <th>Tgl Terbit</th>
                     <th>Valid Until</th>
@@ -27,10 +31,13 @@
                 </tr>
             </thead>
             <tbody>
+                @{
+                    var colCount = Model.RoleLevel <= 4 ? 13 : 10;
+                }
                 @if (Model.Rows.Count == 0)
                 {
                     <tr>
-                        <td colspan="12" class="text-center text-muted py-4">Belum ada data sertifikat</td>
+                        <td colspan="@colCount" class="text-center text-muted py-4">Belum ada data sertifikat</td>
                     </tr>
                 }
                 else
@@ -41,11 +48,15 @@
                         var nomor = (Model.CurrentPage - 1) * Model.PageSize + i + 1;
                         <tr>
                             <td class="ps-3">@nomor</td>
-                            <td>@row.NamaWorker</td>
-                            <td class="d-none d-md-table-cell">@(row.Bagian ?? "-")</td>
-                            <td class="d-none d-md-table-cell">@(row.Unit ?? "-")</td>
+                            @if (Model.RoleLevel <= 4)
+                            {
+                                <td>@row.NamaWorker</td>
+                                <td class="d-none d-md-table-cell">@(row.Bagian ?? "-")</td>
+                                <td class="d-none d-md-table-cell">@(row.Unit ?? "-")</td>
+                            }
                             <td>@row.Judul</td>
                             <td class="d-none d-md-table-cell">@(row.Kategori ?? "-")</td>
+                            <td class="d-none d-md-table-cell">@(row.SubKategori ?? "-")</td>
                             <td>@(row.NomorSertifikat ?? "-")</td>
                             <td>@(row.TanggalTerbit?.ToString("dd MMM yyyy") ?? "-")</td>
                             <td>@(row.ValidUntil?.ToString("dd MMM yyyy") ?? "-")</td>
