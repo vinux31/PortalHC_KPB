@@ -6,6 +6,7 @@ using HcPortal.Models;
 using HcPortal.Data;
 using HcPortal.Services;
 using ClosedXML.Excel;
+using HcPortal.Helpers;
 
 namespace HcPortal.Controllers
 {
@@ -617,19 +618,8 @@ namespace HcPortal.Controllers
             var trackName = track?.DisplayName ?? trackId.Value.ToString();
 
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Silabus Proton");
-
-            ws.Cell(1, 1).Value = "Bagian";
-            ws.Cell(1, 2).Value = "Unit";
-            ws.Cell(1, 3).Value = "Track";
-            ws.Cell(1, 4).Value = "Kompetensi";
-            ws.Cell(1, 5).Value = "SubKompetensi";
-            ws.Cell(1, 6).Value = "Deliverable";
-            ws.Cell(1, 7).Value = "Target";
-
-            var headerRange = ws.Range(1, 1, 1, 7);
-            headerRange.Style.Font.Bold = true;
-            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Silabus Proton", new[] { "Bagian", "Unit", "Track", "Kompetensi", "SubKompetensi", "Deliverable", "Target" });
+            ws.Range(1, 1, 1, 7).Style.Fill.BackgroundColor = XLColor.LightBlue;
 
             int row = 2;
             foreach (var k in kompetensiList)
@@ -650,14 +640,8 @@ namespace HcPortal.Controllers
                 }
             }
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
-
             var fileName = $"SilabusProton_{bagian}_{unit}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
         // GET: /ProtonData/DownloadSilabusTemplate
@@ -711,14 +695,8 @@ namespace HcPortal.Controllers
             // Append 10 empty rows
             for (int i = 0; i < 10; i++) row++;
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
-
             var fileName = $"SilabusProton_Template_{bagian}_{unit}_{DateTime.Now:yyyyMMdd}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
         // GET: /ProtonData/ImportSilabus

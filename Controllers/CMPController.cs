@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.SignalR;
 using HcPortal.Hubs;
 using System.Text.RegularExpressions;
 using QuestPDF.Fluent;
+using HcPortal.Helpers;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using QuestPDF.Drawing;
@@ -523,14 +524,7 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
 
             // Sheet 1: Assessment
-            var wsAssessment = workbook.Worksheets.Add("Assessment");
-            wsAssessment.Cell(1, 1).Value = "No";
-            wsAssessment.Cell(1, 2).Value = "Tanggal";
-            wsAssessment.Cell(1, 3).Value = "Judul";
-            wsAssessment.Cell(1, 4).Value = "Skor";
-            wsAssessment.Cell(1, 5).Value = "Status";
-            wsAssessment.Cell(1, 6).Value = "Sertifikat";
-            wsAssessment.Range(1, 1, 1, 6).Style.Font.Bold = true;
+            var wsAssessment = ExcelExportHelper.CreateSheet(workbook, "Assessment", new[] { "No", "Tanggal", "Judul", "Skor", "Status", "Sertifikat" });
 
             var assessmentRecords = unified.Where(r => r.RecordType == "Assessment Online").ToList();
             for (int i = 0; i < assessmentRecords.Count; i++)
@@ -543,20 +537,9 @@ namespace HcPortal.Controllers
                 wsAssessment.Cell(i + 2, 5).Value = r.Status;
                 wsAssessment.Cell(i + 2, 6).Value = r.GenerateCertificate == true ? "Ya" : "Tidak";
             }
-            wsAssessment.Columns().AdjustToContents();
 
             // Sheet 2: Training
-            var wsTraining = workbook.Worksheets.Add("Training");
-            wsTraining.Cell(1, 1).Value = "No";
-            wsTraining.Cell(1, 2).Value = "Tanggal";
-            wsTraining.Cell(1, 3).Value = "Judul";
-            wsTraining.Cell(1, 4).Value = "Penyelenggara";
-            wsTraining.Cell(1, 5).Value = "Kategori";
-            wsTraining.Cell(1, 6).Value = "Kota";
-            wsTraining.Cell(1, 7).Value = "Nomor Sertifikat";
-            wsTraining.Cell(1, 8).Value = "Valid Until";
-            wsTraining.Cell(1, 9).Value = "Status";
-            wsTraining.Range(1, 1, 1, 9).Style.Font.Bold = true;
+            var wsTraining = ExcelExportHelper.CreateSheet(workbook, "Training", new[] { "No", "Tanggal", "Judul", "Penyelenggara", "Kategori", "Kota", "Nomor Sertifikat", "Valid Until", "Status" });
 
             var trainingRecords = unified.Where(r => r.RecordType == "Training Manual").ToList();
             for (int i = 0; i < trainingRecords.Count; i++)
@@ -572,14 +555,10 @@ namespace HcPortal.Controllers
                 wsTraining.Cell(i + 2, 8).Value = r.ValidUntil?.ToString("yyyy-MM-dd") ?? "";
                 wsTraining.Cell(i + 2, 9).Value = r.Status ?? "";
             }
-            wsTraining.Columns().AdjustToContents();
 
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
             var safeName = (user.FullName ?? user.Id).Replace(" ", "_");
             var filename = $"Records_{safeName}_{DateTime.Now:yyyy-MM-dd}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.document", filename);
+            return ExcelExportHelper.ToFileResult(workbook, filename, this);
         }
 
         // Phase 176: Export team assessment records as Excel (filtered by current view params)
@@ -615,16 +594,7 @@ namespace HcPortal.Controllers
                 .ToList();
 
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Assessment");
-            ws.Cell(1, 1).Value = "No";
-            ws.Cell(1, 2).Value = "Nama";
-            ws.Cell(1, 3).Value = "NIP";
-            ws.Cell(1, 4).Value = "Judul";
-            ws.Cell(1, 5).Value = "Tanggal";
-            ws.Cell(1, 6).Value = "Skor";
-            ws.Cell(1, 7).Value = "Status";
-            ws.Cell(1, 8).Value = "Attempt";
-            ws.Range(1, 1, 1, 8).Style.Font.Bold = true;
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Assessment", new[] { "No", "Nama", "NIP", "Judul", "Tanggal", "Skor", "Status", "Attempt" });
 
             for (int i = 0; i < filtered.Count; i++)
             {
@@ -638,13 +608,9 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 7).Value = r.IsPassed == true ? "Passed" : (r.IsPassed == false ? "Failed" : "");
                 ws.Cell(i + 2, 8).Value = r.AttemptNumber?.ToString() ?? "";
             }
-            ws.Columns().AdjustToContents();
 
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
             var filename = $"RecordsTeam_Assessment_{DateTime.Now:yyyy-MM-dd}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.document", filename);
+            return ExcelExportHelper.ToFileResult(workbook, filename, this);
         }
 
         // Phase 176: Export team training records as Excel (filtered by current view params)
@@ -680,14 +646,7 @@ namespace HcPortal.Controllers
                 .ToList();
 
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Training");
-            ws.Cell(1, 1).Value = "No";
-            ws.Cell(1, 2).Value = "Nama";
-            ws.Cell(1, 3).Value = "NIP";
-            ws.Cell(1, 4).Value = "Judul";
-            ws.Cell(1, 5).Value = "Tanggal";
-            ws.Cell(1, 6).Value = "Penyelenggara";
-            ws.Range(1, 1, 1, 6).Style.Font.Bold = true;
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Training", new[] { "No", "Nama", "NIP", "Judul", "Tanggal", "Penyelenggara" });
 
             for (int i = 0; i < filtered.Count; i++)
             {
@@ -699,13 +658,9 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 5).Value = r.Date.ToString("yyyy-MM-dd");
                 ws.Cell(i + 2, 6).Value = r.Penyelenggara ?? "";
             }
-            ws.Columns().AdjustToContents();
 
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
             var filename = $"RecordsTeam_Training_{DateTime.Now:yyyy-MM-dd}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.document", filename);
+            return ExcelExportHelper.ToFileResult(workbook, filename, this);
         }
 
         // ====================================================================
@@ -752,13 +707,7 @@ namespace HcPortal.Controllers
             ws.Cell(4, 1).Style.Font.Italic = true;
             ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            return File(stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "training_import_template.xlsx");
+            return ExcelExportHelper.ToFileResult(workbook, "training_import_template.xlsx", this);
         }
 
         // GET /CMP/ImportTraining

@@ -9,6 +9,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using System.Globalization;
 using HcPortal.Services;
+using HcPortal.Helpers;
 
 namespace HcPortal.Controllers
 {
@@ -2136,24 +2137,8 @@ namespace HcPortal.Controllers
 
             // Build Excel using ClosedXML
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Coaching Proton");
-
-            // Header row (10 columns)
-            ws.Cell(1, 1).Value = "Kompetensi";
-            ws.Cell(1, 2).Value = "Sub Kompetensi";
-            ws.Cell(1, 3).Value = "Deliverable";
-            ws.Cell(1, 4).Value = "Evidence";
-            ws.Cell(1, 5).Value = "Approval SrSpv";
-            ws.Cell(1, 6).Value = "Approval SH";
-            ws.Cell(1, 7).Value = "Approval HC";
-            ws.Cell(1, 8).Value = "Catatan Coach";
-            ws.Cell(1, 9).Value = "Kesimpulan";
-            ws.Cell(1, 10).Value = "Result";
-
-            // Style header: bold, light blue background
-            var headerRange = ws.Range(1, 1, 1, 10);
-            headerRange.Style.Font.Bold = true;
-            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Coaching Proton", new[] { "Kompetensi", "Sub Kompetensi", "Deliverable", "Evidence", "Approval SrSpv", "Approval SH", "Approval HC", "Catatan Coach", "Kesimpulan", "Result" });
+            ws.Range(1, 1, 1, 10).Style.Fill.BackgroundColor = XLColor.LightBlue;
 
             // Data rows
             for (int i = 0; i < progresses.Count; i++)
@@ -2174,14 +2159,8 @@ namespace HcPortal.Controllers
                 ws.Cell(row, 10).Value = cs?.Result ?? "";
             }
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
             var safeName = (coacheeUser.FullName ?? "Coachee").Replace(" ", "_");
-            return File(stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"{safeName}_Progress_{DateTime.Now:yyyy-MM-dd}.xlsx");
+            return ExcelExportHelper.ToFileResult(workbook, $"{safeName}_Progress_{DateTime.Now:yyyy-MM-dd}.xlsx", this);
         }
 
         [HttpGet]
@@ -2918,15 +2897,8 @@ namespace HcPortal.Controllers
 
             // Build Excel
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Histori Proton");
-
-            var headers = new[] { "No", "NIP", "Nama", "Unit", "Jalur", "Tahun 1", "Tahun 2", "Tahun 3", "Status" };
-            for (int i = 0; i < headers.Length; i++)
-            {
-                ws.Cell(1, i + 1).Value = headers[i];
-                ws.Cell(1, i + 1).Style.Font.Bold = true;
-                ws.Cell(1, i + 1).Style.Fill.BackgroundColor = XLColor.LightBlue;
-            }
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Histori Proton", new[] { "No", "NIP", "Nama", "Unit", "Jalur", "Tahun 1", "Tahun 2", "Tahun 3", "Status" });
+            ws.Range(1, 1, 1, 9).Style.Fill.BackgroundColor = XLColor.LightBlue;
 
             for (int i = 0; i < workers.Count; i++)
             {
@@ -2945,13 +2917,7 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 9).Value = w.Status;
             }
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            return File(stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                $"histori_proton_{DateTime.Now:yyyyMMdd}.xlsx");
+            return ExcelExportHelper.ToFileResult(workbook, $"histori_proton_{DateTime.Now:yyyyMMdd}.xlsx", this);
         }
 
         public async Task<IActionResult> HistoriProtonDetail(string userId)

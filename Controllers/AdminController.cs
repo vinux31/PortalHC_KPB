@@ -10,6 +10,7 @@ using HcPortal.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using ClosedXML.Excel;
 using System.Globalization;
+using HcPortal.Helpers;
 
 namespace HcPortal.Controllers
 {
@@ -2870,15 +2871,10 @@ namespace HcPortal.Controllers
                 worksheet.Cell(row, c).Value   = r.CompletedAt;
             }
 
-            worksheet.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            var content = stream.ToArray();
             // Sanitize title for filename: replace non-alphanumeric with _
             var safeTitle = System.Text.RegularExpressions.Regex.Replace(title, @"[^\w]", "_");
             var fileName = $"{safeTitle}_{scheduleDate:yyyyMMdd}_Results.xlsx";
-            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
         // --- USER ASSESSMENT HISTORY ---
@@ -2991,17 +2987,8 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("AuditLog");
-
-            // Header
-            ws.Cell(1, 1).Value = "Waktu";
-            ws.Cell(1, 2).Value = "Aktor";
-            ws.Cell(1, 3).Value = "Aksi";
-            ws.Cell(1, 4).Value = "Detail";
-
-            var headerRange = ws.Range(1, 1, 1, 4);
-            headerRange.Style.Font.Bold = true;
-            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+            var ws = ExcelExportHelper.CreateSheet(workbook, "AuditLog", new[] { "Waktu", "Aktor", "Aksi", "Detail" });
+            ws.Range(1, 1, 1, 4).Style.Fill.BackgroundColor = XLColor.LightBlue;
 
             for (int i = 0; i < logs.Count; i++)
             {
@@ -3012,14 +2999,8 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 4).Value = log.Description;
             }
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
-
             var fileName = $"AuditLog_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
         // CloseEarly removed in Phase 162 — replaced by AkhiriSemuaUjian with auto-grading
@@ -3515,13 +3496,7 @@ namespace HcPortal.Controllers
             ws.Cell(3, 1).Style.Font.Italic = true;
             ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new System.IO.MemoryStream();
-            workbook.SaveAs(stream);
-            return File(stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "coach_coachee_import_template.xlsx");
+            return ExcelExportHelper.ToFileResult(workbook, "coach_coachee_import_template.xlsx", this);
         }
 
         // POST /Admin/ImportCoachCoacheeMapping
@@ -4339,21 +4314,8 @@ namespace HcPortal.Controllers
             var users = await query.OrderBy(u => u.FullName).ToListAsync();
 
             using var workbook = new XLWorkbook();
-            var ws = workbook.Worksheets.Add("Pekerja");
-
-            // Header
-            ws.Cell(1, 1).Value = "No";
-            ws.Cell(1, 2).Value = "Nama";
-            ws.Cell(1, 3).Value = "Email";
-            ws.Cell(1, 4).Value = "NIP";
-            ws.Cell(1, 5).Value = "Jabatan";
-            ws.Cell(1, 6).Value = "Bagian";
-            ws.Cell(1, 7).Value = "Unit";
-            ws.Cell(1, 8).Value = "Status";
-
-            var headerRange = ws.Range(1, 1, 1, 8);
-            headerRange.Style.Font.Bold = true;
-            headerRange.Style.Fill.BackgroundColor = XLColor.LightBlue;
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Pekerja", new[] { "No", "Nama", "Email", "NIP", "Jabatan", "Bagian", "Unit", "Status" });
+            ws.Range(1, 1, 1, 8).Style.Fill.BackgroundColor = XLColor.LightBlue;
 
             for (int i = 0; i < users.Count; i++)
             {
@@ -4368,14 +4330,8 @@ namespace HcPortal.Controllers
                 ws.Cell(i + 2, 8).Value = u.IsActive ? "Active" : "Inactive";
             }
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            stream.Position = 0;
-
             var fileName = $"Pekerja_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-            return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
         // GET /Admin/CreateWorker
@@ -4941,13 +4897,7 @@ namespace HcPortal.Controllers
                 ws.Cell(5, 1).Style.Font.FontColor = XLColor.DarkBlue;
             }
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new System.IO.MemoryStream();
-            workbook.SaveAs(stream);
-            return File(stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "workers_import_template.xlsx");
+            return ExcelExportHelper.ToFileResult(workbook, "workers_import_template.xlsx", this);
         }
 
         // POST /Admin/ImportWorkers
@@ -5183,13 +5133,7 @@ namespace HcPortal.Controllers
                 row++;
             }
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new MemoryStream();
-            workbook.SaveAs(stream);
-            return File(stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "CoachCoacheeMapping.xlsx");
+            return ExcelExportHelper.ToFileResult(workbook, "CoachCoacheeMapping.xlsx", this);
         }
 
         /// <summary>
@@ -5849,13 +5793,7 @@ namespace HcPortal.Controllers
             ws.Cell(4, 1).Style.Font.Italic = true;
             ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
 
-            ws.Columns().AdjustToContents();
-
-            using var stream = new System.IO.MemoryStream();
-            workbook.SaveAs(stream);
-            return File(stream.ToArray(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "question_import_template.xlsx");
+            return ExcelExportHelper.ToFileResult(workbook, "question_import_template.xlsx", this);
         }
 
         [HttpGet]
