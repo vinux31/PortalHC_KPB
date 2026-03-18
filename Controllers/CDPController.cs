@@ -3011,5 +3011,137 @@ namespace HcPortal.Controllers
             });
         }
 
+        // ============================================================
+        // Phase 186: Role-Scoped Certificate Data Helpers
+        // ============================================================
+
+        private async Task<(ApplicationUser User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var userRoles = await _userManager.GetRolesAsync(user!);
+            var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
+            return (user!, roleLevel);
+        }
+
+        private async Task<List<SertifikatRow>> BuildSertifikatRowsAsync()
+        {
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+
+            // Build scoped user ID list based on role level
+            List<string>? scopedUserIds;
+            if (UserRoles.HasFullAccess(roleLevel))
+            {
+                // L1-3: full access — no filter
+                scopedUserIds = null;
+            }
+            else if (UserRoles.HasSectionAccess(roleLevel))
+            {
+                // L4: see own section only
+                scopedUserIds = await _context.Users
+                    .Where(u => u.IsActive && u.Section == user.Section)
+                    .Select(u => u.Id)
+                    .ToListAsync();
+            }
+            else if (roleLevel == 5)
+            {
+                // L5: coach sees mapped coachees + own data
+                var coacheeIds = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Select(m => m.CoacheeId)
+                    .ToListAsync();
+                coacheeIds.Add(user.Id);
+                scopedUserIds = coacheeIds;
+            }
+            else
+            {
+                // L6: own data only
+                scopedUserIds = new List<string> { user.Id };
+            }
+
+            // Query TrainingRecords with certificate
+            var trQuery = _context.TrainingRecords
+                .Include(t => t.User)
+                .Where(t => t.SertifikatUrl != null);
+            if (scopedUserIds != null)
+                trQuery = trQuery.Where(t => scopedUserIds.Contains(t.UserId));
+
+            var trainingAnon = await trQuery
+                .Select(t => new
+                {
+                    t.Id,
+                    NamaWorker = t.User != null ? t.User.FullName : "",
+                    Bagian = t.User != null ? t.User.Section : null,
+                    Unit = t.User != null ? t.User.Unit : null,
+                    Judul = t.Judul ?? "",
+                    t.Kategori,
+                    t.NomorSertifikat,
+                    TanggalTerbit = (DateTime?)t.Tanggal,
+                    t.ValidUntil,
+                    t.CertificateType,
+                    t.SertifikatUrl
+                })
+                .ToListAsync();
+
+            var trainingRows = trainingAnon.Select(t => new SertifikatRow
+            {
+                SourceId = t.Id,
+                RecordType = RecordType.Training,
+                NamaWorker = t.NamaWorker,
+                Bagian = t.Bagian,
+                Unit = t.Unit,
+                Judul = t.Judul,
+                Kategori = t.Kategori,
+                NomorSertifikat = t.NomorSertifikat,
+                TanggalTerbit = t.TanggalTerbit,
+                ValidUntil = t.ValidUntil,
+                Status = SertifikatRow.DeriveCertificateStatus(t.ValidUntil, t.CertificateType),
+                SertifikatUrl = t.SertifikatUrl
+            }).ToList();
+
+            // Query AssessmentSessions with certificate
+            var asQuery = _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.GenerateCertificate && a.IsPassed == true);
+            if (scopedUserIds != null)
+                asQuery = asQuery.Where(a => scopedUserIds.Contains(a.UserId));
+
+            var assessmentAnon = await asQuery
+                .Select(a => new
+                {
+                    a.Id,
+                    NamaWorker = a.User != null ? a.User.FullName : "",
+                    Bagian = a.User != null ? a.User.Section : null,
+                    Unit = a.User != null ? a.User.Unit : null,
+                    a.Title,
+                    a.Category,
+                    a.NomorSertifikat,
+                    a.CompletedAt,
+                    a.ValidUntil
+                })
+                .ToListAsync();
+
+            var assessmentRows = assessmentAnon.Select(a => new SertifikatRow
+            {
+                SourceId = a.Id,
+                RecordType = RecordType.Assessment,
+                NamaWorker = a.NamaWorker,
+                Bagian = a.Bagian,
+                Unit = a.Unit,
+                Judul = a.Title,
+                Kategori = a.Category,
+                NomorSertifikat = a.NomorSertifikat,
+                TanggalTerbit = a.CompletedAt,
+                ValidUntil = a.ValidUntil,
+                Status = SertifikatRow.DeriveCertificateStatus(a.ValidUntil, null),
+                SertifikatUrl = null
+            }).ToList();
+
+            // Merge and return
+            var rows = new List<SertifikatRow>(trainingRows.Count + assessmentRows.Count);
+            rows.AddRange(trainingRows);
+            rows.AddRange(assessmentRows);
+            return rows;
+        }
+
     }
 }
