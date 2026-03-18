@@ -114,7 +114,7 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 **Goal:** Filter cascade Category/Sub-Category, role-based view content (summary cards, kolom tabel, filter disabled state), dan L5 scope override ke own-data-only
 **Requirements**: ROLE-SCOPE, CATEGORY-FILTER, SUBCATEGORY-COL, EXPORT-SUBCOL, ROLE-VIEW, FILTER-CASCADE, SUBCATEGORY-DISPLAY
 **Depends on:** Phase 189
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 190-01-PLAN.md — Backend: model SubKategori/RoleLevel, L5 scope override, GetSubCategories endpoint, filter params, export column

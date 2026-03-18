@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Completed 190-01-PLAN.md
-last_updated: "2026-03-18T10:52:22.981Z"
+stopped_at: Completed 190-02-PLAN.md
+last_updated: "2026-03-18T10:56:40.972Z"
 last_activity: 2026-03-18 — Completed 198-01-PLAN.md
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 ---
@@ -135,6 +135,7 @@ Progress: [██████████] 100%
 - [Phase 186]: L5 scoping: coach.Id ditambahkan ke coacheeIds agar coach melihat sertifikat diri sendiri
 - [Phase 189]: exportExcel dalam IIFE dengan window.exportExcel expose untuk onclick handler
 - [Phase 190]: L5 scope override via l5OwnDataOnly bool param — CertificationManagement page shows only own data for L5
+- [Phase 190]: Filter Bagian: L4 disabled+pre-fill, L5/L6 disabled; Unit: L5/L6 always disabled, L4 auto-loaded on page load
 
 ### Roadmap Evolution
 
@@ -147,6 +148,6 @@ Progress: [██████████] 100%
 
 ## Session Continuity
 
-Last session: 2026-03-18T10:52:22.899Z
-Stopped at: Completed 190-01-PLAN.md
+Last session: 2026-03-18T10:56:40.900Z
+Stopped at: Completed 190-02-PLAN.md
 Resume file: None
