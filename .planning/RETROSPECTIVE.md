@@ -464,6 +464,44 @@
 
 ---
 
+## Milestone: v7.6 — Code Deduplication & Shared Services
+
+**Shipped:** 2026-03-18
+**Phases:** 4 (196-199) | **Plans:** 6
+
+### What Was Built
+- IWorkerDataService shared service replacing 4 duplicate helpers in Admin+CMP (561 lines removed)
+- ExcelExportHelper static class eliminating ~170 lines of ClosedXML boilerplate across 15 export actions
+- Training CRUD consolidated — CMP orphan actions removed, ImportTraining moved to Admin with ManageAssessment link
+- FileUploadHelper + PaginationHelper static classes replacing 6 inline patterns across 3 controllers
+- CMPController GetCurrentUserRoleLevelAsync replacing 5 repeated role-checking blocks
+
+### What Worked
+- **Single-day refactoring milestone**: 4 phases planned and executed in one session — refactoring scope is well-bounded
+- **Wave dependency ordering**: Phase 199 wave 2 (role-scoping) depended on wave 1 (file upload + pagination) — CMPController changes were sequential, avoiding merge conflicts
+- **UAT for refactoring**: Regression tests (file upload, pagination, role-scoping) confirmed zero behavior change
+
+### What Was Inefficient
+- **SUMMARY frontmatter gaps continue**: Phase 198 SUMMARY missing `requirements-completed` field — same pattern as v4.0/v4.3
+- **Nyquist validation not done**: All 4 phases missing VALIDATION.md — refactoring phases don't produce testable features
+
+### Patterns Established
+- **Static helper extraction pattern**: FileUploadHelper.SaveFileAsync and PaginationHelper.Calculate as reusable static helpers — appropriate for stateless utility functions
+- **DI service for stateful helpers**: IWorkerDataService registered as scoped — appropriate when helper needs DbContext and UserManager
+- **Template download exception**: Excel template downloads with colored headers/sample data use inline ClosedXML + ToFileResult (not CreateSheet) — documented design decision
+
+### Key Lessons
+1. Refactoring milestones execute fast (single day) because scope is clear and testable via build + regression
+2. Integration checker confirmed all wiring in one pass — refactoring doesn't introduce new integration surfaces
+3. CRUD consolidation (Phase 198) was the most impactful phase — removing orphan actions prevents confusion about canonical entry points
+
+### Cost Observations
+- Model mix: opus (executor), sonnet (verifier, integration checker)
+- Sessions: 1
+- Notable: Entire milestone lifecycle (plan → execute → UAT → audit → archive) in one session
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -494,5 +532,6 @@
 | v4.3 | 3 | 8 | 1 | 8 |
 
 | v5.0 | 2 | 4 | 1 | 4 |
+| v7.6 | 4 | 6 | 1 | 6 |
 
-**Running total:** 100 phases, ~234 plans, 29 days
+**Running total:** 104 phases, ~240 plans, 30 days

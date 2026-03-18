@@ -1,4 +1,21 @@
 # Milestones
+## v7.6 Code Deduplication & Shared Services (Shipped: 2026-03-18)
+
+**Phases completed:** 4 phases (196-199), 6 plans
+**Timeline:** 2026-03-18 (single day)
+**Code changes:** 38 files changed, +3,311 / -1,206 lines
+
+**Delivered:** Pure refactoring milestone — extracted shared services, consolidated CRUD entry points, and unified code patterns across controllers. No new UI, no DB migrations. Net reduction of ~700+ lines of duplicated code.
+
+**Key accomplishments:**
+1. IWorkerDataService shared service — 4 helper methods (GetUnifiedRecords, GetAllWorkersHistory, GetWorkersInSection, NotifyIfGroupCompleted) extracted from Admin+CMPController, removing 561 lines of duplicated code
+2. ExcelExportHelper — Static helper eliminates ~170 lines of ClosedXML boilerplate across 15 export actions in 4 controllers
+3. Training CRUD consolidated — CMP orphan edit/delete/import actions removed, ImportTraining moved to AdminController with link from ManageAssessment
+4. FileUploadHelper + PaginationHelper — 6 inline patterns replaced across 3 controllers with reusable static helpers
+5. CMPController role-scoping helper — GetCurrentUserRoleLevelAsync extracts repeated role-checking from 5 action methods
+
+---
+
 ## v7.1 Export & Import Data (Shipped: 2026-03-16)
 
 **Phases completed:** 5 phases, 5 plans, 0 tasks

@@ -12,26 +12,23 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.6 Code Deduplication & Shared Services
+## Current Milestone: v7.4 Certification Management
 
-**Goal:** Clean up duplicate features and logic across controllers — extract shared services, consolidate split CRUD flows, and unify export patterns.
+**Goal:** New CDP menu "Certification Management" — unified table of all certificates (TrainingRecord + AssessmentSession) with expiry status, role-scoped views, filters, and Excel export.
 
-**Target features:**
-- Extract GetUnifiedRecords() to shared service (duplicated in AdminController + CMPController)
-- Consolidate Training Record CRUD (split between Admin standalone pages + CMP inline modals)
-- Differentiate Worker Detail views (Admin vs CMP contexts)
-- Consolidate Training Import access (currently only in CMP, not Admin)
-- Extract common Excel export helper (scattered across 4 controllers)
+**Phases:** 185-189 (not yet started, requirements defined in ROADMAP.md)
 
-## Current State (after v7.3, 2026-03-17)
+## Current State (after v7.6, 2026-03-18)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
 **v7.1 shipped** — Export & Import Data, 5 phases (176-180).
 **v7.3 shipped** — Elemen Teknis Shuffle & Rename, 3 phases (182-184).
+**v7.5 shipped** — Assessment Form Revamp & Certificate Enhancement, 6 phases (190-195).
+**v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
 **v7.4 defined** — Certification Management, 5 phases (185-189), not yet executed.
 
-Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase cleaned (v4.3), security hardened (v4.3), Guide system overhauled (v5.0). Excel export/import added across 6 data areas using ClosedXML (v7.1). Internal rename SubCompetency → ElemenTeknis completed (v7.3). All requirements satisfied, 0 critical tech debt.
+Portal is fully audited and polished. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Training CRUD consolidated to Admin. Assessment creation uses 4-step wizard with DB categories, certificate expiry dates, auto-numbering, PDF download, sub-categories with signatory settings. All requirements satisfied, 0 critical tech debt.
 
 ## Architecture Decisions
 
@@ -44,6 +41,39 @@ Portal is fully audited and polished: 6 use-case flows verified (v4.0), codebase
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v7.6 - Code Deduplication & Shared Services (2026-03-18)
+
+**Delivered:** Pure refactoring — extracted shared services, consolidated CRUD, unified code patterns. Net reduction of ~700+ lines of duplicated code.
+
+**What Shipped:**
+1. **IWorkerDataService** — 4 helper methods extracted from Admin+CMP controllers (561 lines removed)
+2. **ExcelExportHelper** — ~170 lines of ClosedXML boilerplate eliminated across 15 export actions
+3. **Training CRUD Consolidation** — CMP orphan actions removed, ImportTraining moved to Admin
+4. **FileUploadHelper + PaginationHelper** — 6 inline patterns replaced across 3 controllers
+5. **Role-scoping helper** — GetCurrentUserRoleLevelAsync extracts repeated pattern from 5 CMP actions
+
+**Metrics:**
+- 4 phases (196-199), 6 plans
+- 38 files changed, +3,311 / -1,206 lines
+
+---
+
+### ✅ v7.5 - Assessment Form Revamp & Certificate Enhancement (2026-03-18)
+
+**Delivered:** 4-step wizard for assessment creation, DB-driven categories with Admin CRUD, certificate expiry dates with auto-numbering, PDF certificate download, hierarchical sub-categories with signatory settings.
+
+**What Shipped:**
+1. **DB Categories** — AssessmentCategory model with seed data, Admin CRUD, CreateAssessment dropdown from DB
+2. **Wizard UI** — 4-step Bootstrap wizard (Kategori→Users→Settings→Konfirmasi) with per-step validation
+3. **ValidUntil & NomorSertifikat** — Certificate expiry date capture, auto-generated unique certificate numbers
+4. **PDF Certificate Download** — QuestPDF A4 landscape layout with Download PDF button
+5. **Sub-Categories & Signatory** — ParentId self-ref FK, expandable tree CRUD, per-category signatory name
+
+**Metrics:**
+- 6 phases (190-195), 10 plans
+
+---
 
 ### ✅ v7.1 - Export & Import Data (2026-03-16)
 
