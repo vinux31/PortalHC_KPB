@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Completed 199-01-PLAN.md
-last_updated: "2026-03-18T06:08:15.072Z"
+stopped_at: Completed 199-02-PLAN.md
+last_updated: "2026-03-18T06:11:42.052Z"
 last_activity: 2026-03-18 — Completed 198-01-PLAN.md
 progress:
   total_phases: 14
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 ---
@@ -114,6 +114,7 @@ Progress: [██████████] 100%
 - [Phase 197]: ExcelExportHelper uses bold-only headers; colored backgrounds added by caller post-CreateSheet
 - [Phase 198]: ImportTraining view uses strongly-typed model instead of ViewBag
 - [Phase 199]: CDPController evidence upload also refactored to FileUploadHelper (same inline pattern)
+- [Phase 199]: Removed explicit user null checks in refactored CMPController actions (class-level Authorize guarantees auth)
 
 ### Roadmap Evolution
 
@@ -125,6 +126,6 @@ Progress: [██████████] 100%
 
 ## Session Continuity
 
-Last session: 2026-03-18T06:08:15.067Z
-Stopped at: Completed 199-01-PLAN.md
+Last session: 2026-03-18T06:11:42.044Z
+Stopped at: Completed 199-02-PLAN.md
 Resume file: None
