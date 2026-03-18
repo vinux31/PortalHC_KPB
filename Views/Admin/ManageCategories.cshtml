@@ -5,6 +5,8 @@
     var editCategory = ViewBag.EditCategory as HcPortal.Models.AssessmentCategory;
 }
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.css">
+
 <div class="container-fluid px-4 py-4">
 
     <!-- Breadcrumb -->
@@ -21,7 +23,7 @@
             <h2 class="fw-bold mb-1">
                 <i class="bi bi-tags me-2 text-primary"></i>Kategori Assessment
             </h2>
-            <p class="text-muted mb-0">Kelola kategori assessment dan nilai lulus default</p>
+            <p class="text-muted mb-0">Kelola kategori assessment, hierarki, dan penandatangan sertifikat</p>
         </div>
         <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addCategoryForm">
             <i class="bi bi-plus-circle me-2"></i>Tambah Kategori
@@ -55,21 +57,60 @@
                     @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-md-5">
-                            <label class="form-label fw-semibold">Nama Kategori <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Nama Kategori <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control" placeholder="e.g. OJT" required maxlength="100" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">Nilai Lulus Default (%)</label>
+                            <label class="form-label fw-bold">Nilai Lulus Default (%)</label>
                             <input type="number" name="defaultPassPercentage" class="form-control" value="70" min="0" max="100" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label fw-semibold">Urutan</label>
+                            <label class="form-label fw-bold">Urutan</label>
                             <input type="number" name="sortOrder" class="form-control" value="0" min="0" />
                         </div>
                         <div class="col-md-2 d-flex align-items-end">
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-plus-circle me-1"></i>Tambah
                             </button>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Kategori Induk</label>
+                            <select class="form-select" name="parentId">
+                                <option value="">— Tidak ada (Kategori Utama) —</option>
+                                @if (ViewBag.PotentialParents != null)
+                                {
+                                    foreach (var pp in (IEnumerable<HcPortal.Models.AssessmentCategory>)ViewBag.PotentialParents)
+                                    {
+                                        <option value="@pp.Id">@(pp.Parent != null ? "↳ " : "")@pp.Name</option>
+                                    }
+                                }
+                            </select>
+                            <div class="form-text">Kosongkan untuk membuat kategori utama.</div>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold">Penandatangan</label>
+                            <select class="form-select" id="signatorySelect" name="signatoryUserId">
+                                <option value="">— Tidak ada —</option>
+                                @if (ViewBag.AllUsers != null)
+                                {
+                                    foreach (var u in (IEnumerable<dynamic>)ViewBag.AllUsers)
+                                    {
+                                        <option value="@u.Id"
+                                                data-position="@u.Position"
+                                                data-fullname="@u.FullName">@u.FullName (@u.NIP)</option>
+                                    }
+                                }
+                            </select>
+                            <div id="psignPreview" class="mt-3 d-none">
+                                <div class="text-muted small mb-1">Preview P-Sign pada sertifikat:</div>
+                                <div class="psign-badge-cert" style="display:inline-block; text-align:center; background:transparent;">
+                                    <img src="/images/psign-pertamina.png" style="height:48px; margin-bottom:8px;" />
+                                    <div id="psignPreviewPosition" style="font-size:0.85rem; color:#333; line-height:1.3;"></div>
+                                    <div id="psignPreviewName" style="font-size:0.9rem; font-weight:700; color:#000; line-height:1.3; margin-top:4px;"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -89,15 +130,15 @@
                     @Html.AntiForgeryToken()
                     <div class="row g-3">
                         <div class="col-md-5">
-                            <label class="form-label fw-semibold">Nama Kategori <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold">Nama Kategori <span class="text-danger">*</span></label>
                             <input type="text" name="name" class="form-control" value="@editCategory.Name" required maxlength="100" />
                         </div>
                         <div class="col-md-3">
-                            <label class="form-label fw-semibold">Nilai Lulus Default (%)</label>
+                            <label class="form-label fw-bold">Nilai Lulus Default (%)</label>
                             <input type="number" name="defaultPassPercentage" class="form-control" value="@editCategory.DefaultPassPercentage" min="0" max="100" />
                         </div>
                         <div class="col-md-2">
-                            <label class="form-label fw-semibold">Urutan</label>
+                            <label class="form-label fw-bold">Urutan</label>
                             <input type="number" name="sortOrder" class="form-control" value="@editCategory.SortOrder" min="0" />
                         </div>
                         <div class="col-md-2 d-flex align-items-end gap-2">
@@ -107,6 +148,48 @@
                             <a href="@Url.Action("ManageCategories", "Admin")" class="btn btn-outline-secondary">
                                 <i class="bi bi-x"></i>
                             </a>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-5">
+                            <label class="form-label fw-bold">Kategori Induk</label>
+                            <select class="form-select" name="parentId">
+                                <option value="">— Tidak ada (Kategori Utama) —</option>
+                                @if (ViewBag.PotentialParents != null)
+                                {
+                                    foreach (var pp in (IEnumerable<HcPortal.Models.AssessmentCategory>)ViewBag.PotentialParents)
+                                    {
+                                        var isSelected = editCategory.ParentId.HasValue && editCategory.ParentId.Value == pp.Id;
+                                        <option value="@pp.Id" @(isSelected ? "selected" : "")>@(pp.Parent != null ? "↳ " : "")@pp.Name</option>
+                                    }
+                                }
+                            </select>
+                            <div class="form-text">Kosongkan untuk membuat kategori utama.</div>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label fw-bold">Penandatangan</label>
+                            <select class="form-select" id="editSignatorySelect" name="signatoryUserId">
+                                <option value="">— Tidak ada —</option>
+                                @if (ViewBag.AllUsers != null)
+                                {
+                                    foreach (var u in (IEnumerable<dynamic>)ViewBag.AllUsers)
+                                    {
+                                        var isSelected = editCategory.SignatoryUserId == (string)u.Id;
+                                        <option value="@u.Id"
+                                                data-position="@u.Position"
+                                                data-fullname="@u.FullName"
+                                                @(isSelected ? "selected" : "")>@u.FullName (@u.NIP)</option>
+                                    }
+                                }
+                            </select>
+                            <div id="editPsignPreview" class="mt-3 @(editCategory.SignatoryUserId != null ? "" : "d-none")">
+                                <div class="text-muted small mb-1">Preview P-Sign pada sertifikat:</div>
+                                <div class="psign-badge-cert" style="display:inline-block; text-align:center; background:transparent;">
+                                    <img src="/images/psign-pertamina.png" style="height:48px; margin-bottom:8px;" />
+                                    <div id="editPsignPreviewPosition" style="font-size:0.85rem; color:#333; line-height:1.3;"></div>
+                                    <div id="editPsignPreviewName" style="font-size:0.9rem; font-weight:700; color:#000; line-height:1.3; margin-top:4px;"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </form>
@@ -135,22 +218,31 @@
                                 <th class="p-3">Nama Kategori</th>
                                 <th class="p-3 text-center" style="width:180px;">Nilai Lulus Default (%)</th>
                                 <th class="p-3 text-center" style="width:100px;">Urutan</th>
+                                <th class="p-3" style="width:160px;">Penandatangan</th>
                                 <th class="p-3 text-center" style="width:110px;">Status</th>
                                 <th class="p-3 text-center" style="width:160px;">Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @{ int idx = 0; }
-                            @foreach (var cat in Model)
+                            @{ var rowNum = 0; }
+                            @foreach (var parent in Model)
                             {
-                                idx++;
+                                rowNum++;
+                                var hasChildren = parent.Children.Any();
                                 <tr>
-                                    <td class="p-3 text-muted small">@idx</td>
-                                    <td class="p-3 fw-semibold">@cat.Name</td>
-                                    <td class="p-3 text-center">@cat.DefaultPassPercentage%</td>
-                                    <td class="p-3 text-center">@cat.SortOrder</td>
+                                    <td class="p-3 text-muted small">@rowNum</td>
+                                    <td class="p-3 fw-bold">
+                                        @parent.Name
+                                        @if (hasChildren)
+                                        {
+                                            <span class="badge bg-light text-secondary border ms-2 small">Parent</span>
+                                        }
+                                    </td>
+                                    <td class="p-3 text-center">@parent.DefaultPassPercentage%</td>
+                                    <td class="p-3 text-center">@parent.SortOrder</td>
+                                    <td class="p-3">@(parent.Signatory != null ? parent.Signatory.FullName : "—")</td>
                                     <td class="p-3 text-center">
-                                        @if (cat.IsActive)
+                                        @if (parent.IsActive)
                                         {
                                             <span class="badge bg-success">Aktif</span>
                                         }
@@ -161,28 +253,156 @@
                                     </td>
                                     <td class="p-3 text-center">
                                         <div class="btn-group btn-group-sm">
-                                            <a href="@Url.Action("EditCategory", "Admin", new { id = cat.Id })"
-                                               class="btn btn-outline-primary" title="Edit">
+                                            <a href="@Url.Action("EditCategory", "Admin", new { id = parent.Id })"
+                                               class="btn btn-outline-primary"
+                                               aria-label="Edit kategori"
+                                               title="Edit">
                                                 <i class="bi bi-pencil-square"></i>
                                             </a>
                                             <form method="post" action="@Url.Action("ToggleCategoryActive", "Admin")" style="display:inline;">
                                                 @Html.AntiForgeryToken()
-                                                <input type="hidden" name="id" value="@cat.Id" />
-                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="@(cat.IsActive ? "Nonaktifkan" : "Aktifkan")">
-                                                    <i class="bi @(cat.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
+                                                <input type="hidden" name="id" value="@parent.Id" />
+                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="@(parent.IsActive ? "Nonaktifkan" : "Aktifkan")">
+                                                    <i class="bi @(parent.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
                                                 </button>
                                             </form>
-                                            <button type="button" class="btn btn-sm btn-danger"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#deleteModal"
-                                                    data-id="@cat.Id"
-                                                    data-name="@cat.Name"
-                                                    title="Hapus">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
+                                            @if (hasChildren)
+                                            {
+                                                <button type="button" class="btn btn-sm btn-danger" disabled
+                                                        aria-label="Hapus kategori"
+                                                        title="Hapus sub-kategori terlebih dahulu sebelum menghapus kategori ini.">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-danger"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deleteModal"
+                                                        data-id="@parent.Id"
+                                                        data-name="@parent.Name"
+                                                        aria-label="Hapus kategori"
+                                                        title="Hapus">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            }
                                         </div>
                                     </td>
                                 </tr>
+                                @foreach (var child in parent.Children)
+                                {
+                                    rowNum++;
+                                    var childHasChildren = child.Children.Any();
+                                    <tr>
+                                        <td class="p-3 text-muted small">@rowNum</td>
+                                        <td class="p-3 ps-4">
+                                            <i class="bi bi-arrow-return-right text-muted me-2 small"></i>@child.Name
+                                            @if (childHasChildren)
+                                            {
+                                                <span class="badge bg-light text-secondary border ms-2 small">Parent</span>
+                                            }
+                                        </td>
+                                        <td class="p-3 text-center">@child.DefaultPassPercentage%</td>
+                                        <td class="p-3 text-center">@child.SortOrder</td>
+                                        <td class="p-3">@(child.Signatory != null ? child.Signatory.FullName : "—")</td>
+                                        <td class="p-3 text-center">
+                                            @if (child.IsActive)
+                                            {
+                                                <span class="badge bg-success">Aktif</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Nonaktif</span>
+                                            }
+                                        </td>
+                                        <td class="p-3 text-center">
+                                            <div class="btn-group btn-group-sm">
+                                                <a href="@Url.Action("EditCategory", "Admin", new { id = child.Id })"
+                                                   class="btn btn-outline-primary"
+                                                   aria-label="Edit kategori"
+                                                   title="Edit">
+                                                    <i class="bi bi-pencil-square"></i>
+                                                </a>
+                                                <form method="post" action="@Url.Action("ToggleCategoryActive", "Admin")" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@child.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="@(child.IsActive ? "Nonaktifkan" : "Aktifkan")">
+                                                        <i class="bi @(child.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
+                                                    </button>
+                                                </form>
+                                                @if (childHasChildren)
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-danger" disabled
+                                                            aria-label="Hapus kategori"
+                                                            title="Hapus sub-kategori terlebih dahulu sebelum menghapus kategori ini.">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" class="btn btn-sm btn-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal"
+                                                            data-id="@child.Id"
+                                                            data-name="@child.Name"
+                                                            aria-label="Hapus kategori"
+                                                            title="Hapus">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @foreach (var gc in child.Children)
+                                    {
+                                        rowNum++;
+                                        <tr>
+                                            <td class="p-3 text-muted small">@rowNum</td>
+                                            <td class="p-3 ps-5">
+                                                <i class="bi bi-arrow-return-right text-muted me-2 small"></i>@gc.Name
+                                            </td>
+                                            <td class="p-3 text-center">@gc.DefaultPassPercentage%</td>
+                                            <td class="p-3 text-center">@gc.SortOrder</td>
+                                            <td class="p-3">@(gc.Signatory != null ? gc.Signatory.FullName : "—")</td>
+                                            <td class="p-3 text-center">
+                                                @if (gc.IsActive)
+                                                {
+                                                    <span class="badge bg-success">Aktif</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">Nonaktif</span>
+                                                }
+                                            </td>
+                                            <td class="p-3 text-center">
+                                                <div class="btn-group btn-group-sm">
+                                                    <a href="@Url.Action("EditCategory", "Admin", new { id = gc.Id })"
+                                                       class="btn btn-outline-primary"
+                                                       aria-label="Edit kategori"
+                                                       title="Edit">
+                                                        <i class="bi bi-pencil-square"></i>
+                                                    </a>
+                                                    <form method="post" action="@Url.Action("ToggleCategoryActive", "Admin")" style="display:inline;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@gc.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-outline-warning" title="@(gc.IsActive ? "Nonaktifkan" : "Aktifkan")">
+                                                            <i class="bi @(gc.IsActive ? "bi-toggle-on" : "bi-toggle-off")"></i>
+                                                        </button>
+                                                    </form>
+                                                    <button type="button" class="btn btn-sm btn-danger"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#deleteModal"
+                                                            data-id="@gc.Id"
+                                                            data-name="@gc.Name"
+                                                            aria-label="Hapus kategori"
+                                                            title="Hapus">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
                             }
                         </tbody>
                     </table>
@@ -218,8 +438,10 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2/dist/js/tom-select.complete.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Delete modal
         var deleteModal = document.getElementById('deleteModal');
         if (deleteModal) {
             deleteModal.addEventListener('show.bs.modal', function (event) {
@@ -231,5 +453,38 @@
                 document.getElementById('deleteForm').action = '@Url.Action("DeleteCategory", "Admin")';
             });
         }
+
+        // tom-select for add form signatory
+        var addSig = document.getElementById('signatorySelect');
+        if (addSig) new TomSelect(addSig, { allowEmptyOption: true });
+
+        // tom-select for edit form signatory
+        var editSig = document.getElementById('editSignatorySelect');
+        if (editSig) new TomSelect(editSig, { allowEmptyOption: true });
+
+        // P-Sign preview logic — add form
+        function bindSignatoryPreview(selectId, previewId, positionId, nameId) {
+            var sel = document.getElementById(selectId);
+            var preview = document.getElementById(previewId);
+            if (!sel || !preview) return;
+
+            function updatePreview() {
+                var opt = sel.options[sel.selectedIndex];
+                if (!opt || !opt.value) {
+                    preview.classList.add('d-none');
+                    return;
+                }
+                preview.classList.remove('d-none');
+                document.getElementById(positionId).textContent = opt.dataset.position || '';
+                document.getElementById(nameId).textContent = opt.dataset.fullname || '';
+            }
+
+            sel.addEventListener('change', updatePreview);
+            // Initialize on load (for edit form with pre-selected value)
+            updatePreview();
+        }
+
+        bindSignatoryPreview('signatorySelect', 'psignPreview', 'psignPreviewPosition', 'psignPreviewName');
+        bindSignatoryPreview('editSignatorySelect', 'editPsignPreview', 'editPsignPreviewPosition', 'editPsignPreviewName');
     });
 </script>
