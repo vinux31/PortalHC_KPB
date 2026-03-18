@@ -295,7 +295,11 @@ Plans:
   3. GetWorkersInSection() exists only in the shared service class — role-scoped worker lists in Admin and CMP produce the same results as before
   4. NotifyIfGroupCompleted() exists only in the shared service class with a single consistent logic path — the Admin-side "allow Cancelled" divergence is resolved to one correct behavior
   5. The project compiles with zero errors and all existing pages that use these methods behave identically to pre-refactor
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 196-01-PLAN.md — IWorkerDataService interface + WorkerDataService implementation + DI registration
+- [ ] 196-02-PLAN.md — Replace private methods in AdminController + CMPController with service calls
 
 ### Phase 197: Excel Export Helper
 **Goal**: Common Excel export boilerplate (header setup, column formatting, data population) lives in a single ExcelExportHelper class instead of being repeated across 4 controllers
@@ -336,7 +340,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 196. Shared Service Extraction | v7.6 | 0/TBD | Not started | - |
+| 196. Shared Service Extraction | v7.6 | 0/2 | Planning complete | - |
 | 197. Excel Export Helper | v7.6 | 0/TBD | Not started | - |
 | 198. CRUD Consolidation | v7.6 | 0/TBD | Not started | - |
 | 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
