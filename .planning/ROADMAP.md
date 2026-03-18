@@ -151,7 +151,7 @@ Plans:
 **Goal**: BuildSertifikatRowsAsync helper di CDPController yang menggabungkan TrainingRecord + AssessmentSession dengan role-scoped access mengikuti pattern GetCurrentUserRoleLevelAsync() dari v7.6
 **Depends on**: Phase 185
 **Requirements**: ROLE-01, ROLE-02, ROLE-03
-**Plans**: TBD
+**Plans**: 1 plan
 **Notes**:
 - Ikuti pattern CMPController.GetCurrentUserRoleLevelAsync() (L1-3 full, L4 section, L5 coach assignments, L6 own data)
 - Gunakan UserRoles.GetRoleLevel() yang sudah ada
@@ -164,7 +164,7 @@ Plans:
 **Goal**: User bisa navigasi ke Certification Management dari CDP/Index, melihat summary cards (Total, Aktif, Akan Expired, Expired), dan tabel sertifikat dengan status highlighting + pagination
 **Depends on**: Phase 186
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
-**Plans**: TBD
+**Plans**: 1 plan
 **Notes**:
 - Gunakan PaginationHelper.Calculate() untuk pagination tabel
 - Summary cards dihitung dari full dataset sebelum pagination
@@ -177,7 +177,7 @@ Plans:
 **Goal**: Filter tabel sertifikat by Bagian/Unit cascade, status, tipe (Training/Assessment), dan free-text search — semua filter update tabel + summary cards via AJAX tanpa reload
 **Depends on**: Phase 187
 **Requirements**: FILT-01, FILT-02, FILT-03, FILT-04
-**Plans**: TBD
+**Plans**: 1 plan
 **Notes**:
 - Ikuti pattern AJAX yang sudah ada di CDPController (partial view return)
 - PaginationHelper tetap dipakai di AJAX response
@@ -189,7 +189,7 @@ Plans:
 **Goal**: User bisa lihat/download sertifikat individual, Admin/HC bisa export filtered list ke Excel menggunakan ExcelExportHelper
 **Depends on**: Phase 188
 **Requirements**: ACT-01, ACT-02, ACT-03
-**Plans**: TBD
+**Plans**: 1 plan
 **Notes**:
 - View/download: TrainingRecord → redirect ke SertifikatUrl, AssessmentSession → redirect ke CMP/CertificatePdf
 - Export: gunakan ExcelExportHelper.CreateSheet() + ToFileResult() (bukan boilerplate ClosedXML manual)
