@@ -2150,7 +2150,7 @@ namespace HcPortal.Controllers
                 ws.Cell(row, 1).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "";
                 ws.Cell(row, 2).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "";
                 ws.Cell(row, 3).Value = p.ProtonDeliverable?.NamaDeliverable ?? "";
-                ws.Cell(row, 4).Value = p.EvidencePath != null ? "Sudah Upload" : "Belum Upload";
+                ws.Cell(row, 4).Value = p.Status == "Rejected" ? "Rejected" : (p.Status != "Pending" ? "Sudah Upload" : "Belum Upload");
                 ws.Cell(row, 5).Value = p.SrSpvApprovalStatus;
                 ws.Cell(row, 6).Value = p.ShApprovalStatus;
                 ws.Cell(row, 7).Value = p.HCApprovalStatus;
@@ -2242,7 +2242,7 @@ namespace HcPortal.Controllers
                                 table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "").FontSize(7);
                                 table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "").FontSize(7);
                                 table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ProtonDeliverable?.NamaDeliverable ?? "").FontSize(7);
-                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.EvidencePath != null ? "Sudah Upload" : "Belum Upload").FontSize(7);
+                                table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.Status == "Rejected" ? "Rejected" : (p.Status != "Pending" ? "Sudah Upload" : "Belum Upload")).FontSize(7);
                                 table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.SrSpvApprovalStatus).FontSize(7);
                                 table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.ShApprovalStatus).FontSize(7);
                                 table.Cell().BorderBottom(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(3).Text(p.HCApprovalStatus).FontSize(7);
@@ -2577,7 +2577,7 @@ namespace HcPortal.Controllers
                 kompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "",
                 subKompetensi = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "",
                 deliverable = p.ProtonDeliverable?.NamaDeliverable ?? "",
-                evidenceStatus = p.EvidencePath != null ? "Uploaded" : "Pending",
+                evidenceStatus = p.Status == "Rejected" ? "Rejected" : (p.Status != "Pending" ? "Uploaded" : "Pending"),
                 approvalSrSpv = p.Status == "Approved" ? "Approved" : p.Status == "Rejected" ? "Rejected" : p.Status == "Submitted" ? "Pending" : "Not Started",
                 approvalSectionHead = p.Status == "Approved" ? "Approved" : p.Status == "Rejected" ? "Rejected" : p.Status == "Submitted" ? "Pending" : "Not Started",
                 approvalHC = p.HCApprovalStatus == "Reviewed" ? "Approved" : "Pending",
