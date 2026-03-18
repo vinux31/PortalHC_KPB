@@ -9,10 +9,10 @@ Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps 
 
 ### Shared Services
 
-- [ ] **SVC-01**: GetUnifiedRecords() di-extract dari AdminController + CMPController ke shared service class
-- [ ] **SVC-02**: GetAllWorkersHistory() di-extract ke shared service (duplikat ~80 baris di Admin + CMP)
-- [ ] **SVC-03**: GetWorkersInSection() di-extract ke shared service (duplikat ~100 baris di Admin + CMP)
-- [ ] **SVC-04**: NotifyIfGroupCompleted() di-extract ke shared service — logic divergence antara Admin (izinkan Cancelled) dan CMP (hanya Completed) diperbaiki jadi satu versi konsisten
+- [x] **SVC-01**: GetUnifiedRecords() di-extract dari AdminController + CMPController ke shared service class
+- [x] **SVC-02**: GetAllWorkersHistory() di-extract ke shared service (duplikat ~80 baris di Admin + CMP)
+- [x] **SVC-03**: GetWorkersInSection() di-extract ke shared service (duplikat ~100 baris di Admin + CMP)
+- [x] **SVC-04**: NotifyIfGroupCompleted() di-extract ke shared service — logic divergence antara Admin (izinkan Cancelled) dan CMP (hanya Completed) diperbaiki jadi satu versi konsisten
 - [ ] **SVC-05**: Common Excel export helper di-extract dari 4 controller (Admin, CMP, CDP, ProtonData) — shared header setup, data population, dan formatting
 
 ### CRUD Consolidation
@@ -47,10 +47,10 @@ Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SVC-01 | Phase 196 | Pending |
-| SVC-02 | Phase 196 | Pending |
-| SVC-03 | Phase 196 | Pending |
-| SVC-04 | Phase 196 | Pending |
+| SVC-01 | Phase 196 | Complete |
+| SVC-02 | Phase 196 | Complete |
+| SVC-03 | Phase 196 | Complete |
+| SVC-04 | Phase 196 | Complete |
 | SVC-05 | Phase 197 | Pending |
 | CRUD-01 | Phase 198 | Pending |
 | CRUD-02 | Phase 198 | Pending |

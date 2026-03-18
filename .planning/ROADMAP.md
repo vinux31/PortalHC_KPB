@@ -340,7 +340,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 196. Shared Service Extraction | v7.6 | 0/2 | Planning complete | - |
+| 196. Shared Service Extraction | 1/2 | In Progress|  | - |
 | 197. Excel Export Helper | v7.6 | 0/TBD | Not started | - |
 | 198. CRUD Consolidation | v7.6 | 0/TBD | Not started | - |
 | 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
