@@ -711,16 +711,15 @@ namespace HcPortal.Controllers
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
 
-            var totalCount = grouped.Count;
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var paging = PaginationHelper.Calculate(grouped.Count, page, pageSize);
 
             ViewBag.ManagementData = grouped
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip(paging.Skip)
+                .Take(paging.Take)
                 .ToList();
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalCount = totalCount;
+            ViewBag.CurrentPage = paging.CurrentPage;
+            ViewBag.TotalPages = paging.TotalPages;
+            ViewBag.TotalCount = paging.TotalCount;
             ViewBag.SearchTerm = search;
 
             // Tab routing — default to "assessment"
@@ -2948,22 +2947,17 @@ namespace HcPortal.Controllers
             if (endDate.HasValue)
                 query = query.Where(a => a.CreatedAt < endDate.Value.AddDays(1));
 
-            var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
-
-            // Clamp page to valid range
-            if (page < 1) page = 1;
-            if (page > totalPages && totalPages > 0) page = totalPages;
+            var paging = PaginationHelper.Calculate(await query.CountAsync(), page, pageSize);
 
             var logs = await query
                 .OrderByDescending(a => a.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip(paging.Skip)
+                .Take(paging.Take)
                 .ToListAsync();
 
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalCount = totalCount;
+            ViewBag.CurrentPage = paging.CurrentPage;
+            ViewBag.TotalPages = paging.TotalPages;
+            ViewBag.TotalCount = paging.TotalCount;
             ViewBag.StartDate = startDate?.ToString("yyyy-MM-dd");
             ViewBag.EndDate = endDate?.ToString("yyyy-MM-dd");
 
@@ -3426,11 +3420,8 @@ namespace HcPortal.Controllers
                 .OrderBy(g => g.CoachName)
                 .ToList();
 
-            var totalCoachGroups = grouped.Count;
-            var totalPages = (int)Math.Ceiling(totalCoachGroups / (double)pageSize);
-            if (page < 1) page = 1;
-            if (page > totalPages && totalPages > 0) page = totalPages;
-            var paged = grouped.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+            var paging = PaginationHelper.Calculate(grouped.Count, page, pageSize);
+            var paged = grouped.Skip(paging.Skip).Take(paging.Take).ToList();
 
             // 6. Modal data: eligible coaches, eligible coachees, proton tracks
             var activeCoacheeIds = await _context.CoachCoacheeMappings
@@ -3440,9 +3431,9 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             ViewBag.GroupedCoaches = paged;
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalCount = totalCoachGroups;
+            ViewBag.CurrentPage = paging.CurrentPage;
+            ViewBag.TotalPages = paging.TotalPages;
+            ViewBag.TotalCount = paging.TotalCount;
             ViewBag.ShowAll = showAll;
             ViewBag.SearchTerm = search;
             ViewBag.SectionFilter = section;
@@ -5271,17 +5262,10 @@ namespace HcPortal.Controllers
             }
 
             // Handle file upload
-            if (model.CertificateFile != null && model.CertificateFile.Length > 0)
+            var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
+            if (uploadedUrl != null)
             {
-                var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
-                Directory.CreateDirectory(uploadDir);
-                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
-                var filePath = Path.Combine(uploadDir, safeFileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await model.CertificateFile.CopyToAsync(stream);
-                }
-                sertifikatUrl = $"/uploads/certificates/{safeFileName}";
+                sertifikatUrl = uploadedUrl;
             }
 
             var record = new TrainingRecord
@@ -5390,15 +5374,8 @@ namespace HcPortal.Controllers
                     if (System.IO.File.Exists(oldPath)) System.IO.File.Delete(oldPath);
                 }
 
-                var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "certificates");
-                Directory.CreateDirectory(uploadDir);
-                var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(model.CertificateFile.FileName)}";
-                var filePath = Path.Combine(uploadDir, safeFileName);
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await model.CertificateFile.CopyToAsync(stream);
-                }
-                record.SertifikatUrl = $"/uploads/certificates/{safeFileName}";
+                var uploadedUrl = await FileUploadHelper.SaveFileAsync(model.CertificateFile, _env.WebRootPath, "uploads/certificates");
+                if (uploadedUrl != null) record.SertifikatUrl = uploadedUrl;
             }
 
             record.Judul = model.Judul;

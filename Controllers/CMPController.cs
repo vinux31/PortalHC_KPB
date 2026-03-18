@@ -209,14 +209,13 @@ namespace HcPortal.Controllers
             ViewBag.SearchTerm = search;
 
             // Get total count for pagination
-            var totalCount = await query.CountAsync();
-            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+            var paging = PaginationHelper.Calculate(await query.CountAsync(), page, pageSize);
 
             // Execute Query with pagination
             var exams = await query
                 .OrderByDescending(a => a.Schedule)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip(paging.Skip)
+                .Take(paging.Take)
                 .ToListAsync();
 
             // Auto-transition display: show Upcoming as Open when scheduled date+time has arrived in WIB (display-only, no SaveChangesAsync)
@@ -228,9 +227,9 @@ namespace HcPortal.Controllers
             }
 
             // Pagination info for view
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalCount = totalCount;
+            ViewBag.CurrentPage = paging.CurrentPage;
+            ViewBag.TotalPages = paging.TotalPages;
+            ViewBag.TotalCount = paging.TotalCount;
             ViewBag.PageSize = pageSize;
 
             // ========== RIWAYAT UJIAN: completed assessment history for worker ==========

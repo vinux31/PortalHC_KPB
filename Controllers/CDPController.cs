@@ -1120,23 +1120,12 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Deliverable", new { id = progressId });
             }
 
-            // Build upload directory
-            var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "evidence", progressId.ToString());
-            Directory.CreateDirectory(uploadDir);
-
-            // Sanitize filename: timestamp prefix + original filename (Path.GetFileName prevents path traversal)
-            var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Path.GetFileName(evidenceFile.FileName)}";
-            var filePath = Path.Combine(uploadDir, safeFileName);
-
-            // Write file to disk
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await evidenceFile.CopyToAsync(stream);
-            }
+            // Upload evidence file
+            var evidenceUrl = await FileUploadHelper.SaveFileAsync(evidenceFile, _env.WebRootPath, $"uploads/evidence/{progressId}");
 
             // Update progress record
             bool wasRejected = progress.Status == "Rejected";
-            progress.EvidencePath = $"/uploads/evidence/{progressId}/{safeFileName}";
+            progress.EvidencePath = evidenceUrl!;
             progress.EvidenceFileName = evidenceFile.FileName;
             progress.Status = "Submitted";
             progress.SubmittedAt = DateTime.UtcNow;
