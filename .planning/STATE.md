@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Completed 185-01-PLAN.md
-last_updated: "2026-03-18T07:38:10.410Z"
+stopped_at: Completed 186-01-PLAN.md
+last_updated: "2026-03-18T07:47:29.658Z"
 last_activity: 2026-03-18 — Completed 198-01-PLAN.md
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 ---
@@ -116,6 +116,8 @@ Progress: [██████████] 100%
 - [Phase 199]: CDPController evidence upload also refactored to FileUploadHelper (same inline pattern)
 - [Phase 199]: Removed explicit user null checks in refactored CMPController actions (class-level Authorize guarantees auth)
 - [Phase 185]: DeriveCertificateStatus sebagai static method pada SertifikatRow — tipe co-located dalam satu file
+- [Phase 186]: Post-materialization pattern untuk DeriveCertificateStatus — project ke anonymous type dulu sebelum mapping ke SertifikatRow
+- [Phase 186]: L5 scoping: coach.Id ditambahkan ke coacheeIds agar coach melihat sertifikat diri sendiri
 
 ### Roadmap Evolution
 
@@ -127,6 +129,6 @@ Progress: [██████████] 100%
 
 ## Session Continuity
 
-Last session: 2026-03-18T07:35:32.463Z
-Stopped at: Completed 185-01-PLAN.md
+Last session: 2026-03-18T07:47:20.464Z
+Stopped at: Completed 186-01-PLAN.md
 Resume file: None
