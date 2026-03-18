@@ -23,9 +23,9 @@ Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps 
 
 ### Code Patterns
 
-- [ ] **PAT-01**: File upload logic untuk KKJ dan CPDP di AdminController di-extract ke FileUploadHelper class (validasi, safe filename, save file, audit log — 90% identik)
+- [x] **PAT-01**: File upload logic untuk KKJ dan CPDP di AdminController di-extract ke FileUploadHelper class (validasi, safe filename, save file, audit log — 90% identik)
 - [ ] **PAT-02**: Role-scoping enforcement logic yang berulang di CMPController (3+ tempat) di-extract ke private helper method
-- [ ] **PAT-03**: Pagination logic yang berulang di 5+ tempat (Admin, CMP, CDP) di-extract ke helper atau extension method
+- [x] **PAT-03**: Pagination logic yang berulang di 5+ tempat (Admin, CMP, CDP) di-extract ke helper atau extension method
 
 ## Future Requirements
 
@@ -55,9 +55,9 @@ Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps 
 | CRUD-01 | Phase 198 | Complete |
 | CRUD-02 | Phase 198 | Complete |
 | CRUD-03 | Phase 198 | Complete |
-| PAT-01 | Phase 199 | Pending |
+| PAT-01 | Phase 199 | Complete |
 | PAT-02 | Phase 199 | Pending |
-| PAT-03 | Phase 199 | Pending |
+| PAT-03 | Phase 199 | Complete |
 
 **Coverage:**
 - v7.6 requirements: 11 total
