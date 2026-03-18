@@ -294,6 +294,24 @@ namespace HcPortal.Controllers
         }
 
         // ============================================================
+        // Phase 190: GetSubCategories — cascade AJAX untuk filter Sertifikat
+        // ============================================================
+        [HttpGet]
+        public async Task<IActionResult> GetSubCategories(string? category)
+        {
+            if (string.IsNullOrEmpty(category))
+                return Json(new List<string>());
+
+            var subCategories = await _context.AssessmentCategories
+                .Where(c => c.ParentId != null && c.Parent!.Name == category && c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .Select(c => c.Name)
+                .ToListAsync();
+
+            return Json(subCategories);
+        }
+
+        // ============================================================
         // Helper: Coachee personal deliverable sub-model
         // ============================================================
         private async Task<CoacheeDashboardSubModel> BuildCoacheeSubModelAsync(string userId)
@@ -3025,7 +3043,7 @@ namespace HcPortal.Controllers
 
         public async Task<IActionResult> CertificationManagement(int page = 1)
         {
-            var allRows = await BuildSertifikatRowsAsync();
+            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
 
             // Sort: TanggalTerbit descending (terbaru dulu)
             allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
@@ -3039,6 +3057,7 @@ namespace HcPortal.Controllers
                 ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
                 PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
             };
+            vm.RoleLevel = roleLevel;
 
             // Pagination
             var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
@@ -3047,6 +3066,12 @@ namespace HcPortal.Controllers
             vm.TotalPages = paging.TotalPages;
 
             ViewBag.AllBagian = OrganizationStructure.GetAllSections();
+            ViewBag.AllCategories = await _context.AssessmentCategories
+                .Where(c => c.ParentId == null && c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .Select(c => c.Name)
+                .ToListAsync();
+            ViewBag.UserBagian = (await GetCurrentUserRoleLevelAsync()).User.Section;
             return View(vm);
         }
 
@@ -3057,9 +3082,11 @@ namespace HcPortal.Controllers
             string? status = null,
             string? tipe = null,
             string? search = null,
+            string? category = null,
+            string? subCategory = null,
             int page = 1)
         {
-            var allRows = await BuildSertifikatRowsAsync();
+            var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
 
             // Apply filters in-memory (status is derived, not a DB column)
             if (!string.IsNullOrEmpty(bagian))
@@ -3079,6 +3106,10 @@ namespace HcPortal.Controllers
                     (r.NomorSertifikat?.ToLower().Contains(q) ?? false)
                 ).ToList();
             }
+            if (!string.IsNullOrEmpty(category))
+                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.Kategori == category).ToList();
+            if (!string.IsNullOrEmpty(subCategory))
+                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.SubKategori == subCategory).ToList();
 
             allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
 
@@ -3090,6 +3121,7 @@ namespace HcPortal.Controllers
                 ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
                 PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
             };
+            vm.RoleLevel = roleLevel;
 
             var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
             vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
@@ -3106,9 +3138,11 @@ namespace HcPortal.Controllers
             string? unit = null,
             string? status = null,
             string? tipe = null,
-            string? search = null)
+            string? search = null,
+            string? category = null,
+            string? subCategory = null)
         {
-            var allRows = await BuildSertifikatRowsAsync();
+            var (allRows, _) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
 
             // Filter logic duplikasi dari FilterCertificationManagement
             if (!string.IsNullOrEmpty(bagian))
@@ -3128,12 +3162,16 @@ namespace HcPortal.Controllers
                     (r.NomorSertifikat?.ToLower().Contains(q) ?? false)
                 ).ToList();
             }
+            if (!string.IsNullOrEmpty(category))
+                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.Kategori == category).ToList();
+            if (!string.IsNullOrEmpty(subCategory))
+                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.SubKategori == subCategory).ToList();
             allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
 
             using var workbook = new XLWorkbook();
             var ws = ExcelExportHelper.CreateSheet(workbook, "Sertifikat", new[]
             {
-                "No", "Nama", "Bagian", "Unit", "Judul", "Kategori",
+                "No", "Nama", "Bagian", "Unit", "Judul", "Kategori", "Sub Kategori",
                 "Nomor Sertifikat", "Tgl Terbit", "Valid Until", "Tipe", "Status", "Sertifikat URL"
             });
 
@@ -3147,19 +3185,20 @@ namespace HcPortal.Controllers
                 ws.Cell(row, 4).Value = r.Unit ?? "";
                 ws.Cell(row, 5).Value = r.Judul;
                 ws.Cell(row, 6).Value = r.Kategori ?? "";
-                ws.Cell(row, 7).Value = r.NomorSertifikat ?? "";
-                ws.Cell(row, 8).Value = r.TanggalTerbit?.ToString("dd MMM yyyy") ?? "";
-                ws.Cell(row, 9).Value = r.ValidUntil?.ToString("dd MMM yyyy") ?? "";
-                ws.Cell(row, 10).Value = r.RecordType.ToString();
-                ws.Cell(row, 11).Value = r.Status.ToString();
-                ws.Cell(row, 12).Value = r.SertifikatUrl ?? "";
+                ws.Cell(row, 7).Value = r.SubKategori ?? "";
+                ws.Cell(row, 8).Value = r.NomorSertifikat ?? "";
+                ws.Cell(row, 9).Value = r.TanggalTerbit?.ToString("dd MMM yyyy") ?? "";
+                ws.Cell(row, 10).Value = r.ValidUntil?.ToString("dd MMM yyyy") ?? "";
+                ws.Cell(row, 11).Value = r.RecordType.ToString();
+                ws.Cell(row, 12).Value = r.Status.ToString();
+                ws.Cell(row, 13).Value = r.SertifikatUrl ?? "";
             }
 
             var fileName = $"Sertifikat_Export_{DateTime.Now:yyyy-MM-dd}.xlsx";
             return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
-        private async Task<List<SertifikatRow>> BuildSertifikatRowsAsync()
+        private async Task<(List<SertifikatRow> rows, int roleLevel)> BuildSertifikatRowsAsync(bool l5OwnDataOnly = false)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
@@ -3180,13 +3219,20 @@ namespace HcPortal.Controllers
             }
             else if (roleLevel == 5)
             {
-                // L5: coach sees mapped coachees + own data
-                var coacheeIds = await _context.CoachCoacheeMappings
-                    .Where(m => m.CoachId == user.Id && m.IsActive)
-                    .Select(m => m.CoacheeId)
-                    .ToListAsync();
-                coacheeIds.Add(user.Id);
-                scopedUserIds = coacheeIds;
+                if (l5OwnDataOnly)
+                {
+                    scopedUserIds = new List<string> { user.Id };
+                }
+                else
+                {
+                    // L5: coach sees mapped coachees + own data
+                    var coacheeIds = await _context.CoachCoacheeMappings
+                        .Where(m => m.CoachId == user.Id && m.IsActive)
+                        .Select(m => m.CoacheeId)
+                        .ToListAsync();
+                    coacheeIds.Add(user.Id);
+                    scopedUserIds = coacheeIds;
+                }
             }
             else
             {
@@ -3227,6 +3273,7 @@ namespace HcPortal.Controllers
                 Unit = t.Unit,
                 Judul = t.Judul,
                 Kategori = t.Kategori,
+                SubKategori = null, // Training tidak punya sub-category
                 NomorSertifikat = t.NomorSertifikat,
                 TanggalTerbit = t.TanggalTerbit,
                 ValidUntil = t.ValidUntil,
@@ -3265,6 +3312,7 @@ namespace HcPortal.Controllers
                 Unit = a.Unit,
                 Judul = a.Title,
                 Kategori = a.Category,
+                SubKategori = null, // AssessmentSession tidak menyimpan sub-category
                 NomorSertifikat = a.NomorSertifikat,
                 TanggalTerbit = a.CompletedAt,
                 ValidUntil = a.ValidUntil,
@@ -3276,7 +3324,7 @@ namespace HcPortal.Controllers
             var rows = new List<SertifikatRow>(trainingRows.Count + assessmentRows.Count);
             rows.AddRange(trainingRows);
             rows.AddRange(assessmentRows);
-            return rows;
+            return (rows, roleLevel);
         }
 
     }
