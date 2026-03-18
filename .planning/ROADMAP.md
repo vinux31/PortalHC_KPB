@@ -115,58 +115,94 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 
 **Milestone Goal:** New CDP menu "Certification Management" — unified table of all certificates (TrainingRecord + AssessmentSession) with expiry status, role-scoped views, filters, and Excel export.
 
+**Updated 2026-03-18:** Disesuaikan setelah v7.5 & v7.6 shipped — memanfaatkan field baru (ValidUntil, NomorSertifikat) dan shared helpers (ExcelExportHelper, PaginationHelper, GetCurrentUserRoleLevelAsync pattern).
+
+### Data Sources
+
+| Source | Certificate Fields | Expiry | Nomor |
+|--------|-------------------|--------|-------|
+| **TrainingRecord** | SertifikatUrl, ValidUntil, CertificateType | ✅ ValidUntil + CertificateType (Permanent/Annual/3-Year) | NomorSertifikat |
+| **AssessmentSession** | GenerateCertificate, ValidUntil | ✅ ValidUntil (nullable = no expiry) | NomorSertifikat (auto KPB/{SEQ}/{ROMAN}/{YEAR}) |
+
+### Shared Infrastructure (dari v7.5/v7.6)
+
+- `Helpers/ExcelExportHelper.cs` — CreateSheet() + ToFileResult() → Phase 189
+- `Helpers/PaginationHelper.cs` — Calculate() → Phase 187/188
+- `CMPController.GetCurrentUserRoleLevelAsync()` — role-scoping pattern → Phase 186
+- `Helpers/FileUploadHelper.cs` — jika perlu upload bukti
+
 ## Phase Details
 
 ### Phase 185: ViewModel and Data Model Foundation
-**Goal**: The SertifikatRow and CertificationManagementViewModel are defined with correct RecordType discriminator, server-side CertificateStatus derivation, and canonical date mapping for both data sources
-**Depends on**: Phase 184
+**Goal**: SertifikatRow dan CertificationManagementViewModel didefinisikan dengan RecordType discriminator (Training/Assessment), CertificateStatus derivation dari ValidUntil, dan mapping canonical dari kedua data source
+**Depends on**: Phase 195 (AssessmentSession.ValidUntil & NomorSertifikat sudah ada)
 **Requirements**: DATA-01, DATA-02
-**Plans**: TBD
+**Plans**: 1 plan
+**Notes**:
+- TrainingRecord sudah punya: ValidUntil, NomorSertifikat, CertificateType, SertifikatUrl, IsExpiringSoon (computed)
+- AssessmentSession sudah punya: ValidUntil, NomorSertifikat, GenerateCertificate, IsPassed
+- CertificateStatus enum: Aktif, AkanExpired (≤30 hari), Expired, TidakAdaExpiry (permanent)
+- Tidak perlu migration — semua field sudah ada di DB
 
 Plans:
 - [ ] 185-01-PLAN.md — Define SertifikatRow, CertificationManagementViewModel, CertificateStatus derivation logic
 
 ### Phase 186: Role-Scoped Data Query Helper
-**Goal**: BuildSertifikatRowsAsync private helper enforces role-scoped access for all four role tiers using a single allowed-user-ID set applied consistently to both TrainingRecord and AssessmentSession queries
+**Goal**: BuildSertifikatRowsAsync helper di CDPController yang menggabungkan TrainingRecord + AssessmentSession dengan role-scoped access mengikuti pattern GetCurrentUserRoleLevelAsync() dari v7.6
 **Depends on**: Phase 185
 **Requirements**: ROLE-01, ROLE-02, ROLE-03
 **Plans**: TBD
+**Notes**:
+- Ikuti pattern CMPController.GetCurrentUserRoleLevelAsync() (L1-3 full, L4 section, L5 coach assignments, L6 own data)
+- Gunakan UserRoles.GetRoleLevel() yang sudah ada
+- Query kedua tabel lalu merge ke List<SertifikatRow>
 
 Plans:
 - [ ] 186-01-PLAN.md — BuildSertifikatRowsAsync helper with unified role-scoping and dual-source query merge
 
 ### Phase 187: Full-Page Controller Action and Static View
-**Goal**: Users can navigate to Certification Management from CDP/Index, see summary cards (Total, Aktif, Akan Expired, Expired), and view a full certificate table with visual status highlighting
+**Goal**: User bisa navigasi ke Certification Management dari CDP/Index, melihat summary cards (Total, Aktif, Akan Expired, Expired), dan tabel sertifikat dengan status highlighting + pagination
 **Depends on**: Phase 186
 **Requirements**: DASH-01, DASH-02, DASH-03, DASH-04
 **Plans**: TBD
+**Notes**:
+- Gunakan PaginationHelper.Calculate() untuk pagination tabel
+- Summary cards dihitung dari full dataset sebelum pagination
+- Status badge: hijau (Aktif), kuning (Akan Expired), merah (Expired), abu-abu (Permanent)
 
 Plans:
-- [ ] 187-01-PLAN.md — CertificationManagement GET action + CertificationManagement.cshtml static table + summary cards + CDP/Index entry card
+- [ ] 187-01-PLAN.md — CertificationManagement GET action + View + summary cards + CDP/Index entry card + PaginationHelper
 
 ### Phase 188: AJAX Filter Bar
-**Goal**: Users can filter the certificate table by Bagian/Unit cascade, status, type, and free-text search — all filters update the table and summary cards without full page reload
+**Goal**: Filter tabel sertifikat by Bagian/Unit cascade, status, tipe (Training/Assessment), dan free-text search — semua filter update tabel + summary cards via AJAX tanpa reload
 **Depends on**: Phase 187
 **Requirements**: FILT-01, FILT-02, FILT-03, FILT-04
 **Plans**: TBD
+**Notes**:
+- Ikuti pattern AJAX yang sudah ada di CDPController (partial view return)
+- PaginationHelper tetap dipakai di AJAX response
 
 Plans:
 - [ ] 188-01-PLAN.md — FilterCertificationManagement AJAX action + _CertificationManagementTablePartial + JS filter wiring
 
 ### Phase 189: Certificate Actions and Excel Export
-**Goal**: Users can view or download individual certificates, and Admin/HC can export the filtered certificate list to Excel
+**Goal**: User bisa lihat/download sertifikat individual, Admin/HC bisa export filtered list ke Excel menggunakan ExcelExportHelper
 **Depends on**: Phase 188
 **Requirements**: ACT-01, ACT-02, ACT-03
 **Plans**: TBD
+**Notes**:
+- View/download: TrainingRecord → redirect ke SertifikatUrl, AssessmentSession → redirect ke CMP/CertificatePdf
+- Export: gunakan ExcelExportHelper.CreateSheet() + ToFileResult() (bukan boilerplate ClosedXML manual)
+- Export button hanya tampil untuk Admin/HC (role-gated)
 
 Plans:
-- [ ] 189-01-PLAN.md — ACT-01/ACT-02 view and download actions + ExportSertifikatExcel ClosedXML action + Export button (role-gated)
+- [ ] 189-01-PLAN.md — View/download actions + ExportSertifikatExcel via ExcelExportHelper + Export button (role-gated)
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 185. ViewModel and Data Model Foundation | v7.4 | 0/TBD | Not started | - |
+| 185. ViewModel and Data Model Foundation | v7.4 | 0/1 | Not started | - |
 | 186. Role-Scoped Data Query Helper | v7.4 | 0/TBD | Not started | - |
 | 187. Full-Page Controller Action and Static View | v7.4 | 0/TBD | Not started | - |
 | 188. AJAX Filter Bar | v7.4 | 0/TBD | Not started | - |
