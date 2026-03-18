@@ -34,10 +34,12 @@ key-files:
   modified:
     - Views/CDP/CertificationManagement.cshtml
     - Views/CDP/Shared/_CertificationManagementTablePartial.cshtml
+    - Controllers/CDPController.cs
 
 key-decisions:
   - "Filter Bagian: L4 disabled+pre-fill, L5/L6 disabled; Unit: L5/L6 always disabled, L4 auto-loaded on page load"
   - "colCount dinamis: 13 untuk L1-4 (dengan Nama/Bagian/Unit), 10 untuk L5/L6"
+  - "Category/SubKategori resolved dari AssessmentCategories hierarchy di BuildSertifikatRowsAsync — jika AssessmentSession.Category adalah child category, maka parent jadi Kategori dan child jadi SubKategori"
 
 patterns-established:
   - "RoleLevel-gated Razor: wrap seluruh blok HTML dengan @if (Model.RoleLevel <= 4) / >= 5"
@@ -74,16 +76,33 @@ completed: 2026-03-18
 ## Task Commits
 
 1. **Task 1 + Task 2: Filter Category/Sub-Category cascade, role-based rendering, kolom Sub Kategori** - `358f714` (feat)
+2. **Task 3: Bug fix — Category/SubKategori column swap di BuildSertifikatRowsAsync** - `59ac342` (fix)
 
 ## Files Created/Modified
 - `Views/CDP/CertificationManagement.cshtml` - Filter bar + summary cards + JS cascade + role-based disabled state
 - `Views/CDP/Shared/_CertificationManagementTablePartial.cshtml` - Kolom Sub Kategori + role-based column visibility + dinamis colspan
+- `Controllers/CDPController.cs` - BuildSertifikatRowsAsync: load AssessmentCategories hierarchy, resolve child→parent mapping untuk Kategori/SubKategori
 
 ## Decisions Made
-- Dua task digabung dalam satu commit karena keduanya merupakan frontend-only view changes tanpa dependency antar commit
+- Dua task frontend digabung dalam satu commit karena keduanya merupakan view-only changes tanpa dependency antar commit
+- Category hierarchy lookup menggunakan in-memory dictionary setelah single ToListAsync — lebih efisien daripada per-row DB query
 
 ## Deviations from Plan
-None - plan dieksekusi tepat sesuai spesifikasi.
+
+### Auto-fixed Issues
+
+**1. [Rule 1 - Bug] Fixed Gas Tester tampil di kolom Kategori alih-alih Sub Kategori**
+- **Found during:** Task 3 (Verifikasi visual — user approval)
+- **Issue:** AssessmentSession.Category menyimpan child category name (mis. "Gas Tester"), tapi BuildSertifikatRowsAsync langsung assign ke Kategori field tanpa resolusi hierarchy — sehingga "Gas Tester" muncul di kolom Kategori bukan Sub Kategori
+- **Fix:** Load AssessmentCategories dengan ParentId, build lookup dictionary (child name → parent name), lalu resolve: jika Category adalah child, parent jadi Kategori dan Category jadi SubKategori
+- **Files modified:** Controllers/CDPController.cs
+- **Verification:** User mengkonfirmasi "Gas Tester" pindah ke kolom Sub Kategori saat verifikasi visual
+- **Committed in:** `59ac342`
+
+---
+
+**Total deviations:** 1 auto-fixed (Rule 1 — bug fix)
+**Impact on plan:** Fix diperlukan untuk correctness tampilan kolom. Tidak ada scope creep.
 
 ## Issues Encountered
 - Build menghasilkan file lock error (MSB3027) karena aplikasi sedang berjalan — bukan error kompilasi, hanya exe tidak bisa di-copy. Kode Razor/C# tidak ada error.
