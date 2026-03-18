@@ -17,9 +17,9 @@ Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps 
 
 ### CRUD Consolidation
 
-- [ ] **CRUD-01**: Training Record edit/hapus di CMPController dihapus — Admin/EditTraining dan Admin/DeleteTraining jadi satu-satunya entry point
-- [ ] **CRUD-02**: Training Import dipindahkan atau di-link dari Admin (saat ini hanya bisa diakses dari CMP/ImportTraining)
-- [ ] **CRUD-03**: Worker Detail di Admin (/Admin/WorkerDetail) dan CMP (/CMP/RecordsWorkerDetail) dibedakan tujuannya secara jelas — Admin fokus profil/edit data pekerja, CMP fokus rekaman training & assessment
+- [x] **CRUD-01**: Training Record edit/hapus di CMPController dihapus — Admin/EditTraining dan Admin/DeleteTraining jadi satu-satunya entry point
+- [x] **CRUD-02**: Training Import dipindahkan atau di-link dari Admin (saat ini hanya bisa diakses dari CMP/ImportTraining)
+- [x] **CRUD-03**: Worker Detail di Admin (/Admin/WorkerDetail) dan CMP (/CMP/RecordsWorkerDetail) dibedakan tujuannya secara jelas — Admin fokus profil/edit data pekerja, CMP fokus rekaman training & assessment
 
 ### Code Patterns
 
@@ -52,9 +52,9 @@ Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps 
 | SVC-03 | Phase 196 | Complete |
 | SVC-04 | Phase 196 | Complete |
 | SVC-05 | Phase 197 | Complete |
-| CRUD-01 | Phase 198 | Pending |
-| CRUD-02 | Phase 198 | Pending |
-| CRUD-03 | Phase 198 | Pending |
+| CRUD-01 | Phase 198 | Complete |
+| CRUD-02 | Phase 198 | Complete |
+| CRUD-03 | Phase 198 | Complete |
 | PAT-01 | Phase 199 | Pending |
 | PAT-02 | Phase 199 | Pending |
 | PAT-03 | Phase 199 | Pending |

@@ -280,7 +280,7 @@ Plans:
 
 - [x] **Phase 196: Shared Service Extraction** — Extract duplicated helper methods (GetUnifiedRecords, GetAllWorkersHistory, GetWorkersInSection, NotifyIfGroupCompleted) from AdminController + CMPController into shared service class (completed 2026-03-18)
 - [x] **Phase 197: Excel Export Helper** — Extract common Excel export boilerplate from 4 controllers into a shared ExcelExportHelper (completed 2026-03-18)
-- [ ] **Phase 198: CRUD Consolidation** — Remove duplicate Training Record CRUD from CMP, link Training Import from Admin, differentiate Worker Detail views
+- [x] **Phase 198: CRUD Consolidation** — Remove duplicate Training Record CRUD from CMP, link Training Import from Admin, differentiate Worker Detail views (completed 2026-03-18)
 - [ ] **Phase 199: Code Pattern Extraction** — Extract file upload helper, role-scoping helper, and pagination helper from repeated inline code
 
 ## Phase Details
@@ -348,5 +348,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 196. Shared Service Extraction | 2/2 | Complete    | 2026-03-18 | - |
 | 197. Excel Export Helper | 1/1 | Complete    | 2026-03-18 | - |
-| 198. CRUD Consolidation | v7.6 | 0/1 | Not started | - |
+| 198. CRUD Consolidation | 1/1 | Complete   | 2026-03-18 | - |
 | 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
