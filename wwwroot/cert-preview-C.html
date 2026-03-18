@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design C: Full Corporate Redesign</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0; background: #f0f0f0;
+            font-family: 'Lato', sans-serif;
+            -webkit-print-color-adjust: exact;
+        }
+        .label-banner {
+            background: #c49a00; color: white; text-align: center;
+            padding: 12px; font-size: 20px; font-weight: bold;
+        }
+        .label-desc {
+            background: #fef9e7; text-align: center; padding: 10px;
+            font-size: 14px; color: #333;
+        }
+        .certificate-container {
+            width: 297mm; height: 210mm; background: white;
+            margin: 20px auto; position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden; display: flex;
+            justify-content: center; align-items: center;
+        }
+
+        /* Decorative corner accents */
+        .corner-accent {
+            position: absolute; width: 80px; height: 80px; z-index: 1;
+        }
+        .corner-accent.tl { top: 15px; left: 15px; border-top: 4px solid #1a4a8d; border-left: 4px solid #1a4a8d; }
+        .corner-accent.tr { top: 15px; right: 15px; border-top: 4px solid #1a4a8d; border-right: 4px solid #1a4a8d; }
+        .corner-accent.bl { bottom: 15px; left: 15px; border-bottom: 4px solid #1a4a8d; border-left: 4px solid #1a4a8d; }
+        .corner-accent.br { bottom: 15px; right: 15px; border-bottom: 4px solid #1a4a8d; border-right: 4px solid #1a4a8d; }
+
+        /* Gold inner border */
+        .gold-border {
+            position: absolute; top: 22px; left: 22px; right: 22px; bottom: 22px;
+            border: 2px solid #c49a00; z-index: 1;
+        }
+
+        /* Gold line separator under header */
+        .gold-line {
+            width: 60%; height: 2px; background: linear-gradient(90deg, transparent, #c49a00, transparent);
+            margin: 15px auto;
+        }
+
+        .bg-watermark {
+            position: absolute; opacity: 0.03; width: 50%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 0; pointer-events: none;
+        }
+        .content { z-index: 2; text-align: center; width: 82%; }
+
+        /* Header with logo */
+        .header-row {
+            display: flex; align-items: center; justify-content: center;
+            gap: 18px; margin-bottom: 5px;
+        }
+        .logo-img { height: 60px; width: auto; }
+        .org-text {
+            text-align: left; line-height: 1.2;
+        }
+        .org-text .name {
+            font-family: 'Playfair Display', serif; font-size: 20px;
+            font-weight: bold; color: #1a4a8d; letter-spacing: 1.5px;
+        }
+        .org-text .sub {
+            font-size: 11px; color: #888; letter-spacing: 0.5px; margin-top: 2px;
+        }
+
+        .cert-number {
+            font-size: 12px; color: #999; letter-spacing: 1px; margin-bottom: 10px;
+        }
+        .header-title {
+            font-family: 'Playfair Display', serif; font-size: 42px;
+            font-weight: 700; color: #1a4a8d; text-transform: uppercase;
+            margin-bottom: 5px; letter-spacing: 3px;
+        }
+        .subtitle { font-size: 16px; color: #555; margin-bottom: 25px; font-style: italic; }
+        .recipient-name {
+            font-family: 'Playfair Display', serif; font-size: 38px; color: #000;
+            border-bottom: 2px solid #c49a00; display: inline-block;
+            padding-bottom: 5px; margin-bottom: 8px; min-width: 380px;
+            font-weight: bold; font-style: italic;
+        }
+        .nip-text { font-size: 15px; color: #666; margin-bottom: 20px; }
+        .achievement-text { font-size: 16px; color: #444; margin-bottom: 6px; line-height: 1.5; }
+        .course-title {
+            font-size: 24px; font-weight: bold; color: #c49a00;
+            margin: 6px 0 8px 0; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .meta-row {
+            display: flex; justify-content: center; gap: 40px;
+            font-size: 14px; color: #666; margin-bottom: 30px;
+        }
+        .meta-row .meta-item { display: flex; align-items: center; gap: 5px; }
+        .meta-row .meta-label { font-weight: 600; color: #555; }
+
+        /* Footer with dual P-Signs */
+        .footer {
+            margin-top: 30px; display: flex; justify-content: space-between;
+            align-items: flex-end; padding: 0 20px;
+        }
+        .footer-left { text-align: left; }
+        .footer-center { text-align: center; }
+        .footer-right { text-align: right; }
+
+        .date-info { font-size: 13px; color: #555; line-height: 1.8; text-align: left; }
+        .date-info strong { color: #333; }
+
+        .psign-badge {
+            width: 200px; border: 1.5px solid #adb5bd; border-radius: 0;
+            padding: 10px 10px; text-align: center; background: #fff;
+        }
+        .psign-logo { height: 32px; margin-bottom: 5px; }
+        .psign-label { font-size: 0.68rem; color: #333; margin: 1px 0; line-height: 1.3; }
+        .psign-name { font-size: 0.75rem; font-weight: 700; color: #000; margin: 4px 0 0; line-height: 1.3; }
+        .psign-title { font-size: 0.6rem; color: #999; margin-top: 2px; }
+
+        .qr-code {
+            width: 70px; height: 70px; border: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: center;
+            background: #fafafa; margin: 0 auto;
+        }
+        .qr-grid {
+            width: 52px; height: 52px;
+            display: grid; grid-template-columns: repeat(7,1fr); grid-template-rows: repeat(7,1fr); gap: 1px;
+        }
+        .qr-grid div { background: #000; border-radius: 1px; }
+        .qr-grid div:nth-child(even) { background: #fff; }
+        .qr-grid div:nth-child(3n) { background: #000; }
+
+        /* Score badge - smaller, more refined */
+        .badge-score {
+            position: absolute; bottom: 35px; right: 35px;
+            width: 85px; height: 85px; background: #1a4a8d;
+            color: white; border-radius: 50%; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15); border: 3px solid #c49a00;
+        }
+        .badge-score span { font-size: 10px; text-transform: uppercase; }
+        .badge-score strong { font-size: 24px; }
+    </style>
+</head>
+<body>
+    <div class="label-banner">DESIGN C: Full Corporate Redesign</div>
+    <div class="label-desc">Logo image, dual P-Sign (assessor + HC), QR code, durasi pelatihan, score inline, corner accents, gold separator. Layout lebih formal & corporate.</div>
+
+    <div class="certificate-container">
+        <div class="corner-accent tl"></div>
+        <div class="corner-accent tr"></div>
+        <div class="corner-accent bl"></div>
+        <div class="corner-accent br"></div>
+        <div class="gold-border"></div>
+
+        <div class="bg-watermark">
+            <svg viewBox="0 0 24 24" fill="#1a4a8d" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L1 21H23L12 2ZM12 6L19.53 19H4.47L12 6Z"/>
+            </svg>
+        </div>
+
+        <div class="content">
+            <div class="header-row">
+                <img src="/images/psign-pertamina.png" alt="Pertamina" class="logo-img"
+                     onerror="this.outerHTML='<div style=&quot;width:60px;height:60px;background:linear-gradient(135deg,#cc0000,#990000);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:9px;text-align:center&quot;>PERTAMINA</div>'">
+                <div class="org-text">
+                    <div class="name">HC PORTAL KPB</div>
+                    <div class="sub">PT Pertamina (Persero) &mdash; Kilang Pertamina Balikpapan</div>
+                </div>
+            </div>
+
+            <div class="gold-line"></div>
+
+            <div class="header-title">Certificate of Completion</div>
+            <div class="cert-number">CERT-2026-0042</div>
+            <div class="subtitle">This is to certify that</div>
+            <div class="recipient-name">Ahmad Budiono</div>
+            <div class="nip-text">NIP: 987654</div>
+
+            <div class="achievement-text">has successfully completed the competency assessment</div>
+            <div class="course-title">Gas Tester Certification</div>
+
+            <div class="meta-row">
+                <div class="meta-item">
+                    <span class="meta-label">Score:</span> 85%
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Duration:</span> 8 hours
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Issued:</span> 17 Maret 2026
+                </div>
+                <div class="meta-item">
+                    <span class="meta-label">Valid Until:</span> 17 Maret 2027
+                </div>
+            </div>
+
+            <div class="achievement-text" style="font-size: 14px; color: #777;">
+                Demonstrating proficiency and understanding of the subject matter in accordance with company competency standards.
+            </div>
+
+            <div class="footer">
+                <!-- Left: P-Sign Assessor -->
+                <div class="footer-left">
+                    <div class="psign-badge">
+                        <img src="/images/psign-pertamina.png" alt="Logo" class="psign-logo"
+                             onerror="this.outerHTML='<div style=&quot;font-size:9px;color:#999;margin-bottom:5px&quot;>[Logo]</div>'">
+                        <div class="psign-label">Sr. Supervisor HSSE</div>
+                        <div class="psign-label">KPB</div>
+                        <div class="psign-name">Budi Santoso</div>
+                    </div>
+                    <div class="psign-title" style="font-size:10px;color:#999;margin-top:3px;text-align:center;">Assessor</div>
+                </div>
+
+                <!-- Center: QR -->
+                <div class="footer-center">
+                    <div class="qr-code">
+                        <div class="qr-grid">
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                            <div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+                        </div>
+                    </div>
+                    <div style="font-size: 8px; color: #aaa; margin-top: 3px;">Verify certificate</div>
+                </div>
+
+                <!-- Right: P-Sign HC -->
+                <div class="footer-right">
+                    <div class="psign-badge">
+                        <img src="/images/psign-pertamina.png" alt="Logo" class="psign-logo"
+                             onerror="this.outerHTML='<div style=&quot;font-size:9px;color:#999;margin-bottom:5px&quot;>[Logo]</div>'">
+                        <div class="psign-label">HC Manager</div>
+                        <div class="psign-label">KPB</div>
+                        <div class="psign-name">Ahmad Fauzi</div>
+                    </div>
+                    <div class="psign-title" style="font-size:10px;color:#999;margin-top:3px;text-align:center;">Authorized Signatory</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="badge-score">
+            <span>Score</span>
+            <strong>85%</strong>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Checklist Deploy — PortalHC KPB</title>
+    <style>
+        @page { margin: 2cm; size: A4; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 720px; margin: 40px auto; color: #222; line-height: 1.6; }
+        h1 { text-align: center; font-size: 22px; border-bottom: 3px solid #1a56db; padding-bottom: 10px; }
+        .subtitle { text-align: center; color: #666; margin-top: -10px; margin-bottom: 30px; }
+        h2 { font-size: 16px; background: #1a56db; color: white; padding: 8px 14px; border-radius: 4px; margin-top: 30px; }
+        h3 { font-size: 14px; color: #1a56db; margin-top: 20px; margin-bottom: 8px; }
+        .checklist { list-style: none; padding: 0; }
+        .checklist li { padding: 6px 0 6px 30px; position: relative; border-bottom: 1px solid #eee; }
+        .checklist li::before { content: "\2610"; position: absolute; left: 4px; font-size: 18px; color: #1a56db; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 13px; }
+        th { background: #f0f4ff; text-align: left; padding: 8px 10px; border: 1px solid #ccc; }
+        td { padding: 8px 10px; border: 1px solid #ccc; }
+        code { background: #f3f4f6; padding: 2px 6px; border-radius: 3px; font-size: 13px; }
+        .command-box { background: #1e293b; color: #e2e8f0; padding: 12px 16px; border-radius: 6px; font-family: 'Consolas', monospace; font-size: 13px; margin: 10px 0; }
+        .note { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 10px 14px; margin: 10px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+        .danger { background: #fee2e2; border-left: 4px solid #dc2626; padding: 10px 14px; margin: 10px 0; font-size: 13px; border-radius: 0 4px 4px 0; }
+        .footer { text-align: center; color: #999; font-size: 11px; margin-top: 40px; border-top: 1px solid #eee; padding-top: 10px; }
+        @media print {
+            body { margin: 0; }
+            h2 { break-after: avoid; }
+            .checklist li { break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Checklist Deploy ke Server</h1>
+<p class="subtitle">PortalHC KPB &mdash; HC Portal Human Capital Development</p>
+
+<!-- STEP 1 -->
+<h2>1. Pastikan Database Up-to-Date</h2>
+<p>Database lokal harus punya semua tabel yang dibutuhkan. Jalankan perintah ini untuk apply semua migrasi:</p>
+<div class="command-box">dotnet ef database update</div>
+<ul class="checklist">
+    <li>Semua migrasi ter-apply tanpa error</li>
+    <li>Tabel-tabel utama ada: Users, AssessmentSessions, TrainingRecords, AssessmentCategories, CoachCoacheeMappings, dll</li>
+</ul>
+
+<!-- STEP 2 -->
+<h2>2. Testing Manual (UAT)</h2>
+
+<h3>Flow Utama yang Harus Jalan</h3>
+<ul class="checklist">
+    <li>Login/logout semua role (Admin, HC, Worker)</li>
+    <li>Buat assessment &rarr; assign worker &rarr; worker ujian &rarr; lihat hasil &rarr; lihat sertifikat</li>
+    <li>Download sertifikat PDF (header Pertamina + P-Sign footer)</li>
+    <li>Coaching Proton (mapping &rarr; isi coaching &rarr; lihat histori)</li>
+    <li>Import data (workers, training, silabus Proton)</li>
+    <li>Export data (records, audit log, histori Proton)</li>
+    <li>Kelola Data admin — CRUD kategori, workers, unit kerja</li>
+    <li>Manage Categories — parent/sub-category hierarchy + signatory</li>
+</ul>
+
+<h3>Yang Sering Bermasalah</h3>
+<ul class="checklist">
+    <li>Akses halaman dengan role yang salah (harusnya ditolak / redirect ke AccessDenied)</li>
+    <li>Halaman kosong tanpa data (harus tampil pesan kosong, bukan error)</li>
+    <li>Upload file besar (timeout? error?)</li>
+    <li>Ujian dengan banyak soal (performa loading)</li>
+    <li>Concurrent users — dua orang ujian bersamaan</li>
+</ul>
+
+<!-- STEP 3 -->
+<h2>3. Cleanup Data Test</h2>
+<p>Hapus data testing yang tidak perlu sebelum deploy ke production:</p>
+<ul class="checklist">
+    <li>User dummy / akun test</li>
+    <li>Assessment percobaan</li>
+    <li>Training record palsu</li>
+    <li>Coaching session test</li>
+</ul>
+<div class="note"><strong>Catatan:</strong> Juga jalankan cleanup untuk data double yang dibuat oleh bug ASSESS-08:<br>
+<code>DELETE FROM TrainingRecords WHERE Judul LIKE 'Assessment: %';</code></div>
+
+<!-- STEP 4 -->
+<h2>4. Konfigurasi Server</h2>
+<p>Yang perlu disiapkan di server developer:</p>
+<table>
+    <tr><th style="width:35%">Item</th><th>Penjelasan</th></tr>
+    <tr><td>.NET Runtime</td><td>Install <strong>.NET 9.0 Runtime</strong> (bukan SDK) di server</td></tr>
+    <tr><td>Database</td><td>Pilih: tetap <strong>SQLite</strong> (simple) atau pindah ke <strong>SQL Server</strong> (production-grade)?</td></tr>
+    <tr><td>HTTPS / SSL</td><td>Sertifikat SSL untuk keamanan koneksi</td></tr>
+    <tr><td>appsettings.Production.json</td><td>Connection string, base URL, LDAP config untuk environment production</td></tr>
+    <tr><td>File storage</td><td>Pastikan folder <code>wwwroot/uploads</code> bisa ditulis oleh aplikasi</td></tr>
+    <tr><td>IIS / Reverse proxy</td><td>Setup IIS atau Nginx sebagai reverse proxy ke Kestrel</td></tr>
+</table>
+
+<!-- STEP 5 -->
+<h2>5. Security Check</h2>
+<ul class="checklist">
+    <li>Tidak ada password/secret hardcoded di source code</li>
+    <li><code>appsettings.json</code> tidak mengandung credential sensitif (gunakan Environment Variables atau User Secrets)</li>
+    <li>LDAP connection string sudah benar untuk server production</li>
+    <li>File <code>.env</code>, <code>appsettings.Development.json</code> tidak ikut ter-deploy</li>
+    <li>Error page production tidak menampilkan stack trace (UseDeveloperExceptionPage hanya di Development)</li>
+</ul>
+<div class="danger"><strong>Penting:</strong> Jangan deploy file <code>HcPortal.db</code> development ke production — database production harus fresh atau dari backup yang bersih.</div>
+
+<!-- STEP 6 -->
+<h2>6. Build &amp; Publish</h2>
+<p>Jalankan perintah ini untuk build versi production:</p>
+<div class="command-box">dotnet publish -c Release -o ./publish</div>
+<ul class="checklist">
+    <li>Build sukses tanpa error</li>
+    <li>Folder <code>publish/</code> berisi semua file yang dibutuhkan</li>
+    <li>Copy isi folder <code>publish/</code> ke server</li>
+    <li>Di server, jalankan: <code>dotnet HcPortal.dll</code></li>
+    <li>Buka browser, akses aplikasi — pastikan halaman login muncul</li>
+</ul>
+
+<!-- STEP 7 -->
+<h2>7. Post-Deploy Verification</h2>
+<p>Setelah aplikasi jalan di server:</p>
+<ul class="checklist">
+    <li>Login dengan akun Admin — dashboard muncul</li>
+    <li>Cek semua menu navigasi bisa diakses</li>
+    <li>Buat 1 assessment test &rarr; assign &rarr; ujian &rarr; lihat sertifikat</li>
+    <li>Import 1 file Excel kecil — pastikan berhasil</li>
+    <li>Cek LDAP login (jika pakai LDAP di production)</li>
+</ul>
+
+<div class="footer">
+    Dokumen ini dibuat pada 18 Maret 2026 &mdash; PortalHC KPB Deployment Checklist
+</div>
+
+</body>
+</html>

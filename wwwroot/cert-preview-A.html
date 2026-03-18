@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design A: Current + P-Sign Only</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0; padding: 0; background: #f0f0f0;
+            font-family: 'Lato', sans-serif;
+            -webkit-print-color-adjust: exact;
+        }
+        .label-banner {
+            background: #1a4a8d; color: white; text-align: center;
+            padding: 12px; font-size: 20px; font-weight: bold;
+            font-family: 'Lato', sans-serif;
+        }
+        .label-desc {
+            background: #e8f0fe; text-align: center; padding: 10px;
+            font-size: 14px; color: #333; font-family: 'Lato', sans-serif;
+        }
+        .certificate-container {
+            width: 297mm; height: 210mm; background: white;
+            margin: 20px auto; position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            overflow: hidden; display: flex;
+            justify-content: center; align-items: center;
+        }
+        .border-pattern {
+            position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 2px solid #1a4a8d; z-index: 1;
+        }
+        .border-pattern::before {
+            content: ""; position: absolute;
+            top: 5px; left: 5px; right: 5px; bottom: 5px;
+            border: 5px double #c49a00;
+        }
+        .bg-watermark {
+            position: absolute; opacity: 0.05; width: 60%;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 0; pointer-events: none;
+        }
+        .content { z-index: 2; text-align: center; width: 80%; }
+        .logo {
+            font-family: 'Playfair Display', serif; font-size: 24px;
+            font-weight: bold; color: #1a4a8d; margin-bottom: 30px; letter-spacing: 2px;
+        }
+        .header-title {
+            font-family: 'Playfair Display', serif; font-size: 48px;
+            font-weight: 700; color: #1a4a8d; text-transform: uppercase; margin-bottom: 10px;
+        }
+        .subtitle { font-size: 18px; color: #555; margin-bottom: 40px; font-style: italic; }
+        .recipient-name {
+            font-family: 'Playfair Display', serif; font-size: 42px; color: #000;
+            border-bottom: 2px solid #ccc; display: inline-block;
+            padding-bottom: 5px; margin-bottom: 30px; min-width: 400px;
+            font-weight: bold; font-style: italic;
+        }
+        .achievement-text { font-size: 18px; color: #444; margin-bottom: 10px; line-height: 1.6; }
+        .course-title {
+            font-size: 28px; font-weight: bold; color: #c49a00;
+            margin: 10px 0 30px 0; text-transform: uppercase;
+        }
+        .footer {
+            margin-top: 60px; display: flex; justify-content: space-between;
+            align-items: flex-end; padding: 0 50px;
+        }
+        .signature-line { border-top: 1px solid #333; width: 200px; margin-top: 10px; }
+        .signature-label { font-size: 14px; color: #666; margin-top: 5px; }
+        .badge-score {
+            position: absolute; bottom: 40px; right: 40px;
+            width: 100px; height: 100px; background: #1a4a8d;
+            color: white; border-radius: 50%; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); border: 4px solid #c49a00;
+        }
+        .badge-score span { font-size: 12px; text-transform: uppercase; }
+        .badge-score strong { font-size: 28px; }
+
+        /* P-Sign badge */
+        .psign-badge {
+            width: 240px; border: 1.5px solid #adb5bd; border-radius: 0;
+            padding: 14px 12px; text-align: center; background: #fff;
+            font-family: inherit;
+        }
+        .psign-logo { height: 40px; margin-bottom: 8px; }
+        .psign-label { font-size: 0.75rem; color: #333; margin: 2px 0; line-height: 1.3; }
+        .psign-name { font-size: 0.8rem; font-weight: 700; color: #000; margin: 6px 0 0; line-height: 1.3; }
+    </style>
+</head>
+<body>
+    <div class="label-banner">DESIGN A: Current Layout + P-Sign Only</div>
+    <div class="label-desc">Perubahan minimal — hanya mengganti area "Authorized Sig. / HC Manager" dengan P-Sign badge. Layout lainnya tetap sama.</div>
+
+    <div class="certificate-container">
+        <div class="border-pattern"></div>
+        <div class="bg-watermark">
+            <svg viewBox="0 0 24 24" fill="#1a4a8d" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L1 21H23L12 2ZM12 6L19.53 19H4.47L12 6Z"/>
+            </svg>
+        </div>
+
+        <div class="content">
+            <div class="logo">&#x1F3E2; HC PORTAL KPB</div>
+            <div class="header-title">Certificate of Completion</div>
+            <div class="subtitle">This verifies that</div>
+            <div class="recipient-name">Ahmad Budiono</div>
+            <div style="font-size: 18px; color: #555; margin-bottom: 20px;">NIP: 987654</div>
+            <div class="achievement-text">Has successfully completed the competency assessment module</div>
+            <div class="course-title">Gas Tester Certification</div>
+            <div class="achievement-text">Demonstrating proficiency and understanding of the subject matter.</div>
+
+            <div class="footer">
+                <div class="date-section">
+                    <div style="font-size: 18px; font-weight: bold;">17 Maret 2026</div>
+                    <div class="signature-line"></div>
+                    <div class="signature-label">Date of Issue</div>
+                    <div style="font-size: 14px; color: #666; margin-top: 5px;">No. Sertifikat: CERT-2026-0042</div>
+                    <div style="font-size: 14px; color: #666; margin-top: 3px;">Berlaku Hingga: 17 Maret 2027</div>
+                </div>
+
+                <div class="signature-section">
+                    <!-- P-Sign replaces old Authorized Sig. -->
+                    <div class="psign-badge">
+                        <img src="/images/psign-pertamina.png" alt="Logo Pertamina" class="psign-logo"
+                             onerror="this.outerHTML='<div style=&quot;font-size:11px;color:#999;margin-bottom:8px&quot;>[Pertamina Logo]</div>'">
+                        <div class="psign-label">HC Manager</div>
+                        <div class="psign-label">KPB</div>
+                        <div class="psign-name">Ahmad Fauzi</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="badge-score">
+            <span>Score</span>
+            <strong>85%</strong>
+        </div>
+    </div>
+</body>
+</html>
