@@ -7,6 +7,7 @@
      data-expired="@Model.ExpiredCount"
      data-permanent="@Model.PermanentCount">
 
+    <div class="card-body p-0">
     <div class="table-responsive">
         <table class="table table-striped table-hover mb-0">
             <thead class="table-light">
@@ -97,6 +98,7 @@
                 }
             </tbody>
         </table>
+    </div>
     </div>
 
     @if (Model.TotalPages > 1)
