@@ -203,7 +203,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 185. ViewModel and Data Model Foundation | 1/1 | Complete    | 2026-03-18 | - |
-| 186. Role-Scoped Data Query Helper | 1/1 | Complete   | 2026-03-18 | - |
+| 186. Role-Scoped Data Query Helper | 1/1 | Complete    | 2026-03-18 | - |
 | 187. Full-Page Controller Action and Static View | v7.4 | 0/TBD | Not started | - |
 | 188. AJAX Filter Bar | v7.4 | 0/TBD | Not started | - |
 | 189. Certificate Actions and Excel Export | v7.4 | 0/TBD | Not started | - |
