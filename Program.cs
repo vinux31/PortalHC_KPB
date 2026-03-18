@@ -52,6 +52,7 @@ builder.Services.AddScoped<HcPortal.Services.AuditLogService>();
 
 // Notification Service — Phase 99
 builder.Services.AddScoped<HcPortal.Services.INotificationService, HcPortal.Services.NotificationService>();
+builder.Services.AddScoped<HcPortal.Services.IWorkerDataService, HcPortal.Services.WorkerDataService>();
 
 // Auth service — factory delegates based on Authentication:UseActiveDirectory config toggle
 // dev (false) -> LocalAuthService (Identity PasswordHash)
