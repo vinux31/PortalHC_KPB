@@ -313,7 +313,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 197-01-PLAN.md — ExcelExportHelper static class + refactor all 15 export actions across 4 controllers
+- [x] 197-01-PLAN.md — ExcelExportHelper static class + refactor all 15 export actions across 4 controllers
 
 ### Phase 198: CRUD Consolidation
 **Goal**: Training Record create/edit/delete has exactly one entry point (Admin), Training Import is accessible from Admin context, and Worker Detail views in Admin vs CMP serve clearly distinct purposes
@@ -325,7 +325,10 @@ Plans:
   3. Admin/WorkerDetail focuses on profile and data editing; CMP/RecordsWorkerDetail focuses on training and assessment records — each view's content is distinct and appropriate to its context
   4. No existing user workflow is broken — users who previously edited training records from CMP are guided to the Admin entry point
   5. The project compiles with zero errors
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 198-01-PLAN.md — Hapus CMP orphan actions, pindahkan import ke Admin, bersihkan view references
 
 ### Phase 199: Code Pattern Extraction
 **Goal**: Repeated inline code patterns (file upload, role-scoping, pagination) are extracted into reusable helper classes or methods, reducing duplication without changing behavior
@@ -345,5 +348,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 196. Shared Service Extraction | 2/2 | Complete    | 2026-03-18 | - |
 | 197. Excel Export Helper | 1/1 | Complete    | 2026-03-18 | - |
-| 198. CRUD Consolidation | v7.6 | 0/TBD | Not started | - |
+| 198. CRUD Consolidation | v7.6 | 0/1 | Not started | - |
 | 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
