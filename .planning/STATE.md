@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Phase 185 context gathered
-last_updated: "2026-03-18T07:23:45.607Z"
+stopped_at: Completed 185-01-PLAN.md
+last_updated: "2026-03-18T07:35:32.466Z"
 last_activity: 2026-03-18 — Completed 198-01-PLAN.md
 progress:
   total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 ---
@@ -115,6 +115,7 @@ Progress: [██████████] 100%
 - [Phase 198]: ImportTraining view uses strongly-typed model instead of ViewBag
 - [Phase 199]: CDPController evidence upload also refactored to FileUploadHelper (same inline pattern)
 - [Phase 199]: Removed explicit user null checks in refactored CMPController actions (class-level Authorize guarantees auth)
+- [Phase 185]: DeriveCertificateStatus sebagai static method pada SertifikatRow — tipe co-located dalam satu file
 
 ### Roadmap Evolution
 
@@ -126,6 +127,6 @@ Progress: [██████████] 100%
 
 ## Session Continuity
 
-Last session: 2026-03-18T07:23:45.605Z
-Stopped at: Phase 185 context gathered
-Resume file: .planning/phases/185-viewmodel-and-data-model-foundation/185-CONTEXT.md
+Last session: 2026-03-18T07:35:32.463Z
+Stopped at: Completed 185-01-PLAN.md
+Resume file: None
