@@ -172,7 +172,7 @@ Plans:
 **Goal:** Add hierarchical sub-categories to AssessmentCategory (self-referencing ParentId FK) so categories like "Mandatory HSSE Training" can have sub-categories like "Gas Tester". Admin CRUD on Manage Categories page supports creating/editing sub-categories. Also add per-category signatory name configuration for the certificate "Authorized Sig." field.
 **Requirements**: R195-1: AssessmentCategory gains nullable ParentId (self-ref FK) for parent→children hierarchy. R195-2: Admin Manage Categories UI shows parent categories with expandable sub-categories. R195-3: CreateAssessment wizard category dropdown shows grouped options (parent > sub). R195-4: Per-category SignatoryName field stored in AssessmentCategory, displayed on certificate.
 **Depends on:** Phase 194
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 195-01-PLAN.md — EF migration: ParentId self-ref FK + SignatoryUserId FK on AssessmentCategory
