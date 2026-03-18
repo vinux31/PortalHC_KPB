@@ -43,9 +43,9 @@ Declared values (Bootstrap 5 utility scale — project-wide convention):
 
 Exceptions:
 - Certificate footer margin-top: 60px (certificate layout — matches existing cert-preview-A2.html)
-- Certificate P-Sign margin-right: 30px (matches cert-preview-A2.html psign-badge rule)
+- Certificate P-Sign margin-right: 32px (nearest multiple of 4 — was 30px in mockup, adjusted to grid)
 - Certificate score badge: positioned 40px from bottom-right (matches existing badge-score)
-- Certificate logo-section gap: 15px (matches cert-preview-A2.html logo-section)
+- Certificate logo-section gap: 16px (nearest multiple of 4 — was 15px in mockup, adjusted to grid)
 - P-Sign on certificate: logo height 48px, psign-label font 0.85rem, psign-name font 0.9rem (per CONTEXT.md cert Design A2)
 
 ---
@@ -57,21 +57,22 @@ Exceptions:
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body / table cell | 14px (Bootstrap default small) | 400 | 1.5 |
-| Label / form-label | 14px + fw-semibold | 600 | 1.5 |
+| Label / form-label | 14px + fw-bold | 700 | 1.5 |
 | Section heading (h2) | 20px | 700 (fw-bold) | 1.2 |
 | Badge / small hint | 12px | 400 | 1.3 |
+
+Two weights only: 400 (body, badge) and 700 (labels, headings). fw-semibold (600) is not used.
 
 ### Certificate (Certificate.cshtml)
 
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
-| Certificate title ("Certificate of Completion") | 48px | 700 | 1.0 |
-| Recipient name | 42px | 700 italic (Playfair) | 1.0 |
+| Recipient name / Certificate title | 42px | 700 italic (Playfair) | 1.0 |
 | Course title / assessment name | 28px | 700 | 1.0 |
-| Body text (subtitle, achievement text) | 18px | 400 | 1.6 |
-| Footer labels (date, NIP, serial number) | 14px | 400 | 1.3 |
-| Logo text "HC PORTAL KPB" | 22px | 700 (Playfair) | 1.3 |
-| Logo subtitle | 12px | 400 | 1.3 |
+| Body text (subtitle, achievement text) / Logo text "HC PORTAL KPB" | 18px | 400 / 700 | 1.6 / 1.3 |
+| Footer labels (date, NIP, serial) / Logo subtitle | 12px | 400 | 1.3 |
+
+Four sizes only: 42px, 28px, 18px, 12px. The certificate title ("Certificate of Completion") uses 42px — same as recipient name. Logo text "HC PORTAL KPB" uses 18px (collapsed from 22px). Footer date labels and logo subtitle both use 12px (collapsed from 14px footer labels).
 
 Certificate fonts: Playfair Display for headings and recipient name; Lato for all body, labels, and P-Sign text.
 
@@ -161,8 +162,8 @@ Replace the existing signature-section div (lines 280–287 of Certificate.cshtm
     {ValidUntil block if set}
   </div>
 
-  <!-- Right: P-Sign (no border, compact) — margin-right:30px -->
-  <div class="psign-badge" style="text-align:center; background:transparent; margin-right:30px;">
+  <!-- Right: P-Sign (no border, compact) — margin-right:32px -->
+  <div class="psign-badge" style="text-align:center; background:transparent; margin-right:32px;">
     <img src="/images/psign-pertamina.png" style="height:48px; margin-bottom:6px;" />
     <div style="font-size:0.85rem; color:#333; line-height:1.3;">{Position}</div>
     <div style="font-size:0.9rem; font-weight:700; color:#000; line-height:1.3; margin-top:4px;">{FullName}</div>
@@ -177,14 +178,16 @@ Fallback when category has no signatory (and no parent signatory): render with P
 Replace the existing icon-text header with logo-section:
 
 ```html
-<div class="logo-section" style="display:flex; align-items:center; justify-content:center; gap:15px; margin-bottom:25px;">
+<div class="logo-section" style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:25px;">
   <img src="/images/psign-pertamina.png" alt="Pertamina" style="height:55px; width:auto;" />
-  <div style="font-family:'Playfair Display',serif; font-size:22px; font-weight:bold; color:#1a4a8d; letter-spacing:2px; text-align:left; line-height:1.3;">
+  <div style="font-family:'Playfair Display',serif; font-size:18px; font-weight:bold; color:#1a4a8d; letter-spacing:2px; text-align:left; line-height:1.3;">
     HC PORTAL KPB
     <small style="display:block; font-size:12px; font-weight:400; letter-spacing:0.5px; color:#666;">Human Capital Development Portal</small>
   </div>
 </div>
 ```
+
+Note: Logo text "HC PORTAL KPB" uses 18px (collapsed from 22px per typography consolidation). Gap changed to 16px (from 15px per spacing grid).
 
 #### 7. Wizard Category Dropdown — optgroup
 
@@ -217,6 +220,7 @@ When a category has children, the delete button is replaced with a disabled butt
 
 ```html
 <button type="button" class="btn btn-sm btn-danger" disabled
+        aria-label="Hapus kategori"
         title="Hapus sub-kategori terlebih dahulu sebelum menghapus kategori ini.">
   <i class="bi bi-trash"></i>
 </button>
@@ -232,6 +236,8 @@ Existing modal pattern unchanged. Modal body updated to:
 > Tindakan ini tidak dapat dibatalkan.
 
 (Remove existing footnote about assessment data being unaffected — it was misleading; category data IS used in session display.)
+
+Active delete button also carries `aria-label="Hapus kategori"` for accessibility.
 
 ### Signatory Preview — no signatory selected
 
