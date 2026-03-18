@@ -754,21 +754,48 @@ namespace HcPortal.Controllers
 
         // --- CATEGORY MANAGEMENT ---
 
+        private async Task SetCategoriesViewBag()
+        {
+            // Hierarchical tree for ManageCategories table + optgroup dropdowns
+            var parentCategories = await _context.AssessmentCategories
+                .Include(c => c.Children.OrderBy(ch => ch.SortOrder).ThenBy(ch => ch.Name))
+                    .ThenInclude(ch => ch.Children.OrderBy(gc => gc.SortOrder).ThenBy(gc => gc.Name))
+                .Include(c => c.Signatory)
+                .Where(c => c.ParentId == null)
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .ToListAsync();
+
+            ViewBag.ParentCategories = parentCategories;
+
+            // All users for signatory dropdown
+            var allUsers = await _userManager.Users
+                .OrderBy(u => u.FullName)
+                .Select(u => new { u.Id, u.FullName, u.NIP, u.Position })
+                .ToListAsync();
+            ViewBag.AllUsers = allUsers;
+
+            // Potential parents for Parent Category dropdown (depth 0 or 1 only)
+            var potentialParents = await _context.AssessmentCategories
+                .Include(c => c.Parent)
+                .Where(c => c.ParentId == null || (c.Parent != null && c.Parent.ParentId == null))
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .ToListAsync();
+            ViewBag.PotentialParents = potentialParents;
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ManageCategories()
         {
-            var categories = await _context.AssessmentCategories
-                .OrderBy(c => c.SortOrder)
-                .ThenBy(c => c.Name)
-                .ToListAsync();
-            return View(categories);
+            await SetCategoriesViewBag();
+            var parentCategories = (IEnumerable<AssessmentCategory>)ViewBag.ParentCategories;
+            return View(parentCategories);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddCategory(string name, int defaultPassPercentage, int sortOrder)
+        public async Task<IActionResult> AddCategory(string name, int defaultPassPercentage, int sortOrder, int? parentId, string? signatoryUserId)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -787,7 +814,9 @@ namespace HcPortal.Controllers
                 Name = name.Trim(),
                 DefaultPassPercentage = defaultPassPercentage,
                 SortOrder = sortOrder,
-                IsActive = true
+                IsActive = true,
+                ParentId = parentId,
+                SignatoryUserId = string.IsNullOrWhiteSpace(signatoryUserId) ? null : signatoryUserId
             };
             _context.AssessmentCategories.Add(category);
             await _context.SaveChangesAsync();
@@ -811,18 +840,16 @@ namespace HcPortal.Controllers
             var category = await _context.AssessmentCategories.FindAsync(id);
             if (category == null) return NotFound();
 
-            var categories = await _context.AssessmentCategories
-                .OrderBy(c => c.SortOrder)
-                .ThenBy(c => c.Name)
-                .ToListAsync();
+            await SetCategoriesViewBag();
             ViewBag.EditCategory = category;
-            return View("ManageCategories", categories);
+            var parentCategories = (IEnumerable<AssessmentCategory>)ViewBag.ParentCategories;
+            return View("ManageCategories", parentCategories);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditCategory(int id, string name, int defaultPassPercentage, int sortOrder)
+        public async Task<IActionResult> EditCategory(int id, string name, int defaultPassPercentage, int sortOrder, int? parentId, string? signatoryUserId)
         {
             var category = await _context.AssessmentCategories.FindAsync(id);
             if (category == null) return NotFound();
@@ -842,6 +869,8 @@ namespace HcPortal.Controllers
             category.Name = name.Trim();
             category.DefaultPassPercentage = defaultPassPercentage;
             category.SortOrder = sortOrder;
+            category.ParentId = parentId;
+            category.SignatoryUserId = string.IsNullOrWhiteSpace(signatoryUserId) ? null : signatoryUserId;
             await _context.SaveChangesAsync();
 
             var currentUser = await _userManager.GetUserAsync(User);
@@ -863,6 +892,12 @@ namespace HcPortal.Controllers
         {
             var category = await _context.AssessmentCategories.FindAsync(id);
             if (category == null) return NotFound();
+
+            if (await _context.AssessmentCategories.AnyAsync(c => c.ParentId == id))
+            {
+                TempData["Error"] = "Hapus sub-kategori terlebih dahulu.";
+                return RedirectToAction("ManageCategories");
+            }
 
             _context.AssessmentCategories.Remove(category);
             await _context.SaveChangesAsync();
@@ -924,6 +959,13 @@ namespace HcPortal.Controllers
                 .OrderBy(c => c.SortOrder)
                 .ThenBy(c => c.Name)
                 .ToListAsync();
+
+            var parentCats = await _context.AssessmentCategories
+                .Include(c => c.Children.OrderBy(ch => ch.SortOrder).ThenBy(ch => ch.Name))
+                .Where(c => c.ParentId == null && c.IsActive)
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .ToListAsync();
+            ViewBag.ParentCategories = parentCats;
 
             // Pass created assessment data to view if exists (for success modal)
             if (TempData["CreatedAssessment"] != null)
@@ -1397,6 +1439,13 @@ namespace HcPortal.Controllers
                 .OrderBy(c => c.SortOrder)
                 .ThenBy(c => c.Name)
                 .ToListAsync();
+
+            var editParentCats = await _context.AssessmentCategories
+                .Include(c => c.Children.OrderBy(ch => ch.SortOrder).ThenBy(ch => ch.Name))
+                .Where(c => c.ParentId == null && c.IsActive)
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .ToListAsync();
+            ViewBag.ParentCategories = editParentCats;
 
             return View(assessment);
         }
