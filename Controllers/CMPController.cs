@@ -33,6 +33,7 @@ namespace HcPortal.Controllers
         private readonly INotificationService _notificationService;
         private readonly IHubContext<AssessmentHub> _hubContext;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IWorkerDataService _workerDataService;
 
         public CMPController(
             UserManager<ApplicationUser> userManager,
@@ -45,7 +46,8 @@ namespace HcPortal.Controllers
             ILogger<CMPController> logger,
             INotificationService notificationService,
             IHubContext<AssessmentHub> hubContext,
-            IServiceScopeFactory scopeFactory)
+            IServiceScopeFactory scopeFactory,
+            IWorkerDataService workerDataService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -58,6 +60,7 @@ namespace HcPortal.Controllers
             _notificationService = notificationService;
             _hubContext = hubContext;
             _scopeFactory = scopeFactory;
+            _workerDataService = workerDataService;
         }
 
         public IActionResult Index()
@@ -404,7 +407,7 @@ namespace HcPortal.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            var unified = await GetUnifiedRecords(user.Id);
+            var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
             // Phase 104: Get worker list for Team View tab (only for users level 1-4)
             var userRoles = await _userManager.GetRolesAsync(user);
@@ -420,7 +423,7 @@ namespace HcPortal.Controllers
                     sectionFilter = user.Section;
                 }
 
-                var workerList = await GetWorkersInSection(sectionFilter);
+                var workerList = await _workerDataService.GetWorkersInSection(sectionFilter);
                 ViewData["WorkerList"] = workerList;
             }
 
@@ -451,7 +454,7 @@ namespace HcPortal.Controllers
             }
 
             // Level 1-3: No section restriction (full access to all sections/units)
-            var workerList = await GetWorkersInSection(sectionFilter);
+            var workerList = await _workerDataService.GetWorkersInSection(sectionFilter);
 
             return View("RecordsTeam", workerList);
         }
@@ -486,7 +489,7 @@ namespace HcPortal.Controllers
                 return NotFound();
             }
 
-            var unifiedRecords = await GetUnifiedRecords(workerId);
+            var unifiedRecords = await _workerDataService.GetUnifiedRecords(workerId);
 
             var viewModel = new
             {
@@ -515,7 +518,7 @@ namespace HcPortal.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return Challenge();
 
-            var unified = await GetUnifiedRecords(user.Id);
+            var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
             using var workbook = new XLWorkbook();
 
@@ -599,10 +602,10 @@ namespace HcPortal.Controllers
                 sectionFilter = user.Section;
             }
 
-            var (assessmentRows, _) = await GetAllWorkersHistory();
+            var (assessmentRows, _) = await _workerDataService.GetAllWorkersHistory();
 
             // Get filtered worker IDs from GetWorkersInSection
-            var filteredWorkers = await GetWorkersInSection(sectionFilter, unit, null, search, statusFilter);
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, null, search, statusFilter);
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
@@ -664,10 +667,10 @@ namespace HcPortal.Controllers
                 sectionFilter = user.Section;
             }
 
-            var (_, trainingRows) = await GetAllWorkersHistory();
+            var (_, trainingRows) = await _workerDataService.GetAllWorkersHistory();
 
             // Get filtered worker IDs from GetWorkersInSection
-            var filteredWorkers = await GetWorkersInSection(sectionFilter, unit, category, search, statusFilter);
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter);
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
@@ -1032,264 +1035,6 @@ namespace HcPortal.Controllers
 
             return trainingRecords;
         }
-
-        // Phase 10: unified records helper — merges AssessmentSessions + TrainingRecords
-        private async Task<List<UnifiedTrainingRecord>> GetUnifiedRecords(string userId)
-        {
-            // Query 1: Completed assessments only
-            var assessments = await _context.AssessmentSessions
-                .Where(a => a.UserId == userId && a.Status == "Completed")
-                .ToListAsync();
-
-            // Query 2: All training records
-            var trainings = await _context.TrainingRecords
-                .Where(t => t.UserId == userId)
-                .ToListAsync();
-
-            var unified = new List<UnifiedTrainingRecord>();
-
-            unified.AddRange(assessments.Select(a => new UnifiedTrainingRecord
-            {
-                Date = a.CompletedAt ?? a.Schedule,
-                RecordType = "Assessment Online",
-                Title = a.Title,
-                Score = a.Score,
-                IsPassed = a.IsPassed,
-                Status = a.IsPassed == true ? "Passed" : "Failed",
-                SortPriority = 0,
-                AssessmentSessionId = a.Id,
-                GenerateCertificate = a.GenerateCertificate
-            }));
-
-            unified.AddRange(trainings.Select(t => new UnifiedTrainingRecord
-            {
-                Date = t.Tanggal,
-                RecordType = "Training Manual",
-                Title = t.Judul ?? "",
-                Penyelenggara = t.Penyelenggara,
-                CertificateType = t.CertificateType,
-                ValidUntil = t.ValidUntil,
-                Status = t.Status,
-                SertifikatUrl = t.SertifikatUrl,
-                SortPriority = 1,
-                TrainingRecordId = t.Id,
-                Kategori = t.Kategori,
-                Kota = t.Kota,
-                NomorSertifikat = t.NomorSertifikat,
-                TanggalMulai = t.TanggalMulai,
-                TanggalSelesai = t.TanggalSelesai
-            }));
-
-            return unified
-                .OrderByDescending(r => r.Date)
-                .ThenBy(r => r.SortPriority)
-                .ToList();
-        }
-
-        // Phase 46: Split all-workers history into assessment and training — supports Attempt # computation
-        private async Task<(List<AllWorkersHistoryRow> assessment, List<AllWorkersHistoryRow> training)> GetAllWorkersHistory()
-        {
-            // --- Assessment history ---
-
-            // Batch count archived attempts per user+title to avoid N+1
-            var archivedCounts = await _context.AssessmentAttemptHistory
-                .GroupBy(h => new { h.UserId, h.Title })
-                .Select(g => new { g.Key.UserId, g.Key.Title, Count = g.Count() })
-                .ToListAsync();
-
-            var archivedCountLookup = archivedCounts
-                .ToDictionary(x => (x.UserId, x.Title), x => x.Count);
-
-            // Query 1: Archived attempts (AttemptNumber already stored)
-            var archivedAttempts = await _context.AssessmentAttemptHistory
-                .Include(h => h.User)
-                .ToListAsync();
-
-            var assessmentRows = new List<AllWorkersHistoryRow>();
-
-            assessmentRows.AddRange(archivedAttempts.Select(h => new AllWorkersHistoryRow
-            {
-                WorkerId      = h.UserId,
-                WorkerName    = h.User?.FullName ?? h.UserId,
-                WorkerNIP     = h.User?.NIP,
-                RecordType    = "Assessment Online",
-                Title         = h.Title,
-                Date          = h.CompletedAt ?? h.StartedAt ?? h.ArchivedAt,
-                Score         = h.Score,
-                IsPassed      = h.IsPassed,
-                AttemptNumber = h.AttemptNumber
-            }));
-
-            // Query 2: Current completed sessions (Attempt # = archived count for that user+title + 1)
-            var currentCompleted = await _context.AssessmentSessions
-                .Include(a => a.User)
-                .Where(a => a.Status == "Completed")
-                .ToListAsync();
-
-            assessmentRows.AddRange(currentCompleted.Select(a =>
-            {
-                var key = (a.UserId, a.Title ?? "");
-                int archived = archivedCountLookup.TryGetValue(key, out var c) ? c : 0;
-                return new AllWorkersHistoryRow
-                {
-                    WorkerId      = a.UserId,
-                    WorkerName    = a.User?.FullName ?? a.UserId,
-                    WorkerNIP     = a.User?.NIP,
-                    RecordType    = "Assessment Online",
-                    Title         = a.Title ?? "",
-                    Date          = a.CompletedAt ?? a.Schedule,
-                    Score         = a.Score,
-                    IsPassed      = a.IsPassed,
-                    AttemptNumber = archived + 1
-                };
-            }));
-
-            // Sort: grouped by title then date descending
-            assessmentRows = assessmentRows
-                .OrderBy(r => r.Title)
-                .ThenByDescending(r => r.Date)
-                .ToList();
-
-            // --- Training history ---
-            var trainings = await _context.TrainingRecords
-                .Include(t => t.User)
-                .ToListAsync();
-
-            var trainingRows = trainings.Select(t => new AllWorkersHistoryRow
-            {
-                WorkerId      = t.UserId,
-                WorkerName    = t.User?.FullName ?? t.UserId,
-                WorkerNIP     = t.User?.NIP,
-                RecordType    = "Manual",
-                Title         = t.Judul ?? "",
-                // PITFALL: TanggalMulai is nullable — must coalesce to Tanggal
-                Date          = t.TanggalMulai ?? t.Tanggal,
-                Penyelenggara = t.Penyelenggara
-            })
-            .OrderByDescending(r => r.Date)
-            .ToList();
-
-            return (assessmentRows, trainingRows);
-        }
-
-        // Helper method: Get all workers in a section (with optional filters)
-        private async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null)
-        {
-            // ✅ QUERY USERS FROM DATABASE WITH TRAINING RECORDS (Fix N+1)
-            var usersQuery = _context.Users
-                .Include(u => u.TrainingRecords)  // Load related data in single query
-                .AsQueryable();
-
-            // 0. FILTER BY SECTION
-            if (!string.IsNullOrEmpty(section))
-            {
-                usersQuery = usersQuery.Where(u => u.Section == section);
-            }
-
-            // 0b. FILTER BY UNIT
-            if (!string.IsNullOrEmpty(unitFilter))
-            {
-                usersQuery = usersQuery.Where(u => u.Unit == unitFilter);
-            }
-
-            // 1. FILTER BY SEARCH (Name or NIP)
-            if (!string.IsNullOrEmpty(search))
-            {
-                search = search.ToLower();
-                usersQuery = usersQuery.Where(u =>
-                    u.FullName.ToLower().Contains(search) ||
-                    (u.NIP != null && u.NIP.Contains(search))
-                );
-            }
-
-            var users = await usersQuery.ToListAsync();
-
-            // Phase 10: Batch query — passed assessments per user (avoids N+1)
-            var userIds = users.Select(u => u.Id).ToList();
-            var passedAssessmentsByUser = await _context.AssessmentSessions
-                .Where(a => userIds.Contains(a.UserId) && a.IsPassed == true)
-                .GroupBy(a => a.UserId)
-                .Select(g => new { UserId = g.Key, Count = g.Count() })
-                .ToListAsync();
-            var passedAssessmentLookup = passedAssessmentsByUser
-                .ToDictionary(x => x.UserId, x => x.Count);
-
-            // 2. BUILD WORKER STATUS LIST WITH TRAINING STATISTICS
-            var workerList = new List<WorkerTrainingStatus>();
-
-            foreach (var user in users)
-            {
-                // Training records already loaded via Include
-                var trainingRecords = user.TrainingRecords.ToList();
-
-                // Phase 10: assessments counted from batch lookup
-                int completedAssessments = passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0;
-
-                // Calculate statistics
-                var totalTrainings = trainingRecords.Count;
-                // Phase 10: only Passed|Valid count — "Permanent" removed per phase decision
-                var completedTrainings = trainingRecords.Count(tr =>
-                    tr.Status == "Passed" || tr.Status == "Valid"
-                );
-                var pendingTrainings = trainingRecords.Count(tr => 
-                    tr.Status == "Wait Certificate" || tr.Status == "Pending"
-                );
-                var expiringTrainings = trainingRecords.Count(tr => tr.IsExpiringSoon);
-                
-                var worker = new WorkerTrainingStatus
-                {
-                    WorkerId = user.Id,
-                    WorkerName = user.FullName,
-                    NIP = user.NIP,
-                    Position = user.Position ?? "Staff",
-                    Section = user.Section ?? "",
-                    Unit = user.Unit ?? "",
-                    TotalTrainings = totalTrainings,
-                    CompletedTrainings = completedTrainings,
-                    PendingTrainings = pendingTrainings,
-                    ExpiringSoonTrainings = expiringTrainings,
-                    TrainingRecords = trainingRecords,
-                    // Phase 10: combined completion count
-                    CompletedAssessments = completedAssessments
-                };
-                
-                // Calculate category-specific status if category filter is applied
-                if (!string.IsNullOrEmpty(category))
-                {
-                    bool isCompleted = trainingRecords.Any(r => 
-                        !string.IsNullOrEmpty(r.Kategori) && 
-                        r.Kategori.Contains(category, StringComparison.OrdinalIgnoreCase) &&
-                        (r.Status == "Passed" || r.Status == "Valid" || r.Status == "Permanent")
-                    );
-                    worker.CompletionPercentage = isCompleted ? 100 : 0;
-                }
-                else
-                {
-                    // Calculate overall completion percentage
-                    worker.CompletionPercentage = totalTrainings > 0 
-                        ? (int)((double)completedTrainings / totalTrainings * 100) 
-                        : 0;
-                }
-                
-                workerList.Add(worker);
-            }
-            
-            // 3. FILTER BY STATUS (Sudah/Belum) - Applied AFTER status calculation
-            if (!string.IsNullOrEmpty(statusFilter) && !string.IsNullOrEmpty(category))
-            {
-                if (statusFilter == "Sudah")
-                {
-                    workerList = workerList.Where(w => w.CompletionPercentage == 100).ToList();
-                }
-                else if (statusFilter == "Belum")
-                {
-                    workerList = workerList.Where(w => w.CompletionPercentage != 100).ToList();
-                }
-            }
-            
-            return workerList;
-        }
-        
 
         // API: Verify Token for Assessment
         [HttpPost]
@@ -2141,7 +1886,7 @@ namespace HcPortal.Controllers
                     .ExecuteUpdateAsync(a => a.SetProperty(r => r.IsCompleted, true));
 
                 // ASMT-02: Check group completion and notify HC/Admin
-                await NotifyIfGroupCompleted(assessment);
+                await _workerDataService.NotifyIfGroupCompleted(assessment);
 
                 // Activity log: record exam submission (fire-and-forget)
                 LogActivityAsync(id, "submitted");
@@ -2249,7 +1994,7 @@ namespace HcPortal.Controllers
                 }
 
                 // ASMT-02: Check group completion and notify HC/Admin
-                await NotifyIfGroupCompleted(assessment);
+                await _workerDataService.NotifyIfGroupCompleted(assessment);
 
                 // Activity log: record exam submission (fire-and-forget)
                 LogActivityAsync(id, "submitted");
@@ -2861,38 +2606,6 @@ namespace HcPortal.Controllers
         }
 
         #endregion
-
-        // ASMT-02: Check if all siblings in an assessment group completed, notify HC/Admin
-        private async Task NotifyIfGroupCompleted(AssessmentSession completedSession)
-        {
-            var allSiblings = await _context.AssessmentSessions
-                .Where(s => s.Title == completedSession.Title &&
-                            s.Category == completedSession.Category &&
-                            s.Schedule.Date == completedSession.Schedule.Date)
-                .ToListAsync();
-
-            if (!allSiblings.All(s => s.Status == "Completed")) return;
-
-            var hcUsers = await _userManager.GetUsersInRoleAsync("HC");
-            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
-            var recipientIds = hcUsers.Concat(adminUsers)
-                .Select(u => u.Id).Distinct().ToList();
-
-            foreach (var recipientId in recipientIds)
-            {
-                try
-                {
-                    await _notificationService.SendAsync(
-                        recipientId,
-                        "ASMT_ALL_COMPLETED",
-                        "Assessment Selesai",
-                        $"Semua peserta assessment \"{completedSession.Title}\" telah menyelesaikan ujian",
-                        "/CMP/Assessment"
-                    );
-                }
-                catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
-            }
-        }
 
     }
 }
