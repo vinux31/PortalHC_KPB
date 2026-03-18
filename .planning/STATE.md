@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Completed 194-01-PLAN.md
-last_updated: "2026-03-17T16:39:46.126Z"
+stopped_at: Phase 195 context gathered
+last_updated: "2026-03-18T01:46:05.786Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
@@ -121,6 +121,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-17T16:39:46.122Z
-Stopped at: Completed 194-01-PLAN.md
-Resume file: None
+Last session: 2026-03-18T01:46:05.782Z
+Stopped at: Phase 195 context gathered
+Resume file: .planning/phases/195-certificate-signatory-settings/195-CONTEXT.md
