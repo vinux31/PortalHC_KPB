@@ -3045,8 +3045,12 @@ namespace HcPortal.Controllers
         {
             var (allRows, roleLevel) = await BuildSertifikatRowsAsync(l5OwnDataOnly: true);
 
-            // Sort: TanggalTerbit descending (terbaru dulu)
-            allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
+            // Sort: Kategori → SubKategori → Status
+            allRows = allRows
+                .OrderBy(r => r.Kategori ?? "")
+                .ThenBy(r => r.SubKategori ?? "")
+                .ThenBy(r => r.Status)
+                .ToList();
 
             // Summary counts dari FULL dataset (sebelum pagination)
             var vm = new CertificationManagementViewModel
@@ -3080,8 +3084,6 @@ namespace HcPortal.Controllers
             string? bagian = null,
             string? unit = null,
             string? status = null,
-            string? tipe = null,
-            string? search = null,
             string? category = null,
             string? subCategory = null,
             int page = 1)
@@ -3095,23 +3097,16 @@ namespace HcPortal.Controllers
                 allRows = allRows.Where(r => r.Unit == unit).ToList();
             if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
                 allRows = allRows.Where(r => r.Status == st).ToList();
-            if (!string.IsNullOrEmpty(tipe) && Enum.TryParse<RecordType>(tipe, out var rt))
-                allRows = allRows.Where(r => r.RecordType == rt).ToList();
-            if (!string.IsNullOrEmpty(search))
-            {
-                var q = search.ToLower();
-                allRows = allRows.Where(r =>
-                    r.NamaWorker.ToLower().Contains(q) ||
-                    r.Judul.ToLower().Contains(q) ||
-                    (r.NomorSertifikat?.ToLower().Contains(q) ?? false)
-                ).ToList();
-            }
             if (!string.IsNullOrEmpty(category))
-                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.Kategori == category).ToList();
+                allRows = allRows.Where(r => r.Kategori == category).ToList();
             if (!string.IsNullOrEmpty(subCategory))
-                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.SubKategori == subCategory).ToList();
+                allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
 
-            allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
+            allRows = allRows
+                .OrderBy(r => r.Kategori ?? "")
+                .ThenBy(r => r.SubKategori ?? "")
+                .ThenBy(r => r.Status)
+                .ToList();
 
             var vm = new CertificationManagementViewModel
             {
@@ -3137,8 +3132,6 @@ namespace HcPortal.Controllers
             string? bagian = null,
             string? unit = null,
             string? status = null,
-            string? tipe = null,
-            string? search = null,
             string? category = null,
             string? subCategory = null)
         {
@@ -3151,22 +3144,15 @@ namespace HcPortal.Controllers
                 allRows = allRows.Where(r => r.Unit == unit).ToList();
             if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
                 allRows = allRows.Where(r => r.Status == st).ToList();
-            if (!string.IsNullOrEmpty(tipe) && Enum.TryParse<RecordType>(tipe, out var rt))
-                allRows = allRows.Where(r => r.RecordType == rt).ToList();
-            if (!string.IsNullOrEmpty(search))
-            {
-                var q = search.ToLower();
-                allRows = allRows.Where(r =>
-                    r.NamaWorker.ToLower().Contains(q) ||
-                    r.Judul.ToLower().Contains(q) ||
-                    (r.NomorSertifikat?.ToLower().Contains(q) ?? false)
-                ).ToList();
-            }
             if (!string.IsNullOrEmpty(category))
-                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.Kategori == category).ToList();
+                allRows = allRows.Where(r => r.Kategori == category).ToList();
             if (!string.IsNullOrEmpty(subCategory))
-                allRows = allRows.Where(r => r.RecordType == RecordType.Assessment && r.SubKategori == subCategory).ToList();
-            allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
+                allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
+            allRows = allRows
+                .OrderBy(r => r.Kategori ?? "")
+                .ThenBy(r => r.SubKategori ?? "")
+                .ThenBy(r => r.Status)
+                .ToList();
 
             using var workbook = new XLWorkbook();
             var ws = ExcelExportHelper.CreateSheet(workbook, "Sertifikat", new[]

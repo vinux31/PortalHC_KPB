@@ -104,7 +104,7 @@
                         <option value="">Semua Unit</option>
                     </select>
                 </div>
-                <div class="col-md-1">
+                <div class="col-md-2">
                     <label class="form-label small mb-1">Status</label>
                     <select id="filter-status" class="form-select form-select-sm">
                         <option value="">Semua Status</option>
@@ -112,14 +112,6 @@
                         <option value="AkanExpired">Akan Expired</option>
                         <option value="Expired">Expired</option>
                         <option value="Permanent">Permanent</option>
-                    </select>
-                </div>
-                <div class="col-md-1">
-                    <label class="form-label small mb-1">Tipe</label>
-                    <select id="filter-tipe" class="form-select form-select-sm">
-                        <option value="">Semua Tipe</option>
-                        <option value="Training">Training</option>
-                        <option value="Assessment">Assessment</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -138,11 +130,7 @@
                         <option value="">Semua Sub Kategori</option>
                     </select>
                 </div>
-                <div class="col-md-1">
-                    <label class="form-label small mb-1">Cari</label>
-                    <input type="text" id="filter-search" class="form-control form-control-sm" placeholder="Nama, judul...">
-                </div>
-                <div class="col-md-1">
+                <div class="col-md-2">
                     <button id="btn-reset" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
                 </div>
             </div>
@@ -174,14 +162,11 @@
     var bagianEl = document.getElementById('filter-bagian');
     var unitEl = document.getElementById('filter-unit');
     var statusEl = document.getElementById('filter-status');
-    var tipeEl = document.getElementById('filter-tipe');
     var categoryEl = document.getElementById('filter-category');
     var subCategoryEl = document.getElementById('filter-subcategory');
-    var searchEl = document.getElementById('filter-search');
     var resetBtn = document.getElementById('btn-reset');
     var container = document.getElementById('cert-table-container');
     var certAbort = null;
-    var searchTimer = null;
     var roleLevel = @Model.RoleLevel;
 
     // Cascade: Bagian -> Unit
@@ -230,13 +215,6 @@
     // Filter change events
     unitEl.addEventListener('change', refreshTable);
     statusEl.addEventListener('change', refreshTable);
-    tipeEl.addEventListener('change', refreshTable);
-
-    // Debounced search (300ms)
-    searchEl.addEventListener('keyup', function () {
-        clearTimeout(searchTimer);
-        searchTimer = setTimeout(refreshTable, 300);
-    });
 
     // Reset
     resetBtn.addEventListener('click', function () {
@@ -250,11 +228,9 @@
             unitEl.value = '';
         }
         statusEl.value = '';
-        tipeEl.value = '';
         categoryEl.value = '';
         subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
         subCategoryEl.disabled = true;
-        searchEl.value = '';
         refreshTable();
     });
 
@@ -267,10 +243,8 @@
         if (bagianEl.value) params.set('bagian', bagianEl.value);
         if (unitEl.value) params.set('unit', unitEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
-        if (tipeEl.value) params.set('tipe', tipeEl.value);
         if (categoryEl.value) params.set('category', categoryEl.value);
         if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
-        if (searchEl.value.trim()) params.set('search', searchEl.value.trim());
 
         if (certAbort) certAbort.abort();
         certAbort = new AbortController();
@@ -344,10 +318,8 @@
         if (bagianEl.value) params.set('bagian', bagianEl.value);
         if (unitEl.value) params.set('unit', unitEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
-        if (tipeEl.value) params.set('tipe', tipeEl.value);
         if (categoryEl.value) params.set('category', categoryEl.value);
         if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
-        if (searchEl.value.trim()) params.set('search', searchEl.value.trim());
         window.location.href = '/CDP/ExportSertifikatExcel?' + params.toString();
     }
     window.exportExcel = exportExcel;

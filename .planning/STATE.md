@@ -147,6 +147,12 @@ Progress: [██████████] 100%
 
 - SVC-04 NotifyIfGroupCompleted logic DIVERGENCE (Admin allows Cancelled vs CMP only Completed) — needs decision during Phase 196 planning
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260318-qsh | Hapus search & filter tipe, urutkan Kategori/SubKategori/Status | 2026-03-18 | pending | [260318-qsh](./quick/260318-qsh-hapus-fitur-search-dan-filter-tipe-pisah/) |
+
 ## Session Continuity
 
 Last session: 2026-03-18T11:07:00.478Z
