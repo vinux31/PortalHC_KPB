@@ -3099,6 +3099,66 @@ namespace HcPortal.Controllers
             return PartialView("Shared/_CertificationManagementTablePartial", vm);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportSertifikatExcel(
+            string? bagian = null,
+            string? unit = null,
+            string? status = null,
+            string? tipe = null,
+            string? search = null)
+        {
+            var allRows = await BuildSertifikatRowsAsync();
+
+            // Filter logic duplikasi dari FilterCertificationManagement
+            if (!string.IsNullOrEmpty(bagian))
+                allRows = allRows.Where(r => r.Bagian == bagian).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                allRows = allRows.Where(r => r.Unit == unit).ToList();
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
+                allRows = allRows.Where(r => r.Status == st).ToList();
+            if (!string.IsNullOrEmpty(tipe) && Enum.TryParse<RecordType>(tipe, out var rt))
+                allRows = allRows.Where(r => r.RecordType == rt).ToList();
+            if (!string.IsNullOrEmpty(search))
+            {
+                var q = search.ToLower();
+                allRows = allRows.Where(r =>
+                    r.NamaWorker.ToLower().Contains(q) ||
+                    r.Judul.ToLower().Contains(q) ||
+                    (r.NomorSertifikat?.ToLower().Contains(q) ?? false)
+                ).ToList();
+            }
+            allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Sertifikat", new[]
+            {
+                "No", "Nama", "Bagian", "Unit", "Judul", "Kategori",
+                "Nomor Sertifikat", "Tgl Terbit", "Valid Until", "Tipe", "Status", "Sertifikat URL"
+            });
+
+            for (int i = 0; i < allRows.Count; i++)
+            {
+                var r = allRows[i];
+                var row = i + 2;
+                ws.Cell(row, 1).Value = i + 1;
+                ws.Cell(row, 2).Value = r.NamaWorker;
+                ws.Cell(row, 3).Value = r.Bagian ?? "";
+                ws.Cell(row, 4).Value = r.Unit ?? "";
+                ws.Cell(row, 5).Value = r.Judul;
+                ws.Cell(row, 6).Value = r.Kategori ?? "";
+                ws.Cell(row, 7).Value = r.NomorSertifikat ?? "";
+                ws.Cell(row, 8).Value = r.TanggalTerbit?.ToString("dd MMM yyyy") ?? "";
+                ws.Cell(row, 9).Value = r.ValidUntil?.ToString("dd MMM yyyy") ?? "";
+                ws.Cell(row, 10).Value = r.RecordType.ToString();
+                ws.Cell(row, 11).Value = r.Status.ToString();
+                ws.Cell(row, 12).Value = r.SertifikatUrl ?? "";
+            }
+
+            var fileName = $"Sertifikat_Export_{DateTime.Now:yyyy-MM-dd}.xlsx";
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
+        }
+
         private async Task<List<SertifikatRow>> BuildSertifikatRowsAsync()
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
