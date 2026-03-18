@@ -278,7 +278,7 @@ Plans:
 
 **Milestone Goal:** Clean up duplicate features and logic across controllers — extract shared services, consolidate split CRUD flows, and unify code patterns. Pure refactoring: no new UI, no DB migrations.
 
-- [ ] **Phase 196: Shared Service Extraction** — Extract duplicated helper methods (GetUnifiedRecords, GetAllWorkersHistory, GetWorkersInSection, NotifyIfGroupCompleted) from AdminController + CMPController into shared service class
+- [x] **Phase 196: Shared Service Extraction** — Extract duplicated helper methods (GetUnifiedRecords, GetAllWorkersHistory, GetWorkersInSection, NotifyIfGroupCompleted) from AdminController + CMPController into shared service class (completed 2026-03-18)
 - [ ] **Phase 197: Excel Export Helper** — Extract common Excel export boilerplate from 4 controllers into a shared ExcelExportHelper
 - [ ] **Phase 198: CRUD Consolidation** — Remove duplicate Training Record CRUD from CMP, link Training Import from Admin, differentiate Worker Detail views
 - [ ] **Phase 199: Code Pattern Extraction** — Extract file upload helper, role-scoping helper, and pagination helper from repeated inline code
@@ -340,7 +340,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 196. Shared Service Extraction | 1/2 | In Progress|  | - |
+| 196. Shared Service Extraction | 2/2 | Complete   | 2026-03-18 | - |
 | 197. Excel Export Helper | v7.6 | 0/TBD | Not started | - |
 | 198. CRUD Consolidation | v7.6 | 0/TBD | Not started | - |
 | 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
