@@ -2366,7 +2366,35 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Results", new { id });
             }
 
+            ViewBag.PSign = await ResolveCategorySignatory(assessment.AssessmentCategory);
             return View(assessment);
+        }
+
+        private async Task<PSignViewModel> ResolveCategorySignatory(string? categoryName)
+        {
+            var fallback = new PSignViewModel { Position = "HC Manager", FullName = "" };
+            if (string.IsNullOrWhiteSpace(categoryName)) return fallback;
+
+            var category = await _context.AssessmentCategories
+                .Include(c => c.Signatory)
+                .Include(c => c.Parent).ThenInclude(p => p!.Signatory)
+                .FirstOrDefaultAsync(c => c.Name == categoryName);
+
+            if (category?.Signatory != null)
+                return new PSignViewModel
+                {
+                    FullName = category.Signatory.FullName ?? "",
+                    Position = category.Signatory.Position ?? "HC Manager"
+                };
+
+            if (category?.Parent?.Signatory != null)
+                return new PSignViewModel
+                {
+                    FullName = category.Parent.Signatory.FullName ?? "",
+                    Position = category.Parent.Signatory.Position ?? "HC Manager"
+                };
+
+            return fallback;
         }
 
         [HttpGet]
@@ -2400,6 +2428,8 @@ namespace HcPortal.Controllers
                 TempData["Error"] = "Certificate is only available for passed assessments.";
                 return RedirectToAction("Results", new { id });
             }
+
+            var pSign = await ResolveCategorySignatory(assessment.AssessmentCategory);
 
             // Register fonts from wwwroot/fonts/
             var fontsPath = Path.Combine(_env.WebRootPath, "fonts");
@@ -2464,12 +2494,28 @@ namespace HcPortal.Controllers
                                 {
                                     col.Spacing(0);
 
-                                    // Header: HC PORTAL KPB
-                                    col.Item().AlignCenter().PaddingBottom(20)
-                                        .Text("HC PORTAL KPB")
-                                        .FontFamily("Playfair Display").FontSize(20).Bold()
-                                        .LetterSpacing(0.05f)
-                                        .FontColor("#1a4a8d");
+                                    // Header: Pertamina logo + HC PORTAL KPB
+                                    col.Item().AlignCenter().PaddingBottom(18).Row(headerRow =>
+                                    {
+                                        var logoPath = Path.Combine(_env.WebRootPath, "images", "psign-pertamina.png");
+                                        if (File.Exists(logoPath))
+                                        {
+                                            headerRow.AutoItem().Height(45)
+                                                .Image(logoPath).FitHeight()
+                                                .WithCompressionQuality(ImageCompressionQuality.High);
+                                            headerRow.ConstantItem(12);
+                                        }
+                                        headerRow.AutoItem().AlignMiddle().Column(logoText =>
+                                        {
+                                            logoText.Item()
+                                                .Text("HC PORTAL KPB")
+                                                .FontFamily("Playfair Display").FontSize(18).Bold()
+                                                .LetterSpacing(0.05f).FontColor("#1a4a8d");
+                                            logoText.Item()
+                                                .Text("Human Capital Development Portal")
+                                                .FontFamily("Lato").FontSize(12).FontColor("#666666");
+                                        });
+                                    });
 
                                     // Certificate of Completion
                                     col.Item().AlignCenter().PaddingBottom(6)
@@ -2546,17 +2592,22 @@ namespace HcPortal.Controllers
                                             }
                                         });
 
-                                        // Right: signature
-                                        row.RelativeItem().AlignRight().Column(right =>
+                                        // Right: P-Sign (logo + position + name)
+                                        row.AutoItem().AlignRight().AlignBottom().PaddingRight(30).Column(right =>
                                         {
-                                            right.Item().AlignRight()
-                                                .Text("Authorized Sig.")
-                                                .FontFamily("Playfair Display").FontSize(20)
-                                                .FontColor("#1a4a8d");
-                                            right.Item().AlignRight().BorderTop(1).BorderColor("#333333").PaddingTop(3)
-                                                .Text("HC Manager")
-                                                .FontFamily("Lato").FontSize(12)
-                                                .FontColor("#666666");
+                                            var sigLogoPath = Path.Combine(_env.WebRootPath, "images", "psign-pertamina.png");
+                                            if (File.Exists(sigLogoPath))
+                                            {
+                                                right.Item().AlignCenter().Height(40)
+                                                    .Image(sigLogoPath).FitHeight()
+                                                    .WithCompressionQuality(ImageCompressionQuality.High);
+                                            }
+                                            right.Item().AlignCenter().PaddingTop(4)
+                                                .Text(pSign.Position ?? "HC Manager")
+                                                .FontFamily("Lato").FontSize(10).FontColor("#333333");
+                                            right.Item().AlignCenter().PaddingTop(2)
+                                                .Text(pSign.FullName)
+                                                .FontFamily("Lato").FontSize(11).Bold().FontColor("#000000");
                                         });
                                     });
                                 });
