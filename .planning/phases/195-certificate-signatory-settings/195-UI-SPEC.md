@@ -123,6 +123,8 @@ Parent rows render normally. Child rows render with visual indent:
 - If category already has children, it appears in the dropdown as a potential parent
 - Hint text below: `<div class="form-text">Kosongkan untuk membuat kategori utama.</div>`
 
+Edit action button in the Aksi column: `<a class="btn btn-sm btn-outline-primary" aria-label="Edit kategori" ...>`. The `aria-label="Edit kategori"` attribute is mandatory on every edit action button in the ManageCategories table.
+
 #### 3. ManageCategories — Add/Edit Form: Signatory Dropdown
 
 - Rendered as `<select class="form-select" id="signatorySelect" name="signatoryUserId">` with blank first option ("— Tidak ada —")
@@ -178,7 +180,7 @@ Fallback when category has no signatory (and no parent signatory): render with P
 Replace the existing icon-text header with logo-section:
 
 ```html
-<div class="logo-section" style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:25px;">
+<div class="logo-section" style="display:flex; align-items:center; justify-content:center; gap:16px; margin-bottom:24px;">
   <img src="/images/psign-pertamina.png" alt="Pertamina" style="height:55px; width:auto;" />
   <div style="font-family:'Playfair Display',serif; font-size:18px; font-weight:bold; color:#1a4a8d; letter-spacing:2px; text-align:left; line-height:1.3;">
     HC PORTAL KPB
@@ -187,7 +189,7 @@ Replace the existing icon-text header with logo-section:
 </div>
 ```
 
-Note: Logo text "HC PORTAL KPB" uses 18px (collapsed from 22px per typography consolidation). Gap changed to 16px (from 15px per spacing grid).
+Note: Logo text "HC PORTAL KPB" uses 18px (collapsed from 22px per typography consolidation). Gap changed to 16px (from 15px per spacing grid). margin-bottom is 24px (multiple of 4 — spacing grid).
 
 #### 7. Wizard Category Dropdown — optgroup
 
