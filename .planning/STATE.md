@@ -3,11 +3,27 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Phase 195 context gathered
-last_updated: "2026-03-18T01:46:05.786Z"
+stopped_at: Completed 195-03-PLAN.md
+last_updated: "2026-03-18T02:31:19.532Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 7
+  percent: 78
+---
+
+---
+gsd_state_version: 1.0
+milestone: v7.4
+milestone_name: Certification Management
+status: active
+stopped_at: Phase 195 UI-SPEC approved
+last_updated: "2026-03-18T01:58:55.262Z"
+last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
+progress:
+  [████████░░] 78%
   completed_phases: 4
   total_plans: 6
   completed_plans: 6
@@ -95,6 +111,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 190 P02 | 10min | 2 tasks | 5 files |
 | Phase 191-wizard-ui P01 | 5 | 1 tasks | 5 files |
 | Phase 194-pdf-certificate-download P01 | 60 | 3 tasks | 8 files |
+| Phase 195 P03 | 10 | 1 tasks | 2 files |
 
 ### Decisions
 
@@ -110,6 +127,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 192-01]: Partial filtered UNIQUE index on NomorSertifikat excludes nulls — legacy sessions unaffected
 - [Phase 194-01]: Font files downloaded and committed to wwwroot/fonts/ for self-contained PDF rendering without runtime HTTP dependency
 - [Phase 194-01]: CertificatePdf auth guard mirrors Certificate action: ownership OR Admin/HC role before serving binary file
+- [Phase 195-03]: Signatory lookup uses string match (c.Name == categoryName) — AssessmentSession.AssessmentCategory is a string, not FK
 
 ### Roadmap Evolution
 
@@ -121,6 +139,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-18T01:46:05.782Z
-Stopped at: Phase 195 context gathered
-Resume file: .planning/phases/195-certificate-signatory-settings/195-CONTEXT.md
+Last session: 2026-03-18T02:31:14.113Z
+Stopped at: Completed 195-03-PLAN.md
+Resume file: None
