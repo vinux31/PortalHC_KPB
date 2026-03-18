@@ -12,21 +12,25 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.4 Certification Management
+## Current Milestone: v7.7 Renewal Certificate & Certificate History
 
-**Goal:** New CDP menu "Certification Management" — unified table of all certificates (TrainingRecord + AssessmentSession) with expiry status, role-scoped views, filters, and Excel export.
+**Goal:** Certificate renewal workflow for HC/Admin (Kelola Data) and certificate history timeline per worker (shared modal). CDP Certification Management enhanced to hide renewed certificates.
 
-**Phases:** 185-189 (not yet started, requirements defined in ROADMAP.md)
+**Target features:**
+- Renewal Certificate page di Kelola Data — daftar sertifikat expired/akan expired, renew single/bulk, pre-fill CreateAssessment
+- Certificate History modal — timeline chain sertifikat per pekerja (shared di CDP & Kelola Data)
+- CDP Certification Management enhanced — hide sertifikat yang sudah di-renew, toggle tampilkan riwayat, klik nama → history
+- Renewal chain tracking — RenewsSessionId/RenewsTrainingId di AssessmentSession, post-exam auto-link
 
-## Current State (after v7.6, 2026-03-18)
+## Current State (after v7.7 start, 2026-03-18)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
 **v7.1 shipped** — Export & Import Data, 5 phases (176-180).
 **v7.3 shipped** — Elemen Teknis Shuffle & Rename, 3 phases (182-184).
+**v7.4 shipped** — Certification Management, 7 phases (185-190).
 **v7.5 shipped** — Assessment Form Revamp & Certificate Enhancement, 6 phases (190-195).
 **v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
-**v7.4 defined** — Certification Management, 5 phases (185-189), not yet executed.
 
 Portal is fully audited and polished. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Training CRUD consolidated to Admin. Assessment creation uses 4-step wizard with DB categories, certificate expiry dates, auto-numbering, PDF download, sub-categories with signatory settings. All requirements satisfied, 0 critical tech debt.
 
