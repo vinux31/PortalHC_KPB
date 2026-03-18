@@ -3023,6 +3023,32 @@ namespace HcPortal.Controllers
             return (user!, roleLevel);
         }
 
+        public async Task<IActionResult> CertificationManagement(int page = 1)
+        {
+            var allRows = await BuildSertifikatRowsAsync();
+
+            // Sort: TanggalTerbit descending (terbaru dulu)
+            allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
+
+            // Summary counts dari FULL dataset (sebelum pagination)
+            var vm = new CertificationManagementViewModel
+            {
+                TotalCount = allRows.Count,
+                AktifCount = allRows.Count(r => r.Status == CertificateStatus.Aktif),
+                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
+                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
+                PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
+            };
+
+            // Pagination
+            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
+            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
+            vm.CurrentPage = paging.CurrentPage;
+            vm.TotalPages = paging.TotalPages;
+
+            return View(vm);
+        }
+
         private async Task<List<SertifikatRow>> BuildSertifikatRowsAsync()
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
