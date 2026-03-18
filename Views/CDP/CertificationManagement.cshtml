@@ -23,7 +23,7 @@
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="fs-2 fw-bold text-primary">@Model.TotalCount</div>
+                    <div id="count-total" class="fs-2 fw-bold text-primary">@Model.TotalCount</div>
                     <div class="small text-muted mt-1">
                         <i class="bi bi-award me-1"></i>Total Sertifikat
                     </div>
@@ -33,7 +33,7 @@
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="fs-2 fw-bold text-success">@Model.AktifCount</div>
+                    <div id="count-aktif" class="fs-2 fw-bold text-success">@Model.AktifCount</div>
                     <div class="small text-muted mt-1">
                         <i class="bi bi-check-circle me-1"></i>Aktif
                     </div>
@@ -43,7 +43,7 @@
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="fs-2 fw-bold text-warning">@Model.AkanExpiredCount</div>
+                    <div id="count-akan-expired" class="fs-2 fw-bold text-warning">@Model.AkanExpiredCount</div>
                     <div class="small text-muted mt-1">
                         <i class="bi bi-exclamation-triangle me-1"></i>Akan Expired
                     </div>
@@ -53,7 +53,7 @@
         <div class="col-6 col-md-3">
             <div class="card border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <div class="fs-2 fw-bold text-danger">@Model.ExpiredCount</div>
+                    <div id="count-expired" class="fs-2 fw-bold text-danger">@Model.ExpiredCount</div>
                     <div class="small text-muted mt-1">
                         <i class="bi bi-x-circle me-1"></i>Expired
                     </div>
@@ -62,118 +62,190 @@
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-3">No</th>
-                            <th>Nama</th>
-                            <th class="d-none d-md-table-cell">Bagian</th>
-                            <th class="d-none d-md-table-cell">Unit</th>
-                            <th>Judul</th>
-                            <th class="d-none d-md-table-cell">Kategori</th>
-                            <th>Nomor Sertifikat</th>
-                            <th>Tgl Terbit</th>
-                            <th>Valid Until</th>
-                            <th>Tipe</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (Model.Rows.Count == 0)
+    <!-- Filter Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Bagian</label>
+                    <select id="filter-bagian" class="form-select form-select-sm">
+                        <option value="">Semua Bagian</option>
+                        @foreach (var s in (List<string>)ViewBag.AllBagian)
                         {
-                            <tr>
-                                <td colspan="11" class="text-center text-muted py-4">Belum ada data sertifikat</td>
-                            </tr>
+                            <option value="@s">@s</option>
                         }
-                        else
-                        {
-                            @for (int i = 0; i < Model.Rows.Count; i++)
-                            {
-                                var row = Model.Rows[i];
-                                var nomor = (Model.CurrentPage - 1) * Model.PageSize + i + 1;
-                                <tr>
-                                    <td class="ps-3">@nomor</td>
-                                    <td>@row.NamaWorker</td>
-                                    <td class="d-none d-md-table-cell">@(row.Bagian ?? "-")</td>
-                                    <td class="d-none d-md-table-cell">@(row.Unit ?? "-")</td>
-                                    <td>@row.Judul</td>
-                                    <td class="d-none d-md-table-cell">@(row.Kategori ?? "-")</td>
-                                    <td>@(row.NomorSertifikat ?? "-")</td>
-                                    <td>@(row.TanggalTerbit?.ToString("dd MMM yyyy") ?? "-")</td>
-                                    <td>@(row.ValidUntil?.ToString("dd MMM yyyy") ?? "-")</td>
-                                    <td>
-                                        @if (row.RecordType == RecordType.Training)
-                                        {
-                                            <span class="badge bg-primary">Training</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge" style="background-color: #6f42c1 !important;">Assessment</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        @switch (row.Status)
-                                        {
-                                            case CertificateStatus.Aktif:
-                                                <span class="badge bg-success">Aktif</span>
-                                                break;
-                                            case CertificateStatus.AkanExpired:
-                                                <span class="badge bg-warning text-dark">Akan Expired</span>
-                                                break;
-                                            case CertificateStatus.Expired:
-                                                <span class="badge bg-danger">Expired</span>
-                                                break;
-                                            case CertificateStatus.Permanent:
-                                                <span class="badge bg-secondary">Permanent</span>
-                                                break;
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        }
-                    </tbody>
-                </table>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Unit</label>
+                    <select id="filter-unit" class="form-select form-select-sm" disabled>
+                        <option value="">Semua Unit</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Status</label>
+                    <select id="filter-status" class="form-select form-select-sm">
+                        <option value="">Semua Status</option>
+                        <option value="Aktif">Aktif</option>
+                        <option value="AkanExpired">Akan Expired</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Permanent">Permanent</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small mb-1">Tipe</label>
+                    <select id="filter-tipe" class="form-select form-select-sm">
+                        <option value="">Semua Tipe</option>
+                        <option value="Training">Training</option>
+                        <option value="Assessment">Assessment</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label small mb-1">Cari</label>
+                    <input type="text" id="filter-search" class="form-control form-control-sm" placeholder="Nama, judul, atau nomor...">
+                </div>
+                <div class="col-md-1">
+                    <button id="btn-reset" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Pagination -->
-    @if (Model.TotalPages > 1)
-    {
-        <nav class="mt-4" aria-label="Pagination">
-            <ul class="pagination justify-content-center">
-                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="CertificationManagement" asp-route-page="@(Model.CurrentPage - 1)">
-                        <i class="bi bi-chevron-left"></i>
-                    </a>
-                </li>
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
-                        <a class="page-link" asp-action="CertificationManagement" asp-route-page="@i">@i</a>
-                    </li>
-                }
-                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
-                    <a class="page-link" asp-action="CertificationManagement" asp-route-page="@(Model.CurrentPage + 1)">
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    }
-
-    <!-- Info text -->
-    @if (Model.TotalCount > 0)
-    {
-        var from = (Model.CurrentPage - 1) * Model.PageSize + 1;
-        var to = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalCount);
-        <p class="text-center text-muted small mt-2">
-            Menampilkan @from - @to dari @Model.TotalCount sertifikat
-        </p>
-    }
+    <!-- Table Container -->
+    <div id="cert-table-container" class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            @await Html.PartialAsync("Shared/_CertificationManagementTablePartial", Model)
+        </div>
+    </div>
 
 </div>
+
+<style>
+    .dashboard-loading { opacity: 0.5; pointer-events: none; position: relative; }
+    .dashboard-loading::after {
+        content: '';
+        position: absolute; top: 50%; left: 50%;
+        width: 2rem; height: 2rem;
+        margin: -1rem 0 0 -1rem;
+        border: 3px solid #dee2e6; border-top-color: #0d6efd;
+        border-radius: 50%; animation: spin 0.6s linear infinite;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<script>
+(function () {
+    var bagianEl = document.getElementById('filter-bagian');
+    var unitEl = document.getElementById('filter-unit');
+    var statusEl = document.getElementById('filter-status');
+    var tipeEl = document.getElementById('filter-tipe');
+    var searchEl = document.getElementById('filter-search');
+    var resetBtn = document.getElementById('btn-reset');
+    var container = document.getElementById('cert-table-container');
+    var certAbort = null;
+    var searchTimer = null;
+
+    // Cascade: Bagian -> Unit
+    bagianEl.addEventListener('change', function () {
+        var section = bagianEl.value;
+        unitEl.innerHTML = '<option value="">Semua Unit</option>';
+        if (!section) {
+            unitEl.disabled = true;
+            refreshTable();
+            return;
+        }
+        fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                data.units.forEach(function (u) {
+                    var opt = document.createElement('option');
+                    opt.value = u;
+                    opt.textContent = u;
+                    unitEl.appendChild(opt);
+                });
+                unitEl.disabled = false;
+                refreshTable();
+            });
+    });
+
+    // Filter change events
+    unitEl.addEventListener('change', refreshTable);
+    statusEl.addEventListener('change', refreshTable);
+    tipeEl.addEventListener('change', refreshTable);
+
+    // Debounced search (300ms)
+    searchEl.addEventListener('keyup', function () {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(refreshTable, 300);
+    });
+
+    // Reset
+    resetBtn.addEventListener('click', function () {
+        bagianEl.value = '';
+        unitEl.innerHTML = '<option value="">Semua Unit</option>';
+        unitEl.disabled = true;
+        statusEl.value = '';
+        tipeEl.value = '';
+        searchEl.value = '';
+        refreshTable();
+    });
+
+    function refreshTable(page) {
+        if (typeof page !== 'number') page = 1;
+        container.classList.add('dashboard-loading');
+
+        var params = new URLSearchParams();
+        params.set('page', page.toString());
+        if (bagianEl.value) params.set('bagian', bagianEl.value);
+        if (unitEl.value) params.set('unit', unitEl.value);
+        if (statusEl.value) params.set('status', statusEl.value);
+        if (tipeEl.value) params.set('tipe', tipeEl.value);
+        if (searchEl.value.trim()) params.set('search', searchEl.value.trim());
+
+        if (certAbort) certAbort.abort();
+        certAbort = new AbortController();
+
+        fetch('/CDP/FilterCertificationManagement?' + params, { signal: certAbort.signal })
+            .then(function (resp) { return resp.text(); })
+            .then(function (html) {
+                container.innerHTML = html;
+                wirePagination();
+                updateSummaryCards();
+                container.classList.remove('dashboard-loading');
+            })
+            .catch(function (e) {
+                if (e.name !== 'AbortError') {
+                    console.error(e);
+                    container.classList.remove('dashboard-loading');
+                }
+            });
+    }
+
+    function wirePagination() {
+        container.querySelectorAll('a[data-page]').forEach(function (link) {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                var p = parseInt(this.dataset.page);
+                if (p >= 1) refreshTable(p);
+            });
+        });
+    }
+
+    function updateSummaryCards() {
+        var content = container.querySelector('#cert-table-content');
+        if (!content) return;
+        var el;
+        el = document.getElementById('count-total');
+        if (el) el.textContent = content.dataset.total;
+        el = document.getElementById('count-aktif');
+        if (el) el.textContent = content.dataset.aktif;
+        el = document.getElementById('count-akan-expired');
+        if (el) el.textContent = content.dataset.akanExpired;
+        el = document.getElementById('count-expired');
+        if (el) el.textContent = content.dataset.expired;
+    }
+
+    // Wire pagination on initial load too
+    wirePagination();
+})();
+</script>

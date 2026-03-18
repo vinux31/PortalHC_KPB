@@ -3046,7 +3046,57 @@ namespace HcPortal.Controllers
             vm.CurrentPage = paging.CurrentPage;
             vm.TotalPages = paging.TotalPages;
 
+            ViewBag.AllBagian = OrganizationStructure.GetAllSections();
             return View(vm);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> FilterCertificationManagement(
+            string? bagian = null,
+            string? unit = null,
+            string? status = null,
+            string? tipe = null,
+            string? search = null,
+            int page = 1)
+        {
+            var allRows = await BuildSertifikatRowsAsync();
+
+            // Apply filters in-memory (status is derived, not a DB column)
+            if (!string.IsNullOrEmpty(bagian))
+                allRows = allRows.Where(r => r.Bagian == bagian).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                allRows = allRows.Where(r => r.Unit == unit).ToList();
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
+                allRows = allRows.Where(r => r.Status == st).ToList();
+            if (!string.IsNullOrEmpty(tipe) && Enum.TryParse<RecordType>(tipe, out var rt))
+                allRows = allRows.Where(r => r.RecordType == rt).ToList();
+            if (!string.IsNullOrEmpty(search))
+            {
+                var q = search.ToLower();
+                allRows = allRows.Where(r =>
+                    r.NamaWorker.ToLower().Contains(q) ||
+                    r.Judul.ToLower().Contains(q) ||
+                    (r.NomorSertifikat?.ToLower().Contains(q) ?? false)
+                ).ToList();
+            }
+
+            allRows = allRows.OrderByDescending(r => r.TanggalTerbit).ToList();
+
+            var vm = new CertificationManagementViewModel
+            {
+                TotalCount = allRows.Count,
+                AktifCount = allRows.Count(r => r.Status == CertificateStatus.Aktif),
+                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
+                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
+                PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
+            };
+
+            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
+            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
+            vm.CurrentPage = paging.CurrentPage;
+            vm.TotalPages = paging.TotalPages;
+
+            return PartialView("Shared/_CertificationManagementTablePartial", vm);
         }
 
         private async Task<List<SertifikatRow>> BuildSertifikatRowsAsync()
