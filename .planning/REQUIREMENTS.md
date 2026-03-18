@@ -1,69 +1,70 @@
-# Requirements: Portal HC KPB — v7.6 Code Deduplication & Shared Services
+# Requirements: Portal HC KPB
 
 **Defined:** 2026-03-18
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v7.6 Requirements
+## v7.7 Requirements
 
-Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps to roadmap phases.
+Requirements for Renewal Certificate & Certificate History milestone.
 
-### Shared Services
+### Renewal Chain
 
-- [x] **SVC-01**: GetUnifiedRecords() di-extract dari AdminController + CMPController ke shared service class
-- [x] **SVC-02**: GetAllWorkersHistory() di-extract ke shared service (duplikat ~80 baris di Admin + CMP)
-- [x] **SVC-03**: GetWorkersInSection() di-extract ke shared service (duplikat ~100 baris di Admin + CMP)
-- [x] **SVC-04**: NotifyIfGroupCompleted() di-extract ke shared service — logic divergence antara Admin (izinkan Cancelled) dan CMP (hanya Completed) diperbaiki jadi satu versi konsisten
-- [x] **SVC-05**: Common Excel export helper di-extract dari 4 controller (Admin, CMP, CDP, ProtonData) — shared header setup, data population, dan formatting
+- [ ] **RENEW-01**: AssessmentSession memiliki field RenewsSessionId (FK self) dan RenewsTrainingId (FK ke TrainingRecord) untuk tracking renewal chain
+- [ ] **RENEW-02**: Sertifikat dianggap "sudah di-renew" hanya jika ada AssessmentSession dengan RenewsSessionId/RenewsTrainingId yang mengarah ke sertifikat tersebut DAN IsPassed == true
+- [ ] **RENEW-03**: CreateAssessment menerima query param renewSessionId/renewTrainingId — pre-fill Title, Category, peserta, GenerateCertificate=true, ValidUntil wajib
 
-### CRUD Consolidation
+### Renewal Certificate Page
 
-- [x] **CRUD-01**: Training Record edit/hapus di CMPController dihapus — Admin/EditTraining dan Admin/DeleteTraining jadi satu-satunya entry point
-- [x] **CRUD-02**: Training Import dipindahkan atau di-link dari Admin (saat ini hanya bisa diakses dari CMP/ImportTraining)
-- [x] **CRUD-03**: Worker Detail di Admin (/Admin/WorkerDetail) dan CMP (/CMP/RecordsWorkerDetail) dibedakan tujuannya secara jelas — Admin fokus profil/edit data pekerja, CMP fokus rekaman training & assessment
+- [ ] **RNPAGE-01**: HC/Admin melihat daftar sertifikat Expired dan Akan Expired yang belum di-renew (tidak ada renewal yang lulus)
+- [ ] **RNPAGE-02**: HC/Admin dapat filter berdasarkan Bagian, Unit, Kategori
+- [ ] **RNPAGE-03**: Klik Renew pada satu sertifikat → redirect ke CreateAssessment dengan data pre-filled
+- [ ] **RNPAGE-04**: Checkbox bulk select + Renew Selected untuk sertifikat dengan kategori sama
+- [ ] **RNPAGE-05**: Card Renewal Certificate di Kelola Data Section C
 
-### Code Patterns
+### Certificate History
 
-- [x] **PAT-01**: File upload logic untuk KKJ dan CPDP di AdminController di-extract ke FileUploadHelper class (validasi, safe filename, save file, audit log — 90% identik)
-- [x] **PAT-02**: Role-scoping enforcement logic yang berulang di CMPController (3+ tempat) di-extract ke private helper method
-- [x] **PAT-03**: Pagination logic yang berulang di 5+ tempat (Admin, CMP, CDP) di-extract ke helper atau extension method
+- [ ] **HIST-01**: Modal timeline riwayat sertifikat per pekerja, grouped by renewal chain (terbaru di atas)
+- [ ] **HIST-02**: Di Renewal page, modal history menampilkan tombol Renew pada sertifikat expired/akan expired yang belum di-renew
+- [ ] **HIST-03**: Di CDP Certification Management, klik nama pekerja membuka modal history read-only
 
-## Future Requirements
+### CDP Enhancement
 
-### Deferred
-
-- **FUT-01**: Certificate file validation helper (CMPController + CDPController) — low severity, defer ke milestone berikutnya
-- **FUT-02**: TrainingRecord creation factory/mapper untuk import — low severity
+- [ ] **CDP-01**: Sertifikat yang sudah di-renew (ada renewal lulus) default tersembunyi di tabel
+- [ ] **CDP-02**: Toggle "Tampilkan riwayat" untuk show/hide sertifikat yang sudah di-renew
+- [ ] **CDP-03**: Summary card Expired hanya menghitung sertifikat yang belum di-renew
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Menambah fitur baru | Milestone ini murni refactoring/cleanup |
-| Mengubah UI/UX yang ada | Hanya perubahan internal, user tidak merasakan perbedaan |
-| Database migration | Tidak ada perubahan schema |
-| Menghapus Worker Detail salah satu | Keputusan: tetap dua, dibedakan tujuannya |
+| Status "Renewed" sebagai enum baru | Tidak perlu — cek relasi renewal chain cukup, menghindari status terlalu banyak |
+| Renewal dari Training ke Training | Renewal selalu via assessment baru — TrainingRecord tidak bisa di-renew ke TrainingRecord lain |
+| Notifikasi otomatis sertifikat akan expired | Bisa ditambahkan di milestone berikutnya |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SVC-01 | Phase 196 | Complete |
-| SVC-02 | Phase 196 | Complete |
-| SVC-03 | Phase 196 | Complete |
-| SVC-04 | Phase 196 | Complete |
-| SVC-05 | Phase 197 | Complete |
-| CRUD-01 | Phase 198 | Complete |
-| CRUD-02 | Phase 198 | Complete |
-| CRUD-03 | Phase 198 | Complete |
-| PAT-01 | Phase 199 | Complete |
-| PAT-02 | Phase 199 | Complete |
-| PAT-03 | Phase 199 | Complete |
+| RENEW-01 | Pending | Pending |
+| RENEW-02 | Pending | Pending |
+| RENEW-03 | Pending | Pending |
+| RNPAGE-01 | Pending | Pending |
+| RNPAGE-02 | Pending | Pending |
+| RNPAGE-03 | Pending | Pending |
+| RNPAGE-04 | Pending | Pending |
+| RNPAGE-05 | Pending | Pending |
+| HIST-01 | Pending | Pending |
+| HIST-02 | Pending | Pending |
+| HIST-03 | Pending | Pending |
+| CDP-01 | Pending | Pending |
+| CDP-02 | Pending | Pending |
+| CDP-03 | Pending | Pending |
 
 **Coverage:**
-- v7.6 requirements: 11 total
-- Mapped to phases: 11
-- Unmapped: 0
+- v7.7 requirements: 14 total
+- Mapped to phases: 0
+- Unmapped: 14 ⚠️
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after roadmap creation*
+*Last updated: 2026-03-18 after milestone v7.7 start*
