@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.4
 milestone_name: Certification Management
 status: active
-stopped_at: Completed 195-01-PLAN.md
-last_updated: "2026-03-18T02:32:23.607Z"
+stopped_at: Completed 195-02-PLAN.md
+last_updated: "2026-03-18T02:34:02.456Z"
 last_activity: 2026-03-17 — v7.5 roadmap created (phases 190–194)
 progress:
   total_phases: 10
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 78
 ---
 
@@ -128,6 +128,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 194-01]: Font files downloaded and committed to wwwroot/fonts/ for self-contained PDF rendering without runtime HTTP dependency
 - [Phase 194-01]: CertificatePdf auth guard mirrors Certificate action: ownership OR Admin/HC role before serving binary file
 - [Phase 195-03]: Signatory lookup uses string match (c.Name == categoryName) — AssessmentSession.AssessmentCategory is a string, not FK
+- [Phase 195-02]: SetCategoriesViewBag() private helper reuses query logic across ManageCategories GET/POST
+- [Phase 195-02]: Inline if/else for Razor option selected — RZ1031 prevents C# expressions in tag helper attribute declarations
 
 ### Roadmap Evolution
 
@@ -139,6 +141,6 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-18T02:32:23.603Z
-Stopped at: Completed 195-01-PLAN.md
+Last session: 2026-03-18T02:33:58.239Z
+Stopped at: Completed 195-02-PLAN.md
 Resume file: None

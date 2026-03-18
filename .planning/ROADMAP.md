@@ -172,7 +172,7 @@ Plans:
 **Goal:** Add hierarchical sub-categories to AssessmentCategory (self-referencing ParentId FK) so categories like "Mandatory HSSE Training" can have sub-categories like "Gas Tester". Admin CRUD on Manage Categories page supports creating/editing sub-categories. Also add per-category signatory name configuration for the certificate "Authorized Sig." field.
 **Requirements**: R195-1: AssessmentCategory gains nullable ParentId (self-ref FK) for parent→children hierarchy. R195-2: Admin Manage Categories UI shows parent categories with expandable sub-categories. R195-3: CreateAssessment wizard category dropdown shows grouped options (parent > sub). R195-4: Per-category SignatoryName field stored in AssessmentCategory, displayed on certificate.
 **Depends on:** Phase 194
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 195-01-PLAN.md — EF migration: ParentId self-ref FK + SignatoryUserId FK on AssessmentCategory
@@ -190,7 +190,7 @@ Plans:
 - [x] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering (completed 2026-03-17)
 - ~~**Phase 193: Clone Assessment**~~ — Removed (user decided feature not needed)
 - [x] **Phase 194: PDF Certificate Download** — CMPController.CertificatePdf QuestPDF action with A4 landscape layout and Download button on Certificate view (completed 2026-03-17)
-- [ ] **Phase 195: Sub-Categories & Signatory Settings** — Hierarchical sub-categories (ParentId self-ref FK), Admin CRUD with expandable tree, grouped wizard dropdown, per-category signatory name for certificates
+- [x] **Phase 195: Sub-Categories & Signatory Settings** — Hierarchical sub-categories (ParentId self-ref FK), Admin CRUD with expandable tree, grouped wizard dropdown, per-category signatory name for certificates (completed 2026-03-18)
 
 ### Phase 190: DB Categories Foundation
 **Goal**: Admin/HC can manage assessment categories from the database — the AssessmentCategories table exists with seed data, and CreateAssessment loads categories from DB instead of hardcoded strings
