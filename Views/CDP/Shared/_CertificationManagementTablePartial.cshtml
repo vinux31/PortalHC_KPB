@@ -22,13 +22,14 @@
                     <th>Valid Until</th>
                     <th>Tipe</th>
                     <th>Status</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @if (Model.Rows.Count == 0)
                 {
                     <tr>
-                        <td colspan="11" class="text-center text-muted py-4">Belum ada data sertifikat</td>
+                        <td colspan="12" class="text-center text-muted py-4">Belum ada data sertifikat</td>
                     </tr>
                 }
                 else
@@ -72,6 +73,23 @@
                                     case CertificateStatus.Permanent:
                                         <span class="badge bg-secondary">Permanent</span>
                                         break;
+                                }
+                            </td>
+                            <td>
+                                @if (row.RecordType == RecordType.Training)
+                                {
+                                    if (!string.IsNullOrEmpty(row.SertifikatUrl))
+                                    {
+                                        <a href="@row.SertifikatUrl" target="_blank" class="btn btn-sm btn-outline-primary" title="Lihat Sertifikat"><i class="bi bi-eye"></i></a>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">-</span>
+                                    }
+                                }
+                                else
+                                {
+                                    <a asp-controller="CMP" asp-action="CertificatePdf" asp-route-id="@row.SourceId" target="_blank" class="btn btn-sm btn-outline-primary" title="Download Sertifikat"><i class="bi bi-download"></i></a>
                                 }
                             </td>
                         </tr>

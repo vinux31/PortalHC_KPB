@@ -13,9 +13,17 @@
             </h4>
             <p class="text-muted mb-0">Daftar semua sertifikat pelatihan dan asesmen pekerja</p>
         </div>
-        <a asp-controller="CDP" asp-action="Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>Kembali ke CDP
-        </a>
+        <div class="d-flex gap-2">
+            @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+            {
+                <a id="btn-export" href="#" class="btn btn-outline-success" onclick="exportExcel(event)">
+                    <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
+                </a>
+            }
+            <a asp-controller="CDP" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke CDP
+            </a>
+        </div>
     </div>
 
     <!-- Summary Cards -->
@@ -247,5 +255,17 @@
 
     // Wire pagination on initial load too
     wirePagination();
+
+    function exportExcel(e) {
+        e.preventDefault();
+        var params = new URLSearchParams();
+        if (bagianEl.value) params.set('bagian', bagianEl.value);
+        if (unitEl.value) params.set('unit', unitEl.value);
+        if (statusEl.value) params.set('status', statusEl.value);
+        if (tipeEl.value) params.set('tipe', tipeEl.value);
+        if (searchEl.value.trim()) params.set('search', searchEl.value.trim());
+        window.location.href = '/CDP/ExportSertifikatExcel?' + params.toString();
+    }
+    window.exportExcel = exportExcel;
 })();
 </script>
