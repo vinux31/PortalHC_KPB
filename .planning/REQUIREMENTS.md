@@ -1,66 +1,69 @@
-# Requirements: Portal HC KPB — v7.5 Assessment Form Revamp & Certificate Enhancement
+# Requirements: Portal HC KPB — v7.6 Code Deduplication & Shared Services
 
-**Defined:** 2026-03-17
+**Defined:** 2026-03-18
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v7.5 Requirements
+## v7.6 Requirements
 
-Requirements for assessment form revamp and certificate enhancement. Each maps to roadmap phases.
+Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps to roadmap phases.
 
-### Assessment Form UX
+### Shared Services
 
-- [x] **FORM-01**: Admin/HC can create assessment melalui wizard step-based (Kategori → Users → Settings → Konfirmasi)
-- [x] **FORM-02**: Admin dapat mengelola kategori assessment dari database (CRUD) tanpa perlu edit code
-- ~~**FORM-03**: Admin/HC dapat membuat assessment baru dari duplikasi assessment yang sudah ada (clone)~~ — **Removed** (user decided not needed)
+- [ ] **SVC-01**: GetUnifiedRecords() di-extract dari AdminController + CMPController ke shared service class
+- [ ] **SVC-02**: GetAllWorkersHistory() di-extract ke shared service (duplikat ~80 baris di Admin + CMP)
+- [ ] **SVC-03**: GetWorkersInSection() di-extract ke shared service (duplikat ~100 baris di Admin + CMP)
+- [ ] **SVC-04**: NotifyIfGroupCompleted() di-extract ke shared service — logic divergence antara Admin (izinkan Cancelled) dan CMP (hanya Completed) diperbaiki jadi satu versi konsisten
+- [ ] **SVC-05**: Common Excel export helper di-extract dari 4 controller (Admin, CMP, CDP, ProtonData) — shared header setup, data population, dan formatting
 
-### Certificate Enhancement
+### CRUD Consolidation
 
-- [x] **CERT-01**: Admin/HC dapat mengatur tanggal expired (ValidUntil) pada sertifikat assessment online
-- [x] **CERT-02**: Sistem men-generate nomor sertifikat otomatis saat sertifikat terbit (format: CERT-{TAHUN}-{SEQ})
-- [x] **CERT-03**: User dapat download sertifikat sebagai file PDF (server-side via QuestPDF)
+- [ ] **CRUD-01**: Training Record edit/hapus di CMPController dihapus — Admin/EditTraining dan Admin/DeleteTraining jadi satu-satunya entry point
+- [ ] **CRUD-02**: Training Import dipindahkan atau di-link dari Admin (saat ini hanya bisa diakses dari CMP/ImportTraining)
+- [ ] **CRUD-03**: Worker Detail di Admin (/Admin/WorkerDetail) dan CMP (/CMP/RecordsWorkerDetail) dibedakan tujuannya secara jelas — Admin fokus profil/edit data pekerja, CMP fokus rekaman training & assessment
+
+### Code Patterns
+
+- [ ] **PAT-01**: File upload logic untuk KKJ dan CPDP di AdminController di-extract ke FileUploadHelper class (validasi, safe filename, save file, audit log — 90% identik)
+- [ ] **PAT-02**: Role-scoping enforcement logic yang berulang di CMPController (3+ tempat) di-extract ke private helper method
+- [ ] **PAT-03**: Pagination logic yang berulang di 5+ tempat (Admin, CMP, CDP) di-extract ke helper atau extension method
 
 ## Future Requirements
 
-### Assessment Workflow (v7.6+)
+### Deferred
 
-- **TMPL-01**: Admin/HC dapat menyimpan assessment template/preset untuk konfigurasi yang sering dipakai
-- **SCHED-01**: Admin/HC dapat membuat recurring assessment dengan jadwal berulang otomatis
-
-### Certificate Advanced (v7.6+)
-
-- **QRCODE-01**: Sertifikat memiliki QR code untuk verifikasi keaslian
-- **RENEW-01**: Workflow renewal sertifikat expired (notifikasi → upload baru → approval)
-- **NOTIF-01**: Notifikasi otomatis X hari sebelum sertifikat expired
+- **FUT-01**: Certificate file validation helper (CMPController + CDPController) — low severity, defer ke milestone berikutnya
+- **FUT-02**: TrainingRecord creation factory/mapper untuk import — low severity
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Assessment template/preset | Terlalu kompleks untuk 1 milestone, defer ke v7.6+ |
-| Recurring scheduling | Butuh infrastruktur scheduler baru, milestone sendiri |
-| QR code verifikasi | Nice-to-have, bukan prioritas saat ini |
-| Expiry notification | Butuh infrastruktur notifikasi baru |
-| Certificate revocation | Workflow terlalu kompleks, belum ada kebutuhan |
-| Multi-page certificate layout | Satu halaman sertifikat sudah cukup |
+| Menambah fitur baru | Milestone ini murni refactoring/cleanup |
+| Mengubah UI/UX yang ada | Hanya perubahan internal, user tidak merasakan perbedaan |
+| Database migration | Tidak ada perubahan schema |
+| Menghapus Worker Detail salah satu | Keputusan: tetap dua, dibedakan tujuannya |
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORM-01 | Phase 191 | Complete |
-| FORM-02 | Phase 190 | Complete |
-| ~~FORM-03~~ | ~~Phase 193~~ | Removed |
-| CERT-01 | Phase 192 | Complete |
-| CERT-02 | Phase 192 | Complete |
-| CERT-03 | Phase 194 | Complete |
+| SVC-01 | TBD | Pending |
+| SVC-02 | TBD | Pending |
+| SVC-03 | TBD | Pending |
+| SVC-04 | TBD | Pending |
+| SVC-05 | TBD | Pending |
+| CRUD-01 | TBD | Pending |
+| CRUD-02 | TBD | Pending |
+| CRUD-03 | TBD | Pending |
+| PAT-01 | TBD | Pending |
+| PAT-02 | TBD | Pending |
+| PAT-03 | TBD | Pending |
 
 **Coverage:**
-- v7.5 requirements: 5 active (1 removed)
-- Mapped to phases: 5
-- Unmapped: 0 ✓
+- v7.6 requirements: 11 total
+- Mapped to phases: 0
+- Unmapped: 11 ⚠️
 
 ---
-*Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after roadmap creation*
+*Requirements defined: 2026-03-18*
+*Last updated: 2026-03-18 after initial definition*
