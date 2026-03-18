@@ -340,7 +340,11 @@ Plans:
   3. Pagination logic (skip/take calculation, page count, current page clamping) exists in a shared helper or extension method — the 5+ inline implementations across Admin, CMP, and CDP are replaced
   4. All file uploads, role-scoped queries, and paginated pages behave identically to pre-refactor
   5. The project compiles with zero errors
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 199-01-PLAN.md — FileUploadHelper + PaginationHelper static classes, refactor 3 controllers
+- [ ] 199-02-PLAN.md — CMPController role-scoping private helper extraction
 
 ## Progress
 
@@ -349,4 +353,4 @@ Plans:
 | 196. Shared Service Extraction | 2/2 | Complete    | 2026-03-18 | - |
 | 197. Excel Export Helper | 1/1 | Complete    | 2026-03-18 | - |
 | 198. CRUD Consolidation | 1/1 | Complete    | 2026-03-18 | - |
-| 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
+| 199. Code Pattern Extraction | v7.6 | 0/2 | Not started | - |
