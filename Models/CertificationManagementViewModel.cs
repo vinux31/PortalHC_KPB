@@ -31,6 +31,7 @@ public class SertifikatRow
     public string? Unit { get; set; }
     public string Judul { get; set; } = "";
     public string? Kategori { get; set; }
+    public string? SubKategori { get; set; }
     public string? NomorSertifikat { get; set; }
     public DateTime? TanggalTerbit { get; set; }
     public DateTime? ValidUntil { get; set; }
@@ -68,4 +69,5 @@ public class CertificationManagementViewModel
     public int CurrentPage { get; set; } = 0;
     public int TotalPages { get; set; } = 0;
     public int PageSize { get; set; } = 20;
+    public int RoleLevel { get; set; } = 1;
 }
