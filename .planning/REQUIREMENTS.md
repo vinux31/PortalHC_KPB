@@ -47,23 +47,23 @@ Requirements for milestone v7.6 Code Deduplication & Shared Services. Each maps 
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SVC-01 | TBD | Pending |
-| SVC-02 | TBD | Pending |
-| SVC-03 | TBD | Pending |
-| SVC-04 | TBD | Pending |
-| SVC-05 | TBD | Pending |
-| CRUD-01 | TBD | Pending |
-| CRUD-02 | TBD | Pending |
-| CRUD-03 | TBD | Pending |
-| PAT-01 | TBD | Pending |
-| PAT-02 | TBD | Pending |
-| PAT-03 | TBD | Pending |
+| SVC-01 | Phase 196 | Pending |
+| SVC-02 | Phase 196 | Pending |
+| SVC-03 | Phase 196 | Pending |
+| SVC-04 | Phase 196 | Pending |
+| SVC-05 | Phase 197 | Pending |
+| CRUD-01 | Phase 198 | Pending |
+| CRUD-02 | Phase 198 | Pending |
+| CRUD-03 | Phase 198 | Pending |
+| PAT-01 | Phase 199 | Pending |
+| PAT-02 | Phase 199 | Pending |
+| PAT-03 | Phase 199 | Pending |
 
 **Coverage:**
 - v7.6 requirements: 11 total
-- Mapped to phases: 0
-- Unmapped: 11 ⚠️
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-18*
-*Last updated: 2026-03-18 after initial definition*
+*Last updated: 2026-03-18 after roadmap creation*

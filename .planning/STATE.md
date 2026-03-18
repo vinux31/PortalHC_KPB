@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v7.6
 milestone_name: Code Deduplication & Shared Services
 status: active
-stopped_at: Defining requirements
+stopped_at: Roadmap created, ready to plan Phase 196
 last_updated: "2026-03-18"
-last_activity: 2026-03-18 — Milestone v7.6 started
+last_activity: 2026-03-18 — Roadmap created for v7.6
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Milestone v7.6 — Code Deduplication & Shared Services
+**Current focus:** Milestone v7.6 — Phase 196 Shared Service Extraction
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-18 — Milestone v7.6 started
+Phase: 196 of 199 (Shared Service Extraction)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-18 — Roadmap created for v7.6
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -48,17 +48,19 @@ Progress: [░░░░░░░░░░] 0%
 - [v7.5]: NomorSertifikat UNIQUE constraint + retry loop
 - [Phase 194-01]: Font files committed to wwwroot/fonts/ for self-contained PDF rendering
 - [Phase 195-03]: Signatory lookup uses string match (c.Name == categoryName)
+- [v7.6]: SVC-01/02/03/04 grouped in Phase 196 (tightly coupled duplicate helpers)
+- [v7.6]: SVC-04 logic divergence must be resolved to single correct behavior during extraction
 
 ### Roadmap Evolution
 
-(none yet)
+- 2026-03-18: v7.6 roadmap created — 4 phases (196-199), 11 requirements
 
 ### Blockers/Concerns
 
-(none)
+- SVC-04 NotifyIfGroupCompleted logic DIVERGENCE (Admin allows Cancelled vs CMP only Completed) — needs decision during Phase 196 planning
 
 ## Session Continuity
 
 Last session: 2026-03-18
-Stopped at: Defining requirements
+Stopped at: Roadmap created, ready to plan Phase 196
 Resume file: None

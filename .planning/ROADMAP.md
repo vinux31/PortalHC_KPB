@@ -11,6 +11,7 @@
 - ✅ **v7.3 Elemen Teknis Shuffle & Rename** - Phases 183–184 (shipped 2026-03-17)
 - 🚧 **v7.4 Certification Management** - Phases 185–189 (in progress)
 - 📋 **v7.5 Assessment Form Revamp & Certificate Enhancement** - Phases 190–192, 194–195 (planned)
+- 📋 **v7.6 Code Deduplication & Shared Services** - Phases 196–199 (planned)
 
 ## Phases
 
@@ -270,3 +271,72 @@ Plans:
 | 192. ValidUntil & NomorSertifikat | 1/1 | Complete    | 2026-03-17 | - |
 | ~~193. Clone Assessment~~ | v7.5 | - | Removed | - |
 | 194. PDF Certificate Download | 1/1 | Complete   | 2026-03-17 | - |
+
+---
+
+### 📋 v7.6 Code Deduplication & Shared Services (Planned)
+
+**Milestone Goal:** Clean up duplicate features and logic across controllers — extract shared services, consolidate split CRUD flows, and unify code patterns. Pure refactoring: no new UI, no DB migrations.
+
+- [ ] **Phase 196: Shared Service Extraction** — Extract duplicated helper methods (GetUnifiedRecords, GetAllWorkersHistory, GetWorkersInSection, NotifyIfGroupCompleted) from AdminController + CMPController into shared service class
+- [ ] **Phase 197: Excel Export Helper** — Extract common Excel export boilerplate from 4 controllers into a shared ExcelExportHelper
+- [ ] **Phase 198: CRUD Consolidation** — Remove duplicate Training Record CRUD from CMP, link Training Import from Admin, differentiate Worker Detail views
+- [ ] **Phase 199: Code Pattern Extraction** — Extract file upload helper, role-scoping helper, and pagination helper from repeated inline code
+
+## Phase Details
+
+### Phase 196: Shared Service Extraction
+**Goal**: Duplicated data-query helper methods exist in exactly one place (a shared service class), and both AdminController and CMPController delegate to it with identical results
+**Depends on**: Phase 195
+**Requirements**: SVC-01, SVC-02, SVC-03, SVC-04
+**Success Criteria** (what must be TRUE):
+  1. GetUnifiedRecords() exists only in the shared service class — AdminController and CMPController both call the service, and zero duplicate logic remains in either controller
+  2. GetAllWorkersHistory() exists only in the shared service class — the Records and RecordsTeam pages in both Admin and CMP return identical data as before extraction
+  3. GetWorkersInSection() exists only in the shared service class — role-scoped worker lists in Admin and CMP produce the same results as before
+  4. NotifyIfGroupCompleted() exists only in the shared service class with a single consistent logic path — the Admin-side "allow Cancelled" divergence is resolved to one correct behavior
+  5. The project compiles with zero errors and all existing pages that use these methods behave identically to pre-refactor
+**Plans**: TBD
+
+### Phase 197: Excel Export Helper
+**Goal**: Common Excel export boilerplate (header setup, column formatting, data population) lives in a single ExcelExportHelper class instead of being repeated across 4 controllers
+**Depends on**: Phase 196
+**Requirements**: SVC-05
+**Success Criteria** (what must be TRUE):
+  1. ExcelExportHelper class exists with shared methods for header row creation, column auto-sizing, and standard formatting
+  2. All Excel export actions in AdminController, CMPController, CDPController, and ProtonDataController delegate to the helper — no inline ClosedXML boilerplate remains
+  3. Every existing Excel export produces a file with identical content and formatting as before extraction
+  4. The project compiles with zero errors
+**Plans**: TBD
+
+### Phase 198: CRUD Consolidation
+**Goal**: Training Record create/edit/delete has exactly one entry point (Admin), Training Import is accessible from Admin context, and Worker Detail views in Admin vs CMP serve clearly distinct purposes
+**Depends on**: Phase 197
+**Requirements**: CRUD-01, CRUD-02, CRUD-03
+**Success Criteria** (what must be TRUE):
+  1. CMPController no longer has edit or delete actions for Training Records — all edit/delete routes redirect or link to Admin/EditTraining and Admin/DeleteTraining
+  2. Training Import is accessible from the Admin Kelola Data hub (either directly or via a visible link to CMP/ImportTraining)
+  3. Admin/WorkerDetail focuses on profile and data editing; CMP/RecordsWorkerDetail focuses on training and assessment records — each view's content is distinct and appropriate to its context
+  4. No existing user workflow is broken — users who previously edited training records from CMP are guided to the Admin entry point
+  5. The project compiles with zero errors
+**Plans**: TBD
+
+### Phase 199: Code Pattern Extraction
+**Goal**: Repeated inline code patterns (file upload, role-scoping, pagination) are extracted into reusable helper classes or methods, reducing duplication without changing behavior
+**Depends on**: Phase 198
+**Requirements**: PAT-01, PAT-02, PAT-03
+**Success Criteria** (what must be TRUE):
+  1. FileUploadHelper class handles validation, safe filename generation, file save, and audit log for both KKJ and CPDP uploads — the ~90% identical inline code in AdminController is replaced by helper calls
+  2. CMPController role-scoping enforcement logic exists in one private helper method — the 3+ repeated blocks are replaced by calls to the helper
+  3. Pagination logic (skip/take calculation, page count, current page clamping) exists in a shared helper or extension method — the 5+ inline implementations across Admin, CMP, and CDP are replaced
+  4. All file uploads, role-scoped queries, and paginated pages behave identically to pre-refactor
+  5. The project compiles with zero errors
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 196. Shared Service Extraction | v7.6 | 0/TBD | Not started | - |
+| 197. Excel Export Helper | v7.6 | 0/TBD | Not started | - |
+| 198. CRUD Consolidation | v7.6 | 0/TBD | Not started | - |
+| 199. Code Pattern Extraction | v7.6 | 0/TBD | Not started | - |
