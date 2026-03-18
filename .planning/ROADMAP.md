@@ -10,7 +10,7 @@
 - ✅ **v7.2 (loose)** - Phase 182 (shipped 2026-03-17)
 - ✅ **v7.3 Elemen Teknis Shuffle & Rename** - Phases 183–184 (shipped 2026-03-17)
 - 🚧 **v7.4 Certification Management** - Phases 185–189 (in progress)
-- 📋 **v7.5 Assessment Form Revamp & Certificate Enhancement** - Phases 190–192, 194 (planned)
+- 📋 **v7.5 Assessment Form Revamp & Certificate Enhancement** - Phases 190–192, 194–195 (planned)
 
 ## Phases
 
@@ -167,15 +167,17 @@ Plans:
 Plans:
 - [ ] 189-01-PLAN.md — ACT-01/ACT-02 view and download actions + ExportSertifikatExcel ClosedXML action + Export button (role-gated)
 
-### Phase 195: Certificate Signatory Settings
+### Phase 195: Sub-Categories & Signatory Settings
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Add hierarchical sub-categories to AssessmentCategory (self-referencing ParentId FK) so categories like "Mandatory HSSE Training" can have sub-categories like "Gas Tester". Admin CRUD on Manage Categories page supports creating/editing sub-categories. Also add per-category signatory name configuration for the certificate "Authorized Sig." field.
+**Requirements**: R195-1: AssessmentCategory gains nullable ParentId (self-ref FK) for parent→children hierarchy. R195-2: Admin Manage Categories UI shows parent categories with expandable sub-categories. R195-3: CreateAssessment wizard category dropdown shows grouped options (parent > sub). R195-4: Per-category SignatoryName field stored in AssessmentCategory, displayed on certificate.
 **Depends on:** Phase 194
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 195 to break down)
+- [ ] 195-01-PLAN.md — EF migration: ParentId self-ref FK + SignatoryUserId FK on AssessmentCategory
+- [ ] 195-02-PLAN.md — Admin ManageCategories tree table + signatory dropdown + optgroup wizard/edit dropdowns
+- [ ] 195-03-PLAN.md — Certificate Design A2: logo header + dynamic P-Sign footer (HTML + PDF)
 
 ---
 
@@ -188,6 +190,7 @@ Plans:
 - [x] **Phase 192: ValidUntil & NomorSertifikat** — EF migration for new AssessmentSession columns plus POST logic for expiry capture and auto-numbering (completed 2026-03-17)
 - ~~**Phase 193: Clone Assessment**~~ — Removed (user decided feature not needed)
 - [x] **Phase 194: PDF Certificate Download** — CMPController.CertificatePdf QuestPDF action with A4 landscape layout and Download button on Certificate view (completed 2026-03-17)
+- [ ] **Phase 195: Sub-Categories & Signatory Settings** — Hierarchical sub-categories (ParentId self-ref FK), Admin CRUD with expandable tree, grouped wizard dropdown, per-category signatory name for certificates
 
 ### Phase 190: DB Categories Foundation
 **Goal**: Admin/HC can manage assessment categories from the database — the AssessmentCategories table exists with seed data, and CreateAssessment loads categories from DB instead of hardcoded strings
@@ -233,7 +236,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 192-01-PLAN.md — NomorSertifikat column + UNIQUE index + certificate number generation + ValidUntil propagation in CreateAssessment POST
+- [x] 192-01-PLAN.md — NomorSertifikat column + UNIQUE index + certificate number generation + ValidUntil propagation in CreateAssessment POST
 
 ### Phase 194: PDF Certificate Download
 **Goal**: Users can download their assessment certificate as a PDF file directly from the Certificate page
@@ -247,7 +250,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 194-01-PLAN.md — CMPController.CertificatePdf GET action (QuestPDF A4 landscape, inline Document.Create lambda) + Download PDF button on Certificate.cshtml
+- [x] 194-01-PLAN.md — CMPController.CertificatePdf GET action (QuestPDF A4 landscape, inline Document.Create lambda) + Download PDF button on Certificate.cshtml
 
 ## Progress
 
