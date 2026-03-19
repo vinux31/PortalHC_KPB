@@ -52,11 +52,11 @@ Exceptions: none
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 16px | 400 (regular) | 1.5 |
-| Label | 14px | 600 (semibold / fw-bold) | 1.4 |
+| Label | 14px | 700 (bold / fw-bold) | 1.4 |
 | Heading | 20px | 700 (bold / fw-bold) | 1.2 |
 | Display | 28px | 700 (bold / fw-bold) | 1.2 |
 
-> Sumber: default Bootstrap 5 + pattern dari CreateAssessment.cshtml (`h2 fw-bold`, `text-muted`, `fw-bold` pada label). Phase ini tidak menambah elemen tipografi baru — banner renewal menggunakan tipografi existing (`<strong>` untuk label, body text untuk konten).
+> Sumber: default Bootstrap 5 + pattern dari CreateAssessment.cshtml (`h2 fw-bold`, `text-muted`, `fw-bold` pada label). Phase ini tidak menambah elemen tipografi baru — banner renewal menggunakan tipografi existing (`<strong>` untuk label, body text untuk konten). Weight 700 digunakan untuk semua elemen non-body karena Bootstrap `fw-bold` menghasilkan 700 secara aktual.
 
 ---
 
