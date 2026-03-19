@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.7
 milestone_name: Renewal Certificate & Certificate History
 status: unknown
-last_updated: "2026-03-19T08:54:06.545Z"
+last_updated: "2026-03-19T08:57:25.865Z"
 last_activity: 2026-03-19
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State: Portal HC KPB
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 203 (certificate-history-modal) — EXECUTING
-Plan: 1 of 2
+Plan: 2 of 2 — COMPLETE
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: 1 of 2
 - [Phase 202]: Reuse existing GetSubCategories endpoint dari CDPController untuk cascade Sub Kategori
 - [Phase 203]: Union-Find dipakai untuk grouping renewal chain di CertificateHistory — lebih scalable dari traversal rekursif
 - [Phase 203]: CertificateHistory renewal lookup di-scope ke workerId certs saja untuk efisiensi
+- [Phase 203]: Modal shell dan JS ditempatkan langsung di halaman host (bukan layout/partial) agar setiap halaman independen
 
 ### Blockers/Concerns
 
@@ -65,6 +66,7 @@ None.
 |---|-------------|------|--------|-----------|
 | 260319-mkm | Fix kategori MANDATORY di RenewalCertificate — seharusnya Mandatory HSSE Training | 2026-03-19 | 85343bf | [260319-mkm](./quick/260319-mkm-fix-kategori-mandatory-di-renewalcertifi/) |
 | Phase 203 P01 | 25 | 2 tasks | 4 files |
+| Phase 203 P02 | 15 | 2 tasks | 4 files |
 
 ## Session Continuity
 
