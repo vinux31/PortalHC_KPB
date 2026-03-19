@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.7
 milestone_name: Renewal Certificate & Certificate History
 status: unknown
-stopped_at: Phase 201 context gathered
-last_updated: "2026-03-19T01:48:28.526Z"
+stopped_at: Completed 201-01-PLAN.md
+last_updated: "2026-03-19T06:16:35.290Z"
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 200 — renewal-chain-foundation (COMPLETE)
+**Current focus:** Phase 201 — createassessment-renewal-pre-fill
 
 ## Current Position
 
-Phase: 200 (renewal-chain-foundation) — COMPLETE
-Plan: 2 of 2 — DONE
+Phase: 201 (createassessment-renewal-pre-fill) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: 2 of 2 — DONE
 - [Phase 190]: L5 scope override via l5OwnDataOnly bool param
 - [200-01]: DeleteBehavior.NoAction dipakai untuk semua 4 renewal FK — SQL Server menolak SetNull pada self/cross FK yang membentuk multiple cascade paths; null-clearing dilakukan di application level
 - [200-02]: Batch renewal lookup ditempatkan sebelum trainingRows mapping (bukan setelah assessmentAnon) agar renewedTrainingRecordIds tersedia lebih awal
+- [Phase 201]: Renewal FK assigned only to first session (i==0) — renewal is 1-to-1
 
 ### Blockers/Concerns
 
@@ -54,6 +55,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T01:48:28.521Z
-Stopped at: Phase 201 context gathered
-Resume file: .planning/phases/201-createassessment-renewal-pre-fill/201-CONTEXT.md
+Last session: 2026-03-19T06:16:35.288Z
+Stopped at: Completed 201-01-PLAN.md
+Resume file: None
