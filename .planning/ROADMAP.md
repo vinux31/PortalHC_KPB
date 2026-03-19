@@ -179,7 +179,7 @@ Plans:
   1. Modal history menampilkan timeline sertifikat per pekerja grouped by renewal chain, dengan sertifikat terbaru di atas
   2. Dari halaman Renewal Certificate, modal history menyertakan tombol Renew pada sertifikat yang expired/akan expired dan belum di-renew
   3. Dari CDP Certification Management, klik nama pekerja membuka modal history dalam mode read-only tanpa tombol aksi
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 203-01-PLAN.md — Shared _CertificateHistoryModal partial + CertificateHistoryAsync controller action
