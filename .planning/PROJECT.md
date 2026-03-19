@@ -22,7 +22,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - CDP Certification Management enhanced — hide sertifikat yang sudah di-renew, toggle tampilkan riwayat, klik nama → history
 - Renewal chain tracking — RenewsSessionId/RenewsTrainingId di AssessmentSession, post-exam auto-link
 
-## Current State (after v7.7 start, 2026-03-18)
+## Current State (after Phase 200 complete, 2026-03-19)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -31,8 +31,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.4 shipped** — Certification Management, 7 phases (185-190).
 **v7.5 shipped** — Assessment Form Revamp & Certificate Enhancement, 6 phases (190-195).
 **v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
+**v7.7 Phase 200 complete** — Renewal chain foundation: RenewsSessionId/RenewsTrainingId FK columns on AssessmentSession and TrainingRecord, IsRenewed flag in BuildSertifikatRowsAsync.
 
-Portal is fully audited and polished. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Training CRUD consolidated to Admin. Assessment creation uses 4-step wizard with DB categories, certificate expiry dates, auto-numbering, PDF download, sub-categories with signatory settings. All requirements satisfied, 0 critical tech debt.
+Portal is fully audited and polished. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Training CRUD consolidated to Admin. Assessment creation uses 4-step wizard with DB categories, certificate expiry dates, auto-numbering, PDF download, sub-categories with signatory settings. Renewal chain data model in place — AssessmentSession and TrainingRecord have nullable FK columns for tracking certificate renewals.
 
 ## Architecture Decisions
 
