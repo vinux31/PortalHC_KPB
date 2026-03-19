@@ -165,11 +165,11 @@ Plans:
   3. Filter Bagian, Unit, dan Kategori mempersempit daftar secara akurat
   4. Klik tombol Renew pada satu baris membuka CreateAssessment dengan data pre-filled
   5. Checkbox bulk select aktif hanya untuk sertifikat dengan kategori sama, dan Renew Selected membuka CreateAssessment multi-peserta
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 202-01-PLAN.md — RenewalCertificate GET/POST controller actions + ViewModel + filter logic
-- [ ] 202-02-PLAN.md — View: daftar sertifikat, filter bar, tombol Renew, bulk select + Renew Selected, card Kelola Data
+- [ ] 202-01-PLAN.md — Controller actions (BuildRenewalRowsAsync, RenewalCertificate, FilterRenewalCertificate) + Views (halaman utama + partial tabel dengan AJAX filter, bulk select, tombol Renew)
+- [ ] 202-02-PLAN.md — Card Renewal Sertifikat di Kelola Data Section C dengan badge count
 
 ### Phase 203: Certificate History Modal
 **Goal**: Setiap sertifikat memiliki tombol/link riwayat yang membuka modal timeline renewal chain per pekerja, dapat digunakan dari dua halaman berbeda
