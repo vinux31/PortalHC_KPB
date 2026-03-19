@@ -98,6 +98,21 @@ namespace HcPortal.Models
         /// </summary>
         public string? InterviewResultsJson { get; set; }
 
+        // ===== Phase 200: Renewal Chain FKs =====
+        /// <summary>
+        /// FK ke AssessmentSession lain yang di-renew oleh session ini.
+        /// Nullable. Hanya salah satu dari RenewsSessionId/RenewsTrainingId yang boleh diisi.
+        /// ON DELETE SET NULL — jika sertifikat asal dihapus, FK jadi NULL.
+        /// </summary>
+        public int? RenewsSessionId { get; set; }
+
+        /// <summary>
+        /// FK ke TrainingRecord yang di-renew oleh session ini.
+        /// Nullable. Hanya salah satu dari RenewsSessionId/RenewsTrainingId yang boleh diisi.
+        /// ON DELETE SET NULL — jika sertifikat asal dihapus, FK jadi NULL.
+        /// </summary>
+        public int? RenewsTrainingId { get; set; }
+
         // Navigation Properties for Exam Engine
         public virtual ICollection<AssessmentQuestion> Questions { get; set; } = new List<AssessmentQuestion>();
         public virtual ICollection<UserResponse> Responses { get; set; } = new List<UserResponse>();

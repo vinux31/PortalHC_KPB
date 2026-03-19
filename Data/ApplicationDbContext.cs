@@ -100,6 +100,22 @@ namespace HcPortal.Data
                     .WithMany(u => u.TrainingRecords)
                     .HasForeignKey(t => t.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                // Phase 200: Renewal Chain FKs
+                // NoAction: SQL Server blocks ON DELETE SET NULL on self/cross FKs that create cascade cycles.
+                // Null-clearing on source delete is handled at application level.
+                entity.Property(t => t.RenewsTrainingId).IsRequired(false);
+                entity.Property(t => t.RenewsSessionId).IsRequired(false);
+
+                entity.HasOne<TrainingRecord>()
+                    .WithMany()
+                    .HasForeignKey(t => t.RenewsTrainingId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne<AssessmentSession>()
+                    .WithMany()
+                    .HasForeignKey(t => t.RenewsSessionId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // AssessmentSession -> User
@@ -136,6 +152,22 @@ namespace HcPortal.Data
                     .IsUnique()
                     .HasFilter("[NomorSertifikat] IS NOT NULL")
                     .HasDatabaseName("IX_AssessmentSessions_NomorSertifikat_Unique");
+
+                // Phase 200: Renewal Chain FKs
+                // NoAction: SQL Server blocks ON DELETE SET NULL on self/cross FKs that create cascade cycles.
+                // Null-clearing on source delete is handled at application level.
+                entity.Property(a => a.RenewsSessionId).IsRequired(false);
+                entity.Property(a => a.RenewsTrainingId).IsRequired(false);
+
+                entity.HasOne<AssessmentSession>()
+                    .WithMany()
+                    .HasForeignKey(a => a.RenewsSessionId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                entity.HasOne<TrainingRecord>()
+                    .WithMany()
+                    .HasForeignKey(a => a.RenewsTrainingId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             // UserResponse -> AssessmentSession (Restrict Delete to avoid Cycles)

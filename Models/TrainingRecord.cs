@@ -24,7 +24,20 @@ namespace HcPortal.Models
         public DateTime? TanggalSelesai { get; set; }   // Training end date
         public string? NomorSertifikat { get; set; }    // Certificate number
         public string? Kota { get; set; }               // City where training took place
-        
+
+        // ===== Phase 200: Renewal Chain FKs =====
+        /// <summary>
+        /// FK ke TrainingRecord lain yang di-renew oleh record ini (self-FK).
+        /// Nullable. Hanya salah satu dari RenewsTrainingId/RenewsSessionId yang boleh diisi.
+        /// </summary>
+        public int? RenewsTrainingId { get; set; }
+
+        /// <summary>
+        /// FK ke AssessmentSession yang di-renew oleh record ini.
+        /// Nullable. Hanya salah satu dari RenewsTrainingId/RenewsSessionId yang boleh diisi.
+        /// </summary>
+        public int? RenewsSessionId { get; set; }
+
         // Computed property: Returns true if certificate expires within 30 days
         public bool IsExpiringSoon
         {
