@@ -193,7 +193,7 @@ Plans:
   1. Sertifikat yang sudah memiliki renewal lulus tidak tampil di tabel secara default
   2. Toggle "Tampilkan riwayat" menampilkan sertifikat yang sudah di-renew dengan visual berbeda (misalnya baris lebih redup)
   3. Summary card Expired hanya menghitung sertifikat yang belum di-renew, sehingga jumlah tidak membingungkan pengguna
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 204-01-PLAN.md — CDP CertificationManagement: hide renewed default, toggle show/hide, fix Expired count
