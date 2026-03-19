@@ -50,7 +50,16 @@
                             <td class="ps-3">@nomor</td>
                             @if (Model.RoleLevel <= 4)
                             {
-                                <td>@row.NamaWorker</td>
+                                <td>
+                                    <a href="#"
+                                       class="btn-history text-decoration-none"
+                                       data-worker-id="@row.WorkerId"
+                                       data-worker-name="@row.NamaWorker"
+                                       data-mode="readonly"
+                                       aria-label="Lihat riwayat sertifikat @row.NamaWorker">
+                                        @row.NamaWorker
+                                    </a>
+                                </td>
                                 <td class="d-none d-md-table-cell">@(row.Bagian ?? "-")</td>
                                 <td class="d-none d-md-table-cell">@(row.Unit ?? "-")</td>
                             }
