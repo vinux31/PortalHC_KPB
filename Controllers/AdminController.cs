@@ -6610,6 +6610,7 @@ namespace HcPortal.Controllers
                 .Select(t => new
                 {
                     t.Id,
+                    UserId = t.User != null ? t.User.Id : "",
                     NamaWorker = t.User != null ? t.User.FullName : "",
                     Bagian = t.User != null ? t.User.Section : null,
                     Unit = t.User != null ? t.User.Unit : null,
@@ -6664,6 +6665,7 @@ namespace HcPortal.Controllers
             {
                 SourceId = t.Id,
                 RecordType = RecordType.Training,
+                WorkerId = t.UserId,
                 NamaWorker = t.NamaWorker,
                 Bagian = t.Bagian,
                 Unit = t.Unit,
@@ -6694,6 +6696,7 @@ namespace HcPortal.Controllers
                 .Select(a => new
                 {
                     a.Id,
+                    a.UserId,
                     NamaWorker = a.User != null ? a.User.FullName : "",
                     Bagian = a.User != null ? a.User.Section : null,
                     Unit = a.User != null ? a.User.Unit : null,
@@ -6718,6 +6721,7 @@ namespace HcPortal.Controllers
                 {
                     SourceId = a.Id,
                     RecordType = RecordType.Assessment,
+                    WorkerId = a.UserId,
                     NamaWorker = a.NamaWorker,
                     Bagian = a.Bagian,
                     Unit = a.Unit,

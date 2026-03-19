@@ -25,6 +25,7 @@ public enum CertificateStatus
 public class SertifikatRow
 {
     public int SourceId { get; set; }
+    public string WorkerId { get; set; } = "";
     public RecordType RecordType { get; set; }
     public string NamaWorker { get; set; } = "";
     public string? Bagian { get; set; }
@@ -58,6 +59,17 @@ public class SertifikatRow
         if (days <= 30) return CertificateStatus.AkanExpired;
         return CertificateStatus.Aktif;
     }
+}
+
+// ============================================================
+// Certificate History chain grouping
+// ============================================================
+
+public class CertificateChainGroup
+{
+    public string ChainTitle { get; set; } = "";
+    public List<SertifikatRow> Certificates { get; set; } = new();
+    public DateTime? LatestValidUntil { get; set; }
 }
 
 // ============================================================
