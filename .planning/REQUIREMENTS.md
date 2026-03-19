@@ -23,8 +23,8 @@ Requirements for Renewal Certificate & Certificate History milestone.
 
 ### Certificate History
 
-- [ ] **HIST-01**: Modal timeline riwayat sertifikat per pekerja, grouped by renewal chain (terbaru di atas)
-- [ ] **HIST-02**: Di Renewal page, modal history menampilkan tombol Renew pada sertifikat expired/akan expired yang belum di-renew
+- [x] **HIST-01**: Modal timeline riwayat sertifikat per pekerja, grouped by renewal chain (terbaru di atas)
+- [x] **HIST-02**: Di Renewal page, modal history menampilkan tombol Renew pada sertifikat expired/akan expired yang belum di-renew
 - [ ] **HIST-03**: Di CDP Certification Management, klik nama pekerja membuka modal history read-only
 
 ### CDP Enhancement
@@ -53,8 +53,8 @@ Requirements for Renewal Certificate & Certificate History milestone.
 | RNPAGE-03 | Phase 202 | Complete |
 | RNPAGE-04 | Phase 202 | Complete |
 | RNPAGE-05 | Phase 202 | Complete |
-| HIST-01 | Phase 203 | Pending |
-| HIST-02 | Phase 203 | Pending |
+| HIST-01 | Phase 203 | Complete |
+| HIST-02 | Phase 203 | Complete |
 | HIST-03 | Phase 203 | Pending |
 | CDP-01 | Phase 204 | Pending |
 | CDP-02 | Phase 204 | Pending |
