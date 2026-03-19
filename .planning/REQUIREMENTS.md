@@ -10,7 +10,7 @@ Requirements for Renewal Certificate & Certificate History milestone.
 ### Renewal Chain
 
 - [x] **RENEW-01**: AssessmentSession memiliki field RenewsSessionId (FK self) dan RenewsTrainingId (FK ke TrainingRecord) untuk tracking renewal chain
-- [ ] **RENEW-02**: Sertifikat dianggap "sudah di-renew" hanya jika ada AssessmentSession dengan RenewsSessionId/RenewsTrainingId yang mengarah ke sertifikat tersebut DAN IsPassed == true
+- [x] **RENEW-02**: Sertifikat dianggap "sudah di-renew" hanya jika ada AssessmentSession dengan RenewsSessionId/RenewsTrainingId yang mengarah ke sertifikat tersebut DAN IsPassed == true
 - [ ] **RENEW-03**: CreateAssessment menerima query param renewSessionId/renewTrainingId — pre-fill Title, Category, peserta, GenerateCertificate=true, ValidUntil wajib
 
 ### Renewal Certificate Page
@@ -46,7 +46,7 @@ Requirements for Renewal Certificate & Certificate History milestone.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | RENEW-01 | Phase 200 | Complete |
-| RENEW-02 | Phase 200 | Pending |
+| RENEW-02 | Phase 200 | Complete |
 | RENEW-03 | Phase 201 | Pending |
 | RNPAGE-01 | Phase 202 | Pending |
 | RNPAGE-02 | Phase 202 | Pending |

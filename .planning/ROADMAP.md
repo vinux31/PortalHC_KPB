@@ -202,7 +202,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 200. Renewal Chain Foundation | 1/2 | In Progress|  | - |
+| 200. Renewal Chain Foundation | 2/2 | Complete   | 2026-03-19 | - |
 | 201. CreateAssessment Renewal Pre-fill | v7.7 | 0/1 | Not started | - |
 | 202. Renewal Certificate Page (Kelola Data) | v7.7 | 0/2 | Not started | - |
 | 203. Certificate History Modal | v7.7 | 0/2 | Not started | - |
