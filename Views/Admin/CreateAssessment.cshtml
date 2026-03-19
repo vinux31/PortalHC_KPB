@@ -55,6 +55,22 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
+    @if (ViewBag.IsRenewalMode == true)
+    {
+        <div class="alert alert-info d-flex align-items-center justify-content-between mb-3" role="alert">
+            <div>
+                <i class="bi bi-arrow-repeat me-2"></i>
+                <strong>Mode Renewal:</strong> @ViewBag.RenewalSourceTitle
+                @if (!string.IsNullOrEmpty(ViewBag.RenewalSourceUserName as string))
+                {
+                    <span> &mdash; @ViewBag.RenewalSourceUserName</span>
+                }
+            </div>
+            <a href="@Url.Action("CreateAssessment", "Admin")" class="btn btn-sm btn-outline-secondary ms-3">
+                Batalkan Renewal
+            </a>
+        </div>
+    }
 
     <!-- Step Indicator Nav-Pills -->
     <nav class="mb-4">
@@ -85,6 +101,14 @@
     <!-- Single form wrapping all steps -->
     <form asp-action="CreateAssessment" asp-controller="Admin" method="post" id="createAssessmentForm" novalidate>
         @Html.AntiForgeryToken()
+        @if (ViewBag.RenewsSessionId != null)
+        {
+            <input type="hidden" name="RenewsSessionId" value="@ViewBag.RenewsSessionId" />
+        }
+        @if (ViewBag.RenewsTrainingId != null)
+        {
+            <input type="hidden" name="RenewsTrainingId" value="@ViewBag.RenewsTrainingId" />
+        }
 
         <!-- ===================== STEP 1: KATEGORI ===================== -->
         <div id="step-1" class="step-panel">
@@ -377,7 +401,15 @@
                         <!-- Col B: ValidUntil -->
                         <div class="col-md-6">
                             <label asp-for="ValidUntil" class="form-label fw-bold">
-                                Tanggal Expired Sertifikat (opsional)
+                                Tanggal Expired Sertifikat
+                                @if (ViewBag.IsRenewalMode == true)
+                                {
+                                    <span class="text-danger">*</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">(opsional)</span>
+                                }
                             </label>
                             <input asp-for="ValidUntil" type="date" class="form-control" id="ValidUntil"
                                    min="@DateTime.Today.ToString("yyyy-MM-dd")" />
@@ -1265,4 +1297,15 @@ function generateToken() {
     }
 })();
 </script>
+@if (ViewBag.IsRenewalMode == true)
+{
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var catSelect = document.getElementById('Category');
+        if (catSelect && catSelect.value) {
+            catSelect.dispatchEvent(new Event('change'));
+        }
+    });
+</script>
+}
 }
