@@ -85,6 +85,12 @@
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label small mb-1">Sub Kategori</label>
+                    <select id="filter-subcategory" class="form-select form-select-sm" disabled>
+                        <option value="">Semua Sub Kategori</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small mb-1">Status</label>
                     <select id="filter-status" class="form-select form-select-sm">
                         <option value="">Semua Status</option>
@@ -124,6 +130,7 @@
     var bagianEl = document.getElementById('filter-bagian');
     var unitEl = document.getElementById('filter-unit');
     var categoryEl = document.getElementById('filter-category');
+    var subCategoryEl = document.getElementById('filter-subcategory');
     var statusEl = document.getElementById('filter-status');
     var resetBtn = document.getElementById('btn-reset');
     var container = document.getElementById('cert-table-container');
@@ -156,7 +163,28 @@
     });
 
     unitEl.addEventListener('change', function () { resetKategoriLock(); refreshTable(1); });
-    categoryEl.addEventListener('change', function () { resetKategoriLock(); refreshTable(1); });
+    categoryEl.addEventListener('change', function () {
+        // Reset sub category
+        subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
+        subCategoryEl.disabled = true;
+        var cat = categoryEl.value;
+        if (cat) {
+            fetch('/CDP/GetSubCategories?category=' + encodeURIComponent(cat))
+                .then(function (r) { return r.json(); })
+                .then(function (subs) {
+                    subs.forEach(function (s) {
+                        var opt = document.createElement('option');
+                        opt.value = s;
+                        opt.textContent = s;
+                        subCategoryEl.appendChild(opt);
+                    });
+                    subCategoryEl.disabled = false;
+                });
+        }
+        resetKategoriLock();
+        refreshTable(1);
+    });
+    subCategoryEl.addEventListener('change', function () { resetKategoriLock(); refreshTable(1); });
     statusEl.addEventListener('change', function () { resetKategoriLock(); refreshTable(1); });
 
     resetBtn.addEventListener('click', function () {
@@ -164,6 +192,8 @@
         unitEl.innerHTML = '<option value="">Semua Unit</option>';
         unitEl.disabled = true;
         categoryEl.value = '';
+        subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
+        subCategoryEl.disabled = true;
         statusEl.value = '';
         resetKategoriLock();
         refreshTable(1);
@@ -184,6 +214,7 @@
         if (bagianEl.value) params.set('bagian', bagianEl.value);
         if (unitEl.value) params.set('unit', unitEl.value);
         if (categoryEl.value) params.set('category', categoryEl.value);
+        if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
 
         if (certAbort) certAbort.abort();
