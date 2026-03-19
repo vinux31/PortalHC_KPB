@@ -944,7 +944,7 @@ namespace HcPortal.Controllers
         // GET: Show create assessment form
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> CreateAssessment()
+        public async Task<IActionResult> CreateAssessment(int? renewSessionId = null, int? renewTrainingId = null)
         {
             // Get list of users for dropdown
             var users = await _context.Users
@@ -984,6 +984,58 @@ namespace HcPortal.Controllers
                 PassPercentage = 70,
                 AllowAnswerReview = true
             };
+
+            // ===== Phase 201: Renewal mode pre-fill =====
+            bool isRenewalMode = false;
+
+            if (renewSessionId.HasValue)
+            {
+                var sourceSession = await _context.AssessmentSessions
+                    .Include(s => s.User)
+                    .FirstOrDefaultAsync(s => s.Id == renewSessionId.Value);
+
+                if (sourceSession == null)
+                {
+                    TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
+                    return RedirectToAction("CreateAssessment");
+                }
+
+                isRenewalMode = true;
+                model.Title = sourceSession.Title;
+                model.Category = sourceSession.Category;
+                model.GenerateCertificate = true;
+                if (sourceSession.ValidUntil.HasValue)
+                    model.ValidUntil = sourceSession.ValidUntil.Value.AddYears(1);
+
+                ViewBag.SelectedUserIds = new List<string> { sourceSession.UserId };
+                ViewBag.RenewalSourceTitle = sourceSession.Title;
+                ViewBag.RenewalSourceUserName = sourceSession.User?.FullName ?? "";
+                ViewBag.RenewsSessionId = renewSessionId.Value;
+            }
+            else if (renewTrainingId.HasValue)
+            {
+                var sourceTraining = await _context.TrainingRecords
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.Id == renewTrainingId.Value);
+
+                if (sourceTraining == null)
+                {
+                    TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
+                    return RedirectToAction("CreateAssessment");
+                }
+
+                isRenewalMode = true;
+                model.Title = sourceTraining.Judul ?? "";
+                model.GenerateCertificate = true;
+                if (sourceTraining.ValidUntil.HasValue)
+                    model.ValidUntil = sourceTraining.ValidUntil.Value.AddYears(1);
+
+                ViewBag.RenewalSourceTitle = sourceTraining.Judul ?? "";
+                ViewBag.RenewalSourceUserName = sourceTraining.User?.FullName ?? "";
+                ViewBag.RenewsTrainingId = renewTrainingId.Value;
+            }
+
+            ViewBag.IsRenewalMode = isRenewalMode;
 
             return View(model);
         }
@@ -1060,8 +1112,19 @@ namespace HcPortal.Controllers
 
             // ExamWindowCloseDate is optional — remove from ModelState to prevent accidental validation failure
             ModelState.Remove("ExamWindowCloseDate");
-            // ValidUntil is optional — remove from ModelState to prevent accidental validation failure
+            // ValidUntil: opsional di normal mode, wajib di renewal mode
+            bool isRenewalModePost = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue;
             ModelState.Remove("ValidUntil");
+            if (isRenewalModePost && !model.ValidUntil.HasValue)
+            {
+                ModelState.AddModelError("ValidUntil", "Tanggal expired sertifikat wajib diisi untuk renewal.");
+            }
+
+            // XOR validation: hanya satu renewal FK yang boleh diisi
+            if (model.RenewsSessionId.HasValue && model.RenewsTrainingId.HasValue)
+            {
+                ModelState.AddModelError("", "Hanya satu renewal FK yang boleh diisi.");
+            }
             // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
             ModelState.Remove("NomorSertifikat");
 
@@ -1084,6 +1147,14 @@ namespace HcPortal.Controllers
                     .OrderBy(c => c.SortOrder)
                     .ThenBy(c => c.Name)
                     .ToListAsync();
+                if (model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue)
+                {
+                    ViewBag.IsRenewalMode = true;
+                    ViewBag.RenewsSessionId = model.RenewsSessionId;
+                    ViewBag.RenewsTrainingId = model.RenewsTrainingId;
+                    ViewBag.RenewalSourceTitle = model.Title ?? "";
+                    ViewBag.RenewalSourceUserName = "";
+                }
                 return View(model);
             }
 
@@ -1154,6 +1225,14 @@ namespace HcPortal.Controllers
                         .OrderBy(c => c.SortOrder)
                         .ThenBy(c => c.Name)
                         .ToListAsync();
+                    if (model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue)
+                    {
+                        ViewBag.IsRenewalMode = true;
+                        ViewBag.RenewsSessionId = model.RenewsSessionId;
+                        ViewBag.RenewsTrainingId = model.RenewsTrainingId;
+                        ViewBag.RenewalSourceTitle = model.Title ?? "";
+                        ViewBag.RenewalSourceUserName = "";
+                    }
                     return View(model);
                 }
 
@@ -1172,6 +1251,14 @@ namespace HcPortal.Controllers
                             .OrderBy(c => c.SortOrder)
                             .ThenBy(c => c.Name)
                             .ToListAsync();
+                        if (model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue)
+                        {
+                            ViewBag.IsRenewalMode = true;
+                            ViewBag.RenewsSessionId = model.RenewsSessionId;
+                            ViewBag.RenewsTrainingId = model.RenewsTrainingId;
+                            ViewBag.RenewalSourceTitle = model.Title ?? "";
+                            ViewBag.RenewalSourceUserName = "";
+                        }
                         return View("CreateAssessment", model);
                     }
                     protonTahunKe = protonTrack.TahunKe;
@@ -1214,7 +1301,9 @@ namespace HcPortal.Controllers
                         NomorSertifikat = BuildCertNumber(nextSeq + i, now),
                         Progress = 0,
                         UserId = userId,
-                        CreatedBy = currentUser?.Id
+                        CreatedBy = currentUser?.Id,
+                        RenewsSessionId = (i == 0) ? model.RenewsSessionId : null,
+                        RenewsTrainingId = (i == 0) ? model.RenewsTrainingId : null
                     };
 
                     // Set Proton-specific fields (nullable — null for non-Proton sessions)
