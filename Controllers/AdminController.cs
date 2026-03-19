@@ -6566,6 +6566,234 @@ namespace HcPortal.Controllers
         }
 
         #endregion
+
+        #region Renewal Certificate
+
+        private async Task<List<SertifikatRow>> BuildRenewalRowsAsync()
+        {
+            // Query TrainingRecords with certificate (no role scoping — Admin/HC full access)
+            var trainingAnon = await _context.TrainingRecords
+                .Include(t => t.User)
+                .Where(t => t.SertifikatUrl != null)
+                .Select(t => new
+                {
+                    t.Id,
+                    NamaWorker = t.User != null ? t.User.FullName : "",
+                    Bagian = t.User != null ? t.User.Section : null,
+                    Unit = t.User != null ? t.User.Unit : null,
+                    Judul = t.Judul ?? "",
+                    t.Kategori,
+                    t.NomorSertifikat,
+                    TanggalTerbit = (DateTime?)t.Tanggal,
+                    t.ValidUntil,
+                    t.CertificateType,
+                    t.SertifikatUrl
+                })
+                .ToListAsync();
+
+            // ===== Renewal chain resolution: batch lookup =====
+            // Set 1: AS IDs renewed by another AS (IsPassed==true)
+            var renewedByAsSessionIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsSessionId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsSessionId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Set 2: AS IDs renewed by a TR
+            var renewedByTrSessionIds = await _context.TrainingRecords
+                .Where(t => t.RenewsSessionId.HasValue)
+                .Select(t => t.RenewsSessionId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Set 3: TR IDs renewed by an AS (IsPassed==true)
+            var renewedByAsTrainingIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsTrainingId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsTrainingId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Set 4: TR IDs renewed by another TR
+            var renewedByTrTrainingIds = await _context.TrainingRecords
+                .Where(t => t.RenewsTrainingId.HasValue)
+                .Select(t => t.RenewsTrainingId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Merge: all AS IDs that have been renewed
+            var renewedAssessmentSessionIds = new HashSet<int>(renewedByAsSessionIds);
+            renewedAssessmentSessionIds.UnionWith(renewedByTrSessionIds);
+
+            // Merge: all TR IDs that have been renewed
+            var renewedTrainingRecordIds = new HashSet<int>(renewedByAsTrainingIds);
+            renewedTrainingRecordIds.UnionWith(renewedByTrTrainingIds);
+
+            var trainingRows = trainingAnon.Select(t => new SertifikatRow
+            {
+                SourceId = t.Id,
+                RecordType = RecordType.Training,
+                NamaWorker = t.NamaWorker,
+                Bagian = t.Bagian,
+                Unit = t.Unit,
+                Judul = t.Judul,
+                Kategori = t.Kategori,
+                SubKategori = null,
+                NomorSertifikat = t.NomorSertifikat,
+                TanggalTerbit = t.TanggalTerbit,
+                ValidUntil = t.ValidUntil,
+                Status = SertifikatRow.DeriveCertificateStatus(t.ValidUntil, t.CertificateType),
+                SertifikatUrl = t.SertifikatUrl,
+                IsRenewed = renewedTrainingRecordIds.Contains(t.Id)
+            }).ToList();
+
+            // Query AssessmentSessions with certificate
+            var allCategories = await _context.AssessmentCategories
+                .Where(c => c.IsActive)
+                .Select(c => new { c.Id, c.Name, c.ParentId })
+                .ToListAsync();
+            var categoryById = allCategories.ToDictionary(c => c.Id);
+            var categoryNameLookup = allCategories
+                .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
+                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+
+            var assessmentAnon = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.GenerateCertificate && a.IsPassed == true)
+                .Select(a => new
+                {
+                    a.Id,
+                    NamaWorker = a.User != null ? a.User.FullName : "",
+                    Bagian = a.User != null ? a.User.Section : null,
+                    Unit = a.User != null ? a.User.Unit : null,
+                    a.Title,
+                    a.Category,
+                    a.NomorSertifikat,
+                    a.CompletedAt,
+                    a.ValidUntil
+                })
+                .ToListAsync();
+
+            var assessmentRows = assessmentAnon.Select(a =>
+            {
+                string kategori = a.Category;
+                string? subKategori = null;
+                if (categoryNameLookup.TryGetValue(a.Category, out var parentName))
+                {
+                    kategori = parentName;
+                    subKategori = a.Category;
+                }
+                return new SertifikatRow
+                {
+                    SourceId = a.Id,
+                    RecordType = RecordType.Assessment,
+                    NamaWorker = a.NamaWorker,
+                    Bagian = a.Bagian,
+                    Unit = a.Unit,
+                    Judul = a.Title,
+                    Kategori = kategori,
+                    SubKategori = subKategori,
+                    NomorSertifikat = a.NomorSertifikat,
+                    TanggalTerbit = a.CompletedAt,
+                    ValidUntil = a.ValidUntil,
+                    Status = SertifikatRow.DeriveCertificateStatus(a.ValidUntil, null),
+                    SertifikatUrl = null,
+                    IsRenewed = renewedAssessmentSessionIds.Contains(a.Id)
+                };
+            }).ToList();
+
+            // Merge all rows
+            var rows = new List<SertifikatRow>(trainingRows.Count + assessmentRows.Count);
+            rows.AddRange(trainingRows);
+            rows.AddRange(assessmentRows);
+
+            // POST-FILTER: hanya Expired/AkanExpired yang belum di-renew
+            rows = rows
+                .Where(r => !r.IsRenewed && (r.Status == CertificateStatus.Expired || r.Status == CertificateStatus.AkanExpired))
+                .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
+                .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                .ToList();
+
+            return rows;
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> RenewalCertificate(int page = 1)
+        {
+            var allRows = await BuildRenewalRowsAsync();
+
+            var vm = new CertificationManagementViewModel
+            {
+                TotalCount = allRows.Count,
+                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
+                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
+            };
+
+            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
+            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
+            vm.CurrentPage = paging.CurrentPage;
+            vm.TotalPages = paging.TotalPages;
+
+            ViewBag.AllBagian = allRows
+                .Select(r => r.Bagian)
+                .Where(b => !string.IsNullOrEmpty(b))
+                .Distinct()
+                .OrderBy(b => b)
+                .ToList();
+
+            ViewBag.AllCategories = allRows
+                .Select(r => r.Kategori)
+                .Where(k => !string.IsNullOrEmpty(k))
+                .Distinct()
+                .OrderBy(k => k)
+                .ToList();
+
+            ViewBag.SelectedView = "RenewalCertificate";
+
+            return View(vm);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> FilterRenewalCertificate(
+            string? bagian = null,
+            string? unit = null,
+            string? status = null,
+            string? category = null,
+            int page = 1)
+        {
+            var allRows = await BuildRenewalRowsAsync();
+
+            if (!string.IsNullOrEmpty(bagian))
+                allRows = allRows.Where(r => r.Bagian == bagian).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                allRows = allRows.Where(r => r.Unit == unit).ToList();
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
+                allRows = allRows.Where(r => r.Status == st).ToList();
+            if (!string.IsNullOrEmpty(category))
+                allRows = allRows.Where(r => r.Kategori == category).ToList();
+
+            allRows = allRows
+                .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
+                .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                .ToList();
+
+            var vm = new CertificationManagementViewModel
+            {
+                TotalCount = allRows.Count,
+                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
+                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
+            };
+
+            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
+            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
+            vm.CurrentPage = paging.CurrentPage;
+            vm.TotalPages = paging.TotalPages;
+
+            return PartialView("Shared/_RenewalCertificateTablePartial", vm);
+        }
+
+        #endregion
     }
 }
 
