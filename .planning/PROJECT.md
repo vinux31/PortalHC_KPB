@@ -22,7 +22,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - CDP Certification Management enhanced — hide sertifikat yang sudah di-renew, toggle tampilkan riwayat, klik nama → history
 - Renewal chain tracking — RenewsSessionId/RenewsTrainingId di AssessmentSession, post-exam auto-link
 
-## Current State (after Phase 203 complete, 2026-03-19)
+## Current State (after Phase 204 complete, 2026-03-19)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -34,6 +34,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.7 Phase 200 complete** — Renewal chain foundation: RenewsSessionId/RenewsTrainingId FK columns on AssessmentSession and TrainingRecord, IsRenewed flag in BuildSertifikatRowsAsync.
 **v7.7 Phase 201 complete** — CreateAssessment renewal pre-fill: GET accepts renewSessionId/renewTrainingId, pre-fills form (Title, Category, peserta), banner Mode Renewal, ValidUntil required +1yr, POST saves renewal FK.
 **v7.7 Phase 203 complete** — Certificate history modal: endpoint CertificateHistory dengan Union-Find renewal chain grouping, partial view _CertificateHistoryModalContent, integrasi ke Renewal Certificate (mode renewal) dan CDP CertificationManagement (mode readonly).
+**v7.7 Phase 204 complete** — CDP CertificationManagement enhancement: renewed certs hidden by default, toggle "Tampilkan Riwayat Renewal" with 50% opacity, Expired/AkanExpired card counts exclude renewed.
 
 Portal is fully audited and polished. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Training CRUD consolidated to Admin. Assessment creation uses 4-step wizard with DB categories, certificate expiry dates, auto-numbering, PDF download, sub-categories with signatory settings. Renewal chain data model in place — AssessmentSession and TrainingRecord have nullable FK columns for tracking certificate renewals.
 
