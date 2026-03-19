@@ -1,0 +1,100 @@
+@model List<HcPortal.Models.CertificateChainGroup>
+@{
+    var mode = ViewBag.Mode as string ?? "readonly";
+    bool isRenewalMode = mode == "renewal";
+    int colCount = isRenewalMode ? 7 : 6;
+}
+
+@if (Model == null || !Model.Any())
+{
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x fs-1 d-block mb-3"></i>
+        <p class="fw-semibold mb-1">Belum ada sertifikat</p>
+        <p class="small mb-0">Pekerja ini belum memiliki sertifikat yang tercatat.</p>
+    </div>
+}
+else
+{
+    <table class="table table-striped table-hover align-middle mb-0">
+        <thead class="table-dark">
+            <tr>
+                <th>Judul</th>
+                <th>Kategori</th>
+                <th>Sub Kategori</th>
+                <th>Valid</th>
+                <th>Status</th>
+                <th>Sumber</th>
+                @if (isRenewalMode)
+                {
+                    <th>Aksi</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var group in Model)
+            {
+                <tr class="table-secondary">
+                    <td colspan="@colCount">
+                        <i class="bi bi-link-45deg me-1"></i>
+                        <strong>@group.ChainTitle</strong>
+                        <span class="badge bg-secondary ms-2">@group.Certificates.Count</span>
+                    </td>
+                </tr>
+                @foreach (var cert in group.Certificates)
+                {
+                    <tr>
+                        <td>@cert.Judul</td>
+                        <td>@(cert.Kategori ?? "-")</td>
+                        <td>@(cert.SubKategori ?? "-")</td>
+                        <td>
+                            @(cert.ValidUntil.HasValue ? cert.ValidUntil.Value.ToString("dd MMM yyyy") : "Permanent")
+                        </td>
+                        <td>
+                            @switch (cert.Status)
+                            {
+                                case HcPortal.Models.CertificateStatus.Expired:
+                                    <span class="badge bg-danger">Expired</span>
+                                    break;
+                                case HcPortal.Models.CertificateStatus.AkanExpired:
+                                    <span class="badge bg-warning text-dark">Akan Expired</span>
+                                    break;
+                                case HcPortal.Models.CertificateStatus.Aktif:
+                                    <span class="badge bg-success">Aktif</span>
+                                    break;
+                                case HcPortal.Models.CertificateStatus.Permanent:
+                                    <span class="badge bg-info text-dark">Permanent</span>
+                                    break;
+                            }
+                        </td>
+                        <td>
+                            @if (cert.RecordType == HcPortal.Models.RecordType.Assessment)
+                            {
+                                <span class="badge bg-info text-dark">Assessment</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">Training</span>
+                            }
+                        </td>
+                        @if (isRenewalMode)
+                        {
+                            <td>
+                                @if ((cert.Status == HcPortal.Models.CertificateStatus.Expired || cert.Status == HcPortal.Models.CertificateStatus.AkanExpired) && !cert.IsRenewed)
+                                {
+                                    var renewParam = cert.RecordType == HcPortal.Models.RecordType.Assessment
+                                        ? $"renewSessionId={cert.SourceId}"
+                                        : $"renewTrainingId={cert.SourceId}";
+                                    <a href="/Admin/CreateAssessment?@renewParam&workerId=@cert.WorkerId"
+                                       class="btn btn-sm btn-warning"
+                                       aria-label="Renew sertifikat @cert.Judul">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Renew
+                                    </a>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}

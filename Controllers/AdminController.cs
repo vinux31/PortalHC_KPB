@@ -6754,6 +6754,177 @@ namespace HcPortal.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> CertificateHistory(string workerId, string mode = "readonly")
+        {
+            if (string.IsNullOrEmpty(workerId))
+                return BadRequest("workerId required");
+
+            // 1. Query semua sertifikat pekerja ini
+            var trainingCerts = await _context.TrainingRecords
+                .Where(t => t.UserId == workerId && t.SertifikatUrl != null)
+                .Select(t => new {
+                    t.Id,
+                    Judul = t.Judul ?? "",
+                    t.Kategori,
+                    t.NomorSertifikat,
+                    TanggalTerbit = (DateTime?)t.Tanggal,
+                    t.ValidUntil,
+                    t.CertificateType,
+                    t.SertifikatUrl,
+                    t.RenewsSessionId,
+                    t.RenewsTrainingId
+                })
+                .ToListAsync();
+
+            var assessmentCerts = await _context.AssessmentSessions
+                .Where(a => a.UserId == workerId && a.GenerateCertificate && a.IsPassed == true)
+                .Select(a => new {
+                    a.Id,
+                    Judul = a.Title,
+                    a.Category,
+                    a.NomorSertifikat,
+                    TanggalTerbit = a.CompletedAt,
+                    a.ValidUntil,
+                    a.RenewsSessionId,
+                    a.RenewsTrainingId
+                })
+                .ToListAsync();
+
+            // 2. Category resolution
+            var allCategories = await _context.AssessmentCategories
+                .Where(c => c.IsActive)
+                .Select(c => new { c.Id, c.Name, c.ParentId })
+                .ToListAsync();
+            var categoryById = allCategories.ToDictionary(c => c.Id);
+            var categoryNameLookup = allCategories
+                .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
+                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+
+            // 3. Renewal chain batch lookup — scoped to this worker's certs
+            var mySessionIds = assessmentCerts.Select(a => a.Id).ToHashSet();
+            var myTrainingIds = trainingCerts.Select(t => t.Id).ToHashSet();
+
+            var renewedSessionIds = new HashSet<int>(
+                await _context.AssessmentSessions
+                    .Where(a => a.RenewsSessionId.HasValue && mySessionIds.Contains(a.RenewsSessionId.Value) && a.IsPassed == true)
+                    .Select(a => a.RenewsSessionId!.Value).ToListAsync());
+            renewedSessionIds.UnionWith(
+                await _context.TrainingRecords
+                    .Where(t => t.RenewsSessionId.HasValue && mySessionIds.Contains(t.RenewsSessionId.Value))
+                    .Select(t => t.RenewsSessionId!.Value).ToListAsync());
+
+            var renewedTrainingIds = new HashSet<int>(
+                await _context.AssessmentSessions
+                    .Where(a => a.RenewsTrainingId.HasValue && myTrainingIds.Contains(a.RenewsTrainingId.Value) && a.IsPassed == true)
+                    .Select(a => a.RenewsTrainingId!.Value).ToListAsync());
+            renewedTrainingIds.UnionWith(
+                await _context.TrainingRecords
+                    .Where(t => t.RenewsTrainingId.HasValue && myTrainingIds.Contains(t.RenewsTrainingId.Value))
+                    .Select(t => t.RenewsTrainingId!.Value).ToListAsync());
+
+            // 4. Build SertifikatRow list
+            var rows = new List<SertifikatRow>();
+
+            foreach (var t in trainingCerts)
+            {
+                rows.Add(new SertifikatRow
+                {
+                    SourceId = t.Id,
+                    RecordType = RecordType.Training,
+                    WorkerId = workerId,
+                    Judul = t.Judul,
+                    Kategori = MapKategori(t.Kategori),
+                    SubKategori = null,
+                    NomorSertifikat = t.NomorSertifikat,
+                    TanggalTerbit = t.TanggalTerbit,
+                    ValidUntil = t.ValidUntil,
+                    Status = SertifikatRow.DeriveCertificateStatus(t.ValidUntil, t.CertificateType),
+                    SertifikatUrl = t.SertifikatUrl,
+                    IsRenewed = renewedTrainingIds.Contains(t.Id)
+                });
+            }
+
+            foreach (var a in assessmentCerts)
+            {
+                string kategori = a.Category;
+                string? subKategori = null;
+                if (categoryNameLookup.TryGetValue(a.Category, out var parentName))
+                {
+                    kategori = parentName;
+                    subKategori = a.Category;
+                }
+                rows.Add(new SertifikatRow
+                {
+                    SourceId = a.Id,
+                    RecordType = RecordType.Assessment,
+                    WorkerId = workerId,
+                    Judul = a.Judul,
+                    Kategori = kategori,
+                    SubKategori = subKategori,
+                    NomorSertifikat = a.NomorSertifikat,
+                    TanggalTerbit = a.TanggalTerbit,
+                    ValidUntil = a.ValidUntil,
+                    Status = SertifikatRow.DeriveCertificateStatus(a.ValidUntil, null),
+                    IsRenewed = renewedSessionIds.Contains(a.Id)
+                });
+            }
+
+            // 5. Build renewal chain graph using Union-Find
+            var parent = new Dictionary<string, string>();
+            string Find(string x) {
+                if (!parent.ContainsKey(x)) parent[x] = x;
+                while (parent[x] != x) { parent[x] = parent[parent[x]]; x = parent[x]; }
+                return x;
+            }
+            void Union(string a, string b) {
+                var ra = Find(a); var rb = Find(b);
+                if (ra != rb) parent[ra] = rb;
+            }
+
+            // Register all cert nodes
+            foreach (var r in rows)
+                Find(r.RecordType == RecordType.Assessment ? $"AS:{r.SourceId}" : $"TR:{r.SourceId}");
+
+            // Build edges from renewal FKs
+            foreach (var a in assessmentCerts)
+            {
+                var key = $"AS:{a.Id}";
+                if (a.RenewsSessionId.HasValue) Union(key, $"AS:{a.RenewsSessionId.Value}");
+                if (a.RenewsTrainingId.HasValue) Union(key, $"TR:{a.RenewsTrainingId.Value}");
+            }
+            foreach (var t in trainingCerts)
+            {
+                var key = $"TR:{t.Id}";
+                if (t.RenewsSessionId.HasValue) Union(key, $"AS:{t.RenewsSessionId.Value}");
+                if (t.RenewsTrainingId.HasValue) Union(key, $"TR:{t.RenewsTrainingId.Value}");
+            }
+
+            // Group rows by chain
+            var groups = rows
+                .GroupBy(r => Find(r.RecordType == RecordType.Assessment ? $"AS:{r.SourceId}" : $"TR:{r.SourceId}"))
+                .Select(g =>
+                {
+                    var certs = g.OrderByDescending(c => c.ValidUntil ?? DateTime.MaxValue).ToList();
+                    var oldest = g.OrderBy(c => c.ValidUntil ?? DateTime.MaxValue).First();
+                    var chainTitle = !string.IsNullOrEmpty(oldest.SubKategori) ? oldest.SubKategori
+                                   : !string.IsNullOrEmpty(oldest.Kategori) ? oldest.Kategori
+                                   : oldest.Judul;
+                    return new CertificateChainGroup
+                    {
+                        ChainTitle = chainTitle,
+                        Certificates = certs,
+                        LatestValidUntil = certs.First().ValidUntil
+                    };
+                })
+                .OrderByDescending(g => g.LatestValidUntil ?? DateTime.MaxValue)
+                .ToList();
+
+            ViewBag.Mode = mode;
+            return PartialView("Shared/_CertificateHistoryModalContent", groups);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> RenewalCertificate(int page = 1)
         {
             var allRows = await BuildRenewalRowsAsync();
