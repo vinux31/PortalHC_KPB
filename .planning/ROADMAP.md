@@ -136,7 +136,7 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
   1. AssessmentSession di database memiliki kolom RenewsSessionId dan RenewsTrainingId yang dapat diisi tanpa error
   2. BuildSertifikatRowsAsync mengembalikan flag IsRenewed=true hanya jika ada sesi renewal yang IsPassed==true mengarah ke sertifikat tersebut
   3. Sertifikat tanpa renewal yang lulus tetap tampil sebagai belum di-renew meskipun ada sesi renewal yang gagal
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 200-01-PLAN.md — DB migration RenewsSessionId + RenewsTrainingId + EF model update
