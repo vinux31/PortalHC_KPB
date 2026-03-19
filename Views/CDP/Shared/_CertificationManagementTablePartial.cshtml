@@ -46,7 +46,7 @@
                     {
                         var row = Model.Rows[i];
                         var nomor = (Model.CurrentPage - 1) * Model.PageSize + i + 1;
-                        <tr>
+                        <tr class="@(row.IsRenewed ? "renewed-row" : "")" @(row.IsRenewed ? "style=\"display:none;\"" : "")>
                             <td class="ps-3">@nomor</td>
                             @if (Model.RoleLevel <= 4)
                             {

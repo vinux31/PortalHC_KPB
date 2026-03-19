@@ -3057,8 +3057,8 @@ namespace HcPortal.Controllers
             {
                 TotalCount = allRows.Count,
                 AktifCount = allRows.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
-                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
+                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired && !r.IsRenewed),
+                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired && !r.IsRenewed),
                 PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
             };
             vm.RoleLevel = roleLevel;
@@ -3112,8 +3112,8 @@ namespace HcPortal.Controllers
             {
                 TotalCount = allRows.Count,
                 AktifCount = allRows.Count(r => r.Status == CertificateStatus.Aktif),
-                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
-                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
+                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired && !r.IsRenewed),
+                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired && !r.IsRenewed),
                 PermanentCount = allRows.Count(r => r.Status == CertificateStatus.Permanent),
             };
             vm.RoleLevel = roleLevel;
