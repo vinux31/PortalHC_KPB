@@ -19,7 +19,7 @@ Requirements for Renewal Certificate & Certificate History milestone.
 - [x] **RNPAGE-02**: HC/Admin dapat filter berdasarkan Bagian, Unit, Kategori
 - [x] **RNPAGE-03**: Klik Renew pada satu sertifikat → redirect ke CreateAssessment dengan data pre-filled
 - [x] **RNPAGE-04**: Checkbox bulk select + Renew Selected untuk sertifikat dengan kategori sama
-- [ ] **RNPAGE-05**: Card Renewal Certificate di Kelola Data Section C
+- [x] **RNPAGE-05**: Card Renewal Certificate di Kelola Data Section C
 
 ### Certificate History
 
@@ -52,7 +52,7 @@ Requirements for Renewal Certificate & Certificate History milestone.
 | RNPAGE-02 | Phase 202 | Complete |
 | RNPAGE-03 | Phase 202 | Complete |
 | RNPAGE-04 | Phase 202 | Complete |
-| RNPAGE-05 | Phase 202 | Pending |
+| RNPAGE-05 | Phase 202 | Complete |
 | HIST-01 | Phase 203 | Pending |
 | HIST-02 | Phase 203 | Pending |
 | HIST-03 | Phase 203 | Pending |

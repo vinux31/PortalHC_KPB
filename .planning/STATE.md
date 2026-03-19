@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.7
 milestone_name: Renewal Certificate & Certificate History
 status: unknown
-stopped_at: Completed 202-01-PLAN.md
-last_updated: "2026-03-19T07:50:11.144Z"
+stopped_at: Completed 202-02-PLAN.md
+last_updated: "2026-03-19T08:15:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State: Portal HC KPB
@@ -23,16 +23,16 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 ## Current Position
 
-Phase: 202 (renewal-certificate-page-kelola-data) — EXECUTING
-Plan: 1 of 2
+Phase: 202 (renewal-certificate-page-kelola-data) — COMPLETED
+Plan: 2 of 2 (ALL PLANS COMPLETE)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed (v7.7): 2
-- Average duration: 15min
-- Total execution time: 30min
+- Total plans completed (v7.7): 3
+- Average duration: 13min
+- Total execution time: 40min
 
 *Updated after each plan completion*
 
@@ -49,6 +49,8 @@ Plan: 1 of 2
 - [200-02]: Batch renewal lookup ditempatkan sebelum trainingRows mapping (bukan setelah assessmentAnon) agar renewedTrainingRecordIds tersedia lebih awal
 - [Phase 201]: Renewal FK assigned only to first session (i==0) — renewal is 1-to-1
 - [Phase 202]: BuildRenewalRowsAsync di AdminController tidak menggunakan role scoping — Admin/HC punya akses penuh
+- [202-02]: Lightweight query (CountAsync) dipakai di Index() — bukan BuildRenewalRowsAsync yang mahal — karena badge hanya perlu count
+- [202-02]: Index() diubah dari sync ke async Task<IActionResult> untuk mendukung query DB
 
 ### Blockers/Concerns
 
@@ -56,6 +58,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T07:50:09.680Z
-Stopped at: Completed 202-01-PLAN.md
+Last session: 2026-03-19T08:15:00.000Z
+Stopped at: Completed 202-02-PLAN.md
 Resume file: None
