@@ -6759,19 +6759,13 @@ namespace HcPortal.Controllers
             vm.CurrentPage = paging.CurrentPage;
             vm.TotalPages = paging.TotalPages;
 
-            ViewBag.AllBagian = allRows
-                .Select(r => r.Bagian)
-                .Where(b => !string.IsNullOrEmpty(b))
-                .Distinct()
-                .OrderBy(b => b)
-                .ToList();
+            ViewBag.AllBagian = OrganizationStructure.GetAllSections();
 
-            ViewBag.AllCategories = allRows
-                .Select(r => r.Kategori)
-                .Where(k => !string.IsNullOrEmpty(k))
-                .Distinct()
-                .OrderBy(k => k)
-                .ToList();
+            ViewBag.AllCategories = await _context.AssessmentCategories
+                .Where(c => c.ParentId == null && c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .Select(c => c.Name)
+                .ToListAsync();
 
             ViewBag.SelectedView = "RenewalCertificate";
 
@@ -6785,6 +6779,7 @@ namespace HcPortal.Controllers
             string? unit = null,
             string? status = null,
             string? category = null,
+            string? subCategory = null,
             int page = 1)
         {
             var allRows = await BuildRenewalRowsAsync();
@@ -6797,6 +6792,8 @@ namespace HcPortal.Controllers
                 allRows = allRows.Where(r => r.Status == st).ToList();
             if (!string.IsNullOrEmpty(category))
                 allRows = allRows.Where(r => r.Kategori == category).ToList();
+            if (!string.IsNullOrEmpty(subCategory))
+                allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
 
             allRows = allRows
                 .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
