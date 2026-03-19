@@ -193,4 +193,24 @@
         </a>
     </div>
     }
+    @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+    {
+    <div class="col-md-4">
+        <a href="@Url.Action("RenewalCertificate", "Admin")" class="text-decoration-none">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-arrow-repeat fs-5 text-warning"></i>
+                        <span class="fw-bold">Renewal Sertifikat</span>
+                        @if (ViewBag.RenewalCount != null && (int)ViewBag.RenewalCount > 0)
+                        {
+                            <span class="badge bg-warning text-dark ms-auto">@ViewBag.RenewalCount</span>
+                        }
+                    </div>
+                    <small class="text-muted">Kelola sertifikat expired dan akan expired yang perlu di-renew</small>
+                </div>
+            </div>
+        </a>
+    </div>
+    }
 </div>

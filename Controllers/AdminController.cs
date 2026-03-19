@@ -54,8 +54,33 @@ namespace HcPortal.Controllers
 
         // GET /Admin/Index
         [Authorize(Roles = "Admin, HC")]
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            // Renewal badge count (lightweight)
+            var renewedSessionIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsSessionId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsSessionId!.Value).Distinct().ToListAsync();
+            var renewedTrainingIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsTrainingId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsTrainingId!.Value).Distinct().ToListAsync();
+
+            var expiredTrainingCount = await _context.TrainingRecords
+                .Where(t => t.SertifikatUrl != null &&
+                            t.ValidUntil != null &&
+                            t.CertificateType != "Permanent" &&
+                            t.ValidUntil < DateTime.Now.AddDays(30) &&
+                            !renewedTrainingIds.Contains(t.Id))
+                .CountAsync();
+
+            var expiredAssessmentCount = await _context.AssessmentSessions
+                .Where(a => a.GenerateCertificate && a.IsPassed == true &&
+                            a.ValidUntil != null &&
+                            a.ValidUntil < DateTime.Now.AddDays(30) &&
+                            !renewedSessionIds.Contains(a.Id))
+                .CountAsync();
+
+            ViewBag.RenewalCount = expiredTrainingCount + expiredAssessmentCount;
+
             return View();
         }
 
