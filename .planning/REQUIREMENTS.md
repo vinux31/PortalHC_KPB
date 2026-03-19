@@ -15,10 +15,10 @@ Requirements for Renewal Certificate & Certificate History milestone.
 
 ### Renewal Certificate Page
 
-- [ ] **RNPAGE-01**: HC/Admin melihat daftar sertifikat Expired dan Akan Expired yang belum di-renew (tidak ada renewal yang lulus)
-- [ ] **RNPAGE-02**: HC/Admin dapat filter berdasarkan Bagian, Unit, Kategori
-- [ ] **RNPAGE-03**: Klik Renew pada satu sertifikat → redirect ke CreateAssessment dengan data pre-filled
-- [ ] **RNPAGE-04**: Checkbox bulk select + Renew Selected untuk sertifikat dengan kategori sama
+- [x] **RNPAGE-01**: HC/Admin melihat daftar sertifikat Expired dan Akan Expired yang belum di-renew (tidak ada renewal yang lulus)
+- [x] **RNPAGE-02**: HC/Admin dapat filter berdasarkan Bagian, Unit, Kategori
+- [x] **RNPAGE-03**: Klik Renew pada satu sertifikat → redirect ke CreateAssessment dengan data pre-filled
+- [x] **RNPAGE-04**: Checkbox bulk select + Renew Selected untuk sertifikat dengan kategori sama
 - [ ] **RNPAGE-05**: Card Renewal Certificate di Kelola Data Section C
 
 ### Certificate History
@@ -48,10 +48,10 @@ Requirements for Renewal Certificate & Certificate History milestone.
 | RENEW-01 | Phase 200 | Complete |
 | RENEW-02 | Phase 200 | Complete |
 | RENEW-03 | Phase 201 | Complete |
-| RNPAGE-01 | Phase 202 | Pending |
-| RNPAGE-02 | Phase 202 | Pending |
-| RNPAGE-03 | Phase 202 | Pending |
-| RNPAGE-04 | Phase 202 | Pending |
+| RNPAGE-01 | Phase 202 | Complete |
+| RNPAGE-02 | Phase 202 | Complete |
+| RNPAGE-03 | Phase 202 | Complete |
+| RNPAGE-04 | Phase 202 | Complete |
 | RNPAGE-05 | Phase 202 | Pending |
 | HIST-01 | Phase 203 | Pending |
 | HIST-02 | Phase 203 | Pending |
