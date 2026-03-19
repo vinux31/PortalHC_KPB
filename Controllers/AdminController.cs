@@ -6594,6 +6594,13 @@ namespace HcPortal.Controllers
 
         #region Renewal Certificate
 
+        private static string MapKategori(string raw) => raw switch
+        {
+            "MANDATORY" => "Mandatory HSSE Training",
+            "PROTON"    => "Assessment Proton",
+            _           => raw
+        };
+
         private async Task<List<SertifikatRow>> BuildRenewalRowsAsync()
         {
             // Query TrainingRecords with certificate (no role scoping — Admin/HC full access)
@@ -6661,7 +6668,7 @@ namespace HcPortal.Controllers
                 Bagian = t.Bagian,
                 Unit = t.Unit,
                 Judul = t.Judul,
-                Kategori = t.Kategori,
+                Kategori = MapKategori(t.Kategori),
                 SubKategori = null,
                 NomorSertifikat = t.NomorSertifikat,
                 TanggalTerbit = t.TanggalTerbit,
