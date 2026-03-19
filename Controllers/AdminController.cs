@@ -6594,8 +6594,9 @@ namespace HcPortal.Controllers
 
         #region Renewal Certificate
 
-        private static string MapKategori(string raw) => raw switch
+        private static string MapKategori(string? raw) => raw switch
         {
+            null or ""  => "-",
             "MANDATORY" => "Mandatory HSSE Training",
             "PROTON"    => "Assessment Proton",
             _           => raw
@@ -6920,7 +6921,7 @@ namespace HcPortal.Controllers
                 .ToList();
 
             ViewBag.Mode = mode;
-            return PartialView("Shared/_CertificateHistoryModalContent", groups);
+            return PartialView("~/Views/Shared/_CertificateHistoryModalContent.cshtml", groups);
         }
 
         [HttpGet]
