@@ -39,6 +39,12 @@ public class SertifikatRow
     public string? SertifikatUrl { get; set; }
 
     /// <summary>
+    /// True jika ada sesi/record renewal yang lulus mengarah ke sertifikat ini.
+    /// Dihitung oleh BuildSertifikatRowsAsync. Orthogonal terhadap Status.
+    /// </summary>
+    public bool IsRenewed { get; set; }
+
+    /// <summary>
     /// Derives certificate status from ValidUntil and CertificateType.
     /// For AssessmentSession rows pass certificateType: null — ValidUntil==null yields Permanent.
     /// Threshold of 30 days matches TrainingRecord.IsExpiringSoon.

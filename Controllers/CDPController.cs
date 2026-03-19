@@ -3250,6 +3250,43 @@ namespace HcPortal.Controllers
                 })
                 .ToListAsync();
 
+            // ===== Renewal chain resolution: batch lookup =====
+            // Set 1: AS IDs renewed by another AS (IsPassed==true)
+            var renewedByAsSessionIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsSessionId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsSessionId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Set 2: AS IDs renewed by a TR
+            var renewedByTrSessionIds = await _context.TrainingRecords
+                .Where(t => t.RenewsSessionId.HasValue)
+                .Select(t => t.RenewsSessionId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Set 3: TR IDs renewed by an AS (IsPassed==true)
+            var renewedByAsTrainingIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsTrainingId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsTrainingId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Set 4: TR IDs renewed by another TR
+            var renewedByTrTrainingIds = await _context.TrainingRecords
+                .Where(t => t.RenewsTrainingId.HasValue)
+                .Select(t => t.RenewsTrainingId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            // Merge: all AS IDs that have been renewed
+            var renewedAssessmentSessionIds = new HashSet<int>(renewedByAsSessionIds);
+            renewedAssessmentSessionIds.UnionWith(renewedByTrSessionIds);
+
+            // Merge: all TR IDs that have been renewed
+            var renewedTrainingRecordIds = new HashSet<int>(renewedByAsTrainingIds);
+            renewedTrainingRecordIds.UnionWith(renewedByTrTrainingIds);
+
             var trainingRows = trainingAnon.Select(t => new SertifikatRow
             {
                 SourceId = t.Id,
@@ -3264,7 +3301,8 @@ namespace HcPortal.Controllers
                 TanggalTerbit = t.TanggalTerbit,
                 ValidUntil = t.ValidUntil,
                 Status = SertifikatRow.DeriveCertificateStatus(t.ValidUntil, t.CertificateType),
-                SertifikatUrl = t.SertifikatUrl
+                SertifikatUrl = t.SertifikatUrl,
+                IsRenewed = renewedTrainingRecordIds.Contains(t.Id)
             }).ToList();
 
             // Query AssessmentSessions with certificate
@@ -3324,7 +3362,8 @@ namespace HcPortal.Controllers
                     TanggalTerbit = a.CompletedAt,
                     ValidUntil = a.ValidUntil,
                     Status = SertifikatRow.DeriveCertificateStatus(a.ValidUntil, null),
-                    SertifikatUrl = null
+                    SertifikatUrl = null,
+                    IsRenewed = renewedAssessmentSessionIds.Contains(a.Id)
                 };
             }).ToList();
 
