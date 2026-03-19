@@ -204,6 +204,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 200. Renewal Chain Foundation | 2/2 | Complete    | 2026-03-19 | - |
 | 201. CreateAssessment Renewal Pre-fill | 1/1 | Complete    | 2026-03-19 | - |
-| 202. Renewal Certificate Page (Kelola Data) | 3/3 | Complete   | 2026-03-19 | - |
+| 202. Renewal Certificate Page (Kelola Data) | 3/3 | Complete    | 2026-03-19 | - |
 | 203. Certificate History Modal | v7.7 | 0/2 | Not started | - |
 | 204. CDP Certification Management Enhancement | v7.7 | 0/1 | Not started | - |
