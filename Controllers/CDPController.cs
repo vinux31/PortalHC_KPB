@@ -3184,6 +3184,13 @@ namespace HcPortal.Controllers
             return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
+        private static string MapKategori(string raw) => raw switch
+        {
+            "MANDATORY" => "Mandatory HSSE Training",
+            "PROTON"    => "Assessment Proton",
+            _           => raw
+        };
+
         private async Task<(List<SertifikatRow> rows, int roleLevel)> BuildSertifikatRowsAsync(bool l5OwnDataOnly = false)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
@@ -3295,7 +3302,7 @@ namespace HcPortal.Controllers
                 Bagian = t.Bagian,
                 Unit = t.Unit,
                 Judul = t.Judul,
-                Kategori = t.Kategori,
+                Kategori = MapKategori(t.Kategori),
                 SubKategori = null, // Training tidak punya sub-category
                 NomorSertifikat = t.NomorSertifikat,
                 TanggalTerbit = t.TanggalTerbit,
