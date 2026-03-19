@@ -66,8 +66,8 @@ Menggunakan font Inter yang sudah terpasang di layout. Skala di bawah adalah bas
 | Role | Size | Weight | Line Height |
 |------|------|--------|-------------|
 | Body | 14px (0.875rem) | 400 regular | 1.5 |
-| Label | 14px (0.875rem) | 600 semibold | 1.4 |
-| Heading | 20px (1.25rem) | 600 semibold | 1.2 |
+| Label | 14px (0.875rem) | 400 regular | 1.4 |
+| Heading | 20px (1.25rem) | 700 bold | 1.2 |
 | Display | 28px (1.75rem) | 700 bold | 1.2 |
 
 Sumber: `wwwroot/css/home.css` dan Bootstrap 5.3 defaults (terdeteksi dari codebase). Tidak ada perubahan tipografi di phase ini.
