@@ -12,17 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.7 Renewal Certificate & Certificate History
-
-**Goal:** Certificate renewal workflow for HC/Admin (Kelola Data) and certificate history timeline per worker (shared modal). CDP Certification Management enhanced to hide renewed certificates.
-
-**Target features:**
-- Renewal Certificate page di Kelola Data — daftar sertifikat expired/akan expired, renew single/bulk, pre-fill CreateAssessment
-- Certificate History modal — timeline chain sertifikat per pekerja (shared di CDP & Kelola Data)
-- CDP Certification Management enhanced — hide sertifikat yang sudah di-renew, toggle tampilkan riwayat, klik nama → history
-- Renewal chain tracking — RenewsSessionId/RenewsTrainingId di AssessmentSession, post-exam auto-link
-
-## Current State (after Phase 204 complete, 2026-03-19)
+## Current State (after v7.7 complete, 2026-03-19)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -31,12 +21,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.4 shipped** — Certification Management, 7 phases (185-190).
 **v7.5 shipped** — Assessment Form Revamp & Certificate Enhancement, 6 phases (190-195).
 **v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
-**v7.7 Phase 200 complete** — Renewal chain foundation: RenewsSessionId/RenewsTrainingId FK columns on AssessmentSession and TrainingRecord, IsRenewed flag in BuildSertifikatRowsAsync.
-**v7.7 Phase 201 complete** — CreateAssessment renewal pre-fill: GET accepts renewSessionId/renewTrainingId, pre-fills form (Title, Category, peserta), banner Mode Renewal, ValidUntil required +1yr, POST saves renewal FK.
-**v7.7 Phase 203 complete** — Certificate history modal: endpoint CertificateHistory dengan Union-Find renewal chain grouping, partial view _CertificateHistoryModalContent, integrasi ke Renewal Certificate (mode renewal) dan CDP CertificationManagement (mode readonly).
-**v7.7 Phase 204 complete** — CDP CertificationManagement enhancement: renewed certs hidden by default, toggle "Tampilkan Riwayat Renewal" with 50% opacity, Expired/AkanExpired card counts exclude renewed.
+**v7.7 shipped** — Renewal Certificate & Certificate History, 5 phases (200-204).
 
-Portal is fully audited and polished. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Training CRUD consolidated to Admin. Assessment creation uses 4-step wizard with DB categories, certificate expiry dates, auto-numbering, PDF download, sub-categories with signatory settings. Renewal chain data model in place — AssessmentSession and TrainingRecord have nullable FK columns for tracking certificate renewals.
+Portal is fully audited and polished. Full certificate renewal lifecycle: renewal chain FK tracking, CreateAssessment pre-fill from expired certs, dedicated Renewal Certificate admin page with bulk renew, certificate history modal with Union-Find chain grouping, CDP table hiding renewed certs. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Between milestones — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 
@@ -49,6 +36,10 @@ Portal is fully audited and polished. Codebase deduplicated: IWorkerDataService 
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v7.7 - Renewal Certificate & Certificate History (2026-03-19)
+
+**Delivered:** Full certificate renewal lifecycle — renewal chain data model, CreateAssessment pre-fill, dedicated Renewal Certificate admin page with bulk renew, certificate history modal with Union-Find chain grouping, CDP Certification Management hiding renewed certs with toggle.
 
 ### ✅ v7.6 - Code Deduplication & Shared Services (2026-03-18)
 

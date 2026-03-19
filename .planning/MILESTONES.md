@@ -1,4 +1,23 @@
 # Milestones
+
+## v7.7 Renewal Certificate & Certificate History (Shipped: 2026-03-19)
+
+**Phases completed:** 5 phases (200-204), 9 plans
+**Timeline:** 2026-03-19 (single day)
+**Commits:** 15 feat commits across 16 files
+
+**Delivered:** Full certificate renewal lifecycle — renewal chain data model (FK tracking), CreateAssessment pre-fill from expired certs, dedicated Renewal Certificate admin page with bulk renew, certificate history modal with Union-Find chain grouping, and CDP table enhancement hiding renewed certs.
+
+**Key accomplishments:**
+
+1. Renewal chain foundation — RenewsSessionId/RenewsTrainingId nullable FK columns on AssessmentSession and TrainingRecord, 4 batch queries with HashSet-based IsRenewed flag computation
+2. CreateAssessment renewal pre-fill — GET accepts renewSessionId/renewTrainingId params, auto-fills Title/Category/peserta, Mode Renewal banner, ValidUntil required +1yr validation
+3. Renewal Certificate page — Dedicated admin page at /Admin/RenewalCertificate with expired/akan-expired filter, single Renew button + checkbox bulk Renew Selected (category-locked), cascade Bagian/Unit/Kategori filter, badge count card in Kelola Data Section C
+4. Certificate history modal — Shared endpoint CertificateHistory with Union-Find renewal chain grouping, _CertificateHistoryModalContent partial view, dual mode (renewal with Renew buttons, readonly for CDP)
+5. CDP Certification Management enhancement — Renewed certs hidden by default with toggle "Tampilkan Riwayat Renewal" (opacity 50%), Expired/AkanExpired card counts exclude renewed certificates
+
+---
+
 ## v7.6 Code Deduplication & Shared Services (Shipped: 2026-03-18)
 
 **Phases completed:** 4 phases (196-199), 6 plans
@@ -8,6 +27,7 @@
 **Delivered:** Pure refactoring milestone — extracted shared services, consolidated CRUD entry points, and unified code patterns across controllers. No new UI, no DB migrations. Net reduction of ~700+ lines of duplicated code.
 
 **Key accomplishments:**
+
 1. IWorkerDataService shared service — 4 helper methods (GetUnifiedRecords, GetAllWorkersHistory, GetWorkersInSection, NotifyIfGroupCompleted) extracted from Admin+CMPController, removing 561 lines of duplicated code
 2. ExcelExportHelper — Static helper eliminates ~170 lines of ClosedXML boilerplate across 15 export actions in 4 controllers
 3. Training CRUD consolidated — CMP orphan edit/delete/import actions removed, ImportTraining moved to AdminController with link from ManageAssessment
@@ -21,6 +41,7 @@
 **Phases completed:** 5 phases, 5 plans, 0 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
@@ -34,6 +55,7 @@
 **Intent:** Prepare production-ready release package and deployment documentation for IT team (IIS + AD + SSMS database).
 
 **Known Gaps (all 4 requirements unstarted):**
+
 - REL-01: Release folder creation
 - REL-02: Production config (AD enabled)
 - DOC-01: SSMS database export guide
@@ -51,6 +73,7 @@
 **Delivered:** Guide & FAQ system cleanup and UI polish — redundant accordion guides removed (covered by PDF tutorials), dynamic role-based card counts, FAQ expand/collapse toggle, unified badge and button styling, back-to-top navigation, and breadcrumb navigation on GuideDetail pages.
 
 **Key accomplishments:**
+
 1. GuideDetail accordion simplification — CMP reduced from 7 to 4 items (5 for Admin/HC), CDP reduced from 7 to 3 items (5 for Admin/HC), redundant step-by-step items removed as covered by PDF tutorials
 2. Tutorial card CSS refactor — Inline styles replaced with CSS variant modifier classes (guide-tutorial-card--cmp/cdp/admin), AD guide tutorial card added for admin module
 3. Dynamic guide card counts — All 5 module cards show role-conditional counts via Razor int variables, matching actual GuideDetail accordion item counts
@@ -59,6 +82,7 @@
 6. Navigation — Floating back-to-top button on both Guide pages, GuideDetail breadcrumb (Beranda > Panduan > Module Name) replacing back button
 
 **Tech Debt (1 item, non-blocking):**
+
 - Legacy CSS alias .guide-step-badge-role kept in guide.css (no view references it)
 
 ---
@@ -73,6 +97,7 @@
 **Delivered:** Comprehensive codebase, file system, database, and security audit. Removed dead code, temp files, and unused imports. Fixed CSRF gap, XSS patterns, and file upload validation. Portal is clean, secure, and free of technical debt.
 
 **Key accomplishments:**
+
 1. Dead code removed — 2 unreachable controller actions (CleanupDuplicateAssignments, SearchUsers), 3 unused imports cleaned
 2. Logic bugs fixed — 2 silent catch blocks now log at Warning level, all null dereference risks verified
 3. File system cleaned — 40+ temp screenshots/artifacts removed, .gitignore hardened with 5 new patterns
@@ -81,6 +106,7 @@
 6. XSS patterns fixed — 4 unsafe Html.Raw(x.Replace()) replaced with Json.Serialize, all 8 upload endpoints secured
 
 **Tech Debt (5 items, all non-blocking):**
+
 - Pre-existing bare catch at AdminController:1072 (intentional audit-log pattern)
 - 1 null-forgiving operator deferred ([Authorize] guarantee)
 - 3 orphaned KkjMatrixItemId columns (documented from Phase 90)
@@ -99,6 +125,7 @@
 **Delivered:** Comprehensive end-to-end audit of the entire portal organized by 6 use-case flows — code review + browser UAT per flow. All 33 requirements verified, 10+ bugs fixed, 10 tech debt items documented.
 
 **Key accomplishments:**
+
 1. Assessment flow hardened — Fixed DeleteQuestion FK crash, open redirect in Results, certificate access control (IsPassed guard), TrainingRecord auto-creation on exam submission
 2. Coaching Proton bugs fixed — CoachCoacheeMappingReactivate cascades to restore ProtonTrackAssignments; SubmitInterviewResults creates ProtonFinalAssessment on pass
 3. Admin data management audited — Fixed ProtonFinalAssessment cascade order in DeleteWorker, CPDP download MIME type, added missing audit log entries
@@ -107,6 +134,7 @@
 6. Navigation integrity confirmed — All navbar links, guide pages, and hub cards verified; GuideDetail case-sensitivity bug fixed
 
 **Tech Debt (10 items):**
+
 - 2 deferred browser tests (assessment validation, certificate negative test)
 - 3 coaching edge cases (ExportProgressExcel role attr, evidence storage, download auth)
 - 2 admin edge cases (silabus delete warning, override status validation)
@@ -124,6 +152,7 @@
 **Delivered:** Account Profile & Settings page cleanup — authorization pattern, client-side validation, phone regex, ViewModel refactor, button label fix, and UI spacing consistency.
 
 **Key accomplishments:**
+
 1. Class-level `[Authorize]` on AccountController with `[AllowAnonymous]` on Login/AccessDenied
 2. New ProfileViewModel replacing ViewBag for role display on Profile page
 3. Client-side validation on Settings page via `_ValidationScriptsPartial`
@@ -141,6 +170,7 @@
 **Delivered:** Complete visual redesign of CoachingProton page — clickable badges converted to proper buttons, status badges given bold+border treatment for resolved states, JS innerHTML synchronized with server-rendered styling, and Export PDF recolored for consistency.
 
 **Key accomplishments:**
+
 1. Converted 4 Pending badge spans to proper `btn-outline-warning` Tinjau buttons with preserved modal triggers
 2. Added `fw-bold` + colored border to Approved/Rejected/Reviewed status badges via Razor helpers
 3. Updated 6 JS innerHTML locations to match new badge styling after AJAX operations
@@ -157,6 +187,7 @@
 **Delivered:** Proton History feature in CDP menu — role-scoped worker list with search/filter and vertical timeline detail page showing each worker's Proton journey (Tahun 1-3) with expandable nodes, status badges, and responsive styling.
 
 **Key accomplishments:**
+
 1. **CDP Histori Proton menu** — New navbar item with role-scoped access (Coachee self-redirect, Coach/SrSpv/SH section-scoped, HC/Admin all workers)
 2. **Worker list page** — Table with search by nama/NIP, filter by unit/section, step indicator showing Tahun progress, status badges
 3. **Timeline detail page** — Vertical left-aligned timeline with colored circles (green=Lulus, yellow=Dalam Proses), expandable Bootstrap Collapse cards per Proton year
@@ -167,7 +198,6 @@
 
 ---
 
-
 ## v3.2 Bug Hunting & Quality Audit (Shipped: 2026-03-05)
 
 **Phases completed:** 7 phases (92-98, 99), 31 plans, 95 tasks
@@ -175,6 +205,7 @@
 **Delivered:** Comprehensive audit of all portal sections — Homepage, CMP, CDP, Admin Portal, Account pages, Authentication/Authorization, and Data Integrity. Fixed 20+ bugs across UI, navigation, localization, authorization, soft-delete cascades, and audit logging.
 
 **Key accomplishments:**
+
 1. **Homepage Audit** — Fixed 5 bugs: deadline links, pluralization, localization, query consistency, negative days display
 2. **CMP Section Audit** — Fixed 6 bugs: localization (Indonesian dates), validation errors, navigation flow
 3. **CDP Section Audit** — Fixed 8 bugs: auth issues, navigation gaps, ProtonGuidance access, edge cases
@@ -185,6 +216,7 @@
 8. **CDP Cleanup** — Removed broken Deliverable card from CDP Index
 
 **Bug Summary:**
+
 - UI/Localization: 9 bugs fixed
 - Navigation: 5 bugs fixed
 - Authorization/Security: 4 bugs fixed
@@ -202,6 +234,7 @@
 **Delivered:** Full rewrite of KKJ Matrix from fixed 15-column spreadsheet model to dynamic key-value relational model with document-based file management system.
 
 **Key accomplishments:**
+
 1. **Dynamic Schema** — KkjColumn and KkjTargetValue tables replace fixed columns; administrators can add/edit/delete competency columns dynamically
 2. **Document-Based File Management** — KkjFile and CpdpFile models with upload/download/archive functionality; versioned file tracking with AuditLog
 3. **File Management UI** — Silabus tab and Coaching Guidance tab with full file CRUD operations, archive status filtering, and role-based access control
@@ -219,6 +252,7 @@
 **Delivered:** Comprehensive end-to-end QA of all portal features organized by use-case flows, code cleanup removing orphaned/duplicate pages, UI rename "Proton Progress" → "Coaching Proton" throughout portal, KKJ Matrix full rewrite to document-based file management, and PlanIDP 2-tab redesign. All major user flows verified working.
 
 **Key accomplishments:**
+
 1. Cleanup & Rename — "Proton Progress" renamed consistently, 3 orphaned CMP pages removed, AuditLog card added to Kelola Data hub
 2. Master Data QA — All Kelola Data CRUD verified, Worker/Silabus soft delete infrastructure with IsActive filters fully implemented
 3. Assessment Flow QA — DownloadQuestionTemplate action created, full assessment lifecycle verified across 10 requirements
@@ -230,6 +264,7 @@
 9. CMP Assessment Pages Audit — Assessment + Records pages verified, CSRF fixes applied, Records redesigned with 2-tab layout
 
 **Known Gaps:**
+
 - Phase 89 PlanIDP: No VERIFICATION.md file (5 requirements unverified: PLANIDP-01 through PLANIDP-05)
 - ASSESS-04: Assessment Results competency display may be broken (PositionTargetHelper missing from codebase)
 - Phase 88: KKJ Matrix verification claims don't match actual implementation (discrepancy between claimed relational model and actual file-based approach)
@@ -245,6 +280,7 @@
 **Delivered:** Dedicated Assessment Monitoring page extracted from ManageAssessment dropdown into a first-class Kelola Data hub entry with group list, per-participant detail, full HC action suite, and Admin ManageQuestions feature — plus hub cleanup removing redundant cards.
 
 **Key accomplishments:**
+
 1. Assessment Monitoring group list — Dedicated page at /Admin/AssessmentMonitoring with real-time stats (participant count, completed, passed, status badge), search/filter bar, and Regenerate Token per group
 2. Per-participant monitoring detail — Drill-down view showing each participant's live progress, status, score, countdown timer; token card with copy and inline regenerate
 3. Full HC action suite on monitoring page — Reset, Force Close, Bulk Close, Close Early, Regenerate Token all available from the dedicated monitoring detail page
@@ -253,12 +289,12 @@
 
 ---
 
-
 ## v1.0 CMP Assessment Completion (Shipped: 2026-02-17)
 
 **Phases completed:** 3 phases, 10 plans, 6 tasks
 
 **Key accomplishments:**
+
 1. Assessment Results Workflow — Users can view their assessment results immediately after completion with score, pass/fail status, and conditional answer review (if enabled by HC)
 2. HC Configuration Controls — HC staff can configure pass thresholds (0-100%) and toggle answer review visibility per assessment with category-based defaults
 3. Reports Dashboard & Analytics — HC can view, filter, and analyze assessment results across all users with Chart.js visualizations showing pass rates by category and score distributions
@@ -268,12 +304,12 @@
 
 ---
 
-
 ## v1.1 CDP Coaching Management (Shipped: 2026-02-18)
 
 **Phases completed:** 4 phases (4-7), 11 plans, plus Phase 8 post-fix
 
 **Key accomplishments:**
+
 1. Coaching Sessions — Coaches can log sessions with domain-specific fields (Kompetensi, SubKompetensi, Deliverable, CatatanCoach) and action items with due dates against a stable data model
 2. Proton Deliverable Tracking — Structured Kompetensi hierarchy with sequential lock enforcing ordered progression; coaches upload and revise evidence files per deliverable
 3. Approval Workflow & Completion — Full SrSpv → SectionHead approval chain with rejection reasons; HC final approval triggers Proton Assessment that auto-updates competency levels
@@ -287,6 +323,7 @@
 **Phases completed:** 4 phases (9-12), 8 plans, 11 requirements shipped
 
 **Key accomplishments:**
+
 1. Gap Analysis Removed — CMP Index card, CPDP Progress cross-link, controller action, view, and ViewModel deleted atomically with zero dead routes remaining
 2. Unified Training Records — Personal assessment sessions and manual training records merged into single chronological table with type-differentiated columns; HC worker list extended with combined completion rate
 3. Assessment Page Role-Filtered — Workers see Open/Upcoming only at DB level; HC/Admin get restructured Management + Monitoring tab layout with callout directing workers to Training Records
@@ -295,26 +332,25 @@
 
 ---
 
-
 ## v1.3 Assessment Management UX (Shipped: 2026-02-19)
 
 **Phases completed:** 15 phases, 34 plans, 6 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
-
 
 ## v1.6 Training Records Management (Shipped: 2026-02-20)
 
 **Phases completed:** 20 phases, 47 plans, 6 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
-
 
 ## v1.7 Assessment System Integrity (Shipped: 2026-02-21)
 
@@ -323,6 +359,7 @@
 **Timeline:** 2026-02-20 → 2026-02-21
 
 **Key accomplishments:**
+
 1. Exam state tracking — Workers marked InProgress with timestamp on first exam load; idempotent guard prevents double-writes; visible as yellow badge in MonitoringDetail
 2. Full exam lifecycle — Abandon flow (Keluar Ujian), HC force-close/reset, server-side timer enforcement (+2min grace), configurable exam window close dates with lockout
 3. Package answer persistence & review — PackageUserResponse table; answer review works for package exams; token enforcement blocks direct URL bypass via TempData guard
@@ -332,26 +369,25 @@
 
 ---
 
-
 ## v1.9 Proton Catalog Management (Shipped: 2026-02-24)
 
 **Phases completed:** 40 phases, 86 plans, 9 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
-
 
 ## v2.0 Assessment Management & Training History (Shipped: 2026-02-24)
 
 **Phases completed:** 40 phases, 86 plans, 9 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
-
 
 ## v2.1 Assessment Resilience & Real-Time Monitoring (Shipped: 2026-02-25)
 
@@ -362,6 +398,7 @@
 **Delivered:** Workers never lose exam progress (auto-save + session resume), HC can monitor live during assessments, and cross-package shuffle gives each worker a unique question mix from multiple packages.
 
 **Key accomplishments:**
+
 1. Auto-save — Worker answers saved per-click via AJAX with atomic upsert (ExecuteUpdateAsync + UNIQUE constraint); legacy exam path also covered via SaveLegacyAnswer
 2. Session resume — ElapsedSeconds + LastActivePage persisted; workers resume from exact page with accurate remaining time; pre-populated answers on reconnect
 3. Worker polling — 10s poll interval with IMemoryCache (5s TTL, ~99% DB load reduction); auto-redirects worker to Results when HC closes session early
@@ -369,7 +406,6 @@
 5. Cross-package per-position shuffle — Each question slot independently picks which package's question to show; even distribution across packages; import validation enforces equal counts; all 5 consumers (StartExam, SubmitExam, ExamSummary, Results, CloseEarly) updated
 
 ---
-
 
 ## v2.2 Attempt History (Shipped: 2026-02-26)
 
@@ -380,13 +416,13 @@
 **Delivered:** HC and Admin can view a full chronological record of every assessment attempt per worker — including attempts previously erased by Reset — with sequential Attempt # numbering and dual Riwayat Assessment / Riwayat Training sub-tabs at /CMP/Records.
 
 **Key accomplishments:**
+
 1. AssessmentAttemptHistory model + EF Core migration — new SQL Server table preserving SessionId, Score, IsPassed, AttemptNumber, StartedAt, CompletedAt at archive time
 2. Archive-before-clear in ResetAssessment — Completed sessions archived with AttemptNumber = existing row count + 1 before wipe; unstarted sessions produce no history row
 3. Unified assessment history query — GetAllWorkersHistory() returns (assessment, training) tuple; batch GroupBy/ToDictionary computes Attempt # for current sessions without N+1
 4. Riwayat Assessment + Riwayat Training dual sub-tabs — Bootstrap nested nav-tabs; client-side worker/NIP text + title dropdown filter with no round-trip
 
 ---
-
 
 ## v2.3 Admin Portal (Shipped: 2026-03-01)
 
@@ -397,6 +433,7 @@
 **Delivered:** Admin has full CRUD control over master data (KKJ Matrix, CPDP Items), operational records (Coach-Coachee Mapping, DeliverableProgress Override, Final Assessment), and assessment management — all consolidated under /Admin with role-gated access.
 
 **Key accomplishments:**
+
 1. Admin Portal infrastructure — AdminController with 12-card hub page, role-gated navigation, and class-level authorization
 2. KKJ Matrix & CPDP Items managers — Spreadsheet-style inline editing with bulk-save, multi-cell clipboard, and Excel export for master data
 3. Assessment Management migration — All manage actions (Create, Edit, Delete, Reset, Force Close, Export, Monitoring, History) moved from CMP to Admin with AuditLog
@@ -407,6 +444,7 @@
 8. ProtonCatalog cleanup — Redirect-only controller and views deleted after full migration to /Admin/ProtonData
 
 ### Known Gaps
+
 - **OPER-05**: CoachingSession & ActionItem admin override — phase never planned
 - **CRUD-01**: AssessmentQuestion inline edit — phase never planned
 - **CRUD-02**: PackageQuestion edit/delete — REMOVED (Phase 56)
@@ -414,7 +452,6 @@
 - **CRUD-04**: Password Reset standalone — superseded by v2.5 Phase 67 ManageWorkers migration
 
 ---
-
 
 ## v2.4 CDP Progress (Shipped: 2026-03-01)
 
@@ -425,6 +462,7 @@
 **Delivered:** CDP/Progress page rebuilt from scratch — data source corrected to ProtonDeliverableProgress, all filters wired to real queries with role-scoping, per-role approval workflow (SrSpv/SH/HC) with coaching report + evidence, Excel/PDF export via QuestPDF, and server-side group-boundary pagination with empty states.
 
 **Key accomplishments:**
+
 1. Data source fix — ProtonProgress action queries ProtonDeliverableProgress + ProtonTrackAssignment (not IdpItems), real coachee list from CoachCoacheeMapping, correct summary stats
 2. Role-scoped filtering — 5 filter parameters (Bagian/Unit, Coachee, Track, Tahun) wired to EF Core Where composition with role-scope-first pattern; client-side search box
 3. Per-role approval workflow — SrSpv/SectionHead/HC each have independent approval columns; per-role migration backfills from existing Approved records; rejection takes overall precedence
@@ -433,7 +471,6 @@
 6. UI polish — Group-boundary server-side pagination (20 rows/page), 3 empty state scenarios, "Menampilkan X dari Y" counter
 
 ---
-
 
 ## v2.5 User Infrastructure & AD Readiness (Shipped: 2026-03-01)
 
@@ -444,6 +481,7 @@
 **Delivered:** Full user system overhaul — dynamic profile/settings pages, ManageWorkers migrated to AdminController with HC access, Kelola Data hub reorganized, dual authentication (Active Directory + local) via IAuthService abstraction, hybrid auth with AD-first + local fallback for admin, and role structure additions (Supervisor level 5).
 
 **Key accomplishments:**
+
 1. Dynamic profile page — Profile bound to @model ApplicationUser; real user data (Nama, NIP, Email, Position, Section, Unit, Role); null-safe em dash fallback; avatar initials from FullName
 2. Functional settings page — Change password via ChangePasswordAsync; edit FullName/Position; non-functional items (2FA, Notifications, Language) removed or disabled
 3. ManageWorkers migration — 11 actions (CRUD, import, export, detail) moved from CMPController to AdminController with [Authorize(Roles = "Admin, HC")]; standalone navbar button removed; 5 view files copied and updated
@@ -455,13 +493,12 @@
 
 ---
 
-
 ## v2.6 Codebase Cleanup (Shipped: 2026-03-01)
 
 **Phases completed:** 46 phases, 98 plans, 13 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
-
