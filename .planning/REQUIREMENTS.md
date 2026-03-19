@@ -29,9 +29,9 @@ Requirements for Renewal Certificate & Certificate History milestone.
 
 ### CDP Enhancement
 
-- [ ] **CDP-01**: Sertifikat yang sudah di-renew (ada renewal lulus) default tersembunyi di tabel
-- [ ] **CDP-02**: Toggle "Tampilkan riwayat" untuk show/hide sertifikat yang sudah di-renew
-- [ ] **CDP-03**: Summary card Expired hanya menghitung sertifikat yang belum di-renew
+- [x] **CDP-01**: Sertifikat yang sudah di-renew (ada renewal lulus) default tersembunyi di tabel
+- [x] **CDP-02**: Toggle "Tampilkan riwayat" untuk show/hide sertifikat yang sudah di-renew
+- [x] **CDP-03**: Summary card Expired hanya menghitung sertifikat yang belum di-renew
 
 ## Out of Scope
 
@@ -56,9 +56,9 @@ Requirements for Renewal Certificate & Certificate History milestone.
 | HIST-01 | Phase 203 | Complete |
 | HIST-02 | Phase 203 | Complete |
 | HIST-03 | Phase 203 | Complete |
-| CDP-01 | Phase 204 | Pending |
-| CDP-02 | Phase 204 | Pending |
-| CDP-03 | Phase 204 | Pending |
+| CDP-01 | Phase 204 | Complete |
+| CDP-02 | Phase 204 | Complete |
+| CDP-03 | Phase 204 | Complete |
 
 **Coverage:**
 - v7.7 requirements: 14 total
