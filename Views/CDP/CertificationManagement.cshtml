@@ -130,8 +130,14 @@
                         <option value="">Semua Sub Kategori</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-1">
                     <button id="btn-reset" class="btn btn-outline-secondary btn-sm w-100">Reset</button>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="toggle-renewed" role="switch">
+                        <label class="form-check-label small" for="toggle-renewed">Tampilkan Riwayat Renewal</label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -184,6 +190,18 @@
     var container = document.getElementById('cert-table-container');
     var certAbort = null;
     var roleLevel = @Model.RoleLevel;
+    var toggleRenewed = document.getElementById('toggle-renewed');
+
+    function applyRenewedToggle() {
+        if (!toggleRenewed) return;
+        var checked = toggleRenewed.checked;
+        container.querySelectorAll('.renewed-row').forEach(function(row) {
+            row.style.display = checked ? '' : 'none';
+            row.style.opacity = checked ? '0.5' : '';
+        });
+    }
+
+    toggleRenewed.addEventListener('change', applyRenewedToggle);
 
     // Cascade: Bagian -> Unit
     bagianEl.addEventListener('change', function () {
@@ -247,6 +265,7 @@
         categoryEl.value = '';
         subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
         subCategoryEl.disabled = true;
+        toggleRenewed.checked = false;
         refreshTable();
     });
 
@@ -271,6 +290,7 @@
                 container.innerHTML = html;
                 wirePagination();
                 updateSummaryCards();
+                applyRenewedToggle();
                 container.classList.remove('dashboard-loading');
             })
             .catch(function (e) {
