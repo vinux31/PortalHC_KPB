@@ -122,7 +122,7 @@ Phases 173–174 defined but never executed. Deferred indefinitely.
 
 </details>
 
-### 🚧 v7.7 Renewal Certificate & Certificate History (In Progress)
+### v7.7 Renewal Certificate & Certificate History (In Progress)
 
 **Milestone Goal:** Certificate renewal workflow untuk HC/Admin (Kelola Data) dan certificate history timeline per pekerja (shared modal). CDP Certification Management ditingkatkan untuk menyembunyikan sertifikat yang sudah di-renew.
 
@@ -150,7 +150,7 @@ Plans:
   1. CreateAssessment yang dibuka dengan query param renewSessionId atau renewTrainingId menampilkan Title, Category, dan daftar peserta yang sudah terisi otomatis
   2. Field GenerateCertificate otomatis dicentang dan ValidUntil menjadi wajib diisi saat mode renewal aktif
   3. AssessmentSession yang dibuat dari pre-fill ini menyimpan RenewsSessionId/RenewsTrainingId sesuai param yang dikirim
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 201-01-PLAN.md — CreateAssessment GET pre-fill from renewSessionId/renewTrainingId + POST saves renewal FK
