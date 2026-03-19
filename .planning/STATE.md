@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.7
 milestone_name: Renewal Certificate & Certificate History
 status: unknown
-stopped_at: Completed 202-02-PLAN.md
-last_updated: "2026-03-19T07:55:59.139Z"
+stopped_at: Completed 202-03-PLAN.md
+last_updated: "2026-03-19T08:11:19.650Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State: Portal HC KPB
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 
 ## Current Position
 
-Phase: 202 (renewal-certificate-page-kelola-data) — COMPLETED
-Plan: 2 of 2 (ALL PLANS COMPLETE)
+Phase: 202 (renewal-certificate-page-kelola-data) — EXECUTING
+Plan: 1 of 3
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Plan: 2 of 2 (ALL PLANS COMPLETE)
 - [Phase 202]: BuildRenewalRowsAsync di AdminController tidak menggunakan role scoping — Admin/HC punya akses penuh
 - [202-02]: Lightweight query (CountAsync) dipakai di Index() — bukan BuildRenewalRowsAsync yang mahal — karena badge hanya perlu count
 - [202-02]: Index() diubah dari sync ke async Task<IActionResult> untuk mendukung query DB
+- [Phase 202]: Reuse existing GetSubCategories endpoint dari CDPController untuk cascade Sub Kategori
 
 ### Blockers/Concerns
 
@@ -58,6 +59,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T08:15:00.000Z
-Stopped at: Completed 202-02-PLAN.md
+Last session: 2026-03-19T08:11:19.647Z
+Stopped at: Completed 202-03-PLAN.md
 Resume file: None
