@@ -71,8 +71,10 @@
                     {
                         var kkjFiles = kkjFilesByBagian.ContainsKey(bagian.Id) ? kkjFilesByBagian[bagian.Id] : new List<HcPortal.Models.KkjFile>();
                         var kkjCount = kkjFiles.Count;
+                        var isFirstKkjCurrent = isFirstKkj;
+                        isFirstKkj = false;
 
-                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstKkj ? "mt-3 border-top" : "")">
+                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstKkjCurrent ? "mt-3 border-top" : "")">
                             <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@kkjCount file</span></h6>
                         </div>
 
@@ -123,7 +125,6 @@
                                 </table>
                             </div>
                         }
-                        @{ isFirstKkj = false; }
                     }
 
                 </div>
@@ -138,8 +139,10 @@
                     {
                         var cpdpFiles = cpdpFilesByBagian.ContainsKey(bagian.Id) ? cpdpFilesByBagian[bagian.Id] : new List<HcPortal.Models.CpdpFile>();
                         var cpdpCount = cpdpFiles.Count;
+                        var isFirstAlignmentCurrent = isFirstAlignment;
+                        isFirstAlignment = false;
 
-                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstAlignment ? "mt-3 border-top" : "")">
+                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstAlignmentCurrent ? "mt-3 border-top" : "")">
                             <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@cpdpCount file</span></h6>
                         </div>
 
@@ -190,7 +193,6 @@
                                 </table>
                             </div>
                         }
-                        @{ isFirstAlignment = false; }
                     }
 
                 </div>
