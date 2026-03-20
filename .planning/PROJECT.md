@@ -12,18 +12,27 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.9 Renewal Certificate Grouped View
+## Current Milestone: v7.10 RenewalCertificate Bug Fixes & Enhancement
 
-**Goal:** Redesign tabel RenewalCertificate dari flat list menjadi grouped by sertifikat — collapsible sections, badge count per group, bulk renew per group.
+**Goal:** Perbaikan semua bug renewal chain + tambah filter tipe + renewal flow berdasarkan tipe (Assessment vs Training) + AddTraining renewal mode.
 
 **Target features:**
-- [ ] Tabel dikelompokkan berdasarkan nama sertifikat (bukan flat list per-orang)
-- [ ] Group header menampilkan judul sertifikat, kategori, dan badge count (N orang expired/akan expired)
-- [ ] Collapsible sections per group (bisa expand/collapse)
-- [ ] Bulk renew per group (select all dalam group, klik Renew)
-- [ ] Tabel per group lebih ringkas: hanya kolom Nama, Valid Until, Status, Aksi
+- [ ] Fix bulk renew: semua user dapat renewal FK (bukan hanya user[0])
+- [ ] Fix badge count Admin/Index sinkron dengan BuildRenewalRowsAsync
+- [ ] Fix renewedByTrSessionIds filter IsPassed
+- [ ] AddTraining support renewal chain (set RenewsTrainingId/RenewsSessionId)
+- [ ] Fix ValidUntil=null salah dianggap Permanent
+- [ ] Fix Renew dari TR: Category pre-fill
+- [ ] Fix kategori mapping konsisten
+- [ ] Fix grouping case-insensitive
+- [ ] Fix judul karakter khusus di URL
+- [ ] Fix ValidUntil=null error message informatif
+- [ ] Tambah filter tipe (Assessment / Training)
+- [ ] Renewal flow berdasarkan tipe: Training→popup pilihan (assessment atau training baru)
+- [ ] Bulk renew aware tipe
+- [ ] AddTraining renewal mode (pre-fill + FK)
 
-## Current State (after Phase 209 complete, 2026-03-20)
+## Current State (after v7.9 complete, 2026-03-20)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
