@@ -1,6 +1,7 @@
 # Phase 205: Halaman Gabungan KKJ & Alignment - Context
 
 **Gathered:** 2026-03-20
+**Updated:** 2026-03-20
 **Status:** Ready for planning
 
 <domain>
@@ -16,15 +17,24 @@ Gabung 2 halaman terpisah (KKJ dan Alignment KKJ & IDP) menjadi 1 halaman baru d
 ### Layout per bagian
 - Tiap bagian ditampilkan sebagai section stacked: header bagian (dengan badge count file) + tabel file di bawahnya
 - Semua bagian langsung tampil berurutan di dalam tab masing-masing (tidak ada sub-tab atau accordion)
-- Jika bagian tidak punya file, tampilkan alert ringan "Belum ada dokumen untuk bagian ini"
 - Bagian diurutkan berdasarkan DisplayOrder (existing pattern)
 
 ### Tampilan file table
-- Kolom unified untuk kedua tab: Nama File, Tipe, Ukuran, Keterangan, Tanggal Upload, Aksi (Download)
+- Kolom unified untuk kedua tab: Nama File, Tipe, Ukuran, Keterangan, Tanggal Upload, Unduh
+- Header kolom terakhir: **"Unduh"** (bukan "Aksi")
 - Style: `table-sm table-hover align-middle` (reuse dari Mapping.cshtml)
 - Icon file: PDF merah, Excel hijau (existing pattern)
-- Download button: `btn-sm btn-outline-primary` (reuse dari Mapping.cshtml)
+- Tombol unduh: **`btn-sm btn-primary`** (solid biru) dengan label **"Unduh"**
+- Format tanggal: **`dd MMM yyyy`** (tanpa jam, contoh: 20 Mar 2026)
 - Download endpoint tetap berbeda per tab: `KkjFileDownload` untuk tab KKJ, `CpdpFileDownload` untuk tab Alignment
+
+### Container & wrapper
+- **Tanpa `div.container`** — content mengikuti layout parent, full-width untuk tabel
+- Card wrapper untuk keseluruhan halaman (Claude's discretion on styling)
+
+### Empty state per bagian
+- Style: **alert ringan** (`alert alert-light border` + icon inbox + teks) — compact, seperti Mapping.cshtml
+- Pesan unified kedua tab: **"Belum ada dokumen untuk bagian ini"**
 
 ### Tab & navigasi
 - 2 tab utama: "Kebutuhan Kompetensi Jabatan" dan "Alignment KKJ & IDP"
@@ -42,7 +52,6 @@ Gabung 2 halaman terpisah (KKJ dan Alignment KKJ & IDP) menjadi 1 halaman baru d
 ### Claude's Discretion
 - Exact spacing dan padding antara sections
 - Header styling (icon, warna) untuk halaman gabungan
-- Card wrapper vs flat layout untuk keseluruhan halaman
 
 </decisions>
 
@@ -52,8 +61,8 @@ Gabung 2 halaman terpisah (KKJ dan Alignment KKJ & IDP) menjadi 1 halaman baru d
 No external specs — requirements fully captured in decisions above.
 
 ### Existing views (reference patterns)
-- `Views/CMP/Mapping.cshtml` — Tab-per-bagian pattern, file table layout, role filtering di view
-- `Views/CMP/Kkj.cshtml` — Dropdown bagian pattern (akan di-replace), file table with download
+- `Views/CMP/Mapping.cshtml` — Tab-per-bagian pattern, file table layout, stacked sections, alert empty state
+- `Views/CMP/Kkj.cshtml` — Dropdown bagian pattern (akan di-replace), file table with download, badge count
 - `Controllers/CMPController.cs` lines 75-173 — Kkj() dan Mapping() actions, role filtering logic
 
 </canonical_refs>
@@ -65,6 +74,7 @@ No external specs — requirements fully captured in decisions above.
 - `Mapping.cshtml` tab-per-bagian pattern: Bootstrap nav-tabs + tab-content, bisa di-adapt untuk tab utama
 - File table markup: icon per type, badge per type, size formatting, download button — reuse langsung
 - Role filtering logic di `CMPController.Mapping()` lines 150-164: filter by user.Section for L5-L6
+- Empty state alert dari `Mapping.cshtml` line 78: `alert alert-light border` pattern
 
 ### Established Patterns
 - ViewBag-based data passing (Bagians, FilesByBagian dictionary)
