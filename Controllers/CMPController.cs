@@ -227,6 +227,58 @@ namespace HcPortal.Controllers
             return View();
         }
 
+        // GET /CMP/KkjFileDownload/{id}
+        public async Task<IActionResult> KkjFileDownload(int id)
+        {
+            var kkjFile = await _context.KkjFiles
+                .Include(f => f.Bagian)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (kkjFile == null) return NotFound();
+
+            var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                kkjFile.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+            if (!System.IO.File.Exists(physicalPath)) return NotFound("File tidak ditemukan di server.");
+
+            var contentType = kkjFile.FileType switch
+            {
+                "pdf" => "application/pdf",
+                "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xls"  => "application/vnd.ms-excel",
+                _ => "application/octet-stream"
+            };
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+            return File(fileBytes, contentType, kkjFile.FileName);
+        }
+
+        // GET /CMP/CpdpFileDownload/{id}
+        public async Task<IActionResult> CpdpFileDownload(int id)
+        {
+            var cpdpFile = await _context.CpdpFiles
+                .Include(f => f.Bagian)
+                .FirstOrDefaultAsync(f => f.Id == id);
+
+            if (cpdpFile == null) return NotFound();
+
+            var physicalPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot",
+                cpdpFile.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+            if (!System.IO.File.Exists(physicalPath)) return NotFound("File tidak ditemukan di server.");
+
+            var contentType = cpdpFile.FileType switch
+            {
+                "pdf"  => "application/pdf",
+                "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "xls"  => "application/vnd.ms-excel",
+                _      => "application/octet-stream"
+            };
+
+            var fileBytes = await System.IO.File.ReadAllBytesAsync(physicalPath);
+            return File(fileBytes, contentType, cpdpFile.FileName);
+        }
+
         // --- HALAMAN 3: MY ASSESSMENTS (personal view only) ---
         public async Task<IActionResult> Assessment(string? search, int page = 1, int pageSize = 20)
         {

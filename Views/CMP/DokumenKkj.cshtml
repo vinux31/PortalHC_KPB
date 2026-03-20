@@ -113,7 +113,7 @@
                                                 <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
                                                 <td><small>@file.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small></td>
                                                 <td class="text-center">
-                                                    <a href="@Url.Action("KkjFileDownload", "Admin", new { id = file.Id })"
+                                                    <a href="@Url.Action("KkjFileDownload", "CMP", new { id = file.Id })"
                                                        class="btn btn-sm btn-primary"
                                                        title="Unduh">
                                                         <i class="bi bi-download me-1"></i>Unduh
@@ -181,7 +181,7 @@
                                                 <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
                                                 <td><small>@file.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small></td>
                                                 <td class="text-center">
-                                                    <a href="@Url.Action("CpdpFileDownload", "Admin", new { id = file.Id })"
+                                                    <a href="@Url.Action("CpdpFileDownload", "CMP", new { id = file.Id })"
                                                        class="btn btn-sm btn-primary"
                                                        title="Unduh">
                                                         <i class="bi bi-download me-1"></i>Unduh
