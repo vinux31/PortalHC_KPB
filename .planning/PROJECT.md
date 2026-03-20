@@ -23,7 +23,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - [ ] Bulk renew per group (select all dalam group, klik Renew)
 - [ ] Tabel per group lebih ringkas: hanya kolom Nama, Valid Until, Status, Aksi
 
-## Current State (after v7.8 complete, 2026-03-20)
+## Current State (after Phase 208 complete, 2026-03-20)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -805,4 +805,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-19 after Phase 201*
+*Last updated: 2026-03-20 after Phase 208*
