@@ -37,7 +37,7 @@
   2. Setiap group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
   3. Setiap group dapat di-collapse dan di-expand dengan klik pada header (default expanded)
   4. Tabel di dalam setiap group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 208-01: Grouped view — ViewModel grouping + partial view redesign
@@ -67,7 +67,7 @@ Plans:
   2. Setiap group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
   3. Setiap group dapat di-collapse dan di-expand dengan klik pada header (default expanded)
   4. Tabel di dalam setiap group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
-**Plans**: TBD
+**Plans**: 1 plan
 
 ### Phase 209: Bulk Renew & Filter Compatibility
 **Goal**: Admin dapat melakukan bulk renew per group sertifikat, dan semua filter existing tetap berfungsi pada tampilan grouped
