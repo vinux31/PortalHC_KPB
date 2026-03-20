@@ -7,10 +7,10 @@
 
 ### Grouped View
 
-- [ ] **GRP-01**: Tabel RenewalCertificate menampilkan data dikelompokkan per judul sertifikat (bukan flat list per-orang)
-- [ ] **GRP-02**: Group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
-- [ ] **GRP-03**: Setiap group bisa di-collapse/expand (default: expanded)
-- [ ] **GRP-04**: Tabel per group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
+- [x] **GRP-01**: Tabel RenewalCertificate menampilkan data dikelompokkan per judul sertifikat (bukan flat list per-orang)
+- [x] **GRP-02**: Group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
+- [x] **GRP-03**: Setiap group bisa di-collapse/expand (default: expanded)
+- [x] **GRP-04**: Tabel per group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
 
 ### Bulk Renew
 
@@ -35,10 +35,10 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GRP-01 | Phase 208 | Pending |
-| GRP-02 | Phase 208 | Pending |
-| GRP-03 | Phase 208 | Pending |
-| GRP-04 | Phase 208 | Pending |
+| GRP-01 | Phase 208 | Complete |
+| GRP-02 | Phase 208 | Complete |
+| GRP-03 | Phase 208 | Complete |
+| GRP-04 | Phase 208 | Complete |
 | BULK-01 | Phase 209 | Pending |
 | BULK-02 | Phase 209 | Pending |
 | FILT-01 | Phase 209 | Pending |
