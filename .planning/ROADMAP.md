@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0–v7.7** - Phases 1–204 (shipped 2026-03-19)
-- 🚧 **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–207 (in progress)
+- ✅ **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–207 (shipped 2026-03-20)
 
 ## Phases
 
@@ -14,58 +14,11 @@
 
 </details>
 
-### 🚧 v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (In Progress)
+<details>
+<summary>✅ v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (Phases 205–207) - SHIPPED 2026-03-20</summary>
 
-**Milestone Goal:** Gabung 2 menu terpisah di CMP Index (KKJ dan Alignment KKJ & IDP) menjadi 1 halaman dengan 2 tab, menampilkan semua bagian langsung tanpa dropdown.
+- [x] Phase 205: Halaman Gabungan KKJ & Alignment (1/1 plans) — completed 2026-03-20
+- [x] Phase 206: Update CMP Hub & Backward Compat (1/1 plans) — completed 2026-03-20
+- [x] Phase 207: Perbaikan Desain Tabel DokumenKkj (1/1 plans) — completed 2026-03-20
 
-## Phase Details
-
-### Phase 205: Halaman Gabungan KKJ & Alignment
-**Goal**: Pengguna dapat melihat dokumen KKJ dan Alignment KKJ/IDP dalam satu halaman dengan 2 tab, tiap tab menampilkan semua bagian beserta file-nya sesuai role
-**Depends on**: Phase 204
-**Requirements**: CMP-02, CMP-03, CMP-04, CMP-05
-**Success Criteria** (what must be TRUE):
-  1. Pengguna membuka halaman gabungan dan melihat 2 tab: "Kebutuhan Kompetensi Jabatan" dan "Alignment KKJ & IDP"
-  2. Tab KKJ menampilkan semua bagian beserta daftar file-nya langsung tanpa perlu memilih bagian dari dropdown
-  3. Tab Alignment menampilkan semua bagian beserta daftar file-nya langsung tanpa dropdown
-  4. Pengguna L5-L6 hanya melihat data bagiannya sendiri di kedua tab; pengguna L1-L4 melihat semua bagian
-**Plans**: 1 plan
-
-Plans:
-- [x] 205-01-PLAN.md — Action DokumenKkj + view gabungan 2 tab
-
-### Phase 206: Update CMP Hub & Backward Compat
-**Goal**: Card di CMP Index digabung menjadi 1 dan action/view lama dihapus
-**Depends on**: Phase 205
-**Requirements**: CMP-01, CMP-06
-**Success Criteria** (what must be TRUE):
-  1. CMP Index menampilkan 1 card "Dokumen KKJ & Alignment KKJ/IDP" (bukan 2 card terpisah)
-  2. Action `/CMP/Kkj` dan `/CMP/Mapping` dihapus (tidak redirect, langsung 404)
-  3. File view lama Kkj.cshtml dan Mapping.cshtml dihapus
-**Plans**: 1 plan
-
-Plans:
-- [x] 206-01-PLAN.md — Gabung card CMP Index + hapus action/view lama
-
-### Phase 207: Perbaikan Desain Tabel DokumenKkj
-**Goal**: Perbaiki tampilan tabel DokumenKkj: pemisah antar bagian, kolom Tipe rata tengah, rename tab KKJ, hapus kolom Tanggal Upload, dan kecilkan empty state
-**Depends on**: Phase 206
-**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05
-**Success Criteria** (what must be TRUE):
-  1. Tiap section bagian terpisah visual dengan border dan jarak
-  2. Kolom Tipe sejajar vertikal dengan header
-  3. Tab pertama bertuliskan "Kebutuhan Kompetensi Jabatan (KKJ)"
-  4. Kolom Tanggal Upload tidak ada di kedua tab
-  5. Empty state compact tanpa icon besar
-**Plans**: 1 plan
-
-Plans:
-- [ ] 207-01-PLAN.md — Perbaiki desain tabel DokumenKkj (5 perubahan visual)
-
-## Progress
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 205. Halaman Gabungan KKJ & Alignment | 1/1 | Complete   | 2026-03-20 | - |
-| 206. Update CMP Hub & Backward Compat | 1/1 | Complete    | 2026-03-20 | - |
-| 207. Perbaikan Desain Tabel DokumenKkj | 1/1 | Complete    | 2026-03-20 | - |
+</details>

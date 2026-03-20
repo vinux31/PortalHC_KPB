@@ -1,5 +1,21 @@
 # Milestones
 
+## v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (Shipped: 2026-03-20)
+
+**Phases completed:** 3 phases (205-207), 3 plans
+**Timeline:** 2026-03-20 (single day)
+**Commits:** 9 feat/fix commits across 23 files
+
+**Delivered:** Gabung 2 menu terpisah (KKJ + Alignment KKJ/IDP) di CMP Index menjadi 1 halaman dengan 2 tab stacked sections, role-based filtering, dan visual polish.
+
+**Key accomplishments:**
+
+1. Halaman gabungan DokumenKkj — 2 tab ("Kebutuhan Kompetensi Jabatan (KKJ)" dan "Alignment KKJ & IDP") dengan stacked sections per bagian, server-side role filtering via query param deep-link
+2. CMP Hub update — 2 card digabung jadi 1 card primary "Dokumen KKJ & Alignment KKJ/IDP", action Kkj/Mapping dan view lama dihapus
+3. Visual polish — pemisah bagian dengan border-top, kolom Tipe rata tengah, rename tab KKJ, hapus kolom Tanggal Upload, compact empty state
+
+---
+
 ## v7.7 Renewal Certificate & Certificate History (Shipped: 2026-03-19)
 
 **Phases completed:** 5 phases (200-204), 9 plans

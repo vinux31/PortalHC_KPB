@@ -12,17 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu
-
-**Goal:** Gabung 2 menu terpisah di CMP Index (KKJ dan Alignment KKJ & IDP) menjadi 1 halaman dengan 2 tab, menampilkan semua bagian langsung tanpa dropdown.
-
-**Target features:**
-- [ ] Halaman gabungan dengan 2 tab: "Kebutuhan Kompetensi Jabatan" dan "Alignment KKJ & IDP"
-- [ ] Setiap tab menampilkan semua data bagian langsung (tanpa dropdown selector)
-- [x] Card di CMP Index digabung jadi 1 dengan nama "Dokumen KKJ & Alignment KKJ/IDP"
-- [ ] Admin pages (KkjMatrix, CpdpFiles) tetap terpisah
-
-## Current State (after v7.8 phase 207 complete, 2026-03-20)
+## Current State (after v7.8 complete, 2026-03-20)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -32,7 +22,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.5 shipped** — Assessment Form Revamp & Certificate Enhancement, 6 phases (190-195).
 **v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
 **v7.7 shipped** — Renewal Certificate & Certificate History, 5 phases (200-204).
-**v7.8 active** — Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (phases 205+).
+**v7.8 shipped** — Dokumen KKJ & Alignment KKJ/IDP — Combine Menu, 3 phases (205-207).
+
+Portal is fully audited and polished. KKJ and Alignment KKJ/IDP merged into single DokumenKkj page with 2 tabs and stacked sections. Between milestones — ready for `/gsd:new-milestone`.
 
 ## Architecture Decisions
 
@@ -45,6 +37,10 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v7.8 - Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (2026-03-20)
+
+**Delivered:** Gabung 2 menu KKJ + Alignment di CMP Index menjadi 1 halaman DokumenKkj dengan 2 tab stacked sections, role-based filtering, dan visual polish (pemisah bagian, compact empty state).
 
 ### ✅ v7.7 - Renewal Certificate & Certificate History (2026-03-19)
 
