@@ -115,4 +115,5 @@ public class RenewalGroupViewModel
     public List<RenewalGroup> Groups { get; set; } = new();
     public int TotalExpiredCount { get; set; }
     public int TotalAkanExpiredCount { get; set; }
+    public bool IsFiltered { get; set; }
 }

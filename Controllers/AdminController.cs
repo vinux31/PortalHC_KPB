@@ -7016,6 +7016,9 @@ namespace HcPortal.Controllers
                 TotalExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
                 TotalAkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired)
             };
+            gvm.IsFiltered = !string.IsNullOrEmpty(bagian) || !string.IsNullOrEmpty(unit)
+                || !string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(subCategory)
+                || !string.IsNullOrEmpty(status);
 
             return PartialView("Shared/_RenewalGroupedPartial", gvm);
         }

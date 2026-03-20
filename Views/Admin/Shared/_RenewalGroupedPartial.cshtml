@@ -5,14 +5,28 @@
 
 @if (Model.Groups.Count == 0)
 {
-    <div class="text-center py-5">
-        <i class="bi bi-patch-check-fill fs-1 text-success d-block mb-3"></i>
-        <strong>Tidak ada sertifikat yang perlu di-renew</strong>
-        <p class="text-muted mt-1 mb-3">Semua sertifikat aktif atau sudah di-renew.</p>
-        <a href="/Admin/Index" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-1"></i>Kembali ke Kelola Data
-        </a>
-    </div>
+    @if (Model.IsFiltered)
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-funnel fs-1 text-muted d-block mb-3"></i>
+            <strong>Tidak ada sertifikat yang sesuai filter</strong>
+            <p class="text-muted mt-1 mb-3">Coba ubah atau hapus filter untuk melihat semua sertifikat.</p>
+            <button class="btn btn-outline-secondary" onclick="document.getElementById('btn-reset').click()">
+                <i class="bi bi-x-circle me-1"></i>Reset Filter
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-patch-check-fill fs-1 text-success d-block mb-3"></i>
+            <strong>Tidak ada sertifikat yang perlu di-renew</strong>
+            <p class="text-muted mt-1 mb-3">Semua sertifikat aktif atau sudah di-renew.</p>
+            <a href="/Admin/Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke Kelola Data
+            </a>
+        </div>
+    }
 }
 else
 {
@@ -42,6 +56,12 @@ else
                         }
                     </div>
                 </div>
+                <button class="btn btn-warning btn-sm btn-renew-group d-none ms-auto me-2"
+                        data-group-key="@group.GroupKey"
+                        data-group-judul="@group.Judul"
+                        onclick="event.stopPropagation(); renewGroup('@group.GroupKey', '@group.Judul')">
+                    <i class="bi bi-arrow-repeat me-1"></i>Renew <span class="renew-count-@group.GroupKey">0</span> Pekerja
+                </button>
                 <small class="text-muted">
                     @(string.IsNullOrEmpty(group.SubKategori) ? group.Kategori : $"{group.Kategori} / {group.SubKategori}")
                 </small>
