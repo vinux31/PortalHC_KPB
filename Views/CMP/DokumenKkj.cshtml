@@ -74,7 +74,11 @@
                         var isFirstKkjCurrent = isFirstKkj;
                         isFirstKkj = false;
 
-                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstKkjCurrent ? "mt-3 border-top" : "")">
+                        @if (!isFirstKkjCurrent)
+                        {
+                            <hr class="my-0" />
+                        }
+                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstKkjCurrent ? "mt-2" : "")">
                             <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@kkjCount file</span></h6>
                         </div>
 
@@ -92,7 +96,7 @@
                                         <tr>
                                             <th>Nama File</th>
                                             <th class="text-center">Tipe</th>
-                                            <th>Ukuran</th>
+                                            <th class="text-center">Ukuran</th>
                                             <th>Keterangan</th>
                                             <th class="text-center">Unduh</th>
                                         </tr>
@@ -110,7 +114,7 @@
                                                         @file.FileType.ToUpper()
                                                     </span>
                                                 </td>
-                                                <td><small>@FormatSize(file.FileSizeBytes)</small></td>
+                                                <td class="text-center"><small>@FormatSize(file.FileSizeBytes)</small></td>
                                                 <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
                                                 <td class="text-center">
                                                     <a href="@Url.Action("KkjFileDownload", "CMP", new { id = file.Id })"
@@ -142,7 +146,11 @@
                         var isFirstAlignmentCurrent = isFirstAlignment;
                         isFirstAlignment = false;
 
-                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstAlignmentCurrent ? "mt-3 border-top" : "")">
+                        @if (!isFirstAlignmentCurrent)
+                        {
+                            <hr class="my-0" />
+                        }
+                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstAlignmentCurrent ? "mt-2" : "")">
                             <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@cpdpCount file</span></h6>
                         </div>
 
@@ -160,7 +168,7 @@
                                         <tr>
                                             <th>Nama File</th>
                                             <th class="text-center">Tipe</th>
-                                            <th>Ukuran</th>
+                                            <th class="text-center">Ukuran</th>
                                             <th>Keterangan</th>
                                             <th class="text-center">Unduh</th>
                                         </tr>
@@ -178,7 +186,7 @@
                                                         @file.FileType.ToUpper()
                                                     </span>
                                                 </td>
-                                                <td><small>@FormatSize(file.FileSizeBytes)</small></td>
+                                                <td class="text-center"><small>@FormatSize(file.FileSizeBytes)</small></td>
                                                 <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
                                                 <td class="text-center">
                                                     <a href="@Url.Action("CpdpFileDownload", "CMP", new { id = file.Id })"
