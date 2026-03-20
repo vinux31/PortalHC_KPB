@@ -44,7 +44,7 @@
                             data-bs-target="#pane-kkj"
                             type="button"
                             role="tab">
-                        Kebutuhan Kompetensi Jabatan
+                        Kebutuhan Kompetensi Jabatan (KKJ)
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
@@ -66,19 +66,19 @@
                      id="pane-kkj"
                      role="tabpanel">
 
+                    @{ var isFirstKkj = true; }
                     @foreach (var bagian in bagians.OrderBy(b => b.DisplayOrder))
                     {
                         var kkjFiles = kkjFilesByBagian.ContainsKey(bagian.Id) ? kkjFilesByBagian[bagian.Id] : new List<HcPortal.Models.KkjFile>();
                         var kkjCount = kkjFiles.Count;
 
-                        <div class="px-4 py-3 border-bottom bg-light">
+                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstKkj ? "mt-3 border-top" : "")">
                             <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@kkjCount file</span></h6>
                         </div>
 
                         @if (!kkjFiles.Any())
                         {
-                            <div class="alert alert-light border text-muted text-center py-4 mx-4 my-3">
-                                <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                            <div class="alert alert-light border text-muted text-center py-2 mx-4 my-2">
                                 Belum ada dokumen untuk bagian ini
                             </div>
                         }
@@ -89,10 +89,9 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Nama File</th>
-                                            <th>Tipe</th>
+                                            <th class="text-center">Tipe</th>
                                             <th>Ukuran</th>
                                             <th>Keterangan</th>
-                                            <th>Tanggal Upload</th>
                                             <th class="text-center">Unduh</th>
                                         </tr>
                                     </thead>
@@ -104,14 +103,13 @@
                                                     <i class="bi @(file.FileType == "pdf" ? "bi-file-earmark-pdf text-danger" : "bi-file-earmark-excel text-success") me-2"></i>
                                                     @file.FileName
                                                 </td>
-                                                <td>
+                                                <td class="text-center">
                                                     <span class="badge @(file.FileType == "pdf" ? "bg-danger" : "bg-success")">
                                                         @file.FileType.ToUpper()
                                                     </span>
                                                 </td>
                                                 <td><small>@FormatSize(file.FileSizeBytes)</small></td>
                                                 <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
-                                                <td><small>@file.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small></td>
                                                 <td class="text-center">
                                                     <a href="@Url.Action("KkjFileDownload", "CMP", new { id = file.Id })"
                                                        class="btn btn-sm btn-primary"
@@ -125,6 +123,7 @@
                                 </table>
                             </div>
                         }
+                        @{ isFirstKkj = false; }
                     }
 
                 </div>
@@ -134,19 +133,19 @@
                      id="pane-alignment"
                      role="tabpanel">
 
+                    @{ var isFirstAlignment = true; }
                     @foreach (var bagian in bagians.OrderBy(b => b.DisplayOrder))
                     {
                         var cpdpFiles = cpdpFilesByBagian.ContainsKey(bagian.Id) ? cpdpFilesByBagian[bagian.Id] : new List<HcPortal.Models.CpdpFile>();
                         var cpdpCount = cpdpFiles.Count;
 
-                        <div class="px-4 py-3 border-bottom bg-light">
+                        <div class="px-4 py-3 border-bottom bg-light @(!isFirstAlignment ? "mt-3 border-top" : "")">
                             <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@cpdpCount file</span></h6>
                         </div>
 
                         @if (!cpdpFiles.Any())
                         {
-                            <div class="alert alert-light border text-muted text-center py-4 mx-4 my-3">
-                                <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                            <div class="alert alert-light border text-muted text-center py-2 mx-4 my-2">
                                 Belum ada dokumen untuk bagian ini
                             </div>
                         }
@@ -157,10 +156,9 @@
                                     <thead class="table-light">
                                         <tr>
                                             <th>Nama File</th>
-                                            <th>Tipe</th>
+                                            <th class="text-center">Tipe</th>
                                             <th>Ukuran</th>
                                             <th>Keterangan</th>
-                                            <th>Tanggal Upload</th>
                                             <th class="text-center">Unduh</th>
                                         </tr>
                                     </thead>
@@ -172,14 +170,13 @@
                                                     <i class="bi @(file.FileType == "pdf" ? "bi-file-earmark-pdf text-danger" : "bi-file-earmark-excel text-success") me-2"></i>
                                                     @file.FileName
                                                 </td>
-                                                <td>
+                                                <td class="text-center">
                                                     <span class="badge @(file.FileType == "pdf" ? "bg-danger" : "bg-success")">
                                                         @file.FileType.ToUpper()
                                                     </span>
                                                 </td>
                                                 <td><small>@FormatSize(file.FileSizeBytes)</small></td>
                                                 <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
-                                                <td><small>@file.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small></td>
                                                 <td class="text-center">
                                                     <a href="@Url.Action("CpdpFileDownload", "CMP", new { id = file.Id })"
                                                        class="btn btn-sm btn-primary"
@@ -193,6 +190,7 @@
                                 </table>
                             </div>
                         }
+                        @{ isFirstAlignment = false; }
                     }
 
                 </div>
