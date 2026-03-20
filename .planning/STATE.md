@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v7.8
 milestone_name: Dokumen KKJ & Alignment KKJ/IDP — Combine Menu
 status: unknown
-stopped_at: Phase 207 context gathered
-last_updated: "2026-03-20T05:27:20.925Z"
+stopped_at: Completed 207-01-PLAN.md
+last_updated: "2026-03-20T05:37:25.518Z"
 last_activity: 2026-03-20
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State: Portal HC KPB
@@ -20,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 206 — update-cmp-hub-backward-compat
+**Current focus:** Phase 207 — perbaikan-desain-tabel-dokumenkkj
 
 ## Current Position
 
-Phase: 206 (update-cmp-hub-backward-compat) — COMPLETE
-Plan: 1 of 1 (DONE)
+Phase: 207 (perbaikan-desain-tabel-dokumenkkj) — EXECUTING
+Plan: 1 of 1
 
 ## Accumulated Context
 
@@ -39,6 +39,7 @@ Plan: 1 of 1 (DONE)
 - [v7.8 roadmap]: Fase 206 = update hub card + redirect backward compat (CMP-01/06)
 - [Phase 205]: ActiveTab server-side via ?tab query param untuk deep-link tanpa JavaScript tambahan
 - [Phase 206]: Card KKJ dan Alignment digabung menjadi 1 card primary di CMP Index, action/view lama dihapus
+- [Phase 207]: Icon bi-inbox di empty state global dibiarkan — hanya icon empty state tabel per bagian yang dihapus sesuai spesifikasi
 
 ### Roadmap Evolution
 
@@ -51,5 +52,5 @@ None.
 ## Session Continuity
 
 Last activity: 2026-03-20
-Stopped at: Phase 207 context gathered
-Resume file: .planning/phases/207-perbaikan-desain-tabel-dokumenkkj-pemisah-bagian-kolom-tipe-rata-rename-tab-kkj-hapus-kolom-tanggal-kecilkan-area-kosong/207-CONTEXT.md
+Stopped at: Completed 207-01-PLAN.md
+Resume file: None
