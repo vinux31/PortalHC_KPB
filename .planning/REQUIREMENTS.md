@@ -14,6 +14,14 @@
 - [x] **CMP-05**: Role-based filtering tetap berlaku — L5-L6 hanya lihat bagian sendiri, L1-L4 lihat semua
 - [x] **CMP-06**: Action `/CMP/Kkj` dan `/CMP/Mapping` di-redirect ke halaman gabungan (backward compat)
 
+### UI Polish (Phase 207)
+
+- [ ] **UI-01**: Tiap section bagian di kedua tab diberi pemisah visual (border-top + margin) agar mudah dibedakan
+- [ ] **UI-02**: Kolom Tipe (badge PDF/Excel) rata tengah sejajar dengan header-nya
+- [ ] **UI-03**: Tab pertama di-rename menjadi "Kebutuhan Kompetensi Jabatan (KKJ)"
+- [ ] **UI-04**: Kolom Tanggal Upload dihapus dari tabel di kedua tab
+- [ ] **UI-05**: Empty state compact — tanpa icon besar, padding dikurangi
+
 ## Out of Scope
 
 | Feature | Reason |
@@ -32,12 +40,17 @@
 | CMP-04 | Phase 205 | Complete |
 | CMP-05 | Phase 205 | Complete |
 | CMP-06 | Phase 206 | Complete |
+| UI-01 | Phase 207 | Planned |
+| UI-02 | Phase 207 | Planned |
+| UI-03 | Phase 207 | Planned |
+| UI-04 | Phase 207 | Planned |
+| UI-05 | Phase 207 | Planned |
 
 **Coverage:**
-- v7.8 requirements: 6 total
-- Mapped to phases: 6
-- Unmapped: 0 ✓
+- v7.8 requirements: 11 total
+- Mapped to phases: 11
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 — traceability updated after roadmap creation*
+*Last updated: 2026-03-20 — added UI polish requirements for Phase 207*

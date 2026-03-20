@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0–v7.7** - Phases 1–204 (shipped 2026-03-19)
-- 🚧 **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–206 (in progress)
+- 🚧 **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–207 (in progress)
 
 ## Phases
 
@@ -32,7 +32,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 205-01-PLAN.md — Action DokumenKkj + view gabungan 2 tab
+- [x] 205-01-PLAN.md — Action DokumenKkj + view gabungan 2 tab
 
 ### Phase 206: Update CMP Hub & Backward Compat
 **Goal**: Card di CMP Index digabung menjadi 1 dan action/view lama dihapus
@@ -45,7 +45,22 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 206-01-PLAN.md — Gabung card CMP Index + hapus action/view lama
+- [x] 206-01-PLAN.md — Gabung card CMP Index + hapus action/view lama
+
+### Phase 207: Perbaikan Desain Tabel DokumenKkj
+**Goal**: Perbaiki tampilan tabel DokumenKkj: pemisah antar bagian, kolom Tipe rata tengah, rename tab KKJ, hapus kolom Tanggal Upload, dan kecilkan empty state
+**Depends on**: Phase 206
+**Requirements**: UI-01, UI-02, UI-03, UI-04, UI-05
+**Success Criteria** (what must be TRUE):
+  1. Tiap section bagian terpisah visual dengan border dan jarak
+  2. Kolom Tipe sejajar vertikal dengan header
+  3. Tab pertama bertuliskan "Kebutuhan Kompetensi Jabatan (KKJ)"
+  4. Kolom Tanggal Upload tidak ada di kedua tab
+  5. Empty state compact tanpa icon besar
+**Plans**: 1 plan
+
+Plans:
+- [ ] 207-01-PLAN.md — Perbaiki desain tabel DokumenKkj (5 perubahan visual)
 
 ## Progress
 
@@ -53,3 +68,4 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 205. Halaman Gabungan KKJ & Alignment | 1/1 | Complete   | 2026-03-20 | - |
 | 206. Update CMP Hub & Backward Compat | 1/1 | Complete    | 2026-03-20 | - |
+| 207. Perbaikan Desain Tabel DokumenKkj | 0/1 | Planned | - | - |
