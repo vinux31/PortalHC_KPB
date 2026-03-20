@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v7.8
 milestone_name: Dokumen KKJ & Alignment KKJ/IDP — Combine Menu
-status: unknown
-stopped_at: Phase 206 context gathered
-last_updated: "2026-03-20T04:28:20.218Z"
+status: complete
+stopped_at: Completed 206-01-PLAN.md
+last_updated: "2026-03-20T04:50:00Z"
 last_activity: 2026-03-20
 progress:
   total_phases: 2
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State: Portal HC KPB
@@ -20,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 205 — halaman-gabungan-kkj-alignment
+**Current focus:** Phase 206 — update-cmp-hub-backward-compat
 
 ## Current Position
 
-Phase: 205 (halaman-gabungan-kkj-alignment) — EXECUTING
-Plan: 1 of 1
+Phase: 206 (update-cmp-hub-backward-compat) — COMPLETE
+Plan: 1 of 1 (DONE)
 
 ## Accumulated Context
 
@@ -38,6 +38,7 @@ Plan: 1 of 1
 - [v7.8 roadmap]: Fase 205 = halaman gabungan + role filtering (CMP-02/03/04/05)
 - [v7.8 roadmap]: Fase 206 = update hub card + redirect backward compat (CMP-01/06)
 - [Phase 205]: ActiveTab server-side via ?tab query param untuk deep-link tanpa JavaScript tambahan
+- [Phase 206]: Card KKJ dan Alignment digabung menjadi 1 card primary di CMP Index, action/view lama dihapus
 
 ### Blockers/Concerns
 
@@ -46,5 +47,5 @@ None.
 ## Session Continuity
 
 Last activity: 2026-03-20
-Stopped at: Phase 206 context gathered
-Resume file: .planning/phases/206-update-cmp-hub-backward-compat/206-CONTEXT.md
+Stopped at: Completed 206-01-PLAN.md
+Resume file: .planning/phases/206-update-cmp-hub-backward-compat/206-01-SUMMARY.md

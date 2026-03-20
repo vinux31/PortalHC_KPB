@@ -7,12 +7,12 @@
 
 ### CMP View
 
-- [ ] **CMP-01**: 2 card (KKJ + Alignment) di CMP Index digabung jadi 1 card "Dokumen KKJ & Alignment KKJ/IDP"
+- [x] **CMP-01**: 2 card (KKJ + Alignment) di CMP Index digabung jadi 1 card "Dokumen KKJ & Alignment KKJ/IDP"
 - [x] **CMP-02**: Halaman gabungan menampilkan 2 tab utama: "Kebutuhan Kompetensi Jabatan" dan "Alignment KKJ & IDP"
 - [x] **CMP-03**: Tab KKJ menampilkan semua bagian beserta file-nya langsung (grouped per bagian, tanpa dropdown)
 - [x] **CMP-04**: Tab Alignment menampilkan semua bagian beserta file-nya langsung (grouped per bagian)
 - [x] **CMP-05**: Role-based filtering tetap berlaku — L5-L6 hanya lihat bagian sendiri, L1-L4 lihat semua
-- [ ] **CMP-06**: Action `/CMP/Kkj` dan `/CMP/Mapping` di-redirect ke halaman gabungan (backward compat)
+- [x] **CMP-06**: Action `/CMP/Kkj` dan `/CMP/Mapping` di-redirect ke halaman gabungan (backward compat)
 
 ## Out of Scope
 
@@ -26,12 +26,12 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CMP-01 | Phase 206 | Pending |
+| CMP-01 | Phase 206 | Complete |
 | CMP-02 | Phase 205 | Complete |
 | CMP-03 | Phase 205 | Complete |
 | CMP-04 | Phase 205 | Complete |
 | CMP-05 | Phase 205 | Complete |
-| CMP-06 | Phase 206 | Pending |
+| CMP-06 | Phase 206 | Complete |
 
 **Coverage:**
 - v7.8 requirements: 6 total
