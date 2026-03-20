@@ -51,10 +51,10 @@ Plans:
   2. Tombol "Renew N Pekerja" muncul per group saat ada checkbox tercentang, dan menghilang saat tidak ada yang tercentang
   3. Filter Bagian/Unit/Kategori/Sub Kategori/Status menghasilkan tampilan grouped yang benar (group yang semua anggotanya terfilter keluar tidak muncul)
   4. Summary cards (Expired count, Akan Expired count) tetap tampil dan nilainya update sesuai filter aktif
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 209-01: Bulk renew per group + filter compatibility
+- [ ] 209-01-PLAN.md — Bulk renew per group + checkbox lock + modal konfirmasi + filter empty state
 
 ## Phase Details
 
@@ -78,7 +78,7 @@ Plans:
   2. Tombol "Renew N Pekerja" muncul per group saat ada checkbox tercentang, dan menghilang saat tidak ada yang tercentang
   3. Filter Bagian/Unit/Kategori/Sub Kategori/Status menghasilkan tampilan grouped yang benar (group yang semua anggotanya terfilter keluar tidak muncul)
   4. Summary cards (Expired count, Akan Expired count) tetap tampil dan nilainya update sesuai filter aktif
-**Plans**: TBD
+**Plans**: 1 plan
 
 ## Progress
 
