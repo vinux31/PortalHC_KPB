@@ -1,0 +1,204 @@
+@{
+    ViewData["Title"] = "Dokumen KKJ & Alignment KKJ/IDP";
+    var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
+    var kkjFilesByBagian = ViewBag.KkjFilesByBagian as Dictionary<int, List<HcPortal.Models.KkjFile>> ?? new Dictionary<int, List<HcPortal.Models.KkjFile>>();
+    var cpdpFilesByBagian = ViewBag.CpdpFilesByBagian as Dictionary<int, List<HcPortal.Models.CpdpFile>> ?? new Dictionary<int, List<HcPortal.Models.CpdpFile>>();
+    var activeTab = ViewBag.ActiveTab as string ?? "kkj";
+    string FormatSize(long bytes) => bytes < 1024 * 1024 ? $"{bytes / 1024}KB" : $"{bytes / (1024 * 1024.0):F1}MB";
+}
+@using System.Globalization
+
+<div class="py-4">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Beranda</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "CMP")">CMP</a></li>
+            <li class="breadcrumb-item active">Dokumen KKJ &amp; Alignment KKJ/IDP</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-start mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-richtext me-2 text-primary"></i>Dokumen KKJ &amp; Alignment KKJ/IDP</h2>
+            <p class="text-muted mb-0">Dokumen Kebutuhan Kompetensi Jabatan dan Alignment KKJ &amp; IDP</p>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+
+        @if (!bagians.Any())
+        {
+            <div class="p-4 text-center text-muted">
+                <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                Belum ada bagian tersedia.
+            </div>
+        }
+        else
+        {
+            @* Tab navigation utama *@
+            <ul class="nav nav-tabs px-3 pt-3" id="mainTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(activeTab == "kkj" ? "active" : "")"
+                            id="tab-kkj"
+                            data-bs-toggle="tab"
+                            data-bs-target="#pane-kkj"
+                            type="button"
+                            role="tab">
+                        Kebutuhan Kompetensi Jabatan
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(activeTab == "alignment" ? "active" : "")"
+                            id="tab-alignment"
+                            data-bs-toggle="tab"
+                            data-bs-target="#pane-alignment"
+                            type="button"
+                            role="tab">
+                        Alignment KKJ &amp; IDP
+                    </button>
+                </li>
+            </ul>
+
+            <div class="tab-content" id="mainTabContent">
+
+                @* === TAB KKJ === *@
+                <div class="tab-pane fade @(activeTab == "kkj" ? "show active" : "")"
+                     id="pane-kkj"
+                     role="tabpanel">
+
+                    @foreach (var bagian in bagians.OrderBy(b => b.DisplayOrder))
+                    {
+                        var kkjFiles = kkjFilesByBagian.ContainsKey(bagian.Id) ? kkjFilesByBagian[bagian.Id] : new List<HcPortal.Models.KkjFile>();
+                        var kkjCount = kkjFiles.Count;
+
+                        <div class="px-4 py-3 border-bottom bg-light">
+                            <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@kkjCount file</span></h6>
+                        </div>
+
+                        @if (!kkjFiles.Any())
+                        {
+                            <div class="alert alert-light border text-muted text-center py-4 mx-4 my-3">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                                Belum ada dokumen untuk bagian ini
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive px-0">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nama File</th>
+                                            <th>Tipe</th>
+                                            <th>Ukuran</th>
+                                            <th>Keterangan</th>
+                                            <th>Tanggal Upload</th>
+                                            <th class="text-center">Unduh</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var file in kkjFiles)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <i class="bi @(file.FileType == "pdf" ? "bi-file-earmark-pdf text-danger" : "bi-file-earmark-excel text-success") me-2"></i>
+                                                    @file.FileName
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(file.FileType == "pdf" ? "bg-danger" : "bg-success")">
+                                                        @file.FileType.ToUpper()
+                                                    </span>
+                                                </td>
+                                                <td><small>@FormatSize(file.FileSizeBytes)</small></td>
+                                                <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
+                                                <td><small>@file.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small></td>
+                                                <td class="text-center">
+                                                    <a href="@Url.Action("KkjFileDownload", "Admin", new { id = file.Id })"
+                                                       class="btn btn-sm btn-primary"
+                                                       title="Unduh">
+                                                        <i class="bi bi-download me-1"></i>Unduh
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+
+                </div>
+
+                @* === TAB ALIGNMENT === *@
+                <div class="tab-pane fade @(activeTab == "alignment" ? "show active" : "")"
+                     id="pane-alignment"
+                     role="tabpanel">
+
+                    @foreach (var bagian in bagians.OrderBy(b => b.DisplayOrder))
+                    {
+                        var cpdpFiles = cpdpFilesByBagian.ContainsKey(bagian.Id) ? cpdpFilesByBagian[bagian.Id] : new List<HcPortal.Models.CpdpFile>();
+                        var cpdpCount = cpdpFiles.Count;
+
+                        <div class="px-4 py-3 border-bottom bg-light">
+                            <h6 class="mb-0 fw-bold">@bagian.Name <span class="badge bg-primary ms-2">@cpdpCount file</span></h6>
+                        </div>
+
+                        @if (!cpdpFiles.Any())
+                        {
+                            <div class="alert alert-light border text-muted text-center py-4 mx-4 my-3">
+                                <i class="bi bi-inbox fs-2 d-block mb-2 text-muted"></i>
+                                Belum ada dokumen untuk bagian ini
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive px-0">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nama File</th>
+                                            <th>Tipe</th>
+                                            <th>Ukuran</th>
+                                            <th>Keterangan</th>
+                                            <th>Tanggal Upload</th>
+                                            <th class="text-center">Unduh</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var file in cpdpFiles)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <i class="bi @(file.FileType == "pdf" ? "bi-file-earmark-pdf text-danger" : "bi-file-earmark-excel text-success") me-2"></i>
+                                                    @file.FileName
+                                                </td>
+                                                <td>
+                                                    <span class="badge @(file.FileType == "pdf" ? "bg-danger" : "bg-success")">
+                                                        @file.FileType.ToUpper()
+                                                    </span>
+                                                </td>
+                                                <td><small>@FormatSize(file.FileSizeBytes)</small></td>
+                                                <td><small class="text-muted">@(file.Keterangan ?? "-")</small></td>
+                                                <td><small>@file.UploadedAt.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small></td>
+                                                <td class="text-center">
+                                                    <a href="@Url.Action("CpdpFileDownload", "Admin", new { id = file.Id })"
+                                                       class="btn btn-sm btn-primary"
+                                                       title="Unduh">
+                                                        <i class="bi bi-download me-1"></i>Unduh
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    }
+
+                </div>
+
+            </div>
+        }
+
+    </div>
+</div>
