@@ -26,18 +26,18 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CMP-01 | — | Pending |
-| CMP-02 | — | Pending |
-| CMP-03 | — | Pending |
-| CMP-04 | — | Pending |
-| CMP-05 | — | Pending |
-| CMP-06 | — | Pending |
+| CMP-01 | Phase 206 | Pending |
+| CMP-02 | Phase 205 | Pending |
+| CMP-03 | Phase 205 | Pending |
+| CMP-04 | Phase 205 | Pending |
+| CMP-05 | Phase 205 | Pending |
+| CMP-06 | Phase 206 | Pending |
 
 **Coverage:**
 - v7.8 requirements: 6 total
-- Mapped to phases: 0
-- Unmapped: 6 ⚠️
+- Mapped to phases: 6
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-20 — traceability updated after roadmap creation*
