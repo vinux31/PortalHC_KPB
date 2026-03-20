@@ -23,7 +23,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 - [ ] Bulk renew per group (select all dalam group, klik Renew)
 - [ ] Tabel per group lebih ringkas: hanya kolom Nama, Valid Until, Status, Aksi
 
-## Current State (after Phase 208 complete, 2026-03-20)
+## Current State (after Phase 209 complete, 2026-03-20)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -34,8 +34,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
 **v7.7 shipped** — Renewal Certificate & Certificate History, 5 phases (200-204).
 **v7.8 shipped** — Dokumen KKJ & Alignment KKJ/IDP — Combine Menu, 3 phases (205-207).
-
-Portal is fully audited and polished. KKJ and Alignment KKJ/IDP merged into single DokumenKkj page with 2 tabs and stacked sections. Between milestones — ready for `/gsd:new-milestone`.
+**v7.9 in progress** — Renewal Certificate Grouped View, Phase 209 complete (bulk renew + filter compatibility).
 
 ## Architecture Decisions
 
