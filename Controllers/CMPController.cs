@@ -171,6 +171,62 @@ namespace HcPortal.Controllers
 
             return View();
         }
+        // --- HALAMAN GABUNGAN: DOKUMEN KKJ & ALIGNMENT KKJ/IDP ---
+        // GET /CMP/DokumenKkj?tab={kkj|alignment}
+        [HttpGet]
+        public async Task<IActionResult> DokumenKkj(string? tab)
+        {
+            ViewData["Title"] = "Dokumen KKJ & Alignment KKJ/IDP";
+
+            var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
+            var userLevel = currentUser?.RoleLevel ?? 6;
+
+            // Load all bagians ordered by DisplayOrder
+            var allBagians = await _context.KkjBagians
+                .OrderBy(b => b.DisplayOrder)
+                .ToListAsync();
+
+            // Role-based filtering: L1-L4 see all, L5-L6 see own bagian only
+            var filteredBagians = allBagians;
+            if (userLevel >= 5 && currentUser?.Section != null)
+            {
+                var sectionFiltered = allBagians
+                    .Where(b => b.Name.ToLower() == currentUser.Section.ToLower())
+                    .ToList();
+
+                // Only apply filter if it matches at least one bagian; otherwise show all (safe fallback)
+                if (sectionFiltered.Count > 0)
+                {
+                    filteredBagians = sectionFiltered;
+                }
+            }
+
+            // Load KKJ files (non-archived) grouped by BagianId
+            var kkjFiles = await _context.KkjFiles
+                .Where(f => !f.IsArchived)
+                .OrderByDescending(f => f.UploadedAt)
+                .ToListAsync();
+            var kkjFilesByBagian = kkjFiles
+                .GroupBy(f => f.BagianId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            // Load CPDP files (non-archived) grouped by BagianId
+            var cpdpFiles = await _context.CpdpFiles
+                .Where(f => !f.IsArchived)
+                .OrderBy(f => f.UploadedAt)
+                .ToListAsync();
+            var cpdpFilesByBagian = cpdpFiles
+                .GroupBy(f => f.BagianId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            ViewBag.Bagians = filteredBagians;
+            ViewBag.KkjFilesByBagian = kkjFilesByBagian;
+            ViewBag.CpdpFilesByBagian = cpdpFilesByBagian;
+            ViewBag.ActiveTab = tab == "alignment" ? "alignment" : "kkj";
+
+            return View();
+        }
+
         // --- HALAMAN 3: MY ASSESSMENTS (personal view only) ---
         public async Task<IActionResult> Assessment(string? search, int page = 1, int pageSize = 20)
         {
