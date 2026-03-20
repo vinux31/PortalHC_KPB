@@ -6935,12 +6935,8 @@ namespace HcPortal.Controllers
                 TotalCount = allRows.Count,
                 ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
                 AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
-            };
 
-            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
-            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
+            };
 
             ViewBag.AllBagian = OrganizationStructure.GetAllSections();
 
