@@ -10,6 +10,7 @@
 - [ ] **FIX-01**: Bulk renew menetapkan RenewsSessionId/RenewsTrainingId ke semua user yang dipilih (bukan hanya user[0])
 - [ ] **FIX-02**: Badge count di Admin/Index sinkron dengan BuildRenewalRowsAsync (termasuk TR→AS dan TR→TR renewal)
 - [ ] **FIX-03**: renewedByTrSessionIds memfilter hanya TrainingRecord yang IsPassed
+
 - [ ] **FIX-04**: AddTraining mendukung renewal chain (set RenewsTrainingId/RenewsSessionId sesuai sumber)
 
 ### Bug Fixes — Data & Display
@@ -41,26 +42,26 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | — | Pending |
-| FIX-02 | — | Pending |
-| FIX-03 | — | Pending |
-| FIX-04 | — | Pending |
-| FIX-05 | — | Pending |
-| FIX-06 | — | Pending |
-| FIX-07 | — | Pending |
-| FIX-08 | — | Pending |
-| FIX-09 | — | Pending |
-| FIX-10 | — | Pending |
-| ENH-01 | — | Pending |
-| ENH-02 | — | Pending |
-| ENH-03 | — | Pending |
-| ENH-04 | — | Pending |
+| FIX-01 | Phase 210 | Pending |
+| FIX-02 | Phase 210 | Pending |
+| FIX-03 | Phase 210 | Pending |
+| FIX-04 | Phase 212 | Pending |
+| FIX-05 | Phase 211 | Pending |
+| FIX-06 | Phase 211 | Pending |
+| FIX-07 | Phase 211 | Pending |
+| FIX-08 | Phase 211 | Pending |
+| FIX-09 | Phase 211 | Pending |
+| FIX-10 | Phase 211 | Pending |
+| ENH-01 | Phase 212 | Pending |
+| ENH-02 | Phase 212 | Pending |
+| ENH-03 | Phase 212 | Pending |
+| ENH-04 | Phase 212 | Pending |
 
 **Coverage:**
 - v7.10 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-20 — traceability mapped after roadmap creation*

@@ -4,7 +4,8 @@
 
 - ✅ **v1.0–v7.7** - Phases 1–204 (shipped 2026-03-19)
 - ✅ **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–207 (shipped 2026-03-20)
-- 🚧 **v7.9 Renewal Certificate Grouped View** - Phases 208–209 (in progress)
+- ✅ **v7.9 Renewal Certificate Grouped View** - Phases 208–209 (shipped 2026-03-20)
+- 🚧 **v7.10 RenewalCertificate Bug Fixes & Enhancement** - Phases 210–212 (in progress)
 
 ## Phases
 
@@ -24,61 +25,94 @@
 
 </details>
 
-### 🚧 v7.9 Renewal Certificate Grouped View (In Progress)
+<details>
+<summary>✅ v7.9 Renewal Certificate Grouped View (Phases 208–209) - SHIPPED 2026-03-20</summary>
 
-**Milestone Goal:** Redesign halaman RenewalCertificate dari flat table menjadi grouped-by-sertifikat dengan collapsible sections, badge count per group, dan bulk renew per group.
+- [x] Phase 208: Grouped View Structure (1/1 plans) — completed 2026-03-20
+- [x] Phase 209: Bulk Renew & Filter Compatibility (1/1 plans) — completed 2026-03-20
 
-#### Phase 208: Grouped View Structure
-**Goal**: Admin dapat melihat daftar renewal certificate yang dikelompokkan per nama sertifikat, bukan flat list per orang
-**Depends on**: Nothing (first phase of milestone)
-**Requirements**: GRP-01, GRP-02, GRP-03, GRP-04
+</details>
+
+### 🚧 v7.10 RenewalCertificate Bug Fixes & Enhancement (In Progress)
+
+**Milestone Goal:** Perbaikan semua bug renewal chain (bulk renew, badge count, FK logic) + data/display bugs (ValidUntil=null, category prefill, grouping) + tambah filter tipe + renewal flow berdasarkan tipe (Assessment vs Training) + AddTraining renewal mode.
+
+#### Phase 210: Critical Renewal Chain Fixes
+**Goal**: Renewal chain berfungsi benar — semua user yang dipilih mendapat FK renewal, badge count Admin/Index sinkron, dan filter TrainingRecord hanya hitungan yang IsPassed
+**Depends on**: Phase 209
+**Requirements**: FIX-01, FIX-02, FIX-03
 **Success Criteria** (what must be TRUE):
-  1. Halaman RenewalCertificate menampilkan data dalam group terpisah per judul sertifikat (bukan satu tabel panjang)
-  2. Setiap group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
-  3. Setiap group dapat di-collapse dan di-expand dengan klik pada header (default expanded)
-  4. Tabel di dalam setiap group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
-**Plans**: 1 plan
+  1. Bulk renew pada N pekerja menghasilkan N AssessmentSession/TrainingRecord baru yang masing-masing memiliki RenewsSessionId/RenewsTrainingId terisi (bukan hanya record pertama)
+  2. Badge count di kartu Section C Admin/Index menampilkan angka yang identik dengan jumlah baris pada halaman RenewalCertificate (termasuk TR→AS dan TR→TR)
+  3. Sertifikat yang berasal dari TrainingRecord yang tidak IsPassed tidak muncul sebagai kandidat renewal di renewedByTrSessionIds
+**Plans**: TBD
 
 Plans:
-- [ ] 208-01: Grouped view — ViewModel grouping + partial view redesign
+- [ ] 210-01: Critical renewal chain fixes — bulk FK assignment, badge count sync, IsPassed filter
 
-#### Phase 209: Bulk Renew & Filter Compatibility
-**Goal**: Admin dapat melakukan bulk renew per group sertifikat, dan semua filter existing tetap berfungsi pada tampilan grouped
-**Depends on**: Phase 208
-**Requirements**: BULK-01, BULK-02, FILT-01, FILT-02
+#### Phase 211: Data & Display Fixes
+**Goal**: Semua data dan tampilan RenewalCertificate akurat — ValidUntil=null ditangani benar, category pre-fill dari TR berfungsi, grouping konsisten dan aman
+**Depends on**: Phase 210
+**Requirements**: FIX-05, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10
 **Success Criteria** (what must be TRUE):
-  1. Admin dapat mencentang checkbox "select all" per group untuk memilih semua pekerja dalam satu sertifikat
-  2. Tombol "Renew N Pekerja" muncul per group saat ada checkbox tercentang, dan menghilang saat tidak ada yang tercentang
-  3. Filter Bagian/Unit/Kategori/Sub Kategori/Status menghasilkan tampilan grouped yang benar (group yang semua anggotanya terfilter keluar tidak muncul)
-  4. Summary cards (Expired count, Akan Expired count) tetap tampil dan nilainya update sesuai filter aktif
-**Plans**: 1 plan
+  1. Sertifikat dengan ValidUntil=null dan CertificateType bukan "Permanent" muncul di renewal list (tidak hilang karena salah dianggap Permanent)
+  2. Saat Admin klik "Renew" dari baris TrainingRecord, form CreateAssessment ter-prefill Category sesuai sertifikat asal
+  3. Group header menampilkan nama kategori yang konsisten dengan AssessmentCategories (tanpa variasi typo/case)
+  4. Group-by judul berfungsi case-insensitive sehingga "MIGAS" dan "Migas" masuk ke group yang sama
+  5. Judul sertifikat dengan karakter khusus (/, &, #) tidak menyebabkan URL mismatch atau group yang terpisah
+**Plans**: TBD
 
 Plans:
-- [ ] 209-01-PLAN.md — Bulk renew per group + checkbox lock + modal konfirmasi + filter empty state
+- [ ] 211-01: Data & display fixes — ValidUntil null handling, category prefill, MapKategori, grouping case/URL
+
+#### Phase 212: Tipe Filter, Renewal Flow, AddTraining Renewal
+**Goal**: Admin dapat memfilter renewal list berdasarkan tipe (Assessment/Training), alur renewal berbeda sesuai tipe sumber, dan AddTraining mendukung mode renewal dengan pre-fill + FK
+**Depends on**: Phase 211
+**Requirements**: ENH-01, ENH-02, ENH-03, ENH-04, FIX-04
+**Success Criteria** (what must be TRUE):
+  1. Dropdown filter "Tipe" pada halaman RenewalCertificate menampilkan pilihan Assessment / Training / Semua, dan memfilter tabel sesuai tipe sumber sertifikat
+  2. Klik "Renew" pada baris bertipe Training menampilkan popup pilihan: "Renew via Assessment" atau "Renew via Training Record baru" — bukan langsung ke CreateAssessment
+  3. Bulk renew yang mencakup campuran tipe Assessment dan Training menampilkan konfirmasi atau memisahkan alur sehingga Training items tidak langsung dikirim ke CreateAssessment
+  4. Halaman AddTraining dapat dibuka dalam mode renewal (dari link renewal) dengan field Title/Category/Peserta ter-prefill dan RenewsTrainingId/RenewsSessionId tersimpan saat submit
+**Plans**: TBD
+
+Plans:
+- [ ] 212-01: Tipe filter + renewal flow popup + bulk renew tipe-aware + AddTraining renewal mode
 
 ## Phase Details
 
-### Phase 208: Grouped View Structure
-**Goal**: Admin dapat melihat daftar renewal certificate yang dikelompokkan per nama sertifikat, bukan flat list per orang
-**Depends on**: Nothing (first phase of milestone)
-**Requirements**: GRP-01, GRP-02, GRP-03, GRP-04
+### Phase 210: Critical Renewal Chain Fixes
+**Goal**: Renewal chain berfungsi benar — semua user yang dipilih mendapat FK renewal, badge count Admin/Index sinkron, dan filter TrainingRecord hanya hitungan yang IsPassed
+**Depends on**: Phase 209
+**Requirements**: FIX-01, FIX-02, FIX-03
 **Success Criteria** (what must be TRUE):
-  1. Halaman RenewalCertificate menampilkan data dalam group terpisah per judul sertifikat (bukan satu tabel panjang)
-  2. Setiap group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
-  3. Setiap group dapat di-collapse dan di-expand dengan klik pada header (default expanded)
-  4. Tabel di dalam setiap group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
-**Plans**: 1 plan
+  1. Bulk renew pada N pekerja menghasilkan N AssessmentSession/TrainingRecord baru yang masing-masing memiliki RenewsSessionId/RenewsTrainingId terisi (bukan hanya record pertama)
+  2. Badge count di kartu Section C Admin/Index menampilkan angka yang identik dengan jumlah baris pada halaman RenewalCertificate (termasuk TR→AS dan TR→TR)
+  3. Sertifikat yang berasal dari TrainingRecord yang tidak IsPassed tidak muncul sebagai kandidat renewal di renewedByTrSessionIds
+**Plans**: TBD
 
-### Phase 209: Bulk Renew & Filter Compatibility
-**Goal**: Admin dapat melakukan bulk renew per group sertifikat, dan semua filter existing tetap berfungsi pada tampilan grouped
-**Depends on**: Phase 208
-**Requirements**: BULK-01, BULK-02, FILT-01, FILT-02
+### Phase 211: Data & Display Fixes
+**Goal**: Semua data dan tampilan RenewalCertificate akurat — ValidUntil=null ditangani benar, category pre-fill dari TR berfungsi, grouping konsisten dan aman
+**Depends on**: Phase 210
+**Requirements**: FIX-05, FIX-06, FIX-07, FIX-08, FIX-09, FIX-10
 **Success Criteria** (what must be TRUE):
-  1. Admin dapat mencentang checkbox "select all" per group untuk memilih semua pekerja dalam satu sertifikat
-  2. Tombol "Renew N Pekerja" muncul per group saat ada checkbox tercentang, dan menghilang saat tidak ada yang tercentang
-  3. Filter Bagian/Unit/Kategori/Sub Kategori/Status menghasilkan tampilan grouped yang benar (group yang semua anggotanya terfilter keluar tidak muncul)
-  4. Summary cards (Expired count, Akan Expired count) tetap tampil dan nilainya update sesuai filter aktif
-**Plans**: 1 plan
+  1. Sertifikat dengan ValidUntil=null dan CertificateType bukan "Permanent" muncul di renewal list (tidak hilang karena salah dianggap Permanent)
+  2. Saat Admin klik "Renew" dari baris TrainingRecord, form CreateAssessment ter-prefill Category sesuai sertifikat asal
+  3. Group header menampilkan nama kategori yang konsisten dengan AssessmentCategories (tanpa variasi typo/case)
+  4. Group-by judul berfungsi case-insensitive sehingga "MIGAS" dan "Migas" masuk ke group yang sama
+  5. Judul sertifikat dengan karakter khusus (/, &, #) tidak menyebabkan URL mismatch atau group yang terpisah
+**Plans**: TBD
+
+### Phase 212: Tipe Filter, Renewal Flow, AddTraining Renewal
+**Goal**: Admin dapat memfilter renewal list berdasarkan tipe (Assessment/Training), alur renewal berbeda sesuai tipe sumber, dan AddTraining mendukung mode renewal dengan pre-fill + FK
+**Depends on**: Phase 211
+**Requirements**: ENH-01, ENH-02, ENH-03, ENH-04, FIX-04
+**Success Criteria** (what must be TRUE):
+  1. Dropdown filter "Tipe" pada halaman RenewalCertificate menampilkan pilihan Assessment / Training / Semua, dan memfilter tabel sesuai tipe sumber sertifikat
+  2. Klik "Renew" pada baris bertipe Training menampilkan popup pilihan: "Renew via Assessment" atau "Renew via Training Record baru" — bukan langsung ke CreateAssessment
+  3. Bulk renew yang mencakup campuran tipe Assessment dan Training menampilkan konfirmasi atau memisahkan alur sehingga Training items tidak langsung dikirim ke CreateAssessment
+  4. Halaman AddTraining dapat dibuka dalam mode renewal (dari link renewal) dengan field Title/Category/Peserta ter-prefill dan RenewsTrainingId/RenewsSessionId tersimpan saat submit
+**Plans**: TBD
 
 ## Progress
 
@@ -87,5 +121,8 @@ Plans:
 | 205. Halaman Gabungan KKJ & Alignment | v7.8 | 1/1 | Complete | 2026-03-20 |
 | 206. Update CMP Hub & Backward Compat | v7.8 | 1/1 | Complete | 2026-03-20 |
 | 207. Perbaikan Desain Tabel DokumenKkj | v7.8 | 1/1 | Complete | 2026-03-20 |
-| 208. Grouped View Structure | 1/1 | Complete    | 2026-03-20 | - |
-| 209. Bulk Renew & Filter Compatibility | 1/1 | Complete    | 2026-03-20 | - |
+| 208. Grouped View Structure | v7.9 | 1/1 | Complete | 2026-03-20 |
+| 209. Bulk Renew & Filter Compatibility | v7.9 | 1/1 | Complete | 2026-03-20 |
+| 210. Critical Renewal Chain Fixes | v7.10 | 0/TBD | Not started | - |
+| 211. Data & Display Fixes | v7.10 | 0/TBD | Not started | - |
+| 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 0/TBD | Not started | - |
