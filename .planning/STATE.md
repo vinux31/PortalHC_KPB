@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v7.8
 milestone_name: Dokumen KKJ & Alignment KKJ/IDP — Combine Menu
-status: complete
+status: unknown
 stopped_at: Completed 206-01-PLAN.md
-last_updated: "2026-03-20T04:50:00Z"
+last_updated: "2026-03-20T04:39:39.771Z"
 last_activity: 2026-03-20
 progress:
   total_phases: 2

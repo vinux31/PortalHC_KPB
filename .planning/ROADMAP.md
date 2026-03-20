@@ -52,4 +52,4 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 205. Halaman Gabungan KKJ & Alignment | 1/1 | Complete   | 2026-03-20 | - |
-| 206. Update CMP Hub & Backward Compat | 1/1 | Complete   | 2026-03-20 | - |
+| 206. Update CMP Hub & Backward Compat | 1/1 | Complete    | 2026-03-20 | - |
