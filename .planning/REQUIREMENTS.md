@@ -9,7 +9,7 @@
 
 - [x] **GRP-01**: Tabel RenewalCertificate menampilkan data dikelompokkan per judul sertifikat (bukan flat list per-orang)
 - [x] **GRP-02**: Group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
-- [x] **GRP-03**: Setiap group bisa di-collapse/expand (default: expanded)
+- [x] **GRP-03**: Setiap group bisa di-collapse/expand (default: collapsed)
 - [x] **GRP-04**: Tabel per group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
 
 ### Bulk Renew

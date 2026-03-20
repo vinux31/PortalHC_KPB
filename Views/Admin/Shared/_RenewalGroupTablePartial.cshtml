@@ -11,8 +11,6 @@
                            aria-label="Pilih semua di group @Model.Judul" />
                 </th>
                 <th>Nama</th>
-                <th class="d-none d-md-table-cell">Kategori</th>
-                <th class="d-none d-md-table-cell">Sub Kategori</th>
                 <th style="width:110px">Valid Until</th>
                 <th style="width:120px">Status</th>
                 <th style="width:90px">Aksi</th>
@@ -32,8 +30,6 @@
                                aria-label="Pilih @row.NamaWorker - @row.Judul" />
                     </td>
                     <td>@row.NamaWorker</td>
-                    <td class="d-none d-md-table-cell">@(row.Kategori ?? "-")</td>
-                    <td class="d-none d-md-table-cell">@(row.SubKategori ?? "-")</td>
                     <td>@(row.ValidUntil?.ToString("dd MMM yyyy") ?? "-")</td>
                     <td>
                         @if (row.Status == CertificateStatus.Expired)
