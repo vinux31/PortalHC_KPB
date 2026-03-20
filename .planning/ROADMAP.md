@@ -29,7 +29,10 @@
   2. Tab KKJ menampilkan semua bagian beserta daftar file-nya langsung tanpa perlu memilih bagian dari dropdown
   3. Tab Alignment menampilkan semua bagian beserta daftar file-nya langsung tanpa dropdown
   4. Pengguna L5-L6 hanya melihat data bagiannya sendiri di kedua tab; pengguna L1-L4 melihat semua bagian
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 205-01-PLAN.md — Action DokumenKkj + view gabungan 2 tab
 
 ### Phase 206: Update CMP Hub & Backward Compat
 **Goal**: Card di CMP Index digabung menjadi 1 dan URL lama diarahkan ke halaman gabungan
@@ -45,5 +48,5 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 205. Halaman Gabungan KKJ & Alignment | v7.8 | 0/? | Not started | - |
+| 205. Halaman Gabungan KKJ & Alignment | v7.8 | 0/1 | Not started | - |
 | 206. Update CMP Hub & Backward Compat | v7.8 | 0/? | Not started | - |
