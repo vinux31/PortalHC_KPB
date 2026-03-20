@@ -1,0 +1,56 @@
+@model HcPortal.Models.RenewalGroupViewModel
+
+<span id="partial-expired-count" class="d-none">@Model.TotalExpiredCount</span>
+<span id="partial-akan-expired-count" class="d-none">@Model.TotalAkanExpiredCount</span>
+
+@if (Model.Groups.Count == 0)
+{
+    <div class="text-center py-5">
+        <i class="bi bi-patch-check-fill fs-1 text-success d-block mb-3"></i>
+        <strong>Tidak ada sertifikat yang perlu di-renew</strong>
+        <p class="text-muted mt-1 mb-3">Semua sertifikat aktif atau sudah di-renew.</p>
+        <a href="/Admin/Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Kembali ke Kelola Data
+        </a>
+    </div>
+}
+else
+{
+    @foreach (var group in Model.Groups)
+    {
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-header d-flex align-items-center justify-content-between"
+                 role="button"
+                 data-bs-toggle="collapse"
+                 data-bs-target="#group-@group.GroupKey-body"
+                 aria-expanded="false"
+                 aria-controls="group-@group.GroupKey-body"
+                 aria-label="Tampilkan daftar pekerja untuk @group.Judul"
+                 style="cursor:pointer; min-height:48px">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-chevron-right group-chevron" id="chevron-@group.GroupKey"></i>
+                    <span class="fw-semibold">@group.Judul</span>
+                    <div class="d-flex gap-1" aria-label="@group.TotalCount orang, @group.ExpiredCount expired, @group.AkanExpiredCount akan expired">
+                        <span class="badge bg-secondary">@group.TotalCount orang</span>
+                        @if (group.ExpiredCount > 0)
+                        {
+                            <span class="badge bg-danger">@group.ExpiredCount Expired</span>
+                        }
+                        @if (group.AkanExpiredCount > 0)
+                        {
+                            <span class="badge bg-warning text-dark">@group.AkanExpiredCount Akan Expired</span>
+                        }
+                    </div>
+                </div>
+                <small class="text-muted">
+                    @(string.IsNullOrEmpty(group.SubKategori) ? group.Kategori : $"{group.Kategori} / {group.SubKategori}")
+                </small>
+            </div>
+            <div class="collapse" id="group-@group.GroupKey-body">
+                <div class="card-body p-0" id="group-@group.GroupKey-table">
+                    @await Html.PartialAsync("Shared/_RenewalGroupTablePartial", group)
+                </div>
+            </div>
+        </div>
+    }
+}
