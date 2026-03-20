@@ -47,13 +47,6 @@
         </div>
     </div>
 
-    <!-- Toolbar row — Renew Selected button (hidden by default) -->
-    <div class="mb-3">
-        <button id="btn-renew-selected" class="btn btn-warning d-none" onclick="renewSelected()">
-            <i class="bi bi-arrow-repeat me-1"></i>Renew Selected (0)
-        </button>
-    </div>
-
     <!-- Filter Bar -->
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body">
@@ -127,6 +120,30 @@
     </div>
 </div>
 
+<!-- Bulk Renew Confirmation Modal -->
+<div class="modal fade" id="bulkRenewConfirmModal" tabindex="-1" aria-labelledby="bulkRenewConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bulkRenewConfirmLabel">
+                    <i class="bi bi-arrow-repeat me-2 text-warning"></i>Konfirmasi Bulk Renew
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+            </div>
+            <div class="modal-body">
+                Anda akan me-renew <strong id="bulk-renew-count">0</strong> pekerja untuk sertifikat
+                <strong id="bulk-renew-judul"></strong>. Lanjutkan?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-warning" id="btn-bulk-renew-confirm">
+                    <i class="bi bi-arrow-repeat me-1"></i>Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
     .dashboard-loading { opacity: 0.5; pointer-events: none; position: relative; }
     .dashboard-loading::after {
@@ -150,7 +167,8 @@
     var resetBtn = document.getElementById('btn-reset');
     var container = document.getElementById('cert-table-container');
     var certAbort = null;
-    var selectedKategori = null;
+    var selectedGroupKey = null;
+    var pendingRenewParams = null;
 
     // Cascade: Bagian -> Unit
     bagianEl.addEventListener('change', function () {
@@ -158,7 +176,6 @@
         unitEl.innerHTML = '<option value="">Semua Unit</option>';
         unitEl.disabled = true;
         if (!section) {
-            resetKategoriLock();
             refreshTable(1);
             return;
         }
@@ -172,12 +189,11 @@
                     unitEl.appendChild(opt);
                 });
                 unitEl.disabled = false;
-                resetKategoriLock();
                 refreshTable(1);
             });
     });
 
-    unitEl.addEventListener('change', function () { resetKategoriLock(); refreshTable(1); });
+    unitEl.addEventListener('change', function () { refreshTable(1); });
     categoryEl.addEventListener('change', function () {
         // Reset sub category
         subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
@@ -196,11 +212,10 @@
                     subCategoryEl.disabled = false;
                 });
         }
-        resetKategoriLock();
         refreshTable(1);
     });
-    subCategoryEl.addEventListener('change', function () { resetKategoriLock(); refreshTable(1); });
-    statusEl.addEventListener('change', function () { resetKategoriLock(); refreshTable(1); });
+    subCategoryEl.addEventListener('change', function () { refreshTable(1); });
+    statusEl.addEventListener('change', function () { refreshTable(1); });
 
     resetBtn.addEventListener('click', function () {
         bagianEl.value = '';
@@ -210,15 +225,8 @@
         subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
         subCategoryEl.disabled = true;
         statusEl.value = '';
-        resetKategoriLock();
         refreshTable(1);
     });
-
-    function resetKategoriLock() {
-        selectedKategori = null;
-        var btn = document.getElementById('btn-renew-selected');
-        if (btn) { btn.classList.add('d-none'); btn.classList.remove('d-flex'); }
-    }
 
     function refreshTable(page) {
         if (typeof page !== 'number') page = 1;
@@ -239,6 +247,7 @@
             .then(function (resp) { return resp.text(); })
             .then(function (html) {
                 container.innerHTML = html;
+                selectedGroupKey = null;
                 wireCheckboxes();
                 wirePagination();
                 wireGroupChevrons();
@@ -257,66 +266,100 @@
         var checkboxes = container.querySelectorAll('.cb-select');
         checkboxes.forEach(function (cb) {
             cb.addEventListener('change', function () {
+                var groupKey = cb.dataset.groupKey || '';
                 if (cb.checked) {
-                    var cat = cb.dataset.kategori || '';
-                    if (selectedKategori === null) {
-                        selectedKategori = cat;
-                    }
-                    // Disable checkboxes with different category
+                    if (selectedGroupKey === null) { selectedGroupKey = groupKey; }
                     checkboxes.forEach(function (other) {
-                        var otherCat = other.dataset.kategori || '';
-                        if (!other.checked && otherCat !== selectedKategori) {
+                        if (!other.checked && (other.dataset.groupKey || '') !== selectedGroupKey) {
                             other.disabled = true;
-                            other.title = 'Hanya sertifikat kategori sama';
                         }
                     });
                 } else {
-                    var anyChecked = Array.from(container.querySelectorAll('.cb-select:checked')).length > 0;
+                    var anyChecked = container.querySelectorAll('.cb-select:checked').length > 0;
                     if (!anyChecked) {
-                        selectedKategori = null;
+                        selectedGroupKey = null;
                         checkboxes.forEach(function (other) {
                             other.disabled = false;
-                            other.title = '';
                         });
                     }
                 }
-                updateRenewSelectedButton();
+                updateGroupRenewButton(groupKey);
             });
         });
-
+        wireGroupSelectAll();
     }
-    // Note: cb-group-select-all (per-group select-all) akan di-wire di Phase 209
 
-    function updateRenewSelectedButton() {
-        var checked = container.querySelectorAll('.cb-select:checked').length;
-        var btn = document.getElementById('btn-renew-selected');
+    function wireGroupSelectAll() {
+        container.querySelectorAll('.cb-group-select-all').forEach(function (selectAll) {
+            selectAll.addEventListener('change', function () {
+                var groupKey = selectAll.dataset.groupKey;
+                var groupCheckboxes = container.querySelectorAll('.cb-select[data-group-key="' + groupKey + '"]');
+                if (selectedGroupKey !== null && selectedGroupKey !== groupKey) {
+                    selectAll.checked = false;
+                    return;
+                }
+                groupCheckboxes.forEach(function (cb) {
+                    if (!cb.disabled) cb.checked = selectAll.checked;
+                });
+                if (selectAll.checked && groupCheckboxes.length > 0) {
+                    selectedGroupKey = groupKey;
+                    container.querySelectorAll('.cb-select').forEach(function (other) {
+                        if ((other.dataset.groupKey || '') !== groupKey && !other.checked) {
+                            other.disabled = true;
+                        }
+                    });
+                } else if (!selectAll.checked) {
+                    var anyChecked = container.querySelectorAll('.cb-select:checked').length > 0;
+                    if (!anyChecked) {
+                        selectedGroupKey = null;
+                        container.querySelectorAll('.cb-select').forEach(function (other) {
+                            other.disabled = false;
+                        });
+                    }
+                }
+                updateGroupRenewButton(groupKey);
+            });
+        });
+    }
+
+    function updateGroupRenewButton(groupKey) {
+        var checked = container.querySelectorAll('.cb-select[data-group-key="' + groupKey + '"]:checked').length;
+        var btn = container.querySelector('.btn-renew-group[data-group-key="' + groupKey + '"]');
+        var countSpan = container.querySelector('.renew-count-' + groupKey);
         if (!btn) return;
         if (checked > 0) {
             btn.classList.remove('d-none');
-            btn.classList.add('d-flex');
-            btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Renew Selected (' + checked + ')';
+            if (countSpan) countSpan.textContent = checked;
         } else {
             btn.classList.add('d-none');
-            btn.classList.remove('d-flex');
+            if (countSpan) countSpan.textContent = '0';
         }
     }
 
-    function renewSelected() {
-        var checked = container.querySelectorAll('.cb-select:checked');
+    function renewGroup(groupKey, judul) {
+        var checked = container.querySelectorAll('.cb-select[data-group-key="' + groupKey + '"]:checked');
         if (checked.length === 0) return;
         var params = new URLSearchParams();
         checked.forEach(function (cb) {
-            var recordType = cb.dataset.recordtype;
-            var sourceId = cb.dataset.sourceid;
-            if (recordType === 'Assessment') {
-                params.append('renewSessionId', sourceId);
+            if (cb.dataset.recordtype === 'Assessment') {
+                params.append('renewSessionId', cb.dataset.sourceid);
             } else {
-                params.append('renewTrainingId', sourceId);
+                params.append('renewTrainingId', cb.dataset.sourceid);
             }
         });
-        window.location.href = '/Admin/CreateAssessment?' + params.toString();
+        pendingRenewParams = params.toString();
+        document.getElementById('bulk-renew-count').textContent = checked.length;
+        document.getElementById('bulk-renew-judul').textContent = judul;
+        var modal = new bootstrap.Modal(document.getElementById('bulkRenewConfirmModal'));
+        modal.show();
     }
-    window.renewSelected = renewSelected;
+    window.renewGroup = renewGroup;
+
+    document.getElementById('btn-bulk-renew-confirm').addEventListener('click', function () {
+        if (pendingRenewParams) {
+            window.location.href = '/Admin/CreateAssessment?' + pendingRenewParams;
+        }
+    });
 
     function wirePagination() {
         container.querySelectorAll('a[data-page]').forEach(function (link) {
@@ -331,7 +374,6 @@
                     refreshGroupTable(groupKey, groupJudul, p);
                 } else {
                     // Global pagination (fallback, tidak digunakan di grouped view)
-                    resetKategoriLock();
                     refreshTable(p);
                 }
             });
@@ -357,6 +399,15 @@
             .then(function (resp) { return resp.text(); })
             .then(function (html) {
                 tableContainer.innerHTML = html;
+                if (selectedGroupKey === groupKey) {
+                    selectedGroupKey = null;
+                    container.querySelectorAll('.cb-select').forEach(function (cb) {
+                        cb.disabled = false;
+                    });
+                }
+                updateGroupRenewButton(groupKey);
+                var selectAllCb = container.querySelector('.cb-group-select-all[data-group-key="' + groupKey + '"]');
+                if (selectAllCb) selectAllCb.checked = false;
                 wireCheckboxes();
                 wirePagination();
             })
