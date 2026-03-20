@@ -87,5 +87,5 @@ Plans:
 | 205. Halaman Gabungan KKJ & Alignment | v7.8 | 1/1 | Complete | 2026-03-20 |
 | 206. Update CMP Hub & Backward Compat | v7.8 | 1/1 | Complete | 2026-03-20 |
 | 207. Perbaikan Desain Tabel DokumenKkj | v7.8 | 1/1 | Complete | 2026-03-20 |
-| 208. Grouped View Structure | 1/1 | Complete   | 2026-03-20 | - |
+| 208. Grouped View Structure | 1/1 | Complete    | 2026-03-20 | - |
 | 209. Bulk Renew & Filter Compatibility | v7.9 | 0/1 | Not started | - |
