@@ -35,18 +35,21 @@ Plans:
 - [ ] 205-01-PLAN.md — Action DokumenKkj + view gabungan 2 tab
 
 ### Phase 206: Update CMP Hub & Backward Compat
-**Goal**: Card di CMP Index digabung menjadi 1 dan URL lama diarahkan ke halaman gabungan
+**Goal**: Card di CMP Index digabung menjadi 1 dan action/view lama dihapus
 **Depends on**: Phase 205
 **Requirements**: CMP-01, CMP-06
 **Success Criteria** (what must be TRUE):
   1. CMP Index menampilkan 1 card "Dokumen KKJ & Alignment KKJ/IDP" (bukan 2 card terpisah)
-  2. Mengakses `/CMP/Kkj` diarahkan ke halaman gabungan tanpa error
-  3. Mengakses `/CMP/Mapping` diarahkan ke halaman gabungan tanpa error
-**Plans**: TBD
+  2. Action `/CMP/Kkj` dan `/CMP/Mapping` dihapus (tidak redirect, langsung 404)
+  3. File view lama Kkj.cshtml dan Mapping.cshtml dihapus
+**Plans**: 1 plan
+
+Plans:
+- [ ] 206-01-PLAN.md — Gabung card CMP Index + hapus action/view lama
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 205. Halaman Gabungan KKJ & Alignment | 1/1 | Complete   | 2026-03-20 | - |
-| 206. Update CMP Hub & Backward Compat | v7.8 | 0/? | Not started | - |
+| 206. Update CMP Hub & Backward Compat | v7.8 | 0/1 | Not started | - |
