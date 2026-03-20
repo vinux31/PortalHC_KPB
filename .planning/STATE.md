@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v7.9
 milestone_name: Renewal Certificate Grouped View
-status: defining_requirements
+status: ready_to_plan
 last_updated: "2026-03-20"
 last_activity: 2026-03-20
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
-  total_plans: 0
+  total_plans: 2
   completed_plans: 0
 ---
 
@@ -19,20 +19,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v7.9 — Renewal Certificate Grouped View
+**Current focus:** Phase 208 — Grouped View Structure
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
+Phase: 208 of 209 (Grouped View Structure)
+Plan: 0 of 1 in current phase
+Status: Ready to plan
+Last activity: 2026-03-20 — Roadmap created untuk v7.9 Renewal Certificate Grouped View
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v7.9 scope]: Redesign RenewalCertificate tabel dari flat list menjadi grouped by sertifikat
-- [v7.9 approach]: Pendekatan 1 — grouped by certificate name, collapsible sections, badge count per group
+- [v7.9 scope]: Grouped by sertifikat (bukan by pekerja) — sesuai permintaan user
+- [v7.9 scope]: Filter bar existing dipertahankan, tidak didesain ulang
+- [v7.9 scope]: Certificate History modal tidak diubah
+- [v7.9 arch]: Pure frontend/view + ViewModel grouping — tidak ada DB migration
+- [v7.9 split]: Fase 208 = struktur grouped view, Fase 209 = bulk renew + filter compat
+
+### Pending Todos
+
+None.
 
 ### Blockers/Concerns
 
@@ -40,6 +50,6 @@ None.
 
 ## Session Continuity
 
-Last activity: 2026-03-20
-Stopped at: Milestone v7.9 started — defining requirements
+Last session: 2026-03-20
+Stopped at: Roadmap created, siap mulai plan Phase 208
 Resume file: None

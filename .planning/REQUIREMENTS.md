@@ -35,20 +35,20 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GRP-01 | - | Pending |
-| GRP-02 | - | Pending |
-| GRP-03 | - | Pending |
-| GRP-04 | - | Pending |
-| BULK-01 | - | Pending |
-| BULK-02 | - | Pending |
-| FILT-01 | - | Pending |
-| FILT-02 | - | Pending |
+| GRP-01 | Phase 208 | Pending |
+| GRP-02 | Phase 208 | Pending |
+| GRP-03 | Phase 208 | Pending |
+| GRP-04 | Phase 208 | Pending |
+| BULK-01 | Phase 209 | Pending |
+| BULK-02 | Phase 209 | Pending |
+| FILT-01 | Phase 209 | Pending |
+| FILT-02 | Phase 209 | Pending |
 
 **Coverage:**
 - v7.9 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8 ⚠️
+- Mapped to phases: 8
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-20 — traceability mapped after roadmap creation*
