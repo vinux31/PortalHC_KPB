@@ -89,3 +89,30 @@ public class CertificationManagementViewModel
     public int PageSize { get; set; } = 20;
     public int RoleLevel { get; set; } = 1;
 }
+
+// ============================================================
+// Grouped View — Renewal Certificate accordion per judul
+// ============================================================
+
+public class RenewalGroup
+{
+    public string GroupKey { get; set; } = "";
+    public string Judul { get; set; } = "";
+    public string? Kategori { get; set; }
+    public string? SubKategori { get; set; }
+    public int TotalCount { get; set; }
+    public int ExpiredCount { get; set; }
+    public int AkanExpiredCount { get; set; }
+    public DateTime? MinValidUntil { get; set; }
+    public List<SertifikatRow> Rows { get; set; } = new();
+    public int CurrentPage { get; set; } = 1;
+    public int TotalPages { get; set; } = 1;
+    public int PageSize { get; set; } = 10;
+}
+
+public class RenewalGroupViewModel
+{
+    public List<RenewalGroup> Groups { get; set; } = new();
+    public int TotalExpiredCount { get; set; }
+    public int TotalAkanExpiredCount { get; set; }
+}

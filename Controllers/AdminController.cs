@@ -6979,19 +6979,89 @@ namespace HcPortal.Controllers
                 .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
                 .ToList();
 
-            var vm = new CertificationManagementViewModel
+            // Group by judul sertifikat
+            var grouped = allRows
+                .GroupBy(r => r.Judul)
+                .Select(g => new RenewalGroup
+                {
+                    GroupKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(g.Key))
+                                     .Replace("+", "_").Replace("/", "-").Replace("=", ""),
+                    Judul = g.Key,
+                    Kategori = g.First().Kategori,
+                    SubKategori = g.First().SubKategori,
+                    TotalCount = g.Count(),
+                    ExpiredCount = g.Count(r => r.Status == CertificateStatus.Expired),
+                    AkanExpiredCount = g.Count(r => r.Status == CertificateStatus.AkanExpired),
+                    MinValidUntil = g.Min(r => r.ValidUntil)
+                })
+                .OrderBy(g => g.MinValidUntil ?? DateTime.MaxValue)
+                .ToList();
+
+            foreach (var group in grouped)
             {
-                TotalCount = allRows.Count,
-                ExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
-                AkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired),
+                var groupRows = allRows
+                    .Where(r => r.Judul == group.Judul)
+                    .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
+                    .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                    .ToList();
+                var paging = PaginationHelper.Calculate(groupRows.Count, 1, group.PageSize);
+                group.Rows = groupRows.Skip(paging.Skip).Take(paging.Take).ToList();
+                group.CurrentPage = paging.CurrentPage;
+                group.TotalPages = paging.TotalPages;
+            }
+
+            var gvm = new RenewalGroupViewModel
+            {
+                Groups = grouped,
+                TotalExpiredCount = allRows.Count(r => r.Status == CertificateStatus.Expired),
+                TotalAkanExpiredCount = allRows.Count(r => r.Status == CertificateStatus.AkanExpired)
             };
 
-            var paging = PaginationHelper.Calculate(allRows.Count, page, vm.PageSize);
-            vm.Rows = allRows.Skip(paging.Skip).Take(paging.Take).ToList();
-            vm.CurrentPage = paging.CurrentPage;
-            vm.TotalPages = paging.TotalPages;
+            return PartialView("Shared/_RenewalGroupedPartial", gvm);
+        }
 
-            return PartialView("Shared/_RenewalCertificateTablePartial", vm);
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> FilterRenewalCertificateGroup(
+            string groupKey,
+            string judul,
+            int page = 1,
+            string? bagian = null, string? unit = null,
+            string? status = null, string? category = null, string? subCategory = null)
+        {
+            var allRows = await BuildRenewalRowsAsync();
+
+            if (!string.IsNullOrEmpty(bagian))
+                allRows = allRows.Where(r => r.Bagian == bagian).ToList();
+            if (!string.IsNullOrEmpty(unit))
+                allRows = allRows.Where(r => r.Unit == unit).ToList();
+            if (!string.IsNullOrEmpty(status) && Enum.TryParse<CertificateStatus>(status, out var st))
+                allRows = allRows.Where(r => r.Status == st).ToList();
+            if (!string.IsNullOrEmpty(category))
+                allRows = allRows.Where(r => r.Kategori == category).ToList();
+            if (!string.IsNullOrEmpty(subCategory))
+                allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
+
+            var groupRows = allRows
+                .Where(r => r.Judul == judul)
+                .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
+                .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
+                .ToList();
+
+            var paging = PaginationHelper.Calculate(groupRows.Count, page, 10);
+            var group = new RenewalGroup
+            {
+                GroupKey = groupKey,
+                Judul = judul,
+                Rows = groupRows.Skip(paging.Skip).Take(paging.Take).ToList(),
+                CurrentPage = paging.CurrentPage,
+                TotalPages = paging.TotalPages,
+                TotalCount = groupRows.Count,
+                ExpiredCount = groupRows.Count(r => r.Status == CertificateStatus.Expired),
+                AkanExpiredCount = groupRows.Count(r => r.Status == CertificateStatus.AkanExpired)
+            };
+
+            return PartialView("Shared/_RenewalGroupTablePartial", group);
         }
 
         #endregion
