@@ -3,11 +3,11 @@ gsd_state_version: 1.0
 milestone: v7.8
 milestone_name: Dokumen KKJ & Alignment KKJ/IDP — Combine Menu
 status: unknown
-stopped_at: Completed 206-01-PLAN.md
-last_updated: "2026-03-20T04:39:39.771Z"
+stopped_at: Phase 207 context gathered
+last_updated: "2026-03-20T05:27:20.925Z"
 last_activity: 2026-03-20
 progress:
-  total_phases: 2
+  total_phases: 3
   completed_phases: 2
   total_plans: 2
   completed_plans: 2
@@ -40,6 +40,10 @@ Plan: 1 of 1 (DONE)
 - [Phase 205]: ActiveTab server-side via ?tab query param untuk deep-link tanpa JavaScript tambahan
 - [Phase 206]: Card KKJ dan Alignment digabung menjadi 1 card primary di CMP Index, action/view lama dihapus
 
+### Roadmap Evolution
+
+- Phase 207 added: Perbaikan desain tabel DokumenKkj
+
 ### Blockers/Concerns
 
 None.
@@ -47,5 +51,5 @@ None.
 ## Session Continuity
 
 Last activity: 2026-03-20
-Stopped at: Completed 206-01-PLAN.md
-Resume file: .planning/phases/206-update-cmp-hub-backward-compat/206-01-SUMMARY.md
+Stopped at: Phase 207 context gathered
+Resume file: .planning/phases/207-perbaikan-desain-tabel-dokumenkkj-pemisah-bagian-kolom-tipe-rata-rename-tab-kkj-hapus-kolom-tanggal-kecilkan-area-kosong/207-CONTEXT.md
