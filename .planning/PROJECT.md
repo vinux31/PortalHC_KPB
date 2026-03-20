@@ -12,6 +12,16 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu
+
+**Goal:** Gabung 2 menu terpisah di CMP Index (KKJ dan Alignment KKJ & IDP) menjadi 1 halaman dengan 2 tab, menampilkan semua bagian langsung tanpa dropdown.
+
+**Target features:**
+- [ ] Halaman gabungan dengan 2 tab: "Kebutuhan Kompetensi Jabatan" dan "Alignment KKJ & IDP"
+- [ ] Setiap tab menampilkan semua data bagian langsung (tanpa dropdown selector)
+- [ ] Card di CMP Index digabung jadi 1 dengan nama "Dokumen KKJ & Alignment KKJ/IDP"
+- [ ] Admin pages (KkjMatrix, CpdpFiles) tetap terpisah
+
 ## Current State (after v7.7 complete, 2026-03-19)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
@@ -22,8 +32,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.5 shipped** — Assessment Form Revamp & Certificate Enhancement, 6 phases (190-195).
 **v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
 **v7.7 shipped** — Renewal Certificate & Certificate History, 5 phases (200-204).
-
-Portal is fully audited and polished. Full certificate renewal lifecycle: renewal chain FK tracking, CreateAssessment pre-fill from expired certs, dedicated Renewal Certificate admin page with bulk renew, certificate history modal with Union-Find chain grouping, CDP table hiding renewed certs. Codebase deduplicated: IWorkerDataService shared service, ExcelExportHelper, FileUploadHelper, PaginationHelper, role-scoping helpers. Between milestones — ready for `/gsd:new-milestone`.
+**v7.8 active** — Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (phases 205+).
 
 ## Architecture Decisions
 
