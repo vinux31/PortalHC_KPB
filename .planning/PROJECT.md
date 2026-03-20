@@ -19,10 +19,10 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Target features:**
 - [ ] Halaman gabungan dengan 2 tab: "Kebutuhan Kompetensi Jabatan" dan "Alignment KKJ & IDP"
 - [ ] Setiap tab menampilkan semua data bagian langsung (tanpa dropdown selector)
-- [ ] Card di CMP Index digabung jadi 1 dengan nama "Dokumen KKJ & Alignment KKJ/IDP"
+- [x] Card di CMP Index digabung jadi 1 dengan nama "Dokumen KKJ & Alignment KKJ/IDP"
 - [ ] Admin pages (KkjMatrix, CpdpFiles) tetap terpisah
 
-## Current State (after v7.7 complete, 2026-03-19)
+## Current State (after v7.8 phase 206 complete, 2026-03-20)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
