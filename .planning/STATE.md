@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.9
 milestone_name: Renewal Certificate Grouped View
 status: unknown
-stopped_at: "Task 3 checkpoint:human-verify — awaiting manual verification"
-last_updated: "2026-03-20T07:44:43.575Z"
+stopped_at: Completed 209-01-PLAN.md
+last_updated: "2026-03-20T07:48:20.225Z"
 progress:
   total_phases: 2
   completed_phases: 2
@@ -36,6 +36,8 @@ Plan: 1 of 1
 - [v7.9 arch]: Pure frontend/view + ViewModel grouping — tidak ada DB migration
 - [v7.9 split]: Fase 208 = struktur grouped view, Fase 209 = bulk renew + filter compat
 - [Phase 208]: GroupKey di-encode Base64 URL-safe agar aman sebagai HTML id attribute
+- [Phase 209]: Lock checkbox per group-key (bukan per kategori) sesuai desain grouped view Phase 208
+- [Phase 209]: Modal konfirmasi bulk renew sebelum redirect ke CreateAssessment
 
 ### Pending Todos
 
@@ -47,6 +49,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:44:43.571Z
-Stopped at: Task 3 checkpoint:human-verify — awaiting manual verification
+Last session: 2026-03-20T07:48:20.030Z
+Stopped at: Completed 209-01-PLAN.md
 Resume file: None

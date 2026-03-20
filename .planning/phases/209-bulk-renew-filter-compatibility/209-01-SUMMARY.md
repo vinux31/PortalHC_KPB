@@ -24,7 +24,7 @@ decisions:
 metrics:
   duration: "~5 menit"
   completed: "2026-03-20T07:44:04Z"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
   files_changed: 4
 ---
@@ -40,9 +40,9 @@ metrics:
 | 1 | Server-side tombol renew per group + IsFiltered + empty state filter | 966650d | Models/CertificationManagementViewModel.cs, Controllers/AdminController.cs, Views/Admin/Shared/_RenewalGroupedPartial.cshtml |
 | 2 | JS wiring checkbox lock per group, select-all, modal konfirmasi, cleanup | bb25e3e | Views/Admin/RenewalCertificate.cshtml |
 
-## Checkpoint Pending
+## Verification
 
-Task 3 (human-verify) sedang menunggu verifikasi manual di browser.
+Task 3 (human-verify) — **APPROVED** oleh user. Semua 10 langkah verifikasi manual di browser lulus.
 
 ## What Was Built
 
