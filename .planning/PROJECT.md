@@ -12,6 +12,17 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
+## Current Milestone: v7.9 Renewal Certificate Grouped View
+
+**Goal:** Redesign tabel RenewalCertificate dari flat list menjadi grouped by sertifikat — collapsible sections, badge count per group, bulk renew per group.
+
+**Target features:**
+- [ ] Tabel dikelompokkan berdasarkan nama sertifikat (bukan flat list per-orang)
+- [ ] Group header menampilkan judul sertifikat, kategori, dan badge count (N orang expired/akan expired)
+- [ ] Collapsible sections per group (bisa expand/collapse)
+- [ ] Bulk renew per group (select all dalam group, klik Renew)
+- [ ] Tabel per group lebih ringkas: hanya kolom Nama, Valid Until, Status, Aksi
+
 ## Current State (after v7.8 complete, 2026-03-20)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
