@@ -3,52 +3,64 @@
 **Defined:** 2026-03-20
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v7.9 Requirements
+## v7.10 Requirements
 
-### Grouped View
+### Bug Fixes — Renewal Chain
 
-- [x] **GRP-01**: Tabel RenewalCertificate menampilkan data dikelompokkan per judul sertifikat (bukan flat list per-orang)
-- [x] **GRP-02**: Group header menampilkan judul sertifikat, kategori/sub-kategori, dan badge count (N expired, N akan expired)
-- [x] **GRP-03**: Setiap group bisa di-collapse/expand (default: collapsed)
-- [x] **GRP-04**: Tabel per group hanya menampilkan kolom: Checkbox, Nama, Valid Until, Status, Aksi
+- [ ] **FIX-01**: Bulk renew menetapkan RenewsSessionId/RenewsTrainingId ke semua user yang dipilih (bukan hanya user[0])
+- [ ] **FIX-02**: Badge count di Admin/Index sinkron dengan BuildRenewalRowsAsync (termasuk TR→AS dan TR→TR renewal)
+- [ ] **FIX-03**: renewedByTrSessionIds memfilter hanya TrainingRecord yang IsPassed
+- [ ] **FIX-04**: AddTraining mendukung renewal chain (set RenewsTrainingId/RenewsSessionId sesuai sumber)
 
-### Bulk Renew
+### Bug Fixes — Data & Display
 
-- [ ] **BULK-01**: Checkbox select-all per group untuk memilih semua pekerja dalam satu sertifikat
-- [ ] **BULK-02**: Tombol "Renew N Pekerja" per group muncul saat ada checkbox tercentang
+- [ ] **FIX-05**: ValidUntil=null dengan CertificateType bukan "Permanent" tidak salah dianggap Permanent (hilang dari renewal list)
+- [ ] **FIX-06**: Renew dari TrainingRecord: Category di-prefill otomatis sesuai sertifikat asal
+- [ ] **FIX-07**: MapKategori konsisten dengan AssessmentCategories name
+- [ ] **FIX-08**: Grouping by Judul case-insensitive
+- [ ] **FIX-09**: Judul dengan karakter khusus aman di URL (encode/decode tidak gagal match)
+- [ ] **FIX-10**: ValidUntil=null di renewal mode menampilkan error message informatif
 
-### Filter & Pagination
+### Enhancement — Tipe Filter & Renewal Flow
 
-- [ ] **FILT-01**: Filter Bagian/Unit/Kategori/Sub Kategori/Status tetap berfungsi pada tampilan grouped
-- [ ] **FILT-02**: Summary cards (Expired count, Akan Expired count) tetap dipertahankan dan update sesuai filter
+- [ ] **ENH-01**: Filter tipe (Assessment / Training) pada halaman RenewalCertificate
+- [ ] **ENH-02**: Renewal flow berdasarkan tipe — Training→popup pilihan (renew via assessment ATAU via training record baru)
+- [ ] **ENH-03**: Bulk renew aware tipe — tidak langsung ke CreateAssessment kalau ada training items
+- [ ] **ENH-04**: AddTraining renewal mode dengan pre-fill data sertifikat asal + set FK
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Redesign filter bar | Filter bar existing sudah cukup, cukup pastikan tetap berfungsi |
-| Card/tile-based layout | Pendekatan grouped table lebih natural untuk bulk action |
-| Grouped by pekerja | User memilih grouped by sertifikat |
-| Perubahan Certificate History modal | Modal existing sudah berfungsi baik |
+| Redesign filter bar | Filter bar existing sudah cukup, hanya tambah filter tipe |
+| Redesign grouped view | Grouped view v7.9 sudah shipped, hanya fix bugs |
+| Certificate History modal changes | Modal existing sudah berfungsi baik |
+| DB migration untuk renewal chain | Kolom FK sudah ada, hanya fix logic yang belum set |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GRP-01 | Phase 208 | Complete |
-| GRP-02 | Phase 208 | Complete |
-| GRP-03 | Phase 208 | Complete |
-| GRP-04 | Phase 208 | Complete |
-| BULK-01 | Phase 209 | Pending |
-| BULK-02 | Phase 209 | Pending |
-| FILT-01 | Phase 209 | Pending |
-| FILT-02 | Phase 209 | Pending |
+| FIX-01 | — | Pending |
+| FIX-02 | — | Pending |
+| FIX-03 | — | Pending |
+| FIX-04 | — | Pending |
+| FIX-05 | — | Pending |
+| FIX-06 | — | Pending |
+| FIX-07 | — | Pending |
+| FIX-08 | — | Pending |
+| FIX-09 | — | Pending |
+| FIX-10 | — | Pending |
+| ENH-01 | — | Pending |
+| ENH-02 | — | Pending |
+| ENH-03 | — | Pending |
+| ENH-04 | — | Pending |
 
 **Coverage:**
-- v7.9 requirements: 8 total
-- Mapped to phases: 8
-- Unmapped: 0 ✓
+- v7.10 requirements: 14 total
+- Mapped to phases: 0
+- Unmapped: 14 ⚠️
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 — traceability mapped after roadmap creation*
+*Last updated: 2026-03-20 after initial definition*
