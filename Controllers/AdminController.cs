@@ -5517,6 +5517,18 @@ namespace HcPortal.Controllers
                 }
             }
 
+            // Baca bulk renewal params
+            var fkMapJson = Request.Form["renewalFkMap"].FirstOrDefault();
+            var fkMapType = Request.Form["renewalFkMapType"].FirstOrDefault();
+            Dictionary<string, int>? fkMap = null;
+            if (!string.IsNullOrEmpty(fkMapJson))
+                fkMap = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(fkMapJson);
+
+            var userIdsJson = Request.Form["UserIds"].FirstOrDefault();
+            List<string>? bulkUserIds = null;
+            if (!string.IsNullOrEmpty(userIdsJson))
+                bulkUserIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(userIdsJson);
+
             if (!ModelState.IsValid)
             {
                 var workersList = await _context.Users
@@ -5528,6 +5540,17 @@ namespace HcPortal.Controllers
                     Value = w.Id,
                     Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
                 }).ToList();
+                ViewBag.IsRenewalMode = (model.RenewsTrainingId != null || model.RenewsSessionId != null || !string.IsNullOrEmpty(fkMapJson));
+                if (model.RenewsTrainingId != null)
+                {
+                    var src = await _context.TrainingRecords.Include(t => t.User).FirstOrDefaultAsync(t => t.Id == model.RenewsTrainingId);
+                    if (src != null) { ViewBag.RenewalSourceTitle = src.Judul ?? ""; ViewBag.RenewalSourceUserName = src.User?.FullName ?? ""; }
+                }
+                else if (model.RenewsSessionId != null)
+                {
+                    var src = await _context.AssessmentSessions.Include(s => s.User).FirstOrDefaultAsync(s => s.Id == model.RenewsSessionId);
+                    if (src != null) { ViewBag.RenewalSourceTitle = src.Title ?? ""; ViewBag.RenewalSourceUserName = src.User?.FullName ?? ""; }
+                }
                 return View(model);
             }
 
@@ -5536,6 +5559,41 @@ namespace HcPortal.Controllers
             if (uploadedUrl != null)
             {
                 sertifikatUrl = uploadedUrl;
+            }
+
+            // Bulk renewal: buat N TrainingRecord dengan FK per-user
+            if (bulkUserIds != null && bulkUserIds.Count > 1)
+            {
+                foreach (var uid in bulkUserIds)
+                {
+                    var rec = new TrainingRecord
+                    {
+                        UserId = uid,
+                        Judul = model.Judul,
+                        Penyelenggara = model.Penyelenggara,
+                        Kota = model.Kota,
+                        Kategori = model.Kategori,
+                        Tanggal = model.Tanggal,
+                        TanggalMulai = model.TanggalMulai,
+                        TanggalSelesai = model.TanggalSelesai,
+                        Status = model.Status,
+                        NomorSertifikat = model.NomorSertifikat,
+                        ValidUntil = model.ValidUntil,
+                        CertificateType = model.CertificateType,
+                        SertifikatUrl = sertifikatUrl
+                    };
+
+                    if (fkMap != null && fkMap.TryGetValue(uid, out var fkId))
+                    {
+                        if (fkMapType == "training") rec.RenewsTrainingId = fkId;
+                        else rec.RenewsSessionId = fkId;
+                    }
+
+                    _context.TrainingRecords.Add(rec);
+                }
+                await _context.SaveChangesAsync();
+                TempData["Success"] = $"Berhasil membuat {bulkUserIds.Count} training record (renewal).";
+                return RedirectToAction("ManageAssessment", new { tab = "training" });
             }
 
             var record = new TrainingRecord
@@ -5552,7 +5610,9 @@ namespace HcPortal.Controllers
                 NomorSertifikat = model.NomorSertifikat,
                 ValidUntil = model.ValidUntil,
                 CertificateType = model.CertificateType,
-                SertifikatUrl = sertifikatUrl
+                SertifikatUrl = sertifikatUrl,
+                RenewsTrainingId = model.RenewsTrainingId,
+                RenewsSessionId = model.RenewsSessionId
             };
 
             _context.TrainingRecords.Add(record);

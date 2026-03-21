@@ -16,6 +16,17 @@
     </ol>
 </nav>
 
+@if (ViewBag.IsRenewalMode == true)
+{
+    <div class="alert alert-warning d-flex align-items-center mb-3">
+        <i class="bi bi-arrow-repeat me-2 fs-5"></i>
+        <span>Mode Renewal — Training ini akan me-renew sertifikat
+            <strong>@ViewBag.RenewalSourceTitle</strong>
+            milik <strong>@ViewBag.RenewalSourceUserName</strong>
+        </span>
+    </div>
+}
+
 <!-- Page Header -->
 <div class="mb-4">
     <h2 class="fw-bold mb-1">
@@ -166,6 +177,23 @@
         </div>
     </div>
 
+    @if (ViewBag.IsRenewalMode == true)
+    {
+        if (Model.RenewsTrainingId != null)
+        {
+            <input type="hidden" name="RenewsTrainingId" value="@Model.RenewsTrainingId" />
+        }
+        if (Model.RenewsSessionId != null)
+        {
+            <input type="hidden" name="RenewsSessionId" value="@Model.RenewsSessionId" />
+        }
+        if (ViewBag.RenewalFkMap != null)
+        {
+            <input type="hidden" id="renewal-fk-map" name="renewalFkMap" value='@ViewBag.RenewalFkMap' />
+            <input type="hidden" id="renewal-fk-map-type" name="renewalFkMapType" value="@ViewBag.RenewalFkMapType" />
+        }
+    }
+
     <!-- Submit Buttons -->
     <div class="d-flex justify-content-end gap-2">
         <a href="@Url.Action("ManageAssessment", "Admin", new { tab = "training" })" class="btn btn-outline-secondary">
@@ -176,3 +204,43 @@
         </button>
     </div>
 </form>
+
+@if (ViewBag.SelectedUserId != null)
+{
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var sel = document.getElementById('UserId');
+        if (sel) sel.value = '@ViewBag.SelectedUserId';
+    });
+    </script>
+}
+@if (ViewBag.SelectedUserIds != null)
+{
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var sel = document.getElementById('UserId');
+        if (sel) {
+            var ids = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.SelectedUserIds));
+            if (ids.length === 1) {
+                sel.value = ids[0];
+            }
+            if (ids.length > 1) {
+                var hiddenIds = document.createElement('input');
+                hiddenIds.type = 'hidden';
+                hiddenIds.name = 'UserIds';
+                hiddenIds.value = JSON.stringify(ids);
+                sel.closest('form').appendChild(hiddenIds);
+                // Sembunyikan field UserId tunggal karena akan pakai UserIds
+                var wrapper = sel.closest('.mb-3') || sel.closest('.col-md-12');
+                if (wrapper) wrapper.style.display = 'none';
+                // Tampilkan info jumlah peserta
+                var info = document.createElement('div');
+                info.className = 'alert alert-info mb-3';
+                info.innerHTML = '<i class="bi bi-people me-1"></i>' + ids.length + ' peserta akan di-renew';
+                var form = sel.closest('form');
+                if (form) form.insertBefore(info, form.firstChild);
+            }
+        }
+    });
+    </script>
+}
