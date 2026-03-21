@@ -790,6 +790,21 @@ namespace HcPortal.Controllers
             ViewBag.PotentialParents = potentialParents;
         }
 
+        private async Task SetTrainingCategoryViewBag()
+        {
+            ViewBag.KategoriOptions = await _context.AssessmentCategories
+                .Where(c => c.ParentId == null && c.IsActive)
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .Select(c => new { c.Id, c.Name })
+                .ToListAsync();
+
+            ViewBag.SubKategoriOptions = await _context.AssessmentCategories
+                .Where(c => c.ParentId != null && c.IsActive)
+                .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .Select(c => new { c.Id, c.Name, c.ParentId })
+                .ToListAsync();
+        }
+
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> ManageCategories()
@@ -5492,6 +5507,7 @@ namespace HcPortal.Controllers
             }
 
             ViewBag.IsRenewalMode = isRenewalMode;
+            await SetTrainingCategoryViewBag();
             return View(model);
         }
 
@@ -5551,6 +5567,7 @@ namespace HcPortal.Controllers
                     var src = await _context.AssessmentSessions.Include(s => s.User).FirstOrDefaultAsync(s => s.Id == model.RenewsSessionId);
                     if (src != null) { ViewBag.RenewalSourceTitle = src.Title ?? ""; ViewBag.RenewalSourceUserName = src.User?.FullName ?? ""; }
                 }
+                await SetTrainingCategoryViewBag();
                 return View(model);
             }
 
@@ -5573,6 +5590,7 @@ namespace HcPortal.Controllers
                         Penyelenggara = model.Penyelenggara,
                         Kota = model.Kota,
                         Kategori = model.Kategori,
+                        SubKategori = model.SubKategori,
                         Tanggal = model.Tanggal,
                         TanggalMulai = model.TanggalMulai,
                         TanggalSelesai = model.TanggalSelesai,
@@ -5603,6 +5621,7 @@ namespace HcPortal.Controllers
                 Penyelenggara = model.Penyelenggara,
                 Kota = model.Kota,
                 Kategori = model.Kategori,
+                SubKategori = model.SubKategori,
                 Tanggal = model.Tanggal,
                 TanggalMulai = model.TanggalMulai,
                 TanggalSelesai = model.TanggalSelesai,
@@ -5647,6 +5666,7 @@ namespace HcPortal.Controllers
                 Penyelenggara = record.Penyelenggara,
                 Kota = record.Kota,
                 Kategori = record.Kategori,
+                SubKategori = record.SubKategori,
                 Tanggal = record.Tanggal,
                 TanggalMulai = record.TanggalMulai,
                 TanggalSelesai = record.TanggalSelesai,
@@ -5656,6 +5676,7 @@ namespace HcPortal.Controllers
                 CertificateType = record.CertificateType,
                 ExistingSertifikatUrl = record.SertifikatUrl,
             };
+            await SetTrainingCategoryViewBag();
             return View(model);
         }
 
@@ -5712,6 +5733,7 @@ namespace HcPortal.Controllers
             record.Penyelenggara = model.Penyelenggara;
             record.Kota = model.Kota;
             record.Kategori = model.Kategori;
+            record.SubKategori = model.SubKategori;
             record.Tanggal = model.Tanggal;
             record.TanggalMulai = model.TanggalMulai;
             record.TanggalSelesai = model.TanggalSelesai;
@@ -5768,7 +5790,7 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Import Training");
 
-            var headers = new[] { "NIP", "Judul", "Kategori", "Tanggal (YYYY-MM-DD)", "Penyelenggara", "Status", "ValidUntil (YYYY-MM-DD, opsional)", "NomorSertifikat (opsional)" };
+            var headers = new[] { "NIP", "Judul", "Kategori", "Tanggal (YYYY-MM-DD)", "Penyelenggara", "Status", "ValidUntil (YYYY-MM-DD, opsional)", "NomorSertifikat (opsional)", "SubKategori (opsional)" };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -5786,7 +5808,8 @@ namespace HcPortal.Controllers
             ws.Cell(2, 6).Value = "Passed";
             ws.Cell(2, 7).Value = "2027-03-15";
             ws.Cell(2, 8).Value = "CERT-001";
-            for (int i = 1; i <= 8; i++)
+            ws.Cell(2, 9).Value = "";
+            for (int i = 1; i <= 9; i++)
             {
                 ws.Cell(2, i).Style.Font.Italic = true;
                 ws.Cell(2, i).Style.Font.FontColor = XLColor.Gray;
@@ -5856,6 +5879,7 @@ namespace HcPortal.Controllers
                     var status = row.Cell(6).GetString().Trim();
                     var validUntilStr = row.Cell(7).GetString().Trim();
                     var nomorSertifikat = row.Cell(8).GetString().Trim();
+                    var subKategori = row.Cell(9).GetString().Trim();
 
                     // Skip completely blank rows
                     if (string.IsNullOrWhiteSpace(nip) && string.IsNullOrWhiteSpace(judul)) continue;
@@ -5902,6 +5926,7 @@ namespace HcPortal.Controllers
                             UserId = targetUser.Id,
                             Judul = judul,
                             Kategori = kategori,
+                            SubKategori = string.IsNullOrWhiteSpace(subKategori) ? null : subKategori,
                             Tanggal = parsedDate,
                             Penyelenggara = penyelenggara,
                             Status = status,
