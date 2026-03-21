@@ -215,7 +215,7 @@ namespace HcPortal.Services
                     tr.Status == "Passed" || tr.Status == "Valid" || tr.Status == "Permanent"
                 );
                 var pendingTrainings = trainingRecords.Count(tr =>
-                    tr.Status == "Wait Certificate" || tr.Status == "Pending"
+                    tr.Status == "Pending"
                 );
                 var expiringTrainings = trainingRecords.Count(tr => tr.IsExpiringSoon);
 

@@ -114,8 +114,9 @@
                     <label asp-for="Status" class="form-label fw-bold">Status <span class="text-danger">*</span></label>
                     <select asp-for="Status" class="form-select">
                         <option value="Passed">Passed</option>
-                        <option value="Wait Certificate">Wait Certificate</option>
                         <option value="Valid">Valid</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Failed">Failed</option>
                     </select>
                     <span asp-validation-for="Status" class="text-danger small"></span>
                 </div>
