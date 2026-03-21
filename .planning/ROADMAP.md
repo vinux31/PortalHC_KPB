@@ -48,7 +48,7 @@
 **Milestone Goal:** Perbaikan filter bug di Team View, penambahan SubCategory model dan filter, perbaikan konsistensi export, dan penambahan badge IsExpiringSoon di My Records.
 
 - [x] **Phase 213: Filter & Status Fixes** - Perbaiki 3 filter bug inti di Team View (completed 2026-03-21)
-- [ ] **Phase 214: SubCategory Model + CRUD** - Tambah kolom SubKategori di TrainingRecord, dropdown Kategori/SubKategori dari AssessmentCategories di AddTraining/EditTraining/ImportTraining
+- [x] **Phase 214: SubCategory Model + CRUD** - Tambah kolom SubKategori di TrainingRecord, dropdown Kategori/SubKategori dari AssessmentCategories di AddTraining/EditTraining/ImportTraining (completed 2026-03-21)
 - [ ] **Phase 215: Team View Filter Enhancement** - Assessment records masuk data filterable, dropdown Sub Category dependent di Team View
 - [ ] **Phase 216: Export Fixes & Display Enhancement** - Sejajarkan team export dengan personal export dan tampilkan badge expiring soon
 
@@ -79,7 +79,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 214-01-PLAN.md — Model + Migration + ViewModel + Controller backend
-- [ ] 214-02-PLAN.md — View updates: dynamic dropdowns + ImportTraining docs
+- [x] 214-02-PLAN.md — View updates: dynamic dropdowns + ImportTraining docs
 
 ### Phase 215: Team View Filter Enhancement
 **Goal**: Assessment records masuk ke data filterable di Team View dan dropdown Sub Category tersedia sebagai filter dependent
@@ -118,6 +118,6 @@ Plans:
 | 211. Data & Display Fixes | v7.10 | 1/1 | Complete | 2026-03-21 |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
 | 213. Filter & Status Fixes | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 214. SubCategory Model + CRUD | v7.11 | 1/2 | In Progress|  |
+| 214. SubCategory Model + CRUD | v7.11 | 2/2 | Complete   | 2026-03-21 |
 | 215. Team View Filter Enhancement | v7.11 | 0/? | Not started | - |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |

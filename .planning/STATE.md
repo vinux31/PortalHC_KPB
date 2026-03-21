@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.11
 milestone_name: CMP Records Bug Fixes & Enhancement
 status: unknown
-stopped_at: Completed 214-01-PLAN.md
-last_updated: "2026-03-21T08:03:47.437Z"
+stopped_at: Completed 214-02-PLAN.md
+last_updated: "2026-03-21T08:06:24.629Z"
 progress:
   total_phases: 4
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State: Portal HC KPB
@@ -44,6 +44,7 @@ Plan: 2 of 2
 
 | Phase 213 P01 | 8 | 2 tasks | 2 files |
 | Phase 214 P01 | 12 | 2 tasks | 6 files |
+| Phase 214 P02 | 8 | 2 tasks | 3 files |
 
 ### Decisions
 
@@ -53,6 +54,8 @@ Plan: 2 of 2
 - [Phase 213]: completedCategories dihitung server-side di Razor dan disimpan sebagai data-completed-categories attribute lowercase
 - [Phase 213]: Status Permanent setara dengan Passed/Valid untuk completion count di WorkerDataService
 - [Phase 214]: Dua migration dibuat karena binary lama: AddSubKategoriToTrainingRecord kosong, AddSubKategoriColumn berisi AddColumn yang benar
+- [Phase 214]: JS IIFE pattern digunakan agar kategoriMap dan select references tidak bocor ke global scope
+- [Phase 214]: FilterSubKategori sebagai fungsi terpisah di EditTraining agar bisa dipanggil saat DOMContentLoaded dan change event
 
 ### Pending Todos
 
@@ -64,6 +67,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T08:03:47.433Z
-Stopped at: Completed 214-01-PLAN.md
+Last session: 2026-03-21T08:06:24.625Z
+Stopped at: Completed 214-02-PLAN.md
 Resume file: None
