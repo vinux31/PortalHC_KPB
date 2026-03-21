@@ -12,7 +12,24 @@ namespace HcPortal.Models
         public string? Kategori { get; set; }   // "PROTON", "OJT", "MANDATORY"
         public DateTime Tanggal { get; set; }
         public string? Penyelenggara { get; set; } // "Internal", "Licensor", "NSO"
-        public string? Status { get; set; }     // "Passed", "Wait Certificate", "Valid"
+        /// <summary>
+        /// Status lifecycle TrainingRecord:
+        ///
+        /// Training Manual (Import/Add):
+        ///   - "Passed" — training selesai, tanpa sertifikat (atau tanpa ValidUntil)
+        ///   - "Valid" — training selesai dengan sertifikat (ValidUntil terisi)
+        ///   - "Expired" — saat ValidUntil sudah lewat
+        ///
+        /// Assessment:
+        ///   - "Failed" — peserta gagal ujian
+        ///   - "Passed" — peserta lulus, tanpa sertifikat (GenerateCertificate = false)
+        ///   - "Valid" — peserta lulus dengan sertifikat (GenerateCertificate = true, ValidUntil terisi)
+        ///   - "Expired" — saat ValidUntil sudah lewat
+        ///
+        /// Status yang valid: Passed, Valid, Expired, Failed
+        /// "Wait Certificate" sudah dihapus dan dimigrasikan ke "Passed".
+        /// </summary>
+        public string? Status { get; set; }
         public string? SertifikatUrl { get; set; }
         
         // New fields for certificate expiry tracking

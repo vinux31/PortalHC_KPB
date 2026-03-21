@@ -72,6 +72,14 @@ namespace HcPortal.Models
         public string? NomorSertifikat { get; set; }
 
         public bool IsTokenRequired { get; set; }
+
+        /// <summary>
+        /// Token akses untuk masuk ke sesi ujian.
+        /// DESAIN DISENGAJA: Token ini di-share ke semua peserta dalam satu batch ujian yang sama
+        /// (common exam room pattern). Ini bukan security vulnerability — peserta ujian memang
+        /// berada di ruangan yang sama dan mendapat token yang sama dari pengawas.
+        /// Token hanya mengontrol akses masuk, bukan identitas peserta (identity ditangani ASP.NET Core Identity).
+        /// </summary>
         public string AccessToken { get; set; } = "";
 
         // Audit fields
