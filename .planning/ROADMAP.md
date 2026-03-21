@@ -91,7 +91,7 @@
   5. Kode mengandung komentar dokumentasi yang menjelaskan alasan AccessToken dibiarkan shared (common exam room pattern)
 **Plans**: 2 plans
 Plans:
-- [ ] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
+- [x] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
 - [ ] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
 
 ### Phase 224: Analytics Dashboard HC
@@ -173,7 +173,7 @@ Plans:
 | 220. CRUD Page Kelola Data | v7.12 | 2/2 | Complete | 2026-03-21 |
 | 221. Integrasi Codebase | v7.12 | 3/3 | Complete | 2026-03-21 |
 | 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete | 2026-03-21 |
-| 223. Assessment Quick Wins | v8.0 | 0/TBD | Not started | - |
+| 223. Assessment Quick Wins | v8.0 | 1/2 | In Progress|  |
 | 224. Analytics Dashboard HC | v8.0 | 0/TBD | Not started | - |
 | 225. Training Compliance Matrix | v8.0 | 0/TBD | Not started | - |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |

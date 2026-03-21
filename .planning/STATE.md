@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Assessment & Training System Audit
-status: planning
-stopped_at: Phase 223 context gathered
-last_updated: "2026-03-21T16:00:23.751Z"
-last_activity: 2026-03-21 — v7.12 shipped. v8.0 roadmap created (5 phases, 23 requirements mapped).
+status: unknown
+stopped_at: Completed 223-01-PLAN.md
+last_updated: "2026-03-21T16:16:52.704Z"
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State: Portal HC KPB
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 223 — Assessment Quick Wins (v8.0 start)
+**Current focus:** Phase 223 — assessment-quick-wins
 
 ## Current Position
 
-Phase: 223 of 227 in v8.0 (Assessment Quick Wins)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-21 — v7.12 shipped. v8.0 roadmap created (5 phases, 23 requirements mapped).
-
-Progress: [████████████████████░░░░░] 0% v8.0 (0/5 phases)
+Phase: 223 (assessment-quick-wins) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -47,6 +41,8 @@ Progress: [████████████████████░░░
 - [v8.0 scope]: AccessToken tetap shared (CLEN-05) — documented decision, tidak diubah
 - [v8.0 scope]: Proton/Coaching audit explicitly excluded dari v8.0
 - [Phase 222]: OrganizationStructure static class dihapus — semua dropdown/filter pakai OrganizationUnits DB
+- [Phase 223]: ET persist di package path only — legacy path skip karena AssessmentQuestion tidak punya ElemenTeknis field
+- [Phase 223]: Fallback 'Lainnya' untuk soal tanpa tag ET di SessionElemenTeknisScore
 
 ### Pending Todos
 
@@ -60,6 +56,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T16:00:23.748Z
-Stopped at: Phase 223 context gathered
-Resume file: .planning/phases/223-assessment-quick-wins/223-CONTEXT.md
+Last session: 2026-03-21T16:16:52.701Z
+Stopped at: Completed 223-01-PLAN.md
+Resume file: None
