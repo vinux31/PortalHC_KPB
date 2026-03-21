@@ -119,10 +119,6 @@
                         <label asp-for="Section" class="form-label fw-semibold"></label>
                         <select asp-for="Section" class="form-select" id="sectionSelect">
                             <option value="">-- Pilih Bagian --</option>
-                            <option value="RFCC">RFCC</option>
-                            <option value="DHT / HMU">DHT / HMU</option>
-                            <option value="NGP">NGP</option>
-                            <option value="GAST">GAST</option>
                         </select>
                     </div>
                     <div class="col-md-6">
@@ -209,37 +205,26 @@
 
 <script>
     // --- Section → Unit Cascading ---
-    const sectionUnits = {
-        "RFCC": [
-            "RFCC LPG Treating Unit (062)",
-            "Propylene Recovery Unit (063)"
-        ],
-        "DHT / HMU": [
-            "Diesel Hydrotreating Unit I & II (054 & 083)",
-            "Hydrogen Manufacturing Unit (068)",
-            "Common DHT H2 Compressor (085)"
-        ],
-        "NGP": [
-            "Saturated Gas Concentration Unit (060)",
-            "Saturated LPG Treating Unit (064)",
-            "Isomerization Unit (082)",
-            "Common Facilities For NLP (160)",
-            "Naphtha Hydrotreating Unit II (084)"
-        ],
-        "GAST": [
-            "RFCC NHT (053)",
-            "Alkylation Unit (065)",
-            "Wet Gas Sulfuric Acid Unit (066)",
-            "SWS RFCC & Non RFCC (067 & 167)",
-            "Amine Regeneration Unit I & II (069 & 079)",
-            "Flare System (319)",
-            "Sulfur Recovery Unit (169)"
-        ]
-    };
+    const sectionUnits = @Html.Raw(ViewBag.SectionUnitsJson ?? "{}");
 
     const sectionSelect = document.getElementById('sectionSelect');
     const unitSelect = document.getElementById('unitSelect');
     const currentUnit = "@(Model.Unit ?? "")";
+
+    // Populate Bagian dropdown dari DB
+    Object.keys(sectionUnits).forEach(section => {
+        const opt = document.createElement('option');
+        opt.value = section;
+        opt.textContent = section;
+        sectionSelect.appendChild(opt);
+    });
+
+    // Restore selected section/unit on page load
+    const currentSection = "@(Model.Section ?? "")";
+    if (currentSection) {
+        sectionSelect.value = currentSection;
+        updateUnits(currentSection);
+    }
 
     sectionSelect.addEventListener('change', function () {
         updateUnits(this.value);
@@ -256,11 +241,6 @@
                 unitSelect.appendChild(opt);
             });
         }
-    }
-
-    // Initialize on page load — populate units for the existing section value
-    if (sectionSelect.value) {
-        updateUnits(sectionSelect.value);
     }
 
     // Toggle password visibility
