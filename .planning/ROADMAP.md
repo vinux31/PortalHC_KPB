@@ -72,7 +72,7 @@
 **Milestone Goal:** Audit dan perkuat fondasi sistem assessment dan training — integritas data exam, analytics untuk HC, compliance tracking training, notifikasi email sertifikat, question bank terpisah, dan cleanup legacy debt.
 
 - [x] **Phase 223: Assessment Quick Wins** - Persist ET score, deteksi tab-switch, status lifecycle, timestamp UserResponse, dokumentasi AccessToken (completed 2026-03-21)
-- [ ] **Phase 224: Analytics Dashboard HC** - Visualisasi fail rate, trend assessment, breakdown ET, ringkasan sertifikat akan expired
+- [x] **Phase 224: Analytics Dashboard HC** - Visualisasi fail rate, trend assessment, breakdown ET, ringkasan sertifikat akan expired (completed 2026-03-21)
 - [ ] **Phase 225: Training Compliance Matrix** - CRUD matriks training wajib per jabatan, kalkulasi compliance, summary per section
 - [ ] **Phase 226: Email Notification Sertifikat Expired** - Reminder otomatis 90/30/7 hari, duplikat guard via NotificationSentLog
 - [ ] **Phase 227: Major Refactors** - Question Bank CRUD + import, pemilihan soal dari bank, migrasi legacy path, cleanup orphan tables, NomorSertifikat timing fix
@@ -106,7 +106,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 224-01-PLAN.md — Backend: ViewModel, JSON endpoint, cascade endpoints, CMP Hub link
-- [ ] 224-02-PLAN.md — Frontend: View Analytics Dashboard dengan Chart.js, filter AJAX, tabel
+- [x] 224-02-PLAN.md — Frontend: View Analytics Dashboard dengan Chart.js, filter AJAX, tabel
 
 ### Phase 225: Training Compliance Matrix
 **Goal**: Admin dapat mendefinisikan training wajib per jabatan, dan HC dapat melihat compliance percentage pekerja terhadap training yang diwajibkan
@@ -174,7 +174,7 @@ Plans:
 | 221. Integrasi Codebase | v7.12 | 3/3 | Complete | 2026-03-21 |
 | 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete | 2026-03-21 |
 | 223. Assessment Quick Wins | v8.0 | 2/2 | Complete    | 2026-03-21 |
-| 224. Analytics Dashboard HC | v8.0 | 1/2 | In Progress|  |
+| 224. Analytics Dashboard HC | v8.0 | 2/2 | Complete   | 2026-03-21 |
 | 225. Training Compliance Matrix | v8.0 | 0/TBD | Not started | - |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |
 | 227. Major Refactors | v8.0 | 0/TBD | Not started | - |
