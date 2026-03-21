@@ -6,7 +6,8 @@
 - ✅ **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–207 (shipped 2026-03-20)
 - ✅ **v7.9 Renewal Certificate Grouped View** - Phases 208–209 (shipped 2026-03-20)
 - ✅ **v7.10 RenewalCertificate Bug Fixes & Enhancement** - Phases 210–212 (shipped 2026-03-21)
-- 🚧 **v7.11 CMP Records Bug Fixes & Enhancement** - Phases 213–217 (in progress)
+- ✅ **v7.11 CMP Records Bug Fixes & Enhancement** - Phases 213–218 (shipped 2026-03-21)
+- 🚧 **v7.12 Struktur Organisasi CRUD** - Phases 219–222 (in progress)
 
 ## Phases
 
@@ -43,16 +44,26 @@
 
 </details>
 
-### 🚧 v7.11 CMP Records Bug Fixes & Enhancement (In Progress)
+<details>
+<summary>✅ v7.11 CMP Records Bug Fixes & Enhancement (Phases 213–218) - SHIPPED 2026-03-21</summary>
 
-**Milestone Goal:** Perbaikan filter bug di Team View, penambahan SubCategory model dan filter, perbaikan konsistensi export, dan penambahan badge IsExpiringSoon di My Records.
+- [x] Phase 213: Filter & Status Fixes (1/1 plans) — completed 2026-03-21
+- [x] Phase 214: SubCategory Model + CRUD (2/2 plans) — completed 2026-03-21
+- [x] Phase 215: Team View Filter Enhancement (1/1 plans) — completed 2026-03-21
+- [x] Phase 216: Export Fixes & Display Enhancement (0/? plans) — skipped/deferred
+- [x] Phase 217: Fix Category Dropdown RecordsTeam (1/1 plans) — completed 2026-03-21
+- [x] Phase 218: RecordsWorkerDetail Redesign & ImportTraining Update (2/2 plans) — completed 2026-03-21
 
-- [x] **Phase 213: Filter & Status Fixes** - Perbaiki 3 filter bug inti di Team View (completed 2026-03-21)
-- [x] **Phase 214: SubCategory Model + CRUD** - Tambah kolom SubKategori di TrainingRecord, dropdown Kategori/SubKategori dari AssessmentCategories di AddTraining/EditTraining/ImportTraining (completed 2026-03-21)
-- [x] **Phase 215: Team View Filter Enhancement** - Assessment records masuk data filterable, dropdown Sub Category dependent di Team View (completed 2026-03-21)
-- [ ] **Phase 216: Export Fixes & Display Enhancement** - Sejajarkan team export dengan personal export dan tampilkan badge expiring soon
-- [x] **Phase 217: Fix Category Dropdown RecordsTeam** - Dropdown Category dari master AssessmentCategories, bukan union string records (completed 2026-03-21)
-- [x] **Phase 218: RecordsWorkerDetail Redesign & ImportTraining Update** - Redesign tabel, tambah kolom Action/Kategori/SubKategori, update ImportTraining (completed 2026-03-21)
+</details>
+
+### 🚧 v7.12 Struktur Organisasi CRUD (In Progress)
+
+**Milestone Goal:** Mengganti static class OrganizationStructure dengan database-driven CRUD — Admin dapat mengelola struktur organisasi (Bagian dan Unit) secara dinamis, dan seluruh dropdown Bagian/Unit di portal mengambil data dari database.
+
+- [ ] **Phase 219: DB Model & Migration** - Entity OrganizationUnit, migrasi data 4 Bagian/19 Unit, konsolidasi KkjBagian
+- [ ] **Phase 220: CRUD Page Kelola Data** - Halaman Struktur Organisasi di Kelola Data: indented table, tambah/edit/pindah/hapus/reorder node
+- [ ] **Phase 221: Integrasi Codebase** - Semua controller dan view ganti ke OrganizationUnit — filter dropdown, cascade, worker create/edit, DokumenKkj, ProtonData
+- [ ] **Phase 222: Cleanup & Finalisasi** - Hapus static OrganizationStructure.cs, update seed data, ImportWorkers validasi terhadap database
 
 ## Phase Details
 
@@ -119,25 +130,6 @@ Plans:
 Plans:
 - [x] 217-01-PLAN.md — Ganti dropdown source dari union strings ke master AssessmentCategories JSON
 
-## Progress
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 205. Halaman Gabungan KKJ & Alignment | v7.8 | 1/1 | Complete | 2026-03-20 |
-| 206. Update CMP Hub & Backward Compat | v7.8 | 1/1 | Complete | 2026-03-20 |
-| 207. Perbaikan Desain Tabel DokumenKkj | v7.8 | 1/1 | Complete | 2026-03-20 |
-| 208. Grouped View Structure | v7.9 | 1/1 | Complete | 2026-03-20 |
-| 209. Bulk Renew & Filter Compatibility | v7.9 | 1/1 | Complete | 2026-03-20 |
-| 210. Critical Renewal Chain Fixes | v7.10 | 2/2 | Complete | 2026-03-21 |
-| 211. Data & Display Fixes | v7.10 | 1/1 | Complete | 2026-03-21 |
-| 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
-| 213. Filter & Status Fixes | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 214. SubCategory Model + CRUD | v7.11 | 2/2 | Complete    | 2026-03-21 |
-| 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
-| 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete    | 2026-03-21 |
-
 ### Phase 218: RecordsWorkerDetail Redesign & ImportTraining Update
 **Goal**: Redesign tabel RecordsWorkerDetail — hapus kolom Score dan Sertifikat, tambah kolom Kategori/SubKategori dan kolom Action (Detail + Download Sertifikat), tambah filter SubCategory cascade, dan update ImportTraining form/logic sesuai perubahan model
 **Depends on**: Phase 217
@@ -151,3 +143,73 @@ Plans:
 Plans:
 - [x] 218-01-PLAN.md — Redesign tabel RecordsWorkerDetail: 7 kolom baru, modal detail, cascade filter SubCategory
 - [x] 218-02-PLAN.md — Update ImportTraining: template 12 kolom, import logic, format notes kedua view
+
+### Phase 219: DB Model & Migration
+**Goal**: Entity OrganizationUnit tersedia di database dengan data yang dimigrasikan dari static class, dan KkjBagian dikonsolidasikan ke OrganizationUnit
+**Depends on**: Phase 218
+**Requirements**: DB-01, DB-02, DB-03
+**Success Criteria** (what must be TRUE):
+  1. Tabel OrganizationUnits ada di database dengan kolom Id, Name, ParentId, Level, DisplayOrder, IsActive — migrasi berhasil tanpa error
+  2. 4 Bagian dan 19 Unit dari static OrganizationStructure.cs tersedia sebagai rows di tabel OrganizationUnits dengan hierarki parent-child yang benar
+  3. KkjFile dan CpdpFile memiliki FK OrganizationUnitId (menggantikan BagianId) — entitas KkjBagian dihapus dari codebase
+  4. Aplikasi dapat di-seed ulang (dotnet run dengan SeedData) tanpa error
+**Plans**: TBD
+
+### Phase 220: CRUD Page Kelola Data
+**Goal**: Admin dapat mengelola struktur organisasi (tambah/edit/pindah/hapus/reorder node) melalui halaman Struktur Organisasi di Kelola Data
+**Depends on**: Phase 219
+**Requirements**: CRUD-01, CRUD-02, CRUD-03, CRUD-04, CRUD-05, CRUD-06
+**Success Criteria** (what must be TRUE):
+  1. Halaman Struktur Organisasi tersedia di Kelola Data Section A — menampilkan indented table dengan node Bagian dan Unit
+  2. Admin dapat menambah node baru di level manapun (root, bagian, unit) — node langsung tampil di tabel
+  3. Admin dapat mengedit nama node — perubahan tersimpan dan tampil tanpa reload penuh
+  4. Admin dapat memindahkan node ke parent lain — children ikut pindah, sistem menolak circular reference
+  5. Admin dapat soft-delete node — sistem memblok delete jika node punya children aktif atau user ter-assign, konfirmasi ditampilkan
+  6. Admin dapat mengubah urutan node dalam parent yang sama menggunakan reorder
+**Plans**: TBD
+
+### Phase 221: Integrasi Codebase
+**Goal**: Seluruh dropdown Bagian/Unit, cascade filter, validasi worker, dan grouping DokumenKkj/ProtonData di portal mengambil data dari tabel OrganizationUnits
+**Depends on**: Phase 220
+**Requirements**: INT-01, INT-02, INT-03, INT-04, INT-05, INT-06
+**Success Criteria** (what must be TRUE):
+  1. Semua dropdown filter Bagian dan Unit di seluruh portal (Admin, CMP, CDP, ProtonData) menampilkan data dari database OrganizationUnits — bukan dari static class
+  2. Cascade dropdown Bagian → Unit tetap berfungsi dengan data dari database — memilih Bagian memfilter daftar Unit yang relevan
+  3. Form create/edit worker memvalidasi Section/Unit terhadap OrganizationUnit yang ada di database
+  4. Role-based section locking untuk L4/L5 tetap berfungsi setelah integrasi
+  5. DokumenKkj menampilkan grouping berdasarkan OrganizationUnit (Bagian) dari database
+  6. ProtonKompetensi dan CoachingGuidanceFile menggunakan Bagian/Unit dari OrganizationUnit — data tersinkron
+**Plans**: TBD
+
+### Phase 222: Cleanup & Finalisasi
+**Goal**: Static class OrganizationStructure.cs dihapus, seed data menggunakan OrganizationUnit, dan ImportWorkers memvalidasi Section/Unit terhadap database
+**Depends on**: Phase 221
+**Requirements**: INT-07, CLN-01, CLN-02
+**Success Criteria** (what must be TRUE):
+  1. File OrganizationStructure.cs tidak ada di codebase — tidak ada kompilasi error atau warning yang tersisa
+  2. SeedData menggunakan OrganizationUnit dari database (bukan static list) — seed dapat dijalankan ulang dari clean state
+  3. ImportWorkers menolak baris dengan Section/Unit yang tidak dikenal di OrganizationUnit — pesan error menyebut nama yang tidak valid
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 205. Halaman Gabungan KKJ & Alignment | v7.8 | 1/1 | Complete | 2026-03-20 |
+| 206. Update CMP Hub & Backward Compat | v7.8 | 1/1 | Complete | 2026-03-20 |
+| 207. Perbaikan Desain Tabel DokumenKkj | v7.8 | 1/1 | Complete | 2026-03-20 |
+| 208. Grouped View Structure | v7.9 | 1/1 | Complete | 2026-03-20 |
+| 209. Bulk Renew & Filter Compatibility | v7.9 | 1/1 | Complete | 2026-03-20 |
+| 210. Critical Renewal Chain Fixes | v7.10 | 2/2 | Complete | 2026-03-21 |
+| 211. Data & Display Fixes | v7.10 | 1/1 | Complete | 2026-03-21 |
+| 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
+| 213. Filter & Status Fixes | v7.11 | 1/1 | Complete | 2026-03-21 |
+| 214. SubCategory Model + CRUD | v7.11 | 2/2 | Complete | 2026-03-21 |
+| 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete | 2026-03-21 |
+| 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
+| 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete | 2026-03-21 |
+| 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete | 2026-03-21 |
+| 219. DB Model & Migration | v7.12 | 0/? | Not started | - |
+| 220. CRUD Page Kelola Data | v7.12 | 0/? | Not started | - |
+| 221. Integrasi Codebase | v7.12 | 0/? | Not started | - |
+| 222. Cleanup & Finalisasi | v7.12 | 0/? | Not started | - |

@@ -50,30 +50,30 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DB-01 | — | Pending |
-| DB-02 | — | Pending |
-| DB-03 | — | Pending |
-| CRUD-01 | — | Pending |
-| CRUD-02 | — | Pending |
-| CRUD-03 | — | Pending |
-| CRUD-04 | — | Pending |
-| CRUD-05 | — | Pending |
-| CRUD-06 | — | Pending |
-| INT-01 | — | Pending |
-| INT-02 | — | Pending |
-| INT-03 | — | Pending |
-| INT-04 | — | Pending |
-| INT-05 | — | Pending |
-| INT-06 | — | Pending |
-| INT-07 | — | Pending |
-| CLN-01 | — | Pending |
-| CLN-02 | — | Pending |
+| DB-01 | Phase 219 | Pending |
+| DB-02 | Phase 219 | Pending |
+| DB-03 | Phase 219 | Pending |
+| CRUD-01 | Phase 220 | Pending |
+| CRUD-02 | Phase 220 | Pending |
+| CRUD-03 | Phase 220 | Pending |
+| CRUD-04 | Phase 220 | Pending |
+| CRUD-05 | Phase 220 | Pending |
+| CRUD-06 | Phase 220 | Pending |
+| INT-01 | Phase 221 | Pending |
+| INT-02 | Phase 221 | Pending |
+| INT-03 | Phase 221 | Pending |
+| INT-04 | Phase 221 | Pending |
+| INT-05 | Phase 221 | Pending |
+| INT-06 | Phase 221 | Pending |
+| INT-07 | Phase 222 | Pending |
+| CLN-01 | Phase 222 | Pending |
+| CLN-02 | Phase 222 | Pending |
 
 **Coverage:**
 - v7.12 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18 ⚠️
+- Mapped to phases: 18
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after milestone v7.12 definition*
+*Last updated: 2026-03-21 after roadmap v7.12 created*
