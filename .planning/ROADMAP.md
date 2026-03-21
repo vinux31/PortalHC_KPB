@@ -170,7 +170,7 @@ Plans:
   6. Admin dapat mengubah urutan node dalam parent yang sama menggunakan reorder
 **Plans**: 2 plans
 Plans:
-- [ ] 220-01-PLAN.md — Controller actions + card Kelola Data Index
+- [x] 220-01-PLAN.md — Controller actions + card Kelola Data Index
 - [ ] 220-02-PLAN.md — View ManageOrganization.cshtml collapsible tree table
 
 ### Phase 221: Integrasi Codebase
@@ -215,6 +215,6 @@ Plans:
 | 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete | 2026-03-21 |
 | 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete | 2026-03-21 |
 | 219. DB Model & Migration | v7.12 | 1/1 | Complete    | 2026-03-21 |
-| 220. CRUD Page Kelola Data | v7.12 | 0/2 | Not started | - |
+| 220. CRUD Page Kelola Data | v7.12 | 1/2 | In Progress|  |
 | 221. Integrasi Codebase | v7.12 | 0/? | Not started | - |
 | 222. Cleanup & Finalisasi | v7.12 | 0/? | Not started | - |

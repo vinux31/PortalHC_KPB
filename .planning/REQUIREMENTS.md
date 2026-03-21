@@ -15,12 +15,12 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 
 ### CRUD Page
 
-- [ ] **CRUD-01**: Halaman Struktur Organisasi di Kelola Data Section A — indented table view
-- [ ] **CRUD-02**: Tambah node baru di level manapun (root, bagian, unit, sub-unit)
-- [ ] **CRUD-03**: Edit nama node
-- [ ] **CRUD-04**: Pindahkan node ke parent lain (children ikut pindah, validasi anti-circular reference)
-- [ ] **CRUD-05**: Soft-delete node (block jika punya children aktif atau user ter-assign)
-- [ ] **CRUD-06**: Reorder node dalam parent yang sama
+- [x] **CRUD-01**: Halaman Struktur Organisasi di Kelola Data Section A — indented table view
+- [x] **CRUD-02**: Tambah node baru di level manapun (root, bagian, unit, sub-unit)
+- [x] **CRUD-03**: Edit nama node
+- [x] **CRUD-04**: Pindahkan node ke parent lain (children ikut pindah, validasi anti-circular reference)
+- [x] **CRUD-05**: Soft-delete node (block jika punya children aktif atau user ter-assign)
+- [x] **CRUD-06**: Reorder node dalam parent yang sama
 
 ### Integrasi Codebase
 
@@ -53,12 +53,12 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 | DB-01 | Phase 219 | Complete |
 | DB-02 | Phase 219 | Complete |
 | DB-03 | Phase 219 | Complete |
-| CRUD-01 | Phase 220 | Pending |
-| CRUD-02 | Phase 220 | Pending |
-| CRUD-03 | Phase 220 | Pending |
-| CRUD-04 | Phase 220 | Pending |
-| CRUD-05 | Phase 220 | Pending |
-| CRUD-06 | Phase 220 | Pending |
+| CRUD-01 | Phase 220 | Complete |
+| CRUD-02 | Phase 220 | Complete |
+| CRUD-03 | Phase 220 | Complete |
+| CRUD-04 | Phase 220 | Complete |
+| CRUD-05 | Phase 220 | Complete |
+| CRUD-06 | Phase 220 | Complete |
 | INT-01 | Phase 221 | Pending |
 | INT-02 | Phase 221 | Pending |
 | INT-03 | Phase 221 | Pending |

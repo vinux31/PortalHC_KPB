@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.12
 milestone_name: Struktur Organisasi CRUD
 status: unknown
-stopped_at: Phase 220 context gathered
-last_updated: "2026-03-21T12:17:12.572Z"
+stopped_at: Completed 220-01-PLAN.md
+last_updated: "2026-03-21T12:41:15.581Z"
 progress:
   total_phases: 10
   completed_phases: 6
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 219 — db-model-migration
+**Current focus:** Phase 220 — crud-page-kelola-data
 
 ## Current Position
 
-Phase: 220
-Plan: Not started
+Phase: 220 (crud-page-kelola-data) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Plan: Not started
 | 221. Integrasi Codebase | TBD | Not started |
 | 222. Cleanup & Finalisasi | TBD | Not started |
 | Phase 219 P01 | 35 | 2 tasks | 13 files |
+| Phase 220-crud-page-kelola-data P01 | 15 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T12:17:12.569Z
-Stopped at: Phase 220 context gathered
-Resume file: .planning/phases/220-crud-page-kelola-data/220-CONTEXT.md
+Last session: 2026-03-21T12:41:15.577Z
+Stopped at: Completed 220-01-PLAN.md
+Resume file: None
