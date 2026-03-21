@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.11
 milestone_name: CMP Records Bug Fixes & Enhancement
 status: unknown
-stopped_at: Completed 215-01-PLAN.md
-last_updated: "2026-03-21T08:25:43.742Z"
+stopped_at: Completed 217-01-PLAN.md
+last_updated: "2026-03-21T09:02:00.267Z"
 progress:
-  total_phases: 4
-  completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 215 — team-view-filter-enhancement
+**Current focus:** Phase 217 — fix-category-dropdown-di-recordsteam-agar-ambil-dari-master-assessmentcategories
 
 ## Current Position
 
-Phase: 216
-Plan: Not started
+Phase: 217 (fix-category-dropdown-di-recordsteam-agar-ambil-dari-master-assessmentcategories) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -46,6 +46,11 @@ Plan: Not started
 | Phase 214 P01 | 12 | 2 tasks | 6 files |
 | Phase 214 P02 | 8 | 2 tasks | 3 files |
 | Phase 215 P01 | 15 | 2 tasks | 4 files |
+| Phase 217 P01 | 5 | 1 tasks | 2 files |
+
+### Roadmap Evolution
+
+- Phase 217 added: Fix category dropdown di RecordsTeam agar ambil dari master AssessmentCategories
 
 ### Decisions
 
@@ -59,6 +64,7 @@ Plan: Not started
 - [Phase 214]: FilterSubKategori sebagai fungsi terpisah di EditTraining agar bisa dipanggil saat DOMContentLoaded dan change event
 - [Phase 215]: Sub Category filter hanya dari TrainingRecord.SubKategori — AssessmentSession tidak punya field SubKategori
 - [Phase 215]: Exact-match (split+compare) dipakai untuk sub category filter agar tidak ada false positive substring match
+- [Phase 217]: MasterCategoriesJson reuse allCats query yang sudah ada — tidak ada query tambahan ke DB
 
 ### Pending Todos
 
@@ -70,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T08:24:01.352Z
-Stopped at: Completed 215-01-PLAN.md
+Last session: 2026-03-21T09:02:00.264Z
+Stopped at: Completed 217-01-PLAN.md
 Resume file: None
