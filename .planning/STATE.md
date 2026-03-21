@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.11
 milestone_name: CMP Records Bug Fixes & Enhancement
 status: unknown
-stopped_at: Completed 218-02-PLAN.md
-last_updated: "2026-03-21T10:10:19.128Z"
+stopped_at: Completed 218-01-PLAN.md
+last_updated: "2026-03-21T10:11:04.983Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State: Portal HC KPB
@@ -48,6 +48,7 @@ Plan: 2 of 2
 | Phase 215 P01 | 15 | 2 tasks | 4 files |
 | Phase 217 P01 | 5 | 1 tasks | 2 files |
 | Phase 218 P02 | 10 | 2 tasks | 3 files |
+| Phase 218 P01 | 15m | 2 tasks | 4 files |
 
 ### Roadmap Evolution
 
@@ -69,6 +70,8 @@ Plan: 2 of 2
 - [Phase 217]: MasterCategoriesJson reuse allCats query yang sudah ada — tidak ada query tambahan ke DB
 - [Phase 218-02]: Urutan 12 kolom: NIP, Judul, Kategori, SubKategori, Tanggal, TanggalMulai, TanggalSelesai, Penyelenggara, Kota, Status, ValidUntil, NomorSertifikat (D-17)
 - [Phase 218-02]: CMP download template diarahkan ke Admin controller karena CMPController tidak punya DownloadImportTrainingTemplate
+- [Phase 218]: SubKategori ditambahkan ke UnifiedTrainingRecord untuk training rows; Assessment rows populate Kategori dari AssessmentSession.Category
+- [Phase 218]: Category filter di RecordsWorkerDetail menggunakan master AssessmentCategories dari ViewBag, bukan data dari records
 
 ### Pending Todos
 
@@ -80,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T10:10:19.124Z
-Stopped at: Completed 218-02-PLAN.md
+Last session: 2026-03-21T10:11:04.980Z
+Stopped at: Completed 218-01-PLAN.md
 Resume file: None

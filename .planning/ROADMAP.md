@@ -52,7 +52,7 @@
 - [x] **Phase 215: Team View Filter Enhancement** - Assessment records masuk data filterable, dropdown Sub Category dependent di Team View (completed 2026-03-21)
 - [ ] **Phase 216: Export Fixes & Display Enhancement** - Sejajarkan team export dengan personal export dan tampilkan badge expiring soon
 - [x] **Phase 217: Fix Category Dropdown RecordsTeam** - Dropdown Category dari master AssessmentCategories, bukan union string records (completed 2026-03-21)
-- [ ] **Phase 218: RecordsWorkerDetail Redesign & ImportTraining Update** - Redesign tabel, tambah kolom Action/Kategori/SubKategori, update ImportTraining
+- [x] **Phase 218: RecordsWorkerDetail Redesign & ImportTraining Update** - Redesign tabel, tambah kolom Action/Kategori/SubKategori, update ImportTraining (completed 2026-03-21)
 
 ## Phase Details
 
@@ -136,7 +136,7 @@ Plans:
 | 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
 | 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 1/2 | In Progress|  |
+| 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete   | 2026-03-21 |
 
 ### Phase 218: RecordsWorkerDetail Redesign & ImportTraining Update
 **Goal**: Redesign tabel RecordsWorkerDetail — hapus kolom Score dan Sertifikat, tambah kolom Kategori/SubKategori dan kolom Action (Detail + Download Sertifikat), tambah filter SubCategory cascade, dan update ImportTraining form/logic sesuai perubahan model
@@ -149,5 +149,5 @@ Plans:
   4. Halaman ImportTraining form dan logic ter-update sesuai perubahan model (urutan kolom diperbaiki)
 **Plans**: 2 plans
 Plans:
-- [ ] 218-01-PLAN.md — Redesign tabel RecordsWorkerDetail: 7 kolom baru, modal detail, cascade filter SubCategory
+- [x] 218-01-PLAN.md — Redesign tabel RecordsWorkerDetail: 7 kolom baru, modal detail, cascade filter SubCategory
 - [x] 218-02-PLAN.md — Update ImportTraining: template 12 kolom, import logic, format notes kedua view
