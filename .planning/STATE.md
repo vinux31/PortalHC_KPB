@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.10
 milestone_name: RenewalCertificate Bug Fixes & Enhancement
 status: unknown
-stopped_at: Completed 211-01-PLAN.md
-last_updated: "2026-03-21T04:40:58.905Z"
+stopped_at: Completed 210-02-PLAN.md
+last_updated: "2026-03-21T04:56:13.913Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 211 — data-display-fixes
+**Current focus:** Phase 210 — critical-renewal-chain-fixes
 
 ## Current Position
 
-Phase: 212
-Plan: Not started
+Phase: 210 (critical-renewal-chain-fixes) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -37,6 +37,7 @@ Plan: Not started
 - [Phase 210-01]: BuildRenewalRowsAsync digunakan sebagai single source of truth untuk badge count Admin/Index
 - [Phase 210-01]: FIX-03 tidak perlu ubah kode: Set 2 dan Set 4 sudah benar karena TrainingRecord tidak memiliki field IsPassed
 - [Phase 211]: DeriveCertificateStatus pisahkan cek Permanent dan ValidUntil=null agar non-Permanent dengan null expiry → Expired
+- [Phase 210]: Per-user FK map dikirim via hidden input JSON untuk menghindari perubahan model binding
 
 ### Pending Todos
 
@@ -49,6 +50,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T04:38:41.427Z
-Stopped at: Completed 211-01-PLAN.md
+Last session: 2026-03-21T04:56:10.359Z
+Stopped at: Completed 210-02-PLAN.md
 Resume file: None
