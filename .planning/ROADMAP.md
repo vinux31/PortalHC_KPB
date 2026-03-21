@@ -102,6 +102,6 @@ Plans:
 | 210. Critical Renewal Chain Fixes | v7.10 | 2/2 | Complete | 2026-03-21 |
 | 211. Data & Display Fixes | v7.10 | 1/1 | Complete | 2026-03-21 |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
-| 213. Filter & Status Fixes | v7.11 | 1/1 | Complete   | 2026-03-21 |
+| 213. Filter & Status Fixes | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 214. SubCategory Model + Filter | v7.11 | 0/? | Not started | - |
 | 215. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
