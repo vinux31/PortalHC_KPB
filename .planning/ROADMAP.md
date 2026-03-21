@@ -120,5 +120,5 @@ Plans:
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
 | 213. Filter & Status Fixes | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 214. SubCategory Model + CRUD | v7.11 | 2/2 | Complete    | 2026-03-21 |
-| 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete   | 2026-03-21 |
+| 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
