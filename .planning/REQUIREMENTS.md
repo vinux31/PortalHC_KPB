@@ -3,57 +3,77 @@
 **Defined:** 2026-03-21
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v7.11 Requirements
+## v7.12 Requirements
 
-Requirements for CMP Records Bug Fixes & Enhancement.
+Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 
-### Filter Fixes
+### Model & Database
 
-- [x] **FLT-01**: Team View Category+Status filter menghitung status per-kategori yang dipilih (bukan global semua kategori) — client-side JS logic harus mencocokkan status dengan kategori yang difilter
-- [x] **FLT-02**: hasTraining (view) dan CompletedTrainings (service) menggunakan set status yang sama — tambah "Permanent" ke CompletedTrainings count di WorkerDataService
-- [x] **FLT-03**: NIP data attribute di Team View di-lowercase agar konsisten dengan search filter logic
-- [x] **FLT-04**: Tambah dropdown filter Sub Category di Team View, dependent pada category yang dipilih
+- [ ] **DB-01**: Entity OrganizationUnit (Id, Name, ParentId, Level, DisplayOrder, IsActive) — self-referential Adjacency List
+- [ ] **DB-02**: Migrasi data dari static OrganizationStructure (4 Bagian, 19 Unit) ke tabel OrganizationUnits
+- [ ] **DB-03**: KkjFile/CpdpFile FK BagianId → ganti ke OrganizationUnitId, hapus entity KkjBagian
 
-### Data Model
+### CRUD Page
 
-- [x] **MDL-01**: Tambah field SubKategori di TrainingRecord model dengan migrasi database
+- [ ] **CRUD-01**: Halaman Struktur Organisasi di Kelola Data Section A — indented table view
+- [ ] **CRUD-02**: Tambah node baru di level manapun (root, bagian, unit, sub-unit)
+- [ ] **CRUD-03**: Edit nama node
+- [ ] **CRUD-04**: Pindahkan node ke parent lain (children ikut pindah, validasi anti-circular reference)
+- [ ] **CRUD-05**: Soft-delete node (block jika punya children aktif atau user ter-assign)
+- [ ] **CRUD-06**: Reorder node dalam parent yang sama
 
-### Export Fixes
+### Integrasi Codebase
 
-- [ ] **EXP-01**: ExportRecordsTeamAssessment menerima parameter category dan menggunakannya untuk filter (saat ini pass null)
-- [ ] **EXP-02**: Team training export tambah kolom Kategori, Status, ValidUntil, Kota, NomorSertifikat (sejajar dengan personal export)
-- [ ] **EXP-03**: Assessment export (personal & team) tambah kolom Kategori
+- [ ] **INT-01**: Semua filter dropdown Bagian/Unit di seluruh app ambil dari database OrganizationUnits
+- [ ] **INT-02**: Cascade dropdown tetap berfungsi — data dari database
+- [ ] **INT-03**: ApplicationUser.Section/Unit validasi terhadap OrganizationUnit saat create/edit worker
+- [ ] **INT-04**: Role-based section locking (L4/L5) tetap berfungsi
+- [ ] **INT-05**: KkjFile/CpdpFile grouping di DokumenKkj menggunakan OrganizationUnit
+- [ ] **INT-06**: ProtonKompetensi.Bagian/Unit dan CoachingGuidanceFile.Bagian/Unit tersinkron dengan OrganizationUnit
+- [ ] **INT-07**: Hapus static class OrganizationStructure.cs setelah semua referensi diganti
 
-### Display Enhancement
+### Cleanup
 
-- [ ] **DSP-01**: My Records menampilkan badge IsExpiringSoon (warning 30 hari) untuk training yang akan expired — saat ini hanya tampil badge Expired
+- [ ] **CLN-01**: Seed data menggunakan OrganizationUnit
+- [ ] **CLN-02**: ImportWorkers validasi Section/Unit terhadap OrganizationUnit database
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Server-side filtering for Team View | Client-side filtering cukup untuk jumlah worker saat ini |
-| Status filter default edge case (LOW) | Tidak ada path untuk value kosong di dropdown |
+| Drag-drop tree UI (jsTree) | Overkill untuk 4-5 level; indented table cukup. Bisa ditambah nanti |
+| Org chart visual | Read-only visualization, bukan prioritas CRUD |
+| Multi-unit user assignment | User tetap 1 Section + 1 Unit (existing pattern) |
+| Full FK migration ApplicationUser → OrganizationUnit | Risiko tinggi, user bisa punya multiple units. Validasi string cukup |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FLT-01 | Phase 213 | Complete |
-| FLT-02 | Phase 213 | Complete |
-| FLT-03 | Phase 213 | Complete |
-| MDL-01 | Phase 214 | Complete |
-| FLT-04 | Phase 215 | Complete |
-| EXP-01 | Phase 216 | Pending |
-| EXP-02 | Phase 216 | Pending |
-| EXP-03 | Phase 216 | Pending |
-| DSP-01 | Phase 216 | Pending |
+| DB-01 | — | Pending |
+| DB-02 | — | Pending |
+| DB-03 | — | Pending |
+| CRUD-01 | — | Pending |
+| CRUD-02 | — | Pending |
+| CRUD-03 | — | Pending |
+| CRUD-04 | — | Pending |
+| CRUD-05 | — | Pending |
+| CRUD-06 | — | Pending |
+| INT-01 | — | Pending |
+| INT-02 | — | Pending |
+| INT-03 | — | Pending |
+| INT-04 | — | Pending |
+| INT-05 | — | Pending |
+| INT-06 | — | Pending |
+| INT-07 | — | Pending |
+| CLN-01 | — | Pending |
+| CLN-02 | — | Pending |
 
 **Coverage:**
-- v7.11 requirements: 9 total
-- Mapped to phases: 9
-- Unmapped: 0 ✓
+- v7.12 requirements: 18 total
+- Mapped to phases: 0
+- Unmapped: 18 ⚠️
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 — traceability mapped after roadmap creation*
+*Last updated: 2026-03-21 after milestone v7.12 definition*
