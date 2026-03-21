@@ -105,8 +105,8 @@ Plans:
   4. HC dapat melihat daftar sertifikat yang akan expired dalam 30, 60, dan 90 hari ke depan dalam satu ringkasan
 **Plans**: 2 plans
 Plans:
-- [x] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
-- [ ] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
+- [ ] 224-01-PLAN.md — Backend: ViewModel, JSON endpoint, cascade endpoints, CMP Hub link
+- [ ] 224-02-PLAN.md — Frontend: View Analytics Dashboard dengan Chart.js, filter AJAX, tabel
 
 ### Phase 225: Training Compliance Matrix
 **Goal**: Admin dapat mendefinisikan training wajib per jabatan, dan HC dapat melihat compliance percentage pekerja terhadap training yang diwajibkan
@@ -118,8 +118,8 @@ Plans:
   3. HC dapat melihat halaman team view yang menampilkan compliance summary per section/unit — berapa persen pekerja di tiap unit yang memenuhi training wajib jabatannya
 **Plans**: 2 plans
 Plans:
-- [ ] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
-- [ ] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
+- [ ] 225-01-PLAN.md — TBD
+- [ ] 225-02-PLAN.md — TBD
 
 ### Phase 226: Email Notification Sertifikat Expired
 **Goal**: Sistem mengirim email reminder otomatis kepada pekerja sebelum sertifikat mereka expired, tanpa duplikat meskipun service restart
@@ -132,8 +132,8 @@ Plans:
   4. Jika background service restart atau dijadwalkan ulang, email yang sudah terkirim tidak dikirim lagi — NotificationSentLog mencegah duplikat per sertifikat per threshold
 **Plans**: 2 plans
 Plans:
-- [ ] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
-- [ ] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
+- [ ] 226-01-PLAN.md — TBD
+- [ ] 226-02-PLAN.md — TBD
 
 ### Phase 227: Major Refactors
 **Goal**: Question Bank terpisah dari assessment session tersedia untuk Admin/HC, legacy question path dimigrasikan ke package format, tabel orphan dibersihkan, dan NomorSertifikat di-generate pada waktu yang tepat
@@ -148,8 +148,8 @@ Plans:
   6. NomorSertifikat hanya ter-generate saat SubmitExam + IsPassed = true (bukan saat CreateAssessment), sehingga tidak ada NomorSertifikat pada session yang belum lulus
 **Plans**: 2 plans
 Plans:
-- [ ] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
-- [ ] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
+- [ ] 227-01-PLAN.md — TBD
+- [ ] 227-02-PLAN.md — TBD
 
 ## Progress
 
@@ -174,7 +174,7 @@ Plans:
 | 221. Integrasi Codebase | v7.12 | 3/3 | Complete | 2026-03-21 |
 | 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete | 2026-03-21 |
 | 223. Assessment Quick Wins | v8.0 | 2/2 | Complete    | 2026-03-21 |
-| 224. Analytics Dashboard HC | v8.0 | 0/TBD | Not started | - |
+| 224. Analytics Dashboard HC | v8.0 | 0/2 | Not started | - |
 | 225. Training Compliance Matrix | v8.0 | 0/TBD | Not started | - |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |
 | 227. Major Refactors | v8.0 | 0/TBD | Not started | - |
