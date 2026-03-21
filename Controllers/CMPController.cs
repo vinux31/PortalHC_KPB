@@ -463,6 +463,10 @@ namespace HcPortal.Controllers
             );
             ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
 
+            // Phase 217: Master categories from AssessmentCategories table (D-01)
+            var masterCategories = allCats.Select(c => c.Name).OrderBy(n => n).ToList();
+            ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(masterCategories);
+
             return View("RecordsTeam", workerList);
         }
 

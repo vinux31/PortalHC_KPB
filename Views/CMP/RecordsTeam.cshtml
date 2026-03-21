@@ -13,18 +13,6 @@
     var allSections = OrganizationStructure.GetAllSections();
     var sectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(OrganizationStructure.SectionUnits);
 
-    // Phase 215: categories gabungkan training + assessment
-    var trainingCats = Model.SelectMany(w => w.TrainingRecords)
-        .Select(t => t.Kategori)
-        .Where(k => !string.IsNullOrEmpty(k));
-    var assessmentCats = Model.SelectMany(w => w.AssessmentSessions)
-        .Select(a => a.Category)
-        .Where(c => !string.IsNullOrEmpty(c));
-    var categories = trainingCats.Union(assessmentCats)
-        .Distinct()
-        .OrderBy(k => k)
-        .ToList();
-
     // For Level 4 (SectionHead, SrSupervisor), lock section to user's section
     var lockedSection = roleLevel == 4 ? currentUser.Section : null;
 }
@@ -75,10 +63,6 @@
                     <label class="form-label small text-muted mb-1">Category</label>
                     <select id="categoryFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="">All Categories</option>
-                        @foreach (var category in categories)
-                        {
-                            <option value="@category">@category</option>
-                        }
                     </select>
                 </div>
                 <div class="col-12 col-md-3">
@@ -264,6 +248,18 @@ var sectionUnits = @Html.Raw(sectionUnitsJson);
 
 // Phase 215: Sub Category map dari AssessmentCategories hierarchy
 var subCategoryMap = @Html.Raw(ViewBag.SubCategoryMapJson ?? "{}");
+
+// Phase 217: Populate category dropdown from master AssessmentCategories (D-01)
+(function() {
+    var masterCategories = @Html.Raw(ViewBag.MasterCategoriesJson ?? "[]");
+    var sel = document.getElementById('categoryFilter');
+    masterCategories.forEach(function(cat) {
+        var opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        sel.appendChild(opt);
+    });
+})();
 
 function updateUnitOptions() {
     var sectionVal = document.getElementById('sectionFilter').value;
