@@ -105,7 +105,7 @@ Plans:
   4. HC dapat melihat daftar sertifikat yang akan expired dalam 30, 60, dan 90 hari ke depan dalam satu ringkasan
 **Plans**: 2 plans
 Plans:
-- [ ] 224-01-PLAN.md — Backend: ViewModel, JSON endpoint, cascade endpoints, CMP Hub link
+- [x] 224-01-PLAN.md — Backend: ViewModel, JSON endpoint, cascade endpoints, CMP Hub link
 - [ ] 224-02-PLAN.md — Frontend: View Analytics Dashboard dengan Chart.js, filter AJAX, tabel
 
 ### Phase 225: Training Compliance Matrix
@@ -174,7 +174,7 @@ Plans:
 | 221. Integrasi Codebase | v7.12 | 3/3 | Complete | 2026-03-21 |
 | 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete | 2026-03-21 |
 | 223. Assessment Quick Wins | v8.0 | 2/2 | Complete    | 2026-03-21 |
-| 224. Analytics Dashboard HC | v8.0 | 0/2 | Not started | - |
+| 224. Analytics Dashboard HC | v8.0 | 1/2 | In Progress|  |
 | 225. Training Compliance Matrix | v8.0 | 0/TBD | Not started | - |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |
 | 227. Major Refactors | v8.0 | 0/TBD | Not started | - |

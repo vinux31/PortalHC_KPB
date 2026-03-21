@@ -16,10 +16,10 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 
 ### Analytics
 
-- [ ] **ANLT-01**: HC dapat melihat halaman Analytics Dashboard dengan visualisasi fail rate per section dan per category
-- [ ] **ANLT-02**: HC dapat melihat trend assessment (pass/fail) dalam periode waktu tertentu
-- [ ] **ANLT-03**: HC dapat melihat breakdown skor ElemenTeknis aggregate per kategori assessment
-- [ ] **ANLT-04**: HC dapat melihat ringkasan sertifikat yang akan expired dalam 30/60/90 hari
+- [x] **ANLT-01**: HC dapat melihat halaman Analytics Dashboard dengan visualisasi fail rate per section dan per category
+- [x] **ANLT-02**: HC dapat melihat trend assessment (pass/fail) dalam periode waktu tertentu
+- [x] **ANLT-03**: HC dapat melihat breakdown skor ElemenTeknis aggregate per kategori assessment
+- [x] **ANLT-04**: HC dapat melihat ringkasan sertifikat yang akan expired dalam 30/60/90 hari
 
 ### Training Compliance
 
@@ -73,10 +73,10 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 | AINT-03 | TBD | Deferred |
 | AINT-04 | Phase 223 | Complete |
 | CLEN-01 | Phase 223 | Complete |
-| ANLT-01 | Phase 224 | Pending |
-| ANLT-02 | Phase 224 | Pending |
-| ANLT-03 | Phase 224 | Pending |
-| ANLT-04 | Phase 224 | Pending |
+| ANLT-01 | Phase 224 | Complete |
+| ANLT-02 | Phase 224 | Complete |
+| ANLT-03 | Phase 224 | Complete |
+| ANLT-04 | Phase 224 | Complete |
 | COMP-01 | Phase 225 | Pending |
 | COMP-02 | Phase 225 | Pending |
 | COMP-03 | Phase 225 | Pending |
