@@ -168,7 +168,10 @@ Plans:
   4. Admin dapat memindahkan node ke parent lain — children ikut pindah, sistem menolak circular reference
   5. Admin dapat soft-delete node — sistem memblok delete jika node punya children aktif atau user ter-assign, konfirmasi ditampilkan
   6. Admin dapat mengubah urutan node dalam parent yang sama menggunakan reorder
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 220-01-PLAN.md — Controller actions + card Kelola Data Index
+- [ ] 220-02-PLAN.md — View ManageOrganization.cshtml collapsible tree table
 
 ### Phase 221: Integrasi Codebase
 **Goal**: Seluruh dropdown Bagian/Unit, cascade filter, validasi worker, dan grouping DokumenKkj/ProtonData di portal mengambil data dari tabel OrganizationUnits
@@ -212,6 +215,6 @@ Plans:
 | 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete | 2026-03-21 |
 | 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete | 2026-03-21 |
 | 219. DB Model & Migration | v7.12 | 1/1 | Complete    | 2026-03-21 |
-| 220. CRUD Page Kelola Data | v7.12 | 0/? | Not started | - |
+| 220. CRUD Page Kelola Data | v7.12 | 0/2 | Not started | - |
 | 221. Integrasi Codebase | v7.12 | 0/? | Not started | - |
 | 222. Cleanup & Finalisasi | v7.12 | 0/? | Not started | - |
