@@ -21,5 +21,7 @@ namespace HcPortal.Models
         public virtual AssessmentOption? SelectedOption { get; set; }
 
         public string? TextAnswer { get; set; } // For essay questions
+
+        public DateTime? SubmittedAt { get; set; }
     }
 }

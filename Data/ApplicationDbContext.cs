@@ -81,6 +81,9 @@ namespace HcPortal.Data
         // Assessment Categories — Phase 190
         public DbSet<AssessmentCategory> AssessmentCategories { get; set; }
 
+        // ET Scores per Session — Phase 223
+        public DbSet<SessionElemenTeknisScore> SessionElemenTeknisScores { get; set; }
+
         // ========== Helper Methods untuk OrganizationUnit (Phase 221) ==========
 
         public async Task<List<string>> GetAllSectionsAsync()
@@ -603,6 +606,19 @@ namespace HcPortal.Data
                       .WithMany(u => u.Children)
                       .HasForeignKey(u => u.ParentId)
                       .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // ========== ET Scores per Session (Phase 223) ==========
+            builder.Entity<SessionElemenTeknisScore>(entity =>
+            {
+                entity.HasOne(e => e.AssessmentSession)
+                    .WithMany()
+                    .HasForeignKey(e => e.AssessmentSessionId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(e => new { e.AssessmentSessionId, e.ElemenTeknis })
+                    .IsUnique()
+                    .HasDatabaseName("IX_SessionElemenTeknisScores_AssessmentSessionId_ElemenTeknis");
             });
 
             // ========== Assessment Categories (Phase 190) ==========
