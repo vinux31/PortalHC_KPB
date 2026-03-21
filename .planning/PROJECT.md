@@ -26,7 +26,23 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.9 shipped** — Renewal Certificate Grouped View, 2 phases (208-209).
 **v7.10 shipped** — RenewalCertificate Bug Fixes & Enhancement, 3 phases (210-212). Bulk renew FK chain fix, data/display fixes, tipe filter, renewal method modal, AddTraining renewal mode.
 
-**Current focus:** Planning next milestone.
+**v7.11 in progress** — CMP Records Bug Fixes & Enhancement.
+
+**Current focus:** v7.11 — Fix filter bugs, status mismatch, export inconsistencies, dan tambah SubCategory filter di CMP/Records page.
+
+## Current Milestone: v7.11 CMP Records Bug Fixes & Enhancement
+
+**Goal:** Perbaikan semua bug di halaman CMP/Records (Team View & My Records) — filter Category+Status, export inconsistencies, status mismatch — plus tambah filter Sub Category.
+
+**Target features:**
+- Fix Category+Status filter logic (status per-kategori, bukan global)
+- Fix hasTraining vs CompletedTrainings status mismatch ("Permanent")
+- Fix Export Assessment missing category filter parameter
+- Tambah SubKategori field di TrainingRecord + filter Sub Category di Team View
+- Perbaiki team export kolom (tambah Kategori, ValidUntil, Status, dll)
+- Tambah kolom Kategori di assessment export
+- Fix NIP data attribute lowercase
+- Tambah IsExpiringSoon warning di My Records
 
 ## Architecture Decisions
 
