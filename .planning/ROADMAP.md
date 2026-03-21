@@ -71,7 +71,7 @@
 
 **Milestone Goal:** Audit dan perkuat fondasi sistem assessment dan training — integritas data exam, analytics untuk HC, compliance tracking training, notifikasi email sertifikat, question bank terpisah, dan cleanup legacy debt.
 
-- [ ] **Phase 223: Assessment Quick Wins** - Persist ET score, deteksi tab-switch, status lifecycle, timestamp UserResponse, dokumentasi AccessToken
+- [x] **Phase 223: Assessment Quick Wins** - Persist ET score, deteksi tab-switch, status lifecycle, timestamp UserResponse, dokumentasi AccessToken (completed 2026-03-21)
 - [ ] **Phase 224: Analytics Dashboard HC** - Visualisasi fail rate, trend assessment, breakdown ET, ringkasan sertifikat akan expired
 - [ ] **Phase 225: Training Compliance Matrix** - CRUD matriks training wajib per jabatan, kalkulasi compliance, summary per section
 - [ ] **Phase 226: Email Notification Sertifikat Expired** - Reminder otomatis 90/30/7 hari, duplikat guard via NotificationSentLog
@@ -92,7 +92,7 @@
 **Plans**: 2 plans
 Plans:
 - [x] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
-- [ ] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
+- [x] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
 
 ### Phase 224: Analytics Dashboard HC
 **Goal**: HC memiliki halaman Analytics Dashboard dengan visualisasi data assessment dan sertifikat yang actionable
@@ -105,7 +105,7 @@ Plans:
   4. HC dapat melihat daftar sertifikat yang akan expired dalam 30, 60, dan 90 hari ke depan dalam satu ringkasan
 **Plans**: 2 plans
 Plans:
-- [ ] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
+- [x] 223-01-PLAN.md — Persist ET scores + UserResponse.SubmittedAt
 - [ ] 223-02-PLAN.md — Status lifecycle cleanup + AccessToken docs
 
 ### Phase 225: Training Compliance Matrix
@@ -173,7 +173,7 @@ Plans:
 | 220. CRUD Page Kelola Data | v7.12 | 2/2 | Complete | 2026-03-21 |
 | 221. Integrasi Codebase | v7.12 | 3/3 | Complete | 2026-03-21 |
 | 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete | 2026-03-21 |
-| 223. Assessment Quick Wins | v8.0 | 1/2 | In Progress|  |
+| 223. Assessment Quick Wins | v8.0 | 2/2 | Complete   | 2026-03-21 |
 | 224. Analytics Dashboard HC | v8.0 | 0/TBD | Not started | - |
 | 225. Training Compliance Matrix | v8.0 | 0/TBD | Not started | - |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Assessment & Training System Audit
 status: unknown
-stopped_at: Completed 223-01-PLAN.md
-last_updated: "2026-03-21T16:16:52.704Z"
+stopped_at: Completed 223-02-PLAN.md
+last_updated: "2026-03-21T16:17:10.537Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State: Portal HC KPB
@@ -43,6 +43,8 @@ Plan: 2 of 2
 - [Phase 222]: OrganizationStructure static class dihapus — semua dropdown/filter pakai OrganizationUnits DB
 - [Phase 223]: ET persist di package path only — legacy path skip karena AssessmentQuestion tidak punya ElemenTeknis field
 - [Phase 223]: Fallback 'Lainnya' untuk soal tanpa tag ET di SessionElemenTeknisScore
+- [Phase 223]: Wait Certificate dihapus dan dimigrasikan ke Passed — status valid: Passed/Valid/Expired/Failed
+- [Phase 223]: AccessToken shared token pattern didokumentasikan sebagai desain disengaja (common exam room pattern)
 
 ### Pending Todos
 
@@ -56,6 +58,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T16:16:52.701Z
-Stopped at: Completed 223-01-PLAN.md
+Last session: 2026-03-21T16:17:10.534Z
+Stopped at: Completed 223-02-PLAN.md
 Resume file: None

@@ -10,8 +10,8 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 ### Assessment Integrity
 
 - [x] **AINT-01**: Skor ElemenTeknis per session dipersist ke database (tabel SessionElemenTeknisScore) saat SubmitExam dan GradeFromSavedAnswers
-- [ ] **AINT-02**: Tab-switch/focus-loss saat ujian terdeteksi dan tercatat di ExamActivityLog sebagai event focus_lost/focus_returned
-- [ ] **AINT-03**: HC dapat melihat indikator tab-switch per peserta di halaman AssessmentMonitoringDetail
+- [x] **AINT-02**: Tab-switch/focus-loss saat ujian terdeteksi dan tercatat di ExamActivityLog sebagai event focus_lost/focus_returned
+- [x] **AINT-03**: HC dapat melihat indikator tab-switch per peserta di halaman AssessmentMonitoringDetail
 - [x] **AINT-04**: UserResponse (legacy path) memiliki field SubmittedAt timestamp yang terisi saat SaveLegacyAnswer
 
 ### Analytics
@@ -42,11 +42,11 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 
 ### Legacy Cleanup
 
-- [ ] **CLEN-01**: TrainingRecord.Status lifecycle terdefinisi jelas — hapus ambiguitas Passed/Valid, transisi terdokumentasi
+- [x] **CLEN-01**: TrainingRecord.Status lifecycle terdefinisi jelas — hapus ambiguitas Passed/Valid, transisi terdokumentasi
 - [ ] **CLEN-02**: Legacy question path (AssessmentQuestion/AssessmentOption/UserResponse) deprecated — existing sessions dimigrasi ke package format
 - [ ] **CLEN-03**: AssessmentCompetencyMap dan UserCompetencyLevel (orphaned tables) dibersihkan dari database
 - [ ] **CLEN-04**: NomorSertifikat di-generate saat SubmitExam + IsPassed (bukan saat CreateAssessment)
-- [ ] **CLEN-05**: Shared AccessToken tetap as-is (documented decision — common exam room pattern)
+- [x] **CLEN-05**: Shared AccessToken tetap as-is (documented decision — common exam room pattern)
 
 ## Future Requirements
 
@@ -69,10 +69,10 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | AINT-01 | Phase 223 | Complete |
-| AINT-02 | Phase 223 | Pending |
-| AINT-03 | Phase 223 | Pending |
+| AINT-02 | Phase 223 | Complete |
+| AINT-03 | Phase 223 | Complete |
 | AINT-04 | Phase 223 | Complete |
-| CLEN-01 | Phase 223 | Pending |
+| CLEN-01 | Phase 223 | Complete |
 | ANLT-01 | Phase 224 | Pending |
 | ANLT-02 | Phase 224 | Pending |
 | ANLT-03 | Phase 224 | Pending |
@@ -90,7 +90,7 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 | CLEN-02 | Phase 227 | Pending |
 | CLEN-03 | Phase 227 | Pending |
 | CLEN-04 | Phase 227 | Pending |
-| CLEN-05 | Phase 223 | Pending |
+| CLEN-05 | Phase 223 | Complete |
 
 **Coverage:**
 - v8.0 requirements: 23 total
