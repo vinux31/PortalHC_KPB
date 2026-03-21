@@ -124,5 +124,5 @@ Plans:
 | 208. Grouped View Structure | v7.9 | 1/1 | Complete | 2026-03-20 |
 | 209. Bulk Renew & Filter Compatibility | v7.9 | 1/1 | Complete | 2026-03-20 |
 | 210. Critical Renewal Chain Fixes | v7.10 | 1/1 | Complete    | 2026-03-21 |
-| 211. Data & Display Fixes | v7.10 | 1/1 | Complete   | 2026-03-21 |
+| 211. Data & Display Fixes | v7.10 | 1/1 | Complete    | 2026-03-21 |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 0/TBD | Not started | - |
