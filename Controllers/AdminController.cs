@@ -7028,6 +7028,7 @@ namespace HcPortal.Controllers
             string? status = null,
             string? category = null,
             string? subCategory = null,
+            string? tipe = null,
             int page = 1)
         {
             var allRows = await BuildRenewalRowsAsync();
@@ -7042,6 +7043,8 @@ namespace HcPortal.Controllers
                 allRows = allRows.Where(r => r.Kategori == category).ToList();
             if (!string.IsNullOrEmpty(subCategory))
                 allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
+            if (!string.IsNullOrEmpty(tipe) && Enum.TryParse<RecordType>(tipe, out var rt))
+                allRows = allRows.Where(r => r.RecordType == rt).ToList();
 
             allRows = allRows
                 .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
@@ -7087,7 +7090,7 @@ namespace HcPortal.Controllers
             };
             gvm.IsFiltered = !string.IsNullOrEmpty(bagian) || !string.IsNullOrEmpty(unit)
                 || !string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(subCategory)
-                || !string.IsNullOrEmpty(status);
+                || !string.IsNullOrEmpty(status) || !string.IsNullOrEmpty(tipe);
 
             return PartialView("Shared/_RenewalGroupedPartial", gvm);
         }
@@ -7099,7 +7102,8 @@ namespace HcPortal.Controllers
             string judul,
             int page = 1,
             string? bagian = null, string? unit = null,
-            string? status = null, string? category = null, string? subCategory = null)
+            string? status = null, string? category = null, string? subCategory = null,
+            string? tipe = null)
         {
             judul = Uri.UnescapeDataString(judul ?? "");
             var allRows = await BuildRenewalRowsAsync();
@@ -7114,6 +7118,8 @@ namespace HcPortal.Controllers
                 allRows = allRows.Where(r => r.Kategori == category).ToList();
             if (!string.IsNullOrEmpty(subCategory))
                 allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
+            if (!string.IsNullOrEmpty(tipe) && Enum.TryParse<RecordType>(tipe, out var rt))
+                allRows = allRows.Where(r => r.RecordType == rt).ToList();
 
             var groupRows = allRows
                 .Where(r => string.Equals(r.Judul, judul, StringComparison.OrdinalIgnoreCase))

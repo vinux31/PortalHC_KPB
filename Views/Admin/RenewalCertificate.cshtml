@@ -84,6 +84,14 @@
                     </select>
                 </div>
                 <div class="col-md-2">
+                    <label class="form-label small mb-1">Tipe</label>
+                    <select id="filter-tipe" class="form-select form-select-sm">
+                        <option value="">Semua Tipe</option>
+                        <option value="Assessment">Assessment</option>
+                        <option value="Training">Training</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
                     <label class="form-label small mb-1">Status</label>
                     <select id="filter-status" class="form-select form-select-sm">
                         <option value="">Semua Status</option>
@@ -163,12 +171,14 @@
     var unitEl = document.getElementById('filter-unit');
     var categoryEl = document.getElementById('filter-category');
     var subCategoryEl = document.getElementById('filter-subcategory');
+    var tipeEl = document.getElementById('filter-tipe');
     var statusEl = document.getElementById('filter-status');
     var resetBtn = document.getElementById('btn-reset');
     var container = document.getElementById('cert-table-container');
     var certAbort = null;
     var selectedGroupKey = null;
     var pendingRenewParams = null;
+    var pendingRenewType = '';
 
     // Cascade: Bagian -> Unit
     bagianEl.addEventListener('change', function () {
@@ -215,6 +225,7 @@
         refreshTable(1);
     });
     subCategoryEl.addEventListener('change', function () { refreshTable(1); });
+    tipeEl.addEventListener('change', function () { refreshTable(1); });
     statusEl.addEventListener('change', function () { refreshTable(1); });
 
     resetBtn.addEventListener('click', function () {
@@ -224,6 +235,7 @@
         categoryEl.value = '';
         subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
         subCategoryEl.disabled = true;
+        tipeEl.value = '';
         statusEl.value = '';
         refreshTable(1);
     });
@@ -238,6 +250,7 @@
         if (unitEl.value) params.set('unit', unitEl.value);
         if (categoryEl.value) params.set('category', categoryEl.value);
         if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
+        if (tipeEl && tipeEl.value) params.set('tipe', tipeEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
 
         if (certAbort) certAbort.abort();
@@ -393,6 +406,7 @@
         if (unitEl.value) params.set('unit', unitEl.value);
         if (categoryEl.value) params.set('category', categoryEl.value);
         if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
+        if (tipeEl && tipeEl.value) params.set('tipe', tipeEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
 
         fetch('/Admin/FilterRenewalCertificateGroup?' + params)
