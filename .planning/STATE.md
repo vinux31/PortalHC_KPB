@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Assessment & Training System Audit
-status: active
-stopped_at: Completed 224-02 — Analytics Dashboard Frontend view
-last_updated: "2026-03-22T00:00:00.000Z"
+status: unknown
+stopped_at: Completed 224-02 — Analytics Dashboard Frontend view (UAT PASSED)
+last_updated: "2026-03-21T17:21:37.659Z"
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State: Portal HC KPB
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 224 (analytics-dashboard-hc) — COMPLETE
-Plan: 2 of 2 (semua plan selesai)
+Phase: 225
+Plan: Not started
 
 ## Performance Metrics
 
