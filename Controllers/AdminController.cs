@@ -5905,7 +5905,7 @@ namespace HcPortal.Controllers
             ws.Cell(3, 1).Style.Font.Italic = true;
             ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
 
-            ws.Cell(4, 1).Value = "Kolom Status: Passed / Wait Certificate / Valid";
+            ws.Cell(4, 1).Value = "Kolom Status: Passed / Valid / Expired / Failed";
             ws.Cell(4, 1).Style.Font.Italic = true;
             ws.Cell(4, 1).Style.Font.FontColor = XLColor.DarkRed;
 
