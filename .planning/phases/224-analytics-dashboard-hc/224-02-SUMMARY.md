@@ -20,7 +20,7 @@ decisions:
 metrics:
   duration: "~10 menit"
   completed: "2026-03-22"
-  tasks_completed: 1
+  tasks_completed: 2
   files_created: 1
   files_modified: 0
 ---
@@ -83,24 +83,22 @@ Razor view Analytics Dashboard HC: 4 panel grid (bar chart fail rate, line chart
 - **Files modified:** Views/CMP/AnalyticsDashboard.cshtml
 - **Commit:** a2bf746 (included)
 
-## Checkpoint: Awaiting Human Verification
+## UAT Verification — PASSED
 
-Plan ini berhenti di checkpoint `human-verify` setelah Task 1 selesai. Verifikasi browser diperlukan sebelum plan dianggap complete.
+Checkpoint `human-verify` telah disetujui. Semua 10 test UAT lulus via verifikasi browser.
 
-**Verifikasi diperlukan:**
-1. Login sebagai Admin/HC
-2. Buka CMP Hub → pastikan card "Analytics Dashboard" muncul
-3. Klik "Lihat Analytics" → halaman terbuka di /CMP/AnalyticsDashboard
-4. Pastikan 4 panel tampil dalam grid 2x2
-5. Data ter-load otomatis (default 1 tahun terakhir)
-6. Filter cascade Bagian→Unit berfungsi
-7. Filter cascade Kategori→SubKategori berfungsi
-8. Tombol "Terapkan Filter" refresh data
-9. Tombol "Reset" kembalikan default
-10. Bar chart fail rate tampil
-11. Line chart trend pass/fail tampil dengan 2 garis
-12. Tabel ET tampil dengan warna heatmap
-13. Tabel sertifikat expired tampil dengan 4 kolom
+| # | Test | Status |
+|---|------|--------|
+| 1 | Login sebagai Admin/HC | PASS |
+| 2 | Card "Analytics Dashboard" muncul di CMP Hub | PASS |
+| 3 | Halaman terbuka di /CMP/AnalyticsDashboard | PASS |
+| 4 | 4 panel tampil dalam grid 2x2 | PASS |
+| 5 | Data ter-load otomatis (default 1 tahun terakhir) | PASS |
+| 6 | Filter cascade Bagian→Unit berfungsi | PASS |
+| 7 | Filter cascade Kategori→SubKategori berfungsi | PASS |
+| 8 | Tombol "Terapkan Filter" refresh data | PASS |
+| 9 | Tombol "Reset" kembalikan default | PASS |
+| 10 | Semua chart dan tabel tampil dengan benar | PASS |
 
 ## Self-Check: PASSED
 
