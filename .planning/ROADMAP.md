@@ -6,7 +6,7 @@
 - ✅ **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–207 (shipped 2026-03-20)
 - ✅ **v7.9 Renewal Certificate Grouped View** - Phases 208–209 (shipped 2026-03-20)
 - ✅ **v7.10 RenewalCertificate Bug Fixes & Enhancement** - Phases 210–212 (shipped 2026-03-21)
-- 🚧 **v7.11 CMP Records Bug Fixes & Enhancement** - Phases 213–215 (in progress)
+- 🚧 **v7.11 CMP Records Bug Fixes & Enhancement** - Phases 213–216 (in progress)
 
 ## Phases
 
@@ -48,8 +48,9 @@
 **Milestone Goal:** Perbaikan filter bug di Team View, penambahan SubCategory model dan filter, perbaikan konsistensi export, dan penambahan badge IsExpiringSoon di My Records.
 
 - [x] **Phase 213: Filter & Status Fixes** - Perbaiki 3 filter bug inti di Team View (completed 2026-03-21)
-- [ ] **Phase 214: SubCategory Model + Filter** - Tambah field SubKategori ke model dan filter dropdown dependent
-- [ ] **Phase 215: Export Fixes & Display Enhancement** - Sejajarkan team export dengan personal export dan tampilkan badge expiring soon
+- [ ] **Phase 214: SubCategory Model + CRUD** - Tambah kolom SubKategori di TrainingRecord, dropdown Kategori/SubKategori dari AssessmentCategories di AddTraining/EditTraining/ImportTraining
+- [ ] **Phase 215: Team View Filter Enhancement** - Assessment records masuk data filterable, dropdown Sub Category dependent di Team View
+- [ ] **Phase 216: Export Fixes & Display Enhancement** - Sejajarkan team export dengan personal export dan tampilkan badge expiring soon
 
 ## Phase Details
 
@@ -65,30 +66,44 @@
 Plans:
 - [x] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
 
-### Phase 214: SubCategory Model + Filter
-**Goal**: SubKategori tersedia sebagai field di TrainingRecord dan dapat digunakan sebagai filter di Team View
+### Phase 214: SubCategory Model + CRUD
+**Goal**: SubKategori tersedia sebagai field di TrainingRecord, dropdown Kategori dan SubKategori di AddTraining/EditTraining mengambil data dari AssessmentCategories, dan ImportTraining mendukung kolom SubKategori
 **Depends on**: Phase 213
-**Requirements**: MDL-01, FLT-04
+**Requirements**: MDL-01
 **Success Criteria** (what must be TRUE):
   1. Database memiliki kolom SubKategori di tabel TrainingRecord — migrasi berhasil diaplikasikan tanpa error
-  2. Dropdown filter Sub Category muncul di Team View dan hanya menampilkan pilihan sub category yang relevan dengan category yang sedang dipilih
-  3. Memilih sub category memfilter daftar worker/record sesuai nilai SubKategori yang dipilih
-**Plans**: 1 plan
+  2. Dropdown Kategori di AddTraining/EditTraining mengambil data dari AssessmentCategories (bukan hardcode) — sinkron dengan ManageCategories
+  3. Dropdown SubKategori muncul di AddTraining/EditTraining, dependent pada Kategori — hanya menampilkan child categories dari parent yang dipilih
+  4. SubKategori di-disable saat Kategori belum dipilih
+  5. ImportTraining mendukung kolom SubKategori (opsional) — data tersimpan di TrainingRecord
+**Plans**: 2 plans
 Plans:
-- [ ] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
+- [ ] 214-01-PLAN.md — Model + Migration + ViewModel + Controller backend
+- [ ] 214-02-PLAN.md — View updates: dynamic dropdowns + ImportTraining docs
 
-### Phase 215: Export Fixes & Display Enhancement
-**Goal**: Export team dan personal menghasilkan data yang lengkap dan konsisten, serta badge IsExpiringSoon tampil di My Records untuk training yang akan segera expired
+### Phase 215: Team View Filter Enhancement
+**Goal**: Assessment records masuk ke data filterable di Team View dan dropdown Sub Category tersedia sebagai filter dependent
 **Depends on**: Phase 214
+**Requirements**: FLT-04
+**Success Criteria** (what must be TRUE):
+  1. Filter Category di Team View memfilter worker berdasarkan training DAN assessment records (bukan hanya training)
+  2. Dropdown filter Sub Category muncul di Team View Row 1 setelah Category, dependent pada Category yang dipilih
+  3. Sub Category di-disable saat Category belum dipilih
+  4. Memilih Sub Category memfilter daftar worker sesuai nilai SubKategori yang dipilih (training + assessment)
+Plans:
+- [ ] (belum dibuat)
+
+### Phase 216: Export Fixes & Display Enhancement
+**Goal**: Export team dan personal menghasilkan data yang lengkap dan konsisten, serta badge IsExpiringSoon tampil di My Records untuk training yang akan segera expired
+**Depends on**: Phase 215
 **Requirements**: EXP-01, EXP-02, EXP-03, DSP-01
 **Success Criteria** (what must be TRUE):
   1. Export team training menghasilkan file Excel dengan kolom Kategori, Status, ValidUntil, Kota, dan NomorSertifikat — sejajar dengan personal export
   2. Filter category yang aktif di Team View ikut diterapkan saat klik Export — hasil export hanya berisi data kategori yang dipilih
   3. Export assessment (personal maupun team) menghasilkan kolom Kategori yang terisi
   4. My Records menampilkan badge kuning "Akan Expired" untuk training yang ValidUntil-nya dalam 30 hari ke depan, bukan hanya badge merah "Expired"
-**Plans**: 1 plan
 Plans:
-- [ ] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
+- [ ] (belum dibuat)
 
 ## Progress
 
@@ -103,5 +118,6 @@ Plans:
 | 211. Data & Display Fixes | v7.10 | 1/1 | Complete | 2026-03-21 |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
 | 213. Filter & Status Fixes | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 214. SubCategory Model + Filter | v7.11 | 0/? | Not started | - |
-| 215. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
+| 214. SubCategory Model + CRUD | v7.11 | 0/2 | Not started | - |
+| 215. Team View Filter Enhancement | v7.11 | 0/? | Not started | - |
+| 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
