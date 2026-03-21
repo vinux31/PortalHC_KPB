@@ -141,12 +141,54 @@
             <div class="modal-body">
                 Anda akan me-renew <strong id="bulk-renew-count">0</strong> pekerja untuk sertifikat
                 <strong id="bulk-renew-judul"></strong>. Lanjutkan?
+                <div id="bulk-renew-mixed-error" class="alert alert-danger d-none mt-3">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Tidak dapat bulk renew campuran tipe Assessment dan Training. Gunakan filter Tipe untuk memisahkan terlebih dahulu.
+                </div>
+                <div id="bulk-renew-method-choice" class="d-none mt-3">
+                    <p class="fw-semibold">Pilih metode renewal:</p>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary flex-fill" id="bulk-btn-via-assessment">
+                            <i class="bi bi-clipboard-check me-1"></i>Renew via Assessment
+                        </button>
+                        <button type="button" class="btn btn-warning flex-fill" id="bulk-btn-via-training">
+                            <i class="bi bi-journal-plus me-1"></i>Renew via Training
+                        </button>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-warning" id="btn-bulk-renew-confirm">
+                <button type="button" class="btn btn-warning d-none" id="btn-bulk-renew-confirm">
                     <i class="bi bi-arrow-repeat me-1"></i>Lanjutkan
                 </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Renew Method Modal (Single) -->
+<div class="modal fade" id="renewMethodModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Pilih Metode Renewal</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Sertifikat: <strong id="renew-method-judul"></strong></p>
+                <p>Pekerja: <strong id="renew-method-nama"></strong></p>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <div>
+                    <button type="button" class="btn btn-outline-primary me-2" id="btn-renew-via-assessment">
+                        <i class="bi bi-clipboard-check me-1"></i>Renew via Assessment
+                    </button>
+                    <button type="button" class="btn btn-warning" id="btn-renew-via-training">
+                        <i class="bi bi-journal-plus me-1"></i>Renew via Training
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -349,9 +391,29 @@
         }
     }
 
+    function updateBulkModalState() {
+        var mixedErr = document.getElementById('bulk-renew-mixed-error');
+        var methodChoice = document.getElementById('bulk-renew-method-choice');
+        var confirmBtn = document.getElementById('btn-bulk-renew-confirm');
+
+        if (pendingRenewType === 'Mixed') {
+            mixedErr.classList.remove('d-none');
+            methodChoice.classList.add('d-none');
+            if (confirmBtn) confirmBtn.disabled = true;
+        } else {
+            mixedErr.classList.add('d-none');
+            methodChoice.classList.remove('d-none');
+            if (confirmBtn) confirmBtn.disabled = true;
+        }
+    }
+
     function renewGroup(groupKey, judul) {
         var checked = container.querySelectorAll('.cb-select[data-group-key="' + groupKey + '"]:checked');
         if (checked.length === 0) return;
+        var types = Array.from(checked).map(function (cb) { return cb.dataset.recordtype; });
+        var uniqueTypes = Array.from(new Set(types));
+        var isMixed = uniqueTypes.length > 1;
+        pendingRenewType = isMixed ? 'Mixed' : uniqueTypes[0];
         var params = new URLSearchParams();
         checked.forEach(function (cb) {
             if (cb.dataset.recordtype === 'Assessment') {
@@ -365,12 +427,18 @@
         document.getElementById('bulk-renew-judul').textContent = judul;
         var modal = new bootstrap.Modal(document.getElementById('bulkRenewConfirmModal'));
         modal.show();
+        updateBulkModalState();
     }
     window.renewGroup = renewGroup;
 
-    document.getElementById('btn-bulk-renew-confirm').addEventListener('click', function () {
+    document.getElementById('bulk-btn-via-assessment').addEventListener('click', function () {
         if (pendingRenewParams) {
             window.location.href = '/Admin/CreateAssessment?' + pendingRenewParams;
+        }
+    });
+    document.getElementById('bulk-btn-via-training').addEventListener('click', function () {
+        if (pendingRenewParams) {
+            window.location.href = '/Admin/AddTraining?' + pendingRenewParams;
         }
     });
 
@@ -457,6 +525,30 @@
             if (el2) el2.textContent = akanExpiredSpan.textContent;
         }
     }
+
+    // Single renew click handler (event delegation — button berasal dari partial)
+    document.addEventListener('click', function (e) {
+        var btn = e.target.closest('.btn-renew-single');
+        if (!btn) return;
+        var sourceId = btn.dataset.sourceid;
+        var recordType = btn.dataset.recordtype;
+        var judul = btn.dataset.judul;
+        var namaWorker = btn.dataset.namaworker;
+
+        document.getElementById('renew-method-judul').textContent = judul;
+        document.getElementById('renew-method-nama').textContent = namaWorker;
+
+        document.getElementById('btn-renew-via-assessment').onclick = function () {
+            var param = recordType === 'Assessment' ? 'renewSessionId' : 'renewTrainingId';
+            window.location.href = '/Admin/CreateAssessment?' + param + '=' + sourceId;
+        };
+        document.getElementById('btn-renew-via-training').onclick = function () {
+            var param = recordType === 'Assessment' ? 'renewSessionId' : 'renewTrainingId';
+            window.location.href = '/Admin/AddTraining?' + param + '=' + sourceId;
+        };
+
+        new bootstrap.Modal(document.getElementById('renewMethodModal')).show();
+    });
 
     // Wire on initial load — grouped view di-load via AJAX
     refreshTable(1);

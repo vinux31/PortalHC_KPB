@@ -51,22 +51,15 @@
                                 aria-label="Lihat riwayat sertifikat @row.NamaWorker">
                             <i class="bi bi-clock-history"></i>
                         </button>
-                        @if (row.RecordType == RecordType.Assessment)
-                        {
-                            <a href="/Admin/CreateAssessment?renewSessionId=@row.SourceId"
-                               class="btn btn-sm btn-warning"
-                               aria-label="Renew sertifikat @row.Judul untuk @row.NamaWorker">
-                                <i class="bi bi-arrow-repeat me-1"></i>Renew
-                            </a>
-                        }
-                        else
-                        {
-                            <a href="/Admin/CreateAssessment?renewTrainingId=@row.SourceId"
-                               class="btn btn-sm btn-warning"
-                               aria-label="Renew sertifikat @row.Judul untuk @row.NamaWorker">
-                                <i class="bi bi-arrow-repeat me-1"></i>Renew
-                            </a>
-                        }
+                        <button type="button"
+                                class="btn btn-sm btn-warning btn-renew-single"
+                                data-sourceid="@row.SourceId"
+                                data-recordtype="@row.RecordType"
+                                data-judul="@row.Judul"
+                                data-namaworker="@row.NamaWorker"
+                                aria-label="Renew sertifikat @row.Judul untuk @row.NamaWorker">
+                            <i class="bi bi-arrow-repeat me-1"></i>Renew
+                        </button>
                     </td>
                 </tr>
             }
