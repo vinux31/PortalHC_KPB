@@ -11,7 +11,7 @@
 - [x] **FIX-02**: Badge count di Admin/Index sinkron dengan BuildRenewalRowsAsync (termasuk TR→AS dan TR→TR renewal)
 - [x] **FIX-03**: renewedByTrSessionIds memfilter hanya TrainingRecord yang IsPassed
 
-- [ ] **FIX-04**: AddTraining mendukung renewal chain (set RenewsTrainingId/RenewsSessionId sesuai sumber)
+- [x] **FIX-04**: AddTraining mendukung renewal chain (set RenewsTrainingId/RenewsSessionId sesuai sumber)
 
 ### Bug Fixes — Data & Display
 
@@ -27,7 +27,7 @@
 - [x] **ENH-01**: Filter tipe (Assessment / Training) pada halaman RenewalCertificate
 - [x] **ENH-02**: Renewal flow berdasarkan tipe — Training→popup pilihan (renew via assessment ATAU via training record baru)
 - [x] **ENH-03**: Bulk renew aware tipe — tidak langsung ke CreateAssessment kalau ada training items
-- [ ] **ENH-04**: AddTraining renewal mode dengan pre-fill data sertifikat asal + set FK
+- [x] **ENH-04**: AddTraining renewal mode dengan pre-fill data sertifikat asal + set FK
 
 ## Out of Scope
 
@@ -45,7 +45,7 @@
 | FIX-01 | Phase 210 | Complete |
 | FIX-02 | Phase 210 | Complete |
 | FIX-03 | Phase 210 | Complete |
-| FIX-04 | Phase 212 | Pending |
+| FIX-04 | Phase 212 | Complete |
 | FIX-05 | Phase 211 | Complete |
 | FIX-06 | Phase 211 | Complete |
 | FIX-07 | Phase 211 | Complete |
@@ -55,7 +55,7 @@
 | ENH-01 | Phase 212 | Complete |
 | ENH-02 | Phase 212 | Complete |
 | ENH-03 | Phase 212 | Complete |
-| ENH-04 | Phase 212 | Pending |
+| ENH-04 | Phase 212 | Complete |
 
 **Coverage:**
 - v7.10 requirements: 14 total

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.10
 milestone_name: RenewalCertificate Bug Fixes & Enhancement
 status: unknown
-stopped_at: Completed 212-01-PLAN.md
-last_updated: "2026-03-21T06:18:32.828Z"
+stopped_at: Completed 212-02-PLAN.md
+last_updated: "2026-03-21T06:21:46.985Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State: Portal HC KPB
@@ -40,6 +40,8 @@ Plan: 2 of 2
 - [Phase 210]: Per-user FK map dikirim via hidden input JSON untuk menghindari perubahan model binding
 - [Phase 212]: Single Renew tidak lagi langsung redirect ke CreateAssessment — selalu tampil modal pilihan metode
 - [Phase 212]: Tipe filter dikirim sebagai query param string? tipe ke FilterRenewalCertificate dan FilterRenewalCertificateGroup
+- [Phase 212]: Prefill Peserta via JS DOM manipulation karena asp-for select tidak bisa di-override dari ViewBag
+- [Phase 212]: ModelState invalid handler me-restore ViewBag IsRenewalMode agar banner tidak hilang saat validasi gagal
 
 ### Pending Todos
 
@@ -52,6 +54,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T06:18:32.825Z
-Stopped at: Completed 212-01-PLAN.md
+Last session: 2026-03-21T06:21:46.982Z
+Stopped at: Completed 212-02-PLAN.md
 Resume file: None
