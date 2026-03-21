@@ -25,11 +25,11 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 ### Integrasi Codebase
 
 - [x] **INT-01**: Semua filter dropdown Bagian/Unit di seluruh app ambil dari database OrganizationUnits
-- [ ] **INT-02**: Cascade dropdown tetap berfungsi — data dari database
+- [x] **INT-02**: Cascade dropdown tetap berfungsi — data dari database
 - [x] **INT-03**: ApplicationUser.Section/Unit validasi terhadap OrganizationUnit saat create/edit worker
-- [ ] **INT-04**: Role-based section locking (L4/L5) tetap berfungsi
+- [x] **INT-04**: Role-based section locking (L4/L5) tetap berfungsi
 - [x] **INT-05**: KkjFile/CpdpFile grouping di DokumenKkj menggunakan OrganizationUnit
-- [ ] **INT-06**: ProtonKompetensi.Bagian/Unit dan CoachingGuidanceFile.Bagian/Unit tersinkron dengan OrganizationUnit
+- [x] **INT-06**: ProtonKompetensi.Bagian/Unit dan CoachingGuidanceFile.Bagian/Unit tersinkron dengan OrganizationUnit
 - [ ] **INT-07**: Hapus static class OrganizationStructure.cs setelah semua referensi diganti
 
 ### Cleanup
@@ -60,11 +60,11 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 | CRUD-05 | Phase 220 | Complete |
 | CRUD-06 | Phase 220 | Complete |
 | INT-01 | Phase 221 | Complete |
-| INT-02 | Phase 221 | Pending |
+| INT-02 | Phase 221 | Complete |
 | INT-03 | Phase 221 | Complete |
-| INT-04 | Phase 221 | Pending |
+| INT-04 | Phase 221 | Complete |
 | INT-05 | Phase 221 | Complete |
-| INT-06 | Phase 221 | Pending |
+| INT-06 | Phase 221 | Complete |
 | INT-07 | Phase 222 | Pending |
 | CLN-01 | Phase 222 | Pending |
 | CLN-02 | Phase 222 | Pending |
