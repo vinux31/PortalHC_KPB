@@ -211,7 +211,7 @@ Plans:
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
 | 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete | 2026-03-21 |
 | 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete | 2026-03-21 |
-| 219. DB Model & Migration | v7.12 | 1/1 | Complete   | 2026-03-21 |
+| 219. DB Model & Migration | v7.12 | 1/1 | Complete    | 2026-03-21 |
 | 220. CRUD Page Kelola Data | v7.12 | 0/? | Not started | - |
 | 221. Integrasi Codebase | v7.12 | 0/? | Not started | - |
 | 222. Cleanup & Finalisasi | v7.12 | 0/? | Not started | - |
