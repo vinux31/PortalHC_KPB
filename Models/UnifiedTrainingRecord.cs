@@ -50,6 +50,7 @@ namespace HcPortal.Models
 
         // Training Manual-only fields for Edit modal pre-population (null for Assessment rows)
         public string? Kategori { get; set; }
+        public string? SubKategori { get; set; }
         public string? Kota { get; set; }
         public string? NomorSertifikat { get; set; }
         public DateTime? TanggalMulai { get; set; }

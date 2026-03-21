@@ -472,6 +472,19 @@ namespace HcPortal.Controllers
 
             var unifiedRecords = await _workerDataService.GetUnifiedRecords(workerId);
 
+            var allCats = await _context.AssessmentCategories
+                .Where(c => c.IsActive && c.ParentId == null)
+                .Include(c => c.Children)
+                .ToListAsync();
+            var subCategoryMap = allCats.ToDictionary(
+                p => p.Name,
+                p => p.Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
+            );
+            ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
+            ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(
+                allCats.Select(c => c.Name).OrderBy(n => n).ToList()
+            );
+
             var viewModel = new
             {
                 WorkerName = worker.FullName ?? worker.Id,

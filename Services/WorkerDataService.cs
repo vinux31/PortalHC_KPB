@@ -49,7 +49,8 @@ namespace HcPortal.Services
                 Status = a.IsPassed == true ? "Passed" : "Failed",
                 SortPriority = 0,
                 AssessmentSessionId = a.Id,
-                GenerateCertificate = a.GenerateCertificate
+                GenerateCertificate = a.GenerateCertificate,
+                Kategori = a.Category
             }));
 
             unified.AddRange(trainings.Select(t => new UnifiedTrainingRecord
@@ -65,6 +66,7 @@ namespace HcPortal.Services
                 SortPriority = 1,
                 TrainingRecordId = t.Id,
                 Kategori = t.Kategori,
+                SubKategori = t.SubKategori,
                 Kota = t.Kota,
                 NomorSertifikat = t.NomorSertifikat,
                 TanggalMulai = t.TanggalMulai,
