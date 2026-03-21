@@ -160,14 +160,20 @@
                                     .Select(t => t.Kategori)
                                     .Where(k => !string.IsNullOrEmpty(k))
                                     .Distinct());
+                                var completedCategories = string.Join(",", worker.TrainingRecords
+                                    .Where(t => !string.IsNullOrEmpty(t.Kategori) &&
+                                        (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"))
+                                    .Select(t => t.Kategori)
+                                    .Distinct());
 
                                 <tr class="worker-row"
                                     data-section="@worker.Section"
                                     data-unit="@worker.Unit"
                                     data-categories="@trainingCategories.ToLower()"
                                     data-has-training="@hasTraining.ToString().ToLower()"
+                                    data-completed-categories="@completedCategories.ToLower()"
                                     data-name="@worker.WorkerName.ToLower()"
-                                    data-nip="@(worker.NIP ?? "")">
+                                    data-nip="@((worker.NIP ?? "").ToLower())">
                                     <td class="p-3">
                                         <span class="fw-semibold">@worker.WorkerName</span>
                                     </td>
@@ -288,9 +294,19 @@ function filterTeamTable() {
         if (status === 'ALL') {
             matchStatus = true;
         } else if (status === 'Sudah') {
-            matchStatus = rowHasTraining;
+            if (category) {
+                const completedCats = row.getAttribute('data-completed-categories') || '';
+                matchStatus = completedCats.includes(category);
+            } else {
+                matchStatus = rowHasTraining;
+            }
         } else if (status === 'Belum') {
-            matchStatus = !rowHasTraining;
+            if (category) {
+                const completedCats = row.getAttribute('data-completed-categories') || '';
+                matchStatus = !completedCats.includes(category);
+            } else {
+                matchStatus = !rowHasTraining;
+            }
         }
 
         const matchSearch = !search || rowName.includes(search) || rowNip.includes(search);
