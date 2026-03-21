@@ -7,9 +7,9 @@
 
 ### Bug Fixes — Renewal Chain
 
-- [ ] **FIX-01**: Bulk renew menetapkan RenewsSessionId/RenewsTrainingId ke semua user yang dipilih (bukan hanya user[0])
-- [ ] **FIX-02**: Badge count di Admin/Index sinkron dengan BuildRenewalRowsAsync (termasuk TR→AS dan TR→TR renewal)
-- [ ] **FIX-03**: renewedByTrSessionIds memfilter hanya TrainingRecord yang IsPassed
+- [x] **FIX-01**: Bulk renew menetapkan RenewsSessionId/RenewsTrainingId ke semua user yang dipilih (bukan hanya user[0])
+- [x] **FIX-02**: Badge count di Admin/Index sinkron dengan BuildRenewalRowsAsync (termasuk TR→AS dan TR→TR renewal)
+- [x] **FIX-03**: renewedByTrSessionIds memfilter hanya TrainingRecord yang IsPassed
 
 - [ ] **FIX-04**: AddTraining mendukung renewal chain (set RenewsTrainingId/RenewsSessionId sesuai sumber)
 
@@ -42,9 +42,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FIX-01 | Phase 210 | Pending |
-| FIX-02 | Phase 210 | Pending |
-| FIX-03 | Phase 210 | Pending |
+| FIX-01 | Phase 210 | Complete |
+| FIX-02 | Phase 210 | Complete |
+| FIX-03 | Phase 210 | Complete |
 | FIX-04 | Phase 212 | Pending |
 | FIX-05 | Phase 211 | Pending |
 | FIX-06 | Phase 211 | Pending |

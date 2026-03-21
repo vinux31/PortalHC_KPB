@@ -48,7 +48,7 @@
 **Plans**: 1 plan
 
 Plans:
-- [ ] 210-01: Critical renewal chain fixes — bulk FK assignment, badge count sync, IsPassed filter
+- [x] 210-01: Critical renewal chain fixes — bulk FK assignment, badge count sync, IsPassed filter
 
 #### Phase 211: Data & Display Fixes
 **Goal**: Semua data dan tampilan RenewalCertificate akurat — ValidUntil=null ditangani benar, category pre-fill dari TR berfungsi, grouping konsisten dan aman
@@ -123,6 +123,6 @@ Plans:
 | 207. Perbaikan Desain Tabel DokumenKkj | v7.8 | 1/1 | Complete | 2026-03-20 |
 | 208. Grouped View Structure | v7.9 | 1/1 | Complete | 2026-03-20 |
 | 209. Bulk Renew & Filter Compatibility | v7.9 | 1/1 | Complete | 2026-03-20 |
-| 210. Critical Renewal Chain Fixes | v7.10 | 0/TBD | Not started | - |
+| 210. Critical Renewal Chain Fixes | v7.10 | 1/1 | Complete   | 2026-03-21 |
 | 211. Data & Display Fixes | v7.10 | 0/TBD | Not started | - |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 0/TBD | Not started | - |

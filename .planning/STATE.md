@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v7.10
 milestone_name: RenewalCertificate Bug Fixes & Enhancement
-status: planning
-stopped_at: Phase 210 context gathered
-last_updated: "2026-03-21T04:18:54.925Z"
-last_activity: 2026-03-20 — v7.10 roadmap created, phases 210–212 defined
+status: unknown
+stopped_at: Completed 210-01-PLAN.md
+last_updated: "2026-03-21T04:25:07.990Z"
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 95
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State: Portal HC KPB
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 210 — Critical Renewal Chain Fixes (v7.10)
+**Current focus:** Phase 210 — critical-renewal-chain-fixes
 
 ## Current Position
 
-Phase: 210 of 212 (Critical Renewal Chain Fixes)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-20 — v7.10 roadmap created, phases 210–212 defined
-
-Progress: [██████████████████░░] ~95% (v7.9 shipped, v7.10 starting)
+Phase: 210 (critical-renewal-chain-fixes) — EXECUTING
+Plan: 1 of 1
 
 ## Accumulated Context
 
@@ -40,6 +34,8 @@ Progress: [██████████████████░░] ~95% (v
 - [v7.9]: Lock checkbox per group-key, modal konfirmasi sebelum redirect ke CreateAssessment
 - [v7.10]: 14 requirements dibagi 3 phase: FIX-01/02/03 critical chain (210), FIX-05-10 data/display (211), ENH-01/02/03/04 + FIX-04 enhancement (212)
 - [v7.10]: FIX-04 (AddTraining renewal FK) dikelompokkan bersama ENH-04 (AddTraining renewal mode) di Phase 212
+- [Phase 210-01]: BuildRenewalRowsAsync digunakan sebagai single source of truth untuk badge count Admin/Index
+- [Phase 210-01]: FIX-03 tidak perlu ubah kode: Set 2 dan Set 4 sudah benar karena TrainingRecord tidak memiliki field IsPassed
 
 ### Pending Todos
 
@@ -52,6 +48,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T04:18:54.918Z
-Stopped at: Phase 210 context gathered
-Resume file: .planning/phases/210-critical-renewal-chain-fixes/210-CONTEXT.md
+Last session: 2026-03-21T04:25:07.987Z
+Stopped at: Completed 210-01-PLAN.md
+Resume file: None
