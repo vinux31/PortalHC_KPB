@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (after v7.10 complete, 2026-03-21)
+## Current State (after v7.12 complete, 2026-03-21)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -25,24 +25,10 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.8 shipped** — Dokumen KKJ & Alignment KKJ/IDP — Combine Menu, 3 phases (205-207).
 **v7.9 shipped** — Renewal Certificate Grouped View, 2 phases (208-209).
 **v7.10 shipped** — RenewalCertificate Bug Fixes & Enhancement, 3 phases (210-212). Bulk renew FK chain fix, data/display fixes, tipe filter, renewal method modal, AddTraining renewal mode.
-
 **v7.11 shipped** — CMP Records Bug Fixes & Enhancement, 6 phases (213-218). Category/Status filter fix, SubKategori field, RecordsWorkerDetail redesign, ImportTraining 12-column update.
+**v7.12 shipped** — Struktur Organisasi CRUD, 4 phases (219-222). Static OrganizationStructure → database-driven OrganizationUnit dengan CRUD page, integrasi seluruh dropdown/filter portal, seed data, ImportWorkers validation.
 
-**v7.12 in progress** — Struktur Organisasi CRUD.
-
-**Current focus:** v7.12 — Dynamic organizational hierarchy management.
-
-## Current Milestone: v7.12 Struktur Organisasi CRUD
-
-**Goal:** Mengganti static hardcoded OrganizationStructure menjadi fully database-driven dengan CRUD page di Kelola Data, mendukung N-level hierarki fleksibel (bisa tambah level di atas/bawah kapan saja).
-
-**Target features:**
-- Entity OrganizationUnit dengan Adjacency List (self-referential ParentId) untuk N-level hierarki
-- CRUD page di Kelola Data Section A untuk manage Bagian & Unit (tambah, edit, hapus, pindah, reorder)
-- Migrasi data dari static OrganizationStructure.cs + KkjBagian ke entity baru
-- Integrasi seluruh codebase: ganti semua referensi OrganizationStructure static ke database query
-- Sinkronisasi ApplicationUser.Section/Unit, KkjFile/CpdpFile, filter dropdown, cascade JS
-- Role access: Admin dan HC
+**Current focus:** Planning next milestone.
 
 ## Architecture Decisions
 
@@ -55,6 +41,24 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v7.12 - Struktur Organisasi CRUD (2026-03-21)
+
+**Delivered:** Migrasi penuh dari static class OrganizationStructure ke database-driven CRUD. Entity OrganizationUnit (adjacency list), CRUD page di Kelola Data (indented table, tambah/edit/pindah/hapus/reorder), integrasi 15+ dropdown/filter di 4 controller ke database, cleanup final + seed data + ImportWorkers validation.
+
+**Metrics:** 4 phases (219-222), 7 plans, 28 files changed, +3,961 / -380 lines
+
+### ✅ v7.11 - CMP Records Bug Fixes & Enhancement (2026-03-21)
+
+**Delivered:** Category/Status filter fix (per-kategori, Permanent count, NIP case), SubKategori model + CRUD, Team View filter enhancement, Category dropdown dari master table, RecordsWorkerDetail redesign (hapus Score, tambah Kategori/SubKategori/Action), ImportTraining 12-column update.
+
+### ✅ v7.10 - RenewalCertificate Bug Fixes & Enhancement (2026-03-21)
+
+**Delivered:** Bulk renew FK chain fix, data/display fixes (ValidUntil null, category prefill, grouping), tipe filter Assessment/Training, renewal method modal, AddTraining renewal mode.
+
+### ✅ v7.9 - Renewal Certificate Grouped View (2026-03-20)
+
+**Delivered:** Grouped view struktur untuk RenewalCertificate dengan bulk renew dan filter compatibility.
 
 ### ✅ v7.8 - Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (2026-03-20)
 
@@ -812,4 +816,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-21 after Phase 217 — Fix Category Dropdown RecordsTeam complete*
+*Last updated: 2026-03-21 after v7.12 milestone*

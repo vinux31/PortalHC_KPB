@@ -1,5 +1,22 @@
 # Milestones
 
+## v7.12 Struktur Organisasi CRUD (Shipped: 2026-03-21)
+
+**Phases completed:** 4 phases (219-222), 7 plans
+**Timeline:** 2026-03-21 (single day)
+**Code changes:** 28 files changed, +3,961 / -380 lines
+
+**Delivered:** Migrasi penuh dari static class OrganizationStructure ke database-driven CRUD — entity OrganizationUnit dengan adjacency list, halaman admin Struktur Organisasi dengan indented table + full CRUD, integrasi seluruh dropdown/filter/validasi portal ke database, dan cleanup final.
+
+**Key accomplishments:**
+
+1. DB Model & Migration — Entity OrganizationUnit (self-referential adjacency list), migrasi 4 Bagian + 19 Unit dari static class, konsolidasi KkjBagian ke OrganizationUnit (KkjFile/CpdpFile FK remapped)
+2. CRUD Page Kelola Data — Halaman Struktur Organisasi di Kelola Data Section A: indented table view, tambah/edit/pindah/hapus/reorder node, validasi anti-circular reference, soft-delete dengan guard children/user assignment
+3. Integrasi Codebase — 15+ dropdown filter Bagian/Unit di 4 controller (Admin, CMP, CDP, ProtonData) dan views diganti ke database OrganizationUnits, cascade filter tetap berfungsi, role-based section locking L4/L5 dipertahankan
+4. Cleanup & Finalisasi — OrganizationStructure.cs dihapus, SeedOrganizationUnitsAsync ditambahkan sebagai safety net deployment, ImportWorkers memvalidasi Section/Unit terhadap database
+
+---
+
 ## v7.10 RenewalCertificate Bug Fixes & Enhancement (Shipped: 2026-03-21)
 
 **Phases completed:** 3 phases, 5 plans, 5 tasks

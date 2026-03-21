@@ -4,6 +4,38 @@
 
 ---
 
+## Milestone: v7.12 — Struktur Organisasi CRUD
+
+**Shipped:** 2026-03-21
+**Phases:** 4 (219-222) | **Plans:** 7
+
+### What Was Built
+- Entity OrganizationUnit (adjacency list) dengan migrasi 4 Bagian + 19 Unit dari static class + konsolidasi KkjBagian
+- CRUD page Struktur Organisasi di Kelola Data: indented table, tambah/edit/pindah/hapus/reorder, anti-circular reference, soft-delete guard
+- Integrasi 15+ dropdown/filter Bagian/Unit di 4 controller ke database OrganizationUnits
+- Cleanup final: hapus OrganizationStructure.cs, seed data idempotent, ImportWorkers validasi terhadap DB
+
+### What Worked
+- **4-phase dependency chain**: DB→CRUD→Integrasi→Cleanup memastikan setiap step bisa diverifikasi independen
+- **Single-day execution**: Semua 4 phases + 7 plans selesai dalam satu sesi
+- **Clean separation of concerns**: Model/migration terpisah dari UI terpisah dari integrasi — tidak ada partial-broken state
+- **Idempotent seed pattern**: SeedOrganizationUnitsAsync dengan AnyAsync() guard — aman dijalankan berulang
+
+### What Was Inefficient
+- **Phase 216 deferred dari v7.11**: Export Fixes masih belum dieksekusi (carried over dari milestone sebelumnya)
+- **STATE.md drift**: Performance Metrics section tidak auto-update saat plans selesai — manual entries outdated
+
+### Patterns Established
+- **Static-to-DB migration pattern**: Buat entity + migrasi data → CRUD page → integrasi codebase → hapus static class
+- **Adjacency list untuk hierarchical data**: Self-referential ParentId dengan Level dan DisplayOrder
+- **Cascade dropdown dari DB**: GetSectionsAsync() + GetUnitsBySectionAsync() pattern menggantikan hardcoded lists
+
+### Key Lessons
+- Pisahkan DB migration dan CRUD UI ke phase terpisah — verifikasi data integrity sebelum build UI di atasnya
+- Integrasi seluruh codebase sekaligus (bukan incremental per controller) menghindari partial-broken state
+
+---
+
 ## Milestone: v7.10 — RenewalCertificate Bug Fixes & Enhancement
 
 **Shipped:** 2026-03-21
