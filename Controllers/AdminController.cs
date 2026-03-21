@@ -4519,12 +4519,14 @@ namespace HcPortal.Controllers
         // GET /Admin/CreateWorker
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public IActionResult CreateWorker()
+        public async Task<IActionResult> CreateWorker()
         {
             var model = new ManageUserViewModel
             {
                 Role = "Coachee"
             };
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
             return View(model);
         }
 
@@ -4541,10 +4543,30 @@ namespace HcPortal.Controllers
                 ModelState.AddModelError("Password", "Password harus diisi untuk user baru");
             }
 
+            // Validate Section/Unit against active OrganizationUnits in DB
+            if (!string.IsNullOrEmpty(model.Section))
+            {
+                var validSections = await _context.GetAllSectionsAsync();
+                if (!validSections.Contains(model.Section))
+                {
+                    ModelState.AddModelError("Section", $"Bagian '{model.Section}' tidak ditemukan di data organisasi");
+                }
+                else if (!string.IsNullOrEmpty(model.Unit))
+                {
+                    var validUnits = await _context.GetUnitsForSectionAsync(model.Section);
+                    if (!validUnits.Contains(model.Unit))
+                    {
+                        ModelState.AddModelError("Unit", $"Unit '{model.Unit}' tidak valid untuk bagian '{model.Section}'");
+                    }
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 _logger.LogWarning("CreateWorker validation failed: {Errors}", errors);
+                var sectionUnitsDictErr = await _context.GetSectionUnitsDictAsync();
+                ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictErr);
                 return View(model);
             }
 
@@ -4637,6 +4659,8 @@ namespace HcPortal.Controllers
                 Role = roles.FirstOrDefault() ?? "Coachee"
             };
 
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
             return View(model);
         }
 
@@ -4655,10 +4679,30 @@ namespace HcPortal.Controllers
                 ModelState.Remove("ConfirmPassword");
             }
 
+            // Validate Section/Unit against active OrganizationUnits in DB
+            if (!string.IsNullOrEmpty(model.Section))
+            {
+                var validSections = await _context.GetAllSectionsAsync();
+                if (!validSections.Contains(model.Section))
+                {
+                    ModelState.AddModelError("Section", $"Bagian '{model.Section}' tidak ditemukan di data organisasi");
+                }
+                else if (!string.IsNullOrEmpty(model.Unit))
+                {
+                    var validUnits = await _context.GetUnitsForSectionAsync(model.Section);
+                    if (!validUnits.Contains(model.Unit))
+                    {
+                        ModelState.AddModelError("Unit", $"Unit '{model.Unit}' tidak valid untuk bagian '{model.Section}'");
+                    }
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 var errors = string.Join("; ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 _logger.LogWarning("EditWorker validation failed for user {UserId}: {Errors}", model.Id, errors);
+                var sectionUnitsDictErr = await _context.GetSectionUnitsDictAsync();
+                ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictErr);
                 return View(model);
             }
 
