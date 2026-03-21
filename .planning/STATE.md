@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v7.11
-milestone_name: CMP Records Bug Fixes & Enhancement
-status: unknown
-stopped_at: Completed 218-01-PLAN.md
-last_updated: "2026-03-21T10:13:33.297Z"
+milestone: v7.12
+milestone_name: Struktur Organisasi CRUD
+status: active
+stopped_at: ""
+last_updated: "2026-03-21T13:00:00.000Z"
 progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 7
-  completed_plans: 7
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 218 — recordsworkerdetail-redesign-importtraining-update
+**Current focus:** v7.12 — Struktur Organisasi CRUD
 
 ## Current Position
 
-Phase: 218
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-21 — Milestone v7.12 started
 
 ## Performance Metrics
 

@@ -26,24 +26,23 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.9 shipped** — Renewal Certificate Grouped View, 2 phases (208-209).
 **v7.10 shipped** — RenewalCertificate Bug Fixes & Enhancement, 3 phases (210-212). Bulk renew FK chain fix, data/display fixes, tipe filter, renewal method modal, AddTraining renewal mode.
 
-**v7.11 in progress** — CMP Records Bug Fixes & Enhancement.
-- Phase 218 complete — RecordsWorkerDetail redesigned (7 kolom, modal detail, cascade filter SubCategory), ImportTraining updated (12 kolom template).
+**v7.11 shipped** — CMP Records Bug Fixes & Enhancement, 6 phases (213-218). Category/Status filter fix, SubKategori field, RecordsWorkerDetail redesign, ImportTraining 12-column update.
 
-**Current focus:** v7.11 — Phase 218 complete. Last phase in milestone.
+**v7.12 in progress** — Struktur Organisasi CRUD.
 
-## Current Milestone: v7.11 CMP Records Bug Fixes & Enhancement
+**Current focus:** v7.12 — Dynamic organizational hierarchy management.
 
-**Goal:** Perbaikan semua bug di halaman CMP/Records (Team View & My Records) — filter Category+Status, export inconsistencies, status mismatch — plus tambah filter Sub Category.
+## Current Milestone: v7.12 Struktur Organisasi CRUD
+
+**Goal:** Mengganti static hardcoded OrganizationStructure menjadi fully database-driven dengan CRUD page di Kelola Data, mendukung N-level hierarki fleksibel (bisa tambah level di atas/bawah kapan saja).
 
 **Target features:**
-- Fix Category+Status filter logic (status per-kategori, bukan global)
-- Fix hasTraining vs CompletedTrainings status mismatch ("Permanent")
-- Fix Export Assessment missing category filter parameter
-- Tambah SubKategori field di TrainingRecord + filter Sub Category di Team View
-- Perbaiki team export kolom (tambah Kategori, ValidUntil, Status, dll)
-- Tambah kolom Kategori di assessment export
-- Fix NIP data attribute lowercase
-- Tambah IsExpiringSoon warning di My Records
+- Entity OrganizationUnit dengan Adjacency List (self-referential ParentId) untuk N-level hierarki
+- CRUD page di Kelola Data Section A untuk manage Bagian & Unit (tambah, edit, hapus, pindah, reorder)
+- Migrasi data dari static OrganizationStructure.cs + KkjBagian ke entity baru
+- Integrasi seluruh codebase: ganti semua referensi OrganizationStructure static ke database query
+- Sinkronisasi ApplicationUser.Section/Unit, KkjFile/CpdpFile, filter dropdown, cascade JS
+- Role access: Admin dan HC
 
 ## Architecture Decisions
 
