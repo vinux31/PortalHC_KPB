@@ -9,9 +9,9 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 
 ### Model & Database
 
-- [ ] **DB-01**: Entity OrganizationUnit (Id, Name, ParentId, Level, DisplayOrder, IsActive) — self-referential Adjacency List
-- [ ] **DB-02**: Migrasi data dari static OrganizationStructure (4 Bagian, 19 Unit) ke tabel OrganizationUnits
-- [ ] **DB-03**: KkjFile/CpdpFile FK BagianId → ganti ke OrganizationUnitId, hapus entity KkjBagian
+- [x] **DB-01**: Entity OrganizationUnit (Id, Name, ParentId, Level, DisplayOrder, IsActive) — self-referential Adjacency List
+- [x] **DB-02**: Migrasi data dari static OrganizationStructure (4 Bagian, 19 Unit) ke tabel OrganizationUnits
+- [x] **DB-03**: KkjFile/CpdpFile FK BagianId → ganti ke OrganizationUnitId, hapus entity KkjBagian
 
 ### CRUD Page
 
@@ -50,9 +50,9 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DB-01 | Phase 219 | Pending |
-| DB-02 | Phase 219 | Pending |
-| DB-03 | Phase 219 | Pending |
+| DB-01 | Phase 219 | Complete |
+| DB-02 | Phase 219 | Complete |
+| DB-03 | Phase 219 | Complete |
 | CRUD-01 | Phase 220 | Pending |
 | CRUD-02 | Phase 220 | Pending |
 | CRUD-03 | Phase 220 | Pending |
