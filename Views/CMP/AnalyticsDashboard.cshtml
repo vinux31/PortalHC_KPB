@@ -1,0 +1,511 @@
+@model HcPortal.Models.AnalyticsDashboardViewModel
+@{
+    ViewData["Title"] = "Analytics Dashboard";
+}
+
+<style>
+    .dashboard-loading { opacity: 0.5; pointer-events: none; position: relative; }
+    .dashboard-loading::after {
+        content: '';
+        position: absolute; top: 50%; left: 50%;
+        width: 2rem; height: 2rem;
+        margin: -1rem 0 0 -1rem;
+        border: 3px solid #dee2e6; border-top-color: #0d6efd;
+        border-radius: 50%; animation: spin 0.6s linear infinite;
+        z-index: 10;
+    }
+    @@keyframes spin { to { transform: rotate(360deg); } }
+    .heatmap-high { background-color: rgba(40,167,69,0.20); }
+    .heatmap-mid  { background-color: rgba(255,193,7,0.20); }
+    .heatmap-low  { background-color: rgba(220,53,69,0.20); }
+    canvas { min-height: 280px; }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col">
+            <h4 class="fw-bold mb-1"><i class="bi bi-graph-up me-2"></i>Analytics Dashboard</h4>
+            <p class="text-muted">Visualisasi data assessment dan sertifikat</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="filterBagian" class="form-label form-label-sm mb-1">Bagian</label>
+                    <select id="filterBagian" class="form-select form-select-sm">
+                        <option value="">Semua Bagian</option>
+                        @foreach (var s in Model.Sections)
+                        {
+                            <option value="@s">@s</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="filterUnit" class="form-label form-label-sm mb-1">Unit</label>
+                    <select id="filterUnit" class="form-select form-select-sm" disabled>
+                        <option value="">Semua Unit</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="filterKategori" class="form-label form-label-sm mb-1">Kategori</label>
+                    <select id="filterKategori" class="form-select form-select-sm">
+                        <option value="">Semua Kategori</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c">@c</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="filterSubKategori" class="form-label form-label-sm mb-1">SubKategori</label>
+                    <select id="filterSubKategori" class="form-select form-select-sm" disabled>
+                        <option value="">Semua SubKategori</option>
+                    </select>
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="filterStart" class="form-label form-label-sm mb-1">Dari</label>
+                    <input type="date" id="filterStart" class="form-control form-control-sm">
+                </div>
+                <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                    <label for="filterEnd" class="form-label form-label-sm mb-1">s/d</label>
+                    <input type="date" id="filterEnd" class="form-control form-control-sm">
+                </div>
+            </div>
+            <div class="row mt-3">
+                <div class="col">
+                    <button id="btnApply" class="btn btn-primary btn-sm me-2">
+                        <i class="bi bi-funnel me-1"></i>Terapkan Filter
+                    </button>
+                    <button id="btnReset" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4 Panel Grid -->
+    <div id="analytics-panels-container" class="row g-4">
+
+        <!-- Panel 1: Fail Rate Assessment -->
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-bar-chart-fill text-danger fs-4 me-2"></i>
+                        <div>
+                            <h6 class="mb-0 fw-semibold">Fail Rate Assessment</h6>
+                            <small class="text-muted">Per section dan kategori</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="failRateChart" role="img" aria-label="Grafik fail rate assessment"></canvas>
+                    <div id="failRateEmpty" class="text-center text-muted py-5" style="display:none;">
+                        <i class="bi bi-bar-chart fs-1 d-block mb-2"></i>
+                        Belum ada data<br>
+                        <small>Tidak ada data assessment untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 2: Trend Assessment -->
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-graph-up-arrow text-primary fs-4 me-2"></i>
+                        <div>
+                            <h6 class="mb-0 fw-semibold">Trend Assessment</h6>
+                            <small class="text-muted">Pass / Fail per bulan</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="trendChart" role="img" aria-label="Grafik trend assessment pass fail per bulan"></canvas>
+                    <div id="trendEmpty" class="text-center text-muted py-5" style="display:none;">
+                        <i class="bi bi-graph-up fs-1 d-block mb-2"></i>
+                        Belum ada data<br>
+                        <small>Tidak ada data trend untuk filter yang dipilih. Coba ubah periode atau hapus filter.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 3: Skor Elemen Teknis -->
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-grid-3x3-gap-fill text-warning fs-4 me-2"></i>
+                        <div>
+                            <h6 class="mb-0 fw-semibold">Skor Elemen Teknis</h6>
+                            <small class="text-muted">Rata-rata skor per kategori assessment</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="etTableContainer" class="table-responsive"></div>
+                    <div id="etEmpty" class="text-center text-muted py-5" style="display:none;">
+                        <i class="bi bi-grid-3x3-gap fs-1 d-block mb-2"></i>
+                        Belum ada data<br>
+                        <small>Tidak ada data skor elemen teknis untuk filter yang dipilih.</small>
+                    </div>
+                    <small class="text-muted d-block mt-2">Data hanya tersedia untuk assessment dengan paket soal</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel 4: Sertifikat Akan Expired -->
+        <div class="col-12 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-transparent border-bottom-0 pb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-shield-exclamation text-danger fs-4 me-2"></i>
+                        <div>
+                            <h6 class="mb-0 fw-semibold">Sertifikat Akan Expired</h6>
+                            <small class="text-muted">Dalam 30 hari ke depan</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="expiringTableContainer" class="table-responsive"></div>
+                    <div id="expiringEmpty" class="text-center text-muted py-5" style="display:none;">
+                        <i class="bi bi-shield-check fs-1 d-block mb-2"></i>
+                        Tidak ada sertifikat yang akan expired<br>
+                        <small>Tidak ada sertifikat yang akan expired dalam 30 hari ke depan.</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /#analytics-panels-container -->
+</div><!-- /.container-fluid -->
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+    var failRateChart = null;
+    var trendChart = null;
+    var analyticsAbort = null;
+
+    // ============================================================
+    // refreshAnalytics — fetch data and render all 4 panels
+    // ============================================================
+    function refreshAnalytics() {
+        var bagian      = document.getElementById('filterBagian').value;
+        var unit        = document.getElementById('filterUnit').value;
+        var kategori    = document.getElementById('filterKategori').value;
+        var subKategori = document.getElementById('filterSubKategori').value;
+        var periodeStart = document.getElementById('filterStart').value;
+        var periodeEnd   = document.getElementById('filterEnd').value;
+
+        var params = new URLSearchParams();
+        if (bagian)       params.set('bagian', bagian);
+        if (unit)         params.set('unit', unit);
+        if (kategori)     params.set('kategori', kategori);
+        if (subKategori)  params.set('subKategori', subKategori);
+        if (periodeStart) params.set('periodeStart', periodeStart);
+        if (periodeEnd)   params.set('periodeEnd', periodeEnd);
+
+        var container = document.getElementById('analytics-panels-container');
+        container.classList.add('dashboard-loading');
+        container.setAttribute('aria-busy', 'true');
+
+        if (analyticsAbort) analyticsAbort.abort();
+        analyticsAbort = new AbortController();
+
+        fetch('/CMP/GetAnalyticsData?' + params.toString(), { signal: analyticsAbort.signal })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                renderFailRate(data.failRate);
+                renderTrend(data.trend);
+                renderEtTable(data.etBreakdown);
+                renderExpiringTable(data.expiringSoon);
+                container.classList.remove('dashboard-loading');
+                container.setAttribute('aria-busy', 'false');
+            })
+            .catch(function (e) {
+                if (e.name !== 'AbortError') {
+                    console.error('Analytics fetch error:', e);
+                    container.classList.remove('dashboard-loading');
+                    container.setAttribute('aria-busy', 'false');
+                }
+            });
+    }
+
+    // ============================================================
+    // renderFailRate — bar chart fail rate
+    // ============================================================
+    function renderFailRate(data) {
+        var canvas = document.getElementById('failRateChart');
+        var emptyEl = document.getElementById('failRateEmpty');
+
+        if (!data || data.length === 0) {
+            canvas.style.display = 'none';
+            emptyEl.style.display = '';
+            return;
+        }
+        canvas.style.display = '';
+        emptyEl.style.display = 'none';
+
+        if (failRateChart) failRateChart.destroy();
+
+        var labels = data.map(function (d) { return d.section + ' - ' + d.category; });
+        var values = data.map(function (d) { return d.failRatePercent; });
+
+        failRateChart = new Chart(canvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Fail Rate (%)',
+                    data: values,
+                    backgroundColor: 'rgba(220,53,69,0.75)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            callback: function (v) { return v + '%'; }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // renderTrend — line chart trend pass/fail per bulan
+    // ============================================================
+    function renderTrend(data) {
+        var canvas = document.getElementById('trendChart');
+        var emptyEl = document.getElementById('trendEmpty');
+
+        if (!data || data.length === 0) {
+            canvas.style.display = 'none';
+            emptyEl.style.display = '';
+            return;
+        }
+        canvas.style.display = '';
+        emptyEl.style.display = 'none';
+
+        if (trendChart) trendChart.destroy();
+
+        var labels = data.map(function (d) { return d.label; });
+
+        trendChart = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Pass',
+                        data: data.map(function (d) { return d.passed; }),
+                        borderColor: '#198754',
+                        backgroundColor: 'rgba(25,135,84,0.1)',
+                        fill: false,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Fail',
+                        data: data.map(function (d) { return d.failed; }),
+                        borderColor: '#dc3545',
+                        backgroundColor: 'rgba(220,53,69,0.1)',
+                        fill: false,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: true }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    // ============================================================
+    // renderEtTable — heatmap tabel skor elemen teknis
+    // ============================================================
+    function renderEtTable(data) {
+        var container = document.getElementById('etTableContainer');
+        var emptyEl = document.getElementById('etEmpty');
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '';
+            emptyEl.style.display = '';
+            return;
+        }
+        emptyEl.style.display = 'none';
+
+        var rows = data.map(function (d) {
+            var heatClass = d.avgPct >= 80 ? 'heatmap-high' : (d.avgPct >= 60 ? 'heatmap-mid' : 'heatmap-low');
+            return '<tr>' +
+                '<td>' + escapeHtml(d.elemenTeknis) + '</td>' +
+                '<td>' + escapeHtml(d.category) + '</td>' +
+                '<td class="' + heatClass + '">' + d.avgPct.toFixed(1) + '%</td>' +
+                '<td>' + d.minPct.toFixed(1) + '%</td>' +
+                '<td>' + d.maxPct.toFixed(1) + '%</td>' +
+                '<td>' + d.sampleCount + '</td>' +
+                '</tr>';
+        }).join('');
+
+        container.innerHTML =
+            '<table class="table table-sm table-hover">' +
+                '<thead><tr>' +
+                    '<th scope="col">Elemen Teknis</th>' +
+                    '<th scope="col">Kategori</th>' +
+                    '<th scope="col">Rata-rata</th>' +
+                    '<th scope="col">Min</th>' +
+                    '<th scope="col">Max</th>' +
+                    '<th scope="col">Sesi</th>' +
+                '</tr></thead>' +
+                '<tbody>' + rows + '</tbody>' +
+            '</table>';
+    }
+
+    // ============================================================
+    // renderExpiringTable — tabel sertifikat akan expired
+    // ============================================================
+    function renderExpiringTable(data) {
+        var container = document.getElementById('expiringTableContainer');
+        var emptyEl = document.getElementById('expiringEmpty');
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '';
+            emptyEl.style.display = '';
+            return;
+        }
+        emptyEl.style.display = 'none';
+
+        var rows = data.map(function (d) {
+            var tgl = new Date(d.tanggalExpired).toLocaleDateString('id-ID');
+            return '<tr>' +
+                '<td>' + escapeHtml(d.namaPekerja) + '</td>' +
+                '<td>' + escapeHtml(d.namaSertifikat) + '</td>' +
+                '<td>' + tgl + '</td>' +
+                '<td>' + escapeHtml(d.sectionUnit) + '</td>' +
+                '</tr>';
+        }).join('');
+
+        container.innerHTML =
+            '<table class="table table-sm table-hover">' +
+                '<thead><tr>' +
+                    '<th scope="col">Nama Pekerja</th>' +
+                    '<th scope="col">Sertifikat</th>' +
+                    '<th scope="col">Tgl Expired</th>' +
+                    '<th scope="col">Bagian / Unit</th>' +
+                '</tr></thead>' +
+                '<tbody>' + rows + '</tbody>' +
+            '</table>';
+    }
+
+    // ============================================================
+    // escapeHtml helper
+    // ============================================================
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // ============================================================
+    // Cascade dropdown: Bagian → Unit
+    // ============================================================
+    document.getElementById('filterBagian').addEventListener('change', function () {
+        var val = this.value;
+        var unitEl = document.getElementById('filterUnit');
+        unitEl.innerHTML = '<option value="">Semua Unit</option>';
+        if (!val) {
+            unitEl.disabled = true;
+            return;
+        }
+        fetch('/CMP/GetAnalyticsCascadeUnits?bagian=' + encodeURIComponent(val))
+            .then(function (r) { return r.json(); })
+            .then(function (units) {
+                units.forEach(function (u) {
+                    var opt = document.createElement('option');
+                    opt.value = u; opt.textContent = u;
+                    unitEl.appendChild(opt);
+                });
+                unitEl.disabled = false;
+            });
+    });
+
+    // ============================================================
+    // Cascade dropdown: Kategori → SubKategori
+    // ============================================================
+    document.getElementById('filterKategori').addEventListener('change', function () {
+        var val = this.value;
+        var subEl = document.getElementById('filterSubKategori');
+        subEl.innerHTML = '<option value="">Semua SubKategori</option>';
+        if (!val) {
+            subEl.disabled = true;
+            return;
+        }
+        fetch('/CMP/GetAnalyticsCascadeSubKategori?kategori=' + encodeURIComponent(val))
+            .then(function (r) { return r.json(); })
+            .then(function (subs) {
+                subs.forEach(function (s) {
+                    var opt = document.createElement('option');
+                    opt.value = s; opt.textContent = s;
+                    subEl.appendChild(opt);
+                });
+                subEl.disabled = false;
+            });
+    });
+
+    // ============================================================
+    // Button handlers
+    // ============================================================
+    document.getElementById('btnApply').addEventListener('click', function () {
+        refreshAnalytics();
+    });
+
+    document.getElementById('btnReset').addEventListener('click', function () {
+        document.getElementById('filterBagian').value = '';
+        var unitEl = document.getElementById('filterUnit');
+        unitEl.innerHTML = '<option value="">Semua Unit</option>';
+        unitEl.disabled = true;
+
+        document.getElementById('filterKategori').value = '';
+        var subEl = document.getElementById('filterSubKategori');
+        subEl.innerHTML = '<option value="">Semua SubKategori</option>';
+        subEl.disabled = true;
+
+        // Reset dates to defaults
+        var today = new Date();
+        var oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+        document.getElementById('filterStart').value = oneYearAgo.toISOString().slice(0, 10);
+        document.getElementById('filterEnd').value = today.toISOString().slice(0, 10);
+
+        refreshAnalytics();
+    });
+
+    // ============================================================
+    // DOMContentLoaded — set default dates, initial load
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function () {
+        var today = new Date();
+        var oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+        document.getElementById('filterStart').value = oneYearAgo.toISOString().slice(0, 10);
+        document.getElementById('filterEnd').value = today.toISOString().slice(0, 10);
+        refreshAnalytics();
+    });
+</script>
+}
