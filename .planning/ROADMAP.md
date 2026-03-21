@@ -61,7 +61,9 @@
   1. Memilih kategori tertentu di Team View lalu filter by status hanya menampilkan worker yang statusnya sesuai untuk kategori tersebut (bukan status global semua kategori)
   2. Jumlah training "Completed" di Team View konsisten dengan jumlah di personal view — training berstatus "Permanent" ikut dihitung sebagai completed
   3. Search by NIP di Team View bekerja benar — NIP yang mengandung huruf kapital maupun huruf kecil sama-sama dapat ditemukan
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
 
 ### Phase 214: SubCategory Model + Filter
 **Goal**: SubKategori tersedia sebagai field di TrainingRecord dan dapat digunakan sebagai filter di Team View
@@ -71,7 +73,9 @@
   1. Database memiliki kolom SubKategori di tabel TrainingRecord — migrasi berhasil diaplikasikan tanpa error
   2. Dropdown filter Sub Category muncul di Team View dan hanya menampilkan pilihan sub category yang relevan dengan category yang sedang dipilih
   3. Memilih sub category memfilter daftar worker/record sesuai nilai SubKategori yang dipilih
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
 
 ### Phase 215: Export Fixes & Display Enhancement
 **Goal**: Export team dan personal menghasilkan data yang lengkap dan konsisten, serta badge IsExpiringSoon tampil di My Records untuk training yang akan segera expired
@@ -82,7 +86,9 @@
   2. Filter category yang aktif di Team View ikut diterapkan saat klik Export — hasil export hanya berisi data kategori yang dipilih
   3. Export assessment (personal maupun team) menghasilkan kolom Kategori yang terisi
   4. My Records menampilkan badge kuning "Akan Expired" untuk training yang ValidUntil-nya dalam 30 hari ke depan, bukan hanya badge merah "Expired"
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
 
 ## Progress
 
