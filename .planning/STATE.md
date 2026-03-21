@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.11
 milestone_name: CMP Records Bug Fixes & Enhancement
 status: unknown
-stopped_at: Phase 218 context gathered
-last_updated: "2026-03-21T09:35:43.157Z"
+stopped_at: Completed 218-02-PLAN.md
+last_updated: "2026-03-21T10:10:19.128Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 5
-  completed_plans: 5
+  total_plans: 7
+  completed_plans: 6
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 217 — fix-category-dropdown-di-recordsteam-agar-ambil-dari-master-assessmentcategories
+**Current focus:** Phase 218 — recordsworkerdetail-redesign-importtraining-update
 
 ## Current Position
 
-Phase: 217
-Plan: Not started
+Phase: 218 (recordsworkerdetail-redesign-importtraining-update) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: Not started
 | Phase 214 P02 | 8 | 2 tasks | 3 files |
 | Phase 215 P01 | 15 | 2 tasks | 4 files |
 | Phase 217 P01 | 5 | 1 tasks | 2 files |
+| Phase 218 P02 | 10 | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 
@@ -66,6 +67,8 @@ Plan: Not started
 - [Phase 215]: Sub Category filter hanya dari TrainingRecord.SubKategori — AssessmentSession tidak punya field SubKategori
 - [Phase 215]: Exact-match (split+compare) dipakai untuk sub category filter agar tidak ada false positive substring match
 - [Phase 217]: MasterCategoriesJson reuse allCats query yang sudah ada — tidak ada query tambahan ke DB
+- [Phase 218-02]: Urutan 12 kolom: NIP, Judul, Kategori, SubKategori, Tanggal, TanggalMulai, TanggalSelesai, Penyelenggara, Kota, Status, ValidUntil, NomorSertifikat (D-17)
+- [Phase 218-02]: CMP download template diarahkan ke Admin controller karena CMPController tidak punya DownloadImportTrainingTemplate
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T09:35:43.153Z
-Stopped at: Phase 218 context gathered
-Resume file: .planning/phases/218-recordsworkerdetail-redesign-importtraining-update/218-CONTEXT.md
+Last session: 2026-03-21T10:10:19.124Z
+Stopped at: Completed 218-02-PLAN.md
+Resume file: None

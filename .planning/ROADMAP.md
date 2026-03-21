@@ -136,7 +136,7 @@ Plans:
 | 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
 | 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 0/2 | Not started | - |
+| 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 1/2 | In Progress|  |
 
 ### Phase 218: RecordsWorkerDetail Redesign & ImportTraining Update
 **Goal**: Redesign tabel RecordsWorkerDetail — hapus kolom Score dan Sertifikat, tambah kolom Kategori/SubKategori dan kolom Action (Detail + Download Sertifikat), tambah filter SubCategory cascade, dan update ImportTraining form/logic sesuai perubahan model
@@ -150,4 +150,4 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [ ] 218-01-PLAN.md — Redesign tabel RecordsWorkerDetail: 7 kolom baru, modal detail, cascade filter SubCategory
-- [ ] 218-02-PLAN.md — Update ImportTraining: template 12 kolom, import logic, format notes kedua view
+- [x] 218-02-PLAN.md — Update ImportTraining: template 12 kolom, import logic, format notes kedua view
