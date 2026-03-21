@@ -117,7 +117,8 @@ namespace HcPortal.Controllers
             var tracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
             var result = new List<object>();
 
-            foreach (var section in OrganizationStructure.SectionUnits)
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            foreach (var section in sectionUnitsDict)
             {
                 foreach (var unit in section.Value)
                 {
@@ -185,6 +186,10 @@ namespace HcPortal.Controllers
             ViewBag.SilabusRowsJson = System.Text.Json.JsonSerializer.Serialize(silabusRows,
                 new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
 
+            var sectionUnitsDictIndex = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictIndex);
+            ViewBag.Sections = sectionUnitsDictIndex.Keys.ToList();
+
             return View();
         }
 
@@ -196,6 +201,9 @@ namespace HcPortal.Controllers
 
             var tracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
             ViewBag.AllTracks = tracks;
+
+            var sectionUnitsDictOverride = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictOverride);
 
             return View();
         }

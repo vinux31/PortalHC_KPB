@@ -79,23 +79,12 @@
                             <label class="form-label fw-semibold">Bagian</label>
                             <select class="form-select" id="silabusBagian" name="bagian" required>
                                 <option value="">-- Pilih Bagian --</option>
-                                @foreach (var bagian in OrganizationStructure.SectionUnits.Keys)
-                                {
-                                    <option value="@bagian" selected="@(selectedBagian == bagian ? "selected" : null)">@bagian</option>
-                                }
                             </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label fw-semibold">Unit</label>
                             <select class="form-select" id="silabusUnit" name="unit" required disabled="@(string.IsNullOrEmpty(selectedBagian) ? "disabled" : null)">
                                 <option value="">-- Pilih Unit --</option>
-                                @if (!string.IsNullOrEmpty(selectedBagian) && OrganizationStructure.SectionUnits.ContainsKey(selectedBagian))
-                                {
-                                    foreach (var unit in OrganizationStructure.SectionUnits[selectedBagian])
-                                    {
-                                        <option value="@unit" selected="@(selectedUnit == unit ? "selected" : null)">@unit</option>
-                                    }
-                                }
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -221,10 +210,6 @@
                         <label class="form-label fw-semibold">Bagian</label>
                         <select class="form-select" id="guidanceBagian">
                             <option value="">-- Pilih Bagian --</option>
-                            @foreach (var bagian in OrganizationStructure.SectionUnits.Keys)
-                            {
-                                <option value="@bagian">@bagian</option>
-                            }
                         </select>
                     </div>
                     <div class="col-md-3">
@@ -307,9 +292,40 @@
 
 @section Scripts {
 <script>
-    // Organization structure from server
-    const orgStructure = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-        HcPortal.Models.OrganizationStructure.SectionUnits));
+    // Organization structure from server (via ViewBag.SectionUnitsJson — DB driven)
+    const orgStructure = @Html.Raw(ViewBag.SectionUnitsJson ?? "{}");
+    const selectedBagianInit = '@Html.Raw(selectedBagian)';
+    const selectedUnitInit = '@Html.Raw(selectedUnit)';
+
+    // Populate Bagian dropdowns from DB data
+    (function() {
+        var bagianSelects = ['silabusBagian', 'guidanceBagian'];
+        bagianSelects.forEach(function(id) {
+            var sel = document.getElementById(id);
+            if (!sel) return;
+            Object.keys(orgStructure).forEach(function(section) {
+                var opt = document.createElement('option');
+                opt.value = section;
+                opt.textContent = section;
+                if (id === 'silabusBagian' && section === selectedBagianInit) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        });
+        // Pre-populate silabusUnit if bagian is already selected
+        if (selectedBagianInit && orgStructure[selectedBagianInit]) {
+            var unitSel = document.getElementById('silabusUnit');
+            if (unitSel) {
+                unitSel.disabled = false;
+                orgStructure[selectedBagianInit].forEach(function(u) {
+                    var opt = document.createElement('option');
+                    opt.value = u;
+                    opt.textContent = u;
+                    if (u === selectedUnitInit) opt.selected = true;
+                    unitSel.appendChild(opt);
+                });
+            }
+        }
+    })();
 
     // ====== Activate tab from query param ======
     (function() {

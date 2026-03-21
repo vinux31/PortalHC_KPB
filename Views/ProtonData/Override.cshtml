@@ -29,10 +29,6 @@
                 <label class="form-label fw-semibold">Bagian</label>
                 <select class="form-select" id="overrideBagian">
                     <option value="">-- Pilih Bagian --</option>
-                    @foreach (var bagian in OrganizationStructure.SectionUnits.Keys)
-                    {
-                        <option value="@bagian">@bagian</option>
-                    }
                 </select>
             </div>
             <div class="col-md-2">
@@ -170,9 +166,21 @@
 
 @section Scripts {
 <script>
-    // Organization structure from server
-    const orgStructure = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
-        HcPortal.Models.OrganizationStructure.SectionUnits));
+    // Organization structure from server (via ViewBag.SectionUnitsJson — DB driven)
+    const orgStructure = @Html.Raw(ViewBag.SectionUnitsJson ?? "{}");
+
+    // Populate Bagian dropdown from DB data
+    (function() {
+        var overrideBagian = document.getElementById('overrideBagian');
+        if (overrideBagian) {
+            Object.keys(orgStructure).forEach(function(section) {
+                var opt = document.createElement('option');
+                opt.value = section;
+                opt.textContent = section;
+                overrideBagian.appendChild(opt);
+            });
+        }
+    })();
 
     // ====== Coaching Proton Override ======
     (function () {
