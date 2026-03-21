@@ -440,6 +440,11 @@ namespace HcPortal.Controllers
                 ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
                 var masterCategories = allCats.Select(c => c.Name).OrderBy(n => n).ToList();
                 ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(masterCategories);
+
+                // Phase 221: SectionUnits dari DB (menggantikan OrganizationStructure static class)
+                var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+                ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
+                ViewBag.AllSections = sectionUnitsDict.Keys.ToList();
             }
 
             return View("Records", unified);

@@ -9,9 +9,9 @@
     var userRole = userRoles.FirstOrDefault();
     var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
 
-    // Use OrganizationStructure for filter dropdowns (always show all 4 Bagian)
-    var allSections = OrganizationStructure.GetAllSections();
-    var sectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(OrganizationStructure.SectionUnits);
+    // Phase 221: SectionUnits dari DB via ViewBag (menggantikan OrganizationStructure static class)
+    var sectionUnitsJson = ViewBag.SectionUnitsJson as string ?? "{}";
+    var allSections = (ViewBag.AllSections as List<string>) ?? new List<string>();
 
     // For Level 4 (SectionHead, SrSupervisor), lock section to user's section
     var lockedSection = roleLevel == 4 ? currentUser.Section : null;
@@ -243,7 +243,7 @@
 </style>
 
 <script>
-// OrganizationStructure cascade data
+// SectionUnits cascade data (Phase 221: dari DB via ViewBag)
 var sectionUnits = @Html.Raw(sectionUnitsJson);
 
 // Phase 215: Sub Category map dari AssessmentCategories hierarchy
