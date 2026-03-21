@@ -63,7 +63,7 @@
 - [x] **Phase 219: DB Model & Migration** - Entity OrganizationUnit, migrasi data 4 Bagian/19 Unit, konsolidasi KkjBagian (completed 2026-03-21)
 - [x] **Phase 220: CRUD Page Kelola Data** - Halaman Struktur Organisasi di Kelola Data: indented table, tambah/edit/pindah/hapus/reorder node (completed 2026-03-21)
 - [x] **Phase 221: Integrasi Codebase** - Semua controller dan view ganti ke OrganizationUnit — filter dropdown, cascade, worker create/edit, DokumenKkj, ProtonData (completed 2026-03-21)
-- [ ] **Phase 222: Cleanup & Finalisasi** - Hapus static OrganizationStructure.cs, update seed data, ImportWorkers validasi terhadap database
+- [x] **Phase 222: Cleanup & Finalisasi** - Hapus static OrganizationStructure.cs, update seed data, ImportWorkers validasi terhadap database (completed 2026-03-21)
 
 ## Phase Details
 
@@ -199,7 +199,7 @@ Plans:
   3. ImportWorkers menolak baris dengan Section/Unit yang tidak dikenal di OrganizationUnit — pesan error menyebut nama yang tidak valid
 **Plans**: 1 plan
 Plans:
-- [ ] 222-01-PLAN.md — Hapus OrganizationStructure.cs, seed OrganizationUnits, validasi ImportWorkers
+- [x] 222-01-PLAN.md — Hapus OrganizationStructure.cs, seed OrganizationUnits, validasi ImportWorkers
 
 ## Progress
 
@@ -222,4 +222,4 @@ Plans:
 | 219. DB Model & Migration | v7.12 | 1/1 | Complete    | 2026-03-21 |
 | 220. CRUD Page Kelola Data | v7.12 | 2/2 | Complete    | 2026-03-21 |
 | 221. Integrasi Codebase | v7.12 | 3/3 | Complete    | 2026-03-21 |
-| 222. Cleanup & Finalisasi | v7.12 | 0/1 | Not started | - |
+| 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete   | 2026-03-21 |

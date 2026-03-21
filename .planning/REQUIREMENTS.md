@@ -30,12 +30,12 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 - [x] **INT-04**: Role-based section locking (L4/L5) tetap berfungsi
 - [x] **INT-05**: KkjFile/CpdpFile grouping di DokumenKkj menggunakan OrganizationUnit
 - [x] **INT-06**: ProtonKompetensi.Bagian/Unit dan CoachingGuidanceFile.Bagian/Unit tersinkron dengan OrganizationUnit
-- [ ] **INT-07**: Hapus static class OrganizationStructure.cs setelah semua referensi diganti
+- [x] **INT-07**: Hapus static class OrganizationStructure.cs setelah semua referensi diganti
 
 ### Cleanup
 
-- [ ] **CLN-01**: Seed data menggunakan OrganizationUnit
-- [ ] **CLN-02**: ImportWorkers validasi Section/Unit terhadap OrganizationUnit database
+- [x] **CLN-01**: Seed data menggunakan OrganizationUnit
+- [x] **CLN-02**: ImportWorkers validasi Section/Unit terhadap OrganizationUnit database
 
 ## Out of Scope
 
@@ -65,9 +65,9 @@ Requirements for Milestone v7.12 — Struktur Organisasi CRUD.
 | INT-04 | Phase 221 | Complete |
 | INT-05 | Phase 221 | Complete |
 | INT-06 | Phase 221 | Complete |
-| INT-07 | Phase 222 | Pending |
-| CLN-01 | Phase 222 | Pending |
-| CLN-02 | Phase 222 | Pending |
+| INT-07 | Phase 222 | Complete |
+| CLN-01 | Phase 222 | Complete |
+| CLN-02 | Phase 222 | Complete |
 
 **Coverage:**
 - v7.12 requirements: 18 total
