@@ -5790,7 +5790,12 @@ namespace HcPortal.Controllers
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Import Training");
 
-            var headers = new[] { "NIP", "Judul", "Kategori", "Tanggal (YYYY-MM-DD)", "Penyelenggara", "Status", "ValidUntil (YYYY-MM-DD, opsional)", "NomorSertifikat (opsional)", "SubKategori (opsional)" };
+            var headers = new[] {
+                "NIP", "Judul", "Kategori", "SubKategori (opsional)",
+                "Tanggal (YYYY-MM-DD)", "TanggalMulai (YYYY-MM-DD, opsional)", "TanggalSelesai (YYYY-MM-DD, opsional)",
+                "Penyelenggara", "Kota (opsional)",
+                "Status", "ValidUntil (YYYY-MM-DD, opsional)", "NomorSertifikat (opsional)"
+            };
             for (int i = 0; i < headers.Length; i++)
             {
                 ws.Cell(1, i + 1).Value = headers[i];
@@ -5803,13 +5808,16 @@ namespace HcPortal.Controllers
             ws.Cell(2, 1).Value = "123456";
             ws.Cell(2, 2).Value = "Pelatihan K3 Dasar";
             ws.Cell(2, 3).Value = "MANDATORY";
-            ws.Cell(2, 4).Value = "2024-03-15";
-            ws.Cell(2, 5).Value = "Internal";
-            ws.Cell(2, 6).Value = "Passed";
-            ws.Cell(2, 7).Value = "2027-03-15";
-            ws.Cell(2, 8).Value = "CERT-001";
-            ws.Cell(2, 9).Value = "";
-            for (int i = 1; i <= 9; i++)
+            ws.Cell(2, 4).Value = "";
+            ws.Cell(2, 5).Value = "2024-03-15";
+            ws.Cell(2, 6).Value = "2024-03-15";
+            ws.Cell(2, 7).Value = "2024-03-17";
+            ws.Cell(2, 8).Value = "Internal";
+            ws.Cell(2, 9).Value = "Balikpapan";
+            ws.Cell(2, 10).Value = "Passed";
+            ws.Cell(2, 11).Value = "2027-03-15";
+            ws.Cell(2, 12).Value = "CERT-001";
+            for (int i = 1; i <= 12; i++)
             {
                 ws.Cell(2, i).Style.Font.Italic = true;
                 ws.Cell(2, i).Style.Font.FontColor = XLColor.Gray;
@@ -5871,15 +5879,18 @@ namespace HcPortal.Controllers
 
                 foreach (var row in ws.RowsUsed().Skip(1))
                 {
-                    var nip = row.Cell(1).GetString().Trim();
-                    var judul = row.Cell(2).GetString().Trim();
-                    var kategori = row.Cell(3).GetString().Trim();
-                    var tanggalStr = row.Cell(4).GetString().Trim();
-                    var penyelenggara = row.Cell(5).GetString().Trim();
-                    var status = row.Cell(6).GetString().Trim();
-                    var validUntilStr = row.Cell(7).GetString().Trim();
-                    var nomorSertifikat = row.Cell(8).GetString().Trim();
-                    var subKategori = row.Cell(9).GetString().Trim();
+                    var nip             = row.Cell(1).GetString().Trim();
+                    var judul           = row.Cell(2).GetString().Trim();
+                    var kategori        = row.Cell(3).GetString().Trim();
+                    var subKategori     = row.Cell(4).GetString().Trim();
+                    var tanggalStr      = row.Cell(5).GetString().Trim();
+                    var tanggalMulaiStr = row.Cell(6).GetString().Trim();
+                    var tanggalSelesaiStr = row.Cell(7).GetString().Trim();
+                    var penyelenggara   = row.Cell(8).GetString().Trim();
+                    var kota            = row.Cell(9).GetString().Trim();
+                    var status          = row.Cell(10).GetString().Trim();
+                    var validUntilStr   = row.Cell(11).GetString().Trim();
+                    var nomorSertifikat = row.Cell(12).GetString().Trim();
 
                     // Skip completely blank rows
                     if (string.IsNullOrWhiteSpace(nip) && string.IsNullOrWhiteSpace(judul)) continue;
@@ -5928,7 +5939,10 @@ namespace HcPortal.Controllers
                             Kategori = kategori,
                             SubKategori = string.IsNullOrWhiteSpace(subKategori) ? null : subKategori,
                             Tanggal = parsedDate,
+                            TanggalMulai = DateTime.TryParse(tanggalMulaiStr, out var tm) ? tm : (DateTime?)null,
+                            TanggalSelesai = DateTime.TryParse(tanggalSelesaiStr, out var ts) ? ts : (DateTime?)null,
                             Penyelenggara = penyelenggara,
+                            Kota = string.IsNullOrWhiteSpace(kota) ? null : kota,
                             Status = status,
                             ValidUntil = DateTime.TryParse(validUntilStr, out var vu) ? vu : (DateTime?)null,
                             NomorSertifikat = nomorSertifikat
