@@ -129,20 +129,25 @@
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body">
             <div class="row g-3 align-items-center">
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-2">
                     <input type="text" id="searchInput" class="form-control" placeholder="Cari berdasarkan judul...">
                 </div>
                 <div class="col-12 col-md-2">
                     <select id="categoryFilter" class="form-select">
                         <option value="">All Categories</option>
-                        @if (unifiedRecords != null && unifiedRecords.Any(r => r.RecordType == "Training Manual"))
-                        {
-                            @foreach (var cat in unifiedRecords.Where(r => r.RecordType == "Training Manual")
-                                .Select(r => r.Kategori).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c))
-                            {
-                                <option value="@cat">@cat</option>
-                            }
+                        @{
+                            var masterCategories = System.Text.Json.JsonSerializer.Deserialize<List<string>>(
+                                (string)(ViewBag.MasterCategoriesJson ?? "[]"));
                         }
+                        @foreach (var cat in masterCategories)
+                        {
+                            <option value="@cat">@cat</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-md-2">
+                    <select id="subCategoryFilter" class="form-select" disabled>
+                        <option value="">All Sub Categories</option>
                     </select>
                 </div>
                 <div class="col-12 col-md-2">
@@ -161,7 +166,7 @@
                         <option value="Training Manual">Training</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-3">
+                <div class="col-12 col-md-2">
                     <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
                         <i class="bi bi-x-circle me-1"></i> Reset
                     </button>
@@ -180,16 +185,17 @@
                             <th class="p-3">Tanggal</th>
                             <th class="p-3">Nama Kegiatan</th>
                             <th class="p-3 text-center">Tipe</th>
-                            <th class="p-3 text-center">Score</th>
+                            <th class="p-3">Kategori</th>
+                            <th class="p-3">Sub Kategori</th>
                             <th class="p-3 text-center">Status</th>
-                            <th class="p-3 text-center">Sertifikat</th>
+                            <th class="p-3 text-center">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (!unifiedRecords.Any())
                         {
                             <tr>
-                                <td colspan="6" class="text-center p-5 text-muted">
+                                <td colspan="7" class="text-center p-5 text-muted">
                                     <i class="bi bi-inbox fs-1 d-block mb-2"></i>
                                     Belum ada data
                                 </td>
@@ -199,17 +205,12 @@
                         {
                             @foreach (var item in unifiedRecords.OrderByDescending(r => r.Date))
                             {
-                                var resultsUrl = item.RecordType == "Assessment Online" && item.AssessmentSessionId.HasValue
-                                    ? Url.Action("Results", "CMP", new { id = item.AssessmentSessionId.Value })
-                                    : null;
-
-                                <tr class="training-row @(resultsUrl != null ? "table-row-clickable" : "")"
+                                <tr class="training-row"
                                     data-title="@item.Title.ToLower()"
                                     data-year="@item.Date.Year"
                                     data-category="@(item.Kategori?.ToLower() ?? "")"
-                                    data-type="@item.RecordType.ToLower()"
-                                    @(resultsUrl != null ? Html.Raw($"onclick=\"window.location.href='{resultsUrl}'\"") : Html.Raw(""))
-                                    style="@(resultsUrl != null ? "cursor:pointer;" : "")">
+                                    data-subcategory="@(item.SubKategori?.ToLower() ?? "")"
+                                    data-type="@item.RecordType.ToLower()">
                                     <td class="p-3">@item.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
                                     <td class="p-3"><span class="fw-semibold">@item.Title</span></td>
                                     <td class="p-3 text-center">
@@ -219,33 +220,56 @@
                                             <span class="badge bg-success">Training</span>
                                         }
                                     </td>
+                                    <td class="p-3">@(item.Kategori ?? "—")</td>
+                                    <td class="p-3">@(item.SubKategori ?? "—")</td>
                                     <td class="p-3 text-center">
-                                        @if (item.Score.HasValue) { <span>@item.Score%</span> } else { <span class="text-muted">—</span> }
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        @if (item.IsPassed == true) {
-                                            <span class="badge bg-success">Passed</span>
-                                        } else if (item.IsPassed == false) {
-                                            <span class="badge bg-danger">Failed</span>
-                                        } else if (!string.IsNullOrEmpty(item.Status)) {
-                                            var sc = item.Status switch { "Passed" => "bg-success", "Valid" => "bg-success", "Failed" => "bg-danger", "Wait Certificate" => "bg-warning text-dark", _ => "bg-secondary" };
-                                            <span class="badge @sc">@item.Status</span>
+                                        @if (item.RecordType == "Assessment Online") {
+                                            @if (item.IsPassed == true) {
+                                                <span class="badge bg-success">Passed</span>
+                                            } else {
+                                                <span class="badge bg-danger">Failed</span>
+                                            }
                                         } else {
-                                            <span class="text-muted">—</span>
+                                            @if (!string.IsNullOrEmpty(item.Status)) {
+                                                var sc = item.Status switch {
+                                                    "Passed" => "bg-success",
+                                                    "Valid" => "bg-success",
+                                                    "Permanent" => "bg-success",
+                                                    "Failed" => "bg-danger",
+                                                    "Wait Certificate" => "bg-warning text-dark",
+                                                    _ => "bg-secondary"
+                                                };
+                                                <span class="badge @sc">@item.Status</span>
+                                            } else {
+                                                <span class="text-muted">—</span>
+                                            }
                                         }
                                     </td>
                                     <td class="p-3 text-center">
                                         @if (item.RecordType == "Training Manual") {
-                                            @if (item.ValidUntil.HasValue) {
-                                                <div>@item.ValidUntil.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</div>
-                                                @if (item.IsExpired) {
-                                                    <span class="badge bg-danger mt-1"><i class="bi bi-x-circle me-1"></i>Expired</span>
+                                            <div class="d-flex gap-1 justify-content-center">
+                                                <button type="button"
+                                                    class="btn btn-sm btn-outline-info"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#trainingDetailModal"
+                                                    data-title="@item.Title"
+                                                    data-penyelenggara="@(item.Penyelenggara ?? "—")"
+                                                    data-kota="@(item.Kota ?? "—")"
+                                                    data-tanggal-mulai="@(item.TanggalMulai.HasValue ? item.TanggalMulai.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "—")"
+                                                    data-tanggal-selesai="@(item.TanggalSelesai.HasValue ? item.TanggalSelesai.Value.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID")) : "—")"
+                                                    data-nomor-sertifikat="@(item.NomorSertifikat ?? "—")">
+                                                    <i class="bi bi-info-circle me-1"></i>Detail
+                                                </button>
+                                                @if (!string.IsNullOrEmpty(item.SertifikatUrl)) {
+                                                    <a href="@item.SertifikatUrl" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                        <i class="bi bi-download me-1"></i>Sertifikat
+                                                    </a>
                                                 }
-                                            } else { <span class="text-muted">—</span> }
-                                        } else if (item.RecordType == "Assessment Online" && item.GenerateCertificate && item.AssessmentSessionId.HasValue) {
+                                            </div>
+                                        } else if (item.GenerateCertificate && item.AssessmentSessionId.HasValue) {
                                             <a asp-action="Certificate" asp-controller="CMP" asp-route-id="@item.AssessmentSessionId.Value"
                                                class="btn btn-sm btn-outline-primary" target="_blank">
-                                                <i class="bi bi-award me-1"></i>Lihat
+                                                <i class="bi bi-award me-1"></i>Sertifikat
                                             </a>
                                         } else {
                                             <span class="text-muted">—</span>
@@ -256,6 +280,28 @@
                         }
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Training Detail Modal -->
+    <div class="modal fade" id="trainingDetailModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalTrainingTitle">Detail Training</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Nama Kegiatan</dt><dd class="col-sm-7" id="mdTitle">—</dd>
+                        <dt class="col-sm-5">Penyelenggara</dt><dd class="col-sm-7" id="mdPenyelenggara">—</dd>
+                        <dt class="col-sm-5">Kota</dt><dd class="col-sm-7" id="mdKota">—</dd>
+                        <dt class="col-sm-5">Tanggal Mulai</dt><dd class="col-sm-7" id="mdTanggalMulai">—</dd>
+                        <dt class="col-sm-5">Tanggal Selesai</dt><dd class="col-sm-7" id="mdTanggalSelesai">—</dd>
+                        <dt class="col-sm-5">Nomor Sertifikat</dt><dd class="col-sm-7" id="mdNomorSertifikat">—</dd>
+                    </dl>
+                </div>
             </div>
         </div>
     </div>
@@ -333,9 +379,12 @@
 </style>
 
 <script>
+var subCategoryMap = @Html.Raw(ViewBag.SubCategoryMapJson ?? "{}");
+
 function filterTable() {
     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
     const categoryFilter = document.getElementById('categoryFilter').value.toLowerCase();
+    const subCategoryFilter = document.getElementById('subCategoryFilter').value.toLowerCase();
     const yearFilter = document.getElementById('yearFilter').value;
     const typeFilter = document.getElementById('typeFilter').value.toLowerCase();
 
@@ -343,27 +392,57 @@ function filterTable() {
         const title = row.getAttribute('data-title');
         const year = row.getAttribute('data-year');
         const category = row.getAttribute('data-category');
+        const subcategory = row.getAttribute('data-subcategory');
         const type = row.getAttribute('data-type');
 
         const matchSearch = !searchTerm || title.includes(searchTerm);
         const matchYear = !yearFilter || year === yearFilter;
-        const matchCategory = !categoryFilter || category.includes(categoryFilter);
+        const matchCategory = !categoryFilter || category === categoryFilter;
+        const matchSubCategory = !subCategoryFilter || subcategory === subCategoryFilter;
         const matchType = !typeFilter || type === typeFilter;
 
-        row.style.display = (matchSearch && matchYear && matchCategory && matchType) ? '' : 'none';
+        row.style.display = (matchSearch && matchYear && matchCategory && matchSubCategory && matchType) ? '' : 'none';
     });
 }
 
 document.getElementById('searchInput').addEventListener('input', filterTable);
-document.getElementById('categoryFilter').addEventListener('change', filterTable);
+document.getElementById('categoryFilter').addEventListener('change', function() {
+    var cat = this.value;
+    var subSelect = document.getElementById('subCategoryFilter');
+    subSelect.innerHTML = '<option value="">All Sub Categories</option>';
+    subSelect.disabled = !cat;
+    if (cat && subCategoryMap[cat]) {
+        subCategoryMap[cat].forEach(function(sub) {
+            var opt = document.createElement('option');
+            opt.value = sub;
+            opt.textContent = sub;
+            subSelect.appendChild(opt);
+        });
+    }
+    filterTable();
+});
+document.getElementById('subCategoryFilter').addEventListener('change', filterTable);
 document.getElementById('yearFilter').addEventListener('change', filterTable);
 document.getElementById('typeFilter').addEventListener('change', filterTable);
 
 function clearFilters() {
     document.getElementById('searchInput').value = '';
     document.getElementById('categoryFilter').value = '';
+    document.getElementById('subCategoryFilter').value = '';
+    document.getElementById('subCategoryFilter').disabled = true;
     document.getElementById('yearFilter').value = '';
     document.getElementById('typeFilter').value = '';
     filterTable();
 }
+
+document.getElementById('trainingDetailModal').addEventListener('show.bs.modal', function(event) {
+    var btn = event.relatedTarget;
+    document.getElementById('modalTrainingTitle').textContent = btn.dataset.title;
+    document.getElementById('mdTitle').textContent = btn.dataset.title;
+    document.getElementById('mdPenyelenggara').textContent = btn.dataset.penyelenggara;
+    document.getElementById('mdKota').textContent = btn.dataset.kota;
+    document.getElementById('mdTanggalMulai').textContent = btn.dataset.tanggalMulai;
+    document.getElementById('mdTanggalSelesai').textContent = btn.dataset.tanggalSelesai;
+    document.getElementById('mdNomorSertifikat').textContent = btn.dataset.nomorSertifikat;
+});
 </script>
