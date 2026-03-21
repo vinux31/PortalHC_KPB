@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.10
 milestone_name: RenewalCertificate Bug Fixes & Enhancement
 status: unknown
-stopped_at: Phase 211 context gathered
-last_updated: "2026-03-21T04:30:50.641Z"
+stopped_at: Completed 211-01-PLAN.md
+last_updated: "2026-03-21T04:38:41.430Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 210 — critical-renewal-chain-fixes
+**Current focus:** Phase 211 — data-display-fixes
 
 ## Current Position
 
-Phase: 211
-Plan: Not started
+Phase: 211 (data-display-fixes) — EXECUTING
+Plan: 1 of 1
 
 ## Accumulated Context
 
@@ -36,6 +36,7 @@ Plan: Not started
 - [v7.10]: FIX-04 (AddTraining renewal FK) dikelompokkan bersama ENH-04 (AddTraining renewal mode) di Phase 212
 - [Phase 210-01]: BuildRenewalRowsAsync digunakan sebagai single source of truth untuk badge count Admin/Index
 - [Phase 210-01]: FIX-03 tidak perlu ubah kode: Set 2 dan Set 4 sudah benar karena TrainingRecord tidak memiliki field IsPassed
+- [Phase 211]: DeriveCertificateStatus pisahkan cek Permanent dan ValidUntil=null agar non-Permanent dengan null expiry → Expired
 
 ### Pending Todos
 
@@ -48,6 +49,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T04:30:50.636Z
-Stopped at: Phase 211 context gathered
-Resume file: .planning/phases/211-data-display-fixes/211-CONTEXT.md
+Last session: 2026-03-21T04:38:41.427Z
+Stopped at: Completed 211-01-PLAN.md
+Resume file: None

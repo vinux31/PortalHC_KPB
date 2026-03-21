@@ -15,12 +15,12 @@
 
 ### Bug Fixes — Data & Display
 
-- [ ] **FIX-05**: ValidUntil=null dengan CertificateType bukan "Permanent" tidak salah dianggap Permanent (hilang dari renewal list)
-- [ ] **FIX-06**: Renew dari TrainingRecord: Category di-prefill otomatis sesuai sertifikat asal
-- [ ] **FIX-07**: MapKategori konsisten dengan AssessmentCategories name
-- [ ] **FIX-08**: Grouping by Judul case-insensitive
-- [ ] **FIX-09**: Judul dengan karakter khusus aman di URL (encode/decode tidak gagal match)
-- [ ] **FIX-10**: ValidUntil=null di renewal mode menampilkan error message informatif
+- [x] **FIX-05**: ValidUntil=null dengan CertificateType bukan "Permanent" tidak salah dianggap Permanent (hilang dari renewal list)
+- [x] **FIX-06**: Renew dari TrainingRecord: Category di-prefill otomatis sesuai sertifikat asal
+- [x] **FIX-07**: MapKategori konsisten dengan AssessmentCategories name
+- [x] **FIX-08**: Grouping by Judul case-insensitive
+- [x] **FIX-09**: Judul dengan karakter khusus aman di URL (encode/decode tidak gagal match)
+- [x] **FIX-10**: ValidUntil=null di renewal mode menampilkan error message informatif
 
 ### Enhancement — Tipe Filter & Renewal Flow
 
@@ -46,12 +46,12 @@
 | FIX-02 | Phase 210 | Complete |
 | FIX-03 | Phase 210 | Complete |
 | FIX-04 | Phase 212 | Pending |
-| FIX-05 | Phase 211 | Pending |
-| FIX-06 | Phase 211 | Pending |
-| FIX-07 | Phase 211 | Pending |
-| FIX-08 | Phase 211 | Pending |
-| FIX-09 | Phase 211 | Pending |
-| FIX-10 | Phase 211 | Pending |
+| FIX-05 | Phase 211 | Complete |
+| FIX-06 | Phase 211 | Complete |
+| FIX-07 | Phase 211 | Complete |
+| FIX-08 | Phase 211 | Complete |
+| FIX-09 | Phase 211 | Complete |
+| FIX-10 | Phase 211 | Complete |
 | ENH-01 | Phase 212 | Pending |
 | ENH-02 | Phase 212 | Pending |
 | ENH-03 | Phase 212 | Pending |

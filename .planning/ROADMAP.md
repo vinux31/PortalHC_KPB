@@ -63,7 +63,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 211-01: Data & display fixes — ValidUntil null handling, category prefill, MapKategori, grouping case/URL
+- [x] 211-01: Data & display fixes — ValidUntil null handling, category prefill, MapKategori, grouping case/URL
 
 #### Phase 212: Tipe Filter, Renewal Flow, AddTraining Renewal
 **Goal**: Admin dapat memfilter renewal list berdasarkan tipe (Assessment/Training), alur renewal berbeda sesuai tipe sumber, dan AddTraining mendukung mode renewal dengan pre-fill + FK
@@ -124,5 +124,5 @@ Plans:
 | 208. Grouped View Structure | v7.9 | 1/1 | Complete | 2026-03-20 |
 | 209. Bulk Renew & Filter Compatibility | v7.9 | 1/1 | Complete | 2026-03-20 |
 | 210. Critical Renewal Chain Fixes | v7.10 | 1/1 | Complete    | 2026-03-21 |
-| 211. Data & Display Fixes | v7.10 | 0/TBD | Not started | - |
+| 211. Data & Display Fixes | v7.10 | 1/1 | Complete   | 2026-03-21 |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 0/TBD | Not started | - |
