@@ -5392,7 +5392,9 @@ namespace HcPortal.Controllers
         // GET /Admin/AddTraining
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> AddTraining()
+        public async Task<IActionResult> AddTraining(
+            [FromQuery] List<int>? renewSessionId = null,
+            [FromQuery] List<int>? renewTrainingId = null)
         {
             var workers = await _context.Users
                 .OrderBy(u => u.FullName)
@@ -5405,7 +5407,92 @@ namespace HcPortal.Controllers
                 Text = $"{w.FullName} ({w.NIP ?? "No NIP"})"
             }).ToList();
 
-            return View(new CreateTrainingRecordViewModel());
+            bool isRenewalMode = false;
+            var model = new CreateTrainingRecordViewModel();
+
+            if (renewTrainingId != null && renewTrainingId.Count > 0)
+            {
+                if (renewTrainingId.Count == 1)
+                {
+                    var src = await _context.TrainingRecords.Include(t => t.User)
+                        .FirstOrDefaultAsync(t => t.Id == renewTrainingId[0]);
+                    if (src == null)
+                    {
+                        TempData["Warning"] = "Training record asal tidak ditemukan.";
+                        return RedirectToAction("AddTraining");
+                    }
+                    isRenewalMode = true;
+                    model.Judul = src.Judul ?? "";
+                    model.Kategori = src.Kategori ?? "";
+                    model.RenewsTrainingId = src.Id;
+                    ViewBag.RenewalSourceTitle = src.Judul ?? "";
+                    ViewBag.RenewalSourceUserName = src.User?.FullName ?? "";
+                    ViewBag.SelectedUserId = src.UserId;
+                }
+                else
+                {
+                    var srcs = await _context.TrainingRecords.Include(t => t.User)
+                        .Where(t => renewTrainingId.Contains(t.Id)).ToListAsync();
+                    if (srcs.Count == 0)
+                    {
+                        TempData["Warning"] = "Training record asal tidak ditemukan.";
+                        return RedirectToAction("AddTraining");
+                    }
+                    isRenewalMode = true;
+                    var first = srcs[0];
+                    model.Judul = first.Judul ?? "";
+                    model.Kategori = first.Kategori ?? "";
+                    ViewBag.RenewalSourceTitle = first.Judul ?? "";
+                    ViewBag.RenewalSourceUserName = string.Join(", ", srcs.Select(t => t.User?.FullName ?? ""));
+                    ViewBag.RenewalFkMap = System.Text.Json.JsonSerializer.Serialize(
+                        srcs.ToDictionary(t => t.UserId ?? "", t => t.Id));
+                    ViewBag.RenewalFkMapType = "training";
+                    ViewBag.SelectedUserIds = srcs.Select(t => t.UserId).ToList();
+                }
+            }
+            else if (renewSessionId != null && renewSessionId.Count > 0)
+            {
+                if (renewSessionId.Count == 1)
+                {
+                    var src = await _context.AssessmentSessions.Include(s => s.User)
+                        .FirstOrDefaultAsync(s => s.Id == renewSessionId[0]);
+                    if (src == null)
+                    {
+                        TempData["Warning"] = "Assessment session asal tidak ditemukan.";
+                        return RedirectToAction("AddTraining");
+                    }
+                    isRenewalMode = true;
+                    model.Judul = src.Title ?? "";
+                    model.Kategori = MapKategori(src.Category);
+                    model.RenewsSessionId = src.Id;
+                    ViewBag.RenewalSourceTitle = src.Title ?? "";
+                    ViewBag.RenewalSourceUserName = src.User?.FullName ?? "";
+                    ViewBag.SelectedUserId = src.UserId;
+                }
+                else
+                {
+                    var srcs = await _context.AssessmentSessions.Include(s => s.User)
+                        .Where(s => renewSessionId.Contains(s.Id)).ToListAsync();
+                    if (srcs.Count == 0)
+                    {
+                        TempData["Warning"] = "Assessment session asal tidak ditemukan.";
+                        return RedirectToAction("AddTraining");
+                    }
+                    isRenewalMode = true;
+                    var first = srcs[0];
+                    model.Judul = first.Title ?? "";
+                    model.Kategori = MapKategori(first.Category);
+                    ViewBag.RenewalSourceTitle = first.Title ?? "";
+                    ViewBag.RenewalSourceUserName = string.Join(", ", srcs.Select(s => s.User?.FullName ?? ""));
+                    ViewBag.RenewalFkMap = System.Text.Json.JsonSerializer.Serialize(
+                        srcs.ToDictionary(s => s.UserId, s => s.Id));
+                    ViewBag.RenewalFkMapType = "session";
+                    ViewBag.SelectedUserIds = srcs.Select(s => s.UserId).ToList();
+                }
+            }
+
+            ViewBag.IsRenewalMode = isRenewalMode;
+            return View(model);
         }
 
         // POST /Admin/AddTraining

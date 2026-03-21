@@ -53,5 +53,8 @@ namespace HcPortal.Models
 
         [Display(Name = "File Sertifikat")]
         public IFormFile? CertificateFile { get; set; }
+
+        public int? RenewsTrainingId { get; set; }
+        public int? RenewsSessionId { get; set; }
     }
 }
