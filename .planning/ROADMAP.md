@@ -186,7 +186,7 @@ Plans:
   6. ProtonKompetensi dan CoachingGuidanceFile menggunakan Bagian/Unit dari OrganizationUnit — data tersinkron
 **Plans**: 2 plans
 Plans:
-- [ ] 221-01-PLAN.md — DbContext helpers + AdminController + RecordsTeam integrasi
+- [x] 221-01-PLAN.md — DbContext helpers + AdminController + RecordsTeam integrasi
 - [ ] 221-02-PLAN.md — CDPController + ProtonDataController + views integrasi
 
 ### Phase 222: Cleanup & Finalisasi
@@ -219,5 +219,5 @@ Plans:
 | 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete | 2026-03-21 |
 | 219. DB Model & Migration | v7.12 | 1/1 | Complete    | 2026-03-21 |
 | 220. CRUD Page Kelola Data | v7.12 | 2/2 | Complete    | 2026-03-21 |
-| 221. Integrasi Codebase | v7.12 | 0/2 | Not started | - |
+| 221. Integrasi Codebase | v7.12 | 1/2 | In Progress|  |
 | 222. Cleanup & Finalisasi | v7.12 | 0/? | Not started | - |
