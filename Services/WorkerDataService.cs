@@ -206,7 +206,7 @@ namespace HcPortal.Services
 
                 var totalTrainings = trainingRecords.Count;
                 var completedTrainings = trainingRecords.Count(tr =>
-                    tr.Status == "Passed" || tr.Status == "Valid"
+                    tr.Status == "Passed" || tr.Status == "Valid" || tr.Status == "Permanent"
                 );
                 var pendingTrainings = trainingRecords.Count(tr =>
                     tr.Status == "Wait Certificate" || tr.Status == "Pending"
