@@ -81,6 +81,46 @@ namespace HcPortal.Data
         // Assessment Categories — Phase 190
         public DbSet<AssessmentCategory> AssessmentCategories { get; set; }
 
+        // ========== Helper Methods untuk OrganizationUnit (Phase 221) ==========
+
+        public async Task<List<string>> GetAllSectionsAsync()
+        {
+            return await OrganizationUnits
+                .Where(u => u.ParentId == null && u.IsActive)
+                .OrderBy(u => u.DisplayOrder)
+                .Select(u => u.Name)
+                .ToListAsync();
+        }
+
+        public async Task<List<string>> GetUnitsForSectionAsync(string sectionName)
+        {
+            var parent = await OrganizationUnits
+                .FirstOrDefaultAsync(u => u.ParentId == null && u.Name == sectionName && u.IsActive);
+            if (parent == null) return new List<string>();
+            return await OrganizationUnits
+                .Where(u => u.ParentId == parent.Id && u.IsActive)
+                .OrderBy(u => u.DisplayOrder)
+                .Select(u => u.Name)
+                .ToListAsync();
+        }
+
+        public async Task<Dictionary<string, List<string>>> GetSectionUnitsDictAsync()
+        {
+            var bagians = await OrganizationUnits
+                .Where(u => u.ParentId == null && u.IsActive)
+                .OrderBy(u => u.DisplayOrder)
+                .ToListAsync();
+            var bagianIds = bagians.Select(b => b.Id).ToList();
+            var units = await OrganizationUnits
+                .Where(u => u.ParentId != null && bagianIds.Contains(u.ParentId!.Value) && u.IsActive)
+                .OrderBy(u => u.DisplayOrder)
+                .ToListAsync();
+            return bagians.ToDictionary(
+                b => b.Name,
+                b => units.Where(u => u.ParentId == b.Id).Select(u => u.Name).ToList()
+            );
+        }
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

@@ -965,7 +965,7 @@ namespace HcPortal.Controllers
 
             ViewBag.Users = users;
             ViewBag.SelectedUserIds = new List<string>();
-            ViewBag.Sections = OrganizationStructure.GetAllSections();
+            ViewBag.Sections = await _context.GetAllSectionsAsync();
             ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
             ViewBag.Categories = await _context.AssessmentCategories
                 .Where(c => c.IsActive)
@@ -1231,7 +1231,7 @@ namespace HcPortal.Controllers
 
                 ViewBag.Users = users;
                 ViewBag.SelectedUserIds = UserIds ?? new List<string>();
-                ViewBag.Sections = OrganizationStructure.GetAllSections();
+                ViewBag.Sections = await _context.GetAllSectionsAsync();
                 ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
                 ViewBag.Categories = await _context.AssessmentCategories
                     .Where(c => c.IsActive)
@@ -1309,7 +1309,7 @@ namespace HcPortal.Controllers
                         .ToListAsync();
                     ViewBag.Users = users;
                     ViewBag.SelectedUserIds = UserIds ?? new List<string>();
-                    ViewBag.Sections = OrganizationStructure.GetAllSections();
+                    ViewBag.Sections = await _context.GetAllSectionsAsync();
                     ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
                     ViewBag.Categories = await _context.AssessmentCategories
                         .Where(c => c.IsActive)
@@ -1543,7 +1543,7 @@ namespace HcPortal.Controllers
                     .ToListAsync();
                 ViewBag.Users = users;
                 ViewBag.SelectedUserIds = UserIds ?? new List<string>();
-                ViewBag.Sections = OrganizationStructure.GetAllSections();
+                ViewBag.Sections = await _context.GetAllSectionsAsync();
                 ViewBag.ProtonTracks = await _context.ProtonTracks.OrderBy(t => t.Urutan).ToListAsync();
                 return View(model);
             }
@@ -1618,7 +1618,7 @@ namespace HcPortal.Controllers
                 .ToListAsync();
 
             ViewBag.Users = users;
-            ViewBag.Sections = OrganizationStructure.GetAllSections();
+            ViewBag.Sections = await _context.GetAllSectionsAsync();
 
             // Count packages attached to this assessment's sibling group (for schedule-change warning)
             var siblingIds = siblings.Select(s => s.Id).ToList();
@@ -3626,8 +3626,10 @@ namespace HcPortal.Controllers
             ViewBag.ShowAll = showAll;
             ViewBag.SearchTerm = search;
             ViewBag.SectionFilter = section;
-            ViewBag.Sections = OrganizationStructure.GetAllSections();
-            ViewBag.SectionUnits = OrganizationStructure.SectionUnits;
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            ViewBag.Sections = sectionUnitsDict.Keys.ToList();
+            ViewBag.SectionUnits = sectionUnitsDict;
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
             // Phase 74: Coach role only — not level (Supervisor is level 5 but never a coach)
             // Filter to active users only so deactivated workers don't appear in assignment modals
             var coachRoleUsers = await _userManager.GetUsersInRoleAsync(UserRoles.Coach);
@@ -4371,7 +4373,7 @@ namespace HcPortal.Controllers
             // Server-side validation: ignore unitFilter if it doesn't belong to selected sectionFilter
             if (!string.IsNullOrEmpty(unitFilter) && !string.IsNullOrEmpty(sectionFilter))
             {
-                var validUnits = OrganizationStructure.GetUnitsForSection(sectionFilter);
+                var validUnits = await _context.GetUnitsForSectionAsync(sectionFilter);
                 if (!validUnits.Contains(unitFilter))
                     unitFilter = null;
             }
@@ -4439,9 +4441,9 @@ namespace HcPortal.Controllers
             ViewBag.UnitFilter = unitFilter;
             ViewBag.RoleFilter = roleFilter;
             ViewBag.ShowInactive = showInactive;
-            ViewBag.AllSections = OrganizationStructure.GetAllSections();
+            ViewBag.AllSections = await _context.GetAllSectionsAsync();
             ViewBag.AllUnits = !string.IsNullOrEmpty(sectionFilter)
-                ? OrganizationStructure.GetUnitsForSection(sectionFilter)
+                ? await _context.GetUnitsForSectionAsync(sectionFilter)
                 : new List<string>();
 
             return View(users);
@@ -4455,7 +4457,7 @@ namespace HcPortal.Controllers
             // Server-side validation: ignore unitFilter if it doesn't belong to selected sectionFilter
             if (!string.IsNullOrEmpty(unitFilter) && !string.IsNullOrEmpty(sectionFilter))
             {
-                var validUnits = OrganizationStructure.GetUnitsForSection(sectionFilter);
+                var validUnits = await _context.GetUnitsForSectionAsync(sectionFilter);
                 if (!validUnits.Contains(unitFilter))
                     unitFilter = null;
             }
@@ -7184,7 +7186,7 @@ namespace HcPortal.Controllers
 
             };
 
-            ViewBag.AllBagian = OrganizationStructure.GetAllSections();
+            ViewBag.AllBagian = await _context.GetAllSectionsAsync();
 
             ViewBag.AllCategories = await _context.AssessmentCategories
                 .Where(c => c.ParentId == null && c.IsActive)
