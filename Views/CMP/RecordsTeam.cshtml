@@ -9,7 +9,6 @@
     var userRole = userRoles.FirstOrDefault();
     var roleLevel = UserRoles.GetRoleLevel(userRole ?? "");
 
-    // Phase 221: SectionUnits dari DB via ViewBag (menggantikan OrganizationStructure static class)
     var sectionUnitsJson = ViewBag.SectionUnitsJson as string ?? "{}";
     var allSections = (ViewBag.AllSections as List<string>) ?? new List<string>();
 

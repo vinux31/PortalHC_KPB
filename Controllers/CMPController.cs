@@ -441,7 +441,6 @@ namespace HcPortal.Controllers
                 var masterCategories = allCats.Select(c => c.Name).OrderBy(n => n).ToList();
                 ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(masterCategories);
 
-                // Phase 221: SectionUnits dari DB (menggantikan OrganizationStructure static class)
                 var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
                 ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDict);
                 ViewBag.AllSections = sectionUnitsDict.Keys.ToList();
