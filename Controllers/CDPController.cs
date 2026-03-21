@@ -202,8 +202,8 @@ namespace HcPortal.Controllers
                 new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
             ViewBag.GuidanceGroupedJson = System.Text.Json.JsonSerializer.Serialize(guidanceGrouped,
                 new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
-            var sectionUnitsDictHistori = await _context.GetSectionUnitsDictAsync();
-            ViewBag.OrgStructureJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictHistori);
+            var sectionUnitsDictPlanIdp = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictPlanIdp);
 
             return View();
         }
