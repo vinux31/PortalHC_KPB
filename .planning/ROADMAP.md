@@ -60,8 +60,8 @@
 
 **Milestone Goal:** Mengganti static class OrganizationStructure dengan database-driven CRUD — Admin dapat mengelola struktur organisasi (Bagian dan Unit) secara dinamis, dan seluruh dropdown Bagian/Unit di portal mengambil data dari database.
 
-- [x] **Phase 219: DB Model & Migration** - Entity OrganizationUnit, migrasi data 4 Bagian/19 Unit, konsolidasi KkjBagian (completed 2026-03-21)
-- [x] **Phase 220: CRUD Page Kelola Data** - Halaman Struktur Organisasi di Kelola Data: indented table, tambah/edit/pindah/hapus/reorder node (completed 2026-03-21)
+- [x] **Phase 219: DB Model & Migration** - Entity OrganizationUnit, migrasi data 4 Bagian/19 Unit, konsolidasi KkjBagian (completed 2026-03-21)
+- [x] **Phase 220: CRUD Page Kelola Data** - Halaman Struktur Organisasi di Kelola Data: indented table, tambah/edit/pindah/hapus/reorder node (completed 2026-03-21)
 - [ ] **Phase 221: Integrasi Codebase** - Semua controller dan view ganti ke OrganizationUnit — filter dropdown, cascade, worker create/edit, DokumenKkj, ProtonData
 - [ ] **Phase 222: Cleanup & Finalisasi** - Hapus static OrganizationStructure.cs, update seed data, ImportWorkers validasi terhadap database
 
@@ -184,7 +184,10 @@ Plans:
   4. Role-based section locking untuk L4/L5 tetap berfungsi setelah integrasi
   5. DokumenKkj menampilkan grouping berdasarkan OrganizationUnit (Bagian) dari database
   6. ProtonKompetensi dan CoachingGuidanceFile menggunakan Bagian/Unit dari OrganizationUnit — data tersinkron
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 221-01-PLAN.md — DbContext helpers + AdminController + RecordsTeam integrasi
+- [ ] 221-02-PLAN.md — CDPController + ProtonDataController + views integrasi
 
 ### Phase 222: Cleanup & Finalisasi
 **Goal**: Static class OrganizationStructure.cs dihapus, seed data menggunakan OrganizationUnit, dan ImportWorkers memvalidasi Section/Unit terhadap database
@@ -216,5 +219,5 @@ Plans:
 | 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete | 2026-03-21 |
 | 219. DB Model & Migration | v7.12 | 1/1 | Complete    | 2026-03-21 |
 | 220. CRUD Page Kelola Data | v7.12 | 2/2 | Complete    | 2026-03-21 |
-| 221. Integrasi Codebase | v7.12 | 0/? | Not started | - |
+| 221. Integrasi Codebase | v7.12 | 0/2 | Not started | - |
 | 222. Cleanup & Finalisasi | v7.12 | 0/? | Not started | - |
