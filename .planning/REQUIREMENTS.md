@@ -24,9 +24,9 @@
 
 ### Enhancement — Tipe Filter & Renewal Flow
 
-- [ ] **ENH-01**: Filter tipe (Assessment / Training) pada halaman RenewalCertificate
-- [ ] **ENH-02**: Renewal flow berdasarkan tipe — Training→popup pilihan (renew via assessment ATAU via training record baru)
-- [ ] **ENH-03**: Bulk renew aware tipe — tidak langsung ke CreateAssessment kalau ada training items
+- [x] **ENH-01**: Filter tipe (Assessment / Training) pada halaman RenewalCertificate
+- [x] **ENH-02**: Renewal flow berdasarkan tipe — Training→popup pilihan (renew via assessment ATAU via training record baru)
+- [x] **ENH-03**: Bulk renew aware tipe — tidak langsung ke CreateAssessment kalau ada training items
 - [ ] **ENH-04**: AddTraining renewal mode dengan pre-fill data sertifikat asal + set FK
 
 ## Out of Scope
@@ -52,9 +52,9 @@
 | FIX-08 | Phase 211 | Complete |
 | FIX-09 | Phase 211 | Complete |
 | FIX-10 | Phase 211 | Complete |
-| ENH-01 | Phase 212 | Pending |
-| ENH-02 | Phase 212 | Pending |
-| ENH-03 | Phase 212 | Pending |
+| ENH-01 | Phase 212 | Complete |
+| ENH-02 | Phase 212 | Complete |
+| ENH-03 | Phase 212 | Complete |
 | ENH-04 | Phase 212 | Pending |
 
 **Coverage:**

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.10
 milestone_name: RenewalCertificate Bug Fixes & Enhancement
 status: unknown
-stopped_at: Phase 212 context gathered
-last_updated: "2026-03-21T05:23:30.565Z"
+stopped_at: Completed 212-01-PLAN.md
+last_updated: "2026-03-21T06:18:32.828Z"
 progress:
   total_phases: 3
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 5
+  completed_plans: 4
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 210 — critical-renewal-chain-fixes
+**Current focus:** Phase 212 — tipe-filter-renewal-flow-addtraining-renewal
 
 ## Current Position
 
-Phase: 211
-Plan: Not started
+Phase: 212 (tipe-filter-renewal-flow-addtraining-renewal) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -38,6 +38,8 @@ Plan: Not started
 - [Phase 210-01]: FIX-03 tidak perlu ubah kode: Set 2 dan Set 4 sudah benar karena TrainingRecord tidak memiliki field IsPassed
 - [Phase 211]: DeriveCertificateStatus pisahkan cek Permanent dan ValidUntil=null agar non-Permanent dengan null expiry → Expired
 - [Phase 210]: Per-user FK map dikirim via hidden input JSON untuk menghindari perubahan model binding
+- [Phase 212]: Single Renew tidak lagi langsung redirect ke CreateAssessment — selalu tampil modal pilihan metode
+- [Phase 212]: Tipe filter dikirim sebagai query param string? tipe ke FilterRenewalCertificate dan FilterRenewalCertificateGroup
 
 ### Pending Todos
 
@@ -50,6 +52,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T05:23:30.562Z
-Stopped at: Phase 212 context gathered
-Resume file: .planning/phases/212-tipe-filter-renewal-flow-addtraining-renewal/212-CONTEXT.md
+Last session: 2026-03-21T06:18:32.825Z
+Stopped at: Completed 212-01-PLAN.md
+Resume file: None

@@ -77,7 +77,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 212-01: Tipe filter + renewal method modal + bulk mixed-type validation
+- [x] 212-01: Tipe filter + renewal method modal + bulk mixed-type validation
 - [ ] 212-02: AddTraining renewal mode (prefill + FK + bulk multi-user)
 
 ## Phase Details
@@ -126,4 +126,4 @@ Plans:
 | 209. Bulk Renew & Filter Compatibility | v7.9 | 1/1 | Complete | 2026-03-20 |
 | 210. Critical Renewal Chain Fixes | v7.10 | 2/2 | Complete    | 2026-03-21 |
 | 211. Data & Display Fixes | v7.10 | 1/1 | Complete    | 2026-03-21 |
-| 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 0/TBD | Not started | - |
+| 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 1/2 | In Progress|  |
