@@ -351,6 +351,7 @@ namespace HcPortal.Controllers
                 .Where(r => r.AssessmentSessionId == sessionId && r.AssessmentQuestionId == questionId)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(r => r.SelectedOptionId, optionId)
+                    .SetProperty(r => r.SubmittedAt, DateTime.UtcNow)
                 );
 
             if (updatedCount == 0)
@@ -359,7 +360,8 @@ namespace HcPortal.Controllers
                 {
                     AssessmentSessionId = sessionId,
                     AssessmentQuestionId = questionId,
-                    SelectedOptionId = optionId
+                    SelectedOptionId = optionId,
+                    SubmittedAt = DateTime.UtcNow
                 });
                 await _context.SaveChangesAsync();
             }
@@ -1475,6 +1477,31 @@ namespace HcPortal.Controllers
 
                 // Competency auto-update removed in Phase 90 (KKJ tables dropped)
 
+                // Persist ET scores per session (Phase 223)
+                var etGroups = packageQuestions
+                    .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+
+                foreach (var etGroup in etGroups)
+                {
+                    int etCorrect = 0;
+                    int etTotal = etGroup.Count();
+                    foreach (var q in etGroup)
+                    {
+                        if (answers.ContainsKey(q.Id))
+                        {
+                            var sel = q.Options.FirstOrDefault(o => o.Id == answers[q.Id]);
+                            if (sel != null && sel.IsCorrect) etCorrect++;
+                        }
+                    }
+                    _context.SessionElemenTeknisScores.Add(new SessionElemenTeknisScore
+                    {
+                        AssessmentSessionId = id,
+                        ElemenTeknis = etGroup.Key,
+                        CorrectCount = etCorrect,
+                        QuestionCount = etTotal
+                    });
+                }
+
                 // Save PackageUserResponses first (answer persistence is safe to run before status claim)
                 await _context.SaveChangesAsync();
 
@@ -1572,6 +1599,7 @@ namespace HcPortal.Controllers
                     if (existingLegacyDict.TryGetValue(question.Id, out var existingLegacyResponse))
                     {
                         existingLegacyResponse.SelectedOptionId = selectedOptionId;
+                        existingLegacyResponse.SubmittedAt = DateTime.UtcNow;
                     }
                     else
                     {
@@ -1579,7 +1607,8 @@ namespace HcPortal.Controllers
                         {
                             AssessmentSessionId = id,
                             AssessmentQuestionId = question.Id,
-                            SelectedOptionId = selectedOptionId
+                            SelectedOptionId = selectedOptionId,
+                            SubmittedAt = DateTime.UtcNow
                         });
                     }
                 }

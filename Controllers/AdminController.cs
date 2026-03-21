@@ -2838,10 +2838,36 @@ namespace HcPortal.Controllers
                 }
 
                 packageAssignment.IsCompleted = true;
+
+                // Persist ET scores per session — Phase 223
+                var etGroupsAdmin = packageQuestions
+                    .GroupBy(q => string.IsNullOrWhiteSpace(q.ElemenTeknis) ? "Lainnya" : q.ElemenTeknis);
+
+                foreach (var etGroup in etGroupsAdmin)
+                {
+                    int etCorrect = 0;
+                    int etTotal = etGroup.Count();
+                    foreach (var q in etGroup)
+                    {
+                        if (responses.TryGetValue(q.Id, out var optId) && optId.HasValue)
+                        {
+                            var sel = q.Options.FirstOrDefault(o => o.Id == optId.Value);
+                            if (sel != null && sel.IsCorrect) etCorrect++;
+                        }
+                    }
+                    _context.SessionElemenTeknisScores.Add(new HcPortal.Models.SessionElemenTeknisScore
+                    {
+                        AssessmentSessionId = session.Id,
+                        ElemenTeknis = etGroup.Key,
+                        CorrectCount = etCorrect,
+                        QuestionCount = etTotal
+                    });
+                }
             }
             else
             {
                 // ---- LEGACY PATH ----
+                // Legacy path: ET scores tidak dipersist karena AssessmentQuestion tidak memiliki field ElemenTeknis
                 // Find sibling session that has questions attached
                 var siblingSessionIds = await _context.AssessmentSessions
                     .Where(s => s.Title == session.Title &&
