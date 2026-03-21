@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v7.11
 milestone_name: CMP Records Bug Fixes & Enhancement
-status: planning
-stopped_at: Phase 213 context gathered
-last_updated: "2026-03-21T06:55:23.499Z"
-last_activity: 2026-03-21 — Roadmap v7.11 created (3 phases, 9 requirements)
+status: unknown
+stopped_at: Completed 213-01-PLAN.md
+last_updated: "2026-03-21T07:05:52.489Z"
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State: Portal HC KPB
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v7.11 CMP Records Bug Fixes & Enhancement — Phase 213
+**Current focus:** Phase 213 — filter-status-fixes
 
 ## Current Position
 
-Phase: 213 of 215 (Filter & Status Fixes)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-21 — Roadmap v7.11 created (3 phases, 9 requirements)
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 213 (filter-status-fixes) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -48,11 +42,15 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
+| Phase 213 P01 | 8 | 2 tasks | 2 files |
+
 ### Decisions
 
 - [v7.10]: BuildRenewalRowsAsync sebagai single source of truth untuk badge count
 - [v7.10]: Per-user FK map via JSON hidden input
 - [v7.10]: DeriveCertificateStatus pisahkan cek Permanent dan ValidUntil=null
+- [Phase 213]: completedCategories dihitung server-side di Razor dan disimpan sebagai data-completed-categories attribute lowercase
+- [Phase 213]: Status Permanent setara dengan Passed/Valid untuk completion count di WorkerDataService
 
 ### Pending Todos
 
@@ -64,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T06:55:23.496Z
-Stopped at: Phase 213 context gathered
-Resume file: .planning/phases/213-filter-status-fixes/213-CONTEXT.md
+Last session: 2026-03-21T07:05:52.486Z
+Stopped at: Completed 213-01-PLAN.md
+Resume file: None

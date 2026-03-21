@@ -47,7 +47,7 @@
 
 **Milestone Goal:** Perbaikan filter bug di Team View, penambahan SubCategory model dan filter, perbaikan konsistensi export, dan penambahan badge IsExpiringSoon di My Records.
 
-- [ ] **Phase 213: Filter & Status Fixes** - Perbaiki 3 filter bug inti di Team View
+- [x] **Phase 213: Filter & Status Fixes** - Perbaiki 3 filter bug inti di Team View (completed 2026-03-21)
 - [ ] **Phase 214: SubCategory Model + Filter** - Tambah field SubKategori ke model dan filter dropdown dependent
 - [ ] **Phase 215: Export Fixes & Display Enhancement** - Sejajarkan team export dengan personal export dan tampilkan badge expiring soon
 
@@ -63,7 +63,7 @@
   3. Search by NIP di Team View bekerja benar — NIP yang mengandung huruf kapital maupun huruf kecil sama-sama dapat ditemukan
 **Plans**: 1 plan
 Plans:
-- [ ] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
+- [x] 213-01-PLAN.md — Fix 3 filter bugs: Category+Status per-kategori, Permanent count, NIP lowercase
 
 ### Phase 214: SubCategory Model + Filter
 **Goal**: SubKategori tersedia sebagai field di TrainingRecord dan dapat digunakan sebagai filter di Team View
@@ -102,6 +102,6 @@ Plans:
 | 210. Critical Renewal Chain Fixes | v7.10 | 2/2 | Complete | 2026-03-21 |
 | 211. Data & Display Fixes | v7.10 | 1/1 | Complete | 2026-03-21 |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
-| 213. Filter & Status Fixes | v7.11 | 0/? | Not started | - |
+| 213. Filter & Status Fixes | v7.11 | 1/1 | Complete   | 2026-03-21 |
 | 214. SubCategory Model + Filter | v7.11 | 0/? | Not started | - |
 | 215. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |

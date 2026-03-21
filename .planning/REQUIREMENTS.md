@@ -9,9 +9,9 @@ Requirements for CMP Records Bug Fixes & Enhancement.
 
 ### Filter Fixes
 
-- [ ] **FLT-01**: Team View Category+Status filter menghitung status per-kategori yang dipilih (bukan global semua kategori) — client-side JS logic harus mencocokkan status dengan kategori yang difilter
-- [ ] **FLT-02**: hasTraining (view) dan CompletedTrainings (service) menggunakan set status yang sama — tambah "Permanent" ke CompletedTrainings count di WorkerDataService
-- [ ] **FLT-03**: NIP data attribute di Team View di-lowercase agar konsisten dengan search filter logic
+- [x] **FLT-01**: Team View Category+Status filter menghitung status per-kategori yang dipilih (bukan global semua kategori) — client-side JS logic harus mencocokkan status dengan kategori yang difilter
+- [x] **FLT-02**: hasTraining (view) dan CompletedTrainings (service) menggunakan set status yang sama — tambah "Permanent" ke CompletedTrainings count di WorkerDataService
+- [x] **FLT-03**: NIP data attribute di Team View di-lowercase agar konsisten dengan search filter logic
 - [ ] **FLT-04**: Tambah dropdown filter Sub Category di Team View, dependent pada category yang dipilih
 
 ### Data Model
@@ -39,9 +39,9 @@ Requirements for CMP Records Bug Fixes & Enhancement.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FLT-01 | Phase 213 | Pending |
-| FLT-02 | Phase 213 | Pending |
-| FLT-03 | Phase 213 | Pending |
+| FLT-01 | Phase 213 | Complete |
+| FLT-02 | Phase 213 | Complete |
+| FLT-03 | Phase 213 | Complete |
 | FLT-04 | Phase 214 | Pending |
 | MDL-01 | Phase 214 | Pending |
 | EXP-01 | Phase 215 | Pending |
