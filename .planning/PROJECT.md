@@ -27,8 +27,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.10 shipped** — RenewalCertificate Bug Fixes & Enhancement, 3 phases (210-212). Bulk renew FK chain fix, data/display fixes, tipe filter, renewal method modal, AddTraining renewal mode.
 
 **v7.11 in progress** — CMP Records Bug Fixes & Enhancement.
+- Phase 218 complete — RecordsWorkerDetail redesigned (7 kolom, modal detail, cascade filter SubCategory), ImportTraining updated (12 kolom template).
 
-**Current focus:** v7.11 — Fix filter bugs, status mismatch, export inconsistencies, dan tambah SubCategory filter di CMP/Records page.
+**Current focus:** v7.11 — Phase 218 complete. Last phase in milestone.
 
 ## Current Milestone: v7.11 CMP Records Bug Fixes & Enhancement
 
