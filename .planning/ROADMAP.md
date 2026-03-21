@@ -90,8 +90,9 @@ Plans:
   2. Dropdown filter Sub Category muncul di Team View Row 1 setelah Category, dependent pada Category yang dipilih
   3. Sub Category di-disable saat Category belum dipilih
   4. Memilih Sub Category memfilter daftar worker sesuai nilai SubKategori yang dipilih (training + assessment)
+**Plans**: 1 plan
 Plans:
-- [ ] (belum dibuat)
+- [ ] 215-01-PLAN.md — Backend AssessmentSessions + Frontend SubCategory dropdown + filter JS
 
 ### Phase 216: Export Fixes & Display Enhancement
 **Goal**: Export team dan personal menghasilkan data yang lengkap dan konsisten, serta badge IsExpiringSoon tampil di My Records untuk training yang akan segera expired
@@ -119,5 +120,5 @@ Plans:
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
 | 213. Filter & Status Fixes | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 214. SubCategory Model + CRUD | v7.11 | 2/2 | Complete    | 2026-03-21 |
-| 215. Team View Filter Enhancement | v7.11 | 0/? | Not started | - |
+| 215. Team View Filter Enhancement | v7.11 | 0/1 | Not started | - |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
