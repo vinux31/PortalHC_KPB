@@ -1,5 +1,24 @@
 # Milestones
 
+## v7.10 RenewalCertificate Bug Fixes & Enhancement (Shipped: 2026-03-21)
+
+**Phases completed:** 3 phases, 5 plans, 5 tasks
+
+**Timeline:** 2026-03-21 (single day)
+**Commits:** 25+ feat/fix/docs commits
+
+**Delivered:** Perbaikan total renewal certificate — bulk renew FK chain, badge count sync, data/display fixes (ValidUntil null, category prefill, grouping), filter tipe Assessment/Training, renewal method modal, dan AddTraining renewal mode.
+
+**Key accomplishments:**
+
+1. Critical renewal chain fixes — Bulk renew sekarang assign RenewsSessionId/RenewsTrainingId per-user via JSON dictionary hidden input, badge count Admin/Index menggunakan BuildRenewalRowsAsync sebagai single source of truth
+2. Data & display fixes — DeriveCertificateStatus pisahkan cek Permanent dan ValidUntil=null, MapKategori konsisten dengan AssessmentCategories, grouping case-insensitive (OrdinalIgnoreCase), URL-safe karakter khusus
+3. Tipe filter — Dropdown filter Assessment/Training/Semua pada halaman RenewalCertificate dengan query param routing
+4. Renewal method modal — Single renew dan bulk renew menampilkan popup pilihan metode (via Assessment atau via Training Record baru), mixed-type bulk validation
+5. AddTraining renewal mode — GET menerima renewTrainingId/renewSessionId params, prefill Judul/Kategori/Peserta, banner Mode Renewal, hidden FK inputs, bulk multi-user support
+
+---
+
 ## v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu (Shipped: 2026-03-20)
 
 **Phases completed:** 3 phases (205-207), 3 plans

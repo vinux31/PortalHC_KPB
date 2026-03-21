@@ -12,27 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current Milestone: v7.10 RenewalCertificate Bug Fixes & Enhancement
-
-**Goal:** Perbaikan semua bug renewal chain + tambah filter tipe + renewal flow berdasarkan tipe (Assessment vs Training) + AddTraining renewal mode.
-
-**Target features:**
-- [ ] Fix bulk renew: semua user dapat renewal FK (bukan hanya user[0])
-- [ ] Fix badge count Admin/Index sinkron dengan BuildRenewalRowsAsync
-- [ ] Fix renewedByTrSessionIds filter IsPassed
-- [ ] AddTraining support renewal chain (set RenewsTrainingId/RenewsSessionId)
-- [ ] Fix ValidUntil=null salah dianggap Permanent
-- [ ] Fix Renew dari TR: Category pre-fill
-- [ ] Fix kategori mapping konsisten
-- [ ] Fix grouping case-insensitive
-- [ ] Fix judul karakter khusus di URL
-- [ ] Fix ValidUntil=null error message informatif
-- [ ] Tambah filter tipe (Assessment / Training)
-- [ ] Renewal flow berdasarkan tipe: Training→popup pilihan (assessment atau training baru)
-- [ ] Bulk renew aware tipe
-- [ ] AddTraining renewal mode (pre-fill + FK)
-
-## Current State (after v7.9 complete, 2026-03-20)
+## Current State (after v7.10 complete, 2026-03-21)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -43,7 +23,10 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
 **v7.7 shipped** — Renewal Certificate & Certificate History, 5 phases (200-204).
 **v7.8 shipped** — Dokumen KKJ & Alignment KKJ/IDP — Combine Menu, 3 phases (205-207).
-**v7.9 in progress** — Renewal Certificate Grouped View, Phase 209 complete (bulk renew + filter compatibility).
+**v7.9 shipped** — Renewal Certificate Grouped View, 2 phases (208-209).
+**v7.10 shipped** — RenewalCertificate Bug Fixes & Enhancement, 3 phases (210-212). Bulk renew FK chain fix, data/display fixes, tipe filter, renewal method modal, AddTraining renewal mode.
+
+**Current focus:** Planning next milestone.
 
 ## Architecture Decisions
 

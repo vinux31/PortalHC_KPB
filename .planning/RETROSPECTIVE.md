@@ -4,6 +4,45 @@
 
 ---
 
+## Milestone: v7.10 — RenewalCertificate Bug Fixes & Enhancement
+
+**Shipped:** 2026-03-21
+**Phases:** 3 (210-212) | **Plans:** 5
+
+### What Was Built
+- Critical renewal chain fixes: bulk renew per-user FK via JSON dictionary hidden input, badge count sync via BuildRenewalRowsAsync
+- Data & display fixes: DeriveCertificateStatus ValidUntil=null separation, MapKategori consistency, grouping OrdinalIgnoreCase, URL-safe karakter khusus
+- Tipe filter dropdown (Assessment/Training/Semua) with query param routing
+- Renewal method modal for single and bulk renew (Assessment vs Training choice)
+- AddTraining renewal mode with prefill Judul/Kategori/Peserta, banner, hidden FK inputs, bulk multi-user
+
+### What Worked
+- **3-phase dependency chain**: 210→211→212 sequential ordering ensured each fix built on stable foundation
+- **Audit-first milestone**: v7.10 audit passed 14/14 requirements before archival — no gaps to close
+- **Per-user FK map via JSON**: Hidden input dictionary pattern solved bulk renew FK assignment without model binding changes
+- **Single-day execution**: All 3 phases + 5 plans completed in one session
+
+### What Was Inefficient
+- **Plan 210-02 gap closure**: Original 210-01 missed per-user FK mapping — required a gap closure plan (210-02) after UAT revealed bulk renew FK mismatch
+- **Nyquist validation missing**: Phases 210 and 211 missing VALIDATION.md — pattern continues for bug-fix phases
+
+### Patterns Established
+- **Per-user FK map pattern**: JSON dictionary in hidden input (`renewFkMap`) for bulk operations where each row needs different FK values
+- **Modal method selection**: When a record can be renewed via multiple paths, show a modal with explicit method buttons instead of auto-routing
+- **Renewal mode pattern**: GET accepts renewal params → prefill form → banner indicator → hidden FK inputs → POST persists FK chain
+
+### Key Lessons
+1. Gap closure plans (210-02) are a natural part of bug-fix milestones — initial fix often reveals edge cases only visible during UAT
+2. Mixed-type bulk operations need explicit user choice — auto-routing to one path loses the other type's items
+3. AddTraining renewal mode reused CreateAssessment renewal patterns — proven patterns accelerate development
+
+### Cost Observations
+- Model mix: opus (orchestrator), sonnet (executor, verifier)
+- Sessions: 1
+- Notable: 14 requirements (10 bug fixes + 4 enhancements) shipped in a single day
+
+---
+
 ## Milestone: v5.0 — Guide Page Overhaul
 
 **Shipped:** 2026-03-16
@@ -533,5 +572,6 @@
 
 | v5.0 | 2 | 4 | 1 | 4 |
 | v7.6 | 4 | 6 | 1 | 6 |
+| v7.10 | 3 | 5 | 1 | 5 |
 
-**Running total:** 104 phases, ~240 plans, 30 days
+**Running total:** 107 phases, ~245 plans, 31 days
