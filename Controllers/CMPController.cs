@@ -427,7 +427,7 @@ namespace HcPortal.Controllers
                 var workerList = await _workerDataService.GetWorkersInSection(sectionFilter);
                 ViewData["WorkerList"] = workerList;
 
-                // Phase 217: Set category data for Team View partial (same as RecordsTeam action)
+                // Phase 217: Set category data for Team View partial
                 var allCats = await _context.AssessmentCategories
                     .Where(c => c.IsActive && c.ParentId == null)
                     .Include(c => c.Children)
@@ -442,45 +442,6 @@ namespace HcPortal.Controllers
             }
 
             return View("Records", unified);
-        }
-
-        // Phase 104: Team View tab for monitoring team members' training & assessment compliance
-        public async Task<IActionResult> RecordsTeam()
-        {
-            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
-
-            // Role-based access control: Level 5-6 (Coach, Supervisor, Coachee) forbidden
-            if (roleLevel >= 5)
-            {
-                return Forbid();
-            }
-
-            // Scope enforcement: Level 4 (SectionHead, SrSupervisor) locked to their own section
-            string? sectionFilter = null;
-            if (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
-            {
-                sectionFilter = user.Section;
-            }
-
-            // Level 1-3: No section restriction (full access to all sections/units)
-            var workerList = await _workerDataService.GetWorkersInSection(sectionFilter);
-
-            // Phase 215: Build subCategoryMap for dependent Sub Category dropdown
-            var allCats = await _context.AssessmentCategories
-                .Where(c => c.IsActive && c.ParentId == null)
-                .Include(c => c.Children)
-                .ToListAsync();
-            var subCategoryMap = allCats.ToDictionary(
-                p => p.Name,
-                p => p.Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
-            );
-            ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
-
-            // Phase 217: Master categories from AssessmentCategories table (D-01)
-            var masterCategories = allCats.Select(c => c.Name).OrderBy(n => n).ToList();
-            ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(masterCategories);
-
-            return View("RecordsTeam", workerList);
         }
 
         // Phase 104: Worker Detail page showing unified assessment + training history
