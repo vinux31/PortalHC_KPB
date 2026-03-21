@@ -76,10 +76,6 @@
                             {
                                 <select class="form-select" id="silabusBagian" name="bagian">
                                     <option value="">-- Pilih Bagian --</option>
-                                    @foreach (var b in HcPortal.Models.OrganizationStructure.SectionUnits.Keys)
-                                    {
-                                        <option value="@b" selected="@(selectedBagian == b ? "selected" : null)">@b</option>
-                                    }
                                 </select>
                             }
                         </div>
@@ -88,13 +84,6 @@
                             <select class="form-select" id="silabusUnit" name="unit"
                                     disabled="@(string.IsNullOrEmpty(selectedBagian) ? "disabled" : null)">
                                 <option value="">-- Pilih Unit --</option>
-                                @if (!string.IsNullOrEmpty(selectedBagian) && HcPortal.Models.OrganizationStructure.SectionUnits.ContainsKey(selectedBagian))
-                                {
-                                    foreach (var u in HcPortal.Models.OrganizationStructure.SectionUnits[selectedBagian])
-                                    {
-                                        <option value="@u" selected="@(selectedUnit == u ? "selected" : null)">@u</option>
-                                    }
-                                }
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -150,10 +139,34 @@
     // ======================================================
     // Cascading bagian→unit dropdown for Silabus filter
     // ======================================================
-    const orgStructure = @Html.Raw(ViewBag.OrgStructureJson ?? "{}");
+    const orgStructure = @Html.Raw(ViewBag.SectionUnitsJson ?? "{}");
+    const selectedBagianInit = '@Html.Raw(selectedBagian)';
+    const selectedUnitInit = '@Html.Raw(selectedUnit)';
 
     const bagianSelect = document.getElementById('silabusBagian');
     if (bagianSelect) {
+        // Populate Bagian dropdown from DB data
+        Object.keys(orgStructure).forEach(function(section) {
+            const opt = document.createElement('option');
+            opt.value = section;
+            opt.textContent = section;
+            if (section === selectedBagianInit) opt.selected = true;
+            bagianSelect.appendChild(opt);
+        });
+
+        // Populate Unit dropdown if bagian already selected
+        if (selectedBagianInit && orgStructure[selectedBagianInit]) {
+            const unitSelect = document.getElementById('silabusUnit');
+            unitSelect.disabled = false;
+            orgStructure[selectedBagianInit].forEach(function(u) {
+                const opt = document.createElement('option');
+                opt.value = u;
+                opt.textContent = u;
+                if (u === selectedUnitInit) opt.selected = true;
+                unitSelect.appendChild(opt);
+            });
+        }
+
         bagianSelect.addEventListener('change', function() {
             const bagian = this.value;
             const unitSelect = document.getElementById('silabusUnit');

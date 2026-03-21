@@ -202,8 +202,8 @@ namespace HcPortal.Controllers
                 new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
             ViewBag.GuidanceGroupedJson = System.Text.Json.JsonSerializer.Serialize(guidanceGrouped,
                 new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = null });
-            ViewBag.OrgStructureJson = System.Text.Json.JsonSerializer.Serialize(
-                HcPortal.Models.OrganizationStructure.SectionUnits);
+            var sectionUnitsDictHistori = await _context.GetSectionUnitsDictAsync();
+            ViewBag.OrgStructureJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictHistori);
 
             return View();
         }
@@ -285,9 +285,9 @@ namespace HcPortal.Controllers
         // Phase 121: Cascade options endpoint — returns units for section
         // ============================================================
         [HttpGet]
-        public IActionResult GetCascadeOptions(string? section)
+        public async Task<IActionResult> GetCascadeOptions(string? section)
         {
-            var units = string.IsNullOrEmpty(section) ? new List<string>() : OrganizationStructure.GetUnitsForSection(section);
+            var units = string.IsNullOrEmpty(section) ? new List<string>() : await _context.GetUnitsForSectionAsync(section);
             var categories = _context.ProtonTracks.Select(t => t.TrackType).Distinct().OrderBy(t => t).ToList();
             var tracks = _context.ProtonTracks.OrderBy(t => t.Urutan).Select(t => t.DisplayName).ToList();
             return Json(new { units, categories, tracks });
@@ -553,11 +553,12 @@ namespace HcPortal.Controllers
             if (UserRoles.HasSectionAccess(roleLevel)) { lockedSection = user.Section; }
             else if (UserRoles.IsCoachingRole(roleLevel)) { lockedSection = user.Section; lockedUnit = user.Unit; }
 
-            var availableSections = OrganizationStructure.GetAllSections();
+            var availableSections = await _context.GetAllSectionsAsync();
             var effectiveSection = lockedSection ?? section;
             var availableUnits = !string.IsNullOrEmpty(effectiveSection)
-                ? OrganizationStructure.GetUnitsForSection(effectiveSection)
+                ? await _context.GetUnitsForSectionAsync(effectiveSection)
                 : new List<string>();
+            // Graceful fallback: jika availableSections kosong, tampilkan semua (jangan block user)
 
             var subModel = new ProtonProgressSubModel
             {
@@ -1314,7 +1315,7 @@ namespace HcPortal.Controllers
             // --- STEP 2: Apply Bagian filter (HC/Admin + Direktur/VP/Manager) ---
             if (userLevel <= 3 && !string.IsNullOrEmpty(bagian))
             {
-                var validSections = OrganizationStructure.GetAllSections();
+                var validSections = await _context.GetAllSectionsAsync();
                 if (validSections.Contains(bagian))
                 {
                     scopedCoacheeIds = await _context.Users
@@ -1340,7 +1341,7 @@ namespace HcPortal.Controllers
                 else if (userLevel == 4)
                 {
                     // SrSpv/SectionHead: validate unit is in their section
-                    var allowedUnits = OrganizationStructure.GetUnitsForSection(user.Section ?? "");
+                    var allowedUnits = await _context.GetUnitsForSectionAsync(user.Section ?? "");
                     if (allowedUnits.Contains(unit))
                     {
                         scopedCoacheeIds = await _context.Users
@@ -1598,15 +1599,17 @@ namespace HcPortal.Controllers
             // FilteredCount = total rows across all pages (before pagination); keep existing assignment below
 
             // --- ViewBag: filter option lists ---
-            ViewBag.AllBagian = OrganizationStructure.GetAllSections();
+            var sectionUnitsDictCoaching = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictCoaching);
+            ViewBag.AllBagian = sectionUnitsDictCoaching.Keys.ToList();
             if (!string.IsNullOrEmpty(bagian))
             {
-                ViewBag.AllUnits = OrganizationStructure.GetUnitsForSection(bagian);
+                ViewBag.AllUnits = await _context.GetUnitsForSectionAsync(bagian);
             }
             else if (userLevel == 4)
             {
                 // Section-scoped roles: auto-populate units from their own section
-                ViewBag.AllUnits = OrganizationStructure.GetUnitsForSection(user.Section ?? "");
+                ViewBag.AllUnits = await _context.GetUnitsForSectionAsync(user.Section ?? "");
             }
             else
             {
@@ -2753,19 +2756,19 @@ namespace HcPortal.Controllers
             // Sort by Nama A-Z (default)
             workers = workers.OrderBy(w => w.Nama).ToList();
 
-            // Use OrganizationStructure for filter dropdowns (not data-driven)
+            // Use DB for filter dropdowns (via helper methods)
+            var sectionUnitsDictHistoriProton = await _context.GetSectionUnitsDictAsync();
             var viewModel = new HistoriProtonViewModel
             {
                 Workers = workers,
-                AvailableSections = HcPortal.Models.OrganizationStructure.GetAllSections(),
+                AvailableSections = sectionUnitsDictHistoriProton.Keys.ToList(),
                 AvailableUnits = new List<string>() // Units populated client-side via cascade
             };
 
             // L4 lock and cascade data
             ViewBag.LockedSection = userLevel == 4 ? user.Section : null;
             ViewBag.UserLevel = userLevel;
-            ViewBag.OrgStructureJson = System.Text.Json.JsonSerializer.Serialize(
-                HcPortal.Models.OrganizationStructure.SectionUnits);
+            ViewBag.OrgStructureJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictHistoriProton);
 
             return View(viewModel);
         }
@@ -3069,7 +3072,9 @@ namespace HcPortal.Controllers
             vm.CurrentPage = paging.CurrentPage;
             vm.TotalPages = paging.TotalPages;
 
-            ViewBag.AllBagian = OrganizationStructure.GetAllSections();
+            var sectionUnitsDictPlanIdp = await _context.GetSectionUnitsDictAsync();
+            ViewBag.SectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(sectionUnitsDictPlanIdp);
+            ViewBag.AllBagian = sectionUnitsDictPlanIdp.Keys.ToList();
             ViewBag.AllCategories = await _context.AssessmentCategories
                 .Where(c => c.ParentId == null && c.IsActive)
                 .OrderBy(c => c.SortOrder)
