@@ -74,10 +74,11 @@ Plans:
   2. Klik "Renew" pada baris bertipe Training menampilkan popup pilihan: "Renew via Assessment" atau "Renew via Training Record baru" — bukan langsung ke CreateAssessment
   3. Bulk renew yang mencakup campuran tipe Assessment dan Training menampilkan konfirmasi atau memisahkan alur sehingga Training items tidak langsung dikirim ke CreateAssessment
   4. Halaman AddTraining dapat dibuka dalam mode renewal (dari link renewal) dengan field Title/Category/Peserta ter-prefill dan RenewsTrainingId/RenewsSessionId tersimpan saat submit
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 212-01: Tipe filter + renewal flow popup + bulk renew tipe-aware + AddTraining renewal mode
+- [ ] 212-01: Tipe filter + renewal method modal + bulk mixed-type validation
+- [ ] 212-02: AddTraining renewal mode (prefill + FK + bulk multi-user)
 
 ## Phase Details
 
