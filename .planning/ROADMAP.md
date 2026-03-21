@@ -6,7 +6,7 @@
 - ✅ **v7.8 Dokumen KKJ & Alignment KKJ/IDP — Combine Menu** - Phases 205–207 (shipped 2026-03-20)
 - ✅ **v7.9 Renewal Certificate Grouped View** - Phases 208–209 (shipped 2026-03-20)
 - ✅ **v7.10 RenewalCertificate Bug Fixes & Enhancement** - Phases 210–212 (shipped 2026-03-21)
-- 🚧 **v7.11 CMP Records Bug Fixes & Enhancement** - Phases 213–216 (in progress)
+- 🚧 **v7.11 CMP Records Bug Fixes & Enhancement** - Phases 213–217 (in progress)
 
 ## Phases
 
@@ -51,6 +51,7 @@
 - [x] **Phase 214: SubCategory Model + CRUD** - Tambah kolom SubKategori di TrainingRecord, dropdown Kategori/SubKategori dari AssessmentCategories di AddTraining/EditTraining/ImportTraining (completed 2026-03-21)
 - [x] **Phase 215: Team View Filter Enhancement** - Assessment records masuk data filterable, dropdown Sub Category dependent di Team View (completed 2026-03-21)
 - [ ] **Phase 216: Export Fixes & Display Enhancement** - Sejajarkan team export dengan personal export dan tampilkan badge expiring soon
+- [ ] **Phase 217: Fix Category Dropdown RecordsTeam** - Dropdown Category dari master AssessmentCategories, bukan union string records
 
 ## Phase Details
 
@@ -106,6 +107,17 @@ Plans:
 Plans:
 - [ ] (belum dibuat)
 
+### Phase 217: Fix Category Dropdown RecordsTeam
+**Goal**: Dropdown Category di RecordsTeam mengambil data dari tabel master AssessmentCategories (sinkron dengan ManageCategories), bukan dari union string records
+**Depends on**: Phase 215
+**Requirements**: CAT-01
+**Success Criteria** (what must be TRUE):
+  1. Dropdown Category di RecordsTeam menampilkan kategori yang sama persis dengan halaman Admin/ManageCategories
+  2. Filter Category, Sub Category, Status, dan Export tetap berfungsi setelah perubahan data source
+**Plans**: 1 plan
+Plans:
+- [ ] 217-01-PLAN.md — Ganti dropdown source dari union strings ke master AssessmentCategories JSON
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -122,3 +134,4 @@ Plans:
 | 214. SubCategory Model + CRUD | v7.11 | 2/2 | Complete    | 2026-03-21 |
 | 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
+| 217. Fix Category Dropdown RecordsTeam | v7.11 | 0/1 | Not started | - |
