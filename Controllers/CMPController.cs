@@ -452,6 +452,17 @@ namespace HcPortal.Controllers
             // Level 1-3: No section restriction (full access to all sections/units)
             var workerList = await _workerDataService.GetWorkersInSection(sectionFilter);
 
+            // Phase 215: Build subCategoryMap for dependent Sub Category dropdown
+            var allCats = await _context.AssessmentCategories
+                .Where(c => c.IsActive && c.ParentId == null)
+                .Include(c => c.Children)
+                .ToListAsync();
+            var subCategoryMap = allCats.ToDictionary(
+                p => p.Name,
+                p => p.Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
+            );
+            ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
+
             return View("RecordsTeam", workerList);
         }
 

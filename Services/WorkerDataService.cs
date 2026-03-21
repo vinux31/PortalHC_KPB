@@ -189,13 +189,17 @@ namespace HcPortal.Services
             var users = await usersQuery.ToListAsync();
 
             var userIds = users.Select(u => u.Id).ToList();
-            var passedAssessmentsByUser = await _context.AssessmentSessions
-                .Where(a => userIds.Contains(a.UserId) && a.IsPassed == true)
-                .GroupBy(a => a.UserId)
-                .Select(g => new { UserId = g.Key, Count = g.Count() })
+            // Phase 215: batch load all AssessmentSessions for category filter
+            var assessmentSessionsByUser = await _context.AssessmentSessions
+                .Where(a => userIds.Contains(a.UserId))
                 .ToListAsync();
-            var passedAssessmentLookup = passedAssessmentsByUser
-                .ToDictionary(x => x.UserId, x => x.Count);
+            var assessmentSessionLookup = assessmentSessionsByUser
+                .GroupBy(a => a.UserId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+            var passedAssessmentLookup = assessmentSessionsByUser
+                .Where(a => a.IsPassed == true)
+                .GroupBy(a => a.UserId)
+                .ToDictionary(g => g.Key, g => g.Count());
 
             var workerList = new List<WorkerTrainingStatus>();
 
@@ -226,7 +230,9 @@ namespace HcPortal.Services
                     PendingTrainings = pendingTrainings,
                     ExpiringSoonTrainings = expiringTrainings,
                     TrainingRecords = trainingRecords,
-                    CompletedAssessments = completedAssessments
+                    CompletedAssessments = completedAssessments,
+                    AssessmentSessions = assessmentSessionLookup.TryGetValue(user.Id, out var sessions)
+                        ? sessions : new List<AssessmentSession>()
                 };
 
                 if (!string.IsNullOrEmpty(category))

@@ -47,6 +47,9 @@ namespace HcPortal.Models
         // Phase 10: assessment completion count (CompletedTrainings already exists above)
         public int CompletedAssessments { get; set; }  // IsPassed == true count
 
+        // Phase 215: assessment session list for category filter in Team View
+        public List<AssessmentSession> AssessmentSessions { get; set; } = new List<AssessmentSession>();
+
         // Computed display string: "5 completed (3 assessments + 2 trainings)"
         // CompletedTrainings counts Status == "Passed" || Status == "Valid" (set in GetWorkersInSection)
         public string CompletionDisplayText =>
