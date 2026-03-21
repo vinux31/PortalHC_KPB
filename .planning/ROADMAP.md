@@ -45,7 +45,7 @@
   1. Bulk renew pada N pekerja menghasilkan N AssessmentSession/TrainingRecord baru yang masing-masing memiliki RenewsSessionId/RenewsTrainingId terisi (bukan hanya record pertama)
   2. Badge count di kartu Section C Admin/Index menampilkan angka yang identik dengan jumlah baris pada halaman RenewalCertificate (termasuk TR→AS dan TR→TR)
   3. Sertifikat yang berasal dari TrainingRecord yang tidak IsPassed tidak muncul sebagai kandidat renewal di renewedByTrSessionIds
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 210-01: Critical renewal chain fixes — bulk FK assignment, badge count sync, IsPassed filter
@@ -60,7 +60,7 @@ Plans:
   3. Group header menampilkan nama kategori yang konsisten dengan AssessmentCategories (tanpa variasi typo/case)
   4. Group-by judul berfungsi case-insensitive sehingga "MIGAS" dan "Migas" masuk ke group yang sama
   5. Judul sertifikat dengan karakter khusus (/, &, #) tidak menyebabkan URL mismatch atau group yang terpisah
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 211-01: Data & display fixes — ValidUntil null handling, category prefill, MapKategori, grouping case/URL
@@ -74,7 +74,7 @@ Plans:
   2. Klik "Renew" pada baris bertipe Training menampilkan popup pilihan: "Renew via Assessment" atau "Renew via Training Record baru" — bukan langsung ke CreateAssessment
   3. Bulk renew yang mencakup campuran tipe Assessment dan Training menampilkan konfirmasi atau memisahkan alur sehingga Training items tidak langsung dikirim ke CreateAssessment
   4. Halaman AddTraining dapat dibuka dalam mode renewal (dari link renewal) dengan field Title/Category/Peserta ter-prefill dan RenewsTrainingId/RenewsSessionId tersimpan saat submit
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 212-01: Tipe filter + renewal flow popup + bulk renew tipe-aware + AddTraining renewal mode
@@ -89,7 +89,7 @@ Plans:
   1. Bulk renew pada N pekerja menghasilkan N AssessmentSession/TrainingRecord baru yang masing-masing memiliki RenewsSessionId/RenewsTrainingId terisi (bukan hanya record pertama)
   2. Badge count di kartu Section C Admin/Index menampilkan angka yang identik dengan jumlah baris pada halaman RenewalCertificate (termasuk TR→AS dan TR→TR)
   3. Sertifikat yang berasal dari TrainingRecord yang tidak IsPassed tidak muncul sebagai kandidat renewal di renewedByTrSessionIds
-**Plans**: TBD
+**Plans**: 1 plan
 
 ### Phase 211: Data & Display Fixes
 **Goal**: Semua data dan tampilan RenewalCertificate akurat — ValidUntil=null ditangani benar, category pre-fill dari TR berfungsi, grouping konsisten dan aman
@@ -101,7 +101,7 @@ Plans:
   3. Group header menampilkan nama kategori yang konsisten dengan AssessmentCategories (tanpa variasi typo/case)
   4. Group-by judul berfungsi case-insensitive sehingga "MIGAS" dan "Migas" masuk ke group yang sama
   5. Judul sertifikat dengan karakter khusus (/, &, #) tidak menyebabkan URL mismatch atau group yang terpisah
-**Plans**: TBD
+**Plans**: 1 plan
 
 ### Phase 212: Tipe Filter, Renewal Flow, AddTraining Renewal
 **Goal**: Admin dapat memfilter renewal list berdasarkan tipe (Assessment/Training), alur renewal berbeda sesuai tipe sumber, dan AddTraining mendukung mode renewal dengan pre-fill + FK
@@ -112,7 +112,7 @@ Plans:
   2. Klik "Renew" pada baris bertipe Training menampilkan popup pilihan: "Renew via Assessment" atau "Renew via Training Record baru" — bukan langsung ke CreateAssessment
   3. Bulk renew yang mencakup campuran tipe Assessment dan Training menampilkan konfirmasi atau memisahkan alur sehingga Training items tidak langsung dikirim ke CreateAssessment
   4. Halaman AddTraining dapat dibuka dalam mode renewal (dari link renewal) dengan field Title/Category/Peserta ter-prefill dan RenewsTrainingId/RenewsSessionId tersimpan saat submit
-**Plans**: TBD
+**Plans**: 1 plan
 
 ## Progress
 
