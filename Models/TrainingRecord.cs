@@ -24,6 +24,7 @@ namespace HcPortal.Models
         public DateTime? TanggalSelesai { get; set; }   // Training end date
         public string? NomorSertifikat { get; set; }    // Certificate number
         public string? Kota { get; set; }               // City where training took place
+        public string? SubKategori { get; set; }         // Sub category from AssessmentCategories
 
         // ===== Phase 200: Renewal Chain FKs =====
         /// <summary>

@@ -25,6 +25,9 @@ namespace HcPortal.Models
         [Display(Name = "Kategori")]
         public string Kategori { get; set; } = "";
 
+        [Display(Name = "Sub Kategori")]
+        public string? SubKategori { get; set; }
+
         [Required(ErrorMessage = "Tanggal harus diisi")]
         [Display(Name = "Tanggal")]
         [DataType(DataType.Date)]
