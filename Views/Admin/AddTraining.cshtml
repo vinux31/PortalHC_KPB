@@ -90,18 +90,26 @@
                 <!-- Kategori -->
                 <div class="col-md-6">
                     <label asp-for="Kategori" class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
-                    <select asp-for="Kategori" class="form-select">
+                    <select id="kategoriSelect" asp-for="Kategori" class="form-select" required>
                         <option value="">-- Pilih Kategori --</option>
-                        <option value="OJT">OJT</option>
-                        <option value="IHT">IHT</option>
-                        <option value="MANDATORY">Mandatory HSSE Training</option>
-                        <option value="Training Licensor">Training Licensor</option>
-                        <option value="OTS">OTS</option>
-                        <option value="Proton">Proton</option>
-                        <option value="ISS">ISS</option>
-                        <option value="OSS">OSS</option>
+                        @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+                        {
+                            <option value="@cat.Name">@cat.Name</option>
+                        }
                     </select>
                     <span asp-validation-for="Kategori" class="text-danger small"></span>
+                </div>
+
+                <!-- Sub Kategori -->
+                <div class="col-md-6">
+                    <label asp-for="SubKategori" class="form-label">Sub Kategori (opsional)</label>
+                    <select id="subKategoriSelect" asp-for="SubKategori" class="form-select" disabled>
+                        <option value="">-- Pilih Sub Kategori --</option>
+                        @foreach (var sub in (IEnumerable<dynamic>)ViewBag.SubKategoriOptions)
+                        {
+                            <option value="@sub.Name" data-parent-id="@sub.ParentId">@sub.Name</option>
+                        }
+                    </select>
                 </div>
 
                 <!-- Tanggal -->
@@ -204,6 +212,32 @@
         </button>
     </div>
 </form>
+
+<script>
+(function() {
+    const kategoriMap = {};
+    @foreach (var cat in (IEnumerable<dynamic>)ViewBag.KategoriOptions)
+    {
+        @:kategoriMap["@cat.Name"] = @cat.Id;
+    }
+
+    const kategoriSelect = document.getElementById('kategoriSelect');
+    const subKategoriSelect = document.getElementById('subKategoriSelect');
+
+    kategoriSelect.addEventListener('change', function() {
+        const selectedName = this.value;
+        const parentId = kategoriMap[selectedName];
+        const options = subKategoriSelect.querySelectorAll('option[data-parent-id]');
+
+        options.forEach(function(opt) {
+            opt.hidden = parentId === undefined || parseInt(opt.dataset.parentId) !== parentId;
+        });
+
+        subKategoriSelect.value = '';
+        subKategoriSelect.disabled = !selectedName;
+    });
+})();
+</script>
 
 @if (ViewBag.SelectedUserId != null)
 {
