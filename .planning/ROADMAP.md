@@ -153,7 +153,9 @@ Plans:
   2. 4 Bagian dan 19 Unit dari static OrganizationStructure.cs tersedia sebagai rows di tabel OrganizationUnits dengan hierarki parent-child yang benar
   3. KkjFile dan CpdpFile memiliki FK OrganizationUnitId (menggantikan BagianId) — entitas KkjBagian dihapus dari codebase
   4. Aplikasi dapat di-seed ulang (dotnet run dengan SeedData) tanpa error
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 219-01-PLAN.md — Model OrganizationUnit, migration seed+remap, drop KkjBagian
 
 ### Phase 220: CRUD Page Kelola Data
 **Goal**: Admin dapat mengelola struktur organisasi (tambah/edit/pindah/hapus/reorder node) melalui halaman Struktur Organisasi di Kelola Data
