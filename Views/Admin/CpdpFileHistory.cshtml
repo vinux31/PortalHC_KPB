@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = ViewData["Title"] as string ?? "Riwayat File CPDP";
-    var bagian = ViewBag.Bagian as HcPortal.Models.KkjBagian;
+    var bagian = ViewBag.Bagian as HcPortal.Models.OrganizationUnit;
     var archivedFiles = ViewBag.ArchivedFiles as List<HcPortal.Models.CpdpFile> ?? new List<HcPortal.Models.CpdpFile>();
 }
 

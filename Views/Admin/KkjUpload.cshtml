@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = "Upload File Kebutuhan Kompetensi Jabatan";
-    var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
+    var bagians = ViewBag.Bagians as List<HcPortal.Models.OrganizationUnit> ?? new List<HcPortal.Models.OrganizationUnit>();
     var selectedBagianId = (int)(ViewBag.SelectedBagianId ?? 0);
 }
 

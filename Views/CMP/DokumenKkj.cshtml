@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = "Dokumen KKJ & Alignment KKJ/IDP";
-    var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
+    var bagians = ViewBag.Bagians as List<HcPortal.Models.OrganizationUnit> ?? new List<HcPortal.Models.OrganizationUnit>();
     var kkjFilesByBagian = ViewBag.KkjFilesByBagian as Dictionary<int, List<HcPortal.Models.KkjFile>> ?? new Dictionary<int, List<HcPortal.Models.KkjFile>>();
     var cpdpFilesByBagian = ViewBag.CpdpFilesByBagian as Dictionary<int, List<HcPortal.Models.CpdpFile>> ?? new Dictionary<int, List<HcPortal.Models.CpdpFile>>();
     var activeTab = ViewBag.ActiveTab as string ?? "kkj";

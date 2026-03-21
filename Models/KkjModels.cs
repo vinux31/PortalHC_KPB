@@ -1,22 +1,11 @@
 namespace HcPortal.Models
 {
-    // KKJ Matrix Bagian (section grouping — used for tab navigation and file grouping)
-    public class KkjBagian
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";           // e.g. "RFCC", "GAST", "NGP", "DHT/HMU"
-        public int DisplayOrder { get; set; } = 0;
-
-        // Navigation collection for KKJ files
-        public ICollection<KkjFile> Files { get; set; } = new List<KkjFile>();
-    }
-
-    // KKJ File — represents an uploaded PDF/Excel file for a given bagian
+    // KKJ File — represents an uploaded PDF/Excel file for a given organization unit
     public class KkjFile
     {
         public int Id { get; set; }
-        public int BagianId { get; set; }
-        public KkjBagian Bagian { get; set; } = null!;
+        public int OrganizationUnitId { get; set; }
+        public OrganizationUnit OrganizationUnit { get; set; } = null!;
         public string FileName { get; set; } = "";      // Original filename (display)
         public string FilePath { get; set; } = "";      // Relative path: /uploads/kkj/{bagianId}/{safeName}
         public long FileSizeBytes { get; set; }
@@ -27,12 +16,12 @@ namespace HcPortal.Models
         public bool IsArchived { get; set; } = false;   // True = moved to history
     }
 
-    // CPDP File — represents an uploaded PDF/Excel file for a given bagian (mirrors KkjFile)
+    // CPDP File — represents an uploaded PDF/Excel file for a given organization unit (mirrors KkjFile)
     public class CpdpFile
     {
         public int Id { get; set; }
-        public int BagianId { get; set; }
-        public KkjBagian Bagian { get; set; } = null!;
+        public int OrganizationUnitId { get; set; }
+        public OrganizationUnit OrganizationUnit { get; set; } = null!;
         public string FileName { get; set; } = "";      // Original filename (display)
         public string FilePath { get; set; } = "";      // Relative path: /uploads/cpdp/{bagianId}/{safeName}
         public long FileSizeBytes { get; set; }

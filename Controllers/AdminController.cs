@@ -71,20 +71,9 @@ namespace HcPortal.Controllers
         {
             ViewData["Title"] = "Kelola KKJ Matrix";
 
-            // Seed default bagians if none exist yet
-            if (!await _context.KkjBagians.AnyAsync())
-            {
-                var defaults = new[] {
-                    new KkjBagian { Name = "RFCC",    DisplayOrder = 1 },
-                    new KkjBagian { Name = "GAST",    DisplayOrder = 2 },
-                    new KkjBagian { Name = "NGP",     DisplayOrder = 3 },
-                    new KkjBagian { Name = "DHT/HMU", DisplayOrder = 4 },
-                };
-                _context.KkjBagians.AddRange(defaults);
-                await _context.SaveChangesAsync();
-            }
-
-            var bagians = await _context.KkjBagians
+            // OrganizationUnits are seeded via migration; no runtime seeding needed
+            var bagians = await _context.OrganizationUnits
+                .Where(u => u.ParentId == null)
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
 
@@ -96,7 +85,7 @@ namespace HcPortal.Controllers
 
             var filesByBagian = bagians.ToDictionary(
                 b => b.Id,
-                b => files.Where(f => f.BagianId == b.Id).ToList()
+                b => files.Where(f => f.OrganizationUnitId == b.Id).ToList()
             );
 
             // Determine which tab to show active
@@ -114,7 +103,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> KkjUpload(int? bagianId)
         {
             ViewData["Title"] = "Upload File KKJ Matrix";
-            var bagians = await _context.KkjBagians.OrderBy(b => b.DisplayOrder).ToListAsync();
+            var bagians = await _context.OrganizationUnits.Where(u => u.ParentId == null).OrderBy(b => b.DisplayOrder).ToListAsync();
             ViewBag.Bagians = bagians;
             ViewBag.SelectedBagianId = bagianId ?? 0;
             return View();
@@ -147,7 +136,7 @@ namespace HcPortal.Controllers
                 return RedirectToAction("KkjUpload", new { bagianId });
             }
 
-            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            var bagian = await _context.OrganizationUnits.FindAsync(bagianId);
             if (bagian == null)
             {
                 TempData["Error"] = "Bagian tidak ditemukan.";
@@ -175,7 +164,7 @@ namespace HcPortal.Controllers
                 var currentUser = await _userManager.GetUserAsync(User);
                 var kkjFile = new KkjFile
                 {
-                    BagianId = bagianId,
+                    OrganizationUnitId = bagianId,
                     FileName = file.FileName,
                     FilePath = $"/uploads/kkj/{bagianId}/{safeName}",
                     FileSizeBytes = file.Length,
@@ -221,7 +210,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> KkjFileDownload(int id)
         {
             var kkjFile = await _context.KkjFiles
-                .Include(f => f.Bagian)
+                .Include(f => f.OrganizationUnit)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (kkjFile == null) return NotFound();
@@ -253,7 +242,7 @@ namespace HcPortal.Controllers
             if (kkjFile == null) return Json(new { success = false, message = "File tidak ditemukan." });
 
             string fileName = kkjFile.FileName;
-            int bagianId = kkjFile.BagianId;
+            int bagianId = kkjFile.OrganizationUnitId;
 
             // Soft delete: archive the file (moves to history view, physical file retained)
             kkjFile.IsArchived = true;
@@ -284,11 +273,11 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> KkjFileHistory(int bagianId)
         {
-            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            var bagian = await _context.OrganizationUnits.FindAsync(bagianId);
             if (bagian == null) return NotFound();
 
             var archivedFiles = await _context.KkjFiles
-                .Where(f => f.BagianId == bagianId && f.IsArchived)
+                .Where(f => f.OrganizationUnitId == bagianId && f.IsArchived)
                 .OrderByDescending(f => f.UploadedAt)
                 .ToListAsync();
 
@@ -306,13 +295,14 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianAdd()
         {
-            var maxOrder = await _context.KkjBagians.MaxAsync(b => (int?)b.DisplayOrder) ?? 0;
-            var newBagian = new KkjBagian
+            var maxOrder = await _context.OrganizationUnits.Where(u => u.ParentId == null).MaxAsync(b => (int?)b.DisplayOrder) ?? 0;
+            var newBagian = new OrganizationUnit
             {
                 Name         = "Bagian Baru",
-                DisplayOrder = maxOrder + 1
+                DisplayOrder = maxOrder + 1,
+                Level        = 0
             };
-            _context.KkjBagians.Add(newBagian);
+            _context.OrganizationUnits.Add(newBagian);
             await _context.SaveChangesAsync();
 
             return Json(new
@@ -330,13 +320,13 @@ namespace HcPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> KkjBagianDelete(int id, bool confirmed = false)
         {
-            var bagian = await _context.KkjBagians.FindAsync(id);
+            var bagian = await _context.OrganizationUnits.FindAsync(id);
             if (bagian == null)
                 return Json(new { success = false, message = "Bagian tidak ditemukan." });
 
             // Count ACTIVE files (not archived) — these block deletion
-            var activeKkjCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id && !f.IsArchived);
-            var activeCpdpCount = await _context.CpdpFiles.CountAsync(f => f.BagianId == id && !f.IsArchived);
+            var activeKkjCount = await _context.KkjFiles.CountAsync(f => f.OrganizationUnitId == id && !f.IsArchived);
+            var activeCpdpCount = await _context.CpdpFiles.CountAsync(f => f.OrganizationUnitId == id && !f.IsArchived);
             var totalActive = activeKkjCount + activeCpdpCount;
 
             if (totalActive > 0)
@@ -352,8 +342,8 @@ namespace HcPortal.Controllers
             }
 
             // Count ARCHIVED files — these cascade delete (with confirmation)
-            var archivedKkjCount = await _context.KkjFiles.CountAsync(f => f.BagianId == id && f.IsArchived);
-            var archivedCpdpCount = await _context.CpdpFiles.CountAsync(f => f.BagianId == id && f.IsArchived);
+            var archivedKkjCount = await _context.KkjFiles.CountAsync(f => f.OrganizationUnitId == id && f.IsArchived);
+            var archivedCpdpCount = await _context.CpdpFiles.CountAsync(f => f.OrganizationUnitId == id && f.IsArchived);
             var totalArchived = archivedKkjCount + archivedCpdpCount;
 
             if (totalArchived > 0 && !confirmed)
@@ -370,7 +360,7 @@ namespace HcPortal.Controllers
 
             // Proceed with deletion: cascade delete archived files from disk + DB
             var archivedKkjFiles = await _context.KkjFiles
-                .Where(f => f.BagianId == id && f.IsArchived)
+                .Where(f => f.OrganizationUnitId == id && f.IsArchived)
                 .ToListAsync();
             foreach (var f in archivedKkjFiles)
             {
@@ -385,7 +375,7 @@ namespace HcPortal.Controllers
                 _context.KkjFiles.RemoveRange(archivedKkjFiles);
 
             var archivedCpdpFiles = await _context.CpdpFiles
-                .Where(f => f.BagianId == id && f.IsArchived)
+                .Where(f => f.OrganizationUnitId == id && f.IsArchived)
                 .ToListAsync();
             foreach (var f in archivedCpdpFiles)
             {
@@ -399,7 +389,7 @@ namespace HcPortal.Controllers
             if (archivedCpdpFiles.Any())
                 _context.CpdpFiles.RemoveRange(archivedCpdpFiles);
 
-            _context.KkjBagians.Remove(bagian);
+            _context.OrganizationUnits.Remove(bagian);
             await _context.SaveChangesAsync();
 
             // Audit log
@@ -412,7 +402,7 @@ namespace HcPortal.Controllers
                 await _auditLog.LogAsync(
                     currentUser?.Id ?? "", actorName, "DeleteBagian",
                     $"Deleted bagian '{bagian.Name}' (ID {id}). Cascaded {totalArchived} archived file(s) (KKJ: {archivedKkjCount}, CPDP: {archivedCpdpCount}).",
-                    id, "KkjBagian");
+                    id, "OrganizationUnit");
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for KkjBagianDelete (bagianId={Id})", id); }
 
@@ -427,11 +417,12 @@ namespace HcPortal.Controllers
         {
             ViewData["Title"] = "CPDP File Management";
 
-            var bagians = await _context.KkjBagians
+            var bagians = await _context.OrganizationUnits
+                .Where(u => u.ParentId == null)
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
 
-            // Load active (non-archived) CPDP files grouped by bagianId
+            // Load active (non-archived) CPDP files grouped by OrganizationUnitId
             var files = await _context.CpdpFiles
                 .Where(f => !f.IsArchived)
                 .OrderByDescending(f => f.UploadedAt)
@@ -439,7 +430,7 @@ namespace HcPortal.Controllers
 
             var filesByBagian = bagians.ToDictionary(
                 b => b.Id,
-                b => files.Where(f => f.BagianId == b.Id).ToList());
+                b => files.Where(f => f.OrganizationUnitId == b.Id).ToList());
 
             var selectedBagianId = bagians.Any(b => b.Id == bagian)
                 ? bagian!.Value
@@ -457,7 +448,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> CpdpUpload(int? bagianId)
         {
             ViewData["Title"] = "Upload File CPDP";
-            var bagians = await _context.KkjBagians.OrderBy(b => b.DisplayOrder).ToListAsync();
+            var bagians = await _context.OrganizationUnits.Where(u => u.ParentId == null).OrderBy(b => b.DisplayOrder).ToListAsync();
             ViewBag.Bagians = bagians;
             ViewBag.SelectedBagianId = bagianId ?? 0;
             return View();
@@ -490,7 +481,7 @@ namespace HcPortal.Controllers
                 return RedirectToAction("CpdpUpload", new { bagianId });
             }
 
-            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            var bagian = await _context.OrganizationUnits.FindAsync(bagianId);
             if (bagian == null)
             {
                 TempData["Error"] = "Bagian tidak ditemukan.";
@@ -513,7 +504,7 @@ namespace HcPortal.Controllers
                 var currentUser = await _userManager.GetUserAsync(User);
                 var cpdpFile = new CpdpFile
                 {
-                    BagianId = bagianId,
+                    OrganizationUnitId = bagianId,
                     FileName = file.FileName,
                     FilePath = $"/uploads/cpdp/{bagianId}/{safeName}",
                     FileSizeBytes = file.Length,
@@ -559,7 +550,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> CpdpFileDownload(int id)
         {
             var cpdpFile = await _context.CpdpFiles
-                .Include(f => f.Bagian)
+                .Include(f => f.OrganizationUnit)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (cpdpFile == null) return NotFound();
@@ -594,7 +585,7 @@ namespace HcPortal.Controllers
 
             // Soft delete: archive the file (moves to history view, physical file retained)
             string cpdpFileName = cpdpFile.FileName;
-            int cpdpBagianId = cpdpFile.BagianId;
+            int cpdpBagianId = cpdpFile.OrganizationUnitId;
             cpdpFile.IsArchived = true;
             await _context.SaveChangesAsync();
 
@@ -623,11 +614,11 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> CpdpFileHistory(int bagianId)
         {
-            var bagian = await _context.KkjBagians.FindAsync(bagianId);
+            var bagian = await _context.OrganizationUnits.FindAsync(bagianId);
             if (bagian == null) return NotFound();
 
             var archivedFiles = await _context.CpdpFiles
-                .Where(f => f.BagianId == bagianId && f.IsArchived)
+                .Where(f => f.OrganizationUnitId == bagianId && f.IsArchived)
                 .OrderByDescending(f => f.UploadedAt)
                 .ToListAsync();
 

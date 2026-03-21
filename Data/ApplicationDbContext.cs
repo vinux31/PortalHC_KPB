@@ -25,7 +25,7 @@ namespace HcPortal.Data
         public DbSet<IdpItem> IdpItems { get; set; }
         
         // Master Data (KKJ & CPDP)
-        public DbSet<KkjBagian> KkjBagians { get; set; }
+        public DbSet<OrganizationUnit> OrganizationUnits { get; set; }
         public DbSet<KkjFile> KkjFiles { get; set; }
         public DbSet<CpdpFile> CpdpFiles { get; set; }
 
@@ -215,32 +215,24 @@ namespace HcPortal.Data
                 entity.HasIndex(c => c.CoacheeId);
             });
 
-            // Master data tables
-            builder.Entity<KkjBagian>(entity =>
-            {
-                entity.ToTable("KkjBagians");
-                entity.HasIndex(b => b.Name).IsUnique();
-                entity.HasIndex(b => b.DisplayOrder);
-            });
-
-            // KkjFile: uploaded PDF/Excel files per bagian
+            // KkjFile: uploaded PDF/Excel files per organization unit
             builder.Entity<KkjFile>(entity =>
             {
                 entity.ToTable("KkjFiles");
-                entity.HasOne(f => f.Bagian)
-                      .WithMany(b => b.Files)
-                      .HasForeignKey(f => f.BagianId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(f => f.OrganizationUnit)
+                      .WithMany(b => b.KkjFiles)
+                      .HasForeignKey(f => f.OrganizationUnitId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // CpdpFile: uploaded PDF/Excel files per bagian (mirrors KkjFile)
+            // CpdpFile: uploaded PDF/Excel files per organization unit (mirrors KkjFile)
             builder.Entity<CpdpFile>(entity =>
             {
                 entity.ToTable("CpdpFiles");
-                entity.HasOne(f => f.Bagian)
-                      .WithMany()
-                      .HasForeignKey(f => f.BagianId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(f => f.OrganizationUnit)
+                      .WithMany(b => b.CpdpFiles)
+                      .HasForeignKey(f => f.OrganizationUnitId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // Competency Tracking configuration
@@ -557,6 +549,20 @@ namespace HcPortal.Data
 
                 entity.HasIndex(l => l.SessionId);
                 entity.HasIndex(l => l.Timestamp);
+            });
+
+            // ========== Organization Units (Phase 219) ==========
+            builder.Entity<OrganizationUnit>(entity =>
+            {
+                entity.ToTable("OrganizationUnits");
+                entity.HasIndex(u => u.Name).IsUnique();
+                entity.HasIndex(u => new { u.ParentId, u.DisplayOrder });
+                entity.Property(u => u.IsActive).HasDefaultValue(true);
+
+                entity.HasOne(u => u.Parent)
+                      .WithMany(u => u.Children)
+                      .HasForeignKey(u => u.ParentId)
+                      .OnDelete(DeleteBehavior.Restrict);
             });
 
             // ========== Assessment Categories (Phase 190) ==========

@@ -79,8 +79,9 @@ namespace HcPortal.Controllers
             var currentUser = await _userManager.GetUserAsync(User) as ApplicationUser;
             var userLevel = currentUser?.RoleLevel ?? 6;
 
-            // Load all bagians ordered by DisplayOrder
-            var allBagians = await _context.KkjBagians
+            // Load all bagians (top-level OrganizationUnits) ordered by DisplayOrder
+            var allBagians = await _context.OrganizationUnits
+                .Where(u => u.ParentId == null)
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync();
 
@@ -105,16 +106,16 @@ namespace HcPortal.Controllers
                 .OrderByDescending(f => f.UploadedAt)
                 .ToListAsync();
             var kkjFilesByBagian = kkjFiles
-                .GroupBy(f => f.BagianId)
+                .GroupBy(f => f.OrganizationUnitId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
-            // Load CPDP files (non-archived) grouped by BagianId
+            // Load CPDP files (non-archived) grouped by OrganizationUnitId
             var cpdpFiles = await _context.CpdpFiles
                 .Where(f => !f.IsArchived)
                 .OrderBy(f => f.UploadedAt)
                 .ToListAsync();
             var cpdpFilesByBagian = cpdpFiles
-                .GroupBy(f => f.BagianId)
+                .GroupBy(f => f.OrganizationUnitId)
                 .ToDictionary(g => g.Key, g => g.ToList());
 
             ViewBag.Bagians = filteredBagians;
@@ -129,7 +130,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> KkjFileDownload(int id)
         {
             var kkjFile = await _context.KkjFiles
-                .Include(f => f.Bagian)
+                .Include(f => f.OrganizationUnit)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (kkjFile == null) return NotFound();
@@ -155,7 +156,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> CpdpFileDownload(int id)
         {
             var cpdpFile = await _context.CpdpFiles
-                .Include(f => f.Bagian)
+                .Include(f => f.OrganizationUnit)
                 .FirstOrDefaultAsync(f => f.Id == id);
 
             if (cpdpFile == null) return NotFound();

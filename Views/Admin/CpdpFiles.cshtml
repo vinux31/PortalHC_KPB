@@ -1,7 +1,7 @@
 @{
     ViewData["Title"] = "CPDP File Management";
     ViewData["ContainerClass"] = "container-fluid px-4";
-    var bagians = ViewBag.Bagians as List<HcPortal.Models.KkjBagian> ?? new List<HcPortal.Models.KkjBagian>();
+    var bagians = ViewBag.Bagians as List<HcPortal.Models.OrganizationUnit> ?? new List<HcPortal.Models.OrganizationUnit>();
     var filesByBagian = ViewBag.FilesByBagian as Dictionary<int, List<HcPortal.Models.CpdpFile>> ?? new Dictionary<int, List<HcPortal.Models.CpdpFile>>();
     var selectedBagianId = (int)(ViewBag.SelectedBagianId ?? 0);
 
