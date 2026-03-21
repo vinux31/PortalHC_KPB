@@ -61,7 +61,7 @@
 **Milestone Goal:** Mengganti static class OrganizationStructure dengan database-driven CRUD — Admin dapat mengelola struktur organisasi (Bagian dan Unit) secara dinamis, dan seluruh dropdown Bagian/Unit di portal mengambil data dari database.
 
 - [x] **Phase 219: DB Model & Migration** - Entity OrganizationUnit, migrasi data 4 Bagian/19 Unit, konsolidasi KkjBagian (completed 2026-03-21)
-- [ ] **Phase 220: CRUD Page Kelola Data** - Halaman Struktur Organisasi di Kelola Data: indented table, tambah/edit/pindah/hapus/reorder node
+- [x] **Phase 220: CRUD Page Kelola Data** - Halaman Struktur Organisasi di Kelola Data: indented table, tambah/edit/pindah/hapus/reorder node (completed 2026-03-21)
 - [ ] **Phase 221: Integrasi Codebase** - Semua controller dan view ganti ke OrganizationUnit — filter dropdown, cascade, worker create/edit, DokumenKkj, ProtonData
 - [ ] **Phase 222: Cleanup & Finalisasi** - Hapus static OrganizationStructure.cs, update seed data, ImportWorkers validasi terhadap database
 
@@ -171,7 +171,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 220-01-PLAN.md — Controller actions + card Kelola Data Index
-- [ ] 220-02-PLAN.md — View ManageOrganization.cshtml collapsible tree table
+- [x] 220-02-PLAN.md — View ManageOrganization.cshtml collapsible tree table
 
 ### Phase 221: Integrasi Codebase
 **Goal**: Seluruh dropdown Bagian/Unit, cascade filter, validasi worker, dan grouping DokumenKkj/ProtonData di portal mengambil data dari tabel OrganizationUnits
@@ -215,6 +215,6 @@ Plans:
 | 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete | 2026-03-21 |
 | 218. RecordsWorkerDetail Redesign & ImportTraining Update | v7.11 | 2/2 | Complete | 2026-03-21 |
 | 219. DB Model & Migration | v7.12 | 1/1 | Complete    | 2026-03-21 |
-| 220. CRUD Page Kelola Data | v7.12 | 1/2 | In Progress|  |
+| 220. CRUD Page Kelola Data | v7.12 | 2/2 | Complete   | 2026-03-21 |
 | 221. Integrasi Codebase | v7.12 | 0/? | Not started | - |
 | 222. Cleanup & Finalisasi | v7.12 | 0/? | Not started | - |
