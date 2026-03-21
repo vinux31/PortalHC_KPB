@@ -812,4 +812,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-20 after Phase 208*
+*Last updated: 2026-03-21 after Phase 214 — SubKategori model CRUD complete*
