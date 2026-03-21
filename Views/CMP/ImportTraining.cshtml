@@ -109,7 +109,7 @@
                     <strong>Langkah 1 — Download Template</strong><br />
                     <span class="small">Download template Excel, isi data training sesuai format, lalu upload kembali.</span>
                 </div>
-                <a href="@Url.Action("DownloadImportTrainingTemplate", "CMP")" class="btn btn-success btn-sm ms-auto flex-shrink-0">
+                <a href="@Url.Action("DownloadImportTrainingTemplate", "Admin")" class="btn btn-success btn-sm ms-auto flex-shrink-0">
                     <i class="bi bi-file-earmark-excel me-1"></i>Download Template
                 </a>
             </div>
@@ -158,14 +158,18 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td class="px-3">NIP</td><td class="px-3">Nomor induk pegawai</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">123456</td></tr>
-                        <tr><td class="px-3">Judul</td><td class="px-3">Nama training</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Pelatihan K3 Dasar</td></tr>
-                        <tr><td class="px-3">Kategori</td><td class="px-3">PROTON / OJT / MANDATORY</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">MANDATORY</td></tr>
-                        <tr><td class="px-3">Tanggal</td><td class="px-3">Format YYYY-MM-DD</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">2024-03-15</td></tr>
-                        <tr><td class="px-3">Penyelenggara</td><td class="px-3">Internal / Licensor / NSO</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Internal</td></tr>
-                        <tr><td class="px-3">Status</td><td class="px-3">Passed / Wait Certificate / Valid</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Passed</td></tr>
-                        <tr><td class="px-3">ValidUntil</td><td class="px-3">Format YYYY-MM-DD (opsional)</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">2027-03-15</td></tr>
-                        <tr><td class="px-3">NomorSertifikat</td><td class="px-3">Nomor sertifikat (opsional)</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">CERT-001</td></tr>
+                        <tr><td class="px-3">NIP</td><td class="px-3">Nomor induk pegawai (harus terdaftar)</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">123456</td></tr>
+                        <tr><td class="px-3">Judul</td><td class="px-3">Judul/nama training</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">Pelatihan K3 Dasar</td></tr>
+                        <tr><td class="px-3">Kategori</td><td class="px-3">Nama kategori (sesuai Manage Categories)</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">MANDATORY</td></tr>
+                        <tr><td class="px-3">SubKategori</td><td class="px-3">Nama sub kategori (sesuai Manage Categories)</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Safety Induction</td></tr>
+                        <tr><td class="px-3">Tanggal</td><td class="px-3">Tanggal training, format YYYY-MM-DD</td><td class="px-3"><span class="badge bg-danger">Ya</span></td><td class="px-3">2024-03-15</td></tr>
+                        <tr><td class="px-3">TanggalMulai</td><td class="px-3">Tanggal mulai, format YYYY-MM-DD</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">2024-03-15</td></tr>
+                        <tr><td class="px-3">TanggalSelesai</td><td class="px-3">Tanggal selesai, format YYYY-MM-DD</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">2024-03-17</td></tr>
+                        <tr><td class="px-3">Penyelenggara</td><td class="px-3">Penyelenggara training</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Internal</td></tr>
+                        <tr><td class="px-3">Kota</td><td class="px-3">Kota pelaksanaan</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Balikpapan</td></tr>
+                        <tr><td class="px-3">Status</td><td class="px-3">Valid / Expired / Wait Certificate / Permanent</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">Passed</td></tr>
+                        <tr><td class="px-3">ValidUntil</td><td class="px-3">Tanggal berlaku, format YYYY-MM-DD</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">2027-03-15</td></tr>
+                        <tr><td class="px-3">NomorSertifikat</td><td class="px-3">Nomor sertifikat</td><td class="px-3"><span class="badge bg-secondary">Opsional</span></td><td class="px-3">CERT-001</td></tr>
                     </tbody>
                 </table>
             </div>
