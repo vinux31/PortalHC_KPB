@@ -948,7 +948,7 @@ namespace HcPortal.Controllers
         // GET: Show create assessment form
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> CreateAssessment(int? renewSessionId = null, int? renewTrainingId = null)
+        public async Task<IActionResult> CreateAssessment([FromQuery] List<int>? renewSessionId = null, [FromQuery] List<int>? renewTrainingId = null)
         {
             // Get list of users for dropdown
             var users = await _context.Users
@@ -989,59 +989,135 @@ namespace HcPortal.Controllers
                 AllowAnswerReview = true
             };
 
-            // ===== Phase 201: Renewal mode pre-fill =====
+            // ===== Phase 201 / 210: Renewal mode pre-fill =====
             bool isRenewalMode = false;
 
-            if (renewSessionId.HasValue)
+            if (renewSessionId != null && renewSessionId.Count > 0)
             {
-                var sourceSession = await _context.AssessmentSessions
-                    .Include(s => s.User)
-                    .FirstOrDefaultAsync(s => s.Id == renewSessionId.Value);
-
-                if (sourceSession == null)
+                if (renewSessionId.Count == 1)
                 {
-                    TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
-                    return RedirectToAction("CreateAssessment");
+                    // Single renew — backward-compatible path
+                    var sourceSession = await _context.AssessmentSessions
+                        .Include(s => s.User)
+                        .FirstOrDefaultAsync(s => s.Id == renewSessionId[0]);
+
+                    if (sourceSession == null)
+                    {
+                        TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
+                        return RedirectToAction("CreateAssessment");
+                    }
+
+                    isRenewalMode = true;
+                    model.Title = sourceSession.Title;
+                    model.Category = sourceSession.Category;
+                    model.GenerateCertificate = true;
+                    if (sourceSession.ValidUntil.HasValue)
+                        model.ValidUntil = sourceSession.ValidUntil.Value.AddYears(1);
+                    else
+                        ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
+
+                    ViewBag.SelectedUserIds = new List<string> { sourceSession.UserId };
+                    ViewBag.RenewalSourceTitle = sourceSession.Title;
+                    ViewBag.RenewalSourceUserName = sourceSession.User?.FullName ?? "";
+                    ViewBag.RenewsSessionId = renewSessionId[0];
                 }
-
-                isRenewalMode = true;
-                model.Title = sourceSession.Title;
-                model.Category = sourceSession.Category;
-                model.GenerateCertificate = true;
-                if (sourceSession.ValidUntil.HasValue)
-                    model.ValidUntil = sourceSession.ValidUntil.Value.AddYears(1);
                 else
-                    ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
+                {
+                    // Bulk renew — build per-user FK mapping
+                    var sourceSessions = await _context.AssessmentSessions
+                        .Include(s => s.User)
+                        .Where(s => renewSessionId.Contains(s.Id))
+                        .ToListAsync();
 
-                ViewBag.SelectedUserIds = new List<string> { sourceSession.UserId };
-                ViewBag.RenewalSourceTitle = sourceSession.Title;
-                ViewBag.RenewalSourceUserName = sourceSession.User?.FullName ?? "";
-                ViewBag.RenewsSessionId = renewSessionId.Value;
+                    if (sourceSessions.Count == 0)
+                    {
+                        TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
+                        return RedirectToAction("CreateAssessment");
+                    }
+
+                    var firstSession = sourceSessions[0];
+                    isRenewalMode = true;
+                    model.Title = firstSession.Title;
+                    model.Category = firstSession.Category;
+                    model.GenerateCertificate = true;
+                    if (firstSession.ValidUntil.HasValue)
+                        model.ValidUntil = firstSession.ValidUntil.Value.AddYears(1);
+                    else
+                        ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
+
+                    // Build {UserId → SessionId} map
+                    var fkMap = sourceSessions.ToDictionary(s => s.UserId, s => s.Id);
+                    ViewBag.RenewalFkMap = System.Text.Json.JsonSerializer.Serialize(fkMap);
+                    ViewBag.RenewalFkMapType = "session";
+
+                    ViewBag.SelectedUserIds = sourceSessions.Select(s => s.UserId).ToList();
+                    ViewBag.RenewalSourceTitle = firstSession.Title;
+                    ViewBag.RenewalSourceUserName = string.Join(", ", sourceSessions.Select(s => s.User?.FullName ?? ""));
+                    // model.RenewsSessionId = null intentionally — resolved per-user at POST
+                }
             }
-            else if (renewTrainingId.HasValue)
+            else if (renewTrainingId != null && renewTrainingId.Count > 0)
             {
-                var sourceTraining = await _context.TrainingRecords
-                    .Include(t => t.User)
-                    .FirstOrDefaultAsync(t => t.Id == renewTrainingId.Value);
-
-                if (sourceTraining == null)
+                if (renewTrainingId.Count == 1)
                 {
-                    TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
-                    return RedirectToAction("CreateAssessment");
+                    // Single renew — backward-compatible path
+                    var sourceTraining = await _context.TrainingRecords
+                        .Include(t => t.User)
+                        .FirstOrDefaultAsync(t => t.Id == renewTrainingId[0]);
+
+                    if (sourceTraining == null)
+                    {
+                        TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
+                        return RedirectToAction("CreateAssessment");
+                    }
+
+                    isRenewalMode = true;
+                    model.Title = sourceTraining.Judul ?? "";
+                    model.Category = MapKategori(sourceTraining.Kategori);
+                    model.GenerateCertificate = true;
+                    if (sourceTraining.ValidUntil.HasValue)
+                        model.ValidUntil = sourceTraining.ValidUntil.Value.AddYears(1);
+                    else
+                        ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
+
+                    ViewBag.RenewalSourceTitle = sourceTraining.Judul ?? "";
+                    ViewBag.RenewalSourceUserName = sourceTraining.User?.FullName ?? "";
+                    ViewBag.RenewsTrainingId = renewTrainingId[0];
                 }
-
-                isRenewalMode = true;
-                model.Title = sourceTraining.Judul ?? "";
-                model.Category = MapKategori(sourceTraining.Kategori);
-                model.GenerateCertificate = true;
-                if (sourceTraining.ValidUntil.HasValue)
-                    model.ValidUntil = sourceTraining.ValidUntil.Value.AddYears(1);
                 else
-                    ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
+                {
+                    // Bulk renew — build per-user FK mapping
+                    var sourceTrainings = await _context.TrainingRecords
+                        .Include(t => t.User)
+                        .Where(t => renewTrainingId.Contains(t.Id))
+                        .ToListAsync();
 
-                ViewBag.RenewalSourceTitle = sourceTraining.Judul ?? "";
-                ViewBag.RenewalSourceUserName = sourceTraining.User?.FullName ?? "";
-                ViewBag.RenewsTrainingId = renewTrainingId.Value;
+                    if (sourceTrainings.Count == 0)
+                    {
+                        TempData["Warning"] = "Sertifikat asal tidak ditemukan.";
+                        return RedirectToAction("CreateAssessment");
+                    }
+
+                    var firstTraining = sourceTrainings[0];
+                    isRenewalMode = true;
+                    model.Title = firstTraining.Judul ?? "";
+                    model.Category = MapKategori(firstTraining.Kategori);
+                    model.GenerateCertificate = true;
+                    if (firstTraining.ValidUntil.HasValue)
+                        model.ValidUntil = firstTraining.ValidUntil.Value.AddYears(1);
+                    else
+                        ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
+
+                    // Build {UserId → TrainingRecordId} map
+                    var fkMap = sourceTrainings.ToDictionary(t => t.UserId ?? "", t => t.Id);
+                    ViewBag.RenewalFkMap = System.Text.Json.JsonSerializer.Serialize(fkMap);
+                    ViewBag.RenewalFkMapType = "training";
+
+                    ViewBag.SelectedUserIds = sourceTrainings.Select(t => t.UserId).Where(id => id != null).ToList();
+                    ViewBag.RenewalSourceTitle = firstTraining.Judul ?? "";
+                    ViewBag.RenewalSourceUserName = string.Join(", ", sourceTrainings.Select(t => t.User?.FullName ?? ""));
+                    // model.RenewsTrainingId = null intentionally — resolved per-user at POST
+                }
             }
 
             ViewBag.IsRenewalMode = isRenewalMode;
@@ -1053,7 +1129,7 @@ namespace HcPortal.Controllers
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateAssessment(AssessmentSession model, List<string> UserIds)
+        public async Task<IActionResult> CreateAssessment(AssessmentSession model, List<string> UserIds, string? RenewalFkMap = null, string? RenewalFkMapType = null)
         {
             // Remove single UserId from validation since we use UserIds list
             ModelState.Remove("UserId");
@@ -1286,6 +1362,15 @@ namespace HcPortal.Controllers
                         return parts.Length > 1 && int.TryParse(parts[1], out int v) ? v : 0;
                     }).Max() + 1;
 
+                // Phase 210: Deserialize per-user FK map for bulk renew
+                Dictionary<string, int>? fkMap = null;
+                bool isSessionMap = RenewalFkMapType == "session";
+                if (!string.IsNullOrEmpty(RenewalFkMap))
+                {
+                    try { fkMap = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(RenewalFkMap); }
+                    catch { /* ignore malformed map — fall back to model value */ }
+                }
+
                 // Create all sessions in memory first
                 var sessions = new List<AssessmentSession>();
 
@@ -1311,8 +1396,8 @@ namespace HcPortal.Controllers
                         Progress = 0,
                         UserId = userId,
                         CreatedBy = currentUser?.Id,
-                        RenewsSessionId = model.RenewsSessionId,
-                        RenewsTrainingId = model.RenewsTrainingId
+                        RenewsSessionId = fkMap != null && isSessionMap && fkMap.TryGetValue(userId, out int sessionFk) ? sessionFk : model.RenewsSessionId,
+                        RenewsTrainingId = fkMap != null && !isSessionMap && fkMap.TryGetValue(userId, out int trainingFk) ? trainingFk : model.RenewsTrainingId
                     };
 
                     // Set Proton-specific fields (nullable — null for non-Proton sessions)

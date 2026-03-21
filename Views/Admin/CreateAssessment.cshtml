@@ -109,6 +109,11 @@
         {
             <input type="hidden" name="RenewsTrainingId" value="@ViewBag.RenewsTrainingId" />
         }
+        @if (ViewBag.RenewalFkMap != null)
+        {
+            <input type="hidden" name="RenewalFkMap" value="@ViewBag.RenewalFkMap" />
+            <input type="hidden" name="RenewalFkMapType" value="@ViewBag.RenewalFkMapType" />
+        }
 
         <!-- ===================== STEP 1: KATEGORI ===================== -->
         <div id="step-1" class="step-panel">
