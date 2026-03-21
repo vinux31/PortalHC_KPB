@@ -16,7 +16,7 @@ Requirements for CMP Records Bug Fixes & Enhancement.
 
 ### Data Model
 
-- [ ] **MDL-01**: Tambah field SubKategori di TrainingRecord model dengan migrasi database
+- [x] **MDL-01**: Tambah field SubKategori di TrainingRecord model dengan migrasi database
 
 ### Export Fixes
 
@@ -42,12 +42,12 @@ Requirements for CMP Records Bug Fixes & Enhancement.
 | FLT-01 | Phase 213 | Complete |
 | FLT-02 | Phase 213 | Complete |
 | FLT-03 | Phase 213 | Complete |
-| FLT-04 | Phase 214 | Pending |
-| MDL-01 | Phase 214 | Pending |
-| EXP-01 | Phase 215 | Pending |
-| EXP-02 | Phase 215 | Pending |
-| EXP-03 | Phase 215 | Pending |
-| DSP-01 | Phase 215 | Pending |
+| MDL-01 | Phase 214 | Complete |
+| FLT-04 | Phase 215 | Pending |
+| EXP-01 | Phase 216 | Pending |
+| EXP-02 | Phase 216 | Pending |
+| EXP-03 | Phase 216 | Pending |
+| DSP-01 | Phase 216 | Pending |
 
 **Coverage:**
 - v7.11 requirements: 9 total

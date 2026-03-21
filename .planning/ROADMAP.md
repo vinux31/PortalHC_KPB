@@ -78,7 +78,7 @@ Plans:
   5. ImportTraining mendukung kolom SubKategori (opsional) — data tersimpan di TrainingRecord
 **Plans**: 2 plans
 Plans:
-- [ ] 214-01-PLAN.md — Model + Migration + ViewModel + Controller backend
+- [x] 214-01-PLAN.md — Model + Migration + ViewModel + Controller backend
 - [ ] 214-02-PLAN.md — View updates: dynamic dropdowns + ImportTraining docs
 
 ### Phase 215: Team View Filter Enhancement
@@ -118,6 +118,6 @@ Plans:
 | 211. Data & Display Fixes | v7.10 | 1/1 | Complete | 2026-03-21 |
 | 212. Tipe Filter, Renewal Flow, AddTraining Renewal | v7.10 | 2/2 | Complete | 2026-03-21 |
 | 213. Filter & Status Fixes | v7.11 | 1/1 | Complete    | 2026-03-21 |
-| 214. SubCategory Model + CRUD | v7.11 | 0/2 | Not started | - |
+| 214. SubCategory Model + CRUD | v7.11 | 1/2 | In Progress|  |
 | 215. Team View Filter Enhancement | v7.11 | 0/? | Not started | - |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
