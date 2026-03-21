@@ -5162,6 +5162,8 @@ namespace HcPortal.Controllers
                 using var workbook = new XLWorkbook(fileStream);
                 var ws = workbook.Worksheets.First();
 
+                var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+
                 foreach (var row in ws.RowsUsed().Skip(1))
                 {
                     var nama = (row.Cell(1).GetString() ?? "").Trim();
@@ -5196,6 +5198,19 @@ namespace HcPortal.Controllers
                     if (!useAD && string.IsNullOrWhiteSpace(password)) errors.Add("Password kosong");
                     if (string.IsNullOrWhiteSpace(role) || !UserRoles.AllRoles.Contains(role))
                         errors.Add($"Role tidak valid");
+
+                    // Validasi Section terhadap OrganizationUnit database
+                    if (!string.IsNullOrWhiteSpace(bagian) && !sectionUnitsDict.ContainsKey(bagian))
+                        errors.Add($"Section '{bagian}' tidak ditemukan di database");
+
+                    // Validasi Unit: harus child dari Section yang dipilih
+                    if (!string.IsNullOrWhiteSpace(unit))
+                    {
+                        if (string.IsNullOrWhiteSpace(bagian))
+                            errors.Add("Unit tidak boleh diisi tanpa Section");
+                        else if (sectionUnitsDict.TryGetValue(bagian, out var validUnits) && !validUnits.Contains(unit))
+                            errors.Add($"Unit '{unit}' bukan child dari Section '{bagian}'");
+                    }
 
                     if (errors.Any())
                     {
