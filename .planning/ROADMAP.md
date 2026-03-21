@@ -134,4 +134,4 @@ Plans:
 | 214. SubCategory Model + CRUD | v7.11 | 2/2 | Complete    | 2026-03-21 |
 | 215. Team View Filter Enhancement | v7.11 | 1/1 | Complete    | 2026-03-21 |
 | 216. Export Fixes & Display Enhancement | v7.11 | 0/? | Not started | - |
-| 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete   | 2026-03-21 |
+| 217. Fix Category Dropdown RecordsTeam | v7.11 | 1/1 | Complete    | 2026-03-21 |
