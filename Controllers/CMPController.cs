@@ -2276,5 +2276,190 @@ namespace HcPortal.Controllers
 
         #endregion
 
+        // ============================================================
+        // Analytics Dashboard — Phase 224
+        // ============================================================
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> AnalyticsDashboard()
+        {
+            var vm = new AnalyticsDashboardViewModel
+            {
+                Sections = await _context.GetAllSectionsAsync(),
+                Categories = await _context.AssessmentCategories
+                    .Where(c => c.ParentId == null && c.IsActive)
+                    .OrderBy(c => c.SortOrder)
+                    .Select(c => c.Name)
+                    .ToListAsync()
+            };
+            return View(vm);
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetAnalyticsData(
+            string? bagian,
+            string? unit,
+            string? kategori,
+            string? subKategori,
+            DateTime? periodeStart,
+            DateTime? periodeEnd)
+        {
+            var today = DateTime.Today;
+            periodeEnd ??= today;
+            periodeStart ??= periodeEnd.Value.AddYears(-1);
+
+            // Base query
+            var baseQuery = _context.AssessmentSessions
+                .Include(s => s.User)
+                .Where(s => s.IsPassed.HasValue
+                    && s.CompletedAt.HasValue
+                    && s.CompletedAt >= periodeStart
+                    && s.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                baseQuery = baseQuery.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                baseQuery = baseQuery.Where(s => s.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                baseQuery = baseQuery.Where(s => s.Category == kategori);
+            // subKategori: AssessmentSession has no SubCategory field — skip
+
+            // Fail rate query
+            var failRate = await baseQuery
+                .GroupBy(s => new { Section = s.User!.Section ?? "Tidak Diketahui", s.Category })
+                .Select(g => new FailRateItem
+                {
+                    Section = g.Key.Section,
+                    Category = g.Key.Category,
+                    Total = g.Count(),
+                    Failed = g.Count(s => s.IsPassed == false)
+                })
+                .ToListAsync();
+
+            // Trend query
+            var trend = await baseQuery
+                .GroupBy(s => new { s.CompletedAt!.Value.Year, s.CompletedAt!.Value.Month })
+                .Select(g => new TrendItem
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    Passed = g.Count(s => s.IsPassed == true),
+                    Failed = g.Count(s => s.IsPassed == false)
+                })
+                .OrderBy(t => t.Year).ThenBy(t => t.Month)
+                .ToListAsync();
+
+            // ET Breakdown query
+            var etBaseQuery = _context.SessionElemenTeknisScores
+                .Include(e => e.AssessmentSession)
+                    .ThenInclude(s => s.User)
+                .Where(e => e.QuestionCount > 0
+                    && e.AssessmentSession.CompletedAt.HasValue
+                    && e.AssessmentSession.CompletedAt >= periodeStart
+                    && e.AssessmentSession.CompletedAt <= periodeEnd);
+
+            if (!string.IsNullOrEmpty(bagian))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.User!.Unit == unit);
+            if (!string.IsNullOrEmpty(kategori))
+                etBaseQuery = etBaseQuery.Where(e => e.AssessmentSession.Category == kategori);
+
+            var etBreakdown = await etBaseQuery
+                .GroupBy(e => new { e.ElemenTeknis, e.AssessmentSession.Category })
+                .Select(g => new EtBreakdownItem
+                {
+                    ElemenTeknis = g.Key.ElemenTeknis,
+                    Category = g.Key.Category,
+                    AvgPct = g.Average(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    MinPct = g.Min(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    MaxPct = g.Max(e => (double)e.CorrectCount * 100.0 / e.QuestionCount),
+                    SampleCount = g.Count()
+                })
+                .ToListAsync();
+
+            // Expiring soon query (filter Bagian/Unit saja, bukan kategori)
+            var thirtyDaysFromNow = today.AddDays(30);
+
+            var trainingExpiring = _context.TrainingRecords
+                .Include(t => t.User)
+                .Where(t => t.Status == "Valid"
+                    && t.ValidUntil.HasValue
+                    && t.ValidUntil >= today
+                    && t.ValidUntil <= thirtyDaysFromNow);
+
+            if (!string.IsNullOrEmpty(bagian))
+                trainingExpiring = trainingExpiring.Where(t => t.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                trainingExpiring = trainingExpiring.Where(t => t.User!.Unit == unit);
+
+            var trainingExpiringSoon = await trainingExpiring
+                .Select(t => new ExpiringSoonItem
+                {
+                    NamaPekerja = t.User!.FullName ?? t.User.UserName ?? "",
+                    NamaSertifikat = t.Judul ?? "",
+                    TanggalExpired = t.ValidUntil!.Value,
+                    SectionUnit = (t.User!.Section ?? "") + (t.User.Unit != null ? " / " + t.User.Unit : "")
+                })
+                .ToListAsync();
+
+            var sessionExpiring = _context.AssessmentSessions
+                .Include(s => s.User)
+                .Where(s => s.IsPassed == true
+                    && s.GenerateCertificate
+                    && s.ValidUntil.HasValue
+                    && s.ValidUntil >= today
+                    && s.ValidUntil <= thirtyDaysFromNow);
+
+            if (!string.IsNullOrEmpty(bagian))
+                sessionExpiring = sessionExpiring.Where(s => s.User!.Section == bagian);
+            if (!string.IsNullOrEmpty(unit))
+                sessionExpiring = sessionExpiring.Where(s => s.User!.Unit == unit);
+
+            var sessionExpiringSoon = await sessionExpiring
+                .Select(s => new ExpiringSoonItem
+                {
+                    NamaPekerja = s.User!.FullName ?? s.User.UserName ?? "",
+                    NamaSertifikat = s.Title,
+                    TanggalExpired = s.ValidUntil!.Value,
+                    SectionUnit = (s.User!.Section ?? "") + (s.User.Unit != null ? " / " + s.User.Unit : "")
+                })
+                .ToListAsync();
+
+            var expiringSoon = trainingExpiringSoon
+                .Concat(sessionExpiringSoon)
+                .OrderBy(e => e.TanggalExpired)
+                .ToList();
+
+            return Json(new AnalyticsDataResult
+            {
+                FailRate = failRate,
+                Trend = trend,
+                EtBreakdown = etBreakdown,
+                ExpiringSoon = expiringSoon
+            });
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetAnalyticsCascadeUnits(string bagian)
+        {
+            return Json(await _context.GetUnitsForSectionAsync(bagian));
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> GetAnalyticsCascadeSubKategori(string kategori)
+        {
+            var subCategories = await _context.AssessmentCategories
+                .Where(c => c.Parent != null && c.Parent.Name == kategori && c.IsActive)
+                .OrderBy(c => c.SortOrder)
+                .Select(c => c.Name)
+                .ToListAsync();
+            return Json(subCategories);
+        }
+
     }
 }

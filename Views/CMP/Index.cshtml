@@ -75,6 +75,29 @@
                 </div>
             </div>
         </div>
+        <!-- Analytics Dashboard (HC/Admin only) -->
+        @if (User.IsInRole("Admin") || User.IsInRole("HC"))
+        {
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="icon-box bg-primary bg-opacity-10 text-primary rounded-3 p-3 me-3">
+                            <i class="bi bi-graph-up fs-3"></i>
+                        </div>
+                        <div>
+                            <h5 class="mb-0">Analytics Dashboard</h5>
+                            <small class="text-muted">Assessment & Sertifikat</small>
+                        </div>
+                    </div>
+                    <p class="text-muted mb-3">Visualisasi fail rate, trend assessment, skor ET, dan sertifikat akan expired</p>
+                    <a href="@Url.Action("AnalyticsDashboard", "CMP")" class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-right-circle me-2"></i>Lihat Analytics
+                    </a>
+                </div>
+            </div>
+        </div>
+        }
     </div>
 </div>
 
