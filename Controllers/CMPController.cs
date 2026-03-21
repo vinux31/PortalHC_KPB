@@ -426,6 +426,19 @@ namespace HcPortal.Controllers
 
                 var workerList = await _workerDataService.GetWorkersInSection(sectionFilter);
                 ViewData["WorkerList"] = workerList;
+
+                // Phase 217: Set category data for Team View partial (same as RecordsTeam action)
+                var allCats = await _context.AssessmentCategories
+                    .Where(c => c.IsActive && c.ParentId == null)
+                    .Include(c => c.Children)
+                    .ToListAsync();
+                var subCategoryMap = allCats.ToDictionary(
+                    p => p.Name,
+                    p => p.Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
+                );
+                ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
+                var masterCategories = allCats.Select(c => c.Name).OrderBy(n => n).ToList();
+                ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(masterCategories);
             }
 
             return View("Records", unified);
