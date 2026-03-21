@@ -13,9 +13,14 @@
     var allSections = OrganizationStructure.GetAllSections();
     var sectionUnitsJson = System.Text.Json.JsonSerializer.Serialize(OrganizationStructure.SectionUnits);
 
-    var categories = Model.SelectMany(w => w.TrainingRecords)
+    // Phase 215: categories gabungkan training + assessment
+    var trainingCats = Model.SelectMany(w => w.TrainingRecords)
         .Select(t => t.Kategori)
-        .Where(k => !string.IsNullOrEmpty(k))
+        .Where(k => !string.IsNullOrEmpty(k));
+    var assessmentCats = Model.SelectMany(w => w.AssessmentSessions)
+        .Select(a => a.Category)
+        .Where(c => !string.IsNullOrEmpty(c));
+    var categories = trainingCats.Union(assessmentCats)
         .Distinct()
         .OrderBy(k => k)
         .ToList();
@@ -29,8 +34,8 @@
     <div class="card border-0 shadow-sm mb-3">
         <div class="card-body">
             <div class="row g-3 mb-3">
-                <!-- Row 1: Bagian, Unit, Category -->
-                <div class="col-12 col-md-4">
+                <!-- Row 1: Bagian, Unit, Category, Sub Category -->
+                <div class="col-12 col-md-3">
                     <label class="form-label small text-muted mb-1">Bagian</label>
                     @if (roleLevel == 4 && !string.IsNullOrEmpty(lockedSection))
                     {
@@ -60,13 +65,13 @@
                         </select>
                     }
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <label class="form-label small text-muted mb-1">Unit</label>
                     <select id="unitFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="">Semua Unit</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="col-12 col-md-3">
                     <label class="form-label small text-muted mb-1">Category</label>
                     <select id="categoryFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="">All Categories</option>
@@ -74,6 +79,12 @@
                         {
                             <option value="@category">@category</option>
                         }
+                    </select>
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted mb-1">Sub Category</label>
+                    <select id="subCategoryFilter" class="form-select" disabled onchange="filterTeamTable()">
+                        <option value="">All Sub Categories</option>
                     </select>
                 </div>
             </div>
@@ -152,26 +163,45 @@
                         {
                             @foreach (var worker in Model)
                             {
-                                var hasTraining = worker.TrainingRecords.Any(t =>
-                                    !string.IsNullOrEmpty(t.Kategori) &&
-                                    (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent")
-                                );
-                                var trainingCategories = string.Join(",", worker.TrainingRecords
-                                    .Select(t => t.Kategori)
-                                    .Where(k => !string.IsNullOrEmpty(k))
-                                    .Distinct());
-                                var completedCategories = string.Join(",", worker.TrainingRecords
+                                // Phase 215: gabungkan training + assessment categories
+                                var trainingCats2 = worker.TrainingRecords
+                                    .Select(t => t.Kategori).Where(k => !string.IsNullOrEmpty(k)).Distinct();
+                                var assessmentCats2 = worker.AssessmentSessions
+                                    .Select(a => a.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct();
+                                var allCats = trainingCats2.Union(assessmentCats2).ToList();
+                                var allCatsStr = string.Join(",", allCats);
+
+                                var completedTrainingCats = worker.TrainingRecords
                                     .Where(t => !string.IsNullOrEmpty(t.Kategori) &&
                                         (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"))
-                                    .Select(t => t.Kategori)
-                                    .Distinct());
+                                    .Select(t => t.Kategori).Distinct();
+                                var passedAssessmentCats = worker.AssessmentSessions
+                                    .Where(a => a.IsPassed == true)
+                                    .Select(a => a.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct();
+                                var completedCatsStr = string.Join(",", completedTrainingCats.Union(passedAssessmentCats));
+
+                                var allSubCats = worker.TrainingRecords
+                                    .Select(t => t.SubKategori).Where(s => !string.IsNullOrEmpty(s)).Distinct();
+                                var allSubCatsStr = string.Join(",", allSubCats);
+
+                                var completedSubCats = worker.TrainingRecords
+                                    .Where(t => !string.IsNullOrEmpty(t.SubKategori) &&
+                                        (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"))
+                                    .Select(t => t.SubKategori).Distinct();
+                                var completedSubCatsStr = string.Join(",", completedSubCats);
+
+                                var hasTraining = allCats.Any() || worker.TrainingRecords.Any(t =>
+                                    !string.IsNullOrEmpty(t.Kategori) &&
+                                    (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"));
 
                                 <tr class="worker-row"
                                     data-section="@worker.Section"
                                     data-unit="@worker.Unit"
-                                    data-categories="@trainingCategories.ToLower()"
+                                    data-categories="@allCatsStr.ToLower()"
                                     data-has-training="@hasTraining.ToString().ToLower()"
-                                    data-completed-categories="@completedCategories.ToLower()"
+                                    data-completed-categories="@completedCatsStr.ToLower()"
+                                    data-subcategories="@allSubCatsStr.ToLower()"
+                                    data-completed-subcategories="@completedSubCatsStr.ToLower()"
                                     data-name="@worker.WorkerName.ToLower()"
                                     data-nip="@((worker.NIP ?? "").ToLower())">
                                     <td class="p-3">
@@ -232,6 +262,9 @@
 // OrganizationStructure cascade data
 var sectionUnits = @Html.Raw(sectionUnitsJson);
 
+// Phase 215: Sub Category map dari AssessmentCategories hierarchy
+var subCategoryMap = @Html.Raw(ViewBag.SubCategoryMapJson ?? "{}");
+
 function updateUnitOptions() {
     var sectionVal = document.getElementById('sectionFilter').value;
     var unitSelect = document.getElementById('unitFilter');
@@ -247,12 +280,32 @@ function updateUnitOptions() {
     }
 }
 
+// Phase 215: Populate Sub Category dropdown dependent pada Category
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('categoryFilter').addEventListener('change', function() {
+        var cat = this.value;
+        var subSelect = document.getElementById('subCategoryFilter');
+        subSelect.innerHTML = '<option value="">All Sub Categories</option>';
+        subSelect.disabled = !cat;
+        if (cat && subCategoryMap[cat]) {
+            subCategoryMap[cat].forEach(function(sub) {
+                var opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subSelect.appendChild(opt);
+            });
+        }
+        filterTeamTable();
+    });
+});
+
 function updateExportLinks() {
     const section = document.getElementById('sectionFilter').value;
     const unit = document.getElementById('unitFilter').value;
     const status = document.getElementById('statusFilter').value;
     const search = document.getElementById('searchFilter').value;
     const category = document.getElementById('categoryFilter')?.value || '';
+    const subCategory = document.getElementById('subCategoryFilter')?.value || '';
 
     const baseAssessment = '@Url.Action("ExportRecordsTeamAssessment", "CMP")';
     const baseTraining = '@Url.Action("ExportRecordsTeamTraining", "CMP")';
@@ -263,6 +316,7 @@ function updateExportLinks() {
     if (search) params.set('search', search);
     if (status && status !== 'ALL') params.set('statusFilter', status);
     if (category) params.set('category', category);
+    if (subCategory) params.set('subCategory', subCategory);
 
     const qs = params.toString();
     document.getElementById('btnExportAssessment').href = baseAssessment + (qs ? '?' + qs : '');
@@ -273,6 +327,7 @@ function filterTeamTable() {
     const section = document.getElementById('sectionFilter').value.toLowerCase();
     const unit = document.getElementById('unitFilter').value.toLowerCase();
     const category = document.getElementById('categoryFilter').value.toLowerCase();
+    const subCategory = document.getElementById('subCategoryFilter').value.toLowerCase();
     const status = document.getElementById('statusFilter').value;
     const search = document.getElementById('searchFilter').value.toLowerCase();
 
@@ -282,35 +337,43 @@ function filterTeamTable() {
         const rowSection = row.getAttribute('data-section') || '';
         const rowUnit = row.getAttribute('data-unit') || '';
         const rowCategories = row.getAttribute('data-categories') || '';
+        const rowSubCategories = row.getAttribute('data-subcategories') || '';
         const rowHasTraining = row.getAttribute('data-has-training') === 'true';
         const rowName = row.getAttribute('data-name') || '';
         const rowNip = row.getAttribute('data-nip') || '';
 
         const matchSection = !section || rowSection.toLowerCase() === section;
         const matchUnit = !unit || rowUnit.toLowerCase() === unit;
-        const matchCategory = !category || rowCategories.includes(category);
+        const matchCategory = !category || rowCategories.split(',').some(c => c.trim() === category);
+        const matchSubCategory = !subCategory || rowSubCategories.split(',').some(s => s.trim() === subCategory);
 
         let matchStatus = true;
         if (status === 'ALL') {
             matchStatus = true;
         } else if (status === 'Sudah') {
-            if (category) {
+            if (subCategory) {
+                const completedSubCats = row.getAttribute('data-completed-subcategories') || '';
+                matchStatus = completedSubCats.split(',').some(s => s.trim() === subCategory);
+            } else if (category) {
                 const completedCats = row.getAttribute('data-completed-categories') || '';
-                matchStatus = completedCats.includes(category);
+                matchStatus = completedCats.split(',').some(c => c.trim() === category);
             } else {
                 matchStatus = rowHasTraining;
             }
         } else if (status === 'Belum') {
-            if (category) {
+            if (subCategory) {
+                const completedSubCats = row.getAttribute('data-completed-subcategories') || '';
+                matchStatus = !completedSubCats.split(',').some(s => s.trim() === subCategory);
+            } else if (category) {
                 const completedCats = row.getAttribute('data-completed-categories') || '';
-                matchStatus = !completedCats.includes(category);
+                matchStatus = !completedCats.split(',').some(c => c.trim() === category);
             } else {
                 matchStatus = !rowHasTraining;
             }
         }
 
         const matchSearch = !search || rowName.includes(search) || rowNip.includes(search);
-        const matchAll = matchSection && matchUnit && matchCategory && matchStatus && matchSearch;
+        const matchAll = matchSection && matchUnit && matchCategory && matchSubCategory && matchStatus && matchSearch;
         row.style.display = matchAll ? '' : 'none';
 
         if (matchAll) visibleCount++;
@@ -346,6 +409,8 @@ function resetTeamFilters() {
     }
     document.getElementById('unitFilter').value = '';
     document.getElementById('categoryFilter').value = '';
+    document.getElementById('subCategoryFilter').value = '';
+    document.getElementById('subCategoryFilter').disabled = true;
     document.getElementById('statusFilter').value = 'ALL';
     document.getElementById('searchFilter').value = '';
     updateUnitOptions();
