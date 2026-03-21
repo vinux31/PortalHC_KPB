@@ -28,7 +28,24 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v7.11 shipped** — CMP Records Bug Fixes & Enhancement, 6 phases (213-218). Category/Status filter fix, SubKategori field, RecordsWorkerDetail redesign, ImportTraining 12-column update.
 **v7.12 shipped** — Struktur Organisasi CRUD, 4 phases (219-222). Static OrganizationStructure → database-driven OrganizationUnit dengan CRUD page, integrasi seluruh dropdown/filter portal, seed data, ImportWorkers validation.
 
-**Current focus:** Planning next milestone.
+**Current focus:** v8.0 Assessment & Training System Audit
+
+## Current Milestone: v8.0 Assessment & Training System Audit
+
+**Goal:** Audit mendalam sistem Assessment dan Training — perbaiki design issues, tambah fitur analytics, compliance matrix, dan tingkatkan integritas ujian.
+
+**Target features:**
+- Persist ElemenTeknis score ke database
+- Tab-switch detection saat ujian
+- Training status lifecycle clarity
+- Analytics Dashboard HC (Chart.js)
+- Training Compliance Matrix (RequiredTraining)
+- Email notification sertifikat expired
+- Question Bank Library
+- Legacy question path deprecation
+- Competency tables cleanup
+- NomorSertifikat lazy generation
+- UserResponse timestamp fix
 
 ## Architecture Decisions
 
