@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v7.12
 milestone_name: Struktur Organisasi CRUD
 status: unknown
-stopped_at: Completed 221-03-PLAN.md
-last_updated: "2026-03-21T14:02:12.217Z"
+stopped_at: Phase 222 context gathered
+last_updated: "2026-03-21T14:05:07.236Z"
 progress:
   total_phases: 10
   completed_phases: 8
@@ -83,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T13:59:46.712Z
-Stopped at: Completed 221-03-PLAN.md
-Resume file: None
+Last session: 2026-03-21T14:05:07.230Z
+Stopped at: Phase 222 context gathered
+Resume file: .planning/phases/222-cleanup-finalisasi/222-CONTEXT.md
