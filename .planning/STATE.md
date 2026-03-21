@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v7.11
 milestone_name: CMP Records Bug Fixes & Enhancement
 status: unknown
-stopped_at: Completed 214-02-PLAN.md
-last_updated: "2026-03-21T08:08:54.822Z"
+stopped_at: Completed 215-01-PLAN.md
+last_updated: "2026-03-21T08:24:01.354Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 214 — subcategory-model-crud
+**Current focus:** Phase 215 — team-view-filter-enhancement
 
 ## Current Position
 
-Phase: 215
-Plan: Not started
+Phase: 215 (team-view-filter-enhancement) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: Not started
 | Phase 213 P01 | 8 | 2 tasks | 2 files |
 | Phase 214 P01 | 12 | 2 tasks | 6 files |
 | Phase 214 P02 | 8 | 2 tasks | 3 files |
+| Phase 215 P01 | 15 | 2 tasks | 4 files |
 
 ### Decisions
 
@@ -56,6 +57,8 @@ Plan: Not started
 - [Phase 214]: Dua migration dibuat karena binary lama: AddSubKategoriToTrainingRecord kosong, AddSubKategoriColumn berisi AddColumn yang benar
 - [Phase 214]: JS IIFE pattern digunakan agar kategoriMap dan select references tidak bocor ke global scope
 - [Phase 214]: FilterSubKategori sebagai fungsi terpisah di EditTraining agar bisa dipanggil saat DOMContentLoaded dan change event
+- [Phase 215]: Sub Category filter hanya dari TrainingRecord.SubKategori — AssessmentSession tidak punya field SubKategori
+- [Phase 215]: Exact-match (split+compare) dipakai untuk sub category filter agar tidak ada false positive substring match
 
 ### Pending Todos
 
@@ -67,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-21T08:06:24.625Z
-Stopped at: Completed 214-02-PLAN.md
+Last session: 2026-03-21T08:24:01.352Z
+Stopped at: Completed 215-01-PLAN.md
 Resume file: None
