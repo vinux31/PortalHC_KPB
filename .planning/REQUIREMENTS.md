@@ -10,8 +10,8 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 ### Assessment Integrity
 
 - [x] **AINT-01**: Skor ElemenTeknis per session dipersist ke database (tabel SessionElemenTeknisScore) saat SubmitExam dan GradeFromSavedAnswers
-- [x] **AINT-02**: Tab-switch/focus-loss saat ujian terdeteksi dan tercatat di ExamActivityLog sebagai event focus_lost/focus_returned
-- [x] **AINT-03**: HC dapat melihat indikator tab-switch per peserta di halaman AssessmentMonitoringDetail
+- [ ] **AINT-02**: Tab-switch/focus-loss saat ujian terdeteksi dan tercatat di ExamActivityLog sebagai event focus_lost/focus_returned
+- [ ] **AINT-03**: HC dapat melihat indikator tab-switch per peserta di halaman AssessmentMonitoringDetail
 - [x] **AINT-04**: UserResponse (legacy path) memiliki field SubmittedAt timestamp yang terisi saat SaveLegacyAnswer
 
 ### Analytics
@@ -69,8 +69,8 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | AINT-01 | Phase 223 | Complete |
-| AINT-02 | Phase 223 | Complete |
-| AINT-03 | Phase 223 | Complete |
+| AINT-02 | TBD | Deferred |
+| AINT-03 | TBD | Deferred |
 | AINT-04 | Phase 223 | Complete |
 | CLEN-01 | Phase 223 | Complete |
 | ANLT-01 | Phase 224 | Pending |
