@@ -1010,6 +1010,8 @@ namespace HcPortal.Controllers
                 model.GenerateCertificate = true;
                 if (sourceSession.ValidUntil.HasValue)
                     model.ValidUntil = sourceSession.ValidUntil.Value.AddYears(1);
+                else
+                    ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
 
                 ViewBag.SelectedUserIds = new List<string> { sourceSession.UserId };
                 ViewBag.RenewalSourceTitle = sourceSession.Title;
@@ -1030,9 +1032,12 @@ namespace HcPortal.Controllers
 
                 isRenewalMode = true;
                 model.Title = sourceTraining.Judul ?? "";
+                model.Category = MapKategori(sourceTraining.Kategori);
                 model.GenerateCertificate = true;
                 if (sourceTraining.ValidUntil.HasValue)
                     model.ValidUntil = sourceTraining.ValidUntil.Value.AddYears(1);
+                else
+                    ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
 
                 ViewBag.RenewalSourceTitle = sourceTraining.Judul ?? "";
                 ViewBag.RenewalSourceUserName = sourceTraining.User?.FullName ?? "";
@@ -6573,12 +6578,12 @@ namespace HcPortal.Controllers
 
         #region Renewal Certificate
 
-        private static string MapKategori(string? raw) => raw switch
+        private static string MapKategori(string? raw) => raw?.Trim().ToUpperInvariant() switch
         {
-            null or ""  => "-",
+            null or "" => "-",
             "MANDATORY" => "Mandatory HSSE Training",
             "PROTON"    => "Assessment Proton",
-            _           => raw
+            _           => raw!.Trim()
         };
 
         private async Task<List<SertifikatRow>> BuildRenewalRowsAsync()
@@ -6960,7 +6965,7 @@ namespace HcPortal.Controllers
 
             // Group by judul sertifikat
             var grouped = allRows
-                .GroupBy(r => r.Judul)
+                .GroupBy(r => r.Judul, StringComparer.OrdinalIgnoreCase)
                 .Select(g => new RenewalGroup
                 {
                     GroupKey = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(g.Key))
@@ -6979,7 +6984,7 @@ namespace HcPortal.Controllers
             foreach (var group in grouped)
             {
                 var groupRows = allRows
-                    .Where(r => r.Judul == group.Judul)
+                    .Where(r => string.Equals(r.Judul, group.Judul, StringComparison.OrdinalIgnoreCase))
                     .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
                     .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
                     .ToList();
@@ -7011,6 +7016,7 @@ namespace HcPortal.Controllers
             string? bagian = null, string? unit = null,
             string? status = null, string? category = null, string? subCategory = null)
         {
+            judul = Uri.UnescapeDataString(judul ?? "");
             var allRows = await BuildRenewalRowsAsync();
 
             if (!string.IsNullOrEmpty(bagian))
@@ -7025,7 +7031,7 @@ namespace HcPortal.Controllers
                 allRows = allRows.Where(r => r.SubKategori == subCategory).ToList();
 
             var groupRows = allRows
-                .Where(r => r.Judul == judul)
+                .Where(r => string.Equals(r.Judul, judul, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(r => r.Status == CertificateStatus.Expired ? 0 : 1)
                 .ThenBy(r => r.ValidUntil ?? DateTime.MaxValue)
                 .ToList();

@@ -52,8 +52,10 @@ public class SertifikatRow
     /// </summary>
     public static CertificateStatus DeriveCertificateStatus(DateTime? validUntil, string? certificateType)
     {
-        if (certificateType == "Permanent" || validUntil == null)
+        if (certificateType == "Permanent")
             return CertificateStatus.Permanent;
+        if (validUntil == null)
+            return CertificateStatus.Expired; // non-Permanent with no expiry → treat as expired (needs renewal)
         var days = (validUntil.Value - DateTime.Now).Days;
         if (days < 0) return CertificateStatus.Expired;
         if (days <= 30) return CertificateStatus.AkanExpired;
