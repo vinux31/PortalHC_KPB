@@ -39,21 +39,21 @@ Requirements for CMP Records Bug Fixes & Enhancement.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FLT-01 | TBD | Pending |
-| FLT-02 | TBD | Pending |
-| FLT-03 | TBD | Pending |
-| FLT-04 | TBD | Pending |
-| MDL-01 | TBD | Pending |
-| EXP-01 | TBD | Pending |
-| EXP-02 | TBD | Pending |
-| EXP-03 | TBD | Pending |
-| DSP-01 | TBD | Pending |
+| FLT-01 | Phase 213 | Pending |
+| FLT-02 | Phase 213 | Pending |
+| FLT-03 | Phase 213 | Pending |
+| FLT-04 | Phase 214 | Pending |
+| MDL-01 | Phase 214 | Pending |
+| EXP-01 | Phase 215 | Pending |
+| EXP-02 | Phase 215 | Pending |
+| EXP-03 | Phase 215 | Pending |
+| DSP-01 | Phase 215 | Pending |
 
 **Coverage:**
 - v7.11 requirements: 9 total
-- Mapped to phases: 0
-- Unmapped: 9 ⚠️
+- Mapped to phases: 9
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 — traceability mapped after roadmap creation*
