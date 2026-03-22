@@ -62,6 +62,7 @@ namespace HcPortal.Controllers
             var roles = await _userManager.GetRolesAsync(user);
             var userRole = roles.FirstOrDefault() ?? "";
             bool isCoachee = userRole == UserRoles.Coachee;
+            bool isCoach = userRole == UserRoles.Coach; // D-20: Coach scoping
 
             // Coachee: lock to their assigned Bagian (cannot browse other sections)
             string? coacheeBagian = null;
@@ -152,6 +153,24 @@ namespace HcPortal.Controllers
                 guidanceQuery = guidanceQuery.Where(f => f.Bagian == coacheeBagian);
             else if (isL4 && !string.IsNullOrEmpty(user.Section))
                 guidanceQuery = guidanceQuery.Where(f => f.Bagian == user.Section);
+            else if (isCoach)
+            {
+                // D-20: Coach hanya melihat guidance untuk Bagian coachee yang di-map ke mereka
+                var coachMappedBagianList = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Join(_context.ProtonTrackAssignments.Where(a => a.IsActive),
+                          m => m.CoacheeId,
+                          a => a.CoacheeId,
+                          (m, a) => a.ProtonTrackId)
+                    .Join(_context.ProtonKompetensiList.Where(k => k.IsActive),
+                          tId => tId,
+                          k => k.ProtonTrackId,
+                          (tId, k) => k.Bagian)
+                    .Distinct()
+                    .ToListAsync();
+                if (coachMappedBagianList.Any())
+                    guidanceQuery = guidanceQuery.Where(f => coachMappedBagianList.Contains(f.Bagian));
+            }
 
             var allGuidanceFiles = await guidanceQuery
                 .OrderBy(f => f.Bagian)
