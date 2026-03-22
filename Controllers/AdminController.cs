@@ -4866,12 +4866,7 @@ namespace HcPortal.Controllers
                     _context.UserPackageAssignments.RemoveRange(packageAssignments);
             }
 
-            // UserCompetencyLevels (Restrict)
-            var competencyLevels = await _context.UserCompetencyLevels
-                .Where(c => c.UserId == id)
-                .ToListAsync();
-            if (competencyLevels.Any())
-                _context.UserCompetencyLevels.RemoveRange(competencyLevels);
+            // UserCompetencyLevels removed (Phase 227 CLEN-03 — orphan table dropped)
 
             // ProtonDeliverableProgress (references CoacheeId as string)
             var protonProgress = await _context.ProtonDeliverableProgresses

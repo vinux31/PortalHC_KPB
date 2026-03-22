@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
-using HcPortal.Models.Competency;
 
 namespace HcPortal.Data
 {
@@ -28,10 +27,6 @@ namespace HcPortal.Data
         public DbSet<OrganizationUnit> OrganizationUnits { get; set; }
         public DbSet<KkjFile> KkjFiles { get; set; }
         public DbSet<CpdpFile> CpdpFiles { get; set; }
-
-        // Competency Tracking
-        public DbSet<AssessmentCompetencyMap> AssessmentCompetencyMaps { get; set; }
-        public DbSet<UserCompetencyLevel> UserCompetencyLevels { get; set; }
 
         // Coaching Sessions (Phase 4)
         public DbSet<CoachingSession> CoachingSessions { get; set; }
@@ -278,43 +273,7 @@ namespace HcPortal.Data
                       .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Competency Tracking configuration
-            builder.Entity<AssessmentCompetencyMap>(entity =>
-            {
-                entity.ToTable("AssessmentCompetencyMaps");
-
-                // KkjMatrixItemId is now an orphaned int (KkjMatrices table dropped in Phase 90)
-                // FK constraint removed; column preserved for data continuity
-
-                // Indexes for performance
-                entity.HasIndex(c => c.AssessmentCategory);
-                entity.HasIndex(c => new { c.AssessmentCategory, c.TitlePattern });
-            });
-
-            builder.Entity<UserCompetencyLevel>(entity =>
-            {
-                entity.ToTable("UserCompetencyLevels");
-
-                entity.HasOne(c => c.User)
-                    .WithMany()
-                    .HasForeignKey(c => c.UserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                // KkjMatrixItemId is now an orphaned int (KkjMatrices table dropped in Phase 90)
-                // FK constraint removed; column preserved for data continuity
-
-                entity.HasOne(c => c.AssessmentSession)
-                    .WithMany()
-                    .HasForeignKey(c => c.AssessmentSessionId)
-                    .OnDelete(DeleteBehavior.SetNull);
-
-                // Check constraints for level ranges
-                entity.HasCheckConstraint("CK_UserCompetencyLevel_CurrentLevel", "[CurrentLevel] >= 0 AND [CurrentLevel] <= 5");
-                entity.HasCheckConstraint("CK_UserCompetencyLevel_TargetLevel", "[TargetLevel] >= 0 AND [TargetLevel] <= 5");
-
-                // Ignore computed property Gap
-                entity.Ignore(c => c.Gap);
-            });
+            // AssessmentCompetencyMap + UserCompetencyLevel removed (Phase 227 CLEN-03 — orphan tables dropped)
 
             // CoachingSession configuration
             builder.Entity<CoachingSession>(entity =>

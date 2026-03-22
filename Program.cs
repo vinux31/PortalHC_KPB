@@ -125,7 +125,7 @@ using (var scope = app.Services.CreateScope())
         await SeedData.InitializeAsync(services, app.Environment); // Seed roles & users
         
         // SeedMasterData removed — sample training records only needed for dev/QA
-        await SeedCompetencyMappings.SeedAsync(context);
+        // SeedCompetencyMappings removed (Phase 227 CLEN-03 — orphan tables dropped)
         await SeedProtonData.SeedAsync(context);
 
         // Activate WAL mode for SQLite to allow concurrent reads during SignalR writes
