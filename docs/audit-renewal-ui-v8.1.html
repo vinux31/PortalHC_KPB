@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Audit Renewal UI & Cross-Page Integration - v8.1 Phase 230</title>
+    <style>
+        @page { margin: 1.5cm; size: A4; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 1000px; margin: 30px auto; color: #222; line-height: 1.6; font-size: 13px; padding: 0 20px; }
+        h1 { text-align: center; font-size: 22px; border-bottom: 3px solid #1a56db; padding-bottom: 8px; margin-bottom: 4px; }
+        h2 { font-size: 17px; color: #1a56db; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px; margin-top: 30px; }
+        h3 { font-size: 14px; color: #374151; margin-top: 20px; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 12px; }
+        .summary-box { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat { text-align: center; background: #f0f4ff; border-radius: 8px; padding: 12px 20px; min-width: 120px; }
+        .stat-num { font-size: 24px; font-weight: bold; color: #1a56db; }
+        .stat-label { font-size: 11px; color: #666; }
+        .stat.green { background: #ecfdf5; }
+        .stat.green .stat-num { color: #059669; }
+        .stat.amber { background: #fffbeb; }
+        .stat.amber .stat-num { color: #d97706; }
+        .stat.red { background: #fef2f2; }
+        .stat.red .stat-num { color: #dc2626; }
+
+        table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 12px; }
+        th { background: #1a56db; color: white; padding: 7px 10px; text-align: left; font-size: 11px; }
+        td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        tr:nth-child(even) { background: #f9fafb; }
+        tr:hover { background: #f0f4ff; }
+
+        .badge { display: inline-block; border-radius: 10px; padding: 1px 10px; font-size: 10px; font-weight: 600; }
+        .badge-fix { background: #dbeafe; color: #1e40af; }
+        .badge-ok { background: #d1fae5; color: #065f46; }
+        .badge-decision { background: #fef3c7; color: #92400e; }
+        .badge-na { background: #f3f4f6; color: #6b7280; }
+
+        .decision-box { background: #fffbeb; border-left: 4px solid #d97706; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 8px 0; font-size: 12px; }
+        .info-box { background: #eff6ff; border-left: 4px solid #1a56db; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 8px 0; font-size: 12px; }
+        .ok-box { background: #ecfdf5; border-left: 4px solid #059669; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 8px 0; font-size: 12px; }
+
+        pre { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 14px 16px; font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; line-height: 1.7; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+        code { background: #f3f4f6; border-radius: 4px; padding: 1px 5px; font-family: 'Consolas', monospace; font-size: 11px; }
+
+        .footer { text-align: center; color: #999; font-size: 10px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 8px; }
+        .phase-tag { display: inline-block; background: #1a56db; color: white; border-radius: 4px; padding: 2px 8px; font-size: 11px; margin-left: 8px; }
+        .section-intro { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<h1>Audit Renewal UI &amp; Cross-Page Integration</h1>
+<div class="subtitle">
+    Portal HC KPB &mdash; v8.1 Milestone &mdash; Phase 230
+    <span class="phase-tag">230-audit-renewal-ui-cross-page-integration</span>
+    <br>Diaudit: 2026-03-22
+</div>
+
+<div class="summary-box">
+    <div class="stat green">
+        <div class="stat-num">8</div>
+        <div class="stat-label">Requirements Total</div>
+    </div>
+    <div class="stat green">
+        <div class="stat-num">8</div>
+        <div class="stat-label">Status OK</div>
+    </div>
+    <div class="stat">
+        <div class="stat-num">0</div>
+        <div class="stat-label">Fixed</div>
+    </div>
+    <div class="stat green">
+        <div class="stat-num">12</div>
+        <div class="stat-label">Decisions Compliant</div>
+    </div>
+</div>
+
+<h2>1. Executive Summary</h2>
+<div class="section-intro">
+    Phase 230 mengaudit integrasi lintas halaman dari fitur Renewal Certificate, mencakup UI renewal accordion,
+    filter cascade, renewal method modal, CDP toggle, dan badge Admin/Index.
+    Audit dilakukan dengan pembacaan kode aktual — semua 8 requirements ditemukan sudah terimplementasi
+    dengan benar dari fase-fase sebelumnya (Phase 201, 210, 229). Tidak ada bug yang perlu diperbaiki.
+</div>
+
+<table>
+    <tr>
+        <th>Requirement</th>
+        <th>Deskripsi</th>
+        <th>Status</th>
+        <th>Sumber</th>
+    </tr>
+    <tr>
+        <td><strong>UIUX-01</strong></td>
+        <td>Grouped view RenewalCertificate: accordion dengan judul, jumlah pekerja, breakdown expired/akan expired</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 229 (diaudit 230-01)</td>
+    </tr>
+    <tr>
+        <td><strong>UIUX-02</strong></td>
+        <td>Filter cascade Bagian/Unit/Kategori/SubKategori berfungsi dan saling terhubung</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 229 (diaudit 230-01)</td>
+    </tr>
+    <tr>
+        <td><strong>UIUX-03</strong></td>
+        <td>Renewal method modal (single + bulk) tampil dengan kedua pilihan selalu tersedia</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 229 (diaudit 230-01)</td>
+    </tr>
+    <tr>
+        <td><strong>UIUX-04</strong></td>
+        <td>Certificate history modal menampilkan chain grouping yang akurat</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 229 (diaudit 230-01)</td>
+    </tr>
+    <tr>
+        <td><strong>XPAG-01</strong></td>
+        <td>CreateAssessment renewal pre-fill: judul, kategori, peserta benar dari RenewalCertificate</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 230-02 (audit ini)</td>
+    </tr>
+    <tr>
+        <td><strong>XPAG-02</strong></td>
+        <td>AddTraining renewal mode: pre-fill judul, kategori, peserta + FK hidden fields</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 230-02 (audit ini)</td>
+    </tr>
+    <tr>
+        <td><strong>XPAG-03</strong></td>
+        <td>CDP CertificationManagement toggle: menyembunyikan renewed certs by default, state preserved on AJAX reload</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 230-02 (audit ini)</td>
+    </tr>
+    <tr>
+        <td><strong>XPAG-04</strong></td>
+        <td>Admin/Index badge count sinkron dengan BuildRenewalRowsAsync</td>
+        <td><span class="badge badge-ok">OK</span></td>
+        <td>Phase 230-02 (audit ini)</td>
+    </tr>
+</table>
+
+<h2>2. XPAG-01: CreateAssessment Renewal Pre-fill</h2>
+<div class="ok-box">
+    <strong>Status: OK</strong> — Pre-fill berfungsi lengkap sejak Phase 201/210. Tidak ada bug ditemukan.
+</div>
+
+<h3>Temuan Controller (AdminController.cs ~line 957-1063)</h3>
+<p>CreateAssessment GET action menangani dua skenario renewal:</p>
+
+<table>
+    <tr>
+        <th>Skenario</th>
+        <th>Field yang di-set</th>
+        <th>Status</th>
+    </tr>
+    <tr>
+        <td>Single renew (renewSessionId.Count == 1)</td>
+        <td>model.Title, model.Category (langsung dari sourceSession.Category), model.ValidUntil, ViewBag.SelectedUserIds, ViewBag.RenewalSourceTitle, ViewBag.RenewalSourceUserName, ViewBag.RenewsSessionId</td>
+        <td><span class="badge badge-ok">OK</span></td>
+    </tr>
+    <tr>
+        <td>Bulk renew (renewSessionId.Count &gt; 1)</td>
+        <td>model.Title, model.Category, ViewBag.RenewalFkMap (JSON dict UserId→SessionId), ViewBag.RenewalFkMapType="session", ViewBag.SelectedUserIds (list), ViewBag.RenewalSourceTitle, ViewBag.RenewalSourceUserName</td>
+        <td><span class="badge badge-ok">OK</span></td>
+    </tr>
+    <tr>
+        <td>renewTrainingId path</td>
+        <td>model.Title (dari cert.Judul), model.Category via MapKategori(), ViewBag.RenewalFkMap, ViewBag.RenewalFkMapType="training"</td>
+        <td><span class="badge badge-ok">OK</span></td>
+    </tr>
+</table>
+
+<h3>Temuan View (Views/Admin/CreateAssessment.cshtml)</h3>
+<ul>
+    <li><strong>Category dropdown:</strong> Menggunakan <code>option value="@cat.Name"</code> dengan <code>selected="@(Model.Category == cat.Name)"</code> — match dengan string yang disimpan di controller. Tidak ada mismatch.</li>
+    <li><strong>RenewalFkMap hidden input:</strong> Ada pada line 112-115 dalam blok <code>@if (ViewBag.RenewalFkMap != null)</code>.</li>
+    <li><strong>RenewalFkMapType hidden input:</strong> Ada bersamaan dengan RenewalFkMap.</li>
+    <li><strong>RenewalSourceUserName alert:</strong> Ditampilkan dalam blok IsRenewalMode pada line 64-66.</li>
+    <li><strong>SelectedUserIds pre-select:</strong> JavaScript pada line 277 membaca ViewBag.SelectedUserIds dan men-set nilai multi-select atau menampilkan info peserta bulk.</li>
+    <li><strong>Category change event trigger:</strong> Setelah DOMContentLoaded, category dispatch event 'change' untuk trigger sub-category cascade.</li>
+</ul>
+
+<div class="info-box">
+    <strong>Catatan:</strong> Single-renew dari Assessment menggunakan <code>model.Category = sourceSession.Category</code> langsung (tanpa MapKategori) karena sourceSession.Category sudah berupa display name (misal "Mandatory HSSE Training"). MapKategori hanya digunakan saat cross-type: renew Training-ke-Assessment.
+</div>
+
+<h2>3. XPAG-02: AddTraining Renewal Pre-fill</h2>
+<div class="ok-box">
+    <strong>Status: OK</strong> — Pre-fill dan hidden FK fields berfungsi lengkap. Tidak ada bug ditemukan.
+</div>
+
+<h3>Temuan Controller (AdminController.cs ~line 5444-5552)</h3>
+<table>
+    <tr>
+        <th>Skenario</th>
+        <th>Field yang di-set</th>
+        <th>Status</th>
+    </tr>
+    <tr>
+        <td>Single renewTrainingId</td>
+        <td>model.Judul, model.Kategori (dari src.Kategori), model.RenewsTrainingId, ViewBag.RenewalSourceTitle, ViewBag.RenewalSourceUserName, ViewBag.SelectedUserId</td>
+        <td><span class="badge badge-ok">OK</span></td>
+    </tr>
+    <tr>
+        <td>Bulk renewTrainingId</td>
+        <td>model.Judul, model.Kategori, ViewBag.RenewalFkMap (JSON), ViewBag.RenewalFkMapType="training", ViewBag.SelectedUserIds</td>
+        <td><span class="badge badge-ok">OK</span></td>
+    </tr>
+    <tr>
+        <td>Single renewSessionId (cross-type)</td>
+        <td>model.Judul (dari src.Title), model.Kategori via MapKategori(), model.RenewsSessionId, ViewBag.RenewalSourceTitle, ViewBag.SelectedUserId</td>
+        <td><span class="badge badge-ok">OK</span></td>
+    </tr>
+    <tr>
+        <td>Bulk renewSessionId (cross-type)</td>
+        <td>model.Judul, model.Kategori via MapKategori(), ViewBag.RenewalFkMap, ViewBag.RenewalFkMapType="session", ViewBag.SelectedUserIds</td>
+        <td><span class="badge badge-ok">OK</span></td>
+    </tr>
+</table>
+
+<h3>Temuan View (Views/Admin/AddTraining.cshtml)</h3>
+<ul>
+    <li><strong>IsRenewalMode alert:</strong> Ada pada line 19-28 — menampilkan RenewalSourceTitle dan RenewalSourceUserName.</li>
+    <li><strong>RenewsTrainingId hidden input:</strong> Ada dalam blok <code>@if (ViewBag.IsRenewalMode == true)</code> (line 191-193) — dikirim ke POST jika single renew training.</li>
+    <li><strong>RenewsSessionId hidden input:</strong> Ada dalam blok yang sama (line 195-197) — dikirim jika single renew cross-type.</li>
+    <li><strong>RenewalFkMap + RenewalFkMapType hidden inputs:</strong> Ada dalam blok nested <code>@if (ViewBag.RenewalFkMap != null)</code> (line 199-203) — untuk bulk renew.</li>
+    <li><strong>SelectedUserId pre-select:</strong> JavaScript pada line 243-250 untuk single user.</li>
+    <li><strong>SelectedUserIds pre-select:</strong> JavaScript pada line 252-281 untuk bulk — menyembunyikan select tunggal dan menampilkan info jumlah peserta.</li>
+    <li><strong>Kategori pre-fill:</strong> Field <code>asp-for="Kategori"</code> merupakan select dengan <code>option value="@cat.Name"</code> — controller mengisi <code>model.Kategori</code> sehingga ASP.NET Core binding otomatis memilih option yang sesuai.</li>
+</ul>
+
+<h2>4. XPAG-03: CDP CertificationManagement Toggle Renewed Certs</h2>
+<div class="ok-box">
+    <strong>Status: OK</strong> — Toggle berfungsi, state preserved saat AJAX reload. Tidak ada bug ditemukan.
+</div>
+
+<h3>Temuan View (Views/CDP/CertificationManagement.cshtml)</h3>
+<ul>
+    <li><strong>Toggle element:</strong> <code>&lt;input type="checkbox" id="toggle-renewed" role="switch"&gt;</code> dengan label "Tampilkan Riwayat Renewal" (line 138-139). Default unchecked = renewed rows tersembunyi.</li>
+    <li><strong>applyRenewedToggle() function:</strong> Defined di line 195-202. Membaca state <code>toggleRenewed.checked</code> dan men-set <code>style.display</code> pada semua elemen <code>.renewed-row</code>. Saat checked: display="" (visible, opacity 0.5). Saat unchecked: display="none".</li>
+    <li><strong>State preservation after AJAX reload:</strong> Dalam <code>refreshTable()</code>, setelah <code>container.innerHTML = html</code>, fungsi <code>applyRenewedToggle()</code> dipanggil di line 293. Toggle state dari toggle element dipertahankan karena element toggle sendiri tidak di-replace (hanya container tabel).</li>
+    <li><strong>Toggle listener:</strong> <code>toggleRenewed.addEventListener('change', applyRenewedToggle)</code> di line 204.</li>
+    <li><strong>Reset behavior:</strong> Reset button men-set <code>toggleRenewed.checked = false</code> di line 268 lalu memanggil <code>refreshTable()</code> yang kemudian <code>applyRenewedToggle()</code> — semua rows renewed kembali tersembunyi.</li>
+</ul>
+
+<h3>Temuan Partial View (Views/CDP/Shared/_CertificationManagementTablePartial.cshtml)</h3>
+<ul>
+    <li><strong>renewed-row class:</strong> Pada line 49: <code>&lt;tr class="@(row.IsRenewed ? "renewed-row" : "")" @(row.IsRenewed ? "style=\"display:none;\"" : "")&gt;</code> — menambahkan class dan inline style untuk initial hide.</li>
+</ul>
+
+<h3>Temuan CDPController BuildSertifikatRowsAsync (line 3200+)</h3>
+<p>IsRenewed dihitung menggunakan semua 4 FK kombinasi:</p>
+<table>
+    <tr>
+        <th>FK Set</th>
+        <th>Query</th>
+        <th>Target</th>
+    </tr>
+    <tr>
+        <td>AS.RenewsSessionId</td>
+        <td>AssessmentSessions WHERE RenewsSessionId HasValue AND IsPassed == true</td>
+        <td>renewedAssessmentSessionIds</td>
+    </tr>
+    <tr>
+        <td>TR.RenewsSessionId</td>
+        <td>TrainingRecords WHERE RenewsSessionId HasValue</td>
+        <td>renewedAssessmentSessionIds (gabung)</td>
+    </tr>
+    <tr>
+        <td>AS.RenewsTrainingId</td>
+        <td>AssessmentSessions WHERE RenewsTrainingId HasValue AND IsPassed == true</td>
+        <td>renewedTrainingRecordIds</td>
+    </tr>
+    <tr>
+        <td>TR.RenewsTrainingId</td>
+        <td>TrainingRecords WHERE RenewsTrainingId HasValue</td>
+        <td>renewedTrainingRecordIds (gabung)</td>
+    </tr>
+</table>
+<div class="ok-box">Semua 4 FK kombinasi sudah dicek — konsisten dengan AdminController BuildRenewalRowsAsync.</div>
+
+<h2>5. XPAG-04: Admin/Index Badge Count</h2>
+<div class="ok-box">
+    <strong>Status: OK</strong> — Badge count sinkron dengan BuildRenewalRowsAsync. Diverifikasi dari Phase 229.
+</div>
+
+<h3>Temuan Controller (AdminController.cs line 59-61)</h3>
+<pre>// Renewal badge count — single source of truth via BuildRenewalRowsAsync
+var renewalRows = await BuildRenewalRowsAsync();
+ViewBag.RenewalCount = renewalRows.Count;</pre>
+
+<h3>Temuan View (Views/Admin/Index.cshtml line 221-224)</h3>
+<pre>@if (ViewBag.RenewalCount != null && (int)ViewBag.RenewalCount > 0)
+{
+    &lt;span class="badge bg-warning text-dark ms-auto"&gt;@ViewBag.RenewalCount&lt;/span&gt;
+}</pre>
+<ul>
+    <li>Badge menggunakan <code>bg-warning text-dark</code> — kuning dengan teks gelap, konsisten dengan warna urgency renewal.</li>
+    <li>Badge hanya ditampilkan jika count &gt; 0 — tidak menampilkan "0" yang dapat membingungkan.</li>
+    <li>Single source of truth: AdminController.Index dan RenewalCertificate keduanya menggunakan <code>BuildRenewalRowsAsync()</code>.</li>
+</ul>
+
+<h2>6. Decision Compliance Summary (D-01 s/d D-12)</h2>
+
+<table>
+    <tr>
+        <th>Decision</th>
+        <th>Deskripsi</th>
+        <th>Diaudit di</th>
+        <th>Compliance</th>
+    </tr>
+    <tr>
+        <td>D-01</td>
+        <td>Accordion expand/collapse per grup sertifikat — default collapsed</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-02</td>
+        <td>Header grup: judul sertifikat, jumlah pekerja, breakdown expired vs akan expired</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-03</td>
+        <td>Color coding merah/kuning konsisten di tabel, badge, summary card</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-04</td>
+        <td>Auto-reload tabel via AJAX setiap kali filter diubah</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-05</td>
+        <td>Cascade Bagian→Unit DAN Kategori→SubKategori</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-06</td>
+        <td>Reset button: semua dropdown kembali ke default, tabel reload tanpa filter</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-07</td>
+        <td>Kedua pilihan renewal (via Assessment &amp; via Training) selalu tampil di modal</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-08</td>
+        <td>Bulk renew: warning pekerja yang di-skip, konfirmasi sebelum lanjut</td>
+        <td>Phase 230-01</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-09</td>
+        <td>Renew via Assessment pre-fill: judul, kategori, peserta</td>
+        <td>Phase 230-02 (XPAG-01)</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-10</td>
+        <td>Renew via Training pre-fill: judul, kategori, peserta</td>
+        <td>Phase 230-02 (XPAG-02)</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-11</td>
+        <td>CDP CertificationManagement: toggle switch, default sembunyikan renewed certs</td>
+        <td>Phase 230-02 (XPAG-03)</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+    <tr>
+        <td>D-12</td>
+        <td>Admin/Index badge count sinkron dengan BuildRenewalRowsAsync</td>
+        <td>Phase 230-02 (XPAG-04)</td>
+        <td><span class="badge badge-ok">Comply</span></td>
+    </tr>
+</table>
+
+<h2>7. Kesimpulan</h2>
+<div class="section-intro">
+    <p><strong>Hasil audit Phase 230:</strong> Semua 8 requirements (UIUX-01 s/d UIUX-04 dan XPAG-01 s/d XPAG-04) ditemukan sudah terimplementasi dengan benar. Tidak ada bug atau gap yang perlu diperbaiki.</p>
+    <p><strong>Highlights:</strong></p>
+    <ul>
+        <li>CreateAssessment dan AddTraining renewal pre-fill sudah lengkap: judul, kategori, peserta, dan FK hidden fields semua diteruskan ke POST.</li>
+        <li>CDP CertificationManagement toggle state dipertahankan saat AJAX reload karena <code>applyRenewedToggle()</code> dipanggil setelah setiap <code>container.innerHTML = html</code>.</li>
+        <li>IsRenewed di CDPController menggunakan 4 FK kombinasi yang sama dengan AdminController — konsisten.</li>
+        <li>Admin/Index badge menggunakan single source of truth: <code>BuildRenewalRowsAsync()</code>.</li>
+        <li>Semua 12 decisions (D-01 s/d D-12) complied.</li>
+    </ul>
+    <p><strong>v8.1 Renewal Ecosystem Audit:</strong> Phase 229 (renewal logic) dan Phase 230 (renewal UI + cross-page) selesai — ekosistem renewal sudah diaudit secara menyeluruh.</p>
+</div>
+
+<div class="footer">
+    Portal HC KPB &mdash; v8.1 Renewal &amp; Assessment Ecosystem Audit &mdash; Phase 230 &mdash; 2026-03-22
+</div>
+
+</body>
+</html>
