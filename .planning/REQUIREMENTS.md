@@ -31,10 +31,10 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Renewal — Cross-Page Integration
 
-- [ ] **XPAG-01**: CreateAssessment renewal pre-fill (judul, kategori, peserta) dari RenewalCertificate berfungsi
-- [ ] **XPAG-02**: AddTraining renewal mode (pre-fill + FK) dari RenewalCertificate berfungsi
-- [ ] **XPAG-03**: CDP Certification Management menyembunyikan renewed certs dengan toggle
-- [ ] **XPAG-04**: Admin/Index badge count mencerminkan jumlah renewal yang pending
+- [x] **XPAG-01**: CreateAssessment renewal pre-fill (judul, kategori, peserta) dari RenewalCertificate berfungsi
+- [x] **XPAG-02**: AddTraining renewal mode (pre-fill + FK) dari RenewalCertificate berfungsi
+- [x] **XPAG-03**: CDP Certification Management menyembunyikan renewed certs dengan toggle
+- [x] **XPAG-04**: Admin/Index badge count mencerminkan jumlah renewal yang pending
 
 ### Renewal — Edge Cases
 
@@ -141,10 +141,10 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 | UIUX-02 | Phase 230 | Complete |
 | UIUX-03 | Phase 230 | Complete |
 | UIUX-04 | Phase 230 | Complete |
-| XPAG-01 | Phase 230 | Pending |
-| XPAG-02 | Phase 230 | Pending |
-| XPAG-03 | Phase 230 | Pending |
-| XPAG-04 | Phase 230 | Pending |
+| XPAG-01 | Phase 230 | Complete |
+| XPAG-02 | Phase 230 | Complete |
+| XPAG-03 | Phase 230 | Complete |
+| XPAG-04 | Phase 230 | Complete |
 | AMGT-01 | Phase 231 | Pending |
 | AMGT-02 | Phase 231 | Pending |
 | AMGT-03 | Phase 231 | Pending |

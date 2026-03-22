@@ -32,7 +32,7 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
 
 - [x] **Phase 228: Best Practices Research** - Riset renewal, assessment, dan monitoring best practices dari platform sejenis (completed 2026-03-22)
 - [x] **Phase 229: Audit Renewal Logic & Edge Cases** - Audit dan fix renewal chain FK, badge sync, status derivation, grouping, dan edge cases (completed 2026-03-22)
-- [ ] **Phase 230: Audit Renewal UI & Cross-Page Integration** - Audit dan fix renewal UI grouped view, filter, modal, dan integrasi lintas halaman
+- [x] **Phase 230: Audit Renewal UI & Cross-Page Integration** - Audit dan fix renewal UI grouped view, filter, modal, dan integrasi lintas halaman (completed 2026-03-22)
 - [ ] **Phase 231: Audit Assessment Management & Monitoring** - Audit dan fix ManageAssessment dan AssessmentMonitoring (admin/HC side)
 - [ ] **Phase 232: Audit Assessment Flow — Worker Side** - Audit dan fix worker-side exam flow end-to-end
 
@@ -82,7 +82,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 230-01-PLAN.md — Audit grouped view, filter cascade, modals, certificate history
-- [ ] 230-02-PLAN.md — Audit cross-page pre-fill, CDP toggle, badge count, HTML report
+- [x] 230-02-PLAN.md — Audit cross-page pre-fill, CDP toggle, badge count, HTML report
 
 ### Phase 231: Audit Assessment Management & Monitoring
 **Goal**: Audit halaman ManageAssessment dan AssessmentMonitoring (sisi admin/HC), fix semua bug, dan improve berdasarkan riset.
@@ -124,6 +124,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 228. Best Practices Research | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 229. Audit Renewal Logic & Edge Cases | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 1/2 | In Progress|  |
+| 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 2/2 | Complete   | 2026-03-22 |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 0/? | Not started | - |
 | 232. Audit Assessment Flow — Worker Side | v8.1 | 0/? | Not started | - |
