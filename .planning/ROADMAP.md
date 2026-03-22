@@ -30,7 +30,7 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
 
 ## Phases
 
-- [ ] **Phase 228: Best Practices Research** - Riset renewal, assessment, dan monitoring best practices dari platform sejenis
+- [x] **Phase 228: Best Practices Research** - Riset renewal, assessment, dan monitoring best practices dari platform sejenis (completed 2026-03-22)
 - [ ] **Phase 229: Audit Renewal Logic & Edge Cases** - Audit dan fix renewal chain FK, badge sync, status derivation, grouping, dan edge cases
 - [ ] **Phase 230: Audit Renewal UI & Cross-Page Integration** - Audit dan fix renewal UI grouped view, filter, modal, dan integrasi lintas halaman
 - [ ] **Phase 231: Audit Assessment Management & Monitoring** - Audit dan fix ManageAssessment dan AssessmentMonitoring (admin/HC side)
@@ -50,7 +50,7 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
 **Plans**: 2 plans
 Plans:
 - [x] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
-- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
+- [x] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ### Phase 229: Audit Renewal Logic & Edge Cases
 **Goal**: Audit kode renewal logic dengan lens best practices, fix semua bug pada FK chain, badge sync, status derivation, grouping, dan edge case handling.
@@ -65,7 +65,7 @@ Plans:
   6. Bulk mixed-type validation berfungsi, double renewal dicegah, empty state ditangani dengan benar
 **Plans**: 2 plans
 Plans:
-- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
+- [x] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
 - [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ### Phase 230: Audit Renewal UI & Cross-Page Integration
@@ -122,7 +122,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 228. Best Practices Research | v8.1 | 1/2 | In Progress|  |
+| 228. Best Practices Research | v8.1 | 2/2 | Complete   | 2026-03-22 |
 | 229. Audit Renewal Logic & Edge Cases | v8.1 | 0/? | Not started | - |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 0/? | Not started | - |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 0/? | Not started | - |
