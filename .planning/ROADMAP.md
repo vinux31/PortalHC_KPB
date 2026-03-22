@@ -81,7 +81,7 @@ Plans:
   6. CDP CertificationManagement toggle renewed certs berfungsi, Admin/Index badge count sinkron
 **Plans**: 2 plans
 Plans:
-- [ ] 230-01-PLAN.md — Audit grouped view, filter cascade, modals, certificate history
+- [x] 230-01-PLAN.md — Audit grouped view, filter cascade, modals, certificate history
 - [ ] 230-02-PLAN.md — Audit cross-page pre-fill, CDP toggle, badge count, HTML report
 
 ### Phase 231: Audit Assessment Management & Monitoring
@@ -124,6 +124,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 228. Best Practices Research | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 229. Audit Renewal Logic & Edge Cases | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 0/2 | Not started | - |
+| 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 1/2 | In Progress|  |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 0/? | Not started | - |
 | 232. Audit Assessment Flow — Worker Side | v8.1 | 0/? | Not started | - |

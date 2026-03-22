@@ -24,10 +24,10 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Renewal — UI & UX
 
-- [ ] **UIUX-01**: Grouped view RenewalCertificate tampil benar dengan data aktual
-- [ ] **UIUX-02**: Filter cascade Bagian/Unit/Kategori/Tipe berfungsi dan saling terhubung
-- [ ] **UIUX-03**: Renewal method modal (single + bulk) menampilkan pilihan yang benar berdasarkan tipe
-- [ ] **UIUX-04**: Certificate history modal menampilkan chain grouping yang akurat
+- [x] **UIUX-01**: Grouped view RenewalCertificate tampil benar dengan data aktual
+- [x] **UIUX-02**: Filter cascade Bagian/Unit/Kategori/Tipe berfungsi dan saling terhubung
+- [x] **UIUX-03**: Renewal method modal (single + bulk) menampilkan pilihan yang benar berdasarkan tipe
+- [x] **UIUX-04**: Certificate history modal menampilkan chain grouping yang akurat
 
 ### Renewal — Cross-Page Integration
 
@@ -38,9 +38,9 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Renewal — Edge Cases
 
-- [ ] **EDGE-01**: Bulk renew mixed-type (campuran Assessment + Training) validasi dan flow benar
+- [x] **EDGE-01**: Bulk renew mixed-type (campuran Assessment + Training) validasi dan flow benar
 - [x] **EDGE-02**: Double renewal prevention — sertifikat yang sudah di-renew tidak bisa di-renew lagi
-- [ ] **EDGE-03**: Empty state handling saat tidak ada sertifikat yang perlu di-renew
+- [x] **EDGE-03**: Empty state handling saat tidak ada sertifikat yang perlu di-renew
 
 ### Assessment Management
 
@@ -134,13 +134,13 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 | LDAT-03 | Phase 229 | Complete |
 | LDAT-04 | Phase 229 | Complete |
 | LDAT-05 | Phase 229 | Complete |
-| EDGE-01 | Phase 229 | Pending |
+| EDGE-01 | Phase 229 | Complete |
 | EDGE-02 | Phase 229 | Complete |
-| EDGE-03 | Phase 229 | Pending |
-| UIUX-01 | Phase 230 | Pending |
-| UIUX-02 | Phase 230 | Pending |
-| UIUX-03 | Phase 230 | Pending |
-| UIUX-04 | Phase 230 | Pending |
+| EDGE-03 | Phase 229 | Complete |
+| UIUX-01 | Phase 230 | Complete |
+| UIUX-02 | Phase 230 | Complete |
+| UIUX-03 | Phase 230 | Complete |
+| UIUX-04 | Phase 230 | Complete |
 | XPAG-01 | Phase 230 | Pending |
 | XPAG-02 | Phase 230 | Pending |
 | XPAG-03 | Phase 230 | Pending |
