@@ -64,7 +64,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [ ] 234-01-PLAN.md — Audit silabus delete safety + guidance file management (ProtonDataController)
-- [ ] 234-02-PLAN.md — Audit coach-coachee mapping cascade + track assignment progression (AdminController)
+- [x] 234-02-PLAN.md — Audit coach-coachee mapping cascade + track assignment progression (AdminController)
 - [ ] 234-03-PLAN.md — Audit import/export robustness silabus dan mapping
 
 ### Phase 235: Audit Execution Flow
@@ -111,7 +111,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 233. Riset & Perbandingan Coaching Platform | v8.2 | 1/1 | Complete    | 2026-03-22 |
-| 234. Audit Setup Flow | v8.2 | 0/3 | Not started | - |
+| 234. Audit Setup Flow | v8.2 | 1/3 | In Progress|  |
 | 235. Audit Execution Flow | v8.2 | 0/? | Not started | - |
 | 236. Audit Completion | v8.2 | 0/? | Not started | - |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |
