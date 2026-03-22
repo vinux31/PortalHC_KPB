@@ -52,10 +52,10 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Assessment Monitoring
 
-- [ ] **AMON-01**: AssessmentMonitoring group list menampilkan stats real-time (participant count, completed, passed, status)
-- [ ] **AMON-02**: MonitoringDetail per-participant live progress (answered/total, status, score, time remaining)
-- [ ] **AMON-03**: HC actions berfungsi (Reset, Force Close, Bulk Close, Close Early, Regenerate Token)
-- [ ] **AMON-04**: Token card dengan copy dan regenerate berfungsi
+- [x] **AMON-01**: AssessmentMonitoring group list menampilkan stats real-time (participant count, completed, passed, status)
+- [x] **AMON-02**: MonitoringDetail per-participant live progress (answered/total, status, score, time remaining)
+- [x] **AMON-03**: HC actions berfungsi (Reset, Force Close, Bulk Close, Close Early, Regenerate Token)
+- [x] **AMON-04**: Token card dengan copy dan regenerate berfungsi
 
 ### Assessment Flow — Worker Side
 
@@ -150,10 +150,10 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 | AMGT-03 | Phase 231 | Complete |
 | AMGT-04 | Phase 231 | Complete |
 | AMGT-05 | Phase 231 | Complete |
-| AMON-01 | Phase 231 | Pending |
-| AMON-02 | Phase 231 | Pending |
-| AMON-03 | Phase 231 | Pending |
-| AMON-04 | Phase 231 | Pending |
+| AMON-01 | Phase 231 | Complete |
+| AMON-02 | Phase 231 | Complete |
+| AMON-03 | Phase 231 | Complete |
+| AMON-04 | Phase 231 | Complete |
 | AFLW-01 | Phase 232 | Pending |
 | AFLW-02 | Phase 232 | Pending |
 | AFLW-03 | Phase 232 | Pending |
