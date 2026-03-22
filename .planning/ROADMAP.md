@@ -65,8 +65,8 @@ Plans:
   6. Bulk mixed-type validation berfungsi, double renewal dicegah, empty state ditangani dengan benar
 **Plans**: 2 plans
 Plans:
-- [x] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
-- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
+- [ ] 229-01-PLAN.md — Fix MapKategori DB lookup, double renewal guard, FK XOR, mirror CDPController
+- [ ] 229-02-PLAN.md — Mixed-type bulk validation, empty state verifikasi, HTML audit report
 
 ### Phase 230: Audit Renewal UI & Cross-Page Integration
 **Goal**: Audit renewal UI dan semua integrasi lintas halaman, fix dan improve berdasarkan temuan riset best practices.
@@ -81,8 +81,8 @@ Plans:
   6. CDP CertificationManagement toggle renewed certs berfungsi, Admin/Index badge count sinkron
 **Plans**: 2 plans
 Plans:
-- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
-- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
+- [ ] 230-01-PLAN.md — [to be planned]
+- [ ] 230-02-PLAN.md — [to be planned]
 
 ### Phase 231: Audit Assessment Management & Monitoring
 **Goal**: Audit halaman ManageAssessment dan AssessmentMonitoring (sisi admin/HC), fix semua bug, dan improve berdasarkan riset.
@@ -98,8 +98,8 @@ Plans:
   7. Token card copy dan regenerate berfungsi dari halaman monitoring detail
 **Plans**: 2 plans
 Plans:
-- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
-- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
+- [ ] 231-01-PLAN.md — [to be planned]
+- [ ] 231-02-PLAN.md — [to be planned]
 
 ### Phase 232: Audit Assessment Flow — Worker Side
 **Goal**: Audit worker-side assessment flow end-to-end, fix semua bug, dan improve UX berdasarkan riset.
@@ -113,8 +113,8 @@ Plans:
   5. Results page menampilkan score, pass/fail status, dan answer review (jika diaktifkan HC)
 **Plans**: 2 plans
 Plans:
-- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
-- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
+- [ ] 232-01-PLAN.md — [to be planned]
+- [ ] 232-02-PLAN.md — [to be planned]
 
 ## Progress
 
@@ -123,7 +123,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 228. Best Practices Research | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 229. Audit Renewal Logic & Edge Cases | v8.1 | 0/? | Not started | - |
+| 229. Audit Renewal Logic & Edge Cases | v8.1 | 0/2 | Not started | - |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 0/? | Not started | - |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 0/? | Not started | - |
 | 232. Audit Assessment Flow — Worker Side | v8.1 | 0/? | Not started | - |
