@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Audit Renewal Logic - v8.1 Phase 229</title>
+    <style>
+        @page { margin: 1.5cm; size: A4; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 1000px; margin: 30px auto; color: #222; line-height: 1.6; font-size: 13px; padding: 0 20px; }
+        h1 { text-align: center; font-size: 22px; border-bottom: 3px solid #1a56db; padding-bottom: 8px; margin-bottom: 4px; }
+        h2 { font-size: 17px; color: #1a56db; border-bottom: 2px solid #e5e7eb; padding-bottom: 4px; margin-top: 30px; }
+        h3 { font-size: 14px; color: #374151; margin-top: 20px; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 24px; font-size: 12px; }
+        .summary-box { display: flex; justify-content: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+        .stat { text-align: center; background: #f0f4ff; border-radius: 8px; padding: 12px 20px; min-width: 120px; }
+        .stat-num { font-size: 24px; font-weight: bold; color: #1a56db; }
+        .stat-label { font-size: 11px; color: #666; }
+        .stat.green { background: #ecfdf5; }
+        .stat.green .stat-num { color: #059669; }
+        .stat.amber { background: #fffbeb; }
+        .stat.amber .stat-num { color: #d97706; }
+
+        table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 12px; }
+        th { background: #1a56db; color: white; padding: 7px 10px; text-align: left; font-size: 11px; }
+        td { padding: 6px 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
+        tr:nth-child(even) { background: #f9fafb; }
+        tr:hover { background: #f0f4ff; }
+
+        .badge { display: inline-block; border-radius: 10px; padding: 1px 10px; font-size: 10px; font-weight: 600; }
+        .badge-fix { background: #dbeafe; color: #1e40af; }
+        .badge-ok { background: #d1fae5; color: #065f46; }
+        .badge-decision { background: #fef3c7; color: #92400e; }
+
+        .decision-box { background: #fffbeb; border-left: 4px solid #d97706; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 8px 0; font-size: 12px; }
+        .info-box { background: #eff6ff; border-left: 4px solid #1a56db; padding: 10px 14px; border-radius: 0 6px 6px 0; margin: 8px 0; font-size: 12px; }
+
+        pre { background: #1e293b; color: #e2e8f0; border-radius: 8px; padding: 14px 16px; font-family: 'Consolas', 'Courier New', monospace; font-size: 11px; line-height: 1.7; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+        code { background: #f3f4f6; border-radius: 4px; padding: 1px 5px; font-family: 'Consolas', monospace; font-size: 11px; }
+
+        .footer { text-align: center; color: #999; font-size: 10px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 8px; }
+
+        @media print {
+            body { margin: 0; max-width: 100%; }
+            pre { max-height: none; }
+        }
+        @media (max-width: 600px) {
+            .summary-box { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Audit Renewal Logic &mdash; v8.1 Phase 229</h1>
+<p class="subtitle">Renewal Certificate Logic Audit &amp; Edge Case Handling &mdash; PortalHC KPB &mdash; 22 Maret 2026</p>
+
+<!-- ============ SUMMARY ============ -->
+<div class="summary-box">
+    <div class="stat green"><div class="stat-num">5</div><div class="stat-label">Fix Diterapkan</div></div>
+    <div class="stat green"><div class="stat-num">6</div><div class="stat-num">Verifikasi OK</div></div>
+    <div class="stat amber"><div class="stat-num">0</div><div class="stat-label">Data Migration</div></div>
+    <div class="stat"><div class="stat-num">2</div><div class="stat-label">Plans (229-01, 229-02)</div></div>
+</div>
+
+<div class="info-box">
+    <strong>Scope Audit:</strong> Phase 229 mengaudit seluruh alur renewal certificate di AdminController dan CDPController — FK chain integrity, badge count, DeriveCertificateStatus edge cases, MapKategori fallback, double renewal prevention, mixed-type bulk validation, dan empty state UI.
+    Hasil riset dari Phase 228 (benchmark TalentGuard, Examly, SpeedExam) digunakan sebagai lens audit.
+</div>
+
+<!-- ============ SECTION 1 ============ -->
+<h2>Section 1: Fix yang Diterapkan</h2>
+
+<p>Lima fix diterapkan selama Phase 229 (Plans 01 &amp; 02) berdasarkan temuan audit. Semua fix bersifat server-side dan berlaku ke depan (tidak ada data migration).</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Area</th>
+            <th>Sebelum (Before)</th>
+            <th>Sesudah (After)</th>
+            <th>Keputusan</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td><strong>MapKategori</strong></td>
+            <td>Hardcode 2 mapping (MANDATORY → Mandatory Competency, PROTON → Assessment Proton). Raw codes dari TR tidak match display names.</td>
+            <td>DB lookup dari <code>AssessmentCategories</code> tabel dengan fallback ke hardcode sebagai safety net.</td>
+            <td><span class="badge badge-decision">D-08</span></td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td><strong>Double Renewal Guard</strong></td>
+            <td>Hanya UI filter (<code>!IsRenewed</code>) yang mencegah duplikasi. Tidak ada server-side validation.</td>
+            <td>Server-side guard di <code>CreateAssessment POST</code> dan <code>AddTraining POST</code>: cek lintas AS dan TR via <code>AnyAsync</code> untuk cover semua 4 FK kombinasi.</td>
+            <td><span class="badge badge-decision">D-10</span></td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td><strong>FK Mutual Exclusion</strong></td>
+            <td>Tidak ada guard XOR di <code>AddTraining POST</code>. Secara teoritis, record bisa punya kedua FK (<code>RenewsTrainingId</code> + <code>RenewsSessionId</code>) sekaligus.</td>
+            <td>Controller-level XOR guard di <code>AddTraining POST</code> — reject jika keduanya terisi sekaligus.</td>
+            <td><span class="badge badge-decision">D-04</span></td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td><strong>Mixed-Type Bulk</strong></td>
+            <td>Tidak ada validasi jika batch bulk renewal mencampur sourceId dari Training dan Assessment ke satu endpoint.</td>
+            <td>Reject mixed batch dengan error message: <em>"Bulk renewal tidak dapat mencampur tipe Assessment dan Training. Renew per tipe secara terpisah."</em> di kedua endpoint (<code>CreateAssessment POST</code> dan <code>AddTraining POST</code>).</td>
+            <td><span class="badge badge-decision">D-11</span></td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td><strong>CDPController MapKategori</strong></td>
+            <td>Hardcode mapping (sama dengan AdminController sebelum fix). CDPController memiliki implementasi duplikat yang juga terpengaruh.</td>
+            <td>DB lookup (mirror AdminController) — konsistensi mapping antara Admin dan CDP view.</td>
+            <td><span class="badge badge-decision">Pitfall 1</span></td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ============ SECTION 2 ============ -->
+<h2>Section 2: Verifikasi &mdash; Tidak Perlu Perubahan</h2>
+
+<p>Enam area diaudit dan diverifikasi sudah correct. Tidak ada perubahan kode diperlukan untuk area ini.</p>
+
+<table>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Area</th>
+            <th>Requirement</th>
+            <th>Status</th>
+            <th>Alasan</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>1</td>
+            <td><strong>FK 4 Kombinasi</strong></td>
+            <td>LDAT-01</td>
+            <td><span class="badge badge-ok">OK</span></td>
+            <td>Semua 4 path renewal sudah set FK dengan benar: AS&rarr;AS (<code>RenewsSessionId</code>), AS&rarr;TR (<code>RenewsTrainingId</code>), TR&rarr;TR (<code>RenewsTrainingId</code>), TR&rarr;AS (<code>RenewsSessionId</code>). Diverifikasi dari FK map parsing di kedua controller.</td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td><strong>Badge Count</strong></td>
+            <td>LDAT-02</td>
+            <td><span class="badge badge-ok">OK</span></td>
+            <td>Admin/Index sudah menggunakan single source via <code>BuildRenewalRowsAsync</code>. Tidak ada duplikasi penghitungan badge expired/akan-expired.</td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td><strong>DeriveCertificateStatus</strong></td>
+            <td>LDAT-03</td>
+            <td><span class="badge badge-ok">OK</span></td>
+            <td>Handle semua edge case per D-06: <code>null validUntil + non-Permanent = Expired</code>, <code>Permanent = Active</code>, <code>past date = Expired</code>, <code>within 30 days = AkanExpired</code>, <code>future = Active</code>. Logic sudah komprehensif.</td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td><strong>GroupKey Decode</strong></td>
+            <td>LDAT-04</td>
+            <td><span class="badge badge-ok">OK</span></td>
+            <td>Server tidak perlu decode GroupKey dari client. Renewal flow menggunakan parameter <code>judul</code> langsung (plaintext) dari URL query string, bukan decode dari encoded GroupKey. Tidak ada ambiguitas.</td>
+        </tr>
+        <tr>
+            <td>5</td>
+            <td><strong>Empty State</strong></td>
+            <td>EDGE-03</td>
+            <td><span class="badge badge-ok">OK</span></td>
+            <td><code>_RenewalGroupedPartial.cshtml</code> sudah menampilkan empty state dengan icon <code>bi-patch-check-fill</code> (hijau), teks "Tidak ada sertifikat yang perlu di-renew", dan sub-teks "Semua sertifikat aktif atau sudah di-renew." sesuai D-12. Tidak perlu perubahan.</td>
+        </tr>
+        <tr>
+            <td>6</td>
+            <td><strong>D-07 CertificateType di AssessmentSession</strong></td>
+            <td>EDGE-02</td>
+            <td><span class="badge badge-ok">OK</span></td>
+            <td>Model <code>AssessmentSession</code> tidak memiliki field <code>CertificateType</code>. <code>DeriveCertificateStatus(a.ValidUntil, null)</code> dipanggil dengan <code>certificateType: null</code>. Karena <code>null != "Permanent"</code>, logic mengembalikan <code>Expired</code> saat <code>ValidUntil == null</code>. Ini behavior yang BENAR: assessment tanpa ValidUntil = perlu renewal. Tidak perlu menambahkan field CertificateType ke AssessmentSession.</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ============ SECTION 3 ============ -->
+<h2>Section 3: Data Lama &mdash; Catatan dan Query Identifikasi</h2>
+
+<div class="decision-box">
+    <strong>Keputusan D-03 (No Data Migration):</strong> Fix yang diterapkan di Phase 229 berlaku ke depan saja. Tidak ada data migration yang dilakukan terhadap record lama di database. Data lama yang FK-nya bermasalah (jika ada) tetap di database dan tidak diubah.
+</div>
+
+<p>
+    Data lama yang dibuat sebelum Phase 229 (sebelum 22 Maret 2026) mungkin memiliki FK renewal yang tidak terisi (<code>NULL</code>) meskipun record tersebut merupakan renewal dari record lain. Hal ini karena sebelum Phase 229, tidak ada server-side enforcement untuk FK renewal di <code>AddTraining POST</code>.
+</p>
+
+<p>
+    Untuk mengidentifikasi data lama yang berpotensi bermasalah, DBA dapat menjalankan query berikut di database PortalHC KPB:
+</p>
+
+<h3>Query 1: TrainingRecords tanpa FK renewal yang mungkin merupakan duplikasi</h3>
+<pre>
+-- TrainingRecords tanpa FK yang seharusnya ada
+-- (dibuat sebagai renewal tapi FK null — judul sama ada lebih dari 1 record per user)
+SELECT
+    tr1.Id,
+    tr1.Judul,
+    tr1.UserId,
+    tr1.RenewsTrainingId,
+    tr1.RenewsSessionId,
+    tr1.CreatedAt
+FROM TrainingRecords tr1
+WHERE tr1.RenewsTrainingId IS NULL
+  AND tr1.RenewsSessionId IS NULL
+  AND tr1.Judul IN (
+      SELECT Judul
+      FROM TrainingRecords
+      GROUP BY Judul, UserId
+      HAVING COUNT(*) > 1
+  )
+ORDER BY tr1.Judul, tr1.UserId, tr1.CreatedAt;
+</pre>
+
+<h3>Query 2: AssessmentSessions tanpa FK renewal yang mungkin merupakan duplikasi</h3>
+<pre>
+-- AssessmentSessions tanpa FK yang seharusnya ada
+-- (IsPassed=1 dan GenerateCertificate=1 — ada lebih dari 1 session dengan judul sama per user)
+SELECT
+    a1.Id,
+    a1.Title,
+    a1.UserId,
+    a1.RenewsSessionId,
+    a1.RenewsTrainingId,
+    a1.Schedule,
+    a1.ValidUntil
+FROM AssessmentSessions a1
+WHERE a1.RenewsSessionId IS NULL
+  AND a1.RenewsTrainingId IS NULL
+  AND a1.IsPassed = 1
+  AND a1.GenerateCertificate = 1
+  AND a1.Title IN (
+      SELECT Title
+      FROM AssessmentSessions
+      WHERE IsPassed = 1 AND GenerateCertificate = 1
+      GROUP BY Title, UserId
+      HAVING COUNT(*) > 1
+  )
+ORDER BY a1.Title, a1.UserId, a1.Schedule;
+</pre>
+
+<div class="info-box">
+    <strong>Catatan interpretasi query:</strong> Hasil query di atas bukan berarti semua record yang muncul adalah data bermasalah. Record bisa muncul karena pekerja memang mengikuti sertifikasi yang sama lebih dari sekali secara legitimate (misalnya, sertifikasi 3 tahunan yang memang dibuat ulang). Investigasi manual diperlukan untuk menentukan mana yang merupakan renewal yang seharusnya memiliki FK.
+</div>
+
+<!-- ============ SECTION 4 ============ -->
+<h2>Section 4: Arsitektur Renewal Chain</h2>
+
+<h3>FK Model (4 Kombinasi Valid)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Source (Lama)</th>
+            <th>Target (Baru)</th>
+            <th>FK di Target</th>
+            <th>Endpoint</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>AssessmentSession</td>
+            <td>AssessmentSession</td>
+            <td><code>RenewsSessionId</code></td>
+            <td>CreateAssessment POST</td>
+        </tr>
+        <tr>
+            <td>AssessmentSession</td>
+            <td>TrainingRecord</td>
+            <td><code>RenewsSessionId</code></td>
+            <td>AddTraining POST</td>
+        </tr>
+        <tr>
+            <td>TrainingRecord</td>
+            <td>AssessmentSession</td>
+            <td><code>RenewsTrainingId</code></td>
+            <td>CreateAssessment POST</td>
+        </tr>
+        <tr>
+            <td>TrainingRecord</td>
+            <td>TrainingRecord</td>
+            <td><code>RenewsTrainingId</code></td>
+            <td>AddTraining POST</td>
+        </tr>
+    </tbody>
+</table>
+
+<h3>Validation Chain di Server (setelah Phase 229)</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Guard</th>
+            <th>Endpoint</th>
+            <th>Kondisi yang Ditolak</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>XOR FK Guard</td>
+            <td>CreateAssessment POST, AddTraining POST</td>
+            <td><code>RenewsSessionId</code> dan <code>RenewsTrainingId</code> keduanya terisi</td>
+        </tr>
+        <tr>
+            <td>Double Renewal Guard</td>
+            <td>CreateAssessment POST, AddTraining POST</td>
+            <td>Source cert sudah di-renew sebelumnya (cek lintas AS dan TR)</td>
+        </tr>
+        <tr>
+            <td>Mixed-Type Bulk Guard</td>
+            <td>CreateAssessment POST, AddTraining POST</td>
+            <td>Batch bulk renewal dengan <code>fkMapType</code> tidak valid atau campuran</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- ============ FOOTER ============ -->
+<div class="footer">
+    Audit Renewal Logic v8.1 &mdash; Phase 229 (Plans 229-01 &amp; 229-02) &mdash; PortalHC KPB &mdash; 22 Maret 2026 &mdash; Generated by GSD execute-phase
+</div>
+
+</body>
+</html>
