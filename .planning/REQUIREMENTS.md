@@ -19,7 +19,7 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 - [x] **SETUP-02**: Audit Coaching Guidance — file management integrity (upload/replace/delete), validasi tipe file
 - [x] **SETUP-03**: Audit Coach-Coachee Mapping — tambah explicit DB transaction pada cascade deactivation, validasi duplikasi
 - [x] **SETUP-04**: Audit Track Assignment — progression validation Tahun 1→2→3, seed ProtonDeliverableProgress correctness
-- [ ] **SETUP-05**: Audit Import/Export Silabus dan Mapping — validasi data, error handling, template accuracy
+- [x] **SETUP-05**: Audit Import/Export Silabus dan Mapping — validasi data, error handling, template accuracy
 
 ### Audit Execution Flow
 
@@ -77,7 +77,7 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 | SETUP-02 | Phase 234 | Complete |
 | SETUP-03 | Phase 234 | Complete |
 | SETUP-04 | Phase 234 | Complete |
-| SETUP-05 | Phase 234 | Pending |
+| SETUP-05 | Phase 234 | Complete |
 | EXEC-01 | Phase 235 | Pending |
 | EXEC-02 | Phase 235 | Pending |
 | EXEC-03 | Phase 235 | Pending |
