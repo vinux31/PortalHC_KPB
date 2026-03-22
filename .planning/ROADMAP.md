@@ -77,7 +77,11 @@ Plans:
   3. DeliverableStatusHistory memiliki insert di setiap state transition termasuk initial Pending saat progress pertama kali di-seed
   4. Semua notification trigger Proton terpanggil pada: evidence submit, approve, reject, HC review, dan final assessment — verifikasi di server bukan hanya UI
   5. PlanIdp menampilkan silabus dan guidance tab dengan akurasi, role-based access berjalan benar (coachee tidak bisa akses admin tab)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 235-01-PLAN.md — Audit evidence submission + StatusHistory completeness (CDPController, AdminController, ProtonDataController)
+- [ ] 235-02-PLAN.md — Audit approval chain race condition + notifikasi gaps (CDPController)
+- [ ] 235-03-PLAN.md — Audit PlanIdp view accuracy + human verification keseluruhan
 
 ### Phase 236: Audit Completion
 **Goal**: Memastikan fase akhir perjalanan coachee (final assessment, coaching sessions, history) akurat dan tidak bisa menghasilkan data duplikat atau inkonsisten
@@ -112,6 +116,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 233. Riset & Perbandingan Coaching Platform | v8.2 | 1/1 | Complete    | 2026-03-22 |
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
-| 235. Audit Execution Flow | v8.2 | 0/? | Not started | - |
+| 235. Audit Execution Flow | v8.2 | 0/3 | Not started | - |
 | 236. Audit Completion | v8.2 | 0/? | Not started | - |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |
