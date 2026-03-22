@@ -49,7 +49,7 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
   4. Dokumen perbandingan fitur portal vs best practices dengan rekomendasi improvement per halaman (RenewalCertificate, ManageAssessment, AssessmentMonitoring, exam flow)
 **Plans**: 2 plans
 Plans:
-- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
+- [x] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
 - [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ### Phase 229: Audit Renewal Logic & Edge Cases
@@ -122,7 +122,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 228. Best Practices Research | v8.1 | 0/? | Not started | - |
+| 228. Best Practices Research | v8.1 | 1/2 | In Progress|  |
 | 229. Audit Renewal Logic & Edge Cases | v8.1 | 0/? | Not started | - |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 0/? | Not started | - |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 0/? | Not started | - |

@@ -9,9 +9,9 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Best Practices Research
 
-- [ ] **RSCH-01**: Riset best practices certificate renewal UX dari platform sejenis (Coursera, LinkedIn Learning, HR portals)
-- [ ] **RSCH-02**: Riset best practices assessment/exam management dari platform sejenis (Moodle, Google Forms Quiz, Examly)
-- [ ] **RSCH-03**: Riset best practices real-time exam monitoring UX dari platform sejenis
+- [x] **RSCH-01**: Riset best practices certificate renewal UX dari platform sejenis (Coursera, LinkedIn Learning, HR portals)
+- [x] **RSCH-02**: Riset best practices assessment/exam management dari platform sejenis (Moodle, Google Forms Quiz, Examly)
+- [x] **RSCH-03**: Riset best practices real-time exam monitoring UX dari platform sejenis
 - [ ] **RSCH-04**: Dokumen perbandingan fitur portal vs best practices dengan rekomendasi improvement per halaman
 
 ### Renewal — Logic & Data
@@ -125,9 +125,9 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RSCH-01 | Phase 228 | Pending |
-| RSCH-02 | Phase 228 | Pending |
-| RSCH-03 | Phase 228 | Pending |
+| RSCH-01 | Phase 228 | Complete |
+| RSCH-02 | Phase 228 | Complete |
+| RSCH-03 | Phase 228 | Complete |
 | RSCH-04 | Phase 228 | Pending |
 | LDAT-01 | Phase 229 | Pending |
 | LDAT-02 | Phase 229 | Pending |
