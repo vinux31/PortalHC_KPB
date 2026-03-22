@@ -3975,6 +3975,56 @@ namespace HcPortal.Controllers
             if (actor == null)
                 return Json(new { success = false, message = "Sesi tidak valid." });
 
+            // D-09/D-10/D-11/D-12: Progression warning check for Tahun 2/3 assignment
+            if (req.ProtonTrackId.HasValue && req.ProtonTrackId.Value > 0)
+            {
+                var requestedTrack = await _context.ProtonTracks.FindAsync(req.ProtonTrackId.Value);
+                if (requestedTrack != null)
+                {
+                    // Find previous track in the same TrackType (e.g. Panelman Tahun 1 before Panelman Tahun 2)
+                    var prevTrack = await _context.ProtonTracks
+                        .Where(t => t.TrackType == requestedTrack.TrackType
+                                 && t.Urutan == requestedTrack.Urutan - 1)
+                        .FirstOrDefaultAsync();
+                    if (prevTrack != null)
+                    {
+                        var incompleteCoachees = new List<string>();
+                        foreach (var coacheeId in req.CoacheeIds)
+                        {
+                            // D-11: Skip warning if coachee already has an assignment for this track (reactivated scenario)
+                            var hasExistingAssignment = await _context.ProtonTrackAssignments
+                                .AnyAsync(a => a.CoacheeId == coacheeId
+                                           && a.ProtonTrackId == req.ProtonTrackId.Value);
+                            if (hasExistingAssignment) continue;
+
+                            // Check if previous track assignment exists and all progress is Approved
+                            var prevAssignment = await _context.ProtonTrackAssignments
+                                .FirstOrDefaultAsync(a => a.CoacheeId == coacheeId
+                                                       && a.ProtonTrackId == prevTrack.Id);
+                            if (prevAssignment == null)
+                            {
+                                incompleteCoachees.Add(coacheeId);
+                                continue;
+                            }
+
+                            var allApproved = !await _context.ProtonDeliverableProgresses
+                                .AnyAsync(p => p.ProtonTrackAssignmentId == prevAssignment.Id
+                                           && p.Status != "Approved");
+                            if (!allApproved)
+                                incompleteCoachees.Add(coacheeId);
+                        }
+
+                        // D-09: Warning only — return warning response if incomplete and user hasn't confirmed
+                        if (incompleteCoachees.Any() && !req.ConfirmProgressionWarning)
+                        {
+                            return Json(new { success = false, warning = true,
+                                message = $"{incompleteCoachees.Count} coachee belum menyelesaikan {prevTrack.DisplayName}. Tetap lanjutkan?",
+                                incompleteCount = incompleteCoachees.Count });
+                        }
+                    }
+                }
+            }
+
             var startDate = req.StartDate ?? DateTime.Today;
 
             var newMappings = req.CoacheeIds.Select(id => new CoachCoacheeMapping
@@ -4239,6 +4289,9 @@ namespace HcPortal.Controllers
             if (actor == null)
                 return Json(new { success = false, message = "Sesi tidak valid." });
 
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
             mapping.IsActive = false;
             mapping.EndDate = DateTime.UtcNow;
 
@@ -4256,6 +4309,7 @@ namespace HcPortal.Controllers
             int cascadeCount = activeAssignments.Count;
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Deactivate",
                 $"Deactivated coach-coachee mapping #{id} — {cascadeCount} ProtonTrackAssignment(s) also deactivated", targetId: id, targetType: "CoachCoacheeMapping");
@@ -4280,6 +4334,13 @@ namespace HcPortal.Controllers
             catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
 
             return Json(new { success = true, message = $"Mapping berhasil dinonaktifkan. {cascadeCount} track assignment juga dinonaktifkan." });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "CoachCoacheeMappingDeactivate transaction failed for mapping {Id}", id);
+                return Json(new { success = false, message = "Operasi gagal. Semua perubahan dibatalkan." });
+            }
         }
 
         // POST /Admin/CoachCoacheeMappingReactivate
@@ -4304,25 +4365,17 @@ namespace HcPortal.Controllers
             if (actor == null)
                 return Json(new { success = false, message = "Sesi tidak valid." });
 
+            // D-08: Capture originalEndDate BEFORE modifying mapping (avoid fragile OriginalValues API)
+            var originalEndDate = mapping.EndDate;
             mapping.IsActive = true;
             mapping.EndDate = null;
 
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
             // FIX-01: Only reactivate assignments that were deactivated as part of this mapping's deactivation event.
-            // We correlate by DeactivatedAt timestamp (within 5 seconds of mapping.EndDate) to avoid restoring
+            // We correlate by DeactivatedAt timestamp (within 5 seconds of originalEndDate) to avoid restoring
             // assignments that were independently deactivated for other reasons.
-            var deactivationTime = mapping.EndDate; // was EndDate before we cleared it; read below from DB snapshot
-            // Re-read EndDate before clearing (mapping.EndDate is now null after line above — capture it first)
-            // NOTE: The deactivationTime is captured before clearing EndDate. We need to reload it.
-            var mappingEndDate = await _context.CoachCoacheeMappings
-                .Where(m => m.Id == id)
-                .Select(m => m.EndDate)
-                .FirstOrDefaultAsync();
-            // mappingEndDate is already null because we set mapping.EndDate = null above and it's tracked.
-            // We need the original EndDate — use the one we captured before the change.
-            // Since we haven't saved yet, re-read from OriginalValues via EF change tracker.
-            var entry = _context.Entry(mapping);
-            var originalEndDate = (DateTime?)entry.OriginalValues["EndDate"];
-
             List<ProtonTrackAssignment> inactiveAssignments;
             if (originalEndDate.HasValue)
             {
@@ -4350,6 +4403,7 @@ namespace HcPortal.Controllers
             int reactivatedCount = inactiveAssignments.Count;
 
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
             await _auditLog.LogAsync(actor.Id, actor.FullName, "Reactivate",
                 $"Reactivated coach-coachee mapping #{id} — {reactivatedCount} ProtonTrackAssignment(s) also reactivated", targetId: id, targetType: "CoachCoacheeMapping");
@@ -4360,6 +4414,13 @@ namespace HcPortal.Controllers
                 showAssignPrompt = reactivatedCount == 0,
                 coacheeName = coacheeUser?.FullName ?? "",
                 assignUrl = Url.Action("CoachCoacheeMapping", "Admin") });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "CoachCoacheeMappingReactivate transaction failed for mapping {Id}", id);
+                return Json(new { success = false, message = "Operasi gagal. Semua perubahan dibatalkan." });
+            }
         }
 
         // GET /Admin/CoachCoacheeMappingDeletePreview
@@ -7617,6 +7678,8 @@ public class CoachAssignRequest
     public DateTime? StartDate { get; set; }
     public string? AssignmentSection { get; set; }
     public string? AssignmentUnit { get; set; }
+    /// <summary>D-09: If true, user confirmed to proceed despite incomplete progression warning.</summary>
+    public bool ConfirmProgressionWarning { get; set; }
 }
 
 public class CoachEditRequest
