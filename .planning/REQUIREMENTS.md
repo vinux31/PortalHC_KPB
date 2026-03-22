@@ -15,8 +15,8 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 
 ### Audit Setup Flow
 
-- [ ] **SETUP-01**: Audit Silabus delete — tambah impact count warning sebelum hard delete, soft delete jika ada progress aktif
-- [ ] **SETUP-02**: Audit Coaching Guidance — file management integrity (upload/replace/delete), validasi tipe file
+- [x] **SETUP-01**: Audit Silabus delete — tambah impact count warning sebelum hard delete, soft delete jika ada progress aktif
+- [x] **SETUP-02**: Audit Coaching Guidance — file management integrity (upload/replace/delete), validasi tipe file
 - [x] **SETUP-03**: Audit Coach-Coachee Mapping — tambah explicit DB transaction pada cascade deactivation, validasi duplikasi
 - [x] **SETUP-04**: Audit Track Assignment — progression validation Tahun 1→2→3, seed ProtonDeliverableProgress correctness
 - [ ] **SETUP-05**: Audit Import/Export Silabus dan Mapping — validasi data, error handling, template accuracy
@@ -73,8 +73,8 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 | RSCH-01 | Phase 233 | Complete |
 | RSCH-02 | Phase 233 | Complete |
 | RSCH-03 | Phase 233 | Complete |
-| SETUP-01 | Phase 234 | Pending |
-| SETUP-02 | Phase 234 | Pending |
+| SETUP-01 | Phase 234 | Complete |
+| SETUP-02 | Phase 234 | Complete |
 | SETUP-03 | Phase 234 | Complete |
 | SETUP-04 | Phase 234 | Complete |
 | SETUP-05 | Phase 234 | Pending |

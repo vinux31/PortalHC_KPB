@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
 status: unknown
-stopped_at: Completed 234-02-PLAN.md
-last_updated: "2026-03-22T13:59:44.516Z"
+stopped_at: Completed 234-01-PLAN.md
+last_updated: "2026-03-22T14:00:42.698Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State: Portal HC KPB
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 234 (audit-setup-flow) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -42,6 +42,7 @@ Plan: 2 of 3
 - [Phase 233]: Scope Phase 234-237 diperluas dari 20 rekomendasi riset menjadi 37 item setelah codebase audit menemukan 24 bug tambahan
 - [Phase 234]: originalEndDate explicit capture menggantikan fragile OriginalValues API di CoachCoacheeMappingReactivate
 - [Phase 234]: Progression warning bersifat warning-only (bukan block) dengan ConfirmProgressionWarning flag override
+- [Phase 234-audit-setup-flow]: Hard delete silabus diblokir jika ada progress aktif (Status != Approved) — pakai SilabusDeactivate untuk soft delete
 
 ### Pending Todos
 
@@ -53,6 +54,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T13:59:44.513Z
-Stopped at: Completed 234-02-PLAN.md
+Last session: 2026-03-22T14:00:42.695Z
+Stopped at: Completed 234-01-PLAN.md
 Resume file: None
