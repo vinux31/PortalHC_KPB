@@ -20,6 +20,9 @@
     var selectedUnit = ViewBag.SelectedUnit as string ?? "";
     var selectedStatus = ViewBag.SelectedStatus as string ?? "";
     var searchTerm2 = ViewBag.SearchTerm as string ?? "";
+    var assessmentCategories = ViewBag.Categories as List<string> ?? new List<string>();
+    var selectedAssessmentCategory = ViewBag.SelectedCategory as string ?? "";
+    var selectedAssessmentStatus = ViewBag.SelectedStatus as string ?? "";
 }
 
 @Html.AntiForgeryToken()
@@ -117,6 +120,55 @@
                     </div>
                 </form>
             </div>
+        </div>
+
+        <!-- Filter Row: Kategori + Status -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <select id="categoryFilter" class="form-select form-select-sm" onchange="applyAssessmentFilters()">
+                    <option value="">Semua Kategori</option>
+                    @foreach (var cat in assessmentCategories)
+                    {
+                        if (selectedAssessmentCategory == cat)
+                        { <option value="@cat" selected="selected">@cat</option> }
+                        else
+                        { <option value="@cat">@cat</option> }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="statusFilter" class="form-select form-select-sm" onchange="applyAssessmentFilters()">
+                    @if (string.IsNullOrEmpty(selectedAssessmentStatus))
+                    { <option value="" selected="selected">Aktif (Open/Upcoming)</option> }
+                    else
+                    { <option value="">Aktif (Open/Upcoming)</option> }
+                    @if (selectedAssessmentStatus == "Open")
+                    { <option value="Open" selected="selected">Open</option> }
+                    else
+                    { <option value="Open">Open</option> }
+                    @if (selectedAssessmentStatus == "Upcoming")
+                    { <option value="Upcoming" selected="selected">Upcoming</option> }
+                    else
+                    { <option value="Upcoming">Upcoming</option> }
+                    @if (selectedAssessmentStatus == "Closed")
+                    { <option value="Closed" selected="selected">Closed</option> }
+                    else
+                    { <option value="Closed">Closed</option> }
+                    @if (selectedAssessmentStatus == "All")
+                    { <option value="All" selected="selected">Semua Status</option> }
+                    else
+                    { <option value="All">Semua Status</option> }
+                </select>
+            </div>
+            @if (!string.IsNullOrEmpty(selectedAssessmentCategory) || !string.IsNullOrEmpty(selectedAssessmentStatus))
+            {
+                <div class="col-md-2">
+                    <a asp-action="ManageAssessment" asp-controller="Admin" asp-route-tab="assessment"
+                       class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-lg me-1"></i>Reset Filter
+                    </a>
+                </div>
+            }
         </div>
 
         <!-- Stats Badge -->
@@ -843,6 +895,18 @@ document.querySelectorAll('.btn-regenerate-token').forEach(btn => {
         }
     });
 });
+
+// Assessment Groups tab: Category + Status filter (server-side redirect)
+function applyAssessmentFilters() {
+    var category = document.getElementById('categoryFilter')?.value || '';
+    var status = document.getElementById('statusFilter')?.value || '';
+    var search = '@searchTerm' || '';
+    var url = '/Admin/ManageAssessment?tab=assessment';
+    if (category) url += '&category=' + encodeURIComponent(category);
+    if (status) url += '&statusFilter=' + encodeURIComponent(status);
+    if (search) url += '&search=' + encodeURIComponent(search);
+    window.location.href = url;
+}
 
 // History tab: Riwayat Assessment client-side filter
 function filterAssessmentRows() {

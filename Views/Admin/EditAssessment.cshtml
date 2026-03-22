@@ -39,6 +39,26 @@
         </div>
     </div>
 
+    <!-- Warning Alert -->
+    @if (TempData["Warning"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle-fill me-2"></i>
+            @TempData["Warning"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Package Count Warning -->
+    @if (packageCount > 0)
+    {
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-boxes me-2"></i>
+            Assessment ini memiliki <strong>@packageCount paket soal</strong>. Mengubah peserta dapat mempengaruhi assignment paket.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <!-- Error Alert -->
     @if (TempData["Error"] != null)
     {

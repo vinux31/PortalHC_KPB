@@ -656,6 +656,10 @@ namespace HcPortal.Controllers
                 );
             }
 
+            // Category filter — applied before DB fetch for efficiency
+            if (!string.IsNullOrEmpty(category))
+                managementQuery = managementQuery.Where(a => a.Category == category);
+
             var allSessions = await managementQuery
                 .Include(a => a.User)
                 .OrderByDescending(a => a.Schedule)
@@ -685,6 +689,14 @@ namespace HcPortal.Controllers
                 .Select(g =>
                 {
                     var rep = g.OrderBy(a => a.CreatedAt).First();
+                    // Compute GroupStatus from session statuses
+                    string groupStatus;
+                    if (g.Any(a => a.Status == "Open" || a.Status == "InProgress"))
+                        groupStatus = "Open";
+                    else if (g.Any(a => a.Status == "Upcoming"))
+                        groupStatus = "Upcoming";
+                    else
+                        groupStatus = "Closed";
                     return new
                     {
                         rep.Title,
@@ -700,11 +712,29 @@ namespace HcPortal.Controllers
                         RepresentativeId = rep.Id,
                         Users = g.Select(a => new { a.UserFullName, a.UserEmail, a.UserId }).ToList(),
                         AllIds = g.Select(a => a.Id).ToList(),
-                        UserCount = g.Count()
+                        UserCount = g.Count(),
+                        GroupStatus = groupStatus
                     };
                 })
                 .OrderByDescending(g => g.Schedule)
                 .ToList();
+
+            // Status filter — applied AFTER grouping (GroupStatus computed from sessions)
+            // Default: show Open + Upcoming only (exclude Closed) unless statusFilter param is provided
+            if (string.IsNullOrEmpty(statusFilter))
+                grouped = grouped.Where(g => g.GroupStatus != "Closed").ToList();
+            else if (statusFilter == "Open" || statusFilter == "Upcoming" || statusFilter == "Closed")
+                grouped = grouped.Where(g => g.GroupStatus == statusFilter).ToList();
+            // statusFilter == "All" → no filter applied
+
+            // Fetch distinct categories for dropdown
+            ViewBag.Categories = await _context.AssessmentSessions
+                .Select(a => a.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToListAsync();
+            ViewBag.SelectedCategory = category ?? "";
+            ViewBag.SelectedStatus = statusFilter ?? "";
 
             var paging = PaginationHelper.Calculate(grouped.Count, page, pageSize);
 
@@ -1167,6 +1197,12 @@ namespace HcPortal.Controllers
             if (UserIds == null || UserIds.Count == 0)
             {
                 ModelState.AddModelError("UserIds", "Please select at least one user.");
+            }
+
+            // Validate category is selected
+            if (string.IsNullOrWhiteSpace(model.Category))
+            {
+                ModelState.AddModelError("Category", "Kategori wajib dipilih.");
             }
 
             // Rate limiting: max 50 users per request
@@ -1750,6 +1786,16 @@ namespace HcPortal.Controllers
                 sibling.UpdatedAt = now;
             }
 
+            // InProgress warning: notify if any sibling session is currently in progress
+            var hasInProgress = await _context.AssessmentSessions
+                .AnyAsync(s => s.Title == origTitle && s.Category == origCategory
+                    && s.Schedule.Date == origScheduleDate
+                    && s.StartedAt != null && s.CompletedAt == null);
+            if (hasInProgress)
+            {
+                TempData["Warning"] = "Perhatian: Ada peserta yang sedang mengerjakan ujian. Perubahan Title/Category/Schedule tidak akan berlaku untuk sesi yang sedang berjalan.";
+            }
+
             // Fetch actor info before try block so it is available for both edit and bulk-assign audit calls
             var editUser = await _userManager.GetUserAsync(User);
             var editActorName = string.IsNullOrWhiteSpace(editUser?.NIP) ? (editUser?.FullName ?? "Unknown") : $"{editUser.NIP} - {editUser.FullName}";
@@ -1935,6 +1981,24 @@ namespace HcPortal.Controllers
                     _context.AssessmentAttemptHistory.RemoveRange(attemptHistory);
                 }
 
+                // Explicit cleanup: AssessmentPackages + nested Questions + Options
+                // (DB may cascade, but explicit removal prevents ordering issues)
+                var packages = await _context.AssessmentPackages
+                    .Include(p => p.Questions).ThenInclude(q => q.Options)
+                    .Where(p => p.AssessmentSessionId == id)
+                    .ToListAsync();
+                if (packages.Any())
+                {
+                    foreach (var pkg in packages)
+                    {
+                        foreach (var q in pkg.Questions)
+                            _context.PackageOptions.RemoveRange(q.Options);
+                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                    }
+                    _context.AssessmentPackages.RemoveRange(packages);
+                    logger.LogInformation($"Deleting {packages.Count} packages with their questions/options");
+                }
+
                 // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
 
                 // Finally delete the assessment itself
@@ -2021,6 +2085,23 @@ namespace HcPortal.Controllers
                 if (allAttemptHistory.Any())
                     _context.AssessmentAttemptHistory.RemoveRange(allAttemptHistory);
 
+                // Explicit cleanup: AssessmentPackages + nested Questions + Options for all siblings
+                var allPackages = await _context.AssessmentPackages
+                    .Include(p => p.Questions).ThenInclude(q => q.Options)
+                    .Where(p => siblingIds.Contains(p.AssessmentSessionId))
+                    .ToListAsync();
+                if (allPackages.Any())
+                {
+                    foreach (var pkg in allPackages)
+                    {
+                        foreach (var q in pkg.Questions)
+                            _context.PackageOptions.RemoveRange(q.Options);
+                        _context.PackageQuestions.RemoveRange(pkg.Questions);
+                    }
+                    _context.AssessmentPackages.RemoveRange(allPackages);
+                    logger.LogInformation($"DeleteAssessmentGroup: deleting {allPackages.Count} packages with their questions/options");
+                }
+
                 // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
 
                 foreach (var session in siblings)
@@ -2092,6 +2173,18 @@ namespace HcPortal.Controllers
                     sibling.UpdatedAt = DateTime.UtcNow;
                 }
                 await _context.SaveChangesAsync();
+
+                // Audit log
+                var regenUser = await _userManager.GetUserAsync(User);
+                var regenActorName = string.IsNullOrWhiteSpace(regenUser?.NIP) ? (regenUser?.FullName ?? "Unknown") : $"{regenUser.NIP} - {regenUser.FullName}";
+                await _auditLog.LogAsync(
+                    regenUser?.Id ?? "",
+                    regenActorName,
+                    "RegenerateToken",
+                    $"Regenerated access token for '{assessment.Title}' ({assessment.Category}, {assessment.Schedule:yyyy-MM-dd}) — {siblings.Count} sibling(s) updated",
+                    id,
+                    "AssessmentSession");
+
                 return Json(new { success = true, token = newToken, message = "Token regenerated successfully." });
             }
             catch (Exception ex)
@@ -2160,7 +2253,7 @@ namespace HcPortal.Controllers
                     a.IsTokenRequired,
                     a.AccessToken,
                     a.CreatedAt,
-                    IsCompleted = a.CompletedAt != null || a.Score != null,
+                    IsCompleted = a.CompletedAt != null,
                     IsPassed = a.IsPassed ?? false,
                     IsStarted = a.StartedAt != null
                 })
@@ -2261,7 +2354,7 @@ namespace HcPortal.Controllers
             var sessionViewModels = sessions.Select(a =>
             {
                 string userStatus;
-                if (a.CompletedAt != null || a.Score != null)
+                if (a.CompletedAt != null)
                     userStatus = "Completed";
                 else if (a.Status == "Cancelled")
                     userStatus = "Dibatalkan";
@@ -2282,7 +2375,8 @@ namespace HcPortal.Controllers
                     IsPassed     = a.IsPassed,
                     CompletedAt  = a.CompletedAt,
                     StartedAt    = a.StartedAt,
-                    QuestionCount = questionCountMap.TryGetValue(a.Id, out var qc) ? qc : 0
+                    QuestionCount = questionCountMap.TryGetValue(a.Id, out var qc) ? qc : 0,
+                    DurationMinutes = a.DurationMinutes
                 };
             })
             .OrderBy(s => s.UserStatus)   // Not started before Completed
