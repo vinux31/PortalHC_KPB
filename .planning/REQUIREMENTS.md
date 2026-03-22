@@ -5,9 +5,16 @@
 
 ## v8.1 Requirements
 
-Requirements for RenewalCertificate Page Audit milestone. Audit menyeluruh renewal ecosystem — logic, UI, cross-page integration, edge cases.
+Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best practices → audit kode dengan lens best practices → fix + improve.
 
-### Logic & Data
+### Best Practices Research
+
+- [ ] **RSCH-01**: Riset best practices certificate renewal UX dari platform sejenis (Coursera, LinkedIn Learning, HR portals)
+- [ ] **RSCH-02**: Riset best practices assessment/exam management dari platform sejenis (Moodle, Google Forms Quiz, Examly)
+- [ ] **RSCH-03**: Riset best practices real-time exam monitoring UX dari platform sejenis
+- [ ] **RSCH-04**: Dokumen perbandingan fitur portal vs best practices dengan rekomendasi improvement per halaman
+
+### Renewal — Logic & Data
 
 - [ ] **LDAT-01**: Renewal chain FK 4 kombinasi (AS→AS, AS→TR, TR→TR, TR→AS) semua set dengan benar saat renew
 - [ ] **LDAT-02**: Badge count Admin/Index sinkron dengan BuildRenewalRowsAsync (single source of truth)
@@ -15,25 +22,48 @@ Requirements for RenewalCertificate Page Audit milestone. Audit menyeluruh renew
 - [ ] **LDAT-04**: Grouping by Judul case-insensitive dan karakter khusus URL-safe
 - [ ] **LDAT-05**: MapKategori konsisten dengan AssessmentCategories naming
 
-### UI & UX
+### Renewal — UI & UX
 
 - [ ] **UIUX-01**: Grouped view RenewalCertificate tampil benar dengan data aktual
 - [ ] **UIUX-02**: Filter cascade Bagian/Unit/Kategori/Tipe berfungsi dan saling terhubung
 - [ ] **UIUX-03**: Renewal method modal (single + bulk) menampilkan pilihan yang benar berdasarkan tipe
 - [ ] **UIUX-04**: Certificate history modal menampilkan chain grouping yang akurat
 
-### Cross-Page Integration
+### Renewal — Cross-Page Integration
 
 - [ ] **XPAG-01**: CreateAssessment renewal pre-fill (judul, kategori, peserta) dari RenewalCertificate berfungsi
 - [ ] **XPAG-02**: AddTraining renewal mode (pre-fill + FK) dari RenewalCertificate berfungsi
 - [ ] **XPAG-03**: CDP Certification Management menyembunyikan renewed certs dengan toggle
 - [ ] **XPAG-04**: Admin/Index badge count mencerminkan jumlah renewal yang pending
 
-### Edge Cases
+### Renewal — Edge Cases
 
 - [ ] **EDGE-01**: Bulk renew mixed-type (campuran Assessment + Training) validasi dan flow benar
 - [ ] **EDGE-02**: Double renewal prevention — sertifikat yang sudah di-renew tidak bisa di-renew lagi
 - [ ] **EDGE-03**: Empty state handling saat tidak ada sertifikat yang perlu di-renew
+
+### Assessment Management
+
+- [ ] **AMGT-01**: CreateAssessment form validasi lengkap (judul, kategori, tanggal, peserta, passing grade)
+- [ ] **AMGT-02**: EditAssessment mempertahankan data existing dan warning jika ada package terkait
+- [ ] **AMGT-03**: DeleteAssessment cascade cleanup benar (packages, questions, sessions, responses)
+- [ ] **AMGT-04**: Package assignment ke peserta berfungsi (single + bulk assign)
+- [ ] **AMGT-05**: ManageAssessment list view filter dan search berfungsi
+
+### Assessment Monitoring
+
+- [ ] **AMON-01**: AssessmentMonitoring group list menampilkan stats real-time (participant count, completed, passed, status)
+- [ ] **AMON-02**: MonitoringDetail per-participant live progress (answered/total, status, score, time remaining)
+- [ ] **AMON-03**: HC actions berfungsi (Reset, Force Close, Bulk Close, Close Early, Regenerate Token)
+- [ ] **AMON-04**: Token card dengan copy dan regenerate berfungsi
+
+### Assessment Flow — Worker Side
+
+- [ ] **AFLW-01**: Worker melihat daftar assessment (Open/Upcoming) sesuai assignment
+- [ ] **AFLW-02**: StartExam flow benar (token entry → exam page → timer → auto-save per-click)
+- [ ] **AFLW-03**: SubmitExam menghasilkan score, IsPassed, NomorSertifikat (jika lulus), competency update
+- [ ] **AFLW-04**: Session resume berfungsi (ElapsedSeconds, LastActivePage, pre-populated answers)
+- [ ] **AFLW-05**: Results page menampilkan score, pass/fail, answer review (jika diaktifkan HC)
 
 ## v8.0 Requirements (Previous)
 
@@ -88,35 +118,53 @@ Requirements for RenewalCertificate Page Audit milestone. Audit menyeluruh renew
 | Renewal via email notification | Deferred ke future milestone (NOTF-*) |
 | Training compliance matrix | Deferred ke future milestone (COMP-*) |
 | Question bank management | Deferred ke future milestone (QBNK-*) |
-| New renewal UI redesign | Audit saja, bukan redesign |
+| Full UI redesign | Audit + targeted improvement, bukan redesign total |
 | Mobile app | Web-first |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| LDAT-01 | TBD | Pending |
-| LDAT-02 | TBD | Pending |
-| LDAT-03 | TBD | Pending |
-| LDAT-04 | TBD | Pending |
-| LDAT-05 | TBD | Pending |
-| UIUX-01 | TBD | Pending |
-| UIUX-02 | TBD | Pending |
-| UIUX-03 | TBD | Pending |
-| UIUX-04 | TBD | Pending |
-| XPAG-01 | TBD | Pending |
-| XPAG-02 | TBD | Pending |
-| XPAG-03 | TBD | Pending |
-| XPAG-04 | TBD | Pending |
-| EDGE-01 | TBD | Pending |
-| EDGE-02 | TBD | Pending |
-| EDGE-03 | TBD | Pending |
+| RSCH-01 | Phase 228 | Pending |
+| RSCH-02 | Phase 228 | Pending |
+| RSCH-03 | Phase 228 | Pending |
+| RSCH-04 | Phase 228 | Pending |
+| LDAT-01 | Phase 229 | Pending |
+| LDAT-02 | Phase 229 | Pending |
+| LDAT-03 | Phase 229 | Pending |
+| LDAT-04 | Phase 229 | Pending |
+| LDAT-05 | Phase 229 | Pending |
+| EDGE-01 | Phase 229 | Pending |
+| EDGE-02 | Phase 229 | Pending |
+| EDGE-03 | Phase 229 | Pending |
+| UIUX-01 | Phase 230 | Pending |
+| UIUX-02 | Phase 230 | Pending |
+| UIUX-03 | Phase 230 | Pending |
+| UIUX-04 | Phase 230 | Pending |
+| XPAG-01 | Phase 230 | Pending |
+| XPAG-02 | Phase 230 | Pending |
+| XPAG-03 | Phase 230 | Pending |
+| XPAG-04 | Phase 230 | Pending |
+| AMGT-01 | Phase 231 | Pending |
+| AMGT-02 | Phase 231 | Pending |
+| AMGT-03 | Phase 231 | Pending |
+| AMGT-04 | Phase 231 | Pending |
+| AMGT-05 | Phase 231 | Pending |
+| AMON-01 | Phase 231 | Pending |
+| AMON-02 | Phase 231 | Pending |
+| AMON-03 | Phase 231 | Pending |
+| AMON-04 | Phase 231 | Pending |
+| AFLW-01 | Phase 232 | Pending |
+| AFLW-02 | Phase 232 | Pending |
+| AFLW-03 | Phase 232 | Pending |
+| AFLW-04 | Phase 232 | Pending |
+| AFLW-05 | Phase 232 | Pending |
 
 **Coverage:**
-- v8.1 requirements: 16 total
-- Mapped to phases: 0
-- Unmapped: 16 ⚠️
+- v8.1 requirements: 34 total
+- Mapped to phases: 34
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after v8.1 milestone definition*
+*Last updated: 2026-03-22 after scope expansion (assessment pages + research)*
