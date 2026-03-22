@@ -16,11 +16,11 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Renewal — Logic & Data
 
-- [ ] **LDAT-01**: Renewal chain FK 4 kombinasi (AS→AS, AS→TR, TR→TR, TR→AS) semua set dengan benar saat renew
-- [ ] **LDAT-02**: Badge count Admin/Index sinkron dengan BuildRenewalRowsAsync (single source of truth)
-- [ ] **LDAT-03**: DeriveCertificateStatus handle semua edge case (null ValidUntil, Permanent, expired, akan expired)
-- [ ] **LDAT-04**: Grouping by Judul case-insensitive dan karakter khusus URL-safe
-- [ ] **LDAT-05**: MapKategori konsisten dengan AssessmentCategories naming
+- [x] **LDAT-01**: Renewal chain FK 4 kombinasi (AS→AS, AS→TR, TR→TR, TR→AS) semua set dengan benar saat renew
+- [x] **LDAT-02**: Badge count Admin/Index sinkron dengan BuildRenewalRowsAsync (single source of truth)
+- [x] **LDAT-03**: DeriveCertificateStatus handle semua edge case (null ValidUntil, Permanent, expired, akan expired)
+- [x] **LDAT-04**: Grouping by Judul case-insensitive dan karakter khusus URL-safe
+- [x] **LDAT-05**: MapKategori konsisten dengan AssessmentCategories naming
 
 ### Renewal — UI & UX
 
@@ -39,7 +39,7 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 ### Renewal — Edge Cases
 
 - [ ] **EDGE-01**: Bulk renew mixed-type (campuran Assessment + Training) validasi dan flow benar
-- [ ] **EDGE-02**: Double renewal prevention — sertifikat yang sudah di-renew tidak bisa di-renew lagi
+- [x] **EDGE-02**: Double renewal prevention — sertifikat yang sudah di-renew tidak bisa di-renew lagi
 - [ ] **EDGE-03**: Empty state handling saat tidak ada sertifikat yang perlu di-renew
 
 ### Assessment Management
@@ -129,13 +129,13 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 | RSCH-02 | Phase 228 | Complete |
 | RSCH-03 | Phase 228 | Complete |
 | RSCH-04 | Phase 228 | Complete |
-| LDAT-01 | Phase 229 | Pending |
-| LDAT-02 | Phase 229 | Pending |
-| LDAT-03 | Phase 229 | Pending |
-| LDAT-04 | Phase 229 | Pending |
-| LDAT-05 | Phase 229 | Pending |
+| LDAT-01 | Phase 229 | Complete |
+| LDAT-02 | Phase 229 | Complete |
+| LDAT-03 | Phase 229 | Complete |
+| LDAT-04 | Phase 229 | Complete |
+| LDAT-05 | Phase 229 | Complete |
 | EDGE-01 | Phase 229 | Pending |
-| EDGE-02 | Phase 229 | Pending |
+| EDGE-02 | Phase 229 | Complete |
 | EDGE-03 | Phase 229 | Pending |
 | UIUX-01 | Phase 230 | Pending |
 | UIUX-02 | Phase 230 | Pending |

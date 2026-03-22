@@ -65,7 +65,7 @@ Plans:
   6. Bulk mixed-type validation berfungsi, double renewal dicegah, empty state ditangani dengan benar
 **Plans**: 2 plans
 Plans:
-- [ ] 229-01-PLAN.md — Fix MapKategori DB lookup, double renewal guard, FK XOR, mirror CDPController
+- [x] 229-01-PLAN.md — Fix MapKategori DB lookup, double renewal guard, FK XOR, mirror CDPController
 - [ ] 229-02-PLAN.md — Mixed-type bulk validation, empty state verifikasi, HTML audit report
 
 ### Phase 230: Audit Renewal UI & Cross-Page Integration
@@ -123,7 +123,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 228. Best Practices Research | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 229. Audit Renewal Logic & Edge Cases | v8.1 | 0/2 | Not started | - |
+| 229. Audit Renewal Logic & Edge Cases | v8.1 | 1/2 | In Progress|  |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 0/? | Not started | - |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 0/? | Not started | - |
 | 232. Audit Assessment Flow — Worker Side | v8.1 | 0/? | Not started | - |
