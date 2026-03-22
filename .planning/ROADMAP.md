@@ -9,121 +9,103 @@
 - ✅ **v7.11 CMP Records Bug Fixes & Enhancement** - Phases 213–218 (shipped 2026-03-21)
 - ✅ **v7.12 Struktur Organisasi CRUD** - Phases 219–222 (shipped 2026-03-21)
 - ✅ **v8.0 Assessment Integrity & Analytics** - Phases 223–227 (shipped 2026-03-22)
-- 🚧 **v8.1 Renewal & Assessment Ecosystem Audit** - Phases 228–232 (in progress)
+- ✅ **v8.1 Renewal & Assessment Ecosystem Audit** - Phases 228–232 (shipped 2026-03-22)
+- 🚧 **v8.2 Proton Coaching Ecosystem Audit** - Phases 233–237 (in progress)
 
 ---
 
 <details>
-<summary>✅ v1.0–v8.0 (Phases 1–227) - SHIPPED</summary>
+<summary>✅ v1.0–v8.1 (Phases 1–232) - SHIPPED</summary>
 
 All prior milestones shipped. See MILESTONES.md for full detail.
 
-Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link from assessment dropdown)
+Last completed phase: 232 (v8.1 — Audit Assessment Flow Worker Side)
 
 </details>
 
 ---
 
-### 🚧 v8.1 Renewal & Assessment Ecosystem Audit (In Progress)
+### 🚧 v8.2 Proton Coaching Ecosystem Audit (In Progress)
 
-**Milestone Goal:** Riset best practices platform sejenis → audit seluruh ekosistem renewal certificate dan assessment (logic, UI, cross-page integration, management, worker flow) → fix bug dan improve UX berdasarkan temuan riset.
+**Milestone Goal:** Riset best practices coaching/mentoring platform → audit seluruh ekosistem Proton coaching end-to-end (setup, execution, completion, monitoring) → fix bug dan implement differentiator enhancement berdasarkan temuan riset.
 
 ## Phases
 
-- [x] **Phase 228: Best Practices Research** - Riset renewal, assessment, dan monitoring best practices dari platform sejenis (completed 2026-03-22)
-- [x] **Phase 229: Audit Renewal Logic & Edge Cases** - Audit dan fix renewal chain FK, badge sync, status derivation, grouping, dan edge cases (completed 2026-03-22)
-- [x] **Phase 230: Audit Renewal UI & Cross-Page Integration** - Audit dan fix renewal UI grouped view, filter, modal, dan integrasi lintas halaman (completed 2026-03-22)
-- [x] **Phase 231: Audit Assessment Management & Monitoring** - Audit dan fix ManageAssessment dan AssessmentMonitoring (admin/HC side) (completed 2026-03-22)
-- [x] **Phase 232: Audit Assessment Flow — Worker Side** - Audit dan fix worker-side exam flow end-to-end (completed 2026-03-22)
+- [ ] **Phase 233: Riset & Perbandingan Coaching Platform** - Browse platform coaching luar, dokumen perbandingan UX/flow, rekomendasi improvement
+- [ ] **Phase 234: Audit Setup Flow** - Audit silabus delete safety, guidance file management, coach-coachee mapping, track assignment, import/export
+- [ ] **Phase 235: Audit Execution Flow** - Audit evidence submission, approval chain, status history, notifikasi, PlanIdp view
+- [ ] **Phase 236: Audit Completion** - Audit final assessment, coaching sessions, HistoriProton, 3-year journey lifecycle
+- [ ] **Phase 237: Audit Monitoring & Differentiator Enhancement** - Audit dashboard, tracking, override, export, plus workload indicator, batch approval, bottleneck analysis
 
 ## Phase Details
 
-### Phase 228: Best Practices Research
-**Goal**: Riset best practices dari platform sejenis untuk renewal certificate, assessment management, exam monitoring, dan exam flow — hasilkan dokumen perbandingan dan rekomendasi improvement.
-**Depends on**: Phase 227 (v8.0 complete)
-**Requirements**: RSCH-01, RSCH-02, RSCH-03, RSCH-04
+### Phase 233: Riset & Perbandingan Coaching Platform
+**Goal**: Menghasilkan dokumen riset perbandingan platform coaching industri vs portal KPB sebagai lens untuk audit Phases 234-237
+**Depends on**: Phase 232 (v8.1 complete)
+**Requirements**: RSCH-01, RSCH-02, RSCH-03
 **Success Criteria** (what must be TRUE):
-  1. Dokumen riset renewal certificate best practices mencakup minimal 3 platform dibandingkan (Coursera, LinkedIn Learning, HR portals sejenis)
-  2. Dokumen riset assessment/exam management best practices mencakup minimal 3 platform (Moodle, Google Forms Quiz, Examly)
-  3. Dokumen riset real-time exam monitoring best practices dengan contoh konkret UX patterns
-  4. Dokumen perbandingan fitur portal vs best practices dengan rekomendasi improvement per halaman (RenewalCertificate, ManageAssessment, AssessmentMonitoring, exam flow)
-**Plans**: 2 plans
-Plans:
-- [x] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
-- [x] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
+  1. Screenshot dan dokumentasi UX/flow dari minimal 3 platform coaching (360Learning, BetterUp, CoachHub) tersedia sebagai referensi riset
+  2. Dokumen perbandingan menjabarkan gap portal KPB vs platform luar per area Proton (Setup, Execution, Monitoring, Completion) secara konkret
+  3. Daftar rekomendasi improvement berisi prioritas yang terurut berdasarkan nilai bisnis dan kompleksitas implementasi
+**Plans**: TBD
 
-### Phase 229: Audit Renewal Logic & Edge Cases
-**Goal**: Audit kode renewal logic dengan lens best practices, fix semua bug pada FK chain, badge sync, status derivation, grouping, dan edge case handling.
-**Depends on**: Phase 228
-**Requirements**: LDAT-01, LDAT-02, LDAT-03, LDAT-04, LDAT-05, EDGE-01, EDGE-02, EDGE-03
+### Phase 234: Audit Setup Flow
+**Goal**: Memastikan fondasi data Proton (silabus, mapping, assignment) integritas — tidak ada setup yang bisa menghasilkan data corrupt di fase execution berikutnya
+**Depends on**: Phase 233
+**Requirements**: SETUP-01, SETUP-02, SETUP-03, SETUP-04, SETUP-05
 **Success Criteria** (what must be TRUE):
-  1. Semua 4 kombinasi FK renewal (AS→AS, AS→TR, TR→TR, TR→AS) dapat diverifikasi set dengan benar saat renew
-  2. Badge count di Admin/Index sinkron dengan BuildRenewalRowsAsync sebagai single source of truth
-  3. DeriveCertificateStatus menangani null ValidUntil, Permanent, expired, dan akan-expired tanpa error
-  4. Grouping by Judul berjalan case-insensitive dan karakter khusus URL-safe
-  5. MapKategori konsisten dengan AssessmentCategories naming di seluruh codebase
-  6. Bulk mixed-type validation berfungsi, double renewal dicegah, empty state ditangani dengan benar
-**Plans**: 2 plans
-Plans:
-- [x] 229-01-PLAN.md — Fix MapKategori DB lookup, double renewal guard, FK XOR, mirror CDPController
-- [x] 229-02-PLAN.md — Mixed-type bulk validation, empty state verifikasi, HTML audit report
+  1. Admin yang mencoba hard delete silabus dengan progress aktif mendapat modal warning dengan impact count dan opsi soft delete
+  2. File management guidance (upload, replace, delete) berjalan tanpa file orphan, validasi tipe file berfungsi di server side
+  3. Cascade deactivation coach-coachee mapping terbungkus dalam DB transaction atomik, duplikasi mapping terdeteksi dan ditolak
+  4. Track assignment memvalidasi progression Tahun 1→2→3 di server side — Tahun 2 tidak bisa di-assign sebelum Tahun 1 selesai
+  5. Import/export silabus dan mapping menghasilkan data yang akurat, error per-baris dilaporkan, template tidak menyebabkan data salah saat diisi
+**Plans**: TBD
 
-### Phase 230: Audit Renewal UI & Cross-Page Integration
-**Goal**: Audit renewal UI dan semua integrasi lintas halaman, fix dan improve berdasarkan temuan riset best practices.
-**Depends on**: Phase 229
-**Requirements**: UIUX-01, UIUX-02, UIUX-03, UIUX-04, XPAG-01, XPAG-02, XPAG-03, XPAG-04
+### Phase 235: Audit Execution Flow
+**Goal**: Memastikan alur operasional harian Proton (evidence submission, approval chain, notifikasi) aman dari sisi server dan state-nya selalu konsisten
+**Depends on**: Phase 234
+**Requirements**: EXEC-01, EXEC-02, EXEC-03, EXEC-04, EXEC-05
 **Success Criteria** (what must be TRUE):
-  1. Grouped view RenewalCertificate tampil benar dengan data aktual per grup
-  2. Filter cascade Bagian/Unit/Kategori/Tipe berfungsi dan saling terhubung
-  3. Renewal method modal (single + bulk) menampilkan pilihan yang benar berdasarkan tipe sertifikat
-  4. Certificate history modal menampilkan chain grouping yang akurat
-  5. CreateAssessment dan AddTraining menerima renewal pre-fill (judul, kategori, peserta) dari RenewalCertificate
-  6. CDP CertificationManagement toggle renewed certs berfungsi, Admin/Index badge count sinkron
-**Plans**: 2 plans
-Plans:
-- [x] 230-01-PLAN.md — Audit grouped view, filter cascade, modals, certificate history
-- [x] 230-02-PLAN.md — Audit cross-page pre-fill, CDP toggle, badge count, HTML report
+  1. Coachee dapat submit evidence, menerima reject dengan komentar, dan resubmit — semua tanpa kehilangan file sebelumnya
+  2. Approval chain tidak bisa menghasilkan state tidak konsisten pada concurrent approve, override admin, atau partial approval — setiap transisi memanggil helper yang sama
+  3. DeliverableStatusHistory memiliki insert di setiap state transition termasuk initial Pending saat progress pertama kali di-seed
+  4. Semua notification trigger Proton terpanggil pada: evidence submit, approve, reject, HC review, dan final assessment — verifikasi di server bukan hanya UI
+  5. PlanIdp menampilkan silabus dan guidance tab dengan akurasi, role-based access berjalan benar (coachee tidak bisa akses admin tab)
+**Plans**: TBD
 
-### Phase 231: Audit Assessment Management & Monitoring
-**Goal**: Audit halaman ManageAssessment dan AssessmentMonitoring (sisi admin/HC), fix semua bug, dan improve berdasarkan riset.
-**Depends on**: Phase 230
-**Requirements**: AMGT-01, AMGT-02, AMGT-03, AMGT-04, AMGT-05, AMON-01, AMON-02, AMON-03, AMON-04
+### Phase 236: Audit Completion
+**Goal**: Memastikan fase akhir perjalanan coachee (final assessment, coaching sessions, history) akurat dan tidak bisa menghasilkan data duplikat atau inkonsisten
+**Depends on**: Phase 235
+**Requirements**: COMP-01, COMP-02, COMP-03, COMP-04
 **Success Criteria** (what must be TRUE):
-  1. CreateAssessment form validasi lengkap (judul, kategori, tanggal, peserta, passing grade) sebelum submit
-  2. EditAssessment mempertahankan data existing dan menampilkan warning jika ada package terkait
-  3. DeleteAssessment melakukan cascade cleanup benar (packages, questions, sessions, responses)
-  4. Package assignment ke peserta berfungsi untuk single dan bulk assign
-  5. AssessmentMonitoring menampilkan stats real-time (participant count, completed, passed, status) per group
-  6. Semua HC actions berfungsi: Reset, Force Close, Bulk Close, Close Early, Regenerate Token
-  7. Token card copy dan regenerate berfungsi dari halaman monitoring detail
-**Plans**: 2 plans
-Plans:
-- [x] 231-01-PLAN.md — Audit ManageAssessment CRUD + filter list + cascade delete + HTML report
-- [x] 231-02-PLAN.md — Audit Monitoring + HC actions + token + SignalR + Proton + HTML report
+  1. ProtonFinalAssessment tidak bisa di-create duplikat untuk ProtonTrackAssignmentId yang sama — unique constraint di DB dan guard di controller aktif
+  2. Coaching sessions ter-linked ke deliverable progress yang benar, action items menampilkan status tracking yang akurat
+  3. HistoriProton menampilkan timeline lengkap per coachee termasuk data legacy CoachingLog tanpa duplikasi atau gap
+  4. Lifecycle Tahun 1→2→3 berjalan end-to-end: assignment, transisi antar tahun, dan completion flow menghasilkan competency level yang benar
+**Plans**: TBD
 
-### Phase 232: Audit Assessment Flow — Worker Side
-**Goal**: Audit worker-side assessment flow end-to-end, fix semua bug, dan improve UX berdasarkan riset.
-**Depends on**: Phase 231
-**Requirements**: AFLW-01, AFLW-02, AFLW-03, AFLW-04, AFLW-05
+### Phase 237: Audit Monitoring & Differentiator Enhancement
+**Goal**: Memastikan dashboard dan monitoring akurat setelah semua data upstream bersih, plus menambahkan differentiator fitur yang meningkatkan nilai portal vs platform luar
+**Depends on**: Phase 236
+**Requirements**: MON-01, MON-02, MON-03, MON-04, DIFF-01, DIFF-02, DIFF-03
 **Success Criteria** (what must be TRUE):
-  1. Worker melihat daftar assessment (Open/Upcoming) sesuai assignment — tidak ada assessment yang tidak relevan tampil
-  2. StartExam flow lengkap berfungsi: token entry → exam page → timer berjalan → auto-save per-click
-  3. SubmitExam menghasilkan score, IsPassed, NomorSertifikat (jika lulus), dan competency level update
-  4. Session resume berfungsi dengan ElapsedSeconds, LastActivePage, dan pre-populated answers akurat
-  5. Results page menampilkan score, pass/fail status, dan answer review (jika diaktifkan HC)
-**Plans**: 2 plans
-Plans:
-- [x] 232-01-PLAN.md — Audit assessment list + token entry + timer + SignalR + session resume
-- [x] 232-02-PLAN.md — Audit scoring chain + results page + Proton handling + HTML report
+  1. Dashboard menampilkan stats yang akurat per role — HC melihat semua, coach melihat coachee-nya saja, Chart.js data konsisten dengan query
+  2. CoachingProton tracking menampilkan filter cascade yang benar, pagination berfungsi, kolom role-specific hanya tampil untuk role yang berwenang
+  3. Override admin mencatat audit trail lengkap per transaksi, validasi status transition mencegah transisi ilegal
+  4. Semua export action menggunakan projection (bukan over-fetch) dan memiliki role attribute yang benar
+  5. Mapping page dan dashboard menampilkan jumlah coachee aktif per coach sebagai workload indicator
+  6. HC dapat approve multiple deliverables sekaligus dari monitoring view via batch approval
+  7. Dashboard menampilkan bottleneck analysis — deliverable yang paling lama pending teridentifikasi dan visible
+**Plans**: TBD
 
 ## Progress
 
-**Execution Order:** 228 → 229 → 230 → 231 → 232
+**Execution Order:** 233 → 234 → 235 → 236 → 237
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 228. Best Practices Research | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 229. Audit Renewal Logic & Edge Cases | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 231. Audit Assessment Management & Monitoring | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 232. Audit Assessment Flow — Worker Side | v8.1 | 2/2 | Complete   | 2026-03-22 |
+| 233. Riset & Perbandingan Coaching Platform | v8.2 | 0/? | Not started | - |
+| 234. Audit Setup Flow | v8.2 | 0/? | Not started | - |
+| 235. Audit Execution Flow | v8.2 | 0/? | Not started | - |
+| 236. Audit Completion | v8.2 | 0/? | Not started | - |
+| 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |

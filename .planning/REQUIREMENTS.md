@@ -70,36 +70,36 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RSCH-01 | TBD | Pending |
-| RSCH-02 | TBD | Pending |
-| RSCH-03 | TBD | Pending |
-| SETUP-01 | TBD | Pending |
-| SETUP-02 | TBD | Pending |
-| SETUP-03 | TBD | Pending |
-| SETUP-04 | TBD | Pending |
-| SETUP-05 | TBD | Pending |
-| EXEC-01 | TBD | Pending |
-| EXEC-02 | TBD | Pending |
-| EXEC-03 | TBD | Pending |
-| EXEC-04 | TBD | Pending |
-| EXEC-05 | TBD | Pending |
-| COMP-01 | TBD | Pending |
-| COMP-02 | TBD | Pending |
-| COMP-03 | TBD | Pending |
-| COMP-04 | TBD | Pending |
-| MON-01 | TBD | Pending |
-| MON-02 | TBD | Pending |
-| MON-03 | TBD | Pending |
-| MON-04 | TBD | Pending |
-| DIFF-01 | TBD | Pending |
-| DIFF-02 | TBD | Pending |
-| DIFF-03 | TBD | Pending |
+| RSCH-01 | Phase 233 | Pending |
+| RSCH-02 | Phase 233 | Pending |
+| RSCH-03 | Phase 233 | Pending |
+| SETUP-01 | Phase 234 | Pending |
+| SETUP-02 | Phase 234 | Pending |
+| SETUP-03 | Phase 234 | Pending |
+| SETUP-04 | Phase 234 | Pending |
+| SETUP-05 | Phase 234 | Pending |
+| EXEC-01 | Phase 235 | Pending |
+| EXEC-02 | Phase 235 | Pending |
+| EXEC-03 | Phase 235 | Pending |
+| EXEC-04 | Phase 235 | Pending |
+| EXEC-05 | Phase 235 | Pending |
+| COMP-01 | Phase 236 | Pending |
+| COMP-02 | Phase 236 | Pending |
+| COMP-03 | Phase 236 | Pending |
+| COMP-04 | Phase 236 | Pending |
+| MON-01 | Phase 237 | Pending |
+| MON-02 | Phase 237 | Pending |
+| MON-03 | Phase 237 | Pending |
+| MON-04 | Phase 237 | Pending |
+| DIFF-01 | Phase 237 | Pending |
+| DIFF-02 | Phase 237 | Pending |
+| DIFF-03 | Phase 237 | Pending |
 
 **Coverage:**
 - v8.2 requirements: 24 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 24
+- Mapped to phases: 24
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after initial definition*
+*Last updated: 2026-03-22 after roadmap definition — all 24 requirements mapped*
