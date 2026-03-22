@@ -1064,6 +1064,13 @@ namespace HcPortal.Controllers
             }
             else if (renewTrainingId != null && renewTrainingId.Count > 0)
             {
+                // Build category lookup for MapKategori DB lookup (LDAT-05)
+                var catsForRenewal = await _context.AssessmentCategories
+                    .Where(c => c.IsActive && c.ParentId == null)
+                    .ToDictionaryAsync(c => c.Name.ToUpperInvariant(), c => c.Name);
+                if (!catsForRenewal.ContainsKey("MANDATORY")) catsForRenewal["MANDATORY"] = "Mandatory HSSE Training";
+                if (!catsForRenewal.ContainsKey("PROTON")) catsForRenewal["PROTON"] = "Assessment Proton";
+
                 if (renewTrainingId.Count == 1)
                 {
                     // Single renew — backward-compatible path
@@ -1079,7 +1086,7 @@ namespace HcPortal.Controllers
 
                     isRenewalMode = true;
                     model.Title = sourceTraining.Judul ?? "";
-                    model.Category = MapKategori(sourceTraining.Kategori);
+                    model.Category = MapKategori(sourceTraining.Kategori, catsForRenewal);
                     model.GenerateCertificate = true;
                     if (sourceTraining.ValidUntil.HasValue)
                         model.ValidUntil = sourceTraining.ValidUntil.Value.AddYears(1);
@@ -1107,7 +1114,7 @@ namespace HcPortal.Controllers
                     var firstTraining = sourceTrainings[0];
                     isRenewalMode = true;
                     model.Title = firstTraining.Judul ?? "";
-                    model.Category = MapKategori(firstTraining.Kategori);
+                    model.Category = MapKategori(firstTraining.Kategori, catsForRenewal);
                     model.GenerateCertificate = true;
                     if (firstTraining.ValidUntil.HasValue)
                         model.ValidUntil = firstTraining.ValidUntil.Value.AddYears(1);
@@ -1215,6 +1222,21 @@ namespace HcPortal.Controllers
             if (model.RenewsSessionId.HasValue && model.RenewsTrainingId.HasValue)
             {
                 ModelState.AddModelError("", "Hanya satu renewal FK yang boleh diisi.");
+            }
+            // Double renewal prevention (per D-10): check if source cert already renewed
+            if (model.RenewsSessionId.HasValue)
+            {
+                var srcAlreadyRenewed = await _context.AssessmentSessions.AnyAsync(a => a.RenewsSessionId == model.RenewsSessionId && a.IsPassed == true)
+                    || await _context.TrainingRecords.AnyAsync(t => t.RenewsSessionId == model.RenewsSessionId);
+                if (srcAlreadyRenewed)
+                    ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
+            }
+            if (model.RenewsTrainingId.HasValue)
+            {
+                var srcAlreadyRenewed = await _context.AssessmentSessions.AnyAsync(a => a.RenewsTrainingId == model.RenewsTrainingId && a.IsPassed == true)
+                    || await _context.TrainingRecords.AnyAsync(t => t.RenewsTrainingId == model.RenewsTrainingId);
+                if (srcAlreadyRenewed)
+                    ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
             }
             // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
             ModelState.Remove("NomorSertifikat");
@@ -5470,6 +5492,13 @@ namespace HcPortal.Controllers
             }
             else if (renewSessionId != null && renewSessionId.Count > 0)
             {
+                // Build category lookup for MapKategori DB lookup (LDAT-05)
+                var catsForSessionRenewal = await _context.AssessmentCategories
+                    .Where(c => c.IsActive && c.ParentId == null)
+                    .ToDictionaryAsync(c => c.Name.ToUpperInvariant(), c => c.Name);
+                if (!catsForSessionRenewal.ContainsKey("MANDATORY")) catsForSessionRenewal["MANDATORY"] = "Mandatory HSSE Training";
+                if (!catsForSessionRenewal.ContainsKey("PROTON")) catsForSessionRenewal["PROTON"] = "Assessment Proton";
+
                 if (renewSessionId.Count == 1)
                 {
                     var src = await _context.AssessmentSessions.Include(s => s.User)
@@ -5481,7 +5510,7 @@ namespace HcPortal.Controllers
                     }
                     isRenewalMode = true;
                     model.Judul = src.Title ?? "";
-                    model.Kategori = MapKategori(src.Category);
+                    model.Kategori = MapKategori(src.Category, catsForSessionRenewal);
                     model.RenewsSessionId = src.Id;
                     ViewBag.RenewalSourceTitle = src.Title ?? "";
                     ViewBag.RenewalSourceUserName = src.User?.FullName ?? "";
@@ -5499,7 +5528,7 @@ namespace HcPortal.Controllers
                     isRenewalMode = true;
                     var first = srcs[0];
                     model.Judul = first.Title ?? "";
-                    model.Kategori = MapKategori(first.Category);
+                    model.Kategori = MapKategori(first.Category, catsForSessionRenewal);
                     ViewBag.RenewalSourceTitle = first.Title ?? "";
                     ViewBag.RenewalSourceUserName = string.Join(", ", srcs.Select(s => s.User?.FullName ?? ""));
                     ViewBag.RenewalFkMap = System.Text.Json.JsonSerializer.Serialize(
@@ -5547,6 +5576,27 @@ namespace HcPortal.Controllers
             List<string>? bulkUserIds = null;
             if (!string.IsNullOrEmpty(userIdsJson))
                 bulkUserIds = System.Text.Json.JsonSerializer.Deserialize<List<string>>(userIdsJson);
+
+            // FK mutual exclusion (per D-04): AddTraining hanya boleh salah satu FK
+            if (model.RenewsTrainingId.HasValue && model.RenewsSessionId.HasValue)
+            {
+                ModelState.AddModelError("", "Renewal FK tidak valid: hanya boleh mengisi salah satu dari RenewsTrainingId atau RenewsSessionId.");
+            }
+            // Double renewal prevention (per D-10)
+            if (model.RenewsTrainingId.HasValue)
+            {
+                var srcAlreadyRenewed = await _context.TrainingRecords.AnyAsync(t => t.RenewsTrainingId == model.RenewsTrainingId)
+                    || await _context.AssessmentSessions.AnyAsync(a => a.RenewsTrainingId == model.RenewsTrainingId && a.IsPassed == true);
+                if (srcAlreadyRenewed)
+                    ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
+            }
+            if (model.RenewsSessionId.HasValue)
+            {
+                var srcAlreadyRenewed = await _context.TrainingRecords.AnyAsync(t => t.RenewsSessionId == model.RenewsSessionId)
+                    || await _context.AssessmentSessions.AnyAsync(a => a.RenewsSessionId == model.RenewsSessionId && a.IsPassed == true);
+                if (srcAlreadyRenewed)
+                    ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -6693,13 +6743,14 @@ namespace HcPortal.Controllers
 
         #region Renewal Certificate
 
-        private static string MapKategori(string? raw) => raw?.Trim().ToUpperInvariant() switch
+        private static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
         {
-            null or "" => "-",
-            "MANDATORY" => "Mandatory HSSE Training",
-            "PROTON"    => "Assessment Proton",
-            _           => raw!.Trim()
-        };
+            if (string.IsNullOrWhiteSpace(raw)) return "-";
+            var trimmed = raw.Trim();
+            if (rawToDisplayMap != null && rawToDisplayMap.TryGetValue(trimmed.ToUpperInvariant(), out var displayName))
+                return displayName;
+            return trimmed;
+        }
 
         private async Task<List<SertifikatRow>> BuildRenewalRowsAsync()
         {
@@ -6761,6 +6812,19 @@ namespace HcPortal.Controllers
             var renewedTrainingRecordIds = new HashSet<int>(renewedByAsTrainingIds);
             renewedTrainingRecordIds.UnionWith(renewedByTrTrainingIds);
 
+            // Build rawToDisplayMap from AssessmentCategories for MapKategori DB lookup
+            var allCategories = await _context.AssessmentCategories
+                .Where(c => c.IsActive)
+                .Select(c => new { c.Id, c.Name, c.ParentId })
+                .ToListAsync();
+            var rawToDisplayMap = allCategories
+                .Where(c => c.ParentId == null)
+                .ToDictionary(c => c.Name.ToUpperInvariant(), c => c.Name);
+            if (!rawToDisplayMap.ContainsKey("MANDATORY"))
+                rawToDisplayMap["MANDATORY"] = "Mandatory HSSE Training";
+            if (!rawToDisplayMap.ContainsKey("PROTON"))
+                rawToDisplayMap["PROTON"] = "Assessment Proton";
+
             var trainingRows = trainingAnon.Select(t => new SertifikatRow
             {
                 SourceId = t.Id,
@@ -6770,7 +6834,7 @@ namespace HcPortal.Controllers
                 Bagian = t.Bagian,
                 Unit = t.Unit,
                 Judul = t.Judul,
-                Kategori = MapKategori(t.Kategori),
+                Kategori = MapKategori(t.Kategori, rawToDisplayMap),
                 SubKategori = null,
                 NomorSertifikat = t.NomorSertifikat,
                 TanggalTerbit = t.TanggalTerbit,
@@ -6781,10 +6845,6 @@ namespace HcPortal.Controllers
             }).ToList();
 
             // Query AssessmentSessions with certificate
-            var allCategories = await _context.AssessmentCategories
-                .Where(c => c.IsActive)
-                .Select(c => new { c.Id, c.Name, c.ParentId })
-                .ToListAsync();
             var categoryById = allCategories.ToDictionary(c => c.Id);
             var categoryNameLookup = allCategories
                 .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
@@ -6899,6 +6959,11 @@ namespace HcPortal.Controllers
             var categoryNameLookup = allCategories
                 .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
                 .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+            var rawToDisplayMapHist = allCategories
+                .Where(c => c.ParentId == null)
+                .ToDictionary(c => c.Name.ToUpperInvariant(), c => c.Name);
+            if (!rawToDisplayMapHist.ContainsKey("MANDATORY")) rawToDisplayMapHist["MANDATORY"] = "Mandatory HSSE Training";
+            if (!rawToDisplayMapHist.ContainsKey("PROTON")) rawToDisplayMapHist["PROTON"] = "Assessment Proton";
 
             // 3. Renewal chain batch lookup — scoped to this worker's certs
             var mySessionIds = assessmentCerts.Select(a => a.Id).ToHashSet();
@@ -6933,7 +6998,7 @@ namespace HcPortal.Controllers
                     RecordType = RecordType.Training,
                     WorkerId = workerId,
                     Judul = t.Judul,
-                    Kategori = MapKategori(t.Kategori),
+                    Kategori = MapKategori(t.Kategori, rawToDisplayMapHist),
                     SubKategori = null,
                     NomorSertifikat = t.NomorSertifikat,
                     TanggalTerbit = t.TanggalTerbit,
