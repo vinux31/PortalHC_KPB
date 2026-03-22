@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
 status: unknown
-stopped_at: Completed 235-02-PLAN.md
-last_updated: "2026-03-22T14:53:04.162Z"
+stopped_at: Completed 235-03-PLAN.md — awaiting human verify
+last_updated: "2026-03-22T14:56:14.579Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State: Portal HC KPB
@@ -48,6 +48,7 @@ Plan: 3 of 3
 - [Phase 235]: AutoCreateProgressForAssignment self-flushes before inserting Pending StatusHistory — cleaner isolation from callers
 - [Phase 235-audit-execution-flow]: Race guard ditempatkan setelah per-role field set sebelum overall Status assignment untuk first-write-wins semantics (D-10)
 - [Phase 235]: EvidencePathHistory stored as JSON string column — fits existing scalar column pattern
+- [Phase 235]: D-20: Coach di PlanIdp sekarang hanya melihat guidance untuk Bagian coachee yang di-map ke mereka via CoachCoacheeMappings
 
 ### Pending Todos
 
@@ -59,6 +60,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T14:53:04.159Z
-Stopped at: Completed 235-02-PLAN.md
+Last session: 2026-03-22T14:56:14.576Z
+Stopped at: Completed 235-03-PLAN.md — awaiting human verify
 Resume file: None

@@ -33,7 +33,7 @@ Last completed phase: 232 (v8.1 — Audit Assessment Flow Worker Side)
 
 - [x] **Phase 233: Riset & Perbandingan Coaching Platform** - Browse platform coaching luar, dokumen perbandingan UX/flow, rekomendasi improvement (completed 2026-03-22)
 - [x] **Phase 234: Audit Setup Flow** - Audit silabus delete safety, guidance file management, coach-coachee mapping, track assignment, import/export (completed 2026-03-22)
-- [ ] **Phase 235: Audit Execution Flow** - Audit evidence submission, approval chain, status history, notifikasi, PlanIdp view
+- [x] **Phase 235: Audit Execution Flow** - Audit evidence submission, approval chain, status history, notifikasi, PlanIdp view (completed 2026-03-22)
 - [ ] **Phase 236: Audit Completion** - Audit final assessment, coaching sessions, HistoriProton, 3-year journey lifecycle
 - [ ] **Phase 237: Audit Monitoring & Differentiator Enhancement** - Audit dashboard, tracking, override, export, plus workload indicator, batch approval, bottleneck analysis
 
@@ -81,7 +81,7 @@ Plans:
 Plans:
 - [x] 235-01-PLAN.md — Audit evidence submission + StatusHistory completeness (CDPController, AdminController, ProtonDataController)
 - [x] 235-02-PLAN.md — Audit approval chain race condition + notifikasi gaps (CDPController)
-- [ ] 235-03-PLAN.md — Audit PlanIdp view accuracy + human verification keseluruhan
+- [x] 235-03-PLAN.md — Audit PlanIdp view accuracy + human verification keseluruhan
 
 ### Phase 236: Audit Completion
 **Goal**: Memastikan fase akhir perjalanan coachee (final assessment, coaching sessions, history) akurat dan tidak bisa menghasilkan data duplikat atau inkonsisten
@@ -116,6 +116,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 233. Riset & Perbandingan Coaching Platform | v8.2 | 1/1 | Complete    | 2026-03-22 |
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
-| 235. Audit Execution Flow | v8.2 | 2/3 | In Progress|  |
+| 235. Audit Execution Flow | v8.2 | 3/3 | Complete   | 2026-03-22 |
 | 236. Audit Completion | v8.2 | 0/? | Not started | - |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |
