@@ -1252,7 +1252,7 @@ namespace HcPortal.Controllers
                     var progressForNotify = await _context.ProtonDeliverableProgresses
                         .Include(p => p.ProtonDeliverable)
                         .Where(p => p.Id == progressId)
-                        .Select(p => new { DeliverableName = p.ProtonDeliverable != null ? p.ProtonDeliverable.Name : $"#{progressId}" })
+                        .Select(p => new { DeliverableName = p.ProtonDeliverable != null ? p.ProtonDeliverable.NamaDeliverable : $"#{progressId}" })
                         .FirstOrDefaultAsync();
                     var deliverableNameForNotify = progressForNotify?.DeliverableName ?? $"#{progressId}";
 
