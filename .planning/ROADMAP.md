@@ -73,7 +73,6 @@
 
 - [x] **Phase 223: Assessment Quick Wins** - Persist ET score, deteksi tab-switch, status lifecycle, timestamp UserResponse, dokumentasi AccessToken (completed 2026-03-21)
 - [x] **Phase 224: Analytics Dashboard HC** - Visualisasi fail rate, trend assessment, breakdown ET, ringkasan sertifikat akan expired (completed 2026-03-21)
-- [ ] **Phase 226: Email Notification Sertifikat Expired** - Reminder otomatis 90/30/7 hari, duplikat guard via NotificationSentLog
 - [x] **Phase 227: Major Refactors** - Migrasi legacy path, cleanup orphan tables, NomorSertifikat timing fix (QBNK skipped) (completed 2026-03-22)
 
 ## Phase Details
@@ -106,20 +105,6 @@ Plans:
 Plans:
 - [x] 224-01-PLAN.md — Backend: ViewModel, JSON endpoint, cascade endpoints, CMP Hub link
 - [x] 224-02-PLAN.md — Frontend: View Analytics Dashboard dengan Chart.js, filter AJAX, tabel
-
-### Phase 226: Email Notification Sertifikat Expired
-**Goal**: Sistem mengirim email reminder otomatis kepada pekerja sebelum sertifikat mereka expired, tanpa duplikat meskipun service restart
-**Depends on**: Phase 223
-**Requirements**: NOTF-01, NOTF-02, NOTF-03, NOTF-04
-**Success Criteria** (what must be TRUE):
-  1. Pekerja yang sertifikatnya akan expired dalam 90 hari menerima email reminder secara otomatis dari sistem
-  2. Pekerja yang sertifikatnya akan expired dalam 30 hari menerima email reminder otomatis kedua
-  3. Pekerja yang sertifikatnya akan expired dalam 7 hari menerima email reminder otomatis ketiga
-  4. Jika background service restart atau dijadwalkan ulang, email yang sudah terkirim tidak dikirim lagi — NotificationSentLog mencegah duplikat per sertifikat per threshold
-**Plans**: 2 plans
-Plans:
-- [ ] 226-01-PLAN.md — TBD
-- [ ] 226-02-PLAN.md — TBD
 
 ### Phase 227: Major Refactors
 **Goal**: Legacy question path dimigrasikan ke package format, tabel orphan dibersihkan, dan NomorSertifikat di-generate pada waktu yang tepat (QBNK di-skip per keputusan user)
@@ -158,5 +143,4 @@ Plans:
 | 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete | 2026-03-21 |
 | 223. Assessment Quick Wins | v8.0 | 2/2 | Complete    | 2026-03-21 |
 | 224. Analytics Dashboard HC | v8.0 | 2/2 | Complete    | 2026-03-21 |
-| 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |
 | 227. Major Refactors | v8.0 | 2/2 | Complete    | 2026-03-22 |
