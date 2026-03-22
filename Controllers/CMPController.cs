@@ -651,7 +651,7 @@ namespace HcPortal.Controllers
 
             if (string.IsNullOrEmpty(token) || assessment.AccessToken != token.ToUpper())
             {
-                return Json(new { success = false, message = "Invalid Token. Please check and try again." });
+                return Json(new { success = false, message = "Token tidak valid. Silakan periksa dan coba lagi." });
             }
 
             // Token Valid -> Redirect to Exam

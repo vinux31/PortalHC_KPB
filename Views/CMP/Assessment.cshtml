@@ -86,8 +86,8 @@
                     }
                     else
                     {
-                        <h5 class="text-muted">No assessments assigned to you</h5>
-                        <p class="text-muted small">Your assessments will appear here when assigned by your administrator.</p>
+                        <h5 class="text-muted">Belum ada assessment yang ditugaskan untuk Anda.</h5>
+                        <p class="text-muted small">Assessment Anda akan muncul di sini setelah ditugaskan oleh administrator.</p>
                     }
                 </div>
             </div>
@@ -111,14 +111,20 @@
                 // Use category default color
                 var badgeClass = defaultBadgeClass;
 
-                var statusBadgeClass = item.Status switch
-                {
-                    "Open" => "bg-success",
-                    "Upcoming" => "bg-warning text-dark",
-                    "Completed" => "bg-primary",
-                    "InProgress" => "bg-warning text-dark",
-                    _ => "bg-secondary"
-                };
+                // D-02: Status badge warna — Open=hijau, Upcoming=biru, Completed=abu-abu, InProgress=kuning
+                var isExpired = (item.Status == "Open" || item.Status == "Upcoming")
+                    && item.ExamWindowCloseDate.HasValue
+                    && item.ExamWindowCloseDate.Value < DateTime.UtcNow.AddHours(7);
+                var statusBadgeClass = isExpired ? "bg-danger" :
+                    item.Status switch
+                    {
+                        "Open" => "bg-success",
+                        "Upcoming" => "bg-primary",
+                        "Completed" => "bg-secondary",
+                        "InProgress" => "bg-warning text-dark",
+                        _ => "bg-secondary"
+                    };
+                var statusBadgeText = isExpired ? "Expired" : item.Status;
 
                 <div class="col-12 col-md-6 col-lg-4 assessment-card" data-status="@item.Status.ToLower()">
                     <div class="card h-100 border-0 shadow-sm assessment-card-item">
@@ -176,7 +182,7 @@
                                         };
                                     }
                                     <i class="bi @statusIcon"></i>
-                                    <span>Status: @item.Status</span>
+                                    <span>Status: @statusBadgeText</span>
                                 </div>
 
                                 <!-- Token Requirement -->
@@ -317,6 +323,10 @@
                                         {
                                             <span class="badge text-bg-success"><i class="bi bi-check-circle-fill me-1"></i>Lulus</span>
                                         }
+                                        else if (item.IsPassed == null)
+                                        {
+                                            <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Belum Dinilai</span>
+                                        }
                                         else
                                         {
                                             <span class="badge text-bg-danger"><i class="bi bi-x-circle-fill me-1"></i>Tidak Lulus</span>
@@ -363,7 +373,7 @@
                 </div>
 
                 <div class="alert alert-danger small d-none mb-3" id="tokenError">
-                    Invalid Token. Please try again.
+                    Token tidak valid. Silakan periksa dan coba lagi.
                 </div>
 
                 <input type="text" id="tokenInput" class="form-control form-control-lg text-center fw-bold fs-2 mb-4 text-primary"
@@ -497,6 +507,20 @@
 
 @section Scripts {
 <script>
+    // D-06: Token modal UX — auto-focus, Enter key, clear error + auto-uppercase
+    document.getElementById('tokenModal').addEventListener('shown.bs.modal', function() {
+        document.getElementById('tokenInput').focus();
+    });
+
+    document.getElementById('tokenInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); verifyToken(); }
+    });
+
+    document.getElementById('tokenInput').addEventListener('input', function() {
+        document.getElementById('tokenError').classList.add('d-none');
+        this.value = this.value.toUpperCase().replace(/\s/g, '');
+    });
+
     // Tab filtering for worker view
     document.addEventListener('DOMContentLoaded', function() {
         var workerTabs = document.getElementById('assessmentTabs');
@@ -586,7 +610,7 @@
 
         // Basic Client Side Check
         if (token.length < 1) {
-            errorEl.innerText = "Please enter a token.";
+            errorEl.innerText = "Silakan masukkan token terlebih dahulu.";
             errorEl.classList.remove('d-none');
             return;
         }
@@ -621,13 +645,13 @@
             },
             error: function(xhr, status, error) {
                 console.error('VerifyToken failed:', xhr, status, error);
-                var errorMessage = "Server error: " + (xhr.responseText || error);
+                var errorMessage = "Terjadi kesalahan server: " + (xhr.responseText || error);
                 if (xhr.status === 401) {
-                    errorMessage = "Session expired. Please refresh the page and login again.";
+                    errorMessage = "Sesi telah berakhir. Silakan muat ulang halaman dan login kembali.";
                 } else if (xhr.status === 403) {
-                    errorMessage = "You are not authorized to access this assessment.";
+                    errorMessage = "Anda tidak memiliki akses ke assessment ini.";
                 } else if (xhr.status === 404) {
-                    errorMessage = "Assessment not found.";
+                    errorMessage = "Assessment tidak ditemukan.";
                 }
                 errorEl.innerText = errorMessage;
                 errorEl.classList.remove('d-none');
@@ -662,7 +686,7 @@
                     console.error('StartAssessment failed:', xhr, status, error);
                     var errorMessage = "Failed to start assessment: " + (xhr.responseText || error);
                     if (xhr.status === 401) {
-                        errorMessage = "Session expired. Please refresh the page and login again.";
+                        errorMessage = "Sesi telah berakhir. Silakan muat ulang halaman dan login kembali.";
                     }
                     alert(errorMessage);
                 }
