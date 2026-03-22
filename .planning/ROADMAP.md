@@ -61,7 +61,11 @@ Plans:
   3. Cascade deactivation coach-coachee mapping terbungkus dalam DB transaction atomik, duplikasi mapping terdeteksi dan ditolak
   4. Track assignment memvalidasi progression Tahun 1→2→3 di server side — Tahun 2 tidak bisa di-assign sebelum Tahun 1 selesai
   5. Import/export silabus dan mapping menghasilkan data yang akurat, error per-baris dilaporkan, template tidak menyebabkan data salah saat diisi
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 234-01-PLAN.md — Audit silabus delete safety + guidance file management (ProtonDataController)
+- [ ] 234-02-PLAN.md — Audit coach-coachee mapping cascade + track assignment progression (AdminController)
+- [ ] 234-03-PLAN.md — Audit import/export robustness silabus dan mapping
 
 ### Phase 235: Audit Execution Flow
 **Goal**: Memastikan alur operasional harian Proton (evidence submission, approval chain, notifikasi) aman dari sisi server dan state-nya selalu konsisten
@@ -107,7 +111,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 233. Riset & Perbandingan Coaching Platform | v8.2 | 1/1 | Complete    | 2026-03-22 |
-| 234. Audit Setup Flow | v8.2 | 0/? | Not started | - |
+| 234. Audit Setup Flow | v8.2 | 0/3 | Not started | - |
 | 235. Audit Execution Flow | v8.2 | 0/? | Not started | - |
 | 236. Audit Completion | v8.2 | 0/? | Not started | - |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |
