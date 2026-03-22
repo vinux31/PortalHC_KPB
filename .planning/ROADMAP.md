@@ -33,7 +33,7 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
 - [x] **Phase 228: Best Practices Research** - Riset renewal, assessment, dan monitoring best practices dari platform sejenis (completed 2026-03-22)
 - [x] **Phase 229: Audit Renewal Logic & Edge Cases** - Audit dan fix renewal chain FK, badge sync, status derivation, grouping, dan edge cases (completed 2026-03-22)
 - [x] **Phase 230: Audit Renewal UI & Cross-Page Integration** - Audit dan fix renewal UI grouped view, filter, modal, dan integrasi lintas halaman (completed 2026-03-22)
-- [ ] **Phase 231: Audit Assessment Management & Monitoring** - Audit dan fix ManageAssessment dan AssessmentMonitoring (admin/HC side)
+- [x] **Phase 231: Audit Assessment Management & Monitoring** - Audit dan fix ManageAssessment dan AssessmentMonitoring (admin/HC side) (completed 2026-03-22)
 - [ ] **Phase 232: Audit Assessment Flow — Worker Side** - Audit dan fix worker-side exam flow end-to-end
 
 ## Phase Details
@@ -98,8 +98,8 @@ Plans:
   7. Token card copy dan regenerate berfungsi dari halaman monitoring detail
 **Plans**: 2 plans
 Plans:
-- [ ] 231-01-PLAN.md — Audit ManageAssessment CRUD + filter list + cascade delete + HTML report
-- [ ] 231-02-PLAN.md — Audit Monitoring + HC actions + token + SignalR + Proton + HTML report
+- [x] 231-01-PLAN.md — Audit ManageAssessment CRUD + filter list + cascade delete + HTML report
+- [x] 231-02-PLAN.md — Audit Monitoring + HC actions + token + SignalR + Proton + HTML report
 
 ### Phase 232: Audit Assessment Flow — Worker Side
 **Goal**: Audit worker-side assessment flow end-to-end, fix semua bug, dan improve UX berdasarkan riset.
@@ -125,5 +125,5 @@ Plans:
 | 228. Best Practices Research | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 229. Audit Renewal Logic & Edge Cases | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 231. Audit Assessment Management & Monitoring | v8.1 | 0/2 | Not started | - |
+| 231. Audit Assessment Management & Monitoring | v8.1 | 2/2 | Complete   | 2026-03-22 |
 | 232. Audit Assessment Flow — Worker Side | v8.1 | 0/? | Not started | - |

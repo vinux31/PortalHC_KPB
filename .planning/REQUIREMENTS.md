@@ -44,11 +44,11 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Assessment Management
 
-- [ ] **AMGT-01**: CreateAssessment form validasi lengkap (judul, kategori, tanggal, peserta, passing grade)
-- [ ] **AMGT-02**: EditAssessment mempertahankan data existing dan warning jika ada package terkait
-- [ ] **AMGT-03**: DeleteAssessment cascade cleanup benar (packages, questions, sessions, responses)
-- [ ] **AMGT-04**: Package assignment ke peserta berfungsi (single + bulk assign)
-- [ ] **AMGT-05**: ManageAssessment list view filter dan search berfungsi
+- [x] **AMGT-01**: CreateAssessment form validasi lengkap (judul, kategori, tanggal, peserta, passing grade)
+- [x] **AMGT-02**: EditAssessment mempertahankan data existing dan warning jika ada package terkait
+- [x] **AMGT-03**: DeleteAssessment cascade cleanup benar (packages, questions, sessions, responses)
+- [x] **AMGT-04**: Package assignment ke peserta berfungsi (single + bulk assign)
+- [x] **AMGT-05**: ManageAssessment list view filter dan search berfungsi
 
 ### Assessment Monitoring
 
@@ -145,11 +145,11 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 | XPAG-02 | Phase 230 | Complete |
 | XPAG-03 | Phase 230 | Complete |
 | XPAG-04 | Phase 230 | Complete |
-| AMGT-01 | Phase 231 | Pending |
-| AMGT-02 | Phase 231 | Pending |
-| AMGT-03 | Phase 231 | Pending |
-| AMGT-04 | Phase 231 | Pending |
-| AMGT-05 | Phase 231 | Pending |
+| AMGT-01 | Phase 231 | Complete |
+| AMGT-02 | Phase 231 | Complete |
+| AMGT-03 | Phase 231 | Complete |
+| AMGT-04 | Phase 231 | Complete |
+| AMGT-05 | Phase 231 | Complete |
 | AMON-01 | Phase 231 | Pending |
 | AMON-02 | Phase 231 | Pending |
 | AMON-03 | Phase 231 | Pending |

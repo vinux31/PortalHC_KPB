@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.1
 milestone_name: Renewal & Assessment Ecosystem Audit
 status: unknown
-stopped_at: Phase 231 context gathered
-last_updated: "2026-03-22T08:05:20.386Z"
+stopped_at: Completed 231-02-PLAN.md
+last_updated: "2026-03-22T08:32:31.757Z"
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 230 — audit-renewal-ui-cross-page-integration
+**Current focus:** Phase 231 — audit-assessment-management-monitoring
 
 ## Current Position
 
-Phase: 231
-Plan: Not started
+Phase: 231 (audit-assessment-management-monitoring) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -43,6 +43,10 @@ Plan: Not started
 - [Phase 229]: Mixed-type bulk validation guard ditambahkan di sisi server — fkMapType harus 'session' atau 'training'
 - [Phase 229]: D-07 audit — AssessmentSession tidak perlu field CertificateType; null+null ValidUntil=Expired adalah behavior benar
 - [Phase 230]: D-08 skip warning tidak perlu karena BuildRenewalRowsAsync sudah exclude IsRenewed=true
+- [Phase 231]: Filter kategori ManageAssessment diterapkan di DB level, status filter post-grouping dengan GroupStatus computation
+- [Phase 231]: Explicit cascade delete packages/questions/options ditambahkan ke DeleteAssessment dan DeleteAssessmentGroup untuk keamanan ordering
+- [Phase 231]: IsCompleted = a.CompletedAt != null — sumber kebenaran tunggal
+- [Phase 231]: Two-countdown approach: initial-render dari StartedAt + polling — komplementer
 
 ### Pending Todos
 
@@ -54,6 +58,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T08:05:20.383Z
-Stopped at: Phase 231 context gathered
-Resume file: .planning/phases/231-audit-assessment-management-monitoring/231-CONTEXT.md
+Last session: 2026-03-22T08:32:31.754Z
+Stopped at: Completed 231-02-PLAN.md
+Resume file: None
