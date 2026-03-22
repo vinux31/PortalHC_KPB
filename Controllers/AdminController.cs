@@ -3815,6 +3815,18 @@ namespace HcPortal.Controllers
                 using var workbook = new XLWorkbook(fileStream);
                 var ws = workbook.Worksheets.First();
 
+                // D-16: Header validation
+                var expectedHeaders = new[] { "NIP Coach", "NIP Coachee" };
+                for (int i = 0; i < expectedHeaders.Length; i++)
+                {
+                    var actual = ws.Cell(1, i + 1).GetString().Trim();
+                    if (!actual.Equals(expectedHeaders[i], StringComparison.OrdinalIgnoreCase))
+                    {
+                        TempData["ImportError"] = $"Header kolom {i + 1} tidak cocok. Diharapkan: '{expectedHeaders[i]}', ditemukan: '{actual}'. Pastikan menggunakan template yang benar.";
+                        return RedirectToAction(nameof(CoachCoacheeMapping));
+                    }
+                }
+
                 foreach (var row in ws.RowsUsed().Skip(1))
                 {
                     var nipCoach = (row.Cell(1).GetString() ?? "").Trim();
@@ -3911,10 +3923,23 @@ namespace HcPortal.Controllers
                 return RedirectToAction(nameof(CoachCoacheeMapping));
             }
 
-            if (newMappings.Any())
-                _context.CoachCoacheeMappings.AddRange(newMappings);
-
-            await _context.SaveChangesAsync();
+            // D-13: Wrap insert phase dalam transaction untuk atomicity
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (newMappings.Any())
+                    await _context.CoachCoacheeMappings.AddRangeAsync(newMappings);
+                // reactivated mappings sudah di-track oleh EF (IsActive diubah di-memory)
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "ImportCoachCoacheeMapping transaction failed");
+                TempData["ImportError"] = "Import gagal. Semua perubahan dibatalkan.";
+                return RedirectToAction(nameof(CoachCoacheeMapping));
+            }
 
             var successCount = results.Count(r => r.Status == "Success");
             var reactivatedCount = results.Count(r => r.Status == "Reactivated");
