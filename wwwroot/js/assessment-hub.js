@@ -89,7 +89,8 @@
         }
     }
 
-    startHub();
+    // Expose promise so exam page can await hub ready instead of setTimeout fallback
+    window.assessmentHubStartPromise = startHub();
 
     window.assessmentHub = connection;
     window.showAssessmentToast = showToast;

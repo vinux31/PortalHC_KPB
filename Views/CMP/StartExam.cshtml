@@ -23,6 +23,7 @@
         <div class="text-end">
             <span class="fw-bold fs-5" id="examTimer">--:--</span>
             <span id="hubStatusBadge" class="badge bg-secondary ms-2 small">Connecting...</span>
+            <span id="networkStatusBadge" class="badge bg-success ms-2 small">Tersimpan</span>
             <div class="small text-muted">Time Remaining</div>
         </div>
     </div>
@@ -271,6 +272,23 @@ else
     </div>
 </div>
 
+<!-- Time up warning modal (D-08: tampil sebelum auto-submit saat timer habis) -->
+<div class="modal fade" id="timeUpWarningModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true"
+     style="z-index: 9999;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-danger">
+            <div class="modal-body text-center p-4">
+                <i class="bi bi-clock-history text-danger" style="font-size:3rem"></i>
+                <h5 class="mt-3 fw-bold text-danger">Waktu Habis!</h5>
+                <p class="text-muted">Waktu pengerjaan ujian telah habis. Jawaban Anda akan dikirimkan secara otomatis.</p>
+                <button type="button" class="btn btn-danger px-4 fw-bold" id="timeUpOkBtn">
+                    <i class="bi bi-send me-1"></i>OK — Kirim Jawaban
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
 <link rel="stylesheet" href="~/css/assessment-hub.css" />
 <script src="~/lib/signalr/signalr.min.js"></script>
@@ -307,26 +325,44 @@ else
         ).ToList()
     ));
 
-    // -------- Timer --------
+    // -------- Timer — wall clock anchor (D-07 drift fix) --------
+    var submitted = false; // guard flag untuk mencegah double submit (Pitfall 4)
+    var timerStartWallClock = Date.now();
+    var timerStartRemaining = REMAINING_SECONDS_FROM_DB;
+
     function updateTimer() {
-        const minutes = Math.floor(timeRemaining / 60);
-        const seconds = timeRemaining % 60;
+        var wallElapsed = Math.floor((Date.now() - timerStartWallClock) / 1000);
+        var remaining = Math.max(0, timerStartRemaining - wallElapsed);
+        timeRemaining = remaining;
+        elapsedSeconds = ELAPSED_SECONDS_FROM_DB + wallElapsed;
+
+        const minutes = Math.floor(remaining / 60);
+        const seconds = remaining % 60;
         const display = (minutes < 10 ? '0' + minutes : minutes) + ':' +
                         (seconds < 10 ? '0' + seconds : seconds);
         const el = document.getElementById('examTimer');
         el.innerText = display;
-        if (timeRemaining <= WARNING_THRESHOLD) {
+        if (remaining <= WARNING_THRESHOLD) {
             el.className = 'fw-bold fs-5 text-danger';
         } else {
             el.className = 'fw-bold fs-5 text-dark';
         }
-        if (timeRemaining <= 0) {
+        if (remaining <= 0) {
             clearInterval(timerInterval);
             window.onbeforeunload = null;
-            document.getElementById('examForm').submit();
+            // D-08: tampilkan warning modal dulu, bukan langsung submit
+            if (!submitted) {
+                var timeupModal = new bootstrap.Modal(document.getElementById('timeUpWarningModal'));
+                timeupModal.show();
+                // Auto-submit setelah 10 detik jika user tidak klik OK
+                setTimeout(function() {
+                    if (!submitted) {
+                        submitted = true;
+                        document.getElementById('examForm').submit();
+                    }
+                }, 10000);
+            }
         }
-        timeRemaining--;
-        elapsedSeconds++;
     }
     var timerInterval = setInterval(updateTimer, 1000);
     updateTimer();
@@ -346,6 +382,25 @@ else
     let inFlightSaves = new Set();  // question IDs with requests in-flight
     let failureToastShown = false;
     let indicatorFadeTimer = null;
+
+    // D-14: pendingAnswers — retry queue saat reconnect
+    var pendingAnswers = [];
+
+    // D-14: Network status badge helper
+    var networkBadgeEl = document.getElementById('networkStatusBadge');
+    function updateNetworkBadge(state) {
+        if (!networkBadgeEl) return;
+        if (state === 'saving') {
+            networkBadgeEl.className = 'badge bg-warning text-dark ms-2 small';
+            networkBadgeEl.textContent = 'Menyimpan...';
+        } else if (state === 'saved') {
+            networkBadgeEl.className = 'badge bg-success ms-2 small';
+            networkBadgeEl.textContent = 'Tersimpan';
+        } else if (state === 'offline') {
+            networkBadgeEl.className = 'badge bg-danger ms-2 small';
+            networkBadgeEl.textContent = 'Offline';
+        }
+    }
 
     // -------- Auto-save functions --------
 
@@ -429,10 +484,12 @@ else
         if (inFlightSaves.has(String(qId))) return;
         inFlightSaves.add(String(qId));
         showSaveIndicator(qId, 'saving');
+        updateNetworkBadge('saving');
 
         doSaveFetch(qId, optId)
             .then(function() {
                 showSaveIndicator(qId, 'saved');
+                updateNetworkBadge('saved');
             })
             .catch(function() {
                 inFlightSaves.delete(String(qId));
@@ -443,9 +500,17 @@ else
                         saveAnswerAsync(qId, optId, attempt + 1);
                     }, delay);
                 } else {
-                    // All 3 attempts failed
+                    // All 3 attempts failed — tandai offline + queue untuk retry
                     showSaveIndicator(qId, 'error');
+                    updateNetworkBadge('offline');
                     showFailureToast();
+                    // D-14: tambahkan ke pendingAnswers untuk retry saat reconnect
+                    var existing = pendingAnswers.findIndex(function(pa) { return pa.qId === qId; });
+                    if (existing >= 0) {
+                        pendingAnswers[existing].optId = optId;  // update dengan nilai terbaru
+                    } else {
+                        pendingAnswers.push({ qId: qId, optId: optId });
+                    }
                 }
             })
             .finally(function() {
@@ -798,6 +863,27 @@ else
         window.location.href = '@Url.Action("Assessment", "CMP")';
     });
 
+    // D-14: Auto-retry pending answers saat SignalR reconnect
+    window.assessmentHub.onreconnected(function() {
+        updateNetworkBadge('saved');  // Koneksi pulih — reset badge
+        if (pendingAnswers.length > 0) {
+            var toRetry = pendingAnswers.slice(); // copy array
+            pendingAnswers = [];
+            toRetry.forEach(function(pa) {
+                saveAnswerAsync(pa.qId, pa.optId, 0);
+            });
+        }
+    });
+
+    // D-08: timeUpOkBtn — submit saat user klik OK di warning modal
+    document.getElementById('timeUpOkBtn').addEventListener('click', function() {
+        if (!submitted) {
+            submitted = true;
+            window.onbeforeunload = null;
+            document.getElementById('examForm').submit();
+        }
+    });
+
     // -------- Connection status badge --------
     var hubBadge = document.getElementById('hubStatusBadge');
     window.assessmentHub.onreconnecting(function() {
@@ -809,13 +895,17 @@ else
     window.assessmentHub.onclose(function() {
         if (hubBadge) { hubBadge.className = 'badge bg-danger ms-2 small'; hubBadge.textContent = 'Disconnected'; }
     });
-    // Set initial "Live" state after hub connects (assessment-hub.js starts immediately)
-    setTimeout(function() {
-        if (hubBadge && window.assessmentHub && window.assessmentHub.state === 'Connected') {
-            hubBadge.className = 'badge bg-success ms-2 small';
-            hubBadge.textContent = 'Live';
-        }
-    }, 2000);
+    // Set initial "Live" state setelah hub connect — gunakan assessmentHubStartPromise (bukan setTimeout)
+    if (window.assessmentHubStartPromise) {
+        window.assessmentHubStartPromise.then(function() {
+            if (hubBadge && window.assessmentHub && window.assessmentHub.state === 'Connected') {
+                hubBadge.className = 'badge bg-success ms-2 small';
+                hubBadge.textContent = 'Live';
+            }
+        }).catch(function() {
+            // Hub failed to connect — badge stays at Connecting...
+        });
+    }
 </script>
 }
 
