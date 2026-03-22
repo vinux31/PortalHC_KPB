@@ -44,8 +44,8 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 
 - [x] **CLEN-01**: TrainingRecord.Status lifecycle terdefinisi jelas — hapus ambiguitas Passed/Valid, transisi terdokumentasi
 - [ ] **CLEN-02**: Legacy question path (AssessmentQuestion/AssessmentOption/UserResponse) deprecated — existing sessions dimigrasi ke package format
-- [ ] **CLEN-03**: AssessmentCompetencyMap dan UserCompetencyLevel (orphaned tables) dibersihkan dari database
-- [ ] **CLEN-04**: NomorSertifikat di-generate saat SubmitExam + IsPassed (bukan saat CreateAssessment)
+- [x] **CLEN-03**: AssessmentCompetencyMap dan UserCompetencyLevel (orphaned tables) dibersihkan dari database
+- [x] **CLEN-04**: NomorSertifikat di-generate saat SubmitExam + IsPassed (bukan saat CreateAssessment)
 - [x] **CLEN-05**: Shared AccessToken tetap as-is (documented decision — common exam room pattern)
 
 ## Future Requirements
@@ -88,8 +88,8 @@ Requirements for Assessment & Training System Audit milestone. Each maps to road
 | QBNK-02 | Phase 227 | Pending |
 | QBNK-03 | Phase 227 | Pending |
 | CLEN-02 | Phase 227 | Pending |
-| CLEN-03 | Phase 227 | Pending |
-| CLEN-04 | Phase 227 | Pending |
+| CLEN-03 | Phase 227 | Complete |
+| CLEN-04 | Phase 227 | Complete |
 | CLEN-05 | Phase 223 | Complete |
 
 **Coverage:**

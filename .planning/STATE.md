@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Assessment & Training System Audit
 status: unknown
-stopped_at: Phase 227 context gathered
-last_updated: "2026-03-22T03:00:13.676Z"
+stopped_at: Completed 227-01-PLAN.md
+last_updated: "2026-03-22T03:20:44.990Z"
 progress:
   total_phases: 4
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 224 — analytics-dashboard-hc
+**Current focus:** Phase 227 — major-refactors
 
 ## Current Position
 
-Phase: 225
-Plan: Not started
+Phase: 227 (major-refactors) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -47,6 +47,8 @@ Plan: Not started
 - [Phase 223]: AccessToken shared token pattern didokumentasikan sebagai desain disengaja (common exam room pattern)
 - [Phase 224]: ParentCategory navigation property tidak ada di AssessmentCategory — gunakan Parent sesuai model
 - [Phase 224]: Chart.js dimuat via CDN jsdelivr (tidak di-bundle) sesuai plan spec
+- [Phase 227-major-refactors]: NomorSertifikat dipindah dari CreateAssessment ke SubmitExam — cert hanya exist jika IsPassed=true
+- [Phase 227-major-refactors]: CertNumberHelper static class diextract ke Helpers/ untuk shared usage lintas controller
 
 ### Pending Todos
 
@@ -60,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T03:00:13.673Z
-Stopped at: Phase 227 context gathered
-Resume file: .planning/phases/227-major-refactors/227-CONTEXT.md
+Last session: 2026-03-22T03:20:44.986Z
+Stopped at: Completed 227-01-PLAN.md
+Resume file: None

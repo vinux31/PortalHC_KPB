@@ -131,7 +131,7 @@ Plans:
   3. NomorSertifikat hanya ter-generate saat SubmitExam + IsPassed = true (bukan saat CreateAssessment), sehingga tidak ada NomorSertifikat pada session yang belum lulus
 **Plans**: 2 plans
 Plans:
-- [ ] 227-01-PLAN.md — NomorSertifikat timing fix + orphan tables cleanup (CLEN-04, CLEN-03)
+- [x] 227-01-PLAN.md — NomorSertifikat timing fix + orphan tables cleanup (CLEN-04, CLEN-03)
 - [ ] 227-02-PLAN.md — Legacy question path migration + code removal (CLEN-02)
 
 ## Progress
@@ -159,4 +159,4 @@ Plans:
 | 223. Assessment Quick Wins | v8.0 | 2/2 | Complete    | 2026-03-21 |
 | 224. Analytics Dashboard HC | v8.0 | 2/2 | Complete    | 2026-03-21 |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |
-| 227. Major Refactors | v8.0 | 0/2 | Not started | - |
+| 227. Major Refactors | v8.0 | 1/2 | In Progress|  |
