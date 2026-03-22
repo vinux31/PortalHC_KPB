@@ -1355,18 +1355,8 @@ namespace HcPortal.Controllers
                     protonTahunKe = protonTrack.TahunKe;
                 }
 
-                // Phase 192: Pre-compute starting sequence number for certificate generation
-                var now = DateTime.Now;
-                int year = now.Year;
-                var existingNumbers = await _context.AssessmentSessions
-                    .Where(s => s.NomorSertifikat != null && s.NomorSertifikat.EndsWith($"/{year}"))
-                    .Select(s => s.NomorSertifikat!)
-                    .ToListAsync();
-                int nextSeq = existingNumbers.Count == 0 ? 1 :
-                    existingNumbers.Select(n => {
-                        var parts = n.Split('/');
-                        return parts.Length > 1 && int.TryParse(parts[1], out int v) ? v : 0;
-                    }).Max() + 1;
+                // Phase 227 CLEN-04: NomorSertifikat is now generated in SubmitExam (when IsPassed=true).
+                // Pre-computation block removed — sessions start with NomorSertifikat = null.
 
                 // Phase 210: Deserialize per-user FK map for bulk renew
                 Dictionary<string, int>? fkMap = null;
@@ -1398,7 +1388,7 @@ namespace HcPortal.Controllers
                         GenerateCertificate = model.GenerateCertificate,
                         ExamWindowCloseDate = model.ExamWindowCloseDate,
                         ValidUntil = model.ValidUntil,
-                        NomorSertifikat = BuildCertNumber(nextSeq + i, now),
+                        NomorSertifikat = null, // Phase 227 CLEN-04: generated in SubmitExam when IsPassed=true
                         Progress = 0,
                         UserId = userId,
                         CreatedBy = currentUser?.Id,
@@ -1438,28 +1428,17 @@ namespace HcPortal.Controllers
                         await transaction.CommitAsync();
                         saved = true;
                     }
-                    catch (DbUpdateException ex) when (attempt < maxAttempts && IsDuplicateKeyException(ex))
+                    catch (DbUpdateException ex) when (attempt < maxAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
                     {
-                        // Detach tracked sessions, re-query sequence, re-assign numbers
+                        // Phase 227 CLEN-04: NomorSertifikat no longer generated here.
+                        // This catch is kept for any other unique constraint violations.
                         foreach (var s in sessions) _context.Entry(s).State = EntityState.Detached;
                         await transaction.RollbackAsync();
                         transaction = await _context.Database.BeginTransactionAsync();
 
-                        // Re-query max seq
-                        var retryNumbers = await _context.AssessmentSessions
-                            .Where(s => s.NomorSertifikat != null && s.NomorSertifikat.EndsWith($"/{year}"))
-                            .Select(s => s.NomorSertifikat!)
-                            .ToListAsync();
-                        nextSeq = retryNumbers.Count == 0 ? 1 :
-                            retryNumbers.Select(n => {
-                                var parts = n.Split('/');
-                                return parts.Length > 1 && int.TryParse(parts[1], out int v) ? v : 0;
-                            }).Max() + 1;
-
-                        // Re-assign and re-add
+                        // Re-add sessions for retry (no cert re-assignment needed)
                         for (int j = 0; j < sessions.Count; j++)
                         {
-                            sessions[j].NomorSertifikat = BuildCertNumber(nextSeq + j, now);
                             sessions[j].Id = 0; // reset for re-insert
                         }
                         _context.AssessmentSessions.AddRange(sessions);
@@ -6903,27 +6882,7 @@ namespace HcPortal.Controllers
 
         #endregion
 
-        #region Certificate Helpers (Phase 192)
-
-        private static string ToRomanMonth(int month) => month switch
-        {
-            1 => "I", 2 => "II", 3 => "III", 4 => "IV",
-            5 => "V", 6 => "VI", 7 => "VII", 8 => "VIII",
-            9 => "IX", 10 => "X", 11 => "XI", 12 => "XII",
-            _ => throw new ArgumentOutOfRangeException(nameof(month))
-        };
-
-        private static string BuildCertNumber(int seq, DateTime date)
-            => $"KPB/{seq:D3}/{ToRomanMonth(date.Month)}/{date.Year}";
-
-        private static bool IsDuplicateKeyException(DbUpdateException ex)
-        {
-            return ex.InnerException?.Message.Contains("IX_AssessmentSessions_NomorSertifikat") == true
-                || ex.InnerException?.Message.Contains("2601") == true
-                || ex.InnerException?.Message.Contains("2627") == true;
-        }
-
-        #endregion
+        // Certificate Helpers moved to Helpers/CertNumberHelper.cs (Phase 227 CLEN-04)
 
         #region Renewal Certificate
 

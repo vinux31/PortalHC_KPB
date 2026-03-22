@@ -1526,6 +1526,36 @@ namespace HcPortal.Controllers
                     return RedirectToAction("Results", new { id });
                 }
 
+                // Phase 227 CLEN-04: Generate NomorSertifikat only when passed
+                bool isPassed = finalPercentage >= assessment.PassPercentage;
+                if (assessment.GenerateCertificate && isPassed)
+                {
+                    var certNow = DateTime.Now;
+                    int certYear = certNow.Year;
+                    int certAttempts = 0;
+                    const int maxCertAttempts = 3;
+                    bool certSaved = false;
+
+                    while (!certSaved && certAttempts < maxCertAttempts)
+                    {
+                        certAttempts++;
+                        try
+                        {
+                            var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                            await _context.AssessmentSessions
+                                .Where(s => s.Id == id && s.NomorSertifikat == null)
+                                .ExecuteUpdateAsync(s => s
+                                    .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
+                                );
+                            certSaved = true;
+                        }
+                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
+                        {
+                            // Retry with fresh sequence
+                        }
+                    }
+                }
+
                 // SignalR push: notify HC monitor group that worker submitted (package path)
                 {
                     var submitBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
@@ -1639,6 +1669,36 @@ namespace HcPortal.Controllers
                 {
                     TempData["Info"] = "Ujian Anda sudah diakhiri oleh pengawas.";
                     return RedirectToAction("Results", new { id });
+                }
+
+                // Phase 227 CLEN-04: Generate NomorSertifikat only when passed (legacy path)
+                bool legacyIsPassed = finalPercentage >= assessment.PassPercentage;
+                if (assessment.GenerateCertificate && legacyIsPassed)
+                {
+                    var certNow = DateTime.Now;
+                    int certYear = certNow.Year;
+                    int certAttempts = 0;
+                    const int maxCertAttempts = 3;
+                    bool certSaved = false;
+
+                    while (!certSaved && certAttempts < maxCertAttempts)
+                    {
+                        certAttempts++;
+                        try
+                        {
+                            var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                            await _context.AssessmentSessions
+                                .Where(s => s.Id == id && s.NomorSertifikat == null)
+                                .ExecuteUpdateAsync(s => s
+                                    .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
+                                );
+                            certSaved = true;
+                        }
+                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
+                        {
+                            // Retry with fresh sequence
+                        }
+                    }
                 }
 
                 // SignalR push: notify HC monitor group that worker submitted (legacy path)
