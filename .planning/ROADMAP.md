@@ -73,7 +73,6 @@
 
 - [x] **Phase 223: Assessment Quick Wins** - Persist ET score, deteksi tab-switch, status lifecycle, timestamp UserResponse, dokumentasi AccessToken (completed 2026-03-21)
 - [x] **Phase 224: Analytics Dashboard HC** - Visualisasi fail rate, trend assessment, breakdown ET, ringkasan sertifikat akan expired (completed 2026-03-21)
-- [ ] **Phase 225: Training Compliance Matrix** - CRUD matriks training wajib per jabatan, kalkulasi compliance, summary per section
 - [ ] **Phase 226: Email Notification Sertifikat Expired** - Reminder otomatis 90/30/7 hari, duplikat guard via NotificationSentLog
 - [ ] **Phase 227: Major Refactors** - Question Bank CRUD + import, pemilihan soal dari bank, migrasi legacy path, cleanup orphan tables, NomorSertifikat timing fix
 
@@ -107,19 +106,6 @@ Plans:
 Plans:
 - [x] 224-01-PLAN.md — Backend: ViewModel, JSON endpoint, cascade endpoints, CMP Hub link
 - [x] 224-02-PLAN.md — Frontend: View Analytics Dashboard dengan Chart.js, filter AJAX, tabel
-
-### Phase 225: Training Compliance Matrix
-**Goal**: Admin dapat mendefinisikan training wajib per jabatan, dan HC dapat melihat compliance percentage pekerja terhadap training yang diwajibkan
-**Depends on**: Phase 223
-**Requirements**: COMP-01, COMP-02, COMP-03
-**Success Criteria** (what must be TRUE):
-  1. Admin dapat membuka halaman Kelola Data, mengakses matriks training wajib, dan melakukan CRUD (tambah, edit, hapus) mapping PositionTitle ke SubKategori training yang diwajibkan
-  2. Compliance percentage seorang pekerja dihitung berdasarkan perbandingan training yang sudah diselesaikan vs training yang diwajibkan oleh jabatannya (bukan total training di database)
-  3. HC dapat melihat halaman team view yang menampilkan compliance summary per section/unit — berapa persen pekerja di tiap unit yang memenuhi training wajib jabatannya
-**Plans**: 2 plans
-Plans:
-- [ ] 225-01-PLAN.md — TBD
-- [ ] 225-02-PLAN.md — TBD
 
 ### Phase 226: Email Notification Sertifikat Expired
 **Goal**: Sistem mengirim email reminder otomatis kepada pekerja sebelum sertifikat mereka expired, tanpa duplikat meskipun service restart
@@ -175,6 +161,5 @@ Plans:
 | 222. Cleanup & Finalisasi | v7.12 | 1/1 | Complete | 2026-03-21 |
 | 223. Assessment Quick Wins | v8.0 | 2/2 | Complete    | 2026-03-21 |
 | 224. Analytics Dashboard HC | v8.0 | 2/2 | Complete    | 2026-03-21 |
-| 225. Training Compliance Matrix | v8.0 | 0/TBD | Not started | - |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |
 | 227. Major Refactors | v8.0 | 0/TBD | Not started | - |

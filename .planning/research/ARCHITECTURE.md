@@ -1,400 +1,327 @@
-# Architecture Research
+# Architecture Analysis: Assessment & Training Management System
 
-**Domain:** Brownfield ASP.NET MVC — Assessment form revamp & certificate enhancement (v7.5)
-**Researched:** 2026-03-17
-**Confidence:** HIGH (all findings from direct codebase inspection)
-
----
-
-## System Overview
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                      Browser (Razor + JS)                        │
-│  CreateAssessment wizard (4-step single-page)                    │
-│  Certificate.cshtml (HTML) + new PDF download button             │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │ POST (same shape as today)
-┌─────────────────────▼───────────────────────────────────────────┐
-│                     AdminController.cs                           │
-│  CreateAssessment GET  (modify: DB categories, clone pre-fill)   │
-│  CreateAssessment POST (modify: ValidUntil, NomorSertifikat)     │
-│  CloneAssessment GET   (new: read session → redirect with QS)    │
-├─────────────────────────────────────────────────────────────────┤
-│                     CMPController.cs                             │
-│  Certificate GET   → HTML view (existing, unchanged)             │
-│  CertificatePdf GET (new: QuestPDF binary stream)                │
-└─────────────────────┬───────────────────────────────────────────┘
-                      │
-┌─────────────────────▼───────────────────────────────────────────┐
-│                   ApplicationDbContext                           │
-│  AssessmentSessions  (add: ValidUntil, NomorSertifikat)         │
-│  AssessmentCategories (new table with seed data)                 │
-│  TrainingRecords  (NomorSertifikat, ValidUntil already exist)    │
-└─────────────────────────────────────────────────────────────────┘
-```
+**Domain:** Corporate HR/HC Portal — Gap Analysis & Future Architecture
+**Researched:** 2026-03-21
+**Confidence:** HIGH — berdasarkan direct code inspection semua model, controller, dan data layer
 
 ---
 
-## Component Responsibilities
-
-| Component | Responsibility | Status |
-|-----------|----------------|--------|
-| `AdminController.CreateAssessment GET` | Load users, sections, ProtonTracks, categories for form | Modify: swap hardcoded categories → DB query; read clone QS params |
-| `AdminController.CreateAssessment POST` | Validate, create N sessions for N users, audit | Modify: add ValidUntil mapping, auto-number NomorSertifikat |
-| `AdminController.CloneAssessment GET` | Read existing session → redirect to CreateAssessment with pre-fill query string | New action |
-| `CMPController.Certificate GET` | Serve HTML certificate view | Unchanged |
-| `CMPController.CertificatePdf GET` | Generate + stream QuestPDF binary (A4 landscape) | New action |
-| `AssessmentCategory` model | Name, DefaultPassPercentage, DisplayOrder, IsActive | New model + migration |
-| `AssessmentSession` model | Add `ValidUntil DateTime?` and `NomorSertifikat string?` | Modify model + migration |
-| `CreateAssessment.cshtml` | 4-step wizard UI; categories from ViewBag | Major view rewrite |
-| `Certificate.cshtml` | Add "Download PDF" link pointing to CertificatePdf | Minor modify |
-
----
-
-## Recommended Project Structure
-
-No new folders needed. All changes are in-place within existing structure:
+## Sistem Saat Ini: Peta Arsitektur
 
 ```
-Controllers/
-  AdminController.cs         # modify CreateAssessment GET/POST; add CloneAssessment
-  CMPController.cs           # add CertificatePdf action
-
-Models/
-  AssessmentSession.cs       # add ValidUntil, NomorSertifikat
-  AssessmentCategory.cs      # new model
-
-Data/
-  ApplicationDbContext.cs    # add DbSet<AssessmentCategory>
-
-Views/
-  Admin/
-    CreateAssessment.cshtml  # wizard rewrite
-  CMP/
-    Certificate.cshtml       # add PDF download button link
-
-Migrations/
-  [timestamp]_v75_AssessmentFormRevamp.cs  # new migration
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Browser (Razor MVC + jQuery)                      │
+│  Assessment List │ Exam Engine │ Certificate │ Records │ Monitoring  │
+└───────────────────────┬─────────────────────────────────────────────┘
+                        │ HTTP + SignalR
+┌───────────────────────▼─────────────────────────────────────────────┐
+│                       Controllers                                     │
+│  CMPController   — exam flow, certificate, records worker view       │
+│  AdminController — create/assign assessment, training CRUD, reports  │
+│  ProtonDataController — silabus, guidance                            │
+└───────────────────────┬─────────────────────────────────────────────┘
+                        │ EF Core
+┌───────────────────────▼─────────────────────────────────────────────┐
+│                   ApplicationDbContext                                │
+│                                                                       │
+│  ASSESSMENT PATH:                                                     │
+│  AssessmentSession (per-user exam instance)                          │
+│    ├── AssessmentQuestion (LEGACY — direct FK ke session)            │
+│    ├── AssessmentPackage                                              │
+│    │     └── PackageQuestion                                          │
+│    │           └── PackageOption                                      │
+│    ├── UserResponse (LEGACY — jawaban untuk AssessmentQuestion)      │
+│    ├── PackageUserResponse (jawaban untuk PackageQuestion)           │
+│    └── AssessmentAttemptHistory (archive before reset)               │
+│                                                                       │
+│  CATEGORY:                                                            │
+│  AssessmentCategory (hierarchical, parent-child, signatory)          │
+│                                                                       │
+│  TRAINING PATH:                                                       │
+│  TrainingRecord (manual + auto-from-assessment)                      │
+│    ├── RenewsTrainingId (self-FK renewal chain)                      │
+│    └── RenewsSessionId (cross-type renewal FK)                       │
+│                                                                       │
+│  AUDIT:                                                               │
+│  AuditLog (admin actions)                                            │
+│  ExamActivityLog (per-session events)                                │
+│                                                                       │
+│  NOTIFICATIONS:                                                       │
+│  Notification + UserNotification (in-portal only)                   │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Architectural Patterns
+## Arsitektur yang Direkomendasikan untuk Gap-Gap Utama
 
-### Pattern 1: Wizard as Single-Page Hide/Show (NOT Multi-Action)
+### 1. Analytics Layer — Query-Only Extension
 
-**What:** All wizard steps live in one `CreateAssessment.cshtml` Razor view. Step navigation is pure JavaScript `display:none / display:block`. The final "Submit" POSTs to the existing `AdminController.CreateAssessment POST` with the same parameter shape (`AssessmentSession model, List<string> UserIds`).
+Tidak perlu perubahan arsitektur. Analytics adalah layer read-only di atas data yang sudah ada.
 
-**When to use:** The existing POST action is ~310 lines with heavy validation logic. Splitting into separate controller actions would require extracting that logic into a shared method — significant refactor risk in brownfield. Single-page wizard keeps the server contract intact.
+```
+┌─────────────────────────────────────────┐
+│  HCDashboard View (Razor + Chart.js)    │
+└───────────────┬─────────────────────────┘
+                │
+┌───────────────▼─────────────────────────┐
+│  AdminController.HCDashboard (GET)       │
+│  - Query AssessmentSession by category   │
+│  - Group by section, compute pass rate   │
+│  - Query ValidUntil for expiry heatmap   │
+│  - Build HCDashboardViewModel            │
+└───────────────┬─────────────────────────┘
+                │ LINQ queries (read-only)
+┌───────────────▼─────────────────────────┐
+│  ApplicationDbContext (existing)         │
+└─────────────────────────────────────────┘
+```
 
-**Trade-offs:**
-- Pro: zero changes to POST action signature or validation flow
-- Pro: back/forward navigation stays client-side — no round-trips, no TempData, no session state
-- Con: all form fields must be present in DOM on submit; use `type="hidden"` inputs for fields on non-visible steps
-- Con: JS step validation must mirror server-side rules client-side (duplicate logic, but unavoidable)
+**Batasan komponen:**
+- Tidak ada model baru
+- Tidak ada migrasi
+- Tidak ada service layer baru
+- Cukup: 1 action baru, 1 ViewModel baru, 1 view baru
 
-**Step layout:**
-- Step 1: Category + Judul
-- Step 2: Pilih Users (existing user search + section filter UI)
-- Step 3: Settings (schedule, duration, passPercentage, ValidUntil, flags)
-- Step 4: Confirm + Submit (summary of all steps, then POST)
+**Catatan khusus untuk ElemenTeknis Analytics:**
+Karena ElemenTeknis scores tidak dipersist, analytics ET hanya bisa per-session (bukan lintas-session). Sebelum analytics ET lintas-session bisa dibuat, perlu dulu persist `SessionElemenTeknisScore` tabel.
 
-### Pattern 2: DB-Driven Categories via ViewBag (Consistent with Existing Pattern)
+---
 
-**What:** New `AssessmentCategory` table replaces the hardcoded `SelectListItem` list in `CreateAssessment.cshtml`. `CreateAssessment GET` queries `_context.AssessmentCategories.Where(c => c.IsActive).OrderBy(c => c.DisplayOrder)` and passes via `ViewBag.Categories`.
+### 2. Training Compliance Matrix — Model Extension
 
-**When to use:** Existing pattern already uses `ViewBag.ProtonTracks` and `ViewBag.Sections` for dynamic data. This follows it exactly.
+```
+RequiredTraining (NEW)
+  ├── Id
+  ├── PositionTitle (string, matches ApplicationUser.Position)
+  ├── TrainingType (string: "Assessment Online" | "Manual Training")
+  ├── SubKategori (string, matches TrainingRecord.SubKategori)
+  ├── IsActive (bool)
+  └── Notes (string?)
 
-**Trade-offs:**
-- Pro: no new API endpoint; ViewBag pattern is established in this codebase
-- Pro: `DefaultPassPercentage` per category moves from JS hardcode to a DB column, rendered as `data-pass-percentage` on each `<option>` element
-- Con: adding a new category requires a DB insert (no admin UI in scope for v7.5 — acceptable)
+                 ┌──────────────────────────────────┐
+                 │  ComplianceGapViewModel (NEW)     │
+                 │  WorkerId, WorkerName, Position   │
+                 │  RequiredCount, FulfilledCount     │
+                 │  List<GapItem> {RequiredTraining, │
+                 │    IsCompleted, LastCompletion}    │
+                 └──────────────────────────────────┘
+```
 
-**Seed data note:** Migration must seed exactly the six existing category string values (`OJT`, `IHT`, `Training Licencor`, `OTS`, `Mandatory HSSE Training`, `Assessment Proton`) to preserve `AdminController` branching logic that is keyed on those exact strings (especially `"Assessment Proton"`).
-
-### Pattern 3: CloneAssessment as GET Redirect with Query String
-
-**What:** `GET /Admin/CloneAssessment?id=123` reads an existing `AssessmentSession`, then redirects to `GET /Admin/CreateAssessment?category=OJT&title=...&duration=60&...`. The `CreateAssessment GET` checks `Request.Query` for pre-fill params and overrides the new default model before returning the view.
-
-**When to use:** Avoids storing partial state in TempData or Session. The form is immediately editable — HC can modify any field before submitting.
-
-**Trade-offs:**
-- Pro: no new view, no new POST action; all wizard pre-fill handled client-side after page load
-- Pro: URL query string is transparent — HC can bookmark or share pre-fill URLs
-- Con: questions/answers are NOT cloned (they belong to the exam package, not the session — correct behavior)
-- Con: URL length ceiling (not an issue at this payload size)
-
-**Redirect target:** `RedirectToAction("CreateAssessment", new { category=..., title=..., duration=..., passPercentage=..., generateCertificate=..., protonTrackId=... })`
-
-### Pattern 4: NomorSertifikat Auto-Generation Inside POST Loop
-
-**What:** When `model.GenerateCertificate == true`, generate `NomorSertifikat` for each new `AssessmentSession` inside the existing POST `foreach (userId in UserIds)` loop. Format: `CERT/{YYYY}/{N:D4}` where N is a count of existing certificate sessions in the same year + offset per batch iteration.
-
-**When to use:** Simple, no external sequence table. Safe at Pertamina's scale (well under 1000 certificate-bearing assessments per year).
-
-**Trade-offs:**
-- Pro: self-contained; no extra DB round-trip per certificate (count once before the loop, increment in-memory)
-- Con: not gap-free if sessions are later deleted — acceptable for an internal portal
-- Con: only generates when `GenerateCertificate == true`; sessions without certificates get `null` NomorSertifikat
-
-**Implementation:**
+**Query logic:**
 ```csharp
-int existingCertCount = 0;
-if (model.GenerateCertificate)
-{
-    var year = DateTime.UtcNow.Year;
-    existingCertCount = await _context.AssessmentSessions
-        .CountAsync(s => s.GenerateCertificate && s.CreatedAt.Year == year);
-}
+// Untuk worker X:
+var required = dbContext.RequiredTrainings
+    .Where(r => r.PositionTitle == worker.Position && r.IsActive);
 
-int certIndex = 0;
-foreach (var userId in UserIds)
+var fulfilled = required.Where(r =>
+    // Cek di TrainingRecord
+    dbContext.TrainingRecords.Any(t =>
+        t.UserId == worker.Id &&
+        t.SubKategori == r.SubKategori &&
+        (t.ValidUntil == null || t.ValidUntil > DateTime.Now))
+    ||
+    // Cek di AssessmentSession
+    dbContext.AssessmentSessions.Any(a =>
+        a.UserId == worker.Id &&
+        a.Category == r.SubKategori &&
+        a.IsPassed == true &&
+        (a.ValidUntil == null || a.ValidUntil > DateTime.Now))
+);
+```
+
+**Batasan komponen:**
+- 1 model baru: `RequiredTraining`
+- 1 migrasi: create table
+- Admin CRUD: ManageRequiredTrainings (copy pattern ManageWorkers)
+- Worker view extension: tambah compliance gap section di RecordsWorkerDetail
+- Section view extension: tambah compliance % per section di Records
+
+---
+
+### 3. Question Bank Library — Schema Redesign (High Risk)
+
+Ini adalah perubahan arsitektur yang paling signifikan karena menyentuh exam engine.
+
+```
+SEKARANG:
+AssessmentSession
+  └── AssessmentPackage
+        └── PackageQuestion (FK ke AssessmentPackage)
+              └── PackageOption
+
+YANG DIREKOMENDASIKAN:
+QuestionBank (NEW)
+  └── QuestionBankItem (NEW) — soal independen
+        ├── QuestionText
+        ├── ElemenTeknis
+        ├── DifficultyLevel
+        ├── Tags (JSON)
+        └── QuestionBankOption (NEW)
+
+AssessmentSession
+  └── AssessmentPackage
+        └── PackageQuestion — TETAP ADA, tapi bisa di-populate dari QuestionBank
+              └── PackageOption
+
+QuestionBankAssignment (NEW) — junction: bank item → package question
+  ├── QuestionBankItemId
+  └── PackageQuestionId (copy by value, NOT FK)
+```
+
+**Keputusan kritis: Copy by value, NOT reference.**
+Ketika soal dari bank digunakan di assessment, soal di-COPY (bukan di-reference) ke `PackageQuestion`. Ini memastikan:
+- Soal bank bisa diedit tanpa mengubah assessment yang sudah selesai
+- Historical exam responses tetap valid
+- Exam engine tidak perlu diubah (masih baca dari PackageQuestion)
+
+**Batasan komponen:**
+- `QuestionBank`, `QuestionBankItem`, `QuestionBankOption` models baru
+- Migrasi schema
+- Admin UI: ManageQuestionBank (search, filter by ET/kategori, preview)
+- Modifikasi CreateAssessment: opsi "ambil dari bank" di samping "import Excel"
+- Exam engine: TIDAK PERLU DIUBAH (masih baca dari PackageQuestion)
+
+---
+
+### 4. Email Notification — Background Service
+
+```
+┌─────────────────────────────────────────────────────┐
+│  CertificateExpiryReminderService                   │
+│  (IHostedService, runs daily at 08:00)              │
+│                                                     │
+│  Query TrainingRecord + AssessmentSession           │
+│  where ValidUntil IN (90, 30, 7, 0 days from now)  │
+│                                                     │
+│  For each → send email via IEmailSender             │
+│  Log ke NotificationLog (NEW) to prevent dup send   │
+└─────────────────────────────────────────────────────┘
+```
+
+**ASP.NET Core background service pattern:**
+```csharp
+public class CertificateExpiryReminderService : BackgroundService
 {
-    var session = new AssessmentSession { /* ... existing mapping ... */ };
-    if (model.GenerateCertificate)
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        session.NomorSertifikat = $"CERT/{DateTime.UtcNow.Year}/{existingCertCount + certIndex + 1:D4}";
-        certIndex++;
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            await SendExpiryReminders();
+            // Wait until next 08:00
+            var next = DateTime.Today.AddDays(1).AddHours(8);
+            await Task.Delay(next - DateTime.Now, stoppingToken);
+        }
     }
-    session.ValidUntil = model.ValidUntil;
-    _context.AssessmentSessions.Add(session);
 }
 ```
 
-### Pattern 5: QuestPDF Certificate Download (New Action, Reference CDPController)
-
-**What:** Add `GET /CMP/CertificatePdf/{id}` to `CMPController`. Same authorization guard as `Certificate(id)` (owner or Admin/HC role, IsPassed == true, GenerateCertificate == true). Builds document content with QuestPDF's fluent API and returns `File(pdfBytes, "application/pdf", $"Certificate-{id}.pdf")`.
-
-**Reference implementation:** `CDPController.ExportProgressPdf` (lines 2189–2539). Copy the `QuestPDF.Fluent.Document.Create(container => { page.Size(A4.Landscape)... })` structure verbatim, substituting certificate content.
-
-**Trade-offs:**
-- Pro: QuestPDF NuGet is already installed — no new dependencies
-- Pro: returns a clean binary file download (no browser print dialog required)
-- Con: QuestPDF cannot use web fonts (Playfair Display, Lato from Google Fonts); use system fonts or `NotoSerif` / `Arial` fallback
-- Con: SVG watermark and Bootstrap icons from `Certificate.cshtml` must be rebuilt as QuestPDF layout primitives or omitted in the PDF version
-
-**Authorization pattern:**
-```csharp
-[HttpGet]
-public async Task<IActionResult> CertificatePdf(int id)
-{
-    var assessment = await _context.AssessmentSessions
-        .Include(a => a.User)
-        .FirstOrDefaultAsync(a => a.Id == id);
-    if (assessment == null) return NotFound();
-
-    var user = await _userManager.GetUserAsync(User);
-    if (user == null) return Challenge();
-    var userRoles = await _userManager.GetRolesAsync(user);
-    bool isAuthorized = assessment.UserId == user.Id
-        || userRoles.Contains("Admin") || userRoles.Contains("HC");
-    if (!isAuthorized) return Forbid();
-
-    if (assessment.Status != "Completed" || assessment.IsPassed != true
-        || !assessment.GenerateCertificate) return NotFound();
-
-    var pdfBytes = /* QuestPDF Document.Create(...).GeneratePdf() */;
-    return File(pdfBytes, "application/pdf", $"Certificate-{id}.pdf");
-}
-```
+**Batasan komponen:**
+- `CertificateExpiryReminderService` class baru di `Services/`
+- `NotificationSentLog` model (untuk de-duplikasi: jangan kirim 2x per sertifikat per threshold)
+- Konfigurasi SMTP di `appsettings.json`
+- Register di `Program.cs`: `builder.Services.AddHostedService<CertificateExpiryReminderService>()`
 
 ---
 
-## Data Flow
+## Pola yang Sudah Proven di Codebase Ini
 
-### CreateAssessment Wizard Submit
-
-```
-[Step 4: Confirm] → user clicks Submit
-    ↓
-POST /Admin/CreateAssessment
-    (AssessmentSession model + List<string> UserIds — same signature as today)
-    ↓
-AdminController.CreateAssessment POST (existing ~310-line action)
-    → existing validation (unchanged)
-    → count existing certs for year (if GenerateCertificate)
-    → foreach userId:
-        - create AssessmentSession
-        - set ValidUntil = model.ValidUntil
-        - set NomorSertifikat = auto-generated (if GenerateCertificate)
-    → existing audit + notification
-    ↓
-TempData["CreatedAssessment"] → RedirectToAction("CreateAssessment")
-```
-
-### Category Load Flow (Modified GET)
-
-```
-GET /Admin/CreateAssessment
-    ↓ (was: hardcoded SelectListItem list in .cshtml)
-    ↓ (now: _context.AssessmentCategories query in controller)
-    → ViewBag.Categories = List<AssessmentCategory>
-      (each carries DefaultPassPercentage for JS use)
-    → Check Request.Query for clone pre-fill params
-      (category, title, duration, passPercentage, etc.)
-    → Build initial model (override defaults with clone params if present)
-    ↓
-CreateAssessment.cshtml
-    → renders <select> from ViewBag.Categories
-    → each <option data-pass-percentage="...">
-    → JS builds categoryDefaults map from data attributes at runtime
-```
-
-### Certificate PDF Flow (New)
-
-```
-User on Certificate.cshtml → clicks "Download PDF" link
-    ↓
-GET /CMP/CertificatePdf/{id}
-    ↓
-CMPController.CertificatePdf
-    → load AssessmentSession + User (same query as Certificate action)
-    → same auth guard (owner or Admin/HC)
-    → same guards (Completed, IsPassed, GenerateCertificate)
-    → QuestPDF Document.Create (A4 Landscape)
-       • header: "HC PORTAL KPB"
-       • recipient name
-       • course title
-       • completion date
-       • score badge (if Score != null)
-       • NomorSertifikat (if set)
-    → return File(pdfBytes, "application/pdf", "Certificate-{id}.pdf")
-```
+| Pattern | Contoh Existing | Gunakan Untuk |
+|---------|----------------|---------------|
+| ViewBag-driven dropdown | `ViewBag.ProtonTracks`, `ViewBag.Sections` | RequiredTraining matrix admin view |
+| Admin CRUD | ManageWorkers actions | ManageRequiredTrainings, ManageQuestionBank |
+| Excel import + template | ImportWorkers, ImportTraining | Import RequiredTraining matrix |
+| Background computation | ElemenTeknis aggregation di SubmitExam | Session analytics computation |
+| SignalR real-time | ExamMonitoring hub | Bisa extend untuk dashboard live-update |
+| QuestPDF export | Certificate, CDPExport | Compliance report PDF export |
+| Union-Find renewal chain | TrainingRecord + AssessmentSession | Tetap pertahankan, tidak perlu ganti |
 
 ---
 
-## Integration Points: New vs. Modified
+## Anti-Patterns yang Harus Dihindari
 
-| Component | New / Modified | What Changes |
-|-----------|---------------|--------------|
-| `AssessmentSession` model | Modified | Add `ValidUntil DateTime?`, `NomorSertifikat string?` |
-| `AssessmentCategory` model | New | `Name`, `DefaultPassPercentage`, `DisplayOrder`, `IsActive` |
-| `ApplicationDbContext` | Modified | Add `DbSet<AssessmentCategory>` |
-| EF Migration | New | Adds two columns to AssessmentSessions; creates AssessmentCategories table with seed data |
-| `AdminController.CreateAssessment GET` | Modified | Query DB for categories; read clone query-string params |
-| `AdminController.CreateAssessment POST` | Modified | Map `ValidUntil`; auto-generate `NomorSertifikat` |
-| `AdminController.CloneAssessment GET` | New | Read session → build redirect with pre-fill query string |
-| `CreateAssessment.cshtml` | Major rewrite | 4-step wizard UI; categories from `ViewBag.Categories` |
-| `CMPController.CertificatePdf GET` | New | QuestPDF binary stream (A4 landscape) |
-| `Certificate.cshtml` | Minor modify | Add "Download PDF" `<a>` link to `CertificatePdf` |
+### Anti-Pattern 1: Question Reference (bukan Copy)
 
-### Internal Boundaries
+**Jangan:** Simpan FK `PackageQuestion.QuestionBankItemId` sebagai reference ke bank.
 
-| Boundary | Communication | Notes |
-|----------|---------------|-------|
-| Wizard steps → POST | HTML form fields (hidden for inactive steps) | All step data must be in DOM at submit |
-| CloneAssessment → CreateAssessment | HTTP redirect with query string | GET reads `Request.Query` for pre-fill; no TempData |
-| CertificatePdf → QuestPDF | In-process method call | No service abstraction needed; matches CDPController pattern |
-| AssessmentCategory → CreateAssessment form | ViewBag | Consistent with ProtonTracks and Sections pattern |
-| NomorSertifikat generation | Inline in POST loop | Count before loop; increment in-memory |
+**Kenapa salah:** Jika soal bank diedit/dihapus, exam yang sudah selesai (dan `PackageUserResponse` yang ada) kehilangan konteks soal-nya. Audit trail rusak.
+
+**Lakukan:** Copy soal ke `PackageQuestion` saat assignment. Simpan `SourceQuestionBankItemId` sebagai nullable reference-only (untuk tracing, bukan untuk read).
 
 ---
 
-## Build Order (Dependency-Safe)
+### Anti-Pattern 2: Compliance Percentage Tanpa Denominator yang Jelas
 
-**Phase 1 — Data Layer (foundation for all other phases)**
-- Add `AssessmentCategory` model
-- Add `ValidUntil` + `NomorSertifikat` to `AssessmentSession`
-- Add `DbSet<AssessmentCategory>` to `ApplicationDbContext`
-- Create and apply migration with seed data for six categories
+**Jangan:** Hitung compliance % dari "training yang di-assign ke worker / total assignment".
 
-Every subsequent phase depends on the migration being applied before it can be tested end-to-end.
+**Kenapa salah:** Denominator (total training wajib) tidak meaningful jika tidak ada definisi formal per jabatan.
 
-**Phase 2 — DB Categories in Form (smallest isolated change)**
-- Modify `CreateAssessment GET` to query `AssessmentCategories` and pass via `ViewBag.Categories`
-- Update `CreateAssessment.cshtml` to render the `<select>` from `ViewBag.Categories` (keep single-page form, no wizard yet)
-- Update JS `categoryDefaults` to read `data-pass-percentage` from `<option>` elements instead of hardcoded map
-- Remove the hardcoded `SelectListItem` list from the view
-
-Verifiable without wizard: submit the existing single-page form with a DB-sourced category.
-
-**Phase 3 — Wizard UI**
-- Rewrite `CreateAssessment.cshtml` into 4-step wizard (step navigation via JS)
-- Wire step validation in JS (mirrors existing server-side rules)
-- Add `ValidUntil` datepicker to Step 3 (Settings)
-
-Phase 3 does not change the POST action. The view changes are safe to build after Phase 2 confirms category loading works.
-
-**Phase 4 — ValidUntil + NomorSertifikat on Session**
-- Modify `CreateAssessment POST` to map `ValidUntil` from model
-- Add NomorSertifikat auto-generation inside POST loop
-
-Depends on Phase 1 (columns exist) and Phase 3 (wizard has the `ValidUntil` field in Step 3).
-
-**Phase 5 — Clone Feature**
-- Add `CloneAssessment GET` action to `AdminController`
-- Modify `CreateAssessment GET` to read pre-fill query string params
-- Add "Clone" button to assessment list or detail view
-
-Depends on Phase 3 (wizard must be stable for pre-fill to land in correct step).
-
-**Phase 6 — PDF Certificate Download**
-- Add `CertificatePdf GET` to `CMPController`
-- Add "Download PDF" link to `Certificate.cshtml`
-
-Fully independent of Phases 3–5. Only dependency is Phase 1 (NomorSertifikat column must exist to display it on PDF). Can be built in parallel with Phases 3–5 if desired.
+**Lakukan:** Compliance % = (required trainings completed) / (required trainings for this position). Denominator dari `RequiredTraining` table.
 
 ---
 
-## Anti-Patterns
+### Anti-Pattern 3: Analytics Dengan N+1 Query
 
-### Anti-Pattern 1: Multi-Action Wizard with Server Round-Trips
+**Jangan:** Loop semua workers → per worker query training records → compute stats.
 
-**What people do:** Each wizard step is a separate controller action with its own POST, storing partial state in TempData or Session.
+**Kenapa salah:** Dengan 200 workers × N queries = ratusan queries per page load.
 
-**Why it's wrong:** The existing `CreateAssessment POST` has ~310 lines of validation, notification, and audit logic. Splitting it requires extracting that into a shared private method — a significant brownfield refactor risk, with no functional benefit at this scale.
-
-**Do this instead:** Single-page wizard with JS step navigation. One POST to the existing action. Zero risk to the existing submit path.
-
-### Anti-Pattern 2: Storing NomorSertifikat on TrainingRecord for Online Assessments
-
-**What people do:** At session completion, mirror `NomorSertifikat` from `AssessmentSession` into a new or existing `TrainingRecord` row.
-
-**Why it's wrong:** `TrainingRecord.NomorSertifikat` is already the field for manually-imported offline records (used in CMPController import/export flow). Dual-sourcing the same-named field across two tables creates confusion about which is authoritative.
-
-**Do this instead:** Store `NomorSertifikat` on `AssessmentSession` only. `Certificate.cshtml` and `CertificatePdf` already read from `AssessmentSession` directly. No `TrainingRecord` sync needed.
-
-### Anti-Pattern 3: Renaming "Assessment Proton" in Category Seed Data
-
-**What people do:** Treat DB migration as a chance to clean up category names (e.g., rename to "Proton Assessment").
-
-**Why it's wrong:** `AdminController.CreateAssessment POST` has Proton-specific branching logic keyed on the exact string `"Assessment Proton"` — TahunKe detection, ProtonTrackId validation, duration=0 sentinel for Tahun 3 interview sessions. If the value changes, that branching silently breaks.
-
-**Do this instead:** Seed exactly the six existing string values as the canonical `Name` values. If a different display label is needed, add a separate `DisplayName` column and render that in the `<option>` text.
-
-### Anti-Pattern 4: Generating NomorSertifikat for Non-Certificate Sessions
-
-**What people do:** Always auto-assign a certificate number when creating any session.
-
-**Why it's wrong:** Most sessions have `GenerateCertificate = false`. Assigning numbers to non-certificate sessions pollutes the sequence and creates gaps where numbers were "used" on sessions that never produce a certificate.
-
-**Do this instead:** Only generate when `model.GenerateCertificate == true`. Leave `NomorSertifikat` as `null` for all other sessions.
+**Lakukan:** Aggregate di DB level menggunakan LINQ GroupBy + projection. Compute stats per section dalam satu query.
 
 ---
 
-## Scaling Considerations
+### Anti-Pattern 4: Background Service Kirim Email Duplikat
 
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| Current (~200 workers) | All in-process; count-based NomorSertifikat is safe |
-| NomorSertifikat uniqueness | At current scale, count before loop is safe. If concurrent POSTs become an issue, use `SELECT MAX(NomorSertifikat)` with a DB-level unique index |
-| PDF generation | QuestPDF is synchronous and CPU-bound. Inline is fine at current scale. If PDF becomes slow, move to background job |
+**Jangan:** Background service query "ValidUntil = today + 30 days" dan langsung kirim email.
+
+**Kenapa salah:** Jika service restart, akan kirim ulang. Jika ada dua instance running, akan duplikat.
+
+**Lakukan:** Buat `NotificationSentLog` table dengan (UserId, RecordId, RecordType, ThresholdDays, SentAt). Cek sebelum kirim: jika sudah ada entry dengan threshold yang sama dalam 24 jam, skip.
+
+---
+
+## Scalability Considerations
+
+| Area | Saat Ini (~200 workers) | Jika 500+ workers |
+|------|------------------------|------------------|
+| Analytics queries | In-memory aggregation OK | Tambah indexes on CompletedAt, Category, UserId |
+| Background email service | Single-threaded OK | Rate limit email batch (misal 50/menit) |
+| Question bank search | Full-table scan OK | Tambah full-text index pada QuestionText |
+| ExamActivityLog | Grows fast (~20 events/session) | Pertimbangkan archival policy (> 2 tahun) |
+| AuditLog | Grows linearly | Tetap OK, sudah ada ExportAuditLog |
+
+---
+
+## Recommended Index Additions (Untuk Analytics Performance)
+
+```sql
+-- Untuk analytics pass rate per section/category
+CREATE INDEX IX_AssessmentSession_Category_IsPassed
+ON AssessmentSessions (Category, IsPassed);
+
+-- Untuk expiry monitoring
+CREATE INDEX IX_AssessmentSession_ValidUntil
+ON AssessmentSessions (ValidUntil) WHERE ValidUntil IS NOT NULL;
+
+CREATE INDEX IX_TrainingRecord_ValidUntil
+ON TrainingRecords (ValidUntil) WHERE ValidUntil IS NOT NULL;
+
+-- Untuk compliance matrix query
+CREATE INDEX IX_TrainingRecord_UserId_SubKategori
+ON TrainingRecords (UserId, SubKategori);
+```
 
 ---
 
 ## Sources
 
-- Direct inspection: `Controllers/AdminController.cs` — CreateAssessment GET (L759), POST (L795-1104)
-- Direct inspection: `Controllers/CMPController.cs` — Certificate (L2327), QuestPDF usage (L8-9)
-- Direct inspection: `Controllers/CDPController.cs` — ExportProgressPdf QuestPDF pattern (L2189-2539)
-- Direct inspection: `Models/AssessmentSession.cs` — full model (no ValidUntil/NomorSertifikat present)
-- Direct inspection: `Models/TrainingRecord.cs` — NomorSertifikat + ValidUntil already exist here
-- Direct inspection: `Views/Admin/CreateAssessment.cshtml` — hardcoded categories at lines 7-15, JS categoryDefaults at lines 537-551
-- Direct inspection: `Views/CMP/Certificate.cshtml` — HTML layout reference for PDF rebuild
-- Direct inspection: `Data/ApplicationDbContext.cs` — DbSet inventory, no AssessmentCategory present
+- Direct inspection: semua Models (AssessmentSession, AssessmentPackage, PackageQuestion, PackageUserResponse, TrainingRecord, UserResponse, ExamActivityLog, AuditLog)
+- Direct inspection: `Controllers/CMPController.cs` — exam flow, ElemenTeknis scoring, SubmitExam
+- Direct inspection: `Controllers/AdminController.cs` — CreateAssessment, ExportAssessmentResults
+- Direct inspection: `Models/WorkerTrainingStatus.cs`, `AllWorkersHistoryRow.cs`, `DashboardHomeViewModel.cs`
+- Web research: TMS compliance matrix — [AIHR Training Matrix](https://www.aihr.com/blog/training-matrix/)
+- ASP.NET Core BackgroundService docs: standard pattern untuk hosted services
 
 ---
-
-*Architecture research for: PortalHC KPB v7.5 — Assessment Form Revamp & Certificate Enhancement*
-*Researched: 2026-03-17*
+*Architecture research untuk: Portal HC KPB — Assessment & Training Management Gap Analysis*
+*Researched: 2026-03-21*
