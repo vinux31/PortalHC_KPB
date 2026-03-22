@@ -172,11 +172,12 @@
                                 <!-- Status with Icon -->
                                 <div class="meta-item">
                                     @{
-                                        var statusIcon = item.Status switch
+                                        var statusIcon = isExpired ? "bi-x-circle-fill text-danger" :
+                                        item.Status switch
                                         {
                                             "Open" => "bi-check-circle-fill text-success",
-                                            "Upcoming" => "bi-clock-fill text-warning",
-                                            "Completed" => "bi-check-circle text-primary",
+                                            "Upcoming" => "bi-clock-fill text-primary",
+                                            "Completed" => "bi-check-circle text-secondary",
                                             "InProgress" => "bi-play-circle-fill text-warning",
                                             _ => "bi-circle"
                                         };
