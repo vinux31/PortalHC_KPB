@@ -807,6 +807,27 @@ namespace HcPortal.Controllers
                 progress.ShApprovedAt = DateTime.UtcNow;
             }
 
+            // Race condition guard — reload fresh status before write (D-10)
+            var freshStatus = await _context.ProtonDeliverableProgresses
+                .Where(p => p.Id == progressId)
+                .Select(p => new { p.Status, p.SrSpvApprovalStatus, p.ShApprovalStatus })
+                .AsNoTracking()
+                .FirstOrDefaultAsync();
+
+            if (freshStatus == null) return NotFound();
+
+            // Re-check: apakah role ini masih bisa approve berdasarkan state terkini di DB?
+            bool stillCanApprove = freshStatus.Status == "Submitted" ||
+                (freshStatus.Status == "Approved" && (
+                    (isSrSpv && freshStatus.SrSpvApprovalStatus != "Approved") ||
+                    (isSH && freshStatus.ShApprovalStatus != "Approved")));
+
+            if (!stillCanApprove)
+            {
+                TempData["Error"] = "Deliverable sudah diproses oleh approver lain.";
+                return RedirectToAction("CoachingProton");
+            }
+
             // Set overall approval fields (in memory, before SaveChangesAsync)
             progress.Status = "Approved";
             progress.ApprovedAt = DateTime.UtcNow;
