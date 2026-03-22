@@ -31,8 +31,20 @@ namespace HcPortal.Controllers
         public string Kompetensi { get; set; } = "";
         public string SubKompetensi { get; set; } = "";
         public string Deliverable { get; set; } = "";
-        public string Status { get; set; } = ""; // "Created", "Updated", "Error"
+        public string Status { get; set; } = ""; // "Created", "Updated", "Error", "Skipped"
         public string Message { get; set; } = "";
+    }
+
+    public class ParsedSilabusRow
+    {
+        public int RowNumber { get; set; }
+        public string Bagian { get; set; } = "";
+        public string Unit { get; set; } = "";
+        public string Track { get; set; } = "";
+        public string Kompetensi { get; set; } = "";
+        public string SubKompetensi { get; set; } = "";
+        public string Deliverable { get; set; } = "";
+        public string Target { get; set; } = "";
     }
 
     public class SilabusDeleteRequest
@@ -814,7 +826,9 @@ namespace HcPortal.Controllers
                 return View();
             }
 
-            var results = new List<ImportSilabusResult>();
+            var importResults = new List<ImportSilabusResult>();
+            var validRows = new List<ParsedSilabusRow>();
+            bool hasErrors = false;
 
             try
             {
@@ -826,6 +840,19 @@ namespace HcPortal.Controllers
                 var ws = workbook.Worksheets.First();
                 var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
 
+                // D-16: Header validation — cek kolom header di baris 1
+                var expectedHeaders = new[] { "Bagian", "Unit", "Track", "Kompetensi", "SubKompetensi", "Deliverable", "Target" };
+                for (int i = 0; i < expectedHeaders.Length; i++)
+                {
+                    var actual = ws.Cell(1, i + 1).GetString().Trim();
+                    if (!actual.Equals(expectedHeaders[i], StringComparison.OrdinalIgnoreCase))
+                    {
+                        TempData["ImportError"] = $"Header kolom {i + 1} tidak cocok. Diharapkan: '{expectedHeaders[i]}', ditemukan: '{actual}'. Pastikan menggunakan template yang benar.";
+                        return RedirectToAction("ImportSilabus");
+                    }
+                }
+
+                // D-13: Pass 1 — Validasi semua baris tanpa DB write
                 for (int rowNum = 2; rowNum <= lastRow; rowNum++)
                 {
                     var colBagian   = ws.Cell(rowNum, 1).GetString().Trim();
@@ -850,12 +877,13 @@ namespace HcPortal.Controllers
                         Deliverable = colDel
                     };
 
-                    // Validate
+                    // Validate required fields
                     if (string.IsNullOrEmpty(colKomp) || string.IsNullOrEmpty(colSub) || string.IsNullOrEmpty(colDel))
                     {
                         result.Status = "Error";
                         result.Message = "Kompetensi, SubKompetensi, dan Deliverable wajib diisi.";
-                        results.Add(result);
+                        importResults.Add(result);
+                        hasErrors = true;
                         continue;
                     }
 
@@ -863,89 +891,156 @@ namespace HcPortal.Controllers
                     {
                         result.Status = "Error";
                         result.Message = "Parameter bagian, unit, dan trackId tidak valid.";
-                        results.Add(result);
+                        importResults.Add(result);
+                        hasErrors = true;
                         continue;
                     }
 
-                    // Upsert Kompetensi
-                    var komp = await _context.ProtonKompetensiList
-                        .FirstOrDefaultAsync(k => k.Bagian == bagian && k.Unit == unit &&
-                                                  k.ProtonTrackId == trackId.Value && k.NamaKompetensi == colKomp);
-                    if (komp == null)
+                    // D-15: Duplikasi detection — cek apakah deliverable sudah ada di DB (active)
+                    var existingDeliverable = await _context.ProtonDeliverableList
+                        .AnyAsync(d => d.NamaDeliverable == colDel
+                                    && d.ProtonSubKompetensi.NamaSubKompetensi == colSub
+                                    && d.ProtonSubKompetensi.ProtonKompetensi.NamaKompetensi == colKomp
+                                    && d.ProtonSubKompetensi.ProtonKompetensi.Bagian == bagian
+                                    && d.ProtonSubKompetensi.ProtonKompetensi.Unit == unit
+                                    && d.ProtonSubKompetensi.ProtonKompetensi.ProtonTrackId == trackId.Value
+                                    && d.ProtonSubKompetensi.ProtonKompetensi.IsActive);
+                    if (existingDeliverable)
                     {
-                        var maxUrutan = await _context.ProtonKompetensiList
-                            .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId.Value)
-                            .MaxAsync(k => (int?)k.Urutan) ?? 0;
-                        komp = new ProtonKompetensi
-                        {
-                            Bagian = bagian,
-                            Unit = unit,
-                            ProtonTrackId = trackId.Value,
-                            NamaKompetensi = colKomp,
-                            Urutan = maxUrutan + 1,
-                            IsActive = true
-                        };
-                        _context.ProtonKompetensiList.Add(komp);
-                        await _context.SaveChangesAsync();
+                        result.Status = "Skipped";
+                        result.Message = "Sudah ada (aktif)";
+                        importResults.Add(result);
+                        continue;
                     }
 
-                    // Upsert SubKompetensi
-                    var sub = await _context.ProtonSubKompetensiList
-                        .FirstOrDefaultAsync(s => s.ProtonKompetensiId == komp.Id && s.NamaSubKompetensi == colSub);
-                    if (sub == null)
+                    validRows.Add(new ParsedSilabusRow
                     {
-                        var maxUrutan = await _context.ProtonSubKompetensiList
-                            .Where(s => s.ProtonKompetensiId == komp.Id)
-                            .MaxAsync(s => (int?)s.Urutan) ?? 0;
-                        sub = new ProtonSubKompetensi
-                        {
-                            ProtonKompetensiId = komp.Id,
-                            NamaSubKompetensi = colSub,
-                            Urutan = maxUrutan + 1
-                        };
-                        _context.ProtonSubKompetensiList.Add(sub);
-                        await _context.SaveChangesAsync();
+                        RowNumber = rowNum,
+                        Bagian = colBagian,
+                        Unit = colUnit,
+                        Track = colTrack,
+                        Kompetensi = colKomp,
+                        SubKompetensi = colSub,
+                        Deliverable = colDel,
+                        Target = colTarget
+                    });
+                    result.Status = "Valid";
+                    result.Message = "OK";
+                    importResults.Add(result);
+                }
+
+                // D-13: Jika ada error, rollback semua — tidak ada data yang masuk
+                if (hasErrors)
+                {
+                    TempData["ImportResults"] = System.Text.Json.JsonSerializer.Serialize(importResults);
+                    TempData["ImportError"] = "Import dibatalkan karena ada baris error. Perbaiki data dan coba lagi.";
+                    return RedirectToAction("ImportSilabus", new { bagian, unit, trackId });
+                }
+
+                // Pass 2 — Insert semua valid rows dalam transaction
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // In-memory dictionaries untuk FK resolution tanpa SaveChanges per baris
+                    var kompDict = new Dictionary<string, ProtonKompetensi>();
+                    var subDict = new Dictionary<string, ProtonSubKompetensi>();
+
+                    // Pre-load existing Kompetensi dan SubKompetensi yang mungkin sudah ada
+                    var existingKomps = await _context.ProtonKompetensiList
+                        .Include(k => k.SubKompetensiList)
+                        .Where(k => k.Bagian == bagian && k.Unit == unit && k.ProtonTrackId == trackId!.Value)
+                        .ToListAsync();
+                    foreach (var k in existingKomps)
+                    {
+                        kompDict[$"{k.NamaKompetensi}"] = k;
+                        foreach (var s in k.SubKompetensiList)
+                            subDict[$"{k.NamaKompetensi}|{s.NamaSubKompetensi}"] = s;
                     }
 
-                    // Upsert Deliverable
-                    var del = await _context.ProtonDeliverableList
-                        .FirstOrDefaultAsync(d => d.ProtonSubKompetensiId == sub.Id && d.NamaDeliverable == colDel);
-                    bool isNew = del == null;
-                    if (del == null)
+                    var maxKompUrutan = existingKomps.Any() ? existingKomps.Max(k => k.Urutan) : 0;
+
+                    foreach (var row in validRows)
                     {
-                        var maxUrutan = await _context.ProtonDeliverableList
-                            .Where(d => d.ProtonSubKompetensiId == sub.Id)
-                            .MaxAsync(d => (int?)d.Urutan) ?? 0;
-                        del = new ProtonDeliverable
+                        // Upsert Kompetensi
+                        if (!kompDict.TryGetValue(row.Kompetensi, out var komp))
                         {
-                            ProtonSubKompetensiId = sub.Id,
-                            NamaDeliverable = colDel,
-                            Urutan = maxUrutan + 1
+                            komp = new ProtonKompetensi
+                            {
+                                Bagian = bagian!,
+                                Unit = unit!,
+                                ProtonTrackId = trackId!.Value,
+                                NamaKompetensi = row.Kompetensi,
+                                Urutan = ++maxKompUrutan,
+                                IsActive = true
+                            };
+                            _context.ProtonKompetensiList.Add(komp);
+                            kompDict[row.Kompetensi] = komp;
+                        }
+
+                        // Upsert SubKompetensi
+                        var subKey = $"{row.Kompetensi}|{row.SubKompetensi}";
+                        if (!subDict.TryGetValue(subKey, out var sub))
+                        {
+                            var maxSubUrutan = kompDict[row.Kompetensi].SubKompetensiList.Any()
+                                ? kompDict[row.Kompetensi].SubKompetensiList.Max(s => s.Urutan)
+                                : 0;
+                            sub = new ProtonSubKompetensi
+                            {
+                                ProtonKompetensi = komp,
+                                NamaSubKompetensi = row.SubKompetensi,
+                                Urutan = maxSubUrutan + 1
+                            };
+                            _context.ProtonSubKompetensiList.Add(sub);
+                            subDict[subKey] = sub;
+                        }
+
+                        // Insert Deliverable (baru — duplikasi sudah discarded di Pass 1)
+                        var maxDelUrutan = sub.Deliverables?.Any() == true ? sub.Deliverables.Max(d => d.Urutan) : 0;
+                        var del = new ProtonDeliverable
+                        {
+                            ProtonSubKompetensi = sub,
+                            NamaDeliverable = row.Deliverable,
+                            Target = string.IsNullOrEmpty(row.Target) ? null : row.Target,
+                            Urutan = maxDelUrutan + 1
                         };
                         _context.ProtonDeliverableList.Add(del);
                     }
-                    del.Target = string.IsNullOrEmpty(colTarget) ? null : colTarget;
 
-                    result.Status = isNew ? "Created" : "Updated";
-                    result.Message = isNew ? "Berhasil dibuat." : "Target diperbarui.";
-                    results.Add(result);
+                    await _context.SaveChangesAsync(); // satu kali — EF insert dalam urutan dependency
+                    await transaction.CommitAsync();
+
+                    // Update results — semua valid rows menjadi "Created"
+                    foreach (var r in importResults.Where(r => r.Status == "Valid"))
+                    {
+                        r.Status = "Created";
+                        r.Message = "Berhasil dibuat.";
+                    }
                 }
-
-                await _context.SaveChangesAsync();
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    _logger.LogError(ex, "ImportSilabus transaction failed");
+                    TempData["ImportError"] = "Import gagal. Semua perubahan dibatalkan.";
+                    TempData["ImportResults"] = System.Text.Json.JsonSerializer.Serialize(importResults);
+                    return RedirectToAction("ImportSilabus", new { bagian, unit, trackId });
+                }
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Gagal memproses file: {ex.Message}";
-                return View();
+                TempData["ImportError"] = $"Gagal memproses file: {ex.Message}";
+                return RedirectToAction("ImportSilabus", new { bagian, unit, trackId });
             }
 
-            ViewBag.ImportResults = results;
+            int createdCount = importResults.Count(r => r.Status == "Created");
+            int skippedCount = importResults.Count(r => r.Status == "Skipped");
 
-            bool hasErrors = results.Any(r => r.Status == "Error");
-            if (!hasErrors && !string.IsNullOrEmpty(bagian) && !string.IsNullOrEmpty(unit) && trackId.HasValue)
+            TempData["ImportResults"] = System.Text.Json.JsonSerializer.Serialize(importResults);
+            TempData["ImportSuccess"] = $"Import selesai: {createdCount} dibuat, {skippedCount} dilewati (sudah ada).";
+
+            if (!string.IsNullOrEmpty(bagian) && !string.IsNullOrEmpty(unit) && trackId.HasValue && createdCount > 0)
                 return RedirectToAction("Index", new { bagian, unit, trackId, tab = "silabus" });
 
-            return View();
+            return RedirectToAction("ImportSilabus", new { bagian, unit, trackId });
         }
 
         // GET: /ProtonData/GuidanceList?bagian=X&unit=Y&trackId=Z

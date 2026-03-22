@@ -1,9 +1,17 @@
 @{
     ViewData["Title"] = "Import Silabus Proton dari Excel";
     var importResults = ViewBag.ImportResults as List<HcPortal.Controllers.ImportSilabusResult>;
-    var successCount = importResults?.Count(r => r.Status == "Created" || r.Status == "Updated") ?? 0;
+
+    // Support TempData results (post-redirect-get pattern)
+    if (importResults == null && TempData["ImportResults"] != null)
+    {
+        var json = TempData["ImportResults"]?.ToString();
+        if (!string.IsNullOrEmpty(json))
+            importResults = System.Text.Json.JsonSerializer.Deserialize<List<HcPortal.Controllers.ImportSilabusResult>>(json);
+    }
+
     var createdCount = importResults?.Count(r => r.Status == "Created") ?? 0;
-    var updatedCount = importResults?.Count(r => r.Status == "Updated") ?? 0;
+    var skippedCount = importResults?.Count(r => r.Status == "Skipped") ?? 0;
     var errorCount = importResults?.Count(r => r.Status == "Error") ?? 0;
     var bagian = Context.Request.Query["bagian"].ToString();
     var unit = Context.Request.Query["unit"].ToString();
@@ -33,6 +41,20 @@
         </a>
     </div>
 
+    @if (TempData["ImportError"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="bi bi-exclamation-triangle me-2"></i>@TempData["ImportError"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["ImportSuccess"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            <i class="bi bi-check-circle me-2"></i>@TempData["ImportSuccess"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
     @if (TempData["Error"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show">
@@ -53,8 +75,8 @@
             </div>
             <div class="col-4">
                 <div class="card border-0 shadow-sm text-center p-3">
-                    <div class="fs-2 fw-bold text-info">@updatedCount</div>
-                    <div class="small text-muted">Baris Diperbarui</div>
+                    <div class="fs-2 fw-bold text-warning">@skippedCount</div>
+                    <div class="small text-muted">Dilewati (Duplikat)</div>
                 </div>
             </div>
             <div class="col-4">
@@ -74,12 +96,12 @@
                     <table class="table table-sm align-middle mb-0">
                         <thead class="sticky-top bg-white">
                             <tr>
-                                <th class="p-3">No</th>
+                                <th class="p-3">No Baris</th>
                                 <th class="p-3">Kompetensi</th>
                                 <th class="p-3">SubKompetensi</th>
                                 <th class="p-3">Deliverable</th>
                                 <th class="p-3 text-center">Status</th>
-                                <th class="p-3">Keterangan</th>
+                                <th class="p-3">Pesan</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,14 +110,14 @@
                                 var rowClass = r.Status switch
                                 {
                                     "Created" => "table-success",
-                                    "Updated" => "table-info",
+                                    "Skipped" => "table-warning",
                                     "Error" => "table-danger",
                                     _ => ""
                                 };
                                 var statusBadge = r.Status switch
                                 {
                                     "Created" => "<span class=\"badge bg-success\"><i class=\"bi bi-plus-lg me-1\"></i>Dibuat</span>",
-                                    "Updated" => "<span class=\"badge bg-info text-dark\"><i class=\"bi bi-pencil me-1\"></i>Diperbarui</span>",
+                                    "Skipped" => "<span class=\"badge bg-warning text-dark\"><i class=\"bi bi-skip-forward me-1\"></i>Dilewati</span>",
                                     "Error" => "<span class=\"badge bg-danger\"><i class=\"bi bi-x-lg me-1\"></i>Error</span>",
                                     _ => "<span class=\"badge bg-secondary\">?</span>"
                                 };
