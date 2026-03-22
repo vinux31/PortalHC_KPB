@@ -178,6 +178,26 @@
         </div>
     </div>
 
+    @* ====== Active progress warning modal (blocks hard delete) ====== *@
+    <div class="modal fade" id="silabusDeleteBlockedModal" tabindex="-1" aria-labelledby="silabusDeleteBlockedModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="silabusDeleteBlockedModalLabel">Hapus Tidak Diizinkan</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Deliverable <strong id="silabusDeleteBlockedName"></strong> tidak dapat dihapus karena sedang digunakan.</p>
+                    <p id="silabusDeleteBlockedDetail" class="text-danger small"></p>
+                    <p class="small">Gunakan tombol <strong>Nonaktifkan</strong> untuk menonaktifkan silabus tanpa menghapus data progress.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     @* ====== Delete Kompetensi confirmation modal ====== *@
     <div class="modal fade" id="kompetensiDeleteModal" tabindex="-1" aria-labelledby="kompetensiDeleteModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -645,7 +665,7 @@
             });
 
             // Delete row (trash button)
-            tbody.addEventListener('click', function (e) {
+            tbody.addEventListener('click', async function (e) {
                 const btn = e.target.closest('.btn-delete-row');
                 if (!btn) return;
                 const idx = parseInt(btn.dataset.idx);
@@ -653,11 +673,29 @@
                 if (!row) return;
 
                 if (row.DeliverableId > 0) {
-                    // Saved row — show modal confirmation
+                    // Saved row — check preview first, then show appropriate modal
                     deleteTargetIndex = idx;
-                    document.getElementById('silabusDeleteName').textContent = row.Deliverable || '(tanpa nama)';
-                    const modal = new bootstrap.Modal(document.getElementById('silabusDeleteModal'));
-                    modal.show();
+                    const delivName = row.Deliverable || '(tanpa nama)';
+                    try {
+                        const previewResp = await fetch(`/ProtonData/SilabusDeletePreview?deliverableId=${row.DeliverableId}`);
+                        const preview = await previewResp.json();
+                        if (preview.hasActiveProgress) {
+                            document.getElementById('silabusDeleteBlockedName').textContent = delivName;
+                            document.getElementById('silabusDeleteBlockedDetail').textContent =
+                                `Deliverable ini digunakan oleh ${preview.coacheeCount} coachee dengan ${preview.totalProgress} progress aktif. Hard delete tidak diizinkan.`;
+                            const blockedModal = new bootstrap.Modal(document.getElementById('silabusDeleteBlockedModal'));
+                            blockedModal.show();
+                        } else {
+                            document.getElementById('silabusDeleteName').textContent = delivName;
+                            const modal = new bootstrap.Modal(document.getElementById('silabusDeleteModal'));
+                            modal.show();
+                        }
+                    } catch (err) {
+                        // Fallback: show confirm modal if preview fails
+                        document.getElementById('silabusDeleteName').textContent = delivName;
+                        const modal = new bootstrap.Modal(document.getElementById('silabusDeleteModal'));
+                        modal.show();
+                    }
                 } else {
                     // Unsaved row — remove directly
                     silabusRows.splice(idx, 1);

@@ -500,6 +500,51 @@ namespace HcPortal.Controllers
             return Json(new { success = true, message = $"Data silabus berhasil disimpan ({rows.Count} baris)." });
         }
 
+        // GET: /ProtonData/SilabusDeletePreview — check impact before hard delete (deliverable level)
+        [HttpGet]
+        public async Task<IActionResult> SilabusDeletePreview(int deliverableId)
+        {
+            var progressQuery = _context.ProtonDeliverableProgresses
+                .Where(p => p.ProtonDeliverableId == deliverableId);
+            var hasActiveProgress = await progressQuery.AnyAsync(p => p.Status != "Approved");
+            var totalProgress = await progressQuery.CountAsync();
+            var coacheeCount = await progressQuery.Select(p => p.CoacheeId).Distinct().CountAsync();
+            return Json(new { hasActiveProgress, totalProgress, coacheeCount });
+        }
+
+        // GET: /ProtonData/SubKompetensiDeletePreview — check impact before hard delete (sub-kompetensi level)
+        [HttpGet]
+        public async Task<IActionResult> SubKompetensiDeletePreview(int subKompetensiId)
+        {
+            var deliverableIds = await _context.ProtonDeliverableList
+                .Where(d => d.ProtonSubKompetensiId == subKompetensiId)
+                .Select(d => d.Id).ToListAsync();
+            var progressQuery = _context.ProtonDeliverableProgresses
+                .Where(p => deliverableIds.Contains(p.ProtonDeliverableId));
+            var hasActiveProgress = await progressQuery.AnyAsync(p => p.Status != "Approved");
+            var totalProgress = await progressQuery.CountAsync();
+            var coacheeCount = await progressQuery.Select(p => p.CoacheeId).Distinct().CountAsync();
+            return Json(new { hasActiveProgress, totalProgress, coacheeCount });
+        }
+
+        // GET: /ProtonData/KompetensiDeletePreview — check impact before hard delete (kompetensi level)
+        [HttpGet]
+        public async Task<IActionResult> KompetensiDeletePreview(int kompetensiId)
+        {
+            var subIds = await _context.ProtonSubKompetensiList
+                .Where(s => s.ProtonKompetensiId == kompetensiId)
+                .Select(s => s.Id).ToListAsync();
+            var deliverableIds = await _context.ProtonDeliverableList
+                .Where(d => subIds.Contains(d.ProtonSubKompetensiId))
+                .Select(d => d.Id).ToListAsync();
+            var progressQuery = _context.ProtonDeliverableProgresses
+                .Where(p => deliverableIds.Contains(p.ProtonDeliverableId));
+            var hasActiveProgress = await progressQuery.AnyAsync(p => p.Status != "Approved");
+            var totalProgress = await progressQuery.CountAsync();
+            var coacheeCount = await progressQuery.Select(p => p.CoacheeId).Distinct().CountAsync();
+            return Json(new { hasActiveProgress, totalProgress, coacheeCount });
+        }
+
         // POST: /ProtonData/SilabusDelete — delete a single deliverable row (for inline delete)
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -518,43 +563,74 @@ namespace HcPortal.Controllers
 
             if (deliv == null) return Json(new { success = false, message = "Data tidak ditemukan." });
 
+            // D-01: Block hard delete if there is any active (non-Approved) progress
+            var hasActiveProgress = await _context.ProtonDeliverableProgresses
+                .AnyAsync(p => p.ProtonDeliverableId == req.DeliverableId && p.Status != "Approved");
+            if (hasActiveProgress)
+                return Json(new { success = false, hasActiveProgress = true,
+                    message = "Deliverable ini memiliki progress aktif. Gunakan Deactivate untuk menonaktifkan silabus." });
+
             var delivName = deliv.NamaDeliverable;
             var subKomp = deliv.ProtonSubKompetensi;
             var komp = subKomp?.ProtonKompetensi;
 
-            // Cascade delete progress records for this deliverable (FK is Restrict)
-            var progressIds = await _context.ProtonDeliverableProgresses
-                .Where(p => p.ProtonDeliverableId == deliv.Id)
-                .Select(p => p.Id)
-                .ToListAsync();
-            if (progressIds.Any())
+            // D-06: Wrap all cascade delete in a transaction
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                var sessions = await _context.CoachingSessions
-                    .Include(cs => cs.ActionItems)
-                    .Where(cs => cs.ProtonDeliverableProgressId != null && progressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
-                    .ToListAsync();
-                _context.CoachingSessions.RemoveRange(sessions);
-
-                var progresses = await _context.ProtonDeliverableProgresses
+                // Cascade delete progress records for this deliverable (FK is Restrict)
+                var progressIds = await _context.ProtonDeliverableProgresses
                     .Where(p => p.ProtonDeliverableId == deliv.Id)
+                    .Select(p => p.Id)
                     .ToListAsync();
-                _context.ProtonDeliverableProgresses.RemoveRange(progresses);
-            }
+                if (progressIds.Any())
+                {
+                    var sessions = await _context.CoachingSessions
+                        .Include(cs => cs.ActionItems)
+                        .Where(cs => cs.ProtonDeliverableProgressId != null && progressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                        .ToListAsync();
+                    _context.CoachingSessions.RemoveRange(sessions);
 
-            _context.ProtonDeliverableList.Remove(deliv);
-            await _context.SaveChangesAsync();
+                    var progresses = await _context.ProtonDeliverableProgresses
+                        .Where(p => p.ProtonDeliverableId == deliv.Id)
+                        .ToListAsync();
+                    _context.ProtonDeliverableProgresses.RemoveRange(progresses);
+                }
 
-            // Clean up empty parents
-            if (subKomp != null && !await _context.ProtonDeliverableList.AnyAsync(d => d.ProtonSubKompetensiId == subKomp.Id))
-            {
-                _context.ProtonSubKompetensiList.Remove(subKomp);
+                _context.ProtonDeliverableList.Remove(deliv);
                 await _context.SaveChangesAsync();
 
-                if (komp != null && !await _context.ProtonSubKompetensiList.AnyAsync(s => s.ProtonKompetensiId == komp.Id))
+                // D-04: Orphan cleanup — remove SubKompetensi if no other deliverables remain
+                if (subKomp != null)
                 {
-                    _context.ProtonKompetensiList.Remove(komp);
-                    await _context.SaveChangesAsync();
+                    var remainingDeliverables = await _context.ProtonDeliverableList
+                        .CountAsync(d => d.ProtonSubKompetensiId == subKomp.Id);
+                    if (remainingDeliverables == 0)
+                    {
+                        _context.ProtonSubKompetensiList.Remove(subKomp);
+                        await _context.SaveChangesAsync();
+
+                        // D-04: Orphan cleanup — remove Kompetensi if no other sub-kompetensi remain
+                        if (komp != null)
+                        {
+                            var remainingSubs = await _context.ProtonSubKompetensiList
+                                .CountAsync(s => s.ProtonKompetensiId == komp.Id);
+                            if (remainingSubs == 0)
+                            {
+                                _context.ProtonKompetensiList.Remove(komp);
+                                await _context.SaveChangesAsync();
+                            }
+                        }
+                    }
                 }
+
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "SilabusDelete transaction failed for deliverable {Id}", req.DeliverableId);
+                return Json(new { success = false, message = "Operasi gagal. Semua perubahan dibatalkan." });
             }
 
             await _auditLog.LogAsync(user.Id, user.FullName, "Delete",
@@ -979,14 +1055,7 @@ namespace HcPortal.Controllers
             if (file.Length > 10 * 1024 * 1024)
                 return Json(new { success = false, error = "Ukuran file maksimal 10 MB." });
 
-            // Delete old physical file
-            var oldPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (System.IO.File.Exists(oldPath))
-            {
-                System.IO.File.Delete(oldPath);
-            }
-
-            // Save new file
+            // 1. Upload file baru DULU — sebelum hapus file lama
             var uploadDir = Path.Combine(_env.WebRootPath, "uploads", "guidance");
             var safeFileName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{Guid.NewGuid():N}{ext}";
             var newFilePath = Path.Combine(uploadDir, safeFileName);
@@ -996,6 +1065,10 @@ namespace HcPortal.Controllers
                 await file.CopyToAsync(stream);
             }
 
+            // 2. Capture path file lama SEBELUM update DB
+            var oldPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+
+            // 3. Update DB record
             var oldFileName = record.FileName;
             record.FileName = file.FileName;
             record.FilePath = $"/uploads/guidance/{safeFileName}";
@@ -1003,6 +1076,17 @@ namespace HcPortal.Controllers
             record.UploadedAt = DateTime.UtcNow;
             record.UploadedById = user.Id;
             await _context.SaveChangesAsync();
+
+            // 4. BARU hapus file lama (non-critical — wrapped in try-catch)
+            try
+            {
+                if (System.IO.File.Exists(oldPath))
+                    System.IO.File.Delete(oldPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to delete old guidance file: {Path}", oldPath);
+            }
 
             await _auditLog.LogAsync(user.Id, user.FullName, "Update",
                 $"Replaced guidance file '{oldFileName}' with '{file.FileName}' ({FormatFileSize(file.Length)})",
