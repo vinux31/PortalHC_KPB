@@ -237,7 +237,9 @@
                                     resultClass = "text-muted";
                                 }
 
-                                <tr data-session-id="@session.Id">
+                                <tr data-session-id="@session.Id"
+                                    data-started-at="@(session.UserStatus == "InProgress" ? session.StartedAt?.ToString("o") ?? "" : "")"
+                                    data-duration="@session.DurationMinutes">
                                     <td class="fw-semibold">@session.UserFullName</td>
                                     <td class="text-center progress-cell">@(session.QuestionCount > 0 ? $"\u2014/{session.QuestionCount}" : "\u2014")</td>
                                     <td class="status-cell"><span class="badge @statusClass">@statusLabel</span></td>
@@ -858,6 +860,39 @@
 })();
 </script>
 
+<script>
+// ---- Time Remaining countdown (computed from StartedAt + DurationMinutes on initial load) ----
+// This supplements the server-polling countdown for InProgress peserta visible at page load.
+function updateTimeRemaining() {
+    document.querySelectorAll('tr[data-started-at]').forEach(function(row) {
+        var startedAtStr = row.getAttribute('data-started-at');
+        var durationMin = parseInt(row.getAttribute('data-duration') || '0', 10);
+        if (!startedAtStr || durationMin === 0) return; // no timer for interview mode (duration=0)
+        var startedAt = new Date(startedAtStr);
+        if (isNaN(startedAt.getTime())) return;
+        var durationMs = durationMin * 60000;
+        var timeLeft = (startedAt.getTime() + durationMs) - Date.now();
+        var cell = row.querySelector('.timeremaining-cell');
+        if (!cell) return;
+        // Only update cells that don't already show server-provided countdownMap value
+        // (if countdownMap has initialised for this session, skip)
+        var sessionId = parseInt(row.getAttribute('data-session-id'), 10);
+        if (timeLeft <= 0) {
+            cell.textContent = 'Waktu Habis';
+            cell.className = 'timeremaining-cell text-danger fw-semibold';
+        } else {
+            var totalSecs = Math.floor(timeLeft / 1000);
+            var mins = Math.floor(totalSecs / 60);
+            var secs = totalSecs % 60;
+            cell.textContent = mins + 'm ' + secs + 's';
+            cell.className = 'timeremaining-cell text-warning fw-semibold';
+        }
+    });
+}
+setInterval(updateTimeRemaining, 1000);
+updateTimeRemaining(); // initial call on page load
+</script>
+
 @if (Model.IsTokenRequired)
 {
     <script>
@@ -865,10 +900,35 @@
         var tokenEl = document.getElementById('token-display');
         var labelEl = document.getElementById('copy-label');
         if (!tokenEl) return;
-        navigator.clipboard.writeText(tokenEl.textContent.trim()).then(function () {
-            labelEl.textContent = 'Copied!';
-            setTimeout(function () { labelEl.textContent = 'Copy'; }, 2000);
-        });
+        var text = tokenEl.textContent.trim();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+                labelEl.textContent = 'Copied!';
+                setTimeout(function () { labelEl.textContent = 'Copy'; }, 2000);
+            }).catch(function () {
+                // Clipboard API permission denied — fallback to execCommand
+                copyTokenFallback(text, labelEl);
+            });
+        } else {
+            copyTokenFallback(text, labelEl);
+        }
+    }
+    function copyTokenFallback(text, labelEl) {
+        try {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            if (labelEl) { labelEl.textContent = 'Copied!'; setTimeout(function () { labelEl.textContent = 'Copy'; }, 2000); }
+        } catch (e) {
+            alert('Token: ' + text + '
+Salin manual dari dialog ini.');
+        }
     }
 
     function regenToken(btn) {
@@ -1012,16 +1072,30 @@ function eventLabel(eventType, detail) {
         if (monBadge) { monBadge.className = 'badge bg-danger ms-1 small'; monBadge.textContent = 'Disconnected'; }
     });
     // Set initial "Live" state after hub connects, then join monitor group
-    setTimeout(function() {
-        if (monBadge && window.assessmentHub && window.assessmentHub.state === 'Connected') {
-            monBadge.className = 'badge bg-success ms-1 small';
-            monBadge.textContent = 'Live';
-        }
-        if (window.assessmentBatchKey && window.assessmentHub && window.assessmentHub.state === 'Connected') {
-            window.assessmentHub.invoke('JoinMonitor', window.assessmentBatchKey)
-                .catch(function(err) { console.warn('[monitor] JoinMonitor failed:', err); });
-        }
-    }, 2000);
+    // Use promise-based approach instead of fragile setTimeout to detect connection state
+    if (window.assessmentHubStartPromise) {
+        window.assessmentHubStartPromise.then(function() {
+            if (monBadge) { monBadge.className = 'badge bg-success ms-1 small'; monBadge.textContent = 'Live'; }
+            if (window.assessmentBatchKey) {
+                window.assessmentHub.invoke('JoinMonitor', window.assessmentBatchKey)
+                    .catch(function(err) { console.warn('[monitor] JoinMonitor failed:', err); });
+            }
+        }).catch(function() {
+            if (monBadge) { monBadge.className = 'badge bg-danger ms-1 small'; monBadge.textContent = 'Disconnected'; }
+        });
+    } else {
+        // Fallback: assessmentHubStartPromise not exposed — use state check after short delay
+        setTimeout(function() {
+            if (monBadge && window.assessmentHub && window.assessmentHub.state === 'Connected') {
+                monBadge.className = 'badge bg-success ms-1 small';
+                monBadge.textContent = 'Live';
+            }
+            if (window.assessmentBatchKey && window.assessmentHub && window.assessmentHub.state === 'Connected') {
+                window.assessmentHub.invoke('JoinMonitor', window.assessmentBatchKey)
+                    .catch(function(err) { console.warn('[monitor] JoinMonitor failed:', err); });
+            }
+        }, 2000);
+    }
 
     // Rejoin monitor group after reconnect
     window.assessmentHub.onreconnected(function() {

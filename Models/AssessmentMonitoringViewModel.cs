@@ -30,5 +30,6 @@ namespace HcPortal.Models
         public DateTime? CompletedAt { get; set; }
         public DateTime? StartedAt { get; set; }
         public int QuestionCount { get; set; }             // number of questions assigned to this session
+        public int DurationMinutes { get; set; }            // exam duration from AssessmentSession (0 = no timer / interview mode)
     }
 }
