@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.0
 milestone_name: Assessment & Training System Audit
 status: unknown
-stopped_at: Completed 227-01-PLAN.md
-last_updated: "2026-03-22T03:20:44.990Z"
+stopped_at: Completed 227-02-PLAN.md
+last_updated: "2026-03-22T03:33:16.797Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State: Portal HC KPB
@@ -49,6 +49,8 @@ Plan: 2 of 2
 - [Phase 224]: Chart.js dimuat via CDN jsdelivr (tidak di-bundle) sesuai plan spec
 - [Phase 227-major-refactors]: NomorSertifikat dipindah dari CreateAssessment ke SubmitExam — cert hanya exist jika IsPassed=true
 - [Phase 227-major-refactors]: CertNumberHelper static class diextract ke Helpers/ untuk shared usage lintas controller
+- [Phase 227-major-refactors]: Legacy question path (AssessmentQuestion/UserResponse) fully removed — all data migrated to package format via EF migration
+- [Phase 227-major-refactors]: ManageQuestions/AddQuestion/DeleteQuestion actions removed — legacy question CRUD replaced by Package Management
 
 ### Pending Todos
 
@@ -62,6 +64,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T03:20:44.986Z
-Stopped at: Completed 227-01-PLAN.md
+Last session: 2026-03-22T03:33:16.794Z
+Stopped at: Completed 227-02-PLAN.md
 Resume file: None
