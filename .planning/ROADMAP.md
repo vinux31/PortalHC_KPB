@@ -67,14 +67,14 @@
 
 </details>
 
-### 📋 v8.0 Assessment & Training System Audit (Planned)
+### v8.0 Assessment & Training System Audit (Planned)
 
 **Milestone Goal:** Audit dan perkuat fondasi sistem assessment dan training — integritas data exam, analytics untuk HC, compliance tracking training, notifikasi email sertifikat, question bank terpisah, dan cleanup legacy debt.
 
 - [x] **Phase 223: Assessment Quick Wins** - Persist ET score, deteksi tab-switch, status lifecycle, timestamp UserResponse, dokumentasi AccessToken (completed 2026-03-21)
 - [x] **Phase 224: Analytics Dashboard HC** - Visualisasi fail rate, trend assessment, breakdown ET, ringkasan sertifikat akan expired (completed 2026-03-21)
 - [ ] **Phase 226: Email Notification Sertifikat Expired** - Reminder otomatis 90/30/7 hari, duplikat guard via NotificationSentLog
-- [ ] **Phase 227: Major Refactors** - Question Bank CRUD + import, pemilihan soal dari bank, migrasi legacy path, cleanup orphan tables, NomorSertifikat timing fix
+- [ ] **Phase 227: Major Refactors** - Migrasi legacy path, cleanup orphan tables, NomorSertifikat timing fix (QBNK skipped)
 
 ## Phase Details
 
@@ -122,20 +122,17 @@ Plans:
 - [ ] 226-02-PLAN.md — TBD
 
 ### Phase 227: Major Refactors
-**Goal**: Question Bank terpisah dari assessment session tersedia untuk Admin/HC, legacy question path dimigrasikan ke package format, tabel orphan dibersihkan, dan NomorSertifikat di-generate pada waktu yang tepat
-**Depends on**: Phase 224, Phase 225
-**Requirements**: QBNK-01, QBNK-02, QBNK-03, CLEN-02, CLEN-03, CLEN-04
+**Goal**: Legacy question path dimigrasikan ke package format, tabel orphan dibersihkan, dan NomorSertifikat di-generate pada waktu yang tepat (QBNK di-skip per keputusan user)
+**Depends on**: Phase 224
+**Requirements**: CLEN-02, CLEN-03, CLEN-04
 **Success Criteria** (what must be TRUE):
-  1. Admin/HC dapat mengakses halaman Question Bank, melakukan CRUD soal secara mandiri tanpa harus membuat assessment session terlebih dahulu
-  2. Admin/HC dapat menggunakan fitur Import untuk mengunggah soal dari file Excel ke Question Bank
-  3. Saat membuat assessment baru, Admin/HC dapat memilih soal dari Question Bank yang kemudian di-copy ke PackageQuestion (bukan hanya buat soal baru)
-  4. Session assessment yang masih menggunakan legacy path (AssessmentQuestion/AssessmentOption/UserResponse) telah dimigrasikan ke package format, dan tabel legacy tidak lagi digunakan untuk session baru
-  5. Tabel AssessmentCompetencyMap dan UserCompetencyLevel tidak lagi memiliki data aktif dan telah dihapus dari skema database
-  6. NomorSertifikat hanya ter-generate saat SubmitExam + IsPassed = true (bukan saat CreateAssessment), sehingga tidak ada NomorSertifikat pada session yang belum lulus
+  1. Session assessment yang masih menggunakan legacy path (AssessmentQuestion/AssessmentOption/UserResponse) telah dimigrasikan ke package format, dan tabel legacy tidak lagi digunakan untuk session baru
+  2. Tabel AssessmentCompetencyMap dan UserCompetencyLevel tidak lagi memiliki data aktif dan telah dihapus dari skema database
+  3. NomorSertifikat hanya ter-generate saat SubmitExam + IsPassed = true (bukan saat CreateAssessment), sehingga tidak ada NomorSertifikat pada session yang belum lulus
 **Plans**: 2 plans
 Plans:
-- [ ] 227-01-PLAN.md — TBD
-- [ ] 227-02-PLAN.md — TBD
+- [ ] 227-01-PLAN.md — NomorSertifikat timing fix + orphan tables cleanup (CLEN-04, CLEN-03)
+- [ ] 227-02-PLAN.md — Legacy question path migration + code removal (CLEN-02)
 
 ## Progress
 
@@ -162,4 +159,4 @@ Plans:
 | 223. Assessment Quick Wins | v8.0 | 2/2 | Complete    | 2026-03-21 |
 | 224. Analytics Dashboard HC | v8.0 | 2/2 | Complete    | 2026-03-21 |
 | 226. Email Notification Sertifikat Expired | v8.0 | 0/TBD | Not started | - |
-| 227. Major Refactors | v8.0 | 0/TBD | Not started | - |
+| 227. Major Refactors | v8.0 | 0/2 | Not started | - |
