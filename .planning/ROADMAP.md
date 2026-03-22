@@ -47,7 +47,10 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
   2. Dokumen riset assessment/exam management best practices mencakup minimal 3 platform (Moodle, Google Forms Quiz, Examly)
   3. Dokumen riset real-time exam monitoring best practices dengan contoh konkret UX patterns
   4. Dokumen perbandingan fitur portal vs best practices dengan rekomendasi improvement per halaman (RenewalCertificate, ManageAssessment, AssessmentMonitoring, exam flow)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
+- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ### Phase 229: Audit Renewal Logic & Edge Cases
 **Goal**: Audit kode renewal logic dengan lens best practices, fix semua bug pada FK chain, badge sync, status derivation, grouping, dan edge case handling.
@@ -60,7 +63,10 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
   4. Grouping by Judul berjalan case-insensitive dan karakter khusus URL-safe
   5. MapKategori konsisten dengan AssessmentCategories naming di seluruh codebase
   6. Bulk mixed-type validation berfungsi, double renewal dicegah, empty state ditangani dengan benar
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
+- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ### Phase 230: Audit Renewal UI & Cross-Page Integration
 **Goal**: Audit renewal UI dan semua integrasi lintas halaman, fix dan improve berdasarkan temuan riset best practices.
@@ -73,7 +79,10 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
   4. Certificate history modal menampilkan chain grouping yang akurat
   5. CreateAssessment dan AddTraining menerima renewal pre-fill (judul, kategori, peserta) dari RenewalCertificate
   6. CDP CertificationManagement toggle renewed certs berfungsi, Admin/Index badge count sinkron
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
+- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ### Phase 231: Audit Assessment Management & Monitoring
 **Goal**: Audit halaman ManageAssessment dan AssessmentMonitoring (sisi admin/HC), fix semua bug, dan improve berdasarkan riset.
@@ -87,7 +96,10 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
   5. AssessmentMonitoring menampilkan stats real-time (participant count, completed, passed, status) per group
   6. Semua HC actions berfungsi: Reset, Force Close, Bulk Close, Close Early, Regenerate Token
   7. Token card copy dan regenerate berfungsi dari halaman monitoring detail
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
+- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ### Phase 232: Audit Assessment Flow — Worker Side
 **Goal**: Audit worker-side assessment flow end-to-end, fix semua bug, dan improve UX berdasarkan riset.
@@ -99,7 +111,10 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
   3. SubmitExam menghasilkan score, IsPassed, NomorSertifikat (jika lulus), dan competency level update
   4. Session resume berfungsi dengan ElapsedSeconds, LastActivePage, dan pre-populated answers akurat
   5. Results page menampilkan score, pass/fail status, dan answer review (jika diaktifkan HC)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 228-01-PLAN.md — Tulis 3 dokumen riset (renewal, assessment, monitoring)
+- [ ] 228-02-PLAN.md — Tulis dokumen exam flow + ringkasan perbandingan
 
 ## Progress
 
