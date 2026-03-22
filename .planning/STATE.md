@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
 status: unknown
-stopped_at: Phase 235 context gathered
-last_updated: "2026-03-22T14:35:52.473Z"
+stopped_at: Completed 235-02-PLAN.md
+last_updated: "2026-03-22T14:53:04.162Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 6
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 234 — audit-setup-flow
+**Current focus:** Phase 235 — audit-execution-flow
 
 ## Current Position
 
-Phase: 235
-Plan: Not started
+Phase: 235 (audit-execution-flow) — EXECUTING
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -44,6 +44,10 @@ Plan: Not started
 - [Phase 234]: Progression warning bersifat warning-only (bukan block) dengan ConfirmProgressionWarning flag override
 - [Phase 234-audit-setup-flow]: Hard delete silabus diblokir jika ada progress aktif (Status != Approved) — pakai SilabusDeactivate untuk soft delete
 - [Phase 234-audit-setup-flow]: ImportSilabus two-pass: jika ada 1 baris error, seluruh import dibatalkan
+- [Phase 235-audit-execution-flow]: Admin override di ApproveDeliverable adalah by-design via section check skip, tidak ada dedicated action (D-11)
+- [Phase 235]: AutoCreateProgressForAssignment self-flushes before inserting Pending StatusHistory — cleaner isolation from callers
+- [Phase 235-audit-execution-flow]: Race guard ditempatkan setelah per-role field set sebelum overall Status assignment untuk first-write-wins semantics (D-10)
+- [Phase 235]: EvidencePathHistory stored as JSON string column — fits existing scalar column pattern
 
 ### Pending Todos
 
@@ -55,6 +59,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T14:35:52.468Z
-Stopped at: Phase 235 context gathered
-Resume file: .planning/phases/235-audit-execution-flow/235-CONTEXT.md
+Last session: 2026-03-22T14:53:04.159Z
+Stopped at: Completed 235-02-PLAN.md
+Resume file: None

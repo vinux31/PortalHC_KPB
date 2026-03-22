@@ -23,10 +23,10 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 
 ### Audit Execution Flow
 
-- [ ] **EXEC-01**: Audit Evidence submission flow end-to-end — upload, reject+resubmit, multi-file handling, verifikasi completeness
-- [ ] **EXEC-02**: Audit Approval chain — verifikasi state consistency di edge cases (concurrent approve, Override admin, partial approval)
-- [ ] **EXEC-03**: Audit DeliverableStatusHistory — verifikasi completeness insert di setiap state transition termasuk initial Pending
-- [ ] **EXEC-04**: Audit Notifikasi — verifikasi semua Proton notification triggers terpanggil (evidence submit, approve, reject, HC review, final assessment)
+- [x] **EXEC-01**: Audit Evidence submission flow end-to-end — upload, reject+resubmit, multi-file handling, verifikasi completeness
+- [x] **EXEC-02**: Audit Approval chain — verifikasi state consistency di edge cases (concurrent approve, Override admin, partial approval)
+- [x] **EXEC-03**: Audit DeliverableStatusHistory — verifikasi completeness insert di setiap state transition termasuk initial Pending
+- [x] **EXEC-04**: Audit Notifikasi — verifikasi semua Proton notification triggers terpanggil (evidence submit, approve, reject, HC review, final assessment)
 - [ ] **EXEC-05**: Audit PlanIdp view — silabus display accuracy, guidance tabs, role-based access correctness
 
 ### Audit Completion
@@ -78,10 +78,10 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 | SETUP-03 | Phase 234 | Complete |
 | SETUP-04 | Phase 234 | Complete |
 | SETUP-05 | Phase 234 | Complete |
-| EXEC-01 | Phase 235 | Pending |
-| EXEC-02 | Phase 235 | Pending |
-| EXEC-03 | Phase 235 | Pending |
-| EXEC-04 | Phase 235 | Pending |
+| EXEC-01 | Phase 235 | Complete |
+| EXEC-02 | Phase 235 | Complete |
+| EXEC-03 | Phase 235 | Complete |
+| EXEC-04 | Phase 235 | Complete |
 | EXEC-05 | Phase 235 | Pending |
 | COMP-01 | Phase 236 | Pending |
 | COMP-02 | Phase 236 | Pending |
