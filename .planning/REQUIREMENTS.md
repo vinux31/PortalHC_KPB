@@ -1,170 +1,105 @@
-# Requirements: Portal HC KPB
+# Requirements: Portal HC KPB — v8.2 Proton Coaching Ecosystem Audit
 
-**Defined:** 2026-03-21
+**Defined:** 2026-03-22
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v8.1 Requirements
+## v8.2 Requirements
 
-Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best practices → audit kode dengan lens best practices → fix + improve.
+Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup hingga completion, plus differentiator enhancement.
 
-### Best Practices Research
+### Riset & Perbandingan
 
-- [x] **RSCH-01**: Riset best practices certificate renewal UX dari platform sejenis (Coursera, LinkedIn Learning, HR portals)
-- [x] **RSCH-02**: Riset best practices assessment/exam management dari platform sejenis (Moodle, Google Forms Quiz, Examly)
-- [x] **RSCH-03**: Riset best practices real-time exam monitoring UX dari platform sejenis
-- [x] **RSCH-04**: Dokumen perbandingan fitur portal vs best practices dengan rekomendasi improvement per halaman
+- [ ] **RSCH-01**: Browse langsung demo/website minimal 3 platform coaching (360Learning, BetterUp, CoachHub) — screenshot dan dokumentasi UX/flow
+- [ ] **RSCH-02**: Dokumen perbandingan UX/flow portal KPB vs platform luar per area Proton (Setup, Execution, Monitoring, Completion)
+- [ ] **RSCH-03**: Rekomendasi improvement prioritas berdasarkan gap antara portal vs best practices
 
-### Renewal — Logic & Data
+### Audit Setup Flow
 
-- [x] **LDAT-01**: Renewal chain FK 4 kombinasi (AS→AS, AS→TR, TR→TR, TR→AS) semua set dengan benar saat renew
-- [x] **LDAT-02**: Badge count Admin/Index sinkron dengan BuildRenewalRowsAsync (single source of truth)
-- [x] **LDAT-03**: DeriveCertificateStatus handle semua edge case (null ValidUntil, Permanent, expired, akan expired)
-- [x] **LDAT-04**: Grouping by Judul case-insensitive dan karakter khusus URL-safe
-- [x] **LDAT-05**: MapKategori konsisten dengan AssessmentCategories naming
+- [ ] **SETUP-01**: Audit Silabus delete — tambah impact count warning sebelum hard delete, soft delete jika ada progress aktif
+- [ ] **SETUP-02**: Audit Coaching Guidance — file management integrity (upload/replace/delete), validasi tipe file
+- [ ] **SETUP-03**: Audit Coach-Coachee Mapping — tambah explicit DB transaction pada cascade deactivation, validasi duplikasi
+- [ ] **SETUP-04**: Audit Track Assignment — progression validation Tahun 1→2→3, seed ProtonDeliverableProgress correctness
+- [ ] **SETUP-05**: Audit Import/Export Silabus dan Mapping — validasi data, error handling, template accuracy
 
-### Renewal — UI & UX
+### Audit Execution Flow
 
-- [x] **UIUX-01**: Grouped view RenewalCertificate tampil benar dengan data aktual
-- [x] **UIUX-02**: Filter cascade Bagian/Unit/Kategori/Tipe berfungsi dan saling terhubung
-- [x] **UIUX-03**: Renewal method modal (single + bulk) menampilkan pilihan yang benar berdasarkan tipe
-- [x] **UIUX-04**: Certificate history modal menampilkan chain grouping yang akurat
+- [ ] **EXEC-01**: Audit Evidence submission flow end-to-end — upload, reject+resubmit, multi-file handling, verifikasi completeness
+- [ ] **EXEC-02**: Audit Approval chain — verifikasi state consistency di edge cases (concurrent approve, Override admin, partial approval)
+- [ ] **EXEC-03**: Audit DeliverableStatusHistory — verifikasi completeness insert di setiap state transition termasuk initial Pending
+- [ ] **EXEC-04**: Audit Notifikasi — verifikasi semua Proton notification triggers terpanggil (evidence submit, approve, reject, HC review, final assessment)
+- [ ] **EXEC-05**: Audit PlanIdp view — silabus display accuracy, guidance tabs, role-based access correctness
 
-### Renewal — Cross-Page Integration
+### Audit Completion
 
-- [x] **XPAG-01**: CreateAssessment renewal pre-fill (judul, kategori, peserta) dari RenewalCertificate berfungsi
-- [x] **XPAG-02**: AddTraining renewal mode (pre-fill + FK) dari RenewalCertificate berfungsi
-- [x] **XPAG-03**: CDP Certification Management menyembunyikan renewed certs dengan toggle
-- [x] **XPAG-04**: Admin/Index badge count mencerminkan jumlah renewal yang pending
+- [ ] **COMP-01**: Audit Final Assessment — tambah DB unique constraint pada ProtonTrackAssignmentId, competency level granting accuracy
+- [ ] **COMP-02**: Audit Coaching Sessions — linkage ke deliverable progress, action items status tracking, session CRUD integrity
+- [ ] **COMP-03**: Audit HistoriProton — timeline accuracy, legacy CoachingLog coexistence, data completeness
+- [ ] **COMP-04**: Audit 3-year journey — Tahun 1→2→3 lifecycle end-to-end, assignment transition, completion flow
 
-### Renewal — Edge Cases
+### Audit Monitoring
 
-- [x] **EDGE-01**: Bulk renew mixed-type (campuran Assessment + Training) validasi dan flow benar
-- [x] **EDGE-02**: Double renewal prevention — sertifikat yang sudah di-renew tidak bisa di-renew lagi
-- [x] **EDGE-03**: Empty state handling saat tidak ada sertifikat yang perlu di-renew
+- [ ] **MON-01**: Audit Dashboard — role-scoped filtering accuracy, stats correctness, Chart.js data integrity
+- [ ] **MON-02**: Audit CoachingProton tracking — filter cascade, pagination, role-based column visibility
+- [ ] **MON-03**: Audit Override — validasi status transition rules, audit trail lengkap, admin accountability
+- [ ] **MON-04**: Audit Export — data accuracy, query optimization (N+1 elimination, projection), semua export actions
 
-### Assessment Management
+### Differentiator Enhancement
 
-- [x] **AMGT-01**: CreateAssessment form validasi lengkap (judul, kategori, tanggal, peserta, passing grade)
-- [x] **AMGT-02**: EditAssessment mempertahankan data existing dan warning jika ada package terkait
-- [x] **AMGT-03**: DeleteAssessment cascade cleanup benar (packages, questions, sessions, responses)
-- [x] **AMGT-04**: Package assignment ke peserta berfungsi (single + bulk assign)
-- [x] **AMGT-05**: ManageAssessment list view filter dan search berfungsi
+- [ ] **DIFF-01**: Workload indicator coach — tampilkan jumlah coachee aktif per coach di mapping page dan dashboard
+- [ ] **DIFF-02**: Batch approval HC Review — approve multiple deliverables sekaligus dari monitoring view
+- [ ] **DIFF-03**: Bottleneck analysis — identifikasi deliverable paling lama pending, approval bottleneck visibility di dashboard
 
-### Assessment Monitoring
+## Future Requirements (v9+)
 
-- [x] **AMON-01**: AssessmentMonitoring group list menampilkan stats real-time (participant count, completed, passed, status)
-- [x] **AMON-02**: MonitoringDetail per-participant live progress (answered/total, status, score, time remaining)
-- [x] **AMON-03**: HC actions berfungsi (Reset, Force Close, Bulk Close, Close Early, Regenerate Token)
-- [x] **AMON-04**: Token card dengan copy dan regenerate berfungsi
-
-### Assessment Flow — Worker Side
-
-- [x] **AFLW-01**: Worker melihat daftar assessment (Open/Upcoming) sesuai assignment
-- [x] **AFLW-02**: StartExam flow benar (token entry → exam page → timer → auto-save per-click)
-- [x] **AFLW-03**: SubmitExam menghasilkan score, IsPassed, NomorSertifikat (jika lulus), competency update
-- [x] **AFLW-04**: Session resume berfungsi (ElapsedSeconds, LastActivePage, pre-populated answers)
-- [x] **AFLW-05**: Results page menampilkan score, pass/fail, answer review (jika diaktifkan HC)
-
-## v8.0 Requirements (Previous)
-
-### Assessment Integrity
-
-- [x] **AINT-01**: Skor ElemenTeknis per session dipersist ke database (tabel SessionElemenTeknisScore) saat SubmitExam dan GradeFromSavedAnswers
-- [ ] **AINT-02**: Tab-switch/focus-loss saat ujian terdeteksi dan tercatat di ExamActivityLog sebagai event focus_lost/focus_returned
-- [ ] **AINT-03**: HC dapat melihat indikator tab-switch per peserta di halaman AssessmentMonitoringDetail
-- [x] **AINT-04**: UserResponse (legacy path) memiliki field SubmittedAt timestamp yang terisi saat SaveLegacyAnswer
-
-### Analytics
-
-- [x] **ANLT-01**: HC dapat melihat halaman Analytics Dashboard dengan visualisasi fail rate per section dan per category
-- [x] **ANLT-02**: HC dapat melihat trend assessment (pass/fail) dalam periode waktu tertentu
-- [x] **ANLT-03**: HC dapat melihat breakdown skor ElemenTeknis aggregate per kategori assessment
-- [x] **ANLT-04**: HC dapat melihat ringkasan sertifikat yang akan expired dalam 30/60/90 hari
-
-### Legacy Cleanup
-
-- [x] **CLEN-01**: TrainingRecord.Status lifecycle terdefinisi jelas — hapus ambiguitas Passed/Valid, transisi terdokumentasi
-- [x] **CLEN-02**: Legacy question path (AssessmentQuestion/AssessmentOption/UserResponse) deprecated — existing sessions dimigrasi ke package format
-- [x] **CLEN-03**: AssessmentCompetencyMap dan UserCompetencyLevel (orphaned tables) dibersihkan dari database
-- [x] **CLEN-04**: NomorSertifikat di-generate saat SubmitExam + IsPassed (bukan saat CreateAssessment)
-- [x] **CLEN-05**: Shared AccessToken tetap as-is (documented decision — common exam room pattern)
-
-## Future Requirements
-
-### Training Compliance
-- **COMP-01**: Admin dapat mengelola (CRUD) matriks training wajib per jabatan
-- **COMP-02**: Compliance percentage per worker dihitung dari training completed vs training required
-- **COMP-03**: HC dapat melihat compliance summary per section/unit di team view
-
-### Notification
-- **NOTF-01**: Sistem mengirim email reminder otomatis 90 hari sebelum sertifikat expired
-- **NOTF-02**: Sistem mengirim email reminder otomatis 30 hari sebelum sertifikat expired
-- **NOTF-03**: Sistem mengirim email reminder otomatis 7 hari sebelum sertifikat expired
-- **NOTF-04**: NotificationSentLog mencegah email duplikat saat service restart
-
-### Question Bank
-- **QBNK-01**: Admin/HC dapat mengelola (CRUD) Question Bank
-- **QBNK-02**: Admin/HC dapat import soal dari Excel ke Question Bank
-- **QBNK-03**: Saat buat assessment, Admin/HC dapat memilih soal dari Question Bank
-
-### Item Analysis
-- **ITEM-01**: Difficulty index dan discrimination index per soal dari data historis
-- **ITEM-02**: HC dapat melihat item analysis report per assessment
+- Competency gap heatmap (worker x kompetensi matrix)
+- Scheduling integration / calendar untuk coaching sessions
+- AI-generated coaching session summaries
+- SLA/escalation otomatis untuk approval yang terlalu lama
+- Predicted completion date berdasarkan historical pace
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Renewal via email notification | Deferred ke future milestone (NOTF-*) |
-| Training compliance matrix | Deferred ke future milestone (COMP-*) |
-| Question bank management | Deferred ke future milestone (QBNK-*) |
-| Full UI redesign | Audit + targeted improvement, bukan redesign total |
-| Mobile app | Web-first |
+| SignalR hub baru untuk Proton | Coaching approval tidak time-critical seperti exam monitoring; in-app notification cukup |
+| Workflow engine (Elsa, dll) | Approval chain sudah ter-encode via status fields; engine = over-engineering |
+| Silabus hierarchy > 3 level | Overhead kognitif; 3 level (Kompetensi-Sub-Deliverable) sudah cukup |
+| Notifikasi unifikasi | Dua sistem (ProtonNotification + UserNotification) coexist dengan purpose berbeda; konsolidasi terlalu invasif |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RSCH-01 | Phase 228 | Complete |
-| RSCH-02 | Phase 228 | Complete |
-| RSCH-03 | Phase 228 | Complete |
-| RSCH-04 | Phase 228 | Complete |
-| LDAT-01 | Phase 229 | Complete |
-| LDAT-02 | Phase 229 | Complete |
-| LDAT-03 | Phase 229 | Complete |
-| LDAT-04 | Phase 229 | Complete |
-| LDAT-05 | Phase 229 | Complete |
-| EDGE-01 | Phase 229 | Complete |
-| EDGE-02 | Phase 229 | Complete |
-| EDGE-03 | Phase 229 | Complete |
-| UIUX-01 | Phase 230 | Complete |
-| UIUX-02 | Phase 230 | Complete |
-| UIUX-03 | Phase 230 | Complete |
-| UIUX-04 | Phase 230 | Complete |
-| XPAG-01 | Phase 230 | Complete |
-| XPAG-02 | Phase 230 | Complete |
-| XPAG-03 | Phase 230 | Complete |
-| XPAG-04 | Phase 230 | Complete |
-| AMGT-01 | Phase 231 | Complete |
-| AMGT-02 | Phase 231 | Complete |
-| AMGT-03 | Phase 231 | Complete |
-| AMGT-04 | Phase 231 | Complete |
-| AMGT-05 | Phase 231 | Complete |
-| AMON-01 | Phase 231 | Complete |
-| AMON-02 | Phase 231 | Complete |
-| AMON-03 | Phase 231 | Complete |
-| AMON-04 | Phase 231 | Complete |
-| AFLW-01 | Phase 232 | Complete |
-| AFLW-02 | Phase 232 | Complete |
-| AFLW-03 | Phase 232 | Complete |
-| AFLW-04 | Phase 232 | Complete |
-| AFLW-05 | Phase 232 | Complete |
+| RSCH-01 | TBD | Pending |
+| RSCH-02 | TBD | Pending |
+| RSCH-03 | TBD | Pending |
+| SETUP-01 | TBD | Pending |
+| SETUP-02 | TBD | Pending |
+| SETUP-03 | TBD | Pending |
+| SETUP-04 | TBD | Pending |
+| SETUP-05 | TBD | Pending |
+| EXEC-01 | TBD | Pending |
+| EXEC-02 | TBD | Pending |
+| EXEC-03 | TBD | Pending |
+| EXEC-04 | TBD | Pending |
+| EXEC-05 | TBD | Pending |
+| COMP-01 | TBD | Pending |
+| COMP-02 | TBD | Pending |
+| COMP-03 | TBD | Pending |
+| COMP-04 | TBD | Pending |
+| MON-01 | TBD | Pending |
+| MON-02 | TBD | Pending |
+| MON-03 | TBD | Pending |
+| MON-04 | TBD | Pending |
+| DIFF-01 | TBD | Pending |
+| DIFF-02 | TBD | Pending |
+| DIFF-03 | TBD | Pending |
 
 **Coverage:**
-- v8.1 requirements: 34 total
-- Mapped to phases: 34
-- Unmapped: 0 ✓
+- v8.2 requirements: 24 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 24
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after scope expansion (assessment pages + research)*
+*Last updated: 2026-03-22 after initial definition*
