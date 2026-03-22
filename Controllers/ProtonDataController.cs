@@ -483,22 +483,41 @@ namespace HcPortal.Controllers
                             .ToListAsync();
                         var existingSet = new HashSet<string>(existingPairs.Select(p => $"{p.ProtonTrackAssignmentId}|{p.ProtonDeliverableId}"));
 
+                        var newProgresses = new List<ProtonDeliverableProgress>();
                         foreach (var assignment in matchingAssignments)
                         {
                             foreach (var deliverableId in survivingNewDelivIds)
                             {
                                 if (!existingSet.Contains($"{assignment.Id}|{deliverableId}"))
                                 {
-                                    _context.ProtonDeliverableProgresses.Add(new ProtonDeliverableProgress
+                                    var newProgress = new ProtonDeliverableProgress
                                     {
                                         CoacheeId = assignment.CoacheeId,
                                         ProtonDeliverableId = deliverableId,
                                         ProtonTrackAssignmentId = assignment.Id,
                                         Status = "Belum Mulai",
                                         CreatedAt = DateTime.UtcNow
-                                    });
+                                    };
+                                    _context.ProtonDeliverableProgresses.Add(newProgress);
+                                    newProgresses.Add(newProgress);
                                 }
                             }
+                        }
+                        await _context.SaveChangesAsync(); // flush to get IDs for StatusHistory
+
+                        // D-17: Insert initial "Pending" StatusHistory for each new progress
+                        var actorId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "system";
+                        foreach (var p in newProgresses)
+                        {
+                            _context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
+                            {
+                                ProtonDeliverableProgressId = p.Id,
+                                StatusType = "Pending",
+                                ActorId = actorId,
+                                ActorName = "System",
+                                ActorRole = "System",
+                                Timestamp = DateTime.UtcNow
+                            });
                         }
                         await _context.SaveChangesAsync();
                     }

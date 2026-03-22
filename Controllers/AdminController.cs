@@ -6836,6 +6836,23 @@ namespace HcPortal.Controllers
             }).ToList();
 
             _context.ProtonDeliverableProgresses.AddRange(progresses);
+            await _context.SaveChangesAsync(); // flush to get IDs for StatusHistory
+
+            // D-17: Insert initial "Pending" StatusHistory for each new progress
+            foreach (var p in progresses)
+            {
+                _context.DeliverableStatusHistories.Add(new DeliverableStatusHistory
+                {
+                    ProtonDeliverableProgressId = p.Id,
+                    StatusType = "Pending",
+                    ActorId = "system",
+                    ActorName = "System",
+                    ActorRole = "System",
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            await _context.SaveChangesAsync();
+
             return warnings;
         }
 
