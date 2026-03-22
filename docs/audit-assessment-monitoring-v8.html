@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Assessment Monitoring &amp; Proton — Phase 231 Plan 02</title>
+<style>
+:root {
+  --blue: #005baa;
+  --blue-light: #e8f0fe;
+  --red: #ed1c24;
+  --red-light: #ffeaea;
+  --yellow: #ffd700;
+  --yellow-light: #fff8e0;
+  --green: #28a745;
+  --green-light: #e6f9ed;
+  --gray: #6c757d;
+  --gray-light: #f8f9fa;
+  --dark: #1a1a2e;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); font-size:15px; line-height:1.6; color:#222; background:#f5f6fa; }
+a { color: var(--blue); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+.header { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); color:#fff; padding:24px 32px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+.header h1 { font-size:22px; font-weight:700; }
+.header .subtitle { font-size:13px; color:#aab; margin-top:4px; }
+.header .badge-ver { background:var(--blue); color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:8px; }
+
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:260px; background:#fff; border-right:1px solid #e0e0e0; position:sticky; top:68px; height:calc(100vh - 68px); overflow-y:auto; padding:16px 0; flex-shrink:0; }
+.sidebar a { display:block; padding:7px 20px; font-size:13px; color:#444; border-left:3px solid transparent; transition:all .15s; }
+.sidebar a:hover { background:var(--blue-light); color:var(--blue); text-decoration:none; border-left-color:var(--blue); }
+.sidebar .nav-section { font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.5px; padding:12px 20px 4px; }
+.main { flex:1; padding:32px 40px; max-width:1100px; }
+
+section { margin-bottom:48px; }
+h2 { font-size:22px; font-weight:700; color:var(--dark); border-bottom:3px solid var(--blue); padding-bottom:8px; margin-bottom:20px; }
+h3 { font-size:17px; font-weight:600; color:var(--blue); margin:24px 0 12px; }
+h4 { font-size:15px; font-weight:600; color:#333; margin:16px 0 8px; }
+
+table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+th { background:var(--blue); color:#fff; padding:8px 12px; text-align:left; font-weight:600; font-size:12px; }
+td { padding:7px 12px; border-bottom:1px solid #e8e8e8; vertical-align:top; }
+tr:hover td { background:var(--blue-light); }
+code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Cascadia Code','Fira Code',monospace; }
+
+.card { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; margin:12px 0; }
+
+.finding { border-left:4px solid var(--gray); padding:16px 20px; margin:12px 0; background:#fff; border-radius:0 8px 8px 0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.finding.critical { border-left-color:var(--red); }
+.finding.medium { border-left-color:var(--yellow); }
+.finding.low { border-left-color:#0dcaf0; }
+.finding.ok { border-left-color:var(--green); }
+.finding .finding-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.finding .finding-title { font-weight:700; font-size:15px; }
+
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-critical { background:var(--red); color:#fff; }
+.badge-medium { background:var(--yellow); color:#333; }
+.badge-low { background:#ddd; color:#555; }
+.badge-blue { background:var(--blue); color:#fff; }
+.badge-green { background:var(--green); color:#fff; }
+.badge-info { background:#0dcaf0; color:#000; }
+.badge-fixed { background:var(--green); color:#fff; }
+.badge-ok { background:#6f42c1; color:#fff; }
+
+ul { padding-left:20px; margin:8px 0; }
+li { margin:4px 0; }
+p { margin:8px 0; }
+pre { background:#1a1a2e; color:#e8e8e8; padding:16px; border-radius:6px; overflow-x:auto; font-size:12px; margin:12px 0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Audit Assessment Monitoring &amp; Proton <span class="badge-ver">Phase 231 Plan 02</span></h1>
+  <div class="subtitle">Portal HC KPB &mdash; v8.1 Renewal &amp; Assessment Ecosystem Audit &mdash; 2026-03-22</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">Sections</div>
+    <a href="#s1">1. Monitoring Group List</a>
+    <a href="#s2">2. MonitoringDetail</a>
+    <a href="#s3">3. HC Actions</a>
+    <a href="#s4">4. Token Management</a>
+    <a href="#s5">5. Assessment Proton</a>
+    <a href="#s6">6. SignalR Architecture</a>
+    <a href="#appendix">Appendix: Tabel Temuan</a>
+  </nav>
+
+  <main class="main">
+
+    <!-- SECTION 1 -->
+    <section id="s1">
+      <h2>1. AssessmentMonitoring Group List (AMON-01)</h2>
+      <p>Endpoint: <code>GET /Admin/AssessmentMonitoring</code> &mdash; <code>AdminController.cs ~line 2186</code></p>
+
+      <h3>1.1 Stats Accuracy</h3>
+
+      <div class="finding critical">
+        <div class="finding-header">
+          <span class="badge badge-critical">must-fix</span>
+          <span class="badge badge-fixed">FIXED</span>
+          <span class="finding-title">D-11a: IsCompleted menggunakan <code>|| a.Score != null</code> yang menyebabkan inconsistency</span>
+        </div>
+        <p><strong>Issue:</strong> <code>IsCompleted = a.CompletedAt != null || a.Score != null</code> — Score bisa exist pada edge case tanpa CompletedAt (race condition pada auto-grade), menyebabkan sesi dihitung sebagai Completed padahal belum fully closed.</p>
+        <p><strong>Fix:</strong> Diubah ke <code>IsCompleted = a.CompletedAt != null</code> — sumber kebenaran tunggal.</p>
+        <p><strong>File:</strong> <code>Controllers/AdminController.cs</code> (AssessmentMonitoring action + AssessmentMonitoringDetail action)</p>
+        <p><strong>Commit:</strong> feat(231-02)</p>
+      </div>
+
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-11b: CompletedCount, PassedCount, PendingCount — formula benar</span>
+        </div>
+        <ul>
+          <li><code>CompletedCount = g.Count(a =&gt; a.IsCompleted)</code> — setelah fix IsCompleted, ini akurat</li>
+          <li><code>PassedCount = g.Count(a =&gt; a.IsPassed)</code> — <code>IsPassed ?? false</code> benar</li>
+          <li><code>PendingCount = g.Count(a =&gt; !a.IsCompleted &amp;&amp; !a.IsStarted)</code> — benar untuk "Not started"</li>
+        </ul>
+      </div>
+
+      <h3>1.2 GroupStatus Derivation</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-11c: GroupStatus derivation logic akurat</span>
+        </div>
+        <p>Logic: <code>Open</code> jika ada session Status = "Open" atau "InProgress" &rarr; <code>Upcoming</code> jika ada "Upcoming" &rarr; else <code>Closed</code>.</p>
+        <p>Priority Open &gt; Upcoming &gt; Closed sudah benar. Edge case: semua Cancelled atau Abandoned &rarr; Closed — ini expected behavior.</p>
+      </div>
+
+      <h3>1.3 Filter Kategori/Status</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-11d: Filter berfungsi benar</span>
+        </div>
+        <ul>
+          <li>Default filter: Open + Upcoming (exclude Closed) — benar, mengurangi noise</li>
+          <li>Status filter diterapkan SETELAH grouping — benar (GroupStatus sudah computed)</li>
+          <li>Category filter diterapkan di level query SEBELUM grouping — benar (efisien)</li>
+          <li>7-day window filter untuk menghindari data lama — benar, ada komentar 90-review yang valid</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section id="s2">
+      <h2>2. AssessmentMonitoringDetail (AMON-02)</h2>
+      <p>Endpoint: <code>GET /Admin/AssessmentMonitoringDetail</code> &mdash; <code>AdminController.cs ~line 2303</code></p>
+
+      <h3>2.1 Time Remaining Gap</h3>
+
+      <div class="finding critical">
+        <div class="finding-header">
+          <span class="badge badge-critical">must-fix</span>
+          <span class="badge badge-fixed">FIXED</span>
+          <span class="finding-title">D-12 Pitfall 4: Time Remaining tidak ada pada initial page load</span>
+        </div>
+        <p><strong>Issue:</strong> Pada initial render, semua <code>.timeremaining-cell</code> menampilkan "—" hardcoded meskipun peserta sedang InProgress. Countdown baru berjalan setelah server-polling memuat <code>remainingSeconds</code>.</p>
+        <p><strong>Root cause:</strong> <code>MonitoringSessionViewModel</code> tidak pass <code>DurationMinutes</code>, dan view tidak punya data attributes untuk compute time dari <code>StartedAt</code>.</p>
+        <p><strong>Fix:</strong></p>
+        <ul>
+          <li>Tambah <code>DurationMinutes</code> property ke <code>MonitoringSessionViewModel</code></li>
+          <li>Pass <code>DurationMinutes = a.DurationMinutes</code> dari controller</li>
+          <li>Tambah <code>data-started-at</code> dan <code>data-duration</code> ke <code>&lt;tr&gt;</code> untuk peserta InProgress</li>
+          <li>Tambah <code>updateTimeRemaining()</code> JS function dengan <code>setInterval(1000)</code></li>
+          <li>Untuk interview mode (<code>DurationMinutes == 0</code>): function skip (no timer) — sentinel benar</li>
+        </ul>
+        <p><strong>Files:</strong> <code>Models/AssessmentMonitoringViewModel.cs</code>, <code>Controllers/AdminController.cs</code>, <code>Views/Admin/AssessmentMonitoringDetail.cshtml</code></p>
+      </div>
+
+      <h3>2.2 Countdown System</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-12a: Server-polling countdown sudah ada sebelumnya</span>
+        </div>
+        <p>Sistem polling via AJAX + <code>countdownMap</code> + <code>tickCountdowns()</code> sudah ada dan berfungsi. Fix di atas menambahkan <em>initial-render</em> countdown berbasis <code>StartedAt</code> untuk menghilangkan gap antara page load dan polling pertama.</p>
+        <p>Dua countdown system bekerja komplementer:</p>
+        <ul>
+          <li><code>updateTimeRemaining()</code>: dari <code>data-started-at</code> — aktif sejak page load</li>
+          <li><code>tickCountdowns()</code>: dari server polling <code>remainingSeconds</code> — mengambil alih setelah polling pertama</li>
+        </ul>
+      </div>
+
+      <h3>2.3 Per-User Status Logic</h3>
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-medium">should-improve</span>
+          <span class="badge badge-fixed">FIXED</span>
+          <span class="finding-title">D-12b: userStatus Completed memakai <code>|| a.Score != null</code> — konsistenkan dengan group list</span>
+        </div>
+        <p>Sama dengan D-11a, <code>userStatus = "Completed"</code> jika <code>a.CompletedAt != null || a.Score != null</code> — difix ke <code>a.CompletedAt != null</code> untuk konsistensi.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section id="s3">
+      <h2>3. HC Actions (AMON-03)</h2>
+      <p>Actions terkait: <code>ResetAssessment</code>, <code>AkhiriUjian</code>, <code>AkhiriSemuaUjian</code></p>
+
+      <h3>3.1 ResetAssessment</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">ResetAssessment: authorization, reset logic, audit log — all correct</span>
+        </div>
+        <ul>
+          <li><code>[Authorize(Roles = "Admin, HC")]</code> — benar</li>
+          <li><code>[ValidateAntiForgeryToken]</code> — benar</li>
+          <li>Reset: <code>StartedAt</code>, <code>CompletedAt</code>, <code>Score</code>, <code>ElapsedSeconds</code>, <code>LastActivePage</code> null-ed; responses dihapus</li>
+          <li>Audit log: <code>_auditLog.LogAsync("ResetAssessment", ...)</code> — ada</li>
+        </ul>
+      </div>
+
+      <h3>3.2 AkhiriUjian (Force Close Individual)</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">AkhiriUjian: auto-grade, status guard, audit log — all correct</span>
+        </div>
+        <ul>
+          <li><code>[Authorize(Roles = "Admin, HC")]</code> dan <code>[ValidateAntiForgeryToken]</code> — benar</li>
+          <li>Auto-grade via <code>GradeFromSavedAnswers(session)</code> — ada</li>
+          <li>Status-guarded write: <code>ExecuteUpdateAsync</code> dengan WHERE guard untuk skip jika sudah completed — race condition proof</li>
+          <li>Audit log: <code>_auditLog.LogAsync("AkhiriUjian", ...)</code> — ada, menyertakan score</li>
+        </ul>
+      </div>
+
+      <h3>3.3 AkhiriSemuaUjian (Bulk Close)</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">AkhiriSemuaUjian: loop, auto-grade, cancel not-started, audit log — all correct</span>
+        </div>
+        <ul>
+          <li>Loop semua Open/InProgress di group, auto-grade tiap sesi</li>
+          <li>Not started sessions diberi Status = "Cancelled" — clean behavior</li>
+          <li>Audit log: <code>_auditLog.LogAsync("AkhiriSemuaUjian", ...)</code> — ada, menyertakan gradedCount dan cancelledCount</li>
+        </ul>
+      </div>
+
+      <h3>3.4 CloseEarly Dead Reference</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">CloseEarly: dead reference sudah dibersihkan sejak Phase 162</span>
+        </div>
+        <p>Komentar di <code>AdminController.cs:3181</code>: <em>"CloseEarly removed in Phase 162 — replaced by AkhiriSemuaUjian with auto-grading"</em>.</p>
+        <p>String "CloseEarly" tidak ditemukan di <code>AssessmentMonitoringDetail.cshtml</code> — confirmed clean.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section id="s4">
+      <h2>4. Token Management (AMON-04)</h2>
+
+      <h3>4.1 copyToken()</h3>
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-medium">should-improve</span>
+          <span class="badge badge-fixed">FIXED</span>
+          <span class="finding-title">D-14a: copyToken tidak punya fallback untuk clipboard permission denied</span>
+        </div>
+        <p><strong>Issue:</strong> <code>navigator.clipboard.writeText()</code> tanpa <code>.catch()</code> — jika browser deny clipboard permission, fungsi diam-diam gagal tanpa feedback.</p>
+        <p><strong>Fix:</strong> Tambahkan <code>.catch()</code> yang memanggil <code>copyTokenFallback()</code> menggunakan <code>document.execCommand('copy')</code>, dengan final fallback <code>alert()</code> yang menampilkan token untuk copy manual.</p>
+      </div>
+
+      <h3>4.2 regenToken()</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-14b: regenToken() berfungsi benar</span>
+        </div>
+        <ul>
+          <li>AJAX POST ke <code>/Admin/RegenerateToken/{id}</code> dengan antiforgery token — benar</li>
+          <li>Token display (<code>#token-display</code>) diupdate setelah success — benar</li>
+          <li>Loading spinner dan disable button selama request — UX baik</li>
+          <li>Error handling: alert jika API return error — benar</li>
+        </ul>
+      </div>
+
+      <h3>4.3 RegenerateToken Endpoint</h3>
+      <div class="finding critical">
+        <div class="finding-header">
+          <span class="badge badge-critical">must-fix</span>
+          <span class="badge badge-fixed">FIXED</span>
+          <span class="finding-title">D-14c: RegenerateToken tidak memiliki audit log</span>
+        </div>
+        <p><strong>Issue:</strong> Endpoint <code>RegenerateToken</code> melakukan operasi security-sensitive (regenerate access token untuk seluruh sibling group) tanpa audit trail.</p>
+        <p><strong>Fix:</strong> Tambahkan <code>_auditLog.LogAsync("RegenerateToken", ...)</code> setelah <code>SaveChangesAsync()</code>, menyertakan: actor, assessment title, category, date, jumlah sibling yang diupdate.</p>
+        <p><strong>Sibling invalidation:</strong> Sudah benar — update ALL siblings dengan <code>Where(a =&gt; title &amp;&amp; category &amp;&amp; schedule.Date)</code>. Token lama otomatis invalid karena semua sibling mendapat token baru yang sama.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 5 -->
+    <section id="s5">
+      <h2>5. Assessment Proton (D-19 s/d D-22)</h2>
+
+      <h3>5.1 Tahun 3 Interview Mode</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-19: Proton Tahun 3 interview form render benar</span>
+        </div>
+        <ul>
+          <li>Trigger: <code>ViewBag.GroupTahunKe == "Tahun 3"</code> → <code>isProtonInterview = true</code> — benar</li>
+          <li>5 aspek interview render: Pengetahuan Teknis, Kemampuan Operasional, Keselamatan Kerja, Komunikasi &amp; Kerjasama, Sikap Profesional — verified di view</li>
+          <li>Juri input field — ada</li>
+          <li>Nilai per aspek (1-5) — radio group per aspek — ada</li>
+          <li>Catatan field — ada</li>
+          <li>Existing results pre-populated via <code>InterviewResultsJson</code> deserialization — benar</li>
+        </ul>
+      </div>
+
+      <h3>5.2 SubmitInterviewResults</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-20: SubmitInterviewResults logic benar</span>
+        </div>
+        <ul>
+          <li><code>[Authorize(Roles = "Admin, HC")]</code> dan <code>[ValidateAntiForgeryToken]</code> — benar</li>
+          <li>Score: rata-rata dari 5 aspek × 20 (scale ke 100) — benar</li>
+          <li>isPassed: <code>Score &gt;= passThreshold</code> (default 60%) — benar</li>
+          <li>Serialize ke <code>InterviewResultsJson</code> — benar</li>
+          <li>Audit log: <code>_auditLog.LogAsync("SubmitInterviewResults", ...)</code> — ada</li>
+        </ul>
+      </div>
+
+      <h3>5.3 DurationMinutes = 0 Sentinel</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-21: DurationMinutes = 0 untuk interview mode ditangani benar</span>
+        </div>
+        <p>Di <code>updateTimeRemaining()</code> JS yang baru ditambahkan: <code>if (!startedAtStr || durationMin === 0) return;</code> — no timer untuk interview mode. Benar, konsisten dengan exam UI yang juga skip timer jika duration 0.</p>
+      </div>
+
+      <h3>5.4 Badge bg-purple</h3>
+      <div class="finding low">
+        <div class="finding-header">
+          <span class="badge badge-info">info</span>
+          <span class="finding-title">D-22: CSS class bg-purple untuk Assessment Proton</span>
+        </div>
+        <p>Badge <code>bg-purple</code> digunakan di <code>AssessmentMonitoring.cshtml</code> dan <code>AssessmentMonitoringDetail.cshtml</code> untuk category "Assessment Proton" dan "Proton".</p>
+        <p>Class <code>bg-purple</code> tidak ada di Bootstrap 5 default, namun didefinisikan di <code>~/css/assessment-hub.css</code> yang diload di <code>@section Scripts</code>. Badge render benar selama CSS file ini diload.</p>
+        <p><strong>Note:</strong> CSS file diload via <code>&lt;link rel="stylesheet" href="~/css/assessment-hub.css" /&gt;</code> di <code>@section Scripts</code> — ini berarti style tidak available jika section tidak dirender, tapi untuk halaman ini selalu dirender.</p>
+      </div>
+
+      <h3>5.5 Proton Tahun 1-2 vs Reguler</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">D-22b: Tahun 1-2 tidak memiliki special handling yang hilang</span>
+        </div>
+        <p>Untuk Proton Tahun 1-2: <code>ViewBag.GroupTahunKe</code> diset ke "Tahun 1" atau "Tahun 2", tetapi <code>isProtonInterview = false</code> (hanya Tahun 3 yang interview). Standard exam flow berlaku — benar.</p>
+        <p>GroupStatus dan badge display untuk Proton sama dengan kategori lain — pass rate accuracy verified sama dengan non-Proton.</p>
+      </div>
+    </section>
+
+    <!-- SECTION 6 -->
+    <section id="s6">
+      <h2>6. SignalR Architecture</h2>
+
+      <h3>6.1 Connection Lifecycle</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">Hub connection lifecycle handler lengkap</span>
+        </div>
+        <ul>
+          <li><code>onreconnecting</code>: badge → "Reconnecting..." (warning) — ada</li>
+          <li><code>onreconnected</code>: badge → "Live" (success) + rejoin monitor group — ada (dua handler, satu untuk badge, satu untuk JoinMonitor)</li>
+          <li><code>onclose</code>: badge → "Disconnected" (danger) — ada</li>
+        </ul>
+      </div>
+
+      <h3>6.2 Initial Connection Badge</h3>
+      <div class="finding medium">
+        <div class="finding-header">
+          <span class="badge badge-medium">should-improve</span>
+          <span class="badge badge-fixed">FIXED (partial)</span>
+          <span class="finding-title">D-12c: setTimeout(2000) untuk set badge "Live" — fragile</span>
+        </div>
+        <p><strong>Issue:</strong> Kode asli menggunakan <code>setTimeout(2000)</code> + state check untuk set badge "Live" dan invoke JoinMonitor. Ini fragile karena 2 detik bisa terlalu cepat (slow network) atau terlalu lambat (UX).</p>
+        <p><strong>Fix:</strong> Ditambahkan promise-based approach via <code>window.assessmentHubStartPromise</code>. Jika promise exposed oleh <code>assessment-hub.js</code>, gunakan <code>.then()</code>. Jika tidak, fallback ke setTimeout yang existing.</p>
+        <p><strong>Note:</strong> <code>assessment-hub.js</code> tidak expose <code>assessmentHubStartPromise</code> saat ini, jadi fallback path akan dijalankan. Fix ini adalah forward-compatible — jika <code>assessment-hub.js</code> diupdate untuk expose promise, badge langsung berfungsi optimal.</p>
+      </div>
+
+      <h3>6.3 Push Event Handlers</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">progressUpdate, workerStarted, workerSubmitted — handler lengkap</span>
+        </div>
+        <table>
+          <tr><th>Event</th><th>Handler</th><th>Status</th></tr>
+          <tr><td><code>progressUpdate</code></td><td>Update <code>.progress-cell</code> (answered/total), flash row</td><td>OK</td></tr>
+          <tr><td><code>workerStarted</code></td><td>Update status badge ke InProgress, increment count via DOM, show toast</td><td>OK</td></tr>
+          <tr><td><code>workerSubmitted</code></td><td>Update score, result, completedAt, decrement InProgress, hide Akhiri Semua jika semua selesai</td><td>OK</td></tr>
+        </table>
+        <p>Semua handler memanggil <code>updateSummaryFromDOM()</code> untuk sinkronisasi count cards — benar.</p>
+      </div>
+
+      <h3>6.4 JoinMonitor Group</h3>
+      <div class="finding ok">
+        <div class="finding-header">
+          <span class="badge badge-ok">verified-ok</span>
+          <span class="finding-title">JoinMonitor dipanggil saat connect dan reconnect</span>
+        </div>
+        <p><code>window.assessmentHub.invoke('JoinMonitor', window.assessmentBatchKey)</code> dipanggil:</p>
+        <ul>
+          <li>Initial connect: via setTimeout atau promise (lihat D-12c fix)</li>
+          <li>Reconnect: via <code>onreconnected</code> handler — benar, tidak ada orphaned monitor subscription</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- APPENDIX -->
+    <section id="appendix">
+      <h2>Appendix: Tabel Semua Temuan</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Area</th>
+            <th>Temuan</th>
+            <th>Severity</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>D-11a</td>
+            <td>Group List</td>
+            <td><code>IsCompleted = a.CompletedAt != null || a.Score != null</code> — inconsistency dengan completed sessions</td>
+            <td><span class="badge badge-critical">must-fix</span></td>
+            <td><span class="badge badge-fixed">fixed</span></td>
+          </tr>
+          <tr>
+            <td>D-11b</td>
+            <td>Group List</td>
+            <td>CompletedCount, PassedCount, PendingCount formula</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-11c</td>
+            <td>Group List</td>
+            <td>GroupStatus derivation (Open &gt; Upcoming &gt; Closed)</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-11d</td>
+            <td>Group List</td>
+            <td>Filter kategori/status (post-grouping)</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-12</td>
+            <td>MonitoringDetail</td>
+            <td><strong>Time Remaining: tidak ada pada initial render</strong> — countdown hanya aktif setelah polling</td>
+            <td><span class="badge badge-critical">must-fix</span></td>
+            <td><span class="badge badge-fixed">fixed</span></td>
+          </tr>
+          <tr>
+            <td>D-12a</td>
+            <td>MonitoringDetail</td>
+            <td>Server-polling countdown system (countdownMap + tickCountdowns)</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-12b</td>
+            <td>MonitoringDetail</td>
+            <td>userStatus "Completed" memakai <code>|| a.Score != null</code> — konsistenkan</td>
+            <td><span class="badge badge-medium">should-improve</span></td>
+            <td><span class="badge badge-fixed">fixed</span></td>
+          </tr>
+          <tr>
+            <td>D-12c</td>
+            <td>SignalR</td>
+            <td>setTimeout(2000) badge fragile — ganti dengan promise-based</td>
+            <td><span class="badge badge-medium">should-improve</span></td>
+            <td><span class="badge badge-fixed">fixed (partial)</span></td>
+          </tr>
+          <tr>
+            <td>D-13a</td>
+            <td>HC Actions</td>
+            <td>ResetAssessment: authorization, reset logic, audit log</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-13b</td>
+            <td>HC Actions</td>
+            <td>AkhiriUjian (Force Close): auto-grade, status guard, audit log</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-13c</td>
+            <td>HC Actions</td>
+            <td>AkhiriSemuaUjian (Bulk Close): loop, auto-grade, cancel, audit log</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-13d</td>
+            <td>HC Actions</td>
+            <td>CloseEarly dead reference — sudah dibersihkan Phase 162</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-14a</td>
+            <td>Token</td>
+            <td>copyToken() tidak punya fallback untuk clipboard permission denied</td>
+            <td><span class="badge badge-medium">should-improve</span></td>
+            <td><span class="badge badge-fixed">fixed</span></td>
+          </tr>
+          <tr>
+            <td>D-14b</td>
+            <td>Token</td>
+            <td>regenToken() AJAX + update display</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-14c</td>
+            <td>Token</td>
+            <td><strong>RegenerateToken endpoint tidak punya audit log</strong></td>
+            <td><span class="badge badge-critical">must-fix</span></td>
+            <td><span class="badge badge-fixed">fixed</span></td>
+          </tr>
+          <tr>
+            <td>D-14d</td>
+            <td>Token</td>
+            <td>Sibling token invalidation — semua sibling diupdate dengan token baru</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-19</td>
+            <td>Proton</td>
+            <td>Tahun 3 interview form: 5 aspek, juri, notes — render benar</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-20</td>
+            <td>Proton</td>
+            <td>SubmitInterviewResults: score average, isPassed, audit log</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-21</td>
+            <td>Proton</td>
+            <td>DurationMinutes = 0 sentinel untuk interview mode — no timer</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-22</td>
+            <td>Proton</td>
+            <td>bg-purple CSS class untuk Assessment Proton badge</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+          <tr>
+            <td>D-22b</td>
+            <td>Proton</td>
+            <td>Tahun 1-2 tidak ada special handling yang hilang</td>
+            <td><span class="badge badge-low">info</span></td>
+            <td><span class="badge badge-ok">verified-ok</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Ringkasan Severity</h3>
+      <table style="max-width:400px">
+        <tr><th>Severity</th><th>Jumlah</th><th>Fixed</th></tr>
+        <tr><td><span class="badge badge-critical">must-fix</span></td><td>3</td><td>3 / 3</td></tr>
+        <tr><td><span class="badge badge-medium">should-improve</span></td><td>3</td><td>3 / 3 (1 partial)</td></tr>
+        <tr><td><span class="badge badge-low">info</span></td><td>15</td><td>verified-ok</td></tr>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+</body>
+</html>
