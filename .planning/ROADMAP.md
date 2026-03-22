@@ -47,7 +47,9 @@ Last completed phase: 232 (v8.1 — Audit Assessment Flow Worker Side)
   1. Screenshot dan dokumentasi UX/flow dari minimal 3 platform coaching (360Learning, BetterUp, CoachHub) tersedia sebagai referensi riset
   2. Dokumen perbandingan menjabarkan gap portal KPB vs platform luar per area Proton (Setup, Execution, Monitoring, Completion) secara konkret
   3. Daftar rekomendasi improvement berisi prioritas yang terurut berdasarkan nilai bisnis dan kompleksitas implementasi
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 233-01-PLAN.md — Dokumen HTML riset perbandingan coaching platform (360Learning, BetterUp, CoachHub vs Portal KPB)
 
 ### Phase 234: Audit Setup Flow
 **Goal**: Memastikan fondasi data Proton (silabus, mapping, assignment) integritas — tidak ada setup yang bisa menghasilkan data corrupt di fase execution berikutnya
@@ -104,7 +106,7 @@ Last completed phase: 232 (v8.1 — Audit Assessment Flow Worker Side)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 233. Riset & Perbandingan Coaching Platform | v8.2 | 0/? | Not started | - |
+| 233. Riset & Perbandingan Coaching Platform | v8.2 | 0/1 | Planning | - |
 | 234. Audit Setup Flow | v8.2 | 0/? | Not started | - |
 | 235. Audit Execution Flow | v8.2 | 0/? | Not started | - |
 | 236. Audit Completion | v8.2 | 0/? | Not started | - |
