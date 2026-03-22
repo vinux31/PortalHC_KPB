@@ -2613,6 +2613,35 @@ namespace HcPortal.Controllers
                 });
             }
 
+            // Phase 226 CLEN-04: Generate NomorSertifikat when passed (same pattern as CMPController.SubmitExam)
+            if (session.GenerateCertificate && session.IsPassed == true)
+            {
+                var certNow = DateTime.Now;
+                int certYear = certNow.Year;
+                int certAttempts = 0;
+                const int maxCertAttempts = 3;
+                bool certSaved = false;
+
+                while (!certSaved && certAttempts < maxCertAttempts)
+                {
+                    certAttempts++;
+                    try
+                    {
+                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                        await _context.AssessmentSessions
+                            .Where(s => s.Id == id && s.NomorSertifikat == null)
+                            .ExecuteUpdateAsync(s => s
+                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
+                            );
+                        certSaved = true;
+                    }
+                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
+                    {
+                        // Retry with fresh sequence
+                    }
+                }
+            }
+
             _cache.Remove($"exam-status-{id}");
 
             // Audit log
@@ -2677,6 +2706,35 @@ namespace HcPortal.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Phase 226 CLEN-04: Generate NomorSertifikat for passed sessions
+            foreach (var s in sessionsToEnd.Where(s => s.GenerateCertificate && s.IsPassed == true && s.NomorSertifikat == null))
+            {
+                var certNow = DateTime.Now;
+                int certYear = certNow.Year;
+                int certAttempts = 0;
+                const int maxCertAttempts = 3;
+                bool certSaved = false;
+
+                while (!certSaved && certAttempts < maxCertAttempts)
+                {
+                    certAttempts++;
+                    try
+                    {
+                        var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
+                        await _context.AssessmentSessions
+                            .Where(x => x.Id == s.Id && x.NomorSertifikat == null)
+                            .ExecuteUpdateAsync(x => x
+                                .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
+                            );
+                        certSaved = true;
+                    }
+                    catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
+                    {
+                        // Retry with fresh sequence
+                    }
+                }
+            }
 
             // Invalidate cache for all affected sessions
             foreach (var s in sessionsToEnd)
