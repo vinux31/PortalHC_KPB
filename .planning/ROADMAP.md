@@ -113,8 +113,8 @@ Plans:
   5. Results page menampilkan score, pass/fail status, dan answer review (jika diaktifkan HC)
 **Plans**: 2 plans
 Plans:
-- [ ] 232-01-PLAN.md — [to be planned]
-- [ ] 232-02-PLAN.md — [to be planned]
+- [ ] 232-01-PLAN.md — Audit assessment list + token entry + timer + SignalR + session resume
+- [ ] 232-02-PLAN.md — Audit scoring chain + results page + Proton handling + HTML report
 
 ## Progress
 
@@ -126,4 +126,4 @@ Plans:
 | 229. Audit Renewal Logic & Edge Cases | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 232. Audit Assessment Flow — Worker Side | v8.1 | 0/? | Not started | - |
+| 232. Audit Assessment Flow — Worker Side | v8.1 | 0/2 | Not started | - |
