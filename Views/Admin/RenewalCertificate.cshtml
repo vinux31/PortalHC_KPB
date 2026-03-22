@@ -391,6 +391,7 @@
         }
     }
 
+    // D-08: Skip warning not needed — BuildRenewalRowsAsync excludes IsRenewed=true rows
     function updateBulkModalState() {
         var mixedErr = document.getElementById('bulk-renew-mixed-error');
         var methodChoice = document.getElementById('bulk-renew-method-choice');
