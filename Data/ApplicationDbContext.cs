@@ -18,9 +18,6 @@ namespace HcPortal.Data
         public DbSet<TrainingRecord> TrainingRecords { get; set; }
         public DbSet<CoachingLog> CoachingLogs { get; set; }
         public DbSet<AssessmentSession> AssessmentSessions { get; set; }
-        public DbSet<AssessmentQuestion> AssessmentQuestions { get; set; }
-        public DbSet<AssessmentOption> AssessmentOptions { get; set; }
-        public DbSet<UserResponse> UserResponses { get; set; }
         public DbSet<IdpItem> IdpItems { get; set; }
         
         // Master Data (KKJ & CPDP)
@@ -208,34 +205,7 @@ namespace HcPortal.Data
                     .OnDelete(DeleteBehavior.NoAction);
             });
 
-            // UserResponse -> AssessmentSession (Restrict Delete to avoid Cycles)
-            builder.Entity<UserResponse>(entity =>
-            {
-                entity.HasOne(r => r.AssessmentSession)
-                    .WithMany(s => s.Responses)
-                    .HasForeignKey(r => r.AssessmentSessionId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(r => r.Question)
-                    .WithMany()
-                    .HasForeignKey(r => r.AssessmentQuestionId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(r => r.SelectedOption)
-                    .WithMany()
-                    .HasForeignKey(r => r.SelectedOptionId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                // Indexes for performance
-                entity.HasIndex(r => new { r.AssessmentSessionId, r.AssessmentQuestionId });
-            });
-
-            // AssessmentQuestion indexes and constraints
-            builder.Entity<AssessmentQuestion>(entity =>
-            {
-                entity.HasIndex(q => q.Order);
-                entity.HasCheckConstraint("CK_AssessmentQuestion_ScoreValue", "[ScoreValue] > 0");
-            });
+            // Legacy UserResponse and AssessmentQuestion tables removed in Phase 227 (CLEN-02 migration).
 
             // IdpItem -> User
             builder.Entity<IdpItem>(entity =>

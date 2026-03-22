@@ -121,8 +121,6 @@ namespace HcPortal.Models
         /// </summary>
         public int? RenewsTrainingId { get; set; }
 
-        // Navigation Properties for Exam Engine
-        public virtual ICollection<AssessmentQuestion> Questions { get; set; } = new List<AssessmentQuestion>();
-        public virtual ICollection<UserResponse> Responses { get; set; } = new List<UserResponse>();
+        // Legacy navigation properties (AssessmentQuestion, UserResponse) removed in Phase 227 (CLEN-02).
     }
 }
