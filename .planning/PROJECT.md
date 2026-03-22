@@ -12,33 +12,26 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.1 Phase 232 complete, 2026-03-22)
+## Current State (v8.2 starting, 2026-03-22)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
-**v7.1 shipped** — Export & Import Data, 5 phases (176-180).
-**v7.3 shipped** — Elemen Teknis Shuffle & Rename, 3 phases (182-184).
-**v7.4 shipped** — Certification Management, 7 phases (185-190).
-**v7.5 shipped** — Assessment Form Revamp & Certificate Enhancement, 6 phases (190-195).
-**v7.6 shipped** — Code Deduplication & Shared Services, 4 phases (196-199).
-**v7.7 shipped** — Renewal Certificate & Certificate History, 5 phases (200-204).
-**v7.8 shipped** — Dokumen KKJ & Alignment KKJ/IDP — Combine Menu, 3 phases (205-207).
-**v7.9 shipped** — Renewal Certificate Grouped View, 2 phases (208-209).
-**v7.10 shipped** — RenewalCertificate Bug Fixes & Enhancement, 3 phases (210-212). Bulk renew FK chain fix, data/display fixes, tipe filter, renewal method modal, AddTraining renewal mode.
-**v7.11 shipped** — CMP Records Bug Fixes & Enhancement, 6 phases (213-218). Category/Status filter fix, SubKategori field, RecordsWorkerDetail redesign, ImportTraining 12-column update.
-**v7.12 shipped** — Struktur Organisasi CRUD, 4 phases (219-222). Static OrganizationStructure → database-driven OrganizationUnit dengan CRUD page, integrasi seluruh dropdown/filter portal, seed data, ImportWorkers validation.
+**v7.1–v7.12 shipped** — Export/Import, Certification, Assessment Form, Code Dedup, Renewal Certificate, KKJ/IDP, Records, Struktur Organisasi (phases 176-222).
+**v8.0 shipped** — Assessment Integrity & Analytics, 5 phases (223-227).
+**v8.1 shipped** — Renewal & Assessment Ecosystem Audit, 5 phases (228-232). Riset best practices, audit renewal logic/UI/cross-page, audit assessment management/monitoring, audit worker exam flow.
 
-**Current focus:** v8.0 Assessment & Training System Audit
+**Current focus:** v8.2 Proton Coaching Ecosystem Audit
 
-## Current Milestone: v8.1 RenewalCertificate Page Audit
+## Current Milestone: v8.2 Proton Coaching Ecosystem Audit
 
-**Goal:** Audit mendalam halaman RenewalCertificate — periksa fungsi, logic, database, dan koneksi ke halaman lain. Perbaiki issue yang ditemukan.
+**Goal:** Audit seluruh ekosistem Proton coaching end-to-end — dari setup (silabus, mapping, assignment) hingga execution (evidence, approval chain) dan completion (final assessment, history) — berdasarkan riset best practices coaching/mentoring platform.
 
 **Target features:**
-- Audit fungsi dan logic RenewalCertificate (filter, grouped view, bulk renew)
-- Audit data model dan query (SertifikatRow, CertificateChainGroup, RenewalGroup)
-- Audit koneksi ke halaman lain (CreateAssessment renewal, AddTraining renewal, CertificationManagement)
-- Koreksi bug/inconsistency yang ditemukan
+- Riset best practices coaching/mentoring platform (360Learning, BetterUp, dll)
+- Audit Setup Flow: Silabus CRUD, Guidance files, Coach-Coachee Mapping, Track Assignment
+- Audit Execution Flow: PlanIdp, Evidence submission, Sequential lock, Multi-role approval chain (SrSpv→SH→HC)
+- Audit Monitoring & Dashboard: CoachingProton tracking, Dashboard stats/charts, Override, Export
+- Audit Completion & History: Final Assessment, HistoriProton timeline, Coaching Sessions, ActionItems
 
 ## Architecture Decisions
 
