@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ringkasan Perbandingan &amp; Rekomendasi — Portal HC KPB Research</title>
+<style>
+:root {
+  --blue: #005baa;
+  --blue-light: #e8f0fe;
+  --red: #ed1c24;
+  --red-light: #ffeaea;
+  --yellow: #ffd700;
+  --yellow-light: #fff8e0;
+  --green: #28a745;
+  --green-light: #e6f9ed;
+  --gray: #6c757d;
+  --gray-light: #f8f9fa;
+  --dark: #1a1a2e;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); font-size:15px; line-height:1.6; color:#222; background:#f5f6fa; }
+a { color: var(--blue); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); color:#fff; padding:24px 32px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+.header h1 { font-size:22px; font-weight:700; }
+.header .subtitle { font-size:13px; color:#aab; margin-top:4px; }
+.header .badge-ver { background:var(--blue); color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:8px; }
+
+/* LAYOUT */
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:260px; background:#fff; border-right:1px solid #e0e0e0; position:sticky; top:68px; height:calc(100vh - 68px); overflow-y:auto; padding:16px 0; flex-shrink:0; }
+.sidebar a { display:block; padding:7px 20px; font-size:13px; color:#444; border-left:3px solid transparent; transition:all .15s; }
+.sidebar a:hover { background:var(--blue-light); color:var(--blue); text-decoration:none; border-left-color:var(--blue); }
+.sidebar .nav-section { font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.5px; padding:12px 20px 4px; }
+.main { flex:1; padding:32px 40px; max-width:1100px; }
+
+/* SECTIONS */
+section { margin-bottom:48px; }
+h2 { font-size:22px; font-weight:700; color:var(--dark); border-bottom:3px solid var(--blue); padding-bottom:8px; margin-bottom:20px; }
+h3 { font-size:17px; font-weight:600; color:var(--blue); margin:24px 0 12px; }
+h4 { font-size:15px; font-weight:600; color:#333; margin:16px 0 8px; }
+
+/* TABLES */
+table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+th { background:var(--blue); color:#fff; padding:8px 12px; text-align:left; font-weight:600; font-size:12px; }
+td { padding:7px 12px; border-bottom:1px solid #e8e8e8; vertical-align:top; }
+tr:hover td { background:var(--blue-light); }
+.tbl-compact td, .tbl-compact th { padding:5px 8px; font-size:12px; }
+code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Cascadia Code','Fira Code',monospace; }
+
+/* CARDS */
+.card { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; margin:12px 0; }
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+
+/* FINDING CARDS */
+.finding { border-left:4px solid var(--gray); padding:16px 20px; margin:12px 0; background:#fff; border-radius:0 8px 8px 0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.finding.critical { border-left-color:var(--red); }
+.finding.medium { border-left-color:var(--yellow); }
+.finding.low { border-left-color:var(--gray); }
+.finding .finding-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.finding .finding-title { font-weight:700; font-size:15px; }
+
+/* BADGES */
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-critical { background:var(--red); color:#fff; }
+.badge-medium { background:var(--yellow); color:#333; }
+.badge-low { background:#ddd; color:#555; }
+.badge-blue { background:var(--blue); color:#fff; }
+.badge-green { background:var(--green); color:#fff; }
+.badge-role { background:#e8e8e8; color:#555; font-size:10px; }
+
+/* FLOW DIAGRAMS */
+.flow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:0; padding:20px 0; overflow-x:auto; }
+.flow-step { position:relative; background:#fff; border:2px solid var(--blue); border-radius:8px; padding:10px 14px; min-width:140px; max-width:200px; font-size:12px; text-align:center; flex-shrink:0; }
+.flow-step .step-label { font-weight:700; color:var(--blue); font-size:11px; margin-bottom:4px; }
+.flow-step .step-desc { color:#444; }
+.flow-arrow { display:flex; align-items:center; padding:0 2px; color:var(--blue); font-size:20px; font-weight:700; flex-shrink:0; }
+.flow-step.has-finding { border-color:var(--red); background:var(--red-light); }
+.flow-step.has-warning { border-color:#e6a800; background:var(--yellow-light); }
+.flow-step.has-info { border-color:var(--gray); background:var(--gray-light); }
+.finding-marker { position:absolute; top:-10px; right:-10px; width:24px; height:24px; border-radius:50%; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; color:#fff; z-index:2; }
+.finding-marker.fm-red { background:var(--red); }
+.finding-marker.fm-yellow { background:#e6a800; }
+.finding-marker.fm-gray { background:var(--gray); }
+
+/* PRIORITY TABLE */
+.prio-table td:first-child { font-weight:700; text-align:center; }
+.p1 { background:var(--red-light); color:var(--red); }
+.p2 { background:var(--yellow-light); color:#b38600; }
+.p3 { background:var(--gray-light); color:var(--gray); }
+
+/* COLLAPSIBLE */
+details { margin:8px 0; }
+details summary { cursor:pointer; font-weight:600; color:var(--blue); padding:8px 0; user-select:none; }
+details summary:hover { color:var(--dark); }
+
+/* RESEARCH-SPECIFIC */
+.badge-must { background: var(--red); color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-should { background: var(--yellow); color:#333; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-nice { background: var(--blue-light); color:var(--blue); padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.platform-section { border-left: 4px solid var(--blue); padding-left: 16px; margin: 20px 0; }
+.portal-comparison { background: var(--blue-light); border-radius: 6px; padding: 12px 16px; margin: 8px 0; }
+.portal-comparison.gap { background: var(--red-light); }
+.portal-comparison.match { background: var(--green-light); }
+
+/* SUMMARY SPECIFIC */
+.area-header { background: var(--dark); color:#fff; padding:10px 16px; border-radius:6px; margin-bottom:16px; display:flex; align-items:center; justify-content:space-between; }
+.area-header .phase-target { background: var(--blue); color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; }
+.master-table th { font-size:11px; }
+.master-table td { font-size:12px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Ringkasan Perbandingan &amp; Rekomendasi <span class="badge-ver">Research v8.1</span></h1>
+  <div class="subtitle">Portal HC KPB — Milestone v8.1 Best Practices Research · 2026-03-22 · RSCH-04</div>
+</div>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">Dokumen Ini</div>
+    <a href="#overview">Overview</a>
+    <a href="#renewal">Renewal Certificate</a>
+    <a href="#assessment">Assessment Management</a>
+    <a href="#monitoring">Exam Monitoring</a>
+    <a href="#exam-flow">Exam Flow Worker</a>
+    <a href="#priority">Master Priority Table</a>
+    <div class="nav-section">Dokumen Detail</div>
+    <a href="research-renewal-certificate.html">Detail: Renewal Certificate</a>
+    <a href="research-assessment-management.html">Detail: Assessment Management</a>
+    <a href="research-exam-monitoring.html">Detail: Exam Monitoring</a>
+    <a href="research-exam-flow.html">Detail: Exam Flow</a>
+    <div class="nav-section">Referensi</div>
+    <a href="audit-assessment-training-v8.html">Audit v8.0</a>
+  </nav>
+  <div class="main">
+
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>Dokumen ini adalah <strong>dokumen ke-5 dan terakhir</strong> dari set riset Phase 228. Berisi ringkasan perbandingan dari 4 dokumen riset sebelumnya, master priority table semua rekomendasi, dan mapping ke phases 229-232.</p>
+
+      <div class="card" style="margin-top:16px;">
+        <h4>5 Dokumen Riset Phase 228</h4>
+        <table class="tbl-compact">
+          <thead>
+            <tr><th>#</th><th>Dokumen</th><th>Coverage</th><th>Target Audit</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td><a href="research-renewal-certificate.html">research-renewal-certificate.html</a></td>
+              <td>RSCH-01: Coursera, LinkedIn Learning, TalentGuard</td>
+              <td>Phase 229 &amp; 230</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><a href="research-assessment-management.html">research-assessment-management.html</a></td>
+              <td>RSCH-02: Moodle Quiz, Google Forms, Examly</td>
+              <td>Phase 231</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><a href="research-exam-monitoring.html">research-exam-monitoring.html</a></td>
+              <td>RSCH-03: SpeedExam, Exam.net, proctoring patterns</td>
+              <td>Phase 231</td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td><a href="research-exam-flow.html">research-exam-flow.html</a></td>
+              <td>RSCH-02+03: Worker exam UX end-to-end</td>
+              <td>Phase 232</td>
+            </tr>
+            <tr>
+              <td>5</td>
+              <td><strong>research-comparison-summary.html (ini)</strong></td>
+              <td>RSCH-04: Ringkasan + master priority table</td>
+              <td>Referensi semua phases</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h4>Temuan Utama Riset</h4>
+        <p>Portal HC KPB sudah mengimplementasikan banyak fitur yang sejalan dengan best practices industri, terutama di area exam flow (sticky header, auto-save, timer, paginated soal). Gap terbesar ada di:</p>
+        <ol style="padding-left:20px; margin-top:8px;">
+          <li><strong>Renewal Certificate:</strong> Belum ada color-coded urgency (merah/kuning/hijau) dan visual "Expiring Soon" counter</li>
+          <li><strong>Exam Monitoring:</strong> Live progress per-peserta (answered/total) belum real-time</li>
+          <li><strong>Exam Flow:</strong> Pre-submit confirmation dialog (AFLW-02) dan session resume (AFLW-04) perlu diverifikasi</li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="renewal">
+      <h2>Renewal Certificate</h2>
+      <div class="area-header">
+        <span>Area: RenewalCertificate (Admin + Worker)</span>
+        <span class="phase-target">Target: Phase 229 &amp; Phase 230</span>
+      </div>
+
+      <h3>Tabel Ringkasan Perbandingan</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Best Practice (Ringkasan)</th>
+            <th>Portal HC KPB</th>
+            <th>Gap Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Color-coded urgency status</td>
+            <td>Merah (expired), kuning (&lt;30 hari), hijau (valid) — TalentGuard pattern</td>
+            <td>Status label ada, tapi belum ada warna-kode urgency yang konsisten</td>
+            <td><span class="badge-must">Must-fix</span></td>
+          </tr>
+          <tr>
+            <td>Expiring Soon counter/widget</td>
+            <td>Dashboard admin menampilkan count sertifikat yang akan expired per kategori waktu</td>
+            <td>Belum ada widget atau counter khusus "Expiring Soon"</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Renewal history modal</td>
+            <td>Chain riwayat renewal tersimpan dan dapat dilihat (audit trail)</td>
+            <td>History ada tapi belum tersedia sebagai modal inline</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Sertifikat downloadable/shareable</td>
+            <td>Download PDF + one-click share / copy URL</td>
+            <td>Download tersedia, copy nomor sertifikat belum ada</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+          </tr>
+          <tr>
+            <td>Automated notification sebelum expired</td>
+            <td>Email alert 90/30/7 hari (TalentGuard, ExpirationReminder)</td>
+            <td>Tidak ada — manual dari HC</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Top 3 Rekomendasi (Phase 229/230)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Req ID</th>
+            <th>Rekomendasi</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>—</td>
+            <td>Tambah color-coded urgency badge di RenewalCertificate: <strong>Merah</strong> (expired), <strong>Kuning</strong> (akan expired &lt;30 hari), <strong>Hijau</strong> (valid)</td>
+            <td>Phase 230</td>
+          </tr>
+          <tr>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>—</td>
+            <td>Tambah badge/counter "Expiring Soon" di halaman dashboard Admin dengan jumlah sertifikat yang akan expired dalam 30 hari ke depan</td>
+            <td>Phase 229</td>
+          </tr>
+          <tr>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>UIUX-04</td>
+            <td>Tampilkan riwayat renewal sebagai modal inline (klik history icon → modal chain sertifikat)</td>
+            <td>Phase 230</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:13px; color:var(--gray);">Lihat analisis lengkap: <a href="research-renewal-certificate.html">research-renewal-certificate.html</a></p>
+    </section>
+
+    <section id="assessment">
+      <h2>Assessment Management</h2>
+      <div class="area-header">
+        <span>Area: ManageAssessment (Admin/HC)</span>
+        <span class="phase-target">Target: Phase 231</span>
+      </div>
+
+      <h3>Tabel Ringkasan Perbandingan</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Best Practice (Ringkasan)</th>
+            <th>Portal HC KPB</th>
+            <th>Gap Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Filter dan search assessment</td>
+            <td>Filter multi-kriteria: status, tanggal, unit, assessment type — standar semua platform</td>
+            <td>Filter ada, tapi perlu validasi apakah semua filter berfungsi dengan benar</td>
+            <td><span class="badge-must">Must-fix</span></td>
+          </tr>
+          <tr>
+            <td>Bulk assignment dengan konfirmasi UX</td>
+            <td>Checkbox select + bulk action dengan dialog konfirmasi yang jelas</td>
+            <td>Bulk assignment ada, tapi UX konfirmasi perlu validasi</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Question bank terpisah (reusability soal)</td>
+            <td>Moodle: bank soal terpisah, soal bisa dipakai ulang di multiple assessment</td>
+            <td>Belum ada — soal terikat ke assessment tertentu</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Preview assessment sebagai worker</td>
+            <td>Admin bisa preview ujian persis seperti yang dilihat peserta</td>
+            <td>Belum tersedia</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+          </tr>
+          <tr>
+            <td>Grade override per peserta</td>
+            <td>Instruktur bisa override nilai individual (Moodle)</td>
+            <td>Belum ada fitur override nilai</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Top 3 Rekomendasi (Phase 231)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Req ID</th>
+            <th>Rekomendasi</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>AMGT-05</td>
+            <td>Validasi dan perbaiki filter/search di ManageAssessment — pastikan semua kombinasi filter menghasilkan output yang benar</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>AMGT-04</td>
+            <td>Perbaiki UX bulk package assignment: pastikan ada dialog konfirmasi yang menampilkan scope action sebelum execute</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>—</td>
+            <td>Tambah tombol "Preview as Worker" di halaman ManageAssessment untuk memudahkan QA oleh HC</td>
+            <td>Phase 231</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:13px; color:var(--gray);">Lihat analisis lengkap: <a href="research-assessment-management.html">research-assessment-management.html</a></p>
+    </section>
+
+    <section id="monitoring">
+      <h2>Exam Monitoring</h2>
+      <div class="area-header">
+        <span>Area: AssessmentMonitoring (Admin/HC)</span>
+        <span class="phase-target">Target: Phase 231</span>
+      </div>
+
+      <h3>Tabel Ringkasan Perbandingan</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Best Practice (Ringkasan)</th>
+            <th>Portal HC KPB</th>
+            <th>Gap Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Live progress per peserta (answered/total)</td>
+            <td>SpeedExam, Exam.net: tampilkan berapa soal sudah dijawab per peserta secara real-time</td>
+            <td>Status peserta ada (Taking/Completed), tapi progress soal belum ditampilkan real-time</td>
+            <td><span class="badge-must">Must-fix</span></td>
+          </tr>
+          <tr>
+            <td>Visual urgency coding status peserta</td>
+            <td>Warna berbeda per status: hijau (aktif), abu (belum mulai), biru (selesai), merah (dropped)</td>
+            <td>Status badge ada, tapi konsistensi warna urgency perlu divalidasi</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Timer extend per peserta</td>
+            <td>Exam.net: admin bisa tambah waktu untuk peserta tertentu</td>
+            <td>Belum ada fitur extend waktu per peserta</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Token card UX (copy token)</td>
+            <td>Platform terbaik punya tombol copy-to-clipboard untuk token distribusi</td>
+            <td>Token card ada, tapi UX copy belum optimal</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+          </tr>
+          <tr>
+            <td>Bulk actions (close, archive)</td>
+            <td>Checkbox + bulk action untuk kelola multiple peserta sekaligus</td>
+            <td>Bulk Close sudah ada (AMON-03) — fondasi baik</td>
+            <td><span class="badge-green badge">Sudah Ada</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Top 3 Rekomendasi (Phase 231)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Req ID</th>
+            <th>Rekomendasi</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>AMON-02</td>
+            <td>Tampilkan live progress per peserta (jumlah soal dijawab / total) di AssessmentMonitoring, di-update secara real-time via SignalR</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>—</td>
+            <td>Implementasikan visual urgency coding yang konsisten: warna berbeda per status peserta (aktif ujian = hijau, idle/stuck = kuning, dropped = merah)</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>AMON-04</td>
+            <td>Tambah tombol copy-to-clipboard untuk token di token card pada monitoring dashboard</td>
+            <td>Phase 231</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:13px; color:var(--gray);">Lihat analisis lengkap: <a href="research-exam-monitoring.html">research-exam-monitoring.html</a></p>
+    </section>
+
+    <section id="exam-flow">
+      <h2>Exam Flow Worker</h2>
+      <div class="area-header">
+        <span>Area: StartExam / Results (Worker side)</span>
+        <span class="phase-target">Target: Phase 232</span>
+      </div>
+
+      <h3>Tabel Ringkasan Perbandingan</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Best Practice (Ringkasan)</th>
+            <th>Portal HC KPB</th>
+            <th>Gap Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Pre-submit confirmation dialog</td>
+            <td>Dialog konfirmasi menampilkan soal dijawab vs total, tombol Batal/Submit — standar semua platform</td>
+            <td>Ada confirmAbandon() untuk keluar, tapi pre-submit confirmation belum terkonfirmasi</td>
+            <td><span class="badge-must">Must-fix</span></td>
+          </tr>
+          <tr>
+            <td>Session resume (pre-populated answers)</td>
+            <td>Jika peserta terputus, jawaban yang sudah disimpan ditampilkan saat resume</td>
+            <td>Auto-save ada, tapi apakah jawaban di-load ulang saat resume belum terkonfirmasi</td>
+            <td><span class="badge-must">Must-fix</span></td>
+          </tr>
+          <tr>
+            <td>Question grid navigator</td>
+            <td>Panel navigasi bernomor (grid), klik langsung ke soal tertentu — Moodle, Examly, SpeedExam</td>
+            <td>Hanya paginasi Prev/Next (10 soal per halaman)</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Timeout warning alert</td>
+            <td>Alert 5 menit dan 1 menit sebelum waktu habis, timer berubah warna</td>
+            <td>Timer countdown ada, alert warning belum terkonfirmasi ada</td>
+            <td><span class="badge-should">Should-improve</span></td>
+          </tr>
+          <tr>
+            <td>Sticky header + auto-save + timer</td>
+            <td>Header sticky dengan progress + timer, auto-save per jawaban</td>
+            <td>Sudah diimplementasikan dengan baik</td>
+            <td><span class="badge-green badge">Sudah Ada</span></td>
+          </tr>
+          <tr>
+            <td>Immediate score + pass/fail</td>
+            <td>Nilai, correct/total, pass/fail status ditampilkan langsung setelah submit</td>
+            <td>Sudah diimplementasikan di Results.cshtml</td>
+            <td><span class="badge-green badge">Sudah Ada</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Top 3 Rekomendasi (Phase 232)</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Req ID</th>
+            <th>Rekomendasi</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>AFLW-02</td>
+            <td>Verifikasi dan implementasikan pre-submit confirmation dialog yang menampilkan jumlah soal dijawab vs total sebelum submit final</td>
+            <td>Phase 232</td>
+          </tr>
+          <tr>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>AFLW-04</td>
+            <td>Verifikasi bahwa jawaban yang disimpan via auto-save ditampilkan kembali (pre-populated) saat peserta resume sesi ujian yang sama</td>
+            <td>Phase 232</td>
+          </tr>
+          <tr>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>—</td>
+            <td>Implementasikan question grid navigator — panel bernomor di sidebar atau floating panel yang memungkinkan jump ke soal tertentu</td>
+            <td>Phase 232</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p style="font-size:13px; color:var(--gray);">Lihat analisis lengkap: <a href="research-exam-flow.html">research-exam-flow.html</a></p>
+    </section>
+
+    <section id="priority">
+      <h2>Master Priority Table</h2>
+      <p>Tabel master semua rekomendasi dari 4 dokumen riset, diurutkan berdasarkan tier (Must-fix pertama). Gunakan tabel ini sebagai referensi utama saat merencanakan implementasi phases 229-232.</p>
+
+      <table class="master-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Tier</th>
+            <th>Area</th>
+            <th>Aspek</th>
+            <th>Rekomendasi</th>
+            <th>Target Phase</th>
+            <th>Req ID</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- MUST-FIX -->
+          <tr>
+            <td>1</td>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>Renewal</td>
+            <td>Color-coded urgency status</td>
+            <td>Tambah badge merah/kuning/hijau pada status sertifikat di RenewalCertificate</td>
+            <td>Phase 230</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>Assessment Mgmt</td>
+            <td>Filter dan search ManageAssessment</td>
+            <td>Validasi dan perbaiki semua kombinasi filter di ManageAssessment</td>
+            <td>Phase 231</td>
+            <td>AMGT-05</td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>Monitoring</td>
+            <td>Live progress per peserta</td>
+            <td>Tampilkan answered/total per peserta secara real-time via SignalR di AssessmentMonitoring</td>
+            <td>Phase 231</td>
+            <td>AMON-02</td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>Exam Flow</td>
+            <td>Pre-submit confirmation dialog</td>
+            <td>Verifikasi dan implementasikan dialog konfirmasi sebelum submit final (tampilkan soal dijawab vs total)</td>
+            <td>Phase 232</td>
+            <td>AFLW-02</td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>Exam Flow</td>
+            <td>Session resume verification</td>
+            <td>Verifikasi bahwa auto-save answers di-load ulang saat peserta resume sesi ujian yang sama</td>
+            <td>Phase 232</td>
+            <td>AFLW-04</td>
+          </tr>
+          <!-- SHOULD-IMPROVE -->
+          <tr>
+            <td>6</td>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Renewal</td>
+            <td>Expiring Soon counter</td>
+            <td>Tambah badge/counter "Expiring Soon" di dashboard Admin menampilkan count sertifikat yang akan expired dalam 30 hari</td>
+            <td>Phase 229</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>7</td>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Renewal</td>
+            <td>Renewal history modal</td>
+            <td>Tampilkan riwayat renewal sebagai modal inline (ikon history → chain sertifikat)</td>
+            <td>Phase 230</td>
+            <td>UIUX-04</td>
+          </tr>
+          <tr>
+            <td>8</td>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Assessment Mgmt</td>
+            <td>Bulk package assignment UX</td>
+            <td>Perbaiki UX bulk assignment: dialog konfirmasi yang menampilkan scope action sebelum execute</td>
+            <td>Phase 231</td>
+            <td>AMGT-04</td>
+          </tr>
+          <tr>
+            <td>9</td>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Monitoring</td>
+            <td>Visual urgency coding peserta</td>
+            <td>Implementasikan warna konsisten per status peserta: hijau (aktif), kuning (idle), merah (dropped)</td>
+            <td>Phase 231</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Exam Flow</td>
+            <td>Question grid navigator</td>
+            <td>Tambah panel navigasi bernomor yang memungkinkan jump ke soal tertentu (sidebar atau floating)</td>
+            <td>Phase 232</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Exam Flow</td>
+            <td>Timeout warning alerts</td>
+            <td>Implementasikan alert/toast 5 menit dan 1 menit sebelum waktu habis, timer berubah warna (oranye → merah)</td>
+            <td>Phase 232</td>
+            <td>—</td>
+          </tr>
+          <!-- NICE-TO-HAVE -->
+          <tr>
+            <td>12</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>Renewal</td>
+            <td>One-click share sertifikat</td>
+            <td>Tambah tombol copy-to-clipboard untuk nomor sertifikat di halaman sertifikat worker</td>
+            <td>Phase 230</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>13</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>Monitoring</td>
+            <td>Token card copy UX</td>
+            <td>Tambah tombol copy-to-clipboard untuk token di token distribution card di monitoring dashboard</td>
+            <td>Phase 231</td>
+            <td>AMON-04</td>
+          </tr>
+          <tr>
+            <td>14</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>Exam Flow</td>
+            <td>Question status indicator</td>
+            <td>Di question grid navigator, tampilkan warna berbeda: abu (belum dijawab), hijau (dijawab), kuning (flag)</td>
+            <td>Phase 232</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>15</td>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>Assessment Mgmt</td>
+            <td>Preview assessment sebagai worker</td>
+            <td>Tambah tombol "Preview as Worker" di ManageAssessment untuk QA oleh HC sebelum assessment dibuka</td>
+            <td>Phase 231</td>
+            <td>—</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="card" style="margin-top:24px;">
+        <h4>Statistik Rekomendasi per Phase</h4>
+        <table class="tbl-compact">
+          <thead>
+            <tr>
+              <th>Target Phase</th>
+              <th>Area</th>
+              <th>Must-fix</th>
+              <th>Should-improve</th>
+              <th>Nice-to-have</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Phase 229</td>
+              <td>Renewal (logic/edge cases)</td>
+              <td>0</td>
+              <td>1</td>
+              <td>0</td>
+              <td>1</td>
+            </tr>
+            <tr>
+              <td>Phase 230</td>
+              <td>Renewal (UI/cross-page)</td>
+              <td>1</td>
+              <td>1</td>
+              <td>1</td>
+              <td>3</td>
+            </tr>
+            <tr>
+              <td>Phase 231</td>
+              <td>Assessment Mgmt + Monitoring</td>
+              <td>2</td>
+              <td>3</td>
+              <td>2</td>
+              <td>7</td>
+            </tr>
+            <tr>
+              <td>Phase 232</td>
+              <td>Exam Flow Worker</td>
+              <td>2</td>
+              <td>2</td>
+              <td>1</td>
+              <td>5</td>
+            </tr>
+            <tr style="font-weight:700; background:var(--blue-light);">
+              <td colspan="2">TOTAL</td>
+              <td>5</td>
+              <td>7</td>
+              <td>4</td>
+              <td>16</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card" style="margin-top:16px; background:var(--yellow-light); border-left:4px solid var(--yellow);">
+        <h4>Catatan Eksekusi</h4>
+        <p>Rekomendasi di tabel ini adalah <strong>lens</strong> untuk audit phases 229-232 — bukan implementation spec. Saat eksekusi audit, gunakan dokumen riset detail sebagai referensi untuk apa yang harus diperiksa dan apa standar yang harus dipenuhi.</p>
+        <br>
+        <p>Untuk setiap gap Must-fix: <strong>wajib diperbaiki dalam phase terkait</strong>. Untuk Should-improve: perbaiki jika tidak menambah scope signifikan. Untuk Nice-to-have: dokumentasikan sebagai enhancement backlog.</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+</body>
+</html>
