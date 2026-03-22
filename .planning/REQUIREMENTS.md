@@ -9,9 +9,9 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 
 ### Riset & Perbandingan
 
-- [ ] **RSCH-01**: Browse langsung demo/website minimal 3 platform coaching (360Learning, BetterUp, CoachHub) — screenshot dan dokumentasi UX/flow
-- [ ] **RSCH-02**: Dokumen perbandingan UX/flow portal KPB vs platform luar per area Proton (Setup, Execution, Monitoring, Completion)
-- [ ] **RSCH-03**: Rekomendasi improvement prioritas berdasarkan gap antara portal vs best practices
+- [x] **RSCH-01**: Browse langsung demo/website minimal 3 platform coaching (360Learning, BetterUp, CoachHub) — screenshot dan dokumentasi UX/flow
+- [x] **RSCH-02**: Dokumen perbandingan UX/flow portal KPB vs platform luar per area Proton (Setup, Execution, Monitoring, Completion)
+- [x] **RSCH-03**: Rekomendasi improvement prioritas berdasarkan gap antara portal vs best practices
 
 ### Audit Setup Flow
 
@@ -70,9 +70,9 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RSCH-01 | Phase 233 | Pending |
-| RSCH-02 | Phase 233 | Pending |
-| RSCH-03 | Phase 233 | Pending |
+| RSCH-01 | Phase 233 | Complete |
+| RSCH-02 | Phase 233 | Complete |
+| RSCH-03 | Phase 233 | Complete |
 | SETUP-01 | Phase 234 | Pending |
 | SETUP-02 | Phase 234 | Pending |
 | SETUP-03 | Phase 234 | Pending |
