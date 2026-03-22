@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.1
 milestone_name: Renewal & Assessment Ecosystem Audit
 status: unknown
-stopped_at: Completed 232-01-PLAN.md
-last_updated: "2026-03-22T09:13:17.083Z"
+stopped_at: Completed 232-02-PLAN.md
+last_updated: "2026-03-22T09:21:24.880Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State: Portal HC KPB
@@ -49,6 +49,8 @@ Plan: 2 of 2
 - [Phase 231]: Two-countdown approach: initial-render dari StartedAt + polling — komplementer
 - [Phase 232]: SignalR worker push menggunakan Clients.User(userId) di AdminController — tidak perlu JoinWorkerSession method di hub
 - [Phase 232]: assessmentHubStartPromise menggantikan setTimeout fallback untuk set hub badge Live di StartExam
+- [Phase 232]: CompetencyGains dead code dihapus dari Results.cshtml — tidak pernah diisi sejak Phase 90 KKJ tables dropped
+- [Phase 232]: Proton Tahun 1-2 identik dengan assessment reguler — tidak ada branching khusus di CMPController
 
 ### Pending Todos
 
@@ -60,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T09:13:17.080Z
-Stopped at: Completed 232-01-PLAN.md
+Last session: 2026-03-22T09:21:24.877Z
+Stopped at: Completed 232-02-PLAN.md
 Resume file: None

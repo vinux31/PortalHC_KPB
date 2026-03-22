@@ -34,7 +34,7 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
 - [x] **Phase 229: Audit Renewal Logic & Edge Cases** - Audit dan fix renewal chain FK, badge sync, status derivation, grouping, dan edge cases (completed 2026-03-22)
 - [x] **Phase 230: Audit Renewal UI & Cross-Page Integration** - Audit dan fix renewal UI grouped view, filter, modal, dan integrasi lintas halaman (completed 2026-03-22)
 - [x] **Phase 231: Audit Assessment Management & Monitoring** - Audit dan fix ManageAssessment dan AssessmentMonitoring (admin/HC side) (completed 2026-03-22)
-- [ ] **Phase 232: Audit Assessment Flow — Worker Side** - Audit dan fix worker-side exam flow end-to-end
+- [x] **Phase 232: Audit Assessment Flow — Worker Side** - Audit dan fix worker-side exam flow end-to-end (completed 2026-03-22)
 
 ## Phase Details
 
@@ -114,7 +114,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 232-01-PLAN.md — Audit assessment list + token entry + timer + SignalR + session resume
-- [ ] 232-02-PLAN.md — Audit scoring chain + results page + Proton handling + HTML report
+- [x] 232-02-PLAN.md — Audit scoring chain + results page + Proton handling + HTML report
 
 ## Progress
 
@@ -126,4 +126,4 @@ Plans:
 | 229. Audit Renewal Logic & Edge Cases | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 2/2 | Complete    | 2026-03-22 |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 232. Audit Assessment Flow — Worker Side | v8.1 | 1/2 | In Progress|  |
+| 232. Audit Assessment Flow — Worker Side | v8.1 | 2/2 | Complete   | 2026-03-22 |
