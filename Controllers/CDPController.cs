@@ -1038,25 +1038,26 @@ namespace HcPortal.Controllers
         {
             try
             {
-                // Deduplication: check UserNotification instead of ProtonNotification
-                bool alreadyNotified = await _context.UserNotifications
-                    .AnyAsync(n => n.Type == "COACH_ALL_COMPLETE" && n.Message.Contains(coacheeId));
-                if (alreadyNotified) return;
-
                 var coachee = await _context.Users
                     .Where(u => u.Id == coacheeId)
                     .Select(u => new { u.FullName, u.UserName })
                     .FirstOrDefaultAsync();
                 var coacheeName = coachee?.FullName ?? coachee?.UserName ?? coacheeId;
 
+                // Deduplication: exact message match (D-14 fix — Contains(coacheeId) bisa false-positive)
+                var expectedMessage = $"Semua deliverable {coacheeName} telah selesai";
                 var hcUsers = await _userManager.GetUsersInRoleAsync(UserRoles.HC);
                 foreach (var hc in hcUsers)
                 {
+                    bool alreadyNotified = await _context.UserNotifications
+                        .AnyAsync(n => n.UserId == hc.Id && n.Type == "COACH_ALL_COMPLETE" && n.Message == expectedMessage);
+                    if (alreadyNotified) continue;
+
                     await _notificationService.SendAsync(
                         hc.Id,
                         "COACH_ALL_COMPLETE",
                         "Semua Deliverable Selesai",
-                        $"Semua deliverable {coacheeName} telah selesai",
+                        expectedMessage,
                         "/CDP/CoachingProton"
                     );
                 }
@@ -1079,6 +1080,7 @@ namespace HcPortal.Controllers
             if (!isHCAccess) return Forbid();
 
             var progress = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
                 .FirstOrDefaultAsync(p => p.Id == progressId);
             if (progress == null) return NotFound();
 
@@ -1097,6 +1099,31 @@ namespace HcPortal.Controllers
             RecordStatusHistory(progress.Id, "HC Reviewed", user.Id, user.FullName, "HC");
 
             await _context.SaveChangesAsync();
+
+            // EXEC-04 gap fix: Notify Coach bahwa HC sudah review (D-14)
+            try
+            {
+                var hcReviewCoachee = await _context.Users
+                    .Where(u => u.Id == progress.CoacheeId)
+                    .Select(u => new { u.FullName, u.UserName })
+                    .FirstOrDefaultAsync();
+                var hcReviewCoacheeName = hcReviewCoachee?.FullName ?? hcReviewCoachee?.UserName ?? progress.CoacheeId;
+                var hcReviewDeliverableName = progress.ProtonDeliverable?.NamaDeliverable ?? $"#{progressId}";
+
+                var coachMappingForHC = await _context.CoachCoacheeMappings
+                    .FirstOrDefaultAsync(m => m.CoacheeId == progress.CoacheeId && m.IsActive);
+                if (coachMappingForHC != null)
+                {
+                    await _notificationService.SendAsync(
+                        coachMappingForHC.CoachId,
+                        "HC_REVIEW_COMPLETE",
+                        "HC Review Selesai",
+                        $"Deliverable '{hcReviewDeliverableName}' untuk {hcReviewCoacheeName} telah di-review oleh HC.",
+                        $"/CDP/Deliverable/{progress.Id}"
+                    );
+                }
+            }
+            catch (Exception ex) { _logger.LogWarning(ex, "HC review notification send failed"); }
 
             TempData["Success"] = "Deliverable telah ditandai sebagai sudah diperiksa HC.";
             return RedirectToAction("Deliverable", new { id = progressId });
@@ -1160,12 +1187,31 @@ namespace HcPortal.Controllers
                 return RedirectToAction("Deliverable", new { id = progressId });
             }
 
-            // Upload evidence file
-            var evidenceUrl = await FileUploadHelper.SaveFileAsync(evidenceFile, _env.WebRootPath, $"uploads/evidence/{progressId}");
+            // Upload evidence file (D-09: rollback if save fails)
+            bool wasRejected = progress.Status == "Rejected";
+            string evidenceUrl;
+            try
+            {
+                evidenceUrl = await FileUploadHelper.SaveFileAsync(evidenceFile, _env.WebRootPath, $"uploads/evidence/{progressId}") ?? "";
+            }
+            catch (Exception)
+            {
+                TempData["Error"] = "Gagal menyimpan file. Silakan coba lagi.";
+                return RedirectToAction("Deliverable", new { id = progressId });
+            }
+
+            // D-02: Simpan path lama ke history sebelum overwrite
+            if (!string.IsNullOrEmpty(progress.EvidencePath))
+            {
+                var pathHistory = string.IsNullOrEmpty(progress.EvidencePathHistory)
+                    ? new List<string>()
+                    : System.Text.Json.JsonSerializer.Deserialize<List<string>>(progress.EvidencePathHistory) ?? new List<string>();
+                pathHistory.Add(progress.EvidencePath);
+                progress.EvidencePathHistory = System.Text.Json.JsonSerializer.Serialize(pathHistory);
+            }
 
             // Update progress record
-            bool wasRejected = progress.Status == "Rejected";
-            progress.EvidencePath = evidenceUrl!;
+            progress.EvidencePath = evidenceUrl;
             progress.EvidenceFileName = evidenceFile.FileName;
             progress.Status = "Submitted";
             progress.SubmittedAt = DateTime.UtcNow;
@@ -1183,6 +1229,10 @@ namespace HcPortal.Controllers
                 progress.RejectionReason = null;
             }
 
+            // D-16: Record status history before saving
+            string uploadStatusType = wasRejected ? "Re-submitted" : "Submitted";
+            RecordStatusHistory(progress.Id, uploadStatusType, user.Id, user.FullName, "Coach");
+
             await _context.SaveChangesAsync();
 
             // COACH-04: Notify section reviewers
@@ -1192,6 +1242,37 @@ namespace HcPortal.Controllers
                 .FirstOrDefaultAsync();
             var coacheeNameForNotify = coacheeForNotify?.FullName ?? coacheeForNotify?.UserName ?? progress.CoacheeId;
             await NotifyReviewersAsync(progress.CoacheeId, coacheeNameForNotify);
+
+            // D-18: Notifikasi khusus resubmit jika sebelumnya Rejected
+            if (wasRejected)
+            {
+                try
+                {
+                    var coachNameForNotify = user.FullName ?? user.UserName ?? user.Id;
+                    var progressForNotify = await _context.ProtonDeliverableProgresses
+                        .Include(p => p.ProtonDeliverable)
+                        .Where(p => p.Id == progressId)
+                        .Select(p => new { DeliverableName = p.ProtonDeliverable != null ? p.ProtonDeliverable.Name : $"#{progressId}" })
+                        .FirstOrDefaultAsync();
+                    var deliverableNameForNotify = progressForNotify?.DeliverableName ?? $"#{progressId}";
+
+                    var reviewerIds = await _context.Users
+                        .Where(u => u.IsActive && u.Section == user.Section && u.RoleLevel == 4)
+                        .Select(u => u.Id)
+                        .ToListAsync();
+                    foreach (var reviewerId in reviewerIds)
+                    {
+                        await _notificationService.SendAsync(
+                            reviewerId,
+                            "COACH_EVIDENCE_RESUBMITTED",
+                            "Evidence Diresubmit",
+                            $"Evidence deliverable '{deliverableNameForNotify}' telah diresubmit setelah ditolak oleh {coachNameForNotify}.",
+                            "/CDP/CoachingProton"
+                        );
+                    }
+                }
+                catch (Exception ex) { _logger.LogWarning(ex, "Resubmit notification send failed"); }
+            }
 
             TempData["Success"] = "Evidence berhasil diupload. Menunggu review approver.";
             return RedirectToAction("Deliverable", new { id = progressId });

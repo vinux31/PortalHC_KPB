@@ -134,6 +134,10 @@ public class ProtonDeliverableProgress
     public string? ShApprovedById { get; set; }
     /// <summary>When SectionHead approved/rejected.</summary>
     public DateTime? ShApprovedAt { get; set; }
+
+    // ===== Phase 235: Evidence Path History =====
+    /// <summary>JSON array of previous EvidencePath values before each resubmit. E.g.: ["/uploads/evidence/5/v1.pdf", "/uploads/evidence/5/v2.pdf"]</summary>
+    public string? EvidencePathHistory { get; set; }
 }
 
 /// <summary>
