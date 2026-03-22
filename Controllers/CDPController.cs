@@ -3189,13 +3189,14 @@ namespace HcPortal.Controllers
             return ExcelExportHelper.ToFileResult(workbook, fileName, this);
         }
 
-        private static string MapKategori(string raw) => raw switch
+        private static string MapKategori(string? raw, Dictionary<string, string>? rawToDisplayMap)
         {
-            "MANDATORY" => "Mandatory HSSE Training",
-            "PROTON"    => "Assessment Proton",
-            _           => raw
-        };
-
+            if (string.IsNullOrWhiteSpace(raw)) return "-";
+            var trimmed = raw.Trim();
+            if (rawToDisplayMap != null && rawToDisplayMap.TryGetValue(trimmed.ToUpperInvariant(), out var displayName))
+                return displayName;
+            return trimmed;
+        }
         private async Task<(List<SertifikatRow> rows, int roleLevel)> BuildSertifikatRowsAsync(bool l5OwnDataOnly = false)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
@@ -3300,6 +3301,17 @@ namespace HcPortal.Controllers
             var renewedTrainingRecordIds = new HashSet<int>(renewedByAsTrainingIds);
             renewedTrainingRecordIds.UnionWith(renewedByTrTrainingIds);
 
+            // Build rawToDisplayMap for MapKategori DB lookup (LDAT-05 mirror)
+            var allCatsForMap = await _context.AssessmentCategories
+                .Where(c => c.IsActive && c.ParentId == null)
+                .Select(c => new { c.Name })
+                .ToListAsync();
+            var rawToDisplayMap = allCatsForMap.ToDictionary(c => c.Name.ToUpperInvariant(), c => c.Name);
+            if (!rawToDisplayMap.ContainsKey("MANDATORY"))
+                rawToDisplayMap["MANDATORY"] = "Mandatory HSSE Training";
+            if (!rawToDisplayMap.ContainsKey("PROTON"))
+                rawToDisplayMap["PROTON"] = "Assessment Proton";
+
             var trainingRows = trainingAnon.Select(t => new SertifikatRow
             {
                 SourceId = t.Id,
@@ -3309,7 +3321,7 @@ namespace HcPortal.Controllers
                 Bagian = t.Bagian,
                 Unit = t.Unit,
                 Judul = t.Judul,
-                Kategori = MapKategori(t.Kategori),
+                Kategori = MapKategori(t.Kategori, rawToDisplayMap),
                 SubKategori = null, // Training tidak punya sub-category
                 NomorSertifikat = t.NomorSertifikat,
                 TanggalTerbit = t.TanggalTerbit,
