@@ -1873,9 +1873,6 @@ namespace HcPortal.Controllers
             try
             {
                 var assessment = await _context.AssessmentSessions
-                    .Include(a => a.Questions)
-                        .ThenInclude(q => q.Options)
-                    .Include(a => a.Responses)
                     .FirstOrDefaultAsync(a => a.Id == id);
 
                 if (assessment == null)
@@ -1888,30 +1885,7 @@ namespace HcPortal.Controllers
                 var assessmentTitle = assessment.Title;
                 logger.LogInformation($"Attempting to delete assessment {id}: {assessmentTitle}");
 
-                // Delete in correct order to avoid FK constraint violations
-                // 1. Delete UserResponses first
-                if (assessment.Responses.Any())
-                {
-                    logger.LogInformation($"Deleting {assessment.Responses.Count} user responses");
-                    _context.UserResponses.RemoveRange(assessment.Responses);
-                }
-
-                // 2. Delete Options (child of Questions)
-                if (assessment.Questions.Any())
-                {
-                    var allOptions = assessment.Questions.SelectMany(q => q.Options).ToList();
-                    if (allOptions.Any())
-                    {
-                        logger.LogInformation($"Deleting {allOptions.Count} question options");
-                        _context.AssessmentOptions.RemoveRange(allOptions);
-                    }
-
-                    // 3. Delete Questions
-                    logger.LogInformation($"Deleting {assessment.Questions.Count} questions");
-                    _context.AssessmentQuestions.RemoveRange(assessment.Questions);
-                }
-
-                // 4. Delete PackageUserResponses (Restrict FK — must be removed before session)
+                // Delete PackageUserResponses (Restrict FK — must be removed before session)
                 var pkgResponses = await _context.PackageUserResponses
                     .Where(r => r.AssessmentSessionId == id)
                     .ToListAsync();
@@ -1921,7 +1895,7 @@ namespace HcPortal.Controllers
                     _context.PackageUserResponses.RemoveRange(pkgResponses);
                 }
 
-                // 5. Delete AssessmentAttemptHistory rows (no FK — orphaned if not removed)
+                // Delete AssessmentAttemptHistory rows (no FK — orphaned if not removed)
                 var attemptHistory = await _context.AssessmentAttemptHistory
                     .Where(h => h.SessionId == id)
                     .ToListAsync();
@@ -1933,7 +1907,7 @@ namespace HcPortal.Controllers
 
                 // Note: UserPackageAssignments are cascade-deleted by DB (Cascade FK on AssessmentSessionId)
 
-                // 6. Finally delete the assessment itself
+                // Finally delete the assessment itself
                 _context.AssessmentSessions.Remove(assessment);
 
                 await _context.SaveChangesAsync();
@@ -1993,9 +1967,6 @@ namespace HcPortal.Controllers
 
                 // Find all siblings (same Title + Category + Schedule.Date)
                 var siblings = await _context.AssessmentSessions
-                    .Include(a => a.Questions)
-                        .ThenInclude(q => q.Options)
-                    .Include(a => a.Responses)
                     .Where(a =>
                         a.Title == rep.Title &&
                         a.Category == rep.Category &&
@@ -2024,16 +1995,6 @@ namespace HcPortal.Controllers
 
                 foreach (var session in siblings)
                 {
-                    if (session.Responses.Any())
-                        _context.UserResponses.RemoveRange(session.Responses);
-
-                    if (session.Questions.Any())
-                    {
-                        var opts = session.Questions.SelectMany(q => q.Options).ToList();
-                        if (opts.Any()) _context.AssessmentOptions.RemoveRange(opts);
-                        _context.AssessmentQuestions.RemoveRange(session.Questions);
-                    }
-
                     _context.AssessmentSessions.Remove(session);
                 }
 
@@ -2267,17 +2228,6 @@ namespace HcPortal.Controllers
                         x => x.AssessmentSessionId,
                         x => x.QuestionCount);
             }
-            else
-            {
-                // Legacy mode: count AssessmentQuestion rows per session
-                questionCountMap = await _context.AssessmentQuestions
-                    .Where(q => siblingIds.Contains(q.AssessmentSessionId))
-                    .GroupBy(q => q.AssessmentSessionId)
-                    .ToDictionaryAsync(
-                        g => g.Key,
-                        g => g.Count());
-            }
-
             var sessionViewModels = sessions.Select(a =>
             {
                 string userStatus;
@@ -2539,14 +2489,7 @@ namespace HcPortal.Controllers
                 _context.AssessmentAttemptHistory.Add(attemptHistory);
             }
 
-            // 1. Delete UserResponse records for this session (legacy path answers)
-            var responses = await _context.UserResponses
-                .Where(r => r.AssessmentSessionId == id)
-                .ToListAsync();
-            if (responses.Any())
-                _context.UserResponses.RemoveRange(responses);
-
-            // 1b. Delete PackageUserResponse records for this session (package path answers)
+            // Delete PackageUserResponse records for this session (package path answers)
             var packageResponses = await _context.PackageUserResponses
                 .Where(r => r.AssessmentSessionId == id)
                 .ToListAsync();
@@ -2843,41 +2786,7 @@ namespace HcPortal.Controllers
                     });
                 }
             }
-            else
-            {
-                // ---- LEGACY PATH ----
-                // Legacy path: ET scores tidak dipersist karena AssessmentQuestion tidak memiliki field ElemenTeknis
-                // Find sibling session that has questions attached
-                var siblingSessionIds = await _context.AssessmentSessions
-                    .Where(s => s.Title == session.Title &&
-                                s.Category == session.Category &&
-                                s.Schedule.Date == session.Schedule.Date)
-                    .Select(s => s.Id)
-                    .ToListAsync();
-
-                var siblingWithQuestions = await _context.AssessmentSessions
-                    .Include(a => a.Questions)
-                        .ThenInclude(q => q.Options)
-                    .Where(a => siblingSessionIds.Contains(a.Id) && a.Questions.Any())
-                    .FirstOrDefaultAsync();
-
-                var legacyQuestions = siblingWithQuestions?.Questions?.ToList() ?? new List<AssessmentQuestion>();
-
-                var userResponses = await _context.UserResponses
-                    .Where(r => r.AssessmentSessionId == session.Id)
-                    .ToDictionaryAsync(r => r.AssessmentQuestionId, r => r.SelectedOptionId);
-
-                foreach (var question in legacyQuestions)
-                {
-                    maxScore += question.ScoreValue;
-                    if (userResponses.TryGetValue(question.Id, out var selectedOptionId) && selectedOptionId.HasValue)
-                    {
-                        var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId.Value);
-                        if (selectedOption != null && selectedOption.IsCorrect)
-                            totalScore += question.ScoreValue;
-                    }
-                }
-            }
+            // Legacy path removed (Phase 227 CLEN-02) — sessions without package assignment get score 0.
 
             int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
 
@@ -2951,16 +2860,6 @@ namespace HcPortal.Controllers
                         x => x.AssessmentSessionId,
                         x => x.QuestionCount);
             }
-            else
-            {
-                questionCountMap = await _context.AssessmentQuestions
-                    .Where(q => siblingIds.Contains(q.AssessmentSessionId))
-                    .GroupBy(q => q.AssessmentSessionId)
-                    .ToDictionaryAsync(
-                        g => g.Key,
-                        g => g.Count());
-            }
-
             // Build row data: one row per session, include all statuses
             var rows = sessions.Select(a =>
             {
@@ -4847,12 +4746,6 @@ namespace HcPortal.Controllers
 
             if (userAssessmentIds.Any())
             {
-                var userResponses = await _context.UserResponses
-                    .Where(r => userAssessmentIds.Contains(r.AssessmentSessionId))
-                    .ToListAsync();
-                if (userResponses.Any())
-                    _context.UserResponses.RemoveRange(userResponses);
-
                 var packageUserResponses = await _context.PackageUserResponses
                     .Where(r => userAssessmentIds.Contains(r.AssessmentSessionId))
                     .ToListAsync();
@@ -6023,141 +5916,8 @@ namespace HcPortal.Controllers
             return View(results);
         }
 
-        #region Question Management (Admin)
-
-        [HttpGet]
-        [Authorize(Roles = "Admin, HC")]
-        public async Task<IActionResult> ManageQuestions(int id)
-        {
-            var assessment = await _context.AssessmentSessions
-                .Include(a => a.Questions)
-                .ThenInclude(q => q.Options)
-                .FirstOrDefaultAsync(a => a.Id == id);
-
-            if (assessment == null) return NotFound();
-
-            return View(assessment);
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddQuestion(int has_id, string question_text, List<string> options, int correct_option_index)
-        {
-            var assessment = await _context.AssessmentSessions.FindAsync(has_id);
-            if (assessment == null) return NotFound();
-
-            // Validation
-            if (string.IsNullOrWhiteSpace(question_text))
-            {
-                TempData["Error"] = "Pertanyaan tidak boleh kosong.";
-                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
-            }
-
-            if (options == null || options.Count < 2)
-            {
-                TempData["Error"] = "Minimal harus ada 2 opsi jawaban.";
-                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
-            }
-
-            if (correct_option_index < 0 || correct_option_index >= options.Count)
-            {
-                TempData["Error"] = "Index jawaban benar tidak valid.";
-                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
-            }
-
-            var validOptions = options.Where(o => !string.IsNullOrWhiteSpace(o)).ToList();
-            if (validOptions.Count < 2)
-            {
-                TempData["Error"] = "Minimal harus ada 2 opsi jawaban yang terisi.";
-                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
-            }
-
-            var newQuestion = new AssessmentQuestion
-            {
-                AssessmentSessionId = has_id,
-                QuestionText = question_text,
-                QuestionType = "MultipleChoice",
-                ScoreValue = 10,
-                Order = await _context.AssessmentQuestions.CountAsync(q => q.AssessmentSessionId == has_id) + 1
-            };
-
-            _context.AssessmentQuestions.Add(newQuestion);
-            // Save question first to get its Id, then add options atomically in a single round-trip
-            await _context.SaveChangesAsync();
-
-            for (int i = 0; i < options.Count; i++)
-            {
-                if (!string.IsNullOrWhiteSpace(options[i]))
-                {
-                    _context.AssessmentOptions.Add(new AssessmentOption
-                    {
-                        AssessmentQuestionId = newQuestion.Id,
-                        OptionText = options[i],
-                        IsCorrect = (i == correct_option_index)
-                    });
-                }
-            }
-            // Save all options in a single round-trip (atomic with question via SaveChangesAsync)
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch
-            {
-                // Roll back orphaned question if options save fails
-                _context.AssessmentQuestions.Remove(newQuestion);
-                await _context.SaveChangesAsync();
-                TempData["Error"] = "Gagal menyimpan opsi jawaban. Pertanyaan dibatalkan.";
-                return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
-            }
-
-            return RedirectToAction("ManageQuestions", "Admin", new { id = has_id });
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin, HC")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteQuestion(int id)
-        {
-            var question = await _context.AssessmentQuestions.FindAsync(id);
-            if (question == null) return NotFound();
-
-            int assessmentId = question.AssessmentSessionId;
-            string questionText = question.QuestionText;
-
-            // Delete UserResponses first: UserResponse.AssessmentQuestionId has Restrict FK
-            var responses = await _context.UserResponses
-                .Where(r => r.AssessmentQuestionId == id)
-                .ToListAsync();
-            if (responses.Any())
-                _context.UserResponses.RemoveRange(responses);
-
-            _context.AssessmentQuestions.Remove(question);
-            await _context.SaveChangesAsync();
-
-            // Audit log
-            try
-            {
-                var deleteUser = await _userManager.GetUserAsync(User);
-                var deleteActorName = string.IsNullOrWhiteSpace(deleteUser?.NIP) ? (deleteUser?.FullName ?? "Unknown") : $"{deleteUser.NIP} - {deleteUser.FullName}";
-                await _auditLog.LogAsync(
-                    deleteUser?.Id ?? "",
-                    deleteActorName,
-                    "DeleteQuestion",
-                    $"Deleted question '{questionText?.Substring(0, Math.Min(50, questionText?.Length ?? 0))}...' [ID={id}] from assessment {assessmentId}",
-                    id,
-                    "AssessmentQuestion");
-            }
-            catch (Exception auditEx)
-            {
-                _logger.LogWarning(auditEx, "Audit log write failed for DeleteQuestion {Id}", id);
-            }
-
-            return RedirectToAction("ManageQuestions", "Admin", new { id = assessmentId });
-        }
-
-        #endregion
+        // Question Management (Admin) region removed in Phase 227 (CLEN-02) — ManageQuestions/AddQuestion/DeleteQuestion
+        // were legacy-only actions. Assessment questions are now managed via Package Management.
 
         #region Package Management (Admin)
 
@@ -6837,14 +6597,8 @@ namespace HcPortal.Controllers
                 Timestamp = TimeZoneInfo.ConvertTimeFromUtc(e.TimestampUtc, wib).ToString("HH:mm:ss")
             }).ToList();
 
-            var answeredCount = await _context.UserResponses
+            var totalAnswered = await _context.PackageUserResponses
                 .CountAsync(r => r.AssessmentSessionId == sessionId);
-
-            // Also count package responses if the session uses a package
-            var packageAnsweredCount = await _context.PackageUserResponses
-                .CountAsync(r => r.AssessmentSessionId == sessionId);
-
-            int totalAnswered = answeredCount + packageAnsweredCount;
 
             var lastEventTime = await _context.ExamActivityLogs
                 .Where(l => l.SessionId == sessionId)

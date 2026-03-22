@@ -321,53 +321,7 @@ namespace HcPortal.Controllers
             return Json(new { success = true });
         }
 
-        // --- SAVE LEGACY ANSWER (auto-save for legacy exam path → UserResponse) ---
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveLegacyAnswer(int sessionId, int questionId, int optionId)
-        {
-            // Validate parameters
-            if (sessionId <= 0 || questionId <= 0 || optionId <= 0)
-            {
-                return Json(new { success = false, error = "Invalid parameters" });
-            }
-
-            var session = await _context.AssessmentSessions.FindAsync(sessionId);
-            if (session == null) return NotFound();
-
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null) return Challenge();
-
-            // Only the session owner may save answers
-            if (session.UserId != user.Id)
-                return Json(new { success = false, error = "Unauthorized" });
-
-            // Session must still be in progress
-            if (session.Status == "Completed" || session.Status == "Abandoned" || session.Status == "Cancelled")
-                return Json(new { success = false, error = "Session already closed" });
-
-            // Atomic upsert: update existing row, or insert if none exists
-            var updatedCount = await _context.UserResponses
-                .Where(r => r.AssessmentSessionId == sessionId && r.AssessmentQuestionId == questionId)
-                .ExecuteUpdateAsync(s => s
-                    .SetProperty(r => r.SelectedOptionId, optionId)
-                    .SetProperty(r => r.SubmittedAt, DateTime.UtcNow)
-                );
-
-            if (updatedCount == 0)
-            {
-                _context.UserResponses.Add(new UserResponse
-                {
-                    AssessmentSessionId = sessionId,
-                    AssessmentQuestionId = questionId,
-                    SelectedOptionId = optionId,
-                    SubmittedAt = DateTime.UtcNow
-                });
-                await _context.SaveChangesAsync();
-            }
-
-            return Json(new { success = true });
-        }
+        // SaveLegacyAnswer removed in Phase 227 (CLEN-02) — legacy exam path no longer exists.
 
         // --- UPDATE SESSION PROGRESS (saves elapsed time + current page for resume) ---
         [HttpPost]
@@ -951,61 +905,9 @@ namespace HcPortal.Controllers
             }
             else
             {
-                // ---- LEGACY PATH: no packages, use old AssessmentQuestion/Option ----
-                var sessionWithQuestions = await _context.AssessmentSessions
-                    .Include(a => a.Questions)
-                        .ThenInclude(q => q.Options)
-                    .Where(a => siblingSessionIds.Contains(a.Id) && a.Questions.Any())
-                    .FirstOrDefaultAsync();
-
-                var legacyQuestions = sessionWithQuestions?.Questions
-                    .OrderBy(q => q.Order)
-                    .Select((q, i) => new ExamQuestionItem
-                    {
-                        QuestionId = q.Id,
-                        QuestionText = q.QuestionText,
-                        DisplayNumber = i + 1,
-                        Options = q.Options.Select(o => new ExamOptionItem
-                        {
-                            OptionId = o.Id,
-                            OptionText = o.OptionText
-                        }).ToList()
-                    }).ToList() ?? new List<ExamQuestionItem>();
-
-                vm = new PackageExamViewModel
-                {
-                    AssessmentSessionId = id,
-                    Title = assessment.Title,
-                    DurationMinutes = assessment.DurationMinutes,
-                    HasPackages = false,
-                    AssignmentId = null,
-                    Questions = legacyQuestions
-                };
-
-                // Resume state for legacy path
-                bool isResumeLegacy = assessment.StartedAt != null;
-                int durationSecondsLegacy = assessment.DurationMinutes * 60;
-                int elapsedSecLegacy = assessment.ElapsedSeconds;
-                int remainingSecondsLegacy = durationSecondsLegacy - elapsedSecLegacy;
-
-                ViewBag.IsResume = isResumeLegacy;
-                ViewBag.LastActivePage = assessment.LastActivePage ?? 0;
-                ViewBag.ElapsedSeconds = elapsedSecLegacy;
-                ViewBag.RemainingSeconds = remainingSecondsLegacy;
-                ViewBag.ExamExpired = isResumeLegacy && remainingSecondsLegacy <= 0;
-
-                // Load previously saved answers for pre-population (legacy path)
-                if (isResumeLegacy)
-                {
-                    var savedAnswersLegacy = await _context.UserResponses
-                        .Where(r => r.AssessmentSessionId == id)
-                        .ToDictionaryAsync(r => r.AssessmentQuestionId, r => r.SelectedOptionId ?? 0);
-                    ViewBag.SavedAnswers = System.Text.Json.JsonSerializer.Serialize(savedAnswersLegacy);
-                }
-                else
-                {
-                    ViewBag.SavedAnswers = "{}";
-                }
+                // Legacy path removed (Phase 227 CLEN-02) — sessions without packages return error.
+                TempData["Error"] = "Sesi ujian ini tidak memiliki paket soal. Hubungi Admin atau HC.";
+                return RedirectToAction("Assessment");
             }
 
             ViewBag.AssessmentBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
@@ -1331,42 +1233,7 @@ namespace HcPortal.Controllers
                     });
                 }
             }
-            else
-            {
-                // Legacy path: AssessmentQuestion
-                var siblingSessionIds = await _context.AssessmentSessions
-                    .Where(s => s.Title == assessment.Title &&
-                                s.Category == assessment.Category &&
-                                s.Schedule.Date == assessment.Schedule.Date)
-                    .Select(s => s.Id)
-                    .ToListAsync();
-
-                var legacyQuestions = await _context.AssessmentQuestions
-                    .Include(q => q.Options)
-                    .Where(q => siblingSessionIds.Contains(q.AssessmentSessionId))
-                    .OrderBy(q => q.Order)
-                    .ToListAsync();
-
-                var optLookup = legacyQuestions.SelectMany(q => q.Options).ToDictionary(o => o.Id);
-
-                int num = 1;
-                foreach (var q in legacyQuestions)
-                {
-                    int? selectedOptId = answers.TryGetValue(q.Id, out var v) ? v : (int?)null;
-                    string? selectedText = selectedOptId.HasValue && optLookup.TryGetValue(selectedOptId.Value, out var opt)
-                        ? opt.OptionText
-                        : null;
-
-                    summaryItems.Add(new ExamSummaryItem
-                    {
-                        DisplayNumber = num++,
-                        QuestionId = q.Id,
-                        QuestionText = q.QuestionText,
-                        SelectedOptionId = selectedOptId,
-                        SelectedOptionText = selectedText
-                    });
-                }
-            }
+            // Legacy path removed (Phase 227 CLEN-02).
 
             int unansweredCount = summaryItems.Count(s => !s.SelectedOptionId.HasValue);
 
@@ -1383,8 +1250,6 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> SubmitExam(int id, Dictionary<int, int> answers)
         {
             var assessment = await _context.AssessmentSessions
-                .Include(a => a.Questions)
-                .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             if (assessment == null) return NotFound();
@@ -1580,144 +1445,9 @@ namespace HcPortal.Controllers
             }
             else
             {
-                // ---- LEGACY PATH: existing AssessmentQuestion + AssessmentOption grading ----
-                var siblingSessionIds = await _context.AssessmentSessions
-                    .Where(s => s.Title == assessment.Title &&
-                                s.Category == assessment.Category &&
-                                s.Schedule.Date == assessment.Schedule.Date)
-                    .Select(s => s.Id)
-                    .ToListAsync();
-
-                var siblingWithQuestions = await _context.AssessmentSessions
-                    .Include(a => a.Questions)
-                        .ThenInclude(q => q.Options)
-                    .Where(a => siblingSessionIds.Contains(a.Id) && a.Questions.Any())
-                    .FirstOrDefaultAsync();
-
-                var questionsForGrading = siblingWithQuestions?.Questions?.ToList()
-                    ?? new List<AssessmentQuestion>();
-
-                // Pre-load existing auto-saved responses (from Phase 41 SaveLegacyAnswer) to avoid duplicate inserts
-                var existingLegacyResponses = await _context.UserResponses
-                    .Where(r => r.AssessmentSessionId == id)
-                    .ToListAsync();
-                var existingLegacyDict = existingLegacyResponses.ToDictionary(r => r.AssessmentQuestionId);
-
-                int totalScore = 0;
-                int maxScore = 0;
-
-                // Process Answers
-                foreach (var question in questionsForGrading)
-                {
-                    maxScore += question.ScoreValue;
-                    int? selectedOptionId = null;
-
-                    if (answers.ContainsKey(question.Id))
-                    {
-                        selectedOptionId = answers[question.Id];
-                        var selectedOption = question.Options.FirstOrDefault(o => o.Id == selectedOptionId);
-
-                        // Check if correct
-                        if (selectedOption != null && selectedOption.IsCorrect)
-                        {
-                            totalScore += question.ScoreValue;
-                        }
-                    }
-
-                    // Upsert: update auto-saved row if it exists, otherwise insert new row
-                    // (mirrors package path — avoids MERGE FK conflict from duplicate inserts)
-                    if (existingLegacyDict.TryGetValue(question.Id, out var existingLegacyResponse))
-                    {
-                        existingLegacyResponse.SelectedOptionId = selectedOptionId;
-                        existingLegacyResponse.SubmittedAt = DateTime.UtcNow;
-                    }
-                    else
-                    {
-                        _context.UserResponses.Add(new UserResponse
-                        {
-                            AssessmentSessionId = id,
-                            AssessmentQuestionId = question.Id,
-                            SelectedOptionId = selectedOptionId,
-                            SubmittedAt = DateTime.UtcNow
-                        });
-                    }
-                }
-
-                // Calculate Grade (0-100 scale if needed, or raw score)
-                // For now, let's store the raw score sum or percentage?
-                // Model.Score is int, usually 0-100 logic is preferred.
-                int finalPercentage = maxScore > 0 ? (int)((double)totalScore / maxScore * 100) : 0;
-
-                // Competency auto-update removed in Phase 90 (KKJ tables dropped)
-
-                // Save UserResponses first, then status-guarded claim
-                await _context.SaveChangesAsync();
-
-                _context.Entry(assessment).State = EntityState.Detached;
-
-                var legacyRowsAffected = await _context.AssessmentSessions
-                    .Where(s => s.Id == id && s.Status != "Completed")
-                    .ExecuteUpdateAsync(s => s
-                        .SetProperty(r => r.Score, finalPercentage)
-                        .SetProperty(r => r.Status, "Completed")
-                        .SetProperty(r => r.Progress, 100)
-                        .SetProperty(r => r.IsPassed, finalPercentage >= assessment.PassPercentage)
-                        .SetProperty(r => r.CompletedAt, DateTime.UtcNow)
-                    );
-
-                if (legacyRowsAffected == 0)
-                {
-                    TempData["Info"] = "Ujian Anda sudah diakhiri oleh pengawas.";
-                    return RedirectToAction("Results", new { id });
-                }
-
-                // Phase 227 CLEN-04: Generate NomorSertifikat only when passed (legacy path)
-                bool legacyIsPassed = finalPercentage >= assessment.PassPercentage;
-                if (assessment.GenerateCertificate && legacyIsPassed)
-                {
-                    var certNow = DateTime.Now;
-                    int certYear = certNow.Year;
-                    int certAttempts = 0;
-                    const int maxCertAttempts = 3;
-                    bool certSaved = false;
-
-                    while (!certSaved && certAttempts < maxCertAttempts)
-                    {
-                        certAttempts++;
-                        try
-                        {
-                            var nextSeq = await CertNumberHelper.GetNextSeqAsync(_context, certYear);
-                            await _context.AssessmentSessions
-                                .Where(s => s.Id == id && s.NomorSertifikat == null)
-                                .ExecuteUpdateAsync(s => s
-                                    .SetProperty(r => r.NomorSertifikat, CertNumberHelper.Build(nextSeq, certNow))
-                                );
-                            certSaved = true;
-                        }
-                        catch (DbUpdateException ex) when (certAttempts < maxCertAttempts && CertNumberHelper.IsDuplicateKeyException(ex))
-                        {
-                            // Retry with fresh sequence
-                        }
-                    }
-                }
-
-                // SignalR push: notify HC monitor group that worker submitted (legacy path)
-                {
-                    var legacyBatchKey = $"{assessment.Title}|{assessment.Category}|{assessment.Schedule.Date:yyyy-MM-dd}";
-                    var legacyResult = finalPercentage >= assessment.PassPercentage ? "Pass" : "Fail";
-                    int legacyTotalQ = questionsForGrading.Count;
-                    await _hubContext.Clients.Group($"monitor-{legacyBatchKey}").SendAsync("workerSubmitted",
-                        new { sessionId = id, workerName = user.FullName, score = finalPercentage, result = legacyResult, status = "Completed", totalQuestions = legacyTotalQ });
-                }
-
-                // ASMT-02: Check group completion and notify HC/Admin
-                await _workerDataService.NotifyIfGroupCompleted(assessment);
-
-                // Activity log: record exam submission (fire-and-forget)
-                LogActivityAsync(id, "submitted");
-
-                // Redirect to Results Page
-                return RedirectToAction("Results", new { id = id });
+                // Legacy path removed (Phase 227 CLEN-02) — sessions without package assignment cannot be submitted.
+                TempData["Error"] = "Sesi ujian ini tidak memiliki paket soal. Hubungi Admin atau HC.";
+                return RedirectToAction("Assessment");
             }
         }
         /// <summary>
@@ -2081,25 +1811,6 @@ namespace HcPortal.Controllers
             var packageAssignment = await _context.UserPackageAssignments
                 .FirstOrDefaultAsync(a => a.AssessmentSessionId == id);
 
-            // For legacy path only: explicitly load Questions (ordered) and Responses.
-            // Kept separate to avoid EF Core generating a ROW_NUMBER() full table scan when
-            // OrderBy is used inside an Include on a large AssessmentQuestions table.
-            if (packageAssignment == null)
-            {
-                await _context.Entry(assessment)
-                    .Collection(a => a.Questions)
-                    .Query()
-                    .Include(q => q.Options)
-                    .OrderBy(q => q.Order)
-                    .LoadAsync();
-
-                await _context.Entry(assessment)
-                    .Collection(a => a.Responses)
-                    .Query()
-                    .Include(r => r.SelectedOption)
-                    .LoadAsync();
-            }
-
             AssessmentResultsViewModel viewModel;
 
             if (packageAssignment != null)
@@ -2227,56 +1938,7 @@ namespace HcPortal.Controllers
             }
             else
             {
-                // Legacy path: existing UserResponse + AssessmentQuestion data
-                var legacyQuestions = assessment.Questions ?? new List<AssessmentQuestion>();
-                var legacyResponses = assessment.Responses ?? new List<UserResponse>();
-                if (assessment.AllowAnswerReview)
-                {
-                    questionReviews = new List<QuestionReviewItem>();
-                    int questionNum = 0;
-                    foreach (var question in legacyQuestions)
-                    {
-                        questionNum++;
-                        var userResponse = legacyResponses
-                            .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
-                        var correctOption = question.Options.FirstOrDefault(o => o.IsCorrect);
-                        var selectedOption = userResponse?.SelectedOption;
-                        bool isCorrect = selectedOption != null && selectedOption.IsCorrect;
-                        if (isCorrect) correctCount++;
-
-                        questionReviews.Add(new QuestionReviewItem
-                        {
-                            QuestionNumber = questionNum,
-                            QuestionText = question.QuestionText,
-                            UserAnswer = selectedOption?.OptionText,
-                            CorrectAnswer = correctOption?.OptionText ?? "N/A",
-                            IsCorrect = isCorrect,
-                            Options = question.Options.Select(o => new OptionReviewItem
-                            {
-                                OptionText = o.OptionText,
-                                IsCorrect = o.IsCorrect,
-                                IsSelected = userResponse?.SelectedOptionId == o.Id
-                            }).ToList()
-                        });
-                    }
-                }
-                else
-                {
-                    // Still count correct for summary even when review disabled
-                    foreach (var question in legacyQuestions)
-                    {
-                        var userResponse = legacyResponses
-                            .FirstOrDefault(r => r.AssessmentQuestionId == question.Id);
-                        if (userResponse?.SelectedOption != null && userResponse.SelectedOption.IsCorrect)
-                            correctCount++;
-                    }
-                }
-
-                // ElemenTeknis scoring for legacy path
-                // AssessmentQuestion (legacy model) does not carry ElemenTeknis — legacy ET scores remain null.
-                // This block is a no-op placeholder so the viewModel is consistent with the package path.
-                List<ElemenTeknisScore>? legacyEtScores = null;
-
+                // Legacy path removed (Phase 227 CLEN-02) — Results shows empty state for sessions without packages.
                 viewModel = new AssessmentResultsViewModel
                 {
                     AssessmentId = assessment.Id,
@@ -2286,13 +1948,13 @@ namespace HcPortal.Controllers
                     Score = score,
                     PassPercentage = passPercentage,
                     IsPassed = score >= passPercentage,
-                    AllowAnswerReview = assessment.AllowAnswerReview,
+                    AllowAnswerReview = false,
                     GenerateCertificate = assessment.GenerateCertificate,
                     CompletedAt = assessment.CompletedAt,
-                    TotalQuestions = legacyQuestions.Count,
-                    CorrectAnswers = correctCount,
-                    QuestionReviews = questionReviews,
-                    ElemenTeknisScores = legacyEtScores
+                    TotalQuestions = 0,
+                    CorrectAnswers = 0,
+                    QuestionReviews = null,
+                    ElemenTeknisScores = null
                 };
             }
 

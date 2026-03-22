@@ -339,8 +339,7 @@ else
     const SESSION_ID = @Model.AssessmentSessionId;
 
     // -------- Auto-save state --------
-    const IS_PACKAGE_PATH = @(Model.HasPackages ? "true" : "false");
-    const SAVE_LEGACY_URL = '@Url.Action("SaveLegacyAnswer", "CMP")';
+    // IS_PACKAGE_PATH and SAVE_LEGACY_URL removed — legacy path removed in Phase 227 (CLEN-02).
     const DEBOUNCE_MS = 300;
     const SAVE_TIMEOUT_MS = 5000; // Navigation timeout if saves hang
     let pendingSaves = {};    // questionId -> debounce timeout ID
@@ -409,7 +408,7 @@ else
     }
 
     function doSaveFetch(qId, optId) {
-        var saveUrl = IS_PACKAGE_PATH ? SAVE_ANSWER_URL : SAVE_LEGACY_URL;
+        var saveUrl = SAVE_ANSWER_URL;
         return fetch(saveUrl, {
             method: 'POST',
             headers: {
