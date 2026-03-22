@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.1
 milestone_name: Renewal & Assessment Ecosystem Audit
 status: unknown
-stopped_at: Completed 229-01-PLAN.md
-last_updated: "2026-03-22T07:11:03.909Z"
+stopped_at: Completed 229-02-PLAN.md
+last_updated: "2026-03-22T07:14:55.005Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State: Portal HC KPB
@@ -40,6 +40,8 @@ Plan: 2 of 2
 - [Phase 228]: Master priority table dengan 15 rekomendasi sorted by tier di comparison summary
 - [Phase 229-01]: MapKategori fallback hardcode dipertahankan — raw codes TR tidak match display names di AssessmentCategories; DB lookup primary, hardcode safety net
 - [Phase 229-01]: Double renewal guard cek lintas AS dan TR via AnyAsync untuk cover semua 4 FK kombinasi
+- [Phase 229]: Mixed-type bulk validation guard ditambahkan di sisi server — fkMapType harus 'session' atau 'training'
+- [Phase 229]: D-07 audit — AssessmentSession tidak perlu field CertificateType; null+null ValidUntil=Expired adalah behavior benar
 
 ### Pending Todos
 
@@ -51,6 +53,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T07:11:03.906Z
-Stopped at: Completed 229-01-PLAN.md
+Last session: 2026-03-22T07:14:55.002Z
+Stopped at: Completed 229-02-PLAN.md
 Resume file: None

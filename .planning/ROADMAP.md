@@ -31,7 +31,7 @@ Last completed phase: 227 (v8.0 cleanup — remove dead ManageQuestions link fro
 ## Phases
 
 - [x] **Phase 228: Best Practices Research** - Riset renewal, assessment, dan monitoring best practices dari platform sejenis (completed 2026-03-22)
-- [ ] **Phase 229: Audit Renewal Logic & Edge Cases** - Audit dan fix renewal chain FK, badge sync, status derivation, grouping, dan edge cases
+- [x] **Phase 229: Audit Renewal Logic & Edge Cases** - Audit dan fix renewal chain FK, badge sync, status derivation, grouping, dan edge cases (completed 2026-03-22)
 - [ ] **Phase 230: Audit Renewal UI & Cross-Page Integration** - Audit dan fix renewal UI grouped view, filter, modal, dan integrasi lintas halaman
 - [ ] **Phase 231: Audit Assessment Management & Monitoring** - Audit dan fix ManageAssessment dan AssessmentMonitoring (admin/HC side)
 - [ ] **Phase 232: Audit Assessment Flow — Worker Side** - Audit dan fix worker-side exam flow end-to-end
@@ -66,7 +66,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 229-01-PLAN.md — Fix MapKategori DB lookup, double renewal guard, FK XOR, mirror CDPController
-- [ ] 229-02-PLAN.md — Mixed-type bulk validation, empty state verifikasi, HTML audit report
+- [x] 229-02-PLAN.md — Mixed-type bulk validation, empty state verifikasi, HTML audit report
 
 ### Phase 230: Audit Renewal UI & Cross-Page Integration
 **Goal**: Audit renewal UI dan semua integrasi lintas halaman, fix dan improve berdasarkan temuan riset best practices.
@@ -123,7 +123,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 228. Best Practices Research | v8.1 | 2/2 | Complete    | 2026-03-22 |
-| 229. Audit Renewal Logic & Edge Cases | v8.1 | 1/2 | In Progress|  |
+| 229. Audit Renewal Logic & Edge Cases | v8.1 | 2/2 | Complete   | 2026-03-22 |
 | 230. Audit Renewal UI & Cross-Page Integration | v8.1 | 0/? | Not started | - |
 | 231. Audit Assessment Management & Monitoring | v8.1 | 0/? | Not started | - |
 | 232. Audit Assessment Flow — Worker Side | v8.1 | 0/? | Not started | - |
