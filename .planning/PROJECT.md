@@ -30,22 +30,15 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 
 **Current focus:** v8.0 Assessment & Training System Audit
 
-## Current Milestone: v8.0 Assessment & Training System Audit
+## Current Milestone: v8.1 RenewalCertificate Page Audit
 
-**Goal:** Audit mendalam sistem Assessment dan Training — perbaiki design issues, tambah fitur analytics, compliance matrix, dan tingkatkan integritas ujian.
+**Goal:** Audit mendalam halaman RenewalCertificate — periksa fungsi, logic, database, dan koneksi ke halaman lain. Perbaiki issue yang ditemukan.
 
 **Target features:**
-- Persist ElemenTeknis score ke database
-- Tab-switch detection saat ujian
-- Training status lifecycle clarity
-- Analytics Dashboard HC (Chart.js)
-- Training Compliance Matrix (RequiredTraining)
-- Email notification sertifikat expired
-- Question Bank Library
-- Legacy question path deprecation
-- Competency tables cleanup
-- NomorSertifikat lazy generation
-- UserResponse timestamp fix
+- Audit fungsi dan logic RenewalCertificate (filter, grouped view, bulk renew)
+- Audit data model dan query (SertifikatRow, CertificateChainGroup, RenewalGroup)
+- Audit koneksi ke halaman lain (CreateAssessment renewal, AddTraining renewal, CertificationManagement)
+- Koreksi bug/inconsistency yang ditemukan
 
 ## Architecture Decisions
 
