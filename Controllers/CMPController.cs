@@ -1933,7 +1933,8 @@ namespace HcPortal.Controllers
                     TotalQuestions = orderedQuestionIds.Count,
                     CorrectAnswers = correctCount,
                     QuestionReviews = questionReviews,
-                    ElemenTeknisScores = elemenTeknisScores
+                    ElemenTeknisScores = elemenTeknisScores,
+                    NomorSertifikat = assessment.NomorSertifikat
                 };
             }
             else
@@ -1954,7 +1955,8 @@ namespace HcPortal.Controllers
                     TotalQuestions = 0,
                     CorrectAnswers = 0,
                     QuestionReviews = null,
-                    ElemenTeknisScores = null
+                    ElemenTeknisScores = null,
+                    NomorSertifikat = assessment.NomorSertifikat
                 };
             }
 

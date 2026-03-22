@@ -1,7 +1,7 @@
 @model List<HcPortal.Models.ExamSummaryItem>
 
 @{
-    ViewData["Title"] = "Review Your Answers";
+    ViewData["Title"] = "Tinjau Jawaban Anda";
     int unanswered = (int)ViewBag.UnansweredCount;
     int assessmentId = (int)ViewBag.AssessmentId;
     int? assignmentId = ViewBag.AssignmentId as int?;
@@ -11,7 +11,7 @@
 <!-- Minimal header — no sticky needed here -->
 <div class="container py-4" style="max-width: 860px;">
     <div class="text-center mb-4">
-        <h4 class="fw-bold">Review Your Answers</h4>
+        <h4 class="fw-bold">Tinjau Jawaban Anda</h4>
         <p class="text-muted">@ViewBag.AssessmentTitle</p>
     </div>
 
@@ -19,14 +19,14 @@
     {
         <div class="alert alert-warning d-flex align-items-center mb-4">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            You have <strong class="mx-1">@unanswered</strong> unanswered question(s). You can still submit.
+            Anda memiliki <strong class="mx-1">@unanswered</strong> soal yang belum dijawab. Anda masih bisa mengumpulkan.
         </div>
     }
     else
     {
         <div class="alert alert-success d-flex align-items-center mb-4">
             <i class="bi bi-check-circle-fill me-2"></i>
-            All @Model.Count questions answered. Ready to submit.
+            Semua @Model.Count soal sudah dijawab. Siap dikumpulkan.
         </div>
     }
 
@@ -37,8 +37,8 @@
                 <thead class="table-light">
                     <tr>
                         <th style="width:60px">#</th>
-                        <th>Question</th>
-                        <th>Your Answer</th>
+                        <th>Pertanyaan</th>
+                        <th>Jawaban Anda</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -59,7 +59,7 @@
                                 }
                                 else
                                 {
-                                    <span class="text-muted fst-italic">Not answered</span>
+                                    <span class="text-muted fst-italic">Belum dijawab</span>
                                 }
                             </td>
                         </tr>
@@ -86,14 +86,14 @@
 
         <div class="d-flex justify-content-between align-items-center">
             <a asp-action="StartExam" asp-route-id="@assessmentId" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left me-1"></i>Back to Exam
+                <i class="bi bi-arrow-left me-1"></i>Kembali ke Ujian
             </a>
 
             <button type="submit" class="btn btn-success btn-lg fw-bold"
                     onclick="return confirm('@(unanswered > 0
-                        ? $"You have {unanswered} unanswered question(s). Submit anyway?"
-                        : "Submit your exam? This cannot be undone.")')">
-                <i class="bi bi-check-circle-fill me-2"></i>Submit Exam
+                        ? $"Anda memiliki {unanswered} soal yang belum dijawab. Kumpulkan tetap?"
+                        : "Kumpulkan ujian? Tindakan ini tidak dapat dibatalkan.")')">
+                <i class="bi bi-check-circle-fill me-2"></i>Kumpulkan Ujian
             </button>
         </div>
     </form>

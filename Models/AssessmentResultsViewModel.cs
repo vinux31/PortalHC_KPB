@@ -17,6 +17,7 @@ namespace HcPortal.Models
         public List<QuestionReviewItem>? QuestionReviews { get; set; }
         public List<CompetencyGainItem>? CompetencyGains { get; set; }
         public List<ElemenTeknisScore>? ElemenTeknisScores { get; set; }
+        public string? NomorSertifikat { get; set; }
     }
 
     public class QuestionReviewItem
