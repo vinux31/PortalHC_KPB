@@ -1238,6 +1238,14 @@ namespace HcPortal.Controllers
                 if (srcAlreadyRenewed)
                     ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
             }
+            // Mixed-type bulk validation (per D-11, EDGE-01)
+            if (!string.IsNullOrEmpty(RenewalFkMap) && UserIds != null && UserIds.Count > 1)
+            {
+                if (string.IsNullOrEmpty(RenewalFkMapType) || (RenewalFkMapType != "session" && RenewalFkMapType != "training"))
+                {
+                    ModelState.AddModelError("", "Bulk renewal tidak dapat mencampur tipe Assessment dan Training. Renew per tipe secara terpisah.");
+                }
+            }
             // NomorSertifikat is server-generated — remove from ModelState to prevent validation failure
             ModelState.Remove("NomorSertifikat");
 
@@ -5596,6 +5604,14 @@ namespace HcPortal.Controllers
                     || await _context.AssessmentSessions.AnyAsync(a => a.RenewsSessionId == model.RenewsSessionId && a.IsPassed == true);
                 if (srcAlreadyRenewed)
                     ModelState.AddModelError("", "Sertifikat ini sudah di-renew sebelumnya.");
+            }
+            // Mixed-type bulk validation (per D-11, EDGE-01)
+            if (fkMap != null && bulkUserIds != null && bulkUserIds.Count > 1)
+            {
+                if (string.IsNullOrEmpty(fkMapType) || (fkMapType != "training" && fkMapType != "session"))
+                {
+                    ModelState.AddModelError("", "Bulk renewal tidak dapat mencampur tipe Assessment dan Training. Renew per tipe secara terpisah.");
+                }
             }
 
             if (!ModelState.IsValid)
