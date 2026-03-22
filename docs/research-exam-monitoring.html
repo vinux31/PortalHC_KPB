@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riset Best Practices: Real-Time Exam Monitoring — Portal HC KPB</title>
+<style>
+:root {
+  --blue: #005baa;
+  --blue-light: #e8f0fe;
+  --red: #ed1c24;
+  --red-light: #ffeaea;
+  --yellow: #ffd700;
+  --yellow-light: #fff8e0;
+  --green: #28a745;
+  --green-light: #e6f9ed;
+  --gray: #6c757d;
+  --gray-light: #f8f9fa;
+  --dark: #1a1a2e;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); font-size:15px; line-height:1.6; color:#222; background:#f5f6fa; }
+a { color: var(--blue); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); color:#fff; padding:24px 32px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+.header h1 { font-size:22px; font-weight:700; }
+.header .subtitle { font-size:13px; color:#aab; margin-top:4px; }
+.header .badge-ver { background:var(--blue); color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:8px; }
+
+/* LAYOUT */
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:260px; background:#fff; border-right:1px solid #e0e0e0; position:sticky; top:68px; height:calc(100vh - 68px); overflow-y:auto; padding:16px 0; flex-shrink:0; }
+.sidebar a { display:block; padding:7px 20px; font-size:13px; color:#444; border-left:3px solid transparent; transition:all .15s; }
+.sidebar a:hover { background:var(--blue-light); color:var(--blue); text-decoration:none; border-left-color:var(--blue); }
+.sidebar .nav-section { font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.5px; padding:12px 20px 4px; }
+.main { flex:1; padding:32px 40px; max-width:1100px; }
+
+/* SECTIONS */
+section { margin-bottom:48px; }
+h2 { font-size:22px; font-weight:700; color:var(--dark); border-bottom:3px solid var(--blue); padding-bottom:8px; margin-bottom:20px; }
+h3 { font-size:17px; font-weight:600; color:var(--blue); margin:24px 0 12px; }
+h4 { font-size:15px; font-weight:600; color:#333; margin:16px 0 8px; }
+
+/* TABLES */
+table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+th { background:var(--blue); color:#fff; padding:8px 12px; text-align:left; font-weight:600; font-size:12px; }
+td { padding:7px 12px; border-bottom:1px solid #e8e8e8; vertical-align:top; }
+tr:hover td { background:var(--blue-light); }
+.tbl-compact td, .tbl-compact th { padding:5px 8px; font-size:12px; }
+code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Cascadia Code','Fira Code',monospace; }
+
+/* CARDS */
+.card { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; margin:12px 0; }
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+
+/* FINDING CARDS */
+.finding { border-left:4px solid var(--gray); padding:16px 20px; margin:12px 0; background:#fff; border-radius:0 8px 8px 0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.finding.critical { border-left-color:var(--red); }
+.finding.medium { border-left-color:var(--yellow); }
+.finding.low { border-left-color:var(--gray); }
+.finding .finding-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.finding .finding-title { font-weight:700; font-size:15px; }
+
+/* BADGES */
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-critical { background:var(--red); color:#fff; }
+.badge-medium { background:var(--yellow); color:#333; }
+.badge-low { background:#ddd; color:#555; }
+.badge-blue { background:var(--blue); color:#fff; }
+.badge-green { background:var(--green); color:#fff; }
+.badge-role { background:#e8e8e8; color:#555; font-size:10px; }
+
+/* FLOW DIAGRAMS */
+.flow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:0; padding:20px 0; overflow-x:auto; }
+.flow-step { position:relative; background:#fff; border:2px solid var(--blue); border-radius:8px; padding:10px 14px; min-width:140px; max-width:200px; font-size:12px; text-align:center; flex-shrink:0; }
+.flow-step .step-label { font-weight:700; color:var(--blue); font-size:11px; margin-bottom:4px; }
+.flow-step .step-desc { color:#444; }
+.flow-arrow { display:flex; align-items:center; padding:0 2px; color:var(--blue); font-size:20px; font-weight:700; flex-shrink:0; }
+.flow-step.has-finding { border-color:var(--red); background:var(--red-light); }
+.flow-step.has-warning { border-color:#e6a800; background:var(--yellow-light); }
+.flow-step.has-info { border-color:var(--gray); background:var(--gray-light); }
+
+/* PRIORITY TABLE */
+.prio-table td:first-child { font-weight:700; text-align:center; }
+.p1 { background:var(--red-light); color:var(--red); }
+.p2 { background:var(--yellow-light); color:#b38600; }
+.p3 { background:var(--gray-light); color:var(--gray); }
+
+/* COLLAPSIBLE */
+details { margin:8px 0; }
+details summary { cursor:pointer; font-weight:600; color:var(--blue); padding:8px 0; user-select:none; }
+details summary:hover { color:var(--dark); }
+
+/* RESEARCH-SPECIFIC */
+.badge-must { background: var(--red); color:#fff; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-should { background: var(--yellow); color:#333; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-nice { background: var(--blue-light); color:var(--blue); padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.platform-section { border-left: 4px solid var(--blue); padding-left: 16px; margin: 20px 0; }
+.portal-comparison { background: var(--blue-light); border-radius: 6px; padding: 12px 16px; margin: 8px 0; }
+.portal-comparison.gap { background: var(--red-light); }
+.portal-comparison.match { background: var(--green-light); }
+
+/* STATUS LEGEND */
+.status-legend { display:flex; gap:16px; flex-wrap:wrap; margin:12px 0; }
+.status-chip { padding:4px 12px; border-radius:16px; font-size:12px; font-weight:600; }
+.status-active { background:var(--green-light); color:var(--green); }
+.status-notstarted { background:var(--gray-light); color:var(--gray); }
+.status-done { background:var(--blue-light); color:var(--blue); }
+.status-dropped { background:var(--red-light); color:var(--red); }
+.status-warning { background:var(--yellow-light); color:#b38600; }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>Riset Best Practices: Real-Time Exam Monitoring <span class="badge-ver">Research v8.1</span></h1>
+  <div class="subtitle">Portal HC KPB — Milestone v8.1 Best Practices Research · 2026-03-22 · RSCH-03</div>
+</div>
+<div class="layout">
+  <nav class="sidebar">
+    <div class="nav-section">Navigasi</div>
+    <a href="#overview">Overview</a>
+    <a href="#speedexam">SpeedExam</a>
+    <a href="#exam-net">Exam.net</a>
+    <a href="#proctoring-patterns">Proctoring Patterns 2024-2025</a>
+    <a href="#comparison">Perbandingan Fitur</a>
+    <a href="#recommendations">Rekomendasi</a>
+    <div class="nav-section">Dokumen Terkait</div>
+    <a href="research-renewal-certificate.html">Renewal Certificate</a>
+    <a href="research-assessment-management.html">Assessment Management</a>
+    <a href="audit-assessment-training-v8.html">Audit v8.0</a>
+  </nav>
+  <div class="main">
+
+    <section id="overview">
+      <h2>Overview</h2>
+      <p>Dokumen ini merupakan riset best practices untuk <em>real-time exam monitoring</em> — bagaimana platform terkemuka memberikan visibility kepada admin/pengawas terhadap seluruh peserta yang sedang mengerjakan ujian secara bersamaan.</p>
+
+      <div class="card" style="margin-top:16px;">
+        <h4>Konteks Portal HC KPB</h4>
+        <p>Portal KPB sudah memiliki halaman <strong>Assessment Monitoring</strong> yang mencakup fitur-fitur dasar: status tracking per peserta, token management, Force Close individual, dan Bulk Close. Ini adalah fondasi yang baik dibanding banyak platform kompetitor.</p>
+        <br>
+        <p>Riset ini fokus mengidentifikasi <strong>gap spesifik</strong> yang tersisa — terutama live progress per-peserta (soal ke berapa / sudah jawab berapa) dan visual urgency system untuk membedakan peserta yang aktif mengerjakan, idle, atau stuck.</p>
+      </div>
+
+      <h3>Apa yang Sudah Dimiliki Portal KPB (BAIK)</h3>
+      <table class="tbl-compact">
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>Status</th>
+            <th>Keterangan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Status tracking per peserta</td>
+            <td><span class="badge-green">Ada</span></td>
+            <td>Daftar peserta dengan status pengerjaan</td>
+          </tr>
+          <tr>
+            <td>Token management</td>
+            <td><span class="badge-green">Ada</span></td>
+            <td>Generate dan tampilkan token akses</td>
+          </tr>
+          <tr>
+            <td>Force Close individual</td>
+            <td><span class="badge-green">Ada</span></td>
+            <td>Admin bisa tutup ujian satu peserta</td>
+          </tr>
+          <tr>
+            <td>Bulk Close semua peserta</td>
+            <td><span class="badge-green">Ada (AMON-03)</span></td>
+            <td>Tutup semua sesi aktif sekaligus</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Gap yang Diidentifikasi Riset Ini</h3>
+      <table class="tbl-compact">
+        <thead>
+          <tr>
+            <th>Gap</th>
+            <th>Severity</th>
+            <th>Kode Temuan</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Live progress per-peserta (answered/total) belum real-time</td>
+            <td><span class="badge-critical">Tinggi</span></td>
+            <td>AMON-02</td>
+          </tr>
+          <tr>
+            <td>Tidak ada visual urgency coding untuk status peserta</td>
+            <td><span class="badge-medium">Sedang</span></td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>Token card UX copy belum optimal</td>
+            <td><span class="badge-low">Rendah</span></td>
+            <td>AMON-04</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="speedexam">
+      <h2>SpeedExam</h2>
+      <div class="platform-section">
+        <h3>Model Platform</h3>
+        <p>SpeedExam adalah platform exam online komersial yang fokus pada kemudahan setup dan monitoring real-time. Digunakan untuk corporate assessment, sertifikasi, dan institusi pendidikan. Confidence: MEDIUM-HIGH (dari SpeedExam official features page).</p>
+
+        <h3>Monitoring Dashboard</h3>
+        <p>SpeedExam menyediakan live monitoring dashboard yang menampilkan semua peserta aktif dalam satu layar:</p>
+
+        <div class="status-legend">
+          <span class="status-chip status-active">Aktif — Sedang mengerjakan</span>
+          <span class="status-chip status-notstarted">Belum mulai</span>
+          <span class="status-chip status-done">Selesai (Submitted)</span>
+          <span class="status-chip status-dropped">Dropped / Koneksi terputus</span>
+        </div>
+
+        <h3>Deskripsi UI Dashboard SpeedExam</h3>
+        <ul style="padding-left:20px; margin-top:8px;">
+          <li><strong>List view per peserta:</strong> nama, status badge berwarna, browser/OS/IP/lokasi, jumlah attempt</li>
+          <li><strong>Color coding sistematis:</strong>
+            <ul style="padding-left:20px; margin-top:4px;">
+              <li style="color:var(--green);">Hijau: kandidat sedang aktif mengerjakan</li>
+              <li style="color:var(--gray);">Abu-abu: belum mulai atau belum buka link</li>
+              <li style="color:var(--blue);">Biru: sudah selesai dan submit</li>
+              <li style="color:var(--red);">Merah: dropped (koneksi terputus atau force-closed)</li>
+            </ul>
+          </li>
+          <li><strong>Filter by status:</strong> admin bisa filter hanya melihat "Aktif" atau "Dropped" tanpa scroll panjang</li>
+          <li><strong>Per-candidate detail (drill-down):</strong> klik nama kandidat → panel expand menampilkan progress detail: soal ke berapa, waktu tersisa, soal yang sudah dijawab</li>
+          <li><strong>Bulk actions toolbar:</strong> tombol "Force Close Selected", "Extend Time for Selected" tersedia di atas tabel — tidak perlu keluar dari halaman monitoring</li>
+          <li><strong>Attempt count:</strong> jika peserta sudah pernah attempt sebelumnya, jumlah ditampilkan sebagai badge</li>
+        </ul>
+
+        <h3>Fitur Unggulan SpeedExam</h3>
+        <div class="card-grid" style="margin-top:12px;">
+          <div class="card">
+            <h4>Color-Coded Status List</h4>
+            <p>Admin bisa scan status 50+ peserta dalam hitungan detik hanya dari warna baris — tidak perlu baca teks status satu per satu.</p>
+            <div class="portal-comparison gap" style="margin-top:8px; font-size:12px;">Gap: Portal KPB belum ada color urgency pada baris peserta di monitoring</div>
+          </div>
+          <div class="card">
+            <h4>Per-Candidate Progress Drill-Down</h4>
+            <p>Klik satu peserta → panel detail menampilkan "answered X of Y questions, Z minutes remaining". Admin bisa identifikasi peserta yang stuck tanpa keluar dari halaman monitoring.</p>
+            <div class="portal-comparison gap" style="margin-top:8px; font-size:12px;">Gap: Portal KPB (AMON-02) belum ada live progress per peserta</div>
+          </div>
+          <div class="card">
+            <h4>No-Navigation Bulk Actions</h4>
+            <p>Semua action (force close, extend time) bisa dilakukan langsung dari monitoring view — tidak perlu navigasi ke halaman lain. Sangat penting saat monitoring berlangsung.</p>
+            <div class="portal-comparison match" style="margin-top:8px; font-size:12px;">Portal KPB sudah menerapkan no-navigation principle sebagian</div>
+          </div>
+          <div class="card">
+            <h4>Device Info per Peserta</h4>
+            <p>Browser, OS, IP address, dan lokasi geolokasi tersedia per peserta. Berguna untuk diagnosa jika ada masalah teknis.</p>
+            <div class="portal-comparison" style="margin-top:8px; font-size:12px;">Portal KPB: perlu dicek apakah device info tersimpan</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="exam-net">
+      <h2>Exam.net</h2>
+      <div class="platform-section">
+        <h3>Model Platform</h3>
+        <p>Exam.net adalah platform ujian online yang populer di kalangan institusi pendidikan Eropa (terutama Skandinavia). Fokus pada kemudahan invigilator, bukan enterprise proctoring berat. Confidence: MEDIUM (dari web search synthesis).</p>
+
+        <h3>Deskripsi UI Dashboard Exam.net</h3>
+        <p>Exam.net menggunakan pendekatan <strong>minimalis</strong> yang mengutamakan kejelasan:</p>
+        <ul style="padding-left:20px; margin-top:8px;">
+          <li><strong>Daftar siswa dengan status badge:</strong> nama + status real-time (Not Started / Active / Submitted) dalam format list bersih</li>
+          <li><strong>Warna status sederhana:</strong> putih (belum mulai), kuning (aktif mengerjakan), hijau (submitted)</li>
+          <li><strong>Hand-raise indicator:</strong> ikon tangan terangkat muncul di samping nama siswa jika mereka minta bantuan — invigilator langsung tahu siapa perlu dibantu</li>
+          <li><strong>Chat sidebar per student:</strong> invigilator bisa chat privat dengan satu siswa tanpa mengganggu siswa lain</li>
+          <li><strong>Timer override per student:</strong> tombol kecil di setiap row untuk tambah waktu ke siswa tertentu</li>
+        </ul>
+
+        <h3>UX Patterns Unggulan Exam.net</h3>
+        <div class="card-grid" style="margin-top:12px;">
+          <div class="card">
+            <h4>Hand-Raise Feature</h4>
+            <p>Peserta bisa "angkat tangan" digital jika ada pertanyaan atau mengalami masalah teknis. Pengawas mendapat notifikasi visual langsung di monitoring dashboard tanpa peserta perlu teriak atau berdiri.</p>
+            <div class="portal-comparison gap" style="margin-top:8px; font-size:12px;">Gap: Portal KPB belum ada fitur hand-raise (nice-to-have untuk future)</div>
+          </div>
+          <div class="card">
+            <h4>Per-Student Chat</h4>
+            <p>Komunikasi langsung antara invigilator dan satu peserta tanpa mengganggu peserta lain. Berguna saat ada klarifikasi soal atau masalah teknis individual.</p>
+            <div class="portal-comparison gap" style="margin-top:8px; font-size:12px;">Gap: Portal KPB belum ada fitur chat (nice-to-have)</div>
+          </div>
+          <div class="card">
+            <h4>Individual Timer Extension</h4>
+            <p>Admin bisa tambah waktu ke satu peserta tertentu (misalnya karena gangguan koneksi) tanpa mengubah waktu untuk semua peserta.</p>
+            <div class="portal-comparison gap" style="margin-top:8px; font-size:12px;">Gap: Portal KPB timer adalah global per session, belum bisa per peserta</div>
+          </div>
+          <div class="card">
+            <h4>Simplisitas Dashboard</h4>
+            <p>Tampilan sangat bersih — hanya informasi yang kritis yang ditampilkan. Tidak ada clutter. Invigilator dapat fokus pada monitoring, bukan memahami UI.</p>
+            <div class="portal-comparison" style="margin-top:8px; font-size:12px;">Portal KPB bisa adopsi pendekatan progressive disclosure ini</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="proctoring-patterns">
+      <h2>Online Proctoring Patterns 2024-2025</h2>
+      <div class="platform-section">
+        <p style="margin-bottom:16px;">Berdasarkan sintesis dari beberapa sumber (SpeedExam documentation, Smashing Magazine 2025 UX strategies, industri-wide review), berikut adalah pola-pola yang muncul berulang di platform monitoring terbaik.</p>
+
+        <h3>Pattern 1: Progressive Disclosure</h3>
+        <div class="card">
+          <p><strong>Prinsip:</strong> Informasi kritis (nama, status, waktu sisa) ditampilkan langsung di daftar. Detail tambahan (soal ke berapa, device info, history attempt) baru muncul saat admin klik/expand row tersebut.</p>
+          <p style="margin-top:8px;"><strong>Alasan efektif:</strong> Admin yang memantau 50+ peserta tidak bisa membaca semua detail sekaligus. Progressive disclosure memastikan informasi paling penting selalu terlihat, dan detail hanya dimuat saat dibutuhkan.</p>
+          <div class="portal-comparison" style="margin-top:8px; font-size:12px;">Pola ini bisa diadopsi Portal KPB: tampilkan answered/total di kolom utama, detail lain di drill-down</div>
+        </div>
+
+        <h3>Pattern 2: No-Navigation Principle</h3>
+        <div class="card">
+          <p><strong>Prinsip:</strong> Semua action yang mungkin dibutuhkan selama monitoring (force close, extend time, view detail) harus bisa dilakukan dari halaman monitoring itu sendiri — tanpa navigasi ke halaman lain.</p>
+          <p style="margin-top:8px;"><strong>Alasan kritis:</strong> Jika admin harus navigasi ke halaman lain untuk melakukan action, mereka kehilangan visibility terhadap peserta lain selama transisi. Dalam konteks ujian real-time, setiap detik kehilangan visibility adalah risiko.</p>
+          <div class="portal-comparison match" style="margin-top:8px; font-size:12px;">Portal KPB sudah menerapkan ini sebagian — Force Close dan Bulk Close ada di halaman monitoring</div>
+        </div>
+
+        <h3>Pattern 3: Color Urgency System</h3>
+        <div class="card">
+          <p><strong>Prinsip:</strong> Gunakan warna untuk menyampaikan status tanpa membutuhkan pembacaan teks.</p>
+          <div class="status-legend" style="margin:12px 0;">
+            <span class="status-chip status-active">Hijau: Aktif mengerjakan</span>
+            <span class="status-chip status-warning">Kuning: Idle / Potensi masalah</span>
+            <span class="status-chip status-dropped">Merah: Dropped / Expired / Force Closed</span>
+            <span class="status-chip status-notstarted">Abu: Belum mulai</span>
+            <span class="status-chip status-done">Biru: Selesai (Submitted)</span>
+          </div>
+          <p><strong>Alasan efektif:</strong> Manusia memproses warna jauh lebih cepat dari teks. Admin yang melihat 3 baris merah sekaligus langsung tahu ada masalah tanpa membaca satu per satu.</p>
+          <div class="portal-comparison gap" style="margin-top:8px; font-size:12px;">Gap: Portal KPB belum menggunakan color urgency pada daftar peserta di monitoring</div>
+        </div>
+
+        <h3>Pattern 4: Alert / Flag System</h3>
+        <div class="card">
+          <p><strong>Prinsip:</strong> Perilaku abnormal (idle terlalu lama, tab switching terdeteksi, koneksi terputus berulang) langsung ditandai dengan flag atau ikon pada baris peserta — tanpa admin perlu mengamati terus-menerus.</p>
+          <p style="margin-top:8px;"><strong>Implementasi:</strong> Badge merah kecil di sudut baris, atau baris langsung berubah warna, saat flag terdeteksi. Admin bisa klik untuk melihat detail pelanggaran.</p>
+          <div class="portal-comparison" style="margin-top:8px; font-size:12px;">Terkait AINT-02/03 (tab-switch detection) yang sedang dikembangkan di v8.0 — integration dengan monitoring view adalah langkah selanjutnya</div>
+        </div>
+
+        <h3>Pattern 5: Bulk Actions dengan Seleksi</h3>
+        <div class="card">
+          <p><strong>Prinsip:</strong> Checkbox per row memungkinkan admin memilih subset peserta dan menerapkan action sekaligus (misalnya: close semua yang sudah idle 15 menit).</p>
+          <p style="margin-top:8px;"><strong>Kombinasi dengan filter:</strong> Paling efektif ketika dikombinasikan dengan filter status — filter "Dropped", centang semua, klik "Archive". Satu langkah untuk bersihkan data kotor.</p>
+          <div class="portal-comparison match" style="margin-top:8px; font-size:12px;">Portal KPB sudah punya Bulk Close (AMON-03) — fondasi sudah ada</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="comparison">
+      <h2>Perbandingan Fitur</h2>
+      <p style="margin-bottom:16px;">Tabel perbandingan fitur real-time exam monitoring. Simbol: ✓ Ada, ✗ Tidak ada, ~ Parsial/Terbatas.</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Fitur</th>
+            <th>SpeedExam</th>
+            <th>Exam.net</th>
+            <th>Proctoring Best Practice</th>
+            <th>Portal HC KPB</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Live status per peserta (real-time update)</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya (essential)</td>
+            <td>~ Ada, frekuensi refresh perlu dicek</td>
+          </tr>
+          <tr>
+            <td>Color-coded status (visual urgency)</td>
+            <td>✓ Hijau/abu/biru/merah</td>
+            <td>✓ Putih/kuning/hijau</td>
+            <td>✓ Ya (essential)</td>
+            <td>✗ Belum ada color urgency</td>
+          </tr>
+          <tr>
+            <td>Live progress per peserta (answered/total)</td>
+            <td>✓ Di drill-down detail</td>
+            <td>~ Status saja, tidak per-soal</td>
+            <td>✓ Should-have</td>
+            <td>✗ Belum ada (AMON-02)</td>
+          </tr>
+          <tr>
+            <td>Bulk close / bulk action</td>
+            <td>✓ Ya</td>
+            <td>~ Terbatas</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya (AMON-03)</td>
+          </tr>
+          <tr>
+            <td>Force close individual</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya</td>
+          </tr>
+          <tr>
+            <td>Token management</td>
+            <td>~ Tergantung config</td>
+            <td>✗ Tidak (link-based)</td>
+            <td>~ Opsional</td>
+            <td>✓ Ya (token per sesi)</td>
+          </tr>
+          <tr>
+            <td>Hand-raise / student signal</td>
+            <td>✗ Tidak</td>
+            <td>✓ Ya (digital hand-raise)</td>
+            <td>~ Nice-to-have</td>
+            <td>✗ Tidak</td>
+          </tr>
+          <tr>
+            <td>Per-student chat</td>
+            <td>✗ Tidak</td>
+            <td>✓ Ya</td>
+            <td>~ Nice-to-have</td>
+            <td>✗ Tidak</td>
+          </tr>
+          <tr>
+            <td>Individual timer extension</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya</td>
+            <td>~ Nice-to-have</td>
+            <td>✗ Tidak</td>
+          </tr>
+          <tr>
+            <td>Tab-switch / idle detection + flag</td>
+            <td>✓ Ya</td>
+            <td>~ Basic tab detection</td>
+            <td>✓ Ya (important)</td>
+            <td>~ AINT-02/03 dalam progress v8.0</td>
+          </tr>
+          <tr>
+            <td>Device info (browser, OS, IP)</td>
+            <td>✓ Ya</td>
+            <td>~ Terbatas</td>
+            <td>~ Nice-to-have</td>
+            <td>✗ Tidak jelas</td>
+          </tr>
+          <tr>
+            <td>Filter by status</td>
+            <td>✓ Ya</td>
+            <td>~ Terbatas</td>
+            <td>✓ Should-have</td>
+            <td>~ Perlu dicek</td>
+          </tr>
+          <tr>
+            <td>No-navigation principle (action dari monitoring page)</td>
+            <td>✓ Ya</td>
+            <td>✓ Ya</td>
+            <td>✓ Essential</td>
+            <td>✓ Ya (sebagian)</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="recommendations">
+      <h2>Rekomendasi</h2>
+      <p style="margin-bottom:16px;">Rekomendasi dikelompokkan dalam 3 tier berdasarkan severity gap dan impact operasional. Tiap rekomendasi di-map ke target phase eksekusi.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Aspek</th>
+            <th>Gap vs Best Practice</th>
+            <th>Rekomendasi</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge-must">Must-fix</span></td>
+            <td>Live progress per-peserta answered/total (AMON-02)</td>
+            <td>SpeedExam menampilkan "answered X of Y questions" per peserta secara real-time; Portal KPB hanya menampilkan status (Taking/Completed) tanpa detail berapa soal sudah dijawab — admin tidak bisa tahu apakah peserta aktif mengerjakan atau diam di soal pertama</td>
+            <td>Tambahkan kolom atau informasi "X/Y soal" di daftar peserta monitoring yang diupdate secara real-time (atau semi-real-time dengan polling interval). Ini memungkinkan admin mengidentifikasi peserta yang stuck.</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Visual urgency coding status peserta</td>
+            <td>SpeedExam dan Exam.net keduanya menggunakan color coding yang konsisten (hijau/abu/biru/merah); Portal KPB menampilkan teks status tanpa warna berbeda — admin harus baca tiap baris untuk tahu ada peserta yang bermasalah</td>
+            <td>Terapkan color urgency pada baris peserta di monitoring: hijau untuk Taking/aktif, biru untuk Completed/Submitted, merah untuk force-closed atau dropped, abu untuk belum mulai. Konsisten dengan sistem warna yang sudah ada di project (CSS vars).</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-should">Should-improve</span></td>
+            <td>Alert flag untuk tab-switch / idle (AINT-02/03)</td>
+            <td>Platform monitoring terbaik menampilkan flag visual di baris peserta ketika deteksi pelanggaran terjadi (tab switch, idle); Portal KPB sedang mengembangkan AINT-02/03 tapi belum ada integrasi dengan monitoring view</td>
+            <td>Setelah AINT-02/03 selesai, integrasikan flag dari deteksi pelanggaran ke monitoring dashboard — tampilkan ikon peringatan di baris peserta yang terdeteksi tab-switch atau idle terlalu lama. Admin bisa klik untuk lihat detail.</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>Token card copy UX improvement (AMON-04)</td>
+            <td>Token ada di Portal KPB, namun UX untuk menyalin token (untuk dibagikan ke peserta) belum optimal — tidak ada tombol copy-to-clipboard yang jelas</td>
+            <td>Tambahkan tombol "Salin Token" (copy-to-clipboard) yang jelas di setiap token card di halaman monitoring. Tampilkan feedback visual (toast "Token tersalin!") setelah copy berhasil.</td>
+            <td>Phase 231</td>
+          </tr>
+          <tr>
+            <td><span class="badge-nice">Nice-to-have</span></td>
+            <td>Individual timer extension</td>
+            <td>SpeedExam dan Exam.net memungkinkan admin tambah waktu ke peserta tertentu; Portal KPB tidak memiliki fitur ini — jika satu peserta mengalami masalah teknis, tidak ada cara untuk kompensasi tanpa mempengaruhi semua peserta</td>
+            <td>Tambahkan tombol "Tambah Waktu" per peserta di monitoring yang membuka modal input menit tambahan. Scope medium — deferakan ke future milestone.</td>
+            <td>Future</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="finding medium" style="margin-top:24px;">
+        <div class="finding-header">
+          <span class="badge-medium">Catatan Confidence</span>
+          <span class="finding-title">Tingkat Keyakinan Riset</span>
+        </div>
+        <ul style="padding-left:20px;">
+          <li><strong>SpeedExam:</strong> MEDIUM-HIGH — dari SpeedExam official features page (speedexam.net/features/)</li>
+          <li><strong>Exam.net:</strong> MEDIUM — dari web search synthesis, bukan official documentation yang detail</li>
+          <li><strong>Proctoring Patterns 2024-2025:</strong> MEDIUM-HIGH — dari sintesis multiple sources (Smashing Magazine 2025, industri review)</li>
+          <li><strong>Portal KPB current state (AMON-02, AMON-03, AMON-04):</strong> HIGH — dari audit kode v8.0 dan REQUIREMENTS.md</li>
+        </ul>
+      </div>
+
+      <div class="finding critical" style="margin-top:16px;">
+        <div class="finding-header">
+          <span class="badge-critical">Perhatian AINT-02/03</span>
+          <span class="finding-title">Status Tab-Switch Detection</span>
+        </div>
+        <p>AINT-02 (tab-switch detection) di REQUIREMENTS.md masih <strong>unchecked</strong> per audit v8.0. Dokumen riset ini mencatat bahwa integrasi flag detection ke monitoring dashboard (Should-improve di atas) bergantung pada penyelesaian AINT-02/03 terlebih dahulu. Jika AINT-02/03 tidak selesai di v8.0, Phase 231 perlu mempertimbangkan scope ini.</p>
+      </div>
+    </section>
+
+  </div>
+</div>
+</body>
+</html>
