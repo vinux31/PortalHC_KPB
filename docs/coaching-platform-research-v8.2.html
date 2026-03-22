@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riset Perbandingan Coaching Platform — Portal HC KPB v8.2</title>
+<style>
+:root {
+  --blue: #005baa;
+  --blue-light: #e8f0fe;
+  --red: #ed1c24;
+  --red-light: #ffeaea;
+  --yellow: #ffd700;
+  --yellow-light: #fff8e0;
+  --green: #28a745;
+  --green-light: #e6f9ed;
+  --gray: #6c757d;
+  --gray-light: #f8f9fa;
+  --dark: #1a1a2e;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); font-size:15px; line-height:1.6; color:#222; background:#f5f6fa; }
+a { color: var(--blue); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); color:#fff; padding:24px 32px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+.header h1 { font-size:22px; font-weight:700; }
+.header .subtitle { font-size:13px; color:#aab; margin-top:4px; }
+.header .badge-ver { background:var(--blue); color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:8px; }
+
+/* LAYOUT */
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:260px; background:#fff; border-right:1px solid #e0e0e0; position:sticky; top:68px; height:calc(100vh - 68px); overflow-y:auto; padding:16px 0; flex-shrink:0; }
+.sidebar a { display:block; padding:7px 20px; font-size:13px; color:#444; border-left:3px solid transparent; transition:all .15s; }
+.sidebar a:hover { background:var(--blue-light); color:var(--blue); text-decoration:none; border-left-color:var(--blue); }
+.sidebar .nav-section { font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.5px; padding:12px 20px 4px; }
+.main { flex:1; padding:32px 40px; max-width:1100px; }
+
+/* SECTIONS */
+section { margin-bottom:48px; }
+h2 { font-size:22px; font-weight:700; color:var(--dark); border-bottom:3px solid var(--blue); padding-bottom:8px; margin-bottom:20px; }
+h3 { font-size:17px; font-weight:600; color:var(--blue); margin:24px 0 12px; }
+h4 { font-size:15px; font-weight:600; color:#333; margin:16px 0 8px; }
+p { margin-bottom:12px; }
+ul { margin:8px 0 12px 20px; }
+ul li { margin-bottom:4px; }
+
+/* TABLES */
+table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+th { background:var(--blue); color:#fff; padding:8px 12px; text-align:left; font-weight:600; font-size:12px; }
+td { padding:7px 12px; border-bottom:1px solid #e8e8e8; vertical-align:top; }
+tr:hover td { background:var(--blue-light); }
+.tbl-compact td, .tbl-compact th { padding:5px 8px; font-size:12px; }
+code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Cascadia Code','Fira Code',monospace; }
+
+/* CARDS */
+.card { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; margin:12px 0; }
+.card h4 { color:var(--blue); font-size:16px; margin-top:0; margin-bottom:8px; }
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+
+/* FINDING CARDS */
+.finding { border-left:4px solid var(--gray); padding:16px 20px; margin:12px 0; background:#fff; border-radius:0 8px 8px 0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.finding.critical { border-left-color:var(--red); }
+.finding.medium { border-left-color:var(--yellow); }
+.finding.low { border-left-color:var(--gray); }
+
+/* BADGES */
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-critical { background:var(--red); color:#fff; }
+.badge-medium { background:var(--yellow); color:#333; }
+.badge-low { background:#ddd; color:#555; }
+.badge-blue { background:var(--blue); color:#fff; }
+.badge-green { background:var(--green); color:#fff; }
+
+/* PLATFORM LABEL */
+.platform-label { display:inline-block; background:#eef3ff; color:#005baa; border:1px solid #c0d4f5; border-radius:4px; padding:1px 6px; font-size:12px; font-weight:600; margin-right:4px; }
+
+/* CALLOUT */
+.callout { background:var(--blue-light); border-left:4px solid var(--blue); padding:14px 18px; border-radius:0 8px 8px 0; margin:16px 0; font-size:14px; }
+.callout-warning { background:var(--yellow-light); border-left-color:#e6a800; }
+.callout-success { background:var(--green-light); border-left-color:var(--green); }
+
+/* DIFF TABLE */
+.diff-valid { color:var(--green); font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Riset Perbandingan Coaching Platform <span class="badge-ver">v8.2</span></h1>
+  <div class="subtitle">360Learning vs BetterUp vs CoachHub vs Portal KPB — Lens untuk Audit v8.2 | Diriset: 2026-03-22</div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-section">Platform Overview</div>
+    <a href="#overview">Ringkasan 3 Platform</a>
+    <div class="nav-section">Area Proton</div>
+    <a href="#setup">1. Setup</a>
+    <a href="#execution">2. Execution</a>
+    <a href="#monitoring">3. Monitoring</a>
+    <a href="#completion">4. Completion</a>
+    <div class="nav-section">Analisis</div>
+    <a href="#differentiators">Differentiator KPB</a>
+    <a href="#recommendations">Rekomendasi Prioritas</a>
+  </div>
+
+  <div class="main">
+
+    <!-- ================================================= -->
+    <!-- SECTION: OVERVIEW -->
+    <!-- ================================================= -->
+    <section id="overview">
+      <h2>Ringkasan 3 Platform Coaching</h2>
+
+      <div class="callout">
+        <strong>Tujuan dokumen ini:</strong> Memberikan baseline perbandingan konkret antara Portal KPB (sistem Proton coaching internal Pertamina) dengan tiga platform coaching enterprise. Dokumen ini menjadi lens utama bagi Phase 234–237 untuk memutuskan apa yang perlu diperbaiki, berdasarkan gap nyata — bukan asumsi.
+      </div>
+
+      <div class="card-grid">
+        <div class="card">
+          <h4>360Learning</h4>
+          <p><strong>Jenis:</strong> LMS kolaboratif dengan fitur coaching peer/video</p>
+          <p><strong>Target:</strong> L&amp;D team yang ingin enable peer learning dan manager coaching</p>
+          <p><strong>Pendekatan:</strong> Task/content-based — coaching via video assessment, scoring rubric, feedback kualitatif</p>
+          <ul>
+            <li>Learning path hierarkis (setara track Proton)</li>
+            <li>Manager sebagai reviewer/coach terintegrasi langsung</li>
+            <li>Criteria guidelines untuk konsistensi antar coach</li>
+            <li>Certificate otomatis setelah semua modul selesai</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>BetterUp</h4>
+          <p><strong>Jenis:</strong> Enterprise coaching platform 1:1 dengan AI matching</p>
+          <p><strong>Target:</strong> Perusahaan Fortune 500 — leadership development dan wellbeing</p>
+          <p><strong>Pendekatan:</strong> Relationship-based — AI mencocokkan coachee dengan coach tersertifikasi eksternal</p>
+          <ul>
+            <li>AI matching berdasarkan goals, preferensi, assessment</li>
+            <li>Workload visibility coach: jumlah coachee dan kapasitas visible di admin dashboard</li>
+            <li>Privacy-first: manajer tidak bisa lihat isi sesi coaching</li>
+            <li>ROI measurement: before/after assessment comparison</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h4>CoachHub</h4>
+          <p><strong>Jenis:</strong> Digital coaching B2B dengan marketplace coach tersertifikasi (3.500+ coach, 80 bahasa)</p>
+          <p><strong>Target:</strong> Enterprise semua level karyawan, fokus measurement dan ROI</p>
+          <p><strong>Pendekatan:</strong> Hybrid AI+human — AI companion (AIMY 2.0) dan pool coach global</p>
+          <ul>
+            <li>CoachHub Insights: bottleneck visibility, identifikasi program stagnant</li>
+            <li>Bulk action dari monitoring view untuk high-volume approval</li>
+            <li>Action items di-track di dalam platform</li>
+            <li>Skill mastery report sebagai bukti completion</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>Posisi Portal KPB di antara Ketiga Platform</h3>
+      <p>Portal KPB paling dekat dengan <strong>360Learning</strong> dalam hal deliverable tracking hierarkis (Kompetensi → Sub-Kompetensi → Deliverable adalah hierarki 3-level yang tepat untuk konteks manufaktur/industri Pertamina). Namun gap signifikan ditemukan di area:</p>
+      <ul>
+        <li><strong>Onboarding coach</strong> — tidak ada visibility workload sebelum assign (gap vs BetterUp)</li>
+        <li><strong>Batch action</strong> — tidak ada bulk approval HC Review (gap vs CoachHub)</li>
+        <li><strong>Bottleneck visibility</strong> — tidak ada analytics mana yang stuck (gap vs CoachHub Insights)</li>
+        <li><strong>Safety constraint</strong> — tidak ada guard concurrent approval, duplicate final assessment, hard-delete safety (gap vs semua platform)</li>
+      </ul>
+
+      <p>Ketiga platform berbeda pendekatan: 360Learning <em>task/content-based</em>, BetterUp <em>relationship-based</em>, CoachHub <em>hybrid AI+human</em>. Portal KPB memiliki keunggulan konteks industrial yang tidak perlu digantikan — yang perlu diperbaiki adalah <em>reliability</em>, <em>visibility</em>, dan <em>operational efficiency</em>.</p>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SECTION: SETUP -->
+    <!-- ================================================= -->
+    <section id="setup">
+      <h2>Area 1: Setup</h2>
+      <p><em>Mencakup: konfigurasi silabus, track assignment, coach-coachee mapping, guidance file, import/export Excel.</em></p>
+
+      <h3>Baseline As-Is Portal KPB</h3>
+      <div class="card">
+        <ul>
+          <li><strong>ProtonTrack:</strong> Track per bagian/unit (Tahun 1/2/3), dikonfigurasi Admin via ProtonDataController</li>
+          <li><strong>Silabus hierarki 3-level:</strong> Kompetensi &gt; Sub-Kompetensi &gt; Deliverable; CRUD di ProtonDataController</li>
+          <li><strong>Coaching Guidance:</strong> File upload (PDF/PPT) per track; ditampilkan via PlanIdp.cshtml tab kedua</li>
+          <li><strong>Coach-Coachee Mapping:</strong> Admin assign coach ke coachee via AdminController; cascade deactivation ada tapi tanpa explicit DB transaction</li>
+          <li><strong>Track Assignment:</strong> Admin assign coachee ke track (Tahun 1/2/3); seeding ProtonDeliverableProgress saat assign</li>
+          <li><strong>Import/Export Excel:</strong> Ada untuk silabus dan mapping, dengan downloadable template; error handling belum diaudit end-to-end</li>
+          <li><strong>Validasi:</strong> Tidak ada validasi duplikasi coach-coachee; tidak ada impact warning saat delete silabus yang aktif digunakan</li>
+        </ul>
+      </div>
+
+      <h3>360Learning</h3>
+      <p>Berdasarkan dokumentasi resmi 360Learning, flow Setup berjalan sebagai berikut:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Admin/author membuat <em>learning path</em> (setara track Proton) yang terdiri dari modul, kuis, dan video assessment exercise</li>
+        <li>Criteria coaching dapat dikustomisasi per exercise — setara dengan silabus deliverable — dengan guidelines spesifik untuk memastikan konsistensi scoring antar reviewer</li>
+        <li>Manager di-assign sebagai reviewer/coach per learner group, langsung di dalam platform tanpa step tambahan</li>
+        <li>Konten learning path dapat di-versioning; jika ada progress aktif, soft-delete (arsip) digunakan alih-alih hard-delete</li>
+        <li>Bulk import learner/mapping tersedia dengan validasi ketat per baris dan error report terstruktur</li>
+      </ol>
+
+      <h3>BetterUp</h3>
+      <p>Berdasarkan dokumentasi resmi BetterUp, flow Setup adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>HR/admin mendefinisikan program scope: goals program, populasi karyawan yang masuk, dan durasi program</li>
+        <li>AI matching sistem secara otomatis mencocokkan coachee dengan coach berdasarkan goals, preferensi personal, dan hasil assessment awal</li>
+        <li>Coachee mendapatkan shortlist beberapa coach yang direkomendasikan — coachee dapat memilih sendiri, bukan pure force-assign</li>
+        <li>Tidak ada "track" hierarkis seperti KPB — pendekatan lebih fleksibel dan individualized per coachee</li>
+        <li>Kapasitas coach (jumlah coachee aktif) tersedia di admin dashboard — HR bisa detect overload sebelum assign</li>
+      </ol>
+
+      <h3>CoachHub</h3>
+      <p>Berdasarkan dokumentasi resmi CoachHub, flow Setup adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>HR/admin mendefinisikan program scope dan populasi (siapa yang mendapat coaching, level/divisi apa)</li>
+        <li>AI matching menyarankan coach terbaik dari pool 3.500+ coach tersertifikasi berdasarkan kebutuhan development</li>
+        <li>Coachee dapat memilih coach dari shortlist yang AI rekomendasikan — memberikan agency kepada coachee</li>
+        <li>Tidak ada "silabus" formal terstruktur — agenda sesi ditentukan bersama antara coach dan coachee di awal program</li>
+        <li>Program dapat di-scale dari pilot (puluhan orang) ke enterprise-wide (ribuan orang) dengan konfigurasi yang sama</li>
+      </ol>
+
+      <h3>Tabel Gap — Area Setup</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Portal KPB (As-Is)</th>
+            <th>Best Practice</th>
+            <th>Gap</th>
+            <th>Tier</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Onboarding coach / workload visibility</strong></td>
+            <td>Coach di-assign manual oleh Admin tanpa melihat workload saat ini</td>
+            <td>BetterUp: dashboard menampilkan jumlah coachee aktif per coach + kapasitas sebelum assign</td>
+            <td>HC tidak bisa detect coach overloaded; assignment bisa timpang</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+          <tr>
+            <td><strong>Silabus delete safety</strong> <code>SETUP-01</code></td>
+            <td>Hard delete tanpa cek apakah silabus sedang dipakai oleh coachee aktif</td>
+            <td>360Learning: soft-delete (arsip) jika konten memiliki progress aktif; warning sebelum delete</td>
+            <td>Bisa menghapus silabus yang sedang digunakan — corrupt data coachee aktif</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+          </tr>
+          <tr>
+            <td><strong>Duplikasi mapping coach-coachee</strong> <code>SETUP-03</code></td>
+            <td>Tidak ada validasi duplikasi; Admin bisa assign coach yang sama ke coachee yang sama dua kali</td>
+            <td>Platform modern: unique constraint di DB + warning UI yang jelas</td>
+            <td>Potensi duplicate mapping tanpa error — data ganda di monitoring</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+          </tr>
+          <tr>
+            <td><strong>DB transaction cascade deactivation</strong> <code>SETUP-03</code></td>
+            <td>Cascade deactivation (deactivate coach → deactivate semua mapping-nya) tanpa explicit DB transaction</td>
+            <td>Standard enterprise: operasi cascade dalam atomic transaction — rollback jika salah satu step gagal</td>
+            <td>Race condition risk saat deactivate coach yang punya banyak coachee; partial update possible</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+          </tr>
+          <tr>
+            <td><strong>Import/Export error handling</strong> <code>SETUP-05</code></td>
+            <td>Import Excel tersedia tapi error handling belum diaudit — kemungkinan silent failure</td>
+            <td>360Learning: validasi ketat per baris + error report terstruktur (baris mana yang gagal, kenapa)</td>
+            <td>Silent failure saat import bermasalah — Admin tidak tahu baris mana yang tidak masuk</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SECTION: EXECUTION -->
+    <!-- ================================================= -->
+    <section id="execution">
+      <h2>Area 2: Execution</h2>
+      <p><em>Mencakup: submission evidence deliverable, approval chain multi-level, override admin, notifikasi, view silabus coachee.</em></p>
+
+      <h3>Baseline As-Is Portal KPB</h3>
+      <div class="card">
+        <ul>
+          <li><strong>Evidence Submission:</strong> Coachee upload file bukti per deliverable; multi-file support tersedia</li>
+          <li><strong>Approval Chain:</strong> Sr Supervisor → Section Head → HC Review (3 level); status field-based di ProtonDeliverableProgress</li>
+          <li><strong>Override Admin:</strong> Admin bisa override status di luar chain normal; audit trail override belum diverifikasi</li>
+          <li><strong>Notifikasi:</strong> Sistem dual (ProtonNotification + UserNotification); trigger di berbagai state transition, tapi coverage belum diaudit</li>
+          <li><strong>PlanIdp View:</strong> Coachee lihat silabus dan guidance; role-scoped (coachee locked ke bagian sendiri)</li>
+          <li><strong>State History:</strong> ProtonDeliverableHistory entity ada, tapi kelengkapan insert di semua trigger belum diverifikasi</li>
+          <li><strong>Concurrent Approval:</strong> Tidak ada guard — dua approver bisa approve bersamaan, potensi corrupt state</li>
+        </ul>
+      </div>
+
+      <h3>360Learning</h3>
+      <p>Berdasarkan dokumentasi resmi 360Learning, flow Execution untuk coaching assessment adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Learner submit video recording (pitch, skill demonstration) secara asynchronous — tidak perlu sinkronisasi jadwal dengan coach</li>
+        <li>Coach/manager mereview submission melalui platform dengan scoring rubric yang sudah dikonfigurasi saat Setup, dilengkapi komentar kualitatif di forum 1:1</li>
+        <li>Satu layer reviewer saja (tidak ada multi-level approval chain seperti KPB); ini memang berbeda konteks — KPB memiliki hierarki organisasi yang lebih formal</li>
+        <li>Setelah review: learner mendapat notifikasi dan bisa revisi serta resubmit jika belum lolos</li>
+        <li>Setiap state transition (submit, review, approve, reject) tercatat otomatis dengan timestamp dan aktor</li>
+      </ol>
+
+      <h3>BetterUp</h3>
+      <p>Berdasarkan dokumentasi resmi BetterUp, flow Execution adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Sesi 1:1 via video call (Zoom/Teams/BetterUp native) — jadwal fleksibel, diatur sendiri oleh coachee dan coach berdasarkan kalender masing-masing</li>
+        <li>Setelah sesi, coachee submit action items dan refleksi — tidak ada "evidence file upload" seperti KPB karena model coachingnya berbeda (conversation-based vs deliverable-based)</li>
+        <li>Coach tidak approve/reject deliverable formal — peran coach adalah membimbing dan memberikan feedback, bukan evaluator output formal</li>
+        <li>Progress diukur via assessment sebelum dan sesudah program — before/after comparison untuk mengukur perubahan</li>
+        <li>Semua state transition (schedule, attend, submit action item, complete) tercatat dengan privacy guard: manajer tidak bisa akses detail isi sesi</li>
+      </ol>
+
+      <h3>CoachHub</h3>
+      <p>Berdasarkan dokumentasi resmi CoachHub, flow Execution adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Sesi via video, call, atau chat — format fleksibel sesuai preferensi coachee dan coach, tanpa ada satu "media resmi" yang wajib</li>
+        <li>CoachHub Companion (AI AIMY 2.0): support 24/7 antara sesi via Teams integration — coachee bisa latihan skill, tanya pertanyaan, atau drill konsep tanpa menunggu sesi berikutnya</li>
+        <li>Action items di-track di dalam platform — coachee set komitmen, update progress, visible untuk coach</li>
+        <li>Tidak ada "multi-level approval chain" — coach dan coachee menyepakati goal achievement bersama, dengan HR hanya melihat high-level metrics</li>
+      </ol>
+
+      <h3>Tabel Gap — Area Execution</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Portal KPB (As-Is)</th>
+            <th>Best Practice</th>
+            <th>Gap</th>
+            <th>Tier</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Reject + resubmit flow</strong> <code>EXEC-01</code></td>
+            <td>Evidence multi-file tersedia, tapi flow reject → feedback → resubmit belum diaudit end-to-end</td>
+            <td>360Learning: setelah reject, learner dapat revisi dan resubmit; versioning per submission ada</td>
+            <td>Coachee mungkin tidak bisa resubmit setelah reject, atau state menjadi stuck</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+          </tr>
+          <tr>
+            <td><strong>Concurrent approval guard</strong> <code>EXEC-02</code></td>
+            <td>Tidak ada guard — dua approver bisa klik Approve bersamaan pada deliverable yang sama</td>
+            <td>Platform modern: optimistic locking atau sequential check sebelum state transition</td>
+            <td>Concurrent approve bisa corrupt state (double-advance di approval chain)</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+          </tr>
+          <tr>
+            <td><strong>State history completeness</strong> <code>EXEC-03</code></td>
+            <td>ProtonDeliverableHistory entity ada, tapi insert di semua trigger belum diverifikasi</td>
+            <td>BetterUp/CoachHub: setiap state transition tercatat otomatis dengan actor + timestamp; initial Pending juga ter-record</td>
+            <td>History mungkin incomplete — initial Pending tidak ter-insert, audit trail tidak lengkap</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+          </tr>
+          <tr>
+            <td><strong>Notifikasi coverage</strong> <code>EXEC-04</code></td>
+            <td>Dual system (ProtonNotification + UserNotification) — triggers ada di berbagai state, tapi coverage belum diaudit</td>
+            <td>Platform: notifikasi unified di semua trigger tanpa ada yang terlewat</td>
+            <td>Beberapa trigger mungkin tidak fire notifikasi — approver tidak tahu ada submission baru</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+          </tr>
+          <tr>
+            <td><strong>Progress indicator inline</strong> <code>EXEC-05</code></td>
+            <td>PlanIdp menampilkan silabus dan guidance, tapi tidak ada progress bar per deliverable di view silabus</td>
+            <td>360Learning: progress bar per deliverable inline di learning path view</td>
+            <td>Coachee harus cek halaman lain untuk tahu progress mereka; UX terputus</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SECTION: MONITORING -->
+    <!-- ================================================= -->
+    <section id="monitoring">
+      <h2>Area 3: Monitoring</h2>
+      <p><em>Mencakup: dashboard HC/coach, filter dan export, override admin, workload visibility, batch action, bottleneck analysis.</em></p>
+
+      <h3>Baseline As-Is Portal KPB</h3>
+      <div class="card">
+        <ul>
+          <li><strong>CoachingProton page:</strong> Tabel deliverable dengan filter Bagian/Unit/Track/Tahun/Coachee; role-scoped</li>
+          <li><strong>Dashboard:</strong> Chart.js untuk stats; role-scoped (HC/Admin lihat semua, coach lihat coachee-nya saja)</li>
+          <li><strong>Export:</strong> Excel export progress data tersedia</li>
+          <li><strong>Override Admin:</strong> Admin bisa override status; audit trail override belum diverifikasi</li>
+          <li><strong>Pagination:</strong> Implemented di CoachingProton tracking table</li>
+          <li><strong>Workload visibility:</strong> Tidak ada — HC tidak bisa lihat berapa coachee yang di-handle per coach</li>
+          <li><strong>Batch action:</strong> Tidak ada — approval harus dilakukan satu per satu</li>
+          <li><strong>Bottleneck analysis:</strong> Tidak ada — tidak ada visibility mana deliverable yang stuck paling lama</li>
+        </ul>
+      </div>
+
+      <h3>360Learning</h3>
+      <p>Berdasarkan dokumentasi resmi 360Learning, fitur Monitoring mencakup:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Manager dashboard menampilkan statistik per managee: enrollment rate, completion rate, average score, dan time-to-complete</li>
+        <li>Weekly automated email report dikirim ke manager — ringkasan progress tim tanpa perlu cek dashboard manual</li>
+        <li>Completion tracking per course, per cohort, dan per compliance group — dengan filter multi-dimensi</li>
+        <li>Bulk completion approval: manager bisa approve multiple submissions sekaligus dari list view — mengurangi click per action</li>
+        <li>Tidak ada "admin override" di luar chain — eskalasi dilakukan melalui peran admin group</li>
+      </ol>
+
+      <h3>BetterUp</h3>
+      <p>Berdasarkan dokumentasi resmi BetterUp, fitur Monitoring mencakup:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Admin dashboard: engagement metrics, session attendance rate, program ROI comparison across cohorts</li>
+        <li><strong>BetterUp Manage</strong>: modul khusus untuk manajer — visibility perkembangan tim tanpa mengekspos isi sesi (privacy-first design)</li>
+        <li>Integrasi dengan Slack, Teams, Workday untuk notifikasi dan behavioral nudges langsung di tools sehari-hari</li>
+        <li>ROI report: before-after assessment comparison, business impact metrics, goal achievement rate per program</li>
+        <li><strong>Coach capacity/workload visible di admin</strong>: berapa coachee aktif per coach, kapasitas tersisa — ini yang relevan untuk DIFF-01</li>
+      </ol>
+
+      <h3>CoachHub</h3>
+      <p>Berdasarkan dokumentasi resmi CoachHub, fitur Monitoring mencakup:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li><strong>CoachHub Insights</strong>: real-time analytics tentang coaching impact company-wide — session frequency, goal progress, skill mastery metrics</li>
+        <li>Dashboard HR: session attendance, goal progress per coachee, program engagement rate</li>
+        <li>Identifikasi stagnant: Insights dapat menunjukkan program atau coachee yang tidak ada aktivitas dalam periode tertentu — ini yang relevan untuk DIFF-03</li>
+        <li><strong>Bulk action dari monitoring view</strong>: HR bisa melakukan action (reminder, eskalasi, approval) dari list view tanpa buka satu per satu — ini yang relevan untuk DIFF-02</li>
+        <li>Coachee track personal growth sendiri di platform — self-monitoring yang reduce beban HR</li>
+      </ol>
+
+      <h3>Tabel Gap — Area Monitoring</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Portal KPB (As-Is)</th>
+            <th>Best Practice</th>
+            <th>Gap</th>
+            <th>Tier</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Workload coach visibility</strong> <code>DIFF-01</code> <code>MON-02</code></td>
+            <td>Tidak ada indikator workload — HC assign coach tanpa tahu berapa coachee aktif coach tersebut</td>
+            <td>BetterUp: dashboard menampilkan jumlah coachee aktif per coach + kapasitas tersisa</td>
+            <td>HC tidak bisa detect coach overloaded; beban coaching bisa sangat timpang</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+          <tr>
+            <td><strong>Batch approval HC Review</strong> <code>DIFF-02</code></td>
+            <td>Tidak ada batch/bulk action — setiap deliverable harus dibuka dan di-approve satu per satu</td>
+            <td>CoachHub Insights + 360Learning: bulk action dari list view; approve multiple submissions sekaligus</td>
+            <td>HC menjadi bottleneck saat submission banyak; waktu operasional tidak efisien</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+          <tr>
+            <td><strong>Bottleneck analysis</strong> <code>DIFF-03</code></td>
+            <td>Tidak ada analytics deliverable paling lama pending; tidak ada visibility apa yang stuck</td>
+            <td>CoachHub Insights: identifikasi deliverable stagnant, approval delay visibility, sorted by age</td>
+            <td>HC tidak tahu mana yang perlu diintervensi; masalah hanya terdeteksi saat coachee komplain</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+          <tr>
+            <td><strong>Override audit trail</strong> <code>MON-03</code></td>
+            <td>Override admin ada, tapi apakah setiap override ter-log dengan actor + timestamp + alasan belum diverifikasi</td>
+            <td>BetterUp/CoachHub: setiap admin action tercatat — siapa, kapan, dari state apa ke state apa</td>
+            <td>Accountability override tidak terjamin; tidak ada jejak untuk investigasi masalah data</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 236</span></td>
+          </tr>
+          <tr>
+            <td><strong>Dashboard performance / N+1</strong> <code>MON-01</code> <code>MON-04</code></td>
+            <td>Chart.js ada, query di balik dashboard belum diaudit — kemungkinan N+1 query pattern</td>
+            <td>Platform: optimized query dengan projection — load time konsisten meski data besar</td>
+            <td>Dashboard dan export bisa lambat saat data tumbuh; UX menurun untuk HC/Admin</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 236</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SECTION: COMPLETION -->
+    <!-- ================================================= -->
+    <section id="completion">
+      <h2>Area 4: Completion</h2>
+      <p><em>Mencakup: final assessment, competency level granting, coaching session linkage, histori, transisi 3-year journey.</em></p>
+
+      <h3>Baseline As-Is Portal KPB</h3>
+      <div class="card">
+        <ul>
+          <li><strong>Final Assessment:</strong> Setelah semua deliverable approved, trigger competency level granting</li>
+          <li><strong>Coaching Sessions:</strong> Entity terpisah (CoachingSession); linked ke deliverable progress; action items</li>
+          <li><strong>HistoriProton:</strong> Timeline aktivitas coaching; coexist dengan legacy CoachingLog</li>
+          <li><strong>3-Year Journey:</strong> Tahun 1 → 2 → 3 lifecycle; assignment transition per tahun</li>
+          <li><strong>Unique Constraint:</strong> Tidak ada DB unique constraint untuk final assessment — double-click atau retry bisa create duplicate</li>
+          <li><strong>Session Linkage:</strong> CoachingSession entity ada, tapi linkage ke deliverable progress belum diverifikasi kelengkapannya</li>
+          <li><strong>Progression Validation:</strong> Validasi agar tidak bisa skip Tahun 1 langsung ke Tahun 3 belum diaudit</li>
+        </ul>
+      </div>
+
+      <h3>360Learning</h3>
+      <p>Berdasarkan dokumentasi resmi 360Learning, flow Completion adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Certificate of completion diterbitkan otomatis setelah semua modul dalam learning path selesai — tidak perlu trigger manual dari admin</li>
+        <li>Approval workflow opsional tersedia: manager atau group admin dapat approve/reject sertifikat sebelum diterbitkan</li>
+        <li>Download sertifikat sebagai PDF — otomatis tersedia di profil learner; admin dapat download completion report per cohort</li>
+        <li>Recertification: validity period dapat di-set per certification, dengan auto re-enrollment saat expiry — completion cycle dapat berulang</li>
+        <li>Session notes linked ke deliverable progress dengan action item tracking — timeline completion terhubung ke seluruh journey</li>
+      </ol>
+
+      <h3>BetterUp</h3>
+      <p>Berdasarkan dokumentasi resmi BetterUp, flow Completion adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Tidak ada "final assessment" formal seperti KPB — completion didefinisikan sebagai: jumlah sesi terpenuhi + goals achieved sesuai target di awal program</li>
+        <li>Coach menyusun summary perkembangan coachee untuk diberikan kepada HR — sebagai bukti program selesai</li>
+        <li>Program bisa dilanjutkan (renewal dengan coach yang sama atau baru) atau dihentikan sesuai kebutuhan</li>
+        <li>Tidak ada "3-year journey" eksplisit — tenure coaching lebih fleksibel sesuai kebutuhan organisasi</li>
+        <li>Before/after assessment comparison sebagai evidence bahwa program memberikan dampak</li>
+      </ol>
+
+      <h3>CoachHub</h3>
+      <p>Berdasarkan dokumentasi resmi CoachHub, flow Completion adalah:</p>
+      <ol style="margin:8px 0 12px 20px;">
+        <li>Program berakhir setelah durasi yang di-set saat Setup (misalnya 6 bulan); tidak ada trigger manual dari admin</li>
+        <li>Summary perkembangan disusun oleh coach dan tersedia di platform untuk HR review</li>
+        <li>Skill mastery report sebagai bukti completion — menggantikan certificate formal; berisi metrics konkret kemajuan coachee</li>
+        <li>Tidak ada certificate formal — evidence adalah analytics data dari CoachHub Insights</li>
+        <li>Siklus dapat berlanjut: setelah program selesai, coachee dapat enroll ke program baru dengan kesinambungan data</li>
+      </ol>
+
+      <h3>Tabel Gap — Area Completion</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Aspek</th>
+            <th>Portal KPB (As-Is)</th>
+            <th>Best Practice</th>
+            <th>Gap</th>
+            <th>Tier</th>
+            <th>Target Phase</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Final assessment unique constraint</strong> <code>COMP-01</code></td>
+            <td>Tidak ada DB unique constraint — double-click atau concurrent request bisa create duplicate final assessment</td>
+            <td>Platform: idempotent operation; DB unique constraint sebagai safety net terakhir</td>
+            <td>Duplicate final assessment menyebabkan data competency level ganda yang sulit di-resolve</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+          <tr>
+            <td><strong>3-year progression validation</strong> <code>COMP-04</code></td>
+            <td>Assignment transition Tahun 1→2→3 ada, tapi validasi bahwa tidak bisa skip Tahun 1 langsung ke Tahun 3 belum diaudit</td>
+            <td>BetterUp: renewal/continuation flow smooth dengan validation bahwa prerequisite terpenuhi</td>
+            <td>Admin secara tidak sengaja bisa assign coachee ke Tahun 3 tanpa menyelesaikan Tahun 1–2</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+          <tr>
+            <td><strong>Coaching session linkage ke deliverable</strong> <code>COMP-02</code></td>
+            <td>CoachingSession entity ada, tapi linkage ke deliverable progress belum diverifikasi kelengkapannya</td>
+            <td>360Learning: session notes linked ke deliverable progress dengan action item tracking yang terstruktur</td>
+            <td>Timeline completion mungkin tidak mencerminkan journey lengkap — sesi tanpa referensi deliverable</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+          <tr>
+            <td><strong>HistoriProton timeline completeness</strong> <code>COMP-03</code></td>
+            <td>HistoriProton + legacy CoachingLog coexist — dua sumber data untuk timeline yang sama</td>
+            <td>Platform: single unified timeline — tidak ada split sumber data</td>
+            <td>Timeline mungkin incomplete jika legacy CoachingLog tidak ter-migrate atau keduanya tidak di-merge dengan benar</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SECTION: DIFFERENTIATORS -->
+    <!-- ================================================= -->
+    <section id="differentiators">
+      <h2>Validasi Differentiator Portal KPB</h2>
+
+      <div class="callout callout-success">
+        <strong>Kesimpulan utama:</strong> Ketiga differentiator yang direncanakan untuk Portal KPB (DIFF-01, DIFF-02, DIFF-03) terbukti merupakan <strong>best practice enterprise yang sudah ada di platform industri</strong> — bukan fitur mewah atau over-engineering. Absennya fitur ini di portal KPB adalah gap nyata yang perlu diperbaiki.
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Differentiator</th>
+            <th>Deskripsi</th>
+            <th>Ada di Platform Mana</th>
+            <th>Detail Validasi</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>DIFF-01</strong><br>Workload indicator coach</td>
+            <td>Tampilkan jumlah coachee aktif per coach di halaman mapping dan monitoring, sehingga HC bisa detect overload sebelum assign</td>
+            <td><span class="platform-label">BetterUp</span></td>
+            <td>BetterUp Manage menampilkan coach capacity/load di admin dashboard — berapa coachee aktif, berapa kapasitas tersisa. Disebutkan dalam laporan Josh Bersin (2024) sebagai fitur kunci BetterUp Manage.</td>
+            <td class="diff-valid">VALID — Best practice enterprise</td>
+          </tr>
+          <tr>
+            <td><strong>DIFF-02</strong><br>Batch approval HC Review</td>
+            <td>Checkbox multi-select di tabel monitoring untuk approve/reject multiple deliverable sekaligus dari satu view</td>
+            <td><span class="platform-label">CoachHub</span> <span class="platform-label">360Learning</span></td>
+            <td>CoachHub Insights mendukung bulk action dari monitoring view. 360Learning memiliki bulk completion approval untuk manager — approve multiple submissions dari list tanpa buka satu per satu.</td>
+            <td class="diff-valid">VALID — Best practice untuk high-volume approval</td>
+          </tr>
+          <tr>
+            <td><strong>DIFF-03</strong><br>Bottleneck analysis</td>
+            <td>Tampilkan deliverable yang paling lama pending — sorted by age — untuk memprioritaskan intervensi HC</td>
+            <td><span class="platform-label">CoachHub</span></td>
+            <td>CoachHub Insights memiliki kemampuan identifikasi stagnant coaching: menunjukkan program atau coachee yang tidak ada aktivitas dalam periode tertentu, dengan approval delay visibility.</td>
+            <td class="diff-valid">VALID — Best practice HR analytics</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Implikasi untuk Implementasi</h3>
+      <p>Ketiga differentiator ini direncanakan untuk <strong>Phase 237</strong> (fase terakhir audit v8.2) setelah setup, execution, dan monitoring foundation diperbaiki di Phase 234–236. Urutan ini tepat karena:</p>
+      <ul>
+        <li>DIFF-01 (workload indicator) membutuhkan data coach-coachee mapping yang clean — diperbaiki di Phase 234</li>
+        <li>DIFF-02 (batch approval) membutuhkan approval chain yang robust — diperbaiki di Phase 235</li>
+        <li>DIFF-03 (bottleneck analysis) membutuhkan state history yang lengkap — diperbaiki di Phase 235 dan 236</li>
+      </ul>
+    </section>
+
+    <!-- ================================================= -->
+    <!-- SECTION: RECOMMENDATIONS -->
+    <!-- ================================================= -->
+    <section id="recommendations">
+      <h2>Rekomendasi Prioritas</h2>
+
+      <div class="callout">
+        <strong>Cara membaca tabel ini:</strong> Urutan: Must-fix (kritis, harus dikerjakan) → Should-improve (best practice gap) → Nice-to-have (enhancement). Setiap rekomendasi memiliki mapping ke target phase (234–237) dan perkiraan complexity implementasi.
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Area</th>
+            <th>Rekomendasi</th>
+            <th>Tier</th>
+            <th>Target Phase</th>
+            <th>Complexity</th>
+            <th>Ref</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- MUST-FIX -->
+          <tr>
+            <td>R-01</td>
+            <td>Setup</td>
+            <td>Tambahkan guard hard-delete silabus: cek apakah ada ProtonDeliverableProgress aktif sebelum ijinkan delete; tampilkan warning jumlah coachee terdampak</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+            <td>Low</td>
+            <td>SETUP-01</td>
+          </tr>
+          <tr>
+            <td>R-02</td>
+            <td>Setup</td>
+            <td>Tambahkan unique constraint DB pada coach-coachee mapping + validasi di controller sebelum insert; tampilkan pesan error yang informatif jika duplikasi terdeteksi</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+            <td>Low</td>
+            <td>SETUP-03</td>
+          </tr>
+          <tr>
+            <td>R-03</td>
+            <td>Setup</td>
+            <td>Bungkus operasi cascade deactivation coach (deactivate semua mapping terkait) dalam explicit DB transaction untuk mencegah partial update</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+            <td>Low</td>
+            <td>SETUP-03</td>
+          </tr>
+          <tr>
+            <td>R-04</td>
+            <td>Execution</td>
+            <td>Audit dan perbaiki flow reject → feedback → resubmit end-to-end: pastikan coachee dapat resubmit setelah reject, dan state tidak menjadi stuck</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+            <td>Medium</td>
+            <td>EXEC-01</td>
+          </tr>
+          <tr>
+            <td>R-05</td>
+            <td>Execution</td>
+            <td>Implementasi concurrent approval guard: row-level lock atau optimistic concurrency check sebelum state transition di approval chain</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+            <td>Medium</td>
+            <td>EXEC-02</td>
+          </tr>
+          <tr>
+            <td>R-06</td>
+            <td>Execution</td>
+            <td>Audit ProtonDeliverableHistory: pastikan insert dilakukan di semua state transition termasuk initial Pending saat assignment, dan tidak ada trigger yang terlewat</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+            <td>Low</td>
+            <td>EXEC-03</td>
+          </tr>
+          <tr>
+            <td>R-07</td>
+            <td>Execution</td>
+            <td>Audit coverage notifikasi dual system (ProtonNotification + UserNotification): mapping semua trigger ke notifikasi yang seharusnya fire; tambahkan yang hilang</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+            <td>Medium</td>
+            <td>EXEC-04</td>
+          </tr>
+          <tr>
+            <td>R-08</td>
+            <td>Monitoring</td>
+            <td>Audit override admin: pastikan setiap override ter-log ke ProtonDeliverableHistory dengan actor (UserId), timestamp, dan state lama/baru; tambahkan jika belum</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 236</span></td>
+            <td>Low</td>
+            <td>MON-03</td>
+          </tr>
+          <tr>
+            <td>R-09</td>
+            <td>Completion</td>
+            <td>Tambahkan unique constraint DB untuk final assessment per coachee per track + idempotency check di controller untuk mencegah duplicate submission</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>Low</td>
+            <td>COMP-01</td>
+          </tr>
+          <tr>
+            <td>R-10</td>
+            <td>Completion</td>
+            <td>Audit dan perbaiki validasi progression 3-year: pastikan assignment ke Tahun 2/3 hanya bisa dilakukan setelah Tahun sebelumnya diselesaikan (semua deliverable approved)</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>Medium</td>
+            <td>COMP-04</td>
+          </tr>
+          <tr>
+            <td>R-11</td>
+            <td>Monitoring</td>
+            <td>Implementasi workload indicator coach: tampilkan jumlah coachee aktif per coach di halaman assign mapping dan di dashboard monitoring HC</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>Medium</td>
+            <td>DIFF-01</td>
+          </tr>
+          <tr>
+            <td>R-12</td>
+            <td>Monitoring</td>
+            <td>Implementasi batch approval: checkbox multi-select di tabel CoachingProton untuk approve/reject multiple deliverable sekaligus dari satu view HC Review</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>High</td>
+            <td>DIFF-02</td>
+          </tr>
+          <tr>
+            <td>R-13</td>
+            <td>Monitoring</td>
+            <td>Implementasi bottleneck analysis: tampilkan deliverable yang paling lama pending (sort by days waiting) di dashboard HC dengan highlight visual untuk yang sudah &gt; X hari</td>
+            <td><span class="badge badge-critical">Must-fix</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>Medium</td>
+            <td>DIFF-03</td>
+          </tr>
+          <!-- SHOULD-IMPROVE -->
+          <tr>
+            <td>R-14</td>
+            <td>Setup</td>
+            <td>Perbaiki error handling import Excel: tambahkan row-level validation dengan error report per baris (baris mana yang gagal, kolom apa, kenapa) alih-alih silent failure</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+            <td>Medium</td>
+            <td>SETUP-05</td>
+          </tr>
+          <tr>
+            <td>R-15</td>
+            <td>Execution</td>
+            <td>Tambahkan progress indicator inline di PlanIdp view silabus: per-deliverable status (Belum, Pending, Approved) visible tanpa harus buka halaman lain</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+            <td>Low</td>
+            <td>EXEC-05</td>
+          </tr>
+          <tr>
+            <td>R-16</td>
+            <td>Monitoring</td>
+            <td>Audit dan optimasi query dashboard CoachingProton: identifikasi N+1 pattern, tambahkan Include() atau projection yang tepat untuk menjaga performa saat data tumbuh</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 236</span></td>
+            <td>Medium</td>
+            <td>MON-01 MON-04</td>
+          </tr>
+          <tr>
+            <td>R-17</td>
+            <td>Completion</td>
+            <td>Verifikasi dan perkuat linkage CoachingSession ke deliverable progress: pastikan setiap sesi terhubung ke deliverable yang relevan untuk timeline completion yang lengkap</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>Medium</td>
+            <td>COMP-02</td>
+          </tr>
+          <tr>
+            <td>R-18</td>
+            <td>Completion</td>
+            <td>Investigasi dan unifikasi timeline: tentukan apakah HistoriProton dan legacy CoachingLog perlu di-merge atau dibuat single source of truth untuk timeline coachee</td>
+            <td><span class="badge badge-medium">Should-improve</span></td>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>High</td>
+            <td>COMP-03</td>
+          </tr>
+          <!-- NICE-TO-HAVE -->
+          <tr>
+            <td>R-19</td>
+            <td>Setup</td>
+            <td>Tambahkan criteria guidelines per deliverable (seperti 360Learning): deskripsi apa yang membuat bukti "cukup" untuk diapprove — membantu konsistensi antar coach</td>
+            <td><span class="badge badge-low">Nice-to-have</span></td>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+            <td>Low</td>
+            <td>SETUP-04</td>
+          </tr>
+          <tr>
+            <td>R-20</td>
+            <td>Monitoring</td>
+            <td>Tambahkan automated weekly digest email ke coach: ringkasan deliverable pending yang menunggu review, sehingga coach tidak perlu cek dashboard manual setiap hari</td>
+            <td><span class="badge badge-low">Nice-to-have</span></td>
+            <td><span class="badge badge-blue">Phase 236</span></td>
+            <td>Medium</td>
+            <td>MON-02</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Ringkasan Distribusi Tier</h3>
+      <div class="card-grid">
+        <div class="card">
+          <h4><span class="badge badge-critical">Must-fix</span> — 13 item</h4>
+          <p>R-01 s/d R-13 — harus dikerjakan di Phase 234–237 tanpa dikurangi. Ini adalah gap yang mempengaruhi correctness, security, atau data integrity.</p>
+        </div>
+        <div class="card">
+          <h4><span class="badge badge-medium">Should-improve</span> — 5 item</h4>
+          <p>R-14 s/d R-18 — best practice gap yang meningkatkan UX dan maintainability. Dikerjakan dalam phase yang sama jika kapasitas memungkinkan.</p>
+        </div>
+        <div class="card">
+          <h4><span class="badge badge-low">Nice-to-have</span> — 2 item</h4>
+          <p>R-19, R-20 — enhancement yang baik tapi tidak blocking. Bisa dikerjakan sebagai task bonus atau deferkan ke milestone berikutnya.</p>
+        </div>
+      </div>
+
+      <h3>Mapping ke Phase 234–237</h3>
+      <table class="tbl-compact">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Focus Area</th>
+            <th>Rekomendasi yang Di-cover</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="badge badge-blue">Phase 234</span></td>
+            <td>Audit Setup Flow</td>
+            <td>R-01, R-02, R-03 (Must-fix) + R-14, R-19 (Should/Nice)</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-blue">Phase 235</span></td>
+            <td>Audit Execution Flow</td>
+            <td>R-04, R-05, R-06, R-07 (Must-fix) + R-15 (Should)</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-blue">Phase 236</span></td>
+            <td>Audit Monitoring &amp; Dashboard</td>
+            <td>R-08 (Must-fix) + R-16, R-20 (Should/Nice)</td>
+          </tr>
+          <tr>
+            <td><span class="badge badge-blue">Phase 237</span></td>
+            <td>Audit Completion + Differentiator Enhancement</td>
+            <td>R-09, R-10, R-11, R-12, R-13 (Must-fix) + R-17, R-18 (Should)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warning">
+        <strong>Catatan untuk Phase 234–237 planners:</strong> Dokumen ini adalah lens riset — bukan spesifikasi implementasi final. Setiap phase harus membaca seksi relevan dari dokumen ini sebagai konteks, lalu audit kode aktual untuk konfirmasi gap masih ada sebelum membuat perbaikan. Gap yang sudah ter-fix di satu phase tidak perlu dikerjakan ulang di phase berikutnya.
+      </div>
+    </section>
+
+  </div>
+</div>
+
+</body>
+</html>
