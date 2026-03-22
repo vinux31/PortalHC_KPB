@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.1
 milestone_name: Renewal & Assessment Ecosystem Audit
 status: unknown
-stopped_at: Phase 232 context gathered
-last_updated: "2026-03-22T08:54:19.484Z"
+stopped_at: Completed 232-01-PLAN.md
+last_updated: "2026-03-22T09:13:17.083Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 231 — audit-assessment-management-monitoring
+**Current focus:** Phase 232 — audit-assessment-flow-worker-side
 
 ## Current Position
 
-Phase: 232
-Plan: Not started
+Phase: 232 (audit-assessment-flow-worker-side) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -47,6 +47,8 @@ Plan: Not started
 - [Phase 231]: Explicit cascade delete packages/questions/options ditambahkan ke DeleteAssessment dan DeleteAssessmentGroup untuk keamanan ordering
 - [Phase 231]: IsCompleted = a.CompletedAt != null — sumber kebenaran tunggal
 - [Phase 231]: Two-countdown approach: initial-render dari StartedAt + polling — komplementer
+- [Phase 232]: SignalR worker push menggunakan Clients.User(userId) di AdminController — tidak perlu JoinWorkerSession method di hub
+- [Phase 232]: assessmentHubStartPromise menggantikan setTimeout fallback untuk set hub badge Live di StartExam
 
 ### Pending Todos
 
@@ -58,6 +60,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-22T08:54:19.481Z
-Stopped at: Phase 232 context gathered
-Resume file: .planning/phases/232-audit-assessment-flow-worker-side/232-CONTEXT.md
+Last session: 2026-03-22T09:13:17.080Z
+Stopped at: Completed 232-01-PLAN.md
+Resume file: None

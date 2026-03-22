@@ -59,10 +59,10 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 
 ### Assessment Flow — Worker Side
 
-- [ ] **AFLW-01**: Worker melihat daftar assessment (Open/Upcoming) sesuai assignment
-- [ ] **AFLW-02**: StartExam flow benar (token entry → exam page → timer → auto-save per-click)
+- [x] **AFLW-01**: Worker melihat daftar assessment (Open/Upcoming) sesuai assignment
+- [x] **AFLW-02**: StartExam flow benar (token entry → exam page → timer → auto-save per-click)
 - [ ] **AFLW-03**: SubmitExam menghasilkan score, IsPassed, NomorSertifikat (jika lulus), competency update
-- [ ] **AFLW-04**: Session resume berfungsi (ElapsedSeconds, LastActivePage, pre-populated answers)
+- [x] **AFLW-04**: Session resume berfungsi (ElapsedSeconds, LastActivePage, pre-populated answers)
 - [ ] **AFLW-05**: Results page menampilkan score, pass/fail, answer review (jika diaktifkan HC)
 
 ## v8.0 Requirements (Previous)
@@ -154,10 +154,10 @@ Requirements for Renewal & Assessment Ecosystem Audit milestone. Riset best prac
 | AMON-02 | Phase 231 | Complete |
 | AMON-03 | Phase 231 | Complete |
 | AMON-04 | Phase 231 | Complete |
-| AFLW-01 | Phase 232 | Pending |
-| AFLW-02 | Phase 232 | Pending |
+| AFLW-01 | Phase 232 | Complete |
+| AFLW-02 | Phase 232 | Complete |
 | AFLW-03 | Phase 232 | Pending |
-| AFLW-04 | Phase 232 | Pending |
+| AFLW-04 | Phase 232 | Complete |
 | AFLW-05 | Phase 232 | Pending |
 
 **Coverage:**
