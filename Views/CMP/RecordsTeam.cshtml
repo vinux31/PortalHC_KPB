@@ -72,8 +72,8 @@
                 </div>
             </div>
             <div class="row g-3">
-                <!-- Row 2: Status, Search, Reset -->
-                <div class="col-12 col-md-4">
+                <!-- Row 2: Status, Tanggal Awal, Tanggal Akhir, Reset -->
+                <div class="col-12 col-md-3">
                     <label class="form-label small text-muted mb-1">Status</label>
                     <select id="statusFilter" class="form-select" onchange="filterTeamTable()">
                         <option value="ALL">ALL</option>
@@ -81,9 +81,13 @@
                         <option value="Belum">Belum</option>
                     </select>
                 </div>
-                <div class="col-12 col-md-5">
-                    <label class="form-label small text-muted mb-1">Search (Nama/NIP)</label>
-                    <input type="text" id="searchFilter" class="form-control" placeholder="Cari worker..." oninput="filterTeamTable()">
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted mb-1">Tanggal Awal</label>
+                    <input type="date" id="dateFrom" class="form-control" onchange="filterTeamTable()">
+                </div>
+                <div class="col-12 col-md-3">
+                    <label class="form-label small text-muted mb-1">Tanggal Akhir</label>
+                    <input type="date" id="dateTo" class="form-control" onchange="filterTeamTable()">
                 </div>
                 <div class="col-12 col-md-3 d-flex align-items-end">
                     <button class="btn btn-outline-secondary w-100" onclick="resetTeamFilters()">
@@ -115,6 +119,12 @@
         </small>
     </div>
 
+    <!-- Loading Indicator -->
+    <div id="tableLoadingIndicator" style="display:none" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+        <span class="ms-2 text-muted">Memuat data...</span>
+    </div>
+
     <!-- Worker List Table -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
@@ -132,83 +142,8 @@
                             <th class="p-3 text-center">Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @if (Model.Count == 0)
-                        {
-                            <tr>
-                                <td colspan="8" class="text-center p-5 text-muted">
-                                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
-                                    Data belum ada
-                                </td>
-                            </tr>
-                        }
-                        else
-                        {
-                            @foreach (var worker in Model)
-                            {
-                                // Phase 215: gabungkan training + assessment categories
-                                var trainingCats2 = worker.TrainingRecords
-                                    .Select(t => t.Kategori).Where(k => !string.IsNullOrEmpty(k)).Distinct();
-                                var assessmentCats2 = worker.AssessmentSessions
-                                    .Select(a => a.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct();
-                                var allCats = trainingCats2.Union(assessmentCats2).ToList();
-                                var allCatsStr = string.Join(",", allCats);
-
-                                var completedTrainingCats = worker.TrainingRecords
-                                    .Where(t => !string.IsNullOrEmpty(t.Kategori) &&
-                                        (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"))
-                                    .Select(t => t.Kategori).Distinct();
-                                var passedAssessmentCats = worker.AssessmentSessions
-                                    .Where(a => a.IsPassed == true)
-                                    .Select(a => a.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct();
-                                var completedCatsStr = string.Join(",", completedTrainingCats.Union(passedAssessmentCats));
-
-                                var allSubCats = worker.TrainingRecords
-                                    .Select(t => t.SubKategori).Where(s => !string.IsNullOrEmpty(s)).Distinct();
-                                var allSubCatsStr = string.Join(",", allSubCats);
-
-                                var completedSubCats = worker.TrainingRecords
-                                    .Where(t => !string.IsNullOrEmpty(t.SubKategori) &&
-                                        (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"))
-                                    .Select(t => t.SubKategori).Distinct();
-                                var completedSubCatsStr = string.Join(",", completedSubCats);
-
-                                var hasTraining = allCats.Any() || worker.TrainingRecords.Any(t =>
-                                    !string.IsNullOrEmpty(t.Kategori) &&
-                                    (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"));
-
-                                <tr class="worker-row"
-                                    data-section="@worker.Section"
-                                    data-unit="@worker.Unit"
-                                    data-categories="@allCatsStr.ToLower()"
-                                    data-has-training="@hasTraining.ToString().ToLower()"
-                                    data-completed-categories="@completedCatsStr.ToLower()"
-                                    data-subcategories="@allSubCatsStr.ToLower()"
-                                    data-completed-subcategories="@completedSubCatsStr.ToLower()"
-                                    data-name="@worker.WorkerName.ToLower()"
-                                    data-nip="@((worker.NIP ?? "").ToLower())">
-                                    <td class="p-3">
-                                        <span class="fw-semibold">@worker.WorkerName</span>
-                                    </td>
-                                    <td class="p-3">@(worker.NIP ?? "---")</td>
-                                    <td class="p-3">@worker.Position</td>
-                                    <td class="p-3">@(worker.Section ?? "---")</td>
-                                    <td class="p-3">@(worker.Unit ?? "---")</td>
-                                    <td class="p-3 text-center">
-                                        <span class="badge bg-primary">@worker.CompletedAssessments</span>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <span class="badge bg-success">@worker.CompletedTrainings</span>
-                                    </td>
-                                    <td class="p-3 text-center">
-                                        <a asp-action="RecordsWorkerDetail" asp-route-workerId="@worker.WorkerId"
-                                           class="btn btn-sm btn-outline-primary">
-                                            <i class="bi bi-eye me-1"></i>Detail
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        }
+                    <tbody id="workerTableBody">
+                        @Html.Partial("_RecordsTeamBody", Model)
                     </tbody>
                 </table>
             </div>
@@ -298,9 +233,10 @@ function updateExportLinks() {
     const section = document.getElementById('sectionFilter').value;
     const unit = document.getElementById('unitFilter').value;
     const status = document.getElementById('statusFilter').value;
-    const search = document.getElementById('searchFilter').value;
     const category = document.getElementById('categoryFilter')?.value || '';
     const subCategory = document.getElementById('subCategoryFilter')?.value || '';
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
 
     const baseAssessment = '@Url.Action("ExportRecordsTeamAssessment", "CMP")';
     const baseTraining = '@Url.Action("ExportRecordsTeamTraining", "CMP")';
@@ -308,92 +244,58 @@ function updateExportLinks() {
     const params = new URLSearchParams();
     if (section) params.set('section', section);
     if (unit) params.set('unit', unit);
-    if (search) params.set('search', search);
     if (status && status !== 'ALL') params.set('statusFilter', status);
     if (category) params.set('category', category);
     if (subCategory) params.set('subCategory', subCategory);
+    if (dateFrom) params.set('dateFrom', dateFrom);
+    if (dateTo) params.set('dateTo', dateTo);
 
     const qs = params.toString();
     document.getElementById('btnExportAssessment').href = baseAssessment + (qs ? '?' + qs : '');
     document.getElementById('btnExportTraining').href = baseTraining + (qs ? '?' + qs : '');
 }
 
+let debounceTimer;
 function filterTeamTable() {
-    const section = document.getElementById('sectionFilter').value.toLowerCase();
-    const unit = document.getElementById('unitFilter').value.toLowerCase();
-    const category = document.getElementById('categoryFilter').value.toLowerCase();
-    const subCategory = document.getElementById('subCategoryFilter').value.toLowerCase();
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(doFetch, 300);
+}
+
+async function doFetch() {
+    const params = new URLSearchParams();
+    const section = document.getElementById('sectionFilter').value;
+    const unit = document.getElementById('unitFilter').value;
+    const category = document.getElementById('categoryFilter').value;
+    const subCategory = document.getElementById('subCategoryFilter').value;
     const status = document.getElementById('statusFilter').value;
-    const search = document.getElementById('searchFilter').value.toLowerCase();
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
 
-    let visibleCount = 0;
+    if (section) params.set('section', section);
+    if (unit) params.set('unit', unit);
+    if (category) params.set('category', category);
+    if (subCategory) params.set('subCategory', subCategory);
+    if (status && status !== 'ALL') params.set('statusFilter', status);
+    if (dateFrom) params.set('dateFrom', dateFrom);
+    if (dateTo) params.set('dateTo', dateTo);
 
-    document.querySelectorAll('.worker-row').forEach(row => {
-        const rowSection = row.getAttribute('data-section') || '';
-        const rowUnit = row.getAttribute('data-unit') || '';
-        const rowCategories = row.getAttribute('data-categories') || '';
-        const rowSubCategories = row.getAttribute('data-subcategories') || '';
-        const rowHasTraining = row.getAttribute('data-has-training') === 'true';
-        const rowName = row.getAttribute('data-name') || '';
-        const rowNip = row.getAttribute('data-nip') || '';
+    document.getElementById('tableLoadingIndicator').style.display = '';
 
-        const matchSection = !section || rowSection.toLowerCase() === section;
-        const matchUnit = !unit || rowUnit.toLowerCase() === unit;
-        const matchCategory = !category || rowCategories.split(',').some(c => c.trim() === category);
-        const matchSubCategory = !subCategory || rowSubCategories.split(',').some(s => s.trim() === subCategory);
-
-        let matchStatus = true;
-        if (status === 'ALL') {
-            matchStatus = true;
-        } else if (status === 'Sudah') {
-            if (subCategory) {
-                const completedSubCats = row.getAttribute('data-completed-subcategories') || '';
-                matchStatus = completedSubCats.split(',').some(s => s.trim() === subCategory);
-            } else if (category) {
-                const completedCats = row.getAttribute('data-completed-categories') || '';
-                matchStatus = completedCats.split(',').some(c => c.trim() === category);
-            } else {
-                matchStatus = rowHasTraining;
-            }
-        } else if (status === 'Belum') {
-            if (subCategory) {
-                const completedSubCats = row.getAttribute('data-completed-subcategories') || '';
-                matchStatus = !completedSubCats.split(',').some(s => s.trim() === subCategory);
-            } else if (category) {
-                const completedCats = row.getAttribute('data-completed-categories') || '';
-                matchStatus = !completedCats.split(',').some(c => c.trim() === category);
-            } else {
-                matchStatus = !rowHasTraining;
-            }
-        }
-
-        const matchSearch = !search || rowName.includes(search) || rowNip.includes(search);
-        const matchAll = matchSection && matchUnit && matchCategory && matchSubCategory && matchStatus && matchSearch;
-        row.style.display = matchAll ? '' : 'none';
-
-        if (matchAll) visibleCount++;
-    });
-
-    // Update worker counter
-    document.getElementById('workerCount').textContent = visibleCount;
-
-    updateExportLinks();
-
-    // Empty state handling
-    var emptyRow = document.getElementById('emptyStateRow');
-    if (visibleCount === 0 && document.querySelectorAll('.worker-row').length > 0) {
-        if (!emptyRow) {
-            var tbody = document.querySelector('#workerTable tbody');
-            var tr = document.createElement('tr');
-            tr.id = 'emptyStateRow';
-            tr.innerHTML = '<td colspan="8" class="text-center p-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Data belum ada</td>';
-            tbody.appendChild(tr);
-        } else {
-            emptyRow.style.display = '';
-        }
-    } else if (emptyRow) {
-        emptyRow.style.display = 'none';
+    try {
+        const resp = await fetch('@Url.Action("RecordsTeamPartial", "CMP")?' + params.toString(),
+            { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+        if (!resp.ok) throw new Error('Server error');
+        const html = await resp.text();
+        document.getElementById('workerTableBody').innerHTML = html;
+        const count = document.querySelectorAll('#workerTableBody .worker-row').length;
+        document.getElementById('workerCount').textContent = count;
+    } catch (e) {
+        document.getElementById('workerTableBody').innerHTML =
+            '<tr><td colspan="8" class="text-center text-danger p-4">Gagal memuat data. Coba lagi.</td></tr>';
+    } finally {
+        document.getElementById('tableLoadingIndicator').style.display = 'none';
     }
+    updateExportLinks();
 }
 
 function resetTeamFilters() {
@@ -407,10 +309,9 @@ function resetTeamFilters() {
     document.getElementById('subCategoryFilter').value = '';
     document.getElementById('subCategoryFilter').disabled = true;
     document.getElementById('statusFilter').value = 'ALL';
-    document.getElementById('searchFilter').value = '';
-    updateUnitOptions();
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
     if (isLocked) {
-        // Re-populate units for locked section
         updateUnitOptions();
     }
     filterTeamTable();
@@ -424,7 +325,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sectionFilter.disabled && sectionFilter.value) {
         updateUnitOptions();
     }
-    filterTeamTable();
     updateExportLinks();
 });
 </script>
