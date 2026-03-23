@@ -4,6 +4,46 @@
 
 ---
 
+## Milestone: v8.2 — Proton Coaching Ecosystem Audit
+
+**Shipped:** 2026-03-23
+**Phases:** 6 (233-238) | **Plans:** 16
+
+### What Was Built
+- Dokumen riset HTML perbandingan 3 platform enterprise (360Learning, BetterUp, CoachHub) vs Portal KPB — 20 rekomendasi 3-tier
+- Setup audit: silabus delete safety, guidance file management, coach-coachee mapping atomic transaction, import all-or-nothing two-pass, progression warning override
+- Execution audit: EvidencePathHistory resubmit traceability, approval race guard first-write-wins, notification completeness, PlanIdp coaching guidance scoped
+- Completion audit: unique constraint ProtonFinalAssessment, coaching session Edit/Delete CRUD, HistoriProton completion criteria, MarkMappingCompleted graduated flow
+- Monitoring audit: filter cascade fix, override transition validation, 3 export baru
+- Differentiator: workload indicator badge warna, batch HC approval, bottleneck horizontal bar chart
+
+### What Worked
+- **Research-first pattern (v8.1 proven)**: Riset Phase 233 memberikan lens konkret untuk audit — gap analysis vs platform enterprise menghasilkan 37 findings (20 dari riset + 24 tambahan dari codebase, overlap)
+- **6-phase sequential dependency chain**: Setup→Execution→Completion→Monitoring→Gap Closure — setiap phase membangun di atas perbaikan sebelumnya
+- **Gap closure phase pattern**: Phase 238 muncul dari milestone audit internal — menutup 5 partial requirements yang backend sudah siap tapi UI belum wired
+- **2-day execution**: 6 phases + 16 plans dalam 2 hari — audit milestones memang lebih cepat karena scope jelas
+
+### What Was Inefficient
+- **Phase 235 4 plans instead of 3**: Plan 235-04 gap closure diperlukan karena SubmitEvidenceWithCoaching batch endpoint terlewat di 235-02
+- **v8.0 audit file used for v8.2**: Milestone audit file masih bernama v8.0-MILESTONE-AUDIT.md — naming mismatch karena v8.0 audit dilakukan sebelum v8.1/v8.2 split
+
+### Patterns Established
+- **Coaching audit checklist**: Setup integrity → Execution safety → Completion consistency → Monitoring accuracy — reusable sequence untuk audit ekosistem apapun
+- **Differentiator phase terakhir**: Enhancement (workload indicator, batch approval, bottleneck) di phase terakhir setelah semua bug fix — fondasi bersih dulu
+- **Warning-only progression**: Server mengirim warning tapi tidak block — user bisa override dengan confirm dialog
+
+### Key Lessons
+1. Research-first pattern terus terbukti — riset menghasilkan findings yang tidak terlihat dari codebase review saja
+2. Gap closure phases (238) are natural — milestone self-audit menemukan UI yang belum wired ke backend yang sudah siap
+3. Audit milestones semakin cepat seiring maturity codebase — v8.2 menemukan lebih sedikit critical bug dibanding v4.0
+
+### Cost Observations
+- Model mix: opus (orchestrator), sonnet (executor, verifier)
+- Sessions: 2 (across 2 days)
+- Notable: 24 requirements, 88 commits, 17K+ LOC dalam 2 hari
+
+---
+
 ## Milestone: v7.12 — Struktur Organisasi CRUD
 
 **Shipped:** 2026-03-21
@@ -605,5 +645,7 @@
 | v5.0 | 2 | 4 | 1 | 4 |
 | v7.6 | 4 | 6 | 1 | 6 |
 | v7.10 | 3 | 5 | 1 | 5 |
+| v7.12 | 4 | 7 | 1 | 7 |
+| v8.2 | 6 | 16 | 2 | 8 |
 
-**Running total:** 107 phases, ~245 plans, 31 days
+**Running total:** 117 phases, ~268 plans, 34 days

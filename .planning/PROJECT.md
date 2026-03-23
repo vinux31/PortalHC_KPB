@@ -12,26 +12,24 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.2 in progress, 2026-03-23)
+## Current State (v8.2 shipped, 2026-03-23)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
 **v7.1–v7.12 shipped** — Export/Import, Certification, Assessment Form, Code Dedup, Renewal Certificate, KKJ/IDP, Records, Struktur Organisasi (phases 176-222).
 **v8.0 shipped** — Assessment Integrity & Analytics, 5 phases (223-227).
-**v8.1 shipped** — Renewal & Assessment Ecosystem Audit, 5 phases (228-232). Riset best practices, audit renewal logic/UI/cross-page, audit assessment management/monitoring, audit worker exam flow.
+**v8.1 shipped** — Renewal & Assessment Ecosystem Audit, 5 phases (228-232).
+**v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238). Riset 3 platform enterprise, audit setup/execution/completion/monitoring, differentiator enhancement (workload indicator, batch approval, bottleneck analysis).
 
-**Current focus:** v8.2 Proton Coaching Ecosystem Audit
+**Current focus:** Planning next milestone
 
-## Current Milestone: v8.2 Proton Coaching Ecosystem Audit
+## Next Milestone Goals
 
-**Goal:** Audit seluruh ekosistem Proton coaching end-to-end — dari setup (silabus, mapping, assignment) hingga execution (evidence, approval chain) dan completion (final assessment, history) — berdasarkan riset best practices coaching/mentoring platform.
-
-**Target features:**
-- Riset best practices coaching/mentoring platform (360Learning, BetterUp, dll)
-- Audit Setup Flow: Silabus CRUD, Guidance files, Coach-Coachee Mapping, Track Assignment
-- Audit Execution Flow: PlanIdp, Evidence submission, Sequential lock, Multi-role approval chain (SrSpv→SH→HC)
-- Audit Monitoring & Dashboard: CoachingProton tracking, Dashboard stats/charts, Override, Export
-- Audit Completion & History: Final Assessment, HistoriProton timeline, Coaching Sessions, ActionItems
+- Competency gap heatmap (worker x kompetensi matrix)
+- Scheduling integration / calendar untuk coaching sessions
+- AI-generated coaching session summaries
+- SLA/escalation otomatis untuk approval yang terlalu lama
+- Predicted completion date berdasarkan historical pace
 
 ## Architecture Decisions
 
@@ -44,6 +42,20 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v8.2 - Proton Coaching Ecosystem Audit (2026-03-23)
+
+**Delivered:** End-to-end audit ekosistem Proton coaching berdasarkan riset 3 platform enterprise (360Learning, BetterUp, CoachHub). Audit setup flow (silabus delete safety, mapping transaction, import all-or-nothing), execution flow (evidence resubmit traceability, race guard, notification), completion (unique constraint, session CRUD, HistoriProton criteria), monitoring (filter fix, override validation). Differentiator: workload indicator, batch HC approval, bottleneck analysis chart, 3 export baru.
+
+**Metrics:** 6 phases (233-238), 16 plans, 86 files changed, +17,252 / -297 lines
+
+### ✅ v8.1 - Renewal & Assessment Ecosystem Audit (2026-03-22)
+
+**Delivered:** Riset best practices, audit renewal logic/UI/cross-page, audit assessment management/monitoring, audit worker exam flow.
+
+### ✅ v8.0 - Assessment Integrity & Analytics (2026-03-22)
+
+**Delivered:** Assessment integrity (SessionElemenTeknisScore, exam activity log), analytics dashboard (fail rate, trend, ET breakdown, expiring certs), legacy data migration dan cleanup.
 
 ### ✅ v7.12 - Struktur Organisasi CRUD (2026-03-21)
 

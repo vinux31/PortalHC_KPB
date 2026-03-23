@@ -1,5 +1,29 @@
 # Milestones
 
+## v8.2 Proton Coaching Ecosystem Audit (Shipped: 2026-03-23)
+
+**Phases completed:** 6 phases (233-238), 16 plans, 30 tasks
+**Timeline:** 2026-03-22 → 2026-03-23 (2 days)
+**Code changes:** 86 files changed, +17,252 / -297 lines
+**Commits:** 88
+
+**Delivered:** End-to-end audit ekosistem Proton coaching — riset 3 platform enterprise (360Learning, BetterUp, CoachHub), audit setup/execution/completion/monitoring flow, fix 24+ bug, plus differentiator enhancement (workload indicator, batch approval, bottleneck analysis).
+
+**Key accomplishments:**
+
+1. Riset coaching platform — Dokumen HTML perbandingan 3 platform enterprise vs Portal KPB, 20 rekomendasi 3-tier, gap analysis per 4 area Proton
+2. Audit Setup Flow — Silabus delete safety (hard delete blocked jika progress aktif), guidance file management, coach-coachee mapping atomic transaction, import all-or-nothing two-pass, progression warning override
+3. Audit Execution Flow — Evidence resubmit traceability (EvidencePathHistory), approval race guard first-write-wins, notification completeness (resubmit ke coach), PlanIdp coaching guidance scoped to coach's mapped coachees
+4. Audit Completion — Unique constraint ProtonFinalAssessment, coaching session Edit/Delete CRUD, HistoriProton completion criteria (assessment + all deliverables), MarkMappingCompleted graduated flow
+5. Audit Monitoring & Differentiator — Filter cascade bug fix, override transition validation, workload indicator badge warna, batch HC approval, bottleneck horizontal bar chart, 3 export baru
+6. Gap Closure — UI wiring progression warning confirm dialog, session Edit/Delete buttons, 3 export link buttons
+
+**Known Gaps (accepted as tech debt):**
+- v8.0 audit: AINT-02/03 deferred (tab-switch detection), 10 orphaned requirements from removed phases (COMP-01-03, NOTF-01-04, QBNK-01-03)
+- v8.0 audit: ANLT-04 partial (30-day only, not 30/60/90), 5 Chart.js visual checks pending human verification
+
+---
+
 ## v7.12 Struktur Organisasi CRUD (Shipped: 2026-03-21)
 
 **Phases completed:** 4 phases (219-222), 7 plans
