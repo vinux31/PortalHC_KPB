@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
 using HcPortal.Data;
+using HcPortal.Services;
 
 namespace HcPortal.Controllers;
 
@@ -13,11 +14,16 @@ public class HomeController : Controller
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ApplicationDbContext _context;
+    private readonly INotificationService _notificationService;
+    private readonly ILogger<HomeController> _logger;
 
-    public HomeController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+    public HomeController(UserManager<ApplicationUser> userManager, ApplicationDbContext context,
+        INotificationService notificationService, ILogger<HomeController> logger)
     {
         _userManager = userManager;
         _context = context;
+        _notificationService = notificationService;
+        _logger = logger;
     }
 
     public async Task<IActionResult> Index()
@@ -41,9 +47,98 @@ public class HomeController : Controller
             var (expiredCount, akanExpiredCount) = await GetCertAlertCountsAsync();
             viewModel.ExpiredCount = expiredCount;
             viewModel.AkanExpiredCount = akanExpiredCount;
+            await TriggerCertExpiredNotificationsAsync();
         }
 
         return View(viewModel);
+    }
+
+    private async Task TriggerCertExpiredNotificationsAsync()
+    {
+        try
+        {
+            var today = DateTime.Today;
+
+            // Renewal chain resolution (same as GetCertAlertCountsAsync)
+            var renewedByAsSessionIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsSessionId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsSessionId!.Value).Distinct().ToListAsync();
+            var renewedByTrSessionIds = await _context.TrainingRecords
+                .Where(t => t.RenewsSessionId.HasValue)
+                .Select(t => t.RenewsSessionId!.Value).Distinct().ToListAsync();
+            var renewedByAsTrainingIds = await _context.AssessmentSessions
+                .Where(a => a.RenewsTrainingId.HasValue && a.IsPassed == true)
+                .Select(a => a.RenewsTrainingId!.Value).Distinct().ToListAsync();
+            var renewedByTrTrainingIds = await _context.TrainingRecords
+                .Where(t => t.RenewsTrainingId.HasValue)
+                .Select(t => t.RenewsTrainingId!.Value).Distinct().ToListAsync();
+
+            var renewedSessionIds = new HashSet<int>(renewedByAsSessionIds);
+            renewedSessionIds.UnionWith(renewedByTrSessionIds);
+            var renewedTrainingIds = new HashSet<int>(renewedByAsTrainingIds);
+            renewedTrainingIds.UnionWith(renewedByTrTrainingIds);
+
+            // Expired TrainingRecords
+            var expiredTrainings = await _context.TrainingRecords
+                .Include(t => t.User)
+                .Where(t => t.SertifikatUrl != null && t.CertificateType != "Permanent"
+                    && t.ValidUntil.HasValue && t.ValidUntil.Value < today)
+                .Select(t => new { t.Id, Judul = t.Judul ?? "", NamaWorker = t.User != null ? t.User.FullName : "" })
+                .ToListAsync();
+
+            // Expired AssessmentSessions
+            var expiredAssessments = await _context.AssessmentSessions
+                .Include(a => a.User)
+                .Where(a => a.GenerateCertificate && a.IsPassed == true
+                    && a.ValidUntil.HasValue && a.ValidUntil.Value < today)
+                .Select(a => new { a.Id, Judul = a.Title, NamaWorker = a.User != null ? a.User.FullName : "" })
+                .ToListAsync();
+
+            // Filter out renewed, build message list
+            var expiredCerts = expiredTrainings
+                .Where(t => !renewedTrainingIds.Contains(t.Id))
+                .Select(t => new { t.Judul, t.NamaWorker })
+                .Concat(expiredAssessments
+                    .Where(a => !renewedSessionIds.Contains(a.Id))
+                    .Select(a => new { a.Judul, a.NamaWorker }))
+                .ToList();
+
+            if (expiredCerts.Count == 0) return;
+
+            var hcUsers = await _userManager.GetUsersInRoleAsync("HC");
+            var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+            var targetUsers = hcUsers.Concat(adminUsers).DistinctBy(u => u.Id).ToList();
+
+            // Pre-fetch existing CERT_EXPIRED notifications for dedup
+            var existingNotifications = await _context.UserNotifications
+                .Where(n => n.Type == "CERT_EXPIRED")
+                .Select(n => new { n.UserId, n.Message })
+                .ToListAsync();
+            var existingSet = new HashSet<string>(existingNotifications.Select(n => $"{n.UserId}|{n.Message}"));
+
+            foreach (var cert in expiredCerts)
+            {
+                var message = $"Sertifikat {cert.Judul} milik {cert.NamaWorker} telah expired";
+                foreach (var targetUser in targetUsers)
+                {
+                    if (existingSet.Contains($"{targetUser.Id}|{message}"))
+                        continue;
+
+                    await _notificationService.SendAsync(
+                        targetUser.Id,
+                        "CERT_EXPIRED",
+                        "Sertifikat Expired",
+                        message,
+                        "/Admin/RenewalCertificate"
+                    );
+                    existingSet.Add($"{targetUser.Id}|{message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to trigger CERT_EXPIRED notifications");
+        }
     }
 
     private async Task<(int expiredCount, int akanExpiredCount)> GetCertAlertCountsAsync()
