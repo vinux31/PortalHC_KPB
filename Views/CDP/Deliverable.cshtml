@@ -64,6 +64,8 @@ else
     @* Declare coaching data variables early — used in Card 3 and Card 4 *@
     var coachingSessions65 = ViewBag.CoachingSessions as List<HcPortal.Models.CoachingSession> ?? new List<HcPortal.Models.CoachingSession>();
     var coachNames65 = ViewBag.CoachNames as Dictionary<string, string> ?? new Dictionary<string, string>();
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+    var isHcOrAdmin = User.IsInRole("HC") || User.IsInRole("Admin");
 
     @* === Row 1: Side-by-side cards === *@
     <div class="row g-3 mb-3">
@@ -319,6 +321,24 @@ else
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <strong><i class="bi bi-person me-1"></i>@coachDisplayName</strong>
                             <small class="text-muted">@session.Date.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</small>
+                            @if (isHcOrAdmin || session.CoachId == currentUserId)
+                            {
+                                <span>
+                                    <a href="@Url.Action("EditCoachingSession", "CDP", new { id = session.Id })"
+                                       class="btn btn-sm btn-outline-primary me-1" title="Edit Session">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <form asp-action="DeleteCoachingSession" asp-controller="CDP" method="post"
+                                          style="display:inline"
+                                          onsubmit="return confirm('Hapus sesi coaching ini?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@session.Id" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Session">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </span>
+                            }
                         </div>
                         <table class="table table-sm table-borderless mb-0">
                             @if (!string.IsNullOrEmpty(session.AcuanPedoman))
