@@ -126,9 +126,9 @@ Plans:
   1. AJAX handler CoachCoacheeMapping menampilkan confirm dialog saat `warning:true` dan mengirim ulang dengan `ConfirmProgressionWarning=true`
   2. Deliverable.cshtml menampilkan tombol Edit dan Delete untuk coaching sessions (role-gated coach pemilik + HC/Admin)
   3. UI memiliki link/tombol untuk ExportBottleneckReport, ExportCoachingTracking, dan ExportWorkloadSummary yang accessible oleh HC/Admin
-**Plans**: TBD
+**Plans**: 1 plan
 Plans:
-- [ ] 238-01-PLAN.md — TBD
+- [ ] 238-01-PLAN.md — Wire progression warning, session Edit/Delete, 3 export buttons
 
 ## Progress
 
