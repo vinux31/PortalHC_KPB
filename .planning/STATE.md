@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
-status: unknown
-stopped_at: Phase 236 context gathered
-last_updated: "2026-03-23T02:33:21.805Z"
+status: Ready to execute
+stopped_at: Completed 236-01-PLAN.md
+last_updated: "2026-03-23T03:42:47.937Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 11
+  completed_plans: 9
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 235 — audit-execution-flow
+**Current focus:** Phase 236 — audit-completion
 
 ## Current Position
 
-Phase: 236
-Plan: Not started
+Phase: 236 (audit-completion) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -49,6 +49,8 @@ Plan: Not started
 - [Phase 235-audit-execution-flow]: Race guard ditempatkan setelah per-role field set sebelum overall Status assignment untuk first-write-wins semantics (D-10)
 - [Phase 235]: EvidencePathHistory stored as JSON string column — fits existing scalar column pattern
 - [Phase 235]: D-20: Coach di PlanIdp sekarang hanya melihat guidance untuk Bagian coachee yang di-map ke mereka via CoachCoacheeMappings
+- [Phase 236-audit-completion]: Unique constraint ProtonFinalAssessment.ProtonTrackAssignmentId: DB-level enforcement via HasIndex().IsUnique()
+- [Phase 236-audit-completion]: IsCompleted + CompletedAt di CoachCoacheeMapping: fondasi tracking graduated coachee untuk completion flow Plan 03
 
 ### Pending Todos
 
@@ -60,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T02:33:21.799Z
-Stopped at: Phase 236 context gathered
-Resume file: .planning/phases/236-audit-completion/236-CONTEXT.md
+Last session: 2026-03-23T03:42:47.930Z
+Stopped at: Completed 236-01-PLAN.md
+Resume file: None

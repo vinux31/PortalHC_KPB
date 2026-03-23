@@ -27,14 +27,14 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 - [x] **EXEC-02**: Audit Approval chain — verifikasi state consistency di edge cases (concurrent approve, Override admin, partial approval)
 - [x] **EXEC-03**: Audit DeliverableStatusHistory — verifikasi completeness insert di setiap state transition termasuk initial Pending
 - [x] **EXEC-04**: Audit Notifikasi — verifikasi semua Proton notification triggers terpanggil (evidence submit, approve, reject, HC review, final assessment)
-- [ ] **EXEC-05**: Audit PlanIdp view — silabus display accuracy, guidance tabs, role-based access correctness
+- [x] **EXEC-05**: Audit PlanIdp view — silabus display accuracy, guidance tabs, role-based access correctness
 
 ### Audit Completion
 
-- [ ] **COMP-01**: Audit Final Assessment — tambah DB unique constraint pada ProtonTrackAssignmentId, competency level granting accuracy
-- [ ] **COMP-02**: Audit Coaching Sessions — linkage ke deliverable progress, action items status tracking, session CRUD integrity
+- [x] **COMP-01**: Audit Final Assessment — tambah DB unique constraint pada ProtonTrackAssignmentId, competency level granting accuracy
+- [x] **COMP-02**: Audit Coaching Sessions — linkage ke deliverable progress, action items status tracking, session CRUD integrity
 - [ ] **COMP-03**: Audit HistoriProton — timeline accuracy, legacy CoachingLog coexistence, data completeness
-- [ ] **COMP-04**: Audit 3-year journey — Tahun 1→2→3 lifecycle end-to-end, assignment transition, completion flow
+- [x] **COMP-04**: Audit 3-year journey — Tahun 1→2→3 lifecycle end-to-end, assignment transition, completion flow
 
 ### Audit Monitoring
 
@@ -82,11 +82,11 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 | EXEC-02 | Phase 235 | Complete |
 | EXEC-03 | Phase 235 | Complete |
 | EXEC-04 | Phase 235 | Complete |
-| EXEC-05 | Phase 235 | Pending |
-| COMP-01 | Phase 236 | Pending |
-| COMP-02 | Phase 236 | Pending |
+| EXEC-05 | Phase 235 | Complete |
+| COMP-01 | Phase 236 | Complete |
+| COMP-02 | Phase 236 | Complete |
 | COMP-03 | Phase 236 | Pending |
-| COMP-04 | Phase 236 | Pending |
+| COMP-04 | Phase 236 | Complete |
 | MON-01 | Phase 237 | Pending |
 | MON-02 | Phase 237 | Pending |
 | MON-03 | Phase 237 | Pending |
