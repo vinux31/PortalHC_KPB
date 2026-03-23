@@ -41,18 +41,18 @@ None for this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ALRT-01 | TBD | Pending |
-| ALRT-02 | TBD | Pending |
-| ALRT-03 | TBD | Pending |
-| ALRT-04 | TBD | Pending |
-| NOTF-01 | TBD | Pending |
-| NOTF-02 | TBD | Pending |
-| NOTF-03 | TBD | Pending |
+| ALRT-01 | Phase 240 | Pending |
+| ALRT-02 | Phase 240 | Pending |
+| ALRT-03 | Phase 240 | Pending |
+| ALRT-04 | Phase 240 | Pending |
+| NOTF-01 | Phase 240 | Pending |
+| NOTF-02 | Phase 240 | Pending |
+| NOTF-03 | Phase 240 | Pending |
 
 **Coverage:**
 - v8.4 requirements: 7 total
-- Mapped to phases: 0
-- Unmapped: 7
+- Mapped to phases: 7
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-23*

@@ -11,49 +11,48 @@
 - ✅ **v8.0 Assessment Integrity & Analytics** - Phases 223–227 (shipped 2026-03-22)
 - ✅ **v8.1 Renewal & Assessment Ecosystem Audit** - Phases 228–232 (shipped 2026-03-22)
 - ✅ **v8.2 Proton Coaching Ecosystem Audit** - Phases 233–238 (shipped 2026-03-23)
-- 🚧 **v8.3 Date Range Filter Team View Records** - Phase 239 (in progress)
+- ✅ **v8.3 Date Range Filter Team View Records** - Phase 239 (shipped 2026-03-23)
+- 🚧 **v8.4 Alarm Sertifikat Expired** - Phase 240 (in progress)
 
 ---
 
 <details>
-<summary>✅ v1.0–v8.2 (Phases 1–238) - SHIPPED</summary>
+<summary>✅ v1.0–v8.3 (Phases 1–239) - SHIPPED</summary>
 
 All prior milestones shipped. See MILESTONES.md for full detail.
 
-Last completed phase: 238 (v8.2 — Gap Closure UI Wiring)
+Last completed phase: 239 (v8.3 — Date Range Filter Team View Records)
 
 </details>
 
 ---
 
-### 🚧 v8.3 Date Range Filter Team View Records (In Progress)
+### 🚧 v8.4 Alarm Sertifikat Expired (In Progress)
 
-**Milestone Goal:** Ganti search nama dengan date range filter pada Team View di CMP/Records agar user dapat memfilter workers berdasarkan rentang tanggal records mereka.
+**Milestone Goal:** Tampilkan alarm sertifikat expired kepada HC/Admin melalui 2 kanal: banner alert di Home/Index dan notifikasi bell (CERT_EXPIRED).
 
 ## Phases
 
-- [x] **Phase 239: Date Range Filter & Export** - Hapus search nama, tambah 2 input date, filter tabel dan count, update export (completed 2026-03-23)
+- [ ] **Phase 240: Alarm Sertifikat Expired** - Banner alert + bell notification CERT_EXPIRED untuk HC/Admin di Home/Index
 
 ## Phase Details
 
-### Phase 239: Date Range Filter & Export
-**Goal**: User dapat memfilter Team View berdasarkan rentang tanggal records — tabel hanya menampilkan workers yang punya records dalam rentang tersebut, count ikut ter-filter, dan export meneruskan parameter date range ke server
+### Phase 240: Alarm Sertifikat Expired
+**Goal**: HC dan Admin dapat melihat status sertifikat bermasalah secara langsung saat membuka Home/Index — melalui banner ringkas di halaman dan notifikasi bell yang persisten — sehingga tindakan renewal dapat segera diambil
 **Depends on**: Nothing (single-phase milestone)
-**Requirements**: FILT-01, FILT-02, FILT-03, FILT-04, FILT-05, FILT-06, EXP-01, EXP-02
+**Requirements**: ALRT-01, ALRT-02, ALRT-03, ALRT-04, NOTF-01, NOTF-02, NOTF-03
 **Success Criteria** (what must be TRUE):
-  1. User melihat 2 input date (Tanggal Awal & Tanggal Akhir) di filter bar Team View, menggantikan textbox Search Nama/NIP yang sebelumnya ada
-  2. Saat tanggal diisi, tabel hanya menampilkan workers yang punya minimal 1 record (assessment atau training) dalam rentang tersebut; saat dikosongkan semua workers tampil kembali
-  3. Count kolom Assessment dan Training di baris setiap worker hanya menghitung records yang jatuh di dalam rentang tanggal yang dipilih
-  4. Filter date bekerja independen bersama filter Bagian, Unit, Category, Sub Category, dan Status — kombinasi apapun menghasilkan filter yang benar
-  5. Tombol Reset mengosongkan date range bersama semua filter lain; export Assessment dan export Training meneruskan parameter date range ke server sehingga hasil export konsisten dengan tampilan tabel
-**Plans:** 2/2 plans complete
-
-Plans:
-- [x] 239-01-PLAN.md — Backend: service date filter + controller AJAX partial + export params
-- [x] 239-02-PLAN.md — Frontend: UI date inputs + JS AJAX refactor + reset/export wiring
+  1. HC/Admin membuka Home/Index dan melihat banner alert yang menampilkan jumlah Expired (latar merah) dan Akan Expired ≤30 hari (latar kuning) secara terpisah
+  2. Banner memiliki link "Lihat Detail" yang membawa user langsung ke halaman RenewalCertificate
+  3. Banner tidak muncul sama sekali ketika tidak ada sertifikat expired maupun akan expired
+  4. Setiap sertifikat expired yang belum pernah dinotifikasikan menghasilkan entri UserNotification tipe CERT_EXPIRED di bell dropdown saat HC/Admin membuka Home/Index
+  5. Notifikasi CERT_EXPIRED di bell dropdown menampilkan nama pekerja dan judul sertifikat, dan hanya dikirim ke user dengan role HC atau Admin
+**Plans**: TBD
+**UI hint**: yes
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 239. Date Range Filter & Export | v8.3 | 2/2 | Complete    | 2026-03-23 |
+| 239. Date Range Filter & Export | v8.3 | 2/2 | Complete | 2026-03-23 |
+| 240. Alarm Sertifikat Expired | v8.4 | 0/? | Not started | - |

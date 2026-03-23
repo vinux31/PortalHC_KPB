@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v8.4
 milestone_name: Alarm Sertifikat Expired
-status: Defining requirements
+status: Ready to plan
 stopped_at: null
-last_updated: "2026-03-23T13:00:00.000Z"
+last_updated: "2026-03-23T14:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 1
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,14 +19,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v8.4 Alarm Sertifikat Expired
+**Current focus:** Phase 240 — Alarm Sertifikat Expired
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-23 — Milestone v8.4 started
+Phase: 240 of 240 (Alarm Sertifikat Expired)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-03-23 — Roadmap v8.4 created, Phase 240 defined
+
+Progress: [░░░░░░░░░░] 0% (v8.4 milestone)
 
 ## Performance Metrics
 
@@ -40,9 +42,11 @@ Last activity: 2026-03-23 — Milestone v8.4 started
 
 ### Decisions
 
-- v8.3: Single-phase milestone — semua 8 requirements (FILT-01..06, EXP-01..02) masuk Phase 239 karena tightly related (UI filter + export parameter)
-- v8.4: Alarm sertifikat via 2 kanal — banner di Home/Index + bell notification CERT_EXPIRED (tanpa CERT_EXPIRING_SOON)
-- v8.4: Threshold 30 hari sesuai existing IsExpiringSoon, tidak custom
+- v8.3: Single-phase milestone — semua 8 requirements (FILT-01..06, EXP-01..02) masuk Phase 239
+- v8.4: Semua 7 requirements (ALRT-01..04, NOTF-01..03) digabung ke 1 fase (Phase 240) karena banner dan bell notification keduanya bergantung pada query expired certs yang sama
+- v8.4: CERT_EXPIRING_SOON notification sengaja out-of-scope — akan expired cukup tampil di banner saja
+- v8.4: Notifikasi di-generate on page load, tidak perlu background job/scheduler
+- v8.4: Infrastruktur tersedia — BuildRenewalRowsAsync() dan NotificationService.SendAsync() sudah ada
 
 ### Pending Todos
 
@@ -54,6 +58,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T13:00:00.000Z
-Stopped at: Milestone v8.4 started — defining requirements
+Last session: 2026-03-23T14:00:00.000Z
+Stopped at: Roadmap created — Phase 240 ready to plan
 Resume file: None
