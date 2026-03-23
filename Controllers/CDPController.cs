@@ -13,6 +13,12 @@ using HcPortal.Helpers;
 
 namespace HcPortal.Controllers
 {
+    // Phase 237-03: DTO for batch HC approval
+    public class BatchHCApproveRequest
+    {
+        public List<int> ProgressIds { get; set; } = new();
+    }
+
     // ====================================================================
     // PHASE 87-02 DASHBOARD QA FIXES
     // ====================================================================
@@ -3714,6 +3720,50 @@ namespace HcPortal.Controllers
             rows.AddRange(trainingRows);
             rows.AddRange(assessmentRows);
             return (rows, roleLevel);
+        }
+
+        // ===== Phase 237-03: Batch HC Approve (DIFF-02) =====
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "HC, Admin")]
+        public async Task<IActionResult> BatchHCApprove([FromBody] BatchHCApproveRequest req)
+        {
+            if (req == null || req.ProgressIds == null || req.ProgressIds.Count == 0)
+                return BadRequest(new { success = false, message = "Tidak ada item yang dipilih." });
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Only process items that are still Pending HC Review (race guard — D-05)
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Where(p => req.ProgressIds.Contains(p.Id)
+                    && p.Status == "Submitted"
+                    && p.HCApprovalStatus == "Pending")
+                .ToListAsync();
+
+            int skippedCount = req.ProgressIds.Count - progresses.Count;
+
+            foreach (var progress in progresses)
+            {
+                progress.HCApprovalStatus = "Reviewed";
+                progress.HCReviewedById = user.Id;
+                progress.HCReviewedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+
+            if (progresses.Count > 0)
+            {
+                var actorName = string.IsNullOrWhiteSpace(user.NIP)
+                    ? (user.FullName ?? "Unknown")
+                    : $"{user.NIP} - {user.FullName}";
+                await _auditLog.LogAsync(user.Id, actorName, "BatchHCApprove",
+                    $"Batch HC Approve {progresses.Count} deliverable: IDs {string.Join(",", progresses.Select(p => p.Id))}",
+                    null, "ProtonDeliverableProgress");
+            }
+
+            return Json(new { success = true, approvedCount = progresses.Count, skippedCount });
         }
 
         // ===== Phase 237-03: Export baru (MON-04) =====

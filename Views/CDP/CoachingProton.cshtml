@@ -366,10 +366,23 @@
     @* Deliverable table *@
     @if (Model.Count > 0)
     {
+        @if (isHC)
+        {
+            <div class="mb-2">
+                <button id="batchApproveBtn" class="btn btn-success btn-sm" style="display:none;"
+                        data-bs-toggle="modal" data-bs-target="#batchApproveModal">
+                    Approve Selected (<span id="selectedCount">0</span>)
+                </button>
+            </div>
+        }
         <div class="table-responsive">
             <table class="table table-bordered table-hover" id="progressTable">
                 <thead class="table-light">
                     <tr>
+                        @if (isHC)
+                        {
+                            <th style="width:36px"><input type="checkbox" id="selectAll" title="Pilih semua" /></th>
+                        }
                         @if (showCoacheeColumn)
                         {
                             <th>Coachee</th>
@@ -400,6 +413,18 @@
                                     foreach (var item in subGroup.Items)
                                     {
                                         <tr data-kompetensi="@item.Kompetensi" data-deliverable="@item.Deliverable">
+                                            @if (isHC)
+                                            {
+                                                <td class="text-center align-middle">
+                                                    @if (item.Status == "Submitted" && item.ApprovalHC == "Pending")
+                                                    {
+                                                        <input type="checkbox" class="batch-check"
+                                                               value="@item.Id"
+                                                               data-deliverable="@item.Deliverable"
+                                                               data-coachee="@item.CoacheeName" />
+                                                    }
+                                                </td>
+                                            }
                                             @if (firstCoacheeRow)
                                             {
                                                 <td rowspan="@coacheeGroup.RowCount" class="align-middle fw-bold">@coacheeGroup.CoacheeName</td>
@@ -529,6 +554,18 @@
                                 foreach (var item in subGroup.Items)
                                 {
                                     <tr data-kompetensi="@item.Kompetensi" data-deliverable="@item.Deliverable">
+                                        @if (isHC)
+                                        {
+                                            <td class="text-center align-middle">
+                                                @if (item.Status == "Submitted" && item.ApprovalHC == "Pending")
+                                                {
+                                                    <input type="checkbox" class="batch-check"
+                                                           value="@item.Id"
+                                                           data-deliverable="@item.Deliverable"
+                                                           data-coachee="@item.CoacheeName" />
+                                                }
+                                            </td>
+                                        }
                                         @if (firstKomp)
                                         {
                                             <td rowspan="@kompGroup.RowCount" class="align-middle fw-bold">@kompGroup.Kompetensi</td>
@@ -990,6 +1027,29 @@
             _ => "<span class=\"badge bg-light text-dark\">-</span>",
         };
     }
+}
+
+@* Modal: Batch HC Approve Konfirmasi *@
+@if (isHC)
+{
+<div class="modal fade" id="batchApproveModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Konfirmasi Batch Approve HC</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Approve <strong><span id="batchApproveCount">0</span></strong> deliverable berikut?</p>
+                <ul id="batchApproveList" style="max-height:200px;overflow-y:auto;font-size:0.9em"></ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-success btn-sm" id="batchApproveConfirmBtn">Approve</button>
+            </div>
+        </div>
+    </div>
+</div>
 }
 
 @section Scripts {
@@ -1571,6 +1631,90 @@ function updateStatCards() {
             }, 100);
         }
     }
+})();
+
+// === Batch HC Approve ===
+(function() {
+        const selectAll = document.getElementById('selectAll');
+        const batchBtn = document.getElementById('batchApproveBtn');
+        const selectedCountEl = document.getElementById('selectedCount');
+        const confirmList = document.getElementById('batchApproveList');
+        const confirmCountEl = document.getElementById('batchApproveCount');
+
+        function updateBatchBtn() {
+            const checked = document.querySelectorAll('.batch-check:checked');
+            const count = checked.length;
+            if (selectedCountEl) selectedCountEl.textContent = count;
+            if (batchBtn) batchBtn.style.display = count > 0 ? '' : 'none';
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function() {
+                document.querySelectorAll('.batch-check').forEach(cb => cb.checked = selectAll.checked);
+                updateBatchBtn();
+            });
+        }
+
+        document.querySelectorAll('.batch-check').forEach(function(cb) {
+            cb.addEventListener('change', function() {
+                updateBatchBtn();
+                if (selectAll && !this.checked) selectAll.checked = false;
+            });
+        });
+
+        // On modal show: populate list
+        const batchModal = document.getElementById('batchApproveModal');
+        if (batchModal) {
+            batchModal.addEventListener('show.bs.modal', function() {
+                const checked = document.querySelectorAll('.batch-check:checked');
+                if (confirmCountEl) confirmCountEl.textContent = checked.length;
+                if (confirmList) {
+                    confirmList.innerHTML = '';
+                    checked.forEach(function(cb) {
+                        const li = document.createElement('li');
+                        li.textContent = (cb.dataset.coachee ? cb.dataset.coachee + ' — ' : '') + (cb.dataset.deliverable || '');
+                        confirmList.appendChild(li);
+                    });
+                }
+            });
+        }
+
+        // On confirm click: POST AJAX
+        const confirmBtn = document.getElementById('batchApproveConfirmBtn');
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', async function() {
+                const checked = document.querySelectorAll('.batch-check:checked');
+                const ids = Array.from(checked).map(cb => parseInt(cb.value));
+                if (ids.length === 0) return;
+
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Memproses...';
+
+                try {
+                    const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                    const resp = await fetch('@Url.Action("BatchHCApprove", "CDP")', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token || ''
+                        },
+                        body: JSON.stringify({ progressIds: ids })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        window.location.reload();
+                    } else {
+                        alert('Gagal: ' + (data.message || 'Terjadi kesalahan.'));
+                        confirmBtn.disabled = false;
+                        confirmBtn.textContent = 'Approve';
+                    }
+                } catch (e) {
+                    alert('Terjadi kesalahan jaringan.');
+                    confirmBtn.disabled = false;
+                    confirmBtn.textContent = 'Approve';
+                }
+            });
+        }
 })();
 </script>
 }
