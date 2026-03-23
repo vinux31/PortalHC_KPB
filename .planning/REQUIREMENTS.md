@@ -93,49 +93,47 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 
 ## Traceability
 
-Updated during roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEED-01 | — | Pending |
-| SEED-02 | — | Pending |
-| SEED-03 | — | Pending |
-| SEED-04 | — | Pending |
-| SEED-05 | — | Pending |
-| SEED-06 | — | Pending |
-| SEED-07 | — | Pending |
-| SETUP-01 | — | Pending |
-| SETUP-02 | — | Pending |
-| SETUP-03 | — | Pending |
-| SETUP-04 | — | Pending |
-| EXAM-01 | — | Pending |
-| EXAM-02 | — | Pending |
-| EXAM-03 | — | Pending |
-| EXAM-04 | — | Pending |
-| EXAM-05 | — | Pending |
-| EXAM-06 | — | Pending |
-| EXAM-07 | — | Pending |
-| MON-01 | — | Pending |
-| MON-02 | — | Pending |
-| MON-03 | — | Pending |
-| MON-04 | — | Pending |
-| PROT-01 | — | Pending |
-| PROT-02 | — | Pending |
-| PROT-03 | — | Pending |
-| PROT-04 | — | Pending |
-| EDGE-01 | — | Pending |
-| EDGE-02 | — | Pending |
-| EDGE-03 | — | Pending |
-| EDGE-04 | — | Pending |
-| REC-01 | — | Pending |
-| REC-02 | — | Pending |
-| FIX-01 | — | Pending |
+| SEED-01 | Phase 241 | Pending |
+| SEED-02 | Phase 241 | Pending |
+| SEED-03 | Phase 241 | Pending |
+| SEED-04 | Phase 241 | Pending |
+| SEED-05 | Phase 241 | Pending |
+| SEED-06 | Phase 241 | Pending |
+| SEED-07 | Phase 241 | Pending |
+| SETUP-01 | Phase 242 | Pending |
+| SETUP-02 | Phase 242 | Pending |
+| SETUP-03 | Phase 242 | Pending |
+| SETUP-04 | Phase 242 | Pending |
+| EXAM-01 | Phase 243 | Pending |
+| EXAM-02 | Phase 243 | Pending |
+| EXAM-03 | Phase 243 | Pending |
+| EXAM-04 | Phase 243 | Pending |
+| EXAM-05 | Phase 243 | Pending |
+| EXAM-06 | Phase 243 | Pending |
+| EXAM-07 | Phase 243 | Pending |
+| MON-01 | Phase 244 | Pending |
+| MON-02 | Phase 244 | Pending |
+| MON-03 | Phase 244 | Pending |
+| MON-04 | Phase 244 | Pending |
+| PROT-01 | Phase 245 | Pending |
+| PROT-02 | Phase 245 | Pending |
+| PROT-03 | Phase 245 | Pending |
+| PROT-04 | Phase 245 | Pending |
+| EDGE-01 | Phase 246 | Pending |
+| EDGE-02 | Phase 246 | Pending |
+| EDGE-03 | Phase 246 | Pending |
+| EDGE-04 | Phase 246 | Pending |
+| REC-01 | Phase 246 | Pending |
+| REC-02 | Phase 246 | Pending |
+| FIX-01 | Phase 247 | Pending |
 
 **Coverage:**
 - v8.5 requirements: 27 total
-- Mapped to phases: 0
-- Unmapped: 27 ⚠️
+- Mapped to phases: 27
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-23*
-*Last updated: 2026-03-23 after initial definition*
+*Last updated: 2026-03-23 — Traceability updated after roadmap creation*
