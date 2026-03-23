@@ -47,7 +47,10 @@ Last completed phase: 239 (v8.3 — Date Range Filter Team View Records)
   3. Banner tidak muncul sama sekali ketika tidak ada sertifikat expired maupun akan expired
   4. Setiap sertifikat expired yang belum pernah dinotifikasikan menghasilkan entri UserNotification tipe CERT_EXPIRED di bell dropdown saat HC/Admin membuka Home/Index
   5. Notifikasi CERT_EXPIRED di bell dropdown menampilkan nama pekerja dan judul sertifikat, dan hanya dikirim ke user dengan role HC atau Admin
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 240-01-PLAN.md — Banner alert sertifikat expired/akan expired di Home/Index
+- [ ] 240-02-PLAN.md — Bell notification CERT_EXPIRED on page load
 **UI hint**: yes
 
 ## Progress
@@ -55,4 +58,4 @@ Last completed phase: 239 (v8.3 — Date Range Filter Team View Records)
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 239. Date Range Filter & Export | v8.3 | 2/2 | Complete | 2026-03-23 |
-| 240. Alarm Sertifikat Expired | v8.4 | 0/? | Not started | - |
+| 240. Alarm Sertifikat Expired | v8.4 | 0/2 | Not started | - |
