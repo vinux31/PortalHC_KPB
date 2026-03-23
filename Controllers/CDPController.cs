@@ -38,8 +38,9 @@ namespace HcPortal.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly INotificationService _notificationService;
         private readonly ILogger<CDPController> _logger;
+        private readonly AuditLogService _auditLog;
 
-        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env, INotificationService notificationService, ILogger<CDPController> logger)
+        public CDPController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ApplicationDbContext context, IWebHostEnvironment env, INotificationService notificationService, ILogger<CDPController> logger, AuditLogService auditLog)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -47,6 +48,7 @@ namespace HcPortal.Controllers
             _env = env;
             _notificationService = notificationService;
             _logger = logger;
+            _auditLog = auditLog;
         }
 
         public IActionResult Index()
@@ -362,10 +364,10 @@ namespace HcPortal.Controllers
             // FIX: ProtonDeliverableProgress has no "Active" status; use "Pending" for in-progress deliverables
             subModel.ActiveDeliverables = progresses.Count(p => p.Status == "Pending");
 
+            // Phase 236 COMP-01 fix: scope ke assignment aktif per D-02
+            var activeAssignmentId = progresses.FirstOrDefault()?.ProtonTrackAssignmentId ?? 0;
             var finalAssessment = await _context.ProtonFinalAssessments
-                .Where(fa => fa.CoacheeId == userId)
-                .OrderByDescending(fa => fa.CreatedAt)
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(fa => fa.ProtonTrackAssignmentId == activeAssignmentId);
 
             subModel.CompetencyLevelGranted = finalAssessment?.CompetencyLevelGranted;
             subModel.CurrentStatus = finalAssessment != null ? "Completed" : "In Progress";
@@ -2265,6 +2267,77 @@ namespace HcPortal.Controllers
                 submittedIds,
                 hasEvidence = evidencePath != null
             });
+        }
+
+        // ===== Phase 236 COMP-02: Edit/Delete coaching session per D-07 =====
+
+        [HttpGet]
+        public async Task<IActionResult> EditCoachingSession(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var session = await _context.CoachingSessions
+                .Include(s => s.ActionItems)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            if (session == null) return NotFound();
+            bool isHcOrAdmin = User.IsInRole("HC") || User.IsInRole("Admin");
+            if (!isHcOrAdmin && session.CoachId != user.Id) return Forbid();
+            return View(session);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditCoachingSession(int id, string catatanCoach, string kesimpulan, string result)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var session = await _context.CoachingSessions.FindAsync(id);
+            if (session == null) return NotFound();
+            bool isHcOrAdmin = User.IsInRole("HC") || User.IsInRole("Admin");
+            if (!isHcOrAdmin && session.CoachId != user.Id) return Forbid();
+            session.CatatanCoach = catatanCoach;
+            session.Kesimpulan = kesimpulan;
+            session.Result = result;
+            session.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            var actorName = string.IsNullOrWhiteSpace(user.NIP)
+                ? (user.FullName ?? "Unknown")
+                : $"{user.NIP} - {user.FullName}";
+            await _auditLog.LogAsync(user.Id, actorName, "EditCoachingSession",
+                $"Session ID={id} diubah. Kesimpulan={kesimpulan}, Result={result}", id, "CoachingSession");
+            TempData["Success"] = "Sesi coaching berhasil diperbarui.";
+            return RedirectToAction("Deliverable", new { id = session.ProtonDeliverableProgressId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteCoachingSession(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var session = await _context.CoachingSessions
+                .Include(s => s.ActionItems)
+                .FirstOrDefaultAsync(s => s.Id == id);
+            if (session == null) return NotFound();
+            bool isHcOrAdmin = User.IsInRole("HC") || User.IsInRole("Admin");
+            if (!isHcOrAdmin && session.CoachId != user.Id) return Forbid();
+            var progressId = session.ProtonDeliverableProgressId;
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                _context.ActionItems.RemoveRange(session.ActionItems);
+                _context.CoachingSessions.Remove(session);
+                await _context.SaveChangesAsync();
+                var actorName = string.IsNullOrWhiteSpace(user.NIP)
+                    ? (user.FullName ?? "Unknown")
+                    : $"{user.NIP} - {user.FullName}";
+                await _auditLog.LogAsync(user.Id, actorName, "DeleteCoachingSession",
+                    $"Session ID={id} dihapus.", id, "CoachingSession");
+                await tx.CommitAsync();
+            }
+            catch { await tx.RollbackAsync(); throw; }
+            TempData["Success"] = "Sesi coaching berhasil dihapus.";
+            return RedirectToAction("Deliverable", new { id = progressId });
         }
 
         // ===== Phase 65-03: Export endpoints =====
