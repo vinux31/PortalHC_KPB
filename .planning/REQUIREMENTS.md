@@ -9,12 +9,12 @@ Requirements for milestone v8.3: Date Range Filter Team View Records.
 
 ### Filter UI
 
-- [ ] **FILT-01**: User (roleLevel ≤4) melihat 2 input date (Tanggal Awal & Tanggal Akhir) di filter bar Team View, menggantikan textbox Search Nama/NIP
+- [x] **FILT-01**: User (roleLevel ≤4) melihat 2 input date (Tanggal Awal & Tanggal Akhir) di filter bar Team View, menggantikan textbox Search Nama/NIP
 - [x] **FILT-02**: Saat tanggal diisi, tabel hanya menampilkan workers yang punya minimal 1 record (assessment atau training) di antara rentang tanggal
 - [x] **FILT-03**: Count kolom Assessment & Training di tabel hanya menghitung records yang jatuh di rentang tanggal yang dipilih
 - [x] **FILT-04**: Filter date bisa dikombinasikan dengan filter Bagian, Unit, Category, Sub Category, dan Status secara independen
 - [x] **FILT-05**: Default tanggal kosong = tampilkan semua records (behavior sama seperti sekarang)
-- [ ] **FILT-06**: Tombol Reset clear semua filter termasuk date range
+- [x] **FILT-06**: Tombol Reset clear semua filter termasuk date range
 
 ### Export
 
@@ -37,12 +37,12 @@ None for this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FILT-01 | Phase 239 | Pending |
+| FILT-01 | Phase 239 | Complete |
 | FILT-02 | Phase 239 | Complete |
 | FILT-03 | Phase 239 | Complete |
 | FILT-04 | Phase 239 | Complete |
 | FILT-05 | Phase 239 | Complete |
-| FILT-06 | Phase 239 | Pending |
+| FILT-06 | Phase 239 | Complete |
 | EXP-01 | Phase 239 | Complete |
 | EXP-02 | Phase 239 | Complete |
 

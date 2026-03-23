@@ -32,7 +32,7 @@ Last completed phase: 238 (v8.2 — Gap Closure UI Wiring)
 
 ## Phases
 
-- [ ] **Phase 239: Date Range Filter & Export** - Hapus search nama, tambah 2 input date, filter tabel dan count, update export
+- [x] **Phase 239: Date Range Filter & Export** - Hapus search nama, tambah 2 input date, filter tabel dan count, update export (completed 2026-03-23)
 
 ## Phase Details
 
@@ -46,14 +46,14 @@ Last completed phase: 238 (v8.2 — Gap Closure UI Wiring)
   3. Count kolom Assessment dan Training di baris setiap worker hanya menghitung records yang jatuh di dalam rentang tanggal yang dipilih
   4. Filter date bekerja independen bersama filter Bagian, Unit, Category, Sub Category, dan Status — kombinasi apapun menghasilkan filter yang benar
   5. Tombol Reset mengosongkan date range bersama semua filter lain; export Assessment dan export Training meneruskan parameter date range ke server sehingga hasil export konsisten dengan tampilan tabel
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 239-01-PLAN.md — Backend: service date filter + controller AJAX partial + export params
-- [ ] 239-02-PLAN.md — Frontend: UI date inputs + JS AJAX refactor + reset/export wiring
+- [x] 239-02-PLAN.md — Frontend: UI date inputs + JS AJAX refactor + reset/export wiring
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 239. Date Range Filter & Export | v8.3 | 1/2 | In Progress|  |
+| 239. Date Range Filter & Export | v8.3 | 2/2 | Complete   | 2026-03-23 |
