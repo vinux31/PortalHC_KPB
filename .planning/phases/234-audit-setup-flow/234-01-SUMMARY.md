@@ -96,6 +96,13 @@ Build gagal dengan MSB3027 (file locked) karena aplikasi sedang berjalan di back
 - Transaction pattern established untuk referensi DeleteKompetensi dan operasi cascade lainnya
 - GuidanceReplace sudah aman dari file loss
 
+## Self-Check: PASSED
+
+- FOUND: Controllers/ProtonDataController.cs dengan SilabusDeletePreview (L505), SubKompetensiDeletePreview (L517), KompetensiDeletePreview (L532)
+- FOUND: BeginTransactionAsync di SilabusDelete (L578)
+- FOUND: SilabusDeletePreview fetch call di Views/ProtonData/Index.cshtml (L680)
+- FOUND: commit 5818b8c (task), 6396895 (docs)
+
 ---
 *Phase: 234-audit-setup-flow*
 *Completed: 2026-03-22*

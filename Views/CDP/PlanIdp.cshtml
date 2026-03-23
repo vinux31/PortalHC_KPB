@@ -16,6 +16,14 @@
     var isL4Locked = userLevel == 4 && !string.IsNullOrEmpty(lockedSection);
 }
 
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-action="Index" asp-controller="CDP">CDP</a></li>
+        <li class="breadcrumb-item active">Plan IDP</li>
+    </ol>
+</nav>
+
 <div class="d-flex align-items-start mb-4">
     <div>
         <h2 class="fw-bold text-dark mb-1">

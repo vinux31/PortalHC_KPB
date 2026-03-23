@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Audit Assessment & Training System — Portal HC KPB v8.0</title>
+<style>
+:root {
+  --blue: #005baa;
+  --blue-light: #e8f0fe;
+  --red: #ed1c24;
+  --red-light: #ffeaea;
+  --yellow: #ffd700;
+  --yellow-light: #fff8e0;
+  --green: #28a745;
+  --green-light: #e6f9ed;
+  --gray: #6c757d;
+  --gray-light: #f8f9fa;
+  --dark: #1a1a2e;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); font-size:15px; line-height:1.6; color:#222; background:#f5f6fa; }
+a { color: var(--blue); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); color:#fff; padding:24px 32px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+.header h1 { font-size:22px; font-weight:700; }
+.header .subtitle { font-size:13px; color:#aab; margin-top:4px; }
+.header .badge-ver { background:var(--blue); color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:8px; }
+
+/* LAYOUT */
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:260px; background:#fff; border-right:1px solid #e0e0e0; position:sticky; top:68px; height:calc(100vh - 68px); overflow-y:auto; padding:16px 0; flex-shrink:0; }
+.sidebar a { display:block; padding:7px 20px; font-size:13px; color:#444; border-left:3px solid transparent; transition:all .15s; }
+.sidebar a:hover { background:var(--blue-light); color:var(--blue); text-decoration:none; border-left-color:var(--blue); }
+.sidebar .nav-section { font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.5px; padding:12px 20px 4px; }
+.main { flex:1; padding:32px 40px; max-width:1100px; }
+
+/* SECTIONS */
+section { margin-bottom:48px; }
+h2 { font-size:22px; font-weight:700; color:var(--dark); border-bottom:3px solid var(--blue); padding-bottom:8px; margin-bottom:20px; }
+h3 { font-size:17px; font-weight:600; color:var(--blue); margin:24px 0 12px; }
+h4 { font-size:15px; font-weight:600; color:#333; margin:16px 0 8px; }
+
+/* TABLES */
+table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+th { background:var(--blue); color:#fff; padding:8px 12px; text-align:left; font-weight:600; font-size:12px; }
+td { padding:7px 12px; border-bottom:1px solid #e8e8e8; vertical-align:top; }
+tr:hover td { background:var(--blue-light); }
+.tbl-compact td, .tbl-compact th { padding:5px 8px; font-size:12px; }
+code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Cascadia Code','Fira Code',monospace; }
+
+/* CARDS */
+.card { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; margin:12px 0; }
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; }
+
+/* FINDING CARDS */
+.finding { border-left:4px solid var(--gray); padding:16px 20px; margin:12px 0; background:#fff; border-radius:0 8px 8px 0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.finding.critical { border-left-color:var(--red); }
+.finding.medium { border-left-color:var(--yellow); }
+.finding.low { border-left-color:var(--gray); }
+.finding .finding-header { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.finding .finding-title { font-weight:700; font-size:15px; }
+
+/* BADGES */
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-critical { background:var(--red); color:#fff; }
+.badge-medium { background:var(--yellow); color:#333; }
+.badge-low { background:#ddd; color:#555; }
+.badge-blue { background:var(--blue); color:#fff; }
+.badge-green { background:var(--green); color:#fff; }
+.badge-role { background:#e8e8e8; color:#555; font-size:10px; }
+
+/* FLOW DIAGRAMS */
+.flow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:0; padding:20px 0; overflow-x:auto; }
+.flow-step { position:relative; background:#fff; border:2px solid var(--blue); border-radius:8px; padding:10px 14px; min-width:140px; max-width:200px; font-size:12px; text-align:center; flex-shrink:0; }
+.flow-step .step-label { font-weight:700; color:var(--blue); font-size:11px; margin-bottom:4px; }
+.flow-step .step-desc { color:#444; }
+.flow-arrow { display:flex; align-items:center; padding:0 2px; color:var(--blue); font-size:20px; font-weight:700; flex-shrink:0; }
+.flow-step.has-finding { border-color:var(--red); background:var(--red-light); }
+.flow-step.has-warning { border-color:#e6a800; background:var(--yellow-light); }
+.flow-step.has-info { border-color:var(--gray); background:var(--gray-light); }
+.finding-marker { position:absolute; top:-10px; right:-10px; width:24px; height:24px; border-radius:50%; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; color:#fff; z-index:2; }
+.finding-marker.fm-red { background:var(--red); }
+.finding-marker.fm-yellow { background:#e6a800; }
+.finding-marker.fm-gray { background:var(--gray); }
+
+/* PRIORITY TABLE */
+.prio-table td:first-child { font-weight:700; text-align:center; }
+.p1 { background:var(--red-light); color:var(--red); }
+.p2 { background:var(--yellow-light); color:#b38600; }
+.p3 { background:var(--gray-light); color:var(--gray); }
+
+/* COLLAPSIBLE */
+details { margin:8px 0; }
+details summary { cursor:pointer; font-weight:600; color:var(--blue); padding:8px 0; user-select:none; }
+details summary:hover { color:var(--dark); }
+
+/* ER DIAGRAM */
+.er-diagram { display:flex; flex-wrap:wrap; gap:16px; padding:16px 0; }
+.er-entity { background:#fff; border:2px solid var(--blue); border-radius:8px; min-width:220px; max-width:280px; font-size:12px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.08); }
+.er-entity .er-title { background:var(--blue); color:#fff; padding:6px 12px; font-weight:700; font-size:13px; }
+.er-entity .er-title.disabled { background:var(--gray); }
+.er-entity ul { list-style:none; padding:8px 12px; }
+.er-entity li { padding:2px 0; border-bottom:1px solid #f0f0f0; }
+.er-entity li .pk { color:var(--yellow); font-weight:700; }
+.er-entity li .fk { color:var(--red); font-weight:600; }
+.er-entity li .field-name { font-weight:500; }
+.er-entity li .field-type { color:#888; font-size:11px; }
+
+/* ROADMAP */
+.roadmap-bar { display:flex; align-items:center; margin:6px 0; }
+.roadmap-label { width:200px; font-size:13px; font-weight:600; flex-shrink:0; }
+.roadmap-track { flex:1; height:28px; background:#eee; border-radius:14px; position:relative; overflow:hidden; }
+.roadmap-fill { height:100%; border-radius:14px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:11px; font-weight:600; }
+
+/* STAT BOXES */
+.stat-row { display:flex; gap:16px; margin:16px 0; flex-wrap:wrap; }
+.stat-box { background:#fff; border-radius:8px; padding:16px 20px; box-shadow:0 1px 4px rgba(0,0,0,.08); text-align:center; min-width:140px; flex:1; }
+.stat-box .stat-num { font-size:28px; font-weight:700; color:var(--blue); }
+.stat-box .stat-label { font-size:12px; color:#666; margin-top:4px; }
+
+/* PRINT */
+@media print {
+  .sidebar, .header { display:none; }
+  .main { padding:0; max-width:100%; }
+  .flow-step, .finding, .card { break-inside:avoid; }
+}
+@media (max-width:768px) {
+  .sidebar { display:none; }
+  .main { padding:16px; }
+  .flow { flex-direction:column; align-items:stretch; }
+  .flow-arrow { transform:rotate(90deg); align-self:center; }
+  .flow-step { max-width:100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Audit Sistem Assessment & Training <span class="badge-ver">v8.0</span></h1>
+  <div class="subtitle">Portal HC KPB — Pertamina | Tanggal Audit: 21 Maret 2026 | 12 Temuan | 6 Rekomendasi Prioritas</div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-section">Overview</div>
+  <a href="#overview">Ringkasan Sistem</a>
+  <a href="#stats">Statistik</a>
+  <a href="#er-diagram">Entity Relationship</a>
+  <a href="#pages">Daftar Halaman</a>
+
+  <div class="nav-section">Assessment System</div>
+  <a href="#asmt-models">Database Models</a>
+  <a href="#flow-create">Flow: Pembuatan Assessment</a>
+  <a href="#flow-exam">Flow: Ujian Worker</a>
+  <a href="#flow-monitor">Flow: Monitoring HC</a>
+  <a href="#flow-shuffle">Flow: Cross-Package Shuffle</a>
+  <a href="#flow-cert">Flow: Certificate Generation</a>
+  <a href="#flow-renewal-asmt">Flow: Renewal Assessment</a>
+  <a href="#asmt-validation">Validasi & Security</a>
+
+  <div class="nav-section">Training System</div>
+  <a href="#trn-models">Database Models</a>
+  <a href="#flow-training-crud">Flow: Training CRUD</a>
+  <a href="#flow-import">Flow: Import Training</a>
+  <a href="#flow-cert-lifecycle">Flow: Certificate Lifecycle</a>
+  <a href="#flow-renewal-chain">Flow: Renewal Chain</a>
+  <a href="#flow-records">Flow: Records & CertMgmt</a>
+
+  <div class="nav-section">Hasil Analisa</div>
+  <a href="#findings">12 Temuan</a>
+  <a href="#findings-flow">Temuan dalam Flow</a>
+
+  <div class="nav-section">Rekomendasi</div>
+  <a href="#recommendations">Prioritas Improvement</a>
+  <a href="#roadmap">Roadmap Visual</a>
+</nav>
+
+<!-- MAIN CONTENT -->
+<div class="main">
+
+<!-- ============================================================ -->
+<!-- BAGIAN 1: OVERVIEW SISTEM -->
+<!-- ============================================================ -->
+<section id="overview">
+<h2>1. Ringkasan Sistem</h2>
+
+<div class="card">
+<p><strong>Portal HC KPB</strong> adalah web portal internal Pertamina untuk Human Capital yang mengelola dua platform utama:</p>
+<ul style="margin:8px 0 0 20px;">
+<li><strong>CMP</strong> (Competency Management Platform) — Assessment online, skills tracking, competency matrix</li>
+<li><strong>CDP</strong> (Competency Development Platform) — IDP, coaching Proton, development plans</li>
+</ul>
+<p style="margin-top:12px;"><strong>Tech Stack:</strong> ASP.NET Core MVC 8.0 &bull; SQL Server &bull; Entity Framework Core &bull; SignalR (real-time) &bull; QuestPDF (sertifikat) &bull; ClosedXML (Excel) &bull; Chart.js &bull; Bootstrap 5</p>
+<p style="margin-top:8px;"><strong>Scope Audit:</strong> Seluruh sistem Assessment (ujian, soal, scoring, sertifikat) dan Training (records, import, sertifikat, renewal) — <em>tidak termasuk Proton/Coaching</em>.</p>
+</div>
+</section>
+
+<!-- STATS -->
+<section id="stats">
+<h3>Statistik Sistem</h3>
+<div class="stat-row">
+  <div class="stat-box"><div class="stat-num">12</div><div class="stat-label">Entity Database</div></div>
+  <div class="stat-box"><div class="stat-num">40+</div><div class="stat-label">Controller Actions</div></div>
+  <div class="stat-box"><div class="stat-num">16</div><div class="stat-label">Halaman/Views</div></div>
+  <div class="stat-box"><div class="stat-num">11</div><div class="stat-label">Flow Utama</div></div>
+  <div class="stat-box"><div class="stat-num" style="color:var(--red);">12</div><div class="stat-label">Temuan Audit</div></div>
+</div>
+</section>
+
+<!-- ER DIAGRAM -->
+<section id="er-diagram">
+<h3>Entity Relationship Diagram</h3>
+<p style="margin-bottom:12px; font-size:13px; color:#666;">Entitas inti Assessment (biru) dan Training (hijau). Entity disabled ditandai abu-abu.</p>
+
+<div class="er-diagram">
+
+<div class="er-entity">
+<div class="er-title">AssessmentSession</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span> <span class="field-type">int</span></li>
+<li><span class="fk">FK</span> <span class="field-name">UserId</span> <span class="field-type">→ Users</span></li>
+<li><span class="field-name">Title</span> <span class="field-type">string</span></li>
+<li><span class="field-name">Category</span> <span class="field-type">string</span></li>
+<li><span class="field-name">Schedule</span> <span class="field-type">DateTime</span></li>
+<li><span class="field-name">DurationMinutes</span> <span class="field-type">int (0-480)</span></li>
+<li><span class="field-name">Status</span> <span class="field-type">Open|Upcoming|InProgress|Completed|Abandoned|Cancelled</span></li>
+<li><span class="field-name">Score</span> <span class="field-type">int? (0-100)</span></li>
+<li><span class="field-name">PassPercentage</span> <span class="field-type">int (default 70)</span></li>
+<li><span class="field-name">IsPassed</span> <span class="field-type">bool?</span></li>
+<li><span class="field-name">GenerateCertificate</span> <span class="field-type">bool</span></li>
+<li><span class="field-name">NomorSertifikat</span> <span class="field-type">string? UNIQUE</span></li>
+<li><span class="field-name">ValidUntil</span> <span class="field-type">DateTime?</span></li>
+<li><span class="field-name">IsTokenRequired</span> <span class="field-type">bool</span></li>
+<li><span class="field-name">AccessToken</span> <span class="field-type">string (6 char)</span></li>
+<li><span class="field-name">StartedAt</span> <span class="field-type">DateTime?</span></li>
+<li><span class="field-name">ElapsedSeconds</span> <span class="field-type">int</span></li>
+<li><span class="field-name">LastActivePage</span> <span class="field-type">int?</span></li>
+<li><span class="field-name">CompletedAt</span> <span class="field-type">DateTime?</span></li>
+<li><span class="field-name">ExamWindowCloseDate</span> <span class="field-type">DateTime?</span></li>
+<li><span class="fk">FK</span> <span class="field-name">RenewsSessionId</span> <span class="field-type">→ self</span></li>
+<li><span class="fk">FK</span> <span class="field-name">RenewsTrainingId</span> <span class="field-type">→ TrainingRecord</span></li>
+<li><span class="field-name">CreatedAt, CreatedBy</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">AssessmentPackage</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">AssessmentSessionId</span> <span class="field-type">→ Session CASCADE</span></li>
+<li><span class="field-name">PackageName</span> <span class="field-type">string</span></li>
+<li><span class="field-name">PackageNumber</span> <span class="field-type">int</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">PackageQuestion</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">AssessmentPackageId</span> <span class="field-type">→ Package CASCADE</span></li>
+<li><span class="field-name">QuestionText</span> <span class="field-type">string</span></li>
+<li><span class="field-name">Order</span> <span class="field-type">int</span></li>
+<li><span class="field-name">ScoreValue</span> <span class="field-type">int (default 10)</span></li>
+<li><span class="field-name">ElemenTeknis</span> <span class="field-type">string?</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">PackageOption</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">PackageQuestionId</span> <span class="field-type">→ PQ CASCADE</span></li>
+<li><span class="field-name">OptionText</span> <span class="field-type">string</span></li>
+<li><span class="field-name">IsCorrect</span> <span class="field-type">bool</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">UserPackageAssignment</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">AssessmentSessionId</span> <span class="field-type">→ Session CASCADE</span></li>
+<li><span class="fk">FK</span> <span class="field-name">AssessmentPackageId</span> <span class="field-type">→ Package RESTRICT</span></li>
+<li><span class="field-name">UserId</span> <span class="field-type">string</span></li>
+<li><span class="field-name">ShuffledQuestionIds</span> <span class="field-type">JSON array</span></li>
+<li><span class="field-name">ShuffledOptionIdsPerQuestion</span> <span class="field-type">JSON dict</span></li>
+<li><span class="field-name">IsCompleted</span> <span class="field-type">bool</span></li>
+<li><span class="field-name">SavedQuestionCount</span> <span class="field-type">int?</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">PackageUserResponse</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">AssessmentSessionId</span> <span class="field-type">→ Session RESTRICT</span></li>
+<li><span class="fk">FK</span> <span class="field-name">PackageQuestionId</span> <span class="field-type">→ PQ RESTRICT</span></li>
+<li><span class="fk">FK</span> <span class="field-name">PackageOptionId</span> <span class="field-type">→ PO RESTRICT (nullable)</span></li>
+<li><span class="field-name">SubmittedAt</span> <span class="field-type">DateTime</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">AssessmentCategory</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="field-name">Name</span> <span class="field-type">string UNIQUE</span></li>
+<li><span class="field-name">DefaultPassPercentage</span> <span class="field-type">int</span></li>
+<li><span class="field-name">IsActive</span> <span class="field-type">bool</span></li>
+<li><span class="field-name">SortOrder</span> <span class="field-type">int</span></li>
+<li><span class="fk">FK</span> <span class="field-name">ParentId</span> <span class="field-type">→ self (sub-kategori)</span></li>
+<li><span class="fk">FK</span> <span class="field-name">SignatoryUserId</span> <span class="field-type">→ Users SET NULL</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">AssessmentAttemptHistory</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="field-name">SessionId</span> <span class="field-type">int (ref, not FK)</span></li>
+<li><span class="fk">FK</span> <span class="field-name">UserId</span> <span class="field-type">→ Users CASCADE</span></li>
+<li><span class="field-name">Title, Category, Score, IsPassed</span></li>
+<li><span class="field-name">AttemptNumber</span> <span class="field-type">int</span></li>
+<li><span class="field-name">StartedAt, CompletedAt, ArchivedAt</span></li>
+</ul>
+</div>
+
+<div class="er-entity">
+<div class="er-title">ExamActivityLog</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">SessionId</span> <span class="field-type">→ Session CASCADE</span></li>
+<li><span class="field-name">EventType</span> <span class="field-type">started|page_nav|disconnected|reconnected|submitted</span></li>
+<li><span class="field-name">Detail</span> <span class="field-type">string? (max 255)</span></li>
+<li><span class="field-name">Timestamp</span> <span class="field-type">DateTime</span></li>
+</ul>
+</div>
+
+<div class="er-entity" style="border-color:var(--green);">
+<div class="er-title" style="background:var(--green);">TrainingRecord</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">UserId</span> <span class="field-type">→ Users CASCADE</span></li>
+<li><span class="field-name">Judul</span> <span class="field-type">string?</span></li>
+<li><span class="field-name">Kategori</span> <span class="field-type">string?</span></li>
+<li><span class="field-name">SubKategori</span> <span class="field-type">string?</span></li>
+<li><span class="field-name">Tanggal</span> <span class="field-type">DateTime</span></li>
+<li><span class="field-name">TanggalMulai, TanggalSelesai</span> <span class="field-type">DateTime?</span></li>
+<li><span class="field-name">Penyelenggara</span> <span class="field-type">string?</span></li>
+<li><span class="field-name">Status</span> <span class="field-type">Passed|Wait Certificate|Valid</span></li>
+<li><span class="field-name">SertifikatUrl</span> <span class="field-type">string? (file path)</span></li>
+<li><span class="field-name">ValidUntil</span> <span class="field-type">DateTime?</span></li>
+<li><span class="field-name">CertificateType</span> <span class="field-type">Permanent|Annual|3-Year</span></li>
+<li><span class="field-name">NomorSertifikat, Kota</span></li>
+<li><span class="fk">FK</span> <span class="field-name">RenewsTrainingId</span> <span class="field-type">→ self NoAction</span></li>
+<li><span class="fk">FK</span> <span class="field-name">RenewsSessionId</span> <span class="field-type">→ Session NoAction</span></li>
+</ul>
+</div>
+
+<div class="er-entity" style="border-color:var(--gray);">
+<div class="er-title disabled">AssessmentCompetencyMap ⚠️ DISABLED</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="field-name">AssessmentCategory</span> <span class="field-type">string</span></li>
+<li><span class="field-name">TitlePattern</span> <span class="field-type">string</span></li>
+<li><span class="field-name">KkjMatrixItemId</span> <span class="field-type">int (orphaned FK)</span></li>
+<li style="color:var(--red); font-style:italic;">Dinonaktifkan sejak Phase 90</li>
+</ul>
+</div>
+
+<div class="er-entity" style="border-color:var(--gray);">
+<div class="er-title disabled">UserCompetencyLevel ⚠️ DISABLED</div>
+<ul>
+<li><span class="pk">PK</span> <span class="field-name">Id</span></li>
+<li><span class="fk">FK</span> <span class="field-name">UserId</span> <span class="field-type">→ Users</span></li>
+<li><span class="field-name">CurrentLevel, TargetLevel</span> <span class="field-type">int (0-5)</span></li>
+<li><span class="field-name">KkjMatrixItemId</span> <span class="field-type">int (orphaned FK)</span></li>
+<li style="color:var(--red); font-style:italic;">Dinonaktifkan sejak Phase 90</li>
+</ul>
+</div>
+
+</div>
+</section>
+
+<!-- PAGES -->
+<section id="pages">
+<h3>Daftar Halaman & Role Access</h3>
+<table>
+<tr><th>Halaman</th><th>Route</th><th>Role</th><th>Fungsi</th></tr>
+<tr><td>Assessment</td><td><code>/CMP/Assessment</code></td><td><span class="badge badge-role">All</span></td><td>Daftar personal assessment (Open/Upcoming/InProgress)</td></tr>
+<tr><td>StartExam</td><td><code>/CMP/StartExam/{id}</code></td><td><span class="badge badge-role">Owner</span></td><td>Halaman ujian: soal + timer + auto-save</td></tr>
+<tr><td>ExamSummary</td><td><code>/CMP/ExamSummary/{id}</code></td><td><span class="badge badge-role">Owner</span></td><td>Review jawaban sebelum submit final</td></tr>
+<tr><td>Results</td><td><code>/CMP/Results/{id}</code></td><td><span class="badge badge-role">Owner/Admin/HC</span></td><td>Hasil ujian + review + ElemenTeknis breakdown</td></tr>
+<tr><td>Certificate</td><td><code>/CMP/Certificate/{id}</code></td><td><span class="badge badge-role">Owner/Admin/HC</span></td><td>Sertifikat HTML (printable)</td></tr>
+<tr><td>CertificatePdf</td><td><code>/CMP/CertificatePdf/{id}</code></td><td><span class="badge badge-role">Owner/Admin/HC</span></td><td>Sertifikat PDF (QuestPDF A4 Landscape)</td></tr>
+<tr><td>Records</td><td><code>/CMP/Records</code></td><td><span class="badge badge-role">All</span></td><td>Unified records (Assessment + Training), personal + team</td></tr>
+<tr><td>RecordsWorkerDetail</td><td><code>/CMP/RecordsWorkerDetail</code></td><td><span class="badge badge-role">L1-4</span></td><td>Detail records satu worker</td></tr>
+<tr style="background:var(--blue-light);"><td colspan="4" style="font-weight:600; color:var(--blue);">Admin / HC Pages</td></tr>
+<tr><td>ManageAssessment</td><td><code>/Admin/ManageAssessment</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>List semua assessment groups (7-hari window)</td></tr>
+<tr><td>CreateAssessment</td><td><code>/Admin/CreateAssessment</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Form buat assessment (multi-user, renewal mode)</td></tr>
+<tr><td>EditAssessment</td><td><code>/Admin/EditAssessment/{id}</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Form edit assessment</td></tr>
+<tr><td>ManagePackages</td><td><code>/Admin/ManagePackages/{id}</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Kelola packages + ET coverage matrix</td></tr>
+<tr><td>ImportPackageQuestions</td><td><code>/Admin/ImportPackageQuestions/{id}</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Upload Excel soal ke package</td></tr>
+<tr><td>AssessmentMonitoring</td><td><code>/Admin/AssessmentMonitoring</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Dashboard monitoring real-time</td></tr>
+<tr><td>MonitoringDetail</td><td><code>/Admin/AssessmentMonitoringDetail</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Detail peserta + HC actions</td></tr>
+<tr><td>RenewalCertificate</td><td><code>/Admin/RenewalCertificate</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Sertifikat expired/akan expired untuk renewal</td></tr>
+<tr><td>AddTraining</td><td><code>/Admin/AddTraining</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Form tambah training record (+ renewal mode)</td></tr>
+<tr><td>ImportTraining</td><td><code>/Admin/ImportTraining</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>Upload Excel training records</td></tr>
+<tr><td>ManageCategories</td><td><code>/Admin/ManageCategories</code></td><td><span class="badge badge-role">Admin/HC</span></td><td>CRUD AssessmentCategory hierarchical</td></tr>
+<tr style="background:var(--green-light);"><td colspan="4" style="font-weight:600; color:var(--green);">CDP Pages</td></tr>
+<tr><td>CertificationManagement</td><td><code>/CDP/CertificationManagement</code></td><td><span class="badge badge-role">All (scoped)</span></td><td>Semua sertifikat per worker, semua status</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAGIAN 2: ASSESSMENT SYSTEM -->
+<!-- ============================================================ -->
+<section id="asmt-models">
+<h2>2. Assessment System — Detail Lengkap</h2>
+<h3>2.1 Dual Question Path</h3>
+<div class="card">
+<p>Sistem assessment memiliki <strong>2 path soal</strong> yang hidup berdampingan:</p>
+<table>
+<tr><th>Aspek</th><th>Legacy Path</th><th>Package Path (Rekomendasi)</th></tr>
+<tr><td>Entity</td><td><code>AssessmentQuestion → AssessmentOption</code></td><td><code>AssessmentPackage → PackageQuestion → PackageOption</code></td></tr>
+<tr><td>Jawaban</td><td><code>UserResponse</code> (tanpa timestamp)</td><td><code>PackageUserResponse</code> (dengan SubmittedAt)</td></tr>
+<tr><td>Shuffle</td><td>Tidak ada</td><td>Cross-package + per-user option shuffle</td></tr>
+<tr><td>ElemenTeknis</td><td>Tidak ada</td><td>Ada (field di PackageQuestion)</td></tr>
+<tr><td>Import</td><td>Manual satu-satu</td><td>Excel bulk import</td></tr>
+<tr><td>Auto-save</td><td><code>SaveLegacyAnswer</code></td><td><code>SaveAnswer</code></td></tr>
+</table>
+</div>
+</section>
+
+<!-- FLOW A: CREATE ASSESSMENT -->
+<section id="flow-create">
+<h3>Flow A: Pembuatan Assessment</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">1</div><div class="step-desc">HC/Admin buka<br><code>CreateAssessment</code></div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">2</div><div class="step-desc">Isi form: Title, Category, Schedule, Duration, Pass%, Users (max 50)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">3</div><div class="step-desc">Validasi input (schedule, duration 1-480, pass% 0-100, token)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">4</div><div class="step-desc">Generate <strong>NomorSertifikat</strong> per session<br><code>KPB/SEQ/MONTH/YEAR</code></div><div class="finding-marker fm-yellow">#11</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">5</div><div class="step-desc">Buat N sessions (1 per user), bulk SaveChanges</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">6</div><div class="step-desc">Notifikasi ASMT_ASSIGNED ke worker</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">7</div><div class="step-desc"><code>ManagePackages</code><br>Buat Paket A, B, C...</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">8</div><div class="step-desc"><code>ImportPackageQuestions</code><br>Upload Excel 7 kolom</div></div>
+</div>
+<details>
+<summary>Detail Validasi CreateAssessment</summary>
+<table class="tbl-compact">
+<tr><th>Field</th><th>Rule</th></tr>
+<tr><td>UserIds</td><td>Min 1, max 50</td></tr>
+<tr><td>Schedule</td><td>Tidak di masa lalu, max 2 tahun ke depan</td></tr>
+<tr><td>DurationMinutes</td><td>1–480 (skip untuk Proton T3)</td></tr>
+<tr><td>PassPercentage</td><td>0–100</td></tr>
+<tr><td>AccessToken</td><td>Wajib jika IsTokenRequired</td></tr>
+<tr><td>ValidUntil</td><td>Wajib jika renewal mode</td></tr>
+<tr><td>Renews FK</td><td>XOR — tidak boleh SessionId DAN TrainingId</td></tr>
+<tr><td>NomorSertifikat</td><td>Server-generated, retry 3x jika UNIQUE collision</td></tr>
+</table>
+</details>
+</section>
+
+<!-- FLOW B: EXAM -->
+<section id="flow-exam">
+<h3>Flow B: Ujian Worker</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">1</div><div class="step-desc">Worker buka<br><code>/CMP/Assessment</code><br>Lihat daftar Open/Upcoming</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">2</div><div class="step-desc">Klik "Mulai Ujian"<br>Token verification (jika required)<br><strong>Shared token</strong></div><div class="finding-marker fm-gray">#12</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">3</div><div class="step-desc"><code>StartExam</code><br>Set InProgress + StartedAt<br>SignalR: workerStarted</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">4</div><div class="step-desc">Package assignment<br>Cross-package shuffle<br>Load saved answers (resume)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">5</div><div class="step-desc">Mengerjakan soal<br>Auto-save per jawaban<br>Timer countdown<br><strong>Tidak ada tab-switch detect</strong></div><div class="finding-marker fm-yellow">#6</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">6</div><div class="step-desc">Setiap 30s: update<br>ElapsedSeconds +<br>LastActivePage</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">7</div><div class="step-desc"><code>ExamSummary</code><br>Review semua jawaban<br>Cek belum dijawab</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">8</div><div class="step-desc"><code>SubmitExam</code><br>Server timer check (+2min grace)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-finding"><div class="step-label">9</div><div class="step-desc"><strong>Grading</strong><br>Hitung score%<br>ET score dihitung<br><strong>tapi TIDAK disimpan</strong></div><div class="finding-marker fm-red">#1</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">10</div><div class="step-desc">Status = Completed<br>IsPassed = score ≥ pass%<br>SignalR: workerSubmitted</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">11</div><div class="step-desc"><code>/CMP/Results</code><br>Skor + review jawaban<br>ET breakdown (visual)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">12</div><div class="step-desc"><code>Certificate</code><br>(jika IsPassed + GenerateCert)</div></div>
+</div>
+
+<details>
+<summary>Detail Auto-save & Session Resume</summary>
+<div class="card">
+<h4>Auto-save</h4>
+<p>Setiap radio change → POST <code>SaveAnswer</code> → Upsert atomik (ExecuteUpdateAsync, jika 0 rows → Insert) → SignalR push progressUpdate</p>
+<h4>Session Resume</h4>
+<p>Jika StartedAt != null saat StartExam: load ElapsedSeconds, LastActivePage, SavedAnswers dari DB → JS restore pilihan radio + navigate ke halaman terakhir → Hitung RemainingSeconds = Duration*60 - ElapsedSeconds</p>
+<h4>Stale Detection</h4>
+<p>Bandingkan SavedQuestionCount vs current → jika berbeda, clear progress + error "Soal ujian telah berubah"</p>
+</div>
+</details>
+</section>
+
+<!-- FLOW C: MONITORING -->
+<section id="flow-monitor">
+<h3>Flow C: Monitoring HC (Real-time)</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">1</div><div class="step-desc">HC buka<br><code>AssessmentMonitoring</code><br>List grup (7-hari window)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">2</div><div class="step-desc"><code>MonitoringDetail</code><br>List peserta per grup<br>Badge status per-orang</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">3</div><div class="step-desc"><strong>SignalR Real-time</strong><br>workerStarted<br>progressUpdate<br>workerSubmitted</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">4</div><div class="step-desc"><strong>HC Actions:</strong><br>Force Close (AkhiriUjian)<br>Reset (archive + clear)<br>Reshuffle<br><em>Tidak ada tab-switch info</em></div><div class="finding-marker fm-yellow">#6</div></div>
+</div>
+
+<details>
+<summary>SignalR Hub Events</summary>
+<table class="tbl-compact">
+<tr><th>Event</th><th>Direction</th><th>Data</th></tr>
+<tr><td>JoinBatch / LeaveBatch</td><td>Client → Server</td><td>batchKey (Title|Category|Date)</td></tr>
+<tr><td>JoinMonitor / LeaveMonitor</td><td>Client → Server</td><td>batchKey</td></tr>
+<tr><td>workerStarted</td><td>Server → HC</td><td>sessionId, workerName, status</td></tr>
+<tr><td>workerSubmitted</td><td>Server → HC</td><td>sessionId, workerName, score, result</td></tr>
+<tr><td>progressUpdate</td><td>Server → Both</td><td>sessionId, progress, totalQuestions</td></tr>
+<tr><td>sessionReset</td><td>Server → Worker</td><td>dari ResetAssessment</td></tr>
+<tr><td>examClosed</td><td>Server → Worker</td><td>dari AkhiriUjian</td></tr>
+<tr><td>LogPageNav</td><td>Client → Server</td><td>sessionId, pageNumber (fire-and-forget)</td></tr>
+</table>
+</details>
+</section>
+
+<!-- FLOW D: SHUFFLE -->
+<section id="flow-shuffle">
+<h3>Flow D: Cross-Package Shuffle Algorithm</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Input</div><div class="step-desc">Load packages dari sibling sessions (Title+Category+Date)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step" style="border-color:var(--green);"><div class="step-label">Phase 1</div><div class="step-desc"><strong>ET Coverage</strong><br>1 soal acak per ElemenTeknis group, lintas paket, sampai K soal</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step" style="border-color:var(--green);"><div class="step-label">Phase 2</div><div class="step-desc"><strong>Balanced Fill</strong><br>Sisa K-Phase1 soal, distribusi merata antar paket via slot-list</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step" style="border-color:var(--green);"><div class="step-label">Phase 3</div><div class="step-desc"><strong>Fisher-Yates</strong><br>Shuffle gabungan + shuffle opsi per soal</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Output</div><div class="step-desc"><code>UserPackageAssignment</code><br>ShuffledQuestionIds (JSON)<br>ShuffledOptionIds (JSON)</div></div>
+</div>
+<div class="card" style="font-size:13px;">
+<p><strong>K = min question count</strong> di semua paket. Fallback: jika tidak ada ET data → langsung slot-list tanpa Phase 1. Jika 1 paket saja → Fisher-Yates langsung.</p>
+</div>
+</section>
+
+<!-- FLOW E: CERTIFICATE -->
+<section id="flow-cert">
+<h3>Flow E: Certificate Generation</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Guard</div><div class="step-desc">Status == Completed<br>IsPassed == true<br>GenerateCertificate == true</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">HTML</div><div class="step-desc"><code>/CMP/Certificate/{id}</code><br>Pertamina branding<br>CSS printable</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">PDF</div><div class="step-desc"><code>/CMP/CertificatePdf/{id}</code><br>QuestPDF A4 Landscape<br>Blue border + gold double border</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Signatory</div><div class="step-desc">Category.Signatory<br>→ Parent.Signatory<br>→ Fallback "HC Manager"</div></div>
+</div>
+<div class="card" style="font-size:13px;">
+<p><strong>NomorSertifikat format:</strong> <code>KPB/{SEQ:D3}/{ROMAN-MONTH}/{YEAR}</code> — generated saat CreateAssessment (bukan saat lulus). UNIQUE partial index (NULL excluded). Retry 3x jika concurrent collision.</p>
+</div>
+</section>
+
+<!-- FLOW F: RENEWAL ASSESSMENT -->
+<section id="flow-renewal-asmt">
+<h3>Flow F: Renewal via Assessment</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">1</div><div class="step-desc"><code>RenewalCertificate</code> page<br>Pilih sertifikat expired</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">2</div><div class="step-desc">Klik "Renew via Assessment"</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">3</div><div class="step-desc"><code>CreateAssessment</code><br>?renewSessionId=X<br>?renewTrainingId=Y<br>Prefill Title, Category, ValidUntil+1yr</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">4</div><div class="step-desc">Buat session baru<br>RenewsSessionId = X<br>atau RenewsTrainingId = Y</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">5</div><div class="step-desc">Worker ikut ujian baru<br>Sertifikat baru jika lulus</div></div>
+</div>
+</section>
+
+<!-- ASSESSMENT VALIDATION -->
+<section id="asmt-validation">
+<h3>Validasi & Security Assessment</h3>
+<table>
+<tr><th>Area</th><th>Validasi</th><th>Mekanisme</th></tr>
+<tr><td>Akses Ujian</td><td>Status Upcoming → blokir</td><td>Server-side redirect</td></tr>
+<tr><td></td><td>Status Completed/Abandoned → blokir re-entry</td><td>Server-side redirect</td></tr>
+<tr><td></td><td>Token verification</td><td>TempData["TokenVerified_{id}"]</td></tr>
+<tr><td></td><td>ExamWindowCloseDate lewat → blokir</td><td>Server-side check</td></tr>
+<tr><td>Timer</td><td>Server-side enforcement</td><td>DurationMinutes + 2min grace (LIFE-03)</td></tr>
+<tr><td>Race Condition</td><td>Submit vs Force Close</td><td>ExecuteUpdateAsync WHERE Status != "Completed"</td></tr>
+<tr><td>Stale Questions</td><td>SavedQuestionCount vs current</td><td>Clear progress + error message</td></tr>
+<tr><td>Ownership</td><td>session.UserId == user.Id</td><td>Bypass untuk Admin/HC</td></tr>
+<tr><td>Import Soal</td><td>.xlsx/.xls only, max 5MB</td><td>Server-side file validation</td></tr>
+<tr><td></td><td>Fingerprint deduplication</td><td>hash(question+opts) → skip duplikat</td></tr>
+<tr><td>NomorSertifikat</td><td>UNIQUE constraint</td><td>Retry 3x DbUpdateException</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAGIAN 3: TRAINING SYSTEM -->
+<!-- ============================================================ -->
+<section id="trn-models">
+<h2>3. Training System — Detail Lengkap</h2>
+<h3>3.1 Data Models & ViewModels</h3>
+<div class="card">
+<table class="tbl-compact">
+<tr><th>Model</th><th>Tipe</th><th>Fungsi</th></tr>
+<tr><td><code>TrainingRecord</code></td><td>Entity</td><td>Tabel utama training — Judul, Kategori, Tanggal, Status, SertifikatUrl, ValidUntil, CertificateType, renewal FKs</td></tr>
+<tr><td><code>UnifiedTrainingRecord</code></td><td>ViewModel</td><td>Flat merge Assessment + Training untuk tabel Records</td></tr>
+<tr><td><code>SertifikatRow</code></td><td>ViewModel</td><td>Row sertifikat (union Training + Assessment) dengan DeriveCertificateStatus</td></tr>
+<tr><td><code>CertificateChainGroup</code></td><td>ViewModel</td><td>Grup renewal chain via Union-Find</td></tr>
+<tr><td><code>RenewalGroup</code></td><td>ViewModel</td><td>Accordion group per judul sertifikat</td></tr>
+<tr><td><code>WorkerTrainingStatus</code></td><td>ViewModel</td><td>Training statistics per worker (CompletionPercentage)</td></tr>
+<tr><td><code>CreateTrainingRecordViewModel</code></td><td>ViewModel</td><td>Form AddTraining</td></tr>
+<tr><td><code>ImportTrainingResult</code></td><td>DTO</td><td>Hasil per-baris import: NIP, Judul, Status, Message</td></tr>
+</table>
+</div>
+
+<h4>DeriveCertificateStatus Logic</h4>
+<div class="card" style="font-size:13px;">
+<table class="tbl-compact">
+<tr><th>Kondisi</th><th>Status</th></tr>
+<tr><td>CertificateType == "Permanent"</td><td><span class="badge badge-blue">Permanent</span></td></tr>
+<tr><td>ValidUntil == null (non-Permanent)</td><td><span class="badge badge-critical">Expired</span></td></tr>
+<tr><td>days &lt; 0</td><td><span class="badge badge-critical">Expired</span></td></tr>
+<tr><td>days ≤ 30</td><td><span class="badge badge-medium">AkanExpired</span></td></tr>
+<tr><td>days &gt; 30</td><td><span class="badge badge-green">Aktif</span></td></tr>
+</table>
+</div>
+</section>
+
+<!-- FLOW G: TRAINING CRUD -->
+<section id="flow-training-crud">
+<h3>Flow G: Training CRUD</h3>
+<h4>Add Training</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">1</div><div class="step-desc">HC/Admin buka<br><code>/Admin/AddTraining</code><br>Load workers + kategori</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">2</div><div class="step-desc">Isi form:<br>Judul, Kategori, Tanggal,<br>Status, Penyelenggara<br><strong>Status lifecycle ambigu</strong></div><div class="finding-marker fm-yellow">#7</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">3</div><div class="step-desc">Upload sertifikat file<br>(PDF/JPG/PNG, max 10MB)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">4</div><div class="step-desc">Validasi + SaveChanges<br>File → /uploads/certificates/{guid}</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">5</div><div class="step-desc">AuditLog<br>Redirect ManageAssessment?tab=training</div></div>
+</div>
+
+<h4>Edit & Delete</h4>
+<div class="card" style="font-size:13px;">
+<p><strong>Edit:</strong> Load record → modify fields → jika file baru: hapus file lama dari disk, upload baru → SaveChanges + AuditLog</p>
+<p><strong>Delete:</strong> Hapus file fisik → Remove dari DB → AuditLog. Tidak ada soft-delete untuk TrainingRecord.</p>
+</div>
+</section>
+
+<!-- FLOW H: IMPORT -->
+<section id="flow-import">
+<h3>Flow H: Import Training (Excel)</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">1</div><div class="step-desc">Download template<br>12 kolom Excel<br>(NIP, Judul, Kategori, SubKategori, Tanggal, ...)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">2</div><div class="step-desc">Fill data di Excel<br>Upload .xlsx/.xls<br>(max 10MB)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">3</div><div class="step-desc">Parse per baris:<br>Skip jika NIP + Judul kosong<br>Validasi NIP, Judul, Tanggal</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">4</div><div class="step-desc">Lookup user by NIP<br>Error jika tidak ditemukan</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">5</div><div class="step-desc">Create TrainingRecord<br>per-baris SaveChanges<br><em>Tanpa SertifikatUrl</em></div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">6</div><div class="step-desc">Result table:<br>Success / Error per row</div></div>
+</div>
+<div class="card" style="font-size:13px; background:var(--yellow-light);">
+<p>⚠️ Import TIDAK mendukung upload file sertifikat — sertifikat harus di-upload manual via EditTraining setelah import.</p>
+</div>
+</section>
+
+<!-- FLOW I: CERT LIFECYCLE -->
+<section id="flow-cert-lifecycle">
+<h3>Flow I: Certificate Lifecycle</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Source A</div><div class="step-desc"><strong>Training Record</strong><br>Manual/Import<br>Upload sertifikat file</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step" style="min-width:180px;"><div class="step-label">Certificate Data</div><div class="step-desc">SertifikatUrl<br>ValidUntil<br>CertificateType<br>NomorSertifikat</div></div>
+  <div class="flow-arrow">←</div>
+  <div class="flow-step"><div class="step-label">Source B</div><div class="step-desc"><strong>Assessment</strong><br>Auto-generated<br>IsPassed + GenerateCert</div></div>
+</div>
+<div style="text-align:center; padding:8px 0; font-size:20px; color:var(--blue);">↓</div>
+<div class="flow">
+  <div class="flow-step" style="border-color:var(--green);"><div class="step-label">Aktif</div><div class="step-desc">ValidUntil &gt; 30 hari</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step" style="border-color:#e6a800;"><div class="step-label">Akan Expired</div><div class="step-desc">ValidUntil ≤ 30 hari<br><span style="color:var(--red);">Muncul di RenewalCertificate</span></div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-finding"><div class="step-label">Expired</div><div class="step-desc">ValidUntil &lt; today<br><strong>Tidak ada email notifikasi</strong></div><div class="finding-marker fm-red">#5</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Renewal</div><div class="step-desc">HC renew via Training atau Assessment → FK chain</div></div>
+</div>
+<div class="card" style="font-size:13px;">
+<p><strong>Permanent:</strong> CertificateType == "Permanent" → tidak pernah expired, tidak muncul di RenewalCertificate.</p>
+</div>
+</section>
+
+<!-- FLOW J: RENEWAL CHAIN -->
+<section id="flow-renewal-chain">
+<h3>Flow J: Renewal Chain (Union-Find)</h3>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">1</div><div class="step-desc"><code>RenewalCertificate</code><br>List expired/akan expired<br>Filter: belum di-renew</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">2</div><div class="step-desc">HC pilih method:<br>Renew via Training<br>Renew via Assessment</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">3a</div><div class="step-desc"><strong>Via Training:</strong><br><code>AddTraining</code><br>?renewTrainingId=X<br>?renewSessionId=X</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">4</div><div class="step-desc">Record baru dibuat<br>FK ke source record<br>Source.IsRenewed = true</div></div>
+</div>
+<div style="padding:8px 0;">
+<div class="flow">
+  <div class="flow-step" style="opacity:0; min-width:140px;"></div>
+  <div class="flow-arrow" style="opacity:0;">→</div>
+  <div class="flow-step" style="opacity:0; min-width:140px;"></div>
+  <div class="flow-arrow" style="opacity:0;">→</div>
+  <div class="flow-step"><div class="step-label">3b</div><div class="step-desc"><strong>Via Assessment:</strong><br><code>CreateAssessment</code><br>?renewSessionId=X<br>Worker ikut ujian baru</div></div>
+</div>
+</div>
+
+<h4>Union-Find Chain Algorithm</h4>
+<div class="card" style="font-size:13px;">
+<p><strong>Node keys:</strong> <code>"AS:{id}"</code> untuk AssessmentSession, <code>"TR:{id}"</code> untuk TrainingRecord</p>
+<p><strong>Edges:</strong> Setiap renewal FK menjadi edge. Union-Find dengan path compression groups semua sertifikat terkait ke satu chain.</p>
+<p><strong>Cross-type:</strong> 4 kombinasi FK — AS→AS, TR→AS, AS→TR, TR→TR — semua ditangani.</p>
+<p><strong>Display:</strong> CertificateHistory modal menampilkan chain group, ordered by LatestValidUntil descending.</p>
+<p><strong>IsRenewed flag:</strong> Computed in-memory, bukan kolom DB. Batch lookup 4 query per build.</p>
+</div>
+
+<h4>Bulk Renewal</h4>
+<div class="card" style="font-size:13px;">
+<p>Select multiple rows → link ke AddTraining dengan array renewTrainingId[] → RenewalFkMap = JSON {userId: sourceId} → foreach user: buat TrainingRecord dengan FK per-user.</p>
+</div>
+</section>
+
+<!-- FLOW K: RECORDS -->
+<section id="flow-records">
+<h3>Flow K: Records & Certification Management</h3>
+
+<h4>CMP/Records — Unified View</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Query</div><div class="step-desc"><code>GetUnifiedRecords(userId)</code><br>Merge Assessment (Completed) + TrainingRecord</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Personal Tab</div><div class="step-desc">UnifiedTrainingRecord tabel<br>Ordered by Date desc</div></div>
+  <div class="flow-arrow">+</div>
+  <div class="flow-step has-finding"><div class="step-label">Team Tab</div><div class="step-desc">Worker list + filters<br><strong>CompletionPercentage<br>denominator salah</strong></div><div class="finding-marker fm-red">#3</div></div>
+</div>
+
+<h4>CDP/CertificationManagement — Role-Scoped</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Query</div><div class="step-desc"><code>BuildSertifikatRowsAsync</code><br>Role-scoped:<br>L1-3: semua, L4: se-section,<br>L5: self+coachee, L6: self</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Display</div><div class="step-desc">Semua status sertifikat<br>Filter/Sort/Paginate<br>Export Excel</div></div>
+</div>
+
+<h4>Admin/RenewalCertificate — Renewal Focus</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Query</div><div class="step-desc"><code>BuildRenewalRowsAsync</code><br>Full access (no role scope)<br>Only Expired/AkanExpired<br>Only IsRenewed == false</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Display</div><div class="step-desc">Accordion per Judul<br>AJAX lazy-load<br>Group pagination</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Actions</div><div class="step-desc">Renew via Training<br>Renew via Assessment<br>Lihat Riwayat (modal)</div></div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAGIAN 4: HASIL ANALISA — 12 TEMUAN -->
+<!-- ============================================================ -->
+<section id="findings">
+<h2>4. Hasil Analisa — 12 Temuan</h2>
+
+<div class="finding critical">
+<div class="finding-header">
+  <span class="badge badge-critical">KRITIS</span>
+  <span class="finding-title">#1 — ElemenTeknis Score Tidak Dipersist</span>
+</div>
+<p><strong>Lokasi:</strong> <code>CMPController.cs</code> (SubmitExam) + <code>AdminController.cs</code> (GradeFromSavedAnswers)</p>
+<p><strong>Masalah:</strong> Skor per-ElemenTeknis dihitung saat grading (correct/total per ET group) tapi hanya dikirim ke Results view sebagai ViewBag. Tidak disimpan ke database.</p>
+<p><strong>Dampak:</strong> Tidak bisa jawab "Rata-rata score ET 'Pengetahuan Proses' section X tahun ini?" tanpa recompute dari raw jawaban. Data analytics ET hilang setiap session.</p>
+<p><strong>Fix:</strong> Tambah tabel <code>SessionElemenTeknisScore</code> (SessionId, ElemenTeknis, CorrectCount, TotalCount). Isi saat SubmitExam/GradeFromSavedAnswers. Effort: LOW.</p>
+</div>
+
+<div class="finding critical">
+<div class="finding-header">
+  <span class="badge badge-critical">KRITIS</span>
+  <span class="finding-title">#2 — Tidak Ada Analytics Dashboard HC</span>
+</div>
+<p><strong>Lokasi:</strong> Tidak ada halaman yang aggregate data assessment/training secara visual.</p>
+<p><strong>Masalah:</strong> HC harus export Excel manual setiap kali butuh insight. Tidak ada visualisasi: fail rate per section, per category, trend waktu, sertifikat yang akan expired.</p>
+<p><strong>Dampak:</strong> Decision-making lambat. HC tidak punya early warning system.</p>
+<p><strong>Fix:</strong> 1 halaman baru <code>AnalyticsDashboard</code> dengan Chart.js (sudah ada di CDN). Query aggregasi dari data yang sudah ada. Effort: MEDIUM.</p>
+</div>
+
+<div class="finding critical">
+<div class="finding-header">
+  <span class="badge badge-critical">KRITIS</span>
+  <span class="finding-title">#3 — Training Compliance Matrix Tidak Ada</span>
+</div>
+<p><strong>Lokasi:</strong> <code>WorkerTrainingStatus.CompletionPercentage</code></p>
+<p><strong>Masalah:</strong> CompletionPercentage = CompletedTrainings / TotalTrainings di DB. Denominator salah — "total training di DB" ≠ "total training wajib per jabatan". Senior Operator wajib 8 sertifikasi, punya 2 → sistem bilang 100% (2/2) padahal 25% (2/8).</p>
+<p><strong>Dampak:</strong> Compliance percentage misleading. Regulasi HSE bisa dilanggar tanpa terdeteksi.</p>
+<p><strong>Fix:</strong> Tabel <code>RequiredTraining</code> (PositionTitle × SubKategori). Admin input matriks training wajib. Query compliance dari sini. Effort: MEDIUM.</p>
+</div>
+
+<div class="finding medium">
+<div class="finding-header">
+  <span class="badge badge-medium">SEDANG</span>
+  <span class="finding-title">#4 — Question Bank Tidak Ada</span>
+</div>
+<p><strong>Lokasi:</strong> <code>PackageQuestion.AssessmentPackageId</code> → soal terikat per-session</p>
+<p><strong>Masalah:</strong> Harus import Excel ulang setiap buat assessment baru. Tidak bisa reuse soal. Tidak ada item analysis (difficulty index, discrimination index).</p>
+<p><strong>Dampak:</strong> Duplikasi effort HC. Tidak bisa improve kualitas soal berdasarkan data historis.</p>
+<p><strong>Fix:</strong> Model <code>QuestionBank</code> → copy-by-value ke PackageQuestion saat assignment. Exam engine tidak perlu diubah. Effort: HIGH (tapi aman karena copy-by-value).</p>
+</div>
+
+<div class="finding medium">
+<div class="finding-header">
+  <span class="badge badge-medium">SEDANG</span>
+  <span class="finding-title">#5 — Tidak Ada Email Notification Sertifikat Expired</span>
+</div>
+<p><strong>Lokasi:</strong> Tidak ada background service atau email system.</p>
+<p><strong>Masalah:</strong> Sertifikat expired silent — hanya terlihat jika HC buka RenewalCertificate page. Tidak ada reminder 90/30/7 hari sebelum expired.</p>
+<p><strong>Dampak:</strong> HSE compliance risk. Sertifikat keselamatan bisa expired tanpa ada yang tahu.</p>
+<p><strong>Fix:</strong> <code>IHostedService</code> (BackgroundService) + MailKit NuGet. Tabel <code>NotificationSentLog</code> untuk de-duplikasi. Effort: MEDIUM.</p>
+</div>
+
+<div class="finding medium">
+<div class="finding-header">
+  <span class="badge badge-medium">SEDANG</span>
+  <span class="finding-title">#6 — Tab-Switch Detection Tidak Ada</span>
+</div>
+<p><strong>Lokasi:</strong> <code>Views/CMP/StartExam.cshtml</code> (JavaScript exam page)</p>
+<p><strong>Masalah:</strong> ExamActivityLog mencatat: started, page_nav, disconnected, reconnected, submitted — tapi TIDAK ada event untuk <code>visibilitychange</code> / window blur. HC tidak bisa detect apakah worker buka tab lain selama ujian.</p>
+<p><strong>Dampak:</strong> Integritas ujian berkurang. Worker bisa browsing jawaban di tab lain.</p>
+<p><strong>Fix:</strong> Tambah <code>visibilitychange</code> event listener → log "focus_lost"/"focus_returned" ke ExamActivityLog via SignalR → tampilkan di MonitoringDetail. JANGAN auto-terminate — HC yang decide. Effort: LOW.</p>
+</div>
+
+<div class="finding medium">
+<div class="finding-header">
+  <span class="badge badge-medium">SEDANG</span>
+  <span class="finding-title">#7 — TrainingRecord.Status Lifecycle Ambigu</span>
+</div>
+<p><strong>Lokasi:</strong> <code>TrainingRecord.Status</code> — values: "Passed", "Wait Certificate", "Valid"</p>
+<p><strong>Masalah:</strong> Tidak ada state machine yang jelas. "Passed" dan "Valid" overlap artinya. Expired ditentukan dari ValidUntil bukan Status. Status tidak otomatis berubah saat sertifikat expired.</p>
+<p><strong>Dampak:</strong> Confusion saat filter/report. HC harus pahami logic gabungan Status + ValidUntil + CertificateType.</p>
+<p><strong>Fix:</strong> Dokumentasi transisi status yang jelas. Atau simplify: hapus "Valid" (gunakan "Passed" + ValidUntil untuk determine aktif/expired). Effort: LOW.</p>
+</div>
+
+<div class="finding low">
+<div class="finding-header">
+  <span class="badge badge-low">RENDAH</span>
+  <span class="finding-title">#8 — UserResponse Tanpa Timestamp</span>
+</div>
+<p><strong>Lokasi:</strong> <code>Models/UserResponse.cs</code> — legacy path</p>
+<p><strong>Masalah:</strong> Legacy path jawaban tidak punya field timestamp. PackageUserResponse punya <code>SubmittedAt</code>. Inkonsistensi antara 2 path.</p>
+<p><strong>Dampak:</strong> Tidak bisa audit waktu per-jawaban di legacy path. Minor karena legacy path jarang dipakai.</p>
+<p><strong>Fix:</strong> Tambah <code>SubmittedAt</code> ke UserResponse via migrasi. Effort: LOW.</p>
+</div>
+
+<div class="finding low">
+<div class="finding-header">
+  <span class="badge badge-low">RENDAH</span>
+  <span class="finding-title">#9 — Legacy Question Path Masih Hidup</span>
+</div>
+<p><strong>Lokasi:</strong> <code>AssessmentQuestion</code> + <code>AssessmentOption</code> + <code>UserResponse</code> + <code>SaveLegacyAnswer</code></p>
+<p><strong>Masalah:</strong> 2 path soal (legacy + package) hidup berdampingan. Menambah complexity di grading logic, views, dan maintenance.</p>
+<p><strong>Dampak:</strong> Setiap fitur baru harus handle 2 path. Bug potential meningkat.</p>
+<p><strong>Fix:</strong> Deprecate legacy path. Migrasi existing legacy sessions ke package format. Effort: MEDIUM (perlu migrasi data).</p>
+</div>
+
+<div class="finding low">
+<div class="finding-header">
+  <span class="badge badge-low">RENDAH</span>
+  <span class="finding-title">#10 — Competency Auto-Update Disabled (Orphaned Tables)</span>
+</div>
+<p><strong>Lokasi:</strong> <code>AssessmentCompetencyMap</code> + <code>UserCompetencyLevel</code> — disabled sejak Phase 90</p>
+<p><strong>Masalah:</strong> Tabel masih ada di DB tapi tidak digunakan. FK ke KkjMatrices (sudah di-drop) orphaned. Dead code di codebase.</p>
+<p><strong>Dampak:</strong> Database bloat minor. Confusion bagi developer baru.</p>
+<p><strong>Fix:</strong> Cleanup: drop tabel jika tidak akan dipakai, atau re-enable dengan model baru (OrganizationUnit-based). Effort: LOW (drop) / HIGH (re-enable).</p>
+</div>
+
+<div class="finding low">
+<div class="finding-header">
+  <span class="badge badge-low">RENDAH</span>
+  <span class="finding-title">#11 — NomorSertifikat Pre-Generated</span>
+</div>
+<p><strong>Lokasi:</strong> <code>AdminController.CreateAssessment</code> (POST)</p>
+<p><strong>Masalah:</strong> NomorSertifikat di-generate saat CreateAssessment, bukan saat ujian selesai dan lulus. Worker yang tidak ikut atau gagal ujian tetap "memakan" nomor sertifikat.</p>
+<p><strong>Dampak:</strong> Nomor sertifikat tidak sequential (ada gap). Minor karena nomor tetap unique.</p>
+<p><strong>Fix:</strong> Generate NomorSertifikat saat SubmitExam + IsPassed. Effort: MEDIUM (perlu refactor flow + handle concurrent).</p>
+</div>
+
+<div class="finding low">
+<div class="finding-header">
+  <span class="badge badge-low">RENDAH</span>
+  <span class="finding-title">#12 — Shared AccessToken</span>
+</div>
+<p><strong>Lokasi:</strong> <code>AssessmentSession.AccessToken</code> — shared oleh semua peserta dalam batch</p>
+<p><strong>Masalah:</strong> Satu token 6 karakter dipakai semua peserta. Jika bocor ke satu orang, semua bisa akses.</p>
+<p><strong>Dampak:</strong> Risiko rendah karena token hanya untuk memulai, bukan menggantikan autentikasi. HC bisa regenerate.</p>
+<p><strong>Fix:</strong> Opsional: per-user token. Atau keep as-is (ini pattern yang umum di exam room setting). Effort: LOW.</p>
+</div>
+
+</section>
+
+<!-- ============================================================ -->
+<!-- BAGIAN 5: TEMUAN DALAM FLOW -->
+<!-- ============================================================ -->
+<section id="findings-flow">
+<h2>5. Temuan Divisualisasikan dalam Flow</h2>
+<p style="margin-bottom:16px; font-size:13px; color:#666;">Flow diagram dari Bagian 2 & 3, dengan anotasi temuan. <span style="color:var(--red);">❌ Merah = KRITIS</span> &bull; <span style="color:#e6a800;">⚠️ Kuning = SEDANG</span> &bull; <span style="color:var(--gray);">ℹ️ Abu = RENDAH</span></p>
+
+<h3>Assessment Flow — Annotated</h3>
+<div class="card">
+<h4>Pembuatan → Ujian → Hasil</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Create</div><div class="step-desc">HC buat assessment<br>Assign users</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">NomorSertifikat</div><div class="step-desc">Generated sekarang<br>(belum ujian!)</div><div class="finding-marker fm-gray">#11</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Soal</div><div class="step-desc">Import Excel<br>ke Package</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-info"><div class="step-label">Token</div><div class="step-desc">Shared 6-char<br>token verify</div><div class="finding-marker fm-gray">#12</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Start</div><div class="step-desc">InProgress<br>Shuffle + Assign</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">Mengerjakan</div><div class="step-desc">Auto-save<br>Timer<br><strong>❌ No tab-switch detect</strong></div><div class="finding-marker fm-yellow">#6</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-finding"><div class="step-label">Submit + Grade</div><div class="step-desc">Score calculated<br><strong>❌ ET Score NOT saved</strong></div><div class="finding-marker fm-red">#1</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Results</div><div class="step-desc">Skor + ET breakdown<br>(visual only, hilang)</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Certificate</div><div class="step-desc">PDF / HTML<br>jika lulus</div></div>
+</div>
+</div>
+
+<div class="card">
+<h4>Monitoring HC — Annotated</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Monitor</div><div class="step-desc">HC real-time<br>SignalR events</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">Per-Worker Status</div><div class="step-desc">Progress, Score<br><strong>❌ No tab-switch info</strong></div><div class="finding-marker fm-yellow">#6</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Actions</div><div class="step-desc">Force Close<br>Reset<br>Reshuffle</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-finding"><div class="step-label">Analytics?</div><div class="step-desc"><strong>❌ TIDAK ADA</strong><br>Tidak ada dashboard<br>aggregate analytics</div><div class="finding-marker fm-red">#2</div></div>
+</div>
+</div>
+
+<h3>Training Flow — Annotated</h3>
+<div class="card">
+<h4>CRUD + Certificate Lifecycle</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Add Training</div><div class="step-desc">HC input manual<br>atau Import Excel</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">Status</div><div class="step-desc">Passed? Valid?<br>Wait Certificate?<br><strong>⚠️ Ambigu</strong></div><div class="finding-marker fm-yellow">#7</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Certificate</div><div class="step-desc">Upload file<br>Set ValidUntil<br>CertificateType</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Aktif</div><div class="step-desc">Tampil di<br>CertificationMgmt</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-finding"><div class="step-label">Akan Expired / Expired</div><div class="step-desc">Tampil di RenewalCert<br><strong>❌ Tidak ada email reminder</strong></div><div class="finding-marker fm-red">#5</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step"><div class="step-label">Renewal</div><div class="step-desc">via Training/Assessment<br>FK chain (Union-Find)</div></div>
+</div>
+</div>
+
+<div class="card">
+<h4>Records & Compliance — Annotated</h4>
+<div class="flow">
+  <div class="flow-step"><div class="step-label">Records</div><div class="step-desc">CMP/Records<br>Unified view</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-finding"><div class="step-label">Team View</div><div class="step-desc">CompletionPercentage<br><strong>❌ Denominator salah</strong><br>(DB count ≠ required)</div><div class="finding-marker fm-red">#3</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-warning"><div class="step-label">Question Reuse?</div><div class="step-desc"><strong>⚠️ No Question Bank</strong><br>Soal terikat per-session<br>Import ulang terus</div><div class="finding-marker fm-yellow">#4</div></div>
+</div>
+</div>
+
+<div class="card">
+<h4>Orphaned / Disabled — Annotated</h4>
+<div class="flow">
+  <div class="flow-step has-info"><div class="step-label">Legacy Path</div><div class="step-desc">AssessmentQuestion<br>UserResponse<br><strong>ℹ️ Masih hidup, tanpa timestamp</strong></div><div class="finding-marker fm-gray">#8,9</div></div>
+  <div class="flow-arrow">→</div>
+  <div class="flow-step has-info"><div class="step-label">Competency Tables</div><div class="step-desc">CompetencyMap<br>CompetencyLevel<br><strong>ℹ️ DISABLED, orphaned FK</strong></div><div class="finding-marker fm-gray">#10</div></div>
+</div>
+</div>
+
+<!-- SUMMARY MAP -->
+<h3>Peta Temuan — Ringkasan</h3>
+<table>
+<tr><th>#</th><th>Temuan</th><th>Severity</th><th>Lokasi dalam Flow</th><th>Effort Fix</th></tr>
+<tr><td>1</td><td>ET Score tidak dipersist</td><td><span class="badge badge-critical">KRITIS</span></td><td>Flow B step 9: SubmitExam/Grade</td><td>LOW</td></tr>
+<tr><td>2</td><td>Analytics Dashboard tidak ada</td><td><span class="badge badge-critical">KRITIS</span></td><td>Flow C: setelah monitoring → tidak ada aggregate view</td><td>MEDIUM</td></tr>
+<tr><td>3</td><td>Compliance Matrix tidak ada</td><td><span class="badge badge-critical">KRITIS</span></td><td>Flow K: Records Team View (CompletionPercentage)</td><td>MEDIUM</td></tr>
+<tr><td>4</td><td>Question Bank tidak ada</td><td><span class="badge badge-medium">SEDANG</span></td><td>Flow A step 7-8: ManagePackages/Import</td><td>HIGH</td></tr>
+<tr><td>5</td><td>Email notification expired tidak ada</td><td><span class="badge badge-medium">SEDANG</span></td><td>Flow I: Certificate expired → silent</td><td>MEDIUM</td></tr>
+<tr><td>6</td><td>Tab-switch detection tidak ada</td><td><span class="badge badge-medium">SEDANG</span></td><td>Flow B step 5: saat mengerjakan ujian</td><td>LOW</td></tr>
+<tr><td>7</td><td>Status lifecycle ambigu</td><td><span class="badge badge-medium">SEDANG</span></td><td>Flow G step 2: AddTraining Status field</td><td>LOW</td></tr>
+<tr><td>8</td><td>UserResponse tanpa timestamp</td><td><span class="badge badge-low">RENDAH</span></td><td>Legacy path: SaveLegacyAnswer</td><td>LOW</td></tr>
+<tr><td>9</td><td>Legacy path masih hidup</td><td><span class="badge badge-low">RENDAH</span></td><td>Dual path: AssessmentQuestion vs PackageQuestion</td><td>MEDIUM</td></tr>
+<tr><td>10</td><td>Competency tables orphaned</td><td><span class="badge badge-low">RENDAH</span></td><td>Disabled sejak Phase 90</td><td>LOW/HIGH</td></tr>
+<tr><td>11</td><td>NomorSertifikat pre-generated</td><td><span class="badge badge-low">RENDAH</span></td><td>Flow A step 4: CreateAssessment</td><td>MEDIUM</td></tr>
+<tr><td>12</td><td>Shared AccessToken</td><td><span class="badge badge-low">RENDAH</span></td><td>Flow B step 2: Token verification</td><td>LOW</td></tr>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<!-- BAGIAN 6: REKOMENDASI IMPROVEMENT -->
+<!-- ============================================================ -->
+<section id="recommendations">
+<h2>6. Rekomendasi Improvement</h2>
+
+<table class="prio-table">
+<tr><th>Priority</th><th>Improvement</th><th>Effort</th><th>Impact</th><th>Depends On</th><th>Implementasi</th></tr>
+<tr><td class="p1">P1</td><td><strong>Persist ElemenTeknis Score</strong></td><td><span class="badge badge-green">LOW</span></td><td><span class="badge badge-critical">HIGH</span></td><td>—</td><td>Tabel <code>SessionElemenTeknisScore</code> (SessionId, ElemenTeknis, CorrectCount, TotalCount). Insert saat SubmitExam + GradeFromSavedAnswers. ~50 baris kode.</td></tr>
+<tr><td class="p1">P1</td><td><strong>Tab-Switch Detection</strong></td><td><span class="badge badge-green">LOW</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td>—</td><td><code>visibilitychange</code> event → SignalR log "focus_lost"/"focus_returned" → tampilkan icon di MonitoringDetail. ~30 baris JS + 10 baris C#.</td></tr>
+<tr><td class="p1">P1</td><td><strong>Status Lifecycle Clarity</strong></td><td><span class="badge badge-green">LOW</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td>—</td><td>Dokumentasi transisi status. Atau simplify: hapus "Valid", gunakan "Passed" + ValidUntil. Update view logic yang depend on status string.</td></tr>
+<tr><td class="p1">P1</td><td><strong>Analytics Dashboard HC</strong></td><td><span class="badge badge-medium">MEDIUM</span></td><td><span class="badge badge-critical">HIGH</span></td><td>ET Score (#1)</td><td>Halaman baru <code>/Admin/AnalyticsDashboard</code>. Chart.js (sudah ada CDN). Query: fail rate per section/category, trend, expiring certs. ~300 baris.</td></tr>
+<tr><td class="p1">P1</td><td><strong>Training Compliance Matrix</strong></td><td><span class="badge badge-medium">MEDIUM</span></td><td><span class="badge badge-critical">HIGH</span></td><td>—</td><td>Tabel <code>RequiredTraining</code> (PositionTitle, SubKategori, IsRequired). CRUD page di Admin. Query compliance = completed/required per worker. ~400 baris.</td></tr>
+<tr><td class="p2">P2</td><td><strong>Email Notification Expired</strong></td><td><span class="badge badge-medium">MEDIUM</span></td><td><span class="badge badge-critical">HIGH</span></td><td>SMTP config</td><td><code>CertificateExpiryNotificationService : BackgroundService</code>. MailKit NuGet. Tabel <code>NotificationSentLog</code>. Cron: daily check. Reminder 90/30/7 hari.</td></tr>
+<tr><td class="p2">P2</td><td><strong>UserResponse Timestamp</strong></td><td><span class="badge badge-green">LOW</span></td><td><span class="badge badge-low">LOW</span></td><td>—</td><td>Tambah <code>SubmittedAt DateTime</code> ke UserResponse. Migrasi nullable. Update SaveLegacyAnswer.</td></tr>
+<tr><td class="p3">P3</td><td><strong>Question Bank Library</strong></td><td><span class="badge badge-critical">HIGH</span></td><td><span class="badge badge-medium">MEDIUM</span></td><td>—</td><td>Tabel <code>QuestionBankItem</code>. CRUD + import page. Copy-by-value ke PackageQuestion saat assignment. Exam engine tidak berubah.</td></tr>
+<tr><td class="p3">P3</td><td><strong>Legacy Path Deprecation</strong></td><td><span class="badge badge-medium">MEDIUM</span></td><td><span class="badge badge-low">LOW</span></td><td>—</td><td>Migrasi existing legacy sessions ke package format. Hapus SaveLegacyAnswer, ManageQuestions, AddQuestion, DeleteQuestion. Simplify grading logic.</td></tr>
+<tr><td class="p3">P3</td><td><strong>Competency Tables Cleanup</strong></td><td><span class="badge badge-green">LOW</span></td><td><span class="badge badge-low">LOW</span></td><td>—</td><td>Drop AssessmentCompetencyMap + UserCompetencyLevel. Atau re-design dengan OrganizationUnit-based mapping.</td></tr>
+<tr><td class="p3">P3</td><td><strong>NomorSertifikat Lazy Generation</strong></td><td><span class="badge badge-medium">MEDIUM</span></td><td><span class="badge badge-low">LOW</span></td><td>—</td><td>Generate NomorSertifikat saat SubmitExam + IsPassed (bukan CreateAssessment). Refactor UNIQUE constraint handling.</td></tr>
+</table>
+</section>
+
+<!-- ROADMAP VISUAL -->
+<section id="roadmap">
+<h3>Roadmap Visual — Suggested Phase Order</h3>
+
+<div class="card">
+<h4>Phase 1 — Quick Wins (LOW effort, HIGH impact)</h4>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#1 ET Score Persist</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:20%; background:var(--green);">LOW</div></div>
+</div>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#6 Tab-Switch Detection</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:15%; background:var(--green);">LOW</div></div>
+</div>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#7 Status Lifecycle Fix</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:15%; background:var(--green);">LOW</div></div>
+</div>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#8 UserResponse Timestamp</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:10%; background:var(--green);">LOW</div></div>
+</div>
+
+<h4 style="margin-top:20px;">Phase 2 — Core Improvements (MEDIUM effort)</h4>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#2 Analytics Dashboard</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:50%; background:var(--blue);">MEDIUM</div></div>
+</div>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#3 Compliance Matrix</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:55%; background:var(--blue);">MEDIUM</div></div>
+</div>
+
+<h4 style="margin-top:20px;">Phase 3 — Infrastructure (MEDIUM effort, external dependency)</h4>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#5 Email Notification</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:50%; background:#e6a800;">MEDIUM (SMTP needed)</div></div>
+</div>
+
+<h4 style="margin-top:20px;">Phase 4 — Major Refactors (HIGH effort, lower urgency)</h4>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#4 Question Bank</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:80%; background:var(--red);">HIGH</div></div>
+</div>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#9 Legacy Deprecation</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:50%; background:var(--red);">MEDIUM</div></div>
+</div>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#10 Competency Cleanup</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:20%; background:var(--gray);">LOW</div></div>
+</div>
+<div class="roadmap-bar">
+  <div class="roadmap-label">#11 NomorSertifikat Lazy</div>
+  <div class="roadmap-track"><div class="roadmap-fill" style="width:45%; background:var(--gray);">MEDIUM</div></div>
+</div>
+</div>
+
+<div class="card" style="background:var(--blue-light); border-left:4px solid var(--blue);">
+<h4 style="color:var(--blue); margin-top:0;">Rekomendasi Urutan Eksekusi</h4>
+<ol style="margin:8px 0 0 20px; font-size:14px;">
+<li><strong>Phase 1:</strong> Quick wins — ET Score persist + Tab-switch detect + Status lifecycle + UserResponse timestamp</li>
+<li><strong>Phase 2:</strong> Analytics Dashboard HC — memerlukan #1 (ET Score) untuk data lengkap</li>
+<li><strong>Phase 3:</strong> Training Compliance Matrix — independen, bisa paralel dengan Phase 2</li>
+<li><strong>Phase 4:</strong> Email Notification — butuh konfirmasi SMTP availability</li>
+<li><strong>Phase 5+:</strong> Question Bank, Legacy Deprecation, Competency Cleanup — jangka panjang</li>
+</ol>
+</div>
+
+</section>
+
+<div style="text-align:center; padding:40px 0 60px; color:#999; font-size:12px;">
+  <p>Portal HC KPB — Audit Assessment & Training System v8.0</p>
+  <p>Generated: 21 Maret 2026 | 12 Temuan | 11 Rekomendasi</p>
+</div>
+
+</div><!-- /.main -->
+</div><!-- /.layout -->
+
+</body>
+</html>

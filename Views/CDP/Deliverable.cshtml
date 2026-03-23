@@ -146,11 +146,11 @@ else
 
                     <div class="position-relative ps-4">
                         @* Vertical line *@
-                        <div class="position-absolute" style="left:11px;top:8px;bottom:8px;width:2px;background:#dee2e6"></div>
+                        <div class="position-absolute approval-line"></div>
 
                         @* Step 1: Sr. Supervisor *@
                         <div class="d-flex align-items-start mb-3 position-relative">
-                            <i class="bi @GetStepIcon(srSpvStatus) @GetStepColor(srSpvStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
+                            <i class="bi @GetStepIcon(srSpvStatus) @GetStepColor(srSpvStatus) position-absolute approval-step-icon"></i>
                             <div>
                                 <div class="fw-semibold">Sr. Supervisor
                                     <span class="badge @GetBadgeClass(srSpvStatus) ms-2">@srSpvStatus</span>
@@ -169,7 +169,7 @@ else
 
                         @* Step 2: Section Head *@
                         <div class="d-flex align-items-start mb-3 position-relative">
-                            <i class="bi @GetStepIcon(shStatus) @GetStepColor(shStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
+                            <i class="bi @GetStepIcon(shStatus) @GetStepColor(shStatus) position-absolute approval-step-icon"></i>
                             <div>
                                 <div class="fw-semibold">Section Head
                                     <span class="badge @GetBadgeClass(shStatus) ms-2">@shStatus</span>
@@ -188,7 +188,7 @@ else
 
                         @* Step 3: HC Review *@
                         <div class="d-flex align-items-start position-relative">
-                            <i class="bi @GetStepIcon(hcStatus) @GetStepColor(hcStatus) position-absolute" style="left:-27px;top:2px;font-size:1.2em;background:#fff;z-index:1"></i>
+                            <i class="bi @GetStepIcon(hcStatus) @GetStepColor(hcStatus) position-absolute approval-step-icon"></i>
                             <div>
                                 <div class="fw-semibold">HC Review
                                     <span class="badge @GetBadgeClass(hcStatus) ms-2">@(hcStatus == "Reviewed" ? "Reviewed" : hcStatus)</span>
@@ -466,3 +466,20 @@ else
         <i class="bi bi-arrow-left me-1"></i>@backText2
     </a>
 }
+
+<style>
+    .approval-line {
+        left: 11px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: var(--bs-border-color);
+    }
+    .approval-step-icon {
+        left: -27px;
+        top: 2px;
+        font-size: 1.2em;
+        background: var(--bs-white, #fff);
+        z-index: 1;
+    }
+</style>

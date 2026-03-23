@@ -3,6 +3,13 @@
 }
 
 <div class="container-fluid py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item active">CDP</li>
+        </ol>
+    </nav>
+
     <div class="row mb-4">
         <div class="col">
             <h2 class="mb-1">
@@ -142,6 +149,11 @@
 
     .card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+        box-shadow: var(--bs-box-shadow) !important;
+    }
+
+    .cdp-loading .card {
+        opacity: 0.6;
+        pointer-events: none;
     }
 </style>
