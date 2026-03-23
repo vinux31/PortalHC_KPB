@@ -128,7 +128,7 @@ Plans:
   3. UI memiliki link/tombol untuk ExportBottleneckReport, ExportCoachingTracking, dan ExportWorkloadSummary yang accessible oleh HC/Admin
 **Plans**: 1 plan
 Plans:
-- [ ] 238-01-PLAN.md — Wire progression warning, session Edit/Delete, 3 export buttons
+- [x] 238-01-PLAN.md — Wire progression warning, session Edit/Delete, 3 export buttons
 
 ## Progress
 
@@ -141,4 +141,4 @@ Plans:
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
 | 236. Audit Completion | v8.2 | 4/4 | Complete    | 2026-03-23 |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 3/3 | Complete   | 2026-03-23 |
-| 238. Gap Closure — UI Wiring | v8.2 | 0/1 | Pending    | — |
+| 238. Gap Closure — UI Wiring | v8.2 | 1/1 | Complete   | 2026-03-23 |

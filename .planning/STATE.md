@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
-status: Ready to execute
-stopped_at: "Checkpoint 237-03 Task 3: awaiting browser verification"
-last_updated: "2026-03-23T05:27:41.867Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 238-01-PLAN.md
+last_updated: "2026-03-23T10:48:50.832Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 16
+  completed_plans: 16
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 237 — audit-monitoring-differentiator-enhancement
+**Current focus:** Phase 238 — gap-closure-ui-wiring
 
 ## Current Position
 
-Phase: 237 (audit-monitoring-differentiator-enhancement) — EXECUTING
-Plan: 3 of 3
+Phase: 238 (gap-closure-ui-wiring) — EXECUTING
+Plan: 1 of 1
 
 ## Accumulated Context
 
@@ -61,6 +61,9 @@ Plan: 3 of 3
 - [Phase 237]: DIFF-01: badge warna beban coach di CoachCoacheeMapping — merah >=8, kuning >=5, biru default
 - [Phase 237]: ExportHistoriProton: tambah explicit Authorize role attr — sebelumnya hanya class-level auth
 - [Phase 237]: BatchHCApprove race guard: hanya proses Status==Submitted && HCApprovalStatus==Pending — konsisten dengan button HC review individual
+- [Phase 238]: Progression warning: confirm dialog re-send ConfirmProgressionWarning=true
+- [Phase 238]: Edit/Delete session: role-gated coach pemilik + HC/Admin
+- [Phase 238]: 3 export baru CoachingProton: hanya visible HC/Admin
 
 ### Pending Todos
 
@@ -72,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T05:27:27.855Z
-Stopped at: Checkpoint 237-03 Task 3: awaiting browser verification
+Last session: 2026-03-23T10:48:45.300Z
+Stopped at: Completed 238-01-PLAN.md
 Resume file: None

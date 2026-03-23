@@ -18,7 +18,7 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 - [x] **SETUP-01**: Audit Silabus delete — tambah impact count warning sebelum hard delete, soft delete jika ada progress aktif
 - [x] **SETUP-02**: Audit Coaching Guidance — file management integrity (upload/replace/delete), validasi tipe file
 - [x] **SETUP-03**: Audit Coach-Coachee Mapping — tambah explicit DB transaction pada cascade deactivation, validasi duplikasi
-- [ ] **SETUP-04**: Audit Track Assignment — progression validation Tahun 1→2→3, seed ProtonDeliverableProgress correctness
+- [x] **SETUP-04**: Audit Track Assignment — progression validation Tahun 1→2→3, seed ProtonDeliverableProgress correctness
 - [x] **SETUP-05**: Audit Import/Export Silabus dan Mapping — validasi data, error handling, template accuracy
 
 ### Audit Execution Flow
@@ -32,7 +32,7 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 ### Audit Completion
 
 - [x] **COMP-01**: Audit Final Assessment — tambah DB unique constraint pada ProtonTrackAssignmentId, competency level granting accuracy
-- [ ] **COMP-02**: Audit Coaching Sessions — linkage ke deliverable progress, action items status tracking, session CRUD integrity
+- [x] **COMP-02**: Audit Coaching Sessions — linkage ke deliverable progress, action items status tracking, session CRUD integrity
 - [x] **COMP-03**: Audit HistoriProton — timeline accuracy, legacy CoachingLog coexistence, data completeness
 - [x] **COMP-04**: Audit 3-year journey — Tahun 1→2→3 lifecycle end-to-end, assignment transition, completion flow
 
@@ -41,13 +41,13 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 - [x] **MON-01**: Audit Dashboard — role-scoped filtering accuracy, stats correctness, Chart.js data integrity
 - [x] **MON-02**: Audit CoachingProton tracking — filter cascade, pagination, role-based column visibility
 - [x] **MON-03**: Audit Override — validasi status transition rules, audit trail lengkap, admin accountability
-- [ ] **MON-04**: Audit Export — data accuracy, query optimization (N+1 elimination, projection), semua export actions
+- [x] **MON-04**: Audit Export — data accuracy, query optimization (N+1 elimination, projection), semua export actions
 
 ### Differentiator Enhancement
 
-- [ ] **DIFF-01**: Workload indicator coach — tampilkan jumlah coachee aktif per coach di mapping page dan dashboard
+- [x] **DIFF-01**: Workload indicator coach — tampilkan jumlah coachee aktif per coach di mapping page dan dashboard
 - [x] **DIFF-02**: Batch approval HC Review — approve multiple deliverables sekaligus dari monitoring view
-- [ ] **DIFF-03**: Bottleneck analysis — identifikasi deliverable paling lama pending, approval bottleneck visibility di dashboard
+- [x] **DIFF-03**: Bottleneck analysis — identifikasi deliverable paling lama pending, approval bottleneck visibility di dashboard
 
 ## Future Requirements (v9+)
 
@@ -76,7 +76,7 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 | SETUP-01 | Phase 234 | Complete |
 | SETUP-02 | Phase 234 | Complete |
 | SETUP-03 | Phase 234 | Complete |
-| SETUP-04 | Phase 238 | Pending |
+| SETUP-04 | Phase 238 | Complete |
 | SETUP-05 | Phase 234 | Complete |
 | EXEC-01 | Phase 235 | Complete |
 | EXEC-02 | Phase 235 | Complete |
@@ -84,16 +84,16 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 | EXEC-04 | Phase 235 | Complete |
 | EXEC-05 | Phase 235 | Complete |
 | COMP-01 | Phase 236 | Complete |
-| COMP-02 | Phase 238 | Pending |
+| COMP-02 | Phase 238 | Complete |
 | COMP-03 | Phase 236 | Complete |
 | COMP-04 | Phase 236 | Complete |
 | MON-01 | Phase 237 | Complete |
 | MON-02 | Phase 237 | Complete |
 | MON-03 | Phase 237 | Complete |
-| MON-04 | Phase 238 | Pending |
-| DIFF-01 | Phase 238 | Pending |
+| MON-04 | Phase 238 | Complete |
+| DIFF-01 | Phase 238 | Complete |
 | DIFF-02 | Phase 237 | Complete |
-| DIFF-03 | Phase 238 | Pending |
+| DIFF-03 | Phase 238 | Complete |
 
 **Coverage:**
 - v8.2 requirements: 24 total
