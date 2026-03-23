@@ -113,7 +113,7 @@ Plans:
   7. Dashboard menampilkan bottleneck analysis — deliverable yang paling lama pending teridentifikasi dan visible
 **Plans**: 3 plans
 Plans:
-- [ ] 237-01-PLAN.md — Audit CoachingProton tracking + Override transition validation
+- [x] 237-01-PLAN.md — Audit CoachingProton tracking + Override transition validation
 - [ ] 237-02-PLAN.md — Audit dashboard stats + bottleneck chart + workload indicator
 - [ ] 237-03-PLAN.md — Export audit + 3 export baru + batch HC approval + UAT
 
@@ -127,4 +127,4 @@ Plans:
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
 | 236. Audit Completion | v8.2 | 4/4 | Complete    | 2026-03-23 |
-| 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/3 | Not started | - |
+| 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 1/3 | In Progress|  |
