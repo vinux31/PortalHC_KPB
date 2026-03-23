@@ -517,7 +517,7 @@ namespace HcPortal.Controllers
 
         // Phase 176: Export team assessment records as Excel (filtered by current view params)
         [HttpGet]
-        public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter)
+        public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter, string? dateFrom, string? dateTo)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
@@ -530,16 +530,21 @@ namespace HcPortal.Controllers
                 sectionFilter = user.Section;
             }
 
+            DateTime? from = string.IsNullOrEmpty(dateFrom) ? null : DateTime.Parse(dateFrom);
+            DateTime? to = string.IsNullOrEmpty(dateTo) ? null : DateTime.Parse(dateTo);
+
             var (assessmentRows, _) = await _workerDataService.GetAllWorkersHistory();
 
-            // Get filtered worker IDs from GetWorkersInSection
-            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, null, search, statusFilter);
+            // Get filtered worker IDs from GetWorkersInSection (with date range)
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, null, search, statusFilter, from, to);
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
 
             var filtered = assessmentRows
                 .Where(r => filteredIds.Contains(r.WorkerId))
+                .Where(r => from == null || r.Date.Date >= from.Value.Date)
+                .Where(r => to == null || r.Date.Date <= to.Value.Date)
                 .ToList();
 
             using var workbook = new XLWorkbook();
@@ -564,7 +569,7 @@ namespace HcPortal.Controllers
 
         // Phase 176: Export team training records as Excel (filtered by current view params)
         [HttpGet]
-        public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category)
+        public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category, string? dateFrom, string? dateTo)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
 
@@ -577,16 +582,21 @@ namespace HcPortal.Controllers
                 sectionFilter = user.Section;
             }
 
+            DateTime? from = string.IsNullOrEmpty(dateFrom) ? null : DateTime.Parse(dateFrom);
+            DateTime? to = string.IsNullOrEmpty(dateTo) ? null : DateTime.Parse(dateTo);
+
             var (_, trainingRows) = await _workerDataService.GetAllWorkersHistory();
 
-            // Get filtered worker IDs from GetWorkersInSection
-            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter);
+            // Get filtered worker IDs from GetWorkersInSection (with date range)
+            var filteredWorkers = await _workerDataService.GetWorkersInSection(sectionFilter, unit, category, search, statusFilter, from, to);
             var filteredIds = filteredWorkers
                 .Select(w => w.WorkerId)
                 .ToHashSet();
 
             var filtered = trainingRows
                 .Where(r => filteredIds.Contains(r.WorkerId))
+                .Where(r => from == null || r.Date.Date >= from.Value.Date)
+                .Where(r => to == null || r.Date.Date <= to.Value.Date)
                 .ToList();
 
             using var workbook = new XLWorkbook();
@@ -606,6 +616,28 @@ namespace HcPortal.Controllers
             var filename = $"RecordsTeam_Training_{DateTime.Now:yyyy-MM-dd}.xlsx";
             return ExcelExportHelper.ToFileResult(workbook, filename, this);
         }
+        // Phase 239: AJAX partial endpoint for date range filter (returns tbody rows)
+        [HttpGet]
+        public async Task<IActionResult> RecordsTeamPartial(
+            string? section, string? unit, string? category, string? subCategory,
+            string? statusFilter, string? dateFrom, string? dateTo)
+        {
+            var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+            if (roleLevel >= 5) return Forbid();
+
+            // L4 section lock — enforce server-side
+            string? sectionFilter = (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
+                ? user.Section : section;
+
+            DateTime? from = string.IsNullOrEmpty(dateFrom) ? null : DateTime.Parse(dateFrom);
+            DateTime? to = string.IsNullOrEmpty(dateTo) ? null : DateTime.Parse(dateTo);
+
+            var workerList = await _workerDataService.GetWorkersInSection(
+                sectionFilter, unit, category, null, statusFilter, from, to);
+
+            return PartialView("_RecordsTeamBody", workerList);
+        }
+
         // PHASE 198: Import/Edit/Delete Training actions moved to AdminController
 
         // Helper method: Get personal training records for Coach/Coachee

@@ -1,0 +1,78 @@
+@model List<HcPortal.Models.WorkerTrainingStatus>
+
+@if (Model == null || Model.Count == 0)
+{
+    <tr>
+        <td colspan="8" class="text-center p-5 text-muted">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+            Data belum ada
+        </td>
+    </tr>
+}
+else
+{
+    @foreach (var worker in Model)
+    {
+        // Phase 215: gabungkan training + assessment categories
+        var trainingCats2 = worker.TrainingRecords
+            .Select(t => t.Kategori).Where(k => !string.IsNullOrEmpty(k)).Distinct();
+        var assessmentCats2 = worker.AssessmentSessions
+            .Select(a => a.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct();
+        var allCats = trainingCats2.Union(assessmentCats2).ToList();
+        var allCatsStr = string.Join(",", allCats);
+
+        var completedTrainingCats = worker.TrainingRecords
+            .Where(t => !string.IsNullOrEmpty(t.Kategori) &&
+                (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"))
+            .Select(t => t.Kategori).Distinct();
+        var passedAssessmentCats = worker.AssessmentSessions
+            .Where(a => a.IsPassed == true)
+            .Select(a => a.Category).Where(c => !string.IsNullOrEmpty(c)).Distinct();
+        var completedCatsStr = string.Join(",", completedTrainingCats.Union(passedAssessmentCats));
+
+        var allSubCats = worker.TrainingRecords
+            .Select(t => t.SubKategori).Where(s => !string.IsNullOrEmpty(s)).Distinct();
+        var allSubCatsStr = string.Join(",", allSubCats);
+
+        var completedSubCats = worker.TrainingRecords
+            .Where(t => !string.IsNullOrEmpty(t.SubKategori) &&
+                (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"))
+            .Select(t => t.SubKategori).Distinct();
+        var completedSubCatsStr = string.Join(",", completedSubCats);
+
+        var hasTraining = allCats.Any() || worker.TrainingRecords.Any(t =>
+            !string.IsNullOrEmpty(t.Kategori) &&
+            (t.Status == "Passed" || t.Status == "Valid" || t.Status == "Permanent"));
+
+        <tr class="worker-row"
+            data-section="@worker.Section"
+            data-unit="@worker.Unit"
+            data-categories="@allCatsStr.ToLower()"
+            data-has-training="@hasTraining.ToString().ToLower()"
+            data-completed-categories="@completedCatsStr.ToLower()"
+            data-subcategories="@allSubCatsStr.ToLower()"
+            data-completed-subcategories="@completedSubCatsStr.ToLower()"
+            data-name="@worker.WorkerName.ToLower()"
+            data-nip="@((worker.NIP ?? "").ToLower())">
+            <td class="p-3">
+                <span class="fw-semibold">@worker.WorkerName</span>
+            </td>
+            <td class="p-3">@(worker.NIP ?? "---")</td>
+            <td class="p-3">@worker.Position</td>
+            <td class="p-3">@(worker.Section ?? "---")</td>
+            <td class="p-3">@(worker.Unit ?? "---")</td>
+            <td class="p-3 text-center">
+                <span class="badge bg-primary">@worker.CompletedAssessments</span>
+            </td>
+            <td class="p-3 text-center">
+                <span class="badge bg-success">@worker.CompletedTrainings</span>
+            </td>
+            <td class="p-3 text-center">
+                <a asp-action="RecordsWorkerDetail" asp-route-workerId="@worker.WorkerId"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-eye me-1"></i>Detail
+                </a>
+            </td>
+        </tr>
+    }
+}
