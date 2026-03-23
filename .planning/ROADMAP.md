@@ -111,7 +111,11 @@ Plans:
   5. Mapping page dan dashboard menampilkan jumlah coachee aktif per coach sebagai workload indicator
   6. HC dapat approve multiple deliverables sekaligus dari monitoring view via batch approval
   7. Dashboard menampilkan bottleneck analysis — deliverable yang paling lama pending teridentifikasi dan visible
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 237-01-PLAN.md — Audit CoachingProton tracking + Override transition validation
+- [ ] 237-02-PLAN.md — Audit dashboard stats + bottleneck chart + workload indicator
+- [ ] 237-03-PLAN.md — Export audit + 3 export baru + batch HC approval + UAT
 
 ## Progress
 
@@ -123,4 +127,4 @@ Plans:
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
 | 236. Audit Completion | v8.2 | 4/4 | Complete    | 2026-03-23 |
-| 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |
+| 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/3 | Not started | - |
