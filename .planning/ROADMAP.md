@@ -34,7 +34,7 @@ Last completed phase: 232 (v8.1 — Audit Assessment Flow Worker Side)
 - [x] **Phase 233: Riset & Perbandingan Coaching Platform** - Browse platform coaching luar, dokumen perbandingan UX/flow, rekomendasi improvement (completed 2026-03-22)
 - [x] **Phase 234: Audit Setup Flow** - Audit silabus delete safety, guidance file management, coach-coachee mapping, track assignment, import/export (completed 2026-03-22)
 - [x] **Phase 235: Audit Execution Flow** - Audit evidence submission, approval chain, status history, notifikasi, PlanIdp view (completed 2026-03-22)
-- [ ] **Phase 236: Audit Completion** - Audit final assessment, coaching sessions, HistoriProton, 3-year journey lifecycle
+- [x] **Phase 236: Audit Completion** - Audit final assessment, coaching sessions, HistoriProton, 3-year journey lifecycle (completed 2026-03-23)
 - [ ] **Phase 237: Audit Monitoring & Differentiator Enhancement** - Audit dashboard, tracking, override, export, plus workload indicator, batch approval, bottleneck analysis
 
 ## Phase Details
@@ -96,7 +96,7 @@ Plans:
 Plans:
 - [x] 236-01-PLAN.md — DB migration: unique constraint ProtonFinalAssessment + IsCompleted/CompletedAt di CoachCoacheeMapping
 - [x] 236-02-PLAN.md — Controller fixes: query scope fix, session edit/delete, MarkMappingCompleted
-- [ ] 236-03-PLAN.md — HistoriProton: fix Lulus logic + section separator per tahun
+- [x] 236-03-PLAN.md — HistoriProton: fix Lulus logic + section separator per tahun
 
 ### Phase 237: Audit Monitoring & Differentiator Enhancement
 **Goal**: Memastikan dashboard dan monitoring akurat setelah semua data upstream bersih, plus menambahkan differentiator fitur yang meningkatkan nilai portal vs platform luar
@@ -121,5 +121,5 @@ Plans:
 | 233. Riset & Perbandingan Coaching Platform | v8.2 | 1/1 | Complete    | 2026-03-22 |
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
-| 236. Audit Completion | v8.2 | 2/3 | In Progress|  |
+| 236. Audit Completion | v8.2 | 3/3 | Complete   | 2026-03-23 |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |
