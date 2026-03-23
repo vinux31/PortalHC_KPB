@@ -95,7 +95,7 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 236-01-PLAN.md — DB migration: unique constraint ProtonFinalAssessment + IsCompleted/CompletedAt di CoachCoacheeMapping
-- [ ] 236-02-PLAN.md — Controller fixes: query scope fix, session edit/delete, MarkMappingCompleted
+- [x] 236-02-PLAN.md — Controller fixes: query scope fix, session edit/delete, MarkMappingCompleted
 - [ ] 236-03-PLAN.md — HistoriProton: fix Lulus logic + section separator per tahun
 
 ### Phase 237: Audit Monitoring & Differentiator Enhancement
@@ -121,5 +121,5 @@ Plans:
 | 233. Riset & Perbandingan Coaching Platform | v8.2 | 1/1 | Complete    | 2026-03-22 |
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
-| 236. Audit Completion | v8.2 | 1/3 | In Progress|  |
+| 236. Audit Completion | v8.2 | 2/3 | In Progress|  |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |

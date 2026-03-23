@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
 status: Ready to execute
-stopped_at: Completed 236-01-PLAN.md
-last_updated: "2026-03-23T03:42:47.937Z"
+stopped_at: Completed 236-02-PLAN.md
+last_updated: "2026-03-23T03:48:00.841Z"
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State: Portal HC KPB
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 236 (audit-completion) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -51,6 +51,7 @@ Plan: 2 of 3
 - [Phase 235]: D-20: Coach di PlanIdp sekarang hanya melihat guidance untuk Bagian coachee yang di-map ke mereka via CoachCoacheeMappings
 - [Phase 236-audit-completion]: Unique constraint ProtonFinalAssessment.ProtonTrackAssignmentId: DB-level enforcement via HasIndex().IsUnique()
 - [Phase 236-audit-completion]: IsCompleted + CompletedAt di CoachCoacheeMapping: fondasi tracking graduated coachee untuk completion flow Plan 03
+- [Phase 236]: AuditLogService di-inject ke CDPController (bukan interface baru) — konsisten dengan pattern AdminController
 
 ### Pending Todos
 
@@ -62,6 +63,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T03:42:47.930Z
-Stopped at: Completed 236-01-PLAN.md
+Last session: 2026-03-23T03:48:00.835Z
+Stopped at: Completed 236-02-PLAN.md
 Resume file: None
