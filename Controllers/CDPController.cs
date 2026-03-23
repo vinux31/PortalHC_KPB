@@ -2916,6 +2916,13 @@ namespace HcPortal.Controllers
                 .ToListAsync();
             var assessmentsByAssignmentId = assessments.ToDictionary(fa => fa.ProtonTrackAssignmentId);
 
+            // Phase 236 COMP-03/COMP-04: load progresses untuk completion criteria per D-13
+            var allProgresses = await _context.ProtonDeliverableProgresses
+                .Where(p => assignmentIds.Contains(p.ProtonTrackAssignmentId))
+                .ToListAsync();
+            var progressesByAssignment = allProgresses.GroupBy(p => p.ProtonTrackAssignmentId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             // Get user info for coachees with assignments
             var coacheeUsers = await _context.Users
                 .Where(u => coacheeIdsWithAssignments.Contains(u.Id) && u.IsActive)
@@ -2945,30 +2952,32 @@ namespace HcPortal.Controllers
                     if (a.ProtonTrack == null) continue;
                     string tahunKe = a.ProtonTrack.TahunKe;
                     bool hasAssessment = assessmentsByAssignmentId.ContainsKey(a.Id);
+                    bool allDeliverableApproved = progressesByAssignment.TryGetValue(a.Id, out var progs)
+                        && progs.Any() && progs.All(p => p.Status == "Approved");
+                    bool yearComplete = hasAssessment && allDeliverableApproved;
 
                     if (tahunKe == "Tahun 1")
                     {
-                        if (hasAssessment) tahun1Done = true;
+                        if (yearComplete) tahun1Done = true;
                         else tahun1InProgress = true;
                     }
                     else if (tahunKe == "Tahun 2")
                     {
-                        if (hasAssessment) tahun2Done = true;
+                        if (yearComplete) tahun2Done = true;
                         else tahun2InProgress = true;
                     }
                     else if (tahunKe == "Tahun 3")
                     {
-                        if (hasAssessment) tahun3Done = true;
+                        if (yearComplete) tahun3Done = true;
                         else tahun3InProgress = true;
                     }
                 }
 
-                // Status based on latest assignment
-                string status;
-                if (assessmentsByAssignmentId.ContainsKey(latestAssignment.Id))
-                    status = "Lulus";
-                else
-                    status = "Dalam Proses";
+                // Phase 236: completion criteria = deliverable approved + final assessment per D-13
+                bool latestHasAssessment = assessmentsByAssignmentId.ContainsKey(latestAssignment.Id);
+                bool latestAllApproved = progressesByAssignment.TryGetValue(latestAssignment.Id, out var latestProgs)
+                    && latestProgs.Any() && latestProgs.All(p => p.Status == "Approved");
+                string status = (latestHasAssessment && latestAllApproved) ? "Lulus" : "Dalam Proses";
 
                 workers.Add(new HistoriProtonWorkerRow
                 {
@@ -3059,6 +3068,13 @@ namespace HcPortal.Controllers
                 .ToListAsync();
             var assessmentsByAssignmentId = assessments.ToDictionary(fa => fa.ProtonTrackAssignmentId);
 
+            // Phase 236 COMP-03/COMP-04: load progresses untuk completion criteria per D-13
+            var allProgressesExport = await _context.ProtonDeliverableProgresses
+                .Where(p => assignmentIds.Contains(p.ProtonTrackAssignmentId))
+                .ToListAsync();
+            var progressesByAssignmentExport = allProgressesExport.GroupBy(p => p.ProtonTrackAssignmentId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             var coacheeUsers = await _context.Users
                 .Where(u => coacheeIdsWithAssignments.Contains(u.Id) && u.IsActive)
                 .ToListAsync();
@@ -3084,25 +3100,32 @@ namespace HcPortal.Controllers
                     if (a.ProtonTrack == null) continue;
                     string tahunKe = a.ProtonTrack.TahunKe;
                     bool hasAssessment = assessmentsByAssignmentId.ContainsKey(a.Id);
+                    bool allDeliverableApproved = progressesByAssignmentExport.TryGetValue(a.Id, out var progs)
+                        && progs.Any() && progs.All(p => p.Status == "Approved");
+                    bool yearComplete = hasAssessment && allDeliverableApproved;
 
                     if (tahunKe == "Tahun 1")
                     {
-                        if (hasAssessment) tahun1Done = true;
+                        if (yearComplete) tahun1Done = true;
                         else tahun1InProgress = true;
                     }
                     else if (tahunKe == "Tahun 2")
                     {
-                        if (hasAssessment) tahun2Done = true;
+                        if (yearComplete) tahun2Done = true;
                         else tahun2InProgress = true;
                     }
                     else if (tahunKe == "Tahun 3")
                     {
-                        if (hasAssessment) tahun3Done = true;
+                        if (yearComplete) tahun3Done = true;
                         else tahun3InProgress = true;
                     }
                 }
 
-                string workerStatus = assessmentsByAssignmentId.ContainsKey(latestAssignment.Id) ? "Lulus" : "Dalam Proses";
+                // Phase 236: completion criteria = deliverable approved + final assessment per D-13
+                bool latestHasAssessment = assessmentsByAssignmentId.ContainsKey(latestAssignment.Id);
+                bool latestAllApproved = progressesByAssignmentExport.TryGetValue(latestAssignment.Id, out var latestProgs)
+                    && latestProgs.Any() && latestProgs.All(p => p.Status == "Approved");
+                string workerStatus = (latestHasAssessment && latestAllApproved) ? "Lulus" : "Dalam Proses";
 
                 workers.Add(new HistoriProtonWorkerRow
                 {
@@ -3208,6 +3231,13 @@ namespace HcPortal.Controllers
                 .Where(fa => assignmentIds.Contains(fa.ProtonTrackAssignmentId))
                 .ToDictionaryAsync(fa => fa.ProtonTrackAssignmentId);
 
+            // Phase 236 COMP-03: load progresses untuk completion criteria per D-13
+            var allProgressesDetail = await _context.ProtonDeliverableProgresses
+                .Where(p => assignmentIds.Contains(p.ProtonTrackAssignmentId))
+                .ToListAsync();
+            var progressesByAssignmentDetail = allProgressesDetail.GroupBy(p => p.ProtonTrackAssignmentId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
             // Get coach name
             var coachMapping = await _context.CoachCoacheeMappings
                 .Where(m => m.CoacheeId == userId)
@@ -3225,6 +3255,9 @@ namespace HcPortal.Controllers
 
             var nodes = assignments.Select(a => {
                 var hasAssessment = assessments.TryGetValue(a.Id, out var fa);
+                bool allDeliverableApproved = progressesByAssignmentDetail.TryGetValue(a.Id, out var progs)
+                    && progs.Any() && progs.All(p => p.Status == "Approved");
+                bool yearComplete = hasAssessment && allDeliverableApproved;
                 return new ProtonTimelineNode
                 {
                     AssignmentId = a.Id,
@@ -3232,7 +3265,7 @@ namespace HcPortal.Controllers
                     TahunUrutan = a.ProtonTrack?.Urutan ?? 0,
                     Unit = targetUser.Unit ?? "",
                     CoachName = coachName,
-                    Status = hasAssessment ? "Lulus" : "Dalam Proses",
+                    Status = yearComplete ? "Lulus" : "Dalam Proses",
                     CompetencyLevel = hasAssessment ? fa!.CompetencyLevelGranted : null,
                     StartDate = a.AssignedAt,
                     EndDate = hasAssessment ? fa!.CompletedAt : null
