@@ -1490,6 +1490,18 @@ namespace HcPortal.Controllers
                 scopedCoacheeIds = scopedCoacheeIds.Where(id => trackFilteredIds.Contains(id)).ToList();
             }
 
+            // --- STEP 4b: Apply Tahun filter to scopedCoacheeIds (FILT-05) ---
+            // Ensures coachee dropdown only shows coachees who have deliverables in the selected year.
+            // Without this, the dropdown shows all scoped coachees even if they have no data for the selected year.
+            if (!string.IsNullOrEmpty(tahun))
+            {
+                var coacheesWithTahun = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive && scopedCoacheeIds.Contains(a.CoacheeId)
+                                && a.ProtonTrack!.TahunKe == tahun)
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
+                scopedCoacheeIds = scopedCoacheeIds.Where(id => coacheesWithTahun.Contains(id)).ToList();
+            }
+
             // --- STEP 5: Build coachee dropdown list (after scope narrowing) ---
             coacheeList = await _context.Users
                 .Where(u => scopedCoacheeIds.Contains(u.Id))
