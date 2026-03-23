@@ -206,6 +206,7 @@ else
                 <th>Proton Track</th>
                 <th>Status</th>
                 <th>Mulai</th>
+                <th class="text-center">Coachee Aktif</th>
                 <th>Aksi</th>
             </tr>
         </thead>
@@ -215,15 +216,22 @@ else
             <!-- Coach header row -->
             <tbody>
                 <tr class="table-primary" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapse-@idx">
-                    <td colspan="9" class="fw-semibold">
+                    <td colspan="8" class="fw-semibold">
                         <i class="bi bi-chevron-down me-2 small"></i>
                         @group.CoachName
                         @if (!string.IsNullOrEmpty((string)group.CoachSection))
                         {
                             <span class="text-muted fw-normal ms-1">— @group.CoachSection</span>
                         }
-                        <span class="badge bg-primary ms-2">@group.ActiveCount coachee aktif</span>
                     </td>
+                    <td class="text-center">
+                        @{
+                            int activeCount = (int)group.ActiveCount;
+                            string badgeClass = activeCount >= 8 ? "bg-danger" : activeCount >= 5 ? "bg-warning text-dark" : "bg-info text-dark";
+                        }
+                        <span class="badge @badgeClass">@activeCount</span>
+                    </td>
+                    <td></td>
                 </tr>
             </tbody>
             <!-- Coachee rows -->
@@ -257,6 +265,7 @@ else
                             }
                         </td>
                         <td>@coachee.StartDate.ToString("dd MMM yyyy", CultureInfo.GetCultureInfo("id-ID"))</td>
+                        <td></td>
                         <td>
                             <div class="d-flex gap-1">
                                 <button class="btn btn-sm btn-outline-secondary"
