@@ -37,20 +37,20 @@ None for this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FILT-01 | — | Pending |
-| FILT-02 | — | Pending |
-| FILT-03 | — | Pending |
-| FILT-04 | — | Pending |
-| FILT-05 | — | Pending |
-| FILT-06 | — | Pending |
-| EXP-01 | — | Pending |
-| EXP-02 | — | Pending |
+| FILT-01 | Phase 239 | Pending |
+| FILT-02 | Phase 239 | Pending |
+| FILT-03 | Phase 239 | Pending |
+| FILT-04 | Phase 239 | Pending |
+| FILT-05 | Phase 239 | Pending |
+| FILT-06 | Phase 239 | Pending |
+| EXP-01 | Phase 239 | Pending |
+| EXP-02 | Phase 239 | Pending |
 
 **Coverage:**
 - v8.3 requirements: 8 total
-- Mapped to phases: 0
-- Unmapped: 8 ⚠️
+- Mapped to phases: 8
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-23*
-*Last updated: 2026-03-23 after initial definition*
+*Last updated: 2026-03-23 — traceability mapped after roadmap creation*
