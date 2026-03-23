@@ -358,6 +358,8 @@ namespace HcPortal.Data
                     .OnDelete(DeleteBehavior.Restrict);
                 entity.HasIndex(fa => fa.CoacheeId);
                 entity.HasIndex(fa => new { fa.CoacheeId, fa.Status });
+                // Phase 236 COMP-01: unique constraint per D-01
+                entity.HasIndex(fa => fa.ProtonTrackAssignmentId).IsUnique();
             });
 
             // ProtonNotification indexes (Phase 6)

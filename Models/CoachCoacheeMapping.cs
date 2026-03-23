@@ -42,5 +42,11 @@ namespace HcPortal.Models
         /// Unit penugasan (bisa beda dari unit pekerja). Null = fallback ke unit pekerja.
         /// </summary>
         public string? AssignmentUnit { get; set; }
+
+        /// <summary>True jika coachee sudah selesai Tahun 3 (graduated). Per D-15.</summary>
+        public bool IsCompleted { get; set; } = false;
+
+        /// <summary>Tanggal completion dikonfirmasi oleh HC/Admin.</summary>
+        public DateTime? CompletedAt { get; set; }
     }
 }
