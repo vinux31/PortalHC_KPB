@@ -10,7 +10,7 @@
 - ✅ **v7.12 Struktur Organisasi CRUD** - Phases 219–222 (shipped 2026-03-21)
 - ✅ **v8.0 Assessment Integrity & Analytics** - Phases 223–227 (shipped 2026-03-22)
 - ✅ **v8.1 Renewal & Assessment Ecosystem Audit** - Phases 228–232 (shipped 2026-03-22)
-- 🚧 **v8.2 Proton Coaching Ecosystem Audit** - Phases 233–237 (in progress)
+- 🚧 **v8.2 Proton Coaching Ecosystem Audit** - Phases 233–238 (in progress)
 
 ---
 
@@ -117,6 +117,19 @@ Plans:
 - [x] 237-02-PLAN.md — Audit dashboard stats + bottleneck chart + workload indicator
 - [x] 237-03-PLAN.md — Export audit + 3 export baru + batch HC approval + UAT
 
+### Phase 238: Gap Closure — UI Wiring untuk Endpoint yang Belum Terhubung
+**Goal**: Menghubungkan 3 backend endpoint/response yang sudah ada ke UI — progression warning override, coaching session Edit/Delete, dan 3 export baru
+**Depends on**: Phase 237
+**Requirements**: SETUP-04, COMP-02, MON-04, DIFF-01, DIFF-03
+**Gap Closure:** Closes gaps from v8.2 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. AJAX handler CoachCoacheeMapping menampilkan confirm dialog saat `warning:true` dan mengirim ulang dengan `ConfirmProgressionWarning=true`
+  2. Deliverable.cshtml menampilkan tombol Edit dan Delete untuk coaching sessions (role-gated coach pemilik + HC/Admin)
+  3. UI memiliki link/tombol untuk ExportBottleneckReport, ExportCoachingTracking, dan ExportWorkloadSummary yang accessible oleh HC/Admin
+**Plans**: TBD
+Plans:
+- [ ] 238-01-PLAN.md — TBD
+
 ## Progress
 
 **Execution Order:** 233 → 234 → 235 → 236 → 237
@@ -128,3 +141,4 @@ Plans:
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
 | 236. Audit Completion | v8.2 | 4/4 | Complete    | 2026-03-23 |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 3/3 | Complete   | 2026-03-23 |
+| 238. Gap Closure — UI Wiring | v8.2 | 0/1 | Pending    | — |
