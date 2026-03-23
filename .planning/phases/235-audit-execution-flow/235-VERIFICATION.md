@@ -1,32 +1,23 @@
 ---
 phase: 235-audit-execution-flow
-verified: 2026-03-22T16:00:00Z
-status: human_needed
+verified: 2026-03-23T04:00:00Z
+status: passed
 score: 9/9 must-haves verified
-human_verification:
-  - test: "Re-submit setelah reject — pastikan StatusHistory bertipe 'Re-submitted' tercatat di DB"
-    expected: "DeliverableStatusHistory entry dengan StatusType='Re-submitted' muncul setelah Coach upload ulang evidence untuk deliverable yang sebelumnya di-reject"
-    why_human: "Memerlukan multi-step flow: approval chain selesai → rejection → resubmit. Tidak tersedia via code grep."
-  - test: "Race condition guard ApproveDeliverable — concurrent approve dari dua role"
-    expected: "Approver kedua mendapat TempData error 'Deliverable sudah diproses oleh approver lain.' dan redirect, bukan error 500"
-    why_human: "Memerlukan simulasi concurrent HTTP request — tidak bisa diverifikasi via single browser atau code analysis saja."
-  - test: "HC Review Notifikasi ke Coach — cek tabel Notifications di DB"
-    expected: "Setelah HC review deliverable, Coach menerima notifikasi bertipe 'HC_REVIEW_COMPLETE' di tabel UserNotifications"
-    why_human: "Memerlukan full approval chain (SrSpv + SH approve terlebih dahulu) sebelum HC review bisa dipanggil."
-  - test: "Resubmit Notifikasi ke Reviewer — cek tabel Notifications di DB"
-    expected: "Setelah Coach resubmit, section reviewer (RoleLevel=4) menerima notifikasi bertipe 'COACH_EVIDENCE_RESUBMITTED'"
-    why_human: "Memerlukan reject + resubmit flow — data test yang sesuai belum tersedia saat UAT."
-  - test: "Upload Evidence Rollback — file save failure"
-    expected: "Progress status TIDAK berubah jika file gagal disimpan. User melihat pesan error TempData dan redirect ke halaman Deliverable."
-    why_human: "Memerlukan simulasi kondisi failure (disk full atau folder tidak writable) — tidak bisa disimulasi via browser normal."
+re_verification:
+  previous_status: human_needed
+  previous_score: 9/9
+  gaps_closed:
+    - "SubmitEvidenceWithCoaching sekarang mengirim COACH_EVIDENCE_RESUBMITTED (bukan COACH_EVIDENCE_SUBMITTED) saat deliverable Rejected di-resubmit — UAT test #6 resolved"
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 235: Audit Execution Flow — Verification Report
 
-**Phase Goal:** Audit execution flow — evidence submission, approval chain, notifications, PlanIdp access
-**Verified:** 2026-03-22T16:00:00Z
-**Status:** human_needed
-**Re-verification:** Tidak — initial verification
+**Phase Goal:** Memastikan alur operasional harian Proton (evidence submission, approval chain, notifikasi) aman dari sisi server dan state-nya selalu konsisten
+**Verified:** 2026-03-23T04:00:00Z
+**Status:** PASSED
+**Re-verification:** Ya — setelah gap closure plan 235-04 + UAT selesai (7 pass, 1 issue ditutup)
 
 ---
 
@@ -34,17 +25,17 @@ human_verification:
 
 ### Observable Truths
 
-| # | Truth | Status | Evidence |
-|---|-------|--------|---------|
-| 1 | Coach upload evidence menghasilkan DeliverableStatusHistory entry 'Submitted' atau 'Re-submitted' | VERIFIED | `CDPController.cs:1252-1253` — `uploadStatusType = wasRejected ? "Re-submitted" : "Submitted"` + `RecordStatusHistory(progress.Id, uploadStatusType, ...)` |
-| 2 | Seed ProtonDeliverableProgress menghasilkan DeliverableStatusHistory entry 'Pending' awal | VERIFIED | `AdminController.cs:6847` + `ProtonDataController.cs:515` — keduanya memiliki `StatusType = "Pending"` dalam loop foreach setelah flush SaveChangesAsync |
-| 3 | Resubmit setelah reject mempertahankan path file lama di EvidencePathHistory | VERIFIED | `CDPController.cs:1223-1229` — block JSON serialize path lama ke `EvidencePathHistory` sebelum overwrite `EvidencePath` |
-| 4 | Upload gagal tidak mengubah status deliverable — rollback bersih | VERIFIED | `CDPController.cs:1212-1220` — try-catch di sekitar `FileUploadHelper.SaveFileAsync`, on catch: TempData["Error"] + redirect tanpa mutasi progress |
-| 5 | Dua approver approve bersamaan — hanya satu sukses, kedua mendapat error 'sudah diproses' | VERIFIED | `CDPController.cs:830-848` — reload `AsNoTracking()` fresh status + `stillCanApprove` check + TempData["Error"] = "Deliverable sudah diproses oleh approver lain." |
-| 6 | HC Review menghasilkan notifikasi ke Coach | VERIFIED | `CDPController.cs:1122-1145` — try-catch block dengan `_notificationService.SendAsync(coachMappingForHC.CoachId, "HC_REVIEW_COMPLETE", ...)` |
-| 7 | Resubmit setelah reject menghasilkan notifikasi khusus 'Re-submitted' ke reviewers | VERIFIED | `CDPController.cs:1266,1286` — conditional block `if (wasRejected)` dengan type `"COACH_EVIDENCE_RESUBMITTED"` |
-| 8 | Coach hanya melihat guidance sesuai Bagian coachee yang di-map ke mereka | VERIFIED | `CDPController.cs:156-172` — `isCoach` branch pada guidanceQuery dengan 3-way join `CoachCoacheeMappings -> ProtonTrackAssignments -> ProtonKompetensiList` dan filter distinct Bagian |
-| 9 | Coachee tidak bisa akses admin guidance management tab | VERIFIED | `Views/CDP/PlanIdp.cshtml` — tidak ada admin management tab. Hanya 2 tab read-only (Silabus dan Coaching Guidance). Management ada di ProtonDataController dengan `[Authorize(Roles="Admin,HC")]` |
+| #  | Truth | Status | Evidence |
+|----|-------|--------|---------|
+| 1  | Coach upload evidence menghasilkan DeliverableStatusHistory entry 'Submitted' atau 'Re-submitted' | VERIFIED | `CDPController.cs:1252-1253` — `uploadStatusType = wasRejected ? "Re-submitted" : "Submitted"` + `RecordStatusHistory(...)`. UAT test #1: pass. |
+| 2  | Seed ProtonDeliverableProgress menghasilkan DeliverableStatusHistory entry 'Pending' awal | VERIFIED | `AdminController.cs:6847` + `ProtonDataController.cs:515` — kedua lokasi insert `StatusType = "Pending"`. UAT test #8: pass (code review confirmed). |
+| 3  | Resubmit setelah reject mempertahankan path file lama di EvidencePathHistory | VERIFIED | `CDPController.cs:1225-1229` — JSON serialize path lama ke `EvidencePathHistory` sebelum overwrite `EvidencePath`. UAT test #3: pass. |
+| 4  | Upload gagal tidak mengubah status deliverable — rollback bersih | VERIFIED | `CDPController.cs:1212-1220` — try-catch di `FileUploadHelper.SaveFileAsync`; on catch: TempData["Error"] + redirect tanpa mutasi progress. UAT test #2: pass (folder di-rename, status tetap Pending). |
+| 5  | Dua approver approve bersamaan — hanya satu sukses, kedua mendapat error 'sudah diproses' | VERIFIED | `CDPController.cs:830-848` — `AsNoTracking()` reload + `stillCanApprove` re-check + TempData["Error"] = "Deliverable sudah diproses oleh approver lain.". UAT test #4: pass. |
+| 6  | HC Review menghasilkan notifikasi ke Coach | VERIFIED | `CDPController.cs:1138` — `SendAsync(..., "HC_REVIEW_COMPLETE", ...)` dalam try-catch. UAT test #5: pass (notifikasi HC_REVIEW_COMPLETE terkirim ke Coach). |
+| 7  | Resubmit setelah reject menghasilkan notifikasi COACH_EVIDENCE_RESUBMITTED ke reviewers — via SubmitEvidenceWithCoaching | VERIFIED (BARU) | `CDPController.cs:2151-2257` — `resubmitFlags` di-capture sebelum foreach loop (line 2151); blok tambahan mengirim `COACH_EVIDENCE_RESUBMITTED` ke section reviewers (line 2251). Gap closure plan 235-04. |
+| 8  | Coach hanya melihat guidance sesuai Bagian coachee yang di-map ke mereka | VERIFIED | `CDPController.cs:156-172` — `isCoach` branch pada guidanceQuery dengan 3-way join `CoachCoacheeMappings -> ProtonTrackAssignments -> ProtonKompetensiList`. UAT test #7: pass. |
+| 9  | Coachee tidak bisa akses admin guidance management tab | VERIFIED | `Views/CDP/PlanIdp.cshtml` — tidak ada admin management tab; hanya 2 tab read-only (Silabus dan Coaching Guidance). Management di ProtonDataController dengan `[Authorize(Roles="Admin,HC")]`. |
 
 **Score:** 9/9 truths verified
 
@@ -55,10 +46,10 @@ human_verification:
 | Artifact | Menyediakan | Status | Detail |
 |----------|-------------|--------|--------|
 | `Models/ProtonModels.cs` | EvidencePathHistory column di ProtonDeliverableProgress | VERIFIED | Line 140: `public string? EvidencePathHistory { get; set; }` |
-| `Controllers/CDPController.cs` | RecordStatusHistory di UploadEvidence, EvidencePathHistory, upload rollback, race guard, HC_REVIEW_COMPLETE notif, COACH_EVIDENCE_RESUBMITTED notif, dedup fix | VERIFIED | Semua pattern ditemukan di lokasi yang diharapkan |
-| `Controllers/AdminController.cs` | StatusHistory 'Pending' insert di AutoCreateProgressForAssignment | VERIFIED | Line 6847: `StatusType = "Pending"` dalam foreach loop setelah SaveChangesAsync |
-| `Controllers/ProtonDataController.cs` | StatusHistory 'Pending' insert di silabus seed | VERIFIED | Line 515: `StatusType = "Pending"` dalam seed loop |
-| `Views/CDP/PlanIdp.cshtml` | Tab access control read-only — tidak ada admin management tab | VERIFIED | File hanya memiliki 2 tab read-only tanpa admin-gated sections |
+| `Controllers/CDPController.cs` | RecordStatusHistory, EvidencePathHistory, upload rollback, race guard, HC_REVIEW_COMPLETE, COACH_EVIDENCE_RESUBMITTED (UploadEvidence + SubmitEvidenceWithCoaching) | VERIFIED | Semua pattern terkonfirmasi — termasuk fix plan 235-04 di lines 2151, 2221-2257 |
+| `Controllers/AdminController.cs` | StatusHistory 'Pending' di AutoCreateProgressForAssignment | VERIFIED | Line 6847: `StatusType = "Pending"` |
+| `Controllers/ProtonDataController.cs` | StatusHistory 'Pending' di silabus seed | VERIFIED | Line 515: `StatusType = "Pending"` |
+| `Views/CDP/PlanIdp.cshtml` | Tab access control read-only — tidak ada admin management tab | VERIFIED | 2 tab read-only tanpa admin-gated sections |
 
 ---
 
@@ -66,13 +57,12 @@ human_verification:
 
 | From | To | Via | Status | Detail |
 |------|----|-----|--------|--------|
-| `CDPController.UploadEvidence` | `RecordStatusHistory` | call sebelum SaveChangesAsync | WIRED | Line 1253: `RecordStatusHistory(progress.Id, uploadStatusType, ...)` lalu `await _context.SaveChangesAsync()` line 1255 |
-| `AdminController.AutoCreateProgressForAssignment` | `DeliverableStatusHistories.Add` | loop setelah SaveChangesAsync flush | WIRED | Line 6842-6854: foreach loop + second `SaveChangesAsync()` |
-| `CDPController.ApproveDeliverable` | `ProtonDeliverableProgresses reload` | fresh DB query before status write | WIRED | Line 830-848: `AsNoTracking()` reload + `stillCanApprove` re-check |
-| `CDPController.HCReviewDeliverable` | `_notificationService` | SendAsync call | WIRED | Line 1136-1143: `await _notificationService.SendAsync(...)` dengan type `HC_REVIEW_COMPLETE` |
-| `CDPController.UploadEvidence` | `COACH_EVIDENCE_RESUBMITTED` | wasRejected conditional | WIRED | Line 1266: `if (wasRejected)` block dengan SendAsync type `COACH_EVIDENCE_RESUBMITTED` |
-| `Views/CDP/PlanIdp.cshtml` | `ViewBag.UserLevel` | Razor conditional rendering | WIRED | Line 14: `var userLevel = (int)(ViewBag.UserLevel ?? 0)` digunakan di L16 `isL4Locked` check |
-| `CreateHCNotificationAsync` | dedup exact match | `n.Message ==` | WIRED | Line 1072: `.AnyAsync(n => n.UserId == hc.Id && n.Type == "COACH_ALL_COMPLETE" && n.Message == expectedMessage)` |
+| `CDPController.UploadEvidence` | `RecordStatusHistory` | call sebelum SaveChangesAsync | WIRED | Line 1253: `RecordStatusHistory(...)` lalu `SaveChangesAsync()` line 1255 |
+| `CDPController.SubmitEvidenceWithCoaching` | `resubmitFlags` | dictionary sebelum foreach loop | WIRED | Line 2151: `resubmitFlags = progresses.ToDictionary(p => p.Id, p => p.Status == "Rejected")` — SEBELUM foreach (line 2156) |
+| `CDPController.SubmitEvidenceWithCoaching` | `COACH_EVIDENCE_RESUBMITTED` | resubmittedCoacheeIds loop setelah SaveChangesAsync | WIRED | Lines 2222-2257: filter via `resubmitFlags[p.Id]` + `SendAsync(..., "COACH_EVIDENCE_RESUBMITTED", ...)` |
+| `CDPController.ApproveDeliverable` | `ProtonDeliverableProgresses reload` | fresh DB query sebelum status write | WIRED | Lines 830-848: `AsNoTracking()` reload + `stillCanApprove` re-check |
+| `CDPController.HCReviewDeliverable` | `_notificationService` | SendAsync call | WIRED | Line 1138: `SendAsync(..., "HC_REVIEW_COMPLETE", ...)` |
+| `AdminController.AutoCreateProgressForAssignment` | `DeliverableStatusHistories.Add` | foreach setelah SaveChangesAsync flush | WIRED | Line 6847: `StatusType = "Pending"` |
 
 ---
 
@@ -80,11 +70,11 @@ human_verification:
 
 | Requirement | Source Plan | Deskripsi | Status | Evidence |
 |-------------|-------------|-----------|--------|---------|
-| EXEC-01 | 235-01 | Audit Evidence submission flow end-to-end — upload, reject+resubmit, multi-file handling | SATISFIED | UploadEvidence: try-catch rollback, EvidencePathHistory JSON, RecordStatusHistory Submitted/Re-submitted, wasRejected flag |
-| EXEC-02 | 235-02 | Audit Approval chain — edge cases (concurrent approve, Admin override, partial approval) | SATISFIED | ApproveDeliverable: AsNoTracking reload + stillCanApprove re-check + TempData error pada race loss |
-| EXEC-03 | 235-01 | Audit DeliverableStatusHistory — completeness di setiap state transition termasuk initial Pending | SATISFIED | RecordStatusHistory di UploadEvidence + AdminController seed + ProtonDataController seed |
-| EXEC-04 | 235-02 | Audit Notifikasi — semua Proton notification triggers (evidence submit, approve, reject, HC review, final assessment) | SATISFIED | HC_REVIEW_COMPLETE notif di HCReviewDeliverable, COACH_EVIDENCE_RESUBMITTED di UploadEvidence, dedup exact match fix |
-| EXEC-05 | 235-03 | Audit PlanIdp view — silabus display accuracy, guidance tabs, role-based access correctness | SATISFIED | D-20 Coach guidance scoping via CoachCoacheeMappings 3-way join, D-22 N/A (no admin tab di PlanIdp) |
+| EXEC-01 | 235-01 | Audit Evidence submission flow end-to-end — upload, reject+resubmit, multi-file handling | SATISFIED | UploadEvidence: try-catch rollback, EvidencePathHistory JSON, RecordStatusHistory Submitted/Re-submitted, wasRejected flag. UAT test #1, #2, #3: pass. |
+| EXEC-02 | 235-02 | Audit Approval chain — edge cases (concurrent approve, Admin override, partial approval) | SATISFIED | ApproveDeliverable: AsNoTracking reload + stillCanApprove re-check + TempData error pada race loss. UAT test #4: pass. |
+| EXEC-03 | 235-01 | Audit DeliverableStatusHistory — completeness di setiap state transition termasuk initial Pending | SATISFIED | RecordStatusHistory di UploadEvidence + SubmitEvidenceWithCoaching + AdminController seed + ProtonDataController seed. UAT test #1, #3, #8: pass. |
+| EXEC-04 | 235-02, 235-04 | Audit Notifikasi — semua Proton notification triggers (evidence submit, approve, reject, HC review, final assessment) | SATISFIED | HC_REVIEW_COMPLETE notif (UAT #5 pass), COACH_EVIDENCE_RESUBMITTED di UploadEvidence + SubmitEvidenceWithCoaching (plan 235-04 fix), dedup exact match fix. |
+| EXEC-05 | 235-03 | Audit PlanIdp view — silabus display accuracy, guidance tabs, role-based access correctness | SATISFIED | D-20 Coach guidance scoping via CoachCoacheeMappings 3-way join. UAT test #7: pass. |
 
 **Semua 5 requirement ID terpenuhi. Tidak ada orphaned requirement.**
 
@@ -96,59 +86,60 @@ human_verification:
 |------|------|---------|----------|--------|
 | `Controllers/CDPController.cs` | 1141 | `catch (Exception ex) { _logger.LogWarning(...) }` | Info | Notification failure di HC Review di-swallow ke Warning log — by design (notification tidak boleh break main operation) |
 
-Tidak ada blocker anti-pattern. Catch blocks yang ada adalah intentional (notification failures tidak boleh break operasi utama).
+Tidak ada blocker anti-pattern baru akibat plan 235-04. Pola catch yang ada konsisten dengan design intent.
 
 ---
 
-### Human Verification Required
+### Re-verification: Gap Closure Confirmation
 
-5 item memerlukan verifikasi human:
+**Gap sebelumnya (UAT test #6):**
+`SubmitEvidenceWithCoaching` mengirim `COACH_EVIDENCE_SUBMITTED` (bukan `COACH_EVIDENCE_RESUBMITTED`) saat re-submit deliverable yang pernah di-reject.
 
-#### 1. Re-submit setelah reject — StatusHistory bertipe 'Re-submitted'
+**Fix yang diterapkan (plan 235-04):**
 
-**Test:** Login sebagai Coach. Cari deliverable yang sudah di-reject oleh SrSpv/SH. Upload ulang evidence. Cek tabel `DeliverableStatusHistories` di DB.
-**Expected:** Entry baru dengan `StatusType = 'Re-submitted'` muncul (bukan 'Submitted')
-**Why human:** Memerlukan multi-step flow (approval chain selesai dulu → rejection → resubmit). Data test yang sesuai belum tersedia saat UAT.
+1. `resubmitFlags = progresses.ToDictionary(p => p.Id, p => p.Status == "Rejected")` — dicapture di line 2151, SEBELUM foreach loop yang mengubah `progress.Status = "Submitted"` (line 2163). Urutan ini critical agar flag tidak ter-overwrite.
 
-#### 2. Race condition guard ApproveDeliverable — concurrent approve
+2. Blok notifikasi tambahan (lines 2221-2257) — setelah `NotifyReviewersAsync` standar, loop baru filter coachee dengan `resubmitFlags[p.Id] == true`, lalu kirim `COACH_EVIDENCE_RESUBMITTED` ke section reviewers (RoleLevel=4) via `_notificationService.SendAsync`.
 
-**Test:** Simulasikan dua approver berbeda (SrSpv dan SectionHead) approve deliverable yang sama secara bersamaan menggunakan dua tab/browser berbeda.
-**Expected:** Approver pertama berhasil, approver kedua melihat TempData error "Deliverable sudah diproses oleh approver lain." dan redirect — bukan error 500.
-**Why human:** Memerlukan simulasi concurrent HTTP request. Tidak bisa diverifikasi via single browser atau code analysis.
+3. Build: 0 CS errors (dikonfirmasi di 235-04-SUMMARY.md Self-Check).
 
-#### 3. HC Review Notifikasi ke Coach
+**Verifikasi kode aktual:**
+- Line 2151: `var resubmitFlags = progresses.ToDictionary(p => p.Id, p => p.Status == "Rejected");` — SEBELUM foreach
+- Line 2251: `"COACH_EVIDENCE_RESUBMITTED"` di SubmitEvidenceWithCoaching — TERKONFIRMASI
+- Line 1286: `"COACH_EVIDENCE_RESUBMITTED"` di UploadEvidence (endpoint lama) — MASIH ADA, tidak regresi
 
-**Test:** Selesaikan full approval chain (SrSpv approve + SH approve), lalu login sebagai HC dan klik HCReview deliverable. Cek tabel `UserNotifications` di DB.
-**Expected:** Entry notifikasi dengan `Type = 'HC_REVIEW_COMPLETE'` untuk Coach yang di-map ke coachee tersebut.
-**Why human:** Memerlukan full approval chain completion terlebih dahulu. Multi-step flow.
+**Status gap:** CLOSED.
 
-#### 4. Resubmit Notifikasi ke Reviewer
+---
 
-**Test:** Setelah deliverable di-reject, Coach resubmit evidence. Cek tabel `UserNotifications`.
-**Expected:** Section reviewer (RoleLevel=4) menerima notifikasi bertipe `COACH_EVIDENCE_RESUBMITTED`.
-**Why human:** Memerlukan reject + resubmit flow — data test rejected deliverable belum tersedia saat UAT.
+### UAT Summary (235-UAT.md)
 
-#### 5. Upload Evidence Rollback
+| Test | Deskripsi | Hasil |
+|------|-----------|-------|
+| #1 | Upload Evidence StatusHistory tercatat | pass |
+| #2 | Upload Evidence Rollback — file gagal | pass |
+| #3 | Re-submit Evidence StatusHistory Re-submitted | pass |
+| #4 | Race Condition Guard ApproveDeliverable | pass |
+| #5 | HC Review Notifikasi ke Coach | pass |
+| #6 | Resubmit Notifikasi ke Reviewer | **issue → fixed (plan 235-04)** |
+| #7 | Coach Guidance Scoping di PlanIdp | pass |
+| #8 | Seed StatusHistory Pending | pass |
 
-**Test:** Simulasikan file save failure (misal: hapus permission folder `uploads/evidence/`, atau isi disk). Upload evidence dari Coach.
-**Expected:** Progress status TIDAK berubah (tetap Pending). User melihat pesan error dan redirect ke halaman Deliverable tanpa corrupted state.
-**Why human:** Memerlukan simulasi kondisi sistem failure — tidak bisa dilakukan via normal browser testing.
+Total: 8 tests — 7 pass, 1 issue ditutup oleh plan 235-04.
 
 ---
 
 ### Gaps Summary
 
-Tidak ada gap pada implementasi kode. Semua 9 truths terverifikasi di kode aktual:
+Tidak ada gap tersisa. Semua 9 truths terverifikasi di kode aktual. UAT selesai dengan 7/8 pass langsung dan 1 minor issue (test #6) yang telah ditutup oleh plan 235-04.
 
-- Plan 01 (EXEC-01, EXEC-03): EvidencePathHistory, RecordStatusHistory di UploadEvidence, rollback try-catch, Pending seed di kedua lokasi — semua terpasang.
-- Plan 02 (EXEC-02, EXEC-04): Race condition guard AsNoTracking + stillCanApprove, HC_REVIEW_COMPLETE notif, COACH_EVIDENCE_RESUBMITTED notif, dedup exact match — semua terpasang.
-- Plan 03 (EXEC-05): Coach guidance scoping via 3-way join, tidak ada admin management tab di PlanIdp — diaudit dan diperbaiki.
-
-Status `human_needed` semata-mata karena 5 item runtime behavior memerlukan verifikasi melalui browser/DB yang tidak bisa dilakukan via code grep. Hasil UAT parsial (235-UAT.md) menunjukkan 3 dari 8 test sudah PASS, 5 skipped karena memerlukan multi-step flows.
-
-Build: Tidak ada `error CS` compiler errors. MSB3027 error hanya karena binary file locked (aplikasi sedang berjalan) — bukan kegagalan kompilasi.
+- Plan 01 (EXEC-01, EXEC-03): EvidencePathHistory, RecordStatusHistory, rollback try-catch, Pending seed — semua terpasang dan terverifikasi via UAT.
+- Plan 02 (EXEC-02, EXEC-04): Race condition guard, HC_REVIEW_COMPLETE notif — terverifikasi via UAT.
+- Plan 03 (EXEC-05): Coach guidance scoping via 3-way join — terverifikasi via UAT.
+- Plan 04 (EXEC-04 gap closure): COACH_EVIDENCE_RESUBMITTED di SubmitEvidenceWithCoaching — terpasang dan terverifikasi via code inspection.
 
 ---
 
-_Verified: 2026-03-22T16:00:00Z_
+_Verified: 2026-03-23T04:00:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Re-verification: setelah plan 235-04 gap closure + 235-UAT.md complete_
