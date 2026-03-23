@@ -4448,6 +4448,59 @@ namespace HcPortal.Controllers
             }
         }
 
+        // Phase 236 COMP-04: completion criteria helper per D-13
+        private async Task<bool> IsYearCompletedAsync(int assignmentId)
+        {
+            var progresses = await _context.ProtonDeliverableProgresses
+                .Where(p => p.ProtonTrackAssignmentId == assignmentId)
+                .ToListAsync();
+            if (!progresses.Any()) return false;
+            bool allApproved = progresses.All(p => p.Status == "Approved");
+            bool hasFinalAssessment = await _context.ProtonFinalAssessments
+                .AnyAsync(fa => fa.ProtonTrackAssignmentId == assignmentId);
+            return allApproved && hasFinalAssessment;
+        }
+
+        // Phase 236 COMP-04: Mark mapping as completed/graduated per D-15
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> MarkMappingCompleted(int mappingId)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            var mapping = await _context.CoachCoacheeMappings.FindAsync(mappingId);
+            if (mapping == null) return NotFound();
+            // Validate: coachee harus punya semua tahun completed
+            var assignments = await _context.ProtonTrackAssignments
+                .Include(a => a.ProtonTrack)
+                .Where(a => a.CoacheeId == mapping.CoacheeId && a.IsActive)
+                .ToListAsync();
+            var tahun3Assignment = assignments
+                .FirstOrDefault(a => a.ProtonTrack != null && a.ProtonTrack.TahunKe == "Tahun 3");
+            if (tahun3Assignment == null)
+            {
+                TempData["Error"] = "Coachee belum memiliki assignment Tahun 3.";
+                return RedirectToAction("CoachCoacheeMapping");
+            }
+            bool tahun3Complete = await IsYearCompletedAsync(tahun3Assignment.Id);
+            if (!tahun3Complete)
+            {
+                TempData["Error"] = "Tahun 3 belum selesai — semua deliverable harus Approved dan final assessment harus ada.";
+                return RedirectToAction("CoachCoacheeMapping");
+            }
+            mapping.IsCompleted = true;
+            mapping.CompletedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            var actorName = string.IsNullOrWhiteSpace(user.NIP)
+                ? (user.FullName ?? "Unknown")
+                : $"{user.NIP} - {user.FullName}";
+            await _auditLog.LogAsync(user.Id, actorName, "MarkMappingCompleted",
+                $"Mapping ID={mappingId} ditandai graduated. CoacheeId={mapping.CoacheeId}", mappingId, "CoachCoacheeMapping");
+            TempData["Success"] = "Coachee berhasil ditandai sebagai graduated.";
+            return RedirectToAction("CoachCoacheeMapping");
+        }
+
         // GET /Admin/CoachCoacheeMappingDeletePreview
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
