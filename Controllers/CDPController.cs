@@ -2388,7 +2388,7 @@ namespace HcPortal.Controllers
         // ===== Phase 65-03: Export endpoints =====
 
         [HttpGet]
-        [Authorize(Roles = "Sr Supervisor, Section Head, HC, Admin")]
+        [Authorize(Roles = "Coach, Sr Supervisor, Section Head, HC, Admin")]
         public async Task<IActionResult> ExportProgressExcel(string coacheeId)
         {
             var user = await _userManager.GetUserAsync(User);
@@ -3064,6 +3064,7 @@ namespace HcPortal.Controllers
 
         // GET /CDP/ExportHistoriProton
         [HttpGet]
+        [Authorize(Roles = "Sr Supervisor, Section Head, HC, Admin")]
         public async Task<IActionResult> ExportHistoriProton(
             string? search, string? section, string? unit, string? jalur, string? status)
         {
@@ -3713,6 +3714,265 @@ namespace HcPortal.Controllers
             rows.AddRange(trainingRows);
             rows.AddRange(assessmentRows);
             return (rows, roleLevel);
+        }
+
+        // ===== Phase 237-03: Export baru (MON-04) =====
+
+        // GET /CDP/ExportBottleneckReport
+        [HttpGet]
+        [Authorize(Roles = "HC, Admin")]
+        public async Task<IActionResult> ExportBottleneckReport()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            var cutoff = DateTime.UtcNow.AddDays(-30);
+            var bottlenecks = await _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                .Where(p => p.Status == "Submitted" && p.SubmittedAt != null && p.SubmittedAt < cutoff)
+                .ToListAsync();
+
+            var coacheeIds = bottlenecks.Select(p => p.CoacheeId).Distinct().ToList();
+            var coacheeUsers = await _context.Users
+                .Where(u => coacheeIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            // Get coach name via mapping
+            var mappings = await _context.CoachCoacheeMappings
+                .Where(m => m.IsActive && coacheeIds.Contains(m.CoacheeId))
+                .ToListAsync();
+            var coachIds = mappings.Select(m => m.CoachId).Distinct().ToList();
+            var coachDict = await _context.Users
+                .Where(u => coachIds.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id, u => u.FullName ?? "");
+            var coachByCoachee = mappings.ToDictionary(m => m.CoacheeId, m => coachDict.GetValueOrDefault(m.CoachId, ""));
+
+            // Sort by days pending descending
+            var sorted = bottlenecks
+                .Select(p => new
+                {
+                    Progress = p,
+                    Coachee = coacheeUsers.GetValueOrDefault(p.CoacheeId),
+                    Coach = coachByCoachee.GetValueOrDefault(p.CoacheeId, ""),
+                    HariPending = (int)(DateTime.UtcNow - p.SubmittedAt!.Value).TotalDays
+                })
+                .OrderByDescending(x => x.HariPending)
+                .ToList();
+
+            using var workbook = new XLWorkbook();
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Bottleneck Report", new[]
+            {
+                "No", "Coachee", "NIP", "Bagian", "Coach", "Deliverable",
+                "Sub Kompetensi", "Kompetensi", "Tanggal Submit", "Hari Pending"
+            });
+
+            for (int i = 0; i < sorted.Count; i++)
+            {
+                var x = sorted[i];
+                var p = x.Progress;
+                var row = i + 2;
+                ws.Cell(row, 1).Value = i + 1;
+                ws.Cell(row, 2).Value = x.Coachee?.FullName ?? "";
+                ws.Cell(row, 3).Value = x.Coachee?.NIP ?? "";
+                ws.Cell(row, 4).Value = x.Coachee?.Section ?? "";
+                ws.Cell(row, 5).Value = x.Coach;
+                ws.Cell(row, 6).Value = p.ProtonDeliverable?.NamaDeliverable ?? "";
+                ws.Cell(row, 7).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "";
+                ws.Cell(row, 8).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "";
+                ws.Cell(row, 9).Value = p.SubmittedAt?.ToLocalTime().ToString("dd/MM/yyyy") ?? "";
+                ws.Cell(row, 10).Value = x.HariPending;
+            }
+
+            return ExcelExportHelper.ToFileResult(workbook, $"BottleneckReport_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
+        // GET /CDP/ExportCoachingTracking
+        [HttpGet]
+        [Authorize(Roles = "Coach, Sr Supervisor, Section Head, HC, Admin")]
+        public async Task<IActionResult> ExportCoachingTracking(
+            string? coacheeId, string? bagian, string? unit, string? trackType, string? tahun)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+            int userLevel = user.RoleLevel;
+
+            // Role-scoped coachee IDs (same logic as CoachingProton)
+            List<string> scopedCoacheeIds;
+            if (userLevel <= 3)
+            {
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive).Select(a => a.CoacheeId).Distinct().ToListAsync();
+            }
+            else if (userLevel == 4)
+            {
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive)
+                    .Join(_context.Users, a => a.CoacheeId, u => u.Id, (a, u) => new { a.CoacheeId, u.Section })
+                    .Where(x => x.Section == user.Section)
+                    .Select(x => x.CoacheeId).Distinct().ToListAsync();
+            }
+            else if (userLevel == 5)
+            {
+                var mappedIds2 = await _context.CoachCoacheeMappings
+                    .Where(m => m.CoachId == user.Id && m.IsActive)
+                    .Select(m => m.CoacheeId).ToListAsync();
+                scopedCoacheeIds = await _context.ProtonTrackAssignments
+                    .Where(a => a.IsActive && mappedIds2.Contains(a.CoacheeId))
+                    .Select(a => a.CoacheeId).Distinct().ToListAsync();
+            }
+            else
+            {
+                scopedCoacheeIds = new List<string> { user.Id };
+            }
+
+            // Apply bagian filter
+            if (userLevel <= 3 && !string.IsNullOrEmpty(bagian))
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Section == bagian)
+                    .Select(u => u.Id).ToListAsync();
+            }
+            // Apply unit filter
+            if (!string.IsNullOrEmpty(unit) && userLevel <= 4)
+            {
+                scopedCoacheeIds = await _context.Users
+                    .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
+                    .Select(u => u.Id).ToListAsync();
+            }
+            // Apply coacheeId filter
+            if (!string.IsNullOrEmpty(coacheeId) && scopedCoacheeIds.Contains(coacheeId))
+                scopedCoacheeIds = new List<string> { coacheeId };
+
+            // Query progresses
+            var trackQuery = _context.ProtonDeliverableProgresses
+                .Include(p => p.ProtonDeliverable)
+                    .ThenInclude(d => d!.ProtonSubKompetensi)
+                        .ThenInclude(s => s!.ProtonKompetensi)
+                            .ThenInclude(k => k!.ProtonTrack)
+                .Include(p => p.ProtonTrackAssignment)
+                    .ThenInclude(a => a!.ProtonTrack)
+                .Where(p => scopedCoacheeIds.Contains(p.CoacheeId));
+
+            if (!string.IsNullOrEmpty(trackType))
+                trackQuery = trackQuery.Where(p =>
+                    p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrack!.TrackType == trackType);
+            if (!string.IsNullOrEmpty(tahun))
+                trackQuery = trackQuery.Where(p =>
+                    p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.ProtonTrack!.TahunKe == tahun);
+
+            var trackProgresses = await trackQuery
+                .OrderBy(p => p.CoacheeId)
+                .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.ProtonKompetensi!.Urutan)
+                .ThenBy(p => p.ProtonDeliverable!.ProtonSubKompetensi!.Urutan)
+                .ThenBy(p => p.ProtonDeliverable!.Urutan)
+                .ToListAsync();
+
+            var coacheeIdsTrack = trackProgresses.Select(p => p.CoacheeId).Distinct().ToList();
+            var coacheeUsersTrack = await _context.Users
+                .Where(u => coacheeIdsTrack.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            using var workbook2 = new XLWorkbook();
+            var ws2 = ExcelExportHelper.CreateSheet(workbook2, "Coaching Tracking", new[]
+            {
+                "No", "Coachee", "NIP", "Bagian", "Unit", "Track", "Tahun",
+                "Kompetensi", "Sub Kompetensi", "Deliverable",
+                "Status", "HC Status", "Tanggal Submit", "Tanggal Approve"
+            });
+
+            for (int i = 0; i < trackProgresses.Count; i++)
+            {
+                var p = trackProgresses[i];
+                var c = coacheeUsersTrack.GetValueOrDefault(p.CoacheeId);
+                var row = i + 2;
+                ws2.Cell(row, 1).Value = i + 1;
+                ws2.Cell(row, 2).Value = c?.FullName ?? "";
+                ws2.Cell(row, 3).Value = c?.NIP ?? "";
+                ws2.Cell(row, 4).Value = c?.Section ?? "";
+                ws2.Cell(row, 5).Value = c?.Unit ?? "";
+                ws2.Cell(row, 6).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrack?.TrackType ?? "";
+                ws2.Cell(row, 7).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.ProtonTrack?.TahunKe ?? "";
+                ws2.Cell(row, 8).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.ProtonKompetensi?.NamaKompetensi ?? "";
+                ws2.Cell(row, 9).Value = p.ProtonDeliverable?.ProtonSubKompetensi?.NamaSubKompetensi ?? "";
+                ws2.Cell(row, 10).Value = p.ProtonDeliverable?.NamaDeliverable ?? "";
+                ws2.Cell(row, 11).Value = p.Status;
+                ws2.Cell(row, 12).Value = p.HCApprovalStatus;
+                ws2.Cell(row, 13).Value = p.SubmittedAt?.ToLocalTime().ToString("dd/MM/yyyy") ?? "";
+                ws2.Cell(row, 14).Value = p.ApprovedAt?.ToLocalTime().ToString("dd/MM/yyyy") ?? "";
+            }
+
+            return ExcelExportHelper.ToFileResult(workbook2, $"CoachingTracking_{DateTime.Now:yyyyMMdd}.xlsx", this);
+        }
+
+        // GET /CDP/ExportWorkloadSummary
+        [HttpGet]
+        [Authorize(Roles = "HC, Admin")]
+        public async Task<IActionResult> ExportWorkloadSummary()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
+
+            // Group active mappings by Coach
+            var allMappings = await _context.CoachCoacheeMappings
+                .Where(m => m.IsActive)
+                .ToListAsync();
+
+            var coachIds2 = allMappings.Select(m => m.CoachId).Distinct().ToList();
+            var coachUsers = await _context.Users
+                .Where(u => coachIds2.Contains(u.Id))
+                .ToDictionaryAsync(u => u.Id);
+
+            // Count pending deliverables per coach
+            var coacheeIds2 = allMappings.Select(m => m.CoacheeId).Distinct().ToList();
+            var pendingProgresses = await _context.ProtonDeliverableProgresses
+                .Where(p => coacheeIds2.Contains(p.CoacheeId)
+                    && (p.Status == "Submitted" || p.Status == "Pending"))
+                .Select(p => new { p.CoacheeId, p.Status, p.HCApprovalStatus })
+                .ToListAsync();
+
+            var coacheeToCoach = allMappings
+                .GroupBy(m => m.CoacheeId)
+                .ToDictionary(g => g.Key, g => g.First().CoachId);
+
+            var coachGroups = allMappings
+                .GroupBy(m => m.CoachId)
+                .Select(g => new
+                {
+                    CoachId = g.Key,
+                    CoacheeCount = g.Select(m => m.CoacheeId).Distinct().Count(),
+                    DeliverablePendingSpv = pendingProgresses.Count(p =>
+                        coacheeToCoach.GetValueOrDefault(p.CoacheeId) == g.Key && p.Status == "Submitted"),
+                    DeliverablePendingHC = pendingProgresses.Count(p =>
+                        coacheeToCoach.GetValueOrDefault(p.CoacheeId) == g.Key
+                        && p.Status == "Approved" && p.HCApprovalStatus == "Pending")
+                })
+                .OrderBy(g => coachUsers.GetValueOrDefault(g.CoachId)?.FullName ?? "")
+                .ToList();
+
+            using var workbook3 = new XLWorkbook();
+            var ws3 = ExcelExportHelper.CreateSheet(workbook3, "Workload Summary", new[]
+            {
+                "No", "Coach", "NIP Coach", "Bagian", "Coachee Aktif",
+                "Deliverable Pending Review", "Deliverable Pending HC"
+            });
+
+            for (int i = 0; i < coachGroups.Count; i++)
+            {
+                var g = coachGroups[i];
+                var c = coachUsers.GetValueOrDefault(g.CoachId);
+                var row = i + 2;
+                ws3.Cell(row, 1).Value = i + 1;
+                ws3.Cell(row, 2).Value = c?.FullName ?? "";
+                ws3.Cell(row, 3).Value = c?.NIP ?? "";
+                ws3.Cell(row, 4).Value = c?.Section ?? "";
+                ws3.Cell(row, 5).Value = g.CoacheeCount;
+                ws3.Cell(row, 6).Value = g.DeliverablePendingSpv;
+                ws3.Cell(row, 7).Value = g.DeliverablePendingHC;
+            }
+
+            return ExcelExportHelper.ToFileResult(workbook3, $"WorkloadSummary_{DateTime.Now:yyyyMMdd}.xlsx", this);
         }
 
     }
