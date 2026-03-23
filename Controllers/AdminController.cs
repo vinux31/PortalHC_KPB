@@ -3689,7 +3689,8 @@ namespace HcPortal.Controllers
                         r.Mapping.CoacheeId,
                         ProtonTrack = trackByCoachee.GetValueOrDefault(r.Mapping.CoacheeId, ""),
                         AssignmentSection = r.Mapping.AssignmentSection ?? "",
-                        AssignmentUnit = r.Mapping.AssignmentUnit ?? ""
+                        AssignmentUnit = r.Mapping.AssignmentUnit ?? "",
+                        IsCompleted = r.Mapping.IsCompleted
                     }).OrderBy(c => c.CoacheeName).ToList()
                 })
                 .OrderBy(g => g.CoachName)

@@ -269,6 +269,21 @@ else
                                             onclick="confirmDeactivate(@coachee.Id, '@coachee.CoacheeName')">
                                         <i class="bi bi-x-circle"></i> Nonaktifkan
                                     </button>
+                                    @if (!coachee.IsCompleted)
+                                    {
+                                        <form method="post" asp-action="MarkMappingCompleted" asp-controller="Admin" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="mappingId" value="@coachee.Id" />
+                                            <button type="submit" class="btn btn-sm btn-outline-info"
+                                                    onclick="return confirm('Tandai coachee ini sebagai graduated?')">
+                                                <i class="bi bi-award"></i> Graduated
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info"><i class="bi bi-award me-1"></i>Graduated</span>
+                                    }
                                 }
                                 else
                                 {
