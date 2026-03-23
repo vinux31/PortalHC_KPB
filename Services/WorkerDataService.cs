@@ -166,7 +166,7 @@ namespace HcPortal.Services
         }
 
         // Admin version used as base — includes IsActive filter that CMP version is missing
-        public async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null)
+        public async Task<List<WorkerTrainingStatus>> GetWorkersInSection(string? section, string? unitFilter = null, string? category = null, string? search = null, string? statusFilter = null, DateTime? dateFrom = null, DateTime? dateTo = null)
         {
             var usersQuery = _context.Users
                 .Where(u => u.IsActive)
@@ -203,12 +203,49 @@ namespace HcPortal.Services
                 .GroupBy(a => a.UserId)
                 .ToDictionary(g => g.Key, g => g.Count());
 
+            bool hasDateFilter = dateFrom.HasValue || dateTo.HasValue;
+
             var workerList = new List<WorkerTrainingStatus>();
 
             foreach (var user in users)
             {
-                var trainingRecords = user.TrainingRecords.ToList();
-                int completedAssessments = passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0;
+                var allTrainingRecords = user.TrainingRecords.ToList();
+                var allAssessmentSessions = assessmentSessionLookup.TryGetValue(user.Id, out var allSessions)
+                    ? allSessions : new List<AssessmentSession>();
+
+                // Apply date range filter to training records and assessment sessions
+                List<TrainingRecord> trainingRecords;
+                List<AssessmentSession> assessmentSessions;
+
+                if (hasDateFilter)
+                {
+                    trainingRecords = allTrainingRecords.Where(tr =>
+                    {
+                        var effectiveDate = (tr.TanggalMulai ?? tr.Tanggal).Date;
+                        return (dateFrom == null || effectiveDate >= dateFrom.Value.Date)
+                            && (dateTo == null || effectiveDate <= dateTo.Value.Date);
+                    }).ToList();
+
+                    assessmentSessions = allAssessmentSessions.Where(a =>
+                    {
+                        var effectiveDate = (a.CompletedAt ?? a.Schedule).Date;
+                        return (dateFrom == null || effectiveDate >= dateFrom.Value.Date)
+                            && (dateTo == null || effectiveDate <= dateTo.Value.Date);
+                    }).ToList();
+
+                    // Skip worker if no records fall within date range
+                    if (trainingRecords.Count == 0 && assessmentSessions.Count == 0)
+                        continue;
+                }
+                else
+                {
+                    trainingRecords = allTrainingRecords;
+                    assessmentSessions = allAssessmentSessions;
+                }
+
+                int completedAssessments = hasDateFilter
+                    ? assessmentSessions.Count(a => a.IsPassed == true)
+                    : (passedAssessmentLookup.TryGetValue(user.Id, out var aCount) ? aCount : 0);
 
                 var totalTrainings = trainingRecords.Count;
                 var completedTrainings = trainingRecords.Count(tr =>
@@ -233,8 +270,7 @@ namespace HcPortal.Services
                     ExpiringSoonTrainings = expiringTrainings,
                     TrainingRecords = trainingRecords,
                     CompletedAssessments = completedAssessments,
-                    AssessmentSessions = assessmentSessionLookup.TryGetValue(user.Id, out var sessions)
-                        ? sessions : new List<AssessmentSession>()
+                    AssessmentSessions = assessmentSessions
                 };
 
                 if (!string.IsNullOrEmpty(category))
