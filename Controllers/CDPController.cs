@@ -2147,6 +2147,9 @@ namespace HcPortal.Controllers
                 evidenceFileName = evidenceFile.FileName;
             }
 
+            // Track resubmit state BEFORE status is overwritten in the loop
+            var resubmitFlags = progresses.ToDictionary(p => p.Id, p => p.Status == "Rejected");
+
             // Process each progress record
             var now = DateTime.UtcNow;
             var submittedIds = new List<int>();
@@ -2213,6 +2216,44 @@ namespace HcPortal.Controllers
                     var c = coacheeNames.FirstOrDefault(x => x.Id == cid);
                     var cName = c?.FullName ?? c?.UserName ?? cid;
                     await NotifyReviewersAsync(cid, cName);
+                }
+
+                // Phase 235-04: Send COACH_EVIDENCE_RESUBMITTED for previously-rejected deliverables
+                var resubmittedCoacheeIds = progresses
+                    .Where(p => resubmitFlags.ContainsKey(p.Id) && resubmitFlags[p.Id])
+                    .Select(p => p.CoacheeId)
+                    .Distinct()
+                    .ToList();
+
+                foreach (var cid in resubmittedCoacheeIds)
+                {
+                    var c = coacheeNames.FirstOrDefault(x => x.Id == cid);
+                    var cName = c?.FullName ?? c?.UserName ?? cid;
+
+                    var resubDeliverables = progresses
+                        .Where(p => p.CoacheeId == cid && resubmitFlags.ContainsKey(p.Id) && resubmitFlags[p.Id])
+                        .Select(p => p.ProtonDeliverable?.NamaDeliverable ?? $"#{p.Id}")
+                        .ToList();
+
+                    var mapping = await _context.CoachCoacheeMappings
+                        .FirstOrDefaultAsync(m => m.CoacheeId == cid && m.IsActive);
+                    if (mapping == null) continue;
+
+                    var reviewerIds = await _context.Users
+                        .Where(u => u.IsActive && u.Section == mapping.AssignmentSection && u.RoleLevel == 4)
+                        .Select(u => u.Id)
+                        .ToListAsync();
+
+                    foreach (var reviewerId in reviewerIds)
+                    {
+                        await _notificationService.SendAsync(
+                            reviewerId,
+                            "COACH_EVIDENCE_RESUBMITTED",
+                            "Evidence Diresubmit",
+                            $"Evidence deliverable '{string.Join(", ", resubDeliverables)}' untuk {cName} telah diresubmit setelah ditolak.",
+                            "/CDP/CoachingProton"
+                        );
+                    }
                 }
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Notification send failed"); }
