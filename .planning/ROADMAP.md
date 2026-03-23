@@ -92,11 +92,12 @@ Plans:
   2. Coaching sessions ter-linked ke deliverable progress yang benar, action items menampilkan status tracking yang akurat
   3. HistoriProton menampilkan timeline lengkap per coachee termasuk data legacy CoachingLog tanpa duplikasi atau gap
   4. Lifecycle Tahun 1→2→3 berjalan end-to-end: assignment, transisi antar tahun, dan completion flow menghasilkan competency level yang benar
-**Plans**: 3 plans
+**Plans**: 4 plans
 Plans:
 - [x] 236-01-PLAN.md — DB migration: unique constraint ProtonFinalAssessment + IsCompleted/CompletedAt di CoachCoacheeMapping
 - [x] 236-02-PLAN.md — Controller fixes: query scope fix, session edit/delete, MarkMappingCompleted
 - [x] 236-03-PLAN.md — HistoriProton: fix Lulus logic + section separator per tahun
+- [ ] 236-04-PLAN.md — Gap closure: EditCoachingSession view + MarkMappingCompleted button
 
 ### Phase 237: Audit Monitoring & Differentiator Enhancement
 **Goal**: Memastikan dashboard dan monitoring akurat setelah semua data upstream bersih, plus menambahkan differentiator fitur yang meningkatkan nilai portal vs platform luar
@@ -121,5 +122,5 @@ Plans:
 | 233. Riset & Perbandingan Coaching Platform | v8.2 | 1/1 | Complete    | 2026-03-22 |
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
-| 236. Audit Completion | v8.2 | 3/3 | Complete   | 2026-03-23 |
+| 236. Audit Completion | v8.2 | 3/4 | Gap closure | 2026-03-23 |
 | 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 0/? | Not started | - |
