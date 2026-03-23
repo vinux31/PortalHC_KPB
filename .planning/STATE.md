@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
 status: Ready to execute
-stopped_at: Completed 237-01-PLAN.md
-last_updated: "2026-03-23T05:14:50.168Z"
+stopped_at: Completed 237-02-PLAN.md
+last_updated: "2026-03-23T05:19:24.418Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State: Portal HC KPB
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 ## Current Position
 
 Phase: 237 (audit-monitoring-differentiator-enhancement) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Accumulated Context
 
@@ -56,6 +56,9 @@ Plan: 2 of 3
 - [Phase 236]: RZ1031 fix: gunakan @if block bukan inline C# di atribut <option> Razor Tag Helper
 - [Phase 237-01]: Tahun filter bug fix: scopedCoacheeIds difilter by TahunKe sebelum dropdown coachee dibangun
 - [Phase 237-01]: Illegal transition OverrideSave: hanya Approved ke Pending diblokir; Approved ke Rejected diizinkan untuk undo approval salah
+- [Phase 237]: MON-01 fix: allProgresses di-re-scope setelah category/track filter untuk konsistensi stat cards
+- [Phase 237]: DIFF-03 bottleneck: query dari allProgresses terfilter (bukan query baru), BottleneckLabels/Values di ProtonProgressSubModel, horizontal bar chart Chart.js indexAxis:y
+- [Phase 237]: DIFF-01: badge warna beban coach di CoachCoacheeMapping — merah >=8, kuning >=5, biru default
 
 ### Pending Todos
 
@@ -67,6 +70,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T05:14:50.161Z
-Stopped at: Completed 237-01-PLAN.md
+Last session: 2026-03-23T05:19:24.411Z
+Stopped at: Completed 237-02-PLAN.md
 Resume file: None
