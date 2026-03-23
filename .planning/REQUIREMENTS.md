@@ -10,16 +10,16 @@ Requirements for milestone v8.3: Date Range Filter Team View Records.
 ### Filter UI
 
 - [ ] **FILT-01**: User (roleLevel ≤4) melihat 2 input date (Tanggal Awal & Tanggal Akhir) di filter bar Team View, menggantikan textbox Search Nama/NIP
-- [ ] **FILT-02**: Saat tanggal diisi, tabel hanya menampilkan workers yang punya minimal 1 record (assessment atau training) di antara rentang tanggal
-- [ ] **FILT-03**: Count kolom Assessment & Training di tabel hanya menghitung records yang jatuh di rentang tanggal yang dipilih
-- [ ] **FILT-04**: Filter date bisa dikombinasikan dengan filter Bagian, Unit, Category, Sub Category, dan Status secara independen
-- [ ] **FILT-05**: Default tanggal kosong = tampilkan semua records (behavior sama seperti sekarang)
+- [x] **FILT-02**: Saat tanggal diisi, tabel hanya menampilkan workers yang punya minimal 1 record (assessment atau training) di antara rentang tanggal
+- [x] **FILT-03**: Count kolom Assessment & Training di tabel hanya menghitung records yang jatuh di rentang tanggal yang dipilih
+- [x] **FILT-04**: Filter date bisa dikombinasikan dengan filter Bagian, Unit, Category, Sub Category, dan Status secara independen
+- [x] **FILT-05**: Default tanggal kosong = tampilkan semua records (behavior sama seperti sekarang)
 - [ ] **FILT-06**: Tombol Reset clear semua filter termasuk date range
 
 ### Export
 
-- [ ] **EXP-01**: Export Assessment menyertakan parameter date range ke server
-- [ ] **EXP-02**: Export Training menyertakan parameter date range ke server
+- [x] **EXP-01**: Export Assessment menyertakan parameter date range ke server
+- [x] **EXP-02**: Export Training menyertakan parameter date range ke server
 
 ## Future Requirements
 
@@ -38,13 +38,13 @@ None for this milestone.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FILT-01 | Phase 239 | Pending |
-| FILT-02 | Phase 239 | Pending |
-| FILT-03 | Phase 239 | Pending |
-| FILT-04 | Phase 239 | Pending |
-| FILT-05 | Phase 239 | Pending |
+| FILT-02 | Phase 239 | Complete |
+| FILT-03 | Phase 239 | Complete |
+| FILT-04 | Phase 239 | Complete |
+| FILT-05 | Phase 239 | Complete |
 | FILT-06 | Phase 239 | Pending |
-| EXP-01 | Phase 239 | Pending |
-| EXP-02 | Phase 239 | Pending |
+| EXP-01 | Phase 239 | Complete |
+| EXP-02 | Phase 239 | Complete |
 
 **Coverage:**
 - v8.3 requirements: 8 total
