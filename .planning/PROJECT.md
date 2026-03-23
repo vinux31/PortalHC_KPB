@@ -12,16 +12,30 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.2 shipped, 2026-03-23)
+## Current State (v8.3 started, 2026-03-23)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
 **v7.1–v7.12 shipped** — Export/Import, Certification, Assessment Form, Code Dedup, Renewal Certificate, KKJ/IDP, Records, Struktur Organisasi (phases 176-222).
 **v8.0 shipped** — Assessment Integrity & Analytics, 5 phases (223-227).
 **v8.1 shipped** — Renewal & Assessment Ecosystem Audit, 5 phases (228-232).
-**v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238). Riset 3 platform enterprise, audit setup/execution/completion/monitoring, differentiator enhancement (workload indicator, batch approval, bottleneck analysis).
+**v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238).
 
-**Current focus:** Planning next milestone
+**Current focus:** v8.3 Date Range Filter Team View Records
+
+## Current Milestone: v8.3 Date Range Filter Team View Records
+
+**Goal:** Ganti search nama dengan date range filter pada tab Team View di CMP/Records, agar user bisa melihat workers berdasarkan rentang tanggal records mereka.
+
+**Target features:**
+- Hapus textbox "Search (Nama/NIP)" di Team View
+- Tambah 2 input date (Tanggal Awal & Tanggal Akhir) dengan native input type="date"
+- Filter workers: hanya tampilkan yang punya records di antara tanggal yang dipilih
+- Count Assessment & Training di tabel ikut filter date range
+- Default kosong = tampilkan semua
+- Filter date independen, bisa dikombinasikan dengan Bagian/Unit/Category/Status
+- Export Assessment & Export Training ikut filter date range
+- Tombol Reset clear semua filter termasuk date
 
 ## Next Milestone Goals
 
