@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v8.3
-milestone_name: Date Range Filter Team View Records
-status: Milestone complete
-stopped_at: Completed 239-02-PLAN.md
-last_updated: "2026-03-23T12:10:40.903Z"
+milestone: v8.4
+milestone_name: Alarm Sertifikat Expired
+status: Defining requirements
+stopped_at: null
+last_updated: "2026-03-23T13:00:00.000Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 239 — date-range-filter-export
+**Current focus:** v8.4 Alarm Sertifikat Expired
 
 ## Current Position
 
-Phase: 239
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-23 — Milestone v8.4 started
 
 ## Performance Metrics
 
@@ -34,23 +36,13 @@ Plan: Not started
 - Average duration: —
 - Total execution time: —
 
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 239 | TBD | - | - |
-| Phase 239 P01 | 15 | 2 tasks | 4 files |
-
 ## Accumulated Context
 
 ### Decisions
 
 - v8.3: Single-phase milestone — semua 8 requirements (FILT-01..06, EXP-01..02) masuk Phase 239 karena tightly related (UI filter + export parameter)
-- v8.3: Search Nama/NIP dihapus sesuai permintaan user, diganti 2 input date native (type="date")
-- [Phase 239]: Date filter skip logic diterapkan di service layer untuk konsistensi count dan export
-- [Phase 239]: Export double-filter: worker IDs via GetWorkersInSection + filter rows by date langsung
-- [Phase 239]: filterTeamTable() sepenuhnya AJAX — tidak ada DOM show/hide rows lagi
-- [Phase 239]: searchFilter dihapus permanen di RecordsTeam.cshtml, diganti 2 date inputs native HTML
+- v8.4: Alarm sertifikat via 2 kanal — banner di Home/Index + bell notification CERT_EXPIRED (tanpa CERT_EXPIRING_SOON)
+- v8.4: Threshold 30 hari sesuai existing IsExpiringSoon, tidak custom
 
 ### Pending Todos
 
@@ -62,6 +54,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T12:08:17.480Z
-Stopped at: Completed 239-02-PLAN.md
+Last session: 2026-03-23T13:00:00.000Z
+Stopped at: Milestone v8.4 started — defining requirements
 Resume file: None

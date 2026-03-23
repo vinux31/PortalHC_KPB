@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.3 started, 2026-03-23)
+## Current State (v8.4 started, 2026-03-23)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -20,22 +20,19 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.0 shipped** — Assessment Integrity & Analytics, 5 phases (223-227).
 **v8.1 shipped** — Renewal & Assessment Ecosystem Audit, 5 phases (228-232).
 **v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238).
+**v8.3 shipped** — Date Range Filter Team View Records, 1 phase (239).
 
-**Current focus:** v8.3 Date Range Filter Team View Records
+**Current focus:** v8.4 Alarm Sertifikat Expired
 
-## Current Milestone: v8.3 Date Range Filter Team View Records
+## Current Milestone: v8.4 Alarm Sertifikat Expired
 
-**Goal:** Ganti search nama dengan date range filter pada tab Team View di CMP/Records, agar user bisa melihat workers berdasarkan rentang tanggal records mereka.
+**Goal:** Tampilkan alarm sertifikat expired kepada HC/Admin melalui 2 kanal: banner alert di Home/Index dan notifikasi bell (CERT_EXPIRED).
 
 **Target features:**
-- Hapus textbox "Search (Nama/NIP)" di Team View
-- Tambah 2 input date (Tanggal Awal & Tanggal Akhir) dengan native input type="date"
-- Filter workers: hanya tampilkan yang punya records di antara tanggal yang dipilih
-- Count Assessment & Training di tabel ikut filter date range
-- Default kosong = tampilkan semua
-- Filter date independen, bisa dikombinasikan dengan Bagian/Unit/Category/Status
-- Export Assessment & Export Training ikut filter date range
-- Tombol Reset clear semua filter termasuk date
+- Alert banner di Home/Index khusus role HC & Admin, menampilkan count Expired (merah) dan Akan Expired ≤30 hari (kuning) dengan link ke RenewalCertificate
+- Banner tidak tampil jika tidak ada sertifikat bermasalah
+- Notifikasi bell tipe CERT_EXPIRED — generate UserNotification untuk sertifikat yang expired, dikirim ke user HC/Admin
+- Reuse logic BuildRenewalRowsAsync() dan NotificationService.SendAsync() yang sudah ada
 
 ## Next Milestone Goals
 
@@ -56,6 +53,12 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Alternative considered:** Removing the Override tabs and merging into a simpler flat list. Rejected because the tabbed interface cleanly separates two distinct data types (silabus vs. guidance files) and the current implementation has no known bugs.
 
 ## Shipped Milestones
+
+### ✅ v8.3 - Date Range Filter Team View Records (2026-03-23)
+
+**Delivered:** Ganti search nama dengan date range filter pada Team View CMP/Records. 2 input date native, filter workers + count berdasarkan rentang tanggal, export ikut date range, reset clear semua filter.
+
+**Metrics:** 1 phase (239), 2 plans
 
 ### ✅ v8.2 - Proton Coaching Ecosystem Audit (2026-03-23)
 
