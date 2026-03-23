@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v8.2
 milestone_name: Proton Coaching Ecosystem Audit
 status: Ready to execute
-stopped_at: Completed 237-02-PLAN.md
-last_updated: "2026-03-23T05:19:24.418Z"
+stopped_at: "Checkpoint 237-03 Task 3: awaiting browser verification"
+last_updated: "2026-03-23T05:27:41.867Z"
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State: Portal HC KPB
@@ -59,6 +59,8 @@ Plan: 3 of 3
 - [Phase 237]: MON-01 fix: allProgresses di-re-scope setelah category/track filter untuk konsistensi stat cards
 - [Phase 237]: DIFF-03 bottleneck: query dari allProgresses terfilter (bukan query baru), BottleneckLabels/Values di ProtonProgressSubModel, horizontal bar chart Chart.js indexAxis:y
 - [Phase 237]: DIFF-01: badge warna beban coach di CoachCoacheeMapping — merah >=8, kuning >=5, biru default
+- [Phase 237]: ExportHistoriProton: tambah explicit Authorize role attr — sebelumnya hanya class-level auth
+- [Phase 237]: BatchHCApprove race guard: hanya proses Status==Submitted && HCApprovalStatus==Pending — konsisten dengan button HC review individual
 
 ### Pending Todos
 
@@ -70,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-23T05:19:24.411Z
-Stopped at: Completed 237-02-PLAN.md
+Last session: 2026-03-23T05:27:27.855Z
+Stopped at: Checkpoint 237-03 Task 3: awaiting browser verification
 Resume file: None

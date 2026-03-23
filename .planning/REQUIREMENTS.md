@@ -41,12 +41,12 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 - [x] **MON-01**: Audit Dashboard — role-scoped filtering accuracy, stats correctness, Chart.js data integrity
 - [x] **MON-02**: Audit CoachingProton tracking — filter cascade, pagination, role-based column visibility
 - [x] **MON-03**: Audit Override — validasi status transition rules, audit trail lengkap, admin accountability
-- [ ] **MON-04**: Audit Export — data accuracy, query optimization (N+1 elimination, projection), semua export actions
+- [x] **MON-04**: Audit Export — data accuracy, query optimization (N+1 elimination, projection), semua export actions
 
 ### Differentiator Enhancement
 
 - [x] **DIFF-01**: Workload indicator coach — tampilkan jumlah coachee aktif per coach di mapping page dan dashboard
-- [ ] **DIFF-02**: Batch approval HC Review — approve multiple deliverables sekaligus dari monitoring view
+- [x] **DIFF-02**: Batch approval HC Review — approve multiple deliverables sekaligus dari monitoring view
 - [x] **DIFF-03**: Bottleneck analysis — identifikasi deliverable paling lama pending, approval bottleneck visibility di dashboard
 
 ## Future Requirements (v9+)
@@ -90,9 +90,9 @@ Requirements for Proton Coaching ecosystem audit — end-to-end audit dari setup
 | MON-01 | Phase 237 | Complete |
 | MON-02 | Phase 237 | Complete |
 | MON-03 | Phase 237 | Complete |
-| MON-04 | Phase 237 | Pending |
+| MON-04 | Phase 237 | Complete |
 | DIFF-01 | Phase 237 | Complete |
-| DIFF-02 | Phase 237 | Pending |
+| DIFF-02 | Phase 237 | Complete |
 | DIFF-03 | Phase 237 | Complete |
 
 **Coverage:**

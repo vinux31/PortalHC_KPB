@@ -35,7 +35,7 @@ Last completed phase: 232 (v8.1 — Audit Assessment Flow Worker Side)
 - [x] **Phase 234: Audit Setup Flow** - Audit silabus delete safety, guidance file management, coach-coachee mapping, track assignment, import/export (completed 2026-03-22)
 - [x] **Phase 235: Audit Execution Flow** - Audit evidence submission, approval chain, status history, notifikasi, PlanIdp view (completed 2026-03-22)
 - [x] **Phase 236: Audit Completion** - Audit final assessment, coaching sessions, HistoriProton, 3-year journey lifecycle (completed 2026-03-23)
-- [ ] **Phase 237: Audit Monitoring & Differentiator Enhancement** - Audit dashboard, tracking, override, export, plus workload indicator, batch approval, bottleneck analysis
+- [x] **Phase 237: Audit Monitoring & Differentiator Enhancement** - Audit dashboard, tracking, override, export, plus workload indicator, batch approval, bottleneck analysis (completed 2026-03-23)
 
 ## Phase Details
 
@@ -115,7 +115,7 @@ Plans:
 Plans:
 - [x] 237-01-PLAN.md — Audit CoachingProton tracking + Override transition validation
 - [x] 237-02-PLAN.md — Audit dashboard stats + bottleneck chart + workload indicator
-- [ ] 237-03-PLAN.md — Export audit + 3 export baru + batch HC approval + UAT
+- [x] 237-03-PLAN.md — Export audit + 3 export baru + batch HC approval + UAT
 
 ## Progress
 
@@ -127,4 +127,4 @@ Plans:
 | 234. Audit Setup Flow | v8.2 | 3/3 | Complete    | 2026-03-22 |
 | 235. Audit Execution Flow | v8.2 | 4/4 | Complete    | 2026-03-23 |
 | 236. Audit Completion | v8.2 | 4/4 | Complete    | 2026-03-23 |
-| 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 2/3 | In Progress|  |
+| 237. Audit Monitoring & Differentiator Enhancement | v8.2 | 3/3 | Complete   | 2026-03-23 |
