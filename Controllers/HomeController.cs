@@ -36,7 +36,63 @@ public class HomeController : Controller
             Progress = progress
         };
 
+        if (User.IsInRole("HC") || User.IsInRole("Admin"))
+        {
+            var (expiredCount, akanExpiredCount) = await GetCertAlertCountsAsync();
+            viewModel.ExpiredCount = expiredCount;
+            viewModel.AkanExpiredCount = akanExpiredCount;
+        }
+
         return View(viewModel);
+    }
+
+    private async Task<(int expiredCount, int akanExpiredCount)> GetCertAlertCountsAsync()
+    {
+        var today = DateTime.Today;
+        var thirtyDaysFromNow = today.AddDays(30);
+
+        // Renewal chain resolution: batch lookup (same pattern as AdminController.BuildRenewalRowsAsync)
+        var renewedByAsSessionIds = await _context.AssessmentSessions
+            .Where(a => a.RenewsSessionId.HasValue && a.IsPassed == true)
+            .Select(a => a.RenewsSessionId!.Value)
+            .Distinct().ToListAsync();
+        var renewedByTrSessionIds = await _context.TrainingRecords
+            .Where(t => t.RenewsSessionId.HasValue)
+            .Select(t => t.RenewsSessionId!.Value)
+            .Distinct().ToListAsync();
+        var renewedByAsTrainingIds = await _context.AssessmentSessions
+            .Where(a => a.RenewsTrainingId.HasValue && a.IsPassed == true)
+            .Select(a => a.RenewsTrainingId!.Value)
+            .Distinct().ToListAsync();
+        var renewedByTrTrainingIds = await _context.TrainingRecords
+            .Where(t => t.RenewsTrainingId.HasValue)
+            .Select(t => t.RenewsTrainingId!.Value)
+            .Distinct().ToListAsync();
+
+        var renewedSessionIds = new HashSet<int>(renewedByAsSessionIds);
+        renewedSessionIds.UnionWith(renewedByTrSessionIds);
+        var renewedTrainingIds = new HashSet<int>(renewedByAsTrainingIds);
+        renewedTrainingIds.UnionWith(renewedByTrTrainingIds);
+
+        // TrainingRecords with certificate, non-Permanent, has ValidUntil
+        var trainingCerts = await _context.TrainingRecords
+            .Where(t => t.SertifikatUrl != null && t.CertificateType != "Permanent" && t.ValidUntil.HasValue)
+            .Select(t => new { t.Id, t.ValidUntil })
+            .ToListAsync();
+
+        int trExpired = trainingCerts.Count(t => t.ValidUntil!.Value < today && !renewedTrainingIds.Contains(t.Id));
+        int trAkanExpired = trainingCerts.Count(t => t.ValidUntil!.Value >= today && t.ValidUntil.Value <= thirtyDaysFromNow && !renewedTrainingIds.Contains(t.Id));
+
+        // AssessmentSessions with certificate
+        var assessmentCerts = await _context.AssessmentSessions
+            .Where(a => a.GenerateCertificate && a.IsPassed == true && a.ValidUntil.HasValue)
+            .Select(a => new { a.Id, a.ValidUntil })
+            .ToListAsync();
+
+        int asExpired = assessmentCerts.Count(a => a.ValidUntil!.Value < today && !renewedSessionIds.Contains(a.Id));
+        int asAkanExpired = assessmentCerts.Count(a => a.ValidUntil!.Value >= today && a.ValidUntil.Value <= thirtyDaysFromNow && !renewedSessionIds.Contains(a.Id));
+
+        return (trExpired + asExpired, trAkanExpired + asAkanExpired);
     }
 
     private async Task<ProgressViewModel> GetProgress(string userId)

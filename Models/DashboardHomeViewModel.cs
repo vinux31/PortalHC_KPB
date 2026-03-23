@@ -6,6 +6,8 @@ namespace HcPortal.Models
         public string Greeting { get; set; } = string.Empty;
         public List<UpcomingEventViewModel> UpcomingEvents { get; set; } = new();
         public ProgressViewModel Progress { get; set; } = new();
+        public int ExpiredCount { get; set; }
+        public int AkanExpiredCount { get; set; }
     }
 
     public class UpcomingEventViewModel

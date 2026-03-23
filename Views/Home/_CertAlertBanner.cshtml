@@ -1,0 +1,26 @@
+@model HcPortal.Models.DashboardHomeViewModel
+
+<div class="cert-alert-banner mb-3" role="region" aria-label="Peringatan Sertifikat">
+    @if (Model.ExpiredCount > 0)
+    {
+        <div class="alert bg-danger bg-opacity-10 border border-danger border-opacity-25 d-flex align-items-center py-2 px-3 mb-2">
+            <i class="bi bi-x-circle me-2 text-danger" aria-hidden="true"></i>
+            <span><strong class="text-danger">@Model.ExpiredCount</strong> sertifikat telah Expired</span>
+            <a href="/Admin/RenewalCertificate" class="ms-auto text-danger fw-semibold text-decoration-none"
+               aria-label="Lihat detail sertifikat expired">
+                Lihat Detail <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
+    }
+    @if (Model.AkanExpiredCount > 0)
+    {
+        <div class="alert bg-warning bg-opacity-10 border border-warning border-opacity-25 d-flex align-items-center py-2 px-3 mb-0">
+            <i class="bi bi-exclamation-triangle me-2 text-warning" aria-hidden="true"></i>
+            <span><strong class="text-warning">@Model.AkanExpiredCount</strong> sertifikat akan Expired dalam 30 hari</span>
+            <a href="/Admin/RenewalCertificate" class="ms-auto text-warning fw-semibold text-decoration-none"
+               aria-label="Lihat detail sertifikat akan expired">
+                Lihat Detail <i class="bi bi-arrow-right" aria-hidden="true"></i>
+            </a>
+        </div>
+    }
+</div>

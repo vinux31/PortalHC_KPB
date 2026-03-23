@@ -40,6 +40,11 @@
     </div>
 </div>
 
+@if (Model.ExpiredCount > 0 || Model.AkanExpiredCount > 0)
+{
+    <partial name="_CertAlertBanner" model="Model" />
+}
+
 <div class="row g-4">
     <div class="col-md-4 col-6">
         <a asp-controller="CDP" asp-action="Index" class="card border-0 shadow-sm h-100 text-decoration-none menu-card">
