@@ -1,0 +1,132 @@
+@model HcPortal.Models.CoachingSession
+
+@{
+    ViewData["Title"] = "Edit Sesi Coaching";
+}
+
+@* Breadcrumb *@
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="CDP" asp-action="CoachingProton">Coaching Proton</a></li>
+        <li class="breadcrumb-item">
+            <a asp-controller="CDP" asp-action="Deliverable" asp-route-id="@Model.ProtonDeliverableProgressId">Deliverable</a>
+        </li>
+        <li class="breadcrumb-item active" aria-current="page">Edit Sesi Coaching</li>
+    </ol>
+</nav>
+
+@* TempData Alerts *@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Edit Sesi Coaching</h5>
+    </div>
+    <div class="card-body">
+
+        @* Info Read-Only *@
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted">Tanggal Sesi</label>
+                    <p class="form-control-plaintext">@Model.Date.ToString("dd MMM yyyy")</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted">Kompetensi</label>
+                    <p class="form-control-plaintext">@Model.Kompetensi</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted">Sub Kompetensi</label>
+                    <p class="form-control-plaintext">@Model.SubKompetensi</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold text-muted">Deliverable</label>
+                    <p class="form-control-plaintext">@Model.Deliverable</p>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+
+        @* Editable Form *@
+        <form method="post" asp-controller="CDP" asp-action="EditCoachingSession" asp-route-id="@Model.Id">
+            @Html.AntiForgeryToken()
+
+            <div class="mb-3">
+                <label for="catatanCoach" class="form-label fw-semibold">Catatan Coach</label>
+                <textarea name="catatanCoach" id="catatanCoach" class="form-control" rows="5">@Model.CatatanCoach</textarea>
+                <div class="form-text">Isi catatan pembinaan, observasi, dan rekomendasi untuk coachee.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="kesimpulan" class="form-label fw-semibold">Kesimpulan</label>
+                <select name="kesimpulan" id="kesimpulan" class="form-select">
+                    @{
+                        var kesimpulanOptions = new[] { "Kompeten", "Perlu Pengembangan" };
+                        foreach (var opt in kesimpulanOptions)
+                        {
+                            if (opt == Model.Kesimpulan)
+                            {
+                                <option value="@opt" selected>@opt</option>
+                            }
+                            else
+                            {
+                                <option value="@opt">@opt</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="result" class="form-label fw-semibold">Result</label>
+                <select name="result" id="result" class="form-select">
+                    @{
+                        var resultOptions = new[] { "Need Improvement", "Suitable", "Good", "Excellence" };
+                        foreach (var opt in resultOptions)
+                        {
+                            if (opt == Model.Result)
+                            {
+                                <option value="@opt" selected>@opt</option>
+                            }
+                            else
+                            {
+                                <option value="@opt">@opt</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save me-1"></i> Simpan Perubahan
+                </button>
+                <a asp-controller="CDP" asp-action="Deliverable" asp-route-id="@Model.ProtonDeliverableProgressId"
+                   class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle me-1"></i> Batal
+                </a>
+            </div>
+        </form>
+
+    </div>
+</div>
