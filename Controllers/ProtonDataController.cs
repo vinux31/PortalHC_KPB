@@ -1385,6 +1385,27 @@ namespace HcPortal.Controllers
             if (progress == null)
                 return Json(new { success = false, message = "Record tidak ditemukan." });
 
+            // Illegal status transition validation (D-14)
+            // Prevents regressing Approved back to Pending directly — must go through Submitted or Rejected first.
+            var illegalTransitions = new Dictionary<string, HashSet<string>>
+            {
+                { "Approved", new HashSet<string> { "Pending" } },
+            };
+            if (illegalTransitions.TryGetValue(progress.Status, out var blockedTargets)
+                && blockedTargets.Contains(req.NewStatus))
+            {
+                return Json(new { success = false,
+                    message = $"Transisi dari '{progress.Status}' ke '{req.NewStatus}' tidak diizinkan. " +
+                              $"Status Approved tidak dapat langsung dikembalikan ke Pending. " +
+                              $"Gunakan status Rejected atau Submitted terlebih dahulu." });
+            }
+
+            // HCApprovalStatus consistency: if overriding to non-Approved, reset HC status to Pending
+            if (req.NewStatus != "Approved" && req.NewHCStatus == "Reviewed")
+            {
+                req.NewHCStatus = "Pending";
+            }
+
             var oldStatus = progress.Status;
 
             // Auto-fill timestamps based on new status
