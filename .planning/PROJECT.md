@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.4 complete, 2026-03-23)
+## Current State (v8.5 started, 2026-03-23)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -21,18 +21,24 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.1 shipped** — Renewal & Assessment Ecosystem Audit, 5 phases (228-232).
 **v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238).
 **v8.3 shipped** — Date Range Filter Team View Records, 1 phase (239).
+**v8.4 shipped** — Alarm Sertifikat Expired, 1 phase (240).
 
-**Current focus:** v8.4 Alarm Sertifikat Expired
+**Current focus:** v8.5 UAT Assessment System End-to-End
 
-## Current Milestone: v8.4 Alarm Sertifikat Expired
+## Current Milestone: v8.5 UAT Assessment System End-to-End
 
-**Goal:** Tampilkan alarm sertifikat expired kepada HC/Admin melalui 2 kanal: banner alert di Home/Index dan notifikasi bell (CERT_EXPIRED).
+**Goal:** Simulasi dan UAT end-to-end seluruh sistem Assessment (reguler + Proton Tahun 1-3), mencakup setup, ujian, grading, sertifikat, monitoring, analytics, dan edge cases — dengan perbaikan bug yang ditemukan.
 
 **Target features:**
-- Alert banner di Home/Index khusus role HC & Admin, menampilkan count Expired (merah) dan Akan Expired ≤30 hari (kuning) dengan link ke RenewalCertificate
-- Banner tidak tampil jika tidak ada sertifikat bermasalah
-- Notifikasi bell tipe CERT_EXPIRED — generate UserNotification untuk sertifikat yang expired, dikirim ke user HC/Admin
-- Reuse logic BuildRenewalRowsAsync() dan NotificationService.SendAsync() yang sudah ada
+- UAT Setup: Kategori hierarchy, buat assessment multi-user, paket soal, import 15 soal dengan 4 Elemen Teknis
+- UAT Exam Flow: Token verification, ujian online, timer & resume, auto-save, submit & grading, answer review, radar chart ET
+- UAT Sertifikat: Generate nomor otomatis KPB/SEQ/MONTH/YEAR, ValidUntil, print/PDF
+- UAT Monitoring: HC real-time SignalR, export results, analytics dashboard
+- UAT Proton Tahun 1/2: Online exam dengan track Proton
+- UAT Proton Tahun 3: Interview offline, HC input 5 aspek penilaian, auto-create ProtonFinalAssessment
+- UAT Edge Cases: Token salah, waktu habis, HC force close/reset, regenerate token, renewal sertifikat
+- UAT Records: Training records, export Excel, team view
+- Bug Fix: Perbaikan semua bug yang ditemukan selama simulasi
 
 ## Next Milestone Goals
 

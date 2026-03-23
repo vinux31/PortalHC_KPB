@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Perencanaan Simulasi Assessment — Portal HC KPB</title>
+<style>
+:root {
+  --blue: #005baa;
+  --blue-light: #e8f0fe;
+  --red: #ed1c24;
+  --red-light: #ffeaea;
+  --yellow: #ffd700;
+  --yellow-light: #fff8e0;
+  --green: #28a745;
+  --green-light: #e6f9ed;
+  --purple: #6f42c1;
+  --purple-light: #f3eaff;
+  --orange: #fd7e14;
+  --orange-light: #fff3e0;
+  --gray: #6c757d;
+  --gray-light: #f8f9fa;
+  --dark: #1a1a2e;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: var(--font); font-size:15px; line-height:1.6; color:#222; background:#f5f6fa; }
+a { color: var(--blue); text-decoration:none; }
+a:hover { text-decoration:underline; }
+
+.header { background: linear-gradient(135deg, var(--dark) 0%, #16213e 100%); color:#fff; padding:24px 32px; position:sticky; top:0; z-index:100; box-shadow:0 2px 12px rgba(0,0,0,.3); }
+.header h1 { font-size:22px; font-weight:700; }
+.header .subtitle { font-size:13px; color:#aab; margin-top:4px; }
+.header .badge-ver { background:var(--blue); color:#fff; padding:3px 10px; border-radius:12px; font-size:12px; font-weight:600; margin-left:8px; }
+
+.layout { display:flex; min-height:100vh; }
+.sidebar { width:280px; background:#fff; border-right:1px solid #e0e0e0; position:sticky; top:68px; height:calc(100vh - 68px); overflow-y:auto; padding:16px 0; flex-shrink:0; }
+.sidebar a { display:block; padding:7px 20px; font-size:13px; color:#444; border-left:3px solid transparent; transition:all .15s; }
+.sidebar a:hover { background:var(--blue-light); color:var(--blue); text-decoration:none; border-left-color:var(--blue); }
+.sidebar .nav-section { font-size:11px; font-weight:700; color:#999; text-transform:uppercase; letter-spacing:.5px; padding:12px 20px 4px; }
+.main { flex:1; padding:32px 40px; max-width:1200px; }
+
+section { margin-bottom:48px; }
+h2 { font-size:22px; font-weight:700; color:var(--dark); border-bottom:3px solid var(--blue); padding-bottom:8px; margin-bottom:20px; }
+h3 { font-size:17px; font-weight:600; color:var(--blue); margin:24px 0 12px; }
+h4 { font-size:15px; font-weight:600; color:#333; margin:16px 0 8px; }
+
+table { width:100%; border-collapse:collapse; margin:12px 0 20px; font-size:13px; }
+th { background:var(--blue); color:#fff; padding:8px 12px; text-align:left; font-weight:600; font-size:12px; }
+td { padding:7px 12px; border-bottom:1px solid #e8e8e8; vertical-align:top; }
+tr:hover td { background:var(--blue-light); }
+code { background:#f0f0f0; padding:1px 5px; border-radius:3px; font-size:12px; font-family:'Cascadia Code','Fira Code',monospace; }
+pre { background:#1e1e2e; color:#cdd6f4; padding:16px; border-radius:8px; font-size:12px; overflow-x:auto; line-height:1.5; margin:12px 0; font-family:'Cascadia Code','Fira Code',monospace; }
+
+.card { background:#fff; border-radius:8px; box-shadow:0 1px 4px rgba(0,0,0,.08); padding:20px; margin:12px 0; }
+.card-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:16px; }
+
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-blue { background:var(--blue); color:#fff; }
+.badge-green { background:var(--green); color:#fff; }
+.badge-red { background:var(--red); color:#fff; }
+.badge-yellow { background:var(--yellow); color:#333; }
+.badge-purple { background:var(--purple); color:#fff; }
+.badge-orange { background:var(--orange); color:#fff; }
+.badge-gray { background:#e0e0e0; color:#555; }
+.badge-role { background:#e8e8e8; color:#555; font-size:10px; }
+
+.flow { display:flex; flex-wrap:wrap; align-items:flex-start; gap:0; padding:20px 0; overflow-x:auto; }
+.flow-step { position:relative; background:#fff; border:2px solid var(--blue); border-radius:8px; padding:10px 14px; min-width:140px; max-width:220px; font-size:12px; text-align:center; flex-shrink:0; }
+.flow-step .step-label { font-weight:700; color:var(--blue); font-size:11px; margin-bottom:4px; }
+.flow-step .step-desc { color:#444; }
+.flow-arrow { display:flex; align-items:center; padding:0 4px; color:var(--blue); font-size:20px; font-weight:bold; }
+.flow-step.proton { border-color:var(--purple); }
+.flow-step.proton .step-label { color:var(--purple); }
+.flow-step.worker { border-color:var(--green); }
+.flow-step.worker .step-label { color:var(--green); }
+.flow-step.hc { border-color:var(--orange); }
+.flow-step.hc .step-label { color:var(--orange); }
+
+.scenario { border-left:4px solid var(--blue); padding:16px 20px; margin:16px 0; background:#fff; border-radius:0 8px 8px 0; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+.scenario.proton { border-left-color:var(--purple); }
+.scenario.important { border-left-color:var(--red); }
+.scenario.success { border-left-color:var(--green); }
+.scenario .scenario-title { font-weight:700; font-size:15px; margin-bottom:8px; }
+
+.step-list { counter-reset:step; list-style:none; padding:0; }
+.step-list li { counter-increment:step; padding:8px 0 8px 36px; position:relative; border-bottom:1px dashed #eee; }
+.step-list li:last-child { border-bottom:none; }
+.step-list li::before { content:counter(step); position:absolute; left:0; top:8px; width:24px; height:24px; background:var(--blue); color:#fff; border-radius:50%; font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; }
+
+.checklist { list-style:none; padding:0; }
+.checklist li { padding:6px 0 6px 28px; position:relative; }
+.checklist li::before { content:'☐'; position:absolute; left:0; top:6px; font-size:16px; }
+
+.user-card { display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid #e0e0e0; border-radius:20px; padding:4px 14px 4px 6px; margin:4px; font-size:12px; }
+.user-card .avatar { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:11px; }
+
+.question-card { background:#fff; border:1px solid #e8e8e8; border-radius:8px; padding:16px; margin:8px 0; }
+.question-card .q-num { display:inline-block; background:var(--blue); color:#fff; border-radius:50%; width:28px; height:28px; text-align:center; line-height:28px; font-size:12px; font-weight:700; margin-right:8px; }
+.question-card .q-text { font-weight:600; margin-bottom:8px; }
+.question-card .option { padding:4px 0 4px 20px; font-size:13px; }
+.question-card .option.correct { color:var(--green); font-weight:600; }
+.question-card .et-tag { display:inline-block; background:var(--purple-light); color:var(--purple); padding:1px 8px; border-radius:10px; font-size:10px; font-weight:600; margin-top:6px; }
+
+.tab-container { margin:16px 0; }
+.tab-header { display:flex; gap:0; border-bottom:2px solid #e0e0e0; }
+.tab-btn { padding:8px 20px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:none; color:#666; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all .2s; }
+.tab-btn.active { color:var(--blue); border-bottom-color:var(--blue); }
+.tab-btn:hover { color:var(--blue); }
+.tab-content { display:none; padding:16px 0; }
+.tab-content.active { display:block; }
+
+.info-box { padding:12px 16px; border-radius:6px; margin:12px 0; font-size:13px; }
+.info-box.blue { background:var(--blue-light); border-left:4px solid var(--blue); }
+.info-box.green { background:var(--green-light); border-left:4px solid var(--green); }
+.info-box.yellow { background:var(--yellow-light); border-left:4px solid var(--yellow); }
+.info-box.red { background:var(--red-light); border-left:4px solid var(--red); }
+.info-box.purple { background:var(--purple-light); border-left:4px solid var(--purple); }
+
+.page-map { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:12px; margin:16px 0; }
+.page-map .page-item { background:#fff; border:1px solid #e0e0e0; border-radius:8px; padding:12px; font-size:12px; }
+.page-map .page-item .page-url { font-family:monospace; font-size:11px; color:var(--gray); margin-top:4px; word-break:break-all; }
+.page-map .page-item .page-title { font-weight:700; color:var(--dark); margin-bottom:4px; }
+.page-map .page-item .page-role { font-size:10px; }
+
+@media print {
+  .sidebar { display:none; }
+  .header { position:static; }
+  .main { padding:20px; }
+  body { background:#fff; }
+}
+@media (max-width:900px) {
+  .sidebar { display:none; }
+  .main { padding:20px; }
+  .flow { flex-direction:column; align-items:stretch; }
+  .flow-arrow { transform:rotate(90deg); justify-content:center; padding:4px 0; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Perencanaan Simulasi Assessment <span class="badge-ver">v8.x</span></h1>
+  <div class="subtitle">Dokumen perencanaan end-to-end testing sistem Assessment & Proton — Portal HC KPB &bull; 23 Maret 2026</div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="nav-section">Overview</div>
+  <a href="#overview">Tujuan Simulasi</a>
+  <a href="#users">User & Akun Test</a>
+  <a href="#pages">Peta Halaman</a>
+
+  <div class="nav-section">Flow Assessment Reguler</div>
+  <a href="#flow-overview">Flow Diagram</a>
+  <a href="#flow-1">1. Kelola Kategori</a>
+  <a href="#flow-2">2. Buat Assessment</a>
+  <a href="#flow-3">3. Setup Paket Soal</a>
+  <a href="#flow-4">4. Import Soal</a>
+  <a href="#flow-5">5. Ujian Pekerja</a>
+  <a href="#flow-6">6. Timer & Resume</a>
+  <a href="#flow-7">7. Submit & Grading</a>
+  <a href="#flow-8">8. Hasil & Review</a>
+  <a href="#flow-9">9. Sertifikat</a>
+  <a href="#flow-10">10. Monitoring HC</a>
+  <a href="#flow-11">11. Analytics</a>
+  <a href="#flow-12">12. Records & Export</a>
+
+  <div class="nav-section">Flow Proton</div>
+  <a href="#proton-overview">Proton Overview</a>
+  <a href="#proton-setup">Setup Proton</a>
+  <a href="#proton-t1">Proton Tahun 1</a>
+  <a href="#proton-t2">Proton Tahun 2</a>
+  <a href="#proton-t3">Proton Tahun 3 (Interview)</a>
+
+  <div class="nav-section">Seed Data</div>
+  <a href="#seed-questions">15 Soal + Elemen Teknis</a>
+  <a href="#seed-excel">Format Excel Import</a>
+  <a href="#seed-categories">Sub-Kategori</a>
+
+  <div class="nav-section">Skenario Test</div>
+  <a href="#test-reguler">Skenario Reguler</a>
+  <a href="#test-proton">Skenario Proton</a>
+  <a href="#test-edge">Edge Cases</a>
+  <a href="#checklist">Checklist Final</a>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ========== OVERVIEW ========== -->
+<section id="overview">
+<h2>Tujuan Simulasi</h2>
+<p>Dokumen ini merencanakan simulasi end-to-end sistem <strong>Assessment</strong> di Portal HC KPB, mencakup:</p>
+<div class="card-grid" style="margin-top:16px">
+  <div class="card">
+    <h4>Assessment Reguler</h4>
+    <p style="font-size:13px">Ujian online (OJT, IHT, Licencor, OTS, HSSE) dengan soal pilihan ganda, timer, grading otomatis, dan sertifikat.</p>
+  </div>
+  <div class="card" style="border-left:4px solid var(--purple)">
+    <h4>Assessment Proton</h4>
+    <p style="font-size:13px">Assessment khusus coaching Proton: Tahun 1 & 2 (ujian online) dan Tahun 3 (interview offline oleh HC).</p>
+  </div>
+</div>
+
+<div class="info-box blue" style="margin-top:16px">
+  <strong>Scope:</strong> Simulasi ini tidak memerlukan milestone baru. Semua fitur sudah dibangun di milestone v8.0-v8.4. Kita hanya melakukan UAT (User Acceptance Test) via browser secara manual.
+</div>
+
+<h3>Fitur yang Akan Di-test</h3>
+<table>
+<tr><th>#</th><th>Fitur</th><th>Deskripsi</th><th>Tipe</th></tr>
+<tr><td>1</td><td>Kategori Hierarchy</td><td>Parent-child kategori, signatory, default pass %</td><td><span class="badge badge-blue">Admin</span></td></tr>
+<tr><td>2</td><td>Create Assessment</td><td>Multi-user session, jadwal, durasi, token, sertifikat</td><td><span class="badge badge-blue">Admin</span></td></tr>
+<tr><td>3</td><td>Paket Soal</td><td>Buat paket, import soal Excel, Elemen Teknis</td><td><span class="badge badge-blue">Admin</span></td></tr>
+<tr><td>4</td><td>Token System</td><td>Generate token 6 char, copy, verify sebelum ujian</td><td><span class="badge badge-blue">Admin</span> <span class="badge badge-green">Worker</span></td></tr>
+<tr><td>5</td><td>Exam Flow</td><td>Mulai ujian, jawab soal acak, pagination, auto-save</td><td><span class="badge badge-green">Worker</span></td></tr>
+<tr><td>6</td><td>Timer & Resume</td><td>Wall-clock timer, resume dari page terakhir setelah disconnect</td><td><span class="badge badge-green">Worker</span></td></tr>
+<tr><td>7</td><td>Submit & Grading</td><td>Auto-grading, skor Elemen Teknis, pass/fail</td><td><span class="badge badge-green">Worker</span></td></tr>
+<tr><td>8</td><td>Answer Review</td><td>Tinjauan jawaban dengan highlight benar/salah + radar chart ET</td><td><span class="badge badge-green">Worker</span></td></tr>
+<tr><td>9</td><td>Sertifikat</td><td>Nomor otomatis KPB/001/III/2026, ValidUntil, print/PDF</td><td><span class="badge badge-green">Worker</span></td></tr>
+<tr><td>10</td><td>Monitoring</td><td>HC real-time progress via SignalR, token management</td><td><span class="badge badge-orange">HC</span></td></tr>
+<tr><td>11</td><td>Analytics</td><td>Dashboard fail rate, trend, ET breakdown, expiring soon</td><td><span class="badge badge-orange">HC</span></td></tr>
+<tr><td>12</td><td>Records & Export</td><td>Riwayat pelatihan, export Excel</td><td><span class="badge badge-green">Worker</span> <span class="badge badge-orange">HC</span></td></tr>
+<tr><td>13</td><td>Proton Tahun 1/2</td><td>Ujian online Proton dengan paket soal</td><td><span class="badge badge-purple">Proton</span></td></tr>
+<tr><td>14</td><td>Proton Tahun 3</td><td>Interview offline, HC input hasil, 5 aspek penilaian</td><td><span class="badge badge-purple">Proton</span></td></tr>
+<tr><td>15</td><td>Renewal</td><td>Perpanjang sertifikat expired/akan expired</td><td><span class="badge badge-blue">Admin</span></td></tr>
+</table>
+</section>
+
+<!-- ========== USERS ========== -->
+<section id="users">
+<h2>User & Akun Test</h2>
+<div class="info-box green">
+  <strong>Password semua akun:</strong> <code>123456</code> &mdash; User di-seed otomatis saat startup (Development environment).
+</div>
+
+<h3>Akun untuk Simulasi Assessment</h3>
+<table>
+<tr><th>Email</th><th>Nama</th><th>Role</th><th>Level</th><th>Unit/Bagian</th><th>Fungsi Simulasi</th></tr>
+<tr>
+  <td><code>admin@pertamina.com</code></td><td>Admin KPB</td>
+  <td><span class="badge badge-red">Admin</span></td><td>1</td><td>-</td>
+  <td>Setup kategori, buat assessment, manage paket soal, monitoring</td>
+</tr>
+<tr>
+  <td><code>meylisa.tjiang@pertamina.com</code></td><td>Meylisa</td>
+  <td><span class="badge badge-orange">HC</span></td><td>2</td><td>-</td>
+  <td>Buat assessment, monitoring, input interview Tahun 3, export</td>
+</tr>
+<tr>
+  <td><code>taufik.hartopo@pertamina.com</code></td><td>Taufik Basuki</td>
+  <td><span class="badge badge-blue">Section Head</span></td><td>4</td><td>GAST</td>
+  <td>Approve deliverable Proton</td>
+</tr>
+<tr>
+  <td><code>choirul.anam@pertamina.com</code></td><td>Choirul Anam</td>
+  <td><span class="badge badge-blue">Sr Supervisor</span></td><td>4</td><td>Alkylation / GAST</td>
+  <td>Approve deliverable Proton</td>
+</tr>
+<tr>
+  <td><code>rustam.nugroho@pertamina.com</code></td><td>Rustam Santiko</td>
+  <td><span class="badge badge-purple">Coach</span></td><td>5</td><td>Alkylation / GAST</td>
+  <td>Upload evidence Proton, peserta assessment (opsional)</td>
+</tr>
+<tr style="background:var(--green-light)">
+  <td><code>rino.prasetyo@pertamina.com</code></td><td>Rino</td>
+  <td><span class="badge badge-green">Coachee</span></td><td>6</td><td>Alkylation / GAST</td>
+  <td><strong>Peserta utama ujian (reguler + Proton)</strong></td>
+</tr>
+<tr style="background:var(--green-light)">
+  <td><code>iwan3@pertamina.com</code></td><td>Iwan</td>
+  <td><span class="badge badge-green">Coachee</span></td><td>6</td><td>Alkylation / GAST</td>
+  <td><strong>Peserta kedua ujian (reguler)</strong></td>
+</tr>
+</table>
+
+<h3>Pembagian Role dalam Simulasi</h3>
+<div class="card-grid">
+  <div class="card">
+    <h4>Admin/HC (Setup & Monitor)</h4>
+    <div class="user-card"><div class="avatar" style="background:var(--red)">A</div> Admin KPB</div>
+    <div class="user-card"><div class="avatar" style="background:var(--orange)">M</div> Meylisa (HC)</div>
+    <ul style="font-size:13px;margin-top:8px;padding-left:20px">
+      <li>Buat & kelola kategori assessment</li>
+      <li>Buat assessment session untuk pekerja</li>
+      <li>Import soal ke paket</li>
+      <li>Monitor ujian real-time</li>
+      <li>Input interview Proton Tahun 3</li>
+      <li>Export hasil</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Peserta Ujian (Worker)</h4>
+    <div class="user-card"><div class="avatar" style="background:var(--green)">R</div> Rino (Coachee)</div>
+    <div class="user-card"><div class="avatar" style="background:var(--green)">I</div> Iwan (Coachee)</div>
+    <ul style="font-size:13px;margin-top:8px;padding-left:20px">
+      <li>Lihat assessment yang ditugaskan</li>
+      <li>Masukkan token (jika diperlukan)</li>
+      <li>Mengerjakan ujian pilihan ganda</li>
+      <li>Lihat hasil & sertifikat</li>
+    </ul>
+  </div>
+  <div class="card" style="border-left:4px solid var(--purple)">
+    <h4>Tim Proton (Coaching)</h4>
+    <div class="user-card"><div class="avatar" style="background:var(--purple)">R</div> Rustam (Coach)</div>
+    <div class="user-card"><div class="avatar" style="background:var(--blue)">T</div> Taufik (SH)</div>
+    <div class="user-card"><div class="avatar" style="background:var(--blue)">C</div> Choirul (Sr SPV)</div>
+    <ul style="font-size:13px;margin-top:8px;padding-left:20px">
+      <li>Coach: Upload evidence deliverable</li>
+      <li>Sr SPV: Approve deliverable</li>
+      <li>Section Head: Approve deliverable</li>
+    </ul>
+  </div>
+</div>
+</section>
+
+<!-- ========== PETA HALAMAN ========== -->
+<section id="pages">
+<h2>Peta Halaman Assessment</h2>
+<p>Semua halaman yang terlibat dalam sistem assessment:</p>
+
+<h3>Halaman Admin/HC</h3>
+<div class="page-map">
+  <div class="page-item">
+    <div class="page-title">Manage Assessment & Training</div>
+    <div>Hub utama kelola assessment. Tabs: Assessment, Training.</div>
+    <div class="page-url">/Admin/ManageAssessment</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Buat Assessment</div>
+    <div>Form multi-step: pilih user, kategori, jadwal, durasi, token, sertifikat.</div>
+    <div class="page-url">/Admin/CreateAssessment</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Edit Assessment</div>
+    <div>Edit detail session (time-locked setelah dimulai).</div>
+    <div class="page-url">/Admin/EditAssessment/{id}</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Manage Packages</div>
+    <div>Buat paket soal, lihat ET coverage matrix.</div>
+    <div class="page-url">/Admin/ManagePackages?assessmentId={id}</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Import Soal</div>
+    <div>Upload Excel atau paste soal ke paket.</div>
+    <div class="page-url">/Admin/ImportPackageQuestions?packageId={id}</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Preview Paket</div>
+    <div>Preview soal dalam paket.</div>
+    <div class="page-url">/Admin/PreviewPackage/{id}</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Assessment Monitoring</div>
+    <div>Hub monitoring real-time: stat cards, filter, group table.</div>
+    <div class="page-url">/Admin/AssessmentMonitoring</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Monitoring Detail</div>
+    <div>Detail per grup: token, per-user table, SignalR live.</div>
+    <div class="page-url">/Admin/AssessmentMonitoringDetail?title=...&category=...&scheduleDate=...</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Kategori Assessment</div>
+    <div>CRUD kategori: hierarchy, signatory, pass %.</div>
+    <div class="page-url">/Admin/ManageCategories</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Analytics Dashboard</div>
+    <div>Chart: fail rate, trend, ET breakdown, expiring soon.</div>
+    <div class="page-url">/CMP/AnalyticsDashboard</div>
+    <div class="page-role"><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></div>
+  </div>
+</div>
+
+<h3>Halaman Worker</h3>
+<div class="page-map">
+  <div class="page-item">
+    <div class="page-title">My Assessments</div>
+    <div>List assessment yang ditugaskan. Tabs: Open, Upcoming.</div>
+    <div class="page-url">/CMP/Assessment</div>
+    <div class="page-role"><span class="badge badge-green">Worker</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Exam In Progress</div>
+    <div>Ujian: soal acak, timer countdown, auto-save, navigation.</div>
+    <div class="page-url">/CMP/StartExam/{id}</div>
+    <div class="page-role"><span class="badge badge-green">Worker</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Tinjau Jawaban</div>
+    <div>Summary jawaban sebelum submit. Warning jika ada kosong.</div>
+    <div class="page-url">/CMP/ExamSummary</div>
+    <div class="page-role"><span class="badge badge-green">Worker</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Hasil Assessment</div>
+    <div>Skor, ET radar chart, tinjauan jawaban, link sertifikat.</div>
+    <div class="page-url">/CMP/Results/{id}</div>
+    <div class="page-role"><span class="badge badge-green">Worker</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Sertifikat</div>
+    <div>Certificate A4 landscape: nama, nomor, ValidUntil, score.</div>
+    <div class="page-url">/CMP/Certificate/{id}</div>
+    <div class="page-role"><span class="badge badge-green">Worker</span></div>
+  </div>
+  <div class="page-item">
+    <div class="page-title">Training Records</div>
+    <div>Riwayat assessment + training. Export Excel.</div>
+    <div class="page-url">/CMP/Records</div>
+    <div class="page-role"><span class="badge badge-green">Worker</span></div>
+  </div>
+</div>
+</section>
+
+<!-- ========== FLOW DIAGRAM ========== -->
+<section id="flow-overview">
+<h2>Flow Diagram Assessment Reguler</h2>
+<p>Alur lengkap dari setup sampai sertifikat:</p>
+
+<div class="flow">
+  <div class="flow-step"><div class="step-label">STEP 1</div><div class="step-desc">Admin buat Kategori</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><div class="step-label">STEP 2</div><div class="step-desc">Admin buat Assessment (pilih user, jadwal, token)</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><div class="step-label">STEP 3</div><div class="step-desc">Admin buat Paket Soal</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><div class="step-label">STEP 4</div><div class="step-desc">Admin import 15 soal (Excel/paste)</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step worker"><div class="step-label">STEP 5</div><div class="step-desc">Worker lihat assessment & input token</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step worker"><div class="step-label">STEP 6</div><div class="step-desc">Worker kerjakan ujian (timer, auto-save)</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step worker"><div class="step-label">STEP 7</div><div class="step-desc">Worker review & submit</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step" style="border-color:var(--green)"><div class="step-label" style="color:var(--green)">STEP 8</div><div class="step-desc">Auto-grading, ET score, pass/fail</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step" style="border-color:var(--green)"><div class="step-label" style="color:var(--green)">STEP 9</div><div class="step-desc">Sertifikat otomatis (jika lulus)</div></div>
+</div>
+
+<div class="flow" style="margin-top:8px">
+  <div class="flow-step hc"><div class="step-label">PARALEL</div><div class="step-desc">HC monitoring real-time via SignalR</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step hc"><div class="step-label">POST-EXAM</div><div class="step-desc">HC export hasil, analytics dashboard</div></div>
+</div>
+</section>
+
+<!-- ========== DETAIL PER FLOW ========== -->
+<section id="flow-1">
+<h2>1. Kelola Kategori Assessment</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/Admin/ManageCategories</code></td></tr>
+<tr><td>Role</td><td><span class="badge badge-red">Admin</span></td></tr>
+<tr><td>Login</td><td><code>admin@pertamina.com</code></td></tr>
+</table>
+
+<h3>Kategori yang Sudah Ada (Seed)</h3>
+<table>
+<tr><th>Nama</th><th>Default Pass %</th><th>Sort Order</th><th>Status</th></tr>
+<tr><td>OJT</td><td>70%</td><td>1</td><td><span class="badge badge-green">Active</span></td></tr>
+<tr><td>IHT</td><td>70%</td><td>2</td><td><span class="badge badge-green">Active</span></td></tr>
+<tr><td>Training Licencor</td><td>80%</td><td>3</td><td><span class="badge badge-green">Active</span></td></tr>
+<tr><td>OTS</td><td>70%</td><td>4</td><td><span class="badge badge-green">Active</span></td></tr>
+<tr><td>Mandatory HSSE Training</td><td>100%</td><td>5</td><td><span class="badge badge-green">Active</span></td></tr>
+<tr><td>Assessment Proton</td><td>70%</td><td>6</td><td><span class="badge badge-green">Active</span></td></tr>
+</table>
+
+<h3>Yang Perlu Dilakukan</h3>
+<ol class="step-list">
+  <li>Login sebagai <code>admin@pertamina.com</code></li>
+  <li>Buka <code>/Admin/ManageCategories</code></li>
+  <li>Verifikasi 6 kategori di atas sudah tampil</li>
+  <li><strong>Buat sub-kategori:</strong> Klik "Tambah Kategori", isi:
+    <ul style="font-size:13px;margin-top:4px">
+      <li>Nama: <code>OJT Operasi Kilang</code>, Pass: 70%, Parent: <code>OJT</code></li>
+    </ul>
+  </li>
+  <li>Verifikasi sub-kategori muncul indent di bawah parent OJT</li>
+  <li>Test toggle aktif/nonaktif pada sub-kategori</li>
+  <li>Test set Penandatangan (Signatory) pada kategori OJT &mdash; pilih salah satu user</li>
+</ol>
+
+<div class="info-box blue">
+  <strong>Logic:</strong> Signatory yang dipilih per-kategori akan otomatis tampil sebagai penandatangan di sertifikat. Jika tidak diset, default ke konfigurasi sistem.
+</div>
+</section>
+
+<section id="flow-2">
+<h2>2. Buat Assessment</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/Admin/CreateAssessment</code></td></tr>
+<tr><td>Role</td><td><span class="badge badge-red">Admin</span> <span class="badge badge-orange">HC</span></td></tr>
+<tr><td>Login</td><td><code>admin@pertamina.com</code> atau <code>meylisa.tjiang@pertamina.com</code></td></tr>
+</table>
+
+<h3>Data Assessment untuk Simulasi</h3>
+<div class="scenario">
+  <div class="scenario-title">Assessment Reguler: "OJT Proses Alkylation Q1-2026"</div>
+  <table>
+  <tr><th>Field</th><th>Nilai</th></tr>
+  <tr><td>Title</td><td><code>OJT Proses Alkylation Q1-2026</code></td></tr>
+  <tr><td>Kategori</td><td><code>OJT</code> (atau sub-kategori "OJT Operasi Kilang" jika sudah dibuat)</td></tr>
+  <tr><td>Peserta</td><td>Rino + Iwan (2 orang)</td></tr>
+  <tr><td>Jadwal</td><td>Hari ini atau besok</td></tr>
+  <tr><td>Durasi</td><td><strong>30 menit</strong> (cukup untuk test 15 soal)</td></tr>
+  <tr><td>Nilai Kelulusan</td><td><strong>70%</strong></td></tr>
+  <tr><td>Token Required</td><td><strong>Ya</strong> (untuk test fitur token)</td></tr>
+  <tr><td>Allow Answer Review</td><td><strong>Ya</strong></td></tr>
+  <tr><td>Generate Certificate</td><td><strong>Ya</strong></td></tr>
+  <tr><td>Valid Until</td><td>1 tahun dari sekarang</td></tr>
+  </table>
+</div>
+
+<h3>Langkah Detail</h3>
+<ol class="step-list">
+  <li>Login Admin &rarr; <code>/Admin/CreateAssessment</code></li>
+  <li>Isi judul: <code>OJT Proses Alkylation Q1-2026</code></li>
+  <li>Pilih kategori: <code>OJT</code></li>
+  <li>Pilih peserta: centang <strong>Rino</strong> dan <strong>Iwan</strong></li>
+  <li>Set jadwal: hari ini (agar bisa langsung Open)</li>
+  <li>Set durasi: <strong>30 menit</strong></li>
+  <li>Set nilai kelulusan: <strong>70%</strong></li>
+  <li>Centang <strong>"Token Required"</strong> &mdash; akan muncul token otomatis (6 karakter)</li>
+  <li>Centang <strong>"Allow Answer Review"</strong></li>
+  <li>Centang <strong>"Generate Certificate"</strong></li>
+  <li>Set Valid Until: 1 tahun dari sekarang</li>
+  <li>Submit &rarr; Verifikasi modal sukses menampilkan 2 session yang dibuat</li>
+  <li><strong>Catat token</strong> yang di-generate (akan dipakai peserta)</li>
+</ol>
+
+<div class="info-box yellow">
+  <strong>Logic penting:</strong> Sistem membuat <strong>1 AssessmentSession per user</strong>. Jadi 2 peserta = 2 record AssessmentSession, tapi di-group berdasarkan (Title, Category, Schedule.Date) untuk monitoring.
+</div>
+</section>
+
+<section id="flow-3">
+<h2>3. Setup Paket Soal</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/Admin/ManagePackages?assessmentId={id}</code></td></tr>
+<tr><td>Navigasi</td><td>ManageAssessment &rarr; klik group &rarr; "Packages"</td></tr>
+</table>
+
+<ol class="step-list">
+  <li>Dari ManageAssessment, cari group "OJT Proses Alkylation Q1-2026"</li>
+  <li>Klik aksi &rarr; <strong>"Packages"</strong></li>
+  <li>Di halaman ManagePackages, buat paket:
+    <ul style="font-size:13px;margin-top:4px">
+      <li>Package Name: <code>Paket A</code></li>
+      <li>Klik "Create Package"</li>
+    </ul>
+  </li>
+  <li>Paket A muncul di list dengan status "Empty" (belum ada soal)</li>
+  <li>Klik <strong>"Import Questions"</strong> pada Paket A</li>
+</ol>
+</section>
+
+<section id="flow-4">
+<h2>4. Import Soal (15 Soal + Elemen Teknis)</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/Admin/ImportPackageQuestions?packageId={id}</code></td></tr>
+<tr><td>Metode</td><td>Paste dari clipboard (Tab 2) &mdash; paling mudah untuk test</td></tr>
+</table>
+
+<div class="info-box blue">
+  <strong>Format kolom:</strong> <code>Question | Option A | Option B | Option C | Option D | Correct (A/B/C/D) | Elemen Teknis (opsional)</code><br>
+  Setiap baris = 1 soal. Kolom dipisahkan Tab. Baris pertama (header) otomatis di-skip.
+</div>
+
+<p>Gunakan data di <a href="#seed-questions">bagian Seed Data</a> untuk 15 soal yang sudah disiapkan. Copy-paste ke textarea di tab "Paste from Excel".</p>
+
+<ol class="step-list">
+  <li>Di halaman Import, pilih tab <strong>"Paste from Excel"</strong></li>
+  <li>Copy semua baris soal dari <a href="#seed-questions">tabel seed data</a></li>
+  <li>Paste ke textarea</li>
+  <li>Klik <strong>"Import from Paste"</strong></li>
+  <li>Verifikasi pesan sukses: "15 soal berhasil diimport"</li>
+  <li>Kembali ke ManagePackages &rarr; verifikasi ET coverage matrix muncul</li>
+  <li>Klik <strong>"Preview"</strong> pada Paket A untuk lihat semua soal</li>
+</ol>
+</section>
+
+<section id="flow-5">
+<h2>5. Ujian Pekerja (Exam Flow)</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/CMP/Assessment</code> &rarr; <code>/CMP/StartExam/{id}</code></td></tr>
+<tr><td>Login</td><td><code>rino.prasetyo@pertamina.com</code> (peserta utama)</td></tr>
+</table>
+
+<h3>Alur Detail</h3>
+<ol class="step-list">
+  <li>Login sebagai <strong>Rino</strong></li>
+  <li>Buka <code>/CMP/Assessment</code> &mdash; akan muncul card "OJT Proses Alkylation Q1-2026"</li>
+  <li>Verifikasi card menampilkan:
+    <ul style="font-size:13px">
+      <li>Badge kategori: OJT (biru)</li>
+      <li>Tanggal jadwal</li>
+      <li>Durasi: 30 menit</li>
+      <li>Status: Open (hijau)</li>
+      <li>Lock icon: Token Required</li>
+    </ul>
+  </li>
+  <li>Klik <strong>"Start Assessment"</strong> &rarr; muncul modal token</li>
+  <li>Masukkan token yang dicatat dari Step 2 &rarr; klik "Verify & Launch"</li>
+  <li>Redirect ke halaman ujian <code>/CMP/StartExam/{id}</code></li>
+  <li>Verifikasi halaman ujian:
+    <ul style="font-size:13px">
+      <li>Timer countdown di pojok kanan atas (30:00)</li>
+      <li>Soal acak (urutan berbeda dari import)</li>
+      <li>Opsi A/B/C/D juga acak per soal</li>
+      <li>Progress counter: "0/15 answered"</li>
+      <li>Pagination: 10 soal per page (page 1: soal 1-10, page 2: soal 11-15)</li>
+    </ul>
+  </li>
+  <li><strong>Jawab beberapa soal</strong> &mdash; perhatikan auto-save indicator muncul</li>
+  <li>Navigasi ke page 2 &mdash; perhatikan soal 11-15</li>
+</ol>
+
+<div class="info-box green">
+  <strong>Auto-save:</strong> Setiap kali memilih jawaban, jawaban otomatis tersimpan ke server via AJAX. Badge "Tersimpan" muncul di kanan bawah. Jika offline, badge berubah merah "Offline" dan jawaban di-queue untuk retry.
+</div>
+</section>
+
+<section id="flow-6">
+<h2>6. Timer & Resume</h2>
+
+<h3>Test Timer</h3>
+<ol class="step-list">
+  <li>Perhatikan timer di kanan atas &mdash; hitung mundur dari 30:00</li>
+  <li>Timer menggunakan <strong>wall-clock</strong> (bukan setInterval decrement) &mdash; tidak drift walau tab inactive</li>
+  <li>Ketika sisa &le;5 menit, timer berubah <strong>merah</strong></li>
+  <li>Ketika waktu habis: muncul modal "Waktu Habis!" dan auto-submit setelah 10 detik</li>
+</ol>
+
+<h3>Test Resume</h3>
+<div class="scenario important">
+  <div class="scenario-title">Skenario Resume: Simulasi Disconnect</div>
+  <ol class="step-list">
+    <li>Saat ujian sedang berjalan (beberapa soal sudah dijawab), <strong>tutup browser/tab</strong></li>
+    <li>Buka kembali browser, login ulang sebagai Rino</li>
+    <li>Buka <code>/CMP/Assessment</code> &mdash; assessment akan berstatus "InProgress"</li>
+    <li>Klik <strong>"Resume"</strong></li>
+    <li>Verifikasi:
+      <ul style="font-size:13px">
+        <li>Modal resume muncul: "Ada ujian yang belum selesai. Lanjutkan dari soal no. X?"</li>
+        <li>Timer melanjutkan dari sisa waktu (bukan reset)</li>
+        <li>Jawaban yang sudah disimpan tetap terisi</li>
+        <li>Page terakhir yang dikunjungi</li>
+      </ul>
+    </li>
+  </ol>
+</div>
+
+<div class="info-box yellow">
+  <strong>Logic server:</strong> <code>ElapsedSeconds</code> disimpan di database setiap 30 detik dan setiap navigasi page. Saat resume: <code>RemainingSeconds = DurationMinutes*60 - ElapsedSeconds</code>. Ada grace period +2 menit di server-side validation.
+</div>
+</section>
+
+<section id="flow-7">
+<h2>7. Submit & Grading</h2>
+<ol class="step-list">
+  <li>Setelah menjawab semua/sebagian soal, klik <strong>"Review and Submit"</strong> di page terakhir</li>
+  <li>Redirect ke <code>/CMP/ExamSummary</code>:
+    <ul style="font-size:13px">
+      <li>Tabel summary: nomor soal, preview pertanyaan, jawaban yang dipilih</li>
+      <li>Soal belum dijawab: baris kuning dengan teks "Belum dijawab"</li>
+      <li>Alert: hijau jika semua terjawab, kuning jika ada yang kosong</li>
+    </ul>
+  </li>
+  <li>Klik <strong>"Kumpulkan Ujian"</strong> &rarr; konfirmasi dialog</li>
+  <li>Sistem melakukan grading otomatis:
+    <ul style="font-size:13px">
+      <li>Bandingkan setiap jawaban dengan <code>PackageOption.IsCorrect</code></li>
+      <li>Hitung total skor per Elemen Teknis</li>
+      <li>Hitung persentase total: <code>totalCorrect / totalQuestions * 100</code></li>
+      <li>Tentukan pass/fail: skor &ge; 70% = <span class="badge badge-green">LULUS</span></li>
+      <li>Jika lulus + GenerateCertificate: generate <code>NomorSertifikat</code></li>
+    </ul>
+  </li>
+  <li>Redirect ke halaman Results</li>
+</ol>
+
+<h3>Scoring Logic Detail</h3>
+<table>
+<tr><th>Komponen</th><th>Perhitungan</th></tr>
+<tr><td>Score per soal</td><td><code>PackageQuestion.ScoreValue</code> (default: 10 poin)</td></tr>
+<tr><td>Total Score</td><td>Jumlah ScoreValue dari soal yang dijawab benar</td></tr>
+<tr><td>Max Score</td><td>Jumlah ScoreValue dari semua soal</td></tr>
+<tr><td>Persentase</td><td><code>TotalScore / MaxScore * 100</code></td></tr>
+<tr><td>Pass/Fail</td><td>Persentase &ge; PassPercentage (70%)</td></tr>
+<tr><td>ET Score</td><td>Per Elemen Teknis: correct/total per group</td></tr>
+</table>
+</section>
+
+<section id="flow-8">
+<h2>8. Hasil & Answer Review</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/CMP/Results/{id}</code></td></tr>
+<tr><td>Login</td><td>Rino (peserta) atau Admin/HC</td></tr>
+</table>
+
+<h3>Halaman Hasil Menampilkan</h3>
+<ol class="step-list">
+  <li><strong>Summary card</strong> (hijau jika lulus, merah jika gagal):
+    <ul style="font-size:13px">
+      <li>Nilai Anda: XX% (X/15 benar)</li>
+      <li>Nilai Kelulusan: 70%</li>
+      <li>Status: LULUS / TIDAK LULUS</li>
+    </ul>
+  </li>
+  <li><strong>Analisis Elemen Teknis</strong>:
+    <ul style="font-size:13px">
+      <li><strong>Radar Chart</strong> (Chart.js) &mdash; muncul jika &ge;3 ET groups</li>
+      <li>Tabel ET: nama ET, jumlah benar, total soal, persentase per ET</li>
+      <li>Badge hijau jika &ge;70%, merah jika &lt;70%</li>
+    </ul>
+  </li>
+  <li><strong>Tinjauan Jawaban</strong> (karena AllowAnswerReview=Ya):
+    <ul style="font-size:13px">
+      <li>Per soal: teks soal, semua opsi</li>
+      <li>Opsi benar: highlight <span style="color:var(--green);font-weight:600">hijau</span> + "(Jawaban Benar)"</li>
+      <li>Opsi yang dipilih salah: highlight <span style="color:var(--red);font-weight:600">merah</span> + "(Jawaban Anda)"</li>
+    </ul>
+  </li>
+  <li>Tombol <strong>"Lihat Sertifikat"</strong> (jika lulus + GenerateCertificate=Ya)</li>
+</ol>
+
+<h3>Elemen Teknis yang Akan Muncul (4 grup)</h3>
+<table>
+<tr><th>Elemen Teknis</th><th>Jumlah Soal</th><th>Deskripsi</th></tr>
+<tr><td>Pengetahuan Proses</td><td>4 soal</td><td>Pemahaman proses operasi kilang</td></tr>
+<tr><td>Keselamatan Kerja</td><td>4 soal</td><td>K3, prosedur keselamatan, APD</td></tr>
+<tr><td>Peralatan & Instrumentasi</td><td>4 soal</td><td>Pengetahuan alat, kalibrasi, troubleshoot</td></tr>
+<tr><td>Prosedur Operasi</td><td>3 soal</td><td>SOP, start-up, shutdown, emergency</td></tr>
+</table>
+</section>
+
+<section id="flow-9">
+<h2>9. Sertifikat</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/CMP/Certificate/{id}</code></td></tr>
+<tr><td>Format Nomor</td><td><code>KPB/{SEQ:3digit}/{BULAN-ROMAWI}/{TAHUN}</code></td></tr>
+<tr><td>Contoh</td><td><code>KPB/001/III/2026</code></td></tr>
+</table>
+
+<h3>Verifikasi Sertifikat</h3>
+<ol class="step-list">
+  <li>Dari halaman Results, klik <strong>"Lihat Sertifikat"</strong></li>
+  <li>Halaman sertifikat tampil (A4 landscape):
+    <ul style="font-size:13px">
+      <li>Header: logo Pertamina + "HC PORTAL KPB"</li>
+      <li>"Certificate of Completion"</li>
+      <li>Nama peserta (besar, serif font)</li>
+      <li>NIP (jika ada)</li>
+      <li>Judul assessment</li>
+      <li>Tanggal terbit (format Indonesia: "23 Maret 2026")</li>
+      <li>Nomor sertifikat: <code>KPB/001/III/2026</code></li>
+      <li>Berlaku hingga: tanggal ValidUntil</li>
+      <li>Badge score (pojok kanan bawah)</li>
+      <li>Tanda tangan (penandatangan dari kategori atau default)</li>
+    </ul>
+  </li>
+  <li>Test print (Ctrl+P) &mdash; verifikasi layout landscape benar</li>
+  <li>Test download PDF: <code>/CMP/CertificatePdf/{id}</code></li>
+</ol>
+
+<div class="info-box blue">
+  <strong>Logic:</strong> NomorSertifikat di-generate saat <code>SubmitExam</code> jika IsPassed=true. Format: <code>KPB/{seq:D3}/{RomanMonth}/{Year}</code>. Sequence di-query dari semua sertifikat di tahun yang sama. Retry 3x jika collision.
+</div>
+</section>
+
+<section id="flow-10">
+<h2>10. Monitoring HC</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>Hub URL</td><td><code>/Admin/AssessmentMonitoring</code></td></tr>
+<tr><td>Detail URL</td><td><code>/Admin/AssessmentMonitoringDetail?title=...&category=...&scheduleDate=...</code></td></tr>
+<tr><td>Login</td><td><code>meylisa.tjiang@pertamina.com</code> (HC)</td></tr>
+</table>
+
+<h3>Test Monitoring (Idealnya Paralel dengan Ujian)</h3>
+<div class="info-box purple">
+  <strong>Tip:</strong> Buka 2 browser window &mdash; satu login HC untuk monitoring, satu login Worker untuk ujian. Lihat update real-time via SignalR.
+</div>
+
+<ol class="step-list">
+  <li>Login HC di browser/tab terpisah</li>
+  <li>Buka <code>/Admin/AssessmentMonitoring</code></li>
+  <li>Verifikasi stat cards: Grup, Total Peserta, Selesai, Lulus</li>
+  <li>Cari group "OJT Proses Alkylation Q1-2026" di tabel</li>
+  <li>Klik row untuk masuk ke <strong>Monitoring Detail</strong></li>
+  <li>Verifikasi:
+    <ul style="font-size:13px">
+      <li>Token card: tampilkan token + tombol Copy + Regenerate</li>
+      <li>Stat cards: Total 2, Completed 0, In Progress X, Not Started X</li>
+      <li>Tabel per-user: Rino dan Iwan dengan status masing-masing</li>
+      <li>Hub status: "Connected" (hijau)</li>
+    </ul>
+  </li>
+  <li>Saat worker mengerjakan ujian: verifikasi <strong>SignalR update real-time</strong> (status berubah)</li>
+  <li>Test <strong>"Akhiri Semua Ujian"</strong> (opsional) &mdash; hanya jika mau test force close</li>
+  <li>Setelah worker selesai: test <strong>"Export Results"</strong> &rarr; download Excel</li>
+</ol>
+</section>
+
+<section id="flow-11">
+<h2>11. Analytics Dashboard</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/CMP/AnalyticsDashboard</code></td></tr>
+<tr><td>Login</td><td>Admin atau HC</td></tr>
+</table>
+
+<div class="info-box yellow">
+  <strong>Prasyarat:</strong> Harus ada minimal 1 assessment completed untuk data muncul. Lakukan test ini setelah Worker selesai ujian.
+</div>
+
+<ol class="step-list">
+  <li>Buka Analytics Dashboard</li>
+  <li>Verifikasi 4 area data:
+    <ul style="font-size:13px">
+      <li><strong>Fail Rate:</strong> Chart bar per section &times; kategori</li>
+      <li><strong>Trend:</strong> Chart line bulanan (pass/fail)</li>
+      <li><strong>ET Breakdown:</strong> Tabel avg/min/max per Elemen Teknis</li>
+      <li><strong>Expiring Soon:</strong> Sertifikat yang akan expired 30 hari ke depan</li>
+    </ul>
+  </li>
+  <li>Test cascading filter: Bagian &rarr; Unit &rarr; Kategori</li>
+</ol>
+</section>
+
+<section id="flow-12">
+<h2>12. Records & Export</h2>
+<table>
+<tr><th>Item</th><th>Detail</th></tr>
+<tr><td>URL</td><td><code>/CMP/Records</code></td></tr>
+<tr><td>Login</td><td>Worker (My Records) atau HC (Team View)</td></tr>
+</table>
+
+<ol class="step-list">
+  <li>Login Worker (Rino) &rarr; <code>/CMP/Records</code></li>
+  <li>Verifikasi tab "My Records" menampilkan assessment yang baru selesai</li>
+  <li>Verifikasi kolom: Tanggal, Nama Kegiatan, Tipe, Score, Status, Sertifikat</li>
+  <li>Test "Export Excel" &rarr; download file .xlsx</li>
+  <li>Login HC &rarr; <code>/CMP/Records</code> &rarr; tab "Team View"</li>
+  <li>Verifikasi data seluruh pekerja muncul</li>
+</ol>
+</section>
+
+<!-- ========== PROTON ========== -->
+<section id="proton-overview">
+<h2>Flow Assessment Proton</h2>
+<p>Assessment Proton adalah bagian dari <strong>Coaching Proton</strong> (journey 3 tahun). Berikut perbedaan utama:</p>
+
+<table>
+<tr><th>Aspek</th><th>Tahun 1</th><th>Tahun 2</th><th>Tahun 3</th></tr>
+<tr><td>Tipe Ujian</td><td>Online (pilihan ganda)</td><td>Online (pilihan ganda)</td><td><strong>Interview offline</strong></td></tr>
+<tr><td>DurationMinutes</td><td>&gt; 0 (normal)</td><td>&gt; 0 (normal)</td><td><strong>0</strong> (sentinel)</td></tr>
+<tr><td>Soal/Paket</td><td>Perlu import soal</td><td>Perlu import soal</td><td><strong>Tidak perlu</strong></td></tr>
+<tr><td>Grading</td><td>Auto (sistem)</td><td>Auto (sistem)</td><td><strong>Manual oleh HC</strong></td></tr>
+<tr><td>Input Hasil</td><td>Otomatis setelah submit</td><td>Otomatis setelah submit</td><td>HC input via <code>SubmitInterviewResults</code></td></tr>
+<tr><td>Aspek Penilaian</td><td>-</td><td>-</td><td>5 aspek (skor 1-5) + IsPassed manual</td></tr>
+<tr><td>Sertifikat</td><td>Opsional</td><td>Opsional</td><td>Opsional</td></tr>
+<tr><td>Final Assessment</td><td>HC buat manual</td><td>HC buat manual</td><td><strong>Auto-create jika lulus</strong></td></tr>
+</table>
+
+<h3>6 Kombinasi ProtonTrack</h3>
+<table>
+<tr><th>TrackType</th><th>TahunKe</th><th>DisplayName</th><th>Urutan</th></tr>
+<tr><td>Panelman</td><td>Tahun 1</td><td>Panelman - Tahun 1</td><td>1</td></tr>
+<tr><td>Panelman</td><td>Tahun 2</td><td>Panelman - Tahun 2</td><td>2</td></tr>
+<tr><td>Panelman</td><td>Tahun 3</td><td>Panelman - Tahun 3</td><td>3</td></tr>
+<tr><td>Operator</td><td>Tahun 1</td><td>Operator - Tahun 1</td><td>4</td></tr>
+<tr><td>Operator</td><td>Tahun 2</td><td>Operator - Tahun 2</td><td>5</td></tr>
+<tr><td>Operator</td><td>Tahun 3</td><td>Operator - Tahun 3</td><td>6</td></tr>
+</table>
+
+<h3>Flow Diagram Proton</h3>
+<div class="flow">
+  <div class="flow-step proton"><div class="step-label">SETUP</div><div class="step-desc">Admin assign Coach-Coachee mapping</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step proton"><div class="step-label">TAHUN 1</div><div class="step-desc">Deliverable &rarr; Evidence &rarr; Approval &rarr; Online Exam</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step proton"><div class="step-label">TAHUN 2</div><div class="step-desc">Deliverable &rarr; Evidence &rarr; Approval &rarr; Online Exam</div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step proton"><div class="step-label">TAHUN 3</div><div class="step-desc">Deliverable &rarr; Evidence &rarr; Approval &rarr; <strong>Interview</strong></div></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step" style="border-color:var(--green)"><div class="step-label">SELESAI</div><div class="step-desc">Competency Level Granted</div></div>
+</div>
+</section>
+
+<section id="proton-setup">
+<h2>Setup Proton (Prasyarat)</h2>
+<div class="info-box purple">
+  <strong>Catatan:</strong> Untuk test Assessment Proton, kita perlu memastikan ada Coach-Coachee mapping aktif. Mapping Rustam (Coach) &rarr; Rino (Coachee) mungkin sudah ada dari seed data. Jika belum, perlu dibuat manual.
+</div>
+
+<h3>Cek Prasyarat</h3>
+<ol class="step-list">
+  <li>Login Admin &rarr; cek CoachCoacheeMapping apakah sudah ada mapping aktif Rustam &rarr; Rino</li>
+  <li>Jika belum ada, buat mapping baru di halaman manajemen Proton</li>
+  <li>Pastikan ProtonTrack data (Silabus) sudah ada untuk Alkylation / GAST</li>
+</ol>
+</section>
+
+<section id="proton-t1">
+<h2>Proton Tahun 1 &mdash; Online Exam</h2>
+
+<h3>Buat Assessment Proton Tahun 1</h3>
+<div class="scenario proton">
+  <div class="scenario-title">Assessment Proton: "Proton Operator Tahun 1"</div>
+  <table>
+  <tr><th>Field</th><th>Nilai</th></tr>
+  <tr><td>Title</td><td><code>Proton Operator Tahun 1 - Q1 2026</code></td></tr>
+  <tr><td>Kategori</td><td><code>Assessment Proton</code></td></tr>
+  <tr><td>Proton Track</td><td><code>Operator - Tahun 1</code></td></tr>
+  <tr><td>Peserta</td><td>Rino</td></tr>
+  <tr><td>Jadwal</td><td>Hari ini</td></tr>
+  <tr><td>Durasi</td><td><strong>20 menit</strong></td></tr>
+  <tr><td>Nilai Kelulusan</td><td>70%</td></tr>
+  <tr><td>Token</td><td>Ya</td></tr>
+  <tr><td>Generate Certificate</td><td>Ya</td></tr>
+  </table>
+</div>
+
+<ol class="step-list">
+  <li>Login Admin &rarr; <code>/Admin/CreateAssessment</code></li>
+  <li>Pilih kategori <strong>"Assessment Proton"</strong> &mdash; field ProtonTrack muncul</li>
+  <li>Pilih track: <strong>"Operator - Tahun 1"</strong></li>
+  <li>TahunKe otomatis terisi "Tahun 1"</li>
+  <li>Isi field lainnya sesuai tabel di atas</li>
+  <li>Submit</li>
+  <li>Setup paket soal + import 15 soal (sama seperti reguler)</li>
+  <li>Login Rino &rarr; kerjakan ujian (sama seperti flow reguler)</li>
+  <li>Submit &rarr; lihat hasil &rarr; sertifikat</li>
+</ol>
+
+<div class="info-box blue">
+  <strong>Perbedaan visual:</strong> Di halaman Assessment worker, card Proton memiliki badge ungu "Assessment Proton" dan menampilkan info track (Operator - Tahun 1).
+</div>
+</section>
+
+<section id="proton-t2">
+<h2>Proton Tahun 2 &mdash; Online Exam</h2>
+<p>Flow identik dengan Tahun 1, hanya pilih track <strong>"Operator - Tahun 2"</strong>.</p>
+
+<div class="scenario proton">
+  <div class="scenario-title">Assessment Proton: "Proton Operator Tahun 2"</div>
+  <table>
+  <tr><th>Field</th><th>Nilai</th></tr>
+  <tr><td>Title</td><td><code>Proton Operator Tahun 2 - Q1 2026</code></td></tr>
+  <tr><td>Kategori</td><td><code>Assessment Proton</code></td></tr>
+  <tr><td>Proton Track</td><td><code>Operator - Tahun 2</code></td></tr>
+  <tr><td>Peserta</td><td>Rino</td></tr>
+  <tr><td>Durasi</td><td>20 menit</td></tr>
+  <tr><td>Token</td><td>Ya</td></tr>
+  <tr><td>Generate Certificate</td><td>Ya</td></tr>
+  </table>
+</div>
+
+<p>Langkah sama persis dengan Tahun 1. Buat paket soal baru atau reuse soal yang sama.</p>
+</section>
+
+<section id="proton-t3">
+<h2>Proton Tahun 3 &mdash; Interview Offline</h2>
+<div class="info-box red">
+  <strong>Penting:</strong> Tahun 3 TIDAK ADA ujian online. Durasi diset 0. HC melakukan interview offline dan menginput hasil secara manual.
+</div>
+
+<h3>Buat Assessment Proton Tahun 3</h3>
+<div class="scenario proton">
+  <div class="scenario-title">Assessment Proton: "Proton Operator Tahun 3 (Interview)"</div>
+  <table>
+  <tr><th>Field</th><th>Nilai</th></tr>
+  <tr><td>Title</td><td><code>Proton Operator Tahun 3 - Q1 2026</code></td></tr>
+  <tr><td>Kategori</td><td><code>Assessment Proton</code></td></tr>
+  <tr><td>Proton Track</td><td><code>Operator - Tahun 3</code></td></tr>
+  <tr><td>Peserta</td><td>Rino</td></tr>
+  <tr><td>Durasi</td><td><strong>0 menit</strong> (otomatis untuk Tahun 3)</td></tr>
+  <tr><td>Token</td><td>Tidak</td></tr>
+  <tr><td>Generate Certificate</td><td>Ya</td></tr>
+  </table>
+</div>
+
+<h3>Flow Interview</h3>
+<ol class="step-list">
+  <li>Login Admin &rarr; buat assessment dengan track "Operator - Tahun 3"</li>
+  <li>Sistem otomatis set <code>DurationMinutes = 0</code></li>
+  <li><strong>TIDAK PERLU</strong> buat paket soal</li>
+  <li>Login Worker (Rino) &rarr; <code>/CMP/Assessment</code>:
+    <ul style="font-size:13px">
+      <li>Card menampilkan badge "Interview Dijadwalkan"</li>
+      <li>Tidak ada tombol "Start Assessment" (karena interview offline)</li>
+      <li>Menunggu HC input hasil</li>
+    </ul>
+  </li>
+  <li>Login HC (Meylisa) &rarr; <code>/Admin/AssessmentMonitoringDetail</code></li>
+  <li>Cari session Rino &rarr; klik <strong>"Input Hasil Interview"</strong></li>
+  <li>Isi form interview:
+    <ul style="font-size:13px">
+      <li><strong>Penguji (Judges):</strong> "Meylisa, Taufik Basuki"</li>
+      <li><strong>Aspek Penilaian</strong> (skor 1-5 per aspek):</li>
+    </ul>
+  </li>
+</ol>
+
+<h3>5 Aspek Penilaian Interview</h3>
+<table>
+<tr><th>Aspek</th><th>Skor (1-5)</th><th>Rekomendasi Test</th></tr>
+<tr><td>Pengetahuan Teknis</td><td>1-5</td><td>Isi: <strong>4</strong></td></tr>
+<tr><td>Kemampuan Operasional</td><td>1-5</td><td>Isi: <strong>4</strong></td></tr>
+<tr><td>Keselamatan Kerja</td><td>1-5</td><td>Isi: <strong>5</strong></td></tr>
+<tr><td>Komunikasi & Kerjasama</td><td>1-5</td><td>Isi: <strong>3</strong></td></tr>
+<tr><td>Sikap Profesional</td><td>1-5</td><td>Isi: <strong>4</strong></td></tr>
+</table>
+
+<ol class="step-list" start="8">
+  <li>Isi catatan: <code>Peserta menunjukkan pemahaman baik terhadap proses operasi. Perlu peningkatan pada aspek komunikasi tim.</code></li>
+  <li>Upload dokumen pendukung (opsional): file PDF/gambar</li>
+  <li>Set <strong>IsPassed = Ya (Lulus)</strong> &mdash; ini keputusan manual HC, bukan dihitung dari skor aspek</li>
+  <li>Submit &rarr; verifikasi:
+    <ul style="font-size:13px">
+      <li>Status session berubah ke "Completed"</li>
+      <li><code>InterviewResultsJson</code> terisi di database</li>
+      <li><strong>ProtonFinalAssessment auto-created</strong> (karena IsPassed=true)</li>
+      <li>Sertifikat di-generate (jika GenerateCertificate=Ya)</li>
+    </ul>
+  </li>
+  <li>Login Worker (Rino) &rarr; cek halaman assessment &mdash; status "Completed" + badge "Lulus"</li>
+</ol>
+</section>
+
+<!-- ========== SEED DATA ========== -->
+<section id="seed-questions">
+<h2>Seed Data: 15 Soal + Elemen Teknis</h2>
+<p>Soal-soal berikut dirancang untuk domain <strong>Proses Kilang (Alkylation Unit)</strong> dengan 4 Elemen Teknis:</p>
+
+<table class="tbl-compact">
+<tr><th>Elemen Teknis</th><th>Jumlah</th><th>Warna</th></tr>
+<tr><td>Pengetahuan Proses</td><td>4 soal</td><td><span class="badge" style="background:#3498db;color:#fff">Biru</span></td></tr>
+<tr><td>Keselamatan Kerja</td><td>4 soal</td><td><span class="badge" style="background:#e74c3c;color:#fff">Merah</span></td></tr>
+<tr><td>Peralatan & Instrumentasi</td><td>4 soal</td><td><span class="badge" style="background:#f39c12;color:#fff">Kuning</span></td></tr>
+<tr><td>Prosedur Operasi</td><td>3 soal</td><td><span class="badge" style="background:#2ecc71;color:#fff">Hijau</span></td></tr>
+</table>
+
+<h3>Detail 15 Soal</h3>
+
+<!-- Soal 1-4: Pengetahuan Proses -->
+<div class="question-card">
+  <div class="q-text"><span class="q-num">1</span>Apa fungsi utama dari Alkylation Unit di kilang?</div>
+  <div class="option">A. Memisahkan minyak mentah menjadi fraksi-fraksi</div>
+  <div class="option correct">B. Menggabungkan olefin ringan dengan isobutana untuk menghasilkan alkylate beroktan tinggi &check;</div>
+  <div class="option">C. Menghilangkan sulfur dari produk diesel</div>
+  <div class="option">D. Mengubah residu menjadi produk bernilai tinggi</div>
+  <div class="et-tag">Pengetahuan Proses</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">2</span>Katalis apa yang digunakan pada proses HF Alkylation?</div>
+  <div class="option">A. Asam sulfat (H2SO4)</div>
+  <div class="option correct">B. Asam fluorida (HF) &check;</div>
+  <div class="option">C. Aluminium klorida (AlCl3)</div>
+  <div class="option">D. Zeolit</div>
+  <div class="et-tag">Pengetahuan Proses</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">3</span>Berapa kisaran suhu operasi normal pada reaktor Alkylation (HF)?</div>
+  <div class="option">A. 10-20°C</div>
+  <div class="option correct">B. 25-45°C &check;</div>
+  <div class="option">C. 100-150°C</div>
+  <div class="option">D. 200-300°C</div>
+  <div class="et-tag">Pengetahuan Proses</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">4</span>Apa produk utama dari proses alkylation?</div>
+  <div class="option">A. LPG (Liquefied Petroleum Gas)</div>
+  <div class="option">B. Nafta</div>
+  <div class="option correct">C. Alkylate (komponen bensin beroktan tinggi) &check;</div>
+  <div class="option">D. Aspal</div>
+  <div class="et-tag">Pengetahuan Proses</div>
+</div>
+
+<!-- Soal 5-8: Keselamatan Kerja -->
+<div class="question-card">
+  <div class="q-text"><span class="q-num">5</span>Apa bahaya utama dari paparan HF (asam fluorida) pada kulit?</div>
+  <div class="option">A. Iritasi ringan yang hilang dalam beberapa jam</div>
+  <div class="option">B. Perubahan warna kulit tanpa rasa sakit</div>
+  <div class="option correct">C. Luka bakar kimia yang dapat menembus jaringan dalam dan menyerang kalsium tulang &check;</div>
+  <div class="option">D. Reaksi alergi berupa ruam merah</div>
+  <div class="et-tag">Keselamatan Kerja</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">6</span>Apa pertolongan pertama yang benar jika terkena paparan HF pada kulit?</div>
+  <div class="option">A. Membiarkan area terkena terbuka agar mengering</div>
+  <div class="option">B. Menggunakan alkohol untuk membersihkan area</div>
+  <div class="option correct">C. Segera bilas dengan air mengalir dan oleskan kalsium glukonat gel &check;</div>
+  <div class="option">D. Menutup luka dengan perban kering</div>
+  <div class="et-tag">Keselamatan Kerja</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">7</span>APD wajib apa yang harus digunakan saat bekerja di area Alkylation Unit?</div>
+  <div class="option correct">A. Pakaian anti-HF, sarung tangan neoprene, face shield, dan SCBA untuk emergency &check;</div>
+  <div class="option">B. Hanya helm dan sepatu safety standar</div>
+  <div class="option">C. Sarung tangan katun dan kacamata biasa</div>
+  <div class="option">D. Masker debu dan rompi reflektif</div>
+  <div class="et-tag">Keselamatan Kerja</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">8</span>Apa yang harus dilakukan PERTAMA saat alarm kebocoran HF berbunyi?</div>
+  <div class="option">A. Mencari sumber kebocoran</div>
+  <div class="option">B. Mematikan semua pompa</div>
+  <div class="option correct">C. Evakuasi ke titik kumpul searah angin (upwind) dan laporkan ke control room &check;</div>
+  <div class="option">D. Menutup semua valve secara manual</div>
+  <div class="et-tag">Keselamatan Kerja</div>
+</div>
+
+<!-- Soal 9-12: Peralatan & Instrumentasi -->
+<div class="question-card">
+  <div class="q-text"><span class="q-num">9</span>Apa fungsi dari Acid Settler dalam Alkylation Unit?</div>
+  <div class="option">A. Menyimpan produk alkylate</div>
+  <div class="option correct">B. Memisahkan asam HF dari hidrokarbon berdasarkan perbedaan berat jenis &check;</div>
+  <div class="option">C. Mendinginkan produk reaksi</div>
+  <div class="option">D. Memompa feed ke reaktor</div>
+  <div class="et-tag">Peralatan & Instrumentasi</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">10</span>Instrumen apa yang digunakan untuk mendeteksi kebocoran HF di area proses?</div>
+  <div class="option">A. Thermocouple</div>
+  <div class="option">B. Level transmitter</div>
+  <div class="option correct">C. HF gas detector dengan sensor elektrokimia &check;</div>
+  <div class="option">D. Flow meter orifice</div>
+  <div class="et-tag">Peralatan & Instrumentasi</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">11</span>Mengapa pompa di Alkylation Unit umumnya menggunakan mechanical seal ganda (double seal)?</div>
+  <div class="option">A. Untuk meningkatkan efisiensi pompa</div>
+  <div class="option">B. Untuk mengurangi getaran pompa</div>
+  <div class="option correct">C. Untuk mencegah kebocoran HF ke atmosfer dengan barrier fluid di antara dua seal &check;</div>
+  <div class="option">D. Untuk memperpanjang umur bearing pompa</div>
+  <div class="et-tag">Peralatan & Instrumentasi</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">12</span>Apa fungsi dari Isostripper Tower dalam Alkylation Unit?</div>
+  <div class="option correct">A. Memisahkan dan mendaur ulang isobutana yang tidak bereaksi kembali ke reaktor &check;</div>
+  <div class="option">B. Menghilangkan air dari produk</div>
+  <div class="option">C. Menyimpan katalis HF</div>
+  <div class="option">D. Mendinginkan produk akhir</div>
+  <div class="et-tag">Peralatan & Instrumentasi</div>
+</div>
+
+<!-- Soal 13-15: Prosedur Operasi -->
+<div class="question-card">
+  <div class="q-text"><span class="q-num">13</span>Apa langkah pertama dalam prosedur start-up Alkylation Unit?</div>
+  <div class="option">A. Langsung mengisi reaktor dengan feed olefin</div>
+  <div class="option correct">B. Melakukan nitrogen purging pada semua vessel dan piping untuk menghilangkan oksigen &check;</div>
+  <div class="option">C. Menyalakan semua heater secara bersamaan</div>
+  <div class="option">D. Menambahkan katalis HF dalam jumlah besar sekaligus</div>
+  <div class="et-tag">Prosedur Operasi</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">14</span>Pada kondisi apa dilakukan Emergency Shutdown (ESD) pada Alkylation Unit?</div>
+  <div class="option">A. Saat pergantian shift operator</div>
+  <div class="option">B. Ketika produksi alkylate menurun 5%</div>
+  <div class="option correct">C. Saat terjadi kebocoran HF besar, kebakaran, atau kegagalan sistem pendingin utama &check;</div>
+  <div class="option">D. Saat ada visitor di area proses</div>
+  <div class="et-tag">Prosedur Operasi</div>
+</div>
+
+<div class="question-card">
+  <div class="q-text"><span class="q-num">15</span>Apa tujuan dari prosedur "acid rundown" saat shutdown unit?</div>
+  <div class="option">A. Menambah katalis baru ke sistem</div>
+  <div class="option">B. Membersihkan pipa dengan air bertekanan</div>
+  <div class="option correct">C. Memindahkan seluruh inventori HF ke tangki penyimpanan khusus secara aman &check;</div>
+  <div class="option">D. Meningkatkan konsentrasi asam dalam reaktor</div>
+  <div class="et-tag">Prosedur Operasi</div>
+</div>
+</section>
+
+<section id="seed-excel">
+<h2>Format Data untuk Paste Import</h2>
+<p>Copy teks di bawah ini (tanpa baris header) dan paste ke textarea di halaman Import Questions:</p>
+
+<div class="info-box blue">
+  <strong>Cara copy:</strong> Seleksi semua teks di dalam kotak abu-abu di bawah &rarr; Ctrl+C &rarr; Paste ke halaman Import Questions tab "Paste from Excel".
+</div>
+
+<pre id="paste-data">Apa fungsi utama dari Alkylation Unit di kilang?	Memisahkan minyak mentah menjadi fraksi-fraksi	Menggabungkan olefin ringan dengan isobutana untuk menghasilkan alkylate beroktan tinggi	Menghilangkan sulfur dari produk diesel	Mengubah residu menjadi produk bernilai tinggi	B	Pengetahuan Proses
+Katalis apa yang digunakan pada proses HF Alkylation?	Asam sulfat (H2SO4)	Asam fluorida (HF)	Aluminium klorida (AlCl3)	Zeolit	B	Pengetahuan Proses
+Berapa kisaran suhu operasi normal pada reaktor Alkylation (HF)?	10-20°C	25-45°C	100-150°C	200-300°C	B	Pengetahuan Proses
+Apa produk utama dari proses alkylation?	LPG (Liquefied Petroleum Gas)	Nafta	Alkylate (komponen bensin beroktan tinggi)	Aspal	C	Pengetahuan Proses
+Apa bahaya utama dari paparan HF (asam fluorida) pada kulit?	Iritasi ringan yang hilang dalam beberapa jam	Perubahan warna kulit tanpa rasa sakit	Luka bakar kimia yang dapat menembus jaringan dalam dan menyerang kalsium tulang	Reaksi alergi berupa ruam merah	C	Keselamatan Kerja
+Apa pertolongan pertama yang benar jika terkena paparan HF pada kulit?	Membiarkan area terkena terbuka agar mengering	Menggunakan alkohol untuk membersihkan area	Segera bilas dengan air mengalir dan oleskan kalsium glukonat gel	Menutup luka dengan perban kering	C	Keselamatan Kerja
+APD wajib apa yang harus digunakan saat bekerja di area Alkylation Unit?	Pakaian anti-HF, sarung tangan neoprene, face shield, dan SCBA untuk emergency	Hanya helm dan sepatu safety standar	Sarung tangan katun dan kacamata biasa	Masker debu dan rompi reflektif	A	Keselamatan Kerja
+Apa yang harus dilakukan PERTAMA saat alarm kebocoran HF berbunyi?	Mencari sumber kebocoran	Mematikan semua pompa	Evakuasi ke titik kumpul searah angin (upwind) dan laporkan ke control room	Menutup semua valve secara manual	C	Keselamatan Kerja
+Apa fungsi dari Acid Settler dalam Alkylation Unit?	Menyimpan produk alkylate	Memisahkan asam HF dari hidrokarbon berdasarkan perbedaan berat jenis	Mendinginkan produk reaksi	Memompa feed ke reaktor	B	Peralatan & Instrumentasi
+Instrumen apa yang digunakan untuk mendeteksi kebocoran HF di area proses?	Thermocouple	Level transmitter	HF gas detector dengan sensor elektrokimia	Flow meter orifice	C	Peralatan & Instrumentasi
+Mengapa pompa di Alkylation Unit umumnya menggunakan mechanical seal ganda (double seal)?	Untuk meningkatkan efisiensi pompa	Untuk mengurangi getaran pompa	Untuk mencegah kebocoran HF ke atmosfer dengan barrier fluid di antara dua seal	Untuk memperpanjang umur bearing pompa	C	Peralatan & Instrumentasi
+Apa fungsi dari Isostripper Tower dalam Alkylation Unit?	Memisahkan dan mendaur ulang isobutana yang tidak bereaksi kembali ke reaktor	Menghilangkan air dari produk	Menyimpan katalis HF	Mendinginkan produk akhir	A	Peralatan & Instrumentasi
+Apa langkah pertama dalam prosedur start-up Alkylation Unit?	Langsung mengisi reaktor dengan feed olefin	Melakukan nitrogen purging pada semua vessel dan piping untuk menghilangkan oksigen	Menyalakan semua heater secara bersamaan	Menambahkan katalis HF dalam jumlah besar sekaligus	B	Prosedur Operasi
+Pada kondisi apa dilakukan Emergency Shutdown (ESD) pada Alkylation Unit?	Saat pergantian shift operator	Ketika produksi alkylate menurun 5%	Saat terjadi kebocoran HF besar, kebakaran, atau kegagalan sistem pendingin utama	Saat ada visitor di area proses	C	Prosedur Operasi
+Apa tujuan dari prosedur "acid rundown" saat shutdown unit?	Menambah katalis baru ke sistem	Membersihkan pipa dengan air bertekanan	Memindahkan seluruh inventori HF ke tangki penyimpanan khusus secara aman	Meningkatkan konsentrasi asam dalam reaktor	C	Prosedur Operasi</pre>
+
+<h3>Kunci Jawaban Ringkas</h3>
+<table class="tbl-compact">
+<tr><th>#</th><th>Jawaban</th><th>Elemen Teknis</th></tr>
+<tr><td>1</td><td>B</td><td>Pengetahuan Proses</td></tr>
+<tr><td>2</td><td>B</td><td>Pengetahuan Proses</td></tr>
+<tr><td>3</td><td>B</td><td>Pengetahuan Proses</td></tr>
+<tr><td>4</td><td>C</td><td>Pengetahuan Proses</td></tr>
+<tr><td>5</td><td>C</td><td>Keselamatan Kerja</td></tr>
+<tr><td>6</td><td>C</td><td>Keselamatan Kerja</td></tr>
+<tr><td>7</td><td>A</td><td>Keselamatan Kerja</td></tr>
+<tr><td>8</td><td>C</td><td>Keselamatan Kerja</td></tr>
+<tr><td>9</td><td>B</td><td>Peralatan & Instrumentasi</td></tr>
+<tr><td>10</td><td>C</td><td>Peralatan & Instrumentasi</td></tr>
+<tr><td>11</td><td>C</td><td>Peralatan & Instrumentasi</td></tr>
+<tr><td>12</td><td>A</td><td>Peralatan & Instrumentasi</td></tr>
+<tr><td>13</td><td>B</td><td>Prosedur Operasi</td></tr>
+<tr><td>14</td><td>C</td><td>Prosedur Operasi</td></tr>
+<tr><td>15</td><td>C</td><td>Prosedur Operasi</td></tr>
+</table>
+</section>
+
+<section id="seed-categories">
+<h2>Sub-Kategori untuk Test Hierarchy</h2>
+<p>Buat manual via UI <code>/Admin/ManageCategories</code>:</p>
+<table>
+<tr><th>Nama Sub-Kategori</th><th>Parent</th><th>Pass %</th></tr>
+<tr><td>OJT Operasi Kilang</td><td>OJT</td><td>70%</td></tr>
+</table>
+<p>Ini cukup 1 saja untuk verifikasi fitur hierarchy berfungsi.</p>
+</section>
+
+<!-- ========== SKENARIO TEST ========== -->
+<section id="test-reguler">
+<h2>Skenario Test: Assessment Reguler</h2>
+
+<div class="scenario success">
+  <div class="scenario-title">Skenario A: Worker Lulus (Rino)</div>
+  <p style="font-size:13px">Rino mengerjakan ujian dan menjawab &ge;11 dari 15 soal dengan benar (skor &ge;73.3%).</p>
+  <table class="tbl-compact">
+  <tr><th>Step</th><th>Aksi</th><th>Expected Result</th></tr>
+  <tr><td>1</td><td>Admin buat assessment + paket + import 15 soal</td><td>2 session dibuat (Rino + Iwan)</td></tr>
+  <tr><td>2</td><td>Rino login, lihat assessment</td><td>Card muncul dengan status Open, lock icon</td></tr>
+  <tr><td>3</td><td>Rino klik Start, masukkan token</td><td>Modal token muncul, redirect ke exam</td></tr>
+  <tr><td>4</td><td>Rino jawab 11+ soal benar (lihat kunci jawaban)</td><td>Auto-save per jawaban, counter update</td></tr>
+  <tr><td>5</td><td>Rino klik Review & Submit</td><td>Summary table, alert hijau/kuning</td></tr>
+  <tr><td>6</td><td>Rino submit</td><td>Score &ge;70%, status LULUS, sertifikat generated</td></tr>
+  <tr><td>7</td><td>Lihat Results</td><td>ET radar chart (4 grup), answer review, link sertifikat</td></tr>
+  <tr><td>8</td><td>Lihat Sertifikat</td><td>Certificate A4 landscape, nomor KPB/001/III/2026</td></tr>
+  </table>
+</div>
+
+<div class="scenario important">
+  <div class="scenario-title">Skenario B: Worker Gagal (Iwan)</div>
+  <p style="font-size:13px">Iwan mengerjakan ujian dan menjawab &le;10 soal benar (skor &lt;70%).</p>
+  <table class="tbl-compact">
+  <tr><th>Step</th><th>Aksi</th><th>Expected Result</th></tr>
+  <tr><td>1</td><td>Iwan login, masukkan token, mulai ujian</td><td>Token sama dengan Rino (shared per batch)</td></tr>
+  <tr><td>2</td><td>Iwan jawab &le;10 soal benar (sengaja salah beberapa)</td><td>Auto-save berfungsi</td></tr>
+  <tr><td>3</td><td>Iwan submit</td><td>Score &lt;70%, status TIDAK LULUS</td></tr>
+  <tr><td>4</td><td>Lihat Results</td><td>Badge merah "TIDAK LULUS", ET chart tetap tampil</td></tr>
+  <tr><td>5</td><td>Tombol sertifikat TIDAK muncul</td><td>Tidak ada sertifikat untuk gagal</td></tr>
+  </table>
+</div>
+
+<div class="scenario">
+  <div class="scenario-title">Skenario C: Resume Setelah Disconnect</div>
+  <table class="tbl-compact">
+  <tr><th>Step</th><th>Aksi</th><th>Expected Result</th></tr>
+  <tr><td>1</td><td>Worker mulai ujian, jawab 5 soal</td><td>5 soal tersimpan</td></tr>
+  <tr><td>2</td><td>Tutup browser tab</td><td>Session tetap InProgress</td></tr>
+  <tr><td>3</td><td>Login ulang, buka Assessment</td><td>Button "Resume" muncul</td></tr>
+  <tr><td>4</td><td>Klik Resume</td><td>Modal resume, timer lanjut, jawaban tetap terisi</td></tr>
+  </table>
+</div>
+
+<div class="scenario">
+  <div class="scenario-title">Skenario D: HC Monitoring Real-time</div>
+  <table class="tbl-compact">
+  <tr><th>Step</th><th>Aksi</th><th>Expected Result</th></tr>
+  <tr><td>1</td><td>HC buka Monitoring Detail (browser terpisah)</td><td>Status Connected, stat cards muncul</td></tr>
+  <tr><td>2</td><td>Worker mulai ujian</td><td>Status berubah InProgress di tabel HC (real-time)</td></tr>
+  <tr><td>3</td><td>Worker submit</td><td>Status berubah Completed, skor muncul</td></tr>
+  <tr><td>4</td><td>HC klik Export Results</td><td>Download Excel berisi semua hasil</td></tr>
+  </table>
+</div>
+</section>
+
+<section id="test-proton">
+<h2>Skenario Test: Assessment Proton</h2>
+
+<div class="scenario proton">
+  <div class="scenario-title">Skenario E: Proton Tahun 1/2 — Online Exam</div>
+  <table class="tbl-compact">
+  <tr><th>Step</th><th>Aksi</th><th>Expected Result</th></tr>
+  <tr><td>1</td><td>Admin buat assessment Proton, track "Operator - Tahun 1"</td><td>Field ProtonTrack muncul saat pilih kategori "Assessment Proton"</td></tr>
+  <tr><td>2</td><td>Setup paket soal + import 15 soal</td><td>Sama seperti reguler</td></tr>
+  <tr><td>3</td><td>Rino kerjakan ujian</td><td>Badge ungu "Assessment Proton", flow sama</td></tr>
+  <tr><td>4</td><td>Submit + grading</td><td>Skor + sertifikat (jika lulus)</td></tr>
+  <tr><td>5</td><td>HC buat ProtonFinalAssessment manual</td><td>CompetencyLevel granted</td></tr>
+  </table>
+</div>
+
+<div class="scenario proton">
+  <div class="scenario-title">Skenario F: Proton Tahun 3 — Interview Offline</div>
+  <table class="tbl-compact">
+  <tr><th>Step</th><th>Aksi</th><th>Expected Result</th></tr>
+  <tr><td>1</td><td>Admin buat assessment Proton, track "Operator - Tahun 3"</td><td>DurationMinutes = 0 (otomatis), tidak perlu paket soal</td></tr>
+  <tr><td>2</td><td>Worker (Rino) lihat di Assessment list</td><td>Badge "Interview Dijadwalkan", TIDAK ada tombol Start</td></tr>
+  <tr><td>3</td><td>HC buka Monitoring Detail</td><td>Tombol "Input Hasil Interview" tersedia</td></tr>
+  <tr><td>4</td><td>HC input: 5 aspek skor (1-5), judges, catatan, IsPassed=Ya</td><td>Form interview tersimpan</td></tr>
+  <tr><td>5</td><td>Verifikasi: Status = Completed, ProtonFinalAssessment auto-created</td><td>Data tersimpan di InterviewResultsJson</td></tr>
+  <tr><td>6</td><td>Worker lihat hasil</td><td>Status Lulus, sertifikat tersedia</td></tr>
+  </table>
+</div>
+</section>
+
+<section id="test-edge">
+<h2>Edge Cases untuk Di-test</h2>
+
+<table>
+<tr><th>#</th><th>Edge Case</th><th>Cara Test</th><th>Expected</th></tr>
+<tr>
+  <td>1</td><td><strong>Token salah</strong></td>
+  <td>Masukkan token random saat verify</td>
+  <td>Error message "Token tidak valid"</td>
+</tr>
+<tr>
+  <td>2</td><td><strong>Waktu habis</strong></td>
+  <td>Buat assessment durasi 1 menit, tunggu habis</td>
+  <td>Modal "Waktu Habis!", auto-submit 10 detik</td>
+</tr>
+<tr>
+  <td>3</td><td><strong>Submit tanpa jawab semua</strong></td>
+  <td>Jawab 10 dari 15 soal, submit</td>
+  <td>Warning kuning "5 soal belum dijawab", submit tetap bisa</td>
+</tr>
+<tr>
+  <td>4</td><td><strong>HC force close exam</strong></td>
+  <td>Saat worker sedang ujian, HC klik "Akhiri Ujian" di monitoring</td>
+  <td>Worker dapat modal "Ujian Diakhiri" + auto redirect</td>
+</tr>
+<tr>
+  <td>5</td><td><strong>HC reset assessment</strong></td>
+  <td>Setelah worker gagal, HC klik Reset di monitoring</td>
+  <td>Status kembali Open, jawaban dihapus, bisa ujian ulang</td>
+</tr>
+<tr>
+  <td>6</td><td><strong>Token regenerate</strong></td>
+  <td>HC klik Regenerate Token di monitoring detail</td>
+  <td>Token baru di-generate, token lama tidak valid</td>
+</tr>
+<tr>
+  <td>7</td><td><strong>Soal acak per user</strong></td>
+  <td>Bandingkan urutan soal Rino vs Iwan</td>
+  <td>Urutan berbeda (shuffled per-user)</td>
+</tr>
+<tr>
+  <td>8</td><td><strong>Opsi acak per soal</strong></td>
+  <td>Perhatikan urutan A/B/C/D di soal yang sama</td>
+  <td>Urutan opsi berbeda antar user</td>
+</tr>
+<tr>
+  <td>9</td><td><strong>Renewal sertifikat</strong></td>
+  <td>Setelah Rino lulus, buat renewal dari Manage Assessment</td>
+  <td>Form pre-filled dengan data asli, ValidUntil +1 tahun</td>
+</tr>
+<tr>
+  <td>10</td><td><strong>Proton Tahun 3 gagal</strong></td>
+  <td>HC input interview dengan IsPassed=Tidak</td>
+  <td>Status Completed tapi TIDAK LULUS, ProtonFinalAssessment TIDAK dibuat</td>
+</tr>
+</table>
+</section>
+
+<section id="checklist">
+<h2>Checklist Final Simulasi</h2>
+
+<h3>Fase 1: Setup (Login Admin)</h3>
+<ul class="checklist">
+  <li>Verifikasi 6 kategori assessment sudah ada</li>
+  <li>Buat sub-kategori "OJT Operasi Kilang" (test hierarchy)</li>
+  <li>Buat Assessment Reguler "OJT Proses Alkylation Q1-2026" untuk Rino + Iwan</li>
+  <li>Catat Access Token yang di-generate</li>
+  <li>Buat Paket A, import 15 soal via paste</li>
+  <li>Verifikasi ET coverage matrix di ManagePackages</li>
+  <li>Preview Paket A &mdash; verifikasi 15 soal tampil</li>
+</ul>
+
+<h3>Fase 2: Ujian Reguler (Login Worker)</h3>
+<ul class="checklist">
+  <li>Rino: lihat assessment, verifikasi card detail</li>
+  <li>Rino: input token, mulai ujian</li>
+  <li>Rino: jawab 11+ soal benar (lihat kunci jawaban)</li>
+  <li>Rino: test resume (tutup browser, login ulang, resume)</li>
+  <li>Rino: review & submit &rarr; LULUS</li>
+  <li>Rino: lihat Results (ET radar chart, answer review)</li>
+  <li>Rino: lihat Sertifikat (nomor, valid until, print)</li>
+  <li>Iwan: input token yang sama, mulai ujian</li>
+  <li>Iwan: jawab &le;10 soal benar &rarr; TIDAK LULUS</li>
+  <li>Iwan: verifikasi tidak ada tombol sertifikat</li>
+</ul>
+
+<h3>Fase 3: Monitoring & Export (Login HC)</h3>
+<ul class="checklist">
+  <li>HC buka Assessment Monitoring hub</li>
+  <li>HC drill-down ke detail group</li>
+  <li>HC verifikasi stat cards dan per-user status</li>
+  <li>HC export results ke Excel</li>
+  <li>HC buka Analytics Dashboard</li>
+  <li>HC verifikasi chart: fail rate, trend, ET breakdown</li>
+</ul>
+
+<h3>Fase 4: Proton Tahun 1 (Login Admin + Worker)</h3>
+<ul class="checklist">
+  <li>Admin buat assessment Proton Tahun 1 untuk Rino</li>
+  <li>Admin buat paket + import soal</li>
+  <li>Rino kerjakan ujian Proton &rarr; submit</li>
+  <li>Verifikasi hasil dan sertifikat Proton</li>
+</ul>
+
+<h3>Fase 5: Proton Tahun 3 Interview (Login Admin + HC + Worker)</h3>
+<ul class="checklist">
+  <li>Admin buat assessment Proton Tahun 3 (durasi 0)</li>
+  <li>Worker verifikasi badge "Interview Dijadwalkan"</li>
+  <li>HC input hasil interview (5 aspek, judges, catatan)</li>
+  <li>HC set IsPassed = Ya</li>
+  <li>Verifikasi ProtonFinalAssessment auto-created</li>
+  <li>Worker verifikasi status Lulus + sertifikat</li>
+</ul>
+
+<h3>Fase 6: Edge Cases</h3>
+<ul class="checklist">
+  <li>Test token salah</li>
+  <li>Test waktu habis (buat assessment durasi 1 menit)</li>
+  <li>Test HC reset assessment</li>
+  <li>Test HC regenerate token</li>
+  <li>Test renewal sertifikat</li>
+</ul>
+
+<h3>Fase 7: Records</h3>
+<ul class="checklist">
+  <li>Worker lihat Training Records (assessment completed muncul)</li>
+  <li>Worker export records ke Excel</li>
+  <li>HC lihat Team View records</li>
+</ul>
+</section>
+
+</div><!-- /main -->
+</div><!-- /layout -->
+
+<script>
+// Tab functionality
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const container = btn.closest('.tab-container');
+    container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    container.querySelector(btn.dataset.target).classList.add('active');
+  });
+});
+
+// Smooth scroll for sidebar
+document.querySelectorAll('.sidebar a').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    const id = a.getAttribute('href').slice(1);
+    document.getElementById(id)?.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
+
+// Copy paste-data
+const pre = document.getElementById('paste-data');
+if(pre) {
+  pre.style.cursor = 'pointer';
+  pre.title = 'Klik untuk copy';
+  pre.addEventListener('click', () => {
+    navigator.clipboard.writeText(pre.textContent).then(() => {
+      const orig = pre.style.outline;
+      pre.style.outline = '3px solid #28a745';
+      setTimeout(() => pre.style.outline = orig, 1000);
+    });
+  });
+}
+</script>
+
+</body>
+</html>

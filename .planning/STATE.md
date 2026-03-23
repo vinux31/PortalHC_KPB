@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v8.4
-milestone_name: Alarm Sertifikat Expired
-status: Milestone complete
-stopped_at: Phase 240 UI-SPEC approved
-last_updated: "2026-03-23T13:24:26.834Z"
+milestone: v8.5
+milestone_name: UAT Assessment System End-to-End
+status: Defining requirements
+stopped_at: PROJECT.md updated, need requirements + roadmap
+last_updated: "2026-03-23T14:00:00.000Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,47 +19,38 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 240 — alarm-sertifikat-expired
+**Current focus:** v8.5 UAT Assessment System End-to-End
 
 ## Current Position
 
-Phase: 240
-Plan: Not started
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 0
-- Average duration: —
-- Total execution time: —
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-23 — Milestone v8.5 started
 
 ## Accumulated Context
 
 ### Decisions
 
-- v8.3: Single-phase milestone — semua 8 requirements (FILT-01..06, EXP-01..02) masuk Phase 239
-- v8.4: Semua 7 requirements (ALRT-01..04, NOTF-01..03) digabung ke 1 fase (Phase 240) karena banner dan bell notification keduanya bergantung pada query expired certs yang sama
-- v8.4: CERT_EXPIRING_SOON notification sengaja out-of-scope — akan expired cukup tampil di banner saja
-- v8.4: Notifikasi di-generate on page load, tidak perlu background job/scheduler
-- v8.4: Infrastruktur tersedia — BuildRenewalRowsAsync() dan NotificationService.SendAsync() sudah ada
+- v8.5: Milestone murni UAT + bug fix, bukan fitur baru — semua assessment features sudah terbangun di v1.0-v8.4
+- v8.5: Dokumen perencanaan simulasi lengkap di docs/simulasi-assessment-plan.html
+- v8.5: 15 soal domain Alkylation Unit dengan 4 Elemen Teknis (Pengetahuan Proses, Keselamatan Kerja, Peralatan & Instrumentasi, Prosedur Operasi) sudah disiapkan di dokumen
+- v8.5: 7 akun test tersedia dari seed data (Admin, HC, SH, Sr SPV, Coach, 2 Coachee), password 123456
+- v8.5: Simulasi via browser manual, seed data hanya untuk bagian yang belum ada
+- v8.5: Scope mencakup assessment reguler + Proton Tahun 1/2 (online exam) + Proton Tahun 3 (interview offline)
 
 ### Pending Todos
 
-None.
+- Define REQUIREMENTS.md dengan REQ-IDs per kategori UAT
+- Create ROADMAP.md dengan phase breakdown (mulai dari phase 241)
 
 ### Blockers/Concerns
 
 None.
 
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260323-ugm | Terjemahkan label card menu CMP Index ke Bahasa Indonesia | 2026-03-23 | 748a0f21 | [260323-ugm](./quick/260323-ugm-terjemahkan-label-card-menu-cmp-index-ke/) |
-
 ## Session Continuity
 
-Last activity: 2026-03-23 - Completed quick task 260323-ugm: Terjemahkan label CMP Index ke Bahasa Indonesia
-Stopped at: Phase 240 UI-SPEC approved
-Resume file: .planning/phases/240-alarm-sertifikat-expired/240-UI-SPEC.md
+Last activity: 2026-03-23 - Updated PROJECT.md and STATE.md for v8.5
+Stopped at: Need to define requirements and create roadmap
+Resume with: `/gsd:new-milestone` (continue from step 9 — define requirements)
+Context: Semua analisis assessment system sudah dilakukan, dokumen simulasi sudah dibuat, tinggal requirements + roadmap
