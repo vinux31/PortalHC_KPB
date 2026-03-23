@@ -56,4 +56,4 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 239. Date Range Filter & Export | v8.3 | 2/2 | Complete   | 2026-03-23 |
+| 239. Date Range Filter & Export | v8.3 | 2/2 | Complete    | 2026-03-23 |
