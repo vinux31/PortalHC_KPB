@@ -300,6 +300,26 @@
         </div>
     }
 
+    @* Phase 238: 3 export baru — HC/Admin only *@
+    @if (User.IsInRole("HC") || User.IsInRole("Admin"))
+    {
+        <div class="mb-3">
+            <span class="text-muted small me-2">Laporan:</span>
+            <a href="@Url.Action("ExportBottleneckReport", "CDP")"
+               class="btn btn-sm btn-outline-warning me-1">
+                <i class="bi bi-file-earmark-excel me-1"></i>Bottleneck Report
+            </a>
+            <a href="@Url.Action("ExportCoachingTracking", "CDP")"
+               class="btn btn-sm btn-outline-warning me-1">
+                <i class="bi bi-file-earmark-excel me-1"></i>Coaching Tracking
+            </a>
+            <a href="@Url.Action("ExportWorkloadSummary", "CDP")"
+               class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-file-earmark-excel me-1"></i>Workload Summary
+            </a>
+        </div>
+    }
+
     @* Empty state — scenario-aware icon + message (UI-02) *@
     @if (Model.Count == 0)
     {
