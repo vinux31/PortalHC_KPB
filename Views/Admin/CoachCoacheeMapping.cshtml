@@ -670,8 +670,29 @@ else
         })
         .then(r => r.json())
         .then(data => {
-            if (data.success) location.reload();
-            else alert(data.message);
+            if (data.success) {
+                location.reload();
+            } else if (data.warning) {
+                if (confirm(data.message)) {
+                    payload.ConfirmProgressionWarning = true;
+                    fetch('/Admin/CoachCoacheeMappingAssign', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('[name=__RequestVerificationToken]').value
+                        },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) location.reload();
+                        else alert(d.message);
+                    })
+                    .catch(err => alert('Terjadi kesalahan: ' + err.message));
+                }
+            } else {
+                alert(data.message);
+            }
         })
         .catch(err => alert('Terjadi kesalahan: ' + err.message));
     }
