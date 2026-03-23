@@ -53,6 +53,10 @@ public class ProtonProgressSubModel
     public List<string> StatusLabels { get; set; } = new();
     public List<int> StatusData { get; set; } = new();
 
+    // Chart: bottleneck — top 10 deliverable pending > 30 hari (horizontal bar)
+    public List<string> BottleneckLabels { get; set; } = new();  // "CoacheeName - DeliverableName"
+    public List<int> BottleneckValues { get; set; } = new();     // jumlah hari pending
+
     // Filter state (Phase 121)
     public string? FilterSection { get; set; }
     public string? FilterUnit { get; set; }

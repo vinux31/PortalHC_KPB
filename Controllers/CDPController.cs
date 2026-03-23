@@ -485,6 +485,13 @@ namespace HcPortal.Controllers
             if (!string.IsNullOrEmpty(track))
                 assignments = assignments.Where(a => a.ProtonTrack?.DisplayName == track).ToList();
 
+            // MON-01: Re-scope allProgresses to match filtered assignments so stats stay consistent
+            if (!string.IsNullOrEmpty(category) || !string.IsNullOrEmpty(track))
+            {
+                var filteredAssignmentIds = assignments.Select(a => a.Id).ToHashSet();
+                allProgresses = allProgresses.Where(p => filteredAssignmentIds.Contains(p.ProtonTrackAssignmentId)).ToList();
+            }
+
             // Phase 121: Collect available filter options from loaded data
             var availableCategories = assignments.Select(a => a.ProtonTrack?.TrackType).Where(t => t != null).Distinct().OrderBy(t => t).ToList()!;
             var availableTracks = assignments.OrderBy(a => a.ProtonTrack?.Urutan).Select(a => a.ProtonTrack?.DisplayName).Where(t => t != null).Distinct().ToList()!;
@@ -536,6 +543,29 @@ namespace HcPortal.Controllers
             // Stat card totals
             int pendingSpv = allProgresses.Count(p => p.Status == "Submitted");
             int pendingHC  = allProgresses.Count(p => p.HCApprovalStatus == "Pending" && p.Status == "Approved");
+
+            // DIFF-03: Bottleneck — top 10 deliverable paling lama pending (> 30 hari)
+            // Uses allProgresses already scoped+filtered — per Pitfall 3
+            var now = DateTime.UtcNow;
+            var bottleneckItems = allProgresses
+                .Where(p => p.Status == "Submitted" && p.SubmittedAt.HasValue
+                            && (now - p.SubmittedAt.Value).TotalDays > 30)
+                .OrderByDescending(p => (now - p.SubmittedAt!.Value).TotalDays)
+                .Take(10)
+                .ToList();
+
+            // Build assignment→coacheeId lookup for bottleneck labels
+            var assignmentToCoacheeId = assignments.ToDictionary(a => a.Id, a => a.CoacheeId);
+            var bottleneckLabels = new List<string>();
+            var bottleneckValues = new List<int>();
+            foreach (var bp in bottleneckItems)
+            {
+                var coacheeId = assignmentToCoacheeId.GetValueOrDefault(bp.ProtonTrackAssignmentId, "");
+                var coacheeName = userNames.GetValueOrDefault(coacheeId, coacheeId);
+                var deliverableName = bp.ProtonDeliverable?.NamaDeliverable ?? $"#{bp.ProtonDeliverableId}";
+                bottleneckLabels.Add($"{coacheeName} - {deliverableName}");
+                bottleneckValues.Add((int)(now - bp.SubmittedAt!.Value).TotalDays);
+            }
 
             // Trend chart: competency level granted grouped by month
             var scopedCompletedAssessments = finalAssessments
@@ -594,6 +624,9 @@ namespace HcPortal.Controllers
                 TrendValues = trendValues,
                 StatusLabels = statusLabels,
                 StatusData = statusData,
+                // DIFF-03: Bottleneck chart data
+                BottleneckLabels = bottleneckLabels,
+                BottleneckValues = bottleneckValues,
                 // Phase 121: Filter state
                 FilterSection = section,
                 FilterUnit = unit,

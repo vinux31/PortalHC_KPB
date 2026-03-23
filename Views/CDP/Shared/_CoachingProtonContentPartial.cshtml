@@ -98,6 +98,19 @@
     </div>
 </div>
 
+@if (Model.BottleneckLabels.Any())
+{
+    <!-- Bottleneck Chart: Deliverable Pending > 30 Hari -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-transparent border-0 fw-semibold pt-3">
+            <i class="bi bi-exclamation-triangle-fill me-2 text-danger"></i>Bottleneck &mdash; Deliverable Pending &gt; 30 Hari
+        </div>
+        <div class="card-body">
+            <canvas id="bottleneckChart" style="max-height: 320px;"></canvas>
+        </div>
+    </div>
+}
+
 <!-- Per-coachee Progress Table -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-header bg-transparent border-0 fw-semibold pt-3">
@@ -270,6 +283,37 @@
                 options: {
                     responsive: true,
                     plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+        </text>
+    }
+    @if (Model.BottleneckLabels.Any())
+    {
+        <text>
+        var bottleneckLabels = @Json.Serialize(Model.BottleneckLabels);
+        var bottleneckValues = @Json.Serialize(Model.BottleneckValues);
+        var bottleneckCtx = document.getElementById('bottleneckChart');
+        if (bottleneckCtx) {
+            new Chart(bottleneckCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: bottleneckLabels,
+                    datasets: [{
+                        label: 'Hari Pending',
+                        data: bottleneckValues,
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: 'rgba(220, 53, 69, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, title: { display: true, text: 'Jumlah Hari Pending' } }
+                    }
                 }
             });
         }
