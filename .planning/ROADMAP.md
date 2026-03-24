@@ -105,8 +105,10 @@
   5. Worker membuka My Records dan melihat riwayat assessment pribadi dengan kolom lengkap serta dapat export ke Excel
   6. HC membuka Team View Records, memfilter dengan date range, melihat data seluruh pekerja, dan dapat export ke Excel
 - **Plans:** 2 plans
-  - [ ] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
-  - [ ] 245-02-PLAN.md — Human verification UAT Proton di browser (exam Tahun 1, interview Tahun 3, sertifikat)
+  - [ ] 246-01-PLAN.md — Seed data tambahan (token-required session + expired certificate)
+  - [ ] 246-02-PLAN.md — Browser UAT edge cases + renewal + records (7 HV items)
+
+
 
 #### Phase 247: Bug Fix Pasca-UAT
 - **Status:** Pending
