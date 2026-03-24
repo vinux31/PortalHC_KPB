@@ -22,7 +22,7 @@
 - [x] **Phase 249: Null Safety & Input Validation** - Tambah defensive null checks dan safe parse di seluruh codebase (completed 2026-03-24)
 - [x] **Phase 250: Security & Performance** - Fix XSS, hapus console.log yang mengekspos data, password policy, throttle notifikasi (completed 2026-03-24)
 - [x] **Phase 251: Data Integrity & Logic** - Fix timezone, unique index migration, validasi business rule, thread safety (completed 2026-03-24)
-- [ ] **Phase 252: XSS Escape AJAX Approval Badge** - Escape data.approverName di JavaScript AJAX handler CoachingProton agar XSS tertutup di semua jalur
+- [x] **Phase 252: XSS Escape AJAX Approval Badge** - Escape data.approverName di JavaScript AJAX handler CoachingProton agar XSS tertutup di semua jalur (completed 2026-03-24)
 
 ## Phase Details
 
@@ -88,9 +88,9 @@ Plans:
 **Gap Closure**: Closes SEC-02-AJAX from v8.6 audit
 **Success Criteria** (what must be TRUE):
   1. Approval via AJAX menghasilkan badge tooltip yang menampilkan karakter HTML sebagai teks literal, bukan dieksekusi sebagai markup
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 252-01-PLAN.md — Tambah escHtml() helper + escape 3 blok AJAX handler
+- [x] 252-01-PLAN.md — Tambah escHtml() helper + escape 3 blok AJAX handler
 
 ## Progress
 
@@ -100,4 +100,4 @@ Plans:
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete    | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 1/1 | Complete    | 2026-03-24 |
 | 251. Data Integrity & Logic | v8.6 | 2/2 | Complete    | 2026-03-24 |
-| 252. XSS Escape AJAX Approval Badge | v8.6 | 0/1 | Pending     | — |
+| 252. XSS Escape AJAX Approval Badge | v8.6 | 1/1 | Complete   | 2026-03-24 |

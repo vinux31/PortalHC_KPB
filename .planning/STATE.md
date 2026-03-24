@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.6
 milestone_name: Codebase Audit & Hardening
-status: Milestone complete
-stopped_at: Completed 251-02-PLAN.md
-last_updated: "2026-03-24T03:05:52.468Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 252-01-PLAN.md
+last_updated: "2026-03-24T03:39:23.009Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 7
+  completed_plans: 7
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 251 — data-integrity-logic
+**Current focus:** Phase 252 — xss-escape-ajax-approval-badge
 
 ## Current Position
 
-Phase: 251
-Plan: Not started
+Phase: 252 (xss-escape-ajax-approval-badge) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Plan: Not started
 | Phase 250 P01 | 5m | 3 tasks | 3 files |
 | Phase 251 P01 | 5m | 2 tasks | 3 files |
 | Phase 251 P02 | 8m | 2 tasks | 4 files |
+| Phase 252 P01 | 5 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -64,6 +65,7 @@ Plan: Not started
 - [Phase 251]: DateTime.UtcNow digunakan agar kalkulasi expiry konsisten lintas timezone server
 - [Phase 251]: Tuple return (ProtonProgressSubModel, string) menggantikan private field _lastScopeLabel untuk thread-safety di CDPController
 - [Phase 251]: Composite unique index (ParentId, Name) memungkinkan sub-unit/sub-kategori nama sama di parent berbeda
+- [Phase 252]: escHtml didefinisikan 1x di awal blok script CoachingProton.cshtml untuk menutup XSS jalur AJAX client-side (defense-in-depth: server Phase 250 + client Phase 252)
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-24T03:03:14.712Z
-Stopped at: Completed 251-02-PLAN.md
+Last session: 2026-03-24T03:39:23.005Z
+Stopped at: Completed 252-01-PLAN.md
 Resume with: `/gsd:plan-phase 248`
