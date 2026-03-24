@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace HcPortal.Models;
 
 /// <summary>
@@ -214,6 +216,7 @@ public class ProtonFinalAssessment
     /// <summary>Values: "Completed"</summary>
     public string Status { get; set; } = "Completed";
     /// <summary>Competency level granted by HC (0-5)</summary>
+    [Range(0, 5)]
     public int CompetencyLevelGranted { get; set; }
     /// <summary>Nullable — HC selects competency from KKJ dropdown. No nav property to avoid cascade conflicts.</summary>
     public int? KkjMatrixItemId { get; set; }

@@ -1,16 +1,21 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace HcPortal.Models
 {
     public class TrainingRecord
     {
         public int Id { get; set; }
-        
+
         // Foreign Key to User
         public string UserId { get; set; } = "";
         public ApplicationUser? User { get; set; }
-        
+
+        [MaxLength(200)]
         public string? Judul { get; set; }      // Nama Training
+        [MaxLength(50)]
         public string? Kategori { get; set; }   // "PROTON", "OJT", "MANDATORY"
         public DateTime Tanggal { get; set; }
+        [MaxLength(100)]
         public string? Penyelenggara { get; set; } // "Internal", "Licensor", "NSO"
         /// <summary>
         /// Status lifecycle TrainingRecord:
@@ -29,18 +34,24 @@ namespace HcPortal.Models
         /// Status yang valid: Passed, Valid, Expired, Failed
         /// "Wait Certificate" sudah dihapus dan dimigrasikan ke "Passed".
         /// </summary>
+        [MaxLength(20)]
         public string? Status { get; set; }
+        [MaxLength(500)]
         public string? SertifikatUrl { get; set; }
-        
+
         // New fields for certificate expiry tracking
         public DateTime? ValidUntil { get; set; }  // Certificate validity end date
+        [MaxLength(20)]
         public string? CertificateType { get; set; } // "Permanent", "Annual", "3-Year"
 
         // v1.6 fields — start date, end date, certificate number
         public DateTime? TanggalMulai { get; set; }    // Training start date
         public DateTime? TanggalSelesai { get; set; }   // Training end date
+        [MaxLength(100)]
         public string? NomorSertifikat { get; set; }    // Certificate number
+        [MaxLength(100)]
         public string? Kota { get; set; }               // City where training took place
+        [MaxLength(100)]
         public string? SubKategori { get; set; }         // Sub category from AssessmentCategories
 
         // ===== Phase 200: Renewal Chain FKs =====
@@ -69,7 +80,7 @@ namespace HcPortal.Models
                 return false;
             }
         }
-        
+
         // Helper property: Days until expiry
         public int? DaysUntilExpiry
         {
