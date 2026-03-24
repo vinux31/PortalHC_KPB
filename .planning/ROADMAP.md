@@ -89,7 +89,7 @@
   3. HC membuka halaman input hasil interview Tahun 3, mengisi 5 aspek penilaian (skor 1-5), nama juri, catatan, dan menandai IsPassed secara manual — data tersimpan
   4. Setelah HC menandai Tahun 3 lulus, ProtonFinalAssessment dibuat otomatis dan sertifikat Proton di-generate serta dapat diakses peserta
 - **Plans:** 2 plans
-  - [ ] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
+  - [x] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
   - [ ] 245-02-PLAN.md — Human verification UAT Proton di browser (exam Tahun 1, interview Tahun 3, sertifikat)
 
 #### Phase 246: UAT Edge Cases & Records
@@ -142,7 +142,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 242. UAT Setup Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 243. UAT Exam Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 245. UAT Proton Assessment | v8.5 | 0/0 | Pending | — |
+| 245. UAT Proton Assessment | v8.5 | 1/2 | In Progress|  |
 | 246. UAT Edge Cases & Records | v8.5 | 0/0 | Pending | — |
 | 247. Bug Fix Pasca-UAT | v8.5 | 0/0 | Pending | — |
 | 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |

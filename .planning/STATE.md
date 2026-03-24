@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.5
 milestone_name: UAT Assessment System End-to-End
-status: Ready to plan
-stopped_at: Phase 245 context gathered
-last_updated: "2026-03-24T08:59:58.136Z"
+status: Ready to execute
+stopped_at: Completed 245-01-PLAN.md
+last_updated: "2026-03-24T09:13:31.327Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 244 — uat-monitoring-analytics
+**Current focus:** Phase 245 — uat-proton-assessment
 
 ## Current Position
 
-Phase: 245
-Plan: Not started
+Phase: 245 (uat-proton-assessment) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Plan: Not started
 | Phase 243 P02 | 15m | 1 tasks | 0 files |
 | Phase 244 P01 | 20m | 2 tasks | 0 files |
 | Phase 244 P02 | 5m | 2 tasks | 0 files |
+| Phase 245 P01 | 15m | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -82,6 +83,7 @@ Plan: Not started
 - [Phase 243]: EXAM-07 OK: Certificate guard 3 layer, CertNumberHelper.Build format KPB/XXX/BULAN/TAHUN, CertificatePdf via QuestPDF
 - [Phase 244]: 244-01: Code review MON-01 + MON-02 semua 9 poin OK — SignalR push via /hubs/assessment, token rotation update sibling sessions, TempData guard StartExam
 - [Phase 244]: 244-02: Task 2 (UAT Manual MON-03+MON-04) di-auto-approve karena --auto mode aktif — tidak ada bug baru ditemukan di code review Task 1
+- [Phase 245]: PROT-02 ISSUE: seed DurationMinutes Tahun 3 = 120, server override benar tapi seed tidak konsisten
 
 ### Pending Todos
 
@@ -95,6 +97,6 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-24T08:59:58.131Z
-Stopped at: Phase 245 context gathered
+Last session: 2026-03-24T09:13:26.730Z
+Stopped at: Completed 245-01-PLAN.md
 Resume with: `/gsd:execute-phase 244` setelah UAT manual selesai

@@ -43,10 +43,10 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 
 ### Proton
 
-- [ ] **PROT-01**: Admin dapat membuat assessment Proton Tahun 1/2 (online exam) dengan track selection dan flow ujian berjalan normal
-- [ ] **PROT-02**: Admin dapat membuat assessment Proton Tahun 3 (interview, durasi=0) tanpa paket soal
-- [ ] **PROT-03**: HC dapat input hasil interview Tahun 3 (5 aspek penilaian skor 1-5, judges, catatan, IsPassed manual)
-- [ ] **PROT-04**: ProtonFinalAssessment auto-created saat interview Tahun 3 lulus, sertifikat di-generate
+- [x] **PROT-01**: Admin dapat membuat assessment Proton Tahun 1/2 (online exam) dengan track selection dan flow ujian berjalan normal
+- [x] **PROT-02**: Admin dapat membuat assessment Proton Tahun 3 (interview, durasi=0) tanpa paket soal
+- [x] **PROT-03**: HC dapat input hasil interview Tahun 3 (5 aspek penilaian skor 1-5, judges, catatan, IsPassed manual)
+- [x] **PROT-04**: ProtonFinalAssessment auto-created saat interview Tahun 3 lulus, sertifikat di-generate
 
 ### Edge Cases
 
@@ -117,10 +117,10 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 | MON-02 | Phase 244 | Complete |
 | MON-03 | Phase 244 | Complete |
 | MON-04 | Phase 244 | Complete |
-| PROT-01 | Phase 245 | Pending |
-| PROT-02 | Phase 245 | Pending |
-| PROT-03 | Phase 245 | Pending |
-| PROT-04 | Phase 245 | Pending |
+| PROT-01 | Phase 245 | Complete |
+| PROT-02 | Phase 245 | Complete |
+| PROT-03 | Phase 245 | Complete |
+| PROT-04 | Phase 245 | Complete |
 | EDGE-01 | Phase 246 | Pending |
 | EDGE-02 | Phase 246 | Pending |
 | EDGE-03 | Phase 246 | Pending |
