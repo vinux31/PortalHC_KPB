@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
@@ -39,6 +40,12 @@ namespace HcPortal.Data
 
             // 5. Seed OrganizationUnits (safety net for fresh deployment)
             await SeedOrganizationUnitsAsync(context);
+
+            // 6. Seed UAT data (Development only — assessment, coach-coachee, proton)
+            if (environment.IsDevelopment())
+            {
+                await SeedUatDataAsync(userManager, context);
+            }
         }
 
         /// <summary>
@@ -232,6 +239,288 @@ namespace HcPortal.Data
             await context.SaveChangesAsync();
             Console.WriteLine($"CLN-02: Merged split Kompetensi/SubKompetensi and removed junk ({changes} records affected).");
         }
+
+        // =====================================================================
+        // UAT SEED METHODS (Development only)
+        // =====================================================================
+
+        public static async Task SeedUatDataAsync(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
+        {
+            // Idempotency guard
+            if (await context.AssessmentSessions.AnyAsync(s => s.Title == "OJT Proses Alkylation Q1-2026"))
+            {
+                Console.WriteLine("UAT-SEED: Data UAT sudah ada, skip.");
+                return;
+            }
+
+            var rino = await userManager.FindByEmailAsync("rino.prasetyo@pertamina.com");
+            var iwan = await userManager.FindByEmailAsync("iwan3@pertamina.com");
+            var rustam = await userManager.FindByEmailAsync("rustam.nugroho@pertamina.com");
+            if (rino == null || iwan == null || rustam == null)
+            {
+                Console.WriteLine("UAT-SEED: User Rino/Iwan/Rustam tidak ditemukan, skip.");
+                return;
+            }
+
+            var now = DateTime.UtcNow;
+
+            // 1. Coach-Coachee Mapping
+            await SeedCoachCoacheeMappingAsync(context, rustam.Id, rino.Id, now);
+
+            // 2. ProtonTrackAssignment
+            await SeedProtonTrackAssignmentAsync(context, rino.Id, rustam.Id, now);
+
+            // 3. AssessmentCategory sub-kategori
+            await SeedAssessmentCategoriesAsync(context);
+
+            // 4. Assessment reguler open
+            var (questions, package) = await SeedRegularAssessmentOpenAsync(context, rino.Id, iwan.Id, now);
+
+            // 5. Completed assessment lulus untuk Rino (stub — implementasi Plan 02)
+            await SeedCompletedAssessmentPassAsync(context, rino.Id, now, questions);
+
+            // 6. Completed assessment gagal untuk Rino (stub — implementasi Plan 02)
+            await SeedCompletedAssessmentFailAsync(context, rino.Id, now, questions);
+
+            // 7. Assessment Proton (stub — implementasi Plan 02)
+            await SeedProtonAssessmentsAsync(context, rino.Id, now);
+
+            Console.WriteLine("UAT-SEED: Selesai seed data UAT.");
+        }
+
+        private static async Task SeedCoachCoacheeMappingAsync(ApplicationDbContext context, string rustamId, string rinoId, DateTime now)
+        {
+            if (await context.CoachCoacheeMappings.AnyAsync(m => m.CoacheeId == rinoId && m.IsActive))
+            {
+                Console.WriteLine("UAT-SEED: CoachCoacheeMapping Rino sudah ada, skip.");
+                return;
+            }
+
+            context.CoachCoacheeMappings.Add(new CoachCoacheeMapping
+            {
+                CoachId = rustamId,
+                CoacheeId = rinoId,
+                IsActive = true,
+                StartDate = now,
+                AssignmentSection = "GAST",
+                AssignmentUnit = "Alkylation Unit (065)"
+            });
+            await context.SaveChangesAsync();
+            Console.WriteLine("UAT-SEED: CoachCoacheeMapping Rustam->Rino ditambahkan.");
+        }
+
+        private static async Task SeedProtonTrackAssignmentAsync(ApplicationDbContext context, string rinoId, string rustamId, DateTime now)
+        {
+            var track = await context.ProtonTracks
+                .FirstOrDefaultAsync(t => t.TrackType == "Operator" && t.TahunKe == "Tahun 1");
+            if (track == null)
+            {
+                Console.WriteLine("UAT-SEED: ProtonTrack 'Operator Tahun 1' tidak ditemukan, skip ProtonTrackAssignment.");
+                return;
+            }
+
+            if (await context.ProtonTrackAssignments.AnyAsync(a => a.CoacheeId == rinoId && a.ProtonTrackId == track.Id && a.IsActive))
+            {
+                Console.WriteLine("UAT-SEED: ProtonTrackAssignment Rino sudah ada, skip.");
+                return;
+            }
+
+            context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+            {
+                CoacheeId = rinoId,
+                AssignedById = rustamId,
+                ProtonTrackId = track.Id,
+                IsActive = true,
+                AssignedAt = now
+            });
+            await context.SaveChangesAsync();
+            Console.WriteLine("UAT-SEED: ProtonTrackAssignment Rino ditambahkan.");
+        }
+
+        private static async Task SeedAssessmentCategoriesAsync(ApplicationDbContext context)
+        {
+            if (await context.AssessmentCategories.AnyAsync(c => c.Name == "Assessment OJT"))
+            {
+                Console.WriteLine("UAT-SEED: AssessmentCategory 'Assessment OJT' sudah ada, skip.");
+                return;
+            }
+
+            var parentOjt = new AssessmentCategory { Name = "Assessment OJT", DefaultPassPercentage = 70, IsActive = true, SortOrder = 1 };
+            context.AssessmentCategories.Add(parentOjt);
+            await context.SaveChangesAsync();
+
+            context.AssessmentCategories.Add(new AssessmentCategory
+            {
+                Name = "Alkylation",
+                DefaultPassPercentage = 70,
+                IsActive = true,
+                SortOrder = 1,
+                ParentId = parentOjt.Id
+            });
+
+            var parentProton = new AssessmentCategory { Name = "Assessment Proton", DefaultPassPercentage = 70, IsActive = true, SortOrder = 2 };
+            context.AssessmentCategories.Add(parentProton);
+
+            await context.SaveChangesAsync();
+            Console.WriteLine("UAT-SEED: AssessmentCategory OJT + Alkylation + Proton ditambahkan.");
+        }
+
+        private static async Task<(List<PackageQuestion> questions, AssessmentPackage package)> SeedRegularAssessmentOpenAsync(
+            ApplicationDbContext context, string rinoId, string iwanId, DateTime now)
+        {
+            // Create AssessmentSession
+            var session = new AssessmentSession
+            {
+                Title = "OJT Proses Alkylation Q1-2026",
+                UserId = rinoId,
+                Category = "Assessment OJT",
+                Schedule = now.AddDays(7),
+                DurationMinutes = 60,
+                Status = "Open",
+                PassPercentage = 70,
+                AllowAnswerReview = true,
+                GenerateCertificate = true,
+                AccessToken = "UAT-TOKEN-001",
+                IsTokenRequired = false,
+                CreatedAt = now
+            };
+            context.AssessmentSessions.Add(session);
+            await context.SaveChangesAsync();
+
+            // Create AssessmentPackage
+            var package = new AssessmentPackage
+            {
+                AssessmentSessionId = session.Id,
+                PackageName = "Paket A",
+                PackageNumber = 1
+            };
+            context.AssessmentPackages.Add(package);
+            await context.SaveChangesAsync();
+
+            // Create 15 questions with 4 ET merata
+            var questionsData = new[]
+            {
+                // ET: Proses Distilasi (Q1-4)
+                new { Text = "Apa fungsi utama kolom distilasi dalam unit Alkylation?", ET = "Proses Distilasi", Opts = new[] { "Memisahkan komponen berdasarkan titik didih", "Mencampur bahan kimia", "Menurunkan tekanan sistem", "Menghasilkan listrik" }, CorrectIdx = 0 },
+                new { Text = "Suhu operasi normal reboiler distilasi adalah...", ET = "Proses Distilasi", Opts = new[] { "150-200°C", "50-80°C", "300-400°C", "Suhu kamar" }, CorrectIdx = 0 },
+                new { Text = "Reflux ratio yang terlalu tinggi menyebabkan...", ET = "Proses Distilasi", Opts = new[] { "Konsumsi energi berlebih", "Produk lebih kotor", "Tekanan turun drastis", "Tidak berpengaruh" }, CorrectIdx = 0 },
+                new { Text = "Indikator flooding pada kolom distilasi adalah...", ET = "Proses Distilasi", Opts = new[] { "Pressure drop naik tajam", "Level turun", "Suhu naik", "Flow rate stabil" }, CorrectIdx = 0 },
+                // ET: Keselamatan Kerja (Q5-8)
+                new { Text = "APD wajib di area Alkylation meliputi...", ET = "Keselamatan Kerja", Opts = new[] { "Helm, kacamata safety, sarung tangan asam", "Hanya helm", "Sepatu biasa dan helm", "Tidak perlu APD" }, CorrectIdx = 0 },
+                new { Text = "Langkah pertama saat terjadi kebocoran HF adalah...", ET = "Keselamatan Kerja", Opts = new[] { "Evakuasi searah angin dan aktifkan alarm", "Tutup kebocoran langsung", "Lanjutkan bekerja", "Telepon keluarga" }, CorrectIdx = 0 },
+                new { Text = "Frekuensi safety talk di area proses adalah...", ET = "Keselamatan Kerja", Opts = new[] { "Setiap shift change", "Sekali sebulan", "Sekali setahun", "Tidak perlu" }, CorrectIdx = 0 },
+                new { Text = "Tujuan Job Safety Analysis (JSA) adalah...", ET = "Keselamatan Kerja", Opts = new[] { "Mengidentifikasi bahaya setiap langkah kerja", "Membuat laporan keuangan", "Menghitung bonus", "Mengganti peralatan" }, CorrectIdx = 0 },
+                // ET: Operasi Pompa (Q9-12)
+                new { Text = "Jenis pompa yang umum di unit Alkylation adalah...", ET = "Operasi Pompa", Opts = new[] { "Centrifugal pump", "Pompa tangan", "Pompa angin", "Water wheel" }, CorrectIdx = 0 },
+                new { Text = "Tanda kavitasi pada pompa sentrifugal adalah...", ET = "Operasi Pompa", Opts = new[] { "Suara gemericik dan getaran abnormal", "Pompa berjalan normal", "Flow naik drastis", "Motor mati" }, CorrectIdx = 0 },
+                new { Text = "Mechanical seal pada pompa berfungsi untuk...", ET = "Operasi Pompa", Opts = new[] { "Mencegah kebocoran fluida proses", "Menambah tekanan", "Mendinginkan motor", "Mempercepat putaran" }, CorrectIdx = 0 },
+                new { Text = "Prosedur alignment pompa dilakukan saat...", ET = "Operasi Pompa", Opts = new[] { "Setelah maintenance atau instalasi baru", "Setiap jam", "Saat pompa berjalan", "Tidak pernah" }, CorrectIdx = 0 },
+                // ET: Instrumentasi (Q13-15)
+                new { Text = "Transmitter tekanan pada reaktor berfungsi untuk...", ET = "Instrumentasi", Opts = new[] { "Mengukur dan mengirim sinyal tekanan ke DCS", "Menghasilkan tekanan", "Menyimpan data manual", "Mengganti operator" }, CorrectIdx = 0 },
+                new { Text = "Kalibrasi instrumen dilakukan untuk...", ET = "Instrumentasi", Opts = new[] { "Memastikan akurasi pembacaan", "Mengganti instrumen", "Mematikan sistem", "Mengurangi biaya" }, CorrectIdx = 0 },
+                new { Text = "Control valve gagal membuka (fail-open) dipasang pada...", ET = "Instrumentasi", Opts = new[] { "Cooling water line", "Fuel gas line", "Vent line", "Drain line" }, CorrectIdx = 0 },
+            };
+
+            var questions = new List<PackageQuestion>();
+            int order = 1;
+            foreach (var qData in questionsData)
+            {
+                var q = new PackageQuestion
+                {
+                    AssessmentPackageId = package.Id,
+                    QuestionText = qData.Text,
+                    Order = order++,
+                    ScoreValue = 10,
+                    ElemenTeknis = qData.ET
+                };
+                questions.Add(q);
+            }
+            context.PackageQuestions.AddRange(questions);
+            await context.SaveChangesAsync();
+
+            // Create 4 options per question
+            var allOptions = new List<PackageOption>();
+            for (int i = 0; i < questions.Count; i++)
+            {
+                var qData = questionsData[i];
+                for (int j = 0; j < qData.Opts.Length; j++)
+                {
+                    allOptions.Add(new PackageOption
+                    {
+                        PackageQuestionId = questions[i].Id,
+                        OptionText = qData.Opts[j],
+                        IsCorrect = j == qData.CorrectIdx
+                    });
+                }
+            }
+            context.PackageOptions.AddRange(allOptions);
+            await context.SaveChangesAsync();
+
+            // Reload questions with options for ShuffledOptionIdsPerQuestion
+            var questionsWithOptions = await context.PackageQuestions
+                .Where(q => q.AssessmentPackageId == package.Id)
+                .Include(q => q.Options)
+                .ToListAsync();
+
+            var questionIds = questionsWithOptions.Select(q => q.Id).ToList();
+            var optionIdsPerQuestion = questionsWithOptions.ToDictionary(
+                q => q.Id.ToString(),
+                q => q.Options.Select(o => o.Id).ToList()
+            );
+
+            // Create UserPackageAssignment for Rino and Iwan
+            var assignments = new[]
+            {
+                new UserPackageAssignment
+                {
+                    AssessmentSessionId = session.Id,
+                    AssessmentPackageId = package.Id,
+                    UserId = rinoId,
+                    ShuffledQuestionIds = JsonSerializer.Serialize(questionIds),
+                    ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optionIdsPerQuestion),
+                    IsCompleted = false,
+                    SavedQuestionCount = 15
+                },
+                new UserPackageAssignment
+                {
+                    AssessmentSessionId = session.Id,
+                    AssessmentPackageId = package.Id,
+                    UserId = iwanId,
+                    ShuffledQuestionIds = JsonSerializer.Serialize(questionIds),
+                    ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optionIdsPerQuestion),
+                    IsCompleted = false,
+                    SavedQuestionCount = 15
+                }
+            };
+            context.UserPackageAssignments.AddRange(assignments);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"UAT-SEED: Assessment reguler 'OJT Proses Alkylation Q1-2026' dibuat (sessionId={session.Id}, {questions.Count} soal, 2 assignment).");
+            return (questionsWithOptions, package);
+        }
+
+        private static Task SeedCompletedAssessmentPassAsync(ApplicationDbContext context, string rinoId, DateTime now, List<PackageQuestion> questions)
+        {
+            // Stub — akan diimplementasi Plan 02
+            Console.WriteLine("UAT-SEED: SeedCompletedAssessmentPassAsync — stub (Plan 02).");
+            return Task.CompletedTask;
+        }
+
+        private static Task SeedCompletedAssessmentFailAsync(ApplicationDbContext context, string rinoId, DateTime now, List<PackageQuestion> questions)
+        {
+            // Stub — akan diimplementasi Plan 02
+            Console.WriteLine("UAT-SEED: SeedCompletedAssessmentFailAsync — stub (Plan 02).");
+            return Task.CompletedTask;
+        }
+
+        private static Task SeedProtonAssessmentsAsync(ApplicationDbContext context, string rinoId, DateTime now)
+        {
+            // Stub — akan diimplementasi Plan 02
+            Console.WriteLine("UAT-SEED: SeedProtonAssessmentsAsync — stub (Plan 02).");
+            return Task.CompletedTask;
+        }
+
+        // =====================================================================
 
         private static async Task CreateRolesAsync(RoleManager<IdentityRole> roleManager)
         {
