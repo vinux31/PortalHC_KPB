@@ -965,7 +965,7 @@ namespace HcPortal.Data
                 PassPercentage = 70,
                 AllowAnswerReview = true,
                 GenerateCertificate = true,
-                AccessToken = "EDGE-TOKEN-001",
+                AccessToken = "EDG001",
                 IsTokenRequired = true,
                 CreatedAt = now
             };
@@ -1065,7 +1065,7 @@ namespace HcPortal.Data
             });
             await context.SaveChangesAsync();
 
-            Console.WriteLine($"UAT-SEED: Token-required session 'OJT Token Test Q1-2026' dibuat (sessionId={session.Id}, token=EDGE-TOKEN-001, 2 user assignments).");
+            Console.WriteLine($"UAT-SEED: Token-required session 'OJT Token Test Q1-2026' dibuat (sessionId={session.Id}, token=EDG001, 2 user assignments).");
         }
 
         private static async Task SeedExpiredCertSessionAsync(ApplicationDbContext context, string rinoId, DateTime now)
