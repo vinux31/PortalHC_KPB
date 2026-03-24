@@ -2,8 +2,8 @@
 
 @{
     ViewData["Title"] = "Tinjau Jawaban Anda";
-    int unanswered = (int)ViewBag.UnansweredCount;
-    int assessmentId = (int)ViewBag.AssessmentId;
+    int unanswered = ViewBag.UnansweredCount as int? ?? 0;
+    int assessmentId = ViewBag.AssessmentId as int? ?? 0;
     int? assignmentId = ViewBag.AssignmentId as int?;
     var answers = ViewBag.Answers as Dictionary<int, int> ?? new Dictionary<int, int>();
 }

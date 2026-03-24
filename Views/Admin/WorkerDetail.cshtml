@@ -12,8 +12,9 @@
         "Coach" => "bg-success",
         _ => "bg-secondary"
     };
-    var initials = Model.FullName.Length > 0
-        ? string.Join("", Model.FullName.Split(' ').Take(2).Select(w => w[0].ToString().ToUpper()))
+    var fullName = Model.FullName ?? "";
+    var initials = fullName.Length > 0
+        ? string.Join("", fullName.Split(' ').Take(2).Select(w => w[0].ToString().ToUpper()))
         : "?";
 }
 
@@ -34,7 +35,7 @@
             <h2 class="fw-bold mb-1">
                 <i class="bi bi-person-badge me-2 text-primary"></i>Detail Akun Pekerja
             </h2>
-            <p class="text-muted mb-0">Informasi lengkap akun <strong>@Model.FullName</strong></p>
+            <p class="text-muted mb-0">Informasi lengkap akun <strong>@(Model.FullName ?? "")</strong></p>
         </div>
         <div class="d-flex gap-2">
             <a href="@Url.Action("EditWorker", "Admin", new { id = Model.Id })" class="btn btn-primary" id="btnEditFromDetail">
@@ -55,7 +56,7 @@
                     @initials
                 </div>
                 <div class="text-white">
-                    <h3 class="mb-1 fw-bold">@Model.FullName</h3>
+                    <h3 class="mb-1 fw-bold">@(Model.FullName ?? "")</h3>
                     <p class="mb-2 opacity-75"><i class="bi bi-envelope me-1"></i>@Model.Email</p>
                     <span class="badge @roleBadgeClass" style="font-size: 0.85rem;">@role</span>
                 </div>
