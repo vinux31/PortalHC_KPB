@@ -88,7 +88,9 @@
   2. Admin membuat assessment Proton Tahun 3 dengan tipe interview dan durasi 0 — assessment tersimpan tanpa memerlukan paket soal
   3. HC membuka halaman input hasil interview Tahun 3, mengisi 5 aspek penilaian (skor 1-5), nama juri, catatan, dan menandai IsPassed secara manual — data tersimpan
   4. Setelah HC menandai Tahun 3 lulus, ProtonFinalAssessment dibuat otomatis dan sertifikat Proton di-generate serta dapat diakses peserta
-- **Plans:** TBD
+- **Plans:** 2 plans
+  - [ ] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
+  - [ ] 245-02-PLAN.md — Human verification UAT Proton di browser (exam Tahun 1, interview Tahun 3, sertifikat)
 
 #### Phase 246: UAT Edge Cases & Records
 - **Status:** Pending
@@ -102,7 +104,9 @@
   4. Alarm sertifikat expired di Home/Index → klik link → halaman RenewalCertificate → proses renewal → sertifikat baru terbuat end-to-end
   5. Worker membuka My Records dan melihat riwayat assessment pribadi dengan kolom lengkap serta dapat export ke Excel
   6. HC membuka Team View Records, memfilter dengan date range, melihat data seluruh pekerja, dan dapat export ke Excel
-- **Plans:** TBD
+- **Plans:** 2 plans
+  - [ ] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
+  - [ ] 245-02-PLAN.md — Human verification UAT Proton di browser (exam Tahun 1, interview Tahun 3, sertifikat)
 
 #### Phase 247: Bug Fix Pasca-UAT
 - **Status:** Pending
@@ -113,7 +117,9 @@
   1. Setiap bug yang dicatat selama UAT memiliki fix yang dapat diverifikasi ulang di browser
   2. Alur yang sebelumnya gagal dalam UAT kini berjalan tanpa error setelah fix diterapkan
   3. Tidak ada regresi pada fitur yang sebelumnya bekerja normal (fitur di luar scope bug yang ditemukan tetap berfungsi)
-- **Plans:** TBD
+- **Plans:** 2 plans
+  - [ ] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
+  - [ ] 245-02-PLAN.md — Human verification UAT Proton di browser (exam Tahun 1, interview Tahun 3, sertifikat)
 
 <details>
 <summary>✅ v8.6 Codebase Audit & Hardening (Phases 248-252) — SHIPPED 2026-03-24</summary>
@@ -135,7 +141,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 241. Seed Data UAT | v8.5 | 2/2 | Complete | 2026-03-24 |
 | 242. UAT Setup Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 243. UAT Exam Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete   | 2026-03-24 |
+| 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 245. UAT Proton Assessment | v8.5 | 0/0 | Pending | — |
 | 246. UAT Edge Cases & Records | v8.5 | 0/0 | Pending | — |
 | 247. Bug Fix Pasca-UAT | v8.5 | 0/0 | Pending | — |
