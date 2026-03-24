@@ -88,7 +88,9 @@ Plans:
 **Gap Closure**: Closes SEC-02-AJAX from v8.6 audit
 **Success Criteria** (what must be TRUE):
   1. Approval via AJAX menghasilkan badge tooltip yang menampilkan karakter HTML sebagai teks literal, bukan dieksekusi sebagai markup
-**Plans:** 0/1 plans needed
+**Plans:** 1 plan
+Plans:
+- [ ] 252-01-PLAN.md — Tambah escHtml() helper + escape 3 blok AJAX handler
 
 ## Progress
 
