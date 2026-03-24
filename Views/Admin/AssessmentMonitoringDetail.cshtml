@@ -926,8 +926,7 @@ updateTimeRemaining(); // initial call on page load
             document.body.removeChild(ta);
             if (labelEl) { labelEl.textContent = 'Copied!'; setTimeout(function () { labelEl.textContent = 'Copy'; }, 2000); }
         } catch (e) {
-            alert('Token: ' + text + '
-Salin manual dari dialog ini.');
+            alert('Token: ' + text + '\nSalin manual dari dialog ini.');
         }
     }
 
