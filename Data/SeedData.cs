@@ -957,6 +957,7 @@ namespace HcPortal.Data
             var session = new AssessmentSession
             {
                 Title = "OJT Token Test Q1-2026",
+                UserId = rinoId,
                 Category = "Assessment OJT",
                 Schedule = now.AddDays(3),
                 DurationMinutes = 30,
