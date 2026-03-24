@@ -35,7 +35,7 @@
   - [x] 241-02-PLAN.md — Completed assessment (lulus+gagal) + Assessment Proton Tahun 1 & 3
 
 #### Phase 242: UAT Setup Flow
-- **Status:** Planned
+- **Status:** Complete
 - **Goal:** Admin dan HC dapat melakukan seluruh alur setup assessment — dari membuat kategori hierarchy hingga melihat ET coverage matrix — tanpa error
 - **Depends on:** Phase 241
 - **Requirements:** SETUP-01, SETUP-02, SETUP-03, SETUP-04
@@ -60,7 +60,9 @@
   4. Worker disconnect dan kembali — ujian dilanjutkan dari page terakhir dengan sisa waktu akurat dan jawaban sebelumnya masih terpilih
   5. Worker membuka ExamSummary, melihat ringkasan jawaban, submit, dan sistem menampilkan skor beserta radar chart ET
   6. Worker yang lulus dapat melihat sertifikat dengan nomor otomatis format KPB/SEQ/BULAN/TAHUN dan mencetak/download sebagai PDF
-- **Plans:** TBD
+- **Plans:** 2 plans
+  - [ ] 243-01-PLAN.md — Code review & UAT start exam, take exam, timer, resume (EXAM-01 s/d EXAM-04)
+  - [ ] 243-02-PLAN.md — Code review & UAT summary, submit, results, certificate (EXAM-05 s/d EXAM-07)
 
 #### Phase 244: UAT Monitoring & Analytics
 - **Status:** Pending
@@ -130,7 +132,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 |-------|-----------|----------------|--------|-----------|
 | 241. Seed Data UAT | v8.5 | 2/2 | Complete | 2026-03-24 |
 | 242. UAT Setup Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 243. UAT Exam Flow | v8.5 | 0/0 | Pending | — |
+| 243. UAT Exam Flow | v8.5 | 0/2 | Pending | — |
 | 244. UAT Monitoring & Analytics | v8.5 | 0/0 | Pending | — |
 | 245. UAT Proton Assessment | v8.5 | 0/0 | Pending | — |
 | 246. UAT Edge Cases & Records | v8.5 | 0/0 | Pending | — |
