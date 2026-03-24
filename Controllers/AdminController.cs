@@ -2348,15 +2348,18 @@ namespace HcPortal.Controllers
             if (isPackageMode)
             {
                 // Package mode: count PackageQuestion rows via UserPackageAssignment -> AssessmentPackage
-                questionCountMap = await _context.UserPackageAssignments
+                // GroupBy handles users with multiple package assignments per session
+                questionCountMap = (await _context.UserPackageAssignments
                     .Where(a => siblingIds.Contains(a.AssessmentSessionId))
                     .Join(_context.AssessmentPackages.Include(p => p.Questions),
                         a => a.AssessmentPackageId,
                         p => p.Id,
                         (a, p) => new { a.AssessmentSessionId, QuestionCount = p.Questions.Count })
-                    .ToDictionaryAsync(
-                        x => x.AssessmentSessionId,
-                        x => x.QuestionCount);
+                    .ToListAsync())
+                    .GroupBy(x => x.AssessmentSessionId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Sum(x => x.QuestionCount));
             }
             var sessionViewModels = sessions.Select(a =>
             {
