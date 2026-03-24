@@ -74,7 +74,7 @@ namespace HcPortal.Models
             {
                 if (ValidUntil.HasValue && Status == "Valid")
                 {
-                    var daysUntilExpiry = (ValidUntil.Value - DateTime.Now).Days;
+                    var daysUntilExpiry = (ValidUntil.Value - DateTime.UtcNow).Days;
                     return daysUntilExpiry <= 30 && daysUntilExpiry >= 0;
                 }
                 return false;
@@ -88,7 +88,7 @@ namespace HcPortal.Models
             {
                 if (ValidUntil.HasValue)
                 {
-                    return (ValidUntil.Value - DateTime.Now).Days;
+                    return (ValidUntil.Value - DateTime.UtcNow).Days;
                 }
                 return null;
             }

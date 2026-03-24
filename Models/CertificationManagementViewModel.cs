@@ -56,7 +56,7 @@ public class SertifikatRow
             return CertificateStatus.Permanent;
         if (validUntil == null)
             return CertificateStatus.Expired; // non-Permanent with no expiry → treat as expired (needs renewal)
-        var days = (validUntil.Value - DateTime.Now).Days;
+        var days = (validUntil.Value - DateTime.UtcNow).Days;
         if (days < 0) return CertificateStatus.Expired;
         if (days <= 30) return CertificateStatus.AkanExpired;
         return CertificateStatus.Aktif;
