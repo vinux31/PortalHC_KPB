@@ -18,7 +18,7 @@
 
 **Milestone Goal:** Perbaiki semua bug Critical/High/Medium dari deep audit codebase — null safety, input validation, data integrity, security leak, dan performa. Setiap fix atomic, tidak ada fitur baru.
 
-- [ ] **Phase 248: UI & Annotations** - Tambah CSS global, data annotations MaxLength/Range tanpa mengubah logika apapun
+- [x] **Phase 248: UI & Annotations** - Tambah CSS global, data annotations MaxLength/Range tanpa mengubah logika apapun (completed 2026-03-24)
 - [ ] **Phase 249: Null Safety & Input Validation** - Tambah defensive null checks dan safe parse di seluruh codebase
 - [ ] **Phase 250: Security & Performance** - Fix XSS, hapus console.log yang mengekspos data, password policy, throttle notifikasi
 - [ ] **Phase 251: Data Integrity & Logic** - Fix timezone, unique index migration, validasi business rule, thread safety
@@ -33,9 +33,9 @@
   1. Badge Proton di halaman AssessmentMonitoring tampil dengan warna ungu yang benar (tidak kosong/transparan)
   2. Seluruh string field di TrainingRecord memiliki MaxLength terdefinisi — EF Core tidak akan menggunakan nvarchar(MAX) untuk field tersebut
   3. Field `CompetencyLevelGranted` di ProtonFinalAssessment menolak nilai di luar range 0–5 pada validasi model
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 248-01-PLAN.md — CSS global .bg-purple + MaxLength/Range annotations pada model
+- [x] 248-01-PLAN.md — CSS global .bg-purple + MaxLength/Range annotations pada model
 **UI hint**: yes
 
 ### Phase 249: Null Safety & Input Validation
@@ -76,7 +76,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 248. UI & Annotations | v8.6 | 0/1 | Not started | - |
+| 248. UI & Annotations | v8.6 | 1/1 | Complete   | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 0/TBD | Not started | - |
 | 250. Security & Performance | v8.6 | 0/TBD | Not started | - |
 | 251. Data Integrity & Logic | v8.6 | 0/TBD | Not started | - |

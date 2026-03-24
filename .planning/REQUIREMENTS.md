@@ -32,9 +32,9 @@ Requirements untuk Codebase Audit & Hardening. Setiap bug di-fix dengan atomic c
 
 ### UI & Annotations
 
-- [ ] **UI-01**: Definisikan `.bg-purple` di CSS global agar badge Proton tampil benar di AssessmentMonitoring
-- [ ] **UI-02**: Tambah `[MaxLength]` pada string fields `TrainingRecord` yang belum punya (Judul, Kategori, Penyelenggara, Status, SertifikatUrl, CertificateType, NomorSertifikat, Kota, SubKategori)
-- [ ] **UI-03**: Tambah `[Range(0, 5)]` pada `ProtonFinalAssessment.CompetencyLevelGranted`
+- [x] **UI-01**: Definisikan `.bg-purple` di CSS global agar badge Proton tampil benar di AssessmentMonitoring
+- [x] **UI-02**: Tambah `[MaxLength]` pada string fields `TrainingRecord` yang belum punya (Judul, Kategori, Penyelenggara, Status, SertifikatUrl, CertificateType, NomorSertifikat, Kota, SubKategori)
+- [x] **UI-03**: Tambah `[Range(0, 5)]` pada `ProtonFinalAssessment.CompetencyLevelGranted`
 
 ## Future Requirements
 
@@ -54,9 +54,9 @@ Tidak ada — milestone ini murni bug fix dari audit.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| UI-01 | Phase 248 | Pending |
-| UI-02 | Phase 248 | Pending |
-| UI-03 | Phase 248 | Pending |
+| UI-01 | Phase 248 | Complete |
+| UI-02 | Phase 248 | Complete |
+| UI-03 | Phase 248 | Complete |
 | SAFE-01 | Phase 249 | Pending |
 | SAFE-02 | Phase 249 | Pending |
 | SAFE-03 | Phase 249 | Pending |
