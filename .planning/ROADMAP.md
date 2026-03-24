@@ -33,7 +33,9 @@
   1. Badge Proton di halaman AssessmentMonitoring tampil dengan warna ungu yang benar (tidak kosong/transparan)
   2. Seluruh string field di TrainingRecord memiliki MaxLength terdefinisi — EF Core tidak akan menggunakan nvarchar(MAX) untuk field tersebut
   3. Field `CompetencyLevelGranted` di ProtonFinalAssessment menolak nilai di luar range 0–5 pada validasi model
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 248-01-PLAN.md — CSS global .bg-purple + MaxLength/Range annotations pada model
 **UI hint**: yes
 
 ### Phase 249: Null Safety & Input Validation
@@ -74,7 +76,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 248. UI & Annotations | v8.6 | 0/TBD | Not started | - |
+| 248. UI & Annotations | v8.6 | 0/1 | Not started | - |
 | 249. Null Safety & Input Validation | v8.6 | 0/TBD | Not started | - |
 | 250. Security & Performance | v8.6 | 0/TBD | Not started | - |
 | 251. Data Integrity & Logic | v8.6 | 0/TBD | Not started | - |
