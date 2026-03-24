@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using HcPortal.Models;
 using HcPortal.Data;
 using HcPortal.Services;
@@ -16,14 +17,16 @@ public class HomeController : Controller
     private readonly ApplicationDbContext _context;
     private readonly INotificationService _notificationService;
     private readonly ILogger<HomeController> _logger;
+    private readonly IMemoryCache _cache;
 
     public HomeController(UserManager<ApplicationUser> userManager, ApplicationDbContext context,
-        INotificationService notificationService, ILogger<HomeController> logger)
+        INotificationService notificationService, ILogger<HomeController> logger, IMemoryCache cache)
     {
         _userManager = userManager;
         _context = context;
         _notificationService = notificationService;
         _logger = logger;
+        _cache = cache;
     }
 
     public async Task<IActionResult> Index()
@@ -47,7 +50,12 @@ public class HomeController : Controller
             var (expiredCount, akanExpiredCount) = await GetCertAlertCountsAsync();
             viewModel.ExpiredCount = expiredCount;
             viewModel.AkanExpiredCount = akanExpiredCount;
-            await TriggerCertExpiredNotificationsAsync();
+            var cacheKey = "cert-notif-global";
+            if (!_cache.TryGetValue(cacheKey, out _))
+            {
+                await TriggerCertExpiredNotificationsAsync();
+                _cache.Set(cacheKey, true, TimeSpan.FromHours(1));
+            }
         }
 
         return View(viewModel);
