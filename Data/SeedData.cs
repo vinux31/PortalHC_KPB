@@ -463,40 +463,10 @@ namespace HcPortal.Data
                 .Include(q => q.Options)
                 .ToListAsync();
 
-            var questionIds = questionsWithOptions.Select(q => q.Id).ToList();
-            var optionIdsPerQuestion = questionsWithOptions.ToDictionary(
-                q => q.Id.ToString(),
-                q => q.Options.Select(o => o.Id).ToList()
-            );
+            // UserPackageAssignment NOT pre-created — system builds it on exam start
+            // with proper Fisher-Yates shuffle + cross-package distribution via BuildCrossPackageAssignment()
 
-            // Create UserPackageAssignment for Rino and Iwan
-            var assignments = new[]
-            {
-                new UserPackageAssignment
-                {
-                    AssessmentSessionId = session.Id,
-                    AssessmentPackageId = package.Id,
-                    UserId = rinoId,
-                    ShuffledQuestionIds = JsonSerializer.Serialize(questionIds),
-                    ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optionIdsPerQuestion),
-                    IsCompleted = false,
-                    SavedQuestionCount = 15
-                },
-                new UserPackageAssignment
-                {
-                    AssessmentSessionId = session.Id,
-                    AssessmentPackageId = package.Id,
-                    UserId = iwanId,
-                    ShuffledQuestionIds = JsonSerializer.Serialize(questionIds),
-                    ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optionIdsPerQuestion),
-                    IsCompleted = false,
-                    SavedQuestionCount = 15
-                }
-            };
-            context.UserPackageAssignments.AddRange(assignments);
-            await context.SaveChangesAsync();
-
-            Console.WriteLine($"UAT-SEED: Assessment reguler 'OJT Proses Alkylation Q1-2026' dibuat (sessionId={session.Id}, {questions.Count} soal, 2 assignment).");
+            Console.WriteLine($"UAT-SEED: Assessment reguler 'OJT Proses Alkylation Q1-2026' dibuat (sessionId={session.Id}, {questions.Count} soal, assignment dibuat saat exam start).");
             return (questionsWithOptions, package);
         }
 
