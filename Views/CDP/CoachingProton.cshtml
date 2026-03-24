@@ -1085,6 +1085,17 @@
 @section Scripts {
 @Html.AntiForgeryToken()
 <script>
+// === XSS escape helper (OWASP DOM XSS Prevention) ===
+function escHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // === Bagian -> Unit cascade ===
 const unitsByBagian = {
     "RFCC": ["RFCC LPG Treating Unit (062)", "Propylene Recovery Unit (063)"],
@@ -1223,7 +1234,7 @@ if (btnSubmitTinja) {
                 const colId = role === 'srspv' ? `srspv-${progressId}` : `sh-${progressId}`;
                 const cell = document.getElementById(colId);
                 if (cell) {
-                    const tooltip = `${data.approverName} \u2014 ${data.approvedAt}`;
+                    const tooltip = `${escHtml(data.approverName)} \u2014 ${escHtml(data.approvedAt)}`;
                     const badgeClass = data.newStatus === 'Approved' ? 'bg-success' : 'bg-danger';
                     cell.innerHTML = `<span class="badge ${badgeClass} fw-bold border border-${data.newStatus === 'Approved' ? 'success' : 'danger'}" data-bs-toggle="tooltip" title="${tooltip}">${data.newStatus}</span>`;
                     // Re-init tooltip on new badge
@@ -1260,7 +1271,7 @@ document.querySelectorAll('.btnHcReview').forEach(btn => {
                 showToast(data.message, 'success');
                 const cell = document.getElementById(`hc-${progressId}`);
                 if (cell) {
-                    const tooltip = `${data.reviewerName} \u2014 ${data.reviewedAt}`;
+                    const tooltip = `${escHtml(data.reviewerName)} \u2014 ${escHtml(data.reviewedAt)}`;
                     cell.innerHTML = `<span class="badge bg-success fw-bold border border-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
                     const newBadge = cell.querySelector('[data-bs-toggle="tooltip"]');
                     if (newBadge) new bootstrap.Tooltip(newBadge);
@@ -1301,7 +1312,7 @@ document.querySelectorAll('.btnHcReviewPanel').forEach(btn => {
                 // Update HC cell in the main progress table (if visible on same page)
                 const hcCell = document.getElementById(`hc-${progressId}`);
                 if (hcCell) {
-                    const tooltip = `${data.reviewerName} \u2014 ${data.reviewedAt}`;
+                    const tooltip = `${escHtml(data.reviewerName)} \u2014 ${escHtml(data.reviewedAt)}`;
                     hcCell.innerHTML = `<span class="badge bg-success fw-bold border border-success" data-bs-toggle="tooltip" title="${tooltip}">Reviewed</span>`;
                     const newBadge = hcCell.querySelector('[data-bs-toggle="tooltip"]');
                     if (newBadge) new bootstrap.Tooltip(newBadge);
