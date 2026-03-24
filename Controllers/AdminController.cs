@@ -1097,9 +1097,11 @@ namespace HcPortal.Controllers
             else if (renewTrainingId != null && renewTrainingId.Count > 0)
             {
                 // Build category lookup for MapKategori DB lookup (LDAT-05)
-                var catsForRenewal = await _context.AssessmentCategories
+                var catsForRenewal = (await _context.AssessmentCategories
                     .Where(c => c.IsActive && c.ParentId == null)
-                    .ToDictionaryAsync(c => c.Name.ToUpperInvariant(), c => c.Name);
+                    .ToListAsync())
+                    .GroupBy(c => c.Name.ToUpperInvariant())
+                    .ToDictionary(g => g.Key, g => g.First().Name);
                 if (!catsForRenewal.ContainsKey("MANDATORY")) catsForRenewal["MANDATORY"] = "Mandatory HSSE Training";
                 if (!catsForRenewal.ContainsKey("PROTON")) catsForRenewal["PROTON"] = "Assessment Proton";
 
@@ -5740,9 +5742,11 @@ namespace HcPortal.Controllers
             else if (renewSessionId != null && renewSessionId.Count > 0)
             {
                 // Build category lookup for MapKategori DB lookup (LDAT-05)
-                var catsForSessionRenewal = await _context.AssessmentCategories
+                var catsForSessionRenewal = (await _context.AssessmentCategories
                     .Where(c => c.IsActive && c.ParentId == null)
-                    .ToDictionaryAsync(c => c.Name.ToUpperInvariant(), c => c.Name);
+                    .ToListAsync())
+                    .GroupBy(c => c.Name.ToUpperInvariant())
+                    .ToDictionary(g => g.Key, g => g.First().Name);
                 if (!catsForSessionRenewal.ContainsKey("MANDATORY")) catsForSessionRenewal["MANDATORY"] = "Mandatory HSSE Training";
                 if (!catsForSessionRenewal.ContainsKey("PROTON")) catsForSessionRenewal["PROTON"] = "Assessment Proton";
 
@@ -7091,7 +7095,8 @@ namespace HcPortal.Controllers
                 .ToListAsync();
             var rawToDisplayMap = allCategories
                 .Where(c => c.ParentId == null)
-                .ToDictionary(c => c.Name.ToUpperInvariant(), c => c.Name);
+                .GroupBy(c => c.Name.ToUpperInvariant())
+                .ToDictionary(g => g.Key, g => g.First().Name);
             if (!rawToDisplayMap.ContainsKey("MANDATORY"))
                 rawToDisplayMap["MANDATORY"] = "Mandatory HSSE Training";
             if (!rawToDisplayMap.ContainsKey("PROTON"))
@@ -7120,7 +7125,8 @@ namespace HcPortal.Controllers
             var categoryById = allCategories.ToDictionary(c => c.Id);
             var categoryNameLookup = allCategories
                 .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
-                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+                .GroupBy(c => c.Name)
+                .ToDictionary(g => g.Key, g => categoryById[g.First().ParentId!.Value].Name);
 
             var assessmentAnon = await _context.AssessmentSessions
                 .Include(a => a.User)
@@ -7230,10 +7236,12 @@ namespace HcPortal.Controllers
             var categoryById = allCategories.ToDictionary(c => c.Id);
             var categoryNameLookup = allCategories
                 .Where(c => c.ParentId != null && categoryById.ContainsKey(c.ParentId.Value))
-                .ToDictionary(c => c.Name, c => categoryById[c.ParentId!.Value].Name);
+                .GroupBy(c => c.Name)
+                .ToDictionary(g => g.Key, g => categoryById[g.First().ParentId!.Value].Name);
             var rawToDisplayMapHist = allCategories
                 .Where(c => c.ParentId == null)
-                .ToDictionary(c => c.Name.ToUpperInvariant(), c => c.Name);
+                .GroupBy(c => c.Name.ToUpperInvariant())
+                .ToDictionary(g => g.Key, g => g.First().Name);
             if (!rawToDisplayMapHist.ContainsKey("MANDATORY")) rawToDisplayMapHist["MANDATORY"] = "Mandatory HSSE Training";
             if (!rawToDisplayMapHist.ContainsKey("PROTON")) rawToDisplayMapHist["PROTON"] = "Assessment Proton";
 
