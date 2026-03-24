@@ -1081,8 +1081,10 @@ namespace HcPortal.Controllers
                     else
                         ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
 
-                    // Build {UserId → SessionId} map
-                    var fkMap = sourceSessions.ToDictionary(s => s.UserId, s => s.Id);
+                    // Build {UserId → SessionId} map (GroupBy to handle duplicate UserId safely)
+                    var fkMap = sourceSessions
+                        .GroupBy(s => s.UserId)
+                        .ToDictionary(g => g.Key, g => g.First().Id);
                     ViewBag.RenewalFkMap = System.Text.Json.JsonSerializer.Serialize(fkMap);
                     ViewBag.RenewalFkMapType = "session";
 
@@ -1151,8 +1153,10 @@ namespace HcPortal.Controllers
                     else
                         ViewBag.RenewalValidUntilWarning = "Tanggal expired sertifikat asal kosong. Silakan isi ValidUntil secara manual.";
 
-                    // Build {UserId → TrainingRecordId} map
-                    var fkMap = sourceTrainings.ToDictionary(t => t.UserId ?? "", t => t.Id);
+                    // Build {UserId → TrainingRecordId} map (GroupBy to handle duplicate UserId safely)
+                    var fkMap = sourceTrainings
+                        .GroupBy(t => t.UserId ?? "")
+                        .ToDictionary(g => g.Key, g => g.First().Id);
                     ViewBag.RenewalFkMap = System.Text.Json.JsonSerializer.Serialize(fkMap);
                     ViewBag.RenewalFkMapType = "training";
 
