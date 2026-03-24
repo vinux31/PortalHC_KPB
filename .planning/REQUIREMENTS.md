@@ -38,8 +38,8 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 
 - [x] **MON-01**: HC dapat memonitor ujian real-time via SignalR dengan stat cards dan status per-user
 - [x] **MON-02**: HC dapat manage token (copy, regenerate) dan force close/reset ujian
-- [ ] **MON-03**: HC dapat export hasil ujian ke Excel
-- [ ] **MON-04**: Analytics dashboard menampilkan fail rate, trend, ET breakdown, dan expiring soon dengan cascading filter
+- [x] **MON-03**: HC dapat export hasil ujian ke Excel
+- [x] **MON-04**: Analytics dashboard menampilkan fail rate, trend, ET breakdown, dan expiring soon dengan cascading filter
 
 ### Proton
 
@@ -115,8 +115,8 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 | EXAM-07 | Phase 243 | Complete |
 | MON-01 | Phase 244 | Complete |
 | MON-02 | Phase 244 | Complete |
-| MON-03 | Phase 244 | Pending |
-| MON-04 | Phase 244 | Pending |
+| MON-03 | Phase 244 | Complete |
+| MON-04 | Phase 244 | Complete |
 | PROT-01 | Phase 245 | Pending |
 | PROT-02 | Phase 245 | Pending |
 | PROT-03 | Phase 245 | Pending |
