@@ -41,7 +41,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 241. Seed Data UAT | v8.5 | 2/2 | Complete   | 2026-03-24 |
+| 241. Seed Data UAT | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 1/1 | Complete | 2026-03-24 |
