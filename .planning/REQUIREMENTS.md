@@ -28,7 +28,6 @@ Requirements untuk Codebase Audit & Hardening. Setiap bug di-fix dengan atomic c
 
 - [ ] **SEC-01**: Hapus semua `console.log` yang mengekspos token/response di Assessment.cshtml (4 lokasi)
 - [ ] **SEC-02**: Escape `approverName` di `GetApprovalBadgeWithTooltip` CoachingProton.cshtml — ganti `@Html.Raw` dengan HTML-encoded output
-- [ ] **SEC-03**: Aktifkan minimal password policy (RequireDigit + RequireUppercase + RequiredLength=8), bungkus policy lemah dalam environment check
 - [ ] **PERF-01**: Throttle `TriggerCertExpiredNotificationsAsync` — jalankan maksimal 1x per jam via IMemoryCache, bukan setiap page load dashboard
 
 ### UI & Annotations
@@ -48,37 +47,36 @@ Tidak ada — milestone ini murni bug fix dari audit.
 | Fitur baru | Milestone ini hanya bug fix & hardening |
 | v8.5 UAT execution | Akan dieksekusi setelah v8.6 selesai |
 | Refactor arsitektur besar | Fix minimal & targeted, bukan redesign |
-| Password migration user existing | Policy baru hanya berlaku saat change password |
+| Password policy change | Menggunakan Active Directory — password divalidasi oleh AD, bukan Identity |
 | Low-severity bugs (4 item) | Null-forgiving NotificationController, bare catch audit log, SeedData Console.WriteLine, copyright hardcoded — risiko sangat rendah |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAFE-01 | — | Pending |
-| SAFE-02 | — | Pending |
-| SAFE-03 | — | Pending |
-| SAFE-04 | — | Pending |
-| SAFE-05 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| DATA-03 | — | Pending |
-| DATA-04 | — | Pending |
-| DATA-05 | — | Pending |
-| DATA-06 | — | Pending |
-| SEC-01 | — | Pending |
-| SEC-02 | — | Pending |
-| SEC-03 | — | Pending |
-| PERF-01 | — | Pending |
-| UI-01 | — | Pending |
-| UI-02 | — | Pending |
-| UI-03 | — | Pending |
+| UI-01 | Phase 248 | Pending |
+| UI-02 | Phase 248 | Pending |
+| UI-03 | Phase 248 | Pending |
+| SAFE-01 | Phase 249 | Pending |
+| SAFE-02 | Phase 249 | Pending |
+| SAFE-03 | Phase 249 | Pending |
+| SAFE-04 | Phase 249 | Pending |
+| SAFE-05 | Phase 249 | Pending |
+| SEC-01 | Phase 250 | Pending |
+| SEC-02 | Phase 250 | Pending |
+| PERF-01 | Phase 250 | Pending |
+| DATA-01 | Phase 251 | Pending |
+| DATA-02 | Phase 251 | Pending |
+| DATA-03 | Phase 251 | Pending |
+| DATA-04 | Phase 251 | Pending |
+| DATA-05 | Phase 251 | Pending |
+| DATA-06 | Phase 251 | Pending |
 
 **Coverage:**
-- v8.6 requirements: 18 total
-- Mapped to phases: 0
-- Unmapped: 18 ⚠️
+- v8.6 requirements: 17 total
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-24*
-*Last updated: 2026-03-24 after initial definition*
+*Last updated: 2026-03-24 — traceability updated after roadmap creation*

@@ -33,7 +33,7 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **Target features:**
 - Fix Critical: Null-forgiving `user!` di `GetCurrentUserRoleLevelAsync()` (crash 5 halaman CMP)
 - Fix High: `DateTime.Parse` tanpa try-catch (3 action), `ToDictionary` key collision bulk renewal, bare catch `RenewalFkMap`, race condition `_lastScopeLabel`, `DateTime.Now`/`UtcNow` mismatch, unique index terlalu ketat (OrganizationUnit + AssessmentCategory), token leak `console.log`
-- Fix Medium: XSS `@Html.Raw(approverName)`, null deref `WorkerDetail.FullName`, N+1 query `TriggerCertExpiredNotificationsAsync`, bulk renewal tanpa ValidUntil, edit assessment lampau mustahil, password policy lemah, missing `MaxLength`/`Range` annotations, `bg-purple` undefined di AssessmentMonitoring
+- Fix Medium: XSS `@Html.Raw(approverName)`, null deref `WorkerDetail.FullName`, N+1 query `TriggerCertExpiredNotificationsAsync`, bulk renewal tanpa ValidUntil, edit assessment lampau mustahil, missing `MaxLength`/`Range` annotations, `bg-purple` undefined di AssessmentMonitoring
 
 ## Next Milestone Goals
 
