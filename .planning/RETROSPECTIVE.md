@@ -613,6 +613,42 @@
 
 ---
 
+## Milestone: v8.6 — Codebase Audit & Hardening
+
+**Shipped:** 2026-03-24
+**Phases:** 5 (248-252) | **Plans:** 7
+
+### What Was Built
+- CSS `.bg-purple` + data annotations (`[MaxLength]`, `[Range]`) pada model TrainingRecord dan ProtonModels
+- Defensive null guards + `TryParse` + safe `ToDictionary` mencegah crash di 5+ halaman CMP
+- Hapus 4 `console.log` sensitif, tutup XSS server-side via `HtmlEncode`, throttle notification 1x/jam via IMemoryCache
+- UTC normalization (`DateTime.UtcNow`), composite unique index migration, thread-safe `_lastScopeLabel` refactor
+- Client-side XSS closure via `escHtml()` vanilla JS di 3 AJAX handler CoachingProton
+
+### What Worked
+- Gap closure phase (252) dari audit — audit menemukan celah AJAX XSS, langsung ditutup sebagai phase tambahan
+- Semua fix atomic — 1 bug = 1 commit, mudah di-revert jika ada regresi
+- Milestone audit sebelum completion menangkap gap SEC-02 AJAX yang terlewat
+
+### What Was Inefficient
+- Phase 252 bisa digabung ke Phase 250 sejak awal jika audit XSS mencakup jalur AJAX juga
+- Beberapa UAT test di-skip karena tidak ada test data (deliverable belum ada evidence) — perlu seed data untuk testing approval flow
+
+### Patterns Established
+- `escHtml()` vanilla JS helper sebagai defense-in-depth pattern untuk semua innerHTML interpolation
+- Milestone audit → gap closure phase sebagai quality gate sebelum milestone completion
+
+### Key Lessons
+- Selalu audit jalur server-side DAN client-side bersamaan untuk kerentanan XSS
+- Programmatic verification via Playwright bisa menggantikan manual UAT saat test data tidak tersedia
+
+### Cost Observations
+- Model mix: opus (planner), sonnet (executor, researcher, verifier, checker)
+- Sessions: 1
+- Notable: 5 phases + gap closure + milestone completion dalam 1 session, ~2 jam total
+
+---
+
 ## Cross-Milestone Trends
 
 | Milestone | Phases | Plans | Days | Avg plans/day |
@@ -647,5 +683,6 @@
 | v7.10 | 3 | 5 | 1 | 5 |
 | v7.12 | 4 | 7 | 1 | 7 |
 | v8.2 | 6 | 16 | 2 | 8 |
+| v8.6 | 5 | 7 | 1 | 7 |
 
-**Running total:** 117 phases, ~268 plans, 34 days
+**Running total:** 122 phases, ~275 plans, 35 days
