@@ -390,10 +390,12 @@ namespace HcPortal.Controllers
                     .Where(c => c.IsActive && c.ParentId == null)
                     .Include(c => c.Children)
                     .ToListAsync();
-                var subCategoryMap = allCats.ToDictionary(
-                    p => p.Name,
-                    p => p.Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
-                );
+                var subCategoryMap = allCats
+                    .GroupBy(p => p.Name)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.First().Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
+                    );
                 ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
                 var masterCategories = allCats.Select(c => c.Name).OrderBy(n => n).ToList();
                 ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(masterCategories);
@@ -439,10 +441,12 @@ namespace HcPortal.Controllers
                 .Where(c => c.IsActive && c.ParentId == null)
                 .Include(c => c.Children)
                 .ToListAsync();
-            var subCategoryMap = allCats.ToDictionary(
-                p => p.Name,
-                p => p.Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
-            );
+            var subCategoryMap = allCats
+                .GroupBy(p => p.Name)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.First().Children.Where(ch => ch.IsActive).Select(ch => ch.Name).OrderBy(n => n).ToList()
+                );
             ViewBag.SubCategoryMapJson = System.Text.Json.JsonSerializer.Serialize(subCategoryMap);
             ViewBag.MasterCategoriesJson = System.Text.Json.JsonSerializer.Serialize(
                 allCats.Select(c => c.Name).OrderBy(n => n).ToList()

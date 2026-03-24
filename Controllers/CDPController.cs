@@ -3617,7 +3617,9 @@ namespace HcPortal.Controllers
                 .Where(c => c.IsActive && c.ParentId == null)
                 .Select(c => new { c.Name })
                 .ToListAsync();
-            var rawToDisplayMap = allCatsForMap.ToDictionary(c => c.Name.ToUpperInvariant(), c => c.Name);
+            var rawToDisplayMap = allCatsForMap
+                .GroupBy(c => c.Name.ToUpperInvariant())
+                .ToDictionary(g => g.Key, g => g.First().Name);
             if (!rawToDisplayMap.ContainsKey("MANDATORY"))
                 rawToDisplayMap["MANDATORY"] = "Mandatory HSSE Training";
             if (!rawToDisplayMap.ContainsKey("PROTON"))
