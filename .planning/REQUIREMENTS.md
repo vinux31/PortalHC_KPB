@@ -19,8 +19,8 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 
 ### Setup
 
-- [ ] **SETUP-01**: Admin dapat membuat sub-kategori assessment dengan parent hierarchy dan verifikasi tampilan indent
-- [ ] **SETUP-02**: Admin/HC dapat membuat assessment multi-user dengan token, jadwal, durasi, dan sertifikat
+- [x] **SETUP-01**: Admin dapat membuat sub-kategori assessment dengan parent hierarchy dan verifikasi tampilan indent
+- [x] **SETUP-02**: Admin/HC dapat membuat assessment multi-user dengan token, jadwal, durasi, dan sertifikat
 - [x] **SETUP-03**: Admin dapat membuat paket soal dan import 15 soal via paste Excel dengan Elemen Teknis
 - [x] **SETUP-04**: Admin dapat melihat ET coverage matrix pada paket soal dan preview soal
 
@@ -102,8 +102,8 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 | SEED-05 | Phase 241 | Complete |
 | SEED-06 | Phase 241 | Complete |
 | SEED-07 | Phase 241 | Complete |
-| SETUP-01 | Phase 242 | Pending |
-| SETUP-02 | Phase 242 | Pending |
+| SETUP-01 | Phase 242 | Complete |
+| SETUP-02 | Phase 242 | Complete |
 | SETUP-03 | Phase 242 | Complete |
 | SETUP-04 | Phase 242 | Complete |
 | EXAM-01 | Phase 243 | Pending |
