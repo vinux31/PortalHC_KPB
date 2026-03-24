@@ -48,7 +48,10 @@ Plans:
   3. Bulk renewal dengan data duplikat tidak menyebabkan crash `ArgumentException: An item with the same key` — operasi selesai atau menampilkan error bermakna
   4. Halaman WorkerDetail dengan `FullName` null menampilkan string kosong, bukan exception
   5. Halaman ExamSummary dengan `ViewBag.UnansweredCount` atau `ViewBag.AssessmentId` null tidak melempar `InvalidCastException`
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 249-01-PLAN.md — Null-safe GetCurrentUserRoleLevelAsync + TryParse + ToDictionary guard
+- [ ] 249-02-PLAN.md — Null-safe FullName di WorkerDetail + ViewBag cast di ExamSummary
 
 ### Phase 250: Security & Performance
 **Goal**: Kebocoran data sensitif via console.log dihilangkan, XSS vector di CoachingProton ditutup, password policy diperkuat, dan throttle notifikasi mencegah query berulang setiap page load
@@ -77,6 +80,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 248. UI & Annotations | v8.6 | 1/1 | Complete    | 2026-03-24 |
-| 249. Null Safety & Input Validation | v8.6 | 0/TBD | Not started | - |
+| 249. Null Safety & Input Validation | v8.6 | 0/2 | Not started | - |
 | 250. Security & Performance | v8.6 | 0/TBD | Not started | - |
 | 251. Data Integrity & Logic | v8.6 | 0/TBD | Not started | - |
