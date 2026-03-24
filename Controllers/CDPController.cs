@@ -282,8 +282,9 @@ namespace HcPortal.Controllers
             }
 
             // === PROTON PROGRESS: all non-Coachee roles ===
-            model.ProtonProgressData = await BuildProtonProgressSubModelAsync(user, userRole);
-            model.ScopeLabel = _lastScopeLabel;
+            var (progressData, scopeLabel) = await BuildProtonProgressSubModelAsync(user, userRole);
+            model.ProtonProgressData = progressData;
+            model.ScopeLabel = scopeLabel;
 
             return View(model);
         }
@@ -304,7 +305,7 @@ namespace HcPortal.Controllers
             if (UserRoles.HasSectionAccess(roleLevel)) { section = user.Section; }
             else if (UserRoles.IsCoachingRole(roleLevel)) { section = user.Section; unit = user.Unit; }
 
-            var model = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
+            var (model, _) = await BuildProtonProgressSubModelAsync(user, userRole, section, unit, category, track);
             return PartialView("Shared/_CoachingProtonContentPartial", model);
         }
 
@@ -385,7 +386,7 @@ namespace HcPortal.Controllers
         // Helper: Proton Progress sub-model (supervisor / HC view)
         // Scoping: HC/Admin/Direktur/VP/Manager=all, SrSpv/SectionHead=section, Coach/Supervisor=unit
         // ============================================================
-        private async Task<ProtonProgressSubModel> BuildProtonProgressSubModelAsync(ApplicationUser user, string userRole, string? section = null, string? unit = null, string? category = null, string? track = null)
+        private async Task<(ProtonProgressSubModel subModel, string scopeLabel)> BuildProtonProgressSubModelAsync(ApplicationUser user, string userRole, string? section = null, string? unit = null, string? category = null, string? track = null)
         {
             // DASH-02: Build scoped coachee ID list via active ProtonTrackAssignment
             List<string> scopedCoacheeIds;
@@ -647,18 +648,8 @@ namespace HcPortal.Controllers
                 AvailableTracks = availableTracks!
             };
 
-            // Propagate scope label to wrapper model via a field that helper sets on ProtonProgressSubModel is not wired
-            // ScopeLabel is on CDPDashboardViewModel — set it via caller after this method returns
-            // We store it temporarily in a thread-local-safe way: use a private field approach isn't clean
-            // Better: pass out via a tuple or set it inline in Dashboard()
-            // Since C# doesn't have ref returns cleanly here, we call SetScopeLabel after return
-            _lastScopeLabel = scopeLabel;
-
-            return subModel;
+            return (subModel, scopeLabel);
         }
-
-        // Stores scope label from BuildProtonProgressSubModelAsync for Dashboard() to retrieve
-        private string _lastScopeLabel = "";
 
         public async Task<IActionResult> Deliverable(int id)
         {
