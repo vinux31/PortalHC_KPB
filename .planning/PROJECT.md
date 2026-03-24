@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.5 started, 2026-03-23)
+## Current State (v8.6 started, 2026-03-24)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -22,23 +22,18 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238).
 **v8.3 shipped** — Date Range Filter Team View Records, 1 phase (239).
 **v8.4 shipped** — Alarm Sertifikat Expired, 1 phase (240).
+**v8.5 defined** — UAT Assessment System End-to-End, 7 phases (241-247), not yet executed.
 
-**Current focus:** v8.5 UAT Assessment System End-to-End
+**Current focus:** v8.6 Codebase Audit & Hardening
 
-## Current Milestone: v8.5 UAT Assessment System End-to-End
+## Current Milestone: v8.6 Codebase Audit & Hardening
 
-**Goal:** Simulasi dan UAT end-to-end seluruh sistem Assessment (reguler + Proton Tahun 1-3), mencakup setup, ujian, grading, sertifikat, monitoring, analytics, dan edge cases — dengan perbaikan bug yang ditemukan.
+**Goal:** Perbaiki semua bug Critical/High/Medium yang ditemukan dari deep audit seluruh codebase — null safety, input validation, data integrity, security leak, dan performa.
 
 **Target features:**
-- UAT Setup: Kategori hierarchy, buat assessment multi-user, paket soal, import 15 soal dengan 4 Elemen Teknis
-- UAT Exam Flow: Token verification, ujian online, timer & resume, auto-save, submit & grading, answer review, radar chart ET
-- UAT Sertifikat: Generate nomor otomatis KPB/SEQ/MONTH/YEAR, ValidUntil, print/PDF
-- UAT Monitoring: HC real-time SignalR, export results, analytics dashboard
-- UAT Proton Tahun 1/2: Online exam dengan track Proton
-- UAT Proton Tahun 3: Interview offline, HC input 5 aspek penilaian, auto-create ProtonFinalAssessment
-- UAT Edge Cases: Token salah, waktu habis, HC force close/reset, regenerate token, renewal sertifikat
-- UAT Records: Training records, export Excel, team view
-- Bug Fix: Perbaikan semua bug yang ditemukan selama simulasi
+- Fix Critical: Null-forgiving `user!` di `GetCurrentUserRoleLevelAsync()` (crash 5 halaman CMP)
+- Fix High: `DateTime.Parse` tanpa try-catch (3 action), `ToDictionary` key collision bulk renewal, bare catch `RenewalFkMap`, race condition `_lastScopeLabel`, `DateTime.Now`/`UtcNow` mismatch, unique index terlalu ketat (OrganizationUnit + AssessmentCategory), token leak `console.log`
+- Fix Medium: XSS `@Html.Raw(approverName)`, null deref `WorkerDetail.FullName`, N+1 query `TriggerCertExpiredNotificationsAsync`, bulk renewal tanpa ValidUntil, edit assessment lampau mustahil, password policy lemah, missing `MaxLength`/`Range` annotations, `bg-purple` undefined di AssessmentMonitoring
 
 ## Next Milestone Goals
 
@@ -854,4 +849,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-23 after v8.4 Phase 240 (alarm-sertifikat-expired)*
+*Last updated: 2026-03-24 after v8.6 milestone started (codebase-audit-hardening)*

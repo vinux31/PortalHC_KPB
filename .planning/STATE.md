@@ -1,12 +1,12 @@
 ---
 gsd_state_version: 1.0
-milestone: v8.5
-milestone_name: UAT Assessment System End-to-End
+milestone: v8.6
+milestone_name: Codebase Audit & Hardening
 status: Ready to plan
-stopped_at: Roadmap dibuat, Phase 241 siap direncanakan
-last_updated: "2026-03-23T14:30:00.000Z"
+stopped_at: Milestone defined, requirements pending
+last_updated: "2026-03-24T00:00:00.000Z"
 progress:
-  total_phases: 7
+  total_phases: 0
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -16,41 +16,38 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-23)
+See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 241 — Seed Data UAT (v8.5)
+**Current focus:** v8.6 Codebase Audit & Hardening
 
 ## Current Position
 
-Phase: 241 of 247 (Seed Data UAT)
-Plan: 0 of ? in current phase
-Status: Ready to plan
-Last activity: 2026-03-23 — Roadmap v8.5 dibuat, 7 fase (241-247) didefinisikan
-
-Progress: [░░░░░░░░░░] 0%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-24 — Milestone v8.6 started
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v8.5]: Milestone murni UAT + bug fix — semua fitur sudah terbangun di v1.0-v8.4
-- [v8.5 Roadmap]: Seed data dipisah ke Phase 241 agar semua UAT fase bergantung pada data seragam
-- [v8.5 Roadmap]: EDGE + REC digabung ke Phase 246 (area kecil saling melengkapi)
-- [v8.5 Roadmap]: Phase 247 Fix terakhir agar semua bug UAT terkumpul sebelum diperbaiki
-- [v8.5]: 15 soal domain Alkylation + 4 Elemen Teknis sudah didefinisikan di docs/simulasi-assessment-plan.html
-- [v8.5]: 7 akun test dari seed data (Admin, HC, SH, SrSpv, Coach, 2 Coachee), password 123456
+- [v8.5]: Defined but not yet executed — UAT Assessment System End-to-End (phases 241-247)
+- [v8.6]: Milestone murni bug fix & hardening dari deep audit codebase
+- [v8.6]: 1 Critical, 8 High, 12 Medium bugs ditemukan lintas semua controller utama
 
 ### Pending Todos
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser (lihat MEMORY.md)
+- v8.5 (UAT) masih perlu dieksekusi setelah v8.6 selesai
 
 ### Blockers/Concerns
 
-- Pastikan docs/simulasi-assessment-plan.html tersedia sebelum Phase 241 (berisi definisi 15 soal)
+- Beberapa fix memerlukan migration (unique index change)
+- Password policy change perlu koordinasi dengan user yang sudah ada
 
 ## Session Continuity
 
-Last activity: 2026-03-23 — Roadmap v8.5 dibuat
-Stopped at: Siap mulai Phase 241 (Seed Data UAT)
-Resume with: `/gsd:plan-phase 241`
+Last activity: 2026-03-24 — Milestone v8.6 started
+Stopped at: Defining requirements
+Resume with: Continue requirements definition
