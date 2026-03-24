@@ -142,7 +142,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 242. UAT Setup Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 243. UAT Exam Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 245. UAT Proton Assessment | v8.5 | 1/2 | In Progress|  |
+| 245. UAT Proton Assessment | v8.5 | 1/2 | Complete    | 2026-03-24 |
 | 246. UAT Edge Cases & Records | v8.5 | 0/0 | Pending | — |
 | 247. Bug Fix Pasca-UAT | v8.5 | 0/0 | Pending | — |
 | 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |
