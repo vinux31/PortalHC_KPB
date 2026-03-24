@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.5
 milestone_name: UAT Seed & Verification
-status: Ready to execute
-stopped_at: Completed 241-01-PLAN.md
-last_updated: "2026-03-24T05:11:29.773Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 241-02-PLAN.md
+last_updated: "2026-03-24T05:14:53.993Z"
 progress:
   total_phases: 169
-  completed_phases: 166
+  completed_phases: 167
   total_plans: 315
-  completed_plans: 325
+  completed_plans: 326
 ---
 
 # Project State: Portal HC KPB
@@ -49,6 +49,7 @@ Plan: 2 of 2
 | Phase 251 P02 | 8m | 2 tasks | 4 files |
 | Phase 252 P01 | 5 | 1 tasks | 1 files |
 | Phase 241 P01 | 10m | 1 tasks | 1 files |
+| Phase 241 P02 | 15m | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Plan: 2 of 2
 - [Phase 252]: escHtml didefinisikan 1x di awal blok script CoachingProton.cshtml untuk menutup XSS jalur AJAX client-side (defense-in-depth: server Phase 250 + client Phase 252)
 - [Phase 241]: Stub methods SeedCompletedAssessmentPassAsync/FailAsync/SeedProtonAssessmentsAsync pakai Task.CompletedTask agar seed tidak crash sebelum Plan 02 diimplementasi
 - [Phase 241]: Idempotency guard by Title 'OJT Proses Alkylation Q1-2026' dipilih sebagai single source of truth untuk UAT seed
+- [Phase 241]: AssessmentAttemptHistory DbSet singular — context.AssessmentAttemptHistory bukan plural
+- [Phase 241]: Setiap completed session punya PackageQuestion+Option baru (copy) untuk isolasi package per session
 
 ### Pending Todos
 
@@ -82,6 +85,6 @@ Plan: 2 of 2
 
 ## Session Continuity
 
-Last session: 2026-03-24T05:11:29.763Z
-Stopped at: Completed 241-01-PLAN.md
+Last session: 2026-03-24T05:14:49.274Z
+Stopped at: Completed 241-02-PLAN.md
 Resume with: `/gsd:plan-phase 248`
