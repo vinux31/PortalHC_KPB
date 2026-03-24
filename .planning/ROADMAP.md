@@ -74,7 +74,9 @@
   2. HC dapat menyalin token, melakukan regenerate token (token lama invalid), force close ujian peserta, dan reset peserta agar dapat ujian ulang — semua dari halaman monitoring
   3. HC mengekspor hasil ujian ke file Excel yang dapat dibuka dan berisi data peserta, skor, dan status
   4. HC membuka analytics dashboard dan melihat fail rate, tren skor, ET breakdown, dan expiring soon — cascading filter Bagian/Unit/Kategori berfungsi
-- **Plans:** TBD
+- **Plans:** 2 plans
+  - [ ] 244-01-PLAN.md — UAT monitoring real-time SignalR + token management (MON-01, MON-02)
+  - [ ] 244-02-PLAN.md — UAT export Excel + analytics dashboard filter (MON-03, MON-04)
 
 #### Phase 245: UAT Proton Assessment
 - **Status:** Pending
@@ -133,7 +135,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 241. Seed Data UAT | v8.5 | 2/2 | Complete | 2026-03-24 |
 | 242. UAT Setup Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 243. UAT Exam Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 244. UAT Monitoring & Analytics | v8.5 | 0/0 | Pending | — |
+| 244. UAT Monitoring & Analytics | v8.5 | 0/2 | Pending | — |
 | 245. UAT Proton Assessment | v8.5 | 0/0 | Pending | — |
 | 246. UAT Edge Cases & Records | v8.5 | 0/0 | Pending | — |
 | 247. Bug Fix Pasca-UAT | v8.5 | 0/0 | Pending | — |
