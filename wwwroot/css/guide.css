@@ -875,7 +875,6 @@ mark.search-highlight {
     .guide-card-grid {
         grid-template-columns: 1fr;
         gap: 1rem;
-        padding: 0 1rem;
     }
 
     /* Module card touch target */

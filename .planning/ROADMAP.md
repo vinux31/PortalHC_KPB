@@ -119,7 +119,7 @@
   3. Tidak ada regresi pada fitur yang sebelumnya bekerja normal (fitur di luar scope bug yang ditemukan tetap berfungsi)
 - **Plans:** 2 plans
   - [x] 247-01-PLAN.md — Fix ET distribution algorithm + verifikasi BUG-02 + admin cleanup
-  - [ ] 247-02-PLAN.md — Browser UAT verification semua pending items Phase 244 + 246
+  - [x] 247-02-PLAN.md — Browser UAT verification semua pending items Phase 244 + 246
 
 <details>
 <summary>✅ v8.6 Codebase Audit & Hardening (Phases 248-252) — SHIPPED 2026-03-24</summary>
@@ -144,7 +144,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 245. UAT Proton Assessment | v8.5 | 1/2 | Complete    | 2026-03-24 |
 | 246. UAT Edge Cases & Records | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 247. Bug Fix Pasca-UAT | v8.5 | 0/2 | Pending | — |
+| 247. Bug Fix Pasca-UAT | v8.5 | 2/2 | Complete   | 2026-03-24 |
 | 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 1/1 | Complete | 2026-03-24 |

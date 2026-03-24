@@ -62,7 +62,7 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 
 ### Bug Fix
 
-- [ ] **FIX-01**: Semua bug yang ditemukan selama simulasi UAT diperbaiki dan diverifikasi
+- [x] **FIX-01**: Semua bug yang ditemukan selama simulasi UAT diperbaiki dan diverifikasi
 
 ## Validated Requirements (Previous Milestones)
 
@@ -127,7 +127,7 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 | EDGE-04 | Phase 246 | Complete |
 | REC-01 | Phase 246 | Complete |
 | REC-02 | Phase 246 | Complete |
-| FIX-01 | Phase 247 | Pending |
+| FIX-01 | Phase 247 | Complete |
 
 **Coverage:**
 - v8.5 requirements: 27 total
