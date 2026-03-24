@@ -1033,7 +1033,9 @@
 
     string GetApprovalBadgeWithTooltip(string status, string approverName, string approvedAt)
     {
-        var tooltipText = $"{approverName} — {approvedAt}";
+        var safeApproverName = System.Net.WebUtility.HtmlEncode(approverName ?? "");
+        var safeApprovedAt = System.Net.WebUtility.HtmlEncode(approvedAt ?? "");
+        var tooltipText = $"{safeApproverName} — {safeApprovedAt}";
         return status switch
         {
             "Approved" => $"<span class=\"badge bg-success fw-bold border border-success\" data-bs-toggle=\"tooltip\" title=\"{tooltipText}\">Approved</span>",
