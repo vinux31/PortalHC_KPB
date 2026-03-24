@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.6
 milestone_name: Codebase Audit & Hardening
-status: Ready to execute
-stopped_at: Completed 251-01-PLAN.md
-last_updated: "2026-03-24T03:00:22.753Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 251-02-PLAN.md
+last_updated: "2026-03-24T03:03:14.715Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State: Portal HC KPB
@@ -46,6 +46,7 @@ Plan: 2 of 2
 | Phase 249 P01 | 10 | 2 tasks | 2 files |
 | Phase 250 P01 | 5m | 3 tasks | 3 files |
 | Phase 251 P01 | 5m | 2 tasks | 3 files |
+| Phase 251 P02 | 8m | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Plan: 2 of 2
 - [Phase 249]: GroupBy + First() sebagai strategi skip-duplicate untuk ToDictionary bulk renewal
 - [Phase 250]: Global cache key cert-notif-global untuk TriggerCertExpiredNotificationsAsync (bukan per-user) karena fungsi bersifat global
 - [Phase 251]: DateTime.UtcNow digunakan agar kalkulasi expiry konsisten lintas timezone server
+- [Phase 251]: Tuple return (ProtonProgressSubModel, string) menggantikan private field _lastScopeLabel untuk thread-safety di CDPController
+- [Phase 251]: Composite unique index (ParentId, Name) memungkinkan sub-unit/sub-kategori nama sama di parent berbeda
 
 ### Pending Todos
 
@@ -74,6 +77,6 @@ Plan: 2 of 2
 
 ## Session Continuity
 
-Last session: 2026-03-24T03:00:22.749Z
-Stopped at: Completed 251-01-PLAN.md
+Last session: 2026-03-24T03:03:14.712Z
+Stopped at: Completed 251-02-PLAN.md
 Resume with: `/gsd:plan-phase 248`
