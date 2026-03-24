@@ -636,8 +636,6 @@
         verifyBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verifying...';
         errorEl.classList.add('d-none');
 
-        console.log('Verifying token for assessment:', currentAssessmentId, 'with token:', token);
-
         // Server Side Verification with better error handling
         $.ajax({
             url: '/CMP/VerifyToken',
@@ -648,7 +646,6 @@
                 token: token
             },
             success: function(response) {
-                console.log('VerifyToken response:', response);
                 if (response.success) {
                     // Redirect to exam
                     window.location.href = response.redirectUrl;
@@ -679,8 +676,6 @@
 
     function startStandardAssessment(id, title) {
         if(confirm("Start " + title + " now?")) {
-            console.log('Starting standard assessment:', id);
-
             // No token required, just hit the verify endpoint to get redirect
             $.ajax({
                 url: '/CMP/VerifyToken',
@@ -691,7 +686,6 @@
                     token: ""
                 },
                 success: function(response) {
-                    console.log('StartAssessment response:', response);
                     if (response.success) {
                         window.location.href = response.redirectUrl;
                     } else {
