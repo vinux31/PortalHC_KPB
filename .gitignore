@@ -501,6 +501,7 @@ test.txt
 # Temp/debug artifacts
 *.png
 !wwwroot/**/*.png
+!report-screenshots/**/*.png
 *.db-shm
 *.db-wal
 .playwright-mcp/
