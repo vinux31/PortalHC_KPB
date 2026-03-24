@@ -12,8 +12,8 @@ Requirements untuk Codebase Audit & Hardening. Setiap bug di-fix dengan atomic c
 - [ ] **SAFE-01**: Null check pada `GetCurrentUserRoleLevelAsync()` — return error/redirect jika user null, mencegah crash 5 halaman CMP
 - [ ] **SAFE-02**: Ganti `DateTime.Parse()` ke `DateTime.TryParse()` di 3 action CMP (ExportRecordsTeamAssessment, ExportRecordsTeamTraining, RecordsTeamPartial)
 - [ ] **SAFE-03**: Guard `ToDictionary` key collision di bulk renewal `sourceSessions` dan `sourceTrainings` (AdminController)
-- [ ] **SAFE-04**: Null-safe `Model.FullName` di WorkerDetail.cshtml — tambah `?? ""` fallback
-- [ ] **SAFE-05**: Safe cast `ViewBag.UnansweredCount` dan `ViewBag.AssessmentId` di ExamSummary.cshtml — ganti hard cast `(int)` dengan null-safe pattern
+- [x] **SAFE-04**: Null-safe `Model.FullName` di WorkerDetail.cshtml — tambah `?? ""` fallback
+- [x] **SAFE-05**: Safe cast `ViewBag.UnansweredCount` dan `ViewBag.AssessmentId` di ExamSummary.cshtml — ganti hard cast `(int)` dengan null-safe pattern
 
 ### Data Integrity & Logic
 
@@ -60,8 +60,8 @@ Tidak ada — milestone ini murni bug fix dari audit.
 | SAFE-01 | Phase 249 | Pending |
 | SAFE-02 | Phase 249 | Pending |
 | SAFE-03 | Phase 249 | Pending |
-| SAFE-04 | Phase 249 | Pending |
-| SAFE-05 | Phase 249 | Pending |
+| SAFE-04 | Phase 249 | Complete |
+| SAFE-05 | Phase 249 | Complete |
 | SEC-01 | Phase 250 | Pending |
 | SEC-02 | Phase 250 | Pending |
 | PERF-01 | Phase 250 | Pending |
