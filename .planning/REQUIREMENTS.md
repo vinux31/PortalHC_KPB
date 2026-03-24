@@ -26,10 +26,10 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 
 ### Exam Flow
 
-- [ ] **EXAM-01**: Worker dapat melihat assessment yang ditugaskan, input token, dan mulai ujian
-- [ ] **EXAM-02**: Worker dapat mengerjakan ujian dengan soal acak, opsi acak, pagination, dan auto-save
-- [ ] **EXAM-03**: Timer countdown wall-clock berfungsi dengan warning ≤5 menit dan auto-submit saat habis
-- [ ] **EXAM-04**: Worker dapat resume ujian setelah disconnect dengan sisa waktu, jawaban, dan page terakhir intact
+- [x] **EXAM-01**: Worker dapat melihat assessment yang ditugaskan, input token, dan mulai ujian
+- [x] **EXAM-02**: Worker dapat mengerjakan ujian dengan soal acak, opsi acak, pagination, dan auto-save
+- [x] **EXAM-03**: Timer countdown wall-clock berfungsi dengan warning ≤5 menit dan auto-submit saat habis
+- [x] **EXAM-04**: Worker dapat resume ujian setelah disconnect dengan sisa waktu, jawaban, dan page terakhir intact
 - [x] **EXAM-05**: Worker dapat review jawaban di ExamSummary dan submit untuk auto-grading dengan skor ET
 - [x] **EXAM-06**: Worker dapat melihat hasil assessment dengan radar chart ET dan tinjauan jawaban (highlight benar/salah)
 - [x] **EXAM-07**: Worker yang lulus mendapat sertifikat dengan nomor otomatis KPB/SEQ/BULAN/TAHUN dan dapat print/PDF
@@ -106,10 +106,10 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 | SETUP-02 | Phase 242 | Complete |
 | SETUP-03 | Phase 242 | Complete |
 | SETUP-04 | Phase 242 | Complete |
-| EXAM-01 | Phase 243 | Pending |
-| EXAM-02 | Phase 243 | Pending |
-| EXAM-03 | Phase 243 | Pending |
-| EXAM-04 | Phase 243 | Pending |
+| EXAM-01 | Phase 243 | Complete |
+| EXAM-02 | Phase 243 | Complete |
+| EXAM-03 | Phase 243 | Complete |
+| EXAM-04 | Phase 243 | Complete |
 | EXAM-05 | Phase 243 | Complete |
 | EXAM-06 | Phase 243 | Complete |
 | EXAM-07 | Phase 243 | Complete |
