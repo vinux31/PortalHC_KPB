@@ -260,6 +260,30 @@ namespace HcPortal.Data
                         await SeedProtonAssessmentsAsync(context, rinoFallback.Id, DateTime.UtcNow);
                     }
                 }
+
+                // Fallback: seed token-required session jika belum ada (EDGE-01/03)
+                if (!await context.AssessmentSessions.AnyAsync(s => s.Title == "OJT Token Test Q1-2026"))
+                {
+                    var rinoFb = await userManager.FindByEmailAsync("rino.prasetyo@pertamina.com");
+                    var iwanFb = await userManager.FindByEmailAsync("iwan3@pertamina.com");
+                    if (rinoFb != null && iwanFb != null)
+                    {
+                        Console.WriteLine("UAT-SEED: Token-required session missing, seeding now...");
+                        await SeedTokenRequiredSessionAsync(context, rinoFb.Id, iwanFb.Id, DateTime.UtcNow);
+                    }
+                }
+
+                // Fallback: seed expired cert session jika belum ada (EDGE-04)
+                if (!await context.AssessmentSessions.AnyAsync(s => s.Title == "OJT Expired Cert Q3-2024"))
+                {
+                    var rinoFb = await userManager.FindByEmailAsync("rino.prasetyo@pertamina.com");
+                    if (rinoFb != null)
+                    {
+                        Console.WriteLine("UAT-SEED: Expired cert session missing, seeding now...");
+                        await SeedExpiredCertSessionAsync(context, rinoFb.Id, DateTime.UtcNow);
+                    }
+                }
+
                 Console.WriteLine("UAT-SEED: Data UAT sudah ada, skip.");
                 return;
             }
@@ -295,6 +319,12 @@ namespace HcPortal.Data
 
             // 7. Assessment Proton (stub — implementasi Plan 02)
             await SeedProtonAssessmentsAsync(context, rino.Id, now);
+
+            // 8. Token-required session untuk EDGE-01/03
+            await SeedTokenRequiredSessionAsync(context, rino.Id, iwan.Id, now);
+
+            // 9. Expired cert session untuk EDGE-04
+            await SeedExpiredCertSessionAsync(context, rino.Id, now);
 
             Console.WriteLine("UAT-SEED: Selesai seed data UAT.");
         }
@@ -919,6 +949,156 @@ namespace HcPortal.Data
             }
 
             Console.WriteLine("UAT-SEED: Assessment Proton Tahun 1 + Tahun 3 untuk Rino selesai.");
+        }
+
+        private static async Task SeedTokenRequiredSessionAsync(ApplicationDbContext context, string rinoId, string iwanId, DateTime now)
+        {
+            // Buat AssessmentSession dengan IsTokenRequired=true untuk UAT EDGE-01/03
+            var session = new AssessmentSession
+            {
+                Title = "OJT Token Test Q1-2026",
+                Category = "Assessment OJT",
+                Schedule = now.AddDays(3),
+                DurationMinutes = 30,
+                Status = "Open",
+                PassPercentage = 70,
+                AllowAnswerReview = true,
+                GenerateCertificate = true,
+                AccessToken = "EDGE-TOKEN-001",
+                IsTokenRequired = true,
+                CreatedAt = now
+            };
+            context.AssessmentSessions.Add(session);
+            await context.SaveChangesAsync();
+
+            // Buat AssessmentPackage
+            var package = new AssessmentPackage
+            {
+                AssessmentSessionId = session.Id,
+                PackageName = "Paket Token Test",
+                PackageNumber = 1
+            };
+            context.AssessmentPackages.Add(package);
+            await context.SaveChangesAsync();
+
+            // Buat 5 soal sederhana untuk testing
+            var questionsData = new[]
+            {
+                new { Text = "Prosedur lockout-tagout (LOTO) bertujuan untuk...", ET = "Keselamatan", Opts = new[] { "Mencegah energi berbahaya saat maintenance", "Mengunci pintu kantor", "Menandai peralatan baru", "Mencatat absensi" }, CorrectIdx = 0 },
+                new { Text = "APD yang wajib dipakai di area proses adalah...", ET = "Keselamatan", Opts = new[] { "Helm, kacamata, dan sepatu safety", "Hanya kacamata", "Sarung tangan saja", "Tidak ada APD" }, CorrectIdx = 0 },
+                new { Text = "Fungsi pressure relief valve (PRV) adalah...", ET = "Proses", Opts = new[] { "Melindungi sistem dari tekanan berlebih", "Menaikkan tekanan", "Mengalirkan produk", "Mengukur suhu" }, CorrectIdx = 0 },
+                new { Text = "Sumber energi yang harus dikendalikan saat LOTO meliputi...", ET = "Proses", Opts = new[] { "Listrik, pneumatik, hidraulik, dan gravitasi", "Hanya listrik", "Hanya pneumatik", "Tidak ada" }, CorrectIdx = 0 },
+                new { Text = "Alarm high-high pressure pada reaktor memicu...", ET = "Proses", Opts = new[] { "Emergency shutdown otomatis", "Kenaikan suhu", "Peningkatan flow", "Pengurangan operator" }, CorrectIdx = 0 },
+            };
+
+            var questions = new List<PackageQuestion>();
+            int order = 1;
+            foreach (var qData in questionsData)
+            {
+                questions.Add(new PackageQuestion
+                {
+                    AssessmentPackageId = package.Id,
+                    QuestionText = qData.Text,
+                    Order = order++,
+                    ScoreValue = 20,
+                    ElemenTeknis = qData.ET
+                });
+            }
+            context.PackageQuestions.AddRange(questions);
+            await context.SaveChangesAsync();
+
+            // Buat 4 opsi per soal
+            var allOptions = new List<PackageOption>();
+            for (int i = 0; i < questions.Count; i++)
+            {
+                var qData = questionsData[i];
+                for (int j = 0; j < qData.Opts.Length; j++)
+                {
+                    allOptions.Add(new PackageOption
+                    {
+                        PackageQuestionId = questions[i].Id,
+                        OptionText = qData.Opts[j],
+                        IsCorrect = j == qData.CorrectIdx
+                    });
+                }
+            }
+            context.PackageOptions.AddRange(allOptions);
+            await context.SaveChangesAsync();
+
+            // Reload soal dengan opsi untuk ShuffledOptionIdsPerQuestion
+            var questionsWithOptions = await context.PackageQuestions
+                .Where(q => q.AssessmentPackageId == package.Id)
+                .Include(q => q.Options)
+                .ToListAsync();
+
+            // UserPackageAssignment untuk Rino
+            var qIdsRino = questionsWithOptions.Select(q => q.Id).ToList();
+            var optIdsMapRino = questionsWithOptions.ToDictionary(
+                q => q.Id.ToString(),
+                q => q.Options.Select(o => o.Id).ToList()
+            );
+            context.UserPackageAssignments.Add(new UserPackageAssignment
+            {
+                AssessmentSessionId = session.Id,
+                AssessmentPackageId = package.Id,
+                UserId = rinoId,
+                IsCompleted = false,
+                ShuffledQuestionIds = JsonSerializer.Serialize(qIdsRino),
+                ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optIdsMapRino)
+            });
+
+            // UserPackageAssignment untuk Iwan (sibling — untuk test token bersama)
+            var qIdsIwan = questionsWithOptions.Select(q => q.Id).ToList();
+            var optIdsMapIwan = questionsWithOptions.ToDictionary(
+                q => q.Id.ToString(),
+                q => q.Options.Select(o => o.Id).ToList()
+            );
+            context.UserPackageAssignments.Add(new UserPackageAssignment
+            {
+                AssessmentSessionId = session.Id,
+                AssessmentPackageId = package.Id,
+                UserId = iwanId,
+                IsCompleted = false,
+                ShuffledQuestionIds = JsonSerializer.Serialize(qIdsIwan),
+                ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optIdsMapIwan)
+            });
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"UAT-SEED: Token-required session 'OJT Token Test Q1-2026' dibuat (sessionId={session.Id}, token=EDGE-TOKEN-001, 2 user assignments).");
+        }
+
+        private static async Task SeedExpiredCertSessionAsync(ApplicationDbContext context, string rinoId, DateTime now)
+        {
+            // Buat AssessmentSession completed dengan sertifikat expired untuk UAT EDGE-04
+            var certDate = now.AddDays(-400);
+
+            var session = new AssessmentSession
+            {
+                Title = "OJT Expired Cert Q3-2024",
+                UserId = rinoId,
+                Category = "Assessment OJT",
+                Schedule = certDate,
+                DurationMinutes = 30,
+                Status = "Completed",
+                Progress = 100,
+                Score = 80,
+                PassPercentage = 70,
+                IsPassed = true,
+                AllowAnswerReview = true,
+                GenerateCertificate = true,
+                StartedAt = certDate,
+                CompletedAt = certDate.AddMinutes(25),
+                AccessToken = "EDGE-TOKEN-EXP",
+                IsTokenRequired = false,
+                CreatedAt = certDate,
+                // ValidUntil = certDate + 1 tahun => sekitar 35 hari yang lalu (expired)
+                ValidUntil = certDate.AddYears(1),
+                NomorSertifikat = "KPB/SEED-EXP/01/2024"
+            };
+            context.AssessmentSessions.Add(session);
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"UAT-SEED: Expired cert session 'OJT Expired Cert Q3-2024' dibuat (ValidUntil={session.ValidUntil:yyyy-MM-dd}, NomorSertifikat={session.NomorSertifikat}).");
         }
 
         // =====================================================================
