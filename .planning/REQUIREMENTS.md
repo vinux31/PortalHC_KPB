@@ -50,15 +50,15 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 
 ### Edge Cases
 
-- [ ] **EDGE-01**: Token salah ditolak dengan pesan error, token expired/invalid tidak bisa digunakan
-- [ ] **EDGE-02**: HC force close mengakhiri ujian worker secara real-time, HC reset memungkinkan ujian ulang
-- [ ] **EDGE-03**: HC regenerate token menghasilkan token baru dan token lama invalid
-- [ ] **EDGE-04**: Renewal sertifikat expired berfungsi end-to-end dari alarm hingga perpanjangan
+- [x] **EDGE-01**: Token salah ditolak dengan pesan error, token expired/invalid tidak bisa digunakan
+- [x] **EDGE-02**: HC force close mengakhiri ujian worker secara real-time, HC reset memungkinkan ujian ulang
+- [x] **EDGE-03**: HC regenerate token menghasilkan token baru dan token lama invalid
+- [x] **EDGE-04**: Renewal sertifikat expired berfungsi end-to-end dari alarm hingga perpanjangan
 
 ### Records
 
-- [ ] **REC-01**: Worker dapat melihat riwayat assessment di My Records dengan kolom lengkap dan export Excel
-- [ ] **REC-02**: HC dapat melihat data seluruh pekerja di Team View dengan date range filter dan export
+- [x] **REC-01**: Worker dapat melihat riwayat assessment di My Records dengan kolom lengkap dan export Excel
+- [x] **REC-02**: HC dapat melihat data seluruh pekerja di Team View dengan date range filter dan export
 
 ### Bug Fix
 
@@ -121,12 +121,12 @@ Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Mileston
 | PROT-02 | Phase 245 | Complete |
 | PROT-03 | Phase 245 | Complete |
 | PROT-04 | Phase 245 | Complete |
-| EDGE-01 | Phase 246 | Pending |
-| EDGE-02 | Phase 246 | Pending |
-| EDGE-03 | Phase 246 | Pending |
-| EDGE-04 | Phase 246 | Pending |
-| REC-01 | Phase 246 | Pending |
-| REC-02 | Phase 246 | Pending |
+| EDGE-01 | Phase 246 | Complete |
+| EDGE-02 | Phase 246 | Complete |
+| EDGE-03 | Phase 246 | Complete |
+| EDGE-04 | Phase 246 | Complete |
+| REC-01 | Phase 246 | Complete |
+| REC-02 | Phase 246 | Complete |
 | FIX-01 | Phase 247 | Pending |
 
 **Coverage:**

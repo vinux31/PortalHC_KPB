@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.5
 milestone_name: UAT Assessment System End-to-End
-status: Ready to execute
-stopped_at: Completed 246-01-PLAN.md
-last_updated: "2026-03-24T10:37:54.835Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 246-02-PLAN.md
+last_updated: "2026-03-24T10:41:01.957Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State: Portal HC KPB
@@ -56,6 +56,7 @@ Plan: 2 of 2
 | Phase 244 P02 | 5m | 2 tasks | 0 files |
 | Phase 245 P01 | 15m | 2 tasks | 0 files |
 | Phase 246 P01 | 18m | 2 tasks | 1 files |
+| Phase 246 P02 | 8m | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Plan: 2 of 2
 - [Phase 245]: PROT-02 ISSUE: seed DurationMinutes Tahun 3 = 120, server override benar tapi seed tidak konsisten
 - [Phase 246]: UserId wajib pada AssessmentSession meskipun multi-user pattern — set ke rinoId sebagai session owner untuk seed
 - [Phase 246]: NomorSertifikat hardcoded KPB/SEED-EXP/01/2024 untuk isolasi dari CertNumberHelper sequence pada expired cert seed
+- [Phase 246]: Mode --auto: checkpoint:human-verify di-auto-approve via code-review analysis — token validation, force-close, reset, regenerate, renewal, records semua PASS
+- [Phase 246]: _CertAlertBanner hanya muncul untuk HC/Admin (by-design); worker biasa tidak melihat banner
 
 ### Pending Todos
 
@@ -100,6 +103,6 @@ Plan: 2 of 2
 
 ## Session Continuity
 
-Last session: 2026-03-24T10:37:54.832Z
-Stopped at: Completed 246-01-PLAN.md
+Last session: 2026-03-24T10:41:01.954Z
+Stopped at: Completed 246-02-PLAN.md
 Resume with: `/gsd:execute-phase 244` setelah UAT manual selesai

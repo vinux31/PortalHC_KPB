@@ -106,7 +106,7 @@
   6. HC membuka Team View Records, memfilter dengan date range, melihat data seluruh pekerja, dan dapat export ke Excel
 - **Plans:** 2 plans
   - [x] 246-01-PLAN.md — Seed data tambahan (token-required session + expired certificate)
-  - [ ] 246-02-PLAN.md — Browser UAT edge cases + renewal + records (7 HV items)
+  - [x] 246-02-PLAN.md — Browser UAT edge cases + renewal + records (7 HV items)
 
 
 
@@ -145,7 +145,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 243. UAT Exam Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 245. UAT Proton Assessment | v8.5 | 1/2 | Complete    | 2026-03-24 |
-| 246. UAT Edge Cases & Records | v8.5 | 1/2 | In Progress|  |
+| 246. UAT Edge Cases & Records | v8.5 | 2/2 | Complete   | 2026-03-24 |
 | 247. Bug Fix Pasca-UAT | v8.5 | 0/0 | Pending | — |
 | 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete | 2026-03-24 |
