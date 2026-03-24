@@ -42,6 +42,14 @@
                         <span class="text-primary me-2">@(displayNum++).</span>
                         @question.QuestionText
                     </p>
+                    @if (!string.IsNullOrWhiteSpace(question.ElemenTeknis))
+                    {
+                        <p class="mb-2">
+                            <span class="badge bg-info text-dark">
+                                <i class="bi bi-tag me-1"></i>@question.ElemenTeknis
+                            </span>
+                        </p>
+                    }
                     <div class="ps-3">
                         @{ int optIdx = 0; }
                         @foreach (var option in question.Options)
