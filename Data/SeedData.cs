@@ -2,6 +2,7 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using HcPortal.Models;
+using HcPortal.Helpers;
 
 namespace HcPortal.Data
 {
@@ -499,25 +500,375 @@ namespace HcPortal.Data
             return (questionsWithOptions, package);
         }
 
-        private static Task SeedCompletedAssessmentPassAsync(ApplicationDbContext context, string rinoId, DateTime now, List<PackageQuestion> questions)
+        private static async Task SeedCompletedAssessmentPassAsync(ApplicationDbContext context, string rinoId, DateTime now, List<PackageQuestion> questions)
         {
-            // Stub — akan diimplementasi Plan 02
-            Console.WriteLine("UAT-SEED: SeedCompletedAssessmentPassAsync — stub (Plan 02).");
-            return Task.CompletedTask;
+            var certDate = now.AddDays(-30);
+
+            // 1. Buat AssessmentSession lulus
+            var session = new AssessmentSession
+            {
+                Title = "OJT Proses Alkylation Q4-2025 (Lulus)",
+                UserId = rinoId,
+                Category = "Assessment OJT",
+                Schedule = certDate,
+                DurationMinutes = 60,
+                Status = "Completed",
+                Progress = 100,
+                Score = 80,
+                PassPercentage = 70,
+                IsPassed = true,
+                AllowAnswerReview = true,
+                GenerateCertificate = true,
+                StartedAt = certDate,
+                CompletedAt = certDate.AddMinutes(45),
+                AccessToken = "UAT-TOKEN-PASS",
+                IsTokenRequired = false,
+                CreatedAt = certDate
+            };
+            context.AssessmentSessions.Add(session);
+            await context.SaveChangesAsync();
+
+            // 2. Generate NomorSertifikat
+            var nextSeq = await CertNumberHelper.GetNextSeqAsync(context, certDate.Year);
+            session.NomorSertifikat = CertNumberHelper.Build(nextSeq, certDate);
+            session.ValidUntil = certDate.AddYears(1);
+            await context.SaveChangesAsync();
+
+            // 3. Buat AssessmentPackage + copy soal
+            var package = new AssessmentPackage
+            {
+                AssessmentSessionId = session.Id,
+                PackageName = "Paket A",
+                PackageNumber = 1
+            };
+            context.AssessmentPackages.Add(package);
+            await context.SaveChangesAsync();
+
+            var newQuestions = new List<PackageQuestion>();
+            foreach (var orig in questions)
+            {
+                var q = new PackageQuestion
+                {
+                    AssessmentPackageId = package.Id,
+                    QuestionText = orig.QuestionText,
+                    Order = orig.Order,
+                    ScoreValue = orig.ScoreValue,
+                    ElemenTeknis = orig.ElemenTeknis
+                };
+                newQuestions.Add(q);
+            }
+            context.PackageQuestions.AddRange(newQuestions);
+            await context.SaveChangesAsync();
+
+            // Copy options per soal
+            for (int i = 0; i < questions.Count; i++)
+            {
+                foreach (var origOpt in questions[i].Options)
+                {
+                    context.PackageOptions.Add(new PackageOption
+                    {
+                        PackageQuestionId = newQuestions[i].Id,
+                        OptionText = origOpt.OptionText,
+                        IsCorrect = origOpt.IsCorrect
+                    });
+                }
+            }
+            await context.SaveChangesAsync();
+
+            // Reload newQuestions with options
+            var newQsWithOptions = await context.PackageQuestions
+                .Where(q => q.AssessmentPackageId == package.Id)
+                .Include(q => q.Options)
+                .ToListAsync();
+
+            // 4. UserPackageAssignment untuk Rino
+            var qIds = newQsWithOptions.Select(q => q.Id).ToList();
+            var optIdsMap = newQsWithOptions.ToDictionary(
+                q => q.Id.ToString(),
+                q => q.Options.Select(o => o.Id).ToList()
+            );
+            context.UserPackageAssignments.Add(new UserPackageAssignment
+            {
+                AssessmentSessionId = session.Id,
+                AssessmentPackageId = package.Id,
+                UserId = rinoId,
+                IsCompleted = true,
+                SavedQuestionCount = 15,
+                ShuffledQuestionIds = JsonSerializer.Serialize(qIds),
+                ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optIdsMap)
+            });
+            await context.SaveChangesAsync();
+
+            // 5. PackageUserResponse — distribusi 12 benar dari 15 (skor 80)
+            // ET "Proses Distilasi" (Q0-3): 3 benar, 1 salah (Q3 salah)
+            // ET "Keselamatan Kerja" (Q4-7): 3 benar, 1 salah (Q7 salah)
+            // ET "Operasi Pompa" (Q8-11): 3 benar, 1 salah (Q11 salah)
+            // ET "Instrumentasi" (Q12-14): 3 benar, 0 salah
+            var passCorrectMap = new bool[] {
+                true, true, true, false,   // Proses Distilasi
+                true, true, true, false,   // Keselamatan Kerja
+                true, true, true, false,   // Operasi Pompa
+                true, true, true           // Instrumentasi
+            };
+            for (int i = 0; i < newQsWithOptions.Count; i++)
+            {
+                var q = newQsWithOptions[i];
+                var shouldBeCorrect = i < passCorrectMap.Length && passCorrectMap[i];
+                var chosen = shouldBeCorrect
+                    ? q.Options.First(o => o.IsCorrect)
+                    : q.Options.First(o => !o.IsCorrect);
+                context.PackageUserResponses.Add(new PackageUserResponse
+                {
+                    AssessmentSessionId = session.Id,
+                    PackageQuestionId = q.Id,
+                    PackageOptionId = chosen.Id,
+                    SubmittedAt = session.CompletedAt!.Value
+                });
+            }
+            await context.SaveChangesAsync();
+
+            // 6. SessionElemenTeknisScore
+            context.SessionElemenTeknisScores.AddRange(new[]
+            {
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Proses Distilasi", CorrectCount = 3, QuestionCount = 4 },
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Keselamatan Kerja", CorrectCount = 3, QuestionCount = 4 },
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Operasi Pompa", CorrectCount = 3, QuestionCount = 4 },
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Instrumentasi", CorrectCount = 3, QuestionCount = 3 },
+            });
+            await context.SaveChangesAsync();
+
+            // 7. AssessmentAttemptHistory
+            context.AssessmentAttemptHistory.Add(new AssessmentAttemptHistory
+            {
+                SessionId = session.Id,
+                UserId = rinoId,
+                Title = session.Title,
+                Category = session.Category,
+                Score = 80,
+                IsPassed = true,
+                StartedAt = session.StartedAt,
+                CompletedAt = session.CompletedAt,
+                AttemptNumber = 1,
+                ArchivedAt = session.CompletedAt!.Value
+            });
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"UAT-SEED: Completed assessment LULUS '{session.Title}' dibuat (sertifikat: {session.NomorSertifikat}).");
         }
 
-        private static Task SeedCompletedAssessmentFailAsync(ApplicationDbContext context, string rinoId, DateTime now, List<PackageQuestion> questions)
+        private static async Task SeedCompletedAssessmentFailAsync(ApplicationDbContext context, string rinoId, DateTime now, List<PackageQuestion> questions)
         {
-            // Stub — akan diimplementasi Plan 02
-            Console.WriteLine("UAT-SEED: SeedCompletedAssessmentFailAsync — stub (Plan 02).");
-            return Task.CompletedTask;
+            var failDate = now.AddDays(-60);
+
+            // 1. Buat AssessmentSession gagal
+            var session = new AssessmentSession
+            {
+                Title = "OJT Proses Alkylation Q3-2025 (Gagal)",
+                UserId = rinoId,
+                Category = "Assessment OJT",
+                Schedule = failDate,
+                DurationMinutes = 60,
+                Status = "Completed",
+                Progress = 100,
+                Score = 40,
+                PassPercentage = 70,
+                IsPassed = false,
+                AllowAnswerReview = true,
+                GenerateCertificate = false,
+                StartedAt = failDate,
+                CompletedAt = failDate.AddMinutes(30),
+                AccessToken = "UAT-TOKEN-FAIL",
+                IsTokenRequired = false,
+                CreatedAt = failDate
+            };
+            context.AssessmentSessions.Add(session);
+            await context.SaveChangesAsync();
+            // TANPA NomorSertifikat dan TANPA ValidUntil
+
+            // 2. Buat AssessmentPackage + copy soal
+            var package = new AssessmentPackage
+            {
+                AssessmentSessionId = session.Id,
+                PackageName = "Paket A",
+                PackageNumber = 1
+            };
+            context.AssessmentPackages.Add(package);
+            await context.SaveChangesAsync();
+
+            var newQuestions = new List<PackageQuestion>();
+            foreach (var orig in questions)
+            {
+                var q = new PackageQuestion
+                {
+                    AssessmentPackageId = package.Id,
+                    QuestionText = orig.QuestionText,
+                    Order = orig.Order,
+                    ScoreValue = orig.ScoreValue,
+                    ElemenTeknis = orig.ElemenTeknis
+                };
+                newQuestions.Add(q);
+            }
+            context.PackageQuestions.AddRange(newQuestions);
+            await context.SaveChangesAsync();
+
+            // Copy options per soal
+            for (int i = 0; i < questions.Count; i++)
+            {
+                foreach (var origOpt in questions[i].Options)
+                {
+                    context.PackageOptions.Add(new PackageOption
+                    {
+                        PackageQuestionId = newQuestions[i].Id,
+                        OptionText = origOpt.OptionText,
+                        IsCorrect = origOpt.IsCorrect
+                    });
+                }
+            }
+            await context.SaveChangesAsync();
+
+            // Reload newQuestions with options
+            var newQsWithOptions = await context.PackageQuestions
+                .Where(q => q.AssessmentPackageId == package.Id)
+                .Include(q => q.Options)
+                .ToListAsync();
+
+            // 3. UserPackageAssignment untuk Rino
+            var qIds = newQsWithOptions.Select(q => q.Id).ToList();
+            var optIdsMap = newQsWithOptions.ToDictionary(
+                q => q.Id.ToString(),
+                q => q.Options.Select(o => o.Id).ToList()
+            );
+            context.UserPackageAssignments.Add(new UserPackageAssignment
+            {
+                AssessmentSessionId = session.Id,
+                AssessmentPackageId = package.Id,
+                UserId = rinoId,
+                IsCompleted = true,
+                SavedQuestionCount = 15,
+                ShuffledQuestionIds = JsonSerializer.Serialize(qIds),
+                ShuffledOptionIdsPerQuestion = JsonSerializer.Serialize(optIdsMap)
+            });
+            await context.SaveChangesAsync();
+
+            // 4. PackageUserResponse — distribusi 6 benar dari 15 (skor 40)
+            // ET "Proses Distilasi" (Q0-3): 2 benar, 2 salah (Q0,Q1 benar; Q2,Q3 salah)
+            // ET "Keselamatan Kerja" (Q4-7): 1 benar, 3 salah (Q4 benar; Q5,Q6,Q7 salah)
+            // ET "Operasi Pompa" (Q8-11): 2 benar, 2 salah (Q8,Q9 benar; Q10,Q11 salah)
+            // ET "Instrumentasi" (Q12-14): 1 benar, 2 salah (Q12 benar; Q13,Q14 salah)
+            var failCorrectMap = new bool[] {
+                true, true, false, false,   // Proses Distilasi
+                true, false, false, false,  // Keselamatan Kerja
+                true, true, false, false,   // Operasi Pompa
+                true, false, false          // Instrumentasi
+            };
+            for (int i = 0; i < newQsWithOptions.Count; i++)
+            {
+                var q = newQsWithOptions[i];
+                var shouldBeCorrect = i < failCorrectMap.Length && failCorrectMap[i];
+                var chosen = shouldBeCorrect
+                    ? q.Options.First(o => o.IsCorrect)
+                    : q.Options.First(o => !o.IsCorrect);
+                context.PackageUserResponses.Add(new PackageUserResponse
+                {
+                    AssessmentSessionId = session.Id,
+                    PackageQuestionId = q.Id,
+                    PackageOptionId = chosen.Id,
+                    SubmittedAt = session.CompletedAt!.Value
+                });
+            }
+            await context.SaveChangesAsync();
+
+            // 5. SessionElemenTeknisScore
+            context.SessionElemenTeknisScores.AddRange(new[]
+            {
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Proses Distilasi", CorrectCount = 2, QuestionCount = 4 },
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Keselamatan Kerja", CorrectCount = 1, QuestionCount = 4 },
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Operasi Pompa", CorrectCount = 2, QuestionCount = 4 },
+                new SessionElemenTeknisScore { AssessmentSessionId = session.Id, ElemenTeknis = "Instrumentasi", CorrectCount = 1, QuestionCount = 3 },
+            });
+            await context.SaveChangesAsync();
+
+            // 6. AssessmentAttemptHistory
+            context.AssessmentAttemptHistory.Add(new AssessmentAttemptHistory
+            {
+                SessionId = session.Id,
+                UserId = rinoId,
+                Title = session.Title,
+                Category = session.Category,
+                Score = 40,
+                IsPassed = false,
+                StartedAt = session.StartedAt,
+                CompletedAt = session.CompletedAt,
+                AttemptNumber = 1,
+                ArchivedAt = session.CompletedAt!.Value
+            });
+            await context.SaveChangesAsync();
+
+            Console.WriteLine($"UAT-SEED: Completed assessment GAGAL '{session.Title}' dibuat (tanpa sertifikat).");
         }
 
-        private static Task SeedProtonAssessmentsAsync(ApplicationDbContext context, string rinoId, DateTime now)
+        private static async Task SeedProtonAssessmentsAsync(ApplicationDbContext context, string rinoId, DateTime now)
         {
-            // Stub — akan diimplementasi Plan 02
-            Console.WriteLine("UAT-SEED: SeedProtonAssessmentsAsync — stub (Plan 02).");
-            return Task.CompletedTask;
+            // 1. Lookup ProtonTrack Tahun 1
+            var trackT1 = await context.ProtonTracks.FirstOrDefaultAsync(t => t.TahunKe == "Tahun 1");
+            if (trackT1 == null)
+            {
+                Console.WriteLine("UAT-SEED: ProtonTrack Tahun 1 tidak ditemukan, skip Proton assessments.");
+                return;
+            }
+
+            // 2. Buat AssessmentSession Proton Tahun 1
+            var sessionT1 = new AssessmentSession
+            {
+                Title = "Assessment Proton Tahun 1",
+                UserId = rinoId,
+                Category = "Assessment Proton",
+                Schedule = now.AddDays(14),
+                DurationMinutes = 90,
+                Status = "Open",
+                PassPercentage = 70,
+                AllowAnswerReview = true,
+                GenerateCertificate = false,
+                AccessToken = "UAT-PROTON-T1",
+                IsTokenRequired = false,
+                CreatedAt = now,
+                ProtonTrackId = trackT1.Id,
+                TahunKe = "Tahun 1"
+            };
+            context.AssessmentSessions.Add(sessionT1);
+            await context.SaveChangesAsync();
+
+            // 3. Lookup ProtonTrack Tahun 3
+            var trackT3 = await context.ProtonTracks.FirstOrDefaultAsync(t => t.TahunKe == "Tahun 3");
+            if (trackT3 == null)
+            {
+                Console.WriteLine("UAT-SEED: ProtonTrack Tahun 3 tidak ditemukan, skip Proton Tahun 3.");
+            }
+            else
+            {
+                // 4. Buat AssessmentSession Proton Tahun 3
+                var sessionT3 = new AssessmentSession
+                {
+                    Title = "Assessment Proton Tahun 3",
+                    UserId = rinoId,
+                    Category = "Assessment Proton",
+                    Schedule = now.AddDays(21),
+                    DurationMinutes = 120,
+                    Status = "Open",
+                    PassPercentage = 70,
+                    AllowAnswerReview = false,
+                    GenerateCertificate = false,
+                    AccessToken = "UAT-PROTON-T3",
+                    IsTokenRequired = false,
+                    CreatedAt = now,
+                    ProtonTrackId = trackT3.Id,
+                    TahunKe = "Tahun 3"
+                };
+                context.AssessmentSessions.Add(sessionT3);
+                await context.SaveChangesAsync();
+            }
+
+            Console.WriteLine("UAT-SEED: Assessment Proton Tahun 1 + Tahun 3 untuk Rino selesai.");
         }
 
         // =====================================================================
