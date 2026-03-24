@@ -250,6 +250,16 @@ namespace HcPortal.Data
             // Idempotency guard
             if (await context.AssessmentSessions.AnyAsync(s => s.Title == "OJT Proses Alkylation Q1-2026"))
             {
+                // Even if main seed ran before ProtonTracks existed, ensure Proton assessments are seeded now
+                if (!await context.AssessmentSessions.AnyAsync(s => s.Category == "Assessment Proton"))
+                {
+                    var rinoFallback = await userManager.FindByEmailAsync("rino.prasetyo@pertamina.com");
+                    if (rinoFallback != null)
+                    {
+                        Console.WriteLine("UAT-SEED: Proton assessments missing, seeding now...");
+                        await SeedProtonAssessmentsAsync(context, rinoFallback.Id, DateTime.UtcNow);
+                    }
+                }
                 Console.WriteLine("UAT-SEED: Data UAT sudah ada, skip.");
                 return;
             }
@@ -335,7 +345,24 @@ namespace HcPortal.Data
                 AssignedAt = now
             });
             await context.SaveChangesAsync();
-            Console.WriteLine("UAT-SEED: ProtonTrackAssignment Rino ditambahkan.");
+            Console.WriteLine("UAT-SEED: ProtonTrackAssignment Rino Tahun 1 ditambahkan.");
+
+            // Tambah assignment Tahun 3 untuk UAT interview flow
+            var trackT3 = await context.ProtonTracks
+                .FirstOrDefaultAsync(t => t.TrackType == "Operator" && t.TahunKe == "Tahun 3");
+            if (trackT3 != null && !await context.ProtonTrackAssignments.AnyAsync(a => a.CoacheeId == rinoId && a.ProtonTrackId == trackT3.Id && a.IsActive))
+            {
+                context.ProtonTrackAssignments.Add(new ProtonTrackAssignment
+                {
+                    CoacheeId = rinoId,
+                    AssignedById = rustamId,
+                    ProtonTrackId = trackT3.Id,
+                    IsActive = true,
+                    AssignedAt = now
+                });
+                await context.SaveChangesAsync();
+                Console.WriteLine("UAT-SEED: ProtonTrackAssignment Rino Tahun 3 ditambahkan.");
+            }
         }
 
         private static async Task SeedAssessmentCategoriesAsync(ApplicationDbContext context)
@@ -807,6 +834,59 @@ namespace HcPortal.Data
             };
             context.AssessmentSessions.Add(sessionT1);
             await context.SaveChangesAsync();
+
+            // 2b. Tambah Exam Package + Soal untuk Proton Tahun 1
+            var pkgT1 = new AssessmentPackage
+            {
+                AssessmentSessionId = sessionT1.Id,
+                PackageName = "Paket Proton T1",
+                PackageNumber = 1
+            };
+            context.AssessmentPackages.Add(pkgT1);
+            await context.SaveChangesAsync();
+
+            var protonT1Questions = new[]
+            {
+                new { Text = "Apa tujuan utama program Proton Tahun 1?", ET = "Pengetahuan Dasar", Opts = new[] { "Membangun kompetensi dasar operator", "Mengurangi jumlah karyawan", "Meningkatkan gaji", "Mengganti peralatan lama" }, CorrectIdx = 0 },
+                new { Text = "Siapa yang bertanggung jawab sebagai coach dalam Proton?", ET = "Pengetahuan Dasar", Opts = new[] { "Senior operator atau supervisor yang ditunjuk", "Vendor eksternal", "HRD pusat", "Direktur utama" }, CorrectIdx = 0 },
+                new { Text = "Berapa lama durasi program Proton Tahun 1?", ET = "Pengetahuan Dasar", Opts = new[] { "12 bulan", "1 bulan", "3 hari", "Tidak terbatas" }, CorrectIdx = 0 },
+                new { Text = "Apa fungsi deliverable dalam program Proton?", ET = "Proses Coaching", Opts = new[] { "Bukti pencapaian kompetensi coachee", "Dokumen keuangan", "Laporan absensi", "Surat izin kerja" }, CorrectIdx = 0 },
+                new { Text = "Langkah pertama dalam siklus coaching Proton adalah...", ET = "Proses Coaching", Opts = new[] { "Assessment awal kompetensi", "Ujian akhir", "Pemberian sertifikat", "Rotasi unit" }, CorrectIdx = 0 },
+            };
+
+            var qListT1 = new List<PackageQuestion>();
+            int orderT1 = 1;
+            foreach (var qd in protonT1Questions)
+            {
+                qListT1.Add(new PackageQuestion
+                {
+                    AssessmentPackageId = pkgT1.Id,
+                    QuestionText = qd.Text,
+                    Order = orderT1++,
+                    ScoreValue = 20,
+                    ElemenTeknis = qd.ET
+                });
+            }
+            context.PackageQuestions.AddRange(qListT1);
+            await context.SaveChangesAsync();
+
+            var optsT1 = new List<PackageOption>();
+            for (int i = 0; i < qListT1.Count; i++)
+            {
+                var qd = protonT1Questions[i];
+                for (int j = 0; j < qd.Opts.Length; j++)
+                {
+                    optsT1.Add(new PackageOption
+                    {
+                        PackageQuestionId = qListT1[i].Id,
+                        OptionText = qd.Opts[j],
+                        IsCorrect = j == qd.CorrectIdx
+                    });
+                }
+            }
+            context.PackageOptions.AddRange(optsT1);
+            await context.SaveChangesAsync();
+            Console.WriteLine($"UAT-SEED: Proton Tahun 1 exam package dibuat ({qListT1.Count} soal).");
 
             // 3. Lookup ProtonTrack Tahun 3
             var trackT3 = await context.ProtonTracks.FirstOrDefaultAsync(t => t.TahunKe == "Tahun 3");
