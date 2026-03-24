@@ -22,6 +22,7 @@
 - [x] **Phase 249: Null Safety & Input Validation** - Tambah defensive null checks dan safe parse di seluruh codebase (completed 2026-03-24)
 - [x] **Phase 250: Security & Performance** - Fix XSS, hapus console.log yang mengekspos data, password policy, throttle notifikasi (completed 2026-03-24)
 - [x] **Phase 251: Data Integrity & Logic** - Fix timezone, unique index migration, validasi business rule, thread safety (completed 2026-03-24)
+- [ ] **Phase 252: XSS Escape AJAX Approval Badge** - Escape data.approverName di JavaScript AJAX handler CoachingProton agar XSS tertutup di semua jalur
 
 ## Phase Details
 
@@ -80,6 +81,15 @@ Plans:
 - [x] 251-01-PLAN.md — DateTime.UtcNow + fix AdminController (bulk renewal, past-date, log warning)
 - [x] 251-02-PLAN.md — Thread-safe _lastScopeLabel refactor + composite unique index migration
 
+### Phase 252: XSS Escape AJAX Approval Badge
+**Goal**: Jalur AJAX approval di CoachingProton.cshtml me-escape data.approverName sebelum interpolasi ke DOM, sehingga XSS tertutup di semua jalur (server-side dan client-side)
+**Depends on**: Phase 250
+**Requirements**: SEC-02
+**Gap Closure**: Closes SEC-02-AJAX from v8.6 audit
+**Success Criteria** (what must be TRUE):
+  1. Approval via AJAX menghasilkan badge tooltip yang menampilkan karakter HTML sebagai teks literal, bukan dieksekusi sebagai markup
+**Plans:** 0/1 plans needed
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -88,3 +98,4 @@ Plans:
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete    | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 1/1 | Complete    | 2026-03-24 |
 | 251. Data Integrity & Logic | v8.6 | 2/2 | Complete    | 2026-03-24 |
+| 252. XSS Escape AJAX Approval Badge | v8.6 | 0/1 | Pending     | — |

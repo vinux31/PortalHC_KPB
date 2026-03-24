@@ -63,7 +63,7 @@ Tidak ada — milestone ini murni bug fix dari audit.
 | SAFE-04 | Phase 249 | Complete |
 | SAFE-05 | Phase 249 | Complete |
 | SEC-01 | Phase 250 | Complete |
-| SEC-02 | Phase 250 | Complete |
+| SEC-02 | Phase 250 + 252 | Partial (server-side done, AJAX path pending Phase 252) |
 | PERF-01 | Phase 250 | Complete |
 | DATA-01 | Phase 251 | Complete |
 | DATA-02 | Phase 251 | Complete |
