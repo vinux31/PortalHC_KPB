@@ -1251,7 +1251,7 @@ namespace HcPortal.Controllers
             // ExamWindowCloseDate is optional — remove from ModelState to prevent accidental validation failure
             ModelState.Remove("ExamWindowCloseDate");
             // ValidUntil: opsional di normal mode, wajib di renewal mode
-            bool isRenewalModePost = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue;
+            bool isRenewalModePost = model.RenewsSessionId.HasValue || model.RenewsTrainingId.HasValue || !string.IsNullOrEmpty(RenewalFkMap);
             ModelState.Remove("ValidUntil");
             if (isRenewalModePost && !model.ValidUntil.HasValue)
             {
@@ -1434,7 +1434,10 @@ namespace HcPortal.Controllers
                 if (!string.IsNullOrEmpty(RenewalFkMap))
                 {
                     try { fkMap = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, int>>(RenewalFkMap); }
-                    catch { /* ignore malformed map — fall back to model value */ }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to deserialize RenewalFkMap");
+                    }
                 }
 
                 // Create all sessions in memory first
@@ -1724,8 +1727,6 @@ namespace HcPortal.Controllers
             if (string.IsNullOrWhiteSpace(model.Title))
                 editErrors.Add("Title is required.");
 
-            if (model.Schedule < DateTime.Today)
-                editErrors.Add("Schedule date cannot be in the past.");
             if (model.Schedule > DateTime.Today.AddYears(2))
                 editErrors.Add("Schedule date too far in future (maximum 2 years).");
 
