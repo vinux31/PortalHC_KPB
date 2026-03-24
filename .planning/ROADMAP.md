@@ -45,7 +45,7 @@
   3. Admin membuat paket soal baru dan berhasil import 15 soal via paste Excel dengan kolom Elemen Teknis — semua soal tersimpan
   4. Admin membuka halaman paket soal dan melihat ET coverage matrix yang menampilkan distribusi soal per elemen, serta dapat preview soal individual
 - **Plans:** 2 plans
-  - [ ] 242-01-PLAN.md — Code review & UAT Kategori hierarchy + CreateAssessment (SETUP-01, SETUP-02)
+  - [x] 242-01-PLAN.md — Code review & UAT Kategori hierarchy + CreateAssessment (SETUP-01, SETUP-02)
   - [ ] 242-02-PLAN.md — Code review & UAT Paket Soal, Import, ET Matrix, Preview (SETUP-03, SETUP-04)
 
 #### Phase 243: UAT Exam Flow
@@ -129,7 +129,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 241. Seed Data UAT | v8.5 | 2/2 | Complete | 2026-03-24 |
-| 242. UAT Setup Flow | v8.5 | 0/2 | Planned | — |
+| 242. UAT Setup Flow | v8.5 | 1/2 | In Progress|  |
 | 243. UAT Exam Flow | v8.5 | 0/0 | Pending | — |
 | 244. UAT Monitoring & Analytics | v8.5 | 0/0 | Pending | — |
 | 245. UAT Proton Assessment | v8.5 | 0/0 | Pending | — |
