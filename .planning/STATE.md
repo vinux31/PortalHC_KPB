@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.5
 milestone_name: UAT Assessment System End-to-End
-status: Ready to plan
-stopped_at: Phase 246 context gathered
-last_updated: "2026-03-24T10:21:15.261Z"
+status: Ready to execute
+stopped_at: Completed 246-01-PLAN.md
+last_updated: "2026-03-24T10:37:54.835Z"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 245 — uat-proton-assessment
+**Current focus:** Phase 246 — uat-edge-cases-records
 
 ## Current Position
 
-Phase: 246
-Plan: Not started
+Phase: 246 (uat-edge-cases-records) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Plan: Not started
 | Phase 244 P01 | 20m | 2 tasks | 0 files |
 | Phase 244 P02 | 5m | 2 tasks | 0 files |
 | Phase 245 P01 | 15m | 2 tasks | 0 files |
+| Phase 246 P01 | 18m | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Plan: Not started
 - [Phase 244]: 244-01: Code review MON-01 + MON-02 semua 9 poin OK — SignalR push via /hubs/assessment, token rotation update sibling sessions, TempData guard StartExam
 - [Phase 244]: 244-02: Task 2 (UAT Manual MON-03+MON-04) di-auto-approve karena --auto mode aktif — tidak ada bug baru ditemukan di code review Task 1
 - [Phase 245]: PROT-02 ISSUE: seed DurationMinutes Tahun 3 = 120, server override benar tapi seed tidak konsisten
+- [Phase 246]: UserId wajib pada AssessmentSession meskipun multi-user pattern — set ke rinoId sebagai session owner untuk seed
+- [Phase 246]: NomorSertifikat hardcoded KPB/SEED-EXP/01/2024 untuk isolasi dari CertNumberHelper sequence pada expired cert seed
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-24T10:21:15.256Z
-Stopped at: Phase 246 context gathered
+Last session: 2026-03-24T10:37:54.832Z
+Stopped at: Completed 246-01-PLAN.md
 Resume with: `/gsd:execute-phase 244` setelah UAT manual selesai
