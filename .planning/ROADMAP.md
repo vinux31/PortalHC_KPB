@@ -62,7 +62,7 @@
   6. Worker yang lulus dapat melihat sertifikat dengan nomor otomatis format KPB/SEQ/BULAN/TAHUN dan mencetak/download sebagai PDF
 - **Plans:** 2 plans
   - [x] 243-01-PLAN.md — Code review & UAT start exam, take exam, timer, resume (EXAM-01 s/d EXAM-04)
-  - [ ] 243-02-PLAN.md — Code review & UAT summary, submit, results, certificate (EXAM-05 s/d EXAM-07)
+  - [x] 243-02-PLAN.md — Code review & UAT summary, submit, results, certificate (EXAM-05 s/d EXAM-07)
 
 #### Phase 244: UAT Monitoring & Analytics
 - **Status:** Pending
@@ -132,7 +132,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 |-------|-----------|----------------|--------|-----------|
 | 241. Seed Data UAT | v8.5 | 2/2 | Complete | 2026-03-24 |
 | 242. UAT Setup Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 243. UAT Exam Flow | v8.5 | 1/2 | In Progress|  |
+| 243. UAT Exam Flow | v8.5 | 2/2 | Complete   | 2026-03-24 |
 | 244. UAT Monitoring & Analytics | v8.5 | 0/0 | Pending | — |
 | 245. UAT Proton Assessment | v8.5 | 0/0 | Pending | — |
 | 246. UAT Edge Cases & Records | v8.5 | 0/0 | Pending | — |

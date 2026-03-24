@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.5
 milestone_name: UAT Assessment System End-to-End
-status: Executing Phase 243
-stopped_at: 243-01 code review selesai, menunggu UAT browser Task 2
-last_updated: "2026-03-24T07:37:28.702Z"
+status: Ready to execute
+stopped_at: 243-02 code review selesai, menunggu UAT browser Task 2
+last_updated: "2026-03-24T08:06:15.099Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State: Portal HC KPB
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 ## Current Position
 
 Phase: 243 (uat-exam-flow) — EXECUTING
-Plan: 1 of 2
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Plan: 1 of 2
 | Phase 241 P01 | 10m | 1 tasks | 1 files |
 | Phase 241 P02 | 15m | 2 tasks | 1 files |
 | Phase 242 P02 | 20m | 1 tasks | 1 files |
+| Phase 243 P02 | 15m | 1 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Plan: 1 of 2
 - [Phase 241]: AssessmentAttemptHistory DbSet singular — context.AssessmentAttemptHistory bukan plural
 - [Phase 241]: Setiap completed session punya PackageQuestion+Option baru (copy) untuk isolasi package per session
 - [Phase 242]: PreviewPackage.cshtml tidak menampilkan ElemenTeknis — diperbaiki dengan badge info per soal (fix Rule 2)
+- [Phase 243]: EXAM-05 OK: ExamSummary TempData redirect + SubmitExam grading via IsCorrect + upsert sudah benar
+- [Phase 243]: EXAM-06 OK: Results ET scores dihitung real-time dari PackageQuestion, Radar chart Chart.js >= 3 ET groups
+- [Phase 243]: EXAM-07 OK: Certificate guard 3 layer, CertNumberHelper.Build format KPB/XXX/BULAN/TAHUN, CertificatePdf via QuestPDF
 
 ### Pending Todos
 
@@ -87,6 +91,6 @@ Plan: 1 of 2
 
 ## Session Continuity
 
-Last session: 2026-03-24T07:37:28.698Z
-Stopped at: 243-01 code review selesai, menunggu UAT browser Task 2
+Last session: 2026-03-24T08:06:15.096Z
+Stopped at: 243-02 code review selesai, menunggu UAT browser Task 2
 Resume with: `/gsd:plan-phase 248`
