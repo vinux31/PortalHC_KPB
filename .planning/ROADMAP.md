@@ -108,11 +108,9 @@
   - [x] 246-01-PLAN.md — Seed data tambahan (token-required session + expired certificate)
   - [x] 246-02-PLAN.md — Browser UAT edge cases + renewal + records (7 HV items)
 
-
-
 #### Phase 247: Bug Fix Pasca-UAT
 - **Status:** Pending
-- **Goal:** Semua bug yang ditemukan selama simulasi UAT (Phase 242–246) diperbaiki, diverifikasi, dan tidak ada regresi
+- **Goal:** Semua bug yang ditemukan selama simulasi UAT (Phase 242-246) diperbaiki, diverifikasi, dan tidak ada regresi
 - **Depends on:** Phase 246
 - **Requirements:** FIX-01
 - **Success Criteria:**
@@ -120,8 +118,8 @@
   2. Alur yang sebelumnya gagal dalam UAT kini berjalan tanpa error setelah fix diterapkan
   3. Tidak ada regresi pada fitur yang sebelumnya bekerja normal (fitur di luar scope bug yang ditemukan tetap berfungsi)
 - **Plans:** 2 plans
-  - [ ] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
-  - [ ] 245-02-PLAN.md — Human verification UAT Proton di browser (exam Tahun 1, interview Tahun 3, sertifikat)
+  - [ ] 247-01-PLAN.md — Fix ET distribution algorithm + verifikasi BUG-02 + admin cleanup
+  - [ ] 247-02-PLAN.md — Browser UAT verification semua pending items Phase 244 + 246
 
 <details>
 <summary>✅ v8.6 Codebase Audit & Hardening (Phases 248-252) — SHIPPED 2026-03-24</summary>
@@ -146,7 +144,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete    | 2026-03-24 |
 | 245. UAT Proton Assessment | v8.5 | 1/2 | Complete    | 2026-03-24 |
 | 246. UAT Edge Cases & Records | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 247. Bug Fix Pasca-UAT | v8.5 | 0/0 | Pending | — |
+| 247. Bug Fix Pasca-UAT | v8.5 | 0/2 | Pending | — |
 | 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 1/1 | Complete | 2026-03-24 |
