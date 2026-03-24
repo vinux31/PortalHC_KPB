@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.5
 milestone_name: UAT Assessment System End-to-End
-status: Ready to plan
+status: Executing Phase 247
 stopped_at: Phase 247 context gathered
-last_updated: "2026-03-24T11:10:57.791Z"
+last_updated: "2026-03-24T11:30:57.733Z"
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 246 — uat-edge-cases-records
+**Current focus:** Phase 247 — bug-fix-pasca-uat
 
 ## Current Position
 
-Phase: 247
-Plan: Not started
+Phase: 247 (bug-fix-pasca-uat) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Plan: Not started
 | Phase 245 P01 | 15m | 2 tasks | 0 files |
 | Phase 246 P01 | 18m | 2 tasks | 1 files |
 | Phase 246 P02 | 8m | 2 tasks | 0 files |
+| Phase 247 P01 | 5m | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Plan: Not started
 - [Phase 246]: NomorSertifikat hardcoded KPB/SEED-EXP/01/2024 untuk isolasi dari CertNumberHelper sequence pada expired cert seed
 - [Phase 246]: Mode --auto: checkpoint:human-verify di-auto-approve via code-review analysis — token validation, force-close, reset, regenerate, renewal, records semua PASS
 - [Phase 246]: _CertAlertBanner hanya muncul untuk HC/Admin (by-design); worker biasa tidak melihat banner
+- [Phase 247]: Phase 2 BuildCrossPackageAssignment diganti dari per-package ke per-ET round-robin distribution
+- [Phase 247]: BUG-02 COACH_EVIDENCE_RESUBMITTED verified correct — no fix needed
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-24T11:10:57.787Z
-Stopped at: Phase 247 context gathered
-Resume with: `/gsd:execute-phase 244` setelah UAT manual selesai
+Last session: 2026-03-24T11:36:00Z
+Stopped at: Completed 247-01-PLAN.md
+Resume with: `/gsd:execute-phase 247` for plan 02

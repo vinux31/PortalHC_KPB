@@ -118,7 +118,7 @@
   2. Alur yang sebelumnya gagal dalam UAT kini berjalan tanpa error setelah fix diterapkan
   3. Tidak ada regresi pada fitur yang sebelumnya bekerja normal (fitur di luar scope bug yang ditemukan tetap berfungsi)
 - **Plans:** 2 plans
-  - [ ] 247-01-PLAN.md — Fix ET distribution algorithm + verifikasi BUG-02 + admin cleanup
+  - [x] 247-01-PLAN.md — Fix ET distribution algorithm + verifikasi BUG-02 + admin cleanup
   - [ ] 247-02-PLAN.md — Browser UAT verification semua pending items Phase 244 + 246
 
 <details>
