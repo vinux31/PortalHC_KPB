@@ -80,6 +80,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 248. UI & Annotations | v8.6 | 1/1 | Complete    | 2026-03-24 |
-| 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete   | 2026-03-24 |
+| 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete    | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 0/TBD | Not started | - |
 | 251. Data Integrity & Logic | v8.6 | 0/TBD | Not started | - |
