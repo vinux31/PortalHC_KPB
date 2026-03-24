@@ -368,6 +368,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> Records(string? section, string? unit, string? category, string? search, string? statusFilter, string? isFiltered)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
 
             var unified = await _workerDataService.GetUnifiedRecords(user.Id);
 
@@ -409,6 +410,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> RecordsWorkerDetail(string workerId, string? section, string? unit, string? category, string? status, string? search)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
 
             // Own records: always allowed
             if (workerId != user.Id)
@@ -520,6 +522,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> ExportRecordsTeamAssessment(string? section, string? unit, string? search, string? statusFilter, string? dateFrom, string? dateTo)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
 
             if (roleLevel >= 5) return Forbid();
 
@@ -530,8 +533,8 @@ namespace HcPortal.Controllers
                 sectionFilter = user.Section;
             }
 
-            DateTime? from = string.IsNullOrEmpty(dateFrom) ? null : DateTime.Parse(dateFrom);
-            DateTime? to = string.IsNullOrEmpty(dateTo) ? null : DateTime.Parse(dateTo);
+            DateTime? from = DateTime.TryParse(dateFrom, out var parsedFrom) ? parsedFrom : null;
+            DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
             var (assessmentRows, _) = await _workerDataService.GetAllWorkersHistory();
 
@@ -572,6 +575,7 @@ namespace HcPortal.Controllers
         public async Task<IActionResult> ExportRecordsTeamTraining(string? section, string? unit, string? search, string? statusFilter, string? category, string? dateFrom, string? dateTo)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
 
             if (roleLevel >= 5) return Forbid();
 
@@ -582,8 +586,8 @@ namespace HcPortal.Controllers
                 sectionFilter = user.Section;
             }
 
-            DateTime? from = string.IsNullOrEmpty(dateFrom) ? null : DateTime.Parse(dateFrom);
-            DateTime? to = string.IsNullOrEmpty(dateTo) ? null : DateTime.Parse(dateTo);
+            DateTime? from = DateTime.TryParse(dateFrom, out var parsedFrom) ? parsedFrom : null;
+            DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
             var (_, trainingRows) = await _workerDataService.GetAllWorkersHistory();
 
@@ -623,14 +627,15 @@ namespace HcPortal.Controllers
             string? statusFilter, string? dateFrom, string? dateTo)
         {
             var (user, roleLevel) = await GetCurrentUserRoleLevelAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
             if (roleLevel >= 5) return Forbid();
 
             // L4 section lock — enforce server-side
             string? sectionFilter = (roleLevel == 4 && !string.IsNullOrEmpty(user.Section))
                 ? user.Section : section;
 
-            DateTime? from = string.IsNullOrEmpty(dateFrom) ? null : DateTime.Parse(dateFrom);
-            DateTime? to = string.IsNullOrEmpty(dateTo) ? null : DateTime.Parse(dateTo);
+            DateTime? from = DateTime.TryParse(dateFrom, out var parsedFrom) ? parsedFrom : null;
+            DateTime? to = DateTime.TryParse(dateTo, out var parsedTo) ? parsedTo : null;
 
             var workerList = await _workerDataService.GetWorkersInSection(
                 sectionFilter, unit, category, null, statusFilter, from, to);
@@ -2003,12 +2008,13 @@ namespace HcPortal.Controllers
         /// Returns (user, roleLevel) for the current authenticated user.
         /// Extracts the repeated role-scoping pattern used across multiple actions.
         /// </summary>
-        private async Task<(ApplicationUser User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
+        private async Task<(ApplicationUser? User, int RoleLevel)> GetCurrentUserRoleLevelAsync()
         {
             var user = await _userManager.GetUserAsync(User);
-            var userRoles = await _userManager.GetRolesAsync(user!);
+            if (user == null) return (null, 0);
+            var userRoles = await _userManager.GetRolesAsync(user);
             var roleLevel = UserRoles.GetRoleLevel(userRoles.FirstOrDefault() ?? "");
-            return (user!, roleLevel);
+            return (user, roleLevel);
         }
 
         /// <summary>
