@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.6 started, 2026-03-24)
+## Current State (v8.6 shipped, 2026-03-24)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -23,17 +23,9 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.3 shipped** — Date Range Filter Team View Records, 1 phase (239).
 **v8.4 shipped** — Alarm Sertifikat Expired, 1 phase (240).
 **v8.5 defined** — UAT Assessment System End-to-End, 7 phases (241-247), not yet executed.
+**v8.6 shipped** — Codebase Audit & Hardening, 5 phases (248-252). Fixed 17 bugs: null safety, input validation, XSS, data integrity, performance throttling.
 
-**Current focus:** v8.6 Codebase Audit & Hardening — All 4 phases (248-251) complete
-
-## Current Milestone: v8.6 Codebase Audit & Hardening
-
-**Goal:** Perbaiki semua bug Critical/High/Medium yang ditemukan dari deep audit seluruh codebase — null safety, input validation, data integrity, security leak, dan performa.
-
-**Target features:**
-- Fix Critical: Null-forgiving `user!` di `GetCurrentUserRoleLevelAsync()` (crash 5 halaman CMP)
-- Fix High: `DateTime.Parse` tanpa try-catch (3 action), `ToDictionary` key collision bulk renewal, bare catch `RenewalFkMap`, race condition `_lastScopeLabel`, `DateTime.Now`/`UtcNow` mismatch, unique index terlalu ketat (OrganizationUnit + AssessmentCategory), token leak `console.log`
-- Fix Medium: XSS `@Html.Raw(approverName)`, null deref `WorkerDetail.FullName`, N+1 query `TriggerCertExpiredNotificationsAsync`, bulk renewal tanpa ValidUntil, edit assessment lampau mustahil, missing `MaxLength`/`Range` annotations, `bg-purple` undefined di AssessmentMonitoring
+**Current focus:** Planning next milestone
 
 ## Next Milestone Goals
 
@@ -849,4 +841,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-24 after Phase 250 Security & Performance complete*
+*Last updated: 2026-03-24 after v8.6 Codebase Audit & Hardening milestone*

@@ -1,5 +1,15 @@
 # Milestones
 
+## v8.6 Codebase Audit & Hardening (Shipped: 2026-03-24)
+
+**Phases completed:** 5 phases, 7 plans, 5 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
 ## v8.2 Proton Coaching Ecosystem Audit (Shipped: 2026-03-23)
 
 **Phases completed:** 6 phases (233-238), 16 plans, 30 tasks
@@ -19,6 +29,7 @@
 6. Gap Closure — UI wiring progression warning confirm dialog, session Edit/Delete buttons, 3 export link buttons
 
 **Known Gaps (accepted as tech debt):**
+
 - v8.0 audit: AINT-02/03 deferred (tab-switch detection), 10 orphaned requirements from removed phases (COMP-01-03, NOTF-01-04, QBNK-01-03)
 - v8.0 audit: ANLT-04 partial (30-day only, not 30/60/90), 5 Chart.js visual checks pending human verification
 
