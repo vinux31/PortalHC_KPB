@@ -9,9 +9,9 @@ Requirements untuk Codebase Audit & Hardening. Setiap bug di-fix dengan atomic c
 
 ### Null Safety & Input Validation
 
-- [ ] **SAFE-01**: Null check pada `GetCurrentUserRoleLevelAsync()` — return error/redirect jika user null, mencegah crash 5 halaman CMP
-- [ ] **SAFE-02**: Ganti `DateTime.Parse()` ke `DateTime.TryParse()` di 3 action CMP (ExportRecordsTeamAssessment, ExportRecordsTeamTraining, RecordsTeamPartial)
-- [ ] **SAFE-03**: Guard `ToDictionary` key collision di bulk renewal `sourceSessions` dan `sourceTrainings` (AdminController)
+- [x] **SAFE-01**: Null check pada `GetCurrentUserRoleLevelAsync()` — return error/redirect jika user null, mencegah crash 5 halaman CMP
+- [x] **SAFE-02**: Ganti `DateTime.Parse()` ke `DateTime.TryParse()` di 3 action CMP (ExportRecordsTeamAssessment, ExportRecordsTeamTraining, RecordsTeamPartial)
+- [x] **SAFE-03**: Guard `ToDictionary` key collision di bulk renewal `sourceSessions` dan `sourceTrainings` (AdminController)
 - [x] **SAFE-04**: Null-safe `Model.FullName` di WorkerDetail.cshtml — tambah `?? ""` fallback
 - [x] **SAFE-05**: Safe cast `ViewBag.UnansweredCount` dan `ViewBag.AssessmentId` di ExamSummary.cshtml — ganti hard cast `(int)` dengan null-safe pattern
 
@@ -57,9 +57,9 @@ Tidak ada — milestone ini murni bug fix dari audit.
 | UI-01 | Phase 248 | Complete |
 | UI-02 | Phase 248 | Complete |
 | UI-03 | Phase 248 | Complete |
-| SAFE-01 | Phase 249 | Pending |
-| SAFE-02 | Phase 249 | Pending |
-| SAFE-03 | Phase 249 | Pending |
+| SAFE-01 | Phase 249 | Complete |
+| SAFE-02 | Phase 249 | Complete |
+| SAFE-03 | Phase 249 | Complete |
 | SAFE-04 | Phase 249 | Complete |
 | SAFE-05 | Phase 249 | Complete |
 | SEC-01 | Phase 250 | Pending |

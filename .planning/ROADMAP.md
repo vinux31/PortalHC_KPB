@@ -19,7 +19,7 @@
 **Milestone Goal:** Perbaiki semua bug Critical/High/Medium dari deep audit codebase — null safety, input validation, data integrity, security leak, dan performa. Setiap fix atomic, tidak ada fitur baru.
 
 - [x] **Phase 248: UI & Annotations** - Tambah CSS global, data annotations MaxLength/Range tanpa mengubah logika apapun (completed 2026-03-24)
-- [ ] **Phase 249: Null Safety & Input Validation** - Tambah defensive null checks dan safe parse di seluruh codebase
+- [x] **Phase 249: Null Safety & Input Validation** - Tambah defensive null checks dan safe parse di seluruh codebase (completed 2026-03-24)
 - [ ] **Phase 250: Security & Performance** - Fix XSS, hapus console.log yang mengekspos data, password policy, throttle notifikasi
 - [ ] **Phase 251: Data Integrity & Logic** - Fix timezone, unique index migration, validasi business rule, thread safety
 
@@ -48,9 +48,9 @@ Plans:
   3. Bulk renewal dengan data duplikat tidak menyebabkan crash `ArgumentException: An item with the same key` — operasi selesai atau menampilkan error bermakna
   4. Halaman WorkerDetail dengan `FullName` null menampilkan string kosong, bukan exception
   5. Halaman ExamSummary dengan `ViewBag.UnansweredCount` atau `ViewBag.AssessmentId` null tidak melempar `InvalidCastException`
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 249-01-PLAN.md — Null-safe GetCurrentUserRoleLevelAsync + TryParse + ToDictionary guard
+- [x] 249-01-PLAN.md — Null-safe GetCurrentUserRoleLevelAsync + TryParse + ToDictionary guard
 - [x] 249-02-PLAN.md — Null-safe FullName di WorkerDetail + ViewBag cast di ExamSummary
 
 ### Phase 250: Security & Performance
@@ -80,6 +80,6 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 248. UI & Annotations | v8.6 | 1/1 | Complete    | 2026-03-24 |
-| 249. Null Safety & Input Validation | v8.6 | 1/2 | In Progress|  |
+| 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete   | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 0/TBD | Not started | - |
 | 251. Data Integrity & Logic | v8.6 | 0/TBD | Not started | - |
