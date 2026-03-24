@@ -22,10 +22,10 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238).
 **v8.3 shipped** — Date Range Filter Team View Records, 1 phase (239).
 **v8.4 shipped** — Alarm Sertifikat Expired, 1 phase (240).
-**v8.5 defined** — UAT Assessment System End-to-End, 7 phases (241-247), not yet executed.
+**v8.5 in progress** — UAT Assessment System End-to-End, 7 phases (241-247). Phase 244 (Monitoring & Analytics UAT) complete — code review passed, human browser testing pending.
 **v8.6 shipped** — Codebase Audit & Hardening, 5 phases (248-252). Fixed 17 bugs: null safety, input validation, XSS, data integrity, performance throttling.
 
-**Current focus:** Planning next milestone
+**Current focus:** v8.5 UAT Assessment — Phase 245 next
 
 ## Next Milestone Goals
 
@@ -841,4 +841,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-24 after v8.6 Codebase Audit & Hardening milestone*
+*Last updated: 2026-03-24 after Phase 244 UAT Monitoring & Analytics*
