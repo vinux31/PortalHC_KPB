@@ -21,7 +21,7 @@
   - **Scope:** Extend SeedData.cs dengan coach-coachee mapping, sub-kategori, assessment reguler + Proton, paket soal + 15 soal, dan completed assessment dengan sertifikat
   - **Plans:** 2 plans
   - Plans:
-    - [ ] 241-01-PLAN.md — Seed entry point + coach-coachee + kategori + assessment reguler open dengan 15 soal
+    - [x] 241-01-PLAN.md — Seed entry point + coach-coachee + kategori + assessment reguler open dengan 15 soal
     - [ ] 241-02-PLAN.md — Completed assessment (lulus+gagal) + Assessment Proton Tahun 1 & 3
 
 <details>
@@ -41,7 +41,7 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 241. Seed Data UAT | v8.5 | 0/2 | Planned | — |
+| 241. Seed Data UAT | v8.5 | 1/2 | In Progress|  |
 | 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 1/1 | Complete | 2026-03-24 |

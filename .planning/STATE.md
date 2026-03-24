@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: v8.6 milestone complete
-stopped_at: Phase 241 context gathered
-last_updated: "2026-03-24T04:53:45.497Z"
+milestone: v8.5
+milestone_name: UAT Seed & Verification
+status: Ready to execute
+stopped_at: Completed 241-01-PLAN.md
+last_updated: "2026-03-24T05:11:29.773Z"
 progress:
   total_phases: 169
   completed_phases: 166
-  total_plans: 313
-  completed_plans: 324
+  total_plans: 315
+  completed_plans: 325
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 252 — xss-escape-ajax-approval-badge
+**Current focus:** Phase 241 — seed-data-uat
 
 ## Current Position
 
-Phase: 252
-Plan: Not started
+Phase: 241 (seed-data-uat) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Plan: Not started
 | Phase 251 P01 | 5m | 2 tasks | 3 files |
 | Phase 251 P02 | 8m | 2 tasks | 4 files |
 | Phase 252 P01 | 5 | 1 tasks | 1 files |
+| Phase 241 P01 | 10m | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Plan: Not started
 - [Phase 251]: Tuple return (ProtonProgressSubModel, string) menggantikan private field _lastScopeLabel untuk thread-safety di CDPController
 - [Phase 251]: Composite unique index (ParentId, Name) memungkinkan sub-unit/sub-kategori nama sama di parent berbeda
 - [Phase 252]: escHtml didefinisikan 1x di awal blok script CoachingProton.cshtml untuk menutup XSS jalur AJAX client-side (defense-in-depth: server Phase 250 + client Phase 252)
+- [Phase 241]: Stub methods SeedCompletedAssessmentPassAsync/FailAsync/SeedProtonAssessmentsAsync pakai Task.CompletedTask agar seed tidak crash sebelum Plan 02 diimplementasi
+- [Phase 241]: Idempotency guard by Title 'OJT Proses Alkylation Q1-2026' dipilih sebagai single source of truth untuk UAT seed
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-24T04:53:45.485Z
-Stopped at: Phase 241 context gathered
+Last session: 2026-03-24T05:11:29.763Z
+Stopped at: Completed 241-01-PLAN.md
 Resume with: `/gsd:plan-phase 248`
