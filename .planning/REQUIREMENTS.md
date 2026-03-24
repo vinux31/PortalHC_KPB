@@ -26,9 +26,9 @@ Requirements untuk Codebase Audit & Hardening. Setiap bug di-fix dengan atomic c
 
 ### Security & Performance
 
-- [ ] **SEC-01**: Hapus semua `console.log` yang mengekspos token/response di Assessment.cshtml (4 lokasi)
-- [ ] **SEC-02**: Escape `approverName` di `GetApprovalBadgeWithTooltip` CoachingProton.cshtml — ganti `@Html.Raw` dengan HTML-encoded output
-- [ ] **PERF-01**: Throttle `TriggerCertExpiredNotificationsAsync` — jalankan maksimal 1x per jam via IMemoryCache, bukan setiap page load dashboard
+- [x] **SEC-01**: Hapus semua `console.log` yang mengekspos token/response di Assessment.cshtml (4 lokasi)
+- [x] **SEC-02**: Escape `approverName` di `GetApprovalBadgeWithTooltip` CoachingProton.cshtml — ganti `@Html.Raw` dengan HTML-encoded output
+- [x] **PERF-01**: Throttle `TriggerCertExpiredNotificationsAsync` — jalankan maksimal 1x per jam via IMemoryCache, bukan setiap page load dashboard
 
 ### UI & Annotations
 
@@ -62,9 +62,9 @@ Tidak ada — milestone ini murni bug fix dari audit.
 | SAFE-03 | Phase 249 | Complete |
 | SAFE-04 | Phase 249 | Complete |
 | SAFE-05 | Phase 249 | Complete |
-| SEC-01 | Phase 250 | Pending |
-| SEC-02 | Phase 250 | Pending |
-| PERF-01 | Phase 250 | Pending |
+| SEC-01 | Phase 250 | Complete |
+| SEC-02 | Phase 250 | Complete |
+| PERF-01 | Phase 250 | Complete |
 | DATA-01 | Phase 251 | Pending |
 | DATA-02 | Phase 251 | Pending |
 | DATA-03 | Phase 251 | Pending |

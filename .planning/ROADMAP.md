@@ -20,7 +20,7 @@
 
 - [x] **Phase 248: UI & Annotations** - Tambah CSS global, data annotations MaxLength/Range tanpa mengubah logika apapun (completed 2026-03-24)
 - [x] **Phase 249: Null Safety & Input Validation** - Tambah defensive null checks dan safe parse di seluruh codebase (completed 2026-03-24)
-- [ ] **Phase 250: Security & Performance** - Fix XSS, hapus console.log yang mengekspos data, password policy, throttle notifikasi
+- [x] **Phase 250: Security & Performance** - Fix XSS, hapus console.log yang mengekspos data, password policy, throttle notifikasi (completed 2026-03-24)
 - [ ] **Phase 251: Data Integrity & Logic** - Fix timezone, unique index migration, validasi business rule, thread safety
 
 ## Phase Details
@@ -61,9 +61,9 @@ Plans:
   1. Membuka DevTools browser di halaman Assessment tidak menampilkan token atau response payload di console
   2. Nama approver yang mengandung karakter HTML (misalnya `<script>`) tampil sebagai teks literal di badge tooltip CoachingProton, bukan dieksekusi sebagai markup
   3. Dashboard yang di-refresh berulang kali dalam satu jam hanya memicu query notifikasi sertifikat expired sekali, bukan setiap request
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 250-01-PLAN.md — Hapus console.log, XSS escape tooltip, throttle notifikasi
+- [x] 250-01-PLAN.md — Hapus console.log, XSS escape tooltip, throttle notifikasi
 
 ### Phase 251: Data Integrity & Logic
 **Goal**: Seluruh operasi temporal menggunakan UTC, unique constraint database mencerminkan aturan bisnis yang benar, validasi business rule renewal dan edit assessment diperbaiki, dan `_lastScopeLabel` tidak menimbulkan race condition di multi-thread
@@ -83,5 +83,5 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 248. UI & Annotations | v8.6 | 1/1 | Complete    | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete    | 2026-03-24 |
-| 250. Security & Performance | v8.6 | 0/1 | Not started | - |
+| 250. Security & Performance | v8.6 | 1/1 | Complete   | 2026-03-24 |
 | 251. Data Integrity & Logic | v8.6 | 0/TBD | Not started | - |

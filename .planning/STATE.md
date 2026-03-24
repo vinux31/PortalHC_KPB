@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.6
 milestone_name: Codebase Audit & Hardening
-status: Ready to plan
-stopped_at: Phase 250 context gathered
-last_updated: "2026-03-24T02:30:41.435Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 250-01-PLAN.md
+last_updated: "2026-03-24T02:41:19.856Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 3
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 249 — null-safety-input-validation
+**Current focus:** Phase 250 — security-performance
 
 ## Current Position
 
-Phase: 250
-Plan: Not started
+Phase: 250 (security-performance) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Plan: Not started
 | Phase 248 P01 | 10 | 2 tasks | 4 files |
 | Phase 249 P02 | 3m | 1 tasks | 2 files |
 | Phase 249 P01 | 10 | 2 tasks | 2 files |
+| Phase 250 P01 | 5m | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -57,6 +58,7 @@ Plan: Not started
 - [Phase 249]: SAFE-05: as int? ?? 0 untuk null-safe ViewBag cast di ExamSummary
 - [Phase 249]: Nullable tuple return type agar caller deteksi user null tanpa exception
 - [Phase 249]: GroupBy + First() sebagai strategi skip-duplicate untuk ToDictionary bulk renewal
+- [Phase 250]: Global cache key cert-notif-global untuk TriggerCertExpiredNotificationsAsync (bukan per-user) karena fungsi bersifat global
 
 ### Pending Todos
 
@@ -70,6 +72,6 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-24T02:30:41.431Z
-Stopped at: Phase 250 context gathered
+Last session: 2026-03-24T02:41:19.852Z
+Stopped at: Completed 250-01-PLAN.md
 Resume with: `/gsd:plan-phase 248`
