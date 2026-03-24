@@ -529,7 +529,7 @@ namespace HcPortal.Data
             builder.Entity<OrganizationUnit>(entity =>
             {
                 entity.ToTable("OrganizationUnits");
-                entity.HasIndex(u => u.Name).IsUnique();
+                entity.HasIndex(u => new { u.ParentId, u.Name }).IsUnique();
                 entity.HasIndex(u => new { u.ParentId, u.DisplayOrder });
                 entity.Property(u => u.IsActive).HasDefaultValue(true);
 
@@ -556,7 +556,7 @@ namespace HcPortal.Data
             builder.Entity<AssessmentCategory>(entity =>
             {
                 entity.ToTable("AssessmentCategories");
-                entity.HasIndex(c => c.Name).IsUnique();
+                entity.HasIndex(c => new { c.ParentId, c.Name }).IsUnique();
                 entity.HasIndex(c => c.SortOrder);
                 entity.Property(c => c.IsActive).HasDefaultValue(true);
                 entity.Property(c => c.DefaultPassPercentage).HasDefaultValue(70);
