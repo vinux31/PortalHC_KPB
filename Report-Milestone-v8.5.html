@@ -349,6 +349,110 @@
             .flow-arrow { transform: rotate(90deg); }
         }
 
+        /* Screenshots */
+        .screenshot-gallery {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .screenshot-gallery.grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .screenshot-item {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .screenshot-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+        .screenshot-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            cursor: pointer;
+        }
+        .screenshot-item .ss-caption {
+            padding: 10px 16px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .screenshot-item .ss-caption .ss-number {
+            background: var(--primary);
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        .ss-section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin: 20px 0 12px;
+            padding-left: 12px;
+            border-left: 3px solid var(--info);
+        }
+
+        /* Lightbox */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .lightbox-overlay.active {
+            display: flex;
+        }
+        .lightbox-overlay img {
+            max-width: 92%;
+            max-height: 92vh;
+            border-radius: 8px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+        }
+        .lightbox-close {
+            position: fixed;
+            top: 16px;
+            right: 24px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 10000;
+            background: rgba(0,0,0,0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+        }
+
+        @media (max-width: 768px) {
+            .screenshot-gallery.grid-2 { grid-template-columns: 1fr; }
+        }
+
         @media print {
             body { background: white; }
             .score-card, .card, table { box-shadow: none; border: 1px solid #ddd; }
@@ -553,6 +657,19 @@
             </div>
         </div>
 
+            <p class="ss-section-title">Screenshot — Setup Flow</p>
+            <div class="screenshot-gallery grid-2">
+                <div class="screenshot-item">
+                    <img src="report-screenshots/et-coverage-table.png" alt="Manage Packages — ET Coverage Table" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">1</span> Manage Packages: distribusi Elemen Teknis per paket soal (5-5-5 per ET, seimbang)</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/cmp-index-after.png" alt="CMP Index — Bahasa Indonesia" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">2</span> CMP Index hub: Assessment Saya, Riwayat Pelatihan, Dasbor Analitik</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Phase 243 -->
         <div class="card">
             <span class="phase-badge">Phase 243</span>
@@ -589,6 +706,27 @@
             </div>
         </div>
 
+            <p class="ss-section-title">Screenshot — Exam Flow</p>
+            <div class="screenshot-gallery grid-2">
+                <div class="screenshot-item">
+                    <img src="report-screenshots/assessment-list-worker.png" alt="Worker — My Assessments list" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">1</span> Daftar assessment worker (Rino): Open, Upcoming, status badge, Token Required</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/token-modal.png" alt="Token Security Check modal" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">2</span> Security Check modal: input token 6-digit sebelum mulai ujian</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/assessment-page.png" alt="My Assessments — full page" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">3</span> Assessment page lengkap: Open cards + Riwayat Ujian (skor, status, detail)</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/assessment-verified.png" alt="Assessment list after fix" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">4</span> Sesudah fix: assessment expired menampilkan badge "Assessment Expired" (bukan tombol Start)</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Phase 244 -->
         <div class="card">
             <span class="phase-badge">Phase 244</span>
@@ -606,6 +744,27 @@
 
             <h4 style="margin-bottom: 8px; font-size: 0.95rem;">🐛 Bug Fix JS:</h4>
             <p style="font-size: 0.9rem;">Fixed literal newline di alert dialog token — diubah ke escape sequence <code>\n</code> (baris 929 AssessmentMonitoringDetail.cshtml)</p>
+        </div>
+
+            <p class="ss-section-title">Screenshot — Monitoring &amp; Analytics</p>
+            <div class="screenshot-gallery grid-2">
+                <div class="screenshot-item">
+                    <img src="report-screenshots/assessment-monitoring-list.png" alt="Assessment Monitoring list" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">1</span> Assessment Monitoring: daftar grup, peserta, progress bar, filter status/kategori</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/monitoring-detail.png" alt="Monitoring Detail — per user status" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">2</span> Monitoring Detail: stat cards (3 assigned, 2 completed), per-user status, Reset/View Results</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/token-reset.png" alt="Token + Reset assessment" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">3</span> Token management: Access Token AKA6CR, Copy, Regenerate Token. Reset berhasil (success banner)</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/analytics-dashboard.png" alt="Analytics Dashboard" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">4</span> Analytics Dashboard: Fail Rate chart, Trend Pass/Fail, Skor ET breakdown, Sertifikat Expired</div>
+                </div>
+            </div>
         </div>
 
         <!-- Phase 245 -->
@@ -669,6 +828,27 @@
 
             <h4 style="margin-bottom: 8px; font-size: 0.95rem;">Seed Data Tambahan:</h4>
             <p style="font-size: 0.9rem;">Dibuat 2 session khusus: <code>SeedTokenRequiredSessionAsync</code> (token EDGE-TOKEN-001) dan <code>SeedExpiredCertSessionAsync</code> (sertifikat expired ~35 hari lalu) sebagai data test.</p>
+        </div>
+
+            <p class="ss-section-title">Screenshot — Edge Cases &amp; Records</p>
+            <div class="screenshot-gallery grid-2">
+                <div class="screenshot-item">
+                    <img src="report-screenshots/cert-management-full.png" alt="Certification Management full" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">1</span> Certification Management: 18 sertifikat, filter Bagian/Unit/Status/Tipe, badge Assessment/Training + Expired</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/cert-expired-filter.png" alt="Cert filtered by Expired" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">2</span> Filter "Expired": 3 sertifikat expired (Basic Fire Fighting) — validasi EDGE-04 alarm banner</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/records-page.png" alt="Capability Building Records" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">3</span> Records: My Records (7), Assessment Online + Training Manual, skor, status, sertifikat expired badge</div>
+                </div>
+                <div class="screenshot-item">
+                    <img src="report-screenshots/assessment-list-after-fix.png" alt="Assessment list sebelum fix" onclick="openLightbox(this)">
+                    <div class="ss-caption"><span class="ss-number">4</span> Sebelum fix: Status Expired masih menampilkan icon centang hijau (misleading)</div>
+                </div>
+            </div>
         </div>
 
         <!-- Phase 247 -->
@@ -765,6 +945,14 @@
                 <h4>Dampak</h4>
                 <p>Radar chart di halaman hasil ujian kini menampilkan distribusi soal yang seimbang per Elemen Teknis. Setiap ET mendapat jumlah soal yang hampir sama (selisih maksimal 1 soal).</p>
                 <p><strong>Commit:</strong> <code>820018c2</code> — fix(247-01): fix ET distribution Phase 2 — round-robin per-ET</p>
+
+                <h4>Screenshot Verifikasi</h4>
+                <div class="screenshot-gallery">
+                    <div class="screenshot-item">
+                        <img src="report-screenshots/et-coverage-table.png" alt="ET Coverage Table — balanced distribution" onclick="openLightbox(this)">
+                        <div class="ss-caption"><span class="ss-number" style="background:var(--accent)">!</span> Sesudah fix: distribusi ET seimbang (5-5-5 per paket) — setiap ET mendapat jumlah soal yang sama</div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1109,6 +1297,30 @@
         <p style="margin-top: 4px; opacity: 0.7;">Auditor: Claude (GSD Framework) | Total: 7 Phases, 27 Requirements, 8 E2E Flows, 0 Gaps</p>
     </div>
 </footer>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+    <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+    <img id="lightbox-img" src="" alt="Screenshot">
+</div>
+
+<script>
+function openLightbox(el) {
+    const overlay = document.getElementById('lightbox');
+    const img = document.getElementById('lightbox-img');
+    img.src = el.src;
+    img.alt = el.alt;
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+});
+</script>
 
 </body>
 </html>
