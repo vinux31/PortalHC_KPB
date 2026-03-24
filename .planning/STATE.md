@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.6
 milestone_name: Codebase Audit & Hardening
-status: Ready to plan
-stopped_at: Phase 251 plans ready
-last_updated: "2026-03-24T02:57:24.981Z"
+status: Ready to execute
+stopped_at: Completed 251-01-PLAN.md
+last_updated: "2026-03-24T03:00:22.753Z"
 progress:
   total_phases: 4
   completed_phases: 3
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State: Portal HC KPB
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 250 — security-performance
+**Current focus:** Phase 251 — data-integrity-logic
 
 ## Current Position
 
-Phase: 251
-Plan: Not started
+Phase: 251 (data-integrity-logic) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: Not started
 | Phase 249 P02 | 3m | 1 tasks | 2 files |
 | Phase 249 P01 | 10 | 2 tasks | 2 files |
 | Phase 250 P01 | 5m | 3 tasks | 3 files |
+| Phase 251 P01 | 5m | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -59,6 +60,7 @@ Plan: Not started
 - [Phase 249]: Nullable tuple return type agar caller deteksi user null tanpa exception
 - [Phase 249]: GroupBy + First() sebagai strategi skip-duplicate untuk ToDictionary bulk renewal
 - [Phase 250]: Global cache key cert-notif-global untuk TriggerCertExpiredNotificationsAsync (bukan per-user) karena fungsi bersifat global
+- [Phase 251]: DateTime.UtcNow digunakan agar kalkulasi expiry konsisten lintas timezone server
 
 ### Pending Todos
 
@@ -72,6 +74,6 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-24T02:57:24.977Z
-Stopped at: Phase 251 plans ready
+Last session: 2026-03-24T03:00:22.749Z
+Stopped at: Completed 251-01-PLAN.md
 Resume with: `/gsd:plan-phase 248`

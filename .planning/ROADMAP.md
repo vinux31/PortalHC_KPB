@@ -75,9 +75,9 @@ Plans:
   3. Membuat bulk renewal tanpa mengisi `ValidUntil` ditolak dengan pesan validasi yang jelas, bukan silent failure
   4. HC dapat mengedit assessment yang jadwalnya sudah lewat tanpa diblokir validasi past date
   5. Kegagalan deserialize `RenewalFkMap` tercatat sebagai warning di log, bukan silent ignore
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 251-01-PLAN.md — DateTime.UtcNow + fix AdminController (bulk renewal, past-date, log warning)
+- [x] 251-01-PLAN.md — DateTime.UtcNow + fix AdminController (bulk renewal, past-date, log warning)
 - [ ] 251-02-PLAN.md — Thread-safe _lastScopeLabel refactor + composite unique index migration
 
 ## Progress
@@ -87,4 +87,4 @@ Plans:
 | 248. UI & Annotations | v8.6 | 1/1 | Complete    | 2026-03-24 |
 | 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete    | 2026-03-24 |
 | 250. Security & Performance | v8.6 | 1/1 | Complete    | 2026-03-24 |
-| 251. Data Integrity & Logic | v8.6 | 0/2 | Not started | - |
+| 251. Data Integrity & Logic | v8.6 | 1/2 | In Progress|  |

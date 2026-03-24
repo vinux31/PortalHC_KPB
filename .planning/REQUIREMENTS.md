@@ -17,11 +17,11 @@ Requirements untuk Codebase Audit & Hardening. Setiap bug di-fix dengan atomic c
 
 ### Data Integrity & Logic
 
-- [ ] **DATA-01**: Ganti `DateTime.Now` ke `DateTime.UtcNow` di `TrainingRecord.IsExpiringSoon`, `DaysUntilExpiry`, dan `CertificationManagementViewModel.DeriveCertificateStatus`
+- [x] **DATA-01**: Ganti `DateTime.Now` ke `DateTime.UtcNow` di `TrainingRecord.IsExpiringSoon`, `DaysUntilExpiry`, dan `CertificationManagementViewModel.DeriveCertificateStatus`
 - [ ] **DATA-02**: Ubah unique index `OrganizationUnit.Name` ke composite `(ParentId, Name)` dan `AssessmentCategory.Name` ke `(ParentId, Name)` via migration
-- [ ] **DATA-03**: Validasi `ValidUntil` wajib diisi untuk bulk renewal — fix `isRenewalModePost` detection di CreateAssessment POST
-- [ ] **DATA-04**: Allow edit assessment yang sudah lewat jadwalnya — relax validasi past date di EditAssessment POST
-- [ ] **DATA-05**: Log warning pada catch block `RenewalFkMap` deserialize alih-alih silent ignore
+- [x] **DATA-03**: Validasi `ValidUntil` wajib diisi untuk bulk renewal — fix `isRenewalModePost` detection di CreateAssessment POST
+- [x] **DATA-04**: Allow edit assessment yang sudah lewat jadwalnya — relax validasi past date di EditAssessment POST
+- [x] **DATA-05**: Log warning pada catch block `RenewalFkMap` deserialize alih-alih silent ignore
 - [ ] **DATA-06**: Refactor `_lastScopeLabel` dari instance field ke return value/parameter agar thread-safe
 
 ### Security & Performance
@@ -65,11 +65,11 @@ Tidak ada — milestone ini murni bug fix dari audit.
 | SEC-01 | Phase 250 | Complete |
 | SEC-02 | Phase 250 | Complete |
 | PERF-01 | Phase 250 | Complete |
-| DATA-01 | Phase 251 | Pending |
+| DATA-01 | Phase 251 | Complete |
 | DATA-02 | Phase 251 | Pending |
-| DATA-03 | Phase 251 | Pending |
-| DATA-04 | Phase 251 | Pending |
-| DATA-05 | Phase 251 | Pending |
+| DATA-03 | Phase 251 | Complete |
+| DATA-04 | Phase 251 | Complete |
+| DATA-05 | Phase 251 | Complete |
 | DATA-06 | Phase 251 | Pending |
 
 **Coverage:**
