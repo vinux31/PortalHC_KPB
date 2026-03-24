@@ -1096,55 +1096,44 @@ namespace HcPortal.Controllers
                 }
             }
 
-            // Phase 2 — Fill remaining quota with balanced package distribution
+            // Phase 2 — Fill remaining quota with balanced ET distribution (round-robin per-ET)
             int remaining = K - selectedIds.Count;
             if (remaining > 0)
             {
-                int N = packages.Count;
-                var orderedByPackage = packages
-                    .Select(p => p.Questions.OrderBy(q => q.Order)
-                        .Where(q => !selectedIds.Contains(q.Id))
-                        .ToList())
-                    .ToList();
+                int M = etGroups.Count;
+                int basePerET = remaining / M;
+                int extraCount = remaining % M;
+                var extraETs = etGroups.OrderBy(_ => rng.Next()).Take(extraCount).ToHashSet();
 
-                // Build slot list for remaining slots using balanced distribution
-                int baseCount = remaining / N;
-                int remainder = remaining % N;
-                var remainderIndices = Enumerable.Range(0, N)
-                    .OrderBy(_ => rng.Next())
-                    .Take(remainder)
-                    .ToHashSet();
-
-                var slots = new List<int>();
-                for (int i = 0; i < N; i++)
+                foreach (var et in etGroups)
                 {
-                    int count = baseCount + (remainderIndices.Contains(i) ? 1 : 0);
-                    for (int j = 0; j < count; j++)
-                        slots.Add(i);
-                }
-                Shuffle(slots, rng);
-
-                var pkgCounter = new int[N];
-                var pkgAvailable = orderedByPackage.Select(q => q.Count).ToArray();
-
-                foreach (int pkgIdx in slots)
-                {
-                    // Find a package with available unselected questions
-                    int targetPkg = pkgIdx;
-                    if (pkgCounter[targetPkg] >= pkgAvailable[targetPkg])
+                    int quota = basePerET + (extraETs.Contains(et) ? 1 : 0);
+                    var etCandidates = allQuestions
+                        .Where(x => x.Question.ElemenTeknis == et && !selectedIds.Contains(x.Question.Id))
+                        .Select(x => x.Question.Id)
+                        .ToList();
+                    Shuffle(etCandidates, rng);
+                    int toTake = Math.Min(quota, etCandidates.Count);
+                    foreach (var id in etCandidates.Take(toTake))
                     {
-                        // Redistribute: find any package with remaining questions
-                        targetPkg = -1;
-                        for (int i = 0; i < N; i++)
-                        {
-                            if (pkgCounter[i] < pkgAvailable[i]) { targetPkg = i; break; }
-                        }
-                        if (targetPkg == -1) break; // All packages exhausted
+                        selectedIds.Add(id);
+                        selectedList.Add(id);
                     }
-                    var q = orderedByPackage[targetPkg][pkgCounter[targetPkg]];
-                    pkgCounter[targetPkg]++;
-                    selectedIds.Add(q.Id);
-                    selectedList.Add(q.Id);
+                }
+
+                // Fallback: jika masih kurang (ET kehabisan soal), ambil dari NULL-ET atau sisa soal manapun
+                if (selectedIds.Count < K)
+                {
+                    var fallbackCandidates = allQuestions
+                        .Where(x => !selectedIds.Contains(x.Question.Id))
+                        .Select(x => x.Question.Id)
+                        .ToList();
+                    Shuffle(fallbackCandidates, rng);
+                    foreach (var id in fallbackCandidates.Take(K - selectedIds.Count))
+                    {
+                        selectedIds.Add(id);
+                        selectedList.Add(id);
+                    }
                 }
             }
 
