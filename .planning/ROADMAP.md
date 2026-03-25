@@ -41,8 +41,8 @@
   5. Warning D-09 muncul saat assign Tahun 2+ dengan Tahun sebelumnya belum selesai
 **Plans**: 2 plans
 Plans:
-- [ ] 257-01-PLAN.md — Code review + bug fix MAP-01..05 (list, assign, import, template, track assignment)
-- [ ] 257-02-PLAN.md — Code review + bug fix MAP-06..08 (deactivate, reactivate, progression warning)
+- [x] 257-01-PLAN.md — Code review + bug fix MAP-01..05 (list, assign, import, template, track assignment)
+- [x] 257-02-PLAN.md — Code review + bug fix MAP-06..08 (deactivate, reactivate, progression warning)
 
 ### Phase 258: Silabus & Guidance
 **Goal**: Struktur kompetensi bisa dikelola lengkap dan guidance files bisa diakses oleh coach/coachee
@@ -141,7 +141,7 @@ Phases execute in numeric order: 257 → 258 → 259 → 260 → 261
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 257. Setup & Mapping | v9.1 | 0/2 | Planning | - |
+| 257. Setup & Mapping | v9.1 | 2/2 | Complete   | 2026-03-25 |
 | 258. Silabus & Guidance | v9.1 | 0/? | Not started | - |
 | 259. Evidence & Coaching Session | v9.1 | 0/? | Not started | - |
 | 260. Approval Chain | v9.1 | 0/? | Not started | - |
