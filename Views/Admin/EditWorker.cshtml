@@ -270,11 +270,6 @@
                 }
                 toRemove.forEach(function (a) { el.removeAttribute(a); });
             });
-            var $form = $('#editWorkerForm');
-            $form.removeData('validator').removeData('unobtrusiveValidation');
-            if ($.validator && $.validator.unobtrusive) {
-                $.validator.unobtrusive.parse($form);
-            }
         }
     })();
 </script>
