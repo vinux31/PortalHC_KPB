@@ -150,3 +150,13 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 | 250. Security & Performance | v8.6 | 1/1 | Complete | 2026-03-24 |
 | 251. Data Integrity & Logic | v8.6 | 2/2 | Complete | 2026-03-24 |
 | 252. XSS Escape AJAX Approval Badge | v8.6 | 1/1 | Complete | 2026-03-24 |
+
+### Phase 253: AddTraining multi-select pekerja dan perbaikan form
+
+**Goal:** Ubah halaman AddTraining agar bisa memilih lebih dari 1 pekerja sekaligus (multi-select), sehingga 1 training record dibuat per pekerja yang dipilih. Perbaikan lain termasuk fix duplikasi kategori "Assessment Proton" di dropdown.
+**Requirements**: TBD
+**Depends on:** Phase 252
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 253 to break down)
