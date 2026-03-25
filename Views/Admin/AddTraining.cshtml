@@ -4,6 +4,11 @@
     ViewData["Title"] = "Tambah Training Record";
 }
 
+@if (ViewBag.IsRenewalMode != true)
+{
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2/dist/css/tom-select.css">
+}
+
 <!-- Breadcrumb -->
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
@@ -51,11 +56,24 @@
         <div class="card-body">
             <div class="row g-3">
                 <div class="col-md-12">
-                    <label asp-for="UserId" class="form-label fw-bold">Pekerja <span class="text-danger">*</span></label>
-                    <select asp-for="UserId" asp-items="@(ViewBag.Workers as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)" class="form-select">
-                        <option value="">-- Pilih Pekerja --</option>
-                    </select>
-                    <span asp-validation-for="UserId" class="text-danger small"></span>
+                    @if (ViewBag.IsRenewalMode == true)
+                    {
+                        <label asp-for="UserId" class="form-label fw-bold">Pekerja <span class="text-danger">*</span></label>
+                        <select asp-for="UserId" asp-items="@(ViewBag.Workers as List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)" class="form-select">
+                            <option value="">-- Pilih Pekerja --</option>
+                        </select>
+                        <span asp-validation-for="UserId" class="text-danger small"></span>
+                    }
+                    else
+                    {
+                        <label class="form-label fw-bold">Pekerja <span class="text-danger">*</span></label>
+                        <select id="WorkerSelect" multiple>
+                            @foreach (var w in (List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>)ViewBag.Workers)
+                            {
+                                <option value="@w.Value">@w.Text</option>
+                            }
+                        </select>
+                    }
                 </div>
             </div>
         </div>
@@ -148,17 +166,26 @@
 
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Data Sertifikat</h5>
+            <h5 class="mb-0 fw-bold">
+                <i class="bi bi-award me-2"></i>Data Sertifikat
+                @if (ViewBag.IsRenewalMode != true)
+                {
+                    <span id="workerCountBadge" class="badge bg-primary ms-2" style="display:none;"></span>
+                }
+            </h5>
         </div>
         <div class="card-body">
             <div class="row g-3">
-                <!-- Nomor Sertifikat -->
-                <div class="col-md-6">
-                    <label asp-for="NomorSertifikat" class="form-label fw-bold">Nomor Sertifikat</label>
-                    <input asp-for="NomorSertifikat" class="form-control" placeholder="Masukkan nomor sertifikat" />
-                </div>
+                @if (ViewBag.IsRenewalMode == true)
+                {
+                    <!-- Nomor Sertifikat (renewal mode - shared) -->
+                    <div class="col-md-6">
+                        <label asp-for="NomorSertifikat" class="form-label fw-bold">Nomor Sertifikat</label>
+                        <input asp-for="NomorSertifikat" class="form-control" placeholder="Masukkan nomor sertifikat" />
+                    </div>
+                }
 
-                <!-- Tipe Sertifikat -->
+                <!-- Tipe Sertifikat (shared) -->
                 <div class="col-md-6">
                     <label asp-for="CertificateType" class="form-label fw-bold">Tipe Sertifikat</label>
                     <select asp-for="CertificateType" class="form-select">
@@ -169,20 +196,30 @@
                     </select>
                 </div>
 
-                <!-- Berlaku Sampai -->
+                <!-- Berlaku Sampai (shared) -->
                 <div class="col-md-6">
                     <label asp-for="ValidUntil" class="form-label fw-bold">Berlaku Sampai</label>
                     <input asp-for="ValidUntil" type="date" class="form-control" />
                 </div>
 
-                <!-- Certificate File -->
-                <div class="col-md-6">
-                    <label asp-for="CertificateFile" class="form-label fw-bold">File Sertifikat</label>
-                    <input asp-for="CertificateFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
-                    <div class="form-text">PDF, JPG, atau PNG. Maksimal 10MB.</div>
-                    <span asp-validation-for="CertificateFile" class="text-danger small"></span>
-                </div>
+                @if (ViewBag.IsRenewalMode == true)
+                {
+                    <!-- Certificate File (renewal mode - shared) -->
+                    <div class="col-md-6">
+                        <label asp-for="CertificateFile" class="form-label fw-bold">File Sertifikat</label>
+                        <input asp-for="CertificateFile" type="file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
+                        <div class="form-text">PDF, JPG, atau PNG. Maksimal 10MB.</div>
+                        <span asp-validation-for="CertificateFile" class="text-danger small"></span>
+                    </div>
+                }
             </div>
+
+            @if (ViewBag.IsRenewalMode != true)
+            {
+                <div id="workerCertsContainer" class="mt-3">
+                    <p class="text-muted fst-italic" id="emptyWorkerMsg">Pilih pekerja di atas untuk menambahkan data sertifikat.</p>
+                </div>
+            }
         </div>
     </div>
 
@@ -209,10 +246,127 @@
             <i class="bi bi-x-lg me-2"></i>Batal
         </a>
         <button type="submit" class="btn btn-primary">
-            <i class="bi bi-check-lg me-2"></i>Simpan
+            <i class="bi bi-check-lg me-2"></i>Simpan Training
         </button>
     </div>
 </form>
+
+@if (ViewBag.IsRenewalMode != true)
+{
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2/dist/js/tom-select.complete.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var workerSelect = new TomSelect('#WorkerSelect', {
+            maxItems: 20,
+            plugins: ['remove_button'],
+            placeholder: 'Pilih pekerja (maks 20)...',
+            onItemAdd: function(value) {
+                var option = this.options[value];
+                addWorkerRow(value, option.text);
+                updateWorkerCount();
+                updateSubmitButton();
+            },
+            onItemRemove: function(value) {
+                removeWorkerRow(value);
+                reindexWorkerRows();
+                updateWorkerCount();
+                updateSubmitButton();
+            }
+        });
+
+        var submitBtn = document.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        function addWorkerRow(userId, userName) {
+            var container = document.getElementById('workerCertsContainer');
+            var emptyMsg = document.getElementById('emptyWorkerMsg');
+            if (emptyMsg) emptyMsg.style.display = 'none';
+
+            var index = container.querySelectorAll('.worker-cert-card').length;
+            var row = document.createElement('div');
+            row.className = 'card mb-2 worker-cert-card';
+            row.dataset.userId = userId;
+            row.innerHTML =
+                '<div class="card-body py-2">' +
+                    '<div class="fw-bold mb-2">' + escapeHtml(userName) + '</div>' +
+                    '<input type="hidden" name="WorkerCerts[' + index + '].UserId" value="' + userId + '" />' +
+                    '<div class="row g-2">' +
+                        '<div class="col-md-6">' +
+                            '<label class="form-label">File Sertifikat</label>' +
+                            '<input type="file" name="WorkerCerts[' + index + '].CertificateFile" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />' +
+                            '<div class="form-text">PDF, JPG, PNG. Maks 10MB.</div>' +
+                        '</div>' +
+                        '<div class="col-md-6">' +
+                            '<label class="form-label">Nomor Sertifikat</label>' +
+                            '<input type="text" name="WorkerCerts[' + index + '].NomorSertifikat" class="form-control" placeholder="Nomor sertifikat" />' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            container.appendChild(row);
+        }
+
+        function removeWorkerRow(userId) {
+            var container = document.getElementById('workerCertsContainer');
+            var card = container.querySelector('.worker-cert-card[data-user-id="' + userId + '"]');
+            if (card) card.remove();
+
+            var remaining = container.querySelectorAll('.worker-cert-card');
+            if (remaining.length === 0) {
+                var emptyMsg = document.getElementById('emptyWorkerMsg');
+                if (emptyMsg) emptyMsg.style.display = '';
+            }
+        }
+
+        function reindexWorkerRows() {
+            var container = document.getElementById('workerCertsContainer');
+            var cards = container.querySelectorAll('.worker-cert-card');
+            cards.forEach(function(card, i) {
+                var hidden = card.querySelector('input[type="hidden"]');
+                if (hidden) hidden.name = 'WorkerCerts[' + i + '].UserId';
+                var fileInput = card.querySelector('input[type="file"]');
+                if (fileInput) fileInput.name = 'WorkerCerts[' + i + '].CertificateFile';
+                var textInput = card.querySelector('input[type="text"]');
+                if (textInput) textInput.name = 'WorkerCerts[' + i + '].NomorSertifikat';
+            });
+        }
+
+        function updateWorkerCount() {
+            var badge = document.getElementById('workerCountBadge');
+            var count = document.querySelectorAll('.worker-cert-card').length;
+            if (count > 0) {
+                badge.textContent = count + ' pekerja';
+                badge.style.display = '';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function updateSubmitButton() {
+            var submitBtn = document.querySelector('button[type="submit"]');
+            var count = document.querySelectorAll('.worker-cert-card').length;
+            if (submitBtn) submitBtn.disabled = (count === 0);
+        }
+
+        function escapeHtml(text) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(text));
+            return div.innerHTML;
+        }
+
+        // Submit loading state
+        var form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function() {
+                var btn = form.querySelector('button[type="submit"]');
+                if (btn && !btn.disabled) {
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Menyimpan...';
+                }
+            });
+        }
+    });
+    </script>
+}
 
 <script>
 (function() {
