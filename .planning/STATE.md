@@ -94,6 +94,10 @@ Plan: 1 of 2
 - [Phase 247]: Phase 2 BuildCrossPackageAssignment diganti dari per-package ke per-ET round-robin distribution
 - [Phase 247]: BUG-02 COACH_EVIDENCE_RESUBMITTED verified correct — no fix needed
 
+### Roadmap Evolution
+
+- Phase 253 added: AddTraining multi-select pekerja dan perbaikan form
+
 ### Pending Todos
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser (lihat MEMORY.md)
