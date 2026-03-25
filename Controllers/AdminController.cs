@@ -4047,7 +4047,9 @@ namespace HcPortal.Controllers
                                 continue;
                             }
 
-                            var allApproved = !await _context.ProtonDeliverableProgresses
+                            var prevProgressCount = await _context.ProtonDeliverableProgresses
+                                .CountAsync(p => p.ProtonTrackAssignmentId == prevAssignment.Id);
+                            var allApproved = prevProgressCount > 0 && !await _context.ProtonDeliverableProgresses
                                 .AnyAsync(p => p.ProtonTrackAssignmentId == prevAssignment.Id
                                            && p.Status != "Approved");
                             if (!allApproved)
