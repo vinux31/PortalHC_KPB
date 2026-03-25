@@ -54,7 +54,10 @@ Plans:
   3. Deactivate/reactivate kompetensi berfungsi
   4. Upload, replace, delete guidance file berfungsi
   5. Coach dan Coachee bisa download guidance file
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
+- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
 
 ### Phase 259: Evidence & Coaching Session
 **Goal**: Flow submit evidence + coaching session berjalan end-to-end tanpa error
@@ -66,7 +69,10 @@ Plans:
   3. Edit coaching session berhasil update CatatanCoach, Kesimpulan, Result
   4. Delete coaching session berhasil + ActionItems ikut terhapus
   5. Resubmit setelah rejection → approval SrSpv/SH reset ke Pending, evidence history tersimpan
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
+- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
 
 ### Phase 260: Approval Chain
 **Goal**: Multi-stage approval (SrSpv → SH → HC) berjalan benar dengan audit trail lengkap
@@ -78,7 +84,10 @@ Plans:
   3. HC bisa mark deliverable sebagai "Reviewed"
   4. Setiap status change tercatat di DeliverableStatusHistory dengan actor, role, timestamp
   5. Role scoping benar — SrSpv/SH hanya lihat coachee di section mereka
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
+- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
 
 ### Phase 261: Dashboard, Export & Completion
 **Goal**: Dashboard, export, dan completion flow berfungsi benar untuk semua role
@@ -90,7 +99,10 @@ Plans:
   3. Export Excel dan PDF berisi data yang benar dan lengkap
   4. HC bisa buat final assessment setelah semua deliverable approved
   5. Graduation flag IsCompleted bisa di-set dan tersimpan
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
+- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
 
 <details>
 <summary>⏸️ v9.0 Pre-deployment Audit & Finalization (Phases 254-256) — DEFERRED</summary>
