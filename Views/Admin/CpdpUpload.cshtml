@@ -104,56 +104,9 @@
     </div>
 </div>
 
-<style>
-    #uploadZone:hover, #uploadZone.drag-over {
-        border-color: #2563eb !important;
-        background-color: #eff6ff;
-    }
-</style>
-
+<script src="~/js/shared-upload.js"></script>
+<script src="~/js/shared-loading.js"></script>
 <script>
-    const fileInput = document.getElementById('fileInput');
-    const uploadZone = document.getElementById('uploadZone');
-    const dropText = document.getElementById('dropText');
-    const btnUpload = document.getElementById('btnUpload');
-
-    fileInput.addEventListener('change', function () {
-        if (this.files.length > 0) {
-            const file = this.files[0];
-            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
-            dropText.textContent = `File: ${file.name} (${sizeInMB}MB)`;
-            uploadZone.style.borderColor = '#16a34a';
-            uploadZone.style.backgroundColor = '#f0fdf4';
-            btnUpload.disabled = false;
-        }
-    });
-
-    uploadZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadZone.classList.add('drag-over');
-    });
-
-    uploadZone.addEventListener('dragleave', () => {
-        uploadZone.classList.remove('drag-over');
-    });
-
-    uploadZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadZone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file && ['.pdf', '.xlsx', '.xls'].some(ext => file.name.toLowerCase().endsWith(ext))) {
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            fileInput.files = dt.files;
-            const sizeInMB = (file.size / (1024 * 1024)).toFixed(2);
-            dropText.textContent = `File: ${file.name} (${sizeInMB}MB)`;
-            uploadZone.style.borderColor = '#16a34a';
-            uploadZone.style.backgroundColor = '#f0fdf4';
-            btnUpload.disabled = false;
-        } else {
-            dropText.textContent = 'Hanya PDF atau Excel yang didukung!';
-            uploadZone.style.borderColor = '#dc2626';
-            uploadZone.style.backgroundColor = '#fef2f2';
-        }
-    });
+    initUploadZone({ zoneId: 'uploadZone', inputId: 'fileInput', textId: 'dropText', buttonId: 'btnUpload', accept: ['.pdf', '.xlsx', '.xls'], showSize: true });
+    initFormLoading('uploadForm', 'Mengupload...');
 </script>

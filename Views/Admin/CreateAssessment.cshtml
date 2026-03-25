@@ -626,7 +626,10 @@
 <script type="application/json" id="createdAssessmentData">@Html.Raw(ViewBag.CreatedAssessment ?? "")</script>
 
 @section Scripts {
+<script src="~/js/shared-loading.js"></script>
 <script>
+initFormLoading('createAssessmentForm', 'Menyimpan...');
+
 // ===== generateToken (global — used by inline onclick) =====
 function generateToken() {
     var chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

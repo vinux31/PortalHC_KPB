@@ -314,11 +314,11 @@ namespace HcPortal.Controllers
             });
         }
 
-        // POST /Admin/KkjBagianDelete
+        // POST /Admin/DeleteBagian
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> KkjBagianDelete(int id, bool confirmed = false)
+        public async Task<IActionResult> DeleteBagian(int id, bool confirmed = false)
         {
             var bagian = await _context.OrganizationUnits.FindAsync(id);
             if (bagian == null)
@@ -404,7 +404,7 @@ namespace HcPortal.Controllers
                     $"Deleted bagian '{bagian.Name}' (ID {id}). Cascaded {totalArchived} archived file(s) (KKJ: {archivedKkjCount}, CPDP: {archivedCpdpCount}).",
                     id, "OrganizationUnit");
             }
-            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for KkjBagianDelete (bagianId={Id})", id); }
+            catch (Exception ex) { _logger.LogWarning(ex, "Audit log failed for DeleteBagian (bagianId={Id})", id); }
 
             return Json(new { success = true, message = $"Bagian '{bagian.Name}' berhasil dihapus." });
         }

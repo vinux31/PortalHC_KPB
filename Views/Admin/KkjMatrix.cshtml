@@ -212,7 +212,7 @@
         const token = getToken();
         try {
             // First request: check if deletion is possible (active files block, archived trigger confirm)
-            const resp = await fetch('/Admin/KkjBagianDelete', {
+            const resp = await fetch('/Admin/DeleteBagian', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${bagianId}&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -231,7 +231,7 @@
                 if (!confirm(confirmMsg)) return;
 
                 // Second request: confirmed=true to proceed with cascade
-                const confirmResp = await fetch('/Admin/KkjBagianDelete', {
+                const confirmResp = await fetch('/Admin/DeleteBagian', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `id=${bagianId}&confirmed=true&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -272,14 +272,5 @@
         }
     }
 
-    // Toast notification helper
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3 shadow`;
-        toast.style.zIndex = '9999';
-        toast.style.minWidth = '280px';
-        toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${message}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
-    }
 </script>
+<script src="~/js/shared-toast.js"></script>

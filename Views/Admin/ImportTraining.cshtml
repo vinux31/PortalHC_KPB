@@ -44,19 +44,19 @@
     @if (hasResults)
     {
         <div class="row g-3 mb-4">
-            <div class="col-4">
+            <div class="col-6 col-md-4">
                 <div class="card border-0 shadow-sm text-center p-3">
                     <div class="fs-2 fw-bold text-success">@successCount</div>
                     <div class="small text-muted">Berhasil Dibuat</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-6 col-md-4">
                 <div class="card border-0 shadow-sm text-center p-3">
                     <div class="fs-2 fw-bold text-warning">@skipCount</div>
                     <div class="small text-muted">Dilewati</div>
                 </div>
             </div>
-            <div class="col-4">
+            <div class="col-12 col-md-4">
                 <div class="card border-0 shadow-sm text-center p-3">
                     <div class="fs-2 fw-bold text-danger">@errorCount</div>
                     <div class="small text-muted">Error / Gagal</div>
@@ -196,49 +196,9 @@
 
 </div>
 
-<style>
-    .upload-zone:hover, .upload-zone.drag-over {
-        border-color: #2563eb !important;
-        background-color: #eff6ff;
-    }
-    .border-dashed {
-        border-style: dashed !important;
-    }
-</style>
-
+<script src="~/js/shared-upload.js"></script>
+<script src="~/js/shared-loading.js"></script>
 <script>
-    const fileInput = document.getElementById('excelFileInput');
-    const dropZone = document.getElementById('uploadZone');
-    const dropText = document.getElementById('dropText');
-    const btnImport = document.getElementById('btnImport');
-
-    fileInput.addEventListener('change', function () {
-        if (this.files.length > 0) {
-            dropText.textContent = `File dipilih: ${this.files[0].name}`;
-            dropZone.style.borderColor = '#16a34a';
-            dropZone.style.backgroundColor = '#f0fdf4';
-            btnImport.disabled = false;
-        }
-    });
-
-    // Drag & drop
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => { dropZone.classList.remove('drag-over'); });
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file && file.name.endsWith('.xlsx')) {
-            const dt = new DataTransfer();
-            dt.items.add(file);
-            fileInput.files = dt.files;
-            dropText.textContent = `File dipilih: ${file.name}`;
-            dropZone.style.borderColor = '#16a34a';
-            dropZone.style.backgroundColor = '#f0fdf4';
-            btnImport.disabled = false;
-        } else {
-            dropText.textContent = 'Hanya file .xlsx yang didukung!';
-            dropZone.style.borderColor = '#dc2626';
-        }
-    });
+    initUploadZone({ zoneId: 'uploadZone', inputId: 'excelFileInput', textId: 'dropText', buttonId: 'btnImport', accept: ['.xlsx'] });
+    initFormLoading('importForm', 'Memproses import...');
 </script>

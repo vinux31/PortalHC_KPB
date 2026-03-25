@@ -212,7 +212,7 @@
         if (!confirm(`Hapus bagian "${bagianName}"? Pastikan semua file sudah dihapus terlebih dahulu.`)) return;
         const token = getToken();
         try {
-            const resp = await fetch('/Admin/KkjBagianDelete', {
+            const resp = await fetch('/Admin/DeleteBagian', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${bagianId}&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -250,14 +250,5 @@
         }
     }
 
-    // Toast notification helper
-    function showToast(message, type) {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3 shadow`;
-        toast.style.zIndex = '9999';
-        toast.style.minWidth = '280px';
-        toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>${message}`;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3500);
-    }
 </script>
+<script src="~/js/shared-toast.js"></script>

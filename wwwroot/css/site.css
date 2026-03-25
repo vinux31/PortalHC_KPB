@@ -5,3 +5,16 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
 }
+
+/* ===== Upload Zone ===== */
+.upload-zone:hover,
+.upload-zone.drag-over,
+#uploadZone:hover,
+#uploadZone.drag-over {
+    border-color: #2563eb !important;
+    background-color: #eff6ff;
+}
+
+.border-dashed {
+    border-style: dashed !important;
+}

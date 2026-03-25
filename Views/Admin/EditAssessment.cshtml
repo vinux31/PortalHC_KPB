@@ -452,8 +452,11 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/shared-loading.js"></script>
 
     <script>
+        initFormLoading('editAssessmentForm', 'Menyimpan...');
+
         // Schedule-change warning when packages are attached
         (function() {
             var packageCount = @packageCount;

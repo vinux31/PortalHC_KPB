@@ -203,58 +203,17 @@
     </form>
 </div>
 
+<script src="~/js/shared-cascade.js"></script>
+<script src="~/js/shared-loading.js"></script>
 <script>
-    // --- Section → Unit Cascading ---
-    const sectionUnits = @Html.Raw(ViewBag.SectionUnitsJson ?? "{}");
-
-    const sectionSelect = document.getElementById('sectionSelect');
-    const unitSelect = document.getElementById('unitSelect');
-    const currentUnit = "@(Model.Unit ?? "")";
-
-    // Populate Bagian dropdown dari DB
-    Object.keys(sectionUnits).forEach(section => {
-        const opt = document.createElement('option');
-        opt.value = section;
-        opt.textContent = section;
-        sectionSelect.appendChild(opt);
+    initSectionUnitCascade({
+        sectionUnits: @Html.Raw(ViewBag.SectionUnitsJson ?? "{}"),
+        sectionId: 'sectionSelect',
+        unitId: 'unitSelect',
+        currentSection: "@(Model.Section ?? "")",
+        currentUnit: "@(Model.Unit ?? "")"
     });
-
-    // Restore selected section/unit on page load
-    const currentSection = "@(Model.Section ?? "")";
-    if (currentSection) {
-        sectionSelect.value = currentSection;
-        updateUnits(currentSection);
-    }
-
-    sectionSelect.addEventListener('change', function () {
-        updateUnits(this.value);
-    });
-
-    function updateUnits(section) {
-        unitSelect.innerHTML = '<option value="">-- Pilih Unit --</option>';
-        if (section && sectionUnits[section]) {
-            sectionUnits[section].forEach(unit => {
-                const opt = document.createElement('option');
-                opt.value = unit;
-                opt.textContent = unit;
-                if (unit === currentUnit) opt.selected = true;
-                unitSelect.appendChild(opt);
-            });
-        }
-    }
-
-    // Toggle password visibility
-    function togglePassword(fieldId, btn) {
-        const field = document.getElementById(fieldId);
-        const icon = btn.querySelector('i');
-        if (field.type === 'password') {
-            field.type = 'text';
-            icon.className = 'bi bi-eye-slash';
-        } else {
-            field.type = 'password';
-            icon.className = 'bi bi-eye';
-        }
-    }
+    initFormLoading('editWorkerForm', 'Menyimpan...');
 
     // Password opsional saat edit:
     // 1. Hapus client-side validation attributes
