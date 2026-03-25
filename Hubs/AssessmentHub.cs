@@ -10,24 +10,50 @@ namespace HcPortal.Hubs
     public class AssessmentHub : Hub
     {
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly ILogger<AssessmentHub> _logger;
 
-        public AssessmentHub(IServiceScopeFactory scopeFactory)
+        public AssessmentHub(IServiceScopeFactory scopeFactory, ILogger<AssessmentHub> logger)
         {
             _scopeFactory = scopeFactory;
+            _logger = logger;
         }
 
         public async Task JoinBatch(string batchKey)
         {
+            var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId)) return;
+
+            // Verify user has an active (InProgress) session before joining batch group
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var hasSession = await db.AssessmentSessions
+                .AnyAsync(s => s.UserId == userId && s.Status == "InProgress");
+            if (!hasSession) return;
+
             await Groups.AddToGroupAsync(Context.ConnectionId, $"batch-{batchKey}");
         }
 
         public async Task LeaveBatch(string batchKey)
         {
+            // LeaveBatch is safe — removing from a group you're not in is a no-op
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"batch-{batchKey}");
         }
 
         public async Task JoinMonitor(string batchKey)
         {
+            var userId = Context.UserIdentifier;
+            if (string.IsNullOrEmpty(userId)) return;
+
+            // Verify user is Admin or HC (monitoring role)
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var user = await db.Users.FindAsync(userId);
+            if (user == null) return;
+
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<HcPortal.Models.ApplicationUser>>();
+            var roles = await userManager.GetRolesAsync(user);
+            if (!roles.Contains("Admin") && !roles.Contains("HC")) return;
+
             await Groups.AddToGroupAsync(Context.ConnectionId, $"monitor-{batchKey}");
         }
 
@@ -57,9 +83,9 @@ namespace HcPortal.Hubs
                     });
                     await db.SaveChangesAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Logging must never break exam flow — swallow all errors
+                    _logger.LogWarning(ex, "Failed to log page nav for session={SessionId}", sessionId);
                 }
             });
             return Task.CompletedTask;
@@ -91,9 +117,9 @@ namespace HcPortal.Hubs
                             await db.SaveChangesAsync();
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Swallow — never break SignalR connection handling
+                        _logger.LogWarning(ex, "Failed to log reconnection for user={UserId}", userId);
                     }
                 });
             }
@@ -126,9 +152,9 @@ namespace HcPortal.Hubs
                             await db.SaveChangesAsync();
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // Swallow — never break SignalR disconnection handling
+                        _logger.LogWarning(ex, "Failed to log disconnection for user={UserId}", userId);
                     }
                 });
             }

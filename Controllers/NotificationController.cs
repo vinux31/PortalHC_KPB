@@ -79,6 +79,8 @@ namespace HcPortal.Controllers
         {
             var diff = DateTime.UtcNow - createdAt;
 
+            if (diff.TotalSeconds < 0)
+                return "Baru saja";
             if (diff.TotalMinutes < 1)
                 return "Baru saja";
             if (diff.TotalMinutes < 60)

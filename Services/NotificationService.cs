@@ -11,6 +11,7 @@ namespace HcPortal.Services
     public class NotificationService : INotificationService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<NotificationService> _logger;
 
         /// <summary>
         /// Notification template structure for consistent messaging.
@@ -24,9 +25,10 @@ namespace HcPortal.Services
 
         private readonly Dictionary<string, NotificationTemplate> _templates;
 
-        public NotificationService(ApplicationDbContext context)
+        public NotificationService(ApplicationDbContext context, ILogger<NotificationService> logger)
         {
             _context = context;
+            _logger = logger;
 
             // Initialize notification templates for all v3.3 trigger types
             _templates = new Dictionary<string, NotificationTemplate>
@@ -116,9 +118,9 @@ namespace HcPortal.Services
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
-                // Fail silently - notification failures should not break the main workflow
+                _logger.LogWarning(ex, "Failed to send notification type={Type} to user={UserId}", type, userId);
                 return false;
             }
         }
@@ -136,8 +138,9 @@ namespace HcPortal.Services
                     .Take(count)
                     .ToListAsync();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to get notifications for user={UserId}", userId);
                 return new List<UserNotification>();
             }
         }
@@ -164,8 +167,9 @@ namespace HcPortal.Services
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to mark notification={NotificationId} as read for user={UserId}", notificationId, userId);
                 return false;
             }
         }
@@ -191,8 +195,9 @@ namespace HcPortal.Services
 
                 return unreadNotifications.Count;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to mark all notifications as read for user={UserId}", userId);
                 return 0;
             }
         }
@@ -208,8 +213,9 @@ namespace HcPortal.Services
                 return await _context.UserNotifications
                     .CountAsync(n => n.UserId == userId && !n.IsRead);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to get unread count for user={UserId}", userId);
                 return 0;
             }
         }
@@ -251,9 +257,9 @@ namespace HcPortal.Services
 
                 return await SendAsync(userId, type, template.Title, message, actionUrl);
             }
-            catch
+            catch (Exception ex)
             {
-                // Template processing failed - fail silently
+                _logger.LogWarning(ex, "Failed to send template notification type={Type} to user={UserId}", type, userId);
                 return false;
             }
         }
@@ -277,8 +283,9 @@ namespace HcPortal.Services
 
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to delete notification={NotificationId} for user={UserId}", notificationId, userId);
                 return false;
             }
         }

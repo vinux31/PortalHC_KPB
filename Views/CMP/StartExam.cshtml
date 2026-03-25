@@ -349,6 +349,7 @@ else
         }
         if (remaining <= 0) {
             clearInterval(timerInterval);
+            clearInterval(saveInterval);
             window.onbeforeunload = null;
             // D-08: tampilkan warning modal dulu, bukan langsung submit
             if (!submitted) {
@@ -608,7 +609,7 @@ else
     }
 
     // Periodic save every 30 seconds
-    setInterval(saveSessionProgress, 30000);
+    var saveInterval = setInterval(saveSessionProgress, 30000);
 
     // -------- Radio change listener (replaces old listener) --------
     document.querySelectorAll('.exam-radio').forEach(function(radio) {
@@ -752,6 +753,7 @@ else
     // Expired exam: show modal then auto-submit
     if (EXAM_EXPIRED) {
         clearInterval(timerInterval);   // Stop timer (time already up)
+        clearInterval(saveInterval);
         window.onbeforeunload = null;
         const expiredModal = new bootstrap.Modal(document.getElementById('examExpiredModal'));
         expiredModal.show();
@@ -817,6 +819,7 @@ else
         if (examClosed) return; // dual-trigger guard: if polling already fired, skip
         examClosed = true;
         clearInterval(timerInterval);
+        clearInterval(saveInterval);
         window.onbeforeunload = null;
 
         var reasonText = (payload && payload.reason === 'hc_closed')
@@ -847,6 +850,7 @@ else
     // sessionReset: HC reset this worker's session
     window.assessmentHub.on('sessionReset', function(payload) {
         clearInterval(timerInterval);
+        clearInterval(saveInterval);
         window.onbeforeunload = null;
 
         // Disable all form controls so worker cannot continue answering

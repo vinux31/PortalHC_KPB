@@ -396,56 +396,56 @@ namespace HcPortal.Controllers
             var orphanDelivIdSet = new HashSet<int>();
             var orphanSubIdSet = new HashSet<int>();
 
+            // Step 1: Collect all candidate orphan deliverable IDs (in-memory, no DB queries)
+            var allCandidateOrphanDelivs = scopeKomps
+                .SelectMany(k => k.SubKompetensiList)
+                .SelectMany(s => s.Deliverables)
+                .Where(d => !savedDelivIds.Contains(d.Id) && d.Id > 0)
+                .ToList();
+            var allCandidateIds = allCandidateOrphanDelivs.Select(d => d.Id).ToList();
+
+            // Step 2: Batch query — find which candidates have active progress (single DB call)
+            var activeProgressDelivIds = allCandidateIds.Any()
+                ? await _context.ProtonDeliverableProgresses
+                    .Where(p => allCandidateIds.Contains(p.ProtonDeliverableId) && p.Status != "Approved")
+                    .Select(p => p.ProtonDeliverableId)
+                    .Distinct()
+                    .ToListAsync()
+                : new List<int>();
+            var activeProgressSet = new HashSet<int>(activeProgressDelivIds);
+
+            // Step 3: Filter out deliverables with active progress
+            var finalOrphanDelivs = allCandidateOrphanDelivs.Where(d => !activeProgressSet.Contains(d.Id)).ToList();
+            var finalOrphanDIds = finalOrphanDelivs.Select(d => d.Id).ToList();
+
+            if (finalOrphanDelivs.Any())
+            {
+                // Step 4: Batch query — get all progress IDs for orphaned deliverables (single DB call)
+                var orphanProgressIds = await _context.ProtonDeliverableProgresses
+                    .Where(p => finalOrphanDIds.Contains(p.ProtonDeliverableId))
+                    .Select(p => p.Id)
+                    .ToListAsync();
+                if (orphanProgressIds.Any())
+                {
+                    // Step 5: Batch query — get all coaching sessions to cascade delete (single DB call)
+                    var orphanSessions = await _context.CoachingSessions
+                        .Include(cs => cs.ActionItems)
+                        .Where(cs => cs.ProtonDeliverableProgressId != null && orphanProgressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                        .ToListAsync();
+                    _context.CoachingSessions.RemoveRange(orphanSessions);
+                    var orphanProgresses = await _context.ProtonDeliverableProgresses
+                        .Where(p => finalOrphanDIds.Contains(p.ProtonDeliverableId))
+                        .ToListAsync();
+                    _context.ProtonDeliverableProgresses.RemoveRange(orphanProgresses);
+                }
+                _context.ProtonDeliverableList.RemoveRange(finalOrphanDelivs);
+            }
+
+            deleted += finalOrphanDelivs.Count;
+            foreach (var od in finalOrphanDelivs) orphanDelivIdSet.Add(od.Id);
+
             foreach (var k in scopeKomps)
             {
-                foreach (var s in k.SubKompetensiList)
-                {
-                    var orphanDelivs = s.Deliverables.Where(d => !savedDelivIds.Contains(d.Id) && d.Id > 0).ToList();
-                    if (orphanDelivs.Any())
-                    {
-                        // D-02: Block hard delete if any orphan deliverable has active (non-Approved) progress
-                        var orphanDIds = orphanDelivs.Select(d => d.Id).ToList();
-                        var hasActiveProgress = await _context.ProtonDeliverableProgresses
-                            .AnyAsync(p => orphanDIds.Contains(p.ProtonDeliverableId) && p.Status != "Approved");
-                        if (hasActiveProgress)
-                        {
-                            // Skip deletion of deliverables with active progress — keep them in DB
-                            // Filter out deliverables that have active progress
-                            var activeDelivIds = await _context.ProtonDeliverableProgresses
-                                .Where(p => orphanDIds.Contains(p.ProtonDeliverableId) && p.Status != "Approved")
-                                .Select(p => p.ProtonDeliverableId)
-                                .Distinct()
-                                .ToListAsync();
-                            var safeOrphanDelivs = orphanDelivs.Where(d => !activeDelivIds.Contains(d.Id)).ToList();
-                            orphanDelivs = safeOrphanDelivs;
-                            orphanDIds = orphanDelivs.Select(d => d.Id).ToList();
-                        }
-
-                        if (orphanDelivs.Any())
-                        {
-                            // Cascade delete progress records for orphaned deliverables (FK is Restrict)
-                            var orphanProgressIds = await _context.ProtonDeliverableProgresses
-                                .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
-                                .Select(p => p.Id)
-                                .ToListAsync();
-                            if (orphanProgressIds.Any())
-                            {
-                                var orphanSessions = await _context.CoachingSessions
-                                    .Include(cs => cs.ActionItems)
-                                    .Where(cs => cs.ProtonDeliverableProgressId != null && orphanProgressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
-                                    .ToListAsync();
-                                _context.CoachingSessions.RemoveRange(orphanSessions);
-                                var orphanProgresses = await _context.ProtonDeliverableProgresses
-                                    .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
-                                    .ToListAsync();
-                                _context.ProtonDeliverableProgresses.RemoveRange(orphanProgresses);
-                            }
-                            _context.ProtonDeliverableList.RemoveRange(orphanDelivs);
-                        }
-                    }
-                    deleted += orphanDelivs.Count;
-                    foreach (var od in orphanDelivs) orphanDelivIdSet.Add(od.Id);
-                }
                 // A SubKompetensi is orphaned if it's not in savedSubIds AND all its deliverables are being deleted
                 var orphanSubs = k.SubKompetensiList.Where(s =>
                     !savedSubIds.Contains(s.Id) && s.Id > 0 &&
