@@ -1513,6 +1513,7 @@ namespace HcPortal.Controllers
                         // This catch is kept for any other unique constraint violations.
                         foreach (var s in sessions) _context.Entry(s).State = EntityState.Detached;
                         await transaction.RollbackAsync();
+                        await transaction.DisposeAsync();
                         transaction = await _context.Database.BeginTransactionAsync();
 
                         // Re-add sessions for retry (no cert re-assignment needed)
@@ -1523,6 +1524,9 @@ namespace HcPortal.Controllers
                         _context.AssessmentSessions.AddRange(sessions);
                     }
                 }
+
+                if (!saved)
+                    throw new InvalidOperationException($"Failed to save assessment after {maxAttempts} attempts due to repeated unique constraint violations");
 
                     // ASMT-01: Notify each assigned worker
                     foreach (var session in sessions)
@@ -1569,6 +1573,10 @@ namespace HcPortal.Controllers
                     await transaction.RollbackAsync();
                     throw;
                 }
+                finally
+                {
+                    await transaction.DisposeAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -1588,7 +1596,7 @@ namespace HcPortal.Controllers
                         null,
                         "AssessmentSession");
                 }
-                catch { /* don't let audit logging failure mask the original error */ }
+                catch (Exception auditEx) { _logger.LogWarning(auditEx, "Audit logging failed during CreateAssessment error handling"); }
 
                 // Show error to user
                 TempData["Error"] = "Gagal membuat assessment. Silakan coba lagi.";
@@ -2202,7 +2210,7 @@ namespace HcPortal.Controllers
             {
                 var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AdminController>>();
                 logger.LogError(ex, "Error regenerating token");
-                return Json(new { success = false, message = $"Failed to regenerate token: {ex.Message}" });
+                return Json(new { success = false, message = "Gagal regenerate token. Silakan coba lagi." });
             }
         }
 
@@ -3052,9 +3060,10 @@ namespace HcPortal.Controllers
                         a => a.AssessmentPackageId,
                         p => p.Id,
                         (a, p) => new { a.AssessmentSessionId, QuestionCount = p.Questions.Count })
+                    .GroupBy(x => x.AssessmentSessionId)
                     .ToDictionaryAsync(
-                        x => x.AssessmentSessionId,
-                        x => x.QuestionCount);
+                        g => g.Key,
+                        g => g.First().QuestionCount);
             }
             // Build row data: one row per session, include all statuses
             var rows = sessions.Select(a =>

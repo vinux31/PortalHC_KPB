@@ -15,7 +15,8 @@ namespace HcPortal.Controllers
             _notificationService = notificationService;
         }
 
-        private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? throw new UnauthorizedAccessException("User ID claim not found");
 
         [HttpGet]
         public async Task<IActionResult> List()

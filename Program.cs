@@ -17,7 +17,7 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.IdleTimeout = TimeSpan.FromHours(8);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
@@ -94,6 +94,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromHours(8); // Session 8 jam
     options.SlidingExpiration = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
     // Return 401 for SignalR hub endpoints instead of redirecting to login page
     options.Events.OnRedirectToLogin = context =>
     {
@@ -145,7 +147,11 @@ using (var scope = app.Services.CreateScope())
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
 }
+
+// Handle 404 dan status code errors lainnya
+app.UseStatusCodePagesWithReExecute("/Home/Error", "?statusCode={0}");
 
 // 7. HTTPS Redirection — aktif di production, skip saat development lokal
 if (!app.Environment.IsDevelopment())

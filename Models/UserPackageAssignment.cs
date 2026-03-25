@@ -63,8 +63,9 @@ namespace HcPortal.Models
             {
                 return JsonSerializer.Deserialize<List<int>>(ShuffledQuestionIds, _jsonOptions) ?? new List<int>();
             }
-            catch
+            catch (JsonException ex)
             {
+                System.Diagnostics.Debug.WriteLine($"[UserPackageAssignment] Failed to deserialize ShuffledQuestionIds for Id={Id}: {ex.Message}");
                 return new List<int>();
             }
         }
@@ -85,8 +86,9 @@ namespace HcPortal.Models
                     kvp => kvp.Value
                 );
             }
-            catch
+            catch (Exception ex) when (ex is JsonException or FormatException)
             {
+                System.Diagnostics.Debug.WriteLine($"[UserPackageAssignment] Failed to deserialize ShuffledOptionIdsPerQuestion for Id={Id}: {ex.Message}");
                 return new Dictionary<int, List<int>>();
             }
         }

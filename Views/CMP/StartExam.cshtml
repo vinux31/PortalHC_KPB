@@ -303,11 +303,11 @@ else
     const WARNING_THRESHOLD = 300; // 5 minutes
 
     // --- Resume constants (from server) ---
-    const IS_RESUME = @((ViewBag.IsResume as bool? ?? false) ? "true" : "false");
+    const IS_RESUME = @Json.Serialize(ViewBag.IsResume as bool? ?? false);
     const RESUME_PAGE = @(ViewBag.LastActivePage ?? 0);
     const ELAPSED_SECONDS_FROM_DB = @(ViewBag.ElapsedSeconds ?? 0);
     const REMAINING_SECONDS_FROM_DB = @(ViewBag.RemainingSeconds ?? (Model.DurationMinutes * 60));
-    const EXAM_EXPIRED = @((ViewBag.ExamExpired as bool? ?? false) ? "true" : "false");
+    const EXAM_EXPIRED = @Json.Serialize(ViewBag.ExamExpired as bool? ?? false);
     const SAVED_ANSWERS = @Html.Raw(ViewBag.SavedAnswers ?? "{}");
     const SESSION_PROGRESS_URL = '@Url.Action("UpdateSessionProgress", "CMP")';
 

@@ -35,7 +35,7 @@ namespace HcPortal.Models
         
         // Status & Metadata
         public string Status { get; set; } = "Draft";  // "Draft", "Submitted"
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }
     }
 }

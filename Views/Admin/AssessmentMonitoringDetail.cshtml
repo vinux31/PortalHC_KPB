@@ -558,7 +558,8 @@
 @if (Model.IsPackageMode)
 {
 <script>
-    var antiForgeryToken = document.querySelector('#reshuffleForm input[name="__RequestVerificationToken"]').value;
+    var antiForgeryEl = document.querySelector('#reshuffleForm input[name="__RequestVerificationToken"]');
+    var antiForgeryToken = antiForgeryEl ? antiForgeryEl.value : '';
 
     function reshuffleWorker(sessionId) {
         var btn = document.querySelector('[data-session-id="' + sessionId + '"]');
