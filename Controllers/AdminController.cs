@@ -5807,6 +5807,18 @@ namespace HcPortal.Controllers
         [Authorize(Roles = "Admin, HC")]
         public async Task<IActionResult> AddTraining(CreateTrainingRecordViewModel model)
         {
+            // Manual validation: minimal 1 pekerja harus dipilih
+            bool hasWorkerCerts = model.WorkerCerts != null && model.WorkerCerts.Count > 0;
+            bool hasSingleUser = !string.IsNullOrEmpty(model.UserId);
+            if (!hasWorkerCerts && !hasSingleUser)
+            {
+                ModelState.AddModelError("", "Pilih minimal 1 pekerja.");
+            }
+            if (hasWorkerCerts && model.WorkerCerts!.Count > 20)
+            {
+                ModelState.AddModelError("", "Maksimal 20 pekerja per submission.");
+            }
+
             // File validation
             string? sertifikatUrl = null;
             if (model.CertificateFile != null && model.CertificateFile.Length > 0)
@@ -5820,6 +5832,23 @@ namespace HcPortal.Controllers
                 if (model.CertificateFile.Length > 10 * 1024 * 1024)
                 {
                     ModelState.AddModelError("CertificateFile", "Ukuran file maksimal 10MB.");
+                }
+            }
+
+            // Per-worker file validation (all-or-nothing)
+            if (hasWorkerCerts)
+            {
+                var allowedExts = new[] { ".pdf", ".jpg", ".jpeg", ".png" };
+                foreach (var wc in model.WorkerCerts!)
+                {
+                    if (wc.CertificateFile != null && wc.CertificateFile.Length > 0)
+                    {
+                        var wcExt = Path.GetExtension(wc.CertificateFile.FileName).ToLowerInvariant();
+                        if (!allowedExts.Contains(wcExt))
+                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} harus berformat PDF, JPG, atau PNG.");
+                        if (wc.CertificateFile.Length > 10 * 1024 * 1024)
+                            ModelState.AddModelError("", $"File untuk pekerja {wc.UserId} melebihi batas 10MB.");
+                    }
                 }
             }
 
@@ -5895,6 +5924,45 @@ namespace HcPortal.Controllers
             if (uploadedUrl != null)
             {
                 sertifikatUrl = uploadedUrl;
+            }
+
+            // Multi-select non-renewal: create 1 record per worker with per-worker cert
+            if (hasWorkerCerts && bulkUserIds == null)
+            {
+                foreach (var wc in model.WorkerCerts!)
+                {
+                    string? wcUrl = null;
+                    if (wc.CertificateFile != null && wc.CertificateFile.Length > 0)
+                        wcUrl = await FileUploadHelper.SaveFileAsync(wc.CertificateFile, _env.WebRootPath, "uploads/certificates");
+
+                    var rec = new TrainingRecord
+                    {
+                        UserId = wc.UserId,
+                        Judul = model.Judul,
+                        Penyelenggara = model.Penyelenggara,
+                        Kota = model.Kota,
+                        Kategori = model.Kategori,
+                        SubKategori = model.SubKategori,
+                        Tanggal = model.Tanggal,
+                        TanggalMulai = model.TanggalMulai,
+                        TanggalSelesai = model.TanggalSelesai,
+                        Status = model.Status,
+                        NomorSertifikat = wc.NomorSertifikat,
+                        ValidUntil = model.ValidUntil,
+                        CertificateType = model.CertificateType,
+                        SertifikatUrl = wcUrl
+                    };
+                    _context.TrainingRecords.Add(rec);
+                }
+                await _context.SaveChangesAsync();
+
+                var multiActor = await _userManager.GetUserAsync(User);
+                if (multiActor != null)
+                    await _auditLog.LogAsync(multiActor.Id, multiActor.FullName, "Create",
+                        $"Training record ditambahkan: {model.Judul} untuk {model.WorkerCerts!.Count} pekerja", 0, "TrainingRecord");
+
+                TempData["Success"] = $"Berhasil membuat {model.WorkerCerts!.Count} training record.";
+                return RedirectToAction("ManageAssessment", new { tab = "training" });
             }
 
             // Bulk renewal: buat N TrainingRecord dengan FK per-user
