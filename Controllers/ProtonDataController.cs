@@ -188,7 +188,8 @@ namespace HcPortal.Controllers
                                 Target = d.Target ?? "-",
                                 DeliverableId = d.Id,
                                 Deliverable = d.NamaDeliverable,
-                                No = d.Urutan.ToString()
+                                No = d.Urutan.ToString(),
+                                IsActive = k.IsActive
                             });
                         }
                     }
