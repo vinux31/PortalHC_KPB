@@ -402,25 +402,45 @@ namespace HcPortal.Controllers
                     var orphanDelivs = s.Deliverables.Where(d => !savedDelivIds.Contains(d.Id) && d.Id > 0).ToList();
                     if (orphanDelivs.Any())
                     {
-                        // Cascade delete progress records for orphaned deliverables (FK is Restrict)
+                        // D-02: Block hard delete if any orphan deliverable has active (non-Approved) progress
                         var orphanDIds = orphanDelivs.Select(d => d.Id).ToList();
-                        var orphanProgressIds = await _context.ProtonDeliverableProgresses
-                            .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
-                            .Select(p => p.Id)
-                            .ToListAsync();
-                        if (orphanProgressIds.Any())
+                        var hasActiveProgress = await _context.ProtonDeliverableProgresses
+                            .AnyAsync(p => orphanDIds.Contains(p.ProtonDeliverableId) && p.Status != "Approved");
+                        if (hasActiveProgress)
                         {
-                            var orphanSessions = await _context.CoachingSessions
-                                .Include(cs => cs.ActionItems)
-                                .Where(cs => cs.ProtonDeliverableProgressId != null && orphanProgressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                            // Skip deletion of deliverables with active progress — keep them in DB
+                            // Filter out deliverables that have active progress
+                            var activeDelivIds = await _context.ProtonDeliverableProgresses
+                                .Where(p => orphanDIds.Contains(p.ProtonDeliverableId) && p.Status != "Approved")
+                                .Select(p => p.ProtonDeliverableId)
+                                .Distinct()
                                 .ToListAsync();
-                            _context.CoachingSessions.RemoveRange(orphanSessions);
-                            var orphanProgresses = await _context.ProtonDeliverableProgresses
-                                .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
-                                .ToListAsync();
-                            _context.ProtonDeliverableProgresses.RemoveRange(orphanProgresses);
+                            var safeOrphanDelivs = orphanDelivs.Where(d => !activeDelivIds.Contains(d.Id)).ToList();
+                            orphanDelivs = safeOrphanDelivs;
+                            orphanDIds = orphanDelivs.Select(d => d.Id).ToList();
                         }
-                        _context.ProtonDeliverableList.RemoveRange(orphanDelivs);
+
+                        if (orphanDelivs.Any())
+                        {
+                            // Cascade delete progress records for orphaned deliverables (FK is Restrict)
+                            var orphanProgressIds = await _context.ProtonDeliverableProgresses
+                                .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
+                                .Select(p => p.Id)
+                                .ToListAsync();
+                            if (orphanProgressIds.Any())
+                            {
+                                var orphanSessions = await _context.CoachingSessions
+                                    .Include(cs => cs.ActionItems)
+                                    .Where(cs => cs.ProtonDeliverableProgressId != null && orphanProgressIds.Contains(cs.ProtonDeliverableProgressId!.Value))
+                                    .ToListAsync();
+                                _context.CoachingSessions.RemoveRange(orphanSessions);
+                                var orphanProgresses = await _context.ProtonDeliverableProgresses
+                                    .Where(p => orphanDIds.Contains(p.ProtonDeliverableId))
+                                    .ToListAsync();
+                                _context.ProtonDeliverableProgresses.RemoveRange(orphanProgresses);
+                            }
+                            _context.ProtonDeliverableList.RemoveRange(orphanDelivs);
+                        }
                     }
                     deleted += orphanDelivs.Count;
                     foreach (var od in orphanDelivs) orphanDelivIdSet.Add(od.Id);
@@ -1141,10 +1161,14 @@ namespace HcPortal.Controllers
             if (record == null) return NotFound();
 
             var physicalPath = Path.Combine(_env.WebRootPath, record.FilePath.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
-            if (!System.IO.File.Exists(physicalPath)) return NotFound();
+            // Validate path stays within wwwroot to prevent path traversal
+            var fullPath = Path.GetFullPath(physicalPath);
+            if (!fullPath.StartsWith(_env.WebRootPath, StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Invalid file path.");
+            if (!System.IO.File.Exists(fullPath)) return NotFound();
 
             var contentType = GetContentType(Path.GetExtension(record.FilePath));
-            return PhysicalFile(physicalPath, contentType, record.FileName);
+            return PhysicalFile(fullPath, contentType, record.FileName);
         }
 
         // POST: /ProtonData/GuidanceReplace
