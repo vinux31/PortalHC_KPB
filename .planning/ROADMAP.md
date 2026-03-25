@@ -141,7 +141,7 @@ Phases execute in numeric order: 257 → 258 → 259 → 260 → 261
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 257. Setup & Mapping | v9.1 | 2/2 | Complete   | 2026-03-25 |
+| 257. Setup & Mapping | v9.1 | 2/2 | Complete    | 2026-03-25 |
 | 258. Silabus & Guidance | v9.1 | 0/? | Not started | - |
 | 259. Evidence & Coaching Session | v9.1 | 0/? | Not started | - |
 | 260. Approval Chain | v9.1 | 0/? | Not started | - |
