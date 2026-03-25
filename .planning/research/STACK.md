@@ -1,214 +1,198 @@
 # Stack Research
 
-**Domain:** Proton Coaching Ecosystem Audit — ASP.NET Core MVC Portal
-**Researched:** 2026-03-22
-**Confidence:** HIGH — berdasarkan inspeksi langsung codebase + model inventory
+**Domain:** Pre-deployment readiness — ASP.NET Core MVC intranet portal
+**Researched:** 2026-03-25
+**Confidence:** HIGH (analisis langsung source code + established deployment patterns)
 
----
+## Recommended Stack
 
-## Stack yang Sudah Ada (JANGAN GANTI)
+### Core Technologies (Sudah Ada - Tidak Perlu Diubah)
 
-| Technology | Version | Role | Status |
-|------------|---------|------|--------|
-| ASP.NET Core MVC | net8.0 | Web framework, controllers, Razor views | SOLID |
-| Entity Framework Core | 8.0.0 | ORM, migrations, LINQ queries | SOLID |
-| SQLite | via EF | Database | ADEQUATE untuk skala ini |
-| ASP.NET Core Identity | built-in | Auth, roles (Admin/HC/SrSpv/SectionHead/Coach/Coachee) | SOLID |
-| SignalR | built-in | Real-time notifikasi (AssessmentHub sudah ada) | ADA, belum dipakai di Proton |
-| ClosedXML | 0.105.0 | Excel import/export (Silabus, HistoriProton, Mapping) | SOLID |
-| QuestPDF | 2026.2.2 | PDF generation | SOLID |
-| Bootstrap 5 | CDN | UI framework | SOLID |
-| jQuery | CDN | DOM/AJAX | SOLID |
-| Chart.js 4.x | CDN | Dashboard charts | SOLID, sudah ada di beberapa views |
-| INotificationService | custom | In-app notification dengan template | SOLID, sudah cover semua Proton events |
-| AuditLogService | custom | Audit trail setiap aksi | SOLID |
-| FileUploadHelper | custom | File upload pattern (evidence, guidance) | SOLID |
-| ExcelExportHelper | custom | ClosedXML boilerplate wrapper | SOLID |
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| ASP.NET Core MVC | net8.0 | Web framework | LTS sampai Nov 2026, 252+ phases shipped |
+| EF Core + SqlServer | 8.0.0 | ORM + production DB | Connection string template sudah ada |
+| ASP.NET Core Identity | 8.0.0 | Auth/authz | Role-based auth lengkap (Admin/HC/SrSpv/SectionHead/Coach/Coachee) |
+| System.DirectoryServices | 10.0.0 | LDAP/AD authentication | HybridAuthService sudah built dengan toggle config |
+| SignalR | built-in 8.0 | Real-time assessment hub | AssessmentHub production-ready |
+| ClosedXML | 0.105.0 | Excel import/export | Fitur inti portal |
+| QuestPDF | 2026.2.2 | PDF generation | Community license, sudah aktif |
+| IIS in-process | AspNetCoreModuleV2 | Hosting | web.config sudah ada |
 
----
+### Supporting Libraries
 
-## Audit Gap: Apa yang Ada vs Apa yang Perlu Diperbaiki
+Tidak perlu package baru. Semua kebutuhan deployment dapat dipenuhi dengan konfigurasi stack yang ada.
 
-Tidak perlu menambah library baru. Semua kebutuhan audit dapat dipenuhi dengan pattern dan library yang sudah ada. Yang dibutuhkan adalah **perbaikan implementasi**, bukan **penambahan stack**.
+### Server Requirements (Install di Server Target)
 
----
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| .NET 8.0 Hosting Bundle | Runtime + IIS module | Download dari dotnet.microsoft.com/download/dotnet/8.0 — BUKAN SDK, cukup Hosting Bundle |
+| IIS 10+ | Web server | Windows Server 2016+ dengan AspNetCoreModuleV2 (otomatis dari Hosting Bundle) |
+| SQL Server 2016+ | Production database | Sudah tersedia di environment Pertamina |
 
-## Pola yang Perlu Diterapkan Lebih Konsisten
+## Configuration Changes for Production
 
-### 1. Approval Chain Notifications — Sudah Ada, Perlu Audit Coverage
+### 1. appsettings.Production.json — Perlu Diisi
 
-**Kondisi saat ini:** `INotificationService` sudah punya template lengkap untuk seluruh Proton approval events:
-- `COACH_ASSIGNED`
-- `COACH_EVIDENCE_SUBMITTED`
-- `COACH_EVIDENCE_REJECTED`
-- `COACH_EVIDENCE_APPROVED_SRSPV`
-- `COACH_EVIDENCE_APPROVED_SH`
-- `COACH_EVIDENCE_APPROVED_HC`
-- `COACH_SESSION_COMPLETED`
+File sudah ada dengan template placeholder. Yang harus dikonfigurasi:
 
-**Yang perlu diaudit:** Apakah semua trigger di CDPController dan ProtonDataController benar-benar memanggil `SendByTemplateAsync` pada setiap state transition? Audit per-deliverable status change di `ProtonDeliverableProgress` harus memverifikasi bahwa notifikasi dikirim ke pihak yang tepat.
-
-**Pattern yang digunakan (tidak perlu ganti):**
-```csharp
-await _notificationService.SendByTemplateAsync(recipientId, "COACH_EVIDENCE_SUBMITTED", new Dictionary<string, object>
+```json
 {
-    { "CoachName", coachName },
-    { "CoacheeName", coacheeName }
-});
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Warning",
+      "HcPortal": "Information"
+    }
+  },
+  "AllowedHosts": "portalhc.pertamina.com",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=NAMA_SERVER;Database=HcPortalDB;User Id=hcportal_app;Password=GANTI_VIA_ENV_VAR;Encrypt=True;TrustServerCertificate=True;MultipleActiveResultSets=true;Connect Timeout=30"
+  },
+  "Authentication": {
+    "UseActiveDirectory": true,
+    "LdapPath": "LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com"
+  }
+}
 ```
 
----
+**Perubahan dari template saat ini:**
+- `AllowedHosts`: ganti `*` ke hostname aktual
+- `Encrypt=True`: tambahkan untuk keamanan koneksi DB
+- `Connect Timeout=30`: tambahkan, default 15s terlalu pendek untuk cold start
+- `Logging` default: turunkan ke Warning, hanya HcPortal namespace yang Information
+- `Authentication.UseActiveDirectory`: set `true`
 
-### 2. DeliverableStatusHistory — Sudah Ada, Perlu Audit Completeness
+### 2. web.config — Perlu Tuning
 
-**Kondisi saat ini:** Model `DeliverableStatusHistory` sudah lengkap dengan:
-- `StatusType` (Submitted / SrSpv Approved / SH Approved / HC Reviewed / SrSpv Rejected / SH Rejected / Re-submitted)
-- `ActorId`, `ActorName`, `ActorRole` — denormalized untuk audit trail
-- `RejectionReason`
-- `Timestamp`
-
-**Yang perlu diaudit:** Setiap titik di CDPController yang mengubah status `ProtonDeliverableProgress` harus dipastikan juga menulis ke `DeliverableStatusHistory`. Audit kelengkapan insert ke tabel history ini.
-
----
-
-### 3. Sequential Deliverable Lock — Sudah Ada, Perlu Audit Logic
-
-**Kondisi saat ini:** Lock logic mencegah coachee submit deliverable berikutnya sebelum yang sebelumnya approved. Status flow: `Pending → Submitted → Approved/Rejected`.
-
-**Yang perlu diaudit:** Edge cases:
-- Rejected → kembali ke Pending (apakah UI menampilkan rejection reason dengan jelas?)
-- Multi-track assignment (apakah lock per-track atau global?)
-- Re-submission setelah rejected (apakah history dicatat sebagai "Re-submitted"?)
-
----
-
-### 4. Evidence File Handling — Sudah Ada, Perlu Audit Security
-
-**Kondisi saat ini:** `FileUploadHelper` menangani upload. `ProtonDeliverableProgress` menyimpan `EvidencePath` (relative web path) dan `EvidenceFileName` (display name).
-
-**Pattern saat ini:**
-```
-/uploads/evidence/{progressId}/{filename}
+Current state di publish output:
+```xml
+<aspNetCore processPath="dotnet" arguments=".\HcPortal.dll"
+            stdoutLogEnabled="false" stdoutLogFile=".\logs\stdout"
+            hostingModel="inprocess" />
 ```
 
-**Yang perlu diaudit:**
-- Apakah file type allowlist diterapkan (tidak hanya PDF/image)?
-- Apakah ada size limit per evidence?
-- Apakah path traversal dicegah?
-- Apakah file lama dihapus saat re-submit?
+**Yang perlu diubah:**
 
-**Tidak perlu library baru.** `FileUploadHelper` yang ada sudah handle pattern ini — hanya perlu verifikasi konfigurasinya benar.
+| Setting | Current | Production | Why |
+|---------|---------|------------|-----|
+| `stdoutLogEnabled` | `false` | `true` saat deploy pertama | Troubleshoot startup failures, matikan setelah stabil |
+| Environment variable | tidak ada | `ASPNETCORE_ENVIRONMENT=Production` | Wajib agar error page aktif, dev middleware mati |
 
----
-
-### 5. Dashboard Analytics — Chart.js Sudah Ada, Perlu Audit Data Accuracy
-
-**Kondisi saat ini:** `CDPController` sudah punya `BuildProtonProgressSubModelAsync` yang menghasilkan data untuk dashboard chart. Chart.js 4.x sudah di-CDN.
-
-**Yang perlu diaudit (lihat bug yang sudah dicatat di CDPController):**
-- Filter `IsActive` pada coachee queries
-- Status counting (Pending vs Submitted vs Approved distinction)
-- Role-scoped filtering (Coach hanya melihat coachee-nya sendiri)
-- SrSpv dan SectionHead hanya melihat scope unit mereka
-
-**Pattern yang sudah proven:**
-```csharp
-// ViewBag.ChartData = new { labels, datasets }
-// Di view: Chart.js render dari ViewBag JSON
+Tambahkan `<environmentVariables>` block:
+```xml
+<aspNetCore processPath="dotnet" arguments=".\HcPortal.dll"
+            stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout"
+            hostingModel="inprocess">
+  <environmentVariables>
+    <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
+  </environmentVariables>
+</aspNetCore>
 ```
 
----
+### 3. Program.cs — Production Hardening
 
-### 6. SignalR untuk Real-Time Proton Updates — ADA tapi BELUM DIPAKAI
+Yang perlu ditambahkan (kode, bukan package):
 
-**Kondisi saat ini:** `AssessmentHub` sudah ada dan SignalR sudah di-register di `Program.cs`. Namun Proton coaching belum menggunakan SignalR — semua notifikasi adalah in-app polling via `INotificationService`.
+| Item | Status | Action |
+|------|--------|--------|
+| HSTS | Belum ada | Tambahkan `app.UseHsts()` di production block |
+| Status code pages | Belum ada | Tambahkan `app.UseStatusCodePagesWithReExecute("/Home/Error/{0}")` |
+| Security headers | Parsial (PDF saja) | Middleware global untuk X-Frame-Options, X-Content-Type-Options |
+| Password policy | Dev-mode (RequireDigit=false dll) | Perketat untuk production |
 
-**Rekomendasi untuk audit:** Jangan tambahkan SignalR ke Proton sekarang. In-app notification yang ada sudah cukup untuk coaching workflow. SignalR dibutuhkan hanya untuk skenario high-urgency real-time (seperti exam monitoring). Coaching approval bisa tunggu page refresh normal.
+### 4. IIS App Pool Configuration
 
-**Alasan tidak tambah SignalR ke Proton:**
-- Coaching approval bukan time-critical seperti exam monitoring
-- In-app notification bell sudah ada dan bekerja
-- Menambah SignalR hub baru = menambah complexity maintenance
-- ROI rendah dibanding effort
+| Setting | Value | Why |
+|---------|-------|-----|
+| .NET CLR Version | "No Managed Code" | Wajib untuk in-process hosting |
+| Start Mode | AlwaysRunning | Hindari cold start delay |
+| Idle Timeout | 0 (disabled) | Jangan shutdown app saat idle |
+| Recycling | Regular time (default 1740 min) | OK, in-process akan graceful restart |
 
----
+### 5. Active Directory Verification
 
-### 7. CoachingSession & ActionItem — Sudah Ada, Perlu Audit Linkage
+Sudah built (`HybridAuthService`), yang perlu diverifikasi saat deploy:
+- LDAP path cocok dengan AD structure aktual
+- IIS server bisa akses domain controller (port 389 LDAP / 636 LDAPS)
+- App pool identity punya read permission ke AD OU
+- Fallback ke local auth untuk `admin@pertamina.com` tetap berfungsi
 
-**Kondisi saat ini:**
-- `CoachingSession` sudah linked ke `ProtonDeliverableProgressId` (nullable FK)
-- `ActionItem` linked ke `CoachingSession`
-- Session status: "Draft" → "Submitted"
+### 6. Database Preparation
 
-**Yang perlu diaudit:**
-- Apakah semua CoachingSession yang ada punya `ProtonDeliverableProgressId` terisi?
-- Apakah ada orphaned sessions (linked ke deliverable yang sudah dihapus)?
-- Apakah ActionItem DueDate ditampilkan dengan warning jika overdue?
+- Buat database `HcPortalDB` di SQL Server target
+- Buat SQL login `hcportal_app` dengan role `db_owner` (untuk auto-migration)
+- `context.Database.Migrate()` di Program.cs akan apply semua migration saat startup pertama
+- Setelah stabil, bisa turunkan ke `db_datareader` + `db_datawriter`
 
----
+## Deployment Command
 
-## Apa yang TIDAK Perlu Ditambahkan
+```bash
+# Build
+dotnet publish -c Release -o ./publish
 
-| Jangan Tambah | Kenapa |
-|---------------|--------|
-| Workflow engine (Elsa, Windows Workflow) | Over-engineering; approval chain sudah ter-handle via status fields di ProtonDeliverableProgress |
-| Hangfire / background job | Tidak ada scheduled job yang dibutuhkan Proton audit; jika nanti diperlukan, IHostedService sudah cukup |
-| Redis / cache layer | Volume data terlalu kecil; EF query sudah cukup cepat |
-| SignalR hub baru untuk Proton | In-app notification yang ada sudah cukup untuk coaching approval flow |
-| Email SMTP (MailKit) | Sudah dipertimbangkan di v8.1; coaching tidak butuh email — in-app notification cukup |
-| React/Vue untuk coaching UI | Overkill; Razor + jQuery + AJAX sudah proven di seluruh codebase |
-| AutoMapper | Tidak sesuai style; explicit mapping lebih readable |
-| MediatR / CQRS | Over-engineering untuk skala dan pattern yang ada |
-| File storage cloud (Azure Blob, S3) | Evidence file di wwwroot/uploads sudah adequate untuk volume internal Pertamina KPB |
+# Buat folder logs manual (IIS tidak auto-create)
+mkdir ./publish/logs
 
----
+# Copy publish/ ke IIS site physical path
+# First request triggers: EF migration → seed data → app ready
+```
 
-## Integration Points dengan Stack yang Ada
+## What NOT to Use
 
-| Area | Stack yang Dipakai | Integration Point |
-|------|-------------------|-------------------|
-| Approval state change | EF Core + `ProtonDeliverableProgress` | Setiap state change → tulis `DeliverableStatusHistory` → kirim `INotificationService` |
-| Dashboard stats | EF Core LINQ + Chart.js | `BuildProtonProgressSubModelAsync` → ViewBag → Chart.js render |
-| Evidence upload | `FileUploadHelper` + wwwroot/uploads | Upload → simpan path di `EvidencePath` |
-| Silabus management | ClosedXML (import/export) + EF | 3-level hierarchy (Kompetensi → SubKompetensi → Deliverable) |
-| Coach-Coachee setup | EF + Admin CRUD | `CoachCoacheeMapping` → `ProtonTrackAssignment` cascade |
-| Completion + Final Assessment | EF + `ProtonFinalAssessment` | HC creates record → triggers `COACH_SESSION_COMPLETED` notification |
-| Audit trail | `AuditLogService` | Setiap aksi admin/HC/approval → log entry |
-| History timeline | `DeliverableStatusHistory` | HistoriProton view renders timeline dari tabel ini |
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| Serilog/NLog | Overkill untuk intranet tanpa log aggregation | Built-in logging + stdout file |
+| Health checks package | Tidak ada orchestrator/LB yang poll | Manual monitoring + Event Viewer |
+| Application Insights | Bukan Azure deployment | IIS logs + stdout |
+| Docker | Target IIS on-premises | Direct IIS publish |
+| Swagger/OpenAPI | MVC portal, bukan API | Tidak relevan |
+| Hangfire | Tidak ada background job requirement | Tidak perlu |
+| Rate limiting middleware | Intranet + throttling sudah ada di v8.6 | Existing implementation |
+| Kestrel standalone | Intranet butuh Windows Auth passthrough | IIS in-process |
+| Redis | Volume data kecil, single server | In-memory cache yang sudah ada |
+| Reverse proxy (nginx) | Windows Server + IIS environment | IIS native |
 
----
+## Environment Variable untuk Sensitive Config
 
-## Pola Instalasi
+Lebih aman daripada menyimpan di file:
 
-Tidak ada package baru yang perlu diinstall untuk milestone ini.
+```
+# Set via IIS > Site > Configuration Editor > environmentVariables
+ConnectionStrings__DefaultConnection=Server=...;Database=...;Password=...
+Authentication__UseActiveDirectory=true
+```
 
-Semua yang dibutuhkan sudah ada di `HcPortal.csproj`. Audit cukup menggunakan:
-- EF Core migration (jika perlu tambah kolom)
-- Razor view update
-- Controller action update
-- Service method update
+## SQLite Cleanup
 
----
+`Program.cs` baris 129-135 ada SQLite WAL mode pragma. Kode ini harmless di production (conditional check `ProviderName == "Sqlite"`), tapi sebaiknya dihapus untuk kebersihan karena production pakai SQL Server.
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| INotificationService yang ada | SignalR push untuk Proton | Coaching approval tidak time-critical; polling bell sudah cukup |
-| Status field di ProtonDeliverableProgress | Dedicated workflow engine | Status machine sudah encoded di fields; engine menambah dependency besar |
-| FileUploadHelper yang ada | Azure Blob Storage | Deployment internal; cloud storage tidak available/dibutuhkan |
-| DeliverableStatusHistory yang ada | Generic AuditLog saja | Coaching perlu history granular per-deliverable — tabel dedicated lebih queryable |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| IIS in-process | Kestrel + reverse proxy | Jika deploy ke Linux, tapi tidak relevan di sini |
+| Built-in logging | Serilog + Seq | Jika nanti perlu centralized log aggregation |
+| SQL Server auth | Windows Integrated Auth ke DB | Jika app pool identity bisa diberi DB access langsung |
+| Environment variables | Azure Key Vault | Jika migrate ke cloud |
 
----
+## Version Compatibility
+
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| EF Core 8.0 | SQL Server 2016+ | Fitur terbaru butuh 2019+ tapi 2016 cukup |
+| .NET 8.0 Hosting Bundle | IIS 10 (Windows Server 2016+) | In-process hosting butuh AspNetCoreModuleV2 |
+| System.DirectoryServices 10.0.0 | .NET 8.0, Windows only | Sesuai target deployment |
+| QuestPDF 2026.2.2 | Community license gratis < $1M revenue | Internal tool = aman |
+| .NET 8.0 LTS | Support sampai November 2026 | Masih dalam support window |
 
 ## Sources
 
-- Inspeksi langsung `Models/ProtonModels.cs` — confirmed data model approval chain
-- Inspeksi langsung `Services/INotificationService.cs` + `Services/NotificationService.cs` — confirmed template coverage
-- Inspeksi langsung `Controllers/CDPController.cs` — confirmed bug history dan existing patterns
-- Inspeksi langsung `Models/CoachingSession.cs`, `Models/ActionItem.cs`, `Models/CoachCoacheeMapping.cs`
-- `Controllers/ProtonDataController.cs` — confirmed Admin/HC override pattern
+- Source code: `Program.cs`, `HcPortal.csproj`, `appsettings.*.json`, `publish/web.config` (HIGH confidence)
+- ASP.NET Core 8.0 IIS hosting model documentation (HIGH confidence)
+- EF Core SQL Server provider patterns (HIGH confidence)
 
 ---
-*Stack research untuk: Proton Coaching Ecosystem Audit (v8.2)*
-*Researched: 2026-03-22*
+*Stack research untuk: Pre-deployment Audit & Finalization (v9.0)*
+*Researched: 2026-03-25*

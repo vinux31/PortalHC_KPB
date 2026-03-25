@@ -1,424 +1,272 @@
-# Architecture Research: Proton Coaching Ecosystem Audit
+# Architecture Patterns: Pre-deployment Audit & Finalization
 
-**Domain:** ASP.NET Core MVC — Brownfield coaching/mentoring platform audit & improvement
-**Researched:** 2026-03-22
-**Confidence:** HIGH (langsung dari source code: 3 controller, 14 tabel, semua model)
+**Domain:** ASP.NET Core MVC portal deployment ke IIS production
+**Researched:** 2026-03-25
+**Confidence:** HIGH (analisis langsung dari Program.cs, appsettings, csproj)
 
 ---
 
-## System Overview
+## Arsitektur Saat Ini (Development)
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         Presentation Layer                           │
-│  ┌──────────────────┐  ┌───────────────────┐  ┌──────────────────┐  │
-│  │ AdminController  │  │  CDPController    │  │ ProtonDataCtrl   │  │
-│  │  (Setup)         │  │  (Execution &     │  │  (Silabus &      │  │
-│  │  12 actions      │  │   Monitoring)     │  │   Guidance)      │  │
-│  │                  │  │   20+ actions     │  │  16 actions      │  │
-│  └──────┬───────────┘  └────────┬──────────┘  └──────────┬───────┘  │
-└─────────┼───────────────────────┼─────────────────────────┼──────────┘
-          │                       │                         │
-┌─────────▼───────────────────────▼─────────────────────────▼──────────┐
-│              Business Logic (inline di controller actions)            │
-│  Sequential lock  │  Multi-role approval chain  │  Role-scoped query  │
-│  Evidence path    │  Notification trigger        │  Silabus upsert     │
-│  Assignment seed  │  Interview result → Final    │  Cascade cleanup    │
-└──────────────────────────────────────┬────────────────────────────────┘
-                                       │
-┌──────────────────────────────────────▼────────────────────────────────┐
-│                    Data Layer (EF Core + SQL Server)                   │
-│                                                                        │
-│  SETUP TABLES              EXECUTION TABLES        COMPLETION TABLES   │
-│  ┌────────────────┐        ┌──────────────────┐    ┌────────────────┐  │
-│  │ ProtonTrack    │        │ ProtonDeliverable │    │ ProtonFinalAs. │  │
-│  │ ProtonKomp.    ├───────►│   Progress        ├───►│ CoachingSession│  │
-│  │ ProtonSubKomp. │        │ DeliverableStatus │    │ ActionItem     │  │
-│  │ ProtonDeliv.   │        │  History          │    │ ProtonNotif.   │  │
-│  │ ProtonTrackAs. │        │ CoachingGuidance  │    │                │  │
-│  │ CoachCoachee   │        │  File             │    │                │  │
-│  │  Mapping       │        │                   │    │                │  │
-│  └────────────────┘        └──────────────────┘    └────────────────┘  │
-│                                                                        │
-│  LEGACY: CoachingLog (masih ada di DbContext, tidak dipakai di flow)  │
-│  PARALLEL: UserNotification (sistem notif umum, beda dari Proton)     │
-└────────────────────────────────────────────────────────────────────────┘
+Browser -> Kestrel (localhost:5xxx) -> ASP.NET Core 8 MVC
+                                        |
+                                        +-- EF Core -> SQLite (HcPortal.db)
+                                        +-- Identity (local password auth)
+                                        +-- SignalR (AssessmentHub)
+                                        +-- ClosedXML, QuestPDF
+```
+
+## Arsitektur Target (Production)
+
+```
+Browser -> IIS (Reverse Proxy, HTTPS) -> Kestrel (in-process)
+              |                              |
+              +-- HTTPS termination          +-- EF Core -> SQL Server
+              +-- WebSocket enabled          +-- Identity + HybridAuthService -> AD (LDAP)
+              +-- Static file caching        +-- SignalR (WebSocket)
+              +-- Request filtering          +-- ClosedXML, QuestPDF (temp file access)
 ```
 
 ---
 
-## Component Responsibilities
+## Integration Points: Apa yang Berubah untuk Production
 
-| Komponen | Tanggung Jawab | File |
-|----------|----------------|------|
-| **AdminController** | Setup: coach-coachee mapping CRUD, track assignment, import/export mapping, interview results, cascade deactivation | `Controllers/AdminController.cs` (~line 3615+) |
-| **CDPController** | Execution: evidence upload, approval chain, CoachingProton list, Dashboard, HistoriProton, deliverable view | `Controllers/CDPController.cs` (3405 baris) |
-| **ProtonDataController** | Content: silabus CRUD/import/export, guidance file upload/download/replace, StatusData | `Controllers/ProtonDataController.cs` (1361 baris) |
-| **ProtonTrack** | Master track types (TrackType + TahunKe + Urutan display) | `Models/ProtonModels.cs` |
-| **CoachCoacheeMapping** | Relasi coach ke coachee, dengan AssignmentSection/Unit override (bisa beda dari unit pekerja) | `Models/CoachCoacheeMapping.cs` |
-| **ProtonTrackAssignment** | Penugasan coachee ke track spesifik, IsActive flag, timestamp | `Models/ProtonModels.cs` |
-| **ProtonDeliverableProgress** | Status per deliverable per coachee, 3 approval kolom independen | `Models/ProtonModels.cs` |
-| **DeliverableStatusHistory** | Audit trail setiap perubahan status deliverable (actor, role, timestamp) | `Models/ProtonModels.cs` |
-| **CoachingSession** | Catatan sesi coaching (CatatanCoach, Kesimpulan, Result), terhubung ke DeliverableProgress via nullable no-FK | `Models/CoachingSession.cs` |
-| **ActionItem** | Task tindak lanjut per sesi coaching (DueDate, Status) | `Models/ActionItem.cs` |
-| **ProtonFinalAssessment** | Rekord penyelesaian track, dibuat saat interview lulus | `Models/ProtonModels.cs` |
-| **CoachingGuidanceFile** | File panduan coaching per (Bagian, Unit, TrackId) | `Models/ProtonModels.cs` |
+### 1. Database: SQLite -> SQL Server
+
+**Status:** Sudah disiapkan. `appsettings.Production.json` punya template SQL Server connection string. Package `Microsoft.EntityFrameworkCore.SqlServer` sudah di csproj.
+
+**Yang perlu dilakukan:**
+- Isi placeholder credential di `appsettings.Production.json` (atau lebih baik via environment variable)
+- Jalankan migration terhadap SQL Server: `dotnet ef database update`
+- Audit semua `ExecuteSqlRaw` / `FromSqlRaw` / `SqlQueryRaw` untuk SQLite-specific syntax
+- Program.cs line 129-135: PRAGMA WAL block sudah ada guard `ProviderName == Sqlite` -- aman, tapi bersihkan jika hanya target SQL Server
+
+**Risiko:** Raw SQL yang SQLite-specific. Ditemukan di Program.cs (PRAGMA -- sudah di-guard). Perlu scan seluruh codebase untuk raw SQL lain.
+
+### 2. Authentication: Local -> AD (LDAP)
+
+**Status:** Sudah disiapkan lengkap. Infrastruktur sudah ada:
+
+| File | Peran | Status |
+|------|-------|--------|
+| `Services/HybridAuthService.cs` | Router: AD first, local fallback untuk admin | Ready |
+| `Services/LdapAuthService.cs` | LDAP bind ke domain controller | Ready |
+| `Services/LocalAuthService.cs` | Identity password check (fallback) | Ready |
+| `Services/IAuthService.cs` | Interface abstraction | Ready |
+| Program.cs line 57-87 | Config toggle DI registration | Ready |
+
+**Yang perlu dilakukan:**
+- Set `Authentication:UseActiveDirectory = true` di production
+- Konfigurasi `LdapPath` sesuai domain controller production (saat ini: `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com`)
+- Pastikan IIS app pool identity punya network access ke domain controller
+- Test: admin@pertamina.com tetap bisa login via local fallback
+
+### 3. IIS Hosting Configuration
+
+**Yang perlu dibuat/dikonfigurasi:**
+
+| Item | Status | Detail |
+|------|--------|--------|
+| `web.config` | **Belum ada** | AspNetCoreModuleV2, WebSocket enable, environment var |
+| IIS App Pool | Belum | .NET CLR = No Managed Code, Pipeline = Integrated |
+| WebSocket protocol | Belum | Wajib untuk SignalR (`/hubs/assessment`) |
+| HTTPS binding | Belum | SSL certificate di IIS site |
+| `ASPNETCORE_ENVIRONMENT` | Belum | Set `Production` via IIS env var atau web.config |
+| ASP.NET Core Hosting Bundle | Belum | Install di server (.NET 8 runtime + IIS module) |
+
+**web.config yang dibutuhkan:**
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <location path="." inheritInChildApplications="false">
+    <system.webServer>
+      <handlers>
+        <add name="aspNetCore" path="*" verb="*"
+             modules="AspNetCoreModuleV2" resourceType="Unspecified" />
+      </handlers>
+      <aspNetCore processPath="dotnet" arguments=".\HcPortal.dll"
+                  stdoutLogEnabled="true" stdoutLogFile=".\logs\stdout"
+                  hostingModel="InProcess">
+        <environmentVariables>
+          <environmentVariable name="ASPNETCORE_ENVIRONMENT" value="Production" />
+        </environmentVariables>
+      </aspNetCore>
+      <webSocket enabled="true" />
+    </system.webServer>
+  </location>
+</configuration>
+```
+
+### 4. SignalR di IIS
+
+Hub endpoint: `/hubs/assessment` (real-time exam monitoring).
+
+- **Wajib:** WebSocket protocol enabled di IIS site features
+- Tanpa WebSocket, SignalR fallback ke Long Polling -- jauh lebih lambat, bisa timeout saat assessment
+- Program.cs line 98-109 sudah handle 401 untuk hub endpoints (bukan redirect ke login) -- production-ready
+
+### 5. File Storage & Write Access
+
+**Lokasi file yang ditulis oleh app:**
+
+| Path | Digunakan Oleh | Akses Diperlukan |
+|------|----------------|------------------|
+| `/uploads/evidence/` | Evidence upload coachee | Write |
+| `/uploads/guidance/` | Panduan coaching HC | Write |
+| `wwwroot/` | Static files | Read (sudah ada) |
+| Temp directory | ClosedXML export, QuestPDF generate | Write |
+| `./logs/stdout` | IIS stdout logging | Write |
+
+App pool identity perlu write permission ke direktori-direktori di atas.
+
+### 6. Session & Caching
+
+**Current:** `DistributedMemoryCache` (in-process) + `MemoryCache`. Untuk single-server deployment ini **cukup**.
+
+Cookie config sudah production-appropriate:
+- 8 jam expiry dengan sliding expiration
+- HttpOnly = true
+- IsEssential = true
 
 ---
 
-## Arsitektur yang Ada: Detail Aktual
+## Component Boundaries
 
-### Distribusi 3 Controller
-
-```
-AdminController          ProtonDataController        CDPController
-(SETUP)                  (CONTENT MANAGEMENT)        (EXECUTION + MONITORING)
-├─ CoachCoacheeMapping   ├─ Index (silabus view)      ├─ Index (CDP hub)
-├─ CoachCoacheeMappingAs ├─ Override (admin view)     ├─ PlanIdp
-├─ CoachCoacheeMappingEd ├─ StatusData                ├─ Dashboard
-├─ CoachCoacheeMappingDe ├─ SilabusSave               ├─ FilterCoachingProton
-├─ ImportCoachCoacheeMap ├─ SilabusDelete             ├─ GetCascadeOptions
-├─ CoachCoacheeMappingEx ├─ SilabusDeactivate         ├─ GetSubCategories
-├─ GetEligibleCoachees   ├─ SilabusReactivate         ├─ CoachingProton
-├─ SubmitInterviewResult ├─ ExportSilabus             ├─ Deliverable
-├─ DeleteWorker (cascade)├─ DownloadSilabusTemplate   ├─ ApproveDeliverable
-├─ DeactivateWorker      ├─ ImportSilabus             ├─ RejectDeliverable
-└─ ReactivateWorker      ├─ GuidanceList              ├─ HCReviewDeliverable
-                         ├─ GuidanceUpload            ├─ UploadEvidence
-                         ├─ GuidanceReplace           ├─ SubmitEvidenceWithCoaching
-                         └─ GuidanceDelete            ├─ DownloadEvidence
-                                                      ├─ HistoriProton
-                                                      ├─ HistoriProtonDetail
-                                                      └─ ExportHistoriProton
-```
-
-### Hirarki Data 4 Level (Silabus)
-
-```
-ProtonTrack (master, global — tidak per unit)
-    └── ProtonKompetensi [scoped: Bagian + Unit + ProtonTrackId]
-            └── ProtonSubKompetensi
-                    └── ProtonDeliverable [Urutan → sequential lock trigger]
-                            └── ProtonDeliverableProgress [per CoacheeId + ProtonTrackAssignmentId]
-                                    ├── DeliverableStatusHistory [append-only audit trail]
-                                    └── CoachingSession [nullable ProtonDeliverableProgressId]
-                                            └── ActionItem [FK ke CoachingSession]
-```
-
-### Multi-Role Approval Chain
-
-```
-ProtonDeliverableProgress — 3 kolom approval INDEPENDEN:
-
-  SrSpvApprovalStatus  ─► SrSpv atau SH: CDPController.ApproveDeliverable
-  ShApprovalStatus     ─► SH: CDPController.ApproveDeliverable
-  HCApprovalStatus     ─► HC: CDPController.HCReviewDeliverable
-
-  Status (overall): "Pending" → "Submitted" → "Approved" / "Rejected"
-
-  Logika: Status = "Approved" hanya jika SEMUA approval kolom = "Approved"
-```
-
-### Sistem Role-Scoped Filtering (6 Level)
-
-```
-GetCurrentUserRoleLevelAsync() → level int
-
-Level 1-2: Admin / HC      → semua coachee (global)
-Level 3:   Dir / VP / Mgr  → coachee di section yang sama via mapping
-Level 4:   SH              → coachee di unit yang sama
-Level 5:   Coach           → hanya coachee yang di-map ke coach ini
-Level 6:   Coachee         → hanya data diri sendiri
-```
+| Component | Tanggung Jawab | Perubahan Production |
+|-----------|---------------|---------------------|
+| Program.cs | Bootstrap, DI, middleware | Auth toggle aktif, HTTPS redirect aktif, error handler aktif |
+| ApplicationDbContext | EF Core data access | Provider switch otomatis via connection string |
+| HybridAuthService | AD + local auth routing | **Diaktifkan** via config toggle |
+| LdapAuthService | LDAP bind authentication | Perlu network access ke DC |
+| AssessmentHub | Real-time exam monitoring | WebSocket harus enabled di IIS |
+| SeedData / SeedProtonData | Role & data seeding | **Harus diaudit** -- idempotency critical |
+| StaticFileOptions | PDF inline serving | Tetap sama |
+| Error handling middleware | Exception handler | `/Home/Error` aktif di non-Development |
+| HTTPS redirection | Force HTTPS | Aktif di non-Development |
 
 ---
 
-## Data Flow Utama
-
-### Flow 1: Setup — Mapping Coach-Coachee + Auto-Seed
+## Data Flow: Production Login
 
 ```
-AdminController.CoachCoacheeMappingAssign [POST]
-    │
-    ├─ CoachCoacheeMapping INSERT (per coacheeId yang dipilih)
-    │
-    ├─ ProtonTrackAssignment INSERT (1 per mapping, IsActive=true)
-    │   └─ Jika sudah ada active assignment → skip (guard duplikasi)
-    │
-    ├─ ProtonDeliverableProgress INSERT (bulk — semua deliverable track)
-    │   └─ Hanya jika silabus untuk (Bagian, Unit, TrackId) sudah ada
-    │
-    └─ AuditLog INSERT
-
-PENTING: Progress di-seed saat mapping dibuat, bukan saat deliverable dibuka.
-Implikasi: CoachCoacheeMappingAssign bisa INSERT ratusan progress rows sekaligus.
-```
-
-### Flow 2: Execution — Evidence Upload + Sequential Lock Check
-
-```
-CDPController.UploadEvidence [POST] atau SubmitEvidenceWithCoaching
-    │
-    ├─ Validasi sequential: apakah progress sebelumnya (Urutan lebih kecil) sudah Approved?
-    │   └─ Jika tidak → reject upload
-    │
-    ├─ File disimpan ke /uploads/evidence/{progressId}/{filename}
-    │
-    ├─ ProtonDeliverableProgress UPDATE: EvidencePath, Status="Submitted", SubmittedAt
-    │
-    ├─ DeliverableStatusHistory INSERT (actor=Coachee)
-    │
-    └─ ProtonNotification INSERT (ke coach: ada evidence baru)
-```
-
-### Flow 3: Approval Chain (Multi-Role)
-
-```
-CDPController.ApproveDeliverable [POST]
-    │
-    ├─ Tentukan role actor: SrSpv → update SrSpvApprovalStatus
-    │                       SH    → update ShApprovalStatus
-    │
-    ├─ Cek apakah semua approval kolom = "Approved"?
-    │   YES → Status = "Approved", ApprovedAt = now
-    │   NO  → Status tetap "Submitted"
-    │
-    ├─ DeliverableStatusHistory INSERT (actor=approver)
-    │
-    ├─ ProtonNotification INSERT (ke coachee: disetujui)
-    │
-    └─ Cek: apakah SEMUA deliverable dalam track sudah Approved?
-        YES → ProtonNotification INSERT ke HC (AllDeliverablesComplete)
-
-CDPController.HCReviewDeliverable [POST] — jalur terpisah untuk HC
-    └─ Update HCApprovalStatus (dan recompute Status overall)
-```
-
-### Flow 4: Completion — Interview + Final Assessment
-
-```
-AdminController.SubmitInterviewResults [POST]
-    │
-    ├─ CoachingSession.InterviewResultsJson diisi (JSON DTO)
-    │
-    └─ Jika IsPassed == true:
-        ├─ ProtonFinalAssessment INSERT
-        │     (ProtonTrackAssignmentId, CoacheeId, Status="Completed",
-        │      Notes = "Interview Tahun 3 lulus. Assessor: ...")
-        └─ ProtonTrackAssignment.IsActive = false (opsional per logika)
-```
-
-### Flow 5: Dashboard Aggregation (In-Memory)
-
-```
-CDPController.Dashboard [GET]
-    │
-    ├─ GetCurrentUserRoleLevelAsync() → tentukan scope coacheeIds
-    │
-    ├─ ProtonTrackAssignments.Where(active + scope) → activeAssignmentIds
-    │
-    ├─ ProtonDeliverableProgresses.Where(ids in activeAssignmentIds) → bulk load
-    │   [POTENSI MASALAH: over-fetching semua kolom termasuk EvidencePath, RejectionReason]
-    │
-    ├─ In-memory grouping: per (CoacheeId, ProtonTrackId)
-    │   → hitung total / pending / submitted / approved per coachee
-    │
-    ├─ ProtonFinalAssessments.Where(coacheeIds) → completion flags
-    │
-    └─ Build ViewModel → Chart.js data (completion rate per track/unit)
+1. Browser -> IIS (443/HTTPS)
+2. IIS -> Kestrel (in-process via AspNetCoreModuleV2)
+3. Cookie auth check -> /Account/Login jika belum auth
+4. Login POST -> AccountController -> HybridAuthService
+   4a. LdapAuthService.Authenticate(email, password) -> LDAP bind ke DC
+   4b. Sukses -> SignInManager.SignInAsync (Identity cookie)
+   4c. Gagal + admin@pertamina.com -> fallback LocalAuthService
+5. Subsequent requests -> cookie valid -> akses controller
+6. EF Core -> SQL Server (bukan SQLite)
+7. SignalR -> WebSocket via IIS
 ```
 
 ---
 
-## Pola Query yang Dipakai
+## File Baru / Modifikasi yang Diperlukan
 
-### Pattern: Deep 4-Level Include Chain (Diulang 10+ kali di CDPController)
+### Baru
 
-```csharp
-_context.ProtonDeliverableProgresses
-    .Include(p => p.ProtonDeliverable)
-        .ThenInclude(d => d.ProtonSubKompetensi)
-            .ThenInclude(s => s.ProtonKompetensi)
-                .ThenInclude(k => k.ProtonTrack)
-    .Include(p => p.ProtonTrackAssignment)
-        .ThenInclude(a => a.ProtonTrack)
-    .Where(p => activeAssignmentIds.Contains(p.ProtonTrackAssignmentId))
-```
+| File | Tujuan |
+|------|--------|
+| `web.config` | IIS hosting configuration |
 
-Pola ini muncul di: `Deliverable`, `ApproveDeliverable`, `RejectDeliverable`, `CoachingProton`, `SubmitEvidenceWithCoaching`, dan beberapa tempat lain. Potensi over-fetching jika jumlah progress besar.
+### Modifikasi
 
-### Pattern: GroupBy Latest Assignment (DEF-01 Guard)
+| File | Perubahan |
+|------|-----------|
+| `appsettings.Production.json` | Real connection string, `UseActiveDirectory: true` |
 
-```csharp
-// Mencegah duplikasi progress saat coachee di-reassign ke track yang sama
-var activeAssignmentIds = await _context.ProtonTrackAssignments
-    .GroupBy(a => new { a.CoacheeId, a.ProtonTrackId })
-    .Select(g => g.OrderByDescending(a => a.AssignedAt).First().Id)
-    .ToListAsync();
-```
+### Audit (Tidak Diubah, Tapi Harus Diverifikasi)
 
-### Pattern: AssignmentUnit Fallback
-
-```csharp
-// CoachCoacheeMapping punya override field, jika null fallback ke user.Unit
-var resolvedUnit = mapping?.AssignmentUnit ?? user.Unit;
-```
-
-Penting untuk filtering CoachingProton — coachee bisa di-assign ke unit berbeda dari unit profil mereka.
-
----
-
-## Titik Integrasi Audit: New vs Modified
-
-### Komponen yang Kemungkinan DIMODIFIKASI (bukan baru)
-
-| Komponen | Alasan | Controller |
-|----------|--------|------------|
-| `CDPController.CoachingProton` | Query performance, pagination, filter edge cases | CDPController |
-| `CDPController.Dashboard` | In-memory aggregation → kemungkinan perlu projection | CDPController |
-| `CDPController.ApproveDeliverable` | Audit approval chain, validasi urutan, notifikasi | CDPController |
-| `CDPController.Deliverable` | Tampilan CoachingSession list, UI improvement | CDPController |
-| `CDPController.UploadEvidence` | Sequential lock validation detail | CDPController |
-| `AdminController.CoachCoacheeMappingAssign` | Audit bulk seed logic, orphan handling | AdminController |
-| `ProtonDataController.SilabusSave` | Audit cascade ke existing DeliverableProgress | ProtonDataController |
-
-### Komponen yang Kemungkinan BARU
-
-| Komponen | Deskripsi | Target |
-|----------|-----------|--------|
-| Dashboard AJAX filter | Filter section/unit/track di Dashboard tanpa full reload (seperti FilterCoachingProton yang sudah ada untuk list view) | CDPController |
-| Progress timeline view | Visualisasi urutan deliverable sequential lock — mana yang locked/unlocked | CDPController |
-| CoachingSession UI improvement | Form sesi lebih terstruktur: Acuan fields, ActionItem inline add | CDPController views |
-| Notifikasi unifikasi | Mapping ProtonNotification → UserNotification agar masuk bell icon yang sama | CDPController |
-
----
-
-## Batasan Arsitektur yang Harus Diperhatikan
-
-### 1. Tidak Ada FK Explicit di CoachingSession
-
-`CoachingSession.CoachId` dan `.CoacheeId` adalah `string` tanpa FK constraint ke `ApplicationUser`. Ini pola yang disengaja (komentar di model: "no FK — matches CoachingLog pattern"). Konsekuensi: tidak bisa `.Include()` ke ApplicationUser dari CoachingSession — harus manual lookup by Id.
-
-### 2. Dua Sistem Notifikasi Paralel
-
-```
-ProtonNotification          UserNotification
-(coaching-specific)         (sistem umum, bell icon)
-Type = "AllDeliverablesComplete"   berbagai type
-Hanya dibaca dari CoachingProton   dibaca dari header/bell
-```
-
-Di `ApproveDeliverable`, ada deduplication check yang membaca `UserNotification` (bukan `ProtonNotification`). Ini menunjukkan ada overlap yang belum dikonsolidasi.
-
-### 3. CoachingLog — Tabel Legacy
-
-`CoachingLog` masih ada di DbContext dan di `Models/CoachingLog.cs` tapi tidak digunakan di flow aktif. Bukan blocking issue tapi perlu dicatat saat audit.
-
-### 4. File Storage: Dua Lokasi Terpisah
-
-```
-/uploads/evidence/{progressId}/{filename}      ← evidence coachee (UploadEvidence)
-/uploads/guidance/{bagian}/{unit}/{filename}   ← panduan HC (GuidanceUpload)
-```
-
-Keduanya path-based, disimpan sebagai web-relative path di DB. Tidak ada cleanup otomatis saat record dihapus — orphaned files mungkin terjadi jika mapping didelete tanpa cascade file cleanup.
-
-### 5. Business Logic Inline di Controller
-
-Sequential lock, approval chain, silabus cascade, notification trigger semuanya ada inline di controller. Ini konsisten dengan pola project (bukan anti-pattern untuk project ini), tapi perlu hati-hati saat menambah fitur agar tidak membuat action menjadi lebih dari ~100 baris.
-
-### 6. ProtonDeliverableProgress Seed Pattern (Saat Mapping)
-
-Saat `CoachCoacheeMappingAssign` dipanggil, semua DeliverableProgress langsung di-INSERT untuk semua deliverable dalam track. Artinya:
-- Jika silabus berubah setelah assignment → existing progress bisa jadi orphan
-- `ProtonDataController.SilabusSave` sudah punya orphan cleanup logic — perlu diverifikasi apakah semua edge case tertangani
-
----
-
-## Urutan Build yang Benar (Dependency Order untuk Fase Audit)
-
-```
-FASE SETUP AUDIT
-    Silabus CRUD + Guidance + Coach-Coachee Mapping
-    (prerequisite untuk semua fase lain)
-    ↓
-FASE EXECUTION AUDIT
-    Evidence upload + Sequential lock + Deliverable view
-    (bergantung pada mapping + assignment yang sudah ada)
-    ↓
-FASE APPROVAL AUDIT
-    Multi-role approval chain (SrSpv → SH → HC)
-    DeliverableStatusHistory + Notifikasi
-    (bergantung pada evidence submission)
-    ↓
-FASE COMPLETION AUDIT          FASE MONITORING AUDIT
-    Final Assessment               CoachingProton list
-    CoachingSession + ActionItem   Dashboard aggregation
-    HistoriProton timeline         Export
-    (bisa paralel dengan Approval)    (baca dari semua fase di atas)
-```
-
-**Implikasi roadmap:**
-- Setup harus selesai sebelum Execution bisa ditest end-to-end
-- Monitoring/Dashboard hanya baca — bisa diaudit terakhir
-- CoachingSession dan ActionItem relatif independen dari approval chain — bisa diaudit paralel
-
----
-
-## Pertimbangan Skalabilitas
-
-| Skala | Pendekatan |
-|-------|-----------|
-| 0-200 coachee | Arsitektur saat ini OK. In-memory grouping di Dashboard tidak terasa. |
-| 200-1000 coachee | Dashboard aggregation mulai lambat. Ganti `.ToList()` + in-memory group → `.GroupBy()` di SQL. Deep Include chains perlu projection. |
-| 1000+ coachee | ProtonDeliverableProgress tumbuh besar (coachee × deliverable per track). Perlu index pada `(ProtonTrackAssignmentId, Status)` dan `(CoacheeId, Status)`. |
-
-**Bottleneck pertama saat ini:** `CDPController.CoachingProton` di line ~1413 — load semua progress dengan activeAssignmentIds (Contains query), lalu grouping di memory.
+| File | Yang Diverifikasi |
+|------|-------------------|
+| Program.cs | Auto-migrate behavior, seed idempotency |
+| Semua Controller/Service | Raw SQL compatibility SQL Server |
+| Migration files | SQLite-specific syntax |
+| SeedData.cs / SeedProtonData.cs | Idempotency -- jangan overwrite data production |
 
 ---
 
 ## Anti-Pola yang Harus Dihindari
 
-### Anti-Pola 1: Kolom Approval Ke-4 Langsung di ProtonDeliverableProgress
+### 1. Credentials di Source Control
+**Masalah:** Password SQL Server atau LDAP di-commit ke git via appsettings.Production.json
+**Solusi:** Gunakan environment variables di IIS atau User Secrets. appsettings.Production.json hanya berisi template/placeholder.
 
-**Yang dilakukan:** Tambah `VpApprovalStatus` kolom baru langsung di tabel untuk hirarki baru
-**Mengapa salah:** Sudah 3 approval kolom. Pendekatan kolom-per-approver tidak skalabel — setiap perubahan hirarki butuh migrasi schema
-**Sebaiknya:** Jika approval chain perlu diperluas, gunakan tabel `DeliverableApproval` terpisah dengan kolom `ApproverRole` dan FK ke Progress
+### 2. Auto-Migrate di Production Tanpa Kontrol
+**Masalah:** `context.Database.Migrate()` di Program.cs (line 124) otomatis apply migration saat startup. Jika migration gagal, app crash tanpa rollback.
+**Solusi:** Dua opsi: (a) jalankan migration manual sebelum deploy, atau (b) tambahkan config flag `"Database:AutoMigrate": false` untuk production. Rekomendasi: opsi (b) -- tetap auto-migrate di dev, manual di production.
 
-### Anti-Pola 2: Query Silabus Tanpa Filter IsActive
+### 3. Seed Data Overwrite Production
+**Masalah:** `SeedData.InitializeAsync` dan `SeedProtonData.SeedAsync` dijalankan setiap startup. Jika tidak benar-benar idempotent, bisa reset/duplicate data.
+**Solusi:** Audit kedua file -- pastikan selalu check-before-insert. Pertimbangkan skip seed di production setelah initial deployment.
 
-**Yang dilakukan:** `_context.ProtonKompetensis.Where(k => k.Bagian == bagian)` tanpa `.Where(k => k.IsActive)`
-**Mengapa salah:** Silabus yang dinonaktifkan akan muncul di form evidence dan tampilan coachee
-**Sebaiknya:** Selalu tambahkan filter `IsActive == true` untuk ProtonKompetensi queries (ProtonSubKompetensi dan ProtonDeliverable tidak punya IsActive — hanya Kompetensi level)
+### 4. Logging Sensitive Data
+**Masalah:** EF Core command logging (aktif di Development config) bisa log SQL dengan parameter berisi data sensitif.
+**Solusi:** Pastikan `Microsoft.EntityFrameworkCore.Database.Command` **tidak** di-set ke Information di production config (saat ini sudah benar -- hanya di Development.json).
 
-### Anti-Pola 3: File Evidence Dihapus Sebelum Record DB
+---
 
-**Yang dilakukan:** Delete file di filesystem dulu → baru hapus record
-**Mengapa salah:** Jika DB commit gagal, file hilang tapi record masih ada — link rusak
-**Sebaiknya:** Hapus record DB dulu, commit berhasil, baru hapus file. Atau: soft-delete record, file cleanup via scheduled task.
+## Urutan Build yang Benar (Dependency Order)
 
-### Anti-Pola 4: Load Semua Progress Kolom Untuk Dashboard
+```
+1. SQL COMPATIBILITY AUDIT
+   Scan semua raw SQL, migration files untuk SQLite-specific syntax
+   (prerequisite -- harus tahu apa yang perlu difix sebelum deploy)
+   |
+2. PRODUCTION CONFIG
+   web.config baru, appsettings.Production.json final (tanpa secret)
+   Environment variable setup documentation
+   |
+3. SEED DATA SAFETY
+   Audit SeedData.cs + SeedProtonData.cs idempotency
+   Tambah auto-migrate toggle jika perlu
+   |
+4. SECURITY & LOGGING
+   HTTPS enforcement, security headers
+   Production logging config (tanpa sensitive data)
+   Error page untuk production
+   |
+5. DEPLOYMENT CHECKLIST
+   IIS setup steps, hosting bundle install
+   SQL Server migration steps
+   AD connectivity test
+   SignalR WebSocket verification
+   File permission setup
+```
 
-**Yang dilakukan:** `.Include(all navigation props).Where(ids).ToList()` untuk dashboard
-**Mengapa salah:** Over-fetching — EvidencePath, RejectionReason, dll ikut terbawa ke memory padahal hanya Status yang dibutuhkan untuk statistik
-**Sebaiknya:** Projection: `.Select(p => new { p.CoacheeId, p.Status, p.ProtonTrackAssignmentId }).ToListAsync()`
+**Implikasi roadmap:**
+- Step 1-3 bisa dikerjakan tanpa server production (codebase audit)
+- Step 4-5 membutuhkan akses ke environment production/staging
+- Step 1 harus selesai sebelum migration ke SQL Server bisa dijalankan
 
-### Anti-Pola 5: Assume AssignmentUnit = User.Unit
+---
 
-**Yang dilakukan:** Gunakan `user.Unit` langsung untuk scoping tanpa cek CoachCoacheeMapping.AssignmentUnit
-**Mengapa salah:** CoachCoacheeMapping punya override field — coachee bisa di-assign ke unit berbeda
-**Sebaiknya:** Selalu resolusi unit via: `mapping?.AssignmentUnit ?? user.Unit`
+## Pertimbangan Skalabilitas
+
+| Concern | Single Server (Target) | Multi-Server (Future) |
+|---------|----------------------|----------------------|
+| Session | In-memory cache (OK) | Redis / SQL distributed cache |
+| SignalR | In-process (OK) | Redis backplane |
+| File upload | Local disk (OK) | Shared storage |
+| Database | Single SQL Server (OK) | Read replicas |
+| Deployment | Manual xcopy/publish (OK) | CI/CD pipeline |
+
+Target saat ini adalah single-server IIS -- arsitektur yang ada sudah sesuai.
 
 ---
 
 ## Sumber
 
-- Source code langsung: `Controllers/CDPController.cs` (3405 baris), `Controllers/AdminController.cs` (7630 baris), `Controllers/ProtonDataController.cs` (1361 baris)
-- Model definitions: `Models/ProtonModels.cs`, `Models/CoachCoacheeMapping.cs`, `Models/CoachingSession.cs`, `Models/ActionItem.cs`, `Models/CoachingLog.cs`
-- Project history: `.planning/PROJECT.md` — v8.2 milestone context, semua keputusan arsitektur (CLN-06 dll)
-- Confidence: HIGH — semua analisis dari kode aktual di repository, bukan asumsi
+- Source code langsung: `Program.cs`, `appsettings.*.json`, `HcPortal.csproj`
+- Service files: `Services/HybridAuthService.cs`, `Services/LdapAuthService.cs`, `Services/LocalAuthService.cs`
+- ASP.NET Core 8 IIS hosting model: in-process via AspNetCoreModuleV2 (HIGH confidence)
+- SignalR WebSocket requirement di IIS (HIGH confidence)
+- Confidence: HIGH -- semua analisis dari kode aktual di repository
 
 ---
 
-*Architecture research untuk: Proton Coaching Ecosystem Audit (v8.2)*
-*Researched: 2026-03-22*
+*Architecture research untuk: v9.0 Pre-deployment Audit & Finalization*
+*Researched: 2026-03-25*

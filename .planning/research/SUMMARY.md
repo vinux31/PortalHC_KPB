@@ -1,198 +1,176 @@
 # Project Research Summary
 
-**Project:** PortalHC KPB — Proton Coaching Ecosystem Audit (v8.2)
-**Domain:** Competency-based coaching/mentoring platform audit — ASP.NET Core MVC (brownfield)
-**Researched:** 2026-03-22
+**Project:** Pre-deployment Audit & Finalization — Portal HC KPB (v9.0)
+**Domain:** ASP.NET Core MVC intranet portal, production deployment ke IIS + SQL Server + AD
+**Researched:** 2026-03-25
 **Confidence:** HIGH
 
 ## Executive Summary
 
-PortalHC KPB sudah memiliki fondasi Proton Coaching yang lengkap secara arsitektur: 3-level silabus hierarchy, multi-role approval chain (SrSpv → SH → HC), evidence submission, coaching sessions, action items, dashboard analytics, dan notification system. Audit v8.2 bukan membangun dari nol — melainkan memperbaiki implementasi gap, memperkuat keamanan, dan memastikan semua business rule terpenuhi di server side (bukan hanya di UI). Stack yang ada sudah adequate dan tidak perlu library baru sama sekali.
+Portal HC KPB adalah intranet web app yang dibangun di atas ASP.NET Core 8 MVC dengan 252+ phase sudah shipped. Semua stack yang diperlukan untuk production sudah ada: IIS in-process hosting, SQL Server via EF Core, Active Directory via HybridAuthService, SignalR untuk assessment real-time, ClosedXML + QuestPDF untuk dokumen. Tidak ada package baru yang diperlukan — milestone ini sepenuhnya tentang konfigurasi, audit, dan hardening kode yang sudah ada.
 
-Pendekatan yang direkomendasikan adalah audit berbasis domain: mulai dari Setup (silabus, mapping, assignment), lanjut ke Execution (evidence upload, sequential lock, approval chain), kemudian Completion (final assessment, coaching sessions, HistoriProton), dan terakhir Monitoring (dashboard, analytics, export). Urutan ini mengikuti dependency data aktual — monitoring hanya bisa diverifikasi akurat setelah semua data upstream benar. Setiap fase harus memverifikasi keamanan server-side, bukan hanya fungsionalitas UI.
+Pendekatan yang direkomendasikan adalah audit berbasis risiko secara bertahap: mulai dari SQL compatibility audit (prerequisite untuk semua langkah lain), kemudian production config, lalu security hardening, dan diakhiri dengan deployment checklist dan runbook. Pekerjaan dibagi dua jenis: (1) codebase audit yang bisa dikerjakan tanpa server production, dan (2) environment verification yang membutuhkan akses ke infrastruktur Pertamina.
 
-Risiko terbesar adalah approval state inconsistency: `ProtonDeliverableProgress` punya 4 flag status independen yang bisa tidak sinkron jika dimodifikasi parsial. Risk kedua adalah security: evidence download tanpa auth, sequential lock bypass via direct POST, dan export tanpa role attribute adalah tech debt eksplisit dari v4.0 yang belum terselesaikan. Ketiga risiko ini harus menjadi prioritas utama Fase 2 (Execution Flow).
-
----
+Risiko terbesar milestone ini adalah konfigurasi yang salah, bukan bug kode: AD toggle yang lupa diaktifkan akan membuat siapapun bisa login tanpa credential Pertamina, connection string placeholder yang belum diganti akan membuat app crash saat startup, dan SeedProtonData tanpa environment guard bisa contaminate database production dengan data test. Semua risiko ini terdeteksi dari inspeksi kode langsung dan memiliki mitigasi spesifik yang bisa diselesaikan sebelum go-live.
 
 ## Key Findings
 
 ### Recommended Stack
 
-Stack yang ada sudah cukup untuk seluruh milestone audit ini — tidak ada package baru yang perlu diinstall. ASP.NET Core MVC (net8.0) + EF Core + SQLite adalah tulang punggung, dengan ClosedXML untuk Excel, QuestPDF untuk PDF, Chart.js untuk dashboard, dan custom services (`INotificationService`, `AuditLogService`, `FileUploadHelper`) yang sudah ter-cover semua kebutuhan Proton.
+Stack sudah lengkap dan tidak perlu package baru. Server target (Windows Server + IIS 10+ + SQL Server 2016+) sudah sesuai dengan tech stack yang dipakai. Yang perlu disiapkan di sisi server adalah .NET 8.0 Hosting Bundle (bukan full SDK) agar AspNetCoreModuleV2 tersedia untuk IIS in-process hosting.
 
 **Core technologies (existing, tidak ada perubahan):**
-- **ASP.NET Core MVC net8.0**: Web framework, semua controller action — SOLID
-- **EF Core 8.0**: ORM + migrations — cukup untuk audit, tidak perlu cache layer
-- **INotificationService**: Template sudah cover semua Proton events — perlu audit apakah semua trigger benar-benar dipanggil
-- **DeliverableStatusHistory**: Audit trail per deliverable — perlu audit completeness setiap insert point
-- **ClosedXML**: Import/export Excel (silabus, mapping) — SOLID
-- **Chart.js 4.x**: Dashboard charts — ada, perlu audit data accuracy dan role scoping query
+- ASP.NET Core 8 MVC (.NET LTS sampai Nov 2026): web framework — sudah production-ready, 252+ phases shipped
+- EF Core 8 + SQL Server: ORM + production DB — connection string template sudah ada, tinggal isi credential via env var
+- ASP.NET Core Identity + HybridAuthService: auth/authz dengan AD toggle — sudah built, tinggal aktifkan di production config
+- SignalR (built-in): real-time assessment hub — butuh WebSocket enabled di IIS, 401 handling sudah ada
+- IIS in-process (AspNetCoreModuleV2): hosting model — web.config perlu dibuat dengan environment variable dan WebSocket
 
-Teknologi yang secara eksplisit **tidak perlu ditambahkan**: SignalR hub baru untuk Proton, Hangfire, Redis, React/Vue, AutoMapper, MediatR, Azure Blob Storage.
+**Perubahan konfigurasi kritis (bukan package baru):**
+- `appsettings.Production.json`: tambahkan `UseActiveDirectory: true`, isi connection string real via env var
+- `web.config`: tambahkan `ASPNETCORE_ENVIRONMENT=Production`, enable WebSocket
+- `Program.cs`: tambahkan HSTS, status code pages, security headers global
 
 ### Expected Features
 
-Berdasarkan perbandingan dengan platform industri (360Learning, BetterUp, CoachHub, Torch, MentorcliQ, Qooper, Simply.Coach), sebagian besar table stakes sudah ada. Gaps yang perlu diaudit adalah detail implementasi, bukan ketiadaan fitur.
+Milestone ini bukan feature development — ini audit dan hardening. "Fitur" yang dimaksud adalah production readiness items.
 
-**Must have (table stakes) — sudah ada, perlu audit detail:**
-- Hierarchical competency framework 3 level — sudah ada
-- Status per deliverable + multi-role approval chain — sudah ada, perlu audit state machine konsistensi
-- Evidence submission + file upload — sudah ada, perlu audit security dan reject/resubmit flow
-- Reject + komentar pada evidence — perlu diverifikasi apakah sudah ada atau belum
-- Notifikasi ke approver (SrSpv, SH) saat ada item menunggu — perlu diverifikasi coverage
-- Coaching sessions + action items — sudah ada, perlu audit linkage ke deliverable
-- Dashboard role-scoped — sudah ada, perlu audit konsistensi filter
+**Must have (table stakes — blocker sebelum deploy):**
+- Seed data cleanup — data UAT di production membingungkan user nyata
+- Production appsettings + AD toggle aktif — app tidak jalan atau security bypass tanpa ini
+- Security hardening (error pages, HTTPS, cookie security, anti-forgery completeness)
+- Authorization completeness audit — satu endpoint terbuka = data breach
+- Database migration script + backup strategy — rollback wajib ada sebelum deploy
+- IIS deployment runbook — tim infra harus bisa deploy mandiri
+- Tech debt closure v4.3 (5 item outstanding dari known gaps)
 
-**Should have (differentiators bernilai tinggi untuk milestone ini):**
-- Workload indicator coach (berapa coachee aktif) — belum ada, kompleksitas rendah
-- Sequential lock dengan penjelasan yang jelas ke coachee (bukan hanya lock icon) — UX improvement
-- Batch approval untuk HC Review — belum ada, moderate complexity
-- Bottleneck analysis (deliverable mana yang paling sering pending lama) — belum ada
+**Should have (tingkatkan production readiness, bukan blocker):**
+- Deployment runbook dokumen lengkap dengan step-by-step
+- Response caching headers untuk static assets
+- Graceful startup validation (meaningful error log jika DB unreachable)
 
-**Defer (v9+):**
-- Competency gap heatmap (worker x kompetensi matrix)
-- Scheduling integration / calendar
-- AI-generated session summaries
-- SLA/escalation otomatis
-- Predicted completion date
+**Defer ke post-deployment:**
+- Health check endpoint — bisa ditambah kapan saja tanpa breaking change
+- Rate limiting — intranet, risiko brute force lebih rendah
+- Database index review — optimasi setelah ada real usage pattern
+- CI/CD pipeline, Docker, APM, load balancer
 
 ### Architecture Approach
 
-Proton Coaching terdistribusi di tiga controller: `AdminController` (setup: mapping + assignment), `CDPController` (execution + monitoring: 20+ actions, 3405 baris), dan `ProtonDataController` (content: silabus + guidance). Business logic ada inline di controller — ini pola yang disengaja dan konsisten di seluruh project, bukan anti-pattern untuk skala ini. Data mengalir dari ProtonTrack → ProtonKompetensi → ProtonSubKompetensi → ProtonDeliverable → ProtonDeliverableProgress → DeliverableStatusHistory, dengan CoachingSession sebagai entitas paralel yang terhubung via nullable FK ke progress.
+Arsitektur sudah tepat untuk target deployment (single-server IIS, on-premise). Perubahan utama adalah switch dari development setup (Kestrel + SQLite + local auth) ke production setup (IIS in-process + SQL Server + AD LDAP). Semua komponen untuk switch ini sudah dibangun — tinggal konfigurasi dan verifikasi.
 
-**Major components:**
-1. **AdminController (Setup)** — CoachCoacheeMapping CRUD + TrackAssignment + bulk seed ProtonDeliverableProgress saat mapping dibuat
-2. **CDPController (Execution + Monitoring)** — UploadEvidence + ApproveDeliverable + RejectDeliverable + HCReviewDeliverable + Dashboard + CoachingProton list + HistoriProton
-3. **ProtonDataController (Content)** — SilabusSave/Delete/Import/Export + GuidanceUpload/Replace/Delete
-4. **ProtonDeliverableProgress** — pusat data; 4 flag approval independen; harus selalu konsisten
-5. **DeliverableStatusHistory** — append-only audit trail per state change; harus diisi di setiap transition
-6. **INotificationService** — template-based notification; semua Proton events sudah ter-define; perlu audit bahwa semua trigger dipanggil
+**Major components dan status production-readiness:**
+1. **HybridAuthService / LdapAuthService** — Built, perlu `UseActiveDirectory: true` di config dan LDAP path divalidasi dari server production
+2. **ApplicationDbContext + EF Core** — Dual-provider (SQLite dev / SQL Server prod) via connection string, perlu SQL compatibility audit untuk raw SQL SQLite-specific
+3. **SeedData + SeedProtonData** — SeedData sudah ada IsDevelopment guard; SeedProtonData BELUM ada guard, perlu audit classify reference vs test data
+4. **AssessmentHub (SignalR)** — Production-ready, 401 handling sudah ada, butuh WebSocket enabled di IIS
+5. **File storage (uploads/)** — Perlu dipastikan di luar publish directory agar tidak hilang saat redeploy
 
-**Dua pola khusus yang harus diperhatikan saat audit:**
-- AssignmentUnit fallback: `mapping?.AssignmentUnit ?? user.Unit` — coachee bisa di-assign ke unit berbeda dari profil mereka
-- Dua sistem notifikasi paralel: `ProtonNotification` (coaching-specific) dan `UserNotification` (bell icon umum) — belum dikonsolidasi, ada overlap di `ApproveDeliverable`
+**Dependency order yang benar (dari ARCHITECTURE.md):**
+SQL compatibility audit → Production config → Seed data safety → Security & logging → Deployment checklist
 
 ### Critical Pitfalls
 
-1. **Approval state inconsistency (CRITICAL)** — 4 flag independen (`Status`, `SrSpvApprovalStatus`, `ShApprovalStatus`, `HCApprovalStatus`) bisa tidak sinkron. Override admin adalah sumber utama (tech debt v4.0). Solusi: buat `ApprovalStateMachine` helper kecil, setiap action approval hanya memanggil helper, tulis unit test per kombinasi transisi legal.
+1. **AD toggle tidak aktif di production** — `appsettings.Production.json` tidak mengandung `Authentication:UseActiveDirectory`. Base config set `false`. Di production, siapapun bisa login tanpa credential Pertamina. Fix: tambahkan section Authentication ke production appsettings.
 
-2. **Sequential lock bypass via direct POST (CRITICAL)** — validasi lock mungkin hanya ada di UI (button disabled), bukan di controller. Solusi: setiap `SubmitEvidence` action harus cek di server apakah semua deliverable dengan Urutan lebih kecil sudah Approved. Return `Forbid()` jika belum.
+2. **Connection string placeholder belum diganti** — Template berisi literal `Server=YOUR_SQL_SERVER_NAME`. App crash saat startup. Fix: gunakan environment variable di IIS, JANGAN hardcode credential di git.
 
-3. **Evidence download tanpa auth (CRITICAL — tech debt v4.0)** — akses file tanpa verifikasi kepemilikan memungkinkan coachee A mengunduh evidence milik coachee B. Solusi: load progress dari DB, verifikasi `CoacheeId == currentUser` atau role berwenang, konstruksi path dari DB record (bukan dari request parameter), validasi `Path.GetFullPath()` masih dalam uploads directory.
+3. **SeedProtonData jalan di semua environment** — Tidak ada IsDevelopment guard. Jika berisi test data, akan contaminate production DB. Fix: audit isi, tambahkan guard jika perlu.
 
-4. **Final Assessment double-creation (HIGH)** — tidak ada unique constraint di DB untuk `ProtonTrackAssignmentId`. Double-click atau dua HC bersamaan bisa buat dua record. Solusi: tambah `.AnyAsync()` check sebelum `.Add()` + unique index di migration.
+4. **Database.Migrate() silent failure** — Catch block di Program.cs line 137-141 log error lalu continue. App bisa berjalan dengan schema lama, error acak saat user hit fitur baru. Fix: jalankan migration manual sebelum deploy ATAU ubah catch jadi fail-fast.
 
-5. **Silabus delete tanpa peringatan dampak (HIGH — tech debt v4.0)** — hard delete kompetensi yang punya progress aktif membuat orphan records. Solusi: query pre-delete untuk hitung dampak, modal konfirmasi dengan impact count, gunakan soft delete saja jika ada progress aktif.
-
-6. **Dashboard N+1 dan over-fetching (MEDIUM)** — load semua kolom termasuk EvidencePath untuk dashboard yang hanya butuh Status. Solusi: projection `.Select()` untuk aggregation, build `IQueryable` dengan WHERE sebelum `ToListAsync`.
-
----
+5. **Upload folder tidak persistent setelah redeploy** — File evidence dan guidance hilang jika folder ada di dalam publish directory. Fix: pastikan upload folder di luar publish dir, masukkan ke backup strategy.
 
 ## Implications for Roadmap
 
-Berdasarkan dependency data aktual dan tech debt yang teridentifikasi, struktur 4 fase yang direkomendasikan:
+Berdasarkan dependency order dari ARCHITECTURE.md dan prioritas risiko dari PITFALLS.md, berikut struktur phase yang disarankan:
 
-### Fase 1: Audit Setup Flow — Silabus, Mapping, Assignment
+### Phase 1: SQL Compatibility & Codebase Audit
 
-**Rationale:** Semua data execution bergantung pada setup yang benar. Silabus corrupt atau cascade deactivation yang tidak atomik akan menyebabkan data hilang di semua fase berikutnya. Harus bersih dulu sebelum bisa verifikasi execution.
+**Rationale:** Prerequisite untuk semua langkah lain. Harus tahu raw SQL apa yang perlu difix sebelum bisa jalankan migration ke SQL Server. Bisa dikerjakan tanpa akses server production.
 
-**Delivers:** Setup flow yang terjamin integritas datanya: silabus tidak bisa dihapus tanpa warning, cascade deactivation atomik via transaction, track assignment tidak bisa skip tahun sebelumnya, validasi duplikasi mapping.
+**Delivers:** Daftar semua raw SQL (SQLite-specific vs SQL Server compatible), konfirmasi migration files bersih, audit SeedProtonData (classify reference vs test data), closure 5 tech debt items v4.3.
 
-**Addresses:** Coach-coachee assignment management (table stakes gaps), silabus CRUD safety, 3-year progression validation.
+**Addresses:** Table stakes — migration script, seed data cleanup, tech debt closure
 
-**Avoids:** Pitfall 2 (cascade deactivation race condition), Pitfall 5 (silabus delete tanpa warning), Pitfall 9 (3-year progression tanpa validasi tahun sebelumnya).
+**Avoids:** Pitfall 3 (SeedProtonData tanpa guard), Pitfall 5 (silent migration failure), SQLite pragma cleanup
 
----
+### Phase 2: Production Configuration
 
-### Fase 2: Audit Execution Flow — Evidence Submission, Sequential Lock, Approval Chain
+**Rationale:** Setelah tahu apa yang perlu difix di codebase, konfigurasi production bisa diselesaikan dengan lengkap dan benar. Phase ini menghasilkan semua file config yang siap deploy.
 
-**Rationale:** Ini inti operasional harian Proton. Tech debt v4.0 yang belum terselesaikan (download auth, sequential lock server-side, ExportProgressExcel role attr) ada di sini. Approval state machine yang konsisten adalah dependency untuk semua reporting yang akurat.
+**Delivers:** `appsettings.Production.json` final (dengan AD toggle, tanpa credential), `web.config` dengan environment variable dan WebSocket, dokumentasi environment variable yang harus diset di IIS server.
 
-**Delivers:** Evidence submission yang aman (file type validation, auth pada download, path traversal protection), sequential lock yang tidak bisa di-bypass via direct POST, approval chain dengan state machine yang konsisten dan ter-audit, notifikasi ke approver yang terverifikasi, reject + komentar + resubmission flow yang lengkap.
+**Addresses:** Production appsettings, AD toggle aktif, ASPNETCORE_ENVIRONMENT, AllowedHosts spesifik
 
-**Addresses:** Multi-level approval chain (table stakes gaps), evidence submission workflow (reject/resubmit), coaching session linkage ke deliverable, security tech debt v4.0.
+**Avoids:** Pitfall 1 (AD off), Pitfall 2 (placeholder creds), Pitfall 3 (wrong environment), Pitfall 12 (AllowedHosts wildcard)
 
-**Avoids:** Pitfall 1 (approval state inconsistency), Pitfall 3 (sequential lock bypass), Pitfall 4 (evidence download tanpa auth), security mistakes (ExportProgressExcel auth, path traversal).
+### Phase 3: Security Hardening
 
----
+**Rationale:** Setelah config benar, lakukan hardening keamanan di level kode. Tidak membutuhkan akses server production — murni perubahan kode.
 
-### Fase 3: Audit Completion — Final Assessment, Coaching Sessions, HistoriProton
+**Delivers:** HSTS aktif di production block, custom error pages (404/403/500), status code pages, security headers global (X-Frame-Options, X-Content-Type-Options), cookie security audit (Secure/HttpOnly/SameSite), anti-forgery completeness check, authorization audit semua controller/action, admin fallback password policy diperketat, logging level production-appropriate.
 
-**Rationale:** Dapat diaudit setelah execution flow bersih karena completion bergantung pada deliverable sudah Approved dengan state yang valid. CoachingSession dan ActionItem relatif independen dari approval chain, tapi harus diverifikasi linkage-nya ke deliverable progress.
+**Addresses:** HTTPS enforcement, error handling, cookie security, authorization completeness, file upload validation audit
 
-**Delivers:** Final assessment yang tidak bisa duplikat (unique guard + unique index), HistoriProton yang benar menggabungkan data legacy CoachingLog dan data baru DeliverableStatusHistory, coaching sessions yang ter-linked ke deliverable.
+**Avoids:** Pitfall 6 (weak admin password), Pitfall 9 (HTTPS config missing), Pitfall 11 (verbose logging)
 
-**Addresses:** Completion dan history tracking (table stakes), coaching session management (perlu audit linkage dan visibility notes).
+### Phase 4: Deployment Runbook & Checklist
 
-**Avoids:** Pitfall 7 (legacy CoachingLog ambiguity di HistoriProton), Pitfall 8 (final assessment double-creation).
+**Rationale:** Phase terakhir sebelum go-live. Mengkonsolidasikan semua temuan dari phase sebelumnya menjadi dokumen operasional. Beberapa langkah membutuhkan akses ke server production (LDAP validation, IIS app pool setup).
 
----
+**Delivers:** Deployment runbook step-by-step (IIS setup, DB migration, AD config, file permissions), pre-deployment checklist 17 item, rollback procedure, post-deploy verification steps, upload folder persistence strategy dan backup runbook.
 
-### Fase 4: Audit Monitoring — Dashboard, Analytics, Export
+**Addresses:** IIS deployment configuration, LDAP path validation, database backup strategy, file storage persistence
 
-**Rationale:** Dashboard hanya membaca data dari semua fase di atas. Audit monitoring adalah tahap terakhir karena membutuhkan data upstream yang sudah bersih untuk memverifikasi keakuratan angka. Query performance juga lebih mudah diidentifikasi setelah semua filter dan scoping sudah benar.
-
-**Delivers:** Dashboard dengan role-scoped filtering yang konsisten dan akurat, query performance yang efisien (projection daripada over-fetching), export dengan role attribute yang benar, override admin dengan validasi state machine dan audit trail lengkap.
-
-**Addresses:** Progress dashboards dan analytics (role-scoped accuracy), coach workload visibility, override admin audit trail.
-
-**Avoids:** Pitfall 6 (dashboard N+1 performance), security mistakes (override tanpa audit log, export tanpa auth).
-
----
+**Avoids:** Pitfall 7 (LDAP unvalidated), Pitfall 8 (upload not persistent), Pitfall 10 (session memory cache awareness), Pitfall 13 (HcPortal.db in repo), Pitfall 15 (build artifacts in repo)
 
 ### Phase Ordering Rationale
 
-- **Setup sebelum Execution:** `ProtonDeliverableProgress` di-seed saat mapping dibuat — jika mapping atau silabus corrupt, execution akan menghasilkan data salah yang sulit di-trace.
-- **Execution sebelum Completion:** Final Assessment dibuat setelah semua deliverable Approved — angka completion hanya akurat jika approval chain sudah benar.
-- **Completion sebelum Monitoring:** Dashboard menampilkan agregat dari semua data upstream — accuracy verification baru bermakna jika semua sumber data sudah bersih.
-- **CoachingSession dan ActionItem bisa paralel dengan Approval:** Keduanya relatif independen dan bisa diaudit bersamaan dengan Fase 2 jika resource memungkinkan.
+- Phase 1 harus pertama karena SQL audit adalah prerequisite — tidak bisa finalisasi migration script tanpa tahu raw SQL apa yang ada di codebase
+- Phase 2 setelah Phase 1 karena production config bisa mencakup hasil temuan audit (misalnya disable auto-migrate jika migration berisiko)
+- Phase 3 setelah Phase 2 karena security hardening di Program.cs bergantung pada environment detection yang sudah dikonfigurasi benar
+- Phase 4 terakhir karena membutuhkan output dari semua phase sebelumnya untuk deployment runbook yang lengkap dan akurat
 
 ### Research Flags
 
-Semua area sudah memiliki kode aktual untuk diinspeksi — tidak perlu penelitian fase tambahan (`/gsd:research-phase`). Pattern yang digunakan sudah well-documented dalam codebase:
+Tidak ada phase yang perlu `/gsd:research-phase` — semua research sudah selesai dengan confidence HIGH. Semua pattern sudah well-documented dari inspeksi kode langsung dan official ASP.NET Core docs.
 
-- **Semua 4 fase:** Skip research-phase — audit berbasis inspeksi kode langsung, bukan penelitian teknologi baru.
-- **Fase 2 (Security):** Gunakan checklist "Looks Done But Isn't" dari PITFALLS.md sebagai panduan verifikasi per-action. Setiap item checklist harus diverifikasi di controller, bukan di UI.
-
----
+Phases dengan standard patterns (skip research-phase):
+- **Phase 1:** SQL Server migration patterns established, analisis dari kode langsung
+- **Phase 2:** IIS web.config dan appsettings patterns documented, template sudah ada di STACK.md dan ARCHITECTURE.md
+- **Phase 3:** ASP.NET Core security middleware patterns standard dan well-documented
+- **Phase 4:** Deployment runbook content sudah di-derive dari pitfall analysis
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Berdasarkan inspeksi langsung source code + .csproj; tidak ada ketidakpastian library |
-| Features | HIGH (existing) / MEDIUM (gaps) | Existing features dikonfirmasi dari source code; gaps diidentifikasi dari perbandingan platform industri multi-sumber |
-| Architecture | HIGH | Berdasarkan inspeksi langsung 3 controller, 14+ model, semua data flow; bukan asumsi |
-| Pitfalls | HIGH | Berdasarkan kode aktual + tech debt registry v4.0 yang eksplisit + audit history v4.0 dan v8.1 |
+| Stack | HIGH | Analisis langsung dari source code: Program.cs, csproj, appsettings. Semua fakta dikonfirmasi dari file aktual |
+| Features | HIGH | Derived dari codebase audit + ASP.NET Core official deployment docs + v4.3 known gaps registry |
+| Architecture | HIGH | Semua komponen ditemukan di code dengan line numbers (HybridAuthService, LdapAuthService, SeedData, Program.cs) |
+| Pitfalls | HIGH | Setiap pitfall dikonfirmasi dengan line number di source code aktual — bukan asumsi |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Reject + komentar pada evidence submission:** Perlu dikonfirmasi saat audit Fase 2 apakah sudah ada field komentar saat reject, atau perlu ditambahkan baru.
-- **Notifikasi ke approver (SrSpv, SH):** `INotificationService` punya template `COACH_EVIDENCE_SUBMITTED` — perlu verifikasi apakah trigger ini dipanggil ke SrSpv/SH, bukan hanya ke coachee.
-- **Multiple file per deliverable:** Perlu verifikasi saat Fase 2 apakah `ProtonDeliverableProgress` hanya support single file atau sudah ada tabel terpisah untuk multi-file.
-- **Worker bisa lihat nama coach-nya:** Perlu verifikasi di CDPController apakah ada tampilan info coach di PlanIdp atau Deliverable view.
-- **Dua sistem notifikasi (ProtonNotification vs UserNotification):** Ada overlap yang belum dikonsolidasi — perlu keputusan apakah Fase 4 menyatukan keduanya atau membiarkan coexist dengan dokumentasi yang jelas.
-
----
+- **LDAP path validation**: Tidak bisa dikonfirmasi tanpa akses ke AD server Pertamina. Path `LDAP://OU=KPB,OU=KPI,DC=pertamina,DC=com` mungkin benar atau placeholder. Harus diverifikasi saat Phase 4 dengan test login dari server production.
+- **SQL Server version aktual**: EF Core 8 kompatibel dengan SQL Server 2016+, fitur tertentu butuh 2019+. Konfirmasi versi SQL Server di environment Pertamina saat Phase 4.
+- **IIS SSL certificate**: HTTPS binding di luar scope codebase — tanggung jawab tim infra Pertamina. Dokumentasikan requirement di runbook Phase 4.
+- **Upload folder path aktual**: Belum dikonfirmasi apakah `/uploads/evidence/` dan `/uploads/guidance/` sudah di luar publish directory. Perlu verifikasi saat Phase 1.
 
 ## Sources
 
-### Primary (HIGH confidence — inspeksi kode langsung)
-- `Controllers/CDPController.cs` (3405 baris) — execution + monitoring, semua approval actions
-- `Controllers/AdminController.cs` (7630 baris) — setup, mapping, cascade logic
-- `Controllers/ProtonDataController.cs` (1361 baris) — silabus, guidance
-- `Models/ProtonModels.cs` — 14 entity: ProtonTrack, ProtonKompetensi, ProtonSubKompetensi, ProtonDeliverable, ProtonTrackAssignment, ProtonDeliverableProgress, DeliverableStatusHistory, ProtonNotification, CoachingGuidanceFile, ProtonFinalAssessment
-- `Models/CoachCoacheeMapping.cs`, `Models/CoachingSession.cs`, `Models/ActionItem.cs`
-- `Services/INotificationService.cs` + `Services/NotificationService.cs`
-- `.planning/PROJECT.md` — tech debt registry v4.0, semua keputusan arsitektur
+### Primary (HIGH confidence)
+- Source code langsung: `Program.cs`, `HcPortal.csproj`, `appsettings.*.json`, `Services/HybridAuthService.cs`, `Services/LdapAuthService.cs`, `Data/SeedData.cs`
+- ASP.NET Core 8 IIS in-process hosting documentation
+- EF Core SQL Server provider patterns
 
-### Secondary (MEDIUM confidence — perbandingan platform industri)
-- [360Learning](https://www.capterra.com/p/230567/360Learning/), [BetterUp](https://www.betterup.com/platform-releases/fall-2025), [CoachHub](https://slashdot.org/software/comparison/BetterUp-vs-CoachHub/), [Torch + MentorcliQ](https://www.mentorcliq.com/insights/coaching-software-platform), [Qooper](https://www.qooper.io/blog/the-future-of-mentor-mentee-matching), [Simply.Coach](https://simply.coach/blog/best-coaching-tools-tracking-progress/) — feature landscape dan table stakes identification
-- [TalentGuard](https://www.talentguard.com/competency-management-software), [HiPeople](https://www.hipeople.io/blog/competency-management-systems), [Centranum](https://www.centranum.com/resources/capability-and-competency/best-competency-management-software/) — competency management patterns
+### Secondary (MEDIUM confidence)
+- IIS-specific behavior (app pool recycling, WebSocket) — training data knowledge, konfirmasi saat deployment
+- AD LDAP path format — berdasarkan pattern di codebase, perlu validasi saat Phase 4
 
 ---
-*Research completed: 2026-03-22*
+*Research completed: 2026-03-25*
 *Ready for roadmap: yes*
