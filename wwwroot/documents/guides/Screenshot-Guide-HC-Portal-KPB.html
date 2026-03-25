@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Screenshot Guide — HC Portal KPB</title>
+<style>
+  @page { size: A4; margin: 18mm 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.7; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 80px 20px 50px; margin-bottom: 30px; border-bottom: 3px solid #1565c0; }
+  .cover-icon { font-size: 56pt; margin-bottom: 16px; }
+  .cover h1 { color: #1565c0; font-size: 26pt; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .cover .subtitle { color: #555; font-size: 12pt; margin-bottom: 4px; }
+  .cover .version { color: #888; font-size: 9.5pt; margin-top: 20px; }
+  .cover .audience { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 6px 18px; border-radius: 20px; font-size: 10pt; font-weight: 600; margin-top: 12px; }
+
+  /* TOC */
+  .toc { background: #f8f9fa; border-radius: 8px; padding: 24px 28px; margin-bottom: 28px; }
+  .toc h2 { color: #1565c0; font-size: 14pt; margin-bottom: 14px; border: none; padding: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 5px; font-size: 10.5pt; }
+  .toc a { color: #1565c0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+
+  /* Sections */
+  h2 { color: #1565c0; font-size: 14pt; margin-top: 34px; margin-bottom: 12px; border-left: 4px solid #1565c0; padding-left: 12px; }
+  h3 { color: #2e7d32; font-size: 12pt; margin-top: 20px; margin-bottom: 8px; }
+  p { margin-bottom: 8px; }
+
+  /* Screenshot container */
+  .screenshot { margin: 18px 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+  .screenshot img { width: 100%; display: block; }
+  .screenshot-caption { background: #f5f7fa; padding: 12px 16px; border-top: 1px solid #e0e0e0; }
+  .screenshot-caption .caption-title { font-weight: 700; color: #1565c0; font-size: 11pt; margin-bottom: 4px; }
+  .screenshot-caption .caption-desc { font-size: 10pt; color: #555; }
+
+  /* Info box */
+  .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .info-title { font-weight: 700; color: #1565c0; margin-bottom: 4px; }
+
+  /* Chapter header */
+  .chapter { background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: #fff; padding: 20px 24px; border-radius: 8px; margin-top: 36px; margin-bottom: 18px; }
+  .chapter h2 { color: #fff; border-left: 4px solid #fff; margin-top: 0; }
+  .chapter p { color: #bbdefb; font-size: 10.5pt; margin-left: 16px; }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+
+  /* Action bar */
+  .action-bar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
+  .action-bar button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 10pt; font-weight: 600; cursor: pointer; }
+  .btn-print { background: #1565c0; color: #fff; }
+  .btn-print:hover { background: #0d47a1; }
+
+  /* Print */
+  .no-print { }
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+    .screenshot { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="action-bar no-print">
+  <button class="btn-print" onclick="window.print()">Cetak / PDF</button>
+</div>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-icon">&#128247;</div>
+  <h1>Screenshot Guide</h1>
+  <p class="subtitle">HC Portal KPB — Panduan Visual Setiap Halaman</p>
+  <p class="version">Versi 1.0 &mdash; Maret 2026</p>
+  <div class="audience">Semua Pengguna</div>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h2>Daftar Isi</h2>
+  <ol>
+    <li><a href="#sec-akun">Akun &amp; Pengaturan</a> (Login, Dashboard, Profile, Settings)</li>
+    <li><a href="#sec-cmp">CMP — Competency Management</a> (Hub, Assessment, Records, Analytics)</li>
+    <li><a href="#sec-cdp">CDP — Career Development</a> (Hub, Plan IDP, Coaching, Dashboard)</li>
+    <li><a href="#sec-admin">Admin — Kelola Data</a> (Hub, Workers, Assessment, Mapping)</li>
+    <li><a href="#sec-proton">Proton Data &amp; Panduan</a></li>
+  </ol>
+</div>
+
+<!-- ================================================================== -->
+<!-- SECTION 1: AKUN & PENGATURAN -->
+<!-- ================================================================== -->
+<div class="chapter" id="sec-akun">
+  <h2>1. Akun &amp; Pengaturan</h2>
+  <p>Halaman login, dashboard utama, profil, dan pengaturan akun.</p>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/01-login.png" alt="Halaman Login">
+  <div class="screenshot-caption">
+    <div class="caption-title">1.1 Halaman Login</div>
+    <div class="caption-desc">Halaman awal untuk masuk ke HC Portal. Pengguna memasukkan NIP dan password untuk mengakses sistem.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/02-dashboard.png" alt="Dashboard">
+  <div class="screenshot-caption">
+    <div class="caption-title">1.2 Dashboard</div>
+    <div class="caption-desc">Halaman utama setelah login. Menampilkan ringkasan informasi, notifikasi, dan akses cepat ke modul CMP, CDP, dan Admin.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/03-profile.png" alt="Profile">
+  <div class="screenshot-caption">
+    <div class="caption-title">1.3 Profil Pengguna</div>
+    <div class="caption-desc">Halaman profil menampilkan data pribadi pengguna seperti nama, NIP, jabatan, unit kerja, dan informasi lainnya.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/04-settings.png" alt="Settings">
+  <div class="screenshot-caption">
+    <div class="caption-title">1.4 Pengaturan Akun</div>
+    <div class="caption-desc">Halaman pengaturan untuk mengubah password dan preferensi akun pengguna.</div>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- SECTION 2: CMP -->
+<!-- ================================================================== -->
+<div class="chapter page-break" id="sec-cmp">
+  <h2>2. CMP — Competency Management Portal</h2>
+  <p>Modul pengelolaan kompetensi: assessment, rekaman, dan analitik.</p>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/05-cmp-hub.png" alt="CMP Hub">
+  <div class="screenshot-caption">
+    <div class="caption-title">2.1 CMP Hub</div>
+    <div class="caption-desc">Halaman utama modul CMP. Menyediakan akses ke fitur Dokumen KKJ, Assessment, Records, dan Analytics.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/06-cmp-assessment.png" alt="CMP Assessment">
+  <div class="screenshot-caption">
+    <div class="caption-title">2.2 Assessment</div>
+    <div class="caption-desc">Halaman ujian assessment kompetensi. Pekerja mengerjakan soal sesuai paket yang telah ditetapkan dengan batas waktu tertentu.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/07-cmp-records.png" alt="CMP Records">
+  <div class="screenshot-caption">
+    <div class="caption-title">2.3 Records</div>
+    <div class="caption-desc">Riwayat hasil assessment pekerja. Menampilkan skor, status kelulusan, dan detail per sesi ujian.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/08-cmp-analytics.png" alt="CMP Analytics">
+  <div class="screenshot-caption">
+    <div class="caption-title">2.4 Analytics</div>
+    <div class="caption-desc">Dashboard analitik CMP dengan grafik dan statistik performa assessment di seluruh unit kerja.</div>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- SECTION 3: CDP -->
+<!-- ================================================================== -->
+<div class="chapter page-break" id="sec-cdp">
+  <h2>3. CDP — Career Development Portal</h2>
+  <p>Modul pengembangan karir: IDP, Coaching Proton, dan dashboard perkembangan.</p>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/09-cdp-hub.png" alt="CDP Hub">
+  <div class="screenshot-caption">
+    <div class="caption-title">3.1 CDP Hub</div>
+    <div class="caption-desc">Halaman utama modul CDP. Menyediakan akses ke Plan IDP, Coaching Proton, Dashboard, dan Deliverable.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/10-cdp-planidp.png" alt="CDP Plan IDP">
+  <div class="screenshot-caption">
+    <div class="caption-title">3.2 Plan IDP</div>
+    <div class="caption-desc">Halaman perencanaan Individual Development Plan (IDP). Pekerja menyusun rencana pengembangan kompetensi mereka.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/11-cdp-coaching.png" alt="CDP Coaching Proton">
+  <div class="screenshot-caption">
+    <div class="caption-title">3.3 Coaching Proton</div>
+    <div class="caption-desc">Halaman Coaching Proton untuk mencatat sesi coaching antara coach dan coachee, termasuk progress dan feedback.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/12-cdp-dashboard.png" alt="CDP Dashboard">
+  <div class="screenshot-caption">
+    <div class="caption-title">3.4 CDP Dashboard</div>
+    <div class="caption-desc">Dashboard perkembangan karir yang menampilkan progress IDP, statistik coaching, dan pencapaian deliverable.</div>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- SECTION 4: ADMIN -->
+<!-- ================================================================== -->
+<div class="chapter page-break" id="sec-admin">
+  <h2>4. Admin — Kelola Data</h2>
+  <p>Modul administrasi untuk pengelolaan data pekerja, assessment, dan mapping.</p>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/13-admin-hub.png" alt="Admin Hub">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.1 Admin Hub</div>
+    <div class="caption-desc">Halaman utama modul Admin. Menyediakan akses ke semua fitur kelola data: Manajemen Pekerja, Assessment, Mapping, dan lainnya.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/14-admin-workers.png" alt="Admin Workers">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.2 Manajemen Pekerja</div>
+    <div class="caption-desc">Halaman kelola data pekerja. Admin dan HC dapat menambah, mengedit, mengimpor, dan mengelola data seluruh pekerja.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/15-admin-assessment.png" alt="Admin Assessment">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.3 Kelola Assessment</div>
+    <div class="caption-desc">Halaman admin untuk mengelola paket soal, jadwal assessment, dan konfigurasi ujian kompetensi.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/16-admin-mapping.png" alt="Admin Mapping">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.4 Mapping</div>
+    <div class="caption-desc">Halaman mapping untuk mengatur hubungan coach-coachee, assignment pekerja ke unit, dan konfigurasi lainnya.</div>
+  </div>
+</div>
+
+<!-- ================================================================== -->
+<!-- SECTION 5: PROTON DATA & PANDUAN -->
+<!-- ================================================================== -->
+<div class="chapter page-break" id="sec-proton">
+  <h2>5. Proton Data &amp; Panduan</h2>
+  <p>Kelola data silabus Proton dan halaman panduan penggunaan.</p>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/17-protondata.png" alt="Proton Data">
+  <div class="screenshot-caption">
+    <div class="caption-title">5.1 Proton Data</div>
+    <div class="caption-desc">Halaman kelola data Proton: silabus, guidance, dan override. Diakses oleh Admin dan HC untuk mengatur materi coaching.</div>
+  </div>
+</div>
+
+<div class="screenshot">
+  <img src="screenshots/18-panduan.png" alt="Panduan">
+  <div class="screenshot-caption">
+    <div class="caption-title">5.2 Halaman Panduan</div>
+    <div class="caption-desc">Halaman panduan penggunaan HC Portal. Berisi dokumen-dokumen panduan yang dapat diakses dan diunduh oleh semua pengguna.</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  HC Portal KPB &mdash; Screenshot Guide v1.0 &mdash; Maret 2026
+</div>
+
+</body>
+</html>

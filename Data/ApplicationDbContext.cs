@@ -151,6 +151,10 @@ namespace HcPortal.Data
                     .WithMany()
                     .HasForeignKey(t => t.RenewsSessionId)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Mutual exclusivity: only one of RenewsTrainingId/RenewsSessionId can be set
+                entity.HasCheckConstraint("CK_TrainingRecord_RenewalChain",
+                    "[RenewsTrainingId] IS NULL OR [RenewsSessionId] IS NULL");
             });
 
             // AssessmentSession -> User
@@ -203,6 +207,10 @@ namespace HcPortal.Data
                     .WithMany()
                     .HasForeignKey(a => a.RenewsTrainingId)
                     .OnDelete(DeleteBehavior.NoAction);
+
+                // Mutual exclusivity: only one of RenewsSessionId/RenewsTrainingId can be set
+                entity.HasCheckConstraint("CK_AssessmentSession_RenewalChain",
+                    "[RenewsSessionId] IS NULL OR [RenewsTrainingId] IS NULL");
             });
 
             // Legacy UserResponse and AssessmentQuestion tables removed in Phase 227 (CLEN-02 migration).
@@ -484,6 +492,17 @@ namespace HcPortal.Data
                 entity.HasIndex(h => h.UserId);
                 entity.HasIndex(h => new { h.UserId, h.Title });
                 entity.Property(h => h.CreatedAt).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // ========== Deliverable Status History (Phase 117) ==========
+            builder.Entity<DeliverableStatusHistory>(entity =>
+            {
+                entity.HasOne(h => h.ProtonDeliverableProgress)
+                    .WithMany()
+                    .HasForeignKey(h => h.ProtonDeliverableProgressId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(h => h.ProtonDeliverableProgressId);
             });
 
             // ========== Notification System (Phase 99) ==========

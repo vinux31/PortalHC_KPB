@@ -17,6 +17,7 @@
     int dataCount = 3;
     // Admin Panel: 12 accordion items + 1 AD tutorial card
     int adminCount = 13;
+    // Note: FAQ counts are dynamic (Admin & Kelola Data has 9 items for Admin/HC)
 }
 
 <link rel="stylesheet" href="~/css/guide.css" />
@@ -258,6 +259,26 @@
                 Tergantung pada <strong>konfigurasi yang ditetapkan Admin</strong>. Beberapa assessment hanya boleh diambil sekali, sementara yang lain dapat diulang. Hubungi Admin atau HC jika Anda memerlukan izin untuk mengulang.
             </div>
         </div>
+
+        <div class="faq-item searchable-faq" data-keywords="kategori jenis assessment ojt iht licencor ots mandatory hsse proton">
+            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq8b" aria-expanded="false">
+                Apa saja kategori assessment yang tersedia?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div id="faq8b" class="collapse faq-answer">
+                Tersedia 6 kategori assessment: <strong>Assessment OJ</strong> (On the Job), <strong>IHT</strong> (In House Training), <strong>Licencor</strong> (Training Licencor/Sertifikasi), <strong>OTS</strong> (On The Spot), <strong>Mandatory HSSE Training</strong>, dan <strong>Assessment Proton</strong> (terkait program Coaching Proton).
+            </div>
+        </div>
+
+        <div class="faq-item searchable-faq" data-keywords="sertifikat kadaluarsa expired masa berlaku renewal">
+            <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq8c" aria-expanded="false">
+                Apakah sertifikat assessment memiliki masa berlaku?
+                <i class="bi bi-chevron-down faq-chevron"></i>
+            </button>
+            <div id="faq8c" class="collapse faq-answer">
+                Ya, beberapa sertifikat memiliki <strong>masa berlaku</strong> yang ditentukan Admin. Sistem akan mengirim <strong>notifikasi otomatis</strong> saat sertifikat Anda akan kadaluarsa dalam 30 hari. Sertifikat yang sudah kadaluarsa perlu di-renew melalui assessment ulang yang dijadwalkan oleh HC.
+            </div>
+        </div>
     </div>
 
     <!-- ─── CDP & Coaching ─── -->
@@ -295,13 +316,13 @@
             </div>
         </div>
 
-        <div class="faq-item searchable-faq" data-keywords="approve approval deliverable siapa coach atasan">
+        <div class="faq-item searchable-faq" data-keywords="approve approval deliverable siapa coach atasan sr supervisor section head hc">
             <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq12" aria-expanded="false">
                 Siapa yang bisa menyetujui (approve) deliverable?
                 <i class="bi bi-chevron-down faq-chevron"></i>
             </button>
             <div id="faq12" class="collapse faq-answer">
-                Deliverable dapat disetujui oleh <strong>Coach yang di-assign</strong> kepada Anda, atau <strong>Atasan langsung</strong> yang tercatat dalam mapping Coach-Coachee. Mapping ini dikelola oleh Admin/HC.
+                Deliverable melewati <strong>rantai approval bertingkat</strong>: setelah coach upload evidence, deliverable di-review oleh <strong>Sr. Supervisor</strong> → <strong>Section Head</strong> → <strong>HC Review</strong>. Jika salah satu reviewer menolak, seluruh rantai approval di-reset dan coach harus upload ulang evidence. Mapping coach-coachee dikelola oleh Admin/HC.
             </div>
         </div>
     </div>
@@ -452,13 +473,43 @@
                 </div>
             </div>
 
-            <div class="faq-item searchable-faq" data-keywords="sinkronisasi sync proton import data">
+            <div class="faq-item searchable-faq" data-keywords="silabus proton import data kelola override guidance">
                 <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq26" aria-expanded="false">
-                    Bagaimana cara sinkronisasi data dari Proton?
+                    Bagaimana cara mengelola data Silabus Proton?
                     <i class="bi bi-chevron-down faq-chevron"></i>
                 </button>
                 <div id="faq26" class="collapse faq-answer">
-                    Masuk ke menu <strong>Kelola Data</strong> di navbar → pilih opsi <strong>Import / Sync Data</strong> → proses sinkronisasi akan berjalan secara otomatis untuk mengambil data terbaru dari sistem Proton.
+                    Masuk ke menu <strong>Kelola Data</strong> di navbar → di halaman Admin Panel, pilih section <strong>Kelola Data Proton</strong>. Di sini Anda bisa mengelola <strong>Silabus</strong> (import/export via Excel, tambah/edit/hapus kompetensi), upload <strong>Guidance Document</strong>, dan membuat <strong>Override</strong> jika diperlukan penyesuaian silabus.
+                </div>
+            </div>
+
+            <div class="faq-item searchable-faq" data-keywords="analytics dashboard laporan statistik assessment">
+                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq27" aria-expanded="false">
+                    Di mana saya bisa melihat statistik dan laporan assessment?
+                    <i class="bi bi-chevron-down faq-chevron"></i>
+                </button>
+                <div id="faq27" class="collapse faq-answer">
+                    Buka menu <strong>CMP</strong> → klik <strong>Analytics Dashboard</strong>. Halaman ini menampilkan grafik dan statistik assessment berdasarkan unit, kategori, distribusi hasil, serta daftar sertifikat yang akan segera kadaluarsa.
+                </div>
+            </div>
+
+            <div class="faq-item searchable-faq" data-keywords="monitoring ujian realtime pantau assessment">
+                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq28" aria-expanded="false">
+                    Bagaimana cara memonitor ujian yang sedang berlangsung?
+                    <i class="bi bi-chevron-down faq-chevron"></i>
+                </button>
+                <div id="faq28" class="collapse faq-answer">
+                    Masuk ke <strong>Admin Panel → Assessment Monitoring</strong>. Anda bisa memantau sesi ujian <strong>secara real-time</strong>: melihat progress peserta, skor sementara, dan jika diperlukan dapat <strong>mengakhiri sesi ujian</strong> atau <strong>me-reset assessment</strong> peserta tertentu.
+                </div>
+            </div>
+
+            <div class="faq-item searchable-faq" data-keywords="export laporan excel pdf coaching bottleneck workload">
+                <button class="faq-question" data-bs-toggle="collapse" data-bs-target="#faq29" aria-expanded="false">
+                    Laporan apa saja yang bisa di-export?
+                    <i class="bi bi-chevron-down faq-chevron"></i>
+                </button>
+                <div id="faq29" class="collapse faq-answer">
+                    Tersedia berbagai laporan yang bisa di-download: <strong>Records Assessment</strong> (Excel), <strong>Progress Deliverable</strong> (Excel/PDF), <strong>Coaching Tracking</strong>, <strong>Bottleneck Report</strong> (deliverable yang terhambat), <strong>Workload Summary</strong> (beban kerja coach), <strong>Sertifikat</strong>, <strong>Histori Proton</strong>, dan <strong>Audit Log</strong>.
                 </div>
             </div>
         </div>

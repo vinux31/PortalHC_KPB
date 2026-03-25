@@ -1,0 +1,1925 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Panduan Penggunaan Website HC Portal KPB</title>
+<style>
+  @page { size: A4; margin: 18mm 20mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Tahoma, sans-serif; color: #1a1a1a; line-height: 1.7; max-width: 210mm; margin: 0 auto; padding: 20mm; font-size: 11pt; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 80px 20px 50px; margin-bottom: 30px; border-bottom: 3px solid #1565c0; }
+  .cover-icon { font-size: 56pt; margin-bottom: 16px; }
+  .cover h1 { color: #1565c0; font-size: 26pt; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .cover .subtitle { color: #555; font-size: 12pt; margin-bottom: 4px; }
+  .cover .version { color: #888; font-size: 9.5pt; margin-top: 20px; }
+  .cover .audience { display: inline-block; background: #e3f2fd; color: #1565c0; padding: 6px 18px; border-radius: 20px; font-size: 10pt; font-weight: 600; margin-top: 12px; }
+
+  /* TOC */
+  .toc { background: #f8f9fa; border-radius: 8px; padding: 24px 28px; margin-bottom: 28px; }
+  .toc h2 { color: #1565c0; font-size: 14pt; margin-bottom: 14px; border: none; padding: 0; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 5px; font-size: 10.5pt; }
+  .toc a { color: #1565c0; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc .toc-sub { list-style-type: disc; margin-top: 4px; }
+
+  /* Sections */
+  h2 { color: #1565c0; font-size: 14pt; margin-top: 34px; margin-bottom: 12px; border-left: 4px solid #1565c0; padding-left: 12px; }
+  h3 { color: #2e7d32; font-size: 12pt; margin-top: 20px; margin-bottom: 8px; }
+  h4 { color: #555; font-size: 11pt; margin-top: 14px; margin-bottom: 6px; }
+  p { margin-bottom: 8px; }
+  ul, ol { padding-left: 24px; margin-bottom: 8px; }
+  li { margin-bottom: 4px; }
+  strong { color: #1a1a1a; }
+
+  /* Step cards */
+  .step { background: #f5f7fa; border-radius: 8px; padding: 16px 20px; margin: 12px 0; border-left: 4px solid #1565c0; }
+  .step-header { display: flex; align-items: center; margin-bottom: 8px; }
+  .step-num { display: inline-flex; align-items: center; justify-content: center; background: #1565c0; color: #fff; width: 30px; height: 30px; border-radius: 50%; font-weight: 700; font-size: 11pt; margin-right: 10px; flex-shrink: 0; }
+  .step-title { font-weight: 700; font-size: 11.5pt; color: #1565c0; }
+  .step-body { margin-left: 40px; font-size: 10.5pt; color: #333; }
+  .step-body ul { margin-top: 4px; }
+
+  /* Callout boxes */
+  .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .info-title { font-weight: 700; color: #1565c0; margin-bottom: 4px; }
+  .warn { background: #fff3e0; border-left: 4px solid #e65100; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .warn-title { font-weight: 700; color: #e65100; margin-bottom: 4px; }
+  .success { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .success-title { font-weight: 700; color: #2e7d32; margin-bottom: 4px; }
+
+  /* Flow diagram */
+  .diagram { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 8px; padding: 18px; margin: 14px 0; font-family: 'Cascadia Code', Consolas, monospace; font-size: 9.5pt; white-space: pre; line-height: 1.8; text-align: center; }
+
+  /* Badge */
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge-blue { background: #e3f2fd; color: #1565c0; }
+  .badge-green { background: #e8f5e9; color: #2e7d32; }
+  .badge-red { background: #ffebee; color: #c62828; }
+  .badge-orange { background: #fff3e0; color: #e65100; }
+  .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+  .badge-gray { background: #f5f5f5; color: #616161; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 16px; font-size: 10pt; }
+  th { background: #1565c0; color: #fff; padding: 10px 14px; text-align: left; }
+  td { padding: 10px 14px; border-bottom: 1px solid #e0e0e0; }
+  tr:nth-child(even) td { background: #f9f9f9; }
+
+  /* Role tag */
+  .role-tag { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 8.5pt; font-weight: 700; margin-right: 4px; }
+  .role-admin { background: #c62828; color: #fff; }
+  .role-hc { background: #1565c0; color: #fff; }
+  .role-it { background: #6a1b9a; color: #fff; }
+  .role-all { background: #2e7d32; color: #fff; }
+  .role-coach { background: #e65100; color: #fff; }
+
+  /* Footer */
+  .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
+
+  /* Print */
+  .no-print { }
+  @media print {
+    body { padding: 0; }
+    .page-break { page-break-before: always; }
+    .no-print { display: none; }
+    h2 { page-break-after: avoid; }
+    .step, .info, .warn, .success { page-break-inside: avoid; }
+  }
+
+  /* Action buttons */
+  .action-bar { position: fixed; top: 16px; right: 16px; display: flex; gap: 8px; z-index: 100; }
+  .action-bar button { padding: 8px 16px; border: none; border-radius: 6px; font-size: 10pt; font-weight: 600; cursor: pointer; }
+  .btn-print { background: #1565c0; color: #fff; }
+  .btn-print:hover { background: #0d47a1; }
+
+  /* Chapter header */
+  .chapter { background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: #fff; padding: 20px 24px; border-radius: 8px; margin-top: 36px; margin-bottom: 18px; }
+  .chapter h2 { color: #fff; border-left: 4px solid #fff; margin-top: 0; }
+  .chapter p { color: #bbdefb; font-size: 10.5pt; margin-left: 16px; }
+
+  /* Flow process */
+  .flow { margin: 18px 0; }
+  .flow-row { display: flex; align-items: stretch; gap: 0; margin-bottom: 0; }
+  .flow-node { flex: 1; text-align: center; padding: 14px 10px; border-radius: 10px; font-size: 9.5pt; line-height: 1.5; position: relative; }
+  .flow-node strong { display: block; font-size: 10pt; margin-bottom: 3px; }
+  .flow-node .flow-role { display: inline-block; font-size: 7.5pt; font-weight: 700; padding: 1px 8px; border-radius: 10px; margin-bottom: 5px; }
+  .flow-arrow-h { display: flex; align-items: center; justify-content: center; width: 36px; flex-shrink: 0; font-size: 18pt; color: #90a4ae; }
+  .flow-arrow-v { text-align: center; padding: 6px 0; font-size: 18pt; color: #90a4ae; line-height: 1; }
+  .flow-phase { background: #e3f2fd; border: 2px solid #1565c0; color: #1565c0; }
+  .flow-phase .flow-role { background: #1565c0; color: #fff; }
+  .flow-action { background: #e8f5e9; border: 2px solid #2e7d32; color: #2e7d32; }
+  .flow-action .flow-role { background: #2e7d32; color: #fff; }
+  .flow-decision { background: #fff3e0; border: 2px solid #e65100; color: #e65100; }
+  .flow-decision .flow-role { background: #e65100; color: #fff; }
+  .flow-result { background: #f3e5f5; border: 2px solid #7b1fa2; color: #7b1fa2; }
+  .flow-result .flow-role { background: #7b1fa2; color: #fff; }
+  .flow-end { background: #ffebee; border: 2px solid #c62828; color: #c62828; }
+  .flow-end .flow-role { background: #c62828; color: #fff; }
+  .flow-label { font-size: 8pt; color: #888; text-align: center; margin-top: -4px; margin-bottom: 2px; }
+  .flow-container { background: #fafbfc; border: 1px solid #e0e0e0; border-radius: 12px; padding: 20px; margin: 16px 0; }
+  .flow-title { text-align: center; font-weight: 700; font-size: 12pt; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 2px solid #e0e0e0; }
+</style>
+</head>
+<body>
+
+<div class="action-bar no-print">
+  <button class="btn-print" onclick="window.print()">Cetak / Simpan PDF</button>
+</div>
+
+<!-- ============================================================ -->
+<!-- COVER -->
+<!-- ============================================================ -->
+<div class="cover">
+  <div class="cover-icon">&#127760;</div>
+  <h1>Panduan Penggunaan Website<br>HC Portal KPB</h1>
+  <p class="subtitle">Human Capital Portal &mdash; Kilang Pertamina Balikpapan</p>
+  <p class="subtitle">Panduan lengkap untuk seluruh fitur dan modul sistem</p>
+  <div class="audience">Untuk Admin, HC &amp; IT</div>
+  <p class="version">Versi 1.0 &bull; Maret 2026</p>
+</div>
+
+<!-- ============================================================ -->
+<!-- DAFTAR ISI -->
+<!-- ============================================================ -->
+<div class="toc">
+  <h2>Daftar Isi</h2>
+  <ol>
+    <li><a href="#bab1">Pendahuluan &amp; Struktur Role</a>
+      <ul class="toc-sub">
+        <li><a href="#bab1d">1.4 Flow Process Assessment (CMP)</a> &mdash; Assessment OJT vs Assessment Proton (Tahun 1, 2, 3)</li>
+        <li><a href="#bab1e">1.5 Flow Process Coaching Proton (CDP)</a> &mdash; Perbedaan Tahun 1, 2, 3</li>
+      </ul>
+    </li>
+    <li><a href="#bab2">Login &amp; Manajemen Akun</a></li>
+    <li><a href="#bab3">Dashboard (Beranda)</a></li>
+    <li><a href="#bab4">CMP &mdash; Competency Management Program</a>
+      <ul class="toc-sub">
+        <li><a href="#bab4a">4.1 Dokumen KKJ &amp; IDP Alignment</a></li>
+        <li><a href="#bab4b">4.2 Assessment (Ujian Kompetensi)</a></li>
+        <li><a href="#bab4c">4.3 Assessment Records &amp; Laporan</a></li>
+        <li><a href="#bab4d">4.4 Analytics Dashboard</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab5">CDP &mdash; Continuous Development Program</a>
+      <ul class="toc-sub">
+        <li><a href="#bab5a">5.1 Plan IDP (Rencana Pengembangan)</a></li>
+        <li><a href="#bab5b">5.2 Coaching Proton</a></li>
+        <li><a href="#bab5c">5.3 Deliverable &amp; Evidence</a></li>
+        <li><a href="#bab5d">5.4 Certification Management</a></li>
+        <li><a href="#bab5e">5.5 CDP Dashboard &amp; Laporan</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab6">Kelola Data &mdash; Administrasi Sistem</a>
+      <ul class="toc-sub">
+        <li><a href="#bab6a">6.1 Manajemen Pekerja</a></li>
+        <li><a href="#bab6b">6.2 Manajemen Assessment</a></li>
+        <li><a href="#bab6c">6.3 Manajemen Kategori</a></li>
+        <li><a href="#bab6d">6.4 Coach-Coachee Mapping</a></li>
+        <li><a href="#bab6e">6.5 Dokumen KKJ &amp; CPDP</a></li>
+        <li><a href="#bab6f">6.6 Manajemen Organisasi</a></li>
+        <li><a href="#bab6g">6.7 Training Records</a></li>
+        <li><a href="#bab6h">6.8 Renewal Certificate</a></li>
+        <li><a href="#bab6i">6.9 Audit Log</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab7">Proton Data &mdash; Silabus &amp; Kompetensi</a>
+      <ul class="toc-sub">
+        <li><a href="#bab7a">7.1 Manajemen Silabus</a></li>
+        <li><a href="#bab7b">7.2 Guidance Documents</a></li>
+        <li><a href="#bab7c">7.3 Override Deliverable</a></li>
+      </ul>
+    </li>
+    <li><a href="#bab8">Monitoring &amp; Assessment Real-Time</a></li>
+    <li><a href="#bab9">Notifikasi</a></li>
+    <li><a href="#bab10">Panduan (Help Center)</a></li>
+    <li><a href="#bab11">Tips &amp; Troubleshooting</a></li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<!-- BAB 1: PENDAHULUAN -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab1">
+  <h2>1. Pendahuluan &amp; Struktur Role</h2>
+  <p>Memahami HC Portal, tujuannya, dan peran setiap pengguna</p>
+</div>
+
+<h3>1.1 Tentang HC Portal KPB</h3>
+<p>HC Portal KPB adalah sistem informasi berbasis web yang digunakan oleh Tim Human Capital Kilang Pertamina Balikpapan untuk mengelola kompetensi dan pengembangan pekerja. Portal ini mencakup dua modul utama:</p>
+<ul>
+  <li><strong>CMP (Competency Management Program)</strong> &mdash; Pengelolaan assessment/ujian kompetensi, sertifikasi, dan catatan penilaian</li>
+  <li><strong>CDP (Continuous Development Program)</strong> &mdash; Pengelolaan coaching, deliverable, IDP (Individual Development Plan), dan sertifikasi kompetensi</li>
+</ul>
+
+<h3>1.2 Struktur Role Pengguna</h3>
+<p>Setiap pengguna memiliki satu atau lebih role yang menentukan fitur mana yang dapat diakses:</p>
+
+<table>
+  <tr>
+    <th>Role</th>
+    <th>Deskripsi</th>
+    <th>Akses Utama</th>
+  </tr>
+  <tr>
+    <td><span class="role-tag role-admin">Admin</span></td>
+    <td>Administrator sistem</td>
+    <td>Seluruh fitur tanpa terkecuali</td>
+  </tr>
+  <tr>
+    <td><span class="role-tag role-hc">HC</span></td>
+    <td>Tim Human Capital</td>
+    <td>Kelola Data, Monitoring, Coaching Review, Sertifikasi</td>
+  </tr>
+  <tr>
+    <td><span class="role-tag role-it">IT</span></td>
+    <td>Tim Information Technology</td>
+    <td>Sama seperti role standar + troubleshooting teknis</td>
+  </tr>
+  <tr>
+    <td><span class="role-tag role-coach">Coach</span></td>
+    <td>Coach / Supervisor</td>
+    <td>Coaching Proton, Review Deliverable, Approve/Reject</td>
+  </tr>
+  <tr>
+    <td><span class="role-tag role-all">Pekerja</span></td>
+    <td>Pengguna umum (Coachee)</td>
+    <td>Assessment, IDP, Submit Deliverable, Lihat Progress</td>
+  </tr>
+</table>
+
+<h3>1.3 Navigasi Utama</h3>
+<p>Setelah login, pengguna akan melihat menu navigasi berikut di bagian atas halaman:</p>
+
+<table>
+  <tr>
+    <th>Menu</th>
+    <th>Deskripsi</th>
+    <th>Siapa yang Melihat</th>
+  </tr>
+  <tr>
+    <td><strong>Home</strong></td>
+    <td>Dashboard / Beranda utama</td>
+    <td>Semua pengguna</td>
+  </tr>
+  <tr>
+    <td><strong>CMP</strong></td>
+    <td>Competency Management Program</td>
+    <td>Semua pengguna</td>
+  </tr>
+  <tr>
+    <td><strong>CDP</strong></td>
+    <td>Continuous Development Program</td>
+    <td>Semua pengguna</td>
+  </tr>
+  <tr>
+    <td><strong>Panduan</strong></td>
+    <td>Help center / panduan penggunaan</td>
+    <td>Semua pengguna</td>
+  </tr>
+  <tr>
+    <td><strong>Kelola Data</strong></td>
+    <td>Administrasi data &amp; konfigurasi sistem</td>
+    <td><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> saja</td>
+  </tr>
+</table>
+
+<p>Di pojok kanan atas terdapat menu pengguna: <strong>My Profile</strong>, <strong>Settings</strong>, dan <strong>Logout</strong>.</p>
+
+<!-- 1.4 Flow Process Assessment (CMP) -->
+<h3 id="bab1d">1.4 Flow Process Assessment (CMP)</h3>
+<p>Sistem assessment di HC Portal memiliki <strong>dua jenis</strong> yang berbeda:</p>
+
+<table>
+  <tr>
+    <th>Jenis</th>
+    <th>Kategori</th>
+    <th>Metode Ujian</th>
+    <th>Penilaian</th>
+  </tr>
+  <tr>
+    <td><span class="badge badge-blue">Assessment OJT</span></td>
+    <td>Assessment OJT (per unit, misal: Alkylation, RFCC NHT)</td>
+    <td>Ujian online (pilihan ganda, berdurasi, timer otomatis)</td>
+    <td>Otomatis oleh sistem berdasarkan passing grade</td>
+  </tr>
+  <tr>
+    <td><span class="badge badge-purple">Assessment Proton</span></td>
+    <td>Assessment Proton (per track: Panelman / Operator)</td>
+    <td>Tahun 1 &amp; 2: Ujian online. Tahun 3: Interview offline</td>
+    <td>Tahun 1 &amp; 2: Otomatis. Tahun 3: Manual oleh HC</td>
+  </tr>
+</table>
+
+<!-- FLOW A: Assessment OJT -->
+<h4>A. Flow Assessment OJT (Assessment Biasa)</h4>
+<p>Assessment OJT adalah ujian kompetensi berbasis soal pilihan ganda yang dikerjakan secara online.</p>
+
+<div class="flow-container">
+  <div class="flow-title" style="color: #1565c0;">Alur Assessment OJT (Ujian Online)</div>
+
+  <!-- Row 1: Persiapan -->
+  <div class="flow-row">
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>1. Persiapan Data</strong>
+      Buat kategori (Assessment OJT &rarr; sub-kategori per unit), atur organisasi &amp; daftar pekerja
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>2. Buat Assessment</strong>
+      Pilih kategori <strong>&ldquo;Assessment OJT&rdquo;</strong>, tentukan durasi, passing grade, tanggal pelaksanaan
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>3. Kelola Paket Soal</strong>
+      Buat paket, import soal dari Excel, preview &amp; reshuffle urutan soal
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <!-- Row 2: Pelaksanaan -->
+  <div class="flow-row">
+    <div class="flow-node flow-action">
+      <span class="flow-role">Admin / HC</span>
+      <strong>4. Distribusi Token</strong>
+      Berikan token akses ujian kepada peserta yang ditunjuk
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-action">
+      <span class="flow-role">Pekerja</span>
+      <strong>5. Masukkan Token &amp; Mulai</strong>
+      Buka CMP &rarr; Assessment, masukkan token, mulai ujian
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-action">
+      <span class="flow-role">Pekerja</span>
+      <strong>6. Kerjakan Ujian</strong>
+      Jawab soal pilihan ganda (auto-save), timer berjalan otomatis
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <!-- Row 3: Hasil -->
+  <div class="flow-row">
+    <div class="flow-node flow-decision">
+      <span class="flow-role">Admin / HC</span>
+      <strong>7. Monitoring Real-Time</strong>
+      Pantau progress peserta, bisa akhiri ujian manual jika perlu
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result">
+      <span class="flow-role">Sistem</span>
+      <strong>8. Penilaian Otomatis</strong>
+      Submit &rarr; sistem hitung skor &rarr; bandingkan passing grade
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result" style="background: #e8f5e9; border-color: #2e7d32; color: #2e7d32;">
+      <span class="flow-role" style="background: #2e7d32;">Pekerja</span>
+      <strong>9. Hasil &amp; Sertifikat</strong>
+      LULUS: unduh sertifikat PDF. TIDAK LULUS: Admin dapat reset untuk ujian ulang.
+    </div>
+  </div>
+</div>
+
+<!-- FLOW B: Assessment Proton -->
+<h4>B. Flow Assessment Proton (Tahun 1, 2 &amp; 3)</h4>
+<p>Assessment Proton terkait dengan program Coaching Proton. Setiap assessment di-assign ke track tertentu (Panelman/Operator) dan tahun tertentu (Tahun 1, 2, atau 3).</p>
+
+<div class="info">
+  <div class="info-title">Perbedaan Assessment Proton per Tahun</div>
+  <table>
+    <tr>
+      <th>Aspek</th>
+      <th><span class="badge badge-blue">Tahun 1</span></th>
+      <th><span class="badge badge-green">Tahun 2</span></th>
+      <th><span class="badge badge-purple">Tahun 3</span></th>
+    </tr>
+    <tr>
+      <td><strong>Track</strong></td>
+      <td>Panelman / Operator</td>
+      <td>Panelman / Operator</td>
+      <td>Panelman / Operator</td>
+    </tr>
+    <tr>
+      <td><strong>Metode Ujian</strong></td>
+      <td>Ujian online (pilihan ganda)</td>
+      <td>Ujian online (pilihan ganda)</td>
+      <td><strong>Tidak ada ujian online</strong> &mdash; interview offline tatap muka</td>
+    </tr>
+    <tr>
+      <td><strong>Durasi</strong></td>
+      <td>Ditentukan Admin (dalam menit)</td>
+      <td>Ditentukan Admin (dalam menit)</td>
+      <td>Tidak ada (durasi = 0)</td>
+    </tr>
+    <tr>
+      <td><strong>Paket Soal</strong></td>
+      <td>Import soal dari Excel</td>
+      <td>Import soal dari Excel</td>
+      <td><strong>Tidak perlu</strong> paket soal</td>
+    </tr>
+    <tr>
+      <td><strong>Penilaian</strong></td>
+      <td>Otomatis oleh sistem</td>
+      <td>Otomatis oleh sistem</td>
+      <td><strong>Manual oleh HC</strong> (input hasil interview)</td>
+    </tr>
+    <tr>
+      <td><strong>Komponen Interview</strong></td>
+      <td>Tidak ada</td>
+      <td>Tidak ada</td>
+      <td>Penilaian oleh panel juri: 5 aspek (skor 1-5), catatan, keputusan lulus/tidak</td>
+    </tr>
+  </table>
+</div>
+
+<div class="flow-container">
+  <div class="flow-title" style="color: #7b1fa2;">Alur Assessment Proton &mdash; Tahun 1 &amp; 2 (Ujian Online)</div>
+
+  <div class="flow-row">
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>1. Buat Assessment</strong>
+      Pilih kategori <strong>&ldquo;Assessment Proton&rdquo;</strong>, pilih track (misal: Operator - Tahun 1)
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>2. Kelola Paket Soal</strong>
+      Buat paket, import soal dari Excel, atur durasi &amp; passing grade
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-action">
+      <span class="flow-role">Admin / HC</span>
+      <strong>3. Distribusi Token</strong>
+      Berikan token kepada pekerja yang di-assign ke track tersebut
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <div class="flow-row">
+    <div class="flow-node flow-action">
+      <span class="flow-role">Pekerja</span>
+      <strong>4. Kerjakan Ujian Online</strong>
+      Masukkan token &rarr; kerjakan soal pilihan ganda &rarr; submit
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result">
+      <span class="flow-role">Sistem</span>
+      <strong>5. Penilaian Otomatis</strong>
+      Sistem hitung skor, bandingkan passing grade
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result" style="background: #e8f5e9; border-color: #2e7d32; color: #2e7d32;">
+      <span class="flow-role" style="background: #2e7d32;">Pekerja</span>
+      <strong>6. Hasil &amp; Sertifikat</strong>
+      Lihat hasil, unduh sertifikat jika lulus
+    </div>
+  </div>
+</div>
+
+<div class="flow-container">
+  <div class="flow-title" style="color: #c62828;">Alur Assessment Proton &mdash; Tahun 3 (Interview Offline)</div>
+
+  <div class="flow-row">
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>1. Buat Assessment</strong>
+      Pilih kategori <strong>&ldquo;Assessment Proton&rdquo;</strong>, pilih track Tahun 3 (misal: Operator - Tahun 3). Tidak perlu durasi &amp; paket soal.
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-decision">
+      <span class="flow-role">Panel Juri</span>
+      <strong>2. Pelaksanaan Interview</strong>
+      Interview tatap muka secara offline. Panel juri menilai 5 aspek kompetensi (skor 1&ndash;5).
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-action">
+      <span class="flow-role">Admin / HC</span>
+      <strong>3. Input Hasil Interview</strong>
+      Masukkan: nama juri, skor per aspek, catatan, dokumen pendukung, keputusan lulus/tidak.
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <div class="flow-row">
+    <div class="flow-node flow-result" style="flex: 1;">
+      <span class="flow-role">Pekerja</span>
+      <strong>4. Lihat Hasil</strong>
+      Pekerja melihat hasil interview di halaman Results
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result" style="background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; flex: 1;">
+      <span class="flow-role" style="background: #2e7d32;">Pekerja</span>
+      <strong>5. Sertifikat</strong>
+      Jika lulus: sertifikat diterbitkan dan dapat diunduh
+    </div>
+    <div style="flex: 1;"></div>
+  </div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Catatan Penting Assessment</div>
+  <ul>
+    <li>Soal dalam setiap paket dapat diacak (<strong>reshuffle</strong>) agar setiap peserta mendapat urutan berbeda</li>
+    <li>Admin dapat mengakhiri ujian secara manual (per individu atau semua sekaligus)</li>
+    <li>Assessment yang sudah selesai dapat di-<strong>reset</strong> oleh Admin untuk memungkinkan peserta mengulang</li>
+    <li>Seluruh aktivitas ujian tercatat di <strong>Audit Log</strong></li>
+    <li>Assessment Proton Tahun 3 <strong>tidak memerlukan</strong> paket soal maupun durasi &mdash; seluruh penilaian dilakukan melalui interview</li>
+  </ul>
+</div>
+
+<!-- 1.5 Flow Process Coaching Proton -->
+<h3 id="bab1e">1.5 Flow Process Coaching Proton (CDP)</h3>
+<p>Coaching Proton adalah program pengembangan kompetensi yang berlangsung selama <strong>3 tahun</strong>. Setiap tahun memiliki track tersendiri dengan deliverable yang berbeda.</p>
+
+<h4>Struktur Track Proton</h4>
+<p>Sistem memiliki <strong>6 track</strong> yang merupakan kombinasi tipe dan tahun:</p>
+<table>
+  <tr>
+    <th>Track Type</th>
+    <th>Tahun 1</th>
+    <th>Tahun 2</th>
+    <th>Tahun 3</th>
+  </tr>
+  <tr>
+    <td><strong>Panelman</strong></td>
+    <td>Panelman - Tahun 1</td>
+    <td>Panelman - Tahun 2</td>
+    <td>Panelman - Tahun 3</td>
+  </tr>
+  <tr>
+    <td><strong>Operator</strong></td>
+    <td>Operator - Tahun 1</td>
+    <td>Operator - Tahun 2</td>
+    <td>Operator - Tahun 3</td>
+  </tr>
+</table>
+
+<p>Setiap track memiliki <strong>hierarki kompetensi yang berbeda dan independen</strong>:</p>
+<div class="diagram">Track (misal: Operator - Tahun 1)
+    &darr;
+Kompetensi (Level 1) &mdash; contoh: "Pengenalan Unit"
+    &darr;
+Sub-Kompetensi (Level 2) &mdash; contoh: "Proses Distilasi"
+    &darr;
+Deliverable (Level 3) &mdash; contoh: "Laporan Observasi Proses"</div>
+
+<div class="info">
+  <div class="info-title">Perbedaan Penugasan per Tahun</div>
+  <table>
+    <tr>
+      <th>Aspek</th>
+      <th><span class="badge badge-blue">Tahun 1</span></th>
+      <th><span class="badge badge-green">Tahun 2</span></th>
+      <th><span class="badge badge-purple">Tahun 3</span></th>
+    </tr>
+    <tr>
+      <td><strong>Fokus Kompetensi</strong></td>
+      <td>Kompetensi dasar &amp; pengenalan unit kerja</td>
+      <td>Kompetensi lanjutan &amp; pendalaman proses</td>
+      <td>Kompetensi mahir &amp; penguasaan penuh</td>
+    </tr>
+    <tr>
+      <td><strong>Deliverable</strong></td>
+      <td>Deliverable khusus Tahun 1 (berbeda dari Tahun 2 &amp; 3)</td>
+      <td>Deliverable khusus Tahun 2 (berbeda dari Tahun 1 &amp; 3)</td>
+      <td>Deliverable khusus Tahun 3 (berbeda dari Tahun 1 &amp; 2)</td>
+    </tr>
+    <tr>
+      <td><strong>Coaching Process</strong></td>
+      <td>Submit evidence &rarr; Coach review &rarr; HC review</td>
+      <td>Submit evidence &rarr; Coach review &rarr; HC review</td>
+      <td>Submit evidence &rarr; Coach review &rarr; HC review + <strong>Final Assessment (Interview)</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Assessment</strong></td>
+      <td>Ujian online (pilihan ganda)</td>
+      <td>Ujian online (pilihan ganda)</td>
+      <td><strong>Interview offline</strong> oleh panel juri (5 aspek, skor 1&ndash;5)</td>
+    </tr>
+    <tr>
+      <td><strong>Akhir Tahun</strong></td>
+      <td>Sertifikasi Tahun 1 &rarr; lanjut ke Tahun 2</td>
+      <td>Sertifikasi Tahun 2 &rarr; lanjut ke Tahun 3</td>
+      <td>Sertifikasi final &rarr; <strong>Pekerja dinyatakan kompeten penuh</strong></td>
+    </tr>
+  </table>
+</div>
+
+<h4>Alur Coaching Tahun 1 &amp; 2</h4>
+<div class="flow-container">
+  <div class="flow-title" style="color: #2e7d32;">Coaching Proton &mdash; Tahun 1 &amp; 2</div>
+
+  <!-- Row 1: Persiapan -->
+  <div class="flow-row">
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>1. Siapkan Silabus</strong>
+      Buat/import kompetensi &amp; deliverable untuk track Tahun 1 atau Tahun 2
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>2. Upload Guidance</strong>
+      Unggah dokumen panduan belajar per kompetensi
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>3. Mapping Coach-Coachee</strong>
+      Assign pasangan coach &amp; coachee ke track tertentu (misal: Operator - Tahun 1)
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <!-- Row 2: Pelaksanaan -->
+  <div class="flow-row">
+    <div class="flow-node flow-action">
+      <span class="flow-role">Coachee</span>
+      <strong>4. Lihat IDP</strong>
+      Buka Plan IDP &rarr; lihat deliverable Tahun 1/2 yang harus dikerjakan
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-action">
+      <span class="flow-role">Coachee</span>
+      <strong>5. Submit Evidence</strong>
+      Kerjakan deliverable, upload bukti (PDF, foto, dokumen)
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-decision">
+      <span class="flow-role">Coach</span>
+      <strong>6. Review &amp; Coaching</strong>
+      Periksa evidence, isi catatan coaching, approve/reject
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <!-- Row 3: Review & Sertifikasi -->
+  <div class="flow-row">
+    <div class="flow-node flow-decision">
+      <span class="flow-role">HC</span>
+      <strong>7. HC Review</strong>
+      Review akhir deliverable yang sudah di-approve coach
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result">
+      <span class="flow-role">Sistem</span>
+      <strong>8. Hitung Progress</strong>
+      Persentase penyelesaian semua deliverable dalam track
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result" style="background: #e8f5e9; border-color: #2e7d32; color: #2e7d32;">
+      <span class="flow-role" style="background: #2e7d32;">HC</span>
+      <strong>9. Sertifikasi</strong>
+      Semua deliverable selesai &rarr; HC approve sertifikasi &rarr; lanjut ke tahun berikutnya
+    </div>
+  </div>
+</div>
+
+<h4>Alur Coaching Tahun 3 (Final)</h4>
+<div class="flow-container">
+  <div class="flow-title" style="color: #c62828;">Coaching Proton &mdash; Tahun 3 (Tahun Final)</div>
+
+  <!-- Row 1: Sama seperti Tahun 1&2 -->
+  <div class="flow-row">
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>1. Siapkan Silabus Tahun 3</strong>
+      Kompetensi &amp; deliverable level mahir, berbeda dari Tahun 1 &amp; 2
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-phase">
+      <span class="flow-role">Admin / HC</span>
+      <strong>2. Mapping ke Track Tahun 3</strong>
+      Assign coachee yang sudah selesai Tahun 2 ke track Tahun 3
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-action">
+      <span class="flow-role">Coachee</span>
+      <strong>3. Kerjakan Deliverable</strong>
+      Submit evidence untuk deliverable Tahun 3 (proses sama: coach review &rarr; HC review)
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <!-- Row 2: Final Assessment (Interview) -->
+  <div class="flow-row">
+    <div class="flow-node flow-decision" style="background: #fce4ec; border-color: #c62828; color: #c62828;">
+      <span class="flow-role" style="background: #c62828;">Semua Deliverable Selesai</span>
+      <strong>4. Eligible untuk Final Assessment</strong>
+      Setelah semua deliverable Tahun 3 disetujui, coachee masuk tahap assessment akhir
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-decision">
+      <span class="flow-role">Panel Juri</span>
+      <strong>5. Interview Offline</strong>
+      Panel juri menilai 5 aspek kompetensi (skor 1&ndash;5 per aspek), catatan, dokumen pendukung
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-action">
+      <span class="flow-role">Admin / HC</span>
+      <strong>6. Input Hasil Interview</strong>
+      Masukkan nama juri, skor aspek, catatan, keputusan lulus/tidak lulus ke sistem
+    </div>
+  </div>
+
+  <div class="flow-arrow-v">&darr;</div>
+
+  <!-- Row 3: Hasil Final -->
+  <div class="flow-row">
+    <div class="flow-node flow-result" style="flex: 1;">
+      <span class="flow-role">Sistem</span>
+      <strong>7. Penetapan Level Kompetensi</strong>
+      HC menetapkan level kompetensi akhir (0&ndash;5) dan mapping ke KKJ
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node flow-result" style="background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; flex: 1;">
+      <span class="flow-role" style="background: #2e7d32;">Final</span>
+      <strong>8. Sertifikasi Final</strong>
+      Pekerja dinyatakan <strong>KOMPETEN PENUH</strong>. Sertifikat final diterbitkan. Program Proton selesai.
+    </div>
+    <div style="flex: 1;"></div>
+  </div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perbedaan Penting Tahun 3</div>
+  <ul>
+    <li>Deliverable Tahun 3 memiliki tingkat kesulitan <strong>paling tinggi</strong> (level mahir)</li>
+    <li>Setelah semua deliverable selesai, ada tahap tambahan: <strong>Final Assessment (Interview)</strong></li>
+    <li>Interview dilakukan <strong>offline/tatap muka</strong> &mdash; tidak ada ujian online</li>
+    <li>Penilaian oleh <strong>panel juri</strong> dengan 5 aspek kompetensi, masing-masing skor 1&ndash;5</li>
+    <li>Keputusan lulus/tidak lulus ditentukan <strong>manual oleh HC</strong>, bukan otomatis oleh sistem</li>
+    <li>Jika lulus: pekerja mendapat sertifikasi final dan dianggap <strong>kompeten penuh</strong></li>
+  </ul>
+</div>
+
+<div class="info">
+  <div class="info-title">Alur Alternatif</div>
+  <ul>
+    <li><strong>Override:</strong> Admin/HC dapat langsung menandai deliverable sebagai selesai tanpa melalui coaching (misalnya jika kompetensi sudah dibuktikan melalui jalur lain)</li>
+    <li><strong>Deactivate Mapping:</strong> Jika coach berganti, mapping lama dinonaktifkan dan mapping baru dibuat</li>
+    <li><strong>Mark Completed:</strong> Admin/HC dapat menandai seluruh mapping coaching sebagai selesai</li>
+  </ul>
+</div>
+
+<div class="success">
+  <div class="success-title">Ringkasan Peran dalam Coaching Proton</div>
+  <table>
+    <tr>
+      <th>Peran</th>
+      <th>Tanggung Jawab Utama</th>
+    </tr>
+    <tr>
+      <td><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span></td>
+      <td>Persiapan silabus per tahun, mapping, monitoring, HC review, sertifikasi, input interview Tahun 3</td>
+    </tr>
+    <tr>
+      <td><span class="role-tag role-coach">Coach</span></td>
+      <td>Review deliverable, coaching session, approve/reject (semua tahun)</td>
+    </tr>
+    <tr>
+      <td><span class="role-tag role-all">Coachee</span></td>
+      <td>Kerjakan deliverable per tahun, submit evidence, perbaiki jika ditolak, ikuti interview di Tahun 3</td>
+    </tr>
+  </table>
+</div>
+
+<h4>Gambaran Besar: Perjalanan Proton 3 Tahun</h4>
+<div class="flow-container">
+  <div class="flow-title" style="color: #1565c0;">Perjalanan Lengkap Program Proton (3 Tahun)</div>
+  <div class="flow-row">
+    <div class="flow-node" style="background: #e3f2fd; border: 2px solid #1565c0; color: #1565c0; flex: 1;">
+      <span class="flow-role" style="background: #1565c0; color: #fff;">Tahun 1</span>
+      <strong>Kompetensi Dasar</strong>
+      Deliverable Tahun 1<br>
+      Coaching &amp; Review<br>
+      Ujian Online<br>
+      <span class="badge badge-blue">Sertifikasi Tahun 1</span>
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node" style="background: #e8f5e9; border: 2px solid #2e7d32; color: #2e7d32; flex: 1;">
+      <span class="flow-role" style="background: #2e7d32; color: #fff;">Tahun 2</span>
+      <strong>Kompetensi Lanjutan</strong>
+      Deliverable Tahun 2<br>
+      Coaching &amp; Review<br>
+      Ujian Online<br>
+      <span class="badge badge-green">Sertifikasi Tahun 2</span>
+    </div>
+    <div class="flow-arrow-h">&rarr;</div>
+    <div class="flow-node" style="background: #f3e5f5; border: 2px solid #7b1fa2; color: #7b1fa2; flex: 1;">
+      <span class="flow-role" style="background: #7b1fa2; color: #fff;">Tahun 3</span>
+      <strong>Kompetensi Mahir</strong>
+      Deliverable Tahun 3<br>
+      Coaching &amp; Review<br>
+      <strong>Interview Offline</strong><br>
+      <span class="badge badge-purple">Sertifikasi Final</span>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 12px; font-size: 10pt; color: #888;">
+    Setiap tahun memiliki silabus, deliverable, dan assessment yang <strong>berbeda dan independen</strong>. Pekerja harus menyelesaikan satu tahun sebelum lanjut ke tahun berikutnya.
+  </div>
+</div>
+
+
+<!-- ============================================================ -->
+<!-- BAB 2: LOGIN & AKUN -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab2">
+  <h2>2. Login &amp; Manajemen Akun</h2>
+  <p>Cara masuk ke sistem dan mengelola profil pengguna</p>
+</div>
+
+<h3>2.1 Login ke Sistem</h3>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka halaman login</span>
+  </div>
+  <div class="step-body">
+    Akses URL HC Portal yang diberikan oleh Tim IT. Halaman login akan muncul secara otomatis.
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Masukkan kredensial</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li><strong>Email:</strong> Alamat email yang terdaftar di sistem</li>
+      <li><strong>Password:</strong> Kata sandi akun Anda</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Klik tombol Login</span>
+  </div>
+  <div class="step-body">
+    Jika berhasil, Anda akan diarahkan ke halaman <strong>Dashboard</strong>. Jika gagal, periksa kembali email dan password Anda.
+  </div>
+</div>
+
+<div class="info">
+  <div class="info-title">Informasi</div>
+  Sistem mendukung dua mode autentikasi: <strong>Local (database)</strong> dan <strong>Active Directory</strong>. Mode ini diatur oleh Admin. Jika menggunakan Active Directory, gunakan kredensial domain Anda.
+</div>
+
+<h3>2.2 Profil Saya (My Profile)</h3>
+<p>Untuk melihat profil, klik nama Anda di pojok kanan atas lalu pilih <strong>My Profile</strong>. Halaman ini menampilkan:</p>
+<ul>
+  <li>Nama lengkap, NIP, Email</li>
+  <li>Jabatan (Position)</li>
+  <li>Unit &amp; Bagian</li>
+  <li>Role yang dimiliki</li>
+</ul>
+
+<h3>2.3 Edit Profil</h3>
+<p>Pada halaman <strong>Settings</strong>, Anda dapat mengubah:</p>
+<ul>
+  <li><strong>Nama Lengkap</strong> &mdash; Perbarui nama tampilan</li>
+  <li><strong>Jabatan</strong> &mdash; Perbarui jabatan/posisi</li>
+  <li><strong>Nomor Telepon</strong> &mdash; Perbarui kontak</li>
+</ul>
+
+<h3>2.4 Ganti Password</h3>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka Settings</span>
+  </div>
+  <div class="step-body">Klik nama Anda &rarr; <strong>Settings</strong></div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Isi form ganti password</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li>Masukkan password lama</li>
+      <li>Masukkan password baru (minimal 6 karakter)</li>
+      <li>Konfirmasi password baru</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Klik Simpan</span>
+  </div>
+  <div class="step-body">Password berhasil diubah. Gunakan password baru untuk login berikutnya.</div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Jika menggunakan mode Active Directory, fitur ganti password mungkin tidak tersedia karena password dikelola oleh domain controller.
+</div>
+
+<h3>2.5 Logout</h3>
+<p>Untuk keluar dari sistem, klik nama Anda di pojok kanan atas lalu pilih <strong>Logout</strong>. Sesi Anda akan langsung berakhir.</p>
+
+
+<!-- ============================================================ -->
+<!-- BAB 3: DASHBOARD -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab3">
+  <h2>3. Dashboard (Beranda)</h2>
+  <p>Halaman utama setelah login dengan ringkasan informasi penting</p>
+</div>
+
+<p>Dashboard adalah halaman pertama yang muncul setelah login. Halaman ini menampilkan:</p>
+<ul>
+  <li><strong>Sapaan pengguna</strong> &mdash; Menampilkan nama dan role Anda</li>
+  <li><strong>Upcoming Events</strong> &mdash; Jadwal assessment atau coaching yang akan datang</li>
+  <li><strong>Progress Metrics</strong> &mdash; Ringkasan capaian kompetensi</li>
+  <li><strong>Certification Alerts</strong> &mdash; Notifikasi sertifikat yang akan atau sudah kadaluarsa (untuk HC/Admin)</li>
+</ul>
+
+<div class="info">
+  <div class="info-title">Tips</div>
+  Dashboard menampilkan informasi yang berbeda tergantung role Anda. Admin/HC akan melihat lebih banyak widget dan alert dibanding pekerja umum.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- BAB 4: CMP -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab4">
+  <h2>4. CMP &mdash; Competency Management Program</h2>
+  <p>Modul pengelolaan assessment, ujian kompetensi, dan sertifikasi</p>
+</div>
+
+<p>Menu CMP diakses dari navigasi atas. Modul ini mencakup seluruh proses assessment kompetensi mulai dari pelaksanaan ujian hingga penerbitan sertifikat.</p>
+
+<!-- 4.1 KKJ -->
+<h3 id="bab4a">4.1 Dokumen KKJ &amp; IDP Alignment</h3>
+<p><span class="role-tag role-all">Semua</span> Diakses via <strong>CMP &rarr; Dokumen KKJ</strong></p>
+
+<p>Halaman ini memiliki dua tab:</p>
+<ul>
+  <li><strong>Tab KKJ</strong> &mdash; Menampilkan dokumen Kualifikasi Kerja Jabatan per bagian/unit. Anda dapat mengunduh dokumen KKJ yang telah diunggah oleh Admin.</li>
+  <li><strong>Tab IDP Alignment</strong> &mdash; Menampilkan kesesuaian antara IDP pekerja dengan kompetensi yang diperlukan.</li>
+</ul>
+
+<!-- 4.2 Assessment -->
+<h3 id="bab4b">4.2 Assessment (Ujian Kompetensi)</h3>
+<p><span class="role-tag role-all">Semua</span> Diakses via <strong>CMP &rarr; Assessment</strong></p>
+
+<h4>Alur Assessment</h4>
+<div class="diagram">Admin/HC membuat Assessment  &rarr;  Pekerja melihat daftar ujian
+         &darr;                                      &darr;
+  Import soal ke paket          Masukkan token &rarr; Mulai ujian
+         &darr;                                      &darr;
+  Assign pekerja              Jawab soal &rarr; Review &rarr; Submit
+         &darr;                                      &darr;
+  Monitoring real-time         Lihat hasil &amp; unduh sertifikat</div>
+
+<h4>Mengerjakan Ujian (Untuk Pekerja)</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka halaman Assessment</span>
+  </div>
+  <div class="step-body">Navigasi ke <strong>CMP &rarr; Assessment</strong>. Daftar assessment yang tersedia untuk Anda akan muncul.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Masukkan Token Akses</span>
+  </div>
+  <div class="step-body">Token diberikan oleh Admin/HC pada saat pelaksanaan ujian. Masukkan token untuk memverifikasi akses Anda.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Mulai Ujian</span>
+  </div>
+  <div class="step-body">
+    Klik <strong>Mulai Ujian</strong>. Timer akan berjalan secara otomatis. Fitur-fitur selama ujian:
+    <ul>
+      <li>Jawaban otomatis tersimpan setiap kali Anda memilih opsi</li>
+      <li>Navigasi halaman soal tersedia di bagian atas</li>
+      <li>Progress (elapsed time &amp; halaman saat ini) disimpan secara real-time</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">4</span>
+    <span class="step-title">Review &amp; Submit</span>
+  </div>
+  <div class="step-body">
+    Setelah selesai menjawab, klik <strong>Review Jawaban</strong> untuk melihat ringkasan. Periksa soal yang belum dijawab, lalu klik <strong>Submit Ujian</strong> untuk mengakhiri.
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">5</span>
+    <span class="step-title">Lihat Hasil</span>
+  </div>
+  <div class="step-body">
+    Setelah submit (dan interview jika diperlukan), hasil ujian akan tersedia di halaman <strong>Results</strong>. Jika lulus, sertifikat dapat diunduh.
+  </div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  <ul>
+    <li>Jika waktu habis, ujian akan otomatis berakhir dan jawaban yang sudah tersimpan akan dikirim</li>
+    <li>Jangan menutup browser selama ujian berlangsung</li>
+    <li>Fitur <strong>Abandon</strong> akan mengakhiri ujian sebagai &ldquo;tidak selesai&rdquo;</li>
+  </ul>
+</div>
+
+<h4>Sertifikat</h4>
+<p>Jika Anda <strong>lulus</strong> assessment dan sertifikat telah digenerate:</p>
+<ul>
+  <li>Lihat sertifikat online di halaman <strong>Certificate</strong></li>
+  <li>Unduh sebagai PDF via tombol <strong>Download PDF</strong></li>
+</ul>
+
+<!-- 4.3 Records -->
+<h3 id="bab4c">4.3 Assessment Records &amp; Laporan</h3>
+<p><span class="role-tag role-all">Semua</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>CMP &rarr; Records</strong></p>
+
+<p>Halaman ini menampilkan riwayat assessment. Terdapat dua tampilan:</p>
+<ul>
+  <li><strong>Personal Records</strong> &mdash; Riwayat assessment Anda sendiri</li>
+  <li><strong>Team Records</strong> &mdash; Riwayat assessment tim (untuk HC/Admin/Supervisor)</li>
+</ul>
+
+<h4>Filter &amp; Pencarian</h4>
+<p>Gunakan filter yang tersedia: <strong>Section</strong>, <strong>Unit</strong>, <strong>Category</strong>, dan <strong>Search</strong> untuk menemukan data yang dicari.</p>
+
+<h4>Export Laporan</h4>
+<p>Klik tombol <strong>Export Excel</strong> untuk mengunduh data ke format Excel. Tersedia export untuk:</p>
+<ul>
+  <li>Personal assessment records</li>
+  <li>Team assessment records</li>
+  <li>Team training records</li>
+</ul>
+
+<!-- 4.4 Analytics -->
+<h3 id="bab4d">4.4 Analytics Dashboard</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>CMP &rarr; Analytics</strong></p>
+
+<p>Dashboard analitik menampilkan statistik dan grafik terkait assessment:</p>
+<ul>
+  <li>Jumlah assessment yang telah dilaksanakan</li>
+  <li>Tingkat kelulusan per kategori/unit</li>
+  <li>Grafik tren assessment dari waktu ke waktu</li>
+  <li>Filter berdasarkan bagian, unit, kategori, dan sub-kategori</li>
+</ul>
+
+
+<!-- ============================================================ -->
+<!-- BAB 5: CDP -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab5">
+  <h2>5. CDP &mdash; Continuous Development Program</h2>
+  <p>Modul pengelolaan coaching, deliverable, dan pengembangan kompetensi</p>
+</div>
+
+<p>Menu CDP diakses dari navigasi atas. Modul ini mencakup seluruh proses pengembangan kompetensi mulai dari perencanaan IDP hingga sertifikasi.</p>
+
+<!-- 5.1 Plan IDP -->
+<h3 id="bab5a">5.1 Plan IDP (Rencana Pengembangan)</h3>
+<p><span class="role-tag role-all">Semua</span> Diakses via <strong>CDP &rarr; Plan IDP</strong></p>
+
+<p>Halaman ini menampilkan struktur kompetensi dan deliverable yang harus dicapai oleh pekerja berdasarkan bagian, unit, dan track kompetensi.</p>
+
+<h4>Apa yang Ditampilkan</h4>
+<ul>
+  <li><strong>Struktur Kompetensi</strong> &mdash; Hierarki: Kompetensi &rarr; Sub-Kompetensi &rarr; Deliverable</li>
+  <li><strong>Status Deliverable</strong> &mdash; Belum dikerjakan, Dalam proses, Disetujui, Ditolak</li>
+  <li><strong>Guidance Documents</strong> &mdash; Dokumen panduan yang dapat diunduh untuk setiap kompetensi</li>
+</ul>
+
+<h4>Filter</h4>
+<p>Gunakan dropdown <strong>Bagian</strong>, <strong>Unit</strong>, dan <strong>Track</strong> untuk memfilter tampilan sesuai kebutuhan. Data akan otomatis diperbarui (cascade filter).</p>
+
+<!-- 5.2 Coaching Proton -->
+<h3 id="bab5b">5.2 Coaching Proton</h3>
+<p><span class="role-tag role-coach">Coach</span> <span class="role-tag role-all">Coachee</span> Diakses via <strong>CDP &rarr; Coaching Proton</strong></p>
+
+<h4>Alur Coaching</h4>
+<div class="diagram">Coach &amp; Coachee di-mapping oleh Admin
+              &darr;
+Coachee submit deliverable + evidence
+              &darr;
+Coach review deliverable + coaching session
+              &darr;
+    Approve  /  Reject (dengan catatan)
+              &darr;
+       HC Review (final approval)
+              &darr;
+     Sertifikasi kompetensi</div>
+
+<h4>Untuk Coach/Supervisor</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka Coaching Proton</span>
+  </div>
+  <div class="step-body">Navigasi ke <strong>CDP &rarr; Coaching Proton</strong>. Daftar coachee Anda beserta deliverable mereka akan muncul.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Review Deliverable</span>
+  </div>
+  <div class="step-body">
+    Klik deliverable yang ingin di-review. Periksa evidence yang telah disubmit oleh coachee.
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Isi Coaching Session</span>
+  </div>
+  <div class="step-body">
+    Klik <strong>Edit Coaching Session</strong> untuk mencatat:
+    <ul>
+      <li>Catatan coaching</li>
+      <li>Kesimpulan sesi</li>
+      <li>Tanggal pelaksanaan</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">4</span>
+    <span class="step-title">Approve atau Reject</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li><strong>Approve:</strong> Deliverable dianggap selesai dan masuk ke review HC</li>
+      <li><strong>Reject:</strong> Wajib mengisi alasan penolakan. Coachee harus memperbaiki dan submit ulang.</li>
+    </ul>
+  </div>
+</div>
+
+<h4>Untuk Coachee</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Lihat deliverable yang ditugaskan</span>
+  </div>
+  <div class="step-body">Buka <strong>CDP &rarr; Plan IDP</strong> atau <strong>Coaching Proton</strong> untuk melihat daftar deliverable yang harus dikerjakan.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Submit Evidence</span>
+  </div>
+  <div class="step-body">
+    Klik deliverable &rarr; <strong>Upload Evidence</strong>. Unggah file bukti penyelesaian (dokumen, foto, dll).
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Tunggu review dari Coach</span>
+  </div>
+  <div class="step-body">
+    Coach akan me-review dan memberikan keputusan Approve/Reject. Anda akan mendapat notifikasi.
+  </div>
+</div>
+
+<!-- 5.3 Deliverable -->
+<h3 id="bab5c">5.3 Deliverable &amp; Evidence</h3>
+<p><span class="role-tag role-all">Semua</span> Diakses via <strong>CDP &rarr; Deliverable</strong></p>
+
+<p>Halaman detail deliverable menampilkan:</p>
+<ul>
+  <li>Konteks kompetensi (Track &rarr; Kompetensi &rarr; Sub-Kompetensi)</li>
+  <li>Deskripsi deliverable</li>
+  <li>Status saat ini (Pending, Submitted, Approved, Rejected)</li>
+  <li>History evidence yang telah diupload</li>
+</ul>
+
+<h4>Upload Evidence</h4>
+<p>Klik <strong>Upload Evidence</strong> untuk mengunggah file bukti. Format yang didukung: PDF, gambar (JPG/PNG), dokumen (DOC/DOCX). Evidence juga dapat diunduh kembali oleh coach atau HC.</p>
+
+<h4>HC Review</h4>
+<p><span class="role-tag role-hc">HC</span> Setelah Coach meng-approve, HC dapat melakukan review final via halaman <strong>HC Review</strong>.</p>
+
+<!-- 5.4 Certification Management -->
+<h3 id="bab5d">5.4 Certification Management</h3>
+<p><span class="role-tag role-hc">HC</span> <span class="role-tag role-admin">Admin</span> Diakses via <strong>CDP &rarr; Certification Management</strong></p>
+
+<p>Halaman ini menampilkan status sertifikasi seluruh coachee berdasarkan progress deliverable mereka.</p>
+
+<h4>Fitur Utama</h4>
+<ul>
+  <li><strong>Daftar Sertifikasi</strong> &mdash; Menampilkan semua coachee beserta persentase penyelesaian</li>
+  <li><strong>Filter</strong> &mdash; Filter berdasarkan bagian, unit, track, dan status</li>
+  <li><strong>Batch HC Approve</strong> &mdash; Approve beberapa sertifikasi sekaligus</li>
+  <li><strong>Export Excel</strong> &mdash; Unduh data sertifikasi ke file Excel</li>
+</ul>
+
+<!-- 5.5 Dashboard & Laporan -->
+<h3 id="bab5e">5.5 CDP Dashboard &amp; Laporan</h3>
+<p><span class="role-tag role-all">Semua</span> Diakses via <strong>CDP &rarr; Dashboard</strong></p>
+
+<p>Dashboard CDP menampilkan progress dan metrik pengembangan kompetensi:</p>
+<ul>
+  <li>Progress deliverable secara keseluruhan</li>
+  <li>Grafik dan chart visual</li>
+  <li>Metrik per kategori kompetensi</li>
+</ul>
+
+<h4>Laporan yang Dapat Diunduh</h4>
+<table>
+  <tr>
+    <th>Laporan</th>
+    <th>Keterangan</th>
+    <th>Format</th>
+  </tr>
+  <tr>
+    <td>Progress Coachee (Excel)</td>
+    <td>Detail progress per coachee</td>
+    <td>XLSX</td>
+  </tr>
+  <tr>
+    <td>Progress Coachee (PDF)</td>
+    <td>Laporan progress siap cetak</td>
+    <td>PDF</td>
+  </tr>
+  <tr>
+    <td>Historia Proton</td>
+    <td>Riwayat seluruh sesi coaching</td>
+    <td>XLSX</td>
+  </tr>
+  <tr>
+    <td>Bottleneck Report</td>
+    <td>Analisis hambatan coaching</td>
+    <td>XLSX</td>
+  </tr>
+  <tr>
+    <td>Coaching Tracking</td>
+    <td>Tracking pelaksanaan coaching</td>
+    <td>XLSX</td>
+  </tr>
+  <tr>
+    <td>Workload Summary</td>
+    <td>Beban kerja coach</td>
+    <td>XLSX</td>
+  </tr>
+</table>
+
+
+<!-- ============================================================ -->
+<!-- BAB 6: KELOLA DATA -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab6">
+  <h2>6. Kelola Data &mdash; Administrasi Sistem</h2>
+  <p>Pengelolaan data master, pengguna, dan konfigurasi sistem</p>
+</div>
+
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Menu <strong>Kelola Data</strong> hanya terlihat oleh Admin dan HC. Diakses dari navigasi atas atau via URL <code>/Admin/Index</code>.</p>
+
+<p>Halaman utama Kelola Data menampilkan hub dengan card-card yang mengarah ke berbagai fitur administrasi.</p>
+
+<!-- 6.1 Manajemen Pekerja -->
+<h3 id="bab6a">6.1 Manajemen Pekerja</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Manajemen Pekerja</strong></p>
+
+<h4>Daftar Pekerja</h4>
+<p>Menampilkan seluruh pekerja yang terdaftar di sistem. Gunakan filter <strong>Section</strong>, <strong>Unit</strong>, <strong>Role</strong>, dan kolom <strong>Search</strong> untuk mencari pekerja.</p>
+
+<h4>Tambah Pekerja Baru</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Klik &ldquo;Tambah Pekerja&rdquo;</span>
+  </div>
+  <div class="step-body">Form pembuatan akun baru akan muncul.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Isi data pekerja</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li>Nama lengkap, NIP, Email</li>
+      <li>Jabatan, Bagian, Unit</li>
+      <li>Role (Admin, HC, Coach, Pekerja, dll)</li>
+      <li>Password awal</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Simpan</span>
+  </div>
+  <div class="step-body">Akun baru akan langsung aktif. Informasikan email dan password kepada pekerja.</div>
+</div>
+
+<h4>Import Pekerja (Bulk)</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Download Template</span>
+  </div>
+  <div class="step-body">Klik tombol <strong>Download Template</strong> untuk mengunduh file Excel template.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Isi data di template</span>
+  </div>
+  <div class="step-body">Isi kolom-kolom sesuai petunjuk di template. Pastikan format email valid dan NIP unik.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Upload file</span>
+  </div>
+  <div class="step-body">Klik <strong>Import Pekerja</strong>, pilih file Excel yang sudah diisi, lalu klik <strong>Proses</strong>.</div>
+</div>
+
+<div class="success">
+  <div class="success-title">Tips</div>
+  Fitur import sangat berguna untuk mendaftarkan banyak pekerja sekaligus. Sistem akan memvalidasi data dan melaporkan jika ada error.
+</div>
+
+<h4>Edit &amp; Hapus Pekerja</h4>
+<p>Klik ikon <strong>Edit</strong> pada baris pekerja untuk mengubah data, atau <strong>Hapus</strong> untuk menghapus akun. Detail pekerja dapat dilihat via tombol <strong>Detail</strong>.</p>
+
+<h4>Export Data Pekerja</h4>
+<p>Klik tombol <strong>Export Excel</strong> untuk mengunduh daftar seluruh pekerja ke format Excel.</p>
+
+<!-- 6.2 Manajemen Assessment -->
+<h3 id="bab6b">6.2 Manajemen Assessment</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Manajemen Assessment</strong></p>
+
+<h4>Membuat Assessment Baru</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Klik &ldquo;Buat Assessment&rdquo;</span>
+  </div>
+  <div class="step-body">Form pembuatan assessment akan muncul.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Isi detail assessment</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li>Nama assessment, kategori, sub-kategori</li>
+      <li>Bagian dan unit target</li>
+      <li>Durasi ujian (dalam menit)</li>
+      <li>Passing grade (nilai minimum lulus)</li>
+      <li>Tanggal pelaksanaan</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Simpan</span>
+  </div>
+  <div class="step-body">Assessment berhasil dibuat. Selanjutnya, kelola paket soal.</div>
+</div>
+
+<h4>Mengelola Paket Soal</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka Manage Packages</span>
+  </div>
+  <div class="step-body">Dari halaman assessment, klik <strong>Manage Packages</strong>.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Buat paket baru</span>
+  </div>
+  <div class="step-body">Klik <strong>Create Package</strong> untuk membuat paket soal baru.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Import soal dari Excel</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li>Download template soal via tombol <strong>Download Template</strong></li>
+      <li>Isi soal, opsi jawaban, dan kunci jawaban di template</li>
+      <li>Upload file Excel via <strong>Import Questions</strong></li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">4</span>
+    <span class="step-title">Preview &amp; Reshuffle</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li><strong>Preview Package:</strong> Lihat isi paket soal</li>
+      <li><strong>Reshuffle:</strong> Acak urutan soal dalam paket</li>
+      <li><strong>Reshuffle All:</strong> Acak urutan soal di semua paket sekaligus</li>
+    </ul>
+  </div>
+</div>
+
+<h4>Token Assessment</h4>
+<p>Setiap assessment memiliki <strong>token akses</strong> yang harus diberikan kepada peserta. Token ini berfungsi sebagai kode verifikasi untuk memulai ujian.</p>
+<ul>
+  <li>Token otomatis digenerate saat assessment dibuat</li>
+  <li>Klik <strong>Regenerate Token</strong> untuk membuat token baru (token lama tidak berlaku lagi)</li>
+</ul>
+
+<h4>Fitur Lainnya</h4>
+<ul>
+  <li><strong>Edit Assessment:</strong> Ubah detail assessment yang sudah dibuat</li>
+  <li><strong>Reset Assessment:</strong> Reset sesi assessment pekerja agar bisa mengulang</li>
+  <li><strong>Submit Interview Results:</strong> Catat hasil interview (jika assessment memiliki komponen interview)</li>
+  <li><strong>Export Assessment Results:</strong> Unduh hasil assessment ke Excel</li>
+</ul>
+
+<!-- 6.3 Manajemen Kategori -->
+<h3 id="bab6c">6.3 Manajemen Kategori</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Manajemen Kategori</strong></p>
+
+<p>Mengelola kategori assessment yang digunakan untuk mengklasifikasikan jenis ujian.</p>
+<ul>
+  <li><strong>Tambah Kategori:</strong> Buat kategori baru (contoh: Safety, Process, Mechanical)</li>
+  <li><strong>Edit Kategori:</strong> Ubah nama atau detail kategori</li>
+  <li><strong>Toggle Aktif/Nonaktif:</strong> Kategori yang dinonaktifkan tidak muncul di pilihan assessment baru</li>
+  <li><strong>Hapus Kategori:</strong> Hanya bisa menghapus kategori yang tidak digunakan</li>
+</ul>
+
+<!-- 6.4 Coach-Coachee Mapping -->
+<h3 id="bab6d">6.4 Coach-Coachee Mapping</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Coach-Coachee Mapping</strong></p>
+
+<p>Fitur ini mengatur pasangan coach dan coachee untuk program coaching Proton.</p>
+
+<h4>Assign Mapping Manual</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Klik &ldquo;Assign&rdquo;</span>
+  </div>
+  <div class="step-body">Form assign mapping akan muncul.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Pilih Coach &amp; Coachee</span>
+  </div>
+  <div class="step-body">
+    <ul>
+      <li>Pilih coach dari dropdown</li>
+      <li>Pilih coachee dari daftar eligible (yang belum di-assign)</li>
+      <li>Pilih track kompetensi (Proton Track)</li>
+    </ul>
+  </div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Simpan</span>
+  </div>
+  <div class="step-body">Mapping aktif. Coach dapat langsung melihat coachee di Coaching Proton.</div>
+</div>
+
+<h4>Import Mapping (Bulk)</h4>
+<ol>
+  <li>Download template via <strong>Download Template</strong></li>
+  <li>Isi data coach-coachee sesuai format template</li>
+  <li>Upload via <strong>Import Mapping</strong></li>
+</ol>
+
+<h4>Kelola Mapping</h4>
+<ul>
+  <li><strong>Edit:</strong> Ubah coach atau track untuk mapping yang ada</li>
+  <li><strong>Deactivate:</strong> Nonaktifkan mapping (data tetap ada, tidak tampil di coaching)</li>
+  <li><strong>Reactivate:</strong> Aktifkan kembali mapping yang telah dinonaktifkan</li>
+  <li><strong>Mark Completed:</strong> Tandai coaching sebagai selesai</li>
+  <li><strong>Delete:</strong> Hapus mapping (dengan preview dampaknya terlebih dahulu)</li>
+  <li><strong>Export:</strong> Unduh seluruh data mapping ke Excel</li>
+</ul>
+
+<!-- 6.5 KKJ & CPDP -->
+<h3 id="bab6e">6.5 Dokumen KKJ &amp; CPDP</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span></p>
+
+<h4>KKJ Matrix</h4>
+<p>Diakses via <strong>Kelola Data &rarr; KKJ Matrix</strong>. Mengelola dokumen Kualifikasi Kerja Jabatan per bagian.</p>
+<ul>
+  <li><strong>Upload KKJ:</strong> Unggah file KKJ untuk bagian tertentu</li>
+  <li><strong>Download:</strong> Unduh file KKJ yang telah diunggah</li>
+  <li><strong>History:</strong> Lihat riwayat upload per bagian</li>
+  <li><strong>Delete:</strong> Hapus file KKJ</li>
+  <li><strong>Tambah Bagian:</strong> Tambahkan bagian baru</li>
+</ul>
+
+<h4>CPDP Files</h4>
+<p>Diakses via <strong>Kelola Data &rarr; CPDP Files</strong>. Mengelola dokumen CPDP per bagian.</p>
+<ul>
+  <li><strong>Upload:</strong> Unggah dokumen CPDP baru</li>
+  <li><strong>Archive:</strong> Arsipkan dokumen CPDP lama</li>
+  <li><strong>History:</strong> Lihat riwayat upload</li>
+</ul>
+
+<!-- 6.6 Manajemen Organisasi -->
+<h3 id="bab6f">6.6 Manajemen Organisasi</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Organisasi</strong></p>
+
+<p>Mengelola struktur organisasi (unit kerja) yang digunakan di seluruh sistem.</p>
+<ul>
+  <li><strong>Tambah Unit:</strong> Buat unit organisasi baru (dengan parent/bagian)</li>
+  <li><strong>Edit Unit:</strong> Ubah nama atau detail unit</li>
+  <li><strong>Toggle Aktif:</strong> Nonaktifkan unit yang sudah tidak digunakan</li>
+  <li><strong>Reorder:</strong> Ubah urutan tampilan unit</li>
+  <li><strong>Hapus:</strong> Hapus unit (hanya jika tidak ada data terkait)</li>
+</ul>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Mengubah atau menghapus unit organisasi akan berdampak pada seluruh data yang terkait (pekerja, assessment, coaching). Lakukan dengan hati-hati.
+</div>
+
+<!-- 6.7 Training Records -->
+<h3 id="bab6g">6.7 Training Records</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span></p>
+
+<p>Mengelola catatan pelatihan pekerja.</p>
+
+<h4>Tambah Training</h4>
+<ul>
+  <li>Klik <strong>Add Training</strong> untuk membuat record pelatihan baru</li>
+  <li>Isi nama pelatihan, pekerja, tanggal, dan detail lainnya</li>
+</ul>
+
+<h4>Import Training (Bulk)</h4>
+<ol>
+  <li>Download template via <strong>Download Template</strong></li>
+  <li>Isi data sesuai format</li>
+  <li>Upload via <strong>Import Training</strong></li>
+</ol>
+
+<!-- 6.8 Renewal Certificate -->
+<h3 id="bab6h">6.8 Renewal Certificate</h3>
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Renewal Certificate</strong></p>
+
+<p>Halaman ini menampilkan daftar sertifikat yang mendekati masa berlaku habis atau sudah kadaluarsa.</p>
+<ul>
+  <li><strong>Filter:</strong> Filter berdasarkan status, bagian, unit, dan periode</li>
+  <li><strong>Certificate History:</strong> Lihat riwayat sertifikat per pekerja</li>
+  <li><strong>Assessment History:</strong> Lihat riwayat assessment terkait</li>
+</ul>
+
+<div class="info">
+  <div class="info-title">Informasi</div>
+  Sistem otomatis memberikan alert pada Dashboard untuk sertifikat yang akan kadaluarsa dalam waktu dekat.
+</div>
+
+<!-- 6.9 Audit Log -->
+<h3 id="bab6i">6.9 Audit Log</h3>
+<p><span class="role-tag role-admin">Admin</span> Diakses via <strong>Kelola Data &rarr; Audit Log</strong></p>
+
+<p>Mencatat seluruh aktivitas penting yang terjadi di sistem.</p>
+<ul>
+  <li>Login/logout pengguna</li>
+  <li>Perubahan data (CRUD operations)</li>
+  <li>Assessment yang dimulai/disubmit</li>
+  <li>Approval dan rejection</li>
+</ul>
+
+<h4>Filter &amp; Export</h4>
+<ul>
+  <li>Filter berdasarkan <strong>tanggal mulai</strong> dan <strong>tanggal akhir</strong></li>
+  <li>Pagination untuk navigasi data yang banyak</li>
+  <li>Klik <strong>Export Excel</strong> untuk mengunduh log</li>
+</ul>
+
+
+<!-- ============================================================ -->
+<!-- BAB 7: PROTON DATA -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab7">
+  <h2>7. Proton Data &mdash; Silabus &amp; Kompetensi</h2>
+  <p>Pengelolaan struktur kompetensi, silabus, dan guidance documents</p>
+</div>
+
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Proton Data</strong> atau URL <code>/ProtonData/Index</code>.</p>
+
+<!-- 7.1 Silabus -->
+<h3 id="bab7a">7.1 Manajemen Silabus</h3>
+
+<p>Silabus adalah struktur inti kompetensi yang menjadi dasar program CDP. Strukturnya:</p>
+<div class="diagram">Bagian &rarr; Unit &rarr; Track
+                &darr;
+        Kompetensi (Level 1)
+                &darr;
+       Sub-Kompetensi (Level 2)
+                &darr;
+        Deliverable (Level 3)</div>
+
+<h4>Melihat Silabus</h4>
+<p>Gunakan filter <strong>Bagian</strong>, <strong>Unit</strong>, dan <strong>Track</strong> untuk menampilkan silabus yang sesuai. Opsi <strong>Show Inactive</strong> menampilkan item yang telah dinonaktifkan.</p>
+
+<h4>Menambah/Edit Silabus</h4>
+<ul>
+  <li><strong>Save:</strong> Tambah atau edit kompetensi, sub-kompetensi, atau deliverable</li>
+  <li><strong>Deactivate:</strong> Nonaktifkan item tanpa menghapus (data historis tetap ada)</li>
+  <li><strong>Reactivate:</strong> Aktifkan kembali item yang dinonaktifkan</li>
+  <li><strong>Delete:</strong> Hapus item secara permanen (dengan preview dampak)</li>
+</ul>
+
+<h4>Import Silabus (Bulk)</h4>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Download Template</span>
+  </div>
+  <div class="step-body">Klik <strong>Download Template</strong> untuk mengunduh template Excel silabus.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Isi template</span>
+  </div>
+  <div class="step-body">Isi hierarki kompetensi sesuai format: Track, Kompetensi, Sub-Kompetensi, Deliverable.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Import</span>
+  </div>
+  <div class="step-body">Upload file via <strong>Import Silabus</strong>. Sistem akan memvalidasi dan membuat struktur secara otomatis.</div>
+</div>
+
+<h4>Export Silabus</h4>
+<p>Klik <strong>Export Silabus</strong> untuk mengunduh seluruh data silabus ke Excel.</p>
+
+<!-- 7.2 Guidance -->
+<h3 id="bab7b">7.2 Guidance Documents</h3>
+
+<p>Dokumen panduan yang dilampirkan ke kompetensi sebagai referensi belajar bagi coachee.</p>
+<ul>
+  <li><strong>Upload:</strong> Unggah dokumen guidance (PDF, DOC, dll)</li>
+  <li><strong>Download:</strong> Unduh guidance document</li>
+  <li><strong>Replace:</strong> Ganti file guidance yang sudah ada dengan versi baru</li>
+  <li><strong>Delete:</strong> Hapus guidance document</li>
+</ul>
+
+<!-- 7.3 Override -->
+<h3 id="bab7c">7.3 Override Deliverable</h3>
+
+<p>Fitur override memungkinkan Admin/HC untuk menandai deliverable sebagai selesai secara manual, tanpa melalui proses coaching normal.</p>
+
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">1</span>
+    <span class="step-title">Buka Override</span>
+  </div>
+  <div class="step-body">Navigasi ke <strong>Proton Data &rarr; Override</strong>.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">2</span>
+    <span class="step-title">Pilih deliverable &amp; pekerja</span>
+  </div>
+  <div class="step-body">Cari deliverable yang ingin di-override, pilih pekerja yang bersangkutan.</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">3</span>
+    <span class="step-title">Isi alasan override</span>
+  </div>
+  <div class="step-body">Berikan alasan mengapa deliverable ini di-override (contoh: kompetensi sudah dibuktikan melalui jalur lain).</div>
+</div>
+<div class="step">
+  <div class="step-header">
+    <span class="step-num">4</span>
+    <span class="step-title">Simpan</span>
+  </div>
+  <div class="step-body">Override tercatat. Deliverable otomatis ditandai sebagai selesai.</div>
+</div>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Gunakan fitur override dengan bijak. Setiap override tercatat di audit log dan dapat ditelusuri.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- BAB 8: MONITORING -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab8">
+  <h2>8. Monitoring Assessment Real-Time</h2>
+  <p>Memantau pelaksanaan ujian secara langsung</p>
+</div>
+
+<p><span class="role-tag role-admin">Admin</span> <span class="role-tag role-hc">HC</span> Diakses via <strong>Kelola Data &rarr; Assessment Monitoring</strong></p>
+
+<p>Fitur monitoring memungkinkan Admin/HC memantau pelaksanaan assessment secara real-time:</p>
+
+<h3>8.1 Monitoring Dashboard</h3>
+<ul>
+  <li>Daftar assessment yang sedang berlangsung</li>
+  <li>Jumlah peserta yang sedang mengerjakan</li>
+  <li>Status setiap peserta (Belum Mulai, Sedang Mengerjakan, Selesai)</li>
+</ul>
+
+<h3>8.2 Monitoring Detail</h3>
+<p>Klik assessment untuk melihat detail per peserta:</p>
+<ul>
+  <li>Progress masing-masing peserta (halaman berapa, berapa soal dijawab)</li>
+  <li>Waktu yang sudah berlalu</li>
+  <li>Activity log per sesi</li>
+</ul>
+
+<h3>8.3 Akhiri Ujian</h3>
+<ul>
+  <li><strong>Akhiri Ujian (per individu):</strong> Menghentikan ujian satu peserta secara manual</li>
+  <li><strong>Akhiri Semua Ujian:</strong> Menghentikan seluruh ujian yang sedang berlangsung untuk satu assessment</li>
+</ul>
+
+<div class="warn">
+  <div class="warn-title">Perhatian</div>
+  Mengakhiri ujian secara manual akan menyimpan jawaban yang sudah ada. Peserta tidak dapat melanjutkan ujian setelah diakhiri.
+</div>
+
+
+<!-- ============================================================ -->
+<!-- BAB 9: NOTIFIKASI -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab9">
+  <h2>9. Notifikasi</h2>
+  <p>Sistem pemberitahuan real-time untuk aktivitas penting</p>
+</div>
+
+<p><span class="role-tag role-all">Semua</span> Notifikasi terletak di ikon lonceng pada navbar bagian atas.</p>
+
+<h3>9.1 Jenis Notifikasi</h3>
+<p>Sistem mengirim notifikasi secara otomatis untuk berbagai event:</p>
+<ul>
+  <li>Assessment baru tersedia</li>
+  <li>Deliverable di-approve atau di-reject oleh coach</li>
+  <li>HC review selesai</li>
+  <li>Sertifikat terbit</li>
+  <li>Coaching session dijadwalkan</li>
+</ul>
+
+<h3>9.2 Mengelola Notifikasi</h3>
+<ul>
+  <li><strong>Klik notifikasi</strong> untuk membuka detail terkait</li>
+  <li><strong>Mark as Read:</strong> Tandai notifikasi sebagai sudah dibaca</li>
+  <li><strong>Mark All as Read:</strong> Tandai semua notifikasi sebagai sudah dibaca</li>
+  <li><strong>Dismiss:</strong> Hapus notifikasi dari daftar</li>
+</ul>
+
+<p>Badge angka merah pada ikon lonceng menunjukkan jumlah notifikasi yang belum dibaca.</p>
+
+
+<!-- ============================================================ -->
+<!-- BAB 10: PANDUAN -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab10">
+  <h2>10. Panduan (Help Center)</h2>
+  <p>Pusat bantuan bawaan dalam aplikasi</p>
+</div>
+
+<p><span class="role-tag role-all">Semua</span> Diakses via menu <strong>Panduan</strong> pada navigasi atas.</p>
+
+<p>Halaman Panduan menyediakan dokumentasi per modul yang dapat diakses langsung dari dalam aplikasi:</p>
+
+<table>
+  <tr>
+    <th>Modul</th>
+    <th>Konten</th>
+  </tr>
+  <tr>
+    <td>CMP</td>
+    <td>Panduan assessment, cara mengerjakan ujian, melihat hasil</td>
+  </tr>
+  <tr>
+    <td>CDP</td>
+    <td>Panduan coaching, submit deliverable, IDP plan</td>
+  </tr>
+  <tr>
+    <td>Account</td>
+    <td>Login, edit profil, ganti password</td>
+  </tr>
+  <tr>
+    <td>Kelola Data</td>
+    <td>Administrasi data untuk Admin/HC</td>
+  </tr>
+</table>
+
+<p>Klik modul yang diinginkan untuk membaca panduan detail. Panduan juga dapat dicetak sebagai PDF via tombol <strong>Cetak / Simpan PDF</strong>.</p>
+
+
+<!-- ============================================================ -->
+<!-- BAB 11: TIPS & TROUBLESHOOTING -->
+<!-- ============================================================ -->
+<div class="chapter page-break" id="bab11">
+  <h2>11. Tips &amp; Troubleshooting</h2>
+  <p>Solusi untuk masalah umum dan tips penggunaan</p>
+</div>
+
+<h3>11.1 Tips Umum</h3>
+<ul>
+  <li><strong>Gunakan browser terbaru</strong> &mdash; Disarankan Google Chrome, Microsoft Edge, atau Firefox versi terbaru</li>
+  <li><strong>Hindari menggunakan browser mobile</strong> untuk fitur administrasi &mdash; beberapa form mungkin tidak optimal di layar kecil</li>
+  <li><strong>Simpan pekerjaan secara berkala</strong> &mdash; Meski sistem memiliki auto-save pada ujian, pastikan koneksi internet stabil</li>
+  <li><strong>Gunakan fitur filter</strong> &mdash; Hampir semua halaman yang menampilkan daftar memiliki fitur filter dan search untuk mempercepat pencarian</li>
+  <li><strong>Manfaatkan fitur export</strong> &mdash; Semua data penting dapat diekspor ke Excel untuk analisis lebih lanjut</li>
+</ul>
+
+<h3>11.2 Troubleshooting</h3>
+
+<table>
+  <tr>
+    <th>Masalah</th>
+    <th>Kemungkinan Penyebab</th>
+    <th>Solusi</th>
+  </tr>
+  <tr>
+    <td>Tidak bisa login</td>
+    <td>Password salah atau akun nonaktif</td>
+    <td>Periksa kembali email &amp; password. Hubungi Admin jika akun terkunci.</td>
+  </tr>
+  <tr>
+    <td>Menu Kelola Data tidak muncul</td>
+    <td>Role bukan Admin atau HC</td>
+    <td>Hubungi Admin untuk memeriksa role akun Anda</td>
+  </tr>
+  <tr>
+    <td>Ujian tiba-tiba berakhir</td>
+    <td>Waktu ujian habis atau diakhiri manual oleh Admin</td>
+    <td>Hubungi Admin/HC untuk penjelasan. Jawaban yang tersimpan tetap tercatat.</td>
+  </tr>
+  <tr>
+    <td>File gagal diupload</td>
+    <td>Format file tidak sesuai atau ukuran terlalu besar</td>
+    <td>Pastikan format file sesuai (Excel: .xlsx, Dokumen: .pdf/.doc). Periksa batas ukuran file.</td>
+  </tr>
+  <tr>
+    <td>Import data gagal</td>
+    <td>Format template tidak sesuai atau data duplikat</td>
+    <td>Gunakan template terbaru dari tombol Download Template. Periksa pesan error untuk detail.</td>
+  </tr>
+  <tr>
+    <td>Notifikasi tidak muncul</td>
+    <td>Browser memblokir notifikasi atau koneksi terputus</td>
+    <td>Refresh halaman. Pastikan koneksi internet stabil.</td>
+  </tr>
+  <tr>
+    <td>Sertifikat tidak bisa diunduh</td>
+    <td>Sertifikat belum digenerate atau belum lulus</td>
+    <td>Pastikan status assessment &ldquo;Passed&rdquo; dan sertifikat sudah diterbitkan oleh sistem.</td>
+  </tr>
+  <tr>
+    <td>Data tidak update setelah perubahan</td>
+    <td>Cache browser</td>
+    <td>Tekan Ctrl+F5 untuk hard refresh, atau buka di incognito mode</td>
+  </tr>
+</table>
+
+<h3>11.3 Kontak Bantuan</h3>
+<p>Jika mengalami kendala yang tidak dapat diselesaikan, hubungi:</p>
+<ul>
+  <li><strong>Tim HC:</strong> Untuk pertanyaan terkait assessment, coaching, dan sertifikasi</li>
+  <li><strong>Tim IT:</strong> Untuk masalah teknis (login, akses, error sistem)</li>
+  <li><strong>Admin:</strong> Untuk pengelolaan data dan konfigurasi sistem</li>
+</ul>
+
+
+<!-- ============================================================ -->
+<!-- FOOTER -->
+<!-- ============================================================ -->
+<div class="footer">
+  <p><strong>Panduan Penggunaan Website HC Portal KPB</strong> &mdash; Versi 1.0 &bull; Maret 2026</p>
+  <p>Human Capital &mdash; Kilang Pertamina Balikpapan</p>
+</div>
+
+</body>
+</html>
