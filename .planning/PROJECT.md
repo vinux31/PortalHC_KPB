@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v8.6 shipped, 2026-03-24)
+## Current State (v9.0 started, 2026-03-25)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -22,10 +22,21 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238).
 **v8.3 shipped** — Date Range Filter Team View Records, 1 phase (239).
 **v8.4 shipped** — Alarm Sertifikat Expired, 1 phase (240).
-**v8.5 in progress** — UAT Assessment System End-to-End, 7 phases (241-247). Phase 244 (Monitoring & Analytics UAT) complete — code review passed, human browser testing pending.
+**v8.5 shipped** — UAT Assessment System End-to-End, 7 phases (241-247).
 **v8.6 shipped** — Codebase Audit & Hardening, 5 phases (248-252). Fixed 17 bugs: null safety, input validation, XSS, data integrity, performance throttling.
 
-**Current focus:** v8.5 UAT Assessment — Phase 245 next
+**Current focus:** v9.0 Pre-deployment Audit & Finalization
+
+## Current Milestone: v9.0 Pre-deployment Audit & Finalization
+
+**Goal:** Finalisasi codebase untuk production deployment — fokus pada hal yang belum dicakup audit sebelumnya
+
+**Target features:**
+- Seed data cleanup: review & disable/hapus seed data UAT agar tidak masuk production
+- Deployment preparation: production config (AD enabled), release package, dokumentasi deployment IIS + SSMS
+- Pending tech debt closure: selesaikan known gaps dari v4.3, v8.0, v8.2
+- Final integration check: pastikan semua fitur bekerja bersama tanpa konflik
+- Production readiness review: error handling, logging level, connection string, environment-specific config
 
 ## Next Milestone Goals
 
