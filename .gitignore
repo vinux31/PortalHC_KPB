@@ -502,6 +502,11 @@ test.txt
 *.png
 !wwwroot/**/*.png
 !report-screenshots/**/*.png
+*.db
 *.db-shm
 *.db-wal
 .playwright-mcp/
+
+# Cookie/session test files
+cookie_*
+null
