@@ -12,54 +12,96 @@
 - ✅ **v8.5** - Phases 241-247 (shipped)
 - ✅ **v8.6 Codebase Audit & Hardening** - Phases 248-252 (shipped 2026-03-24)
 - ✅ **v8.7** - Phase 253 (shipped)
-- 🚧 **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (in progress)
+- ⏸️ **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (deferred — dikerjakan setelah v9.1)
+- 🚧 **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (in progress)
 
 ## Phases
 
-### 🚧 v9.0 Pre-deployment Audit & Finalization (Phases 254-256)
+### 🚧 v9.1 UAT Coaching Proton End-to-End (Phases 257-261)
 
-**Milestone Goal:** Finalisasi codebase untuk production — seed cleanup, production config, security hardening. Deployment & setup server ditangani tim IT (dokumen serah terima sudah dibuat).
+**Milestone Goal:** Verifikasi end-to-end flow Coaching Proton — temukan dan perbaiki semua bug sebelum production deployment.
 
-- [ ] **Phase 254: Seed Cleanup & Tech Debt Closure** - Bersihkan seed data dari production path dan tutup 5 tech debt item v4.3
-- [ ] **Phase 255: Production Configuration** - Siapkan file konfigurasi production (logging, connection string template, environment guard)
-- [ ] **Phase 256: Security Hardening** - Hardening keamanan: error pages, cookie, anti-forgery, authorization, upload validation
+- [ ] **Phase 257: Setup & Mapping** - Test CRUD coach-coachee mapping, import Excel, assign track, deactivate/reactivate, progression warning
+- [ ] **Phase 258: Silabus & Guidance** - Test upload/edit/delete silabus hierarchy, upload/replace/delete guidance files
+- [ ] **Phase 259: Evidence & Coaching Session** - Test submit evidence + coaching session, edit/delete session, resubmit after rejection
+- [ ] **Phase 260: Approval Chain** - Test SrSpv approve/reject → SH approve/reject → HC review, audit trail
+- [ ] **Phase 261: Dashboard, Export & Completion** - Test dashboard per role, export Excel/PDF, final assessment, graduation
 
 ## Phase Details
 
-### Phase 254: Seed Cleanup & Tech Debt Closure
-**Goal**: Codebase bersih dari data test di production path dan semua tech debt v4.3 tertutup
-**Depends on**: Nothing (first phase v9.0)
-**Requirements**: SEED-01, SEED-02, SEED-03, DEBT-01, DEBT-02, DEBT-03, DEBT-04, DEBT-05
+### Phase 257: Setup & Mapping
+**Goal**: Semua flow coach-coachee mapping berjalan tanpa error — CRUD, import, assign track, deactivate/reactivate
+**Depends on**: Nothing (first phase v9.1)
+**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04, MAP-05, MAP-06, MAP-07, MAP-08
 **Success Criteria** (what must be TRUE):
-  1. SeedProtonData hanya berjalan di environment Development (ada IsDevelopment guard)
-  2. Semua method Seed* yang mengandung data test memiliki environment guard dan bersifat idempotent
-  3. Bare catch di AdminController:1072 sudah diganti dengan proper exception handling dan logging
-  4. 3 orphaned KkjMatrixItemId columns sudah di-cleanup dari model/migration
-  5. 5 near-duplicate code pairs sudah di-extract atau didokumentasikan keputusan keep
+  1. Halaman CoachCoacheeMapping tampil dengan data, pagination, dan search berfungsi
+  2. Assign coach ke coachee via modal berhasil + ProtonTrackAssignment terbuat jika TrackId dipilih
+  3. Import Excel berhasil (create, reactivate, skip duplicate) dengan feedback yang jelas
+  4. Deactivate mapping → TrackAssignment ikut deactivate; Reactivate → reuse assignment lama
+  5. Warning D-09 muncul saat assign Tahun 2+ dengan Tahun sebelumnya belum selesai
+**Plans**: 2 plans
+Plans:
+- [ ] 257-01-PLAN.md — Code review + bug fix MAP-01..05 (list, assign, import, template, track assignment)
+- [ ] 257-02-PLAN.md — Code review + bug fix MAP-06..08 (deactivate, reactivate, progression warning)
+
+### Phase 258: Silabus & Guidance
+**Goal**: Struktur kompetensi bisa dikelola lengkap dan guidance files bisa diakses oleh coach/coachee
+**Depends on**: Phase 257 (mapping harus ada untuk konteks Bagian/Unit)
+**Requirements**: SIL-01, SIL-02, SIL-03, SIL-04, SIL-05, SIL-06
+**Success Criteria** (what must be TRUE):
+  1. Upload silabus Excel berhasil membuat/update hierarki Kompetensi → SubKompetensi → Deliverable
+  2. Deliverable yang dihapus dari payload baru ikut terhapus (orphan cleanup)
+  3. Deactivate/reactivate kompetensi berfungsi
+  4. Upload, replace, delete guidance file berfungsi
+  5. Coach dan Coachee bisa download guidance file
 **Plans**: TBD
 
-### Phase 255: Production Configuration
-**Goal**: File konfigurasi production siap — logging level benar, connection string template jelas, debug middleware hanya di Development
-**Depends on**: Phase 254
-**Requirements**: CONF-01, CONF-02, CONF-04
+### Phase 259: Evidence & Coaching Session
+**Goal**: Flow submit evidence + coaching session berjalan end-to-end tanpa error
+**Depends on**: Phase 258 (silabus + deliverable harus ada)
+**Requirements**: EVI-01, EVI-02, EVI-03, EVI-04, EVI-05
 **Success Criteria** (what must be TRUE):
-  1. appsettings.Production.json ada dengan logging level Warning untuk Microsoft.* dan Information untuk app
-  2. Connection string di appsettings.Production.json menggunakan placeholder yang jelas dan terdokumentasi
-  3. Debug/development middleware (Developer Exception Page, dsb) hanya aktif di Development environment
+  1. Coach berhasil submit evidence + catatan coaching → CoachingSession terbuat dengan status Submitted
+  2. Validasi mapping aktif berfungsi (coach tanpa mapping tidak bisa submit)
+  3. Edit coaching session berhasil update CatatanCoach, Kesimpulan, Result
+  4. Delete coaching session berhasil + ActionItems ikut terhapus
+  5. Resubmit setelah rejection → approval SrSpv/SH reset ke Pending, evidence history tersimpan
 **Plans**: TBD
 
-### Phase 256: Security Hardening
-**Goal**: Aplikasi aman dari serangan umum web dengan error handling, cookie security, dan authorization yang lengkap
-**Depends on**: Phase 255
-**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05
+### Phase 260: Approval Chain
+**Goal**: Multi-stage approval (SrSpv → SH → HC) berjalan benar dengan audit trail lengkap
+**Depends on**: Phase 259 (evidence harus ada dalam status Submitted)
+**Requirements**: APR-01, APR-02, APR-03, APR-04, APR-05, APR-06, APR-07
 **Success Criteria** (what must be TRUE):
-  1. Halaman error custom tampil untuk 404/403/500 tanpa expose stack trace atau detail internal
-  2. Cookie authentication dikonfigurasi Secure=Always, HttpOnly=true, SameSite yang tepat
-  3. Semua POST action memiliki anti-forgery token (tidak ada gap CSRF)
-  4. Setiap controller/action memiliki atribut authorization yang benar (audit matrix lengkap)
-  5. Semua file upload endpoint memvalidasi extension whitelist, size limit, dan content-type
+  1. SrSpv bisa approve dan reject (dengan alasan) deliverable
+  2. SectionHead bisa approve dan reject deliverable
+  3. HC bisa mark deliverable sebagai "Reviewed"
+  4. Setiap status change tercatat di DeliverableStatusHistory dengan actor, role, timestamp
+  5. Role scoping benar — SrSpv/SH hanya lihat coachee di section mereka
 **Plans**: TBD
-**UI hint**: yes
+
+### Phase 261: Dashboard, Export & Completion
+**Goal**: Dashboard, export, dan completion flow berfungsi benar untuk semua role
+**Depends on**: Phase 260 (butuh data approved untuk test completion)
+**Requirements**: DSH-01, DSH-02, DSH-03, DSH-04, DSH-05, DSH-06
+**Success Criteria** (what must be TRUE):
+  1. CoachingProton dashboard menampilkan data sesuai role (Admin/HC=all, Coach=mapped, SrSpv/SH=section, Coachee=own)
+  2. Filter dan pagination berfungsi
+  3. Export Excel dan PDF berisi data yang benar dan lengkap
+  4. HC bisa buat final assessment setelah semua deliverable approved
+  5. Graduation flag IsCompleted bisa di-set dan tersimpan
+**Plans**: TBD
+
+<details>
+<summary>⏸️ v9.0 Pre-deployment Audit & Finalization (Phases 254-256) — DEFERRED</summary>
+
+- [ ] Phase 254: Seed Cleanup & Tech Debt Closure
+- [ ] Phase 255: Production Configuration
+- [ ] Phase 256: Security Hardening
+
+Backup: `.planning/milestones/v9.0-REQUIREMENTS.md`, `.planning/milestones/v9.0-ROADMAP.md`
+
+</details>
 
 <details>
 <summary>✅ v8.5 UAT Assessment System End-to-End (Phases 241-247) — SHIPPED 2026-03-24</summary>
@@ -95,10 +137,12 @@
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 254 → 255 → 256
+Phases execute in numeric order: 257 → 258 → 259 → 260 → 261
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 254. Seed Cleanup & Tech Debt Closure | v9.0 | 0/? | Not started | - |
-| 255. Production Configuration | v9.0 | 0/? | Not started | - |
-| 256. Security Hardening | v9.0 | 0/? | Not started | - |
+| 257. Setup & Mapping | v9.1 | 0/2 | Planning | - |
+| 258. Silabus & Guidance | v9.1 | 0/? | Not started | - |
+| 259. Evidence & Coaching Session | v9.1 | 0/? | Not started | - |
+| 260. Approval Chain | v9.1 | 0/? | Not started | - |
+| 261. Dashboard, Export & Completion | v9.1 | 0/? | Not started | - |
