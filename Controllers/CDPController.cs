@@ -20,19 +20,11 @@ namespace HcPortal.Controllers
     }
 
     // ====================================================================
-    // PHASE 87-02 DASHBOARD QA FIXES
+    // PHASE 87-02 DASHBOARD QA FIXES (resolved)
     // ====================================================================
-    // Bugs fixed during dashboard data accuracy verification:
-    //
-    // 1. [BUG] Coachee Dashboard ActiveDeliverables (line ~266)
-    //    - Was checking Status == "Active" which doesn't exist in ProtonDeliverableProgress
-    //    - Fixed to check Status == "Pending" (valid status for in-progress deliverables)
-    //    - Impact: Coachee dashboard now shows correct count of active/in-progress deliverables
-    //
-    // 2. [BUG] Proton Progress missing IsActive filters (lines ~292-323)
-    //    - BuildProtonProgressSubModelAsync was querying all RoleLevel==6 users without IsActive check
-    //    - Fixed: Added u.IsActive filter to all 4 role branches (HC/Admin, SrSpv, SectionHead, Coach)
-    //    - Impact: Dashboard now excludes inactive coachees from all stats, rows, and charts
+    // 1. ActiveDeliverables: uses Status == "Pending" (not "Active")
+    // 2. IsActive filters: u.IsActive added to coacheeUsers queries in
+    //    BuildProtonProgressSubModelAsync and CoachingProton scoping
     // ====================================================================
 
     [Authorize]
@@ -432,9 +424,9 @@ namespace HcPortal.Controllers
                     : $"Section: {user.Section ?? "(unknown)"} (Unit not set)";
             }
 
-            // Batch load data (avoid N+1)
+            // Batch load data (avoid N+1) — filter inactive users
             var coacheeUsers = await _context.Users
-                .Where(u => scopedCoacheeIds.Contains(u.Id))
+                .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive)
                 .ToListAsync();
 
             // Phase 121: Apply additional section/unit filters for full-access roles
@@ -1440,7 +1432,7 @@ namespace HcPortal.Controllers
             {
                 scopedCoacheeIds = await _context.ProtonTrackAssignments
                     .Where(a => a.IsActive)
-                    .Join(_context.Users, a => a.CoacheeId, u => u.Id, (a, u) => new { a.CoacheeId, u.Section })
+                    .Join(_context.Users.Where(u => u.IsActive), a => a.CoacheeId, u => u.Id, (a, u) => new { a.CoacheeId, u.Section })
                     .Where(x => x.Section == user.Section)
                     .Select(x => x.CoacheeId).Distinct().ToListAsync();
             }
@@ -1472,7 +1464,7 @@ namespace HcPortal.Controllers
                 if (validSections.Contains(bagian))
                 {
                     scopedCoacheeIds = await _context.Users
-                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Section == bagian)
+                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive && u.Section == bagian)
                         .Select(u => u.Id).ToListAsync();
                 }
                 else
@@ -1488,7 +1480,7 @@ namespace HcPortal.Controllers
                 {
                     // HC/Admin/Direktur/VP/Manager: any unit (but must be within selected bagian if set)
                     scopedCoacheeIds = await _context.Users
-                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
+                        .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive && u.Unit == unit)
                         .Select(u => u.Id).ToListAsync();
                 }
                 else if (userLevel == 4)
@@ -1498,7 +1490,7 @@ namespace HcPortal.Controllers
                     if (allowedUnits.Contains(unit))
                     {
                         scopedCoacheeIds = await _context.Users
-                            .Where(u => scopedCoacheeIds.Contains(u.Id) && u.Unit == unit)
+                            .Where(u => scopedCoacheeIds.Contains(u.Id) && u.IsActive && u.Unit == unit)
                             .Select(u => u.Id).ToListAsync();
                     }
                     else
