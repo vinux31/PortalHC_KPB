@@ -1,140 +1,106 @@
-# Requirements: Portal HC KPB
+# Requirements: Portal HC KPB v9.0
 
-**Defined:** 2026-03-23
+**Defined:** 2026-03-25
 **Core Value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
 
-## v8.5 Requirements
+## v9.0 Requirements
 
-Requirements untuk UAT end-to-end sistem Assessment (reguler + Proton). Milestone murni UAT + bug fix — semua fitur sudah terbangun di v1.0–v8.4.
+Requirements for pre-deployment audit & finalization. Each maps to roadmap phases.
 
-### Seed Data
+### Seed & Data Cleanup
 
-- [x] **SEED-01**: Seed Coach-Coachee mapping (Rustam→Rino) aktif saat startup Development
-- [x] **SEED-02**: Seed sub-kategori "OJT Operasi Kilang" dengan parent OJT
-- [x] **SEED-03**: Seed assessment reguler "OJT Proses Alkylation Q1-2026" untuk Rino + Iwan (token required, 30 menit, generate certificate)
-- [x] **SEED-04**: Seed paket soal "Paket A" + 15 soal dengan 4 opsi + Elemen Teknis, assigned ke assessment SEED-03
-- [x] **SEED-05**: Seed assessment Proton Tahun 1 "Operator - Tahun 1" untuk Rino + paket soal + 15 soal
-- [x] **SEED-06**: Seed assessment Proton Tahun 3 "Operator - Tahun 3" (interview, durasi=0) untuk Rino
-- [x] **SEED-07**: Seed 1 assessment completed dengan skor + sertifikat untuk Rino (data analytics/records/renewal)
+- [ ] **SEED-01**: Seed data UAT (Phase 241) hanya berjalan di environment Development, tidak di Production
+- [ ] **SEED-02**: SeedProtonData dipanggil dengan environment guard (IsDevelopment)
+- [ ] **SEED-03**: Review semua method Seed* dan pastikan idempotent + production-safe
 
-### Setup
+### Production Configuration
 
-- [x] **SETUP-01**: Admin dapat membuat sub-kategori assessment dengan parent hierarchy dan verifikasi tampilan indent
-- [x] **SETUP-02**: Admin/HC dapat membuat assessment multi-user dengan token, jadwal, durasi, dan sertifikat
-- [x] **SETUP-03**: Admin dapat membuat paket soal dan import 15 soal via paste Excel dengan Elemen Teknis
-- [x] **SETUP-04**: Admin dapat melihat ET coverage matrix pada paket soal dan preview soal
+- [ ] **CONF-01**: appsettings.Production.json lengkap dengan logging level Warning untuk Microsoft.*, Information untuk app
+- [ ] **CONF-02**: Connection string production menggunakan environment variable (bukan hardcode placeholder)
+- [ ] **CONF-03**: HTTPS enforcement aktif (UseHttpsRedirection + HSTS header)
+- [ ] **CONF-04**: Debug/development middleware di-guard dengan IsDevelopment() check
+- [ ] **CONF-05**: AllowedHosts dikonfigurasi (bukan wildcard "*")
 
-### Exam Flow
+### Security Hardening
 
-- [x] **EXAM-01**: Worker dapat melihat assessment yang ditugaskan, input token, dan mulai ujian
-- [x] **EXAM-02**: Worker dapat mengerjakan ujian dengan soal acak, opsi acak, pagination, dan auto-save
-- [x] **EXAM-03**: Timer countdown wall-clock berfungsi dengan warning ≤5 menit dan auto-submit saat habis
-- [x] **EXAM-04**: Worker dapat resume ujian setelah disconnect dengan sisa waktu, jawaban, dan page terakhir intact
-- [x] **EXAM-05**: Worker dapat review jawaban di ExamSummary dan submit untuk auto-grading dengan skor ET
-- [x] **EXAM-06**: Worker dapat melihat hasil assessment dengan radar chart ET dan tinjauan jawaban (highlight benar/salah)
-- [x] **EXAM-07**: Worker yang lulus mendapat sertifikat dengan nomor otomatis KPB/SEQ/BULAN/TAHUN dan dapat print/PDF
+- [ ] **SEC-01**: Custom error pages untuk 404/403/500 (tidak expose stack trace)
+- [ ] **SEC-02**: Cookie security: Secure=Always, HttpOnly=true, SameSite configured
+- [ ] **SEC-03**: Anti-forgery token lengkap di semua POST actions
+- [ ] **SEC-04**: Authorization completeness audit — semua controller/action punya atribut yang benar
+- [ ] **SEC-05**: File upload validation lengkap (whitelist extension, size limit, content-type)
 
-### Monitoring
+### Deployment Preparation
 
-- [x] **MON-01**: HC dapat memonitor ujian real-time via SignalR dengan stat cards dan status per-user
-- [x] **MON-02**: HC dapat manage token (copy, regenerate) dan force close/reset ujian
-- [x] **MON-03**: HC dapat export hasil ujian ke Excel
-- [x] **MON-04**: Analytics dashboard menampilkan fail rate, trend, ET breakdown, dan expiring soon dengan cascading filter
+- [ ] **DEPL-01**: web.config untuk IIS (AspNetCoreModuleV2, WebSocket enable untuk SignalR)
+- [ ] **DEPL-02**: Database migration script (SQL script dari dev schema, tested)
+- [ ] **DEPL-03**: Pre-deploy backup strategy documented
+- [ ] **DEPL-04**: Deployment runbook step-by-step (IIS setup, DB, config, verify)
+- [ ] **DEPL-05**: Publish profile untuk IIS deployment
 
-### Proton
+### Tech Debt Closure
 
-- [x] **PROT-01**: Admin dapat membuat assessment Proton Tahun 1/2 (online exam) dengan track selection dan flow ujian berjalan normal
-- [x] **PROT-02**: Admin dapat membuat assessment Proton Tahun 3 (interview, durasi=0) tanpa paket soal
-- [x] **PROT-03**: HC dapat input hasil interview Tahun 3 (5 aspek penilaian skor 1-5, judges, catatan, IsPassed manual)
-- [x] **PROT-04**: ProtonFinalAssessment auto-created saat interview Tahun 3 lulus, sertifikat di-generate
-
-### Edge Cases
-
-- [x] **EDGE-01**: Token salah ditolak dengan pesan error, token expired/invalid tidak bisa digunakan
-- [x] **EDGE-02**: HC force close mengakhiri ujian worker secara real-time, HC reset memungkinkan ujian ulang
-- [x] **EDGE-03**: HC regenerate token menghasilkan token baru dan token lama invalid
-- [x] **EDGE-04**: Renewal sertifikat expired berfungsi end-to-end dari alarm hingga perpanjangan
-
-### Records
-
-- [x] **REC-01**: Worker dapat melihat riwayat assessment di My Records dengan kolom lengkap dan export Excel
-- [x] **REC-02**: HC dapat melihat data seluruh pekerja di Team View dengan date range filter dan export
-
-### Bug Fix
-
-- [x] **FIX-01**: Semua bug yang ditemukan selama simulasi UAT diperbaiki dan diverifikasi
-
-## Validated Requirements (Previous Milestones)
-
-### v8.4 — Alarm Sertifikat Expired
-- [x] ALRT-01..04, NOTF-01..03 — All complete (Phase 240)
-
-### v8.3 — Date Range Filter Team View Records
-- [x] FILT-01..06, EXP-01..02 — All complete (Phase 239)
+- [ ] **DEBT-01**: Fix bare catch at AdminController:1072
+- [ ] **DEBT-02**: Fix null-forgiving operator (Authorize guarantee)
+- [ ] **DEBT-03**: Clean up 3 orphaned KkjMatrixItemId columns
+- [ ] **DEBT-04**: Address 5 near-duplicate code pairs
+- [ ] **DEBT-05**: Fix SUMMARY counting error (27 vs 35 DbSets)
 
 ## Future Requirements
 
-### Next Milestone Goals
+### Post-deployment Optimization
 
-- **NEXT-01**: Competency gap heatmap (worker x kompetensi matrix)
-- **NEXT-02**: Scheduling integration / calendar untuk coaching sessions
-- **NEXT-03**: AI-generated coaching session summaries
-- **NEXT-04**: SLA/escalation otomatis untuk approval yang terlalu lama
-- **NEXT-05**: Predicted completion date berdasarkan historical pace
+- **OPT-01**: Health check endpoint (/health) untuk monitoring
+- **OPT-02**: Rate limiting pada login endpoint
+- **OPT-03**: Database index review berdasarkan real usage pattern
+- **OPT-04**: Response caching headers untuk static assets
+- **OPT-05**: Graceful startup validation (DB unreachable handling)
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Fitur baru assessment | v8.5 murni UAT + bug fix, bukan development fitur baru |
-| Automated browser testing | UAT dilakukan manual via browser, bukan Playwright/Selenium |
-| Performance/load testing | Scope terbatas pada functional correctness |
-| Tab-switch detection (AINT-02/03) | Deferred dari v8.0, tidak dalam scope UAT |
+| CI/CD pipeline | Scope creep — manual deployment cukup untuk v1 |
+| Automated test suite | User sudah UAT manual 252+ phases |
+| Docker/containerization | Target = IIS on-premise |
+| APM integration (App Insights) | File logging cukup untuk awal |
+| Active Directory activation | User akan aktifkan manual — bukan bagian milestone ini |
+| SSL certificate provisioning | Tanggung jawab infra/network team |
+| Load balancer setup | Single server untuk awal |
+| Penetration test | Butuh external security team |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEED-01 | Phase 241 | Complete |
-| SEED-02 | Phase 241 | Complete |
-| SEED-03 | Phase 241 | Complete |
-| SEED-04 | Phase 241 | Complete |
-| SEED-05 | Phase 241 | Complete |
-| SEED-06 | Phase 241 | Complete |
-| SEED-07 | Phase 241 | Complete |
-| SETUP-01 | Phase 242 | Complete |
-| SETUP-02 | Phase 242 | Complete |
-| SETUP-03 | Phase 242 | Complete |
-| SETUP-04 | Phase 242 | Complete |
-| EXAM-01 | Phase 243 | Complete |
-| EXAM-02 | Phase 243 | Complete |
-| EXAM-03 | Phase 243 | Complete |
-| EXAM-04 | Phase 243 | Complete |
-| EXAM-05 | Phase 243 | Complete |
-| EXAM-06 | Phase 243 | Complete |
-| EXAM-07 | Phase 243 | Complete |
-| MON-01 | Phase 244 | Complete |
-| MON-02 | Phase 244 | Complete |
-| MON-03 | Phase 244 | Complete |
-| MON-04 | Phase 244 | Complete |
-| PROT-01 | Phase 245 | Complete |
-| PROT-02 | Phase 245 | Complete |
-| PROT-03 | Phase 245 | Complete |
-| PROT-04 | Phase 245 | Complete |
-| EDGE-01 | Phase 246 | Complete |
-| EDGE-02 | Phase 246 | Complete |
-| EDGE-03 | Phase 246 | Complete |
-| EDGE-04 | Phase 246 | Complete |
-| REC-01 | Phase 246 | Complete |
-| REC-02 | Phase 246 | Complete |
-| FIX-01 | Phase 247 | Complete |
+| SEED-01 | — | Pending |
+| SEED-02 | — | Pending |
+| SEED-03 | — | Pending |
+| CONF-01 | — | Pending |
+| CONF-02 | — | Pending |
+| CONF-03 | — | Pending |
+| CONF-04 | — | Pending |
+| CONF-05 | — | Pending |
+| SEC-01 | — | Pending |
+| SEC-02 | — | Pending |
+| SEC-03 | — | Pending |
+| SEC-04 | — | Pending |
+| SEC-05 | — | Pending |
+| DEPL-01 | — | Pending |
+| DEPL-02 | — | Pending |
+| DEPL-03 | — | Pending |
+| DEPL-04 | — | Pending |
+| DEPL-05 | — | Pending |
+| DEBT-01 | — | Pending |
+| DEBT-02 | — | Pending |
+| DEBT-03 | — | Pending |
+| DEBT-04 | — | Pending |
+| DEBT-05 | — | Pending |
 
 **Coverage:**
-- v8.5 requirements: 27 total
-- Mapped to phases: 27
-- Unmapped: 0 ✓
-- Complete (SEED): 7/7
+- v9.0 requirements: 23 total
+- Mapped to phases: 0
+- Unmapped: 23 ⚠️
 
 ---
-*Requirements defined: 2026-03-23*
-*Last updated: 2026-03-24 — Restored from commit 2f19b5cf, SEED requirements marked complete*
+*Requirements defined: 2026-03-25*
+*Last updated: 2026-03-25 after initial definition*
