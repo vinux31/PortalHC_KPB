@@ -12,18 +12,17 @@
 - ✅ **v8.5** - Phases 241-247 (shipped)
 - ✅ **v8.6 Codebase Audit & Hardening** - Phases 248-252 (shipped 2026-03-24)
 - ✅ **v8.7** - Phase 253 (shipped)
-- 🚧 **v9.0 Pre-deployment Audit & Finalization** - Phases 254-257 (in progress)
+- 🚧 **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (in progress)
 
 ## Phases
 
-### 🚧 v9.0 Pre-deployment Audit & Finalization (Phases 254-257)
+### 🚧 v9.0 Pre-deployment Audit & Finalization (Phases 254-256)
 
-**Milestone Goal:** Finalisasi codebase untuk production deployment — seed cleanup, production config, security hardening, dan deployment runbook.
+**Milestone Goal:** Finalisasi codebase untuk production — seed cleanup, production config, security hardening. Deployment & setup server ditangani tim IT (dokumen serah terima sudah dibuat).
 
 - [ ] **Phase 254: Seed Cleanup & Tech Debt Closure** - Bersihkan seed data dari production path dan tutup 5 tech debt item v4.3
-- [ ] **Phase 255: Production Configuration** - Siapkan semua file konfigurasi untuk environment production
+- [ ] **Phase 255: Production Configuration** - Siapkan file konfigurasi production (logging, connection string template, environment guard)
 - [ ] **Phase 256: Security Hardening** - Hardening keamanan: error pages, cookie, anti-forgery, authorization, upload validation
-- [ ] **Phase 257: Deployment Preparation** - web.config, migration script, backup strategy, runbook, publish profile
 
 ## Phase Details
 
@@ -40,15 +39,13 @@
 **Plans**: TBD
 
 ### Phase 255: Production Configuration
-**Goal**: Semua file konfigurasi production lengkap dan benar sehingga app bisa berjalan di IIS + SQL Server
+**Goal**: File konfigurasi production siap — logging level benar, connection string template jelas, debug middleware hanya di Development
 **Depends on**: Phase 254
-**Requirements**: CONF-01, CONF-02, CONF-03, CONF-04, CONF-05
+**Requirements**: CONF-01, CONF-02, CONF-04
 **Success Criteria** (what must be TRUE):
   1. appsettings.Production.json ada dengan logging level Warning untuk Microsoft.* dan Information untuk app
-  2. Connection string menggunakan placeholder yang dibaca dari environment variable (bukan hardcode credential)
-  3. HTTPS enforcement aktif di production (UseHttpsRedirection + HSTS header)
-  4. Debug/development middleware (Developer Exception Page, dsb) hanya aktif di Development environment
-  5. AllowedHosts berisi hostname spesifik (bukan wildcard "*")
+  2. Connection string di appsettings.Production.json menggunakan placeholder yang jelas dan terdokumentasi
+  3. Debug/development middleware (Developer Exception Page, dsb) hanya aktif di Development environment
 **Plans**: TBD
 
 ### Phase 256: Security Hardening
@@ -63,18 +60,6 @@
   5. Semua file upload endpoint memvalidasi extension whitelist, size limit, dan content-type
 **Plans**: TBD
 **UI hint**: yes
-
-### Phase 257: Deployment Preparation
-**Goal**: Tim infra Pertamina bisa deploy aplikasi ke IIS secara mandiri dengan dokumentasi yang lengkap
-**Depends on**: Phase 256
-**Requirements**: DEPL-01, DEPL-02, DEPL-03, DEPL-04, DEPL-05
-**Success Criteria** (what must be TRUE):
-  1. web.config lengkap dengan AspNetCoreModuleV2, WebSocket enabled, dan environment variable ASPNETCORE_ENVIRONMENT
-  2. SQL migration script tersedia dan tested (bisa dijalankan di SQL Server fresh)
-  3. Backup strategy terdokumentasi (database + upload folder + rollback procedure)
-  4. Deployment runbook step-by-step tersedia (IIS setup, DB migration, config, verify, rollback)
-  5. Publish profile untuk IIS deployment tersedia dan menghasilkan build artifact yang benar
-**Plans**: TBD
 
 <details>
 <summary>✅ v8.5 UAT Assessment System End-to-End (Phases 241-247) — SHIPPED 2026-03-24</summary>
@@ -110,11 +95,10 @@
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 254 → 255 → 256 → 257
+Phases execute in numeric order: 254 → 255 → 256
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 254. Seed Cleanup & Tech Debt Closure | v9.0 | 0/? | Not started | - |
 | 255. Production Configuration | v9.0 | 0/? | Not started | - |
 | 256. Security Hardening | v9.0 | 0/? | Not started | - |
-| 257. Deployment Preparation | v9.0 | 0/? | Not started | - |

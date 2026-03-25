@@ -6,7 +6,7 @@ status: Ready to plan
 last_updated: "2026-03-25"
 last_activity: 2026-03-25
 progress:
-  total_phases: 4
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -23,10 +23,10 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 
 ## Current Position
 
-Phase: 254 of 257 (Seed Cleanup & Tech Debt Closure)
+Phase: 254 of 256 (Seed Cleanup & Tech Debt Closure)
 Plan: 0 of ? in current phase
 Status: Ready to plan
-Last activity: 2026-03-25 — Roadmap created for v9.0 (4 phases, 23 requirements)
+Last activity: 2026-03-25 — Roadmap revised for v9.0 (3 phases, 16 requirements)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -49,7 +49,7 @@ Progress: [░░░░░░░░░░] 0%
 
 - [v9.0]: AD activation dilakukan manual oleh user, bukan bagian milestone ini
 - [v9.0]: Tech debt v4.3 (5 item) digabung dengan seed cleanup di Phase 254
-- [v9.0]: 4 phase structure: Seed+Debt → Config → Security → Deployment
+- [v9.0]: 3 phase structure: Seed+Debt → Config → Security (Phase 257 Deployment dihapus — HTML serah terima sudah dibuat)
 
 ### Pending Todos
 
@@ -58,8 +58,8 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Blockers/Concerns
 
-- LDAP path perlu divalidasi dari server production (Phase 257 runbook)
-- SQL Server version aktual belum dikonfirmasi
+- CONF-03 (HTTPS) dan CONF-05 (AllowedHosts) dipindah ke out-of-scope — urusan tim IT
+- DEPL-01~05 dipindah ke out-of-scope — HTML serah terima sudah dibuat (docs/deployment-planning.html)
 
 ## Session Continuity
 

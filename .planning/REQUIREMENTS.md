@@ -16,10 +16,8 @@ Requirements for pre-deployment audit & finalization. Each maps to roadmap phase
 ### Production Configuration
 
 - [ ] **CONF-01**: appsettings.Production.json lengkap dengan logging level Warning untuk Microsoft.*, Information untuk app
-- [ ] **CONF-02**: Connection string production menggunakan environment variable (bukan hardcode placeholder)
-- [ ] **CONF-03**: HTTPS enforcement aktif (UseHttpsRedirection + HSTS header)
+- [ ] **CONF-02**: Connection string production menggunakan placeholder yang jelas (bukan hardcode credential)
 - [ ] **CONF-04**: Debug/development middleware di-guard dengan IsDevelopment() check
-- [ ] **CONF-05**: AllowedHosts dikonfigurasi (bukan wildcard "*")
 
 ### Security Hardening
 
@@ -28,14 +26,6 @@ Requirements for pre-deployment audit & finalization. Each maps to roadmap phase
 - [ ] **SEC-03**: Anti-forgery token lengkap di semua POST actions
 - [ ] **SEC-04**: Authorization completeness audit — semua controller/action punya atribut yang benar
 - [ ] **SEC-05**: File upload validation lengkap (whitelist extension, size limit, content-type)
-
-### Deployment Preparation
-
-- [ ] **DEPL-01**: web.config untuk IIS (AspNetCoreModuleV2, WebSocket enable untuk SignalR)
-- [ ] **DEPL-02**: Database migration script (SQL script dari dev schema, tested)
-- [ ] **DEPL-03**: Pre-deploy backup strategy documented
-- [ ] **DEPL-04**: Deployment runbook step-by-step (IIS setup, DB, config, verify)
-- [ ] **DEPL-05**: Publish profile untuk IIS deployment
 
 ### Tech Debt Closure
 
@@ -67,6 +57,9 @@ Requirements for pre-deployment audit & finalization. Each maps to roadmap phase
 | SSL certificate provisioning | Tanggung jawab infra/network team |
 | Load balancer setup | Single server untuk awal |
 | Penetration test | Butuh external security team |
+| HTTPS enforcement (CONF-03) | Konfigurasi server — tanggung jawab tim IT |
+| AllowedHosts (CONF-05) | Konfigurasi server — tanggung jawab tim IT |
+| Deployment runbook (DEPL-01~05) | Sudah dibuat sebagai HTML serah terima (docs/deployment-planning.html), setup server urusan tim IT |
 
 ## Traceability
 
@@ -77,19 +70,12 @@ Requirements for pre-deployment audit & finalization. Each maps to roadmap phase
 | SEED-03 | Phase 254 | Pending |
 | CONF-01 | Phase 255 | Pending |
 | CONF-02 | Phase 255 | Pending |
-| CONF-03 | Phase 255 | Pending |
 | CONF-04 | Phase 255 | Pending |
-| CONF-05 | Phase 255 | Pending |
 | SEC-01 | Phase 256 | Pending |
 | SEC-02 | Phase 256 | Pending |
 | SEC-03 | Phase 256 | Pending |
 | SEC-04 | Phase 256 | Pending |
 | SEC-05 | Phase 256 | Pending |
-| DEPL-01 | Phase 257 | Pending |
-| DEPL-02 | Phase 257 | Pending |
-| DEPL-03 | Phase 257 | Pending |
-| DEPL-04 | Phase 257 | Pending |
-| DEPL-05 | Phase 257 | Pending |
 | DEBT-01 | Phase 254 | Pending |
 | DEBT-02 | Phase 254 | Pending |
 | DEBT-03 | Phase 254 | Pending |
@@ -97,10 +83,10 @@ Requirements for pre-deployment audit & finalization. Each maps to roadmap phase
 | DEBT-05 | Phase 254 | Pending |
 
 **Coverage:**
-- v9.0 requirements: 23 total
-- Mapped to phases: 23
+- v9.0 requirements: 16 total
+- Mapped to phases: 16
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after roadmap creation*
+*Last updated: 2026-03-25 after roadmap revision (removed Phase 257, trimmed Phase 255)*
