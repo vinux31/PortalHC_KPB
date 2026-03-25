@@ -162,7 +162,7 @@
                         <div class="col-md-6">
                             <label asp-for="Password" class="form-label fw-semibold">Password Baru</label>
                             <div class="input-group">
-                                <input asp-for="Password" type="password" class="form-control" id="passwordField" placeholder="Biarkan kosong jika tidak diubah" />
+                                <input asp-for="Password" type="password" class="form-control" id="passwordField" placeholder="Biarkan kosong jika tidak diubah" autocomplete="new-password" />
                                 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('passwordField', this)">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -172,7 +172,7 @@
                         <div class="col-md-6">
                             <label asp-for="ConfirmPassword" class="form-label fw-semibold">Konfirmasi Password Baru</label>
                             <div class="input-group">
-                                <input asp-for="ConfirmPassword" type="password" class="form-control" id="confirmPasswordField" placeholder="Ketik ulang password baru" />
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" id="confirmPasswordField" placeholder="Ketik ulang password baru" autocomplete="new-password" />
                                 <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirmPasswordField', this)">
                                     <i class="bi bi-eye"></i>
                                 </button>
@@ -256,20 +256,37 @@
         }
     }
 
-    // Password opsional saat edit — hapus client-side validation jika kosong
+    // Password opsional saat edit:
+    // 1. Hapus client-side validation attributes
+    // 2. Kosongkan password fields saat submit jika user tidak sengaja edit (autofill protection)
     (function () {
         var pwd = document.getElementById('passwordField');
         var cpwd = document.getElementById('confirmPasswordField');
-        if (pwd && cpwd) {
-            [pwd, cpwd].forEach(function (el) {
-                var toRemove = [];
-                for (var i = 0; i < el.attributes.length; i++) {
-                    if (el.attributes[i].name.startsWith('data-val')) {
-                        toRemove.push(el.attributes[i].name);
-                    }
+        if (!pwd || !cpwd) return;
+
+        // Hapus data-val-* agar client-side validation tidak blokir submit
+        [pwd, cpwd].forEach(function (el) {
+            var toRemove = [];
+            for (var i = 0; i < el.attributes.length; i++) {
+                if (el.attributes[i].name.startsWith('data-val')) {
+                    toRemove.push(el.attributes[i].name);
                 }
-                toRemove.forEach(function (a) { el.removeAttribute(a); });
-            });
-        }
+            }
+            toRemove.forEach(function (a) { el.removeAttribute(a); });
+        });
+
+        // Track apakah user sengaja mengetik di password fields
+        var userTouchedPassword = false;
+        pwd.addEventListener('input', function () { userTouchedPassword = true; });
+        cpwd.addEventListener('input', function () { userTouchedPassword = true; });
+
+        // Saat submit: jika user tidak pernah mengetik password, kosongkan fields
+        // (mencegah browser autofill yang diam-diam mengisi password)
+        document.getElementById('editWorkerForm').addEventListener('submit', function () {
+            if (!userTouchedPassword) {
+                pwd.value = '';
+                cpwd.value = '';
+            }
+        });
     })();
 </script>
