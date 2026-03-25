@@ -255,4 +255,26 @@
             icon.className = 'bi bi-eye';
         }
     }
+
+    // Password opsional saat edit — hapus client-side validation jika kosong
+    (function () {
+        var pwd = document.getElementById('passwordField');
+        var cpwd = document.getElementById('confirmPasswordField');
+        if (pwd && cpwd) {
+            [pwd, cpwd].forEach(function (el) {
+                var toRemove = [];
+                for (var i = 0; i < el.attributes.length; i++) {
+                    if (el.attributes[i].name.startsWith('data-val')) {
+                        toRemove.push(el.attributes[i].name);
+                    }
+                }
+                toRemove.forEach(function (a) { el.removeAttribute(a); });
+            });
+            var $form = $('#editWorkerForm');
+            $form.removeData('validator').removeData('unobtrusiveValidation');
+            if ($.validator && $.validator.unobtrusive) {
+                $.validator.unobtrusive.parse($form);
+            }
+        }
+    })();
 </script>
