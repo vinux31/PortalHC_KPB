@@ -72,35 +72,35 @@ Requirements for pre-deployment audit & finalization. Each maps to roadmap phase
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SEED-01 | — | Pending |
-| SEED-02 | — | Pending |
-| SEED-03 | — | Pending |
-| CONF-01 | — | Pending |
-| CONF-02 | — | Pending |
-| CONF-03 | — | Pending |
-| CONF-04 | — | Pending |
-| CONF-05 | — | Pending |
-| SEC-01 | — | Pending |
-| SEC-02 | — | Pending |
-| SEC-03 | — | Pending |
-| SEC-04 | — | Pending |
-| SEC-05 | — | Pending |
-| DEPL-01 | — | Pending |
-| DEPL-02 | — | Pending |
-| DEPL-03 | — | Pending |
-| DEPL-04 | — | Pending |
-| DEPL-05 | — | Pending |
-| DEBT-01 | — | Pending |
-| DEBT-02 | — | Pending |
-| DEBT-03 | — | Pending |
-| DEBT-04 | — | Pending |
-| DEBT-05 | — | Pending |
+| SEED-01 | Phase 254 | Pending |
+| SEED-02 | Phase 254 | Pending |
+| SEED-03 | Phase 254 | Pending |
+| CONF-01 | Phase 255 | Pending |
+| CONF-02 | Phase 255 | Pending |
+| CONF-03 | Phase 255 | Pending |
+| CONF-04 | Phase 255 | Pending |
+| CONF-05 | Phase 255 | Pending |
+| SEC-01 | Phase 256 | Pending |
+| SEC-02 | Phase 256 | Pending |
+| SEC-03 | Phase 256 | Pending |
+| SEC-04 | Phase 256 | Pending |
+| SEC-05 | Phase 256 | Pending |
+| DEPL-01 | Phase 257 | Pending |
+| DEPL-02 | Phase 257 | Pending |
+| DEPL-03 | Phase 257 | Pending |
+| DEPL-04 | Phase 257 | Pending |
+| DEPL-05 | Phase 257 | Pending |
+| DEBT-01 | Phase 254 | Pending |
+| DEBT-02 | Phase 254 | Pending |
+| DEBT-03 | Phase 254 | Pending |
+| DEBT-04 | Phase 254 | Pending |
+| DEBT-05 | Phase 254 | Pending |
 
 **Coverage:**
 - v9.0 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-25*
-*Last updated: 2026-03-25 after initial definition*
+*Last updated: 2026-03-25 after roadmap creation*

@@ -9,155 +9,112 @@
 - ✅ **v8.2** - Phases 233-238 (shipped)
 - ✅ **v8.3** - Phase 239 (shipped)
 - ✅ **v8.4** - Phase 240 (shipped)
-- 📋 **v8.5** - Phases 241-247 (defined, pending execution)
+- ✅ **v8.5** - Phases 241-247 (shipped)
 - ✅ **v8.6 Codebase Audit & Hardening** - Phases 248-252 (shipped 2026-03-24)
+- ✅ **v8.7** - Phase 253 (shipped)
+- 🚧 **v9.0 Pre-deployment Audit & Finalization** - Phases 254-257 (in progress)
 
 ## Phases
 
-### v8.5 UAT Assessment System End-to-End (Phases 241-247)
+### 🚧 v9.0 Pre-deployment Audit & Finalization (Phases 254-257)
 
-**Milestone Goal:** Simulasi dan UAT end-to-end seluruh sistem Assessment (reguler + Proton Tahun 1-3), mencakup setup, ujian, grading, sertifikat, monitoring, analytics, dan edge cases — dengan perbaikan bug yang ditemukan.
+**Milestone Goal:** Finalisasi codebase untuk production deployment — seed cleanup, production config, security hardening, dan deployment runbook.
 
-#### Phase 241: Seed Data UAT
-- **Status:** Complete
-- **Goal:** Seluruh data prasyarat UAT tersedia di environment Development sehingga semua fase UAT berikutnya dapat dieksekusi tanpa setup manual
-- **Depends on:** Nothing (first phase)
-- **Requirements:** SEED-01, SEED-02, SEED-03, SEED-04, SEED-05, SEED-06, SEED-07
-- **Success Criteria:**
-  1. Coach-coachee mapping Rustam→Rino aktif dan muncul di halaman admin Coach-Coachee Mapping
-  2. Sub-kategori "OJT Operasi Kilang" tampil dengan indentasi di bawah parent OJT pada halaman Kategori Assessment
-  3. Assessment reguler "OJT Proses Alkylation Q1-2026" tersedia dengan peserta Rino + Iwan, token required, durasi 30 menit, generate certificate aktif, dan Paket A berisi 15 soal dengan Elemen Teknis ter-assign
-  4. Assessment Proton Tahun 1 "Operator - Tahun 1" tersedia untuk Rino lengkap dengan paket soal 15 soal
-  5. Assessment Proton Tahun 3 "Operator - Tahun 3" tersedia untuk Rino dengan tipe interview dan durasi 0
-  6. Satu assessment completed dengan skor dan sertifikat tersedia untuk Rino (digunakan untuk UAT analytics, records, dan renewal)
-- **Plans:** 2 plans
-  - [x] 241-01-PLAN.md — Seed entry point + coach-coachee + kategori + assessment reguler open dengan 15 soal
-  - [x] 241-02-PLAN.md — Completed assessment (lulus+gagal) + Assessment Proton Tahun 1 & 3
+- [ ] **Phase 254: Seed Cleanup & Tech Debt Closure** - Bersihkan seed data dari production path dan tutup 5 tech debt item v4.3
+- [ ] **Phase 255: Production Configuration** - Siapkan semua file konfigurasi untuk environment production
+- [ ] **Phase 256: Security Hardening** - Hardening keamanan: error pages, cookie, anti-forgery, authorization, upload validation
+- [ ] **Phase 257: Deployment Preparation** - web.config, migration script, backup strategy, runbook, publish profile
 
-#### Phase 242: UAT Setup Flow
-- **Status:** Complete
-- **Goal:** Admin dan HC dapat melakukan seluruh alur setup assessment — dari membuat kategori hierarchy hingga melihat ET coverage matrix — tanpa error
-- **Depends on:** Phase 241
-- **Requirements:** SETUP-01, SETUP-02, SETUP-03, SETUP-04
-- **Success Criteria:**
-  1. Admin membuat sub-kategori baru dengan parent hierarchy dan melihat tampilan indent yang benar di daftar kategori
-  2. Admin/HC membuat assessment baru dengan token required, jadwal, durasi, dan generate certificate — assessment muncul di daftar ManageAssessment
-  3. Admin membuat paket soal baru dan berhasil import 15 soal via paste Excel dengan kolom Elemen Teknis — semua soal tersimpan
-  4. Admin membuka halaman paket soal dan melihat ET coverage matrix yang menampilkan distribusi soal per elemen, serta dapat preview soal individual
-- **Plans:** 2 plans
-  - [x] 242-01-PLAN.md — Code review & UAT Kategori hierarchy + CreateAssessment (SETUP-01, SETUP-02)
-  - [x] 242-02-PLAN.md — Code review & UAT Paket Soal, Import, ET Matrix, Preview (SETUP-03, SETUP-04)
+## Phase Details
 
-#### Phase 243: UAT Exam Flow
-- **Status:** Pending
-- **Goal:** Worker dapat menyelesaikan siklus ujian penuh — dari input token hingga mencetak sertifikat — dengan semua mekanisme integritas berfungsi
-- **Depends on:** Phase 241
-- **Requirements:** EXAM-01, EXAM-02, EXAM-03, EXAM-04, EXAM-05, EXAM-06, EXAM-07
-- **Success Criteria:**
-  1. Worker membuka halaman Assessment, melihat assessment yang ditugaskan, input token yang benar, dan ujian dimulai
-  2. Worker mengerjakan ujian dengan soal dan opsi dalam urutan acak, dapat berpindah halaman, dan jawaban tersimpan otomatis per klik
-  3. Timer countdown wall-clock berjalan akurat, menampilkan warning visual saat ≤5 menit tersisa, dan ujian auto-submit saat timer habis
-  4. Worker disconnect dan kembali — ujian dilanjutkan dari page terakhir dengan sisa waktu akurat dan jawaban sebelumnya masih terpilih
-  5. Worker membuka ExamSummary, melihat ringkasan jawaban, submit, dan sistem menampilkan skor beserta radar chart ET
-  6. Worker yang lulus dapat melihat sertifikat dengan nomor otomatis format KPB/SEQ/BULAN/TAHUN dan mencetak/download sebagai PDF
-- **Plans:** 2 plans
-  - [x] 243-01-PLAN.md — Code review & UAT start exam, take exam, timer, resume (EXAM-01 s/d EXAM-04)
-  - [x] 243-02-PLAN.md — Code review & UAT summary, submit, results, certificate (EXAM-05 s/d EXAM-07)
+### Phase 254: Seed Cleanup & Tech Debt Closure
+**Goal**: Codebase bersih dari data test di production path dan semua tech debt v4.3 tertutup
+**Depends on**: Nothing (first phase v9.0)
+**Requirements**: SEED-01, SEED-02, SEED-03, DEBT-01, DEBT-02, DEBT-03, DEBT-04, DEBT-05
+**Success Criteria** (what must be TRUE):
+  1. SeedProtonData hanya berjalan di environment Development (ada IsDevelopment guard)
+  2. Semua method Seed* yang mengandung data test memiliki environment guard dan bersifat idempotent
+  3. Bare catch di AdminController:1072 sudah diganti dengan proper exception handling dan logging
+  4. 3 orphaned KkjMatrixItemId columns sudah di-cleanup dari model/migration
+  5. 5 near-duplicate code pairs sudah di-extract atau didokumentasikan keputusan keep
+**Plans**: TBD
 
-#### Phase 244: UAT Monitoring & Analytics
-- **Status:** Pending
-- **Goal:** HC dapat memantau ujian secara real-time, mengelola token, dan mengakses analytics assessment yang akurat
-- **Depends on:** Phase 241
-- **Requirements:** MON-01, MON-02, MON-03, MON-04
-- **Success Criteria:**
-  1. HC membuka halaman AssessmentMonitoring saat ujian berlangsung dan melihat stat cards serta status (answered/total, timer, status badge) setiap peserta diperbarui secara real-time via SignalR
-  2. HC dapat menyalin token, melakukan regenerate token (token lama invalid), force close ujian peserta, dan reset peserta agar dapat ujian ulang — semua dari halaman monitoring
-  3. HC mengekspor hasil ujian ke file Excel yang dapat dibuka dan berisi data peserta, skor, dan status
-  4. HC membuka analytics dashboard dan melihat fail rate, tren skor, ET breakdown, dan expiring soon — cascading filter Bagian/Unit/Kategori berfungsi
-- **Plans:** 2 plans
-  - [x] 244-01-PLAN.md — UAT monitoring real-time SignalR + token management (MON-01, MON-02)
-  - [x] 244-02-PLAN.md — UAT export Excel + analytics dashboard filter (MON-03, MON-04)
+### Phase 255: Production Configuration
+**Goal**: Semua file konfigurasi production lengkap dan benar sehingga app bisa berjalan di IIS + SQL Server
+**Depends on**: Phase 254
+**Requirements**: CONF-01, CONF-02, CONF-03, CONF-04, CONF-05
+**Success Criteria** (what must be TRUE):
+  1. appsettings.Production.json ada dengan logging level Warning untuk Microsoft.* dan Information untuk app
+  2. Connection string menggunakan placeholder yang dibaca dari environment variable (bukan hardcode credential)
+  3. HTTPS enforcement aktif di production (UseHttpsRedirection + HSTS header)
+  4. Debug/development middleware (Developer Exception Page, dsb) hanya aktif di Development environment
+  5. AllowedHosts berisi hostname spesifik (bukan wildcard "*")
+**Plans**: TBD
 
-#### Phase 245: UAT Proton Assessment
-- **Status:** Pending
-- **Goal:** Alur assessment Proton Tahun 1/2 (ujian online) dan Tahun 3 (interview) berjalan end-to-end hingga sertifikat Proton dihasilkan
-- **Depends on:** Phase 241
-- **Requirements:** PROT-01, PROT-02, PROT-03, PROT-04
-- **Success Criteria:**
-  1. Admin membuat assessment Proton Tahun 1 dengan track selection, assign peserta, dan worker dapat mengikuti ujian online dengan flow yang sama seperti assessment reguler
-  2. Admin membuat assessment Proton Tahun 3 dengan tipe interview dan durasi 0 — assessment tersimpan tanpa memerlukan paket soal
-  3. HC membuka halaman input hasil interview Tahun 3, mengisi 5 aspek penilaian (skor 1-5), nama juri, catatan, dan menandai IsPassed secara manual — data tersimpan
-  4. Setelah HC menandai Tahun 3 lulus, ProtonFinalAssessment dibuat otomatis dan sertifikat Proton di-generate serta dapat diakses peserta
-- **Plans:** 2 plans
-  - [x] 245-01-PLAN.md — Code review PROT-01 s/d PROT-04 (CreateAssessment Proton, SubmitInterviewResults, ProtonFinalAssessment)
-  - [ ] 245-02-PLAN.md — Human verification UAT Proton di browser (exam Tahun 1, interview Tahun 3, sertifikat)
+### Phase 256: Security Hardening
+**Goal**: Aplikasi aman dari serangan umum web dengan error handling, cookie security, dan authorization yang lengkap
+**Depends on**: Phase 255
+**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05
+**Success Criteria** (what must be TRUE):
+  1. Halaman error custom tampil untuk 404/403/500 tanpa expose stack trace atau detail internal
+  2. Cookie authentication dikonfigurasi Secure=Always, HttpOnly=true, SameSite yang tepat
+  3. Semua POST action memiliki anti-forgery token (tidak ada gap CSRF)
+  4. Setiap controller/action memiliki atribut authorization yang benar (audit matrix lengkap)
+  5. Semua file upload endpoint memvalidasi extension whitelist, size limit, dan content-type
+**Plans**: TBD
+**UI hint**: yes
 
-#### Phase 246: UAT Edge Cases & Records
-- **Status:** Pending
-- **Goal:** Sistem menangani kondisi tidak normal (token salah, force close, regenerate) dengan benar, renewal sertifikat expired berjalan end-to-end, dan worker/HC dapat melihat riwayat lengkap
-- **Depends on:** Phase 241
-- **Requirements:** EDGE-01, EDGE-02, EDGE-03, EDGE-04, REC-01, REC-02
-- **Success Criteria:**
-  1. Worker yang memasukkan token salah mendapat pesan error yang jelas dan tidak dapat memulai ujian; token expired/invalid juga ditolak
-  2. HC force close mengakhiri ujian worker secara langsung (worker di-redirect ke Results) dan HC reset memungkinkan worker mengikuti ujian ulang dari awal
-  3. HC regenerate token menghasilkan token baru dan token lama tidak dapat digunakan untuk memulai ujian
-  4. Alarm sertifikat expired di Home/Index → klik link → halaman RenewalCertificate → proses renewal → sertifikat baru terbuat end-to-end
-  5. Worker membuka My Records dan melihat riwayat assessment pribadi dengan kolom lengkap serta dapat export ke Excel
-  6. HC membuka Team View Records, memfilter dengan date range, melihat data seluruh pekerja, dan dapat export ke Excel
-- **Plans:** 2 plans
-  - [x] 246-01-PLAN.md — Seed data tambahan (token-required session + expired certificate)
-  - [x] 246-02-PLAN.md — Browser UAT edge cases + renewal + records (7 HV items)
+### Phase 257: Deployment Preparation
+**Goal**: Tim infra Pertamina bisa deploy aplikasi ke IIS secara mandiri dengan dokumentasi yang lengkap
+**Depends on**: Phase 256
+**Requirements**: DEPL-01, DEPL-02, DEPL-03, DEPL-04, DEPL-05
+**Success Criteria** (what must be TRUE):
+  1. web.config lengkap dengan AspNetCoreModuleV2, WebSocket enabled, dan environment variable ASPNETCORE_ENVIRONMENT
+  2. SQL migration script tersedia dan tested (bisa dijalankan di SQL Server fresh)
+  3. Backup strategy terdokumentasi (database + upload folder + rollback procedure)
+  4. Deployment runbook step-by-step tersedia (IIS setup, DB migration, config, verify, rollback)
+  5. Publish profile untuk IIS deployment tersedia dan menghasilkan build artifact yang benar
+**Plans**: TBD
 
-#### Phase 247: Bug Fix Pasca-UAT
-- **Status:** Pending
-- **Goal:** Semua bug yang ditemukan selama simulasi UAT (Phase 242-246) diperbaiki, diverifikasi, dan tidak ada regresi
-- **Depends on:** Phase 246
-- **Requirements:** FIX-01
-- **Success Criteria:**
-  1. Setiap bug yang dicatat selama UAT memiliki fix yang dapat diverifikasi ulang di browser
-  2. Alur yang sebelumnya gagal dalam UAT kini berjalan tanpa error setelah fix diterapkan
-  3. Tidak ada regresi pada fitur yang sebelumnya bekerja normal (fitur di luar scope bug yang ditemukan tetap berfungsi)
-- **Plans:** 2 plans
-  - [x] 247-01-PLAN.md — Fix ET distribution algorithm + verifikasi BUG-02 + admin cleanup
-  - [x] 247-02-PLAN.md — Browser UAT verification semua pending items Phase 244 + 246
+<details>
+<summary>✅ v8.5 UAT Assessment System End-to-End (Phases 241-247) — SHIPPED 2026-03-24</summary>
+
+- [x] Phase 241: Seed Data UAT (2/2 plans)
+- [x] Phase 242: UAT Setup Flow (2/2 plans)
+- [x] Phase 243: UAT Exam Flow (2/2 plans)
+- [x] Phase 244: UAT Monitoring & Analytics (2/2 plans)
+- [x] Phase 245: UAT Proton Assessment (2/2 plans)
+- [x] Phase 246: UAT Edge Cases & Records (2/2 plans)
+- [x] Phase 247: Bug Fix Pasca-UAT (2/2 plans)
+
+</details>
 
 <details>
 <summary>✅ v8.6 Codebase Audit & Hardening (Phases 248-252) — SHIPPED 2026-03-24</summary>
 
-- [x] Phase 248: UI & Annotations (1/1 plans) — completed 2026-03-24
-- [x] Phase 249: Null Safety & Input Validation (2/2 plans) — completed 2026-03-24
-- [x] Phase 250: Security & Performance (1/1 plans) — completed 2026-03-24
-- [x] Phase 251: Data Integrity & Logic (2/2 plans) — completed 2026-03-24
-- [x] Phase 252: XSS Escape AJAX Approval Badge (1/1 plans) — completed 2026-03-24
+- [x] Phase 248: UI & Annotations (1/1 plans)
+- [x] Phase 249: Null Safety & Input Validation (2/2 plans)
+- [x] Phase 250: Security & Performance (1/1 plans)
+- [x] Phase 251: Data Integrity & Logic (2/2 plans)
+- [x] Phase 252: XSS Escape AJAX Approval Badge (1/1 plans)
 
-Full details: `.planning/milestones/v8.6-ROADMAP.md`
+</details>
+
+<details>
+<summary>✅ v8.7 AddTraining Multi-Select (Phase 253) — SHIPPED 2026-03-25</summary>
+
+- [x] Phase 253: AddTraining multi-select pekerja dan perbaikan form (2/2 plans)
 
 </details>
 
 ## Progress
 
+**Execution Order:**
+Phases execute in numeric order: 254 → 255 → 256 → 257
+
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 241. Seed Data UAT | v8.5 | 2/2 | Complete | 2026-03-24 |
-| 242. UAT Setup Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 243. UAT Exam Flow | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 244. UAT Monitoring & Analytics | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 245. UAT Proton Assessment | v8.5 | 1/2 | Complete    | 2026-03-24 |
-| 246. UAT Edge Cases & Records | v8.5 | 2/2 | Complete    | 2026-03-24 |
-| 247. Bug Fix Pasca-UAT | v8.5 | 2/2 | Complete   | 2026-03-24 |
-| 248. UI & Annotations | v8.6 | 1/1 | Complete | 2026-03-24 |
-| 249. Null Safety & Input Validation | v8.6 | 2/2 | Complete | 2026-03-24 |
-| 250. Security & Performance | v8.6 | 1/1 | Complete | 2026-03-24 |
-| 251. Data Integrity & Logic | v8.6 | 2/2 | Complete | 2026-03-24 |
-| 252. XSS Escape AJAX Approval Badge | v8.6 | 1/1 | Complete | 2026-03-24 |
-
-### Phase 253: AddTraining multi-select pekerja dan perbaikan form
-
-**Goal:** Ubah halaman AddTraining agar bisa memilih lebih dari 1 pekerja sekaligus (multi-select), sehingga 1 training record dibuat per pekerja yang dipilih. Perbaikan lain termasuk fix duplikasi kategori "Assessment Proton" di dropdown.
-**Requirements**: MS-01, MS-02, MS-03, MS-04, MS-05, MS-06
-**Depends on:** Phase 252
-**Plans:** 1/2 plans executed
-
-Plans:
-- [x] 253-01-PLAN.md — ViewModel PerWorkerCertData + POST handler multi-select + kategori dedup
-- [ ] 253-02-PLAN.md — Tom Select multi-select UI + dynamic per-worker cert cards
+| 254. Seed Cleanup & Tech Debt Closure | v9.0 | 0/? | Not started | - |
+| 255. Production Configuration | v9.0 | 0/? | Not started | - |
+| 256. Security Hardening | v9.0 | 0/? | Not started | - |
+| 257. Deployment Preparation | v9.0 | 0/? | Not started | - |
