@@ -1,5 +1,23 @@
 # Milestones
 
+## v9.1 UAT Coaching Proton End-to-End (Shipped: 2026-03-25)
+
+**Phases completed:** 1 of 5 phases (257), 2 plans
+**Timeline:** 2026-03-25 (1 day)
+
+**Delivered:** Code review dan bug fix untuk coach-coachee mapping flow (MAP-01..08). Fix progression warning yang tidak trigger untuk 0 progress records.
+
+**Key accomplishments:**
+
+1. Code review 8 mapping requirements — list/pagination, assign, import Excel, template download, track assignment, deactivate cascade, reactivate reuse, progression warning
+2. Bug fix: progression warning `prevProgressCount > 0` check — coachee tanpa progress Tahun 1 tidak lagi bisa di-assign Tahun 2 tanpa warning
+
+**Known Gaps:**
+- Phase 258-261 skipped (SIL-01..06, EVI-01..05, APR-01..07, DSH-01..06 not executed)
+- Milestone closed early by user decision
+
+---
+
 ## v8.6 Codebase Audit & Hardening (Shipped: 2026-03-24)
 
 **Phases completed:** 5 phases, 7 plans, 5 tasks

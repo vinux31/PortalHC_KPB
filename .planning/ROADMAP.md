@@ -12,97 +12,21 @@
 - ✅ **v8.5** - Phases 241-247 (shipped)
 - ✅ **v8.6 Codebase Audit & Hardening** - Phases 248-252 (shipped 2026-03-24)
 - ✅ **v8.7** - Phase 253 (shipped)
-- ⏸️ **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (deferred — dikerjakan setelah v9.1)
-- 🚧 **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (in progress)
+- ⏸️ **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (deferred)
+- ✅ **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (shipped 2026-03-25, partial — Phase 257 only)
 
 ## Phases
 
-### 🚧 v9.1 UAT Coaching Proton End-to-End (Phases 257-261)
+<details>
+<summary>✅ v9.1 UAT Coaching Proton End-to-End (Phases 257-261) — SHIPPED 2026-03-25 (partial)</summary>
 
-**Milestone Goal:** Verifikasi end-to-end flow Coaching Proton — temukan dan perbaiki semua bug sebelum production deployment.
+- [x] Phase 257: Setup & Mapping (2/2 plans)
+- [ ] Phase 258: Silabus & Guidance (skipped)
+- [ ] Phase 259: Evidence & Coaching Session (skipped)
+- [ ] Phase 260: Approval Chain (skipped)
+- [ ] Phase 261: Dashboard, Export & Completion (skipped)
 
-- [ ] **Phase 257: Setup & Mapping** - Test CRUD coach-coachee mapping, import Excel, assign track, deactivate/reactivate, progression warning
-- [ ] **Phase 258: Silabus & Guidance** - Test upload/edit/delete silabus hierarchy, upload/replace/delete guidance files
-- [ ] **Phase 259: Evidence & Coaching Session** - Test submit evidence + coaching session, edit/delete session, resubmit after rejection
-- [ ] **Phase 260: Approval Chain** - Test SrSpv approve/reject → SH approve/reject → HC review, audit trail
-- [ ] **Phase 261: Dashboard, Export & Completion** - Test dashboard per role, export Excel/PDF, final assessment, graduation
-
-## Phase Details
-
-### Phase 257: Setup & Mapping
-**Goal**: Semua flow coach-coachee mapping berjalan tanpa error — CRUD, import, assign track, deactivate/reactivate
-**Depends on**: Nothing (first phase v9.1)
-**Requirements**: MAP-01, MAP-02, MAP-03, MAP-04, MAP-05, MAP-06, MAP-07, MAP-08
-**Success Criteria** (what must be TRUE):
-  1. Halaman CoachCoacheeMapping tampil dengan data, pagination, dan search berfungsi
-  2. Assign coach ke coachee via modal berhasil + ProtonTrackAssignment terbuat jika TrackId dipilih
-  3. Import Excel berhasil (create, reactivate, skip duplicate) dengan feedback yang jelas
-  4. Deactivate mapping → TrackAssignment ikut deactivate; Reactivate → reuse assignment lama
-  5. Warning D-09 muncul saat assign Tahun 2+ dengan Tahun sebelumnya belum selesai
-**Plans**: 2 plans
-Plans:
-- [x] 257-01-PLAN.md — Code review + bug fix MAP-01..05 (list, assign, import, template, track assignment)
-- [x] 257-02-PLAN.md — Code review + bug fix MAP-06..08 (deactivate, reactivate, progression warning)
-
-### Phase 258: Silabus & Guidance
-**Goal**: Struktur kompetensi bisa dikelola lengkap dan guidance files bisa diakses oleh coach/coachee
-**Depends on**: Phase 257 (mapping harus ada untuk konteks Bagian/Unit)
-**Requirements**: SIL-01, SIL-02, SIL-03, SIL-04, SIL-05, SIL-06
-**Success Criteria** (what must be TRUE):
-  1. Upload silabus Excel berhasil membuat/update hierarki Kompetensi → SubKompetensi → Deliverable
-  2. Deliverable yang dihapus dari payload baru ikut terhapus (orphan cleanup)
-  3. Deactivate/reactivate kompetensi berfungsi
-  4. Upload, replace, delete guidance file berfungsi
-  5. Coach dan Coachee bisa download guidance file
-**Plans**: 2 plans
-Plans:
-- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
-- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
-
-### Phase 259: Evidence & Coaching Session
-**Goal**: Flow submit evidence + coaching session berjalan end-to-end tanpa error
-**Depends on**: Phase 258 (silabus + deliverable harus ada)
-**Requirements**: EVI-01, EVI-02, EVI-03, EVI-04, EVI-05
-**Success Criteria** (what must be TRUE):
-  1. Coach berhasil submit evidence + catatan coaching → CoachingSession terbuat dengan status Submitted
-  2. Validasi mapping aktif berfungsi (coach tanpa mapping tidak bisa submit)
-  3. Edit coaching session berhasil update CatatanCoach, Kesimpulan, Result
-  4. Delete coaching session berhasil + ActionItems ikut terhapus
-  5. Resubmit setelah rejection → approval SrSpv/SH reset ke Pending, evidence history tersimpan
-**Plans**: 2 plans
-Plans:
-- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
-- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
-
-### Phase 260: Approval Chain
-**Goal**: Multi-stage approval (SrSpv → SH → HC) berjalan benar dengan audit trail lengkap
-**Depends on**: Phase 259 (evidence harus ada dalam status Submitted)
-**Requirements**: APR-01, APR-02, APR-03, APR-04, APR-05, APR-06, APR-07
-**Success Criteria** (what must be TRUE):
-  1. SrSpv bisa approve dan reject (dengan alasan) deliverable
-  2. SectionHead bisa approve dan reject deliverable
-  3. HC bisa mark deliverable sebagai "Reviewed"
-  4. Setiap status change tercatat di DeliverableStatusHistory dengan actor, role, timestamp
-  5. Role scoping benar — SrSpv/SH hanya lihat coachee di section mereka
-**Plans**: 2 plans
-Plans:
-- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
-- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
-
-### Phase 261: Dashboard, Export & Completion
-**Goal**: Dashboard, export, dan completion flow berfungsi benar untuk semua role
-**Depends on**: Phase 260 (butuh data approved untuk test completion)
-**Requirements**: DSH-01, DSH-02, DSH-03, DSH-04, DSH-05, DSH-06
-**Success Criteria** (what must be TRUE):
-  1. CoachingProton dashboard menampilkan data sesuai role (Admin/HC=all, Coach=mapped, SrSpv/SH=section, Coachee=own)
-  2. Filter dan pagination berfungsi
-  3. Export Excel dan PDF berisi data yang benar dan lengkap
-  4. HC bisa buat final assessment setelah semua deliverable approved
-  5. Graduation flag IsCompleted bisa di-set dan tersimpan
-**Plans**: 2 plans
-Plans:
-- [ ] 258-01-PLAN.md — Code review + bug fix silabus management (SIL-01, SIL-02, SIL-03)
-- [ ] 258-02-PLAN.md — Code review + bug fix guidance file management (SIL-04, SIL-05, SIL-06)
+</details>
 
 <details>
 <summary>⏸️ v9.0 Pre-deployment Audit & Finalization (Phases 254-256) — DEFERRED</summary>
@@ -145,16 +69,3 @@ Backup: `.planning/milestones/v9.0-REQUIREMENTS.md`, `.planning/milestones/v9.0-
 - [x] Phase 253: AddTraining multi-select pekerja dan perbaikan form (2/2 plans)
 
 </details>
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 257 → 258 → 259 → 260 → 261
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 257. Setup & Mapping | v9.1 | 2/2 | Complete    | 2026-03-25 |
-| 258. Silabus & Guidance | v9.1 | 0/? | Not started | - |
-| 259. Evidence & Coaching Session | v9.1 | 0/? | Not started | - |
-| 260. Approval Chain | v9.1 | 0/? | Not started | - |
-| 261. Dashboard, Export & Completion | v9.1 | 0/? | Not started | - |
