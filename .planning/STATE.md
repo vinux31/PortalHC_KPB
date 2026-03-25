@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v8.5
 milestone_name: UAT Assessment System End-to-End
-status: Executing Phase 247
-stopped_at: Completed 247-01-PLAN.md
-last_updated: "2026-03-24T11:57:03.268Z"
+status: Executing Phase 253
+last_updated: "2026-03-25T01:25:47.481Z"
+last_activity: 2026-03-25
 progress:
-  total_phases: 7
-  completed_phases: 6
-  total_plans: 14
-  completed_plans: 13
+  total_phases: 8
+  completed_phases: 7
+  total_plans: 16
+  completed_plans: 14
 ---
 
 # Project State: Portal HC KPB
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 247 — bug-fix-pasca-uat
+**Current focus:** Phase 253 — addtraining-multi-select-pekerja-dan-perbaikan-form
 
 ## Current Position
 
-Phase: 247 (bug-fix-pasca-uat) — EXECUTING
+Phase: 253 (addtraining-multi-select-pekerja-dan-perbaikan-form) — EXECUTING
 Plan: 1 of 2
 
 ## Performance Metrics
@@ -116,4 +116,4 @@ Plan: 1 of 2
 
 ## Session Continuity
 
-Last activity: 2026-03-25 - Completed quick task 260325-bx1: Fix EditWorker save requiring password fields
+Last activity: 2026-03-25

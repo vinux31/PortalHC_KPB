@@ -156,8 +156,8 @@ Full details: `.planning/milestones/v8.6-ROADMAP.md`
 **Goal:** Ubah halaman AddTraining agar bisa memilih lebih dari 1 pekerja sekaligus (multi-select), sehingga 1 training record dibuat per pekerja yang dipilih. Perbaikan lain termasuk fix duplikasi kategori "Assessment Proton" di dropdown.
 **Requirements**: MS-01, MS-02, MS-03, MS-04, MS-05, MS-06
 **Depends on:** Phase 252
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 253-01-PLAN.md — ViewModel PerWorkerCertData + POST handler multi-select + kategori dedup
+- [x] 253-01-PLAN.md — ViewModel PerWorkerCertData + POST handler multi-select + kategori dedup
 - [ ] 253-02-PLAN.md — Tom Select multi-select UI + dynamic per-worker cert cards
