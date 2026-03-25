@@ -1,15 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v9.0
-milestone_name: Pre-deployment Audit & Finalization
-status: Ready to plan
-last_updated: "2026-03-25"
-last_activity: 2026-03-25
+milestone: v9.1
+milestone_name: UAT Coaching Proton End-to-End
+status: planning
+stopped_at: Phase 257 context gathered
+last_updated: "2026-03-25T03:08:07.017Z"
+last_activity: 2026-03-25 — Milestone v9.1 created (5 phases, 32 requirements)
 progress:
-  total_phases: 3
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State: Portal HC KPB
@@ -19,20 +21,21 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** v9.0 Pre-deployment Audit & Finalization — Phase 254
+**Current focus:** v9.1 UAT Coaching Proton End-to-End — Phase 257
 
 ## Current Position
 
-Phase: 254 of 256 (Seed Cleanup & Tech Debt Closure)
+Phase: 257 of 261 (Setup & Mapping)
 Plan: 0 of ? in current phase
 Status: Ready to plan
-Last activity: 2026-03-25 — Roadmap revised for v9.0 (3 phases, 16 requirements)
+Last activity: 2026-03-25 — Milestone v9.1 created (5 phases, 32 requirements)
 
 Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: -
 - Total execution time: 0 hours
@@ -47,9 +50,9 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-- [v9.0]: AD activation dilakukan manual oleh user, bukan bagian milestone ini
-- [v9.0]: Tech debt v4.3 (5 item) digabung dengan seed cleanup di Phase 254
-- [v9.0]: 3 phase structure: Seed+Debt → Config → Security (Phase 257 Deployment dihapus — HTML serah terima sudah dibuat)
+- [v9.1]: v9.0 di-defer, v9.1 dikerjakan duluan (UAT Coaching Proton)
+- [v9.1]: 5 phase structure berdasarkan use-case flow (bukan per page/role)
+- [v9.1]: Pendekatan: Claude analisa code → fix bug → user verifikasi di browser
 
 ### Pending Todos
 
@@ -58,11 +61,10 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Blockers/Concerns
 
-- CONF-03 (HTTPS) dan CONF-05 (AllowedHosts) dipindah ke out-of-scope — urusan tim IT
-- DEPL-01~05 dipindah ke out-of-scope — HTML serah terima sudah dibuat (docs/deployment-planning.html)
+- Butuh seed data (mapping, silabus, track assignment) untuk test flow Phase 259-261
 
 ## Session Continuity
 
 Last activity: 2026-03-25
-Stopped at: Roadmap created, ready to plan Phase 254
-Resume file: None
+Stopped at: Phase 257 context gathered
+Resume file: .planning/phases/257-setup-mapping/257-CONTEXT.md
