@@ -813,11 +813,15 @@ namespace HcPortal.Controllers
 
         private async Task SetTrainingCategoryViewBag()
         {
-            ViewBag.KategoriOptions = await _context.AssessmentCategories
+            var allCats = await _context.AssessmentCategories
                 .Where(c => c.ParentId == null && c.IsActive)
                 .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
                 .Select(c => new { c.Id, c.Name })
                 .ToListAsync();
+            ViewBag.KategoriOptions = allCats
+                .GroupBy(c => c.Name)
+                .Select(g => g.First())
+                .ToList();
 
             ViewBag.SubKategoriOptions = await _context.AssessmentCategories
                 .Where(c => c.ParentId != null && c.IsActive)

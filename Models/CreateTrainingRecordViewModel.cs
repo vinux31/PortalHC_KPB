@@ -5,7 +5,6 @@ namespace HcPortal.Models
 {
     public class CreateTrainingRecordViewModel
     {
-        [Required(ErrorMessage = "Pekerja harus dipilih")]
         [Display(Name = "Pekerja")]
         public string UserId { get; set; } = "";
 
@@ -59,5 +58,14 @@ namespace HcPortal.Models
 
         public int? RenewsTrainingId { get; set; }
         public int? RenewsSessionId { get; set; }
+
+        public List<PerWorkerCertData>? WorkerCerts { get; set; }
+    }
+
+    public class PerWorkerCertData
+    {
+        public string UserId { get; set; } = "";
+        public IFormFile? CertificateFile { get; set; }
+        public string? NomorSertifikat { get; set; }
     }
 }
