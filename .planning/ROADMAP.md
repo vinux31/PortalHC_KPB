@@ -69,3 +69,23 @@ Backup: `.planning/milestones/v9.0-REQUIREMENTS.md`, `.planning/milestones/v9.0-
 - [x] Phase 253: AddTraining multi-select pekerja dan perbaikan form (2/2 plans)
 
 </details>
+
+### Phase 259: Export Categories (Excel & PDF) + Bug Fix Signatory
+
+**Goal:** Fix bug signatory sub-kategori dan tambah export Excel/PDF di ManageCategories
+**Requirements**: N/A
+**Depends on:** None
+**Plans:** 1 plan
+
+Plans:
+- [ ] 259-01-PLAN.md — Bug fix signatory + export Excel & PDF + tombol UI
+
+### Phase 1: Tambahkan tombol hapus worker di halaman ManageWorkers
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 0
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 1 to break down)
