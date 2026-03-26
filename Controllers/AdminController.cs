@@ -7795,6 +7795,9 @@ namespace HcPortal.Controllers
             var unit = await _context.OrganizationUnits.FindAsync(id);
             if (unit == null) return NotFound();
 
+            string oldName = unit.Name;
+            int? oldParentId = unit.ParentId;
+
             if (string.IsNullOrWhiteSpace(name))
             {
                 TempData["Error"] = "Nama tidak boleh kosong.";
@@ -7837,10 +7840,69 @@ namespace HcPortal.Controllers
                 await UpdateChildrenLevelsAsync(unit);
             }
 
+            // Cascade rename and reparent to denormalized fields
+            int cascadedUsers = 0;
+            int cascadedMappings = 0;
+
+            // Cascade rename
+            if (oldName != name.Trim())
+            {
+                if (unit.Level == 0)
+                {
+                    var affectedUsers = await _context.Users.Where(u => u.Section == oldName).ToListAsync();
+                    foreach (var u in affectedUsers) u.Section = name.Trim();
+                    cascadedUsers += affectedUsers.Count;
+
+                    var affectedMappings = await _context.CoachCoacheeMappings.Where(m => m.AssignmentSection == oldName).ToListAsync();
+                    foreach (var m in affectedMappings) m.AssignmentSection = name.Trim();
+                    cascadedMappings += affectedMappings.Count;
+                }
+                else
+                {
+                    var affectedUsers = await _context.Users.Where(u => u.Unit == oldName).ToListAsync();
+                    foreach (var u in affectedUsers) u.Unit = name.Trim();
+                    cascadedUsers += affectedUsers.Count;
+
+                    var affectedMappings = await _context.CoachCoacheeMappings.Where(m => m.AssignmentUnit == oldName).ToListAsync();
+                    foreach (var m in affectedMappings) m.AssignmentUnit = name.Trim();
+                    cascadedMappings += affectedMappings.Count;
+                }
+            }
+
+            // Cascade reparent — update Section for users in this unit when parent changes
+            if (oldParentId != parentId && unit.Level >= 1)
+            {
+                // Find root ancestor (Level 0) from new parent
+                string newSectionName = "";
+                if (parentId.HasValue)
+                {
+                    var ancestor = await _context.OrganizationUnits.FindAsync(parentId.Value);
+                    while (ancestor != null && ancestor.Level > 0 && ancestor.ParentId.HasValue)
+                    {
+                        ancestor = await _context.OrganizationUnits.FindAsync(ancestor.ParentId.Value);
+                    }
+                    if (ancestor != null) newSectionName = ancestor.Name;
+                }
+
+                if (!string.IsNullOrEmpty(newSectionName))
+                {
+                    var reparentUsers = await _context.Users.Where(u => u.Unit == oldName).ToListAsync();
+                    foreach (var u in reparentUsers) u.Section = newSectionName;
+                    cascadedUsers += reparentUsers.Count;
+
+                    var reparentMappings = await _context.CoachCoacheeMappings.Where(m => m.AssignmentUnit == oldName).ToListAsync();
+                    foreach (var m in reparentMappings) m.AssignmentSection = newSectionName;
+                    cascadedMappings += reparentMappings.Count;
+                }
+            }
+
             unit.Name = name.Trim();
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Unit berhasil diperbarui.";
+            if (cascadedUsers > 0 || cascadedMappings > 0)
+                TempData["Success"] = $"Unit berhasil diperbarui. {cascadedUsers} user dan {cascadedMappings} mapping terupdate.";
+            else
+                TempData["Success"] = "Unit berhasil diperbarui.";
             return RedirectToAction("ManageOrganization");
         }
 
@@ -7884,6 +7946,21 @@ namespace HcPortal.Controllers
             {
                 TempData["Error"] = "Nonaktifkan semua unit di bawahnya terlebih dahulu.";
                 return RedirectToAction("ManageOrganization");
+            }
+
+            if (unit.IsActive)
+            {
+                bool hasActiveUsers;
+                if (unit.Level == 0)
+                    hasActiveUsers = await _context.Users.AnyAsync(u => u.Section == unit.Name);
+                else
+                    hasActiveUsers = await _context.Users.AnyAsync(u => u.Unit == unit.Name);
+
+                if (hasActiveUsers)
+                {
+                    TempData["Error"] = "Tidak dapat menonaktifkan unit. Masih ada user aktif yang terdaftar di unit ini. Pindahkan semua user terlebih dahulu.";
+                    return RedirectToAction("ManageOrganization");
+                }
             }
 
             unit.IsActive = !unit.IsActive;
