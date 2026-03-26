@@ -1,15 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v9.1
-milestone_name: UAT Coaching Proton End-to-End
+milestone: v1.0
+milestone_name: milestone
 status: Complete
-last_updated: "2026-03-25"
-last_activity: 2026-03-25
+stopped_at: Phase 1 context gathered
+last_updated: "2026-03-26T01:40:15.144Z"
+last_activity: "2026-03-25 - Completed quick task 260325-m98: Hapus teks CDP breadcrumb di CDP/Index"
 progress:
-  total_phases: 5
+  total_phases: 2
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State: Portal HC KPB
@@ -33,6 +34,10 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 - [v9.1]: Milestone closed early — hanya Phase 257 dieksekusi
 - [v9.1]: Phase 258-261 skipped by user decision
 
+### Roadmap Evolution
+
+- Phase 1 added: Tambahkan tombol hapus worker di halaman ManageWorkers
+
 ### Pending Todos
 
 - Phase 235 pending UAT: 5 items butuh human verification via browser
@@ -41,7 +46,7 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 ## Session Continuity
 
 Last activity: 2026-03-25 - Completed quick task 260325-m98: Hapus teks CDP breadcrumb di CDP/Index
-Stopped at: Milestone v9.1 archived
+Stopped at: Phase 1 context gathered
 
 ### Quick Tasks Completed
 
