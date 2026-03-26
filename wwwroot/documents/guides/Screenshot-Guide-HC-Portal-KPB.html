@@ -23,6 +23,8 @@
   .toc li { margin-bottom: 5px; font-size: 10.5pt; }
   .toc a { color: #1565c0; text-decoration: none; }
   .toc a:hover { text-decoration: underline; }
+  .toc .toc-sub { list-style-type: disc; padding-left: 20px; margin-top: 4px; }
+  .toc .toc-sub li { font-size: 9.5pt; color: #555; margin-bottom: 2px; }
 
   /* Sections */
   h2 { color: #1565c0; font-size: 14pt; margin-top: 34px; margin-bottom: 12px; border-left: 4px solid #1565c0; padding-left: 12px; }
@@ -31,7 +33,7 @@
 
   /* Screenshot container */
   .screenshot { margin: 18px 0; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
-  .screenshot img { width: 100%; display: block; }
+  .screenshot img { width: 100%; display: block; background: #f0f0f0; min-height: 120px; }
   .screenshot-caption { background: #f5f7fa; padding: 12px 16px; border-top: 1px solid #e0e0e0; }
   .screenshot-caption .caption-title { font-weight: 700; color: #1565c0; font-size: 11pt; margin-bottom: 4px; }
   .screenshot-caption .caption-desc { font-size: 10pt; color: #555; }
@@ -39,19 +41,45 @@
   /* Info box */
   .info { background: #e3f2fd; border-left: 4px solid #1565c0; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
   .info-title { font-weight: 700; color: #1565c0; margin-bottom: 4px; }
+  .tip { background: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .tip-title { font-weight: 700; color: #2e7d32; margin-bottom: 4px; }
+  .warning { background: #fff3e0; border-left: 4px solid #e65100; padding: 12px 16px; margin: 14px 0; border-radius: 0 6px 6px 0; font-size: 10.5pt; }
+  .warning-title { font-weight: 700; color: #e65100; margin-bottom: 4px; }
 
   /* Chapter header */
   .chapter { background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); color: #fff; padding: 20px 24px; border-radius: 8px; margin-top: 36px; margin-bottom: 18px; }
   .chapter h2 { color: #fff; border-left: 4px solid #fff; margin-top: 0; }
   .chapter p { color: #bbdefb; font-size: 10.5pt; margin-left: 16px; }
 
+  /* Sub-chapter */
+  .sub-chapter { background: #e8eaf6; padding: 14px 20px; border-radius: 6px; margin-top: 24px; margin-bottom: 14px; }
+  .sub-chapter h3 { color: #283593; margin: 0; font-size: 12pt; }
+  .sub-chapter p { color: #5c6bc0; font-size: 10pt; margin: 4px 0 0 0; }
+
   /* Badge */
-  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: 600; margin-right: 4px; }
   .badge-blue { background: #e3f2fd; color: #1565c0; }
   .badge-green { background: #e8f5e9; color: #2e7d32; }
   .badge-orange { background: #fff3e0; color: #e65100; }
   .badge-red { background: #ffebee; color: #c62828; }
   .badge-purple { background: #f3e5f5; color: #7b1fa2; }
+  .badge-grey { background: #f5f5f5; color: #616161; }
+
+  /* Role bar */
+  .role-bar { margin: 8px 0 12px 0; }
+
+  /* Steps */
+  .steps { margin: 12px 0; padding-left: 0; list-style: none; counter-reset: step; }
+  .steps li { counter-increment: step; padding: 6px 0 6px 32px; position: relative; font-size: 10.5pt; border-left: 2px solid #e0e0e0; margin-left: 12px; }
+  .steps li:last-child { border-left: 2px solid transparent; }
+  .steps li::before { content: counter(step); position: absolute; left: -11px; top: 6px; width: 20px; height: 20px; background: #1565c0; color: #fff; border-radius: 50%; font-size: 9pt; font-weight: 700; text-align: center; line-height: 20px; }
+
+  /* Button list */
+  .btn-list { margin: 10px 0; }
+  .btn-list table { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  .btn-list th { background: #f5f7fa; text-align: left; padding: 6px 10px; border-bottom: 2px solid #e0e0e0; font-size: 9.5pt; color: #555; }
+  .btn-list td { padding: 6px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  .btn-list .btn-name { font-weight: 600; color: #1565c0; white-space: nowrap; }
 
   /* Footer */
   .footer { margin-top: 36px; padding-top: 14px; border-top: 1px solid #ddd; color: #888; font-size: 9pt; text-align: center; }
@@ -70,6 +98,7 @@
     .no-print { display: none; }
     h2 { page-break-after: avoid; }
     .screenshot { page-break-inside: avoid; }
+    .chapter { page-break-before: always; }
   }
 </style>
 </head>
@@ -79,24 +108,73 @@
   <button class="btn-print" onclick="window.print()">Cetak / PDF</button>
 </div>
 
+<!-- ============================================================ -->
 <!-- COVER -->
+<!-- ============================================================ -->
 <div class="cover">
   <div class="cover-icon">&#128247;</div>
   <h1>Screenshot Guide</h1>
-  <p class="subtitle">HC Portal KPB — Panduan Visual Setiap Halaman</p>
-  <p class="version">Versi 1.0 &mdash; Maret 2026</p>
+  <p class="subtitle">HC Portal KPB — Panduan Visual Lengkap Setiap Halaman</p>
+  <p class="version">Versi 2.0 &mdash; Maret 2026</p>
   <div class="audience">Semua Pengguna</div>
+  <div style="margin-top: 20px; font-size: 9.5pt; color: #888;">
+    <span class="badge badge-blue">Semua</span>
+    <span class="badge badge-orange">Admin</span>
+    <span class="badge badge-green">HC</span>
+    <span class="badge badge-purple">Coach</span>
+    <span class="badge badge-grey">Pekerja</span>
+    &mdash; Legenda badge role yang digunakan di panduan ini
+  </div>
 </div>
 
+<!-- ============================================================ -->
 <!-- TOC -->
+<!-- ============================================================ -->
 <div class="toc">
   <h2>Daftar Isi</h2>
   <ol>
-    <li><a href="#sec-akun">Akun &amp; Pengaturan</a> (Login, Dashboard, Profile, Settings)</li>
-    <li><a href="#sec-cmp">CMP — Competency Management</a> (Hub, Assessment, Records, Analytics)</li>
-    <li><a href="#sec-cdp">CDP — Career Development</a> (Hub, Plan IDP, Coaching, Dashboard)</li>
-    <li><a href="#sec-admin">Admin — Kelola Data</a> (Hub, Workers, Assessment, Mapping)</li>
-    <li><a href="#sec-proton">Proton Data &amp; Panduan</a></li>
+    <li>
+      <a href="#sec-akun">Akun &amp; Pengaturan</a>
+      <ul class="toc-sub">
+        <li>Login, Access Denied, Dashboard, Profil, Pengaturan</li>
+      </ul>
+    </li>
+    <li>
+      <a href="#sec-cmp">CMP — Competency Management Portal</a>
+      <ul class="toc-sub">
+        <li>Hub, Dokumen KKJ, Assessment, Ujian, Hasil, Sertifikat, Records, Analytics</li>
+      </ul>
+    </li>
+    <li>
+      <a href="#sec-cdp">CDP — Career Development Portal</a>
+      <ul class="toc-sub">
+        <li>Hub, Plan IDP, Coaching Proton, Edit Sesi, Histori, Dashboard, Deliverable, Sertifikasi</li>
+      </ul>
+    </li>
+    <li>
+      <a href="#sec-admin">Admin — Kelola Data</a>
+      <ul class="toc-sub">
+        <li>4A. Hub Kelola Data</li>
+        <li>4B. Manajemen Pekerja (List, Tambah, Edit, Detail, Import)</li>
+        <li>4C. Kelola Assessment (List, Tambah, Edit, Monitoring, Riwayat)</li>
+        <li>4D. Paket Soal &amp; Kategori</li>
+        <li>4E. Training (Tambah, Edit, Import)</li>
+        <li>4F. KKJ Files &amp; CPDP Files</li>
+        <li>4G. Organisasi, Mapping, Sertifikat, Audit Log</li>
+      </ul>
+    </li>
+    <li>
+      <a href="#sec-proton">Proton Data</a>
+      <ul class="toc-sub">
+        <li>Hub, Import Silabus, Override</li>
+      </ul>
+    </li>
+    <li>
+      <a href="#sec-panduan">Panduan Penggunaan</a>
+      <ul class="toc-sub">
+        <li>Halaman Panduan, Detail Panduan</li>
+      </ul>
+    </li>
   </ol>
 </div>
 
@@ -105,39 +183,122 @@
 <!-- ================================================================== -->
 <div class="chapter" id="sec-akun">
   <h2>1. Akun &amp; Pengaturan</h2>
-  <p>Halaman login, dashboard utama, profil, dan pengaturan akun.</p>
+  <p>Halaman login, akses ditolak, dashboard utama, profil, dan pengaturan akun.</p>
 </div>
 
+<!-- 1.1 Login -->
 <div class="screenshot">
   <img src="screenshots/01-login.png" alt="Halaman Login">
   <div class="screenshot-caption">
     <div class="caption-title">1.1 Halaman Login</div>
-    <div class="caption-desc">Halaman awal untuk masuk ke HC Portal. Pengguna memasukkan NIP dan password untuk mengakses sistem.</div>
+    <div class="caption-desc">Halaman awal untuk masuk ke HC Portal KPB.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-grey">Publik</span> Tidak memerlukan login</div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Masukkan <strong>NIP</strong> pada kolom pertama.</li>
+  <li>Masukkan <strong>Password</strong> pada kolom kedua.</li>
+  <li>Klik tombol <strong>Masuk</strong> untuk login ke sistem.</li>
+  <li>Jika berhasil, Anda akan diarahkan ke halaman Dashboard.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol / Elemen</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Masuk</td><td>Memproses login dengan NIP dan password yang dimasukkan</td></tr>
+  </table>
+</div>
+<div class="info">
+  <div class="info-title">Informasi</div>
+  Jika lupa password, hubungi Admin atau HC untuk melakukan reset password.
+</div>
 
+<!-- 1.2 Access Denied -->
+<div class="screenshot">
+  <img src="screenshots/19-access-denied.png" alt="Access Denied">
+  <div class="screenshot-caption">
+    <div class="caption-title">1.2 Access Denied (Akses Ditolak)</div>
+    <div class="caption-desc">Halaman yang muncul ketika pengguna tidak memiliki izin akses.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Halaman ini muncul ketika pengguna mencoba mengakses fitur yang tidak sesuai dengan role-nya. Misalnya, pekerja biasa mencoba membuka halaman Admin.</p>
+<div class="warning">
+  <div class="warning-title">Perhatian</div>
+  Jika Anda merasa seharusnya memiliki akses, hubungi Admin untuk pengecekan role Anda.
+</div>
+
+<!-- 1.3 Dashboard -->
 <div class="screenshot">
   <img src="screenshots/02-dashboard.png" alt="Dashboard">
   <div class="screenshot-caption">
-    <div class="caption-title">1.2 Dashboard</div>
-    <div class="caption-desc">Halaman utama setelah login. Menampilkan ringkasan informasi, notifikasi, dan akses cepat ke modul CMP, CDP, dan Admin.</div>
+    <div class="caption-title">1.3 Dashboard</div>
+    <div class="caption-desc">Halaman utama setelah login. Menampilkan ringkasan, notifikasi, dan akses cepat ke modul.</div>
   </div>
 </div>
-
-<div class="screenshot">
-  <img src="screenshots/03-profile.png" alt="Profile">
-  <div class="screenshot-caption">
-    <div class="caption-title">1.3 Profil Pengguna</div>
-    <div class="caption-desc">Halaman profil menampilkan data pribadi pengguna seperti nama, NIP, jabatan, unit kerja, dan informasi lainnya.</div>
-  </div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span> Semua pengguna yang sudah login</div>
+<h3>Isi Halaman</h3>
+<ul class="steps">
+  <li><strong>Sapaan waktu</strong> — Menampilkan salam (Selamat Pagi/Siang/Sore) beserta nama pengguna.</li>
+  <li><strong>Event mendatang</strong> — Daftar coaching dan assessment yang dijadwalkan.</li>
+  <li><strong>Progress bar</strong> — Ringkasan kemajuan CDP, Assessment, dan Coaching.</li>
+  <li><strong>Alert sertifikat</strong> (Admin/HC) — Peringatan sertifikat yang akan kedaluwarsa.</li>
+</ul>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol / Elemen</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Navbar: CMP</td><td>Navigasi ke modul Competency Management Portal</td></tr>
+    <tr><td class="btn-name">Navbar: CDP</td><td>Navigasi ke modul Career Development Portal</td></tr>
+    <tr><td class="btn-name">Navbar: Kelola Data</td><td>Navigasi ke modul Admin (hanya tampil untuk Admin/HC)</td></tr>
+    <tr><td class="btn-name">Navbar: Panduan</td><td>Navigasi ke halaman panduan penggunaan</td></tr>
+    <tr><td class="btn-name">Notification Bell</td><td>Menampilkan notifikasi terbaru (coaching, assessment, dll.)</td></tr>
+    <tr><td class="btn-name">Profile Menu</td><td>Akses ke Profil, Pengaturan, dan Logout</td></tr>
+  </table>
 </div>
 
+<!-- 1.4 Profil -->
 <div class="screenshot">
-  <img src="screenshots/04-settings.png" alt="Settings">
+  <img src="screenshots/03-profile.png" alt="Profil Pengguna">
   <div class="screenshot-caption">
-    <div class="caption-title">1.4 Pengaturan Akun</div>
-    <div class="caption-desc">Halaman pengaturan untuk mengubah password dan preferensi akun pengguna.</div>
+    <div class="caption-title">1.4 Profil Pengguna</div>
+    <div class="caption-desc">Menampilkan data pribadi pengguna secara read-only.</div>
   </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Informasi yang Ditampilkan</h3>
+<ol class="steps">
+  <li><strong>Nama Lengkap</strong>, <strong>NIP</strong>, dan <strong>Email</strong></li>
+  <li><strong>Jabatan</strong>, <strong>Direktorat</strong>, <strong>Seksi</strong>, dan <strong>Unit Kerja</strong></li>
+  <li><strong>Nomor Telepon</strong> dan <strong>Role</strong> dalam sistem</li>
+</ol>
+<div class="tip">
+  <div class="tip-title">Tips</div>
+  Untuk mengubah data profil, gunakan halaman Pengaturan (Settings). Data seperti NIP dan Role hanya bisa diubah oleh Admin.
+</div>
+
+<!-- 1.5 Pengaturan -->
+<div class="screenshot">
+  <img src="screenshots/04-settings.png" alt="Pengaturan Akun">
+  <div class="screenshot-caption">
+    <div class="caption-title">1.5 Pengaturan Akun</div>
+    <div class="caption-desc">Halaman untuk mengubah password, profil, dan konfigurasi tanda tangan digital (PSign).</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Pilih tab yang ingin diubah: <strong>Edit Profil</strong>, <strong>Ubah Password</strong>, atau <strong>PSign</strong>.</li>
+  <li><strong>Edit Profil</strong> — Ubah nama, email, nomor telepon, lalu klik <strong>Simpan</strong>.</li>
+  <li><strong>Ubah Password</strong> — Masukkan password lama, password baru, dan konfirmasi, lalu klik <strong>Ubah Password</strong>.</li>
+  <li><strong>PSign</strong> — Upload tanda tangan digital untuk digunakan pada sertifikat/dokumen.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol / Elemen</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Simpan</td><td>Menyimpan perubahan profil</td></tr>
+    <tr><td class="btn-name">Ubah Password</td><td>Memproses perubahan password</td></tr>
+    <tr><td class="btn-name">Upload PSign</td><td>Mengunggah file tanda tangan digital</td></tr>
+  </table>
 </div>
 
 <!-- ================================================================== -->
@@ -145,148 +306,965 @@
 <!-- ================================================================== -->
 <div class="chapter page-break" id="sec-cmp">
   <h2>2. CMP — Competency Management Portal</h2>
-  <p>Modul pengelolaan kompetensi: assessment, rekaman, dan analitik.</p>
+  <p>Modul pengelolaan kompetensi: dokumen KKJ, assessment, rekaman, sertifikat, dan analitik.</p>
 </div>
 
+<!-- 2.1 CMP Hub -->
 <div class="screenshot">
   <img src="screenshots/05-cmp-hub.png" alt="CMP Hub">
   <div class="screenshot-caption">
     <div class="caption-title">2.1 CMP Hub</div>
-    <div class="caption-desc">Halaman utama modul CMP. Menyediakan akses ke fitur Dokumen KKJ, Assessment, Records, dan Analytics.</div>
+    <div class="caption-desc">Halaman utama modul CMP. Pusat akses ke semua fitur kompetensi.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Menu yang Tersedia</h3>
+<div class="btn-list">
+  <table>
+    <tr><th>Menu</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Dokumen KKJ</td><td>Lihat dan unduh dokumen Kerangka Kompetensi Jabatan</td></tr>
+    <tr><td class="btn-name">Assessment</td><td>Daftar assessment yang ditugaskan dan akses ujian</td></tr>
+    <tr><td class="btn-name">Records</td><td>Riwayat assessment dan training</td></tr>
+    <tr><td class="btn-name">Analytics Dashboard</td><td>Statistik dan grafik performa assessment (Admin/HC)</td></tr>
+    <tr><td class="btn-name">Certificate</td><td>Lihat dan unduh sertifikat kompetensi</td></tr>
+  </table>
+</div>
 
+<!-- 2.2 Dokumen KKJ -->
+<div class="screenshot">
+  <img src="screenshots/19-cmp-dokumenkkj.png" alt="Dokumen KKJ">
+  <div class="screenshot-caption">
+    <div class="caption-title">2.2 Dokumen KKJ</div>
+    <div class="caption-desc">Viewer dokumen Kerangka Kompetensi Jabatan per bagian dalam format tab.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Halaman viewer dokumen Kerangka Kompetensi Jabatan. Menampilkan file KKJ aktif yang dikelompokkan per bagian (departemen) dalam format tab.</p>
+<ol class="steps">
+  <li>Pilih <strong>tab bagian</strong> untuk melihat file KKJ dari departemen tersebut.</li>
+  <li>Klik <strong>Download</strong> pada file yang ingin diunduh (format PDF atau Excel).</li>
+</ol>
+
+<!-- 2.3 Assessment -->
 <div class="screenshot">
   <img src="screenshots/06-cmp-assessment.png" alt="CMP Assessment">
   <div class="screenshot-caption">
-    <div class="caption-title">2.2 Assessment</div>
-    <div class="caption-desc">Halaman ujian assessment kompetensi. Pekerja mengerjakan soal sesuai paket yang telah ditetapkan dengan batas waktu tertentu.</div>
+    <div class="caption-title">2.3 Assessment</div>
+    <div class="caption-desc">Daftar assessment yang ditugaskan kepada pekerja.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Lihat daftar assessment yang ditugaskan beserta <strong>status</strong>, <strong>jadwal</strong>, dan <strong>waktu ujian</strong>.</li>
+  <li>Klik <strong>Mulai Ujian</strong> pada assessment yang berstatus <em>Belum Dikerjakan</em> dan sudah masuk jadwal.</li>
+  <li>Untuk assessment yang sudah selesai, klik <strong>Lihat Hasil</strong> untuk melihat skor.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Mulai Ujian</td><td>Memulai sesi ujian assessment (hanya aktif saat jadwal terbuka)</td></tr>
+    <tr><td class="btn-name">Lihat Hasil</td><td>Melihat hasil dan skor assessment yang sudah dikerjakan</td></tr>
+    <tr><td class="btn-name">Verifikasi</td><td>Proses verifikasi identitas sebelum memulai ujian</td></tr>
+  </table>
+</div>
+<div class="warning">
+  <div class="warning-title">Perhatian</div>
+  Ujian memiliki batas waktu. Pastikan koneksi internet stabil sebelum memulai ujian.
+</div>
 
+<!-- 2.4 Start Exam -->
+<h3>2.4 Halaman Ujian (Start Exam)</h3>
+<div class="role-bar"><span class="badge badge-blue">Semua</span> Pekerja yang ditugaskan</div>
+<p>Halaman ujian aktif dengan tampilan soal, pilihan jawaban, timer, dan progress tracking.</p>
+<ol class="steps">
+  <li>Baca soal yang ditampilkan dengan seksama.</li>
+  <li>Pilih jawaban dengan mengklik <strong>opsi jawaban</strong> (A/B/C/D/E).</li>
+  <li>Gunakan tombol <strong>Sebelumnya</strong> / <strong>Selanjutnya</strong> untuk navigasi antar soal.</li>
+  <li>Perhatikan <strong>timer</strong> di bagian atas — ujian otomatis berakhir saat waktu habis.</li>
+  <li>Klik <strong>Selesai &amp; Review</strong> untuk meninjau jawaban sebelum submit.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Sebelumnya</td><td>Kembali ke soal sebelumnya</td></tr>
+    <tr><td class="btn-name">Selanjutnya</td><td>Lanjut ke soal berikutnya</td></tr>
+    <tr><td class="btn-name">Nomor Soal</td><td>Navigasi langsung ke soal tertentu (panel samping)</td></tr>
+    <tr><td class="btn-name">Selesai &amp; Review</td><td>Menuju halaman ringkasan jawaban sebelum submit final</td></tr>
+  </table>
+</div>
+
+<!-- 2.5 Exam Summary -->
+<h3>2.5 Ringkasan Ujian (Exam Summary)</h3>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Halaman review sebelum submit final. Menampilkan daftar semua soal beserta jawaban yang dipilih.</p>
+<ol class="steps">
+  <li>Periksa daftar jawaban — soal yang belum dijawab ditandai.</li>
+  <li>Klik <strong>Edit</strong> pada soal tertentu untuk mengubah jawaban.</li>
+  <li>Klik <strong>Submit Ujian</strong> untuk mengirim jawaban secara final.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Edit</td><td>Kembali ke soal tertentu untuk mengubah jawaban</td></tr>
+    <tr><td class="btn-name">Submit Ujian</td><td>Mengirim semua jawaban (tidak bisa diubah setelahnya)</td></tr>
+  </table>
+</div>
+
+<!-- 2.6 Results -->
+<h3>2.6 Hasil Assessment (Results)</h3>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Menampilkan hasil setelah ujian selesai: skor total, status lulus/tidak lulus, dan detail jawaban per soal.</p>
+<ol class="steps">
+  <li>Lihat <strong>skor total</strong> dan <strong>status kelulusan</strong> di bagian atas.</li>
+  <li>Scroll ke bawah untuk melihat <strong>detail jawaban per soal</strong> (benar/salah).</li>
+  <li>Jika lulus, klik <strong>Lihat Sertifikat</strong> untuk melihat dan mengunduh sertifikat.</li>
+</ol>
+
+<!-- 2.7 Certificate -->
+<h3>2.7 Sertifikat (Certificate)</h3>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Tampilan sertifikat kompetensi dalam format HTML yang bisa diunduh sebagai PDF. Menampilkan data pekerja, detail assessment, skor, tanggal, dan tanda tangan pengesah.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Download PDF</td><td>Mengunduh sertifikat dalam format PDF</td></tr>
+    <tr><td class="btn-name">Cetak</td><td>Mencetak sertifikat langsung dari browser</td></tr>
+  </table>
+</div>
+
+<!-- 2.8 Records -->
 <div class="screenshot">
   <img src="screenshots/07-cmp-records.png" alt="CMP Records">
   <div class="screenshot-caption">
-    <div class="caption-title">2.3 Records</div>
-    <div class="caption-desc">Riwayat hasil assessment pekerja. Menampilkan skor, status kelulusan, dan detail per sesi ujian.</div>
+    <div class="caption-title">2.8 Records</div>
+    <div class="caption-desc">Riwayat assessment dan training pekerja dengan filter dan export.</div>
   </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Gunakan <strong>filter</strong> (Seksi, Unit, Kategori, Status) untuk menyaring data.</li>
+  <li>Klik nama pekerja untuk melihat <strong>detail rekaman individu</strong>.</li>
+  <li>Klik <strong>Export</strong> untuk mengunduh data dalam format Excel.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Filter</td><td>Menyaring data berdasarkan seksi, unit, kategori, atau status</td></tr>
+    <tr><td class="btn-name">Export Excel</td><td>Mengunduh data records ke file Excel</td></tr>
+    <tr><td class="btn-name">Nama Pekerja (link)</td><td>Membuka detail rekaman individu</td></tr>
+  </table>
 </div>
 
+<!-- 2.9 Records Worker Detail -->
+<h3>2.9 Detail Rekaman Pekerja (Records Worker Detail)</h3>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Halaman detail riwayat assessment dan training seorang pekerja. Menampilkan semua assessment yang pernah dikerjakan beserta skor, tanggal, status kelulusan, dan link ke sertifikat.</p>
+
+<!-- 2.10 Records Team -->
 <div class="screenshot">
-  <img src="screenshots/08-cmp-analytics.png" alt="CMP Analytics">
+  <img src="screenshots/20-cmp-records-team.png" alt="Records Team">
   <div class="screenshot-caption">
-    <div class="caption-title">2.4 Analytics</div>
-    <div class="caption-desc">Dashboard analitik CMP dengan grafik dan statistik performa assessment di seluruh unit kerja.</div>
+    <div class="caption-title">2.10 Records Tim (Records Team)</div>
+    <div class="caption-desc">Tampilan records untuk beberapa pekerja sekaligus (perspektif tim/unit).</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Tampilan records untuk beberapa pekerja sekaligus (perspektif tim/unit). Mendukung export data ke Excel.</p>
+
+<!-- 2.11 Analytics Dashboard -->
+<div class="screenshot">
+  <img src="screenshots/21-cmp-analytics.png" alt="CMP Analytics">
+  <div class="screenshot-caption">
+    <div class="caption-title">2.11 Analytics Dashboard</div>
+    <div class="caption-desc">Dashboard analitik dengan grafik dan statistik performa assessment.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<h3>Isi Halaman</h3>
+<ol class="steps">
+  <li><strong>Grafik completion rate</strong> — Persentase assessment yang sudah diselesaikan per unit.</li>
+  <li><strong>Pass rate</strong> — Tingkat kelulusan per kategori dan unit kerja.</li>
+  <li><strong>Filter</strong> — Saring data berdasarkan bagian, unit, dan kategori assessment.</li>
+  <li><strong>Tabel detail</strong> — Data tabular yang mendukung sorting dan export.</li>
+</ol>
 
 <!-- ================================================================== -->
 <!-- SECTION 3: CDP -->
 <!-- ================================================================== -->
 <div class="chapter page-break" id="sec-cdp">
   <h2>3. CDP — Career Development Portal</h2>
-  <p>Modul pengembangan karir: IDP, Coaching Proton, dan dashboard perkembangan.</p>
+  <p>Modul pengembangan karir: IDP, Coaching Proton, dashboard perkembangan, deliverable, dan sertifikasi.</p>
 </div>
 
+<!-- 3.1 CDP Hub -->
 <div class="screenshot">
   <img src="screenshots/09-cdp-hub.png" alt="CDP Hub">
   <div class="screenshot-caption">
     <div class="caption-title">3.1 CDP Hub</div>
-    <div class="caption-desc">Halaman utama modul CDP. Menyediakan akses ke Plan IDP, Coaching Proton, Dashboard, dan Deliverable.</div>
+    <div class="caption-desc">Halaman utama modul CDP. Pusat akses ke semua fitur pengembangan karir.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<div class="btn-list">
+  <table>
+    <tr><th>Menu</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Plan IDP</td><td>Dokumen panduan Individual Development Plan per bagian</td></tr>
+    <tr><td class="btn-name">Coaching Proton</td><td>Sesi coaching antara coach dan coachee</td></tr>
+    <tr><td class="btn-name">Dashboard</td><td>Ringkasan progress pengembangan karir</td></tr>
+    <tr><td class="btn-name">Deliverable</td><td>Detail deliverable kompetensi dan evidence</td></tr>
+    <tr><td class="btn-name">Histori Proton</td><td>Riwayat sesi coaching yang sudah selesai</td></tr>
+    <tr><td class="btn-name">Sertifikasi</td><td>Tracking sertifikasi Proton dengan approval workflow</td></tr>
+  </table>
+</div>
 
+<!-- 3.2 Plan IDP -->
 <div class="screenshot">
-  <img src="screenshots/10-cdp-planidp.png" alt="CDP Plan IDP">
+  <img src="screenshots/10-cdp-planidp.png" alt="Plan IDP">
   <div class="screenshot-caption">
     <div class="caption-title">3.2 Plan IDP</div>
-    <div class="caption-desc">Halaman perencanaan Individual Development Plan (IDP). Pekerja menyusun rencana pengembangan kompetensi mereka.</div>
+    <div class="caption-desc">Halaman dokumen panduan pengembangan per bagian dan unit.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Pilih <strong>bagian</strong> dan <strong>unit</strong> untuk menyaring dokumen panduan.</li>
+  <li>Lihat daftar file panduan (kurikulum, IDP template) yang tersedia.</li>
+  <li>Klik <strong>Download</strong> untuk mengunduh file panduan.</li>
+</ol>
 
+<!-- 3.3 Coaching Proton -->
 <div class="screenshot">
-  <img src="screenshots/11-cdp-coaching.png" alt="CDP Coaching Proton">
+  <img src="screenshots/11-cdp-coaching.png" alt="Coaching Proton">
   <div class="screenshot-caption">
     <div class="caption-title">3.3 Coaching Proton</div>
-    <div class="caption-desc">Halaman Coaching Proton untuk mencatat sesi coaching antara coach dan coachee, termasuk progress dan feedback.</div>
+    <div class="caption-desc">Halaman utama Coaching Proton untuk interaksi coach dan coachee.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-purple">Coach</span> <span class="badge badge-grey">Pekerja (Coachee)</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Lihat daftar <strong>sesi coaching</strong> yang dijadwalkan atau sedang berlangsung.</li>
+  <li><strong>Coach</strong>: Klik <strong>Mulai Sesi</strong> untuk memulai sesi coaching baru.</li>
+  <li>Isi catatan, kesimpulan, dan hasil coaching dalam form yang tersedia.</li>
+  <li>Klik <strong>Simpan</strong> untuk menyimpan progress atau <strong>Selesaikan Sesi</strong> untuk mengakhiri.</li>
+  <li><strong>Coachee</strong>: Lihat jadwal coaching dan feedback dari coach.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Mulai Sesi</td><td>Memulai sesi coaching baru (Coach)</td></tr>
+    <tr><td class="btn-name">Simpan</td><td>Menyimpan catatan coaching sementara</td></tr>
+    <tr><td class="btn-name">Selesaikan Sesi</td><td>Mengakhiri dan menyelesaikan sesi coaching</td></tr>
+    <tr><td class="btn-name">Edit Sesi</td><td>Mengubah detail sesi coaching yang sudah ada</td></tr>
+  </table>
+</div>
 
+<!-- 3.4 Edit Coaching Session -->
+<h3>3.4 Edit Sesi Coaching</h3>
+<div class="role-bar"><span class="badge badge-purple">Coach</span></div>
+<p>Form untuk mengedit detail sesi coaching: tanggal, catatan, kesimpulan, dan hasil. Hanya dapat diakses oleh coach yang bersangkutan.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Simpan Perubahan</td><td>Menyimpan perubahan detail sesi</td></tr>
+    <tr><td class="btn-name">Batal</td><td>Membatalkan perubahan dan kembali ke halaman coaching</td></tr>
+  </table>
+</div>
+
+<!-- 3.5 Histori Proton -->
+<div class="screenshot">
+  <img src="screenshots/22-cdp-historiproton.png" alt="Histori Proton">
+  <div class="screenshot-caption">
+    <div class="caption-title">3.5 Histori Proton</div>
+    <div class="caption-desc">Riwayat sesi coaching yang sudah selesai dengan ringkasan per sesi.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span> <span class="badge badge-green">HC</span> dapat export</div>
+<p>Riwayat sesi coaching yang sudah selesai. Menampilkan ringkasan setiap sesi dengan link ke detail.</p>
+<ol class="steps">
+  <li>Lihat daftar <strong>sesi coaching lalu</strong> beserta tanggal, coach, dan ringkasan.</li>
+  <li>Klik <strong>Detail</strong> untuk melihat catatan lengkap sesi tersebut.</li>
+  <li>(HC) Klik <strong>Export</strong> untuk mengunduh data histori coaching.</li>
+</ol>
+
+<!-- 3.6 Histori Proton Detail -->
+<div class="screenshot">
+  <img src="screenshots/23-cdp-historiprotondetail.png" alt="Detail Histori Proton">
+  <div class="screenshot-caption">
+    <div class="caption-title">3.6 Detail Histori Proton</div>
+    <div class="caption-desc">Detail lengkap dari satu riwayat coaching individu: seluruh sesi dan catatan.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Tampilan detail lengkap dari satu riwayat coaching individu: seluruh sesi, catatan, kesimpulan, dan hasil per pertemuan.</p>
+
+<!-- 3.7 CDP Dashboard -->
 <div class="screenshot">
   <img src="screenshots/12-cdp-dashboard.png" alt="CDP Dashboard">
   <div class="screenshot-caption">
-    <div class="caption-title">3.4 CDP Dashboard</div>
-    <div class="caption-desc">Dashboard perkembangan karir yang menampilkan progress IDP, statistik coaching, dan pencapaian deliverable.</div>
+    <div class="caption-title">3.7 CDP Dashboard</div>
+    <div class="caption-desc">Dashboard perkembangan karir: progress IDP, statistik coaching, dan pencapaian deliverable.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Isi Halaman</h3>
+<ol class="steps">
+  <li><strong>Track saat ini</strong> — Menampilkan track Proton yang sedang dijalani.</li>
+  <li><strong>Progress deliverable</strong> — Bar progress penyelesaian deliverable kompetensi.</li>
+  <li><strong>Statistik coaching</strong> — Jumlah sesi, frekuensi, dan status coaching.</li>
+  <li><strong>Status sertifikasi</strong> — Progress sertifikasi Proton.</li>
+</ol>
+
+<!-- 3.8 Deliverable -->
+<h3>3.8 Deliverable</h3>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Detail deliverable kompetensi: menampilkan kompetensi/sub-kompetensi, guidance, form upload evidence, status approval, dan feedback reviewer.</p>
+<ol class="steps">
+  <li>Lihat daftar <strong>deliverable</strong> yang harus diselesaikan beserta panduan.</li>
+  <li>Upload <strong>evidence</strong> (bukti) menggunakan form yang tersedia.</li>
+  <li>Kirim untuk <strong>approval</strong> oleh coach/reviewer.</li>
+  <li>Lihat <strong>status</strong> dan <strong>feedback</strong> dari reviewer.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Upload Evidence</td><td>Mengunggah file bukti penyelesaian deliverable</td></tr>
+    <tr><td class="btn-name">Kirim Approval</td><td>Mengirim deliverable untuk ditinjau oleh reviewer</td></tr>
+    <tr><td class="btn-name">Approve / Reject</td><td>(Reviewer) Menyetujui atau menolak deliverable</td></tr>
+  </table>
+</div>
+
+<!-- 3.9 Certification Management -->
+<div class="screenshot">
+  <img src="screenshots/24-cdp-certification.png" alt="Sertifikasi Proton">
+  <div class="screenshot-caption">
+    <div class="caption-title">3.9 Sertifikasi (Certification Management)</div>
+    <div class="caption-desc">Tracking sertifikasi Proton dengan workflow approval.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span> <span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span> dapat export</div>
+<p>Tracking sertifikasi Proton dengan workflow approval. Pekerja melihat status sertifikasi mereka, sedangkan Admin/HC dapat mengelola dan export data.</p>
+<ol class="steps">
+  <li>Lihat daftar <strong>sertifikasi</strong> beserta status (Pending, Approved, Rejected).</li>
+  <li>Klik detail untuk melihat <strong>alur approval</strong> dan catatan.</li>
+  <li>(Admin/HC) Gunakan tombol <strong>Export</strong> untuk mengunduh data sertifikasi.</li>
+</ol>
 
 <!-- ================================================================== -->
 <!-- SECTION 4: ADMIN -->
 <!-- ================================================================== -->
 <div class="chapter page-break" id="sec-admin">
   <h2>4. Admin — Kelola Data</h2>
-  <p>Modul administrasi untuk pengelolaan data pekerja, assessment, dan mapping.</p>
+  <p>Modul administrasi untuk pengelolaan data pekerja, assessment, training, organisasi, dan konfigurasi sistem.</p>
 </div>
+
+<div class="info">
+  <div class="info-title">Akses Terbatas</div>
+  Seluruh halaman di modul Admin hanya dapat diakses oleh pengguna dengan role <span class="badge badge-orange">Admin</span> atau <span class="badge badge-green">HC</span>.
+</div>
+
+<!-- 4A. Hub -->
+<div class="sub-chapter"><h3>4A. Hub Kelola Data</h3><p>Pusat navigasi ke semua fitur administrasi</p></div>
 
 <div class="screenshot">
   <img src="screenshots/13-admin-hub.png" alt="Admin Hub">
   <div class="screenshot-caption">
-    <div class="caption-title">4.1 Admin Hub</div>
-    <div class="caption-desc">Halaman utama modul Admin. Menyediakan akses ke semua fitur kelola data: Manajemen Pekerja, Assessment, Mapping, dan lainnya.</div>
+    <div class="caption-title">4.1 Admin Hub (Kelola Data)</div>
+    <div class="caption-desc">Halaman utama modul Admin dengan akses ke semua fitur kelola data.</div>
   </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<h3>Menu yang Tersedia</h3>
+<div class="btn-list">
+  <table>
+    <tr><th>Menu</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Manajemen Pekerja</td><td>CRUD data pekerja, import Excel, detail pekerja</td></tr>
+    <tr><td class="btn-name">Kelola Assessment</td><td>Buat, edit, monitoring assessment dan training</td></tr>
+    <tr><td class="btn-name">Paket Soal</td><td>Kelola paket soal dan pertanyaan assessment</td></tr>
+    <tr><td class="btn-name">Kategori</td><td>Kelola hirarki kategori assessment</td></tr>
+    <tr><td class="btn-name">KKJ Files</td><td>Upload dan kelola dokumen KKJ per bagian</td></tr>
+    <tr><td class="btn-name">CPDP Files</td><td>Upload dan kelola dokumen panduan CPDP</td></tr>
+    <tr><td class="btn-name">Organisasi</td><td>Kelola struktur organisasi (unit, bagian)</td></tr>
+    <tr><td class="btn-name">Coach-Coachee Mapping</td><td>Atur hubungan coach dan coachee</td></tr>
+    <tr><td class="btn-name">Renewal Certificate</td><td>Kelola sertifikat yang kedaluwarsa/akan kedaluwarsa</td></tr>
+    <tr><td class="btn-name">Audit Log</td><td>Lihat riwayat aktivitas sistem</td></tr>
+  </table>
 </div>
 
+<!-- 4B. Manajemen Pekerja -->
+<div class="sub-chapter"><h3>4B. Manajemen Pekerja</h3><p>CRUD pekerja, import data, dan detail informasi</p></div>
+
+<!-- ManageWorkers -->
 <div class="screenshot">
-  <img src="screenshots/14-admin-workers.png" alt="Admin Workers">
+  <img src="screenshots/14-admin-workers.png" alt="Manajemen Pekerja">
   <div class="screenshot-caption">
-    <div class="caption-title">4.2 Manajemen Pekerja</div>
-    <div class="caption-desc">Halaman kelola data pekerja. Admin dan HC dapat menambah, mengedit, mengimpor, dan mengelola data seluruh pekerja.</div>
+    <div class="caption-title">4.2 Daftar Pekerja (Manage Workers)</div>
+    <div class="caption-desc">Halaman utama kelola pekerja dengan pencarian, filter, dan aksi CRUD.</div>
   </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Gunakan <strong>kolom pencarian</strong> untuk cari pekerja berdasarkan nama atau NIP.</li>
+  <li>Gunakan <strong>filter</strong> (Seksi, Unit, Role, Status Aktif/Non-aktif) untuk menyaring data.</li>
+  <li>Klik <strong>Tambah Pekerja</strong> untuk menambah pekerja baru.</li>
+  <li>Klik <strong>Import</strong> untuk import data pekerja dari file Excel.</li>
+  <li>Pada setiap baris pekerja, gunakan tombol aksi untuk Edit, Detail, atau Hapus.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Tambah Pekerja</td><td>Membuka form tambah pekerja baru</td></tr>
+    <tr><td class="btn-name">Import</td><td>Membuka halaman import pekerja dari Excel</td></tr>
+    <tr><td class="btn-name">Edit</td><td>Mengedit data pekerja yang dipilih</td></tr>
+    <tr><td class="btn-name">Detail</td><td>Melihat informasi lengkap pekerja</td></tr>
+    <tr><td class="btn-name">Hapus</td><td>Menghapus data pekerja (dengan konfirmasi)</td></tr>
+    <tr><td class="btn-name">Toggle Aktif/Non-aktif</td><td>Menyaring tampilan pekerja aktif atau non-aktif</td></tr>
+  </table>
 </div>
 
+<!-- CreateWorker -->
 <div class="screenshot">
-  <img src="screenshots/15-admin-assessment.png" alt="Admin Assessment">
+  <img src="screenshots/25-admin-createworker.png" alt="Tambah Pekerja">
   <div class="screenshot-caption">
-    <div class="caption-title">4.3 Kelola Assessment</div>
-    <div class="caption-desc">Halaman admin untuk mengelola paket soal, jadwal assessment, dan konfigurasi ujian kompetensi.</div>
+    <div class="caption-title">4.3 Tambah Pekerja (Create Worker)</div>
+    <div class="caption-desc">Form untuk menambah data pekerja baru ke dalam sistem.</div>
   </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<ol class="steps">
+  <li>Isi semua field yang wajib: <strong>Nama Lengkap</strong>, <strong>Email</strong>, <strong>NIP</strong>, <strong>Jabatan</strong>.</li>
+  <li>Pilih <strong>Direktorat</strong>, <strong>Seksi</strong>, dan <strong>Unit Kerja</strong>.</li>
+  <li>Pilih <strong>Role</strong> (Admin, HC, atau Pekerja biasa).</li>
+  <li>Tentukan status <strong>Aktif</strong> atau tidak.</li>
+  <li>Klik <strong>Simpan</strong> untuk menyimpan data pekerja baru.</li>
+</ol>
+
+<!-- EditWorker -->
+<div class="screenshot">
+  <img src="screenshots/40-admin-editworker.png" alt="Edit Pekerja">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.4 Edit Pekerja (Edit Worker)</div>
+    <div class="caption-desc">Form untuk mengedit data pekerja yang sudah ada.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Semua field bisa diubah termasuk assignment unit kerja (multi-unit).</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Simpan</td><td>Menyimpan perubahan data pekerja</td></tr>
+    <tr><td class="btn-name">Batal</td><td>Membatalkan dan kembali ke daftar pekerja</td></tr>
+  </table>
 </div>
 
+<!-- WorkerDetail -->
 <div class="screenshot">
-  <img src="screenshots/16-admin-mapping.png" alt="Admin Mapping">
+  <img src="screenshots/41-admin-workerdetail.png" alt="Detail Pekerja">
   <div class="screenshot-caption">
-    <div class="caption-title">4.4 Mapping</div>
-    <div class="caption-desc">Halaman mapping untuk mengatur hubungan coach-coachee, assignment pekerja ke unit, dan konfigurasi lainnya.</div>
+    <div class="caption-title">4.5 Detail Pekerja (Worker Detail)</div>
+    <div class="caption-desc">Informasi lengkap seorang pekerja: profil, organisasi, dan hak akses.</div>
   </div>
 </div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+
+<!-- ImportWorkers -->
+<div class="screenshot">
+  <img src="screenshots/26-admin-importworkers.png" alt="Import Pekerja">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.6 Import Pekerja (Import Workers)</div>
+    <div class="caption-desc">Halaman untuk import data pekerja secara massal dari file Excel.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<ol class="steps">
+  <li>Klik <strong>Download Template</strong> untuk mengunduh file template Excel.</li>
+  <li>Isi data pekerja pada template sesuai format yang ditentukan.</li>
+  <li>Klik <strong>Pilih File</strong> untuk mengunggah file Excel yang sudah diisi.</li>
+  <li>Klik <strong>Proses Import</strong> untuk memproses data.</li>
+  <li>Sistem akan menampilkan hasil import (berhasil/gagal per baris).</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Download Template</td><td>Mengunduh file template Excel untuk import</td></tr>
+    <tr><td class="btn-name">Pilih File</td><td>Memilih file Excel untuk diupload</td></tr>
+    <tr><td class="btn-name">Proses Import</td><td>Memproses file Excel dan membuat/update data pekerja</td></tr>
+  </table>
+</div>
+
+<!-- 4C. Kelola Assessment -->
+<div class="sub-chapter"><h3>4C. Kelola Assessment</h3><p>Buat, edit, dan monitoring sesi assessment</p></div>
+
+<!-- ManageAssessment -->
+<div class="screenshot">
+  <img src="screenshots/15-admin-assessment.png" alt="Kelola Assessment">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.7 Kelola Assessment (Manage Assessment)</div>
+    <div class="caption-desc">Daftar assessment dan training dengan tab, pencarian, dan aksi CRUD.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Pilih tab <strong>Assessment</strong> atau <strong>Training</strong>.</li>
+  <li>Gunakan <strong>pencarian</strong> untuk menemukan assessment/training tertentu.</li>
+  <li>Klik <strong>Buat Assessment Baru</strong> atau <strong>Tambah Training</strong> untuk menambah data.</li>
+  <li>Pada setiap baris, gunakan tombol <strong>Edit</strong>, <strong>Monitoring</strong>, atau <strong>Hapus</strong>.</li>
+</ol>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Buat Assessment Baru</td><td>Membuka form pembuatan assessment</td></tr>
+    <tr><td class="btn-name">Tambah Training</td><td>Membuka form penambahan training</td></tr>
+    <tr><td class="btn-name">Import Training</td><td>Import data training dari Excel</td></tr>
+    <tr><td class="btn-name">Edit</td><td>Mengedit assessment/training</td></tr>
+    <tr><td class="btn-name">Monitoring</td><td>Membuka halaman monitoring assessment</td></tr>
+    <tr><td class="btn-name">Hapus</td><td>Menghapus assessment/training</td></tr>
+  </table>
+</div>
+
+<!-- CreateAssessment -->
+<div class="screenshot">
+  <img src="screenshots/27-admin-createassessment.png" alt="Buat Assessment">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.8 Buat Assessment (Create Assessment)</div>
+    <div class="caption-desc">Form pembuatan assessment baru dengan konfigurasi lengkap.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<ol class="steps">
+  <li>Isi <strong>Judul</strong> dan pilih <strong>Kategori</strong> assessment.</li>
+  <li>Atur <strong>Jadwal</strong> (tanggal mulai-selesai) dan <strong>Waktu Ujian</strong> (durasi menit).</li>
+  <li>Tentukan <strong>Passing Score (%)</strong> untuk batas kelulusan.</li>
+  <li>Pilih <strong>Pekerja</strong> yang akan ditugaskan (bisa single atau bulk).</li>
+  <li>(Opsional) Aktifkan <strong>Renewal</strong> untuk assessment perpanjangan sertifikat.</li>
+  <li>Klik <strong>Simpan</strong> untuk membuat assessment.</li>
+</ol>
+
+<!-- EditAssessment -->
+<div class="screenshot">
+  <img src="screenshots/42-admin-editassessment.png" alt="Edit Assessment">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.9 Edit Assessment</div>
+    <div class="caption-desc">Form edit assessment dengan konfigurasi lengkap dan daftar peserta.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Yang bisa diubah: jadwal, waktu ujian, passing score, token, dan daftar pekerja.</p>
+
+<!-- AssessmentMonitoring -->
+<div class="screenshot">
+  <img src="screenshots/28-admin-monitoring.png" alt="Monitoring Assessment">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.10 Monitoring Assessment</div>
+    <div class="caption-desc">Hub monitoring assessment dengan filter dan tab status.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Hub monitoring assessment dengan filter berdasarkan judul, kategori, dan jadwal. Menampilkan tab: Pending, In Progress, dan Completed.</p>
+<ol class="steps">
+  <li>Gunakan <strong>filter</strong> untuk menemukan assessment yang ingin dimonitor.</li>
+  <li>Pilih <strong>tab status</strong> (Pending / In Progress / Completed).</li>
+  <li>Klik nama assessment untuk melihat <strong>detail monitoring</strong>.</li>
+</ol>
+
+<!-- AssessmentMonitoringDetail -->
+<div class="screenshot">
+  <img src="screenshots/43-admin-monitoringdetail.png" alt="Detail Monitoring Assessment">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.11 Detail Monitoring Assessment</div>
+    <div class="caption-desc">Detail monitoring per assessment: status peserta, skor, dan aksi.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Daftar pekerja untuk assessment tertentu: status pengerjaan, skor, lulus/gagal, dan opsi interview.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">End Exam (Bulk)</td><td>Mengakhiri ujian secara paksa untuk semua pekerja yang masih mengerjakan</td></tr>
+    <tr><td class="btn-name">Interview</td><td>Menandai pekerja untuk interview tambahan</td></tr>
+    <tr><td class="btn-name">Lihat Detail</td><td>Melihat jawaban detail pekerja</td></tr>
+  </table>
+</div>
+
+<!-- UserAssessmentHistory -->
+<h3>4.12 Riwayat Assessment Pekerja</h3>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Riwayat semua assessment seorang pekerja: skor, status kelulusan, dan tanggal pengerjaan.</p>
+
+<!-- 4D. Paket Soal & Kategori -->
+<div class="sub-chapter"><h3>4D. Paket Soal &amp; Kategori</h3><p>Kelola paket soal, pertanyaan, dan hirarki kategori assessment</p></div>
+
+<!-- ManagePackages -->
+<h3>4.13 Kelola Paket Soal (Manage Packages)</h3>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Daftar paket soal assessment dengan aksi CRUD dan preview.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Buat Paket</td><td>Membuat paket soal baru</td></tr>
+    <tr><td class="btn-name">Edit</td><td>Mengedit nama/konfigurasi paket</td></tr>
+    <tr><td class="btn-name">Preview</td><td>Melihat daftar soal dalam paket</td></tr>
+    <tr><td class="btn-name">Import Soal</td><td>Import soal dari file Excel</td></tr>
+    <tr><td class="btn-name">Hapus</td><td>Menghapus paket soal</td></tr>
+  </table>
+</div>
+
+<!-- PreviewPackage -->
+<div class="screenshot">
+  <img src="screenshots/45-admin-previewpackage.png" alt="Preview Paket Soal">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.14 Preview Paket Soal</div>
+    <div class="caption-desc">Tampilan semua pertanyaan dalam paket beserta opsi jawaban dan jawaban benar.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Berguna untuk review sebelum assessment dilaksanakan.</p>
+
+<!-- ImportPackageQuestions -->
+<h3>4.15 Import Soal (Import Package Questions)</h3>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Import pertanyaan ke dalam paket soal dari file Excel.</p>
+<ol class="steps">
+  <li>Klik <strong>Download Template</strong> untuk mengunduh format Excel.</li>
+  <li>Isi soal, opsi jawaban (A-E), dan jawaban benar pada template.</li>
+  <li>Upload file dan klik <strong>Proses Import</strong>.</li>
+</ol>
+
+<!-- ManageCategories -->
+<div class="screenshot">
+  <img src="screenshots/29-admin-categories.png" alt="Kelola Kategori">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.16 Kelola Kategori (Manage Categories)</div>
+    <div class="caption-desc">Kelola hirarki kategori assessment dengan tree view dan export.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Kelola hirarki kategori assessment dengan tree view. Setiap kategori bisa memiliki penandatangan (signatory) dan sub-kategori.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Tambah Kategori</td><td>Menambah kategori baru</td></tr>
+    <tr><td class="btn-name">Edit</td><td>Mengedit nama dan signatory kategori</td></tr>
+    <tr><td class="btn-name">Hapus</td><td>Menghapus kategori (jika tidak ada assessment terkait)</td></tr>
+    <tr><td class="btn-name">Export Excel</td><td>Mengunduh data kategori ke file Excel</td></tr>
+    <tr><td class="btn-name">Export PDF</td><td>Mengunduh data kategori ke file PDF</td></tr>
+  </table>
+</div>
+
+<!-- 4E. Training -->
+<div class="sub-chapter"><h3>4E. Training</h3><p>Tambah, edit, dan import data training pekerja</p></div>
+
+<!-- AddTraining -->
+<div class="screenshot">
+  <img src="screenshots/30-admin-addtraining.png" alt="Tambah Training">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.17 Tambah Training (Add Training)</div>
+    <div class="caption-desc">Form untuk menambah rekaman training baru.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<ol class="steps">
+  <li>Isi <strong>Judul</strong>, pilih <strong>Kategori</strong>, dan atur <strong>Tanggal</strong>.</li>
+  <li>Isi <strong>Durasi</strong>, <strong>Biaya</strong>, <strong>Tipe Sertifikat</strong>, dan <strong>Masa Berlaku</strong>.</li>
+  <li>(Opsional) Upload <strong>file sertifikat</strong> training.</li>
+  <li>Klik <strong>Simpan</strong> untuk menyimpan data training.</li>
+</ol>
+
+<!-- EditTraining -->
+<div class="screenshot">
+  <img src="screenshots/44-admin-edittraining.png" alt="Edit Training">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.18 Edit Training</div>
+    <div class="caption-desc">Form edit rekaman training: data training dan sertifikat.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Semua field bisa diubah termasuk file sertifikat.</p>
+
+<!-- ImportTraining -->
+<div class="screenshot">
+  <img src="screenshots/31-admin-importtraining.png" alt="Import Training">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.19 Import Training</div>
+    <div class="caption-desc">Import data training secara massal dari file Excel.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Alur sama dengan Import Pekerja: download template, isi, upload, proses.</p>
+
+<!-- 4F. KKJ & CPDP Files -->
+<div class="sub-chapter"><h3>4F. KKJ Files &amp; CPDP Files</h3><p>Upload dan kelola dokumen per bagian</p></div>
+
+<!-- KkjMatrix -->
+<div class="screenshot">
+  <img src="screenshots/32-admin-kkjmatrix.png" alt="KKJ Files">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.20 KKJ Files (KKJ Matrix)</div>
+    <div class="caption-desc">Hub dokumen KKJ aktif yang dikelompokkan per bagian.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Hub dokumen KKJ aktif yang dikelompokkan per bagian. Admin dapat upload, download, dan hapus file.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Upload File</td><td>Membuka form upload file KKJ baru</td></tr>
+    <tr><td class="btn-name">Download</td><td>Mengunduh file KKJ</td></tr>
+    <tr><td class="btn-name">Hapus</td><td>Menghapus (archive) file KKJ</td></tr>
+    <tr><td class="btn-name">Riwayat</td><td>Melihat riwayat file per bagian</td></tr>
+  </table>
+</div>
+
+<!-- KkjUpload -->
+<div class="screenshot">
+  <img src="screenshots/46-admin-kkjupload.png" alt="Upload KKJ">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.21 Upload KKJ</div>
+    <div class="caption-desc">Form upload file KKJ baru dengan drag & drop.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Pilih bagian, unggah file (PDF/Excel), dan simpan.</p>
+
+<!-- KkjFileHistory -->
+<div class="screenshot">
+  <img src="screenshots/47-admin-kkjhistory.png" alt="Riwayat KKJ">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.22 Riwayat KKJ</div>
+    <div class="caption-desc">Riwayat file KKJ per bagian: file aktif, arsip, dan yang dihapus.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+
+<!-- CpdpFiles -->
+<div class="screenshot">
+  <img src="screenshots/33-admin-cpdpfiles.png" alt="CPDP Files">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.23 CPDP Files</div>
+    <div class="caption-desc">Hub dokumen panduan CPDP aktif per bagian.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Fungsi dan tampilan mirip dengan KKJ Files.</p>
+
+<!-- CpdpUpload -->
+<div class="screenshot">
+  <img src="screenshots/48-admin-cpdpupload.png" alt="Upload CPDP">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.24 Upload CPDP</div>
+    <div class="caption-desc">Form upload file panduan CPDP baru dengan drag & drop.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Pilih bagian, unggah file, dan simpan.</p>
+
+<!-- CpdpFileHistory -->
+<div class="screenshot">
+  <img src="screenshots/49-admin-cpdphistory.png" alt="Riwayat CPDP">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.25 Riwayat CPDP</div>
+    <div class="caption-desc">Riwayat file panduan CPDP per bagian: aktif, arsip, dan dihapus.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+
+<!-- 4G. Organisasi, Mapping, Sertifikat, Audit -->
+<div class="sub-chapter"><h3>4G. Organisasi, Mapping, Sertifikat &amp; Audit</h3><p>Struktur organisasi, coach-coachee, renewal sertifikat, dan audit log</p></div>
+
+<!-- ManageOrganization -->
+<div class="screenshot">
+  <img src="screenshots/34-admin-organization.png" alt="Kelola Organisasi">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.26 Kelola Organisasi (Manage Organization)</div>
+    <div class="caption-desc">Kelola struktur organisasi: unit kerja dan bagian dalam bentuk hirarki.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Kelola struktur organisasi: unit kerja dan bagian (departemen) dalam bentuk hirarki.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Tambah Unit/Bagian</td><td>Menambah unit kerja atau bagian baru</td></tr>
+    <tr><td class="btn-name">Edit</td><td>Mengedit nama unit/bagian</td></tr>
+    <tr><td class="btn-name">Toggle Aktif</td><td>Mengaktifkan/menonaktifkan unit/bagian</td></tr>
+    <tr><td class="btn-name">Hapus</td><td>Menghapus unit/bagian (jika tidak ada pekerja terkait)</td></tr>
+    <tr><td class="btn-name">Reorder</td><td>Mengubah urutan tampilan unit/bagian</td></tr>
+  </table>
+</div>
+
+<!-- CoachCoacheeMapping -->
+<div class="screenshot">
+  <img src="screenshots/16-admin-mapping.png" alt="Coach-Coachee Mapping">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.27 Coach-Coachee Mapping</div>
+    <div class="caption-desc">Pengaturan hubungan coach dan coachee untuk Coaching Proton.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Lihat daftar mapping coach-coachee yang sudah ada.</li>
+  <li>Klik <strong>Tambah Mapping</strong> untuk mengatur coach baru dan coachee-nya.</li>
+  <li>Pilih <strong>Coach</strong> dan <strong>Coachee</strong> dari daftar pekerja.</li>
+  <li>Klik <strong>Simpan</strong> untuk menyimpan mapping.</li>
+  <li>Gunakan <strong>Export</strong> untuk mengunduh data mapping ke Excel.</li>
+</ol>
+
+<!-- RenewalCertificate -->
+<div class="screenshot">
+  <img src="screenshots/35-admin-renewalcert.png" alt="Renewal Certificate">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.28 Renewal Certificate</div>
+    <div class="caption-desc">Hub sertifikat yang kedaluwarsa atau akan segera kedaluwarsa.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Hub sertifikat yang kedaluwarsa atau akan segera kedaluwarsa. Menampilkan pekerja, tipe sertifikat, tanggal kedaluwarsa, dan tombol aksi renewal.</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Buat Renewal Assessment</td><td>Membuat assessment perpanjangan untuk sertifikat tertentu</td></tr>
+    <tr><td class="btn-name">Filter Status</td><td>Menyaring berdasarkan status: expired, expiring soon</td></tr>
+  </table>
+</div>
+
+<!-- AuditLog -->
+<div class="screenshot">
+  <img src="screenshots/36-admin-auditlog.png" alt="Audit Log">
+  <div class="screenshot-caption">
+    <div class="caption-title">4.29 Audit Log</div>
+    <div class="caption-desc">Riwayat aktivitas sistem: siapa melakukan apa, kapan, dan detailnya.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Riwayat aktivitas sistem: siapa melakukan apa, kapan, dan detailnya. Berguna untuk tracking perubahan data dan troubleshooting.</p>
+<ol class="steps">
+  <li>Gunakan <strong>filter</strong> untuk menyaring berdasarkan pengguna, tipe aksi, atau rentang tanggal.</li>
+  <li>Klik <strong>Detail</strong> pada baris tertentu untuk melihat informasi lengkap aksi tersebut.</li>
+</ol>
 
 <!-- ================================================================== -->
-<!-- SECTION 5: PROTON DATA & PANDUAN -->
+<!-- SECTION 5: PROTON DATA -->
 <!-- ================================================================== -->
 <div class="chapter page-break" id="sec-proton">
-  <h2>5. Proton Data &amp; Panduan</h2>
-  <p>Kelola data silabus Proton dan halaman panduan penggunaan.</p>
+  <h2>5. Proton Data</h2>
+  <p>Kelola data silabus Proton, guidance coaching, dan override manual.</p>
 </div>
 
+<div class="info">
+  <div class="info-title">Akses Terbatas</div>
+  Seluruh halaman Proton Data hanya dapat diakses oleh <span class="badge badge-orange">Admin</span> dan <span class="badge badge-green">HC</span>.
+</div>
+
+<!-- Proton Hub -->
 <div class="screenshot">
-  <img src="screenshots/17-protondata.png" alt="Proton Data">
+  <img src="screenshots/17-protondata.png" alt="Proton Data Hub">
   <div class="screenshot-caption">
-    <div class="caption-title">5.1 Proton Data</div>
-    <div class="caption-desc">Halaman kelola data Proton: silabus, guidance, dan override. Diakses oleh Admin dan HC untuk mengatur materi coaching.</div>
+    <div class="caption-title">5.1 Proton Data Hub</div>
+    <div class="caption-desc">Pusat kelola data Proton: silabus, guidance, dan override.</div>
   </div>
 </div>
-
-<div class="screenshot">
-  <img src="screenshots/18-panduan.png" alt="Panduan">
-  <div class="screenshot-caption">
-    <div class="caption-title">5.2 Halaman Panduan</div>
-    <div class="caption-desc">Halaman panduan penggunaan HC Portal. Berisi dokumen-dokumen panduan yang dapat diakses dan diunduh oleh semua pengguna.</div>
-  </div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<div class="btn-list">
+  <table>
+    <tr><th>Menu</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Silabus</td><td>Kelola kurikulum dan deliverable Proton per track</td></tr>
+    <tr><td class="btn-name">Guidance</td><td>Kelola materi panduan coaching</td></tr>
+    <tr><td class="btn-name">Override</td><td>Penyesuaian manual status deliverable/kompetensi</td></tr>
+  </table>
 </div>
 
+<!-- Import Silabus -->
+<div class="screenshot">
+  <img src="screenshots/37-proton-importsilabus.png" alt="Import Silabus">
+  <div class="screenshot-caption">
+    <div class="caption-title">5.2 Import Silabus</div>
+    <div class="caption-desc">Import data silabus Proton dari file Excel.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Import data silabus Proton (kurikulum, kompetensi, deliverable) dari file Excel.</p>
+<ol class="steps">
+  <li>Klik <strong>Download Template</strong> untuk mengunduh format Excel silabus.</li>
+  <li>Isi data kompetensi dan deliverable per track pada template.</li>
+  <li>Upload file dan klik <strong>Proses Import</strong>.</li>
+  <li>Sistem akan membuat/update data silabus secara bulk.</li>
+</ol>
+
+<!-- Override -->
+<div class="screenshot">
+  <img src="screenshots/38-proton-override.png" alt="Override">
+  <div class="screenshot-caption">
+    <div class="caption-title">5.3 Override</div>
+    <div class="caption-desc">Penyesuaian manual pada data deliverable dan kompetensi.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-orange">Admin</span> <span class="badge badge-green">HC</span></div>
+<p>Halaman untuk penyesuaian manual pada data deliverable dan kompetensi: mengubah status, menonaktifkan, atau mengaktifkan kembali item tertentu.</p>
+<ol class="steps">
+  <li>Cari pekerja atau deliverable yang ingin di-override.</li>
+  <li>Pilih aksi: <strong>Ubah Status</strong>, <strong>Nonaktifkan</strong>, atau <strong>Aktifkan Kembali</strong>.</li>
+  <li>Isi alasan override lalu klik <strong>Simpan</strong>.</li>
+</ol>
+<div class="warning">
+  <div class="warning-title">Perhatian</div>
+  Override bersifat manual dan akan tercatat di audit log. Gunakan hanya untuk kasus-kasus khusus.
+</div>
+
+<!-- ================================================================== -->
+<!-- SECTION 6: PANDUAN -->
+<!-- ================================================================== -->
+<div class="chapter page-break" id="sec-panduan">
+  <h2>6. Panduan Penggunaan</h2>
+  <p>Halaman panduan dan dokumentasi penggunaan HC Portal.</p>
+</div>
+
+<!-- Guide -->
+<div class="screenshot">
+  <img src="screenshots/18-panduan.png" alt="Halaman Panduan">
+  <div class="screenshot-caption">
+    <div class="caption-title">6.1 Halaman Panduan</div>
+    <div class="caption-desc">Landing page panduan dengan pilihan modul berdasarkan role pengguna.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<h3>Langkah Penggunaan</h3>
+<ol class="steps">
+  <li>Pilih <strong>modul</strong> yang ingin dipelajari (CMP, CDP, Akun, Data, Admin).</li>
+  <li>Modul admin hanya tampil untuk pengguna dengan role Admin/HC.</li>
+  <li>Klik modul untuk membuka <strong>detail panduan</strong> beserta dokumen yang bisa diunduh.</li>
+</ol>
+
+<!-- GuideDetail -->
+<div class="screenshot">
+  <img src="screenshots/39-panduan-guidedetail.png" alt="Detail Panduan">
+  <div class="screenshot-caption">
+    <div class="caption-title">6.2 Detail Panduan (Guide Detail)</div>
+    <div class="caption-desc">Detail panduan per modul dengan penjelasan fitur dan dokumen unduhan.</div>
+  </div>
+</div>
+<div class="role-bar"><span class="badge badge-blue">Semua</span></div>
+<p>Halaman detail panduan per modul: berisi penjelasan fitur, langkah penggunaan, dan dokumen panduan yang bisa diunduh (PDF, HTML).</p>
+<div class="btn-list">
+  <table>
+    <tr><th>Tombol</th><th>Fungsi</th></tr>
+    <tr><td class="btn-name">Download PDF</td><td>Mengunduh panduan dalam format PDF</td></tr>
+    <tr><td class="btn-name">Buka Panduan</td><td>Membuka panduan dalam format HTML di tab baru</td></tr>
+    <tr><td class="btn-name">Kembali</td><td>Kembali ke halaman utama panduan</td></tr>
+  </table>
+</div>
+
+<!-- ============================================================ -->
 <!-- FOOTER -->
+<!-- ============================================================ -->
 <div class="footer">
-  HC Portal KPB &mdash; Screenshot Guide v1.0 &mdash; Maret 2026
+  HC Portal KPB &mdash; Screenshot Guide v2.0 &mdash; Maret 2026<br>
+  Total: 50+ halaman &bull; 6 modul &bull; 5 role pengguna
 </div>
 
 </body>
