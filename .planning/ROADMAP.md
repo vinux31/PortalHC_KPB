@@ -95,10 +95,10 @@ Plans:
 **Goal:** Cascade rename/reparent OrganizationUnit ke semua user records, blokir deactivate jika ada user aktif, dan ubah template import jadi dinamis
 **Requirements**: D-01, D-02, D-03, D-05, D-06, D-07, D-09
 **Depends on:** Phase 259
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 260-01-PLAN.md — Cascade rename/reparent + blokir deactivate + dynamic template
+- [x] 260-01-PLAN.md — Cascade rename/reparent + blokir deactivate + dynamic template
 
 ### Phase 261: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
 

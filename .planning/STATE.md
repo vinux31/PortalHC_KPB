@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Phase complete — ready for verification
-stopped_at: Completed 259-01-PLAN.md
-last_updated: "2026-03-26T02:14:12.464Z"
+stopped_at: Completed 260-01-PLAN.md
+last_updated: "2026-03-26T03:04:19.847Z"
 last_activity: 2026-03-26
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_phases: 5
+  completed_phases: 3
+  total_plans: 5
+  completed_plans: 5
 ---
 
 # Project State: Portal HC KPB
@@ -20,11 +20,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 259 — export-categories-bugfix-signatory
+**Current focus:** Phase 260 — auto-cascade-perubahan-nama-organizationunit-ke-semua-user-records-dan-template
 
 ## Current Position
 
-Phase: 259 (export-categories-bugfix-signatory) — EXECUTING
+Phase: 260 (auto-cascade-perubahan-nama-organizationunit-ke-semua-user-records-dan-template) — EXECUTING
 Plan: 1 of 1
 Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 
@@ -36,10 +36,13 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 - [v9.1]: Milestone closed early — hanya Phase 257 dieksekusi
 - [v9.1]: Phase 258-261 skipped by user decision
 - [Phase 259]: Added QuestPDF usings to AdminController for PDF export
+- [Phase 260]: Cascade logic before unit.Name assignment; reparent walks ancestor chain to Level 0
 
 ### Roadmap Evolution
 
 - Phase 1 added: Tambahkan tombol hapus worker di halaman ManageWorkers
+- Phase 260 added: Auto-cascade perubahan nama OrganizationUnit ke semua user records dan template
+- Phase 261 added: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
 
 ### Pending Todos
 
@@ -49,7 +52,7 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 ## Session Continuity
 
 Last activity: 2026-03-26
-Stopped at: Completed 259-01-PLAN.md
+Stopped at: Completed 260-01-PLAN.md
 
 ### Quick Tasks Completed
 
