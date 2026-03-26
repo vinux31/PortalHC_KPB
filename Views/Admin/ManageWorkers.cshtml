@@ -282,10 +282,11 @@
                                             }
                                             else
                                             {
-                                                <form method="post" action="@Url.Action("ReactivateWorker", "Admin")" style="display:inline;">
+                                                <form id="reactivate-@user.Id" method="post" action="@Url.Action("ReactivateWorker", "Admin")" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Aktifkan Kembali">
+                                                    <button type="button" class="btn btn-sm btn-outline-success" title="Aktifkan Kembali"
+                                                            data-action="reactivate" data-userid="@user.Id" data-username="@user.FullName" onclick="showConfirm(this.dataset.action, this.dataset.userid, this.dataset.username)">
                                                         <i class="bi bi-person-check"></i>
                                                     </button>
                                                 </form>
@@ -401,6 +402,13 @@
                 <p class="text-muted mb-0"><small>Coaching aktif akan ditutup dan assessment aktif akan dibatalkan. Tindakan ini dapat dibatalkan dengan Aktifkan Kembali.</small></p>`;
             btn.className = 'btn btn-warning';
             btn.textContent = 'Ya, Nonaktifkan';
+        } else if (action === 'reactivate') {
+            header.className = 'modal-header bg-success bg-opacity-10';
+            title.innerHTML = '<i class="bi bi-person-check text-success me-2"></i>Aktifkan Kembali';
+            body.innerHTML = `<p>Anda yakin ingin mengaktifkan kembali <strong>${userName}</strong>?</p>
+                <p class="text-muted mb-0"><small>User akan dapat login dan mengakses sistem kembali.</small></p>`;
+            btn.className = 'btn btn-success';
+            btn.textContent = 'Ya, Aktifkan';
         } else {
             header.className = 'modal-header bg-danger bg-opacity-10';
             title.innerHTML = '<i class="bi bi-exclamation-octagon text-danger me-2"></i>Hapus Permanen';
