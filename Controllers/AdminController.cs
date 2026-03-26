@@ -3932,6 +3932,8 @@ namespace HcPortal.Controllers
             // Load all existing mappings
             var allMappings = await _context.CoachCoacheeMappings.ToListAsync();
 
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+
             var results = new List<ImportMappingResult>();
             var newMappings = new List<CoachCoacheeMapping>();
             var reactivatedMappings = new List<CoachCoacheeMapping>();
@@ -4002,6 +4004,17 @@ namespace HcPortal.Controllers
                         continue;
                     }
 
+                    // Phase 261: Validate coachee Section/Unit against OrganizationUnit
+                    if (string.IsNullOrEmpty(coacheeUser.Section) || string.IsNullOrEmpty(coacheeUser.Unit)
+                        || !sectionUnitsDict.TryGetValue(coacheeUser.Section.Trim(), out var vuImport)
+                        || !vuImport.Contains(coacheeUser.Unit.Trim()))
+                    {
+                        result.Status = "Error";
+                        result.Message = $"Section/Unit coachee ('{coacheeUser.Section}'/'{coacheeUser.Unit}') tidak valid di OrganizationUnit aktif";
+                        results.Add(result);
+                        continue;
+                    }
+
                     // Check for existing active mapping
                     var activeMapping = allMappings.FirstOrDefault(m =>
                         m.CoachId == coachUser.Id && m.CoacheeId == coacheeUser.Id && m.IsActive);
@@ -4021,6 +4034,8 @@ namespace HcPortal.Controllers
                         inactiveMapping.IsActive = true;
                         inactiveMapping.StartDate = DateTime.Today;
                         inactiveMapping.EndDate = null;
+                        inactiveMapping.AssignmentSection = coacheeUser.Section.Trim();
+                        inactiveMapping.AssignmentUnit = coacheeUser.Unit.Trim();
                         reactivatedMappings.Add(inactiveMapping);
                         result.Status = "Reactivated";
                         result.Message = "Mapping diaktifkan kembali";
@@ -4103,6 +4118,11 @@ namespace HcPortal.Controllers
 
             if (string.IsNullOrWhiteSpace(req.AssignmentSection) || string.IsNullOrWhiteSpace(req.AssignmentUnit))
                 return Json(new { success = false, message = "Assignment Section dan Unit wajib diisi." });
+
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            if (!sectionUnitsDict.TryGetValue(req.AssignmentSection!.Trim(), out var validUnits)
+                || !validUnits.Contains(req.AssignmentUnit!.Trim()))
+                return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
 
             // Check for duplicate active mappings
             var existingMappings = await _context.CoachCoacheeMappings
@@ -4303,6 +4323,15 @@ namespace HcPortal.Controllers
             var actor = await _userManager.GetUserAsync(User);
             if (actor == null)
                 return Json(new { success = false, message = "Sesi tidak valid." });
+
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+            var secEdit = req.AssignmentSection?.Trim();
+            var unitEdit = req.AssignmentUnit?.Trim();
+            if (!string.IsNullOrEmpty(secEdit) && !string.IsNullOrEmpty(unitEdit))
+            {
+                if (!sectionUnitsDict.TryGetValue(secEdit, out var validUnitsEdit) || !validUnitsEdit.Contains(unitEdit))
+                    return Json(new { success = false, message = "Section/Unit tidak ditemukan di data organisasi aktif." });
+            }
 
             mapping.CoachId = req.CoachId;
             if (req.StartDate.HasValue)
