@@ -4399,6 +4399,60 @@ namespace HcPortal.Controllers
             return Json(new { success = true, message = "Mapping berhasil diperbarui." });
         }
 
+        // POST /Admin/CleanupCoachCoacheeMappingOrg
+        [HttpPost]
+        [Authorize(Roles = "Admin, HC")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CleanupCoachCoacheeMappingOrg()
+        {
+            var sectionUnitsDict = await _context.GetSectionUnitsDictAsync();
+
+            var activeMappings = await _context.CoachCoacheeMappings
+                .Where(m => m.IsActive)
+                .ToListAsync();
+
+            var userDict = await _context.Users
+                .Select(u => new { u.Id, u.Section, u.Unit })
+                .ToDictionaryAsync(u => u.Id, u => new { u.Section, u.Unit });
+
+            int autoFixed = 0;
+            var unfixable = new List<object>();
+
+            foreach (var m in activeMappings)
+            {
+                var sec = m.AssignmentSection?.Trim();
+                var unit = m.AssignmentUnit?.Trim();
+                bool isValid = !string.IsNullOrEmpty(sec) && !string.IsNullOrEmpty(unit)
+                    && sectionUnitsDict.TryGetValue(sec, out var vu) && vu.Contains(unit);
+
+                if (isValid) continue;
+
+                // Try fix from coachee user record
+                if (userDict.TryGetValue(m.CoacheeId, out var coacheeInfo))
+                {
+                    var userSec = coacheeInfo.Section?.Trim();
+                    var userUnit = coacheeInfo.Unit?.Trim();
+                    bool userValid = !string.IsNullOrEmpty(userSec) && !string.IsNullOrEmpty(userUnit)
+                        && sectionUnitsDict.TryGetValue(userSec, out var vuUser) && vuUser.Contains(userUnit);
+
+                    if (userValid)
+                    {
+                        m.AssignmentSection = userSec;
+                        m.AssignmentUnit = userUnit;
+                        autoFixed++;
+                        continue;
+                    }
+                }
+
+                unfixable.Add(new { m.Id, m.CoacheeId, m.AssignmentSection, m.AssignmentUnit });
+            }
+
+            await _context.SaveChangesAsync();
+
+            TempData["CleanupReport"] = System.Text.Json.JsonSerializer.Serialize(new { autoFixed, unfixable });
+            return RedirectToAction(nameof(CoachCoacheeMapping));
+        }
+
         // POST /Admin/CoachCoacheeMappingGetSessionCount
         [HttpPost]
         [Authorize(Roles = "Admin, HC")]
