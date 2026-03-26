@@ -5417,7 +5417,7 @@ namespace HcPortal.Controllers
         // GET /Admin/DownloadImportTemplate
         [HttpGet]
         [Authorize(Roles = "Admin, HC")]
-        public IActionResult DownloadImportTemplate()
+        public async Task<IActionResult> DownloadImportTemplate()
         {
             using var workbook = new XLWorkbook();
             var ws = workbook.Worksheets.Add("Import Workers");
@@ -5453,7 +5453,8 @@ namespace HcPortal.Controllers
                 ws.Cell(2, i + 1).Style.Font.FontColor = XLColor.Gray;
             }
 
-            ws.Cell(3, 1).Value = "Kolom Bagian: RFCC / DHT / HMU / NGP / GAST";
+            var sections = await _context.GetAllSectionsAsync();
+            ws.Cell(3, 1).Value = $"Kolom Bagian: {string.Join(" / ", sections)}";
             ws.Cell(3, 1).Style.Font.Italic = true;
             ws.Cell(3, 1).Style.Font.FontColor = XLColor.DarkRed;
             ws.Cell(4, 1).Value = $"Kolom Role: {string.Join(" / ", UserRoles.AllRoles)}";
