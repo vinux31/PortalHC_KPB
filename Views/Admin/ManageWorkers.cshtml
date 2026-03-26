@@ -275,7 +275,7 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
                                                     <button type="button" class="btn btn-sm btn-outline-warning" title="Nonaktifkan"
-                                                            onclick="showConfirm('deactivate', '@user.Id', @Json.Serialize(user.FullName))">
+                                                            data-action="deactivate" data-userid="@user.Id" data-username="@user.FullName" onclick="showConfirm(this.dataset.action, this.dataset.userid, this.dataset.username)">
                                                         <i class="bi bi-person-dash"></i>
                                                     </button>
                                                 </form>
@@ -293,7 +293,7 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
                                                     <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus Permanen"
-                                                            onclick="showConfirm('delete', '@user.Id', @Json.Serialize(user.FullName))">
+                                                            data-action="delete" data-userid="@user.Id" data-username="@user.FullName" onclick="showConfirm(this.dataset.action, this.dataset.userid, this.dataset.username)">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>
