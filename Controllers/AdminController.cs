@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.SignalR;
 using ClosedXML.Excel;
 using System.Globalization;
 using HcPortal.Helpers;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
 
 namespace HcPortal.Controllers
 {
@@ -987,6 +989,102 @@ namespace HcPortal.Controllers
 
             TempData["Success"] = "Status kategori berhasil diubah.";
             return RedirectToAction("ManageCategories");
+        }
+
+        // GET /Admin/ExportCategoriesExcel
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportCategoriesExcel()
+        {
+            var categories = await _context.AssessmentCategories
+                .Include(c => c.Parent)
+                .Include(c => c.Signatory)
+                .OrderBy(c => c.ParentId == null ? 0 : 1)
+                    .ThenBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .ToListAsync();
+
+            using var workbook = new XLWorkbook();
+            var ws = ExcelExportHelper.CreateSheet(workbook, "Kategori Assessment",
+                new[] { "No", "Nama Kategori", "Kategori Induk", "Passing Grade (%)", "Penandatangan", "Urutan", "Status" });
+            ws.Range(1, 1, 1, 7).Style.Fill.BackgroundColor = XLColor.LightBlue;
+
+            for (int i = 0; i < categories.Count; i++)
+            {
+                var c = categories[i];
+                ws.Cell(i + 2, 1).Value = i + 1;
+                ws.Cell(i + 2, 2).Value = c.Name;
+                ws.Cell(i + 2, 3).Value = c.Parent?.Name ?? "";
+                ws.Cell(i + 2, 4).Value = c.DefaultPassPercentage;
+                ws.Cell(i + 2, 5).Value = c.Signatory?.FullName ?? "—";
+                ws.Cell(i + 2, 6).Value = c.SortOrder;
+                ws.Cell(i + 2, 7).Value = c.IsActive ? "Aktif" : "Nonaktif";
+            }
+
+            var fileName = $"KategoriAssessment_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return ExcelExportHelper.ToFileResult(workbook, fileName, this);
+        }
+
+        // GET /Admin/ExportCategoriesPdf
+        [HttpGet]
+        [Authorize(Roles = "Admin, HC")]
+        public async Task<IActionResult> ExportCategoriesPdf()
+        {
+            var categories = await _context.AssessmentCategories
+                .Include(c => c.Parent)
+                .Include(c => c.Signatory)
+                .OrderBy(c => c.ParentId == null ? 0 : 1)
+                    .ThenBy(c => c.SortOrder).ThenBy(c => c.Name)
+                .ToListAsync();
+
+            var pdf = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(20);
+                    page.Content().Column(col =>
+                    {
+                        col.Item().Text("Kategori Assessment").FontSize(14).Bold();
+                        col.Item().Text($"Tanggal export: {DateTime.Now:dd MMM yyyy HH:mm}").FontSize(9);
+                        col.Item().PaddingTop(10).Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.ConstantColumn(30);    // No
+                                cols.RelativeColumn(3);     // Nama
+                                cols.RelativeColumn(2);     // Kategori Induk
+                                cols.ConstantColumn(50);    // Passing Grade
+                                cols.RelativeColumn(2);     // Penandatangan
+                                cols.ConstantColumn(40);    // Urutan
+                                cols.ConstantColumn(50);    // Status
+                            });
+
+                            foreach (var header in new[] { "No", "Nama Kategori", "Kategori Induk", "PG (%)", "Penandatangan", "Urutan", "Status" })
+                            {
+                                table.Cell().Border(0.5f).Padding(3).Text(header).FontSize(8).Bold();
+                            }
+
+                            for (int i = 0; i < categories.Count; i++)
+                            {
+                                var c = categories[i];
+                                table.Cell().Border(0.5f).Padding(2).Text($"{i + 1}").FontSize(7);
+                                table.Cell().Border(0.5f).Padding(2).Text(c.Name).FontSize(7);
+                                table.Cell().Border(0.5f).Padding(2).Text(c.Parent?.Name ?? "").FontSize(7);
+                                table.Cell().Border(0.5f).Padding(2).Text($"{c.DefaultPassPercentage}").FontSize(7);
+                                table.Cell().Border(0.5f).Padding(2).Text(c.Signatory?.FullName ?? "—").FontSize(7);
+                                table.Cell().Border(0.5f).Padding(2).Text($"{c.SortOrder}").FontSize(7);
+                                table.Cell().Border(0.5f).Padding(2).Text(c.IsActive ? "Aktif" : "Nonaktif").FontSize(7);
+                            }
+                        });
+                    });
+                });
+            });
+
+            var stream = new MemoryStream();
+            pdf.GeneratePdf(stream);
+            stream.Position = 0;
+            var fileName = $"KategoriAssessment_{DateTime.Now:yyyyMMdd_HHmmss}.pdf";
+            return File(stream.ToArray(), "application/pdf", fileName);
         }
 
         // --- CREATE ASSESSMENT ---
