@@ -509,4 +509,5 @@ test.txt
 
 # Cookie/session test files
 cookie_*
+.aspnet_cookies
 null
