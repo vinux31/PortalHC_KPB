@@ -25,9 +25,20 @@
             </h2>
             <p class="text-muted mb-0">Kelola kategori assessment, hierarki, dan penandatangan sertifikat</p>
         </div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addCategoryForm">
-            <i class="bi bi-plus-circle me-2"></i>Tambah Kategori
-        </button>
+        <div class="d-flex gap-2">
+            <div class="btn-group">
+                <button type="button" class="btn btn-outline-success dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-download me-1"></i>Export
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="@Url.Action("ExportCategoriesExcel", "Admin")"><i class="bi bi-file-earmark-excel me-2"></i>Excel</a></li>
+                    <li><a class="dropdown-item" href="@Url.Action("ExportCategoriesPdf", "Admin")"><i class="bi bi-file-earmark-pdf me-2"></i>PDF</a></li>
+                </ul>
+            </div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#addCategoryForm">
+                <i class="bi bi-plus-circle me-2"></i>Tambah Kategori
+            </button>
+        </div>
     </div>
 
     <!-- Alerts -->
