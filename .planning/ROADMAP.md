@@ -75,10 +75,10 @@ Backup: `.planning/milestones/v9.0-REQUIREMENTS.md`, `.planning/milestones/v9.0-
 **Goal:** Fix bug signatory sub-kategori dan tambah export Excel/PDF di ManageCategories
 **Requirements**: N/A
 **Depends on:** None
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 259-01-PLAN.md — Bug fix signatory + export Excel & PDF + tombol UI
+- [x] 259-01-PLAN.md — Bug fix signatory + export Excel & PDF + tombol UI
 
 ### Phase 1: Tambahkan tombol hapus worker di halaman ManageWorkers
 
