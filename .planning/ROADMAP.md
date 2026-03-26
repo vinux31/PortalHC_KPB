@@ -105,7 +105,7 @@ Plans:
 **Goal:** One-time cleanup data CoachCoacheeMapping yang Section/Unit invalid + runtime validation di assign/edit/import
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09
 **Depends on:** Phase 260
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 261-01-PLAN.md — Cleanup + runtime validation Section/Unit di CoachCoacheeMapping
+- [x] 261-01-PLAN.md — Cleanup + runtime validation Section/Unit di CoachCoacheeMapping
