@@ -61,6 +61,30 @@
     </div>
 </div>
 
+@{
+    var cleanupJson = TempData["CleanupReport"] as string;
+    if (!string.IsNullOrEmpty(cleanupJson))
+    {
+        var cleanup = System.Text.Json.JsonDocument.Parse(cleanupJson);
+        var autoFixed = cleanup.RootElement.GetProperty("autoFixed").GetInt32();
+        var unfixable = cleanup.RootElement.GetProperty("unfixable");
+        var unfixableCount = unfixable.GetArrayLength();
+        <div class="alert alert-info alert-dismissible fade show">
+            <i class="bi bi-wrench me-2"></i>
+            <strong>Cleanup selesai:</strong> @autoFixed mapping diperbaiki otomatis.
+            @if (unfixableCount > 0)
+            {
+                <span class="text-danger">@unfixableCount mapping tidak dapat diperbaiki (Section/Unit tidak valid dan tidak ditemukan di data user).</span>
+            }
+            else
+            {
+                <span>Semua mapping sudah konsisten.</span>
+            }
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+}
+
 @if (TempData["ImportError"] != null)
 {
     <div class="alert alert-danger alert-dismissible fade show">
