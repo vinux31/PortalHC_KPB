@@ -288,6 +288,13 @@
                                                         <i class="bi bi-person-check"></i>
                                                     </button>
                                                 </form>
+                                                <form method="post" action="@Url.Action("DeleteWorker", "Admin")" style="display:inline;" onsubmit="return confirmDelete(@Json.Serialize(user.FullName));">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Permanen">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
                                             }
                                         </div>
                                     </td>
@@ -359,6 +366,11 @@
     // --- Deactivate Confirmation ---
     function confirmDeactivate(userName) {
         return confirm(`Nonaktifkan user "${userName}"?\n\nCoaching aktif akan ditutup dan assessment aktif akan dibatalkan. Tindakan ini dapat dibatalkan dengan Aktifkan Kembali.`);
+    }
+
+    // --- Delete Confirmation ---
+    function confirmDelete(userName) {
+        return confirm(`HAPUS PERMANEN user "${userName}"?\n\nSemua data terkait (assessment, coaching, training) akan dihapus dan TIDAK DAPAT dikembalikan.`);
     }
 
     // --- Client-side Pagination ---
