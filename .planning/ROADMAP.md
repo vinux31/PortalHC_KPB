@@ -89,3 +89,23 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 1 to break down)
+
+### Phase 260: Auto-cascade perubahan nama OrganizationUnit ke semua user records dan template
+
+**Goal:** Cascade rename/reparent OrganizationUnit ke semua user records, blokir deactivate jika ada user aktif, dan ubah template import jadi dinamis
+**Requirements**: D-01, D-02, D-03, D-05, D-06, D-07, D-09
+**Depends on:** Phase 259
+**Plans:** 1 plan
+
+Plans:
+- [ ] 260-01-PLAN.md — Cascade rename/reparent + blokir deactivate + dynamic template
+
+### Phase 261: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 260
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 261 to break down)
