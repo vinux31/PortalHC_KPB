@@ -271,10 +271,11 @@
                                             </a>
                                             @if (user.IsActive)
                                             {
-                                                <form method="post" action="@Url.Action("DeactivateWorker", "Admin")" style="display:inline;" onsubmit="return confirmDeactivate(@Json.Serialize(user.FullName));">
+                                                <form id="deactivate-@user.Id" method="post" action="@Url.Action("DeactivateWorker", "Admin")" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-warning" title="Nonaktifkan">
+                                                    <button type="button" class="btn btn-sm btn-outline-warning" title="Nonaktifkan"
+                                                            onclick="showConfirm('deactivate', '@user.Id', @Json.Serialize(user.FullName))">
                                                         <i class="bi bi-person-dash"></i>
                                                     </button>
                                                 </form>
@@ -288,10 +289,11 @@
                                                         <i class="bi bi-person-check"></i>
                                                     </button>
                                                 </form>
-                                                <form method="post" action="@Url.Action("DeleteWorker", "Admin")" style="display:inline;" onsubmit="return confirmDelete(@Json.Serialize(user.FullName));">
+                                                <form id="delete-@user.Id" method="post" action="@Url.Action("DeleteWorker", "Admin")" style="display:inline;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@user.Id" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Hapus Permanen">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" title="Hapus Permanen"
+                                                            onclick="showConfirm('delete', '@user.Id', @Json.Serialize(user.FullName))">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>
@@ -353,6 +355,23 @@
     }
 </style>
 
+<!-- Confirmation Modal -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="confirmModalHeader">
+                <h5 class="modal-title" id="confirmModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="confirmModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn" id="confirmModalBtn" onclick="submitConfirm()"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     // --- Bagian Change: reset Unit before submit ---
     function onBagianChange() {
@@ -363,14 +382,44 @@
         document.getElementById('filterForm').submit();
     }
 
-    // --- Deactivate Confirmation ---
-    function confirmDeactivate(userName) {
-        return confirm(`Nonaktifkan user "${userName}"?\n\nCoaching aktif akan ditutup dan assessment aktif akan dibatalkan. Tindakan ini dapat dibatalkan dengan Aktifkan Kembali.`);
+    // --- Confirmation Modal ---
+    let pendingFormId = null;
+    const confirmModal = { instance: null };
+
+    function showConfirm(action, userId, userName) {
+        pendingFormId = action + '-' + userId;
+        const modal = document.getElementById('confirmModal');
+        const title = document.getElementById('confirmModalTitle');
+        const body = document.getElementById('confirmModalBody');
+        const btn = document.getElementById('confirmModalBtn');
+        const header = document.getElementById('confirmModalHeader');
+
+        if (action === 'deactivate') {
+            header.className = 'modal-header bg-warning bg-opacity-10';
+            title.innerHTML = '<i class="bi bi-exclamation-triangle text-warning me-2"></i>Nonaktifkan User';
+            body.innerHTML = `<p>Anda yakin ingin menonaktifkan <strong>${userName}</strong>?</p>
+                <p class="text-muted mb-0"><small>Coaching aktif akan ditutup dan assessment aktif akan dibatalkan. Tindakan ini dapat dibatalkan dengan Aktifkan Kembali.</small></p>`;
+            btn.className = 'btn btn-warning';
+            btn.textContent = 'Ya, Nonaktifkan';
+        } else {
+            header.className = 'modal-header bg-danger bg-opacity-10';
+            title.innerHTML = '<i class="bi bi-exclamation-octagon text-danger me-2"></i>Hapus Permanen';
+            body.innerHTML = `<p>Anda yakin ingin <strong class="text-danger">menghapus permanen</strong> user <strong>${userName}</strong>?</p>
+                <p class="text-danger mb-0"><small><i class="bi bi-exclamation-triangle me-1"></i>Semua data terkait (assessment, coaching, training) akan dihapus dan <strong>TIDAK DAPAT dikembalikan</strong>.</small></p>`;
+            btn.className = 'btn btn-danger';
+            btn.textContent = 'Ya, Hapus Permanen';
+        }
+
+        if (!confirmModal.instance) {
+            confirmModal.instance = new bootstrap.Modal(modal);
+        }
+        confirmModal.instance.show();
     }
 
-    // --- Delete Confirmation ---
-    function confirmDelete(userName) {
-        return confirm(`HAPUS PERMANEN user "${userName}"?\n\nSemua data terkait (assessment, coaching, training) akan dihapus dan TIDAK DAPAT dikembalikan.`);
+    function submitConfirm() {
+        if (pendingFormId) {
+            document.getElementById(pendingFormId).submit();
+        }
     }
 
     // --- Client-side Pagination ---
