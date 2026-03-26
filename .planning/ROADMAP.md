@@ -102,10 +102,10 @@ Plans:
 
 ### Phase 261: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** One-time cleanup data CoachCoacheeMapping yang Section/Unit invalid + runtime validation di assign/edit/import
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09
 **Depends on:** Phase 260
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 261 to break down)
+- [ ] 261-01-PLAN.md — Cleanup + runtime validation Section/Unit di CoachCoacheeMapping
