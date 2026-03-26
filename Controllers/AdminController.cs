@@ -788,6 +788,11 @@ namespace HcPortal.Controllers
             var parentCategories = await _context.AssessmentCategories
                 .Include(c => c.Children.OrderBy(ch => ch.SortOrder).ThenBy(ch => ch.Name))
                     .ThenInclude(ch => ch.Children.OrderBy(gc => gc.SortOrder).ThenBy(gc => gc.Name))
+                .Include(c => c.Children)
+                    .ThenInclude(ch => ch.Signatory)
+                .Include(c => c.Children)
+                    .ThenInclude(ch => ch.Children)
+                        .ThenInclude(gc => gc.Signatory)
                 .Include(c => c.Signatory)
                 .Where(c => c.ParentId == null)
                 .OrderBy(c => c.SortOrder).ThenBy(c => c.Name)
