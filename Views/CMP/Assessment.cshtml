@@ -638,7 +638,7 @@
 
         // Server Side Verification with better error handling
         $.ajax({
-            url: '/CMP/VerifyToken',
+            url: '@Url.Action("VerifyToken", "CMP")',
             type: 'POST',
             headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
             data: {
@@ -678,7 +678,7 @@
         if(confirm("Start " + title + " now?")) {
             // No token required, just hit the verify endpoint to get redirect
             $.ajax({
-                url: '/CMP/VerifyToken',
+                url: '@Url.Action("VerifyToken", "CMP")',
                 type: 'POST',
                 headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val() },
                 data: {

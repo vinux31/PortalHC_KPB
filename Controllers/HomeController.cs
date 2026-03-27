@@ -282,7 +282,7 @@ public class HomeController : Controller
                 Date = coaching.Date,
                 Icon = "bi-people",
                 Color = "warning",
-                Url = "/CDP/CoachingProton"
+                Url = Url.Content("~/CDP/CoachingProton")
             });
         }
 
@@ -305,7 +305,7 @@ public class HomeController : Controller
                 Date = assessment.Schedule,
                 Icon = "bi-clipboard-check",
                 Color = isStarted ? "danger" : "success",
-                Url = "/CMP/Assessment"
+                Url = Url.Content("~/CMP/Assessment")
             });
         }
 
