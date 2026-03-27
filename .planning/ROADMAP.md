@@ -115,9 +115,9 @@ Plans:
 **Goal:** Setup UsePathBase middleware dan fix ~83 hardcoded absolute URL di 25 view files agar kompatibel dengan sub-path deployment /KPB-PortalHC/
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06
 **Depends on:** Phase 261
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] 262-01-PLAN.md — Setup UsePathBase di Program.cs + basePath/appUrl di _Layout.cshtml
+- [x] 262-01-PLAN.md — Setup UsePathBase di Program.cs + basePath/appUrl di _Layout.cshtml
 - [ ] 262-02-PLAN.md — Fix hardcoded URL di 12 file high-volume (66+ fixes)
 - [ ] 262-03-PLAN.md — Fix hardcoded URL di 12 file low-volume + final sweep

@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 261-01-PLAN.md
-last_updated: "2026-03-26T03:40:41.013Z"
-last_activity: 2026-03-26
+status: Ready to execute
+stopped_at: Completed 262-01-PLAN.md
+last_updated: "2026-03-27T02:18:10.989Z"
+last_activity: 2026-03-27
 progress:
-  total_phases: 5
+  total_phases: 6
   completed_phases: 4
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 9
+  completed_plans: 7
 ---
 
 # Project State: Portal HC KPB
@@ -20,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 261 — validasi-konsistensi-field-organisasi-di-coachcoacheemapping-dan-directorate
+**Current focus:** Phase 262 — fix-hardcoded-urls-in-views-for-sub-path-deployment-compatibility
 
 ## Current Position
 
-Phase: 261
-Plan: Not started
+Phase: 262 (fix-hardcoded-urls-in-views-for-sub-path-deployment-compatibility) — EXECUTING
+Plan: 2 of 3
 Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 
 ## Accumulated Context
@@ -38,12 +38,14 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 - [Phase 259]: Added QuestPDF usings to AdminController for PDF export
 - [Phase 260]: Cascade logic before unit.Name assignment; reparent walks ancestor chain to Level 0
 - [Phase 261]: GetSectionUnitsDictAsync reused for org validation across all CoachCoacheeMapping flows
+- [Phase 262]: PathBase di appsettings.json, basePath/appUrl globals di _Layout.cshtml
 
 ### Roadmap Evolution
 
 - Phase 1 added: Tambahkan tombol hapus worker di halaman ManageWorkers
 - Phase 260 added: Auto-cascade perubahan nama OrganizationUnit ke semua user records dan template
 - Phase 261 added: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
+- Phase 262 added: Fix hardcoded URLs in Views for sub-path deployment compatibility
 
 ### Pending Todos
 
@@ -52,8 +54,8 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 
 ## Session Continuity
 
-Last activity: 2026-03-26
-Stopped at: Completed 261-01-PLAN.md
+Last activity: 2026-03-27
+Stopped at: Completed 262-01-PLAN.md
 
 ### Quick Tasks Completed
 
