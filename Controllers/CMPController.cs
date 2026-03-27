@@ -1189,7 +1189,9 @@ namespace HcPortal.Controllers
             }
 
             // Store answers in TempData (dictionary key=questionId, value=selectedOptionId)
-            TempData["PendingAnswers"] = System.Text.Json.JsonSerializer.Serialize(answers);
+            // Filter out unanswered entries (model binder converts empty string to 0)
+            var validAnswers = answers.Where(kvp => kvp.Value > 0).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+            TempData["PendingAnswers"] = System.Text.Json.JsonSerializer.Serialize(validAnswers);
             TempData["PendingAssessmentId"] = id;
             TempData["PendingAssignmentId"] = assignmentId;
 
@@ -1611,12 +1613,22 @@ namespace HcPortal.Controllers
 
             var pSign = await ResolveCategorySignatory(assessment.Category);
 
-            // Register fonts from wwwroot/fonts/
+            // Register fonts from wwwroot/fonts/ (graceful if missing)
             var fontsPath = Path.Combine(_env.WebRootPath, "fonts");
-            foreach (var fontFile in Directory.GetFiles(fontsPath, "*.ttf"))
+            try
             {
-                using var fontStream = System.IO.File.OpenRead(fontFile);
-                FontManager.RegisterFont(fontStream);
+                if (Directory.Exists(fontsPath))
+                {
+                    foreach (var fontFile in Directory.GetFiles(fontsPath, "*.ttf"))
+                    {
+                        using var fontStream = System.IO.File.OpenRead(fontFile);
+                        FontManager.RegisterFont(fontStream);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Font registration failed, using default fonts");
             }
 
             var completedAt = assessment.CompletedAt ?? assessment.UpdatedAt ?? assessment.CreatedAt;
@@ -1634,6 +1646,8 @@ namespace HcPortal.Controllers
             }
             catch (Exception ex) { _logger.LogWarning(ex, "Failed to create certificate watermark SVG"); }
 
+            try
+            {
             var pdf = Document.Create(container =>
             {
                 container.Page(page =>
@@ -1798,12 +1812,26 @@ namespace HcPortal.Controllers
             var pdfStream = new MemoryStream();
             pdf.GeneratePdf(pdfStream);
 
+            if (pdfStream.Length == 0)
+            {
+                _logger.LogError("CertificatePdf: Generated PDF has 0 bytes for session {Id}", id);
+                TempData["Error"] = "Failed to generate PDF certificate.";
+                return RedirectToAction("Results", new { id });
+            }
+
             var nip = assessment.User?.NIP ?? user.Id;
             var safeTitle = Regex.Replace(assessment.Title ?? "Certificate", @"[^a-zA-Z0-9]", "_");
             var year = completedAt.Year;
             var filename = $"Sertifikat_{nip}_{safeTitle}_{year}.pdf";
 
             return File(pdfStream.ToArray(), "application/pdf", filename);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "CertificatePdf generation failed for session {Id}", id);
+                TempData["Error"] = "Gagal membuat PDF sertifikat. Silakan coba lagi.";
+                return RedirectToAction("Results", new { id });
+            }
         }
 
         [HttpGet]
