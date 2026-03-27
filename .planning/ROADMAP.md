@@ -23,7 +23,7 @@ See .planning/MILESTONES.md for full history.
 
 **Milestone Goal:** Simulasi test end-to-end assessment kategori OJT di server development, temukan bug/issue, perbaiki di project lokal.
 
-- [ ] **Phase 264: Admin Setup Assessment OJT** - Admin buat assessment, upload soal, assign worker
+- [x] **Phase 264: Admin Setup Assessment OJT** - Admin buat assessment, upload soal, assign worker (completed 2026-03-27)
 - [ ] **Phase 265: Worker Exam Flow** - Worker mulai ujian, jawab soal, navigasi halaman
 - [ ] **Phase 266: Review, Submit & Hasil** - Review jawaban, submit, grading, sertifikat
 - [ ] **Phase 267: Resilience & Edge Cases** - Offline, resume, refresh, timeout behavior
@@ -44,7 +44,7 @@ See .planning/MILESTONES.md for full history.
 **UI hint**: yes
 
 Plans:
-- [ ] 264-01: TBD
+- [x] 264-01: TBD
 
 ### Phase 265: Worker Exam Flow
 **Goal**: Worker dapat mengerjakan ujian dengan pengalaman yang lancar — soal tampil, timer berjalan, jawaban tersimpan, navigasi berfungsi
@@ -115,7 +115,7 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 264. Admin Setup Assessment OJT | 0/0 | Not started | - |
+| 264. Admin Setup Assessment OJT | 1/1 | Complete    | 2026-03-27 |
 | 265. Worker Exam Flow | 0/0 | Not started | - |
 | 266. Review, Submit & Hasil | 0/0 | Not started | - |
 | 267. Resilience & Edge Cases | 0/0 | Not started | - |
