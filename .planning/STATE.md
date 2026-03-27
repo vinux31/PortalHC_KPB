@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 262-01-PLAN.md
-last_updated: "2026-03-27T02:18:10.989Z"
+stopped_at: Completed 262-02-PLAN.md
+last_updated: "2026-03-27T02:24:59.766Z"
 last_activity: 2026-03-27
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State: Portal HC KPB
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-25)
 ## Current Position
 
 Phase: 262 (fix-hardcoded-urls-in-views-for-sub-path-deployment-compatibility) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 
 ## Accumulated Context
@@ -39,6 +39,7 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 - [Phase 260]: Cascade logic before unit.Name assignment; reparent walks ancestor chain to Level 0
 - [Phase 261]: GetSectionUnitsDictAsync reused for org validation across all CoachCoacheeMapping flows
 - [Phase 262]: PathBase di appsettings.json, basePath/appUrl globals di _Layout.cshtml
+- [Phase 262]: NotificationBell actionUrl di-prefix basePath; form action dalam JS pakai basePath concatenation
 
 ### Roadmap Evolution
 
@@ -55,7 +56,7 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 ## Session Continuity
 
 Last activity: 2026-03-27
-Stopped at: Completed 262-01-PLAN.md
+Stopped at: Completed 262-02-PLAN.md
 
 ### Quick Tasks Completed
 
