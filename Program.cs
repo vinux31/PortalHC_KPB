@@ -124,7 +124,6 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.Migrate(); // Apply migrations
-        await SeedProtonData.SeedAsync(context); // ProtonTracks must exist before SeedData seeds Proton assessments
         await SeedData.InitializeAsync(services, app.Environment); // Seed roles & users
 
         // Activate WAL mode for SQLite to allow concurrent reads during SignalR writes
@@ -173,6 +172,12 @@ var staticFileOptions = new StaticFileOptions
         }
     }
 };
+
+var pathBase = builder.Configuration.GetValue<string>("PathBase");
+if (!string.IsNullOrEmpty(pathBase))
+{
+    app.UsePathBase(pathBase);
+}
 
 app.UseStaticFiles(staticFileOptions); // Ini wajib ada untuk memuat CSS/JS dan PDF
 
