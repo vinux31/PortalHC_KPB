@@ -568,7 +568,7 @@
         btn.disabled = true;
 
         $.ajax({
-            url: '/Admin/ReshufflePackage',
+            url: '@Url.Action("ReshufflePackage", "Admin")',
             type: 'POST',
             data: {
                 sessionId: sessionId,
@@ -605,7 +605,7 @@
         btn.disabled = true;
 
         $.ajax({
-            url: '/Admin/ReshuffleAll',
+            url: '@Url.Action("ReshuffleAll", "Admin")',
             type: 'POST',
             data: {
                 title: @Json.Serialize(Model.Title),
@@ -703,7 +703,7 @@
             // Get worker name from the existing row (col 0)
             var tr = document.querySelector('tr[data-session-id="' + session.sessionId + '"]');
             var workerName = tr ? tr.querySelectorAll('td')[0].textContent.trim().replace(/'/g, "\\'") : '';
-            html += '<form class="d-inline me-1" method="post" action="/Admin/AkhiriUjian"'
+            html += '<form class="d-inline me-1" method="post" action="' + basePath + '/Admin/AkhiriUjian"'
                 + ' onsubmit="return confirm(\'Akhiri ujian untuk ' + workerName + '? Jawaban tersimpan akan dinilai otomatis.\')">'
                 + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
                 + '<input type="hidden" name="id" value="' + session.sessionId + '" />'
@@ -712,7 +712,7 @@
         }
 
         // Reset -- all statuses except Cancelled
-        html += '<form class="d-inline me-1" method="post" action="/Admin/ResetAssessment"'
+        html += '<form class="d-inline me-1" method="post" action="' + basePath + '/Admin/ResetAssessment"'
             + ' onsubmit="return confirm(\'Reset sesi ini? Semua jawaban akan dihapus dan peserta dapat mengulang ujian.\')">'
             + '<input type="hidden" name="__RequestVerificationToken" value="' + token + '" />'
             + '<input type="hidden" name="id" value="' + session.sessionId + '" />'
@@ -721,7 +721,7 @@
 
         // View Results -- Completed only (new tab)
         if (session.status === 'Completed') {
-            html += '<a href="/CMP/Results/' + session.sessionId + '" target="_blank"'
+            html += '<a href="' + basePath + '/CMP/Results/' + session.sessionId + '" target="_blank"'
                 + ' class="btn btn-success btn-sm">View Results</a>';
         }
 
@@ -939,7 +939,7 @@ updateTimeRemaining(); // initial call on page load
         var originalHtml = btn.innerHTML;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
 
-        fetch('/Admin/RegenerateToken/' + id, {
+        fetch(appUrl('/Admin/RegenerateToken/' + id), {
             method: 'POST',
             headers: { 'RequestVerificationToken': token }
         })
@@ -1003,7 +1003,7 @@ function fetchActivityLog(sessionId, showLoading) {
     var loadingEl = document.getElementById('logLoading');
     if (showLoading) loadingEl.classList.remove('d-none');
 
-    fetch('/Admin/GetActivityLog?sessionId=' + sessionId)
+    fetch(appUrl('/Admin/GetActivityLog?sessionId=' + sessionId))
         .then(function(r) { return r.json(); })
         .then(function(data) {
             loadingEl.classList.add('d-none');

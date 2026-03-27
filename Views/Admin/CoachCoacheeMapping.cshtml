@@ -52,7 +52,7 @@
         <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importMappingModal">
             <i class="bi bi-file-earmark-arrow-up me-1"></i>Import Excel
         </button>
-        <a href="/Admin/CoachCoacheeMappingExport" class="btn btn-sm btn-outline-success">
+        <a asp-controller="Admin" asp-action="CoachCoacheeMappingExport" class="btn btn-sm btn-outline-success">
             <i class="bi bi-file-earmark-excel me-1"></i>Export Excel
         </a>
         <button class="btn btn-sm btn-primary" onclick="document.getElementById('assignModal').querySelector('[data-bs-dismiss]') && null" data-bs-toggle="modal" data-bs-target="#assignModal">
@@ -684,7 +684,7 @@ else
             AssignmentUnit: assignmentUnit
         };
 
-        fetch('/Admin/CoachCoacheeMappingAssign', {
+        fetch(appUrl('/Admin/CoachCoacheeMappingAssign'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -699,7 +699,7 @@ else
             } else if (data.warning) {
                 if (confirm(data.message)) {
                     payload.ConfirmProgressionWarning = true;
-                    fetch('/Admin/CoachCoacheeMappingAssign', {
+                    fetch(appUrl('/Admin/CoachCoacheeMappingAssign'), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -766,7 +766,7 @@ else
             AssignmentUnit: assignmentUnit
         };
 
-        fetch('/Admin/CoachCoacheeMappingEdit', {
+        fetch(appUrl('/Admin/CoachCoacheeMappingEdit'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -792,7 +792,7 @@ else
         document.getElementById('deactivateSessionInfo').textContent = 'Memuat...';
 
         // Fetch session count
-        fetch('/Admin/CoachCoacheeMappingGetSessionCount', {
+        fetch(appUrl('/Admin/CoachCoacheeMappingGetSessionCount'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -811,7 +811,7 @@ else
         });
 
         // Fetch active ProtonTrackAssignment count
-        fetch('/Admin/CoachCoacheeMappingActiveAssignmentCount?id=' + id)
+        fetch(appUrl('/Admin/CoachCoacheeMappingActiveAssignmentCount?id=' + id))
         .then(r => r.json())
         .then(data => {
             var el = document.getElementById('deactivateTrackInfo');
@@ -831,7 +831,7 @@ else
     function submitDeactivate() {
         if (!deactivateTargetId) return;
 
-        fetch('/Admin/CoachCoacheeMappingDeactivate', {
+        fetch(appUrl('/Admin/CoachCoacheeMappingDeactivate'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -861,7 +861,7 @@ else
         deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
         deleteModal.show();
 
-        fetch('/Admin/CoachCoacheeMappingDeletePreview?id=' + id)
+        fetch(appUrl('/Admin/CoachCoacheeMappingDeletePreview?id=' + id))
         .then(r => r.json())
         .then(data => {
             document.getElementById('deleteCoachName').textContent = data.coachName || '';
@@ -878,7 +878,7 @@ else
         var id = document.getElementById('deleteMappingId').value;
         if (!id) return;
 
-        fetch('/Admin/CoachCoacheeMappingDelete', {
+        fetch(appUrl('/Admin/CoachCoacheeMappingDelete'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -911,7 +911,7 @@ else
     function reactivateMapping(id) {
         if (!confirm('Aktifkan kembali mapping ini?')) return;
 
-        fetch('/Admin/CoachCoacheeMappingReactivate', {
+        fetch(appUrl('/Admin/CoachCoacheeMappingReactivate'), {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',

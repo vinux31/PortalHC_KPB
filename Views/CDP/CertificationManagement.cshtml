@@ -220,7 +220,7 @@
             refreshTable();
             return;
         }
-        fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section))
+        fetch(appUrl('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section)))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 data.units.forEach(function (u) {
@@ -240,7 +240,7 @@
         subCategoryEl.innerHTML = '<option value="">Semua Sub Kategori</option>';
         subCategoryEl.disabled = true;
         if (!cat) { refreshTable(); return; }
-        fetch('/CDP/GetSubCategories?category=' + encodeURIComponent(cat))
+        fetch(appUrl('/CDP/GetSubCategories?category=' + encodeURIComponent(cat)))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 data.forEach(function (sc) {
@@ -292,7 +292,7 @@
         if (certAbort) certAbort.abort();
         certAbort = new AbortController();
 
-        fetch('/CDP/FilterCertificationManagement?' + params, { signal: certAbort.signal })
+        fetch(appUrl('/CDP/FilterCertificationManagement?' + params), { signal: certAbort.signal })
             .then(function (resp) { return resp.text(); })
             .then(function (html) {
                 container.innerHTML = html;
@@ -343,7 +343,7 @@
         modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Memuat...</span></div><p class="mt-2 text-muted">Memuat riwayat sertifikat...</p></div>';
         var modal = new bootstrap.Modal(document.getElementById('certificateHistoryModal'));
         modal.show();
-        fetch('/Admin/CertificateHistory?workerId=' + encodeURIComponent(workerId) + '&mode=' + mode)
+        fetch(appUrl('/Admin/CertificateHistory?workerId=' + encodeURIComponent(workerId) + '&mode=' + mode))
             .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
             .then(function(html) { modalBody.innerHTML = html; })
             .catch(function(e) {
@@ -361,7 +361,7 @@
 
     // L4: auto-load units karena Bagian sudah pre-filled
     if (roleLevel === 4 && bagianEl.value) {
-        fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(bagianEl.value))
+        fetch(appUrl('/CDP/GetCascadeOptions?section=' + encodeURIComponent(bagianEl.value)))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 data.units.forEach(function (u) {
@@ -387,7 +387,7 @@
         if (statusEl.value) params.set('status', statusEl.value);
         if (categoryEl.value) params.set('category', categoryEl.value);
         if (subCategoryEl.value) params.set('subCategory', subCategoryEl.value);
-        window.location.href = '/CDP/ExportSertifikatExcel?' + params.toString();
+        window.location.href = appUrl('/CDP/ExportSertifikatExcel?' + params.toString());
     }
     window.exportExcel = exportExcel;
 })();

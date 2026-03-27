@@ -68,7 +68,7 @@
         list.innerHTML = '';
         empty.style.display = 'none';
 
-        fetch('/Notification/List')
+        fetch(appUrl('/Notification/List'))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 loading.style.display = 'none';
@@ -130,20 +130,20 @@
     }
 
     window.markAsRead = function (id, actionUrl) {
-        postWithToken('/Notification/MarkAsRead/' + id)
+        postWithToken(appUrl('/Notification/MarkAsRead/' + id))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 updateBadge(data.unreadCount);
                 var item = document.querySelector('[data-id="' + id + '"]');
                 if (item) item.classList.add('bg-light');
                 if (actionUrl) {
-                    window.location.href = actionUrl;
+                    window.location.href = basePath + actionUrl;
                 }
             });
     };
 
     window.markAllAsRead = function () {
-        postWithToken('/Notification/MarkAllAsRead')
+        postWithToken(appUrl('/Notification/MarkAllAsRead'))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 updateBadge(data.unreadCount);
@@ -154,7 +154,7 @@
 
     window.dismissNotification = function (id, event) {
         event.stopPropagation();
-        postWithToken('/Notification/Dismiss/' + id)
+        postWithToken(appUrl('/Notification/Dismiss/' + id))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 updateBadge(data.unreadCount);

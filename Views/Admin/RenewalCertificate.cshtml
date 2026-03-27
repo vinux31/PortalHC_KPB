@@ -231,7 +231,7 @@
             refreshTable(1);
             return;
         }
-        fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section))
+        fetch(appUrl('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section)))
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 data.units.forEach(function (u) {
@@ -252,7 +252,7 @@
         subCategoryEl.disabled = true;
         var cat = categoryEl.value;
         if (cat) {
-            fetch('/CDP/GetSubCategories?category=' + encodeURIComponent(cat))
+            fetch(appUrl('/CDP/GetSubCategories?category=' + encodeURIComponent(cat)))
                 .then(function (r) { return r.json(); })
                 .then(function (subs) {
                     subs.forEach(function (s) {
@@ -298,7 +298,7 @@
         if (certAbort) certAbort.abort();
         certAbort = new AbortController();
 
-        fetch('/Admin/FilterRenewalCertificate?' + params, { signal: certAbort.signal })
+        fetch(appUrl('/Admin/FilterRenewalCertificate?' + params), { signal: certAbort.signal })
             .then(function (resp) { return resp.text(); })
             .then(function (html) {
                 container.innerHTML = html;
@@ -434,12 +434,12 @@
 
     document.getElementById('bulk-btn-via-assessment').addEventListener('click', function () {
         if (pendingRenewParams) {
-            window.location.href = '/Admin/CreateAssessment?' + pendingRenewParams;
+            window.location.href = appUrl('/Admin/CreateAssessment?' + pendingRenewParams);
         }
     });
     document.getElementById('bulk-btn-via-training').addEventListener('click', function () {
         if (pendingRenewParams) {
-            window.location.href = '/Admin/AddTraining?' + pendingRenewParams;
+            window.location.href = appUrl('/Admin/AddTraining?' + pendingRenewParams);
         }
     });
 
@@ -478,7 +478,7 @@
         if (tipeEl && tipeEl.value) params.set('tipe', tipeEl.value);
         if (statusEl.value) params.set('status', statusEl.value);
 
-        fetch('/Admin/FilterRenewalCertificateGroup?' + params)
+        fetch(appUrl('/Admin/FilterRenewalCertificateGroup?' + params))
             .then(function (resp) { return resp.text(); })
             .then(function (html) {
                 tableContainer.innerHTML = html;
@@ -541,11 +541,11 @@
 
         document.getElementById('btn-renew-via-assessment').onclick = function () {
             var param = recordType === 'Assessment' ? 'renewSessionId' : 'renewTrainingId';
-            window.location.href = '/Admin/CreateAssessment?' + param + '=' + sourceId;
+            window.location.href = appUrl('/Admin/CreateAssessment?' + param + '=' + sourceId);
         };
         document.getElementById('btn-renew-via-training').onclick = function () {
             var param = recordType === 'Assessment' ? 'renewSessionId' : 'renewTrainingId';
-            window.location.href = '/Admin/AddTraining?' + param + '=' + sourceId;
+            window.location.href = appUrl('/Admin/AddTraining?' + param + '=' + sourceId);
         };
 
         new bootstrap.Modal(document.getElementById('renewMethodModal')).show();
@@ -561,7 +561,7 @@ function openHistoryModal(workerId, workerName, mode) {
     modalBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Memuat...</span></div><p class="mt-2 text-muted">Memuat riwayat sertifikat...</p></div>';
     var modal = new bootstrap.Modal(document.getElementById('certificateHistoryModal'));
     modal.show();
-    fetch('/Admin/CertificateHistory?workerId=' + encodeURIComponent(workerId) + '&mode=' + mode)
+    fetch(appUrl('/Admin/CertificateHistory?workerId=' + encodeURIComponent(workerId) + '&mode=' + mode))
         .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
         .then(function(html) { modalBody.innerHTML = html; })
         .catch(function(e) {

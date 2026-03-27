@@ -363,7 +363,7 @@
     // ====== Status tab ======
     function loadStatusData() {
         $('#statusTableBody').html('<tr><td colspan="3" class="text-center py-4"><div class="spinner-border spinner-border-sm"></div> Memuat...</td></tr>');
-        $.get('/ProtonData/StatusData', function(data) {
+        $.get(appUrl('/ProtonData/StatusData'), function(data) {
             var html = '';
             var currentBagian = '', currentUnit = '';
             data.forEach(function(row) {
@@ -715,7 +715,7 @@
             if (row.DeliverableId > 0) {
                 try {
                     const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                    const resp = await fetch('/ProtonData/SilabusDelete', {
+                    const resp = await fetch(appUrl('/ProtonData/SilabusDelete'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                         body: JSON.stringify({ DeliverableId: row.DeliverableId })
@@ -745,7 +745,7 @@
                 if (!confirm(`Nonaktifkan silabus "${name}"?\n\nSilabus tidak akan muncul di Plan IDP dan Coaching Proton. Dapat diaktifkan kembali.`)) return;
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
                 try {
-                    const resp = await fetch('/ProtonData/SilabusDeactivate', {
+                    const resp = await fetch(appUrl('/ProtonData/SilabusDeactivate'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                         body: JSON.stringify({ KompetensiId: parseInt(id) })
@@ -768,7 +768,7 @@
                 const name = reactivateBtn.dataset.name;
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
                 try {
-                    const resp = await fetch('/ProtonData/SilabusReactivate', {
+                    const resp = await fetch(appUrl('/ProtonData/SilabusReactivate'), {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                         body: JSON.stringify({ KompetensiId: parseInt(id) })
@@ -825,7 +825,7 @@
             this.disabled = true;
             this.textContent = 'Menghapus...';
             try {
-                const resp = await fetch('/ProtonData/DeleteKompetensi', {
+                const resp = await fetch(appUrl('/ProtonData/DeleteKompetensi'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                     body: JSON.stringify({ KompetensiId: parseInt(id) })
@@ -891,7 +891,7 @@
 
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                const resp = await fetch('/ProtonData/SilabusSave', {
+                const resp = await fetch(appUrl('/ProtonData/SilabusSave'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                     body: JSON.stringify(payload)
@@ -995,7 +995,7 @@
                         <td>${formatFileSize(f.fileSize)}</td>
                         <td>${escapeHtml(f.uploadedAt)}</td>
                         <td>
-                            <a href="/ProtonData/GuidanceDownload?id=${f.id}" class="btn btn-sm btn-outline-primary me-1" title="Download"><i class="bi bi-download"></i></a>
+                            <a href="${appUrl('/ProtonData/GuidanceDownload?id=' + f.id)}" class="btn btn-sm btn-outline-primary me-1" title="Download"><i class="bi bi-download"></i></a>
                             <button class="btn btn-sm btn-outline-warning me-1" onclick="showReplaceModal(${f.id}, '${escapeJs(f.fileName)}')" title="Ganti File"><i class="bi bi-arrow-repeat"></i></button>
                             <button class="btn btn-sm btn-outline-danger" onclick="showGuidanceDeleteModal(${f.id}, '${escapeJs(f.fileName)}')" title="Hapus"><i class="bi bi-trash"></i></button>
                         </td>
@@ -1048,7 +1048,7 @@
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Uploading...';
 
                 try {
-                    const resp = await fetch('/ProtonData/GuidanceUpload', {
+                    const resp = await fetch(appUrl('/ProtonData/GuidanceUpload'), {
                         method: 'POST',
                         headers: { 'RequestVerificationToken': token },
                         body: formData
@@ -1098,7 +1098,7 @@
             this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengganti...';
 
             try {
-                const resp = await fetch('/ProtonData/GuidanceReplace', {
+                const resp = await fetch(appUrl('/ProtonData/GuidanceReplace'), {
                     method: 'POST',
                     headers: { 'RequestVerificationToken': token },
                     body: formData
@@ -1132,7 +1132,7 @@
             this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghapus...';
 
             try {
-                const resp = await fetch('/ProtonData/GuidanceDelete', {
+                const resp = await fetch(appUrl('/ProtonData/GuidanceDelete'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                     body: JSON.stringify({ id: guidanceDeleteId })
