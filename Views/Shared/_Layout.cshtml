@@ -31,6 +31,10 @@
         .nav-link { font-weight: 500; }
         .dropdown-item:active { background-color: #0d6efd; }
     </style>
+    <script>
+        var basePath = '@Url.Content("~/")'.replace(/\/$/, '');
+        function appUrl(path) { return basePath + (path.startsWith('/') ? path : '/' + path); }
+    </script>
 </head>
 <body class="bg-light">
 
