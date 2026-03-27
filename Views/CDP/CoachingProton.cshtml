@@ -1205,8 +1205,8 @@ if (btnSubmitTinja) {
         if (action === 'reject' && !comment) { showToast('Alasan penolakan wajib diisi.', 'danger'); return; }
 
         const url = action === 'approve'
-            ? '/CDP/ApproveFromProgress'
-            : '/CDP/RejectFromProgress';
+            ? appUrl('/CDP/ApproveFromProgress')
+            : appUrl('/CDP/RejectFromProgress');
 
         const formData = new FormData();
         formData.append('progressId', progressId);
