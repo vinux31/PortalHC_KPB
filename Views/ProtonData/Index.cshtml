@@ -677,7 +677,7 @@
                     deleteTargetIndex = idx;
                     const delivName = row.Deliverable || '(tanpa nama)';
                     try {
-                        const previewResp = await fetch(`/ProtonData/SilabusDeletePreview?deliverableId=${row.DeliverableId}`);
+                        const previewResp = await fetch(appUrl(`/ProtonData/SilabusDeletePreview?deliverableId=${row.DeliverableId}`));
                         const preview = await previewResp.json();
                         if (preview.hasActiveProgress) {
                             document.getElementById('silabusDeleteBlockedName').textContent = delivName;
@@ -801,7 +801,7 @@
                 modal.show();
 
                 try {
-                    const resp = await fetch(`/ProtonData/GetKompetensiCascadeInfo?id=${id}`);
+                    const resp = await fetch(appUrl(`/ProtonData/GetKompetensiCascadeInfo?id=${id}`));
                     const info = await resp.json();
                     if (info.success) {
                         document.getElementById('kompetensiCascadeInfo').textContent =
@@ -898,7 +898,7 @@
                 });
                 const data = await resp.json();
                 if (data.success) {
-                    window.location.href = `/ProtonData/Index?bagian=${encodeURIComponent(currentBagian)}&unit=${encodeURIComponent(currentUnit)}&trackId=${currentTrackId}`;
+                    window.location.href = appUrl(`/ProtonData/Index?bagian=${encodeURIComponent(currentBagian)}&unit=${encodeURIComponent(currentUnit)}&trackId=${currentTrackId}`);
                 } else {
                     alert('Gagal menyimpan: ' + (data.message || 'Error tidak diketahui'));
                     btn.disabled = false;
@@ -962,7 +962,7 @@
             }
 
             try {
-                const resp = await fetch(`/ProtonData/GuidanceList?bagian=${encodeURIComponent(bagian)}&unit=${encodeURIComponent(unit)}&trackId=${encodeURIComponent(trackId)}`);
+                const resp = await fetch(appUrl(`/ProtonData/GuidanceList?bagian=${encodeURIComponent(bagian)}&unit=${encodeURIComponent(unit)}&trackId=${encodeURIComponent(trackId)}`));
                 const files = await resp.json();
                 renderGuidanceTable(files, bagian, unit, trackId);
             } catch (err) {
