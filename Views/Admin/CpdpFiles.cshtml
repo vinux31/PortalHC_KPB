@@ -189,7 +189,7 @@
         if (!confirm('Arsipkan file ini? File akan dipindahkan ke riwayat.')) return;
         const token = getToken();
         try {
-            const resp = await fetch('/Admin/CpdpFileArchive', {
+            const resp = await fetch(appUrl('/Admin/CpdpFileArchive'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${fileId}&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -212,7 +212,7 @@
         if (!confirm(`Hapus bagian "${bagianName}"? Pastikan semua file sudah dihapus terlebih dahulu.`)) return;
         const token = getToken();
         try {
-            const resp = await fetch('/Admin/DeleteBagian', {
+            const resp = await fetch(appUrl('/Admin/DeleteBagian'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${bagianId}&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -233,7 +233,7 @@
     async function addBagian() {
         const token = getToken();
         try {
-            const resp = await fetch('/Admin/KkjBagianAdd', {
+            const resp = await fetch(appUrl('/Admin/KkjBagianAdd'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `__RequestVerificationToken=${encodeURIComponent(token)}`

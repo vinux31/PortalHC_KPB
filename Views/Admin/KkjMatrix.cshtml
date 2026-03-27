@@ -189,7 +189,7 @@
         if (!confirm('Arsipkan file ini? File akan dipindahkan ke riwayat.')) return;
         const token = getToken();
         try {
-            const resp = await fetch('/Admin/KkjFileDelete', {
+            const resp = await fetch(appUrl('/Admin/KkjFileDelete'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${fileId}&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -212,7 +212,7 @@
         const token = getToken();
         try {
             // First request: check if deletion is possible (active files block, archived trigger confirm)
-            const resp = await fetch('/Admin/DeleteBagian', {
+            const resp = await fetch(appUrl('/Admin/DeleteBagian'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `id=${bagianId}&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -231,7 +231,7 @@
                 if (!confirm(confirmMsg)) return;
 
                 // Second request: confirmed=true to proceed with cascade
-                const confirmResp = await fetch('/Admin/DeleteBagian', {
+                const confirmResp = await fetch(appUrl('/Admin/DeleteBagian'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `id=${bagianId}&confirmed=true&__RequestVerificationToken=${encodeURIComponent(token)}`
@@ -255,7 +255,7 @@
     async function addBagian() {
         const token = getToken();
         try {
-            const resp = await fetch('/Admin/KkjBagianAdd', {
+            const resp = await fetch(appUrl('/Admin/KkjBagianAdd'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `__RequestVerificationToken=${encodeURIComponent(token)}`

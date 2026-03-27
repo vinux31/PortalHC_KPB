@@ -65,7 +65,7 @@
         var allTracks = []; // cached full track list for client-side filtering
 
         // Cache initial tracks from server
-        fetch('/CDP/GetCascadeOptions?section=')
+        fetch(appUrl('/CDP/GetCascadeOptions?section='))
             .then(function (r) { return r.json(); })
             .then(function (data) { allTracks = data.tracks || []; });
 
@@ -73,7 +73,7 @@
             var section = this.value;
             unitEl.innerHTML = '<option value="">Semua Unit</option>';
             if (section) {
-                fetch('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section))
+                fetch(appUrl('/CDP/GetCascadeOptions?section=' + encodeURIComponent(section)))
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
                         (data.units || []).forEach(function (u) {
@@ -134,7 +134,7 @@
             if (protonAbort) protonAbort.abort();
             protonAbort = new AbortController();
 
-            fetch('/CDP/FilterCoachingProton?' + params, { signal: protonAbort.signal })
+            fetch(appUrl('/CDP/FilterCoachingProton?' + params), { signal: protonAbort.signal })
                 .then(function (resp) { return resp.text(); })
                 .then(function (html) {
                     container.innerHTML = html;

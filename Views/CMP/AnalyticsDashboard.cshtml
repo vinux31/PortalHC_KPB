@@ -226,7 +226,7 @@
         if (analyticsAbort) analyticsAbort.abort();
         analyticsAbort = new AbortController();
 
-        fetch('/CMP/GetAnalyticsData?' + params.toString(), { signal: analyticsAbort.signal })
+        fetch(appUrl('/CMP/GetAnalyticsData?' + params.toString()), { signal: analyticsAbort.signal })
             .then(function (r) { return r.json(); })
             .then(function (data) {
                 renderFailRate(data.failRate);
@@ -442,7 +442,7 @@
             unitEl.disabled = true;
             return;
         }
-        fetch('/CMP/GetAnalyticsCascadeUnits?bagian=' + encodeURIComponent(val))
+        fetch(appUrl('/CMP/GetAnalyticsCascadeUnits?bagian=' + encodeURIComponent(val)))
             .then(function (r) { return r.json(); })
             .then(function (units) {
                 units.forEach(function (u) {
@@ -465,7 +465,7 @@
             subEl.disabled = true;
             return;
         }
-        fetch('/CMP/GetAnalyticsCascadeSubKategori?kategori=' + encodeURIComponent(val))
+        fetch(appUrl('/CMP/GetAnalyticsCascadeSubKategori?kategori=' + encodeURIComponent(val)))
             .then(function (r) { return r.json(); })
             .then(function (subs) {
                 subs.forEach(function (s) {

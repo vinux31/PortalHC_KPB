@@ -1265,7 +1265,7 @@ document.querySelectorAll('.btnHcReview').forEach(btn => {
 
         this.disabled = true;
         try {
-            const resp = await fetch('/CDP/HCReviewFromProgress', { method: 'POST', body: formData });
+            const resp = await fetch(appUrl('/CDP/HCReviewFromProgress'), { method: 'POST', body: formData });
             const data = await resp.json();
             if (data.success) {
                 showToast(data.message, 'success');
@@ -1302,7 +1302,7 @@ document.querySelectorAll('.btnHcReviewPanel').forEach(btn => {
         this.innerHTML = '<i class="bi bi-hourglass-split me-1"></i>Menyimpan...';
 
         try {
-            const resp = await fetch('/CDP/HCReviewFromProgress', { method: 'POST', body: formData });
+            const resp = await fetch(appUrl('/CDP/HCReviewFromProgress'), { method: 'POST', body: formData });
             const data = await resp.json();
             if (data.success) {
                 // Remove row from panel table
@@ -1533,7 +1533,7 @@ if (btnSubmitEvidence) {
         btnSubmitEvidence.textContent = 'Menyimpan...';
 
         try {
-            const resp = await fetch('/CDP/SubmitEvidenceWithCoaching', {
+            const resp = await fetch(appUrl('/CDP/SubmitEvidenceWithCoaching'), {
                 method: 'POST',
                 headers: { 'RequestVerificationToken': token },
                 body: formData
