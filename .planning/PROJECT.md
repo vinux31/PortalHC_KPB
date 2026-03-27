@@ -12,7 +12,7 @@ Portal web untuk HC (Human Capital) dan Pekerja Pertamina yang mengelola dua pla
 
 Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessment online, dan pengembangan SDM Pertamina.
 
-## Current State (v9.1 active, 2026-03-26)
+## Current State (Phase 262 complete, 2026-03-27)
 
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
@@ -24,6 +24,8 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v8.4 shipped** — Alarm Sertifikat Expired, 1 phase (240).
 **v8.5 shipped** — UAT Assessment System End-to-End, 7 phases (241-247).
 **v8.6 shipped** — Codebase Audit & Hardening, 5 phases (248-252). Fixed 17 bugs: null safety, input validation, XSS, data integrity, performance throttling.
+
+**Phase 262 shipped** — Fix hardcoded URLs di 25 view files untuk sub-path deployment /KPB-PortalHC/. UsePathBase middleware + basePath/appUrl helper.
 
 **Current focus:** v9.0 Pre-deployment Audit & Finalization
 
@@ -852,4 +854,4 @@ All requirements from v1.0–v2.5 are satisfied. See milestone archives for trac
 
 ---
 
-*Last updated: 2026-03-26 after Phase 261 Validasi Konsistensi Organisasi CoachCoacheeMapping*
+*Last updated: 2026-03-27 after Phase 262 Fix hardcoded URLs for sub-path deployment*
