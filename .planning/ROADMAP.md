@@ -121,3 +121,13 @@ Plans:
 - [x] 262-01-PLAN.md — Setup UsePathBase di Program.cs + basePath/appUrl di _Layout.cshtml
 - [x] 262-02-PLAN.md — Fix hardcoded URL di 12 file high-volume (66+ fixes)
 - [x] 262-03-PLAN.md — Fix hardcoded URL di 12 file low-volume + final sweep
+
+### Phase 263: Fix database-stored upload paths for sub-path deployment compatibility
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 262
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 263 to break down)

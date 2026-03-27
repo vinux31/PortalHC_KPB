@@ -48,6 +48,7 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 - Phase 260 added: Auto-cascade perubahan nama OrganizationUnit ke semua user records dan template
 - Phase 261 added: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
 - Phase 262 added: Fix hardcoded URLs in Views for sub-path deployment compatibility
+- Phase 263 added: Fix database-stored upload paths for sub-path deployment compatibility
 
 ### Pending Todos
 
