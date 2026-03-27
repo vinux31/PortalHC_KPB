@@ -1,55 +1,40 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 263-01-PLAN.md
-last_updated: "2026-03-27T06:13:44.791Z"
+milestone: v10.0
+milestone_name: UAT Assessment OJT di Server Development
+status: Defining requirements
+stopped_at: null
+last_updated: "2026-03-27"
 last_activity: 2026-03-27
 progress:
-  total_phases: 7
-  completed_phases: 6
-  total_plans: 10
-  completed_plans: 10
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State: Portal HC KPB
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-25)
+See: .planning/PROJECT.md (updated 2026-03-27)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 263 — fix-database-stored-upload-paths-for-sub-path-deployment-compatibility
+**Current focus:** v10.0 — UAT Assessment OJT di Server Development
 
 ## Current Position
 
-Phase: 263
-Plan: Not started
-Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-27 — Milestone v10.0 started
 
 ## Accumulated Context
 
 ### Decisions
 
-- [v9.1]: v9.0 di-defer, v9.1 dikerjakan duluan (UAT Coaching Proton)
-- [v9.1]: Milestone closed early — hanya Phase 257 dieksekusi
-- [v9.1]: Phase 258-261 skipped by user decision
-- [Phase 259]: Added QuestPDF usings to AdminController for PDF export
-- [Phase 260]: Cascade logic before unit.Name assignment; reparent walks ancestor chain to Level 0
-- [Phase 261]: GetSectionUnitsDictAsync reused for org validation across all CoachCoacheeMapping flows
-- [Phase 262]: PathBase di appsettings.json, basePath/appUrl globals di _Layout.cshtml
-- [Phase 262]: NotificationBell actionUrl di-prefix basePath; form action dalam JS pakai basePath concatenation
-- [Phase 262]: Url.Action dengan anonymous object untuk complex renewParam query di CertificateHistoryModalContent
-- [Phase 263]: Url.Content for Razor DB paths, basePath for JS DB paths - consistent with Phase 262
-
-### Roadmap Evolution
-
-- Phase 1 added: Tambahkan tombol hapus worker di halaman ManageWorkers
-- Phase 260 added: Auto-cascade perubahan nama OrganizationUnit ke semua user records dan template
-- Phase 261 added: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
-- Phase 262 added: Fix hardcoded URLs in Views for sub-path deployment compatibility
-- Phase 263 added: Fix database-stored upload paths for sub-path deployment compatibility
+- [v10.0]: Testing dilakukan di server development (http://10.55.3.3/KPB-PortalHC/), fix hanya di project lokal
+- [v10.0]: Dua akun test: admin@pertamina.com (Admin) dan rino.prasetyo@pertamina.com (Worker/Coachee)
 
 ### Pending Todos
 
@@ -59,10 +44,4 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 ## Session Continuity
 
 Last activity: 2026-03-27
-Stopped at: Completed 263-01-PLAN.md
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260325-m98 | Hapus teks CDP breadcrumb di CDP/Index | 2026-03-25 | 29032ca0 | [260325-m98-hapus-teks-cdp-breadcrumb-di-cdp-index](./quick/260325-m98-hapus-teks-cdp-breadcrumb-di-cdp-index/) |
+Stopped at: Defining requirements for v10.0

@@ -17,28 +17,26 @@ Platform ini menyediakan sistem komprehensif untuk tracking kompetensi, assessme
 **v1.0 through v5.0 shipped** — 43 milestones, 172 phases.
 **v6.0 closed** — Deployment Preparation defined but not executed.
 **v7.1–v7.12 shipped** — Export/Import, Certification, Assessment Form, Code Dedup, Renewal Certificate, KKJ/IDP, Records, Struktur Organisasi (phases 176-222).
-**v8.0 shipped** — Assessment Integrity & Analytics, 5 phases (223-227).
-**v8.1 shipped** — Renewal & Assessment Ecosystem Audit, 5 phases (228-232).
-**v8.2 shipped** — Proton Coaching Ecosystem Audit, 6 phases (233-238).
-**v8.3 shipped** — Date Range Filter Team View Records, 1 phase (239).
-**v8.4 shipped** — Alarm Sertifikat Expired, 1 phase (240).
-**v8.5 shipped** — UAT Assessment System End-to-End, 7 phases (241-247).
-**v8.6 shipped** — Codebase Audit & Hardening, 5 phases (248-252). Fixed 17 bugs: null safety, input validation, XSS, data integrity, performance throttling.
+**v8.0–v8.6 shipped** — Assessment Integrity, Renewal Audit, Proton Audit, Filters, Alarm, UAT, Hardening (phases 223-252).
+**v9.1 shipped** — UAT Coaching Proton (Phase 257 only, 258-261 skipped).
+**Phase 262-263 shipped** — Sub-path deployment fixes (URLs + upload paths).
 
-**Phase 262 shipped** — Fix hardcoded URLs di 25 view files untuk sub-path deployment /KPB-PortalHC/. UsePathBase middleware + basePath/appUrl helper.
+**Current focus:** v10.0 UAT Assessment OJT di Server Development
 
-**Current focus:** v9.0 Pre-deployment Audit & Finalization
+## Current Milestone: v10.0 UAT Assessment OJT di Server Development
 
-## Current Milestone: v9.0 Pre-deployment Audit & Finalization
-
-**Goal:** Finalisasi codebase untuk production deployment — fokus pada hal yang belum dicakup audit sebelumnya
+**Goal:** Simulasi test end-to-end assessment kategori OJT di server development, temukan bug/issue, perbaiki di project lokal.
 
 **Target features:**
-- Seed data cleanup: review & disable/hapus seed data UAT agar tidak masuk production
-- Deployment preparation: production config (AD enabled), release package, dokumentasi deployment IIS + SSMS
-- Pending tech debt closure: selesaikan known gaps dari v4.3, v8.0, v8.2
-- Final integration check: pastikan semua fitur bekerja bersama tanpa konflik
-- Production readiness review: error handling, logging level, connection string, environment-specific config
+- Login Admin & buat assessment OJT (form, validasi, assign worker)
+- Import/upload soal ke assessment
+- Login Worker & lihat daftar assessment, mulai ujian
+- Kerjakan ujian: timer, navigasi halaman, auto-save jawaban
+- Review & submit ujian, grading otomatis
+- Hasil ujian: skor, pass/fail, review jawaban, analisa Elemen Teknis
+- Sertifikat: preview & download PDF (jika lulus)
+- Edge cases: lost connection, tab tertutup & resume, browser refresh, timer habis
+- Monitoring assessment: progress, status, timer/elapsed, result real-time
 
 ## Next Milestone Goals
 
