@@ -68,42 +68,42 @@ Requirements for UAT Assessment OJT di Server Development.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SETUP-01 | — | Pending |
-| SETUP-02 | — | Pending |
-| SETUP-03 | — | Pending |
-| SETUP-04 | — | Pending |
-| EXAM-01 | — | Pending |
-| EXAM-02 | — | Pending |
-| EXAM-03 | — | Pending |
-| EXAM-04 | — | Pending |
-| EXAM-05 | — | Pending |
-| EXAM-06 | — | Pending |
-| EXAM-07 | — | Pending |
-| EXAM-08 | — | Pending |
-| SUBMIT-01 | — | Pending |
-| SUBMIT-02 | — | Pending |
-| SUBMIT-03 | — | Pending |
-| RESULT-01 | — | Pending |
-| RESULT-02 | — | Pending |
-| RESULT-03 | — | Pending |
-| CERT-01 | — | Pending |
-| EDGE-01 | — | Pending |
-| EDGE-02 | — | Pending |
-| EDGE-03 | — | Pending |
-| EDGE-04 | — | Pending |
-| EDGE-05 | — | Pending |
-| EDGE-06 | — | Pending |
-| EDGE-07 | — | Pending |
-| MON-01 | — | Pending |
-| MON-02 | — | Pending |
-| MON-03 | — | Pending |
-| MON-04 | — | Pending |
+| SETUP-01 | Phase 264 | Pending |
+| SETUP-02 | Phase 264 | Pending |
+| SETUP-03 | Phase 264 | Pending |
+| SETUP-04 | Phase 264 | Pending |
+| EXAM-01 | Phase 265 | Pending |
+| EXAM-02 | Phase 265 | Pending |
+| EXAM-03 | Phase 265 | Pending |
+| EXAM-04 | Phase 265 | Pending |
+| EXAM-05 | Phase 265 | Pending |
+| EXAM-06 | Phase 265 | Pending |
+| EXAM-07 | Phase 265 | Pending |
+| EXAM-08 | Phase 265 | Pending |
+| SUBMIT-01 | Phase 266 | Pending |
+| SUBMIT-02 | Phase 266 | Pending |
+| SUBMIT-03 | Phase 266 | Pending |
+| RESULT-01 | Phase 266 | Pending |
+| RESULT-02 | Phase 266 | Pending |
+| RESULT-03 | Phase 266 | Pending |
+| CERT-01 | Phase 266 | Pending |
+| EDGE-01 | Phase 267 | Pending |
+| EDGE-02 | Phase 267 | Pending |
+| EDGE-03 | Phase 267 | Pending |
+| EDGE-04 | Phase 267 | Pending |
+| EDGE-05 | Phase 267 | Pending |
+| EDGE-06 | Phase 267 | Pending |
+| EDGE-07 | Phase 267 | Pending |
+| MON-01 | Phase 268 | Pending |
+| MON-02 | Phase 268 | Pending |
+| MON-03 | Phase 268 | Pending |
+| MON-04 | Phase 268 | Pending |
 
 **Coverage:**
 - v10.0 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30
+- Mapped to phases: 30
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-27*
-*Last updated: 2026-03-27 after initial definition*
+*Last updated: 2026-03-27 after roadmap creation*

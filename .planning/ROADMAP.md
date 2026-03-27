@@ -4,130 +4,119 @@
 
 - ✅ **v1.0–v5.0** - Phases 1-172 (shipped)
 - ✅ **v7.1–v7.12** - Phases 176-222 (shipped)
-- ✅ **v8.0** - Phases 223-227 (shipped)
-- ✅ **v8.1** - Phases 228-232 (shipped)
-- ✅ **v8.2** - Phases 233-238 (shipped)
-- ✅ **v8.3** - Phase 239 (shipped)
-- ✅ **v8.4** - Phase 240 (shipped)
-- ✅ **v8.5** - Phases 241-247 (shipped)
-- ✅ **v8.6 Codebase Audit & Hardening** - Phases 248-252 (shipped 2026-03-24)
-- ✅ **v8.7** - Phase 253 (shipped)
+- ✅ **v8.0–v8.7** - Phases 223-253 (shipped)
 - ⏸️ **v9.0 Pre-deployment Audit & Finalization** - Phases 254-256 (deferred)
-- ✅ **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (shipped 2026-03-25, partial — Phase 257 only)
+- ✅ **v9.1 UAT Coaching Proton End-to-End** - Phases 257-261 (shipped 2026-03-25, partial)
+- ✅ **Phases 262-263** - Sub-path deployment fixes (shipped 2026-03-27)
+- 🚧 **v10.0 UAT Assessment OJT di Server Development** - Phases 264-268 (in progress)
 
 ## Phases
 
 <details>
-<summary>✅ v9.1 UAT Coaching Proton End-to-End (Phases 257-261) — SHIPPED 2026-03-25 (partial)</summary>
+<summary>✅ Previous milestones (v1.0–v9.1, Phases 1-263) — SHIPPED</summary>
 
-- [x] Phase 257: Setup & Mapping (2/2 plans)
-- [ ] Phase 258: Silabus & Guidance (skipped)
-- [ ] Phase 259: Evidence & Coaching Session (skipped)
-- [ ] Phase 260: Approval Chain (skipped)
-- [ ] Phase 261: Dashboard, Export & Completion (skipped)
+See .planning/MILESTONES.md for full history.
 
 </details>
 
-<details>
-<summary>⏸️ v9.0 Pre-deployment Audit & Finalization (Phases 254-256) — DEFERRED</summary>
+### 🚧 v10.0 UAT Assessment OJT di Server Development
 
-- [ ] Phase 254: Seed Cleanup & Tech Debt Closure
-- [ ] Phase 255: Production Configuration
-- [ ] Phase 256: Security Hardening
+**Milestone Goal:** Simulasi test end-to-end assessment kategori OJT di server development, temukan bug/issue, perbaiki di project lokal.
 
-Backup: `.planning/milestones/v9.0-REQUIREMENTS.md`, `.planning/milestones/v9.0-ROADMAP.md`
+- [ ] **Phase 264: Admin Setup Assessment OJT** - Admin buat assessment, upload soal, assign worker
+- [ ] **Phase 265: Worker Exam Flow** - Worker mulai ujian, jawab soal, navigasi halaman
+- [ ] **Phase 266: Review, Submit & Hasil** - Review jawaban, submit, grading, sertifikat
+- [ ] **Phase 267: Resilience & Edge Cases** - Offline, resume, refresh, timeout behavior
+- [ ] **Phase 268: Monitoring Dashboard** - Admin/HC pantau progress real-time
 
-</details>
+## Phase Details
 
-<details>
-<summary>✅ v8.5 UAT Assessment System End-to-End (Phases 241-247) — SHIPPED 2026-03-24</summary>
-
-- [x] Phase 241: Seed Data UAT (2/2 plans)
-- [x] Phase 242: UAT Setup Flow (2/2 plans)
-- [x] Phase 243: UAT Exam Flow (2/2 plans)
-- [x] Phase 244: UAT Monitoring & Analytics (2/2 plans)
-- [x] Phase 245: UAT Proton Assessment (2/2 plans)
-- [x] Phase 246: UAT Edge Cases & Records (2/2 plans)
-- [x] Phase 247: Bug Fix Pasca-UAT (2/2 plans)
-
-</details>
-
-<details>
-<summary>✅ v8.6 Codebase Audit & Hardening (Phases 248-252) — SHIPPED 2026-03-24</summary>
-
-- [x] Phase 248: UI & Annotations (1/1 plans)
-- [x] Phase 249: Null Safety & Input Validation (2/2 plans)
-- [x] Phase 250: Security & Performance (1/1 plans)
-- [x] Phase 251: Data Integrity & Logic (2/2 plans)
-- [x] Phase 252: XSS Escape AJAX Approval Badge (1/1 plans)
-
-</details>
-
-<details>
-<summary>✅ v8.7 AddTraining Multi-Select (Phase 253) — SHIPPED 2026-03-25</summary>
-
-- [x] Phase 253: AddTraining multi-select pekerja dan perbaikan form (2/2 plans)
-
-</details>
-
-### Phase 259: Export Categories (Excel & PDF) + Bug Fix Signatory
-
-**Goal:** Fix bug signatory sub-kategori dan tambah export Excel/PDF di ManageCategories
-**Requirements**: N/A
-**Depends on:** None
-**Plans:** 1/1 plans complete
+### Phase 264: Admin Setup Assessment OJT
+**Goal**: Admin dapat membuat assessment OJT lengkap dengan soal dan peserta yang siap dikerjakan
+**Depends on**: Nothing (first phase)
+**Requirements**: SETUP-01, SETUP-02, SETUP-03, SETUP-04
+**Success Criteria** (what must be TRUE):
+  1. Admin dapat login dan membuat assessment baru dengan kategori OJT, judul, dan konfigurasi lengkap
+  2. Admin dapat download template soal Excel dan mengimport soal ke assessment yang sudah dibuat
+  3. Admin dapat assign worker ke assessment dan worker muncul di daftar peserta
+  4. Assessment berstatus Open dan siap dikerjakan oleh worker yang di-assign
+**Plans**: TBD
+**UI hint**: yes
 
 Plans:
-- [x] 259-01-PLAN.md — Bug fix signatory + export Excel & PDF + tombol UI
+- [ ] 264-01: TBD
 
-### Phase 1: Tambahkan tombol hapus worker di halaman ManageWorkers
-
-**Goal:** [To be planned]
-**Requirements**: TBD
-**Depends on:** Phase 0
-**Plans:** 0 plans
-
-Plans:
-- [ ] TBD (run /gsd:plan-phase 1 to break down)
-
-### Phase 260: Auto-cascade perubahan nama OrganizationUnit ke semua user records dan template
-
-**Goal:** Cascade rename/reparent OrganizationUnit ke semua user records, blokir deactivate jika ada user aktif, dan ubah template import jadi dinamis
-**Requirements**: D-01, D-02, D-03, D-05, D-06, D-07, D-09
-**Depends on:** Phase 259
-**Plans:** 1/1 plans complete
+### Phase 265: Worker Exam Flow
+**Goal**: Worker dapat mengerjakan ujian dengan pengalaman yang lancar — soal tampil, timer berjalan, jawaban tersimpan, navigasi berfungsi
+**Depends on**: Phase 264
+**Requirements**: EXAM-01, EXAM-02, EXAM-03, EXAM-04, EXAM-05, EXAM-06, EXAM-07, EXAM-08
+**Success Criteria** (what must be TRUE):
+  1. Worker dapat melihat daftar assessment dengan status badge dan jadwal yang benar
+  2. Worker dapat memulai ujian (dengan token verification jika aktif) dan soal ditampilkan dengan benar
+  3. Timer berjalan akurat dengan format tampilan yang benar, dan network status indicator tampil di sticky header
+  4. Jawaban auto-save saat worker memilih opsi, navigasi antar halaman soal (10 soal/halaman) berfungsi
+  5. Tombol "Keluar Ujian" (abandon) berfungsi dengan konfirmasi dan redirect yang benar
+**Plans**: TBD
+**UI hint**: yes
 
 Plans:
-- [x] 260-01-PLAN.md — Cascade rename/reparent + blokir deactivate + dynamic template
+- [ ] 265-01: TBD
 
-### Phase 261: Validasi konsistensi field organisasi di CoachCoacheeMapping dan Directorate
-
-**Goal:** One-time cleanup data CoachCoacheeMapping yang Section/Unit invalid + runtime validation di assign/edit/import
-**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06, D-07, D-08, D-09
-**Depends on:** Phase 260
-**Plans:** 1/1 plans complete
-
-Plans:
-- [x] 261-01-PLAN.md — Cleanup + runtime validation Section/Unit di CoachCoacheeMapping
-
-### Phase 262: Fix hardcoded URLs in Views for sub-path deployment compatibility
-
-**Goal:** Setup UsePathBase middleware dan fix ~83 hardcoded absolute URL di 25 view files agar kompatibel dengan sub-path deployment /KPB-PortalHC/
-**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06
-**Depends on:** Phase 261
-**Plans:** 3/3 plans complete
+### Phase 266: Review, Submit & Hasil
+**Goal**: Worker dapat me-review jawaban, submit ujian, melihat hasil dan sertifikat
+**Depends on**: Phase 265
+**Requirements**: SUBMIT-01, SUBMIT-02, SUBMIT-03, RESULT-01, RESULT-02, RESULT-03, CERT-01
+**Success Criteria** (what must be TRUE):
+  1. Summary jawaban ditampilkan per soal dengan warning untuk soal yang belum dijawab
+  2. Submit berhasil dan grading otomatis menghasilkan skor yang benar
+  3. Halaman hasil menampilkan skor, status pass/fail, dan review jawaban per-soal (jawaban benar vs dipilih)
+  4. Analisa Elemen Teknis ditampilkan jika assessment memiliki data ET
+  5. Sertifikat dapat di-preview dan di-download sebagai PDF jika worker lulus
+**Plans**: TBD
+**UI hint**: yes
 
 Plans:
-- [x] 262-01-PLAN.md — Setup UsePathBase di Program.cs + basePath/appUrl di _Layout.cshtml
-- [x] 262-02-PLAN.md — Fix hardcoded URL di 12 file high-volume (66+ fixes)
-- [x] 262-03-PLAN.md — Fix hardcoded URL di 12 file low-volume + final sweep
+- [ ] 266-01: TBD
 
-### Phase 263: Fix database-stored upload paths for sub-path deployment compatibility
-
-**Goal:** Fix 2 lokasi render database upload path (/uploads/...) agar kompatibel dengan sub-path deployment /KPB-PortalHC/
-**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06
-**Depends on:** Phase 262
-**Plans:** 1/1 plans complete
+### Phase 267: Resilience & Edge Cases
+**Goal**: Ujian tahan terhadap gangguan — koneksi putus, tab tertutup, browser refresh, dan timer habis ditangani dengan benar
+**Depends on**: Phase 265
+**Requirements**: EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, EDGE-06, EDGE-07
+**Success Criteria** (what must be TRUE):
+  1. Saat koneksi putus, warning/retry muncul dan jawaban yang sudah dipilih tidak hilang
+  2. Setelah tab tertutup dan resume, worker kembali ke halaman soal terakhir dengan jawaban tetap tercentang
+  3. Setelah resume, timer lanjut dari sisa waktu (tidak reset) dan progress counter akurat
+  4. Browser refresh tidak menghilangkan jawaban, posisi halaman, atau timer
+  5. Saat timer habis, behavior sesuai konfigurasi (auto-submit/block/pesan)
+**Plans**: TBD
 
 Plans:
-- [x] 263-01-PLAN.md — Fix render SupportingDocPath (Razor) dan evidencePath (JS) dengan PathBase prefix
+- [ ] 267-01: TBD
+
+### Phase 268: Monitoring Dashboard
+**Goal**: Admin/HC dapat memantau progress ujian secara real-time dan melihat hasil setelah selesai
+**Depends on**: Phase 265
+**Requirements**: MON-01, MON-02, MON-03, MON-04
+**Success Criteria** (what must be TRUE):
+  1. Dashboard menampilkan progress real-time (x/total soal terjawab) per peserta
+  2. Status lifecycle (Open, InProgress, Completed) berubah sesuai aktivitas worker
+  3. Timer/elapsed yang ditampilkan akurat dan sinkron dengan sisa waktu worker
+  4. Setelah worker submit, hasil menampilkan skor dan status pass/fail
+**Plans**: TBD
+**UI hint**: yes
+
+Plans:
+- [ ] 268-01: TBD
+
+## Progress
+
+**Execution Order:**
+Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 264. Admin Setup Assessment OJT | 0/0 | Not started | - |
+| 265. Worker Exam Flow | 0/0 | Not started | - |
+| 266. Review, Submit & Hasil | 0/0 | Not started | - |
+| 267. Resilience & Edge Cases | 0/0 | Not started | - |
+| 268. Monitoring Dashboard | 0/0 | Not started | - |
