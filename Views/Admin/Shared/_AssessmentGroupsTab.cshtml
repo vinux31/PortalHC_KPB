@@ -241,7 +241,7 @@ else
                                         }
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
-                                            <form method="post" action="/Admin/DeleteAssessmentGroup/@group.RepresentativeId">
+                                            <form method="post" asp-controller="Admin" asp-action="DeleteAssessmentGroup" asp-route-id="@group.RepresentativeId">
                                                 @Html.AntiForgeryToken()
                                                 <button type="submit" class="dropdown-item text-danger"
                                                         onclick="return confirm('Hapus semua assessment dalam grup ini?')">

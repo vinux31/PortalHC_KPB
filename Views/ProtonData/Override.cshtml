@@ -235,10 +235,10 @@
             container.innerHTML = '<div class="text-center py-4"><span class="spinner-border text-primary"></span></div>';
 
             try {
-                var url = '/ProtonData/OverrideList?bagian=' + encodeURIComponent(bagian)
+                var url = appUrl('/ProtonData/OverrideList?bagian=' + encodeURIComponent(bagian)
                     + '&unit=' + encodeURIComponent(unit)
                     + '&trackId=' + encodeURIComponent(trackId)
-                    + '&statusFilter=' + encodeURIComponent(statusFilter);
+                    + '&statusFilter=' + encodeURIComponent(statusFilter));
                 var resp = await fetch(url);
                 var data = await resp.json();
                 if (data.success) {
@@ -320,7 +320,7 @@
             if (!progressId) return;
 
             try {
-                var resp = await fetch('/ProtonData/OverrideDetail?id=' + encodeURIComponent(progressId));
+                var resp = await fetch(appUrl('/ProtonData/OverrideDetail?id=' + encodeURIComponent(progressId)));
                 var data = await resp.json();
                 if (!data.success) {
                     alert('Gagal memuat detail record.');
@@ -413,7 +413,7 @@
 
             try {
                 var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                var resp = await fetch('/ProtonData/OverrideSave', {
+                var resp = await fetch(appUrl('/ProtonData/OverrideSave'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                     body: JSON.stringify(payload)

@@ -1184,7 +1184,7 @@ function generateToken() {
         }
         if (protonCbContainer) { protonCbContainer.innerHTML = ''; protonCbContainer.classList.add('d-none'); }
 
-        fetch('/Admin/GetEligibleCoachees?protonTrackId=' + trackId)
+        fetch(appUrl('/Admin/GetEligibleCoachees?protonTrackId=' + trackId))
             .then(function(r) { return r.json(); })
             .then(function(users) {
                 if (!protonCbContainer || !protonEligibleStatus) return;

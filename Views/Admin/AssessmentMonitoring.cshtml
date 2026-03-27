@@ -288,7 +288,7 @@ else
             btn.addEventListener('click', function () {
                 var id = this.getAttribute('data-id');
                 if (!confirm('Regenerate token untuk assessment ini?')) return;
-                fetch('/Admin/RegenerateToken/' + id, {
+                fetch(appUrl('/Admin/RegenerateToken/' + id), {
                     method: 'POST',
                     headers: {
                         'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value

@@ -78,7 +78,7 @@
                                 </button>
                                 @if (row.RecordType == RecordType.Assessment)
                                 {
-                                    <a href="/Admin/CreateAssessment?renewSessionId=@row.SourceId"
+                                    <a asp-controller="Admin" asp-action="CreateAssessment" asp-route-renewSessionId="@row.SourceId"
                                        class="btn btn-sm btn-warning"
                                        aria-label="Renew sertifikat @row.Judul untuk @row.NamaWorker">
                                         <i class="bi bi-arrow-repeat me-1"></i>Renew
@@ -86,7 +86,7 @@
                                 }
                                 else
                                 {
-                                    <a href="/Admin/CreateAssessment?renewTrainingId=@row.SourceId"
+                                    <a asp-controller="Admin" asp-action="CreateAssessment" asp-route-renewTrainingId="@row.SourceId"
                                        class="btn btn-sm btn-warning"
                                        aria-label="Renew sertifikat @row.Judul untuk @row.NamaWorker">
                                         <i class="bi bi-arrow-repeat me-1"></i>Renew

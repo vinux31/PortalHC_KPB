@@ -81,10 +81,7 @@ else
                             <td>
                                 @if ((cert.Status == HcPortal.Models.CertificateStatus.Expired || cert.Status == HcPortal.Models.CertificateStatus.AkanExpired) && !cert.IsRenewed)
                                 {
-                                    var renewParam = cert.RecordType == HcPortal.Models.RecordType.Assessment
-                                        ? $"renewSessionId={cert.SourceId}"
-                                        : $"renewTrainingId={cert.SourceId}";
-                                    <a href="/Admin/CreateAssessment?@renewParam&workerId=@cert.WorkerId"
+                                    <a href="@Url.Action("CreateAssessment", "Admin", new { renewSessionId = cert.RecordType == HcPortal.Models.RecordType.Assessment ? (int?)cert.SourceId : null, renewTrainingId = cert.RecordType != HcPortal.Models.RecordType.Assessment ? (int?)cert.SourceId : null, workerId = cert.WorkerId })"
                                        class="btn btn-sm btn-warning"
                                        aria-label="Renew sertifikat @cert.Judul">
                                         <i class="bi bi-arrow-repeat me-1"></i>Renew
