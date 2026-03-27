@@ -124,10 +124,10 @@ Plans:
 
 ### Phase 263: Fix database-stored upload paths for sub-path deployment compatibility
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Fix 2 lokasi render database upload path (/uploads/...) agar kompatibel dengan sub-path deployment /KPB-PortalHC/
+**Requirements**: D-01, D-02, D-03, D-04, D-05, D-06
 **Depends on:** Phase 262
-**Plans:** 0 plans
+**Plans:** 1 plan
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 263 to break down)
+- [ ] 263-01-PLAN.md — Fix render SupportingDocPath (Razor) dan evidencePath (JS) dengan PathBase prefix
