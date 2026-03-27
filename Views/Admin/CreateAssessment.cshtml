@@ -1273,7 +1273,7 @@ function generateToken() {
                 var tdEmail = document.createElement('td'); tdEmail.className = 'text-muted'; tdEmail.textContent = s.UserEmail; tr.appendChild(tdEmail);
                 var tdAction = document.createElement('td');
                 var link = document.createElement('a');
-                link.href = '/Admin/ManageQuestions?id=' + s.Id;
+                link.href = basePath + '/Admin/ManageQuestions?id=' + s.Id;
                 link.className = 'btn btn-sm btn-outline-primary';
                 link.textContent = 'Manage Questions';
                 tdAction.appendChild(link); tr.appendChild(tdAction);
@@ -1281,7 +1281,7 @@ function generateToken() {
             });
             var firstId = a.Sessions[0].Id;
             var manageBtn = document.getElementById('modal-manage-btn');
-            manageBtn.href = '/Admin/ManageQuestions?id=' + firstId;
+            manageBtn.href = basePath + '/Admin/ManageQuestions?id=' + firstId;
             if (a.Sessions.length > 1) {
                 manageBtn.innerHTML = '<i class="bi bi-list-check me-1"></i> Manage Questions (First)';
             }

@@ -152,7 +152,7 @@ function applyAssessmentFilters() {
     var category = document.getElementById('categoryFilter')?.value || '';
     var status = document.getElementById('statusFilter')?.value || '';
     var search = '@searchTerm' || '';
-    var url = '/Admin/ManageAssessment?tab=assessment';
+    var url = appUrl('/Admin/ManageAssessment?tab=assessment');
     if (category) url += '&category=' + encodeURIComponent(category);
     if (status) url += '&statusFilter=' + encodeURIComponent(status);
     if (search) url += '&search=' + encodeURIComponent(search);

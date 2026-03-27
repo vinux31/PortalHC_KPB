@@ -2,7 +2,7 @@
     'use strict';
 
     var connection = new signalR.HubConnectionBuilder()
-        .withUrl('/hubs/assessment')
+        .withUrl((window.basePath || '') + '/hubs/assessment')
         .withAutomaticReconnect([0, 2000, 5000, 10000, 30000])
         .build();
 
@@ -70,7 +70,7 @@
     connection.onclose(function (error) {
         var msg = error ? error.toString() : '';
         if (msg.indexOf('401') !== -1) {
-            showToast('Sesi login habis \u2014 silakan login ulang', '/Account/Login', 'Login');
+            showToast('Sesi login habis \u2014 silakan login ulang', (window.basePath || '') + '/Account/Login', 'Login');
         } else {
             showPersistentToast('Koneksi gagal.', 'Muat Ulang', function () {
                 window.location.reload();

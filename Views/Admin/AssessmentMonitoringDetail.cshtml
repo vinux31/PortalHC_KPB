@@ -840,7 +840,7 @@
             loading.style.display = '';
             content.style.display = 'none';
 
-            var url = '/Admin/GetAkhiriSemuaCounts'
+            var url = appUrl('/Admin/GetAkhiriSemuaCounts')
                 + '?title=' + encodeURIComponent(hTitle)
                 + '&category=' + encodeURIComponent(hCategory)
                 + '&scheduleDate=' + encodeURIComponent(hScheduleDate);
