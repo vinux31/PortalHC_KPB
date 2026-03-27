@@ -289,12 +289,13 @@ namespace HcPortal.Controllers
                 }
                 await _context.SaveChangesAsync(); // Flush to get Id for FK
                 // If this was a stale-ID fallback, record the new Id so orphan cleanup won't delete it
-                if (row.KompetensiId > 0 && komp!.Id != row.KompetensiId)
+                if (komp == null) { _logger.LogWarning("Silabus upsert: failed to resolve Kompetensi '{Key}'", kompKey); continue; }
+                if (row.KompetensiId > 0 && komp.Id != row.KompetensiId)
                     staleFallbackKompIds.Add(komp.Id);
 
                 // 2. Upsert SubKompetensi
                 ProtonSubKompetensi? subKomp;
-                var subKey = $"{komp!.Id}|{row.SubKompetensi.Trim()}";
+                var subKey = $"{komp.Id}|{row.SubKompetensi.Trim()}";
                 if (row.SubKompetensiId > 0)
                 {
                     subKomp = await _context.ProtonSubKompetensiList.FindAsync(row.SubKompetensiId);
@@ -323,7 +324,8 @@ namespace HcPortal.Controllers
                 }
                 await _context.SaveChangesAsync();
                 // If this was a stale-ID fallback, record the new Id
-                if (row.SubKompetensiId > 0 && subKomp!.Id != row.SubKompetensiId)
+                if (subKomp == null) { _logger.LogWarning("Silabus upsert: failed to resolve SubKompetensi for '{Key}'", kompKey); continue; }
+                if (row.SubKompetensiId > 0 && subKomp.Id != row.SubKompetensiId)
                     staleFallbackSubIds.Add(subKomp.Id);
 
                 // 3. Upsert Deliverable
@@ -333,7 +335,7 @@ namespace HcPortal.Controllers
                     if (deliv != null)
                     {
                         deliv.NamaDeliverable = row.Deliverable.Trim();
-                        deliv.ProtonSubKompetensiId = subKomp!.Id;
+                        deliv.ProtonSubKompetensiId = subKomp.Id;
                         deliv.Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim();
                         deliv.Urutan = urutan;
                         updated++;
@@ -343,7 +345,7 @@ namespace HcPortal.Controllers
                         // Stale deliverable ID — create new
                         var deliv2 = new ProtonDeliverable
                         {
-                            ProtonSubKompetensiId = subKomp!.Id,
+                            ProtonSubKompetensiId = subKomp.Id,
                             NamaDeliverable = row.Deliverable.Trim(),
                             Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim(),
                             Urutan = urutan
@@ -358,7 +360,7 @@ namespace HcPortal.Controllers
                 {
                     var deliv = new ProtonDeliverable
                     {
-                        ProtonSubKompetensiId = subKomp!.Id,
+                        ProtonSubKompetensiId = subKomp.Id,
                         NamaDeliverable = row.Deliverable.Trim(),
                         Target = string.IsNullOrWhiteSpace(row.Target) ? null : row.Target.Trim(),
                         Urutan = urutan

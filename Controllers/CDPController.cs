@@ -2369,7 +2369,7 @@ namespace HcPortal.Controllers
                     $"Session ID={id} dihapus.", id, "CoachingSession");
                 await tx.CommitAsync();
             }
-            catch { await tx.RollbackAsync(); throw; }
+            catch (Exception ex) { _logger.LogError(ex, "Failed to delete coaching session ID={Id}", id); await tx.RollbackAsync(); throw; }
             TempData["Success"] = "Sesi coaching berhasil dihapus.";
             return RedirectToAction("Deliverable", new { id = progressId });
         }

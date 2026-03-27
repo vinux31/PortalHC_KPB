@@ -1632,7 +1632,7 @@ namespace HcPortal.Controllers
                 var svgPath = Path.Combine(Path.GetTempPath(), "cert_watermark.svg");
                 System.IO.File.WriteAllText(svgPath, svgContent);
             }
-            catch { /* Skip watermark if SVG fails */ }
+            catch (Exception ex) { _logger.LogWarning(ex, "Failed to create certificate watermark SVG"); }
 
             var pdf = Document.Create(container =>
             {
