@@ -40,7 +40,7 @@ See .planning/MILESTONES.md for full history.
   2. Admin dapat download template soal Excel dan mengimport soal ke assessment yang sudah dibuat
   3. Admin dapat assign worker ke assessment dan worker muncul di daftar peserta
   4. Assessment berstatus Open dan siap dikerjakan oleh worker yang di-assign
-**Plans**: TBD
+**Plans**: 1 plan
 **UI hint**: yes
 
 Plans:
@@ -56,11 +56,11 @@ Plans:
   3. Timer berjalan akurat dengan format tampilan yang benar, dan network status indicator tampil di sticky header
   4. Jawaban auto-save saat worker memilih opsi, navigasi antar halaman soal (10 soal/halaman) berfungsi
   5. Tombol "Keluar Ujian" (abandon) berfungsi dengan konfirmasi dan redirect yang benar
-**Plans**: TBD
+**Plans**: 1 plan
 **UI hint**: yes
 
 Plans:
-- [ ] 265-01: TBD
+- [ ] 265-01: UAT worker exam flow — 3 skenario (token, non-token, abandon)
 
 ### Phase 266: Review, Submit & Hasil
 **Goal**: Worker dapat me-review jawaban, submit ujian, melihat hasil dan sertifikat
@@ -72,7 +72,7 @@ Plans:
   3. Halaman hasil menampilkan skor, status pass/fail, dan review jawaban per-soal (jawaban benar vs dipilih)
   4. Analisa Elemen Teknis ditampilkan jika assessment memiliki data ET
   5. Sertifikat dapat di-preview dan di-download sebagai PDF jika worker lulus
-**Plans**: TBD
+**Plans**: 1 plan
 **UI hint**: yes
 
 Plans:
@@ -88,7 +88,7 @@ Plans:
   3. Setelah resume, timer lanjut dari sisa waktu (tidak reset) dan progress counter akurat
   4. Browser refresh tidak menghilangkan jawaban, posisi halaman, atau timer
   5. Saat timer habis, behavior sesuai konfigurasi (auto-submit/block/pesan)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 267-01: TBD
@@ -102,7 +102,7 @@ Plans:
   2. Status lifecycle (Open, InProgress, Completed) berubah sesuai aktivitas worker
   3. Timer/elapsed yang ditampilkan akurat dan sinkron dengan sisa waktu worker
   4. Setelah worker submit, hasil menampilkan skor dan status pass/fail
-**Plans**: TBD
+**Plans**: 1 plan
 **UI hint**: yes
 
 Plans:
