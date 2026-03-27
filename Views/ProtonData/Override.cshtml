@@ -351,7 +351,7 @@
             // Evidence
             var evidenceEl = document.getElementById('overrideEvidenceLink');
             if (data.evidenceFileName && data.evidencePath) {
-                evidenceEl.innerHTML = '<a href="' + escHtml(data.evidencePath) + '" target="_blank" class="text-decoration-none"><i class="bi bi-paperclip me-1"></i>' + escHtml(data.evidenceFileName) + '</a>';
+                evidenceEl.innerHTML = '<a href="' + basePath + escHtml(data.evidencePath) + '" target="_blank" class="text-decoration-none"><i class="bi bi-paperclip me-1"></i>' + escHtml(data.evidenceFileName) + '</a>';
             } else {
                 evidenceEl.textContent = 'Tidak ada';
             }
