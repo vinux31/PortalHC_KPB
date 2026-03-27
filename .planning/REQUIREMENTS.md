@@ -28,7 +28,7 @@ Requirements for UAT Assessment OJT di Server Development.
 ### Review & Submit
 
 - [ ] **SUBMIT-01**: Summary jawaban ditampilkan per soal
-- [ ] **SUBMIT-02**: Warning ditampilkan untuk soal belum dijawab
+- [x] **SUBMIT-02**: Warning ditampilkan untuk soal belum dijawab
 - [ ] **SUBMIT-03**: Submit berhasil, grading otomatis benar
 
 ### Results & Certificate
@@ -36,7 +36,7 @@ Requirements for UAT Assessment OJT di Server Development.
 - [ ] **RESULT-01**: Skor dan status pass/fail ditampilkan
 - [ ] **RESULT-02**: Review jawaban per-soal (jawaban benar vs dipilih)
 - [ ] **RESULT-03**: Analisa Elemen Teknis ditampilkan (jika ada)
-- [ ] **CERT-01**: Sertifikat preview & download PDF (jika lulus)
+- [x] **CERT-01**: Sertifikat preview & download PDF (jika lulus)
 
 ### Resilience & Edge Cases
 
@@ -81,12 +81,12 @@ Requirements for UAT Assessment OJT di Server Development.
 | EXAM-07 | Phase 265 | Pending |
 | EXAM-08 | Phase 265 | Pending |
 | SUBMIT-01 | Phase 266 | Pending |
-| SUBMIT-02 | Phase 266 | Pending |
+| SUBMIT-02 | Phase 266 | Complete |
 | SUBMIT-03 | Phase 266 | Pending |
 | RESULT-01 | Phase 266 | Pending |
 | RESULT-02 | Phase 266 | Pending |
 | RESULT-03 | Phase 266 | Pending |
-| CERT-01 | Phase 266 | Pending |
+| CERT-01 | Phase 266 | Complete |
 | EDGE-01 | Phase 267 | Pending |
 | EDGE-02 | Phase 267 | Pending |
 | EDGE-03 | Phase 267 | Pending |

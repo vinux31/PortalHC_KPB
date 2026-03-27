@@ -77,7 +77,7 @@ Plans:
 
 Plans:
 - [x] 266-01: UAT review, submit, grading, hasil, sertifikat — 2 skenario (rino happy path + arsyad partial)
-- [ ] 266-02: Gap closure — fix ExamSummary warning logic + CertificatePdf 204
+- [x] 266-02: Gap closure — fix ExamSummary warning logic + CertificatePdf 204
 
 ### Phase 267: Resilience & Edge Cases
 **Goal**: Ujian tahan terhadap gangguan — koneksi putus, tab tertutup, browser refresh, dan timer habis ditangani dengan benar
@@ -118,6 +118,6 @@ Phases execute in numeric order: 264 → 265 → 266 → 267 → 268
 |-------|----------------|--------|-----------|
 | 264. Admin Setup Assessment OJT | 1/1 | Complete    | 2026-03-27 |
 | 265. Worker Exam Flow | 1/1 | Complete    | 2026-03-27 |
-| 266. Review, Submit & Hasil | 1/2 | In progress | - |
+| 266. Review, Submit & Hasil | 1/2 | In Progress|  |
 | 267. Resilience & Edge Cases | 0/0 | Not started | - |
 | 268. Monitoring Dashboard | 0/0 | Not started | - |
