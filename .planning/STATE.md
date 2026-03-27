@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 262-03-PLAN.md
-last_updated: "2026-03-27T02:30:29.147Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 263-01-PLAN.md
+last_updated: "2026-03-27T06:11:27.778Z"
 last_activity: 2026-03-27
 progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 10
+  completed_plans: 10
 ---
 
 # Project State: Portal HC KPB
@@ -20,12 +20,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Evidence-based competency tracking with automated assessment-to-CPDP integration
-**Current focus:** Phase 262 — fix-hardcoded-urls-in-views-for-sub-path-deployment-compatibility
+**Current focus:** Phase 263 — fix-database-stored-upload-paths-for-sub-path-deployment-compatibility
 
 ## Current Position
 
-Phase: 262
-Plan: Not started
+Phase: 263 (fix-database-stored-upload-paths-for-sub-path-deployment-compatibility) — EXECUTING
+Plan: 1 of 1
 Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 
 ## Accumulated Context
@@ -41,6 +41,7 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 - [Phase 262]: PathBase di appsettings.json, basePath/appUrl globals di _Layout.cshtml
 - [Phase 262]: NotificationBell actionUrl di-prefix basePath; form action dalam JS pakai basePath concatenation
 - [Phase 262]: Url.Action dengan anonymous object untuk complex renewParam query di CertificateHistoryModalContent
+- [Phase 263]: Url.Content for Razor DB paths, basePath for JS DB paths - consistent with Phase 262
 
 ### Roadmap Evolution
 
@@ -58,7 +59,7 @@ Milestone v9.1 completed (partial). Ready for `/gsd:new-milestone`.
 ## Session Continuity
 
 Last activity: 2026-03-27
-Stopped at: Completed 262-03-PLAN.md
+Stopped at: Completed 263-01-PLAN.md
 
 ### Quick Tasks Completed
 

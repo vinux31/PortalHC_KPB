@@ -127,7 +127,7 @@ Plans:
 **Goal:** Fix 2 lokasi render database upload path (/uploads/...) agar kompatibel dengan sub-path deployment /KPB-PortalHC/
 **Requirements**: D-01, D-02, D-03, D-04, D-05, D-06
 **Depends on:** Phase 262
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 263-01-PLAN.md — Fix render SupportingDocPath (Razor) dan evidencePath (JS) dengan PathBase prefix
+- [x] 263-01-PLAN.md — Fix render SupportingDocPath (Razor) dan evidencePath (JS) dengan PathBase prefix
